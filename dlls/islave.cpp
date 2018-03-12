@@ -33,17 +33,17 @@
 #define bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE bits_MEMORY_CUSTOM4
 
 // whether vortigaunts can spawn familiars (snarks and headcrabs)
-#define FEATURE_ISLAVE_FAMILIAR 1
+#define FEATURE_ISLAVE_FAMILIAR 0
 // whether vortigaunt can do coil attack
-#define FEATURE_ISLAVE_COIL 1
+#define FEATURE_ISLAVE_COIL 0
 // whether vortigaunts get health and energy when attack enemies
-#define FEATURE_ISLAVE_ENERGY 1
+#define FEATURE_ISLAVE_ENERGY 0
 // whether vortigaunts play some effects on idle
-#define FEATURE_ISLAVE_IDLEARMBEAM 1
+#define FEATURE_ISLAVE_IDLEARMBEAM 0
 // whether vortigaunt can have glowing hands
-#define FEATURE_ISLAVE_HANDGLOW 1
+#define FEATURE_ISLAVE_HANDGLOW 0
 // whether vortigaunt marked as squadleader has a different beam color
-#define FEATURE_ISLAVE_LEADER_COLOR 1
+#define FEATURE_ISLAVE_LEADER_COLOR 0
 
 #define FEATURE_ISLAVE_CAP_SQUAD 0
 

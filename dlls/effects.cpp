@@ -28,7 +28,7 @@
 #include "locus.h"
 #include "mod_features.h"
 
-#define FEATURE_ENV_WARPBALL 1
+#define FEATURE_ENV_WARPBALL 0
 #define FEATURE_ENV_XENMAKER 1
 
 // use a single sound (debris/alien_teleport.wav) for teleportation effect instead of two
