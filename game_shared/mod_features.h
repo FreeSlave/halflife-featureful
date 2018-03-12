@@ -9,7 +9,7 @@
 
 // Enable opfor specific changes, like more weapon slots, green hud, etc.
 // Follow the symbol to see what it actually changes
-#define FEATURE_OPFOR_SPECIFIC 0
+#define FEATURE_OPFOR_SPECIFIC 1
 
 #define FEATURE_OPFOR_WEAPON_SLOTS (0 || FEATURE_OPFOR_SPECIFIC)
 #define FEATURE_OPFOR_TITLE (0 || FEATURE_OPFOR_SPECIFIC)
@@ -20,8 +20,8 @@
 // Fast way to enable/disable entities that require extra content to be added in mod
 #define FEATURE_OPFOR_WEAPONS 1
 #define FEATURE_OPFOR_MONSTERS 1
-#define FEATURE_BSHIFT_MONSTERS 1
-#define FEATURE_SVENCOOP_MONSTERS 1
+#define FEATURE_BSHIFT_MONSTERS 0
+#define FEATURE_SVENCOOP_MONSTERS 0
 
 // New monsters
 #define FEATURE_ZOMBIE_BARNEY (0 || FEATURE_OPFOR_MONSTERS)
@@ -56,7 +56,7 @@
 #define FEATURE_OPFOR_ALLY_RELATIONSHIP (0 || FEATURE_OPFOR_SPECIFIC)
 
 // whether race x and alien military are enemies
-#define FEATURE_RACEX_AND_AMIL_ENEMIES 1
+#define FEATURE_RACEX_AND_AMIL_ENEMIES 0
 
 // whether race x and alien monsters are enemies
 #define FEATURE_RACEX_AND_AMONSTERS_ENEMIES 0
