@@ -141,13 +141,13 @@ void CPython::Reload()
 	bool result = PerformReload();
 	if (result)
 	{
-		m_flSoundDelay = 1.5f;
+		m_flSoundDelay = gpGlobals->time + 1.5;
 	}
 }
 
 void CPython::WeaponIdle()
 {
-	if( m_flSoundDelay != 0 && m_flSoundDelay <= UTIL_WeaponTimeBase() )
+	if( m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time )
 	{
 		EMIT_SOUND( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/357_reload1.wav", RANDOM_FLOAT( 0.8f, 0.9f ), ATTN_NORM );
 		m_flSoundDelay = 0.0f;
