@@ -270,6 +270,8 @@ void CZombie::Spawn()
 {
 	Precache();
 	ZombieSpawnHelper("models/zombie.mdl", GetSkillValue("zombie_health"));
+	if (pev->body == -1)
+		pev->body = RANDOM_LONG(0, 1);
 }
 
 //=========================================================
@@ -372,6 +374,8 @@ void CZombieBarney::Spawn()
 {
 	Precache();
 	ZombieSpawnHelper("models/zombie_barney.mdl", GetSkillValue("zombie_barney_health"));
+	if (pev->body == -1)
+		pev->body = RANDOM_LONG(0, 1);
 }
 
 void CZombieBarney::Precache()
@@ -413,6 +417,8 @@ void CZombieSoldier::Spawn()
 {
 	Precache();
 	ZombieSpawnHelper("models/zombie_soldier.mdl", GetSkillValue("zombie_soldier_health"));
+	if (pev->body == -1)
+		pev->body = RANDOM_LONG(0, 1);
 }
 
 void CZombieSoldier::Precache()
@@ -447,4 +453,6 @@ void CDeadZombieSoldier::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
+	if (pev->body == -1)
+		pev->body = RANDOM_LONG(0, 1);
 }
