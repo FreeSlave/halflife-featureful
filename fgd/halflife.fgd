@@ -4525,6 +4525,9 @@
 		27 : "downup"
 		28 : "jibber"
 		29 : "jabber"
+		30 : "throw_podium"
+		31 : "long_jump"
+		32 : "dead_on_stomach"
 	]
 	netname(string) : "Squad Name"
 	energy(string) : "Initial energy"
@@ -5426,14 +5429,15 @@
 		7 : "dieback"
 	]
 ]
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/player.mdl") = monster_hevsuit_dead : "Dead HEV Suit"
+
+@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/deadhaz.mdl") = monster_hevsuit_dead : "Dead HEV Suit"
 [
-	sequence(Choices) : "Animation Sequence (editor)" : 73 =
+	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
-		73 : "deadback"
-		74 : "deadsitting"
-		75 : "deadstomach"
-		76 : "deadtable"
+		0 : "deadback"
+		1 : "deadsitting"
+		2 : "deadstomach"
+		3 : "deadtable"
 	]
 	pose(Choices) : "Pose" : 0 =
 	[
@@ -7158,97 +7162,61 @@
 		34 : "diebackward"
 		35 : "headshot"
 		36 : "gutshot"
-		37 : "lying_on_back"
-		38 : "lying_on_stomach"
-		39 : "dead_sitting"
-		40 : "dead_table1"
-		41 : "dead_table2"
-		42 : "dead_table3"
-		43 : "barnacled1"
-		44 : "barnacled2"
-		45 : "barnacled3"
-		46 : "barnacled4"
-		47 : "console"
-		48 : "checktie"
-		49 : "dryhands"
-		50 : "tieshoe"
-		51 : "whiteboard"
-		52 : "studycart"
-		53 : "lean"
-		54 : "pondering"
-		55 : "pondering2"
-		56 : "pondering3"
-		57 : "buysoda"
-		58 : "pause"
-		59 : "yes"
-		60 : "no"
-		61 : "push_button"
-		62 : "converse1"
-		63 : "converse2"
-		64 : "retina"
-		65 : "talkleft"
-		66 : "talkright"
-		67 : "deskidle"
-		68 : "coffee"
-		69 : "franticbutton"
-		70 : "startle"
-		71 : "sitlookleft"
-		72 : "sitlookright"
-		73 : "sitscared"
-		74 : "sitting2"
-		75 : "sitting3"
-		76 : "cprscientist"
-		77 : "cprscientistrevive"
-		78 : "cowering_in_corner"
-		79 : "sstruggleidle"
-		80 : "sstruggle"
-		81 : "headcrabbed"
-		82 : "c1a0_catwalkidle"
-		83 : "c1a0_catwalk"
-		84 : "ceiling_dangle"
-		85 : "ventpull1"
-		86 : "ventpull2"
-		87 : "ventpullidle1"
-		88 : "ventpullidle2"
-		89 : "sitidle"
-		90 : "sitstand"
-		91 : "keypad"
-		92 : "panic1"
-		93 : "lookwindow"
-		94 : "wave"
-		95 : "pulldoor"
-		96 : "beatdoor"
-		97 : "fallingloop"
-		98 : "crawlwindow"
-		99 : "divewindow"
-		100 : "locked_door"
-		101 : "push_button2"
-		102 : "unlock_door"
-		103 : "quicklook"
-		104 : "handrailidle"
-		105 : "handrail"
-		106 : "hanging_idle"
-		107 : "fall"
-		108 : "scientist_get_pulled"
-		109 : "hanging_idle2"
-		110 : "fall_elevator"
-		111 : "scientist_idlewall"
-		112 : "ickyjump_sci"
-		113 : "haulscientist"
-		114 : "c1a4_wounded_idle"
-		115 : "c1a4_dying_speech"
-		116 : "tentacle_grab"
-		117 : "helicack"
-		118 : "windive"
-		119 : "scicrashidle"
-		120 : "scicrash"
-		121 : "onguard"
-		122 : "seeya"
-		123 : "rocketcrawl"
-		124 : "portal"
-		125 : "gluonshow"
-		126 : "crouch"
-		127 : "kneel"
+		37 : "germandeath"
+		38 : "lying_on_back"
+		39 : "lying_on_stomach"
+		40 : "dead_sitting"
+		41 : "dead_table1"
+		42 : "dead_table2"
+		43 : "dead_table3"
+		44 : "barnacled1"
+		45 : "barnacled2"
+		46 : "barnacled3"
+		47 : "barnacled4"
+		48 : "cowering_in_corner"
+		49 : "cprscientist"
+		50 : "cprscientistrevive"
+		51 : "console"
+		52 : "dryhands"
+		53 : "tieshoe"
+		54 : "writeboard"
+		55 : "studycart"
+		56 : "lean"
+		57 : "pondering"
+		58 : "pondering2"
+		59 : "pondering3"
+		60 : "pause"
+		61 : "yes"
+		62 : "no"
+		63 : "push_button"
+		64 : "converse1"
+		65 : "converse2"
+		66 : "retina"
+		67 : "coffee"
+		68 : "franticbutton"
+		69 : "startle"
+		70 : "of1_a1_cpr1"
+		71 : "hanging_idle"
+		72 : "of1_a1_cpr2"
+		73 : "of1a1_sci1_stretcher"
+		74 : "of1a1_sci2_stretcher"
+		75 : "of4a1_hologram_clipboard1"
+		76 : "of4a1_hologram_clipboard2"
+		77 : "of1a1_prod_headcrab"
+		78 : "cage_float"
+		79 : "sitidle"
+		80 : "sitstand"
+		81 : "table_twitch"
+		82 : "interogation_idle"
+		83 : "interogation"
+		84 : "cell_idle"
+		85 : "fallingloop"
+		86 : "kneel_idle"
+		87 : "cpr_gesture1"
+		88 : "cpr_gesture2"
+		89 : "hanging_idle2"
+		90 : "fall_elevator"
+		91 : "thrown_out_window"
 	]
 ]
 @PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/scientist.mdl") = monster_scientist_dead : "Dead Scientist"
@@ -7271,14 +7239,14 @@
 		5 : "Table2"
 		6 : "Table3"
 	]
-	sequence(Choices) : "Animation Sequence (editor)" : 37 =
+	sequence(Choices) : "Animation Sequence (editor)" : 38 =
 	[
-		37 : "lying_on_back"
-		38 : "lying_on_stomach"
-		39 : "dead_sitting"
-		40 : "dead_table1"
-		41 : "dead_table2"
-		42 : "dead_table3"
+		38 : "lying_on_back"
+		39 : "lying_on_stomach"
+		40 : "dead_sitting"
+		41 : "dead_table1"
+		42 : "dead_table2"
+		43 : "dead_table3"
 	]
 ]
 @PointClass base(Monster) size(-14 -14 22, 14 14 72) studio("models/scientist.mdl") = monster_sitting_scientist : "Sitting Scientist"
@@ -7484,9 +7452,15 @@
 		1 : "Ceiling Mount"
 	]
 ]
-@PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/wheelchair_sci.mdl") = monster_wheelchair : "Dr. Keller" []
+//@PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/wheelchair_sci.mdl") = monster_wheelchair : "Dr. Keller" []
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = monster_zombie : "Scientist Zombie"
 [
+	body(Choices) : "Body" : 0 =
+	[
+		-1 : "Random"
+		0 : "Scientist"
+		1 : "Worker"
+	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
 		0 : "idle1"
@@ -7552,6 +7526,12 @@
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_barney.mdl") = monster_zombie_barney : "Barney Zombie"
 [
+	body(Choices) : "Body" : 0 =
+	[
+		-1 : "Random"
+		0 : "Barney"
+		1 : "HEV"
+	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
 		0 : "idle1"
@@ -7617,6 +7597,12 @@
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_soldier.mdl") = monster_zombie_soldier : "Soldier Zombie"
 [
+	body(Choices) : "Body" : 0 =
+	[
+		-1 : "Random"
+		0 : "Soldier"
+		1 : "BlackOp"
+	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
 		0 : "idle1"
