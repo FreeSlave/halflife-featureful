@@ -491,6 +491,8 @@ public:
 	bool m_bSentMessages;
 	bool m_bSentVisibilityMessages;
 
+	bool m_bRecruitsChecked;
+
 	bool m_bIsClimbing;
 	float m_flLastClimbTime;
 	EHANDLE m_hRope;

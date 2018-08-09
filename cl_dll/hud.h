@@ -138,6 +138,9 @@ public:
 	int MsgFunc_WeapPickup( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_ItemPickup( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_AddFollower( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_UpdFollower( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_DelFollower( const char *pszName, int iSize, void *pbuf );
 
 	void SlotInput( int iSlot );
 	void _cdecl UserCmd_Slot1();

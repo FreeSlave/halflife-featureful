@@ -35,6 +35,10 @@
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 
+extern int gmsgAddFollower;
+extern int gmsgUpdateFollower;
+extern int gmsgRemoveFollower;
+
 //=========================================================
 //
 //=========================================================
@@ -210,6 +214,7 @@ public:
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int DefaultToleranceLevel() override { return TOLERANCE_HIGH; }
 	int IRelationship( CBaseEntity *pTarget ) override;
+	int FollowerType() override {return FOLLOWER_TYPE_GRUNT;}
 
 	void SetHead(int head) override;
 
@@ -316,6 +321,7 @@ public:
 	void StopFollowing( bool clearSchedule, bool saySentence = true ) override;
 	void ClearFollowedPlayer() override;
 	bool SetAnswerQuestion(CTalkMonster *pSpeaker) override;
+	int FollowerType() override {return FOLLOWER_TYPE_MEDIC;}
 
 	void DropMyItems(bool isGibbed);
 
@@ -2929,6 +2935,7 @@ public:
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void PrescheduleThink() override;
 	bool CanFireWhileRappelling() override { return false; }
+	int FollowerType() override {return FOLLOWER_TYPE_TORCH;}
 
 	void DropMyItems(bool isGibbed);
 

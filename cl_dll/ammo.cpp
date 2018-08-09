@@ -41,6 +41,7 @@ WEAPON *gpLastSel;		// Last weapon menu selection
 client_sprite_t *GetSpriteList(client_sprite_t *pList, const char *psz, int iRes, int iCount);
 
 WeaponsResource gWR;
+FollowerResource gFR;
 
 int g_weaponselect = 0;
 
@@ -320,6 +321,10 @@ DECLARE_MESSAGE( m_Ammo, WeapPickup )    // flashes a weapon pickup record
 DECLARE_MESSAGE( m_Ammo, HideWeapon )	// hides the weapon, ammo, and crosshair displays temporarily
 DECLARE_MESSAGE( m_Ammo, ItemPickup )
 
+DECLARE_MESSAGE( m_Ammo, AddFollower )
+DECLARE_MESSAGE( m_Ammo, UpdFollower )
+DECLARE_MESSAGE( m_Ammo, DelFollower )
+
 DECLARE_COMMAND( m_Ammo, Slot1 )
 DECLARE_COMMAND( m_Ammo, Slot2 )
 DECLARE_COMMAND( m_Ammo, Slot3 )
@@ -353,6 +358,10 @@ int CHudAmmo::Init()
 	HOOK_MESSAGE( HideWeapon );
 	HOOK_MESSAGE( AmmoX );
 
+	HOOK_MESSAGE( AddFollower );
+	HOOK_MESSAGE( UpdFollower );
+	HOOK_MESSAGE( DelFollower );
+
 	HOOK_COMMAND( "slot1", Slot1 );
 	HOOK_COMMAND( "slot2", Slot2 );
 	HOOK_COMMAND( "slot3", Slot3 );
@@ -376,6 +385,7 @@ int CHudAmmo::Init()
 
 	gWR.Init();
 	gHR.Init();
+	gFR.Init();
 
 	return 1;
 }
@@ -390,6 +400,7 @@ void CHudAmmo::Reset()
 
 	gWR.Reset();
 	gHR.Reset();
+	gFR.Reset();
 
 	//VidInit();
 	wrect_t nullrc = {0,};
@@ -420,6 +431,7 @@ int CHudAmmo::VidInit()
 
 	// If we've already loaded weapons, let's get new sprites
 	gWR.LoadAllWeaponSprites();
+	gFR.LoadSprites();
 
 	const int res = GetSpriteRes( ScreenWidth, ScreenHeight );
 	int factor;
@@ -653,6 +665,34 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 		}
 	}
 
+	return 1;
+}
+
+int CHudAmmo::MsgFunc_AddFollower(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	int type = READ_BYTE();
+	int entIndex = READ_LONG();
+	int health = READ_SHORT();
+	int maxHealth = READ_SHORT();
+	gFR.AddFollower(type, entIndex, health, maxHealth);
+	return 1;
+}
+
+int CHudAmmo::MsgFunc_UpdFollower(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	int entIndex = READ_LONG();
+	int health = READ_SHORT();
+	gFR.UpdateFollower(entIndex, health);
+	return 1;
+}
+
+int CHudAmmo::MsgFunc_DelFollower(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	int entIndex = READ_LONG();
+	gFR.RemoveFollower(entIndex);
 	return 1;
 }
 
@@ -963,6 +1003,8 @@ int CHudAmmo::Draw( float flTime )
 
 	if( !gHUD.HasSuit() && !gHUD.DrawHUDNoSuit() )
 		return 1;
+
+	gFR.DrawFollowers( flTime );
 
 	if( ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) ) )
 		return 1;
@@ -1359,4 +1401,198 @@ client_sprite_t *GetSpriteList( client_sprite_t *pList, const char *psz, int iRe
 	}
 
 	return NULL;
+}
+
+void FollowerResource::LoadSprites()
+{
+	grunt_full = gHUD.GetSpriteIndex( "grunt_full" );
+	grunt_empty = gHUD.GetSpriteIndex( "grunt_empty" );
+	medic_full = gHUD.GetSpriteIndex( "medic_full" );
+	medic_empty = gHUD.GetSpriteIndex( "medic_empty" );
+	torch_full = gHUD.GetSpriteIndex( "torch_full" );
+	torch_empty = gHUD.GetSpriteIndex( "torch_empty" );
+}
+
+void FollowerResource::AddFollower(int type, int entIndex, int health, int maxHealth)
+{
+	if (!type)
+		return;
+
+	int i;
+	bool found = false;
+	for (i=0; i<MAX_FOLLOWERS; ++i)
+	{
+		if (followers[i].entIndex == entIndex)
+		{
+			found = true;
+			break;
+		}
+	}
+	if (!found)
+	{
+		for (i=0; i<MAX_FOLLOWERS; ++i)
+		{
+			if (followers[i].entIndex == 0)
+				break;
+		}
+	}
+	if (i < MAX_FOLLOWERS)
+	{
+		followers[i].type = type;
+		followers[i].entIndex = entIndex;
+		followers[i].health = health;
+		followers[i].maxHealth = maxHealth;
+	}
+}
+
+void FollowerResource::UpdateFollower(int entIndex, int health)
+{
+	int i;
+	for (i=0; i<MAX_FOLLOWERS; ++i)
+	{
+		if (followers[i].entIndex == entIndex)
+		{
+			followers[i].health = health;
+			break;
+		}
+	}
+}
+
+void FollowerResource::RemoveFollower(int entIndex)
+{
+	int i;
+	if (entIndex == 0)
+	{
+		// Clear all followers
+		for (i=0; i<MAX_FOLLOWERS; ++i)
+		{
+			followers[i].entIndex = 0;
+		}
+	}
+	else
+	{
+		for (i=0; i<MAX_FOLLOWERS; ++i)
+		{
+			if (followers[i].entIndex == entIndex)
+			{
+				followers[i].entIndex = 0;
+				break;
+			}
+		}
+	}
+}
+
+// remove follower upon death after this amount of time
+#define REMOVE_FOLLOWER_TIME 4.0f
+
+void FollowerResource::DrawFollowers( float flTime )
+{
+	int i;
+	int followerCount = 0;
+	for (i=0; i<MAX_FOLLOWERS; ++i)
+	{
+		if (followers[i].entIndex)
+		{
+			followerCount++;
+		}
+	}
+
+	int xpos = 0;
+	for (i=0; i<MAX_FOLLOWERS; ++i)
+	{
+		if (followers[i].entIndex && followers[i].maxHealth)
+		{
+			int sprite_full, sprite_empty;
+
+			int r, g, b;
+			if (gHUD.m_Nightvision.IsOn())
+				UnpackRGB( r, g, b, 0x00FFFFFF );
+			else
+				UnpackRGB( r, g, b, RGB_GREENISH );
+
+
+			switch (followers[i].type) {
+			case 1:
+				sprite_full = grunt_full;
+				sprite_empty = grunt_empty;
+				break;
+			case 2:
+				sprite_full = medic_full;
+				sprite_empty = medic_empty;
+				break;
+			case 3:
+				sprite_full = torch_full;
+				sprite_empty = torch_empty;
+				break;
+			case 4:
+				sprite_full = grunt_full;
+				sprite_empty = grunt_empty;
+				r = 240;
+				g = 240;
+				b = 240;
+				break;
+			case 5:
+				sprite_full = grunt_full;
+				sprite_empty = grunt_empty;
+				r = 95;
+				g = 95;
+				b = 255;
+				break;
+			default:
+				sprite_full = grunt_full;
+				sprite_empty = grunt_empty;
+				break;
+			}
+
+			if (sprite_empty < 0 || sprite_full < 0)
+				continue;
+
+			HSPRITE hsprite1 = gHUD.GetSprite( sprite_empty );
+			HSPRITE hsprite2 = gHUD.GetSprite( sprite_full );
+			wrect_t rect = gHUD.GetSpriteRect( sprite_empty );
+			wrect_t rect2 = gHUD.GetSpriteRect( sprite_full );
+			int height = (rect2.bottom - rect2.top);
+			int top = rect2.top;
+
+			int width = (rect.right - rect.left) + 6;
+			if (!xpos)
+				xpos = CHud::Renderer().PerceviedScreenWidth() - width * followerCount;
+			int ypos = CHud::Renderer().PerceviedScreenHeight() - (32 + gHR.iHistoryGap * 2);
+
+			if (followers[i].health <= 0 && !followers[i].removeTime)
+				followers[i].removeTime = flTime + REMOVE_FOLLOWER_TIME;
+
+			float healthFraction = (float)followers[i].health/(float)followers[i].maxHealth;
+			if (healthFraction < 0.4)
+			{
+				r = 255;
+				g = 0;
+				b = 0;
+			}
+
+			if (followers[i].removeTime)
+			{
+				if (followers[i].removeTime <= flTime)
+				{
+					followers[i].removeTime = 0;
+					followers[i].entIndex = 0;
+					continue;
+				}
+				float a = (followers[i].removeTime - flTime) / REMOVE_FOLLOWER_TIME * 254;
+				ScaleColors(r,g,b,a);
+			}
+
+			CHud::Renderer().SPR_Set( hsprite1, r, g, b );
+			CHud::Renderer().SPR_DrawAdditive( 0, xpos, ypos, &rect );
+
+			rect2.top = top + (1.0 - healthFraction) * height;
+			if( rect2.bottom > rect2.top )
+			{
+				CHud::Renderer().SPR_Set( hsprite2, r, g, b );
+				CHud::Renderer().SPR_DrawAdditive( 0, xpos, ypos + (rect2.top - top), &rect2 );
+			}
+
+			xpos += width;
+		}
+	}
 }

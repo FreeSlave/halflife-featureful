@@ -132,6 +132,7 @@ public:
 	void PainSound() override;
 
 	const char* DefaultSentenceGroup(int group) override;
+	int FollowerType() override { return FOLLOWER_TYPE_SCIENTIST; }
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1160,6 +1161,7 @@ bool CScientist::CanHeal()
 
 void CScientist::StartFollowingHealTarget(CBaseEntity *pTarget)
 {
+	RemoveFromPlayerFollowers();
 	StopScript();
 
 	m_hTargetEnt = pTarget;

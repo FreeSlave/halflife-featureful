@@ -105,6 +105,8 @@ public:
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying(bool gibbed) override;
 
+	int FollowerType() { return FOLLOWER_TYPE_SECURITY_GUARD; }
+
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];

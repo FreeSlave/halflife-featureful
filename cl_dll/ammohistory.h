@@ -140,4 +140,43 @@ public:
 };
 
 extern HistoryResource gHR;
+
+#define MAX_FOLLOWERS 16
+
+class FollowerResource
+{
+public:
+	void Init( void )
+	{
+		Reset();
+	}
+
+	void Reset( void )
+	{
+		memset( followers, 0, sizeof followers );
+	}
+
+	void LoadSprites();
+	void AddFollower(int type, int entIndex, int health, int maxHealth);
+	void UpdateFollower(int entIndex, int health);
+	void RemoveFollower(int entIndex);
+	void DrawFollowers(float flTime);
+
+	struct Follower
+	{
+		int type;
+		int entIndex;
+		int health;
+		int maxHealth;
+		float removeTime;
+	};
+
+	Follower followers[MAX_FOLLOWERS];
+	int grunt_full, grunt_empty;
+	int medic_full, medic_empty;
+	int torch_full, torch_empty;
+};
+
+extern FollowerResource gFR;
+
 #endif // AMMOHISTORY_H

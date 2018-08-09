@@ -798,11 +798,11 @@ void ClientCommand( edict_t *pEntity )
 			UTIL_SetOrigin(pev, pos);
 		}
 	}
-	else if ( FStrEq( pcmd, "recruit_followers" ) )
+	else if ( FStrEq( pcmd, "recruit_followers" ) || FStrEq( pcmd, "call_squad" ) )
 	{
 		pPlayer->RecruitFollowers();
 	}
-	else if ( FStrEq( pcmd, "disband_followers" ) )
+	else if ( FStrEq( pcmd, "disband_followers" ) || FStrEq( pcmd, "dissolve_squad" ) )
 	{
 		pPlayer->DisbandFollowers();
 	}

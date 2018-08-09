@@ -578,6 +578,7 @@ void CCineMonster::PossessEntity()
 
 		pTarget->SetScriptedMoveGoal(this);
 		pTarget->m_pCine = this;
+		pTarget->PossessedByScript();
 		pTarget->m_hTargetEnt = this;
 
 		if (m_iszAttack)

@@ -240,6 +240,10 @@ int gmsgWeapons = 0;
 int gmsgMaxClip = 0;
 int gmsgItems = 0;
 
+int gmsgAddFollower = 0;
+int gmsgUpdateFollower = 0;
+int gmsgRemoveFollower = 0;
+
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0;
 int gmsgStatusIcon = 0;
@@ -355,6 +359,10 @@ void LinkUserMessages()
 	gmsgWeapons = REG_USER_MSG( "Weapons", 8 );
 	gmsgMaxClip = REG_USER_MSG( "MaxClip", 3 );
 	gmsgItems = REG_USER_MSG( "Items", 4 );
+
+	gmsgAddFollower = REG_USER_MSG("AddFollower", 9);
+	gmsgUpdateFollower = REG_USER_MSG("UpdFollower", 6);
+	gmsgRemoveFollower = REG_USER_MSG("DelFollower", 4);
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
 	gmsgStatusValue = REG_USER_MSG( "StatusValue", 3 );
@@ -3747,6 +3755,46 @@ void CBasePlayer::PostThink()
 
 	if( !IsAlive() )
 		goto pt_end;
+
+	if (!m_bRecruitsChecked)
+	{
+		m_bRecruitsChecked = true;
+		if (gmsgRemoveFollower)
+		{
+			// Clear followers
+			MESSAGE_BEGIN( MSG_ONE, gmsgRemoveFollower, NULL, pev );
+				WRITE_LONG(0);
+			MESSAGE_END();
+		}
+		if (gmsgAddFollower)
+		{
+			for (int j=0; j<ARRAYSIZE(CTalkMonster::m_szFriends); ++j)
+			{
+				if (!CTalkMonster::m_szFriends[j].name[0])
+					break;
+				if (!CTalkMonster::m_szFriends[j].canFollow)
+					continue;
+				CBaseEntity *pFriend = NULL;
+				const char* pszFriend = CTalkMonster::m_szFriends[j].name;
+				while( ( pFriend = UTIL_FindEntityByClassname( pFriend, pszFriend ) ) )
+				{
+					CFollowingMonster *pMonster = CanRecruit(pFriend, this);
+					if (!pMonster)
+						continue;
+					CTalkMonster* talkMonster = (CTalkMonster*)pMonster;
+					if (talkMonster->IsFollowingPlayer(this))
+					{
+						MESSAGE_BEGIN( MSG_ONE, gmsgAddFollower, NULL, pev );
+							WRITE_BYTE( talkMonster->FollowerType() );
+							WRITE_LONG(talkMonster->entindex());
+							WRITE_SHORT((int)ceil(talkMonster->pev->health));
+							WRITE_SHORT((int)ceil(talkMonster->pev->max_health));
+						MESSAGE_END();
+					}
+				}
+			}
+		}
+	}
 
 	// Handle Tank controlling
 	if( m_hTankControls != 0 )

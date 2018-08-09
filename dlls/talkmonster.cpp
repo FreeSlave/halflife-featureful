@@ -24,6 +24,10 @@
 #include	"animation.h"
 #include	"string_utils.h"
 
+extern int gmsgAddFollower;
+extern int gmsgUpdateFollower;
+extern int gmsgRemoveFollower;
+
 //=========================================================
 // Talking monster base class
 // Used for scientists and barneys
@@ -580,9 +584,16 @@ KilledResult CTalkMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 
 void CTalkMonster::OnDying(bool gibbed)
 {
+	SendUpdateToPlayer();
 	// Don't finish that sentence
 	StopTalking();
 	CFollowingMonster::OnDying(gibbed);
+}
+
+void CTalkMonster::UpdateOnRemove()
+{
+	RemoveFromPlayerFollowers();
+	CFollowingMonster::UpdateOnRemove();
 }
 
 void CTalkMonster::StartMonster()
@@ -683,6 +694,22 @@ void CTalkMonster::StartFollowing(CBaseEntity *pLeader, bool saySentence)
 {
 	CFollowingMonster::StartFollowing(pLeader, saySentence);
 	SetBits( m_bitsSaid, bit_saidHelloPlayer );	// Don't say hi after you've started following
+
+	if (gmsgAddFollower && FollowerType() && pLeader->IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgAddFollower, NULL, pLeader->pev );
+			WRITE_BYTE( FollowerType() );
+			WRITE_LONG(entindex());
+			WRITE_SHORT((int)ceil(pev->health));
+			WRITE_SHORT((int)ceil(pev->max_health));
+		MESSAGE_END();
+	}
+}
+
+void CTalkMonster::StopFollowing(bool clearSchedule, bool saySentence)
+{
+	RemoveFromPlayerFollowers();
+	CFollowingMonster::StopFollowing(clearSchedule, saySentence);
 }
 
 // UNDONE: Keep a follow time in each follower, make a list of followers in this function and do LRU
@@ -1272,6 +1299,7 @@ bool CTalkMonster::SetAnswerQuestion( CTalkMonster *pSpeaker )
 TakeDamageResult CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	TakeDamageResult ret = CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
+	SendUpdateToPlayer();
 	if( IsAlive() )
 	{
 		// if player damaged this entity, have other friends talk about it
@@ -1412,6 +1440,7 @@ bool CTalkMonster::IsHeavilyWounded()
 int CTalkMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType)
 {
 	int ret = CFollowingMonster::TakeHealth(pHealer, flHealth, bitsDamageType);
+	SendUpdateToPlayer();
 
 	if (pHealer && pHealer->IsPlayer() && IsFriendWithPlayerBeforeProvoked())
 	{
@@ -1860,4 +1889,36 @@ bool CTalkMonster::AlertableByFriendDeath()
 	default:
 		return AlertableByFriendDeathDefault();
 	}
+}
+
+void CTalkMonster::SendUpdateToPlayer()
+{
+	CBaseEntity* player = FollowedPlayer();
+	if (gmsgUpdateFollower && FollowerType() && player != 0)
+	{
+		int health = ceil(pev->health);
+		if (!IsFullyAlive())
+			health = 0;
+		MESSAGE_BEGIN( MSG_ONE, gmsgUpdateFollower, NULL, player->pev );
+			WRITE_LONG(entindex());
+			WRITE_SHORT( health );
+		MESSAGE_END();
+	}
+}
+
+void CTalkMonster::RemoveFromPlayerFollowers()
+{
+	CBaseEntity* player = FollowedPlayer();
+	if (gmsgRemoveFollower && FollowerType() && player != 0)
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgRemoveFollower, NULL, player->pev );
+			WRITE_LONG(entindex());
+		MESSAGE_END();
+	}
+}
+
+void CTalkMonster::PossessedByScript()
+{
+	RemoveFromPlayerFollowers();
+	CFollowingMonster::PossessedByScript();
 }

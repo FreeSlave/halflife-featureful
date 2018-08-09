@@ -26,7 +26,7 @@
 HistoryResource gHR;
 
 #define AMMO_PICKUP_GAP ( gHR.iHistoryGap + 5 )
-#define AMMO_PICKUP_PICK_HEIGHT		( 32 + ( gHR.iHistoryGap * 2 ) )
+#define AMMO_PICKUP_PICK_HEIGHT		( 80 + ( gHR.iHistoryGap * 2 ) )
 #define AMMO_PICKUP_HEIGHT_MAX		( ScreenHeight - 100 )
 
 void HistoryResource::AddToHistory( int iType, int iId, int iCount )
