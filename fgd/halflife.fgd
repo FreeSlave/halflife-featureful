@@ -715,8 +715,6 @@
 		30: "Sporelauncher"
 		31: "Displacer"
 		32: "9mm Box"
-		33: "Uzi"
-		//34: "Uzi akimbo"
 		35: "Desert Eagle"
 		36: "Barnacle Grapple"
 		37: "Medkit (portable)"
@@ -4039,8 +4037,6 @@
 
 @PointClass base(Targetname) = info_null : "info_null (spotlight target)" []
 
-@PointClass base(Targetname, Target) = info_pitworm_steam_lock : "Pitworm Steam Lock" []
-
 @PointClass base(PlayerClass) sequence(2) studio("models/player.mdl") = info_player_coop : "Player cooperative start" []
 @PointClass base(PlayerClass) sequence(2) studio("models/player.mdl") = info_player_deathmatch : "Player deathmatch start"
 [
@@ -4075,25 +4071,6 @@
 	health(integer) : "Armor Supplied"
 ]
 @PointClass base(ArmorItem) studio("models/w_battery.mdl") = item_battery : "HEV battery" []
-@PointClass base(ArmorItem) studio("models/barney_vest.mdl") = item_armorvest : "Armor vest"
-[
-	sequence(choices) : "Placement" : 0 =
-	[
-		0 : "Standing"
-		1 : "Lying"
-		2 : "Lying upside-down"
-		3 : "Reclining"
-	]
-]
-@PointClass base(ArmorItem) studio("models/barney_helmet.mdl") = item_helmet : "Helmet"
-[
-	sequence(choices) : "Placement" : 0 =
-	[
-		0 : "Hanging"
-		1 : "Lying"
-		2 : "Lying upside-down"
-	]
-]
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_flashlight.mdl") = item_flashlight : "Flashlight" []
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_medkit.mdl") = item_healthkit : "Small Health Kit"
 [
@@ -4156,17 +4133,6 @@
 	]
 ]
 
-@BaseClass base(Targetname, Angles) = ItemRecharger
-[
-	TriggerOnEmpty(target_destination) : "Trigger On Empty"
-	TriggerOnFirstUse(target_destination) : "Trigger On First Use"
-	CustomJuice(integer) : "Custom Juice Amount"
-	model(studio) : "Custom Model"
-]
-
-@PointClass size(-12 -16 0, 12 16 36) base(ItemRecharger, EntityTemplate, CustomObjectHint, Global) studio("models/health_charger_body.mdl") = item_healthcharger : "Wall Health Kit" []
-@PointClass size(-12 -16 0, 12 16 36) base(ItemRecharger, EntityTemplate, CustomObjectHint, Global) studio("models/hev.mdl") = item_recharge : "Wall Recharger" []
-
 @PointClass base(Targetname, Global, Angles, CustomObjectHint) size(-16 -16 0, 16 16 48 ) studio("models/eye_scanner.mdl") = item_eyescanner : "Retinal Scanner"
 [
 	unlocked_target(target_destination) : "Unlocked target"
@@ -4180,12 +4146,6 @@
 	denied_sentence(string) : "Denied sentence"
 	sentence_delay(string) : "Sentence delay" : : "Delay between sound and sentence"
 	//reset_delay(integer) : "Reset delay"
-]
-
-@PointClass base(Weapon, Targetx) size(-16 -16 0, 16 16 36) studio("models/nuke_case.mdl") = item_nuclearbomb : "Nuclear Bomb"
-[
-	initialstate(integer) : "Initial State" : 0
-	wait(integer) : "Wait" : 1
 ]
 
 //
@@ -4562,14 +4522,14 @@
 		4 : "On Stomach (hands backward)"
 	]
 ]
-@PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/Tor.mdl") = monster_alien_tor : "Alien Tor"
-[
-	netname(string) : "Squad Name"
-	spawnflags(Flags) =
-	[
-		32 : "SquadLeader" : 0
-	]
-]
+// @PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/Tor.mdl") = monster_alien_tor : "Alien Tor"
+// [
+// 	netname(string) : "Squad Name"
+// 	spawnflags(Flags) =
+// 	[
+// 		32 : "SquadLeader" : 0
+// 	]
+// ]
 @PointClass base(Apache) size(-360 -360 -172, 360 360 8) studio("models/apache.mdl") = monster_apache : "Apache" []
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 36) studio("models/baby_headcrab.mdl") = monster_babycrab : "Baby Headcrab"
 [
@@ -4724,231 +4684,6 @@
 		0 : "Default"
 		1 : "Custom 1"
 		2 : "Custom 2"
-	]
-]
-@PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/barniel.mdl") = monster_barniel : "Barniel"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle1"
-		1 : "idle2"
-		2 : "idle3"
-		3 : "idle4"
-		4 : "walk"
-		5 : "run"
-		6 : "shootgun"
-		7 : "shootgun2"
-		8 : "draw"
-		9 : "disarm"
-		10 : "reload"
-		11 : "turnleft"
-		12 : "turnright"
-		13 : "laflinch"
-		14 : "raflinch"
-		15 : "llflinch"
-		16 : "rlflinch"
-		17 : "smlflinch"
-		18 : "cower_stand"
-		19 : "locked_door"
-		20 : "fall_loop"
-		21 : "barn_wave"
-		22 : "beat_grunt"
-		23 : "beat_gruntidle"
-		24 : "flashlight"
-		25 : "diesimple"
-		26 : "dieviolent"
-		27 : "diegutshot"
-		28 : "dieforward"
-		29 : "diebackward"
-		30 : "diecrump"
-		31 : "barnaclehit"
-		32 : "barnaclepull"
-		33 : "barnaclecrunch"
-		34 : "barnaclechew"
-		35 : "lying_on_back"
-		36 : "lying_on_side"
-		37 : "lying_on_stomach"
-		38 : "stuffed_in_vent"
-		39 : "standing_idle"
-		40 : "cprbarney"
-		41 : "cprbarneyrevive"
-		42 : "barney_dragvent"
-		43 : "dying_barney"
-		44 : "dying_barneyidle"
-		45 : "dying_friend"
-		46 : "dying_friendidle"
-		47 : "c1a3_bidle"
-		48 : "c1a3_ventb"
-		49 : "c1a3_emergeidle"
-		50 : "c1a3_emerge"
-		51 : "haulbarney"
-		52 : "intropush"
-		53 : "fence"
-		54 : "sit1"
-		55 : "almostidle"
-		56 : "almost"
-		57 : "laseridle"
-		58 : "laser_top"
-		59 : "laser_bottom"
-		60 : "barneyfallidle"
-		61 : "barneyfall"
-		62 : "c3a2_draw"
-		63 : "unlatch"
-		64 : "retina"
-		65 : "relaxstand"
-		66 : "assassinated"
-		67 : "trackswitch"
-		68 : "pepsiswing"
-		69 : "pepsipush"
-		70 : "buttonpush"
-		71 : "sleep"
-		72 : "lookfly1"
-		73 : "lookfly2"
-		74 : "lookfly3"
-		75 : "draw_as"
-		76 : "reverse_draw_as"
-		77 : "as_handrail"
-	]
-	bodystate(Choices) : "Gun State" =
-	[
-		-1 : "Random"
-		0 : "Gun Holstered"
-		1 : "Gun Drawn"
-	]
-	spawnflags(Flags) =
-	[
-		1024: "Don't Drop Gun" : 0
-	]
-]
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/barniel.mdl") = monster_barniel_dead : "Dead Barniel"
-[
-	pose(Choices) : "Pose" : 0 =
-	[
-		0 : "On back"
-		1 : "On side"
-		2 : "On stomach"
-	]
-	sequence(Choices) : "Animation Sequence (editor)" : 35 =
-	[
-		35 : "lying_on_back"
-		36 : "lying_on_side"
-		37 : "lying_on_stomach"
-	]
-]
-@PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/kate.mdl") = monster_kate : "Kate"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle1"
-		1 : "idle2"
-		2 : "idle3"
-		3 : "idle4"
-		4 : "walk"
-		5 : "run"
-		6 : "shootgun"
-		7 : "shootgun2"
-		8 : "draw"
-		9 : "disarm"
-		10 : "reload"
-		11 : "turnleft"
-		12 : "turnright"
-		13 : "laflinch"
-		14 : "raflinch"
-		15 : "llflinch"
-		16 : "rlflinch"
-		17 : "smlflinch"
-		18 : "cower_stand"
-		19 : "locked_door"
-		20 : "fall_loop"
-		21 : "barn_wave"
-		22 : "beat_grunt"
-		23 : "beat_gruntidle"
-		24 : "flashlight"
-		25 : "diesimple"
-		26 : "dieviolent"
-		27 : "diegutshot"
-		28 : "dieforward"
-		29 : "diebackward"
-		30 : "diecrump"
-		31 : "barnaclehit"
-		32 : "barnaclepull"
-		33 : "barnaclecrunch"
-		34 : "barnaclechew"
-		35 : "lying_on_back"
-		36 : "lying_on_side"
-		37 : "lying_on_stomach"
-		38 : "stuffed_in_vent"
-		39 : "standing_idle"
-		40 : "cprbarney"
-		41 : "cprbarneyrevive"
-		42 : "barney_dragvent"
-		43 : "dying_barney"
-		44 : "dying_barneyidle"
-		45 : "dying_friend"
-		46 : "dying_friendidle"
-		47 : "c1a3_bidle"
-		48 : "c1a3_ventb"
-		49 : "c1a3_emergeidle"
-		50 : "c1a3_emerge"
-		51 : "haulbarney"
-		52 : "intropush"
-		53 : "fence"
-		54 : "sit1"
-		55 : "almostidle"
-		56 : "almost"
-		57 : "laseridle"
-		58 : "laser_top"
-		59 : "laser_bottom"
-		60 : "barneyfallidle"
-		61 : "barneyfall"
-		62 : "c3a2_draw"
-		63 : "unlatch"
-		64 : "retina"
-		65 : "relaxstand"
-		66 : "assassinated"
-		67 : "trackswitch"
-		68 : "pepsiswing"
-		69 : "pepsipush"
-		70 : "buttonpush"
-		71 : "lookfly1"
-		72 : "lookfly2"
-		73 : "lookfly3"
-		74 : "hi"
-		75 : "surrender"
-		76 : "converse"
-		77 : "idle5"
-		78 : "limpingwalk"
-		79 : "limpingrun"
-		80 : "draw_as"
-		81 : "reverse_draw_as"
-		82 : "karate_lesson"
-		83 : "karate_hit"
-		84 : "karate_bighit"
-	]
-	bodystate(Choices) : "Gun State" =
-	[
-		-1 : "Random"
-		0 : "Gun Holstered"
-		1 : "Gun Drawn"
-	]
-	spawnflags(Flags) =
-	[
-		1024: "Don't Drop Gun" : 0
-	]
-]
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/kate.mdl") = monster_kate_dead : "Dead Kate"
-[
-	pose(Choices) : "Pose" : 0 =
-	[
-		0 : "On back"
-		1 : "On side"
-		2 : "On stomach"
-	]
-	sequence(Choices) : "Animation Sequence (editor)" : 35 =
-	[
-		35 : "lying_on_back"
-		36 : "lying_on_side"
-		37 : "lying_on_stomach"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-95 -95 0, 95 95 190) studio("models/big_mom.mdl") = monster_bigmomma : "Big Mamma"
@@ -5136,57 +4871,56 @@
 		1 : "run"
 	]
 ]
-@PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/drill.mdl") = monster_drillsergeant : "Drill Sergeant"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle1"
-		1 : "idle2"
-		2 : "idle3"
-		3 : "walk"
-		4 : "run"
-		5 : "turnleft"
-		6 : "turnright"
-		7 : "smlflinch"
-		8 : "diesimple"
-		9 : "diebackward"
-		10 : "dieforward"
-		11 : "dead_on_side"
-		12 : "dead_on_stomach"
-		13 : "hands_on_hips"
-		14 : "pointL_yell"
-		15 : "pointF_bark"
-		16 : "bark_loop"
-		17 : "mega_yell"
-		18 : "mega_bark"
-		19 : "blow_whistle"
-		20 : "bino_look"
-	]
-	skin(Choices) : "Skin" : 0 =
-	[
-		0 : "White"
-		1 : "Black"
-	]
-]
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/drill.mdl") = monster_drillsergeant_dead : "Dead Drill Sergeant"
-[
-	pose(Choices) : "Pose" : 0 =
-	[
-		0 : "On side"
-		1 : "On stomach"
-	]
-	sequence(Choices) : "Animation Sequence (editor)" : 11 =
-	[
-		11 : "dead_on_side"
-		12 : "dead_on_stomach"
-	]
-	skin(Choices) : "Skin" : 0 =
-	[
-		0 : "White"
-		1 : "Black"
-	]
-]
-@PointClass base(Monster) size(-24 -24 0, 24 24 24) studio("models/flybee.mdl") = monster_flybee : "Flybee" []
+// @PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/drill.mdl") = monster_drillsergeant : "Drill Sergeant"
+// [
+// 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+// 	[
+// 		0 : "idle1"
+// 		1 : "idle2"
+// 		2 : "idle3"
+// 		3 : "walk"
+// 		4 : "run"
+// 		5 : "turnleft"
+// 		6 : "turnright"
+// 		7 : "smlflinch"
+// 		8 : "diesimple"
+// 		9 : "diebackward"
+// 		10 : "dieforward"
+// 		11 : "dead_on_side"
+// 		12 : "dead_on_stomach"
+// 		13 : "hands_on_hips"
+// 		14 : "pointL_yell"
+// 		15 : "pointF_bark"
+// 		16 : "bark_loop"
+// 		17 : "mega_yell"
+// 		18 : "mega_bark"
+// 		19 : "blow_whistle"
+// 		20 : "bino_look"
+// 	]
+// 	skin(Choices) : "Skin" : 0 =
+// 	[
+// 		0 : "White"
+// 		1 : "Black"
+// 	]
+// ]
+// @PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/drill.mdl") = monster_drillsergeant_dead : "Dead Drill Sergeant"
+// [
+// 	pose(Choices) : "Pose" : 0 =
+// 	[
+// 		0 : "On side"
+// 		1 : "On stomach"
+// 	]
+// 	sequence(Choices) : "Animation Sequence (editor)" : 11 =
+// 	[
+// 		11 : "dead_on_side"
+// 		12 : "dead_on_stomach"
+// 	]
+// 	skin(Choices) : "Skin" : 0 =
+// 	[
+// 		0 : "White"
+// 		1 : "Black"
+// 	]
+// ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 16) studio("models/aflock.mdl") = monster_flyer_flock : "Flock of Flyers"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
@@ -6285,65 +6019,6 @@
 	]
 ]
 
-@PointClass base(Monster, FollowingMonster) size(-16 -16 0, 16 16 72) studio("models/hwgrunt.mdl") = monster_hwgrunt : "Heavy Weapons Grunt"
-[
-	netname(string) : "Squad Name"
-
-	spawnflags(Flags) =
-	[
-		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
-	]
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle"
-		1 : "idle2"
-		2 : "creeping_walk"
-		3 : "run"
-		4 : "turnl"
-		5 : "turnr"
-		6 : "attack"
-		7 : "spinup"
-		8 : "spindown"
-		9 : "small_pain"
-		10 : "small_pain2"
-		11 : "die_backwards"
-		12 : "die_crumple"
-		13 : "die_violent"
-		14 : "repel_repel"
-		15 : "repel_land"
-	]
-]
-@PointClass base(Repel) size(-16 -16 0, 16 16 72) studio("models/hwgrunt.mdl") = monster_hwgrunt_repel : "Heavy Weapons Grunt (Repel)"
-[
-	netname(string) : "Squad Name"
-
-	spawnflags(Flags) =
-	[
-		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
-	]
-    sequence(Choices) : "Animation Sequence (editor)" : 14 =
-	[
-		0 : "idle"
-		1 : "idle2"
-		2 : "creeping_walk"
-		3 : "run"
-		4 : "turnl"
-		5 : "turnr"
-		6 : "attack"
-		7 : "spinup"
-		8 : "spindown"
-		9 : "small_pain"
-		10 : "small_pain2"
-		11 : "die_backwards"
-		12 : "die_crumple"
-		13 : "die_violent"
-		14 : "repel_repel"
-		15 : "repel_land"
-	]
-]
-
 @PointClass base(Monster, Sequence) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = monster_ichthyosaur : "Ichthyosaur"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
@@ -6725,7 +6400,7 @@
 	]
 ]
 
-@PointClass base(Monster) studio("models/panthereye.mdl") = monster_panthereye : "Panthereye" []
+// @PointClass base(Monster) studio("models/panthereye.mdl") = monster_panthereye : "Panthereye" []
 
 @PointClass base(Monster, FollowingMonster, Sequence) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = monster_pitdrone : "PitDrone"
 [
@@ -6764,57 +6439,6 @@
 	sequence(Choices) : "Animation Sequence (editor)" : 17 =
 	[
 		17 : "die2"
-	]
-]
-
-@PointClass base(gibshooterbase) = pitworm_gibshooter : "Pitworm Gib Shooter" []
-
-@PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 32) studio("models/pit_worm_up.mdl") = monster_pitworm_up : "Pit Worm"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle"
-		1 : "idle2"
-		2 : "attack"
-		3 : "scream"
-		4 : "attacklow"
-		5 : "doorclaw1"
-		6 : "doorclaw2"
-		7 : "doorclaw3"
-		8 : "eyeblast"
-		9 : "platclaw1"
-		10 : "platclaw2"
-		11 : "flinch1"
-		12 : "flinch2"
-		13 : "death"
-	]
-]
-
-@PointClass base(Monster, Sequence) size(-95 -95 0, 95 95 190) studio("models/geneworm.mdl") = monster_geneworm : "Gene Worm"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 15 =
-	[
-		0 : "melee1"
-		1 : "melee2"
-		2 : "melee3"
-		3 : "dattack1"
-		4 : "dattack2"
-		5 : "dattack3"
-		6 : "eyepain1"
-		7 : "eyepain2"
-		8 : "bigpain1"
-		9 : "bigpain2"
-		10 : "bigpain3"
-		11 : "bigpain4"
-		12 : "mad"
-		13 : "scream1"
-		14 : "scream2"
-		15 : "idle"
-		16 : "idlepain"
-		17 : "idlepain2"
-		18 : "idlepain3"
-		19 : "death"
-		20 : "entry"
 	]
 ]
 
@@ -6919,56 +6543,56 @@
 	]
 ]
 
-@PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/recruit.mdl") = monster_recruit : "Recruit"
-[
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
-	[
-		0 : "idle1"
-		1 : "walk"
-		2 : "run"
-		3 : "turnleft"
-		4 : "turnright"
-		5 : "pushups"
-		6 : "jumping_jacks"
-		7 : "salute"
-	]
-]
+// @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/recruit.mdl") = monster_recruit : "Recruit"
+// [
+// 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+// 	[
+// 		0 : "idle1"
+// 		1 : "walk"
+// 		2 : "run"
+// 		3 : "turnleft"
+// 		4 : "turnright"
+// 		5 : "pushups"
+// 		6 : "jumping_jacks"
+// 		7 : "salute"
+// 	]
+// ]
 
-@PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/robocop.mdl") = monster_robocop : "Robocop" []
+// @PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/robocop.mdl") = monster_robocop : "Robocop" []
 
-@PointClass base(Monster, FollowingMonster) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = monster_robogrunt : "Robot Grunt"
-[
-	spawnflags(Flags) =
-	[
-		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
-	]
-	netname(string) : "Squad Name"
-	weapons(Choices) : "Weapons" : 1 =
-	[
-		1 : "9mmAR"
-		3 : "9mmAR + HG"
-		5 : "9mmAR + GL"
-		8 : "Shotgun"
-		10 : "Shotgun + HG"
-	]
-]
-
-@PointClass base(Repel) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = monster_robogrunt_repel : "Robot Grunt (Repel)"
-[
-	weapons(Choices) : "Weapons" : 1 =
-	[
-		1 : "9mmAR"
-		3 : "9mmAR + HG"
-		5 : "9mmAR + GL"
-		8 : "Shotgun"
-		10 : "Shotgun + HG"
-	]
-	spawnflags(Flags) =
-	[
-		1024: "Don't Drop Gun" : 0
-	]
-]
+// @PointClass base(Monster, FollowingMonster) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = monster_robogrunt : "Robot Grunt"
+// [
+// 	spawnflags(Flags) =
+// 	[
+// 		32 : "SquadLeader" : 0
+// 		1024: "Don't Drop Gun" : 0
+// 	]
+// 	netname(string) : "Squad Name"
+// 	weapons(Choices) : "Weapons" : 1 =
+// 	[
+// 		1 : "9mmAR"
+// 		3 : "9mmAR + HG"
+// 		5 : "9mmAR + GL"
+// 		8 : "Shotgun"
+// 		10 : "Shotgun + HG"
+// 	]
+// ]
+// 
+// @PointClass base(Repel) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = monster_robogrunt_repel : "Robot Grunt (Repel)"
+// [
+// 	weapons(Choices) : "Weapons" : 1 =
+// 	[
+// 		1 : "9mmAR"
+// 		3 : "9mmAR + HG"
+// 		5 : "9mmAR + GL"
+// 		8 : "Shotgun"
+// 		10 : "Shotgun + HG"
+// 	]
+// 	spawnflags(Flags) =
+// 	[
+// 		1024: "Don't Drop Gun" : 0
+// 	]
+// ]
 
 @PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio() = monster_civilian : "Configurable civilian. Acts like scientist, but can't heal. Set model, body and skin to configure the look."
 [
@@ -7273,7 +6897,6 @@
 		32768 : "Don't drop to the floor" : 0
 	]
 ]
-@PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/scientist_rosenberg.mdl") = monster_rosenberg : "Dr. Rosenberg" []
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry : "Sentry Turret Gun"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
@@ -7452,7 +7075,6 @@
 		1 : "Ceiling Mount"
 	]
 ]
-//@PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/wheelchair_sci.mdl") = monster_wheelchair : "Dr. Keller" []
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = monster_zombie : "Scientist Zombie"
 [
 	body(Choices) : "Body" : 0 =
@@ -9269,20 +8891,6 @@
 
 @SolidClass base(Trigger, TriggerCond, TriggerUseType) = trigger_once : "Trigger: Activate once" []
 
-@SolidClass base(Targetname,Target) = trigger_geneworm_hit : "Trigger GeneWorm Hit"
-[
-	spawnflags(flags) =
-	[
-		1: "Target Once" : 0
-		2: "Start Off" : 0
-		8: "No clients" : 0
-		16:"FireClientOnly" : 0
-		32:"TouchClientOnly" : 0
-	]
-	master(string) : "Master"
-	delay(string) : "Delay before trigger"
-]
-
 @PointClass base(Targetname) = trigger_playerfreeze : "Trigger Player Freeze"
 [
 	use_type(choices) : "Use type" =
@@ -9567,13 +9175,13 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_displacer.mdl") = weapon_displacer : "Displacer" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_spore_launcher.mdl") = weapon_sporelauncher : "Spore Launcher" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_medkit.mdl") = weapon_medkit : "Portable Medkit" []
-@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_minigun.mdl") = weapon_minigun : "Minigun" []
-@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
-@PointClass base(Weapon, WeaponInitAmmo) = weapon_nailgun : "Nailgun" []
-@PointClass base(Weapon, WeaponInitAmmo) = weapon_grenadelauncher : "Grenade Launcher" []
+//@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_minigun.mdl") = weapon_minigun : "Minigun" []
+//@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
+//@PointClass base(Weapon, WeaponInitAmmo) = weapon_nailgun : "Nailgun" []
+//@PointClass base(Weapon, WeaponInitAmmo) = weapon_grenadelauncher : "Grenade Launcher" []
 
-@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
-@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []
+//@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
+//@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []
 @PointClass base(Weapon, WeaponInitAmmo) = weapon_tool : "Tool" []
 
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_melee : "Generic configurable melee" []
