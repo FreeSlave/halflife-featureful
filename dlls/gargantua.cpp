@@ -60,7 +60,7 @@ const float GARG_ATTACKDIST = 80.0f;
 #define GARG_STOMP_SPRITE_NAME		"sprites/gargeye1.spr"
 #define GARG_STOMP_BUZZ_SOUND		"weapons/mine_charge.wav"
 #define GARG_FLAME_LENGTH		330
-#define GARG_GIB_MODEL			"models/metalplategibs.mdl"
+#define GARG_GIB_MODEL			"models/garg_gibs.mdl"
 
 #define ATTN_GARG					(ATTN_NORM)
 
@@ -1466,58 +1466,93 @@ void CGargantua::RunTask( Task_t *pTask )
 			StopAnimation();
 			pev->nextthink = gpGlobals->time + 0.15f;
 			SetThink( &CBaseEntity::SUB_Remove );
+
+			const bool originalModel = FStringNull(m_gibModel);
 			int i;
 			int parts = MODEL_FRAMES( m_GargGibModel );
+			int gibNum = originalModel ? 15 : 10;
+
 			const Visual* gibVisual = MyGibVisual();
 			const char* gibModel = GibModel();
-			for( i = 0; i < 10; i++ )
+			for( i = 0; i < gibNum; i++ )
 			{
 				CGib *pGib = GetClassPtr( (CGib *)NULL );
+
+				if (originalModel)
+				{
+					pGib->pev->origin.x = pev->absmin.x + pev->size.x * ( RANDOM_FLOAT( 0.0f, 1.0f ) );
+					pGib->pev->origin.y = pev->absmin.y + pev->size.y * ( RANDOM_FLOAT( 0.0f, 1.0f ) );
+					pGib->pev->origin.z = pev->absmin.z + pev->size.z * ( RANDOM_FLOAT( 0.0f, 1.0f ) ) + 1.0f;	// absmin.z is in the floor because the engine subtracts 1 to enlarge the box
+
+					pGib->pev->avelocity.x = RANDOM_FLOAT( 100.0f, 200.0f );
+					pGib->pev->avelocity.y = RANDOM_FLOAT( 100.0f, 300.0f );
+				}
+				else
+				{
+					pGib->pev->origin = pev->origin;
+				}
 
 				pGib->Spawn( gibModel, gibVisual );
 
 				int bodyPart = 0;
-				if( parts > 1 )
-					bodyPart = RANDOM_LONG( 0, parts - 1 );
+
+				// Spawn only one head
+				if (originalModel && i==0)
+				{
+					bodyPart = 0;
+				}
+				else
+				{
+					if( parts > 1 )
+						bodyPart = RANDOM_LONG( originalModel ? 1 : 0, parts - 1 );
+				}
 
 				pGib->pev->body = bodyPart;
 				pGib->m_bloodColor = m_bloodColor;
 				pGib->m_material = matNone;
-				pGib->pev->origin = pev->origin;
+
 				pGib->pev->velocity = UTIL_RandomBloodVector() * RANDOM_FLOAT( 300, 500 );
-				pGib->pev->nextthink = gpGlobals->time + 1.25f;
-				pGib->SetThink( &CBaseEntity::SUB_FadeOut );
+
+				if (!originalModel)
+				{
+					pGib->pev->nextthink = gpGlobals->time + 1.25f;
+					pGib->SetThink( &CBaseEntity::SUB_FadeOut );
+				}
 			}
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_BREAKMODEL );
 
-				// position
-				WRITE_VECTOR( pev->origin );
+			if (!originalModel)
+			{
+				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+					WRITE_BYTE( TE_BREAKMODEL );
 
-				// size
-				WRITE_COORD( 200 );
-				WRITE_COORD( 200 );
-				WRITE_COORD( 128 );
+					// position
+					WRITE_VECTOR( pev->origin );
 
-				// velocity
-				WRITE_VECTOR( g_vecZero );
+					// size
+					WRITE_COORD( 200 );
+					WRITE_COORD( 200 );
+					WRITE_COORD( 128 );
 
-				// randomization
-				WRITE_BYTE( 200 ); 
+					// velocity
+					WRITE_VECTOR( g_vecZero );
 
-				// Model
-				WRITE_SHORT( m_GargGibModel );	//model id#
+					// randomization
+					WRITE_BYTE( 200 );
 
-				// # of shards
-				WRITE_BYTE( 50 );
+					// Model
+					WRITE_SHORT( m_GargGibModel );	//model id#
 
-				// duration
-				WRITE_BYTE( 20 );// 3.0 seconds
+					// # of shards
+					WRITE_BYTE( 50 );
 
-				// flags
+					// duration
+					WRITE_BYTE( 20 );// 3.0 seconds
 
-				WRITE_BYTE( BREAK_FLESH );
-			MESSAGE_END();
+					// flags
+
+					WRITE_BYTE( BREAK_FLESH );
+				MESSAGE_END();
+			}
 
 			return;
 		}
