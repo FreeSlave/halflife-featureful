@@ -456,3 +456,80 @@ void CDeadZombieSoldier::Spawn()
 	if (pev->body == -1)
 		pev->body = RANDOM_LONG(0, 1);
 }
+
+#define bits_MEMORY_ZOMBIEHEV_DAMAGE_REPORTED bits_MEMORY_CUSTOM1
+#define bits_MEMORY_ZOMBIEHEV_CRITHEALTH_REPORTED bits_MEMORY_CUSTOM2
+
+class CZombieHEV : public CZombie
+{
+	void Spawn( void );
+	void Precache( void );
+	const char* DefaultDisplayName() { return "Zombie"; }
+	float OneSlashDamage() { return GetSkillValue("zombie_barney_dmg_one_slash"); }
+	float BothSlashDamage() { return GetSkillValue("zombie_barney_dmg_both_slash"); }
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	void DeathSound();
+	bool PlayHEVSentence(const char *pszSentence);
+	void GibMonster();
+};
+
+LINK_ENTITY_TO_CLASS( monster_zombie_hev, CZombieHEV )
+
+void CZombieHEV::Spawn()
+{
+	Precache();
+	ZombieSpawnHelper("models/zombie_hev.mdl", GetSkillValue("zombie_soldier_health"));
+}
+
+void CZombieHEV::Precache()
+{
+	PrecacheMyModel("models/zombie_hev.mdl");
+	PrecacheSounds();
+}
+
+TakeDamageResult CZombieHEV::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+{
+	TakeDamageResult result = CZombie::TakeDamage(pevInflictor, pevAttacker, damageInfo);
+	if (!result.Killed())
+	{
+		if ( !HasMemory(bits_MEMORY_ZOMBIEHEV_CRITHEALTH_REPORTED) && pev->health <= pev->max_health/4 )
+		{
+			PlayHEVSentence( "ZHEV_HLTH" );
+			Remember(bits_MEMORY_ZOMBIEHEV_DAMAGE_REPORTED | bits_MEMORY_ZOMBIEHEV_CRITHEALTH_REPORTED);
+		}
+		else if ( !HasMemory(bits_MEMORY_ZOMBIEHEV_DAMAGE_REPORTED) && pev->health <= pev->max_health/2 )
+		{
+			PlayHEVSentence( "ZHEV_DMG" );
+			Remember(bits_MEMORY_ZOMBIEHEV_DAMAGE_REPORTED);
+		}
+	}
+	return result;
+}
+
+void CZombieHEV::DeathSound()
+{
+	CZombie::DeathSound();
+	PlayHEVSentence( "ZHEV_DEAD" );
+}
+
+bool CZombieHEV::PlayHEVSentence( const char *pszSentence )
+{
+	if( pszSentence )
+	{
+		const int pitch = RANDOM_LONG( 0, 6 ) + 98;
+		const float volume = 0.5;
+		const float attenuation = ATTN_IDLE;
+
+		if( pszSentence[0] == '!' )
+			return EMIT_SOUND_DYN( edict(), CHAN_ITEM, pszSentence, volume, attenuation, 0, pitch );
+		else
+			return SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, pitch, CHAN_ITEM ) >= 0;
+	}
+	return false;
+}
+
+void CZombieHEV::GibMonster()
+{
+	EMIT_SOUND( edict(), CHAN_ITEM, "common/null.wav", 1.0, ATTN_IDLE );
+	CZombie::GibMonster();
+}
