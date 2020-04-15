@@ -26,6 +26,7 @@
 #include	"combat.h"
 #include	"player.h"
 #include	"soundent.h"
+#include	"scripted.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
@@ -125,6 +126,19 @@ static bool CanSpawnAtPosition(const Vector& position, int hullType, edict_t* pe
 	TraceResult tr;
 	UTIL_TraceHull( position, position - Vector(0,0,1), dont_ignore_monsters, hullType, pentIgnore, &tr );
 	return !tr.fStartSolid && !tr.fAllSolid;
+}
+
+static void ProvokeVort(CBaseMonster* pMonster)
+{
+	if (!pMonster->HasMemory(bits_MEMORY_ISLAVE_PROVOKED))
+	{
+		pMonster->Remember(bits_MEMORY_ISLAVE_PROVOKED);
+		if (pMonster->m_pCine && pMonster->m_pCine->CanInterrupt())
+		{
+			pMonster->CineCleanup();
+			pMonster->ClearSchedule();
+		}
+	}
 }
 
 #define VTOKEN_MAX_SPEED 320
@@ -370,6 +384,7 @@ public:
 	bool CheckHealOrReviveTargets( float flDist = 784, bool mustSee = false );
 	bool IsValidHealTarget( CBaseEntity* pEntity );
 	void CallForHelp( float flDist, EHANDLE hEnemy, Vector &vecLocation );
+	void EXPORT ProvokeUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
@@ -787,17 +802,36 @@ void CISlave::CallForHelp(float flDist, EHANDLE hEnemy, Vector &vecLocation )
 
 	while( ( pEntity = UTIL_FindEntityByString( pEntity, "netname", STRING( pev->netname ) ) ) != NULL)
 	{
+		if (pEntity == this)
+			continue;
 		float d = ( pev->origin - pEntity->pev->origin ).Length();
-		if( d < flDist )
+		if( d < flDist || FBitSet(pev->spawnflags, SF_MONSTER_WAIT_UNTIL_PROVOKED) )
 		{
 			if (!FClassnameIs(pEntity->pev, STRING(pev->classname)))
 				continue;
 			CBaseMonster *pMonster = pEntity->MyMonsterPointer();
 			if( pMonster )
 			{
-				pMonster->m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
+				if (FBitSet(pMonster->pev->spawnflags, SF_MONSTER_WAIT_UNTIL_PROVOKED))
+				{
+					ProvokeVort(pMonster);
+				}
 				pMonster->PushEnemy( hEnemy, vecLocation );
 			}
+		}
+	}
+}
+
+void CISlave::ProvokeUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	SetUse(&CBaseMonster::MonsterUse);
+	if (IsAlive())
+	{
+		ProvokeVort(this);
+
+		if (pActivator != 0 && pActivator->IsPlayer())
+		{
+			PushEnemy(pActivator, pActivator->pev->origin);
 		}
 	}
 }
@@ -1495,6 +1529,11 @@ void CISlave::Spawn()
 			m_freeEnergy = Q_max(maxEnergy, m_freeEnergy);
 			m_freeEnergy = Q_max(pev->max_health, m_freeEnergy);
 		}
+	}
+
+	if (FBitSet(pev->spawnflags, SF_MONSTER_WAIT_UNTIL_PROVOKED))
+	{
+		SetUse(&CISlave::ProvokeUse);
 	}
 }
 
