@@ -1812,8 +1812,8 @@ Schedule_t *CISlave::GetSchedule()
 		{
 			if( pSound->m_iType & bits_SOUND_DANGER )
 				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
-			if( pSound->m_iType & bits_SOUND_COMBAT )
-				m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
+			//if( pSound->m_iType & bits_SOUND_COMBAT )
+				//m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
 		}
 	}
 
