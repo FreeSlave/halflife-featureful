@@ -25,12 +25,13 @@
 #include	"followingmonster.h"
 #include	"combat.h"
 #include	"ggrenade.h"
+#include	"weapons.h"
 #include	"soundent.h"
 #include	"scripted.h"
 #include	"game.h"
 #include	"gamerules.h"
 
-#define FEATURE_HASSSASSIN_DROP_AMMO 0
+#define FEATURE_HASSSASSIN_DROP_AMMO 1
 
 //=========================================================
 // monster-specific schedule types

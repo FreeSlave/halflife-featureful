@@ -35,6 +35,7 @@
 #include	"animation.h"
 #include	"combat.h"
 #include	"ggrenade.h"
+#include	"weapons.h"
 #include	"talkmonster.h"
 #include	"soundent.h"
 #include	"effects.h"

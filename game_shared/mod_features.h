@@ -14,7 +14,7 @@
 #define FEATURE_OPFOR_WEAPON_SLOTS (0 || FEATURE_OPFOR_SPECIFIC)
 
 // monsters who carry hand grenades will drop one hand grenade upon death
-#define FEATURE_MONSTERS_DROP_HANDGRENADES 0
+#define FEATURE_MONSTERS_DROP_HANDGRENADES 1
 
 // Weapon features
 #define FEATURE_PREDICTABLE_LASER_SPOT 0

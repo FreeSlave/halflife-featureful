@@ -24,6 +24,7 @@
 #include	"combat.h"
 #include	"ggrenade.h"
 #include	"global_models.h"
+#include	"weapons.h"
 #include	"soundent.h"
 #include	"customentity.h"
 #include	"scripted.h"
