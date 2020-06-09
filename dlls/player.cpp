@@ -3771,9 +3771,6 @@ BOOL CBasePlayer::FlashlightIsOn( void )
 {
 #if FEATURE_NIGHTVISION
 	return m_fNVGisON;
-#if FEATURE_OPFOR_NIGHTVISION
-	return FBitSet( pev->effects, EF_BRIGHTLIGHT );
-#endif
 #else
 	return FBitSet( pev->effects, EF_DIMLIGHT );
 #endif
@@ -3798,9 +3795,6 @@ void CBasePlayer::FlashlightTurnOn( void )
 		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, SOUND_FLASHLIGHT_ON, 1.0, ATTN_NORM, 0, PITCH_NORM );
 #if FEATURE_NIGHTVISION
 		m_fNVGisON = TRUE;
-#if FEATURE_OPFOR_NIGHTVISION
-		SetBits( pev->effects, EF_BRIGHTLIGHT );
-#endif
 #else
 		SetBits( pev->effects, EF_DIMLIGHT );
 #endif
@@ -3826,9 +3820,6 @@ void CBasePlayer::FlashlightTurnOff( bool playOffSound )
 		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, SOUND_FLASHLIGHT_OFF, 1.0, ATTN_NORM, 0, PITCH_NORM );
 #if FEATURE_NIGHTVISION
 	m_fNVGisON = FALSE;
-#if FEATURE_OPFOR_NIGHTVISION
-	ClearBits( pev->effects, EF_BRIGHTLIGHT );
-#endif
 #else
 	ClearBits( pev->effects, EF_DIMLIGHT );
 #endif

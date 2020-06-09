@@ -141,7 +141,7 @@ void CHudNightvision::DrawCSNVG(float flTime)
 {
 #if FEATURE_CS_NIGHTVISION
 	gEngfuncs.pfnFillRGBABlend(0, 0, ScreenWidth, ScreenHeight, 50, 225, 50, 110);
-	UpdateDynLight(flTime, m_iRadius <= 0 ? 775 : m_iRadius);
+	UpdateDynLight(flTime, m_iRadius <= 0 ? 1000 : m_iRadius);
 #endif
 }
 
@@ -185,10 +185,7 @@ void CHudNightvision::DrawOpforNVG(float flTime)
 	// Increase sprite frame.
 	m_iFrame++;
 
-	if (m_iRadius >= 0)
-	{
-		UpdateDynLight(flTime, m_iRadius);
-	}
+	UpdateDynLight(flTime, m_iRadius > 0 ? m_iRadius : 500);
 #endif
 }
 
