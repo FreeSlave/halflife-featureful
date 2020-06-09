@@ -29,7 +29,7 @@
 #include	"bullsquid.h"
 
 // Slow big poisonous ball as alternative range attack for bullsquid
-#define FEATURE_BULLSQUID_BIGSPIT 1
+#define FEATURE_BULLSQUID_BIGSPIT 0
 
 #define		SQUID_SPRINT_DIST	256.0f // how close the squid has to get before starting to sprint and refusing to swerve
 

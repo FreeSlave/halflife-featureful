@@ -28,7 +28,7 @@
 #include "locus.h"
 #include "mod_features.h"
 
-#define FEATURE_ENV_WARPBALL 1
+#define FEATURE_ENV_WARPBALL 0
 #define FEATURE_ENV_XENMAKER 1
 
 #define	SF_GIBSHOOTER_REPEATABLE		1 // allows a gibshooter to be refired
