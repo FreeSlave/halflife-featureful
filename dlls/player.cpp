@@ -201,6 +201,7 @@ int gmsgRandomGibs = 0;
 
 #if FEATURE_NIGHTVISION
 int gmsgNightvision = 0;
+int gmsgNVGRadius = 0;
 #endif
 
 #if FEATURE_MOVE_MODE
@@ -264,6 +265,7 @@ void LinkUserMessages( void )
 
 #if FEATURE_NIGHTVISION
 	gmsgNightvision = REG_USER_MSG( "Nightvision", 1 );
+	gmsgNVGRadius = REG_USER_MSG( "NVGRadius", 2 );
 #endif
 #if FEATURE_MOVE_MODE
 	gmsgMovementState = REG_USER_MSG( "MoveMode", 2 );

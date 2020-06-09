@@ -50,6 +50,7 @@ extern int giPrecacheGrunt;
 extern int gmsgSayText;
 extern int gmsgBhopcap;
 extern int gmsgHUDColor;
+extern int gmsgNVGRadius;
 
 extern cvar_t allow_spectators;
 extern cvar_t multibyte_only;
@@ -633,6 +634,30 @@ void ClientCommand( edict_t *pEntity )
 		else
 		{
 			ALERT(at_console, "Syntax: hud_color RRR GGG BBB\n");
+		}
+	}
+	else if ( FStrEq(pcmd, "nvg_radius") )
+	{
+		if (CMD_ARGC() == 2)
+		{
+			int radius = atoi(CMD_ARGV(1));
+			if (radius > 0)
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgNVGRadius, NULL, &pEntity->v );
+					WRITE_SHORT((short)radius);
+				MESSAGE_END();
+			}
+			else
+			{
+				ALERT(at_console, "Resetting nvg_radius to default\n");
+				MESSAGE_BEGIN( MSG_ONE, gmsgNVGRadius, NULL, &pEntity->v );
+					WRITE_SHORT(0);
+				MESSAGE_END();
+			}
+		}
+		else
+		{
+			ALERT(at_console, "Syntax: nvg_radius integer_value\n");
 		}
 	}
 	else

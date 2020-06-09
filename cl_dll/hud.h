@@ -468,8 +468,10 @@ public:
 	int Draw( float flTime );
 	void Reset( void );
 	int MsgFunc_Nightvision( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_NVGRadius( const char *pszName, int iSize, void *pbuf );
 	void DrawCSNVG(float flTime);
 	void DrawOpforNVG(float flTime);
+	void UpdateDynLight(float flTime, int radius);
 	void RemoveCSdlight();
 	void UserCmd_ToggleNVGStyle();
 	void UserCmd_NVGAdjustDown();
@@ -488,6 +490,7 @@ private:
 	wrect_t *m_prc;
 	int m_iFrame, m_nFrameCount;
 #endif
+	int m_iRadius;
 };
 //
 //-----------------------------------------------------

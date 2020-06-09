@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 DECLARE_MESSAGE( m_Nightvision, Nightvision )
+DECLARE_MESSAGE( m_Nightvision, NVGRadius )
 
 #if FEATURE_CS_NIGHTVISION && FEATURE_OPFOR_NIGHTVISION
 DECLARE_COMMAND( m_Nightvision, ToggleNVGStyle )
@@ -41,6 +42,7 @@ int CHudNightvision::Init(void)
 	m_fOn = 0;
 
 	HOOK_MESSAGE(Nightvision);
+	HOOK_MESSAGE(NVGRadius);
 
 	m_iFlags |= HUD_ACTIVE;
 
@@ -52,6 +54,7 @@ int CHudNightvision::Init(void)
 	m_nvgStyle = false;
 	HOOK_COMMAND( "togglenvgstyle", ToggleNVGStyle );
 #endif
+	m_iRadius = 0;
 
 	gHUD.AddHudElem(this);
 
@@ -60,7 +63,7 @@ int CHudNightvision::Init(void)
 
 void CHudNightvision::Reset(void)
 {
-	m_fOn = 0;
+	m_fOn = 0;	
 }
 
 int CHudNightvision::VidInit(void)
@@ -88,6 +91,17 @@ int CHudNightvision::MsgFunc_Nightvision(const char *pszName, int iSize, void *p
 		RemoveCSdlight();
 	}
 
+	return 1;
+}
+
+int CHudNightvision::MsgFunc_NVGRadius(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	m_iRadius = READ_SHORT();
+	if (m_pLight && m_iRadius > 0)
+	{
+		m_pLight->radius = m_iRadius;
+	}
 	return 1;
 }
 
@@ -127,22 +141,7 @@ void CHudNightvision::DrawCSNVG(float flTime)
 {
 #if FEATURE_CS_NIGHTVISION
 	gEngfuncs.pfnFillRGBABlend(0, 0, ScreenWidth, ScreenHeight, 50, 225, 50, 110);
-	if( !m_pLight || m_pLight->die < flTime )
-	{
-		m_pLight = gEngfuncs.pEfxAPI->CL_AllocDlight( 0 );
-
-		// I hope no one is crazy so much to keep NVG for 9999 seconds
-		m_pLight->die = flTime + 9999.0f;
-		m_pLight->color.r = 50;
-		m_pLight->color.g = 255;
-		m_pLight->color.b = 50;
-	}
-	// just update origin
-	if( m_pLight )
-	{
-		m_pLight->origin = gHUD.m_vecOrigin;
-		m_pLight->radius = 775;
-	}
+	UpdateDynLight(flTime, m_iRadius <= 0 ? 775 : m_iRadius);
 #endif
 }
 
@@ -185,7 +184,32 @@ void CHudNightvision::DrawOpforNVG(float flTime)
 
 	// Increase sprite frame.
 	m_iFrame++;
+
+	if (m_iRadius >= 0)
+	{
+		UpdateDynLight(flTime, m_iRadius);
+	}
 #endif
+}
+
+void CHudNightvision::UpdateDynLight(float flTime, int radius)
+{
+	if( !m_pLight || m_pLight->die < flTime )
+	{
+		m_pLight = gEngfuncs.pEfxAPI->CL_AllocDlight( 0 );
+
+		// I hope no one is crazy so much to keep NVG for 9999 seconds
+		m_pLight->die = flTime + 9999.0f;
+		m_pLight->color.r = 50;
+		m_pLight->color.g = 255;
+		m_pLight->color.b = 50;
+	}
+	// just update origin
+	if( m_pLight )
+	{
+		m_pLight->origin = gHUD.m_vecOrigin;
+		m_pLight->radius = radius;
+	}
 }
 
 void CHudNightvision::RemoveCSdlight()
