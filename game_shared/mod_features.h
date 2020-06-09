@@ -58,10 +58,10 @@
 #define FEATURE_OPFOR_ALLY_RELATIONSHIP (0 || FEATURE_OPFOR_SPECIFIC)
 
 // whether race x and alien military are enemies
-#define FEATURE_RACEX_AND_AMIL_ENEMIES 0
+#define FEATURE_RACEX_AND_AMIL_ENEMIES 1
 
 // whether race x and alien monsters are enemies
-#define FEATURE_RACEX_AND_AMONSTERS_ENEMIES 0
+#define FEATURE_RACEX_AND_AMONSTERS_ENEMIES 1
 
 // whether blackops monsters have a separate class which is enemy to military
 #define FEATURE_BLACKOPS_CLASS 0
