@@ -678,7 +678,18 @@
 		1: "Relative to Attack"
 	]
 	delay(string) : "Delay before fire" : "0"
-	gibmodel(studio) : "Gib Model" : ""
+	gibmodel(choices) : "Gib Model" : "" =
+	[
+		"" : "Default for material"
+		"models/tech_crategibs.mdl" : "Tech crate gibs"
+		"models/med_crategibs.mdl" : "Med crate gibs"
+		"models/mil_crategibs.mdl" : "Military crate gibs"
+		"models/mechgibs.mdl" : "Mech gibs"
+		"models/office_gibs.mdl" : "Office gibs"
+		"models/bookgibs.mdl" : "Book gibs"
+		"models/ventgibs.mdl" : "Vent gibs"
+		"models/webgibs.mdl" : "Xen web gibs"
+	]
 	m_iGibs(integer) : "Custom number of gibs"
 	spawnobject(choices) : "Spawn On Break (predefined)" : 0 =
 	[
