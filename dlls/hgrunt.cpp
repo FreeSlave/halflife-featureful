@@ -277,7 +277,7 @@ void CHGrunt::DropMyItems(bool isGibbed)
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 		}
 #if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, HGRUNT_HANDGRENADE ) ) {
+		if ( FBitSet (pev->weapons, HGRUNT_HANDGRENADE ) && !HasMemory(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE) ) {
 			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 			if (pGrenadeEnt)
 			{
@@ -902,6 +902,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			m_fThrowGrenade = false;
 			m_flNextGrenadeCheck = gpGlobals->time + GetSkillValue("hgrunt_gren_throw_delay");
+			Remember(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE);
 			// !!!LATER - when in a group, only try to throw grenade if ordered.
 		}
 			break;
@@ -935,6 +936,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			UTIL_MakeVectors( pev->angles );
 			CGrenade::ShootTimed( this, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + gpGlobals->v_up * 6, g_vecZero, 3.0f, GetProjectileOverrides() );
+			Remember(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE);
 		}
 			break;
 		case HGRUNT_AE_BURST1:

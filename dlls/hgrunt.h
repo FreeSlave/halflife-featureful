@@ -6,6 +6,8 @@
 #include	"monsters.h"
 #include	"followingmonster.h"
 
+#define bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE bits_MEMORY_CUSTOM1
+
 //=========================================================
 // monster-specific schedule types
 //=========================================================

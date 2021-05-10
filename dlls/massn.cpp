@@ -212,7 +212,7 @@ void CMassn::DropMyItems(bool isGibbed)
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 		}
 #if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
+		if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) && !HasMemory(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE) ) {
 			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 			if (pGrenadeEnt)
 			{

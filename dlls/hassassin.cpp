@@ -61,6 +61,7 @@ enum
 #define		ASSASSIN_AE_JUMP	3
 
 #define bits_MEMORY_BADJUMP		( bits_MEMORY_CUSTOM1 )
+#define bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE ( bits_MEMORY_CUSTOM2 )
 
 class CHAssassin : public CFollowingMonster
 {
@@ -232,12 +233,15 @@ void CHAssassin::OnDying(bool gibbed)
 		DropItem( "ammo_9mmclip", vecGunPos, vecGunAngles );
 #endif
 #if FEATURE_MONSTERS_DROP_HANDGRENADES
-		CBaseEntity* pGrenadeEnt = DropItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles );
-		if (pGrenadeEnt)
+		if (!HasMemory(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE))
 		{
-			CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-			if (pGrenadeWeap)
-				pGrenadeWeap->m_iDefaultAmmo = 1;
+			CBaseEntity* pGrenadeEnt = DropItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles );
+			if (pGrenadeEnt)
+			{
+				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+				if (pGrenadeWeap)
+					pGrenadeWeap->m_iDefaultAmmo = 1;
+			}
 		}
 #endif
 	}
@@ -372,6 +376,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			m_flNextGrenadeCheck = gpGlobals->time + 6.0f;// wait six seconds before even looking again to see if a grenade can be thrown.
 			m_fThrowGrenade = false;
+			Remember(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE);
 			// !!!LATER - when in a group, only try to throw grenade if ordered.
 		}
 		break;
