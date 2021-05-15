@@ -472,7 +472,13 @@ void CMassn::DropMyItems(bool isGibbed)
 		if( FBitSet( pev->weapons, MASSN_SNIPERRIFLE ) ) {
 			DropMyItem( "weapon_sniperrifle", vecGunPos, vecGunAngles, isGibbed );
 		} else if ( FBitSet( pev->weapons, MASSN_9MMAR ) ) {
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
+			CBaseEntity* mp5Entity = DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
+			if (mp5Entity) {
+				CBasePlayerWeapon* mp5 = mp5Entity->MyWeaponPointer();
+				if (mp5) {
+					mp5->m_iDefaultAmmo = RANDOM_LONG(15, 25);
+				}
+			}
 		}
 		if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
@@ -652,6 +658,11 @@ void CMassn::Spawn()
 	SetBodygroup(MASSN_HEAD_GROUP, m_iHead);
 
 	FollowingMonsterInit();
+
+	if (RANDOM_LONG(0,2) != 0) {
+		// 33% chance dropping the unused hand grenade
+		Remember(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE);
+	}
 }
 
 void CMassn::MonsterInit()

@@ -271,7 +271,13 @@ void CHGrunt::DropMyItems(bool isGibbed)
 		if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) ) {
 			DropMyItem( "weapon_shotgun", vecGunPos, vecGunAngles, isGibbed );
 		} else if ( FBitSet( pev->weapons, HGRUNT_9MMAR ) ) {
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
+			CBaseEntity* mp5Entity = DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
+			if (mp5Entity) {
+				CBasePlayerWeapon* mp5 = mp5Entity->MyWeaponPointer();
+				if (mp5) {
+					mp5->m_iDefaultAmmo = 25;
+				}
+			}
 		}
 		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) ) {
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );

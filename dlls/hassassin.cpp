@@ -450,6 +450,11 @@ void CHAssassin::Spawn()
 	pev->rendermode		= kRenderTransTexture;
 
 	FollowingMonsterInit();
+
+	if (RANDOM_LONG(0,2) != 0) {
+		// 33% chance dropping the unused hand grenade
+		Remember(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE);
+	}
 }
 
 //=========================================================
