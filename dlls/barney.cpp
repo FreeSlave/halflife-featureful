@@ -68,6 +68,11 @@ void SetBarneyHead(CBaseEntity* pEntity, int head)
 	}
 }
 
+enum
+{
+	TLK_ATTACKP = TLK_CGROUPS,
+};
+
 class CBarney : public CTalkMonster
 {
 public:
@@ -276,9 +281,10 @@ void CBarney::AlertSound()
 {
 	if( m_hEnemy != 0 )
 	{
-		if( FOkToSpeak(SPEAK_DISREGARD_ENEMY) && !m_hEnemy->IsPlayer() )
+		if( FOkToSpeak(SPEAK_DISREGARD_ENEMY) )
 		{
-			PlaySentence( SentenceGroup(TLK_ATTACK), RANDOM_FLOAT( 2.8f, 3.2f ), VOL_NORM, ATTN_IDLE );
+			const char* attackSentence = m_hEnemy->IsPlayer() ? SentenceGroup(TLK_ATTACKP) : SentenceGroup(TLK_ATTACK);
+			PlaySentence( attackSentence, RANDOM_FLOAT( 2.8f, 3.2f ), VOL_NORM, ATTN_IDLE );
 		}
 	}
 }
@@ -522,6 +528,7 @@ const char* CBarney::DefaultSentenceGroup(int group)
 	case TLK_MAD: return "BA_MAD";
 	case TLK_KILL: return "BA_KILL";
 	case TLK_ATTACK: return "BA_ATTACK";
+	case TLK_ATTACKP: return "BA_ATTACKP";
 	default: return NULL;
 	}
 }
@@ -670,6 +677,11 @@ Schedule_t *CBarney::GetSchedule()
 			// always act surprized with a new enemy
 			if( HasConditions( bits_COND_NEW_ENEMY ) && HasConditions( bits_COND_LIGHT_DAMAGE ) )
 				return GetScheduleOfType( SCHED_SMALL_FLINCH );
+
+			if( HasConditions( bits_COND_NEW_ENEMY ) && !HasConditions( bits_COND_LIGHT_DAMAGE|bits_COND_HEAVY_DAMAGE ) )
+			{
+				AlertSound();
+			}
 
 			// wait for one schedule to draw gun
 			if( !m_fGunDrawn )
@@ -869,6 +881,7 @@ const char* COtis::DefaultSentenceGroup(int group)
 	case TLK_MAD: return "OT_MAD";
 	case TLK_KILL: return "OT_KILL";
 	case TLK_ATTACK: return "OT_ATTACK";
+	case TLK_ATTACKP: return "OT_ATTACKP";
 	default: return NULL;
 	}
 }
