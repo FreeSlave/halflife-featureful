@@ -37,6 +37,7 @@
 
 #define SF_TANK_SOUNDON			0x8000
 #define SF_TANK_SEQFIRE			0x10000 //LRC - a TankSequence is telling me to fire
+#define SF_TANK_AGGRESSIVE		0x40000
 
 
 enum TANKBULLET
@@ -145,10 +146,10 @@ public:
 	int IRelationship( CBaseEntity* pTarget ) override;
 	int DefaultClassify() override { return m_iTankClass; }
 
-	void TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker = nullptr );
+	int TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker = nullptr );
 	void FireBarrels(bool controlledOrScripted, const Vector &forward, CBaseEntity *pAttacker = nullptr);
 	void ResetBarrelsTimers();
-	virtual void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker );
+	virtual int Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker );
 	virtual Vector UpdateTargetPosition( CBaseEntity *pTarget )
 	{
 		return pTarget->BodyTarget( pev->origin );
@@ -238,6 +239,8 @@ protected:
 	int			m_bulletCount;	// Bullet count left. Negative means infinite.
 	float		m_flEmptySoundTime;
 	short		m_smokeRenderMode;
+	short		m_aggressiveShots;
+	short		m_aggressiveShotsFired;
 
 	int			m_iTankClass;	// Behave As
 	int			m_iPlayerWeaponVolume;
@@ -296,6 +299,8 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_pFireProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CFuncTank, m_iszLocusFire, FIELD_STRING ),
 	DEFINE_FIELD( CFuncTank, m_extraBarrelsName, FIELD_STRING ),
+	DEFINE_FIELD( CFuncTank, m_aggressiveShots, FIELD_SHORT ),
+	DEFINE_FIELD( CFuncTank, m_aggressiveShotsFired, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTank, CBaseEntity )
@@ -507,6 +512,11 @@ void CFuncTank::KeyValue( KeyValueData *pkvd )
 	else if (FStrEq(pkvd->szKeyName, "player_weapon_volume"))
 	{
 		m_iPlayerWeaponVolume = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "aggressiveShots" ) )
+	{
+		m_aggressiveShots = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else
@@ -942,6 +952,20 @@ void CFuncTank::TrackTarget()
 			{
 				updateTime = true;
 				m_sightOrigin = UpdateTargetPosition( pTarget );
+
+				if (m_aggressiveShots > 0)
+				{
+					SetBits(pev->spawnflags, SF_TANK_AGGRESSIVE);
+					m_aggressiveShotsFired = 0;
+				}
+			}
+		}
+		else if (FBitSet(pev->spawnflags, SF_TANK_AGGRESSIVE))
+		{
+			if( InRange( range ) && pTarget->IsAlive() )
+			{
+				updateTime = true;
+				m_sightOrigin = UpdateTargetPosition( pTarget );
 			}
 		}
 
@@ -1081,8 +1105,18 @@ void CFuncTank::TrackTarget()
 
 		if( fire )
 		{
-			TryFire( BarrelPosition(), forward );
+			const int shotsFired = TryFire( BarrelPosition(), forward );
 			FireBarrels(false, forward);
+
+			if (FBitSet(pev->spawnflags, SF_TANK_AGGRESSIVE))
+			{
+				m_aggressiveShotsFired += shotsFired;
+				if (m_aggressiveShotsFired >= m_aggressiveShots)
+				{
+					m_aggressiveShotsFired = 0;
+					ClearBits(pev->spawnflags, SF_TANK_AGGRESSIVE);
+				}
+			}
 		}
 		else
 		{
@@ -1121,16 +1155,17 @@ void CFuncTank::AdjustAnglesForBarrel( Vector &angles, float distance )
 	}
 }
 
-void CFuncTank::TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTank::TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	if (UTIL_IsMasterTriggered(m_iszFireMaster, pAttacker))
 	{
 		if (!HaveBullets()) {
 			OnEmptyGun();
-			return;
+			return 0;
 		}
-		Fire( barrelEnd, forward, pAttacker ? pAttacker : this );
+		return Fire( barrelEnd, forward, pAttacker ? pAttacker : this );
 	}
+	return 0;
 }
 
 void CFuncTank::FireBarrels(bool controlledOrScripted, const Vector &forward, CBaseEntity *pAttacker)
@@ -1173,7 +1208,7 @@ void CFuncTank::ResetBarrelsTimers()
 }
 
 // Fire targets and spawn sprites
-void CFuncTank::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTank::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	if( m_fireLast != 0 )
 	{
@@ -1204,6 +1239,7 @@ void CFuncTank::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntit
 		SUB_UseTargets( this );
 	}
 	m_fireLast = gpGlobals->time;
+	return 0;
 }
 
 void CFuncTank::TankTrace( const Vector &vecStart, const Vector &vecForward, const Vector &vecSpread, TraceResult &tr )
@@ -1243,13 +1279,13 @@ void CFuncTank::StopRotSound()
 class CFuncTankGun : public CFuncTank
 {
 public:
-	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	int Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 };
 
 LINK_ENTITY_TO_CLASS( func_tank, CFuncTankGun )
 LINK_ENTITY_TO_CLASS( func_tank_of, CFuncTankGun )
 
-void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	if( m_fireLast != 0 )
 	{
@@ -1259,7 +1295,8 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 		int bulletCount = (int)( ( gpGlobals->time - m_fireLast ) * m_fireRate );
 		if( bulletCount > 0 )
 		{
-			for( int i = 0; i < bulletCount && HaveBullets(); i++ )
+			int i = 0;
+			for( ; i < bulletCount && HaveBullets(); i++ )
 			{
 				if (m_bulletType != TANK_BULLET_NONE)
 				{
@@ -1291,10 +1328,12 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 					break;
 			}
 			CFuncTank::Fire( barrelEnd, forward, pAttacker );
+			return i;
 		}
 	}
 	else
 		CFuncTank::Fire( barrelEnd, forward, pAttacker );
+	return 0;
 }
 
 class CFuncTankLaser : public CFuncTank
@@ -1302,7 +1341,7 @@ class CFuncTankLaser : public CFuncTank
 public:
 	void Activate() override;
 	void KeyValue( KeyValueData *pkvd ) override;
-	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	int Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 	void TankSpecialThink() override;
 	CLaser *GetLaser();
 
@@ -1390,7 +1429,7 @@ void CFuncTankLaser::TankSpecialThink()
 	}
 }
 
-void CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	TraceResult tr;
 
@@ -1402,7 +1441,8 @@ void CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBase
 		int bulletCount = (int)( ( gpGlobals->time - m_fireLast ) * m_fireRate );
 		if( bulletCount )
 		{
-			for( int i = 0; i < bulletCount && HaveBullets(); i++ )
+			int i = 0;
+			for( ; i < bulletCount && HaveBullets(); i++ )
 			{
 				m_pLaser->pev->origin = barrelEnd;
 				TankTrace( barrelEnd, forward, gTankSpread[m_spread], tr );
@@ -1417,12 +1457,14 @@ void CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBase
 				RemoveBullet();
 			}
 			CFuncTank::Fire( barrelEnd, forward, pAttacker );
+			return i;
 		}
 	}
 	else
 	{
 		CFuncTank::Fire( barrelEnd, forward, pAttacker );
 	}
+	return 0;
 }
 
 void CFuncTankLaser::StopFire()
@@ -1442,7 +1484,7 @@ class CFuncTankRocket : public CFuncTank
 public:
 	void Precache() override;
 	void KeyValue( KeyValueData *pkvd ) override;
-	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	int Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 	const char* ProjectileName();
 	EntityOverrides GetProjectileOverrides();
 
@@ -1518,8 +1560,13 @@ EntityOverrides CFuncTankRocket::GetProjectileOverrides()
 	return entityOverrides;
 }
 
-void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
+	if (!HaveBullets()) {
+		OnEmptyGun();
+		return 0;
+	}
+
 	if( m_fireLast != 0 )
 	{
 		int bulletCount = (int)( ( gpGlobals->time - m_fireLast ) * m_fireRate );
@@ -1528,8 +1575,9 @@ void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBas
 			int variant = 0;
 			const char* projectileClassname = GetRealProjectileClassname(ProjectileName(), variant);
 			EntityOverrides entityOverrides = GetProjectileOverrides();
+			int i = 0;
 
-			for( int i = 0; i < bulletCount && HaveBullets(); i++ )
+			for( ; i < bulletCount && HaveBullets(); i++ )
 			{
 				ProjectileParameters params(projectileClassname, barrelEnd, pev->angles, forward, pAttacker ? pAttacker : this, entityOverrides);
 				params.variant = variant;
@@ -1542,17 +1590,19 @@ void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBas
 				RemoveBullet();
 			}
 			CFuncTank::Fire( barrelEnd, forward, pAttacker );
+			return i;
 		}
 	}
 	else
 		CFuncTank::Fire( barrelEnd, forward, pAttacker );
+	return 0;
 }
 
 class CFuncTankMortar : public CFuncTank
 {
 public:
 	void KeyValue( KeyValueData *pkvd ) override;
-	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	int Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 };
 
 LINK_ENTITY_TO_CLASS( func_tankmortar, CFuncTankMortar )
@@ -1569,7 +1619,7 @@ void CFuncTankMortar::KeyValue( KeyValueData *pkvd )
 		CFuncTank::KeyValue( pkvd );
 }
 
-void CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
+int CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	if( m_fireLast != 0 )
 	{
@@ -1588,10 +1638,12 @@ void CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, CBas
 
 			RemoveBullet();
 			CFuncTank::Fire( barrelEnd, forward, pAttacker );
+			return 1;
 		}
 	}
 	else
 		CFuncTank::Fire( barrelEnd, forward, pAttacker );
+	return 0;
 }
 
 //============================================================================
