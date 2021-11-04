@@ -1373,6 +1373,15 @@
 
 @PointClass iconsprite("sprites/ambient_generic.spr") base(AmbientBase, AmbientRandomWavs, AmbientPlayFrom, AmbientDetails) = ambient_random : "Universal Ambient playing a random sound" []
 
+@PointClass iconsprite("sprites/ambient_generic.spr") base(Targetname) = ambient_radio : "Sound that plays at player's origin"
+[
+	message(sound) : "Sentence or WAV Name"
+	spawnflags(flags) =
+	[
+		1 : "Not on Player" : 0
+	]
+]
+
 //
 // ammo
 //

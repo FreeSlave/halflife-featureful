@@ -2261,3 +2261,71 @@ CBaseEntity* CAmbientExtraSpeaker::GetTargetEntity(CBaseEntity *pActivator)
 	}
 	return pTargetEntity;
 }
+
+#define SF_AMBIENT_RADIO_NOT_ON_PLAYER 1
+
+class CAmbientRadio : public CPointEntity
+{
+public:
+	void Spawn();
+	void Precache();
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+};
+
+LINK_ENTITY_TO_CLASS( ambient_radio, CAmbientRadio )
+
+void CAmbientRadio::Spawn()
+{
+	CPointEntity::Spawn();
+	Precache();
+}
+
+void CAmbientRadio::Precache()
+{
+	PRECACHE_MODEL("sprites/invisible.spr");
+}
+
+void CAmbientRadio::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	//TODO: support multiplayer
+
+	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+
+	if (!pPlayer) {
+		ALERT(at_console, "Could not find a player to play a radio message on!\n");
+		return;
+	}
+
+	const char *szSoundFile = STRING( pev->message );
+
+	CBaseEntity* pRadioEnt = UTIL_FindEntityByTargetname(0, "__player_radio");
+	if (!pRadioEnt) {
+		pRadioEnt = CBaseEntity::CreateNoSpawn("info_target", pPlayer->pev->origin, pPlayer->pev->angles);
+
+		if (pRadioEnt) {
+			ALERT(at_console, "Created radio info_target\n");
+			pRadioEnt->pev->targetname = MAKE_STRING("__player_radio");
+			pRadioEnt->pev->movetype = MOVETYPE_FOLLOW;
+			pRadioEnt->pev->aiment = pPlayer->edict();
+			DispatchSpawn(pRadioEnt->edict());
+			SET_MODEL( pRadioEnt->edict(), "sprites/invisible.spr" );
+			pRadioEnt->pev->rendermode = kRenderTransAlpha;
+		}
+	}
+
+	if (pRadioEnt) {
+		float attenuation = ATTN_NORM;
+		if (FBitSet(pev->spawnflags, SF_AMBIENT_RADIO_NOT_ON_PLAYER)) {
+			pRadioEnt->pev->movetype = MOVETYPE_NONE;
+			pRadioEnt->pev->aiment = 0;
+			UTIL_SetOrigin(pRadioEnt->pev, pev->origin);
+		} else {
+			pRadioEnt->pev->movetype = MOVETYPE_FOLLOW;
+			pRadioEnt->pev->aiment = pPlayer->edict();
+			attenuation = ATTN_NONE;
+		}
+
+		EMIT_SOUND( pRadioEnt->edict(), CHAN_VOICE, szSoundFile, 1.0f, attenuation);
+	}
+	UTIL_ShowCaption(szSoundFile, 0, true);
+}
