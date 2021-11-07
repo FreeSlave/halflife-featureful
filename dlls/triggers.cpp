@@ -7858,3 +7858,47 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( trigger_usetool, CTriggerUseTool )
+
+#define SF_TRIGGER_CHECKBOUNDBOX_ONLY_MONSTERS 1
+
+class CTriggerCheckBoundingBox : public CBaseEntity
+{
+public:
+	void Spawn();
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+
+	virtual int ObjectCaps( void ) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+};
+
+LINK_ENTITY_TO_CLASS( trigger_checkboundbox, CTriggerCheckBoundingBox )
+
+void CTriggerCheckBoundingBox::Spawn()
+{
+	pev->solid = SOLID_TRIGGER;
+	pev->movetype = MOVETYPE_NONE;
+	SET_MODEL( ENT( pev ), STRING( pev->model ) );
+}
+
+void CTriggerCheckBoundingBox::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	if (FStringNull(pev->netname)) {
+		ALERT(at_console, "Empty check entity name in %s\n", STRING(pev->classname));
+		return;
+	}
+
+	const int flags = FBitSet(pev->spawnflags, SF_TRIGGER_CHECKBOUNDBOX_ONLY_MONSTERS) ? FL_MONSTER : 0;
+
+	CBaseEntity* pList[32];
+	const int count = UTIL_EntitiesInBox( pList, ARRAYSIZE(pList), pev->absmin, pev->absmax, flags );
+	for (int i=0; i < count; ++i) {
+		CBaseEntity* pEntity = pList[i];
+		if (FStrEq(STRING(pEntity->pev->classname), STRING(pev->netname)) ||
+				(!FStringNull(pEntity->pev->targetname) &&
+				 FStrEq(STRING(pEntity->pev->targetname), STRING(pev->netname))))
+		{
+			FireTargets(STRING(pev->target), pActivator, this, USE_TOGGLE, 0.0f);
+			return;
+		}
+	}
+	FireTargets(STRING(pev->message), pActivator, this, USE_TOGGLE, 0.0f);
+}

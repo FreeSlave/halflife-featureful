@@ -8432,6 +8432,17 @@
 	fire_if_absent(target_destination) : "Fire if absent"
 ]
 
+@SolidClass base(Targetname) = trigger_checkboundbox : "Check if there's entity inside my bounding box"
+[
+	netname(string) : "Entity name"
+	target(target_destination) : "Trigger if entity is inside"
+	message(target_destination) : "Trigger if no entity inside"
+	spawnflags(flags) =
+	[
+		1 : "Monsters only" : 0
+	]
+]
+
 @PointClass base(Targetname) = trigger_command : "Console Command"
 [
 	netname(string) : "Command String"
