@@ -99,7 +99,7 @@ jobs:
     - name: Copy fgd to dist dir
       if: ${{ (startsWith(matrix.os, 'ubuntu') && startsWith(matrix.cc, 'gcc')) || startsWith(matrix.os, 'windows') }}
       run: |
-        cp fgd/halflife.fgd dist/${{ steps.extract_gamedir.outputs.gamedir }}/halflife_featureful.fgd
+        cp fgd/halflife.fgd dist/${{ steps.extract_gamedir.outputs.gamedir }}/halflife_field_intensity.fgd
         cp -r features/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
     - name: Copy pdbs to dist dir
       if: ${{ startsWith(matrix.os, 'windows') && github.event.inputs.buildtype == 'Debug' }}

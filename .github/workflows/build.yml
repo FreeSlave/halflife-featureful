@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        vgui_build: [non-vgui, vgui]
+        vgui_build: [non-vgui]
         include:
           - os: ubuntu-latest
             cc: gcc
@@ -33,7 +33,7 @@ jobs:
       CXX: ${{ matrix.cxx }}
       STEAMRT_SNAPSHOT: latest-steam-client-general-availability
       include_features: "false"
-      fgd_name: "halflife_featureful.fgd"
+      fgd_name: "halflife_field_intensity.fgd"
     steps:
     - name: Checkout
       uses: actions/checkout@v4
