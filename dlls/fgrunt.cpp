@@ -218,6 +218,12 @@ public:
 	int FollowerType() override {return FOLLOWER_TYPE_GRUNT;}
 
 	void SetHead(int head) override;
+	float CoverRadius() override {
+		if (IsFollowingPlayer())
+			return CTalkMonster::CoverRadius() / 2.0f;
+		else
+			return CTalkMonster::CoverRadius();
+	}
 
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;
