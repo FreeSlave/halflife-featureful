@@ -248,6 +248,8 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	const char *pText;
 	const char *pLineStart;
 
+	const bool useConsoleFont = pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0;
+
 	pText = pMessage->pMessage;
 	// Count lines
 	m_parms.lines = 1;
@@ -256,30 +258,57 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	length = 0;
 	width = 0;
 	m_parms.totalWidth = 0;
+	m_parms.totalHeight = 0;
+
+	char consoleStringBuf[512] = {0};
+	unsigned int consoleBufIndex = 0;
+
 	while( *pText )
 	{
 		if( *pText == '\n' )
 		{
 			m_parms.lines++;
+			if (useConsoleFont)
+			{
+				consoleStringBuf[consoleBufIndex] = '\0';
+				consoleBufIndex = 0;
+
+				int height;
+				gEngfuncs.pfnDrawConsoleStringLen( consoleStringBuf, &width, &height );
+				m_parms.totalHeight += height;
+			}
 			if( width > m_parms.totalWidth )
 				m_parms.totalWidth = width;
 			width = 0;
 		}
 		else
-			width += gHUD.m_scrinfo.charWidths[(unsigned char)*pText];
+		{
+			if (useConsoleFont) {
+				if (consoleBufIndex < sizeof(consoleStringBuf)-1)
+					consoleStringBuf[consoleBufIndex++] = *pText;
+			} else {
+				width += gHUD.m_scrinfo.charWidths[(unsigned char)*pText];
+			}
+		}
 		pText++;
 		length++;
 	}
 	m_parms.length = length;
-	m_parms.totalHeight = ( m_parms.lines * gHUD.m_scrinfo.iCharHeight );
+
+	if (!useConsoleFont)
+	{
+		m_parms.totalHeight = ( m_parms.lines * gHUD.m_scrinfo.iCharHeight );
+	}
 
 	m_parms.y = YPosition( pMessage->y, m_parms.totalHeight );
 	pText = pMessage->pMessage;
 
 	m_parms.charTime = 0;
 
-	MessageScanStart();
+	if (!useConsoleFont)
+		MessageScanStart();
 
+	consoleBufIndex = 0;
 	for( i = 0; i < m_parms.lines; i++ )
 	{
 		m_parms.lineLength = 0;
@@ -288,26 +317,51 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 		while( *pText && *pText != '\n' )
 		{
 			unsigned char c = *pText;
-			m_parms.width += gHUD.m_scrinfo.charWidths[c];
+			if (useConsoleFont)
+			{
+				if (consoleBufIndex < sizeof(consoleStringBuf)-1)
+					consoleStringBuf[consoleBufIndex++] = *pText;
+			}
+			else
+			{
+				m_parms.width += gHUD.m_scrinfo.charWidths[c];
+			}
 			m_parms.lineLength++;
 			pText++;
 		}
 		pText++;		// Skip LF
 
-		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
+		int strHeight;
+		if (useConsoleFont) {
+			consoleStringBuf[consoleBufIndex] = '\0';
+			consoleBufIndex = 0;
 
-		for( j = 0; j < m_parms.lineLength; j++ )
-		{
-			m_parms.text = (unsigned char)pLineStart[j];
-			int next = m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text];
-			MessageScanNextChar();
-
-			if( m_parms.x >= 0 && m_parms.y >= 0 && next <= ScreenWidth )
-				TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.r, m_parms.g, m_parms.b );
-			m_parms.x = next;
+			int strLength;
+			gEngfuncs.pfnDrawConsoleStringLen( consoleStringBuf, &strLength, &strHeight );
+			m_parms.width = strLength;
+		} else {
+			strHeight = gHUD.m_scrinfo.iCharHeight;
 		}
 
-		m_parms.y += gHUD.m_scrinfo.iCharHeight;
+		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
+
+		if (useConsoleFont) {
+			gEngfuncs.pfnDrawSetTextColor(0,0,0);
+			gEngfuncs.pfnDrawConsoleString(m_parms.x, m_parms.y, consoleStringBuf);
+		} else {
+			for( j = 0; j < m_parms.lineLength; j++ )
+			{
+				m_parms.text = (unsigned char)pLineStart[j];
+				int next = m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text];
+				MessageScanNextChar();
+
+				if( m_parms.x >= 0 && m_parms.y >= 0 && next <= ScreenWidth )
+					TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.r, m_parms.g, m_parms.b );
+				m_parms.x = next;
+			}
+		}
+
+		m_parms.y += strHeight;
 	}
 }
 
