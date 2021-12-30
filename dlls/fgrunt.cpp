@@ -225,6 +225,10 @@ public:
 			return CTalkMonster::CoverRadius();
 	}
 
+	FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() override {
+		return FOLLOW_FAIL_TRY_NEAREST;
+	}
+
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
