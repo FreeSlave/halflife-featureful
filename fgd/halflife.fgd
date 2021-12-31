@@ -4666,6 +4666,9 @@
 		68 : "pepsiswing"
 		69 : "pepsipush"
 		70 : "buttonpush"
+		71 : "floater"
+		72 : "turn_lever"
+		73 : "draw_shoot"
 	]
 	bodystate(Choices) : "Gun State" =
 	[
@@ -5031,6 +5034,11 @@
 
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/gman.mdl") = monster_gman : "G-Man"
 [
+	body(Choices) : "Body" =
+	[
+		0 : "Default"
+		1 : "Cellphone"
+	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
 		0 : "idle01"
@@ -5047,6 +5055,10 @@
 		11 : "listen"
 		12 : "lookdown"
 		13 : "lookdown2"
+		14 : "cell_idle"
+		15 : "cell_away"
+		16 : "working_nuke"
+		17 : "push_button"
 	]
 ]
 @PointClass base(Repel, Sequence) size(-16 -16 0, 16 16 72) studio("models/hgrunt.mdl") = monster_grunt_repel : "Human Grunt (Repel)"
@@ -7126,30 +7138,36 @@
 		17 : "diesimple"
 		18 : "diebackward"
 		19 : "dieforward"
-		20 : "pause"
-		21 : "busting_through_wall"
-		22 : "kick_punch_wall"
-		23 : "bust_window"
-		24 : "soda"
-		25 : "slideidle"
-		26 : "slidewall"
-		27 : "ventclimbidle"
-		28 : "ventclimb"
-		29 : "deadidle"
-		30 : "deadwall"
-		31 : "freakdie"
-		32 : "freak"
-		33 : "eatbodytable"
-		34 : "eatbody"
-		35 : "eatbodystand"
-		36 : "ripdoor"
-		37 : "zombie_pull_scientist"
-		38 : "zombie_eating"
-		39 : "eat_to_stand"
-		40 : "vent_zidle"
-		41 : "vent_c1a3"
-		42 : "haulzombie"
-		43 : "c2a3_snack_getup"
+		20 : "dead_on_back"
+		21 : "dead_on_stomach"
+		22 : "pause"
+		23 : "busting_through_wall"
+		24 : "kick_punch_wall"
+		25 : "bust_window"
+		26 : "soda"
+		27 : "slideidle"
+		28 : "slidewall"
+		29 : "ventclimbidle"
+		30 : "ventclimb"
+		31 : "deadidle"
+		32 : "deadwall"
+		33 : "freakdie"
+		34 : "freak"
+		35 : "eatbodytable"
+		36 : "eatbody"
+		37 : "eatbodystand"
+		38 : "ripdoor"
+		39 : "zombie_pull_scientist"
+		40 : "zombie_eating"
+		41 : "eat_to_stand"
+		42 : "vent_zidle"
+		43 : "vent_c1a3"
+		44 : "haulzombie"
+		45 : "c2a3_snack_getup"
+		46 : "left_tug"
+		47 : "left_tug_idle"
+		48 : "right_tug"
+		49 : "right_tug_idle"
 	]
 ]
 @PointClass base(DeadMonster) studio("models/zombie.mdl") = monster_zombie_dead : "Dead Zombie"
@@ -7164,17 +7182,11 @@
 	[
 		15 : "dieheadshot"
 		19 : "dieforward"
-		26 : "slidewall"
+		28 : "slidewall"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_barney.mdl") = monster_zombie_barney : "Barney Zombie"
 [
-	body(Choices) : "Body" : 0 =
-	[
-		-1 : "Random"
-		0 : "Barney"
-		1 : "HEV"
-	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
 		0 : "idle1"
@@ -7197,30 +7209,32 @@
 		17 : "diesimple"
 		18 : "diebackward"
 		19 : "dieforward"
-		20 : "pause"
-		21 : "busting_through_wall"
-		22 : "kick_punch_wall"
-		23 : "bust_window"
-		24 : "soda"
-		25 : "slideidle"
-		26 : "slidewall"
-		27 : "ventclimbidle"
-		28 : "ventclimb"
-		29 : "deadidle"
-		30 : "deadwall"
-		31 : "freakdie"
-		32 : "freak"
-		33 : "eatbodytable"
-		34 : "eatbody"
-		35 : "eatbodystand"
-		36 : "ripdoor"
-		37 : "zombie_pull_scientist"
-		38 : "zombie_eating"
-		39 : "eat_to_stand"
-		40 : "vent_zidle"
-		41 : "vent_c1a3"
-		42 : "haulzombie"
-		43 : "c2a3_snack_getup"
+		20 : "dead_on_back"
+		21 : "dead_on_stomach"
+		22 : "pause"
+		23 : "busting_through_wall"
+		24 : "kick_punch_wall"
+		25 : "bust_window"
+		26 : "soda"
+		27 : "slideidle"
+		28 : "slidewall"
+		29 : "ventclimbidle"
+		30 : "ventclimb"
+		31 : "deadidle"
+		32 : "deadwall"
+		33 : "freakdie"
+		34 : "freak"
+		35 : "eatbodytable"
+		36 : "eatbody"
+		37 : "eatbodystand"
+		38 : "ripdoor"
+		39 : "zombie_pull_scientist"
+		40 : "zombie_eating"
+		41 : "eat_to_stand"
+		42 : "vent_zidle"
+		43 : "vent_c1a3"
+		44 : "haulzombie"
+		45 : "c2a3_snack_getup"
 	]
 ]
 @PointClass base(DeadMonster) studio("models/zombie_barney.mdl") = monster_zombie_barney_dead : "Dead Barney Zombie"
@@ -7235,7 +7249,7 @@
 	[
 		15 : "dieheadshot"
 		19 : "dieforward"
-		26 : "slidewall"
+		28 : "slidewall"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_hev.mdl") = monster_zombie_hev : "HEV Zombie"
@@ -7286,6 +7300,10 @@
 		41 : "vent_c1a3"
 		42 : "haulzombie"
 		43 : "c2a3_snack_getup"
+		44 : "left_tug"
+		45 : "left_tug_idle"
+		46 : "right_tug"
+		47 : "right_tug_idle"
 		48 : "get_off_table"
 		49 : "table_breathe"
 	]
@@ -7322,9 +7340,10 @@
 		19 : "dieforward"
 		20 : "dead_on_back"
 		21 : "dead_on_stomach"
-		22 : "throw_scientist"
-		23 : "get_off_table"
-		24 : "table_breathe"
+		22 : "eatbody"
+		23 : "throw_scientist"
+		24 : "get_off_table"
+		25 : "table_breathe"
 	]
 ]
 @PointClass base(DeadMonster) studio("models/zombie_soldier.mdl") = monster_zombie_soldier_dead : "Dead Soldier Zombie"
