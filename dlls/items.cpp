@@ -611,10 +611,10 @@ public:
 		{
 			pPlayer->TakeArmor(this, pev->health > 0 ? pev->health : DefaultCapacity());
 
-			pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
+			PlayPickupSound( pPlayer );
 
 			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING( pev->classname ) );
+				WRITE_STRING( PickupSprite() );
 			MESSAGE_END();
 
 			if (ShouldSetSuitUpdate())
@@ -642,9 +642,36 @@ protected:
 	virtual const char* DefaultModel() { return "models/w_battery.mdl"; }
 	virtual bool ShouldSetSuitUpdate() { return true; }
 	virtual int DefaultCapacity() { return GetSkillValue("battery"); }
+	virtual void PlayPickupSound(CBaseEntity* pOther) {
+		pOther->EmitSoundScript(GetSoundScript(pickupSoundScript));
+	}
+	virtual const char* PickupSprite() {
+		return STRING(pev->classname);
+	}
 };
 
-LINK_ENTITY_TO_CLASS( item_battery, CItemBattery )
+LINK_ENTITY_TO_CLASS( item_battery, CItemBattery );
+
+class CItemMiniBattery : public CItemBattery
+{
+public:
+	void SetObjectCollisionBox()
+	{
+		pev->absmin = pev->origin + Vector( -12, -12, 0 );
+		pev->absmax = pev->origin + Vector( 12, 12, 12 );
+	}
+protected:
+	const char* DefaultModel() { return "models/w_minibattery.mdl"; }
+	int DefaultCapacity() { return static_cast<int>(ceil(GetSkillValue("battery") * 0.3333f)); }
+	virtual void PlayPickupSound(CBaseEntity* pOther) {
+		SoundScriptParamOverride param;
+		param.OverrideVolumeRelative(0.6f);
+		pOther->EmitSoundScript(GetSoundScript(pickupSoundScript), param);
+	}
+	const char* PickupSprite() { return "item_battery"; }
+};
+
+LINK_ENTITY_TO_CLASS( item_minibattery, CItemMiniBattery )
 
 class CItemArmorVest : public CItemBattery
 {

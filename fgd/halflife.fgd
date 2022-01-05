@@ -730,6 +730,7 @@
 		36: "Barnacle Grapple"
 		37: "Medkit (portable)"
 		38: "HEV Suit"
+		39: "Mini battery"
 	]
 	spawnobject_name(string) : "Spawn On Break (classname)"
 	spawnobject_template(string) : "Entity template for Spawn On Break"
@@ -4096,6 +4097,10 @@
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_medkit.mdl") = item_healthkit : "Small Health Kit"
 [
 	health(integer) : "Health Supplied"
+]
+@PointClass size(-12 -12 0, 12 12 24) base(Item) studio("models/w_minibattery.mdl") = item_minibattery : "HEV small battery"
+[
+	health(integer) : "Charge Supplied"
 ]
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_longjump.mdl") = item_longjump : "Longjump Module" []
 @PointClass size(-16 -16 0, 16 16 36) base(Pickup) studio() = item_pickup : "Generic item that can be picked up by the player. Gives the inventory item upon pick up if the 'Inventory item' is set."
