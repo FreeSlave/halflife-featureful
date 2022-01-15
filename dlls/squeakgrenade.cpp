@@ -25,6 +25,7 @@
 #include "game.h"
 #include "gamerules.h"
 #endif
+#include "decals.h"
 
 enum w_squeak_e
 {
@@ -495,6 +496,7 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 
 class CPenguinGrenade : public CSqueakGrenade
 {
+public:
 	void Spawn() override;
 	void Precache() override;
 	KilledResult Killed(entvars_t *pevInflictor,entvars_t *pevAttacker, int iGib) override;
@@ -509,6 +511,10 @@ class CPenguinGrenade : public CSqueakGrenade
 		const float maxDmg = GetSkillValue("penguin_max_dmg_pop");
 		return Q_min(maxDmg, pev->dmg * 2.5f);
 	}
+
+protected:
+	int m_explode1;
+	int m_explode2;
 };
 
 void CPenguinGrenade::Spawn()
@@ -521,17 +527,98 @@ void CPenguinGrenade::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	PrecacheImpl("models/w_penguin.mdl");
+
+	m_explode1 = PRECACHE_MODEL ("sprites/spore_exp_01.spr");
+	m_explode2 = PRECACHE_MODEL ("sprites/spore_exp_c_01.spr");
 }
 
 KilledResult CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
+	SetThink( &CBaseEntity::SUB_Remove );
+	SetTouch( NULL );
+	pev->nextthink = gpGlobals->time + 0.1f;
+
+	TraceResult tr;
+	Vector vecSpot;// trace starts here!
+
+	vecSpot = pev->origin + Vector( 0, 0, 8 );
+	UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -40 ), ignore_monsters, ENT(pev), &tr );
+
+	TraceResult *pTrace = &tr;
+
+	pev->model = iStringNull;
+	pev->solid = SOLID_NOT;
+	pev->takedamage = DAMAGE_NO;
+
+	const float exploRadius = ExplosionRadius();
+	int iContents = UTIL_PointContents( pev->origin );
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		if( iContents != CONTENTS_WATER )
+		{
+			WRITE_SHORT( g_sModelIndexFireball );
+		}
+		else
+		{
+			WRITE_SHORT( g_sModelIndexWExplosion );
+		}
+		WRITE_BYTE( Q_min( exploRadius * 0.1f, 255 ) ); // scale * 10
+		WRITE_BYTE( 15 ); // framerate
+		WRITE_BYTE( TE_EXPLFLAG_NODLIGHTS | TE_EXPLFLAG_NOPARTICLES | TE_EXPLFLAG_NOSOUND );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_SPRITE );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		WRITE_SHORT( RANDOM_LONG( 0, 1 ) ? m_explode1 : m_explode2 );
+		WRITE_BYTE( Q_min( exploRadius * 0.15f, 255 ) ); // scale * 10
+		WRITE_BYTE( 110 ); // framerate
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE(TE_DLIGHT);
+		WRITE_COORD( pev->origin.x );	// X
+		WRITE_COORD( pev->origin.y );	// Y
+		WRITE_COORD( pev->origin.z );	// Z
+		WRITE_BYTE( 20 );		// radius * 0.1
+		WRITE_BYTE( 60 );		// r
+		WRITE_BYTE( 180 );		// g
+		WRITE_BYTE( 0 );		// b
+		WRITE_BYTE( 20 );		// time * 10
+		WRITE_BYTE( 10 );		// decay * 0.1
+	MESSAGE_END( );
+
+	EMIT_SOUND_DYN( edict(), CHAN_ITEM, "squeek/sqk_blast1.wav", 1, 0.5f, 0, PITCH_HIGH );
+	EMIT_SOUND(edict(), CHAN_WEAPON, "weapons/splauncher_impact.wav", 1, ATTN_NORM);
+
+	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+
+	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 120 );
+
+	if( m_hOwner != 0 )
+		::RadiusDamage( pev->origin, pev, m_hOwner->pev, DamageInfo{pev->dmg, DMG_BLAST}, exploRadius, CLASS_NONE );
+	else
+		::RadiusDamage( pev->origin, pev, pev, DamageInfo{pev->dmg, DMG_BLAST}, exploRadius, CLASS_NONE );
+
+	if( RANDOM_FLOAT( 0, 1 ) < 0.5f )
+	{
+		UTIL_DecalTrace( pTrace, DECAL_SCORCH1 );
+	}
+	else
+	{
+		UTIL_DecalTrace( pTrace, DECAL_SCORCH2 );
+	}
+
 	if( m_hOwner != 0 )
 		pev->owner = m_hOwner->edict();
-	CGrenade::Detonate();
-	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
-	if( m_hOwner != 0 )
-		pev->owner = m_hOwner->edict();
-	return KilledResult();
+
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
 }
 
 float CPenguinGrenade::DefaultHealth()
