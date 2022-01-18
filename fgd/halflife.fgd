@@ -4157,6 +4157,16 @@
 		2 : "No map transition" : 0 : "Don't go across map transitions"
 		4 : "Apply gravity" : 0 : "Make item fall when the floor under it gets broken"
 	]
+	bloodcolor(choices) : "Blood Color" : : "Blood color of monster" =
+	[
+		0 : "Don't bleed"
+		247 : "Human (red)"
+		195 : "Alien (yellow)"
+	]
+	minhullsize(string) : "Min Size (X Y Z) (bleedable)"
+	maxhullsize(string) : "Max Size (X Y Z) (bleedable)"
+	gibmodel(studio) : "Gib model (bleedable)"
+	health(string) : "Health (bleedable)" 
 ]
 
 @PointClass base(Targetname, Global, Angles, CustomObjectHint) size(-16 -16 0, 16 16 48 ) studio("models/eye_scanner.mdl") = item_eyescanner : "Retinal Scanner"

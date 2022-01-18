@@ -31,6 +31,7 @@
 #include "animation.h"
 #include "common_soundscripts.h"
 #include "inventory.h"
+#include "monsters.h"
 
 extern int gmsgItemPickup;
 
@@ -1030,6 +1031,17 @@ public:
 	void Precache() override;
 	void KeyValue(KeyValueData* pkvd) override;
 	int	ObjectCaps() override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	int BloodColor() override {
+		if (IsBleedable())
+			return m_bloodColor;
+		return DONT_BLEED;
+	}
+	int DefaultClassify() {
+		if (IsBleedable())
+			return CLASS_INSECT;
+		return CLASS_NONE;
+	}
 
 	void SetObjectCollisionBox() override;
 
@@ -1037,6 +1049,13 @@ public:
 	void EXPORT SequenceThink();
 
 	string_t m_iszSequenceName;
+	string_t m_gibModel;
+	int m_bloodColor;
+	Vector m_minHullSize;
+	Vector m_maxHullSize;
+
+protected:
+	bool IsBleedable() const { return m_bloodColor > 0; }
 };
 
 LINK_ENTITY_TO_CLASS(item_generic, CItemGeneric)
@@ -1044,6 +1063,10 @@ LINK_ENTITY_TO_CLASS(item_generic, CItemGeneric)
 TYPEDESCRIPTION CItemGeneric::m_SaveData[] =
 {
 	DEFINE_FIELD(CItemGeneric, m_iszSequenceName, FIELD_STRING),
+	DEFINE_FIELD(CItemGeneric, m_gibModel, FIELD_STRING),
+	DEFINE_FIELD(CItemGeneric, m_bloodColor, FIELD_INTEGER),
+	DEFINE_FIELD(CItemGeneric, m_minHullSize, FIELD_VECTOR),
+	DEFINE_FIELD(CItemGeneric, m_maxHullSize, FIELD_VECTOR),
 };
 IMPLEMENT_SAVERESTORE(CItemGeneric, CBaseAnimating)
 
@@ -1059,6 +1082,14 @@ void CItemGeneric::Spawn()
 		SET_MODEL(ENT(pev), STRING(pev->model));
 	}
 
+	if (IsBleedable())
+	{
+		if (m_minHullSize == g_vecZero)
+			m_minHullSize = Vector( -16, -16, 0 );
+		if (m_maxHullSize == g_vecZero)
+			m_maxHullSize = Vector( 16, 16, 16 );
+	}
+
 	if (FBitSet(pev->spawnflags, SF_ITEM_GENERIC_APPLY_GRAVITY))
 	{
 		pev->solid = SOLID_BBOX;
@@ -1070,10 +1101,15 @@ void CItemGeneric::Spawn()
 		pev->movetype = MOVETYPE_NONE;
 	}
 
-	UTIL_SetOrigin(pev, pev->origin);
-	UTIL_SetSize(pev, g_vecZero, g_vecZero);
+	if (IsBleedable())
+	{
+		pev->solid = SOLID_SLIDEBOX;
+	}
 
-	pev->takedamage	 = DAMAGE_NO;
+	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetSize(pev, m_minHullSize, m_maxHullSize);
+
+	pev->takedamage = IsBleedable() ? DAMAGE_YES : DAMAGE_NO;
 
 	// Call startup sequence to look for a sequence to play.
 	if (!FStringNull(m_iszSequenceName))
@@ -1097,6 +1133,8 @@ void CItemGeneric::Precache()
 {
 	if (!FStringNull(pev->model))
 		PRECACHE_MODEL(STRING(pev->model));
+	if (!FStringNull(m_gibModel))
+		PRECACHE_MODEL(STRING(m_gibModel));
 }
 
 void CItemGeneric::KeyValue(KeyValueData* pkvd)
@@ -1104,6 +1142,26 @@ void CItemGeneric::KeyValue(KeyValueData* pkvd)
 	if (FStrEq(pkvd->szKeyName, "sequencename"))
 	{
 		m_iszSequenceName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "minhullsize" ) )
+	{
+		UTIL_StringToVector((float*)m_minHullSize, pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "maxhullsize" ) )
+	{
+		UTIL_StringToVector((float*)m_maxHullSize, pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "bloodcolor" ) )
+	{
+		m_bloodColor = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName , "gibmodel" ) || FStrEq( pkvd->szKeyName, "m_iszGibModel" ) )
+	{
+		m_gibModel = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else
@@ -1118,12 +1176,40 @@ int CItemGeneric::ObjectCaps()
 		return CBaseEntity::ObjectCaps();
 }
 
+TakeDamageResult CItemGeneric::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+{
+	TakeDamageResult takeDamageResult;
+
+	if (pev->takedamage == DAMAGE_NO)
+		return takeDamageResult;
+
+	Vector vecTemp = pevInflictor->origin - ( pev->absmin + ( pev->size * 0.5f ) );
+	g_vecAttackDir = vecTemp.Normalize();
+
+	pev->health -= damageInfo.damage;
+
+	takeDamageResult.SetTookDamageToHealth();
+
+	if( pev->health <= 0 )
+	{
+		KilledResult killedResult = Killed( pevInflictor, pevAttacker, GIB_NORMAL );
+
+		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM );
+		if (!FStringNull(m_gibModel))
+			CGib::SpawnRandomGibs(pev, 6, STRING(m_gibModel) );
+		SetThink( &CBaseEntity::SUB_Remove );
+		pev->nextthink = gpGlobals->time;
+		takeDamageResult.SetKilledResult(killedResult);
+	}
+	return takeDamageResult;
+}
+
 void CItemGeneric::SetObjectCollisionBox()
 {
 	if (FBitSet(pev->spawnflags, SF_ITEM_GENERIC_APPLY_GRAVITY))
 	{
-		pev->absmin = pev->origin + Vector( -16, -16, 0 );
-		pev->absmax = pev->origin + Vector( 16, 16, 16 );
+		pev->absmin = pev->origin + ( m_minHullSize == g_vecZero ? Vector( -16, -16, 0 ) : m_minHullSize );
+		pev->absmax = pev->origin + ( m_maxHullSize == g_vecZero ? Vector( 16, 16, 16 ) : m_maxHullSize );
 	}
 	else
 	{
