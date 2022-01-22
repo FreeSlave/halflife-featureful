@@ -48,8 +48,7 @@ int CHudMessage::VidInit()
 	m_HUD_title_half = gHUD.GetSpriteIndex( "title_half" );
 	m_HUD_title_life = gHUD.GetSpriteIndex( "title_life" );
 
-	m_HUD_title_opposing = gHUD.GetSpriteIndex( "title_opposing" );
-	m_HUD_title_force = gHUD.GetSpriteIndex( "title_force" );
+	m_HUD_title_field_intensity = gHUD.GetSpriteIndex( "title_fi" );
 
 	return 1;
 }
@@ -432,18 +431,14 @@ int CHudMessage::Draw( float fTime )
 			SPR_Set( gHUD.GetSprite( m_HUD_title_life ), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1 );
 			SPR_DrawAdditive( 0, x + halfWidth, y, &gHUD.GetSpriteRect( m_HUD_title_life ) );
 
-			if (m_HUD_title_opposing >= 0 && m_HUD_title_force >= 0)
+			if (m_HUD_title_field_intensity >= 0)
 			{
 				y += fullHeight;
 
-				halfWidth = gHUD.GetSpriteRect( m_HUD_title_opposing ).right - gHUD.GetSpriteRect( m_HUD_title_opposing ).left;
-				fullWidth = halfWidth + gHUD.GetSpriteRect( m_HUD_title_force ).right - gHUD.GetSpriteRect( m_HUD_title_force ).left;
+				const int fiWidth = gHUD.GetSpriteRect( m_HUD_title_field_intensity ).right - gHUD.GetSpriteRect( m_HUD_title_field_intensity ).left;
 
-				SPR_Set( gHUD.GetSprite( m_HUD_title_opposing ), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1 );
-				SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect( m_HUD_title_half ) );
-
-				SPR_Set( gHUD.GetSprite( m_HUD_title_force ), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1 );
-				SPR_DrawAdditive( 0, x + halfWidth, y, &gHUD.GetSpriteRect( m_HUD_title_life ) );
+				SPR_Set( gHUD.GetSprite( m_HUD_title_field_intensity ), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1 );
+				SPR_DrawAdditive( 0, x + fullWidth/2 - fiWidth/2, y, &gHUD.GetSpriteRect( m_HUD_title_field_intensity ) );
 			}
 
 			drawn = 1;
