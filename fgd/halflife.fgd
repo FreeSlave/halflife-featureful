@@ -6961,6 +6961,11 @@
 		32 : "Autostart" : 0
 		64 : "Start Inactive" : 0
 	]
+	skin(Choices) : "Skin" =
+	[
+		0 : "Default"
+		1 : "Blackops"
+	]
 ]
 @PointClass base(DeadTurret) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry_dead : "Dead Sentry Turret Gun"
 [
