@@ -3297,8 +3297,8 @@ void CBasePlayer::CheckTimeBasedDamage()
 			if( m_rgbTimeBasedDamage[i] )
 			{
 				// use up an antitoxin on poison or nervegas after a few seconds of damage					
-				if( ( ( i == itbd_NerveGas ) && ( m_rgbTimeBasedDamage[i] < NERVEGAS_DURATION ) ) ||
-					( ( i == itbd_Poison ) && ( m_rgbTimeBasedDamage[i] < POISON_DURATION ) ) )
+				if( ( ( i == itbd_NerveGas ) ) ||
+					( ( i == itbd_Poison ) ) )
 				{
 					if( m_rgItems[ITEM_ANTIDOTE] )
 					{
