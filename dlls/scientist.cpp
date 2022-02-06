@@ -125,7 +125,7 @@ public:
 	MONSTERSTATE GetIdealState() override;
 
 	FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() override {
-		return FOLLOW_FAIL_STOP;
+		return FOLLOW_FAIL_REGULAR;
 	}
 
 	void DeathSound() override;
