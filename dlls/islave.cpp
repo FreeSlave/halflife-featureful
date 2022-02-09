@@ -539,6 +539,8 @@ public:
 	Vector m_summonMinSize;
 	Vector m_summonMaxSize;
 
+	float m_attackDistance;
+
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
 	static const NamedSoundScript painSoundScript;
@@ -606,6 +608,8 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 
 	DEFINE_FIELD( CISlave, m_summonMinSize, FIELD_VECTOR ),
 	DEFINE_FIELD( CISlave, m_summonMaxSize, FIELD_VECTOR ),
+
+	DEFINE_FIELD( CISlave, m_attackDistance, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CISlave, CFollowingMonster )
@@ -1232,7 +1236,11 @@ bool CISlave::CheckRangeAttack1( float flDot, float flDist )
 		return true;
 	}
 
-	return CFollowingMonster::CheckRangeAttack1( flDot, flDist );
+	if( flDist > 64.0f && flDist <= Q_max(784.0f, m_attackDistance) && flDot >= 0.5f )
+	{
+		return true;
+	}
+	return false;
 }
 
 //=========================================================
@@ -1518,6 +1526,7 @@ void CISlave::Spawn()
 	FollowingMonsterInit();
 
 	m_originalMaxHealth = pev->max_health;
+	m_flDistTooFar = Q_max(m_attackDistance, m_flDistTooFar);
 
 	// leader starts with some energy pool
 	if (!m_freeEnergy)
@@ -1595,6 +1604,11 @@ void CISlave::KeyValue(KeyValueData *pkvd)
 	if (FStrEq(pkvd->szKeyName, "energy"))
 	{
 		m_freeEnergy = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "attack_distance"))
+	{
+		m_attackDistance = atof(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -2082,7 +2096,8 @@ CBaseEntity *CISlave::ZapBeam( int side )
 
 	float deflection = 0.01;
 	vecAim += side * gpGlobals->v_right * RANDOM_FLOAT( 0, deflection ) + gpGlobals->v_up * RANDOM_FLOAT( -deflection, deflection );
-	UTIL_TraceLine( vecSrc, vecSrc + vecAim * 1024, dont_ignore_monsters, ENT( pev ), &tr );
+	const float beamDistance = Q_max(1024.0f, m_attackDistance);
+	UTIL_TraceLine( vecSrc, vecSrc + vecAim * beamDistance, dont_ignore_monsters, ENT( pev ), &tr );
 
 	m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(zapBeamVisual));
 	if( !m_pBeam[m_iBeams] )

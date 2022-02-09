@@ -4527,6 +4527,7 @@
 	]
 	netname(string) : "Squad Name"
 	energy(string) : "Initial energy"
+	attack_distance(string) : "Custom zap distance"
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
