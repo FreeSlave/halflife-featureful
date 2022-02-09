@@ -117,6 +117,13 @@ cvar_t *cl_nvgradius_of = NULL;
 cvar_t *cl_nvgfilterbrightness = NULL;
 #endif
 
+cvar_t *hud_renderer = NULL;
+cvar_t *hud_scale = NULL;
+cvar_t *hud_safe_area = NULL;
+cvar_t *hud_sprite_offset = NULL;
+
+cvar_t *crosshair = NULL;
+
 void ShutdownInput( void );
 
 //DECLARE_MESSAGE( m_Logo, Logo )
@@ -464,6 +471,16 @@ void CHud::Init( void )
 #if FEATURE_FILTER_NIGHTVISION
 	cl_nvgfilterbrightness = CVAR_CREATE( "cl_nvgfilterbrightness", "0.6", FCVAR_ARCHIVE );
 #endif
+
+	if (!IsXashFWGS())
+	{
+		hud_renderer = CVAR_CREATE("hud_renderer", "1.0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+		hud_scale = CVAR_CREATE("hud_scale", "0.0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+		hud_safe_area = CVAR_CREATE("hud_safe_area", "10.0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+		hud_sprite_offset = CVAR_CREATE("hud_sprite_offset", "0.5", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	}
+
+	crosshair = gEngfuncs.pfnGetCvarPointer("crosshair");
 
 	m_pSpriteList = NULL;
 

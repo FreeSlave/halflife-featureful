@@ -134,32 +134,35 @@ int CHudFlashlight::Draw( float flTime )
 
 	ScaleColors( r, g, b, a );
 
-	y = ( m_prc1->bottom - m_prc2->top ) / 2;
-	x = ScreenWidth - m_iWidth - m_iWidth / 2 ;
+	wrect_t* emptyFlash = m_prc1;
+	wrect_t* fullFlash = m_prc2;
+
+	y = ( emptyFlash->bottom - fullFlash->top ) / 2;
+	x = ScaledRenderer::Instance().ScreenWidthScaled() - m_iWidth - m_iWidth / 2 ;
 
 	// Draw the flashlight casing
-	SPR_Set( m_hSprite1, r, g, b );
-	SPR_DrawAdditive( 0,  x, y, m_prc1 );
+	ScaledRenderer::Instance().SPR_Set( m_hSprite1, r, g, b );
+	ScaledRenderer::Instance().SPR_DrawAdditive( 0,  x, y, emptyFlash );
 
 	if( m_fOn )
 	{
 		// draw the flashlight beam
-		x = ScreenWidth - m_iWidth / 2;
+		x = ScaledRenderer::Instance().ScreenWidthScaled() - m_iWidth / 2;
 
-		SPR_Set( m_hBeam, r, g, b );
-		SPR_DrawAdditive( 0, x, y, m_prcBeam );
+		ScaledRenderer::Instance().SPR_Set( m_hBeam, r, g, b );
+		ScaledRenderer::Instance().SPR_DrawAdditive( 0, x, y, m_prcBeam );
 	}
 
 	// draw the flashlight energy level
-	x = ScreenWidth - m_iWidth - m_iWidth / 2;
+	x = ScaledRenderer::Instance().ScreenWidthScaled() - m_iWidth - m_iWidth / 2;
 	int iOffset = m_iWidth * ( 1.0f - m_flBat );
 	if( iOffset < m_iWidth )
 	{
 		rc = *m_prc2;
 		rc.left += iOffset;
 
-		SPR_Set( m_hSprite2, r, g, b );
-		SPR_DrawAdditive( 0, x + iOffset, y, &rc );
+		ScaledRenderer::Instance().SPR_Set( m_hSprite2, r, g, b );
+		ScaledRenderer::Instance().SPR_DrawAdditive( 0, x + iOffset, y, &rc );
 	}
 
 	return 1;

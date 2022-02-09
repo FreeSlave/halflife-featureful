@@ -54,13 +54,13 @@ int CHudTrain::Draw( float fTime )
 		int r, g, b, x, y;
 
 		UnpackRGB( r, g, b, gHUD.HUDColor() );
-		SPR_Set( m_hSprite, r, g, b );
+		ScaledRenderer::Instance().SPR_Set( m_hSprite, r, g, b );
 
 		// This should show up to the right and part way up the armor number
-		y = ScreenHeight - SPR_Height( m_hSprite, 0 ) - gHUD.m_iFontHeight;
-		x = ScreenWidth / 3 + SPR_Width( m_hSprite, 0 ) / 4;
+		y = ScaledRenderer::Instance().ScreenHeightScaled() - SPR_Height( m_hSprite, 0 ) - gHUD.m_iFontHeight;
+		x = (ScaledRenderer::Instance().ScreenWidthScaled() - SPR_Width( m_hSprite, 0 )) / 2;
 
-		SPR_DrawAdditive( m_iPos - 1, x, y, NULL );
+		ScaledRenderer::Instance().SPR_DrawAdditive( m_iPos - 1, x, y, NULL );
 	}
 
 	return 1;

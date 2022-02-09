@@ -108,8 +108,8 @@ int CHudBattery::Draw( float flTime )
 
 	int iOffset = ( m_prc1->bottom - m_prc1->top ) / 6;
 
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-	x = ScreenWidth / 5;
+	y = ScaledRenderer::Instance().ScreenHeightScaled() - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
+	x = ScaledRenderer::Instance().ScreenWidthScaled() / 5;
 
 	// make sure we have the right sprite handles
 	if( !m_hSprite1 )
@@ -117,13 +117,13 @@ int CHudBattery::Draw( float flTime )
 	if( !m_hSprite2 )
 		m_hSprite2 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_full" ) );
 
-	SPR_Set( m_hSprite1, r, g, b );
-	SPR_DrawAdditive( 0,  x, y - iOffset, m_prc1 );
+	ScaledRenderer::Instance().SPR_Set( m_hSprite1, r, g, b );
+	ScaledRenderer::Instance().SPR_DrawAdditive( 0,  x, y - iOffset, m_prc1 );
 
 	if( rc.bottom > rc.top )
 	{
-		SPR_Set( m_hSprite2, r, g, b );
-		SPR_DrawAdditive( 0, x, y - iOffset + ( rc.top - m_prc2->top ), &rc );
+		ScaledRenderer::Instance().SPR_Set( m_hSprite2, r, g, b );
+		ScaledRenderer::Instance().SPR_DrawAdditive( 0, x, y - iOffset + ( rc.top - m_prc2->top ), &rc );
 	}
 
 	x += ( m_prc1->right - m_prc1->left );
