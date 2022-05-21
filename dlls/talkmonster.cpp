@@ -1630,8 +1630,12 @@ void CTalkMonster::TrySmellTalk()
 int CTalkMonster::IRelationship( CBaseEntity *pTarget )
 {
 	if( pTarget->IsPlayer() )
-		if( m_afMemory & bits_MEMORY_PROVOKED )
+	{
+		if (m_fStartSuspicious)
+			return R_DL;
+		if( HasMemory( bits_MEMORY_PROVOKED ) )
 			return R_HT;
+	}
 	return CFollowingMonster::IRelationship( pTarget );
 }
 
