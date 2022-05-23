@@ -788,10 +788,10 @@ int CISlave::DefaultClassify()
 
 int CISlave::IRelationship( CBaseEntity *pTarget )
 {
-	if( ( pTarget && pTarget->IsPlayer() ) )
-		if( ( pev->spawnflags & SF_MONSTER_WAIT_UNTIL_PROVOKED ) && ! ( m_afMemory & bits_MEMORY_ISLAVE_PROVOKED ) )
-			return R_NO;
-	return CBaseMonster::IRelationship( pTarget );
+	int result = CBaseMonster::IRelationship( pTarget );
+	if (result >= R_DL && ( pev->spawnflags & SF_MONSTER_WAIT_UNTIL_PROVOKED ) && !HasMemory( bits_MEMORY_ISLAVE_PROVOKED ))
+		return R_NO;
+	return result;
 }
 
 void CISlave::CallForHelp(float flDist, EHANDLE hEnemy, Vector &vecLocation )
@@ -1645,7 +1645,7 @@ DamageInfo CISlave::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_
 
 TakeDamageResult CISlave::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
+	Remember( bits_MEMORY_ISLAVE_PROVOKED );
 	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
