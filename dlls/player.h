@@ -429,6 +429,8 @@ public:
 	void SetCustomDecalFrames( int nFrames );
 	int GetCustomDecalFrames( void );
 
+	bool HandleDoorBlockage(CBaseEntity* pDoor);
+
 	void SetMovementMode();
 	void RecruitFollowers();
 	void DisbandFollowers();

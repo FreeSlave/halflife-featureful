@@ -6512,6 +6512,23 @@ void CBasePlayer::DisbandFollowers()
 	}
 }
 
+bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
+{
+	if (g_modFeatures.doors_blocked_fade_corpses)
+	{
+		Vector mins = pev->absmin;
+		Vector maxs = pev->absmax;
+		maxs.z = mins.z + 1;
+		CBaseEntity *pList[2];
+		int count = UTIL_EntitiesInBox( pList, 2, mins, maxs, 0, DEAD_DEAD );
+		if (count > 0)
+		{
+			return pList[0]->HandleDoorBlockage(pDoor);
+		}
+	}
+	return false;
+}
+
 //=========================================================
 // Dead HEV suit prop
 //=========================================================

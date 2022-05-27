@@ -485,7 +485,7 @@ void UTIL_MoveToOrigin( edict_t *pent, const Vector &vecGoal, float flDist, int 
 	MOVE_TO_ORIGIN( pent, rgfl, flDist, iMoveType ); 
 }
 
-int UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask )
+int UTIL_EntitiesInBox(CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask, int deadFlagMask)
 {
 	edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
 	CBaseEntity *pEntity;
@@ -502,6 +502,9 @@ int UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, co
 			continue;
 
 		if( flagMask && !( pEdict->v.flags & flagMask ) )	// Does it meet the criteria?
+			continue;
+
+		if ( deadFlagMask && !( pEdict->v.deadflag & deadFlagMask ) )
 			continue;
 
 		if( mins.x > pEdict->v.absmax.x ||
