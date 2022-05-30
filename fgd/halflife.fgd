@@ -7899,6 +7899,7 @@
 	[
 		1 : "Freeze player" : 0
 		2 : "Remove weapons" : 0
+		64 : "Disallow changelevel and autosave" : 0 : "Disallow changelevels and autosaves upon triggering"
 		128 : "Return to menu" : 0 : "Return to menu instead of loading the save"
 	]
 ]

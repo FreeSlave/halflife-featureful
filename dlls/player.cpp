@@ -7272,8 +7272,35 @@ public:
 
 LINK_ENTITY_TO_CLASS( player_speed, CPlayerSpeed )
 
+static void DisableChangelevels()
+{
+	CBaseEntity* pEntity = 0;
+	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_changelevel")) != 0) {
+		pEntity->SetTouch(NULL);
+		if (!FStringNull(pEntity->pev->targetname)) {
+			pEntity->SetUse(NULL);
+		} else {
+			pEntity->pev->movetype = MOVETYPE_PUSH;
+			pEntity->pev->solid = SOLID_BSP;
+			SET_MODEL( pEntity->edict(), STRING( pEntity->pev->model ) );
+		}
+	}
+}
+
+static void DisableAutosaves()
+{
+	CBaseEntity* pEntity = 0;
+	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_autosave")) != 0) {
+		pEntity->SetTouch(NULL);
+	}
+	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "game_autosave")) != 0) {
+		UTIL_Remove(pEntity);
+	}
+}
+
 #define SF_PLAYER_LOAD_SAVED_FREEZE 1
 #define SF_PLAYER_LOAD_SAVED_WEAPONSTRIP 2
+#define SF_PLAYER_LOAD_SAVED_DISABLE_CHANGELEVEL 64
 #define SF_PLAYER_LOAD_SAVED_RETURN_TO_MENU 128
 
 class CRevertSaved : public CPointEntity
@@ -7348,6 +7375,12 @@ void CRevertSaved::Spawn()
 
 void CRevertSaved::LoadSavedUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
+	if (FBitSet(pev->spawnflags, SF_PLAYER_LOAD_SAVED_DISABLE_CHANGELEVEL))
+	{
+		DisableChangelevels();
+		DisableAutosaves();
+	}
+
 	if (FBitSet(pev->spawnflags, SF_PLAYER_LOAD_SAVED_WEAPONSTRIP|SF_PLAYER_LOAD_SAVED_FREEZE))
 	{
 		CBasePlayer *pPlayer = g_pGameRules->EffectivePlayer(pActivator);
