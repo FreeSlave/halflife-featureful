@@ -450,7 +450,7 @@ void CHud::Init( void )
 	cl_rollspeed = gEngfuncs.pfnRegisterVariable ( "cl_rollspeed", "300", FCVAR_CLIENTDLL|FCVAR_ARCHIVE );
 
 #if FEATURE_NIGHTVISION_STYLES
-	cl_nvgstyle = CVAR_CREATE( "cl_nvgstyle", "0", FCVAR_ARCHIVE );
+	cl_nvgstyle = CVAR_CREATE( "cl_nvgstyle", "1", FCVAR_ARCHIVE );
 #endif
 
 #if FEATURE_CS_NIGHTVISION
