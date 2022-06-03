@@ -640,6 +640,10 @@ public:
 	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() { return Vector( 12.0f, 12.0f, 4.0f ); }
 
+	int DefaultClassify ( void ) {
+		return CLASS_RACEX_SHOCK;
+	}
+
 	virtual int		Save(CSave &save);
 	virtual int		Restore(CRestore &restore);
 
