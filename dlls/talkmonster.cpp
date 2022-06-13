@@ -1569,7 +1569,7 @@ void CTalkMonster::PrescheduleThink()
 
 bool CTalkMonster::WantsToCallMedic()
 {
-	return IsHeavilyWounded() && ( m_flMedicWaitTime < gpGlobals->time );
+	return pev->health <= pev->max_health * 0.6f && ( m_flMedicWaitTime < gpGlobals->time );
 }
 
 bool CTalkMonster::FindAndCallMedic()

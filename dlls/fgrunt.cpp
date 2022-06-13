@@ -3648,7 +3648,7 @@ Schedule_t *CMedic::GetSchedule()
 				m_fSaidHeal = false;
 				if ( TargetDistance() <= 128 )
 				{
-					if ( m_hTargetEnt->pev->health <= m_hTargetEnt->pev->max_health * 0.75 && CheckHealCharge() ) {
+					if ( m_hTargetEnt->pev->health <= m_hTargetEnt->pev->max_health * 0.85 && CheckHealCharge() ) {
 						ALERT(at_aiconsole, "Medic is going to heal a player\n");
 						return GetScheduleOfType(SCHED_MEDIC_HEAL);
 					}
