@@ -1,0 +1,4 @@
+{
+    "fast_recruit_monsters": ["monster_human_grunt_ally", "monster_human_torch_ally", "monster_human_medic_ally"],
+    "fast_recruit_range": 500
+}

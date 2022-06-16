@@ -1,0 +1,10 @@
+{
+    "materials": {
+        "Z": {
+            "hit": {
+                "allow_weapon_sparks": false,
+                "wallpuff_color": [40, 60, 15]
+            }
+        }
+    }
+}
