@@ -1917,6 +1917,13 @@ void CTalkMonster::RemoveFromPlayerFollowers()
 	}
 }
 
+bool CTalkMonster::CanRoamAfterCombat()
+{
+	if (IsFriendWithPlayerBeforeProvoked())
+		return false;
+	return CFollowingMonster::CanRoamAfterCombat();
+}
+
 void CTalkMonster::PossessedByScript()
 {
 	RemoveFromPlayerFollowers();

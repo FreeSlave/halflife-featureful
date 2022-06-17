@@ -244,6 +244,8 @@ public:
 
 	void ReportAIState(ALERT_TYPE level) override;
 
+	virtual bool CanRoamAfterCombat();
+
 	virtual int FollowerType() { return FOLLOWER_TYPE_NONE; }
 	void PossessedByScript();
 	void SendUpdateToPlayer();
