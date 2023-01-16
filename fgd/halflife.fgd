@@ -3171,6 +3171,7 @@
 		128: "Small Radius" : 0
 		256: "Medium Radius" : 0
 		512: "Large Radius" : 1
+		4096: "Limit blocking damage" : 0
 	]
 	_minlight(integer) : "Minimum light level"
 	spawnorigin(string) : "X Y Z - Move here after lighting" : "0 0 0"

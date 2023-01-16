@@ -36,6 +36,7 @@ extern DLL_GLOBAL Vector		g_vecAttackDir;
 #define SF_BRUSH_ACCDCC	16// brush should accelerate and decelerate when toggled
 #define SF_BRUSH_HURT		32// rotating brush that inflicts pain based on rotation speed
 #define SF_ROTATING_NOT_SOLID	64	// some special rotating objects are not solid.
+#define SF_ROTATING_LIMIG_BLOCKING_DAMAGE 4096
 
 #define SF_PENDULUM_AUTO_RETURN		16
 #define	SF_PENDULUM_PASSABLE		32
@@ -367,6 +368,8 @@ NODE_LINKENT CFuncMonsterClip::HandleLinkEnt(int afCapMask, bool nodeQueryStatic
 }
 
 // =================== FUNC_ROTATING ==============================================
+#define ROTATING_BLOCKING_ENT_NUM 4
+
 class CFuncRotating : public CBaseEntity
 {
 public:
@@ -392,6 +395,8 @@ public:
 	float m_flVolume;
 	float m_pitch;
 	int m_sounds;
+	int m_blockingEntities[ROTATING_BLOCKING_ENT_NUM];
+	float m_blockingTimes[ROTATING_BLOCKING_ENT_NUM];
 };
 
 TYPEDESCRIPTION	CFuncRotating::m_SaveData[] =
@@ -400,7 +405,10 @@ TYPEDESCRIPTION	CFuncRotating::m_SaveData[] =
 	DEFINE_FIELD( CFuncRotating, m_flAttenuation, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncRotating, m_flVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncRotating, m_pitch, FIELD_FLOAT ),
-	DEFINE_FIELD( CFuncRotating, m_sounds, FIELD_INTEGER )
+	DEFINE_FIELD( CFuncRotating, m_sounds, FIELD_INTEGER ),
+	DEFINE_ARRAY( CFuncRotating, m_blockingEntities, FIELD_INTEGER, ROTATING_BLOCKING_ENT_NUM ),
+	DEFINE_ARRAY( CFuncRotating, m_blockingTimes, FIELD_TIME, ROTATING_BLOCKING_ENT_NUM ),
+
 };
 
 IMPLEMENT_SAVERESTORE( CFuncRotating, CBaseEntity )
@@ -769,7 +777,43 @@ void CFuncRotating::RotatingUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 //
 void CFuncRotating::Blocked( CBaseEntity *pOther )
 {
-	pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+	if (pOther->pev->takedamage)
+	{
+		if (!FBitSet(pev->spawnflags, SF_ROTATING_LIMIG_BLOCKING_DAMAGE))
+		{
+			pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+			return;
+		}
+
+		int entindex = pOther->entindex();
+		int i;
+		for (i=0; i<ROTATING_BLOCKING_ENT_NUM; ++i)
+		{
+			if (m_blockingEntities[i] == entindex)
+			{
+				if (m_blockingTimes[i] <= gpGlobals->time - 0.1f)
+				{
+					pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+					m_blockingTimes[i] = gpGlobals->time;
+				}
+				return;
+			}
+		}
+		int j = 0;
+		float blockTime = m_blockingTimes[0];
+		for (i=1; i<ROTATING_BLOCKING_ENT_NUM; ++i)
+		{
+			if (m_blockingTimes[i] < blockTime)
+			{
+				blockTime = m_blockingTimes[i];
+				j = i;
+			}
+		}
+		m_blockingTimes[j] = gpGlobals->time;
+		m_blockingEntities[j] = entindex;
+
+		pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+	}
 }
 //#endif
 
