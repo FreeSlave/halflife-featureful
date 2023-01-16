@@ -10,6 +10,269 @@
 #include	"gamerules.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
+#include	"shake.h"
+
+class CFlashGrenade : public CBaseMonster
+{
+public:
+	void Precache();
+	void Spawn( void );
+
+	static CFlashGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
+
+	void EXPORT BounceTouch( CBaseEntity *pOther );
+	void EXPORT TumbleThink( void );
+	void EXPORT Detonate( void );
+	void EXPORT Smoke( void );
+};
+
+LINK_ENTITY_TO_CLASS( fgrenade, CFlashGrenade )
+
+void CFlashGrenade::Precache()
+{
+	PRECACHE_MODEL("models/w_fgrenade.mdl");
+	PRECACHE_SOUND("weapons/fgrenade_hit1.wav");
+	PRECACHE_SOUND("weapons/flashbang-1.wav");
+}
+
+void CFlashGrenade::Spawn()
+{
+	Precache();
+
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->classname = MAKE_STRING( "fgrenade" );
+	pev->scale = 1.5f;
+
+	pev->solid = SOLID_BBOX;
+
+	SET_MODEL( ENT( pev ), "models/w_fgrenade.mdl" );
+	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+}
+
+CFlashGrenade *CFlashGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time )
+{
+	CFlashGrenade *pGrenade = GetClassPtr( (CFlashGrenade *)NULL );
+	pGrenade->Spawn();
+	UTIL_SetOrigin( pGrenade->pev, vecStart );
+	pGrenade->pev->velocity = vecVelocity;
+	pGrenade->pev->angles = Vector(270, 0, 0);
+	pGrenade->pev->owner = ENT( pevOwner );
+
+	pGrenade->SetTouch( &CFlashGrenade::BounceTouch );
+
+	pGrenade->pev->dmgtime = gpGlobals->time + time;
+	pGrenade->SetThink( &CFlashGrenade::TumbleThink );
+	pGrenade->pev->nextthink = gpGlobals->time + 0.1f;
+	if( time < 0.1f )
+	{
+		pGrenade->pev->nextthink = gpGlobals->time;
+		pGrenade->pev->velocity = Vector( 0, 0, 0 );
+	}
+
+	//pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
+	pGrenade->pev->framerate = 1.0f;
+
+	pGrenade->pev->gravity = 0.5f;
+	pGrenade->pev->friction = 0.8f;
+
+	return pGrenade;
+}
+
+void CFlashGrenade::BounceTouch( CBaseEntity *pOther )
+{
+	// don't hit the guy that launched this grenade
+	if( pOther->edict() == pev->owner )
+		return;
+
+	// only do damage if we're moving fairly fast
+	if( m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100 )
+	{
+		entvars_t *pevOwner = VARS( pev->owner );
+		if( pevOwner && pOther->pev->takedamage )
+		{
+			TraceResult tr = UTIL_GetGlobalTrace();
+			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo(1, DMG_CLUB), gpGlobals->v_forward, &tr );
+		}
+		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
+	}
+
+	Vector vecTestVelocity;
+	// pev->avelocity = Vector( 300, 300, 300 );
+
+	// this is my heuristic for modulating the grenade velocity because grenades dropped purely vertical
+	// or thrown very far tend to slow down too quickly for me to always catch just by testing velocity.
+	// trimming the Z velocity a bit seems to help quite a bit.
+	vecTestVelocity = pev->velocity;
+	vecTestVelocity.z *= 0.45f;
+
+	if( pev->flags & FL_ONGROUND )
+	{
+		// add a bit of static friction
+		pev->velocity = pev->velocity * 0.8f;
+
+		//pev->sequence = RANDOM_LONG( 1, 1 );
+	}
+	else
+	{
+		// play bounce sound
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/fgrenade_hit1.wav", 0.25, ATTN_NORM );
+	}
+	pev->framerate = pev->velocity.Length() / 200.0f;
+	if( pev->framerate > 1.0f )
+		pev->framerate = 1.0f;
+	else if( pev->framerate < 0.5f )
+		pev->framerate = 0.0f;
+}
+
+void CFlashGrenade::TumbleThink( void )
+{
+	if( !IsInWorld() )
+	{
+		UTIL_Remove( this );
+		return;
+	}
+
+	StudioFrameAdvance();
+	pev->nextthink = gpGlobals->time + 0.1f;
+
+	if( pev->dmgtime <= gpGlobals->time )
+	{
+		SetThink( &CFlashGrenade::Detonate );
+	}
+	if( pev->waterlevel != 0 )
+	{
+		pev->velocity = pev->velocity * 0.5f;
+		pev->framerate = 0.2f;
+	}
+}
+
+#define MINFLASH_DISTANCE 384.0f
+#define MAXFLASH_DISTANCE 640.0f
+
+void CFlashGrenade::Detonate( void )
+{
+	Vector vecSpot = pev->origin + Vector( 0, 0, 8 );
+	if (UTIL_PointContents(vecSpot) == CONTENTS_SOLID)
+		vecSpot = pev->origin;
+
+	pev->model = iStringNull;//invisible
+	pev->solid = SOLID_NOT;// intangible
+	pev->takedamage = DAMAGE_NO;
+
+	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/flashbang-1.wav", 1.0f, ATTN_NORM );
+
+	pev->effects |= EF_NODRAW;
+
+	pev->velocity = g_vecZero;
+
+	const Vector white = Vector(255, 255, 255);
+	const float fadeTime = GetSkillValue("massassin_flash_fadetime");
+	const float holdTime = GetSkillValue("massassin_flash_holdtime");
+	const float flashRadius = GetSkillValue("massassin_flash_radius");
+
+	for( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+		if (pPlayer)
+		{
+			const Vector playerEyes = pPlayer->EyePosition();
+			const float dist = (playerEyes - vecSpot).Length();
+
+			if (dist <= flashRadius)
+			{
+				TraceResult trToPlayer;
+				UTIL_TraceLine( vecSpot, playerEyes, ignore_monsters, ENT( pev ), &trToPlayer );
+				if (trToPlayer.flFraction == 1.0f)
+				{
+					const float fadeRadius = flashRadius * 0.75;
+					int alpha = 255;
+					if (dist > fadeRadius)
+					{
+						alpha -= ((dist - fadeRadius) / (flashRadius - fadeRadius)) * 30;
+					}
+					const bool faded = UTIL_ScreenFade( vecSpot, pPlayer, white, fadeTime, holdTime, alpha, 0, true );
+					if (!faded && dist <= flashRadius * 0.25f)
+					{
+						UTIL_ScreenFade(pPlayer, white, fadeTime, holdTime, 80, 0, true);
+					}
+				}
+			}
+		}
+	}
+
+	SetThink(&CFlashGrenade::Smoke);
+	pev->nextthink = gpGlobals->time + 0.3f;
+
+	TraceResult tr;
+	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, -32 ), ignore_monsters, ENT( pev ), &tr );
+
+	const int iContents = UTIL_PointContents( pev->origin );
+	if( iContents != CONTENTS_WATER )
+	{
+		int sparkCount = RANDOM_LONG( 0, 3 );
+		for( int i = 0; i < sparkCount; i++ )
+			Create( "spark_shower", pev->origin, tr.vecPlaneNormal, NULL );
+	}
+}
+
+void CFlashGrenade::Smoke( void )
+{
+	extern int gmsgSmoke;
+
+	if( UTIL_PointContents( pev->origin ) == CONTENTS_WATER )
+	{
+		UTIL_Bubbles( pev->origin - Vector( 64, 64, 64 ), pev->origin + Vector( 64, 64, 64 ), 100 );
+	}
+	else
+	{
+		MESSAGE_BEGIN( MSG_PVS, gmsgSmoke, pev->origin );
+			WRITE_BYTE( 0 );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			WRITE_SHORT( g_sModelIndexSmoke );
+			WRITE_BYTE( 30 ); // scale * 10
+			WRITE_BYTE( 10 ); // framerate
+			WRITE_SHORT( 0 );
+			WRITE_SHORT( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 100 );
+			WRITE_BYTE( 100 );
+			WRITE_BYTE( 100 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+	}
+	UTIL_Remove( this );
+}
+
+#if 0
+class CEnvFGrenadeShooter : public CPointEntity
+{
+public:
+	void Spawn();
+	void Precache();
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+};
+
+LINK_ENTITY_TO_CLASS( env_fgrenade_shooter, CEnvFGrenadeShooter )
+
+void CEnvFGrenadeShooter::Spawn()
+{
+	Precache();
+	CPointEntity::Spawn();
+}
+
+void CEnvFGrenadeShooter::Precache()
+{
+	UTIL_PrecacheOther("fgrenade");
+}
+
+void CEnvFGrenadeShooter::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	CFlashGrenade::ShootTimed(pev, pev->origin, Vector(0,0,1), 2.5f);
+}
+#endif
 
 //=========================================================
 // monster-specific DEFINE's
@@ -21,6 +284,7 @@
 #define MASSN_HANDGRENADE			(1 << 1)
 #define MASSN_GRENADELAUNCHER		(1 << 2)
 #define MASSN_SNIPERRIFLE			(1 << 3)
+#define MASSN_FLASHGRENADE			(1 << 5)
 
 // Body groups.
 #define MASSN_HEAD_GROUP					1
@@ -45,6 +309,7 @@ enum
 //=========================================================
 #define		MASSN_AE_KICK			( 3 )
 #define		MASSN_AE_BURST1			( 4 )
+#define		MASSN_AE_GREN_TOSS		( 7 )
 #define		MASSN_AE_CAUGHT_ENEMY	( 10 ) // grunt established sight with an enemy (player only) that had previously eluded the squad.
 #define		MASSN_AE_DROP_GUN		( 11 ) // grunt (probably dead) is dropping his mp5.
 
@@ -55,6 +320,7 @@ public:
 	const char* ReverseRelationshipModel() override { return "models/massnf.mdl"; }
 	void KeyValue(KeyValueData* pkvd) override;
 	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
+	bool CanThrowFlashGrenade();
 	bool CheckRangeAttack2(float flDot, float flDist) override;
 	void Sniperrifle();
 	void GibMonster() override;
@@ -296,10 +562,43 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case MASSN_AE_CAUGHT_ENEMY:
 		break;
 
+	case MASSN_AE_GREN_TOSS:
+	{
+		if (m_pCine)
+		{
+			CHGrunt::HandleAnimEvent(pEvent);
+		}
+		else
+		{
+			bool shouldThrowFgrenade = true;
+			if (FBitSet(pev->weapons, MASSN_HANDGRENADE))
+			{
+				shouldThrowFgrenade = RANDOM_LONG(0,1);
+			}
+			shouldThrowFgrenade = shouldThrowFgrenade && CanThrowFlashGrenade();
+			if (shouldThrowFgrenade)
+			{
+				CFlashGrenade::ShootTimed( pev, GetGunPosition(), m_vecTossVelocity, 2.8f );
+
+				m_fThrowGrenade = false;
+				m_flNextGrenadeCheck = gpGlobals->time + 5;
+			}
+			else
+			{
+				CHGrunt::HandleAnimEvent(pEvent);
+			}
+		}
+	}
+		break;
 	default:
 		CHGrunt::HandleAnimEvent(pEvent);
 		break;
 	}
+}
+
+bool CMassn::CanThrowFlashGrenade()
+{
+	return FBitSet(pev->weapons, MASSN_FLASHGRENADE) && m_hEnemy != 0 && m_hEnemy->IsPlayer();
 }
 
 //=========================================================
@@ -308,11 +607,14 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 //=========================================================
 bool CMassn::CheckRangeAttack2( float flDot, float flDist )
 {
-	if( !FBitSet( pev->weapons, ( MASSN_HANDGRENADE | MASSN_GRENADELAUNCHER ) ) )
+	const bool canThrowHandGrenade = FBitSet(pev->weapons, MASSN_HANDGRENADE);
+	const bool canThrowFlashGrenade = CanThrowFlashGrenade();
+	const bool canLaunchGrenade = FBitSet(pev->weapons, MASSN_GRENADELAUNCHER);
+	if( !canThrowHandGrenade && !canThrowFlashGrenade && !canLaunchGrenade )
 	{
 		return false;
 	}
-	return CheckRangeAttack2Impl(GetSkillValue("massassin_gspeed"), flDot, flDist, FBitSet(pev->weapons, MASSN_GRENADELAUNCHER));
+	return CheckRangeAttack2Impl(GetSkillValue("massassin_gspeed"), flDot, flDist, canLaunchGrenade);
 }
 
 //=========================================================
@@ -339,6 +641,11 @@ void CMassn::Spawn()
 	}
 	m_cAmmoLoaded = m_cClipSize;
 
+	if (!FBitSet(pev->weapons, MASSN_GRENADELAUNCHER|MASSN_SNIPERRIFLE))
+	{
+		pev->weapons |= MASSN_FLASHGRENADE;
+	}
+
 	if (m_iHead == -1 || m_iHead >= MASSN_HEAD_COUNT) {
 		m_iHead = RANDOM_LONG(MASSN_HEAD_WHITE, MASSN_HEAD_BLACK); // never random night googles
 	}
@@ -362,6 +669,7 @@ void CMassn::MonsterInit()
 void CMassn::Precache()
 {
 	PrecacheHelper("models/massn.mdl");
+	UTIL_PrecacheOther("fgrenade");
 
 	// Note: these are optional
 	RegisterAndPrecacheSoundScript(painSoundScript);

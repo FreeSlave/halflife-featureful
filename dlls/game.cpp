@@ -1355,6 +1355,9 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("massassin_health", "hgrunt_health");
 	g_SkillData.ProvideFallback("massassin_kick", "hgrunt_kick");
 	g_SkillData.ProvideFallback("massassin_gspeed", "hgrunt_gspeed");
+	g_SkillData.ProvideFallback("massassin_flash_holdtime", 0.9f);
+	g_SkillData.ProvideFallback("massassin_flash_fadetime", 1.6f);
+	g_SkillData.ProvideFallback("massassin_flash_radius", 512);
 
 	g_SkillData.ProvideFallback("osprey", 400.0f);
 	g_SkillData.ProvideFallback("blkopsosprey", "osprey");
