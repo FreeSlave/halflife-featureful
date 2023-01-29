@@ -547,7 +547,8 @@ void CBreakable::BreakTouch( CBaseEntity *pOther )
 			TakeDamage( pevToucher, pevToucher, DamageInfo(flDamage, DMG_CRUSH) );
 
 			// do a little damage to player if we broke glass or computer
-			pOther->TakeDamage( pev, pev, DamageInfo(flDamage/4, DMG_SLASH) );
+			if (m_Material == matGlass)
+				pOther->TakeDamage( pev, pev, DamageInfo(flDamage/4, DMG_SLASH) );
 		}
 	}
 
