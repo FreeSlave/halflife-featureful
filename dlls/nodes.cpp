@@ -2122,6 +2122,9 @@ void CTestHull::BuildNodeGraph( void )
 	// save the node graph for this level	
 	WorldGraph.FSaveGraph( STRING( gpGlobals->mapname ) );
 	ALERT( at_console, "Done.\n" );
+
+	if (IsDeveloperModeOn())
+		UTIL_CenterPrintAll( "Node Graph rebuilding done!" );
 }
 
 //=========================================================
