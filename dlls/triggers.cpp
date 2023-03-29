@@ -3797,6 +3797,8 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 		mypkvd.fHandled = false;
 
 		DispatchKeyValue(pTarget->edict(), &mypkvd);
+		if (FStrEq(mypkvd.szKeyName, "solid"))
+			UTIL_SetOrigin(pTarget->pev, pTarget->pev->origin);
 		ALERT(at_aiconsole, "'%s' (%s): dispatched value '%s' to key '%s' of entity '%s'\n", GetTargetname(), STRING(pev->classname), newValue, keyName, STRING(pTarget->pev->classname));
 	}
 		break;
