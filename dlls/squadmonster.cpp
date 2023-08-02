@@ -461,17 +461,26 @@ bool CSquadMonster::CheckEnemy( CBaseEntity *pEnemy )
 	bool iUpdatedLKP = CBaseMonster::CheckEnemy( pEnemy );
 
 	// communicate with squad members about the enemy IF this individual has the same enemy as the squad leader.
-	if( InSquad() && pEnemy == MySquadLeader()->m_hEnemy )
+	if( InSquad() )
 	{
-		if( iUpdatedLKP )
+		CSquadMonster* pLeader = MySquadLeader();
+		if (pEnemy == pLeader->m_hEnemy)
 		{
-			// have new enemy information, so paste to the squad.
-			SquadPasteEnemyInfo();
+			if( iUpdatedLKP )
+			{
+				// have new enemy information, so paste to the squad.
+				SquadPasteEnemyInfo();
+			}
+			else
+			{
+				// enemy unseen, copy from the squad knowledge.
+				SquadCopyEnemyInfo();
+			}
 		}
-		else
+		else if (pLeader->m_hEnemy == 0 && m_hEnemy->IsFullyAlive())
 		{
-			// enemy unseen, copy from the squad knowledge.
-			SquadCopyEnemyInfo();
+			// Leader doesn't have enemy! Probably was busy with something when squad member saw the new enemy.
+			SquadMakeEnemy(m_hEnemy);
 		}
 	}
 
