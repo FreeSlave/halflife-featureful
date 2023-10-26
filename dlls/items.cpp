@@ -666,10 +666,11 @@ LINK_ENTITY_TO_CLASS( item_battery, CItemBattery );
 class CItemMiniBattery : public CItemBattery
 {
 public:
-	void SetObjectCollisionBox()
-	{
-		pev->absmin = pev->origin + Vector( -12, -12, 0 );
-		pev->absmax = pev->origin + Vector( 12, 12, 12 );
+	Vector MinSizeVec() {
+		return Vector( -12, -12, 0 );
+	}
+	Vector MaxSizeVec() {
+		return Vector( 12, 12, 12 );
 	}
 protected:
 	const char* DefaultModel() { return "models/w_minibattery.mdl"; }
