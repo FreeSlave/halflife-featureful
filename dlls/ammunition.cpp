@@ -37,7 +37,7 @@ void CBasePlayerAmmo::Spawn()
 	if (FBitSet(pev->spawnflags, SF_ITEM_FIX_PHYSICS))
 		UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	else
-		UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 16 ) );
+		UTIL_SetSize( pev, MinSizeVec(), MaxSizeVec() );
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouchAndUse();

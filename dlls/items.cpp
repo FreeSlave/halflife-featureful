@@ -338,12 +338,22 @@ int CPickup::ObjectCaps()
 	}
 }
 
+Vector CPickup::MinSizeVec()
+{
+	return Vector( -16, -16, 0 );
+}
+
+Vector CPickup::MaxSizeVec()
+{
+	return Vector( 16, 16, 16 );
+}
+
 void CPickup::SetObjectCollisionBox()
 {
 	if (FBitSet(pev->spawnflags, SF_ITEM_FIX_PHYSICS))
 	{
-		pev->absmin = pev->origin + Vector( -16, -16, 0 );
-		pev->absmax = pev->origin + Vector( 16, 16, 16 );
+		pev->absmin = pev->origin + MinSizeVec();
+		pev->absmax = pev->origin + MaxSizeVec();
 	}
 	else
 	{
@@ -455,7 +465,7 @@ void CItem::Spawn()
 	if (FBitSet(pev->spawnflags, SF_ITEM_FIX_PHYSICS))
 		UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	else
-		UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 16 ) );
+		UTIL_SetSize( pev, MinSizeVec(), MaxSizeVec() );
 	SetTouch( &CItem::ItemTouch );
 
 	if (pev->movetype == MOVETYPE_TOSS)

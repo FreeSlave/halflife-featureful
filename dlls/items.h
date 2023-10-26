@@ -29,6 +29,8 @@ class CPickup : public CBaseDelay
 public:
 	void KeyValue( KeyValueData* pkvd ) override;
 	int ObjectCaps() override;
+	virtual Vector MinSizeVec();
+	virtual Vector MaxSizeVec();
 	void SetObjectCollisionBox() override;
 
 	bool IsPickableByTouch();
