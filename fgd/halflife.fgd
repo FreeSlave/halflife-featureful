@@ -7871,6 +7871,11 @@
 	]
 ]
 
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = player_clientsound : "Play Client Sound"
+[
+    noise(sound) : "Sound to play/stop"
+]
+
 @PointClass base(Targetname) = player_deployweapon : "Force deploying a weapon"
 [
 	weapon_name(string): "Weapon name" : : "Classname of the weapon, e.g. weapon_9mmAR"

@@ -585,6 +585,8 @@ public:
 	int m_ToolUnalignedBits;
 	int m_ClientToolUnalignedBits;
 	edict_t* m_UseToolTriggers[32];
+
+	string_t m_clientSoundPlaying;
 };
 
 extern int gmsgHudText;

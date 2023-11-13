@@ -31,6 +31,7 @@
 
 #include "demo.h"
 #include "demo_api.h"
+#include "event_api.h"
 
 #include "environment.h"
 #include "error_collector.h"
@@ -606,6 +607,28 @@ void __CmdFunc_HUDColor()
 	gHUD.HUDColorCmd();
 }
 
+int __MsgFunc_ClientSound( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int on = READ_BYTE();
+	const char* sound = READ_STRING();
+
+	cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
+	if (pthisplayer)
+	{
+		if (on)
+		{
+			gEngfuncs.pEventAPI->EV_StopSound( pthisplayer->index, CHAN_STATIC, sound );
+			gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin, CHAN_STATIC, sound, 1.0, ATTN_NONE, 0, PITCH_NORM );
+		}
+		else
+		{
+			gEngfuncs.pEventAPI->EV_StopSound( pthisplayer->index, CHAN_STATIC, sound );
+		}
+	}
+	return 1;
+}
+
 extern void ReportRegisteredAmmoTypes();
 extern void SetWeaponParameters();
 
@@ -720,6 +743,8 @@ void CHud::Init()
 	HOOK_MESSAGE( SoundScript );
 	HOOK_MESSAGE( Capability );
 	HOOK_MESSAGE( OnRope );
+
+	HOOK_MESSAGE( ClientSound );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round

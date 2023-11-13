@@ -167,6 +167,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_fadeAlpha, FIELD_SHORT),
 	DEFINE_FIELD(CBasePlayer, m_fadeFlags, FIELD_SHORT),
 
+	DEFINE_FIELD(CBasePlayer, m_clientSoundPlaying, FIELD_STRING),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -286,6 +288,8 @@ int gmsgOnRope = 0;
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
 
+int gmsgClientSound = 0;
+
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
 	if (!pFriend->IsFullyAlive())
@@ -403,6 +407,8 @@ void LinkUserMessages()
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
+
+	gmsgClientSound = REG_USER_MSG("ClientSound", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -5391,6 +5397,14 @@ void CBasePlayer::UpdateClientData()
 				}
 			}
 
+			if (!FStringNull(m_clientSoundPlaying))
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgClientSound, NULL, pev );
+					WRITE_BYTE( 1 );
+					WRITE_STRING( STRING( m_clientSoundPlaying ) );
+				MESSAGE_END();
+			}
+
 			m_fGameHUDInitialized = true;
 
 			m_iObserverLastMode = OBS_ROAMING;
@@ -8793,6 +8807,45 @@ TYPEDESCRIPTION	CTriggerChangeMaxClip::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CTriggerChangeMaxClip, CPointEntity )
+
+class CPlayerClientSound : public CPointEntity
+{
+public:
+	void Precache();
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+};
+
+LINK_ENTITY_TO_CLASS( player_clientsound, CPlayerClientSound )
+
+void CPlayerClientSound::Precache()
+{
+	if (!FStringNull(pev->noise))
+		PRECACHE_SOUND(STRING(pev->noise));
+}
+
+void CPlayerClientSound::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+	if (pPlayer)
+	{
+		bool currentlyPlaying = FStrEq(STRING(pev->noise), STRING(pPlayer->m_clientSoundPlaying));
+		if (ShouldToggle(useType, currentlyPlaying))
+		{
+			if (currentlyPlaying)
+			{
+				pPlayer->m_clientSoundPlaying = iStringNull;
+			}
+			else
+			{
+				pPlayer->m_clientSoundPlaying = pev->noise;
+			}
+			MESSAGE_BEGIN( MSG_ONE, gmsgClientSound, NULL, pPlayer->pev );
+				WRITE_BYTE( currentlyPlaying ? 0 : 1 );
+				WRITE_STRING( STRING( pev->noise ) );
+			MESSAGE_END();
+		}
+	}
+}
 
 //=========================================================
 // Multiplayer intermission spots.

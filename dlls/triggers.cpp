@@ -3116,6 +3116,15 @@ void CTriggerTeleport::LetGoRope(CBaseEntity *pOther)
 		CBasePlayer* pPlayer = (CBasePlayer*)pOther;
 		if (pPlayer->IsOnRope())
 			pPlayer->LetGoRope();
+
+		extern int gmsgClientSound;
+		if (!FStringNull(pPlayer->m_clientSoundPlaying))
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgClientSound, NULL, pPlayer->pev );
+				WRITE_BYTE( 1 );
+				WRITE_STRING( STRING( pPlayer->m_clientSoundPlaying ) );
+			MESSAGE_END();
+		}
 	}
 }
 
