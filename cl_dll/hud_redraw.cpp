@@ -649,9 +649,9 @@ int CHud::GetNumWidth( int iNumber, int iFlags )
 		return 3;
 
 	return 4;
-}	
+}
 
-void CHud::DrawDarkRectangle( int x, int y, int wide, int tall )
+void CHud::DrawDarkRectangle(int x, int y, int wide, int tall )
 {
 	DrawDarkRectangle(x, y, wide, tall, RectangleRenderProperties{});
 }
@@ -701,19 +701,8 @@ void CHud::RecacheValues()
 	}
 	else
 	{
-		if (clientFeatures.hud_color_configurable)
-		{
-			int hudR = m_pCvarHudRed->value;
-			int hudG = m_pCvarHudGreen->value;
-			int hudB = m_pCvarHudBlue->value;
-			m_cachedHudColor = PackRGB(hudR, hudG, hudB);
-		}
-		else
-		{
-			m_cachedHudColor = clientFeatures.hud_color;
-		}
+		m_cachedHudColor = CalcHudColor();
 	}
-
 	m_cachedTextColor = m_cachedHudColor;
 	int r, g, b;
 	UnpackRGB(r, g, b, m_cachedTextColor);

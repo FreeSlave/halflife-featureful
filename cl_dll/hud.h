@@ -1058,6 +1058,7 @@ public:
 	cvar_t	*m_pCvarHudGreen;
 	cvar_t	*m_pCvarHudBlue;
 	cvar_t	*m_pCvarArmorNearHealth;
+	cvar_t	*m_pCvarHudColorPreset;
 
 	cvar_t	*m_pCvarObjectHint;
 
@@ -1138,6 +1139,7 @@ public:
 	bool ViewModelLagEnabled();
 	int CalcMinHUDAlpha();
 	bool DrawArmorNearHealth();
+	int CalcHudColor();
 	bool WeaponWallpuffEnabled();
 	bool WeaponSparksEnabled();
 	bool MuzzleLightEnabled();

@@ -799,6 +799,7 @@ void CHud::Init()
 
 		HOOK_COMMAND( "hud_color", HUDColor );
 	}
+	m_pCvarHudColorPreset = CVAR_CREATE("hud_color_preset", "0", FCVAR_ARCHIVE);
 
 	CreateBooleanCvarConditionally(cl_weapon_sparks, "cl_weapon_sparks", clientFeatures.weapon_sparks);
 	CreateBooleanCvarConditionally(cl_weapon_wallpuff, "cl_weapon_wallpuff", clientFeatures.weapon_wallpuff);
@@ -1658,6 +1659,30 @@ bool CHud::DrawArmorNearHealth()
 	return ClientFeatureEnabled(m_pCvarArmorNearHealth, clientFeatures.hud_armor_near_health.enabled_by_default);
 }
 
+int CHud::CalcHudColor()
+{
+	switch ((int)m_pCvarHudColorPreset->value) {
+	case 1:
+		return clientFeatures.hud_color;
+	case 2:
+		return RGB_GREENISH;
+	default:
+	{
+		if (clientFeatures.hud_color_configurable)
+		{
+			int hudR = m_pCvarHudRed->value;
+			int hudG = m_pCvarHudGreen->value;
+			int hudB = m_pCvarHudBlue->value;
+			return PackRGB(hudR, hudG, hudB);
+		}
+		else
+		{
+			return clientFeatures.hud_color;
+		}
+	}
+	}
+}
+
 bool CHud::WeaponWallpuffEnabled()
 {
 	return ClientFeatureEnabled(cl_weapon_wallpuff, clientFeatures.weapon_wallpuff.enabled_by_default);
@@ -1789,10 +1814,9 @@ void CHud::HUDColorCmd()
 
 	if (shouldPrintHelp)
 	{
-		const int hudR = m_pCvarHudRed->value;
-		const int hudG = m_pCvarHudGreen->value;
-		const int hudB = m_pCvarHudBlue->value;
-		const int currentHudColor = PackRGB(hudR, hudG, hudB);
+		const int currentHudColor = CalcHudColor();
+		int hudR, hudG, hudB;
+		UnpackRGB(hudR, hudG, hudB, currentHudColor);
 		gEngfuncs.Con_Printf( "Current HUD color: %d %d %d (%06X)\n"
 							  "usage:\n"
 							  "hud_color RRR GGG BBB\n"
@@ -1809,6 +1833,7 @@ void CHud::HUDColorCmd()
 		gEngfuncs.Cvar_SetValue("hud_color_b", b);
 		gEngfuncs.Con_Printf("Set hud color to (%d, %d, %d)\n", r, g, b);
 	}
+	gEngfuncs.Con_Printf("Note: hud_color_preset must be set to 0 in order to configure the hud color\n");
 }
 
 HudSpriteRenderer& CHud::Renderer()
