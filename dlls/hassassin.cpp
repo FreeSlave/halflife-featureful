@@ -30,6 +30,7 @@
 #include	"scripted.h"
 #include	"game.h"
 #include	"gamerules.h"
+#include	"ammunition.h"
 
 #define FEATURE_HASSSASSIN_DROP_AMMO 1
 
@@ -230,7 +231,13 @@ void CHAssassin::OnDying(bool gibbed)
 
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 #if FEATURE_HASSSASSIN_DROP_AMMO
-		DropItem( "ammo_9mmclip", vecGunPos, vecGunAngles );
+		CBaseEntity* ammoEnt = DropItem( "ammo_9mmclip", vecGunPos, vecGunAngles );
+		if (ammoEnt)
+		{
+			CBasePlayerAmmo* ammo9mmclip = ammoEnt->MyAmmoPointer();
+			if (ammo9mmclip)
+				ammo9mmclip->SetCustomAmount(RANDOM_LONG(8, AMMO_GLOCKCLIP_GIVE));
+		}
 #endif
 #if FEATURE_MONSTERS_DROP_HANDGRENADES
 		if (!HasMemory(bits_MEMORY_THREW_GRENADE_AT_LEAST_ONCE))
