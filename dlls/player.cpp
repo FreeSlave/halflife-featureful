@@ -7336,6 +7336,7 @@ class CDeadHEV : public CDeadMonster
 {
 public:
 	void Spawn() override;
+	void Precache() override;
 	const char* DefaultModel() override { return g_modFeatures.DeadHazModel(); }
 	int	DefaultClassify() override { return	CLASS_HUMAN_MILITARY; }
 
@@ -7360,6 +7361,13 @@ void CDeadHEV::Spawn()
 	SpawnHelper();
 	pev->body			= 1;
 	MonsterInitDead();
+}
+
+void CDeadHEV::Precache()
+{
+	CDeadMonster::Precache();
+	if (pev->modelindex)
+		InitBoneControllers();
 }
 
 class CStripWeapons : public CPointEntity
