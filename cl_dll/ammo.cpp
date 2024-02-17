@@ -157,6 +157,72 @@ int WeaponsResource::HasAmmo( WEAPON *p )
 		|| CountAmmo( p->iAmmo2Type ) || ( p->iFlags & WEAPON_FLAGS_SELECTONEMPTY );
 }
 
+SpriteRectPair::SpriteRectPair() : sprite(0) {
+	rect.left = 0;
+	rect.right = 0;
+	rect.top = 0;
+	rect.bottom = 0;
+}
+
+bool WEAPON::HasAutoaimCrosshair() const
+{
+	return autoaim.crosshair.sprite != 0;
+}
+
+bool WEAPON::HasZoomedAutoaimCrosshair() const
+{
+	return zoomedAutoaim.crosshair.sprite != 0;
+}
+
+void WeaponsResource::FillCrosshairDataFromTheList(CrosshairSpriteData &crosshairData, client_sprite_t *pList, int listSize, int iRes, const char *spriteName)
+{
+	const int resolutions[] = {iRes, 1280, 2560};
+	SpriteRectPair* spriteRectPairs[] = {&crosshairData.crosshair, &crosshairData.crosshair_1280, &crosshairData.crosshair_2560};
+
+	for (int j=0; j<sizeof(resolutions)/sizeof(resolutions[0]); ++j)
+	{
+		if (resolutions[j] > 1280 && !gHUD.SupportsBigSprites())
+			break;
+		client_sprite_t *p = GetSpriteList( pList, spriteName, resolutions[j], listSize );
+		if( p )
+		{
+			char sz[256];
+			sprintf( sz, "sprites/%s.spr", p->szSprite );
+			spriteRectPairs[j]->sprite = SPR_Load( sz );
+			spriteRectPairs[j]->rect = p->rc;
+		}
+	}
+}
+
+void WeaponsResource::FillZoomedCrosshairDataFromTheList(CrosshairSpriteData &crosshairData, client_sprite_t *pList, int listSize, int iRes, const char *spriteName, const CrosshairSpriteData& fallback)
+{
+	const int resolutions[] = {iRes, 1280, 2560};
+	SpriteRectPair* spriteRectPairs[] = {&crosshairData.crosshair, &crosshairData.crosshair_1280, &crosshairData.crosshair_2560};
+	const SpriteRectPair* spriteRectFallbackPairs[] = {&fallback.crosshair, &fallback.crosshair_1280, &fallback.crosshair_2560};
+
+	bool useBaseResSpriteAsFallback = false;
+	for (int j=0; j<sizeof(resolutions)/sizeof(resolutions[0]); ++j)
+	{
+		if (resolutions[j] > 1280 && !gHUD.SupportsBigSprites())
+			break;
+		client_sprite_t *p = GetSpriteList( pList, spriteName, resolutions[j], listSize );
+		if( p )
+		{
+			char sz[256];
+			sprintf( sz, "sprites/%s.spr", p->szSprite );
+			spriteRectPairs[j]->sprite = SPR_Load( sz );
+			spriteRectPairs[j]->rect = p->rc;
+			if (j == 0)
+				useBaseResSpriteAsFallback = true;
+		}
+		else
+		{
+			if (!useBaseResSpriteAsFallback)
+				*spriteRectPairs[j] = *spriteRectFallbackPairs[j];
+		}
+	}
+}
+
 void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
 {
 	int i, iRes;
@@ -185,51 +251,15 @@ void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
 
 	client_sprite_t *p;
 
-	p = GetSpriteList( pList, "crosshair", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hCrosshair = SPR_Load( sz );
-		pWeapon->rcCrosshair = p->rc;
-	}
-	else
-		pWeapon->hCrosshair = 0;
+	pWeapon->crosshair = CrosshairSpriteData();
+	pWeapon->autoaim = CrosshairSpriteData();
+	pWeapon->zoomed = CrosshairSpriteData();
+	pWeapon->zoomedAutoaim = CrosshairSpriteData();
 
-	p = GetSpriteList( pList, "autoaim", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hAutoaim = SPR_Load( sz );
-		pWeapon->rcAutoaim = p->rc;
-	}
-	else
-		pWeapon->hAutoaim = 0;
-
-	p = GetSpriteList( pList, "zoom", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hZoomedCrosshair = SPR_Load( sz );
-		pWeapon->rcZoomedCrosshair = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedCrosshair = pWeapon->hCrosshair; //default to non-zoomed crosshair
-		pWeapon->rcZoomedCrosshair = pWeapon->rcCrosshair;
-	}
-
-	p = GetSpriteList( pList, "zoom_autoaim", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hZoomedAutoaim = SPR_Load( sz );
-		pWeapon->rcZoomedAutoaim = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedAutoaim = pWeapon->hZoomedCrosshair;  //default to zoomed crosshair
-		pWeapon->rcZoomedAutoaim = pWeapon->rcZoomedCrosshair;
-	}
+	FillCrosshairDataFromTheList(pWeapon->crosshair, pList, i, iRes, "crosshair");
+	FillCrosshairDataFromTheList(pWeapon->autoaim, pList, i, iRes, "autoaim");
+	FillZoomedCrosshairDataFromTheList(pWeapon->zoomed, pList, i, iRes, "zoom", pWeapon->crosshair);
+	FillZoomedCrosshairDataFromTheList(pWeapon->zoomedAutoaim, pList, i, iRes, "zoom_autoaim", pWeapon->zoomed);
 
 	p = GetSpriteList( pList, "weapon", iRes, i );
 	if( p )
@@ -403,8 +433,7 @@ void CHudAmmo::Reset()
 	gFR.Reset();
 
 	//VidInit();
-	wrect_t nullrc = {0,};
-	SetCrosshair( 0, nullrc, 0, 0, 0 ); // reset crosshair
+	gHUD.ClearCrosshair(); // reset crosshair
 	m_pWeapon = NULL; // reset last weapon
 }
 
@@ -652,16 +681,14 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 	{
 		wrect_t nullrc = {0,};
 		gpActiveSel = NULL;
-		SetCrosshair( 0, nullrc, 0, 0, 0 );
+		gHUD.ClearCrosshair();
 	}
 	else
 	{
 		if( m_pWeapon )
 		{
 			const int crosshairColor = gHUD.GetCrosshairColor();
-			int r, g, b;
-			UnpackRGB(r, g, b, crosshairColor);
-			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
+			gHUD.SetCrosshair(m_pWeapon->crosshair, crosshairColor);
 		}
 	}
 
@@ -703,7 +730,6 @@ int CHudAmmo::MsgFunc_DelFollower(const char *pszName, int iSize, void *pbuf)
 //
 int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 {
-	wrect_t nullrc = {0,};
 	bool fOnTarget = false;
 
 	BEGIN_READ( pbuf, iSize );
@@ -720,7 +746,7 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 
 	if( iId < 1 )
 	{
-		SetCrosshair( 0, nullrc, 0, 0, 0 );
+		gHUD.ClearCrosshair();
 		// Clear out the weapon so we don't keep drawing the last active weapon's ammo. - Solokiller
 		m_pWeapon = 0;
 		return 0;
@@ -755,24 +781,22 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 
 	if( !( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) ) )
 	{
-		int crosshairColor = gHUD.GetCrosshairColor();
-		int r,g,b;
-		UnpackRGB(r,g,b,crosshairColor);
+		const int crosshairColor = gHUD.GetCrosshairColor();
 		if( !gHUD.ShouldUseZoomedCrosshair() )
 		{
 			// normal crosshairs
-			if( fOnTarget && m_pWeapon->hAutoaim )
-				SetCrosshair( m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, r, g, b );
+			if( fOnTarget && m_pWeapon->HasAutoaimCrosshair() )
+				gHUD.SetCrosshair( m_pWeapon->autoaim, crosshairColor );
 			else
-				SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
+				gHUD.SetCrosshair( m_pWeapon->crosshair, crosshairColor );
 		}
 		else
 		{
 			// zoomed crosshairs
-			if( fOnTarget && m_pWeapon->hZoomedAutoaim )
-				SetCrosshair( m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, r, g, b );
+			if( fOnTarget && m_pWeapon->HasZoomedAutoaimCrosshair() )
+				gHUD.SetCrosshair( m_pWeapon->zoomedAutoaim, crosshairColor );
 			else
-				SetCrosshair( m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, r, g, b );
+				gHUD.SetCrosshair( m_pWeapon->zoomed, crosshairColor );
 		}
 	}
 

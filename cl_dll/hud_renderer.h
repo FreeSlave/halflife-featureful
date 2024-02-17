@@ -6,19 +6,11 @@
 
 #include "cdll_int.h"
 #include "com_model.h"
-
-struct OriginalSpriteEngfuncs
-{
-	void	(*pfnSetCrosshair)( HSPRITE hspr, wrect_t rc, int r, int g, int b );
-};
+#include "ammo.h"
 
 class HudSpriteRenderer {
 public:
 	HudSpriteRenderer();
-
-	void EnableCustomCrosshair();
-	void DisableCustomCrosshair();
-	bool CustomCrosshairRenderingEnabled();
 
 	float GetHUDScale() const;
 	bool IsCustomScale() const;
@@ -42,8 +34,8 @@ public:
 
 	void FillRGBA(int x, int y, int width, int height, int r, int g, int b, int a);
 
-	void SetCrosshair(HSPRITE hspr, wrect_t rc, int r, int g, int b);
-	void SetCrosshairData(HSPRITE hspr, wrect_t rc, int r, int g, int b);
+	void SetCrosshair(const CrosshairSpriteData &crosshairData, int r, int g, int b);
+	void SetCrosshairData(const CrosshairSpriteData& crosshairData, int r, int g, int b);
 	void DrawCrosshair();
 
 	HudSpriteRenderer& DefaultScale();
@@ -51,16 +43,14 @@ public:
 private:
 	void RecalcHUDScale();
 
-	OriginalSpriteEngfuncs origSpriteEngfuncs;
-
 	HSPRITE sprite;
 	model_t *sprite_model;
 	color24 sprite_color;
 
-	HSPRITE crosshair;
-	model_t *crosshair_model;
-	wrect_t crosshair_dimensions;
+	CrosshairSpriteData crosshair;
 	color24 crosshair_color;
+	bool customCrosshairRendering;
+	float crosshairCachedScale;
 
 	float hud_auto_scale_value;
 	float cachedHudScale;

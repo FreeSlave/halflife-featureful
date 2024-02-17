@@ -22,6 +22,23 @@
 
 #define WEAPON_IS_ONTARGET 0x40
 
+#include "wrect.h"
+#include "cdll_int.h"
+
+struct SpriteRectPair
+{
+	SpriteRectPair();
+	HSPRITE sprite;
+	wrect_t rect;
+};
+
+struct CrosshairSpriteData
+{
+	SpriteRectPair crosshair;
+	SpriteRectPair crosshair_1280;
+	SpriteRectPair crosshair_2560;
+};
+
 struct WEAPON
 {
 	char	szName[MAX_WEAPON_NAME];
@@ -43,14 +60,14 @@ struct WEAPON
 	wrect_t rcAmmo;
 	HSPRITE hAmmo2;
 	wrect_t rcAmmo2;
-	HSPRITE hCrosshair;
-	wrect_t rcCrosshair;
-	HSPRITE hAutoaim;
-	wrect_t rcAutoaim;
-	HSPRITE hZoomedCrosshair;
-	wrect_t rcZoomedCrosshair;
-	HSPRITE hZoomedAutoaim;
-	wrect_t rcZoomedAutoaim;
+
+	CrosshairSpriteData crosshair;
+	CrosshairSpriteData autoaim;
+	CrosshairSpriteData zoomed;
+	CrosshairSpriteData zoomedAutoaim;
+
+	bool HasAutoaimCrosshair() const;
+	bool HasZoomedAutoaimCrosshair() const;
 };
 
 typedef int AMMO;

@@ -12,51 +12,16 @@
 extern cvar_t *hud_scale;
 extern cvar_t *hud_sprite_offset;
 
-static void ScaledSetCrosshair(HSPRITE hspr, wrect_t rc, int r, int g, int b)
-{
-	CHud::Renderer().SetCrosshair(hspr, rc, r, g, b);
-}
-
 HudSpriteRenderer::HudSpriteRenderer() {
-	origSpriteEngfuncs.pfnSetCrosshair = NULL;
-
 	sprite = -1;
 	sprite_model = NULL;
 	sprite_color.r = 0;
 	sprite_color.g = 0;
 	sprite_color.b = 0;
 
-	crosshair = -1;
-	crosshair_model = NULL;
-	crosshair_dimensions.left = 0;
-	crosshair_dimensions.right = 0;
-	crosshair_dimensions.top = 0;
-	crosshair_dimensions.bottom = 0;
-
 	crosshair_color.r = 0;
 	crosshair_color.g = 0;
 	crosshair_color.b = 0;
-}
-
-void HudSpriteRenderer::EnableCustomCrosshair() {
-	if (CustomCrosshairRenderingEnabled())
-		return;
-	gEngfuncs.pfnSetCrosshair = ScaledSetCrosshair;
-	gEngfuncs.Con_DPrintf("Enabling custom crosshair rendering\n");
-	gHUD.ResetCrosshair();
-}
-
-void HudSpriteRenderer::DisableCustomCrosshair() {
-	if (!CustomCrosshairRenderingEnabled())
-		return;
-	gEngfuncs.pfnSetCrosshair = origSpriteEngfuncs.pfnSetCrosshair;
-	gEngfuncs.Con_DPrintf("Disabling custom crosshair rendering\n");
-	gHUD.ResetCrosshair();
-}
-
-bool HudSpriteRenderer::CustomCrosshairRenderingEnabled()
-{
-	return gEngfuncs.pfnSetCrosshair != origSpriteEngfuncs.pfnSetCrosshair;
 }
 
 float HudSpriteRenderer::GetHUDScale() const {
@@ -208,18 +173,22 @@ int HudSpriteRenderer::VidInit() {
 	return 1;
 }
 
+cvar_t* crosshair_force_custom = NULL;
+cvar_t* crosshair_debug = NULL;
+
 void HudSpriteRenderer::Init() {
-	origSpriteEngfuncs.pfnSetCrosshair = gEngfuncs.pfnSetCrosshair;
+	crosshair_force_custom = CVAR_CREATE("crosshair_force_custom", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	crosshair_debug = CVAR_CREATE("crosshair_debug", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
 }
 
 void HudSpriteRenderer::HUD_Frame(double time) {
 	(void)time;
 	RecalcHUDScale();
 
-	if (cachedHudScale != 1.0f) {
-		EnableCustomCrosshair();
-	} else {
-		DisableCustomCrosshair();
+	if (cachedHudScale != crosshairCachedScale && crosshair.crosshair.sprite > 0)
+	{
+		gEngfuncs.Con_DPrintf("Resetting crosshair because the hud scale has been changed (new scale: %g vs old scale: %g)\n", cachedHudScale, crosshairCachedScale);
+		gHUD.ResetCrosshair();
 	}
 }
 
@@ -261,24 +230,91 @@ void HudSpriteRenderer::FillRGBA(int x, int y, int width, int height, int r, int
 	}
 }
 
-void HudSpriteRenderer::SetCrosshair(HSPRITE hspr, wrect_t rc, int r, int g, int b)
+static int GetCrosshairSpriteRes( int width, int height )
 {
-	SetCrosshairData(hspr, rc, r, g, b);
+	int i;
 
-	wrect_t crosshair_rect;
-	crosshair_rect.left = 0;
-	crosshair_rect.right = 0;
-	crosshair_rect.top = 0;
-	crosshair_rect.bottom = 0;
+	if( width < 640 )
+		i = 320;
+	else if( width < 1280 )
+		i = 640;
+	else
+	{
+		if( height <= 720 )
+			i = 640;
+		else if( width <= 2560 || height <= 1600 )
+			i = 1280;
+		else
+		{
+			i = 2560;
+		}
+	}
 
-	origSpriteEngfuncs.pfnSetCrosshair(0, crosshair_rect, 0, 0, 0);
+	return i;
 }
 
-void HudSpriteRenderer::SetCrosshairData(HSPRITE hspr, wrect_t rc, int r, int g, int b)
+void HudSpriteRenderer::SetCrosshair(const CrosshairSpriteData &crosshairData, int r, int g, int b)
 {
-	crosshair = hspr;
-	crosshair_model = const_cast<model_t *>(gEngfuncs.GetSpritePointer(crosshair));
-	crosshair_dimensions = rc;
+	SetCrosshairData(crosshairData, r, g, b);
+
+	const bool forceCustomCrosshairRendering = crosshair_force_custom && crosshair_force_custom->value && gHUD.m_iHardwareMode != 0;
+	const bool crosshairDebug = crosshair_debug && crosshair_debug->value;
+
+	bool wants1280 = false;
+	bool wants2560 = false;
+	if (gHUD.m_iHardwareMode != 0)
+	{
+		wants1280 = cachedHudScale == 2.0f;
+		wants2560 = cachedHudScale == 3.0f;
+	}
+	else
+	{
+		const int preferredSpriteRes = GetCrosshairSpriteRes(ScreenWidth, ScreenHeight);
+		wants1280 = preferredSpriteRes == 1280;
+		wants2560 = preferredSpriteRes == 2560;
+	}
+
+	if (wants2560 && crosshairData.crosshair_2560.sprite > 0 && !forceCustomCrosshairRendering)
+	{
+		if (crosshairDebug)
+			gEngfuncs.Con_DPrintf("Setting crosshair of 2560 resolution in the engine\n");
+		customCrosshairRendering = false;
+		gEngfuncs.pfnSetCrosshair(crosshairData.crosshair_2560.sprite, crosshairData.crosshair_2560.rect, r, g, b);
+	}
+	else if (wants1280 && crosshairData.crosshair_1280.sprite > 0 && !forceCustomCrosshairRendering)
+	{
+		if (crosshairDebug)
+			gEngfuncs.Con_DPrintf("Setting crosshair of 1280 resolution in the engine\n");
+		customCrosshairRendering = false;
+		gEngfuncs.pfnSetCrosshair(crosshairData.crosshair_1280.sprite, crosshairData.crosshair_1280.rect, r, g, b);
+	}
+	else if ((cachedHudScale == 1.0f || gHUD.m_iHardwareMode == 0) && !forceCustomCrosshairRendering)
+	{
+		if (crosshairData.crosshair.sprite > 0 && crosshairDebug)
+			gEngfuncs.Con_DPrintf("Setting crosshair in the engine\n");
+		customCrosshairRendering = false;
+		gEngfuncs.pfnSetCrosshair(crosshairData.crosshair.sprite, crosshairData.crosshair.rect, r, g, b);
+	}
+	else if (gHUD.m_iHardwareMode != 0)
+	{
+		if (crosshairData.crosshair.sprite > 0 && crosshairDebug)
+			gEngfuncs.Con_DPrintf("Enabling custom crosshair rendering\n");
+		customCrosshairRendering = true;
+
+		wrect_t crosshair_rect;
+		crosshair_rect.left = 0;
+		crosshair_rect.right = 0;
+		crosshair_rect.top = 0;
+		crosshair_rect.bottom = 0;
+
+		gEngfuncs.pfnSetCrosshair(0, crosshair_rect, 0, 0, 0);
+	}
+	crosshairCachedScale = cachedHudScale;
+}
+
+void HudSpriteRenderer::SetCrosshairData(const CrosshairSpriteData &crosshairData, int r, int g, int b)
+{
+	crosshair = crosshairData;
 	crosshair_color.r = r;
 	crosshair_color.g = g;
 	crosshair_color.b = b;
@@ -287,27 +323,40 @@ void HudSpriteRenderer::SetCrosshairData(HSPRITE hspr, wrect_t rc, int r, int g,
 void HudSpriteRenderer::DrawCrosshair()
 {
 	// using original crosshair rendering
-	if (!CustomCrosshairRenderingEnabled())
+	if (!customCrosshairRendering)
 		return;
 
-	if (crosshair <= 0)
+	SpriteRectPair spriteRectPair = crosshair.crosshair;
+	if (crosshair.crosshair_2560.sprite > 0 && currentScale >= 3.0f)
+	{
+		currentScale = currentScale / 3.0f;
+		spriteRectPair = crosshair.crosshair_2560;
+	}
+	else if (crosshair.crosshair_1280.sprite > 0 && currentScale >= 2.0f)
+	{
+		currentScale = currentScale / 2.0f;
+		spriteRectPair = crosshair.crosshair_1280;
+	}
+	else if (crosshair.crosshair.sprite <= 0)
+	{
 		return;
+	}
 
-	const int width = crosshair_dimensions.right - crosshair_dimensions.left;
-	const int height = crosshair_dimensions.bottom - crosshair_dimensions.top;
+	const int width = spriteRectPair.rect.right - spriteRectPair.rect.left;
+	const int height = spriteRectPair.rect.bottom - spriteRectPair.rect.top;
 
 	const int x = PerceviedScreenWidth() >> 1;
 	const int y = PerceviedScreenHeight() >> 1;
 
 	if (IsCustomScale())
 	{
-		SPR_SetInternal(crosshair, crosshair_color.r, crosshair_color.g, crosshair_color.b);
-		SPR_DrawInternal(0, x - 0.5f * width, y - 0.5f * height, -1.0f, -1.0f, &crosshair_dimensions, kRenderTransTexture);
+		SPR_SetInternal(spriteRectPair.sprite, crosshair_color.r, crosshair_color.g, crosshair_color.b);
+		SPR_DrawInternal(0, x - 0.5f * width, y - 0.5f * height, -1.0f, -1.0f, &spriteRectPair.rect, kRenderTransTexture);
 	}
 	else
 	{
-		::SPR_Set(crosshair, crosshair_color.r, crosshair_color.g, crosshair_color.b);
-		::SPR_DrawHoles(0, x - 0.5f * width, y - 0.5f * height, &crosshair_dimensions);
+		::SPR_Set(spriteRectPair.sprite, crosshair_color.r, crosshair_color.g, crosshair_color.b);
+		::SPR_DrawHoles(0, x - 0.5f * width, y - 0.5f * height, &spriteRectPair.rect);
 	}
 }
 

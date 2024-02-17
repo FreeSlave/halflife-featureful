@@ -21,6 +21,8 @@
 
 #include "ammo.h"
 #include "bucket_preferences.h"
+#include "wrect.h"
+#include "cdll_int.h"
 
 #include <cstdint>
 
@@ -89,6 +91,10 @@ public:
 	HSPRITE* GetAmmoPicFromWeapon( int iAmmoId, wrect_t& rect );
 
 	int m_maxWeaponSlots;
+
+private:
+	void FillCrosshairDataFromTheList(CrosshairSpriteData& crosshairData, client_sprite_t *pList, int listSize, int iRes, const char* spriteName);
+	void FillZoomedCrosshairDataFromTheList(CrosshairSpriteData& crosshairData, client_sprite_t *pList, int listSize, int iRes, const char* spriteName, const CrosshairSpriteData& fallback);
 };
 
 extern WeaponsResource gWR;

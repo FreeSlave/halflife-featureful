@@ -1106,6 +1106,8 @@ public:
 	int MinHUDAlpha() const;
 	void RecacheValues();
 	int GetCrosshairColor();
+	void SetCrosshair(const CrosshairSpriteData &crosshairData, int crosshairColor);
+	void ClearCrosshair();
 	void ResetCrosshair();
 	int HUDTextColor();
 	ClientFeatures clientFeatures;
@@ -1284,6 +1286,9 @@ public:
 
 	HudSpriteRenderer hudRenderer;
 	bool hasHudScaleInEngine;
+
+	bool hl25anniversaryEngine;
+	bool SupportsBigSprites();
 
 	static bool ShouldUseConsoleFont();
 

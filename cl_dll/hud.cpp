@@ -689,6 +689,8 @@ bool CHud::IsDeveloperModeOn()
 // This is called every time the DLL is loaded
 void CHud::Init()
 {
+	hl25anniversaryEngine = gEngfuncs.pfnGetCvarPointer("cl_fixmodelinterpolationartifacts") != NULL;
+
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );
 	HOOK_MESSAGE( GameMode );
@@ -2005,6 +2007,11 @@ int CHudMoveMode::MsgFunc_MoveMode(const char *pszName, int iSize, void *pbuf)
 	BEGIN_READ( pbuf, iSize );
 	m_movementState = READ_SHORT();
 	return 1;
+}
+
+bool CHud::SupportsBigSprites()
+{
+	return hl25anniversaryEngine || IsXashFWGS();
 }
 
 bool CHud::ShouldUseConsoleFont()

@@ -729,6 +729,19 @@ int CHud::GetCrosshairColor()
 	}
 }
 
+void CHud::SetCrosshair(const CrosshairSpriteData &crosshairData, int crosshairColor)
+{
+	int r, g, b;
+	UnpackRGB(r, g, b, crosshairColor);
+	hudRenderer.SetCrosshair(crosshairData, r, g, b);
+}
+
+void CHud::ClearCrosshair()
+{
+	CrosshairSpriteData crosshairData;
+	hudRenderer.SetCrosshair(crosshairData, 0, 0, 0);
+}
+
 void CHud::ResetCrosshair()
 {
 	if( !( m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) ) )
@@ -736,16 +749,14 @@ void CHud::ResetCrosshair()
 		WEAPON* pWeapon = m_Ammo.GetWeapon();
 		if (pWeapon)
 		{
-			int crosshairColor = gHUD.GetCrosshairColor();
-			int r,g,b;
-			UnpackRGB(r,g,b,crosshairColor);
+			const int crosshairColor = gHUD.GetCrosshairColor();
 			if( !ShouldUseZoomedCrosshair() )
 			{
-				SetCrosshair( pWeapon->hCrosshair, pWeapon->rcCrosshair, r, g, b );
+				SetCrosshair( pWeapon->crosshair, crosshairColor );
 			}
 			else
 			{
-				SetCrosshair( pWeapon->hZoomedCrosshair, pWeapon->rcZoomedCrosshair, r, g, b );
+				SetCrosshair( pWeapon->zoomed, crosshairColor );
 			}
 		}
 	}
