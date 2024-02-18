@@ -1530,10 +1530,14 @@ void FollowerResource::DrawFollowers( float flTime )
 
 			int r, g, b;
 			if (gHUD.m_Nightvision.IsOn())
-				UnpackRGB( r, g, b, 0x00FFFFFF );
+				UnpackRGB( r, g, b, gHUD.clientFeatures.hud_color_nvg );
 			else
-				UnpackRGB( r, g, b, RGB_GREENISH );
-
+			{
+				if (gHUD.m_pCvarHudColorPreset->value == 2)
+					UnpackRGB( r, g, b, RGB_GREENISH );
+				else
+					UnpackRGB( r, g, b, gHUD.clientFeatures.hud_color );
+			}
 
 			switch (followers[i].type) {
 			case 1:
