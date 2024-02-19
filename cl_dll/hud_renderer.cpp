@@ -175,10 +175,12 @@ int HudSpriteRenderer::VidInit() {
 
 cvar_t* crosshair_force_custom = NULL;
 cvar_t* crosshair_debug = NULL;
+cvar_t* crosshair_even_scale = NULL;
 
 void HudSpriteRenderer::Init() {
 	crosshair_force_custom = CVAR_CREATE("crosshair_force_custom", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
 	crosshair_debug = CVAR_CREATE("crosshair_debug", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	crosshair_even_scale = CVAR_CREATE("crosshair_even_scale", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
 }
 
 void HudSpriteRenderer::HUD_Frame(double time) {
@@ -259,13 +261,17 @@ void HudSpriteRenderer::SetCrosshair(const CrosshairSpriteData &crosshairData, i
 
 	const bool forceCustomCrosshairRendering = crosshair_force_custom && crosshair_force_custom->value && gHUD.m_iHardwareMode != 0;
 	const bool crosshairDebug = crosshair_debug && crosshair_debug->value;
+	float crosshairScale = cachedHudScale;
+	if (crosshair_even_scale && crosshair_even_scale->value) {
+		crosshairScale = floor(crosshairScale + 0.5f);
+	}
 
 	bool wants1280 = false;
 	bool wants2560 = false;
 	if (gHUD.m_iHardwareMode != 0)
 	{
-		wants1280 = cachedHudScale == 2.0f;
-		wants2560 = cachedHudScale == 3.0f;
+		wants1280 = crosshairScale == 2.0f;
+		wants2560 = crosshairScale == 3.0f;
 	}
 	else
 	{
@@ -288,7 +294,7 @@ void HudSpriteRenderer::SetCrosshair(const CrosshairSpriteData &crosshairData, i
 		customCrosshairRendering = false;
 		gEngfuncs.pfnSetCrosshair(crosshairData.crosshair_1280.sprite, crosshairData.crosshair_1280.rect, r, g, b);
 	}
-	else if ((cachedHudScale == 1.0f || gHUD.m_iHardwareMode == 0) && !forceCustomCrosshairRendering)
+	else if ((crosshairScale == 1.0f || gHUD.m_iHardwareMode == 0) && !forceCustomCrosshairRendering)
 	{
 		if (crosshairData.crosshair.sprite > 0 && crosshairDebug)
 			gEngfuncs.Con_DPrintf("Setting crosshair in the engine\n");
