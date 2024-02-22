@@ -255,6 +255,8 @@ void CDeadGenericMonster::Precache()
 {
 	PrecacheMyModel(nullptr);
 	PrecacheMyGibModel();
+	if (pev->modelindex && FStrEq(STRING(pev->model), "models/deadhaz.mdl"))
+		InitBoneControllers();
 }
 
 void CDeadGenericMonster::Spawn()
