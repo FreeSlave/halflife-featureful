@@ -1432,7 +1432,7 @@ void CHud::VidInit()
 
 	RecacheValues();
 	m_colorableCrosshair = CrosshairColorable();
-	m_lastCrosshairColor = m_cachedHudColor;
+	m_lastCrosshairColor = GetCrosshairColor();
 
 	m_bCacheFullbrightModels = true;
 }

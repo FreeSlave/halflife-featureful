@@ -241,7 +241,7 @@ int CHud::Redraw( float flTime, int intermission )
 		gEngfuncs.Con_DPrintf("Resetting crosshair because colorable_crosshair changed\n");
 		shouldResetCrosshair = true;
 	}
-	int crosshairColor = GetCrosshairColor();
+	const int crosshairColor = GetCrosshairColor();
 	if (m_lastCrosshairColor != crosshairColor)
 	{
 		m_lastCrosshairColor = crosshairColor;

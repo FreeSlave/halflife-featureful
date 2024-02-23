@@ -50,11 +50,13 @@ private:
 	CrosshairSpriteData crosshair;
 	color24 crosshair_color;
 	bool customCrosshairRendering;
-	float crosshairCachedScale;
+	float hudScalePrevValue;
 
 	float hud_auto_scale_value;
 	float cachedHudScale;
 	float currentScale;
+
+	int crosshairSizePrevValue;
 };
 
 #endif

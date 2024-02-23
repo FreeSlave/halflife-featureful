@@ -135,7 +135,21 @@ void HudSpriteRenderer::SPR_DrawInternal(int frame, float x, float y, float widt
 	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
 }
 
+cvar_t* crosshair_force_custom = NULL;
+cvar_t* crosshair_debug = NULL;
+cvar_t* crosshair_even_scale = NULL;
+cvar_t* crosshair_size = NULL;
+
+void HudSpriteRenderer::Init() {
+	crosshair_force_custom = CVAR_CREATE("crosshair_force_custom", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	crosshair_debug = CVAR_CREATE("crosshair_debug", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	crosshair_even_scale = CVAR_CREATE("crosshair_even_scale", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+	crosshair_size = CVAR_CREATE("crosshair_size", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+}
+
 int HudSpriteRenderer::VidInit() {
+	crosshairSizePrevValue = crosshair_size ? (int)crosshair_size->value : 0;
+
 	if (gHUD.hasHudScaleInEngine || gHUD.UsingHighResSprites())
 		return 1;
 
@@ -173,24 +187,43 @@ int HudSpriteRenderer::VidInit() {
 	return 1;
 }
 
-cvar_t* crosshair_force_custom = NULL;
-cvar_t* crosshair_debug = NULL;
-cvar_t* crosshair_even_scale = NULL;
-
-void HudSpriteRenderer::Init() {
-	crosshair_force_custom = CVAR_CREATE("crosshair_force_custom", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
-	crosshair_debug = CVAR_CREATE("crosshair_debug", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
-	crosshair_even_scale = CVAR_CREATE("crosshair_even_scale", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
-}
+enum
+{
+	CROSSHAIR_SIZE_MATCH_HUD_SCALE = 0,
+	CROSSHAIR_SIZE_MATCH_SCREEN_RESOLUTION = 1,
+	CROSSHAIR_SIZE_SMALL,
+	CROSSHAIR_SIZE_MEDIUM,
+	CROSSHAIR_SIZE_LARGE
+};
 
 void HudSpriteRenderer::HUD_Frame(double time) {
 	(void)time;
 	RecalcHUDScale();
 
-	if (cachedHudScale != crosshairCachedScale && crosshair.crosshair.sprite > 0)
+	if (crosshair.crosshair.sprite > 0)
 	{
-		gEngfuncs.Con_DPrintf("Resetting crosshair because the hud scale has been changed (new scale: %g vs old scale: %g)\n", cachedHudScale, crosshairCachedScale);
-		gHUD.ResetCrosshair();
+		bool shouldResetCrosshair = false;
+
+		const int crosshairSizeCurrent = crosshair_size ? (int)crosshair_size->value : 0;
+		if (crosshairSizeCurrent != crosshairSizePrevValue)
+		{
+
+			shouldResetCrosshair = true;
+			gEngfuncs.Con_DPrintf("Resetting crosshair because user changed the preferred crosshair size\n");
+		}
+		else if (cachedHudScale != hudScalePrevValue && crosshairSizeCurrent == CROSSHAIR_SIZE_MATCH_HUD_SCALE)
+		{
+			shouldResetCrosshair = true;
+			gEngfuncs.Con_DPrintf("Resetting crosshair because the hud scale has been changed (new scale: %g vs old scale: %g)\n", cachedHudScale, hudScalePrevValue);
+		}
+
+		crosshairSizePrevValue = crosshairSizeCurrent;
+		hudScalePrevValue = cachedHudScale;
+
+		if (shouldResetCrosshair)
+		{
+			gHUD.ResetCrosshair();
+		}
 	}
 }
 
@@ -268,16 +301,35 @@ void HudSpriteRenderer::SetCrosshair(const CrosshairSpriteData &crosshairData, i
 
 	bool wants1280 = false;
 	bool wants2560 = false;
-	if (gHUD.m_iHardwareMode != 0)
+	if (crosshair_size && crosshair_size->value >= 1)
 	{
-		wants1280 = crosshairScale == 2.0f;
-		wants2560 = crosshairScale == 3.0f;
+		if (crosshair_size->value >= CROSSHAIR_SIZE_LARGE)
+		{
+			wants1280 = true;
+			wants2560 = true;
+		}
+		else if (crosshair_size->value >= CROSSHAIR_SIZE_MEDIUM)
+		{
+			wants1280 = true;
+			wants2560 = false;
+		}
+		else if (crosshair_size->value >= CROSSHAIR_SIZE_SMALL)
+		{
+			wants1280 = false;
+			wants2560 = false;
+			crosshairScale = 1.0f;
+		}
+		else
+		{
+			const int preferredSpriteRes = GetCrosshairSpriteRes(ScreenWidth, ScreenHeight);
+			wants1280 = preferredSpriteRes == 1280;
+			wants2560 = preferredSpriteRes == 2560;
+		}
 	}
 	else
 	{
-		const int preferredSpriteRes = GetCrosshairSpriteRes(ScreenWidth, ScreenHeight);
-		wants1280 = preferredSpriteRes == 1280;
-		wants2560 = preferredSpriteRes == 2560;
+		wants1280 = crosshairScale == 2.0f;
+		wants2560 = crosshairScale == 3.0f;
 	}
 
 	if (wants2560 && crosshairData.crosshair_2560.sprite > 0 && !forceCustomCrosshairRendering)
@@ -315,7 +367,6 @@ void HudSpriteRenderer::SetCrosshair(const CrosshairSpriteData &crosshairData, i
 
 		gEngfuncs.pfnSetCrosshair(0, crosshair_rect, 0, 0, 0);
 	}
-	crosshairCachedScale = cachedHudScale;
 }
 
 void HudSpriteRenderer::SetCrosshairData(const CrosshairSpriteData &crosshairData, int r, int g, int b)
