@@ -2315,6 +2315,13 @@
 	spark_duration(string) : "Custom Spark Duration"
 	spark_scale_min(string) : "Custom Spark Min Scale"
 	spark_scale_max(string) : "Custom Spark Max Scale"
+	spark_volume(string) : "Custom Spark Volume" : "1.0"
+	spark_silent(string) : "Custom Spark Silent" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	
 ]
 
 @PointClass sprite() base(Targetname, RenderFields, Angles) size(-4 -4 -4, 4 4 4) = env_sprite : "Sprite Effect"
