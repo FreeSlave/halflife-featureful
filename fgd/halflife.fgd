@@ -2316,12 +2316,11 @@
 	spark_scale_min(string) : "Custom Spark Min Scale"
 	spark_scale_max(string) : "Custom Spark Max Scale"
 	spark_volume(string) : "Custom Spark Volume" : "1.0"
-	spark_silent(string) : "Custom Spark Silent" =
+	spark_silent(choices) : "Custom Spark Silent" =
 	[
 		0 : "No"
 		1 : "Yes"
 	]
-	
 ]
 
 @PointClass sprite() base(Targetname, RenderFields, Angles) size(-4 -4 -4, 4 4 4) = env_sprite : "Sprite Effect"
@@ -4559,37 +4558,23 @@
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 7 =
 	[
-		0 : "walk"
-		1 : "run"
-		2 : "suprisedhop"
-		3 : "flinchs"
-		4 : "flinchb"
-		5 : "turnleft"
-		6 : "turnright"
-		7 : "idle"
-		8 : "whip"
-		9 : "bite"
-		10 : "range"
-		11 : "look"
-		12 : "seecrab"
-		13 : "eat"
-		14 : "inspectdown"
-		15 : "sniff"
-		16 : "die"
-		17 : "die1"
-		18 : "bulljump"
-		19 : "draggruntidle"
-		20 : "draggrunt"
-		21 : "scare"
-		22 : "squidfallidle"
-		23 : "squidfall"
+		0 : "run"
+		1 : "walk"
+		2 : "flinchs"
+		3 : "flinchb"
+		4 : "turnleft"
+		5 : "turnright"
+		6 : "idle"
+		7 : "bite"
+		8 : "range"
+		9 : "die"		
 	]
 ]
 @PointClass base(DeadMonster) studio("models/bullsquid.mdl") = monster_bullchicken_dead : "Dead BullChicken"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 17 =
 	[
-		17 : "die1"
+		10 : "die1"
 	]
 	skin(Choices) : "Eye state" =
 	[
