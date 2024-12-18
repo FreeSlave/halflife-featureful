@@ -1113,7 +1113,7 @@ LINK_ENTITY_TO_CLASS( trigger_sound, CTriggerSound );
 TYPEDESCRIPTION	CTriggerSound::m_SaveData[] = 
 {
 	DEFINE_FIELD( CTriggerSound, m_flRoomtype, FIELD_FLOAT ),
-	DEFINE_FIELD( CTriggerSound, m_iszMaster, FIELD_FLOAT ),
+	DEFINE_FIELD( CTriggerSound, m_iszMaster, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CTriggerSound, CBaseDelay );
