@@ -368,11 +368,11 @@ typedef enum _fieldtypes
 #endif
 
 #define _FIELD(type,name,fieldtype,count,flags)		{ fieldtype, #name, offsetof(type, name), count, flags }
-#define DEFINE_FIELD(type,name,fieldtype)		_FIELD(type, name, fieldtype, 1, 0)
-#define DEFINE_ARRAY(type,name,fieldtype,count)		_FIELD(type, name, fieldtype, count, 0)
+//#define DEFINE_FIELD(type,name,fieldtype)		_FIELD(type, name, fieldtype, 1, 0)
+//#define DEFINE_ARRAY(type,name,fieldtype,count)		_FIELD(type, name, fieldtype, count, 0)
 #define DEFINE_ENTITY_FIELD(name,fieldtype)		_FIELD(entvars_t, name, fieldtype, 1, 0 )
 #define DEFINE_ENTITY_GLOBAL_FIELD(name,fieldtype)	_FIELD(entvars_t, name, fieldtype, 1, FTYPEDESC_GLOBAL )
-#define DEFINE_GLOBAL_FIELD(type,name,fieldtype)		_FIELD(type, name, fieldtype, 1, FTYPEDESC_GLOBAL )
+//#define DEFINE_GLOBAL_FIELD(type,name,fieldtype)		_FIELD(type, name, fieldtype, 1, FTYPEDESC_GLOBAL )
 
 #define FTYPEDESC_GLOBAL		0x0001		// This field is masked for global entity save/restore
 #define FTYPEDESC_SAVE		0x0002		// This field is saved to disk
