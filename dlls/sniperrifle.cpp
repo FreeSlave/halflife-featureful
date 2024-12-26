@@ -33,6 +33,7 @@ void CSniperrifle::Spawn( )
 	SET_MODEL(ENT(pev), MyWModel());
 
 	InitDefaultAmmo(SNIPERRIFLE_DEFAULT_GIVE);
+	InitMaxClip(SNIPERRIFLE_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -60,7 +61,6 @@ bool CSniperrifle::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "762";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = 5;
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 5;
 	p->iPosition = 2;
@@ -176,7 +176,7 @@ void CSniperrifle::PrimaryAttack()
 
 void CSniperrifle::Reload( void )
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == SNIPERRIFLE_MAX_CLIP)
+	if (!CanReload())
 		return;
 
 	int iResult;
@@ -188,14 +188,14 @@ void CSniperrifle::Reload( void )
 
 	if (m_iClip == 0)
 	{
-		iResult = DefaultReload( SNIPERRIFLE_MAX_CLIP, SNIPER_RELOAD1, 80.0f / 34.0f );
+		iResult = DefaultClipReload( SNIPER_RELOAD1, 80.0f / 34.0f );
 		m_fInSpecialReload = 1;
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.25;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.25;
 	}
 	else
 	{
-		iResult = DefaultReload( SNIPERRIFLE_MAX_CLIP, SNIPER_RELOAD3, 2.25f );
+		iResult = DefaultClipReload( SNIPER_RELOAD3, 2.25f );
 	}
 }
 void CSniperrifle::WeaponIdle( void )

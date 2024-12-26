@@ -219,6 +219,7 @@ int gmsgGeigerRange = 0;
 int gmsgTeamNames = 0;
 int gmsgPlayMP3 = 0;
 int gmsgWeapons = 0;
+int gmsgMaxClip = 0;
 int gmsgItems = 0;
 
 int gmsgStatusText = 0;
@@ -322,6 +323,7 @@ void LinkUserMessages( void )
 	gmsgTeamNames = REG_USER_MSG( "TeamNames", -1 );
 	gmsgPlayMP3 = REG_USER_MSG( "PlayMP3", -1 );
 	gmsgWeapons = REG_USER_MSG( "Weapons", 8 );
+	gmsgMaxClip = REG_USER_MSG( "MaxClip", 3 );
 	gmsgItems = REG_USER_MSG( "Items", 4 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
@@ -7726,7 +7728,121 @@ TYPEDESCRIPTION	CPlayerStash::m_SaveData[] =
 	DEFINE_FIELD(CPlayerStash, m_triggerOnUnstash, FIELD_STRING),
 };
 
-IMPLEMENT_SAVERESTORE( CPlayerStash, CWeaponBox )
+IMPLEMENT_SAVERESTORE( CPlayerStash, CWeaponBox );
+
+enum
+{
+	CHANGEMAXCLIP_SET = 0,
+	CHANGEMAXCLIP_ADD = 2,
+	CHANGEMAXCLIP_SUBSTRUCT = 3,
+};
+
+enum
+{
+	CHANGEMAXCLIP_EXCESS_TRUNCATE = 0,
+	CHANGEMAXCLIP_EXCESS_MOVE_TO_AMMO = 1,
+	CHANGEMAXCLIP_EXCESS_KEEP_AS_IS = 2,
+};
+
+class CTriggerChangeMaxClip : public CPointEntity
+{
+public:
+	void KeyValue(KeyValueData *pkvd)
+	{
+		if (FStrEq(pkvd->szKeyName, "m_iMaxClip"))
+		{
+			m_iMaxClip = (short)atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "m_Mode"))
+		{
+			m_Mode = (short)atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "m_ExcessMode"))
+		{
+			m_ExcessMode = (short)atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		if (FStringNull(pev->message))
+		{
+			ALERT(at_warning, "%s without a weapon classname!\n", STRING(pev->classname));
+			return;
+		}
+		if (m_iMaxClip <= 0)
+		{
+			ALERT(at_warning, "%s with invalid m_iMaxClip = %d\n", STRING(pev->classname), m_iMaxClip);
+			return;
+		}
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (!pPlayer)
+			return;
+		CBasePlayerWeapon* pWeapon = pPlayer->GetWeaponByName(STRING(pev->message));
+		if (!pWeapon)
+			return;
+		if (pWeapon->iMaxClip() <= 0)
+		{
+			ALERT(at_warning, "%s: found %s, but it doesn't use clip\n", STRING(pev->classname), STRING(pev->message));
+			return;
+		}
+		switch (m_Mode) {
+		case CHANGEMAXCLIP_ADD:
+			pWeapon->m_iMaxClip += m_iMaxClip;
+			break;
+		case CHANGEMAXCLIP_SUBSTRUCT:
+		{
+			pWeapon->m_iMaxClip -= m_iMaxClip;
+			pWeapon->m_iMaxClip = Q_max(1, pWeapon->m_iMaxClip);
+		}
+			break;
+		default:
+			pWeapon->m_iMaxClip = m_iMaxClip;
+			break;
+		}
+
+		if (pWeapon->m_iClip > pWeapon->m_iMaxClip)
+		{
+			switch (m_ExcessMode) {
+			case CHANGEMAXCLIP_EXCESS_TRUNCATE:
+				pWeapon->m_iClip = pWeapon->m_iMaxClip;
+				break;
+			case CHANGEMAXCLIP_EXCESS_MOVE_TO_AMMO:
+			{
+				const int ammo = pWeapon->m_iClip - pWeapon->m_iMaxClip;
+				pWeapon->m_iClip = pWeapon->m_iMaxClip;
+				pPlayer->GiveAmmo(ammo, pWeapon->pszAmmo1());
+			}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+private:
+	short m_iMaxClip;
+	short m_Mode;
+	short m_ExcessMode;
+};
+
+LINK_ENTITY_TO_CLASS( trigger_changemaxclip, CTriggerChangeMaxClip )
+
+TYPEDESCRIPTION	CTriggerChangeMaxClip::m_SaveData[] =
+{
+	DEFINE_FIELD( CTriggerChangeMaxClip, m_iMaxClip, FIELD_SHORT ),
+	DEFINE_FIELD( CTriggerChangeMaxClip, m_Mode, FIELD_SHORT ),
+	DEFINE_FIELD( CTriggerChangeMaxClip, m_ExcessMode, FIELD_SHORT ),
+};
+
+IMPLEMENT_SAVERESTORE( CTriggerChangeMaxClip, CPointEntity )
 
 //=========================================================
 // Multiplayer intermission spots.

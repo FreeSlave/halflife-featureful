@@ -329,6 +329,8 @@ int __MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 	return gHUD.MsgFunc_Weapons( pszName, iSize, pbuf );
 }
 
+extern int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf);
+
 int __MsgFunc_GameMode( const char *pszName, int iSize, void *pbuf )
 {
 	return gHUD.MsgFunc_GameMode( pszName, iSize, pbuf );
@@ -598,6 +600,7 @@ void CHud::Init( void )
 	HOOK_MESSAGE( SetFOV );
 	HOOK_MESSAGE( Concuss );
 	HOOK_MESSAGE( Weapons );
+	HOOK_MESSAGE( MaxClip );
 	HOOK_MESSAGE( Items );
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( Rain );

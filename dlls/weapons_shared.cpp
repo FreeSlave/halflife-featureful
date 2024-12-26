@@ -78,6 +78,11 @@ bool CBasePlayerWeapon::DefaultReload( int iClipSize, int iAnim, float fDelay, i
 	return true;
 }
 
+bool CBasePlayerWeapon::DefaultClipReload(int iAnim, float fDelay, int body)
+{
+	return DefaultReload(m_iMaxClip, iAnim, fDelay, body);
+}
+
 void CBasePlayerWeapon::ResetEmptySound( void )
 {
 	m_iPlayEmptySound = true;
@@ -196,18 +201,15 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 int CBasePlayerWeapon::iMaxClip()
 {
-	int maxClip;
-#ifdef CLIENT_DLL
-		ItemInfo itemInfo{};
-		GetItemInfo( &itemInfo );
-		maxClip = itemInfo.iMaxClip;
-#else
-	maxClip = ItemInfoArray[ WeaponId() ].iMaxClip;
-#endif
-	return maxClip;
+	return m_iMaxClip;
 }
 
 bool CBasePlayerWeapon::InZoom()
 {
 	return m_pPlayer->pev->fov != 0;
+}
+
+bool CBasePlayerWeapon::CanReload()
+{
+	return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && m_iClip < m_iMaxClip;
 }

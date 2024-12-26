@@ -516,6 +516,7 @@ void CSqueak::Spawn()
 	FallInit();//get ready to fall down.
 
 	InitDefaultAmmo(DefaultGive());
+	InitMaxClip(WEAPON_NOCLIP);
 
 	pev->sequence = 1;
 	pev->animtime = gpGlobals->time;
@@ -539,7 +540,6 @@ bool CSqueak::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = AmmoName();
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = PositionInSlot();
 	p->iWeight = SNARK_WEIGHT;

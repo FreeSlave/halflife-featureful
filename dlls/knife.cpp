@@ -38,6 +38,7 @@ void CKnife::Spawn()
 
 	m_iSwingMode = 0;
 	m_iClip = -1;
+	InitMaxClip(WEAPON_NOCLIP);
 	FallInit();// get ready to fall down.
 }
 
@@ -63,7 +64,6 @@ bool CKnife::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = NULL;
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 2;
 	p->iWeight = KNIFE_WEIGHT;

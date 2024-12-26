@@ -37,6 +37,7 @@ void CEagle::Spawn( void )
 	SET_MODEL(ENT(pev), MyWModel());
 
 	InitDefaultAmmo(EAGLE_DEFAULT_GIVE);
+	InitMaxClip(EAGLE_MAX_CLIP);
 	m_fEagleLaserActive = 0;
 	m_pEagleLaser = 0;
 
@@ -70,7 +71,6 @@ bool CEagle::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "357";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = EAGLE_MAX_CLIP;
 	p->iSlot = 1;
 	p->iPosition = 2;
 	p->iFlags = 0;
@@ -192,10 +192,8 @@ void CEagle::PrimaryAttack()
 
 void CEagle::Reload( void )
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == EAGLE_MAX_CLIP)
-	{
+	if (!CanReload())
 		return;
-	}
 
 	if ( m_pEagleLaser && m_fEagleLaserActive )
 	{
@@ -208,9 +206,9 @@ void CEagle::Reload( void )
 	int iResult;
 
 	if (m_iClip == 0)
-		iResult = DefaultReload( EAGLE_MAX_CLIP, EAGLE_RELOAD, 1.5f );
+		iResult = DefaultClipReload( EAGLE_RELOAD, 1.5f );
 	else
-		iResult = DefaultReload( EAGLE_MAX_CLIP, EAGLE_RELOAD_NOT_EMPTY, 1.5f );
+		iResult = DefaultClipReload( EAGLE_RELOAD_NOT_EMPTY, 1.5f );
 
 	if (iResult)
 	{

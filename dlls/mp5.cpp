@@ -38,6 +38,7 @@ void CMP5::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(MP5_DEFAULT_GIVE);
+	InitMaxClip(MP5_MAX_CLIP);
 
 	if( bIsMultiplayer() )
 		m_iDefaultAmmo = MP5_DEFAULT_GIVE_MP;
@@ -77,7 +78,6 @@ bool CMP5::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "9mm";
 	p->pszAmmo2 = "ARgrenades";
-	p->iMaxClip = MP5_MAX_CLIP;
 	p->iSlot = 2;
 	p->iPosition = 0;
 	p->iFlags = 0;
@@ -207,10 +207,10 @@ void CMP5::SecondaryAttack( void )
 
 void CMP5::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == MP5_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
-	DefaultReload( MP5_MAX_CLIP, MP5_RELOAD, 1.5f );
+	DefaultClipReload( MP5_RELOAD, 1.5f );
 }
 
 void CMP5::WeaponIdle( void )

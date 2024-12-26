@@ -342,6 +342,7 @@ void CSatchel::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(SATCHEL_DEFAULT_GIVE);
+	InitMaxClip(WEAPON_NOCLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -362,7 +363,6 @@ bool CSatchel::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "Satchel Charge";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = 1;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;

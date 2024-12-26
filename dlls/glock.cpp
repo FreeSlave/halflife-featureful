@@ -30,6 +30,7 @@ void CGlock::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(GLOCK_DEFAULT_GIVE);
+	InitMaxClip(GLOCK_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -58,7 +59,6 @@ bool CGlock::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "9mm";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = GLOCK_MAX_CLIP;
 	p->iSlot = 1;
 	p->iPosition = 0;
 	p->iFlags = 0;
@@ -157,15 +157,15 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 
 void CGlock::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == GLOCK_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
 	int iResult;
 
 	if( m_iClip == 0 )
-		iResult = DefaultReload( GLOCK_MAX_CLIP, GLOCK_RELOAD, 1.5f );
+		iResult = DefaultClipReload( GLOCK_RELOAD, 1.5f );
 	else
-		iResult = DefaultReload( GLOCK_MAX_CLIP, GLOCK_RELOAD_NOT_EMPTY, 1.5f );
+		iResult = DefaultClipReload( GLOCK_RELOAD_NOT_EMPTY, 1.5f );
 
 	if( iResult )
 	{

@@ -31,6 +31,7 @@
 #include "../com_weapons.h"
 #include "../demo.h"
 #include "mod_features.h"
+#include "parsemsg.h"
 
 extern globalvars_t *gpGlobals;
 extern int g_iUser1;
@@ -111,6 +112,19 @@ void HUD_PrepEntity( CBaseEntity *pEntity, CBasePlayer *pWeaponOwner )
 			gEngfuncs.Con_Printf("Got 0 as weapon id!\n");
 		g_pWpns[pWeapon->WeaponId()] = (CBasePlayerWeapon *)pEntity;
 	}
+}
+
+int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	int id = READ_BYTE();
+	int maxClip = READ_SHORT();
+	CBasePlayerWeapon* pWeapon = AccessWeaponInfo(id).pWeapon;
+	if (pWeapon)
+	{
+		pWeapon->m_iMaxClip = maxClip;
+	}
+	return 1;
 }
 
 /*

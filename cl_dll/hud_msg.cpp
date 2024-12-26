@@ -38,8 +38,6 @@ extern float g_lastFOV;			// Vit_amiN
 
 int CHud::MsgFunc_ResetHUD( const char *pszName, int iSize, void *pbuf )
 {
-	ASSERT( iSize == 0 );
-
 	// clear all hud data
 	HUDLIST *pList = m_pHudList;
 

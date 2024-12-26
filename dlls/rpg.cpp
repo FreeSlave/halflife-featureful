@@ -332,10 +332,8 @@ void CRpgRocket::FollowThink( void )
 
 void CRpg::Reload( void )
 {
-	int iResult = 0;
-
 	// don't bother with any of this if don't need to reload.
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == RPG_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
 	// because the RPG waits to autoreload when no missiles are active while  the LTD is on, the
@@ -365,8 +363,9 @@ void CRpg::Reload( void )
 	}
 #endif
 
-	if( m_iClip == 0 )
-		iResult = DefaultReload( RPG_MAX_CLIP, RPG_RELOAD, 2 );
+	bool iResult = false;
+	if( m_iClip < m_iMaxClip )
+		iResult = DefaultClipReload( RPG_RELOAD, 2 );
 
 	if( iResult )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -388,6 +387,7 @@ void CRpg::Spawn()
 	{
 		InitDefaultAmmo(RPG_DEFAULT_GIVE);
 	}
+	InitMaxClip(RPG_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -412,7 +412,6 @@ bool CRpg::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "rockets";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = RPG_MAX_CLIP;
 	p->iSlot = 3;
 	p->iPosition = 0;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHTO;

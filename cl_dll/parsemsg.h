@@ -19,8 +19,6 @@
 #if !defined(PARSEMSG_H)
 #define PARSEMSG_H
 
-#define ASSERT( x )
-
 #include "mathlib.h"
 #include "common_types.h"
 

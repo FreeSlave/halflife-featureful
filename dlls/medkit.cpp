@@ -82,6 +82,7 @@ void CMedkit::Spawn()
 	SET_MODEL(ENT(pev), MyWModel());
 
 	InitDefaultAmmo(MEDKIT_DEFAULT_GIVE);
+	InitMaxClip(WEAPON_NOCLIP);
 	m_secondaryAttack = false;
 	m_flSoundDelay = 0;
 
@@ -107,7 +108,6 @@ bool CMedkit::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "Medicine";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 4;
 	p->iWeight = MEDKIT_WEIGHT;

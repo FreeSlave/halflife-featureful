@@ -45,6 +45,7 @@ void CEgon::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(EGON_DEFAULT_GIVE);
+	InitMaxClip(WEAPON_NOCLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -92,7 +93,6 @@ bool CEgon::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "uranium";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 2;
 	p->iFlags = 0;

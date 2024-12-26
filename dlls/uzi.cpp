@@ -37,6 +37,7 @@ void CUzi::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(UZI_DEFAULT_GIVE);
+	InitMaxClip(UZI_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -71,7 +72,6 @@ bool CUzi::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "9mm";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = UZI_MAX_CLIP;
 	p->iSlot = 1;
 	p->iPosition = 3;
 	p->iFlags = 0;
@@ -151,10 +151,10 @@ void CUzi::PrimaryAttack()
 
 void CUzi::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == UZI_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
-	DefaultReload( UZI_MAX_CLIP, UZI_RELOAD, 2.5 );
+	DefaultClipReload( UZI_RELOAD, 2.5 );
 }
 
 void CUzi::WeaponIdle( void )

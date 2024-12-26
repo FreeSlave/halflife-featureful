@@ -52,6 +52,7 @@ void CGauss::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(GAUSS_DEFAULT_GIVE);
+	InitMaxClip(WEAPON_NOCLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -86,7 +87,6 @@ bool CGauss::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "uranium";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 1;
 	p->iFlags = 0;

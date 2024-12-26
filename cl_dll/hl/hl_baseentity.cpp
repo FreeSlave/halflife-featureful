@@ -248,3 +248,4 @@ bool CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon ) { return false
 bool CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return false; }
 void CBasePlayerWeapon::RetireWeapon( void ) { }
 void CBasePlayerWeapon::InitDefaultAmmo(int defaultGive) { m_iDefaultAmmo = defaultGive; }
+void CBasePlayerWeapon::InitMaxClip(int defaultMaxClip) { m_iMaxClip = defaultMaxClip; }

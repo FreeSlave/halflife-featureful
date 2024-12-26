@@ -51,6 +51,7 @@ DLL_GLOBAL	short g_sModelIndexBloodSpray;// holds the sprite index for splattere
 ItemInfo CBasePlayerWeapon::ItemInfoArray[MAX_WEAPONS];
 
 extern int gmsgCurWeapon;
+extern int gmsgMaxClip;
 
 MULTIDAMAGE gMultiDamage;
 
@@ -486,6 +487,7 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	DEFINE_FIELD( CBasePlayerWeapon, m_iClip, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_iDefaultAmmo, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_sMaster, FIELD_STRING ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_iMaxClip, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientClip, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientWeaponState, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 };
@@ -796,6 +798,11 @@ void CBasePlayerWeapon::InitDefaultAmmo(int defaultGive)
 	}
 }
 
+void CBasePlayerWeapon::InitMaxClip(int defaultMaxClip)
+{
+	m_iMaxClip = defaultMaxClip;
+}
+
 // CALLED THROUGH the newly-touched weapon's instance. The existing player weapon is pOriginal
 int CBasePlayerWeapon::AddDuplicate( CBasePlayerWeapon *pOriginal )
 {
@@ -828,6 +835,7 @@ bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 	}
 	// Remove weapon's global name to avoid problems with carrying the weapon to other maps
 	pev->globalname = iStringNull;
+	m_iClientMaxClip = 0;
 
 	return AddWeapon();
 }
@@ -888,6 +896,15 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		m_iClientClip = m_iClip;
 		m_iClientWeaponState = state;
 		pPlayer->m_fWeapon = true;
+	}
+
+	if (m_iMaxClip != m_iClientMaxClip)
+	{
+		m_iClientMaxClip = m_iMaxClip;
+		MESSAGE_BEGIN( MSG_ONE, gmsgMaxClip, NULL, pPlayer->pev );
+			WRITE_BYTE( WeaponId() );
+			WRITE_SHORT( m_iMaxClip );
+		MESSAGE_END();
 	}
 
 	return 1;

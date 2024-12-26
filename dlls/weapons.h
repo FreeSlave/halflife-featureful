@@ -104,7 +104,7 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 #define EAGLE_MAX_CLIP			7
 #define M249_MAX_CLIP			50
 #define SNIPERRIFLE_MAX_CLIP	5
-#define SHOCKRIFLE_MAX_CLIP		10
+#define SHOCKRIFLE_MAX_CLIP		WEAPON_NOCLIP
 #define SPORELAUNCHER_MAX_CLIP		5
 #define UZI_MAX_CLIP			32
 
@@ -171,7 +171,6 @@ typedef struct
 	const char	*pszAmmo1 = nullptr;	// ammo 1 type
 	const char	*pszAmmo2 = nullptr;	// ammo 2 type
 	const char	*pszName = nullptr;
-	int		iMaxClip = 0;
 	int		iId = 0;
 	int		iFlags = 0;
 	int		iWeight = 0;// this value used to determine this weapon's importance in autoselection.
@@ -300,12 +299,14 @@ public:
 	virtual bool IsUseable( void );
 	bool DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body = 0 );
 	bool DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
+	bool DefaultClipReload(int iAnim, float fDelay, int body = 0);
 	void PrecachePModel(const char* name);
 
 	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
 	// called by CBasePlayerWeapons ItemPostFrame()
 	virtual void PrimaryAttack( void ) { return; }				// do "+ATTACK"
 	virtual void SecondaryAttack( void ) { return; }			// do "+ATTACK2"
+	bool CanReload();
 	virtual void Reload( void ) { return; }						// do "+RELOAD"
 	virtual void WeaponIdle( void ) { return; }					// called when no buttons pressed
 	virtual int UpdateClientData( CBasePlayer *pPlayer );		// sends hud info to client dll, if things have changed
@@ -357,6 +358,10 @@ public:
 
 	//Hack so deploy animations work when weapon prediction is enabled.
 	bool m_ForceSendAnimations;
+
+	void InitMaxClip(int defaultMaxClip);
+	int m_iMaxClip;
+	int m_iClientMaxClip;
 };
 
 #define LOUD_GUN_VOLUME			1000

@@ -39,6 +39,7 @@ void CShockrifle::Spawn()
 	if (defaultAmmoGive <= 0)
 		defaultAmmoGive = SHOCKRIFLE_DEFAULT_GIVE;
 	InitDefaultAmmo(defaultAmmoGive);
+	InitMaxClip(WEAPON_NOCLIP);
 	m_iFirePhase = 0;
 
 	FallInit();// get ready to fall down.
@@ -95,7 +96,6 @@ bool CShockrifle::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "Shocks";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 6;
 	p->iPosition = 1;

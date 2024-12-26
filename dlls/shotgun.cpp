@@ -36,6 +36,7 @@ void CShotgun::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(SHOTGUN_DEFAULT_GIVE);
+	InitMaxClip(SHOTGUN_MAX_CLIP);
 
 	FallInit();// get ready to fall
 }
@@ -75,7 +76,6 @@ bool CShotgun::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "buckshot";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = SHOTGUN_MAX_CLIP;
 	p->iSlot = 2;
 	p->iPosition = 1;
 	p->iFlags = 0;
@@ -228,7 +228,7 @@ void CShotgun::SecondaryAttack( void )
 
 void CShotgun::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == SHOTGUN_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
 	// don't reload until recoil is done
@@ -298,7 +298,7 @@ void CShotgun::WeaponIdle( void )
 		}
 		else if( m_fInSpecialReload != 0 )
 		{
-			if( m_iClip != SHOTGUN_MAX_CLIP && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+			if( m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
 			{
 				Reload();
 			}

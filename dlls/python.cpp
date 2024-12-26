@@ -32,7 +32,6 @@ bool CPython::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "357";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = PYTHON_MAX_CLIP;
 	p->iFlags = 0;
 	p->iSlot = 1;
 	p->iPosition = 1;
@@ -55,6 +54,7 @@ void CPython::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(PYTHON_DEFAULT_GIVE);
+	InitMaxClip(PYTHON_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -171,7 +171,7 @@ void CPython::PrimaryAttack()
 
 void CPython::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == PYTHON_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
 	if( InZoom() )
@@ -179,7 +179,7 @@ void CPython::Reload( void )
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
 	}
 
-	if( DefaultReload( PYTHON_MAX_CLIP, PYTHON_RELOAD, 2.0f, ViewModelBody() ) )
+	if( DefaultClipReload( PYTHON_RELOAD, 2.0f, ViewModelBody() ) )
 	{
 		m_flSoundDelay = 1.5f;
 	}

@@ -8278,6 +8278,24 @@
 	]
 ]
 
+@PointClass base(Targetname) color(100 100 200) = trigger_changemaxclip : "Change Max Clip for player weapon"
+[
+	message(string) : "Weapon name" : "weapon_9mmhandgun"
+	m_iMaxClip(integer) : "Value to use" : 20
+	m_Mode(choices) : "Change Max Clip Mode" : 0 =
+	[
+		0 : "Set"
+		2 : "Add"
+		3 : "Substruct"
+	]
+	m_ExcessMode(choices) : "Handle ammo excess" : 0 =
+	[
+		0 : "Truncate"
+		1 : "Move to ammo"
+		2 : "Keep as is"
+	]
+]
+
 @PointClass base(Targetname) iconsprite("sprites/trigger_changetarget.spr") = trigger_changetarget : "Trigger Change Target"
 [
 	target(string) : "Entity to affect [LE]"

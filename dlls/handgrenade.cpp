@@ -45,6 +45,7 @@ void CHandGrenade::Spawn()
 	pev->dmg = gSkillData.plrDmgHandGrenade;
 #endif
 	InitDefaultAmmo(HANDGRENADE_DEFAULT_GIVE);
+	InitMaxClip(WEAPON_NOCLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -61,7 +62,6 @@ bool CHandGrenade::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "Hand Grenade";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = 0;
 	p->iWeight = HANDGRENADE_WEIGHT;

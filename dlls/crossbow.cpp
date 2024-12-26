@@ -248,6 +248,7 @@ void CCrossbow::Spawn()
 	SET_MODEL( ENT( pev ), MyWModel() );
 
 	InitDefaultAmmo(CROSSBOW_DEFAULT_GIVE);
+	InitMaxClip(CROSSBOW_MAX_CLIP);
 
 	FallInit();// get ready to fall down.
 }
@@ -277,7 +278,6 @@ bool CCrossbow::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "bolts";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = CROSSBOW_MAX_CLIP;
 	p->iSlot = 2;
 	p->iPosition = 2;
 	p->iFlags = 0;
@@ -450,7 +450,7 @@ void CCrossbow::SecondaryAttack()
 
 void CCrossbow::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == CROSSBOW_MAX_CLIP )
+	if( !CanReload() )
 		return;
 
 	if( InZoom() )
@@ -458,7 +458,7 @@ void CCrossbow::Reload( void )
 		SecondaryAttack();
 	}
 
-	if( DefaultReload( CROSSBOW_MAX_CLIP, CROSSBOW_RELOAD, 4.5f ) )
+	if( DefaultClipReload( CROSSBOW_RELOAD, 4.5f ) )
 	{
 		EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_ITEM, "weapons/xbow_reload1.wav", RANDOM_FLOAT( 0.95f, 1.0f ), ATTN_NORM, 0, 93 + RANDOM_LONG( 0, 0xF ) );
 	}

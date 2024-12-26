@@ -47,6 +47,7 @@ void CHgun::Spawn()
 	if (defaultAmmoGive <= 0)
 		defaultAmmoGive = HIVEHAND_DEFAULT_GIVE;
 	InitDefaultAmmo(defaultAmmoGive);
+	InitMaxClip(WEAPON_NOCLIP);
 	m_iFirePhase = 0;
 
 	FallInit();// get ready to fall down.
@@ -91,7 +92,6 @@ bool CHgun::GetItemInfo( ItemInfo *p )
 	p->pszName = STRING( pev->classname );
 	p->pszAmmo1 = "Hornets";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 3;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;

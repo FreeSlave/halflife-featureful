@@ -35,6 +35,7 @@ void CSporelauncher::Spawn()
 	SET_MODEL(ENT(pev), MyWModel());
 
 	InitDefaultAmmo(SPORELAUNCHER_DEFAULT_GIVE);
+	InitMaxClip(SPORELAUNCHER_MAX_CLIP);
 
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0f;
@@ -74,7 +75,6 @@ bool CSporelauncher::GetItemInfo(ItemInfo *p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "spores";
 	p->pszAmmo2 = NULL;
-	p->iMaxClip = SPORELAUNCHER_MAX_CLIP;
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 6;
 	p->iPosition = 0;
@@ -226,7 +226,7 @@ void CSporelauncher::SecondaryAttack(void)
 
 void CSporelauncher::Reload(void)
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == SPORELAUNCHER_MAX_CLIP)
+	if (!CanReload())
 		return;
 
 	// don't reload until recoil is done
