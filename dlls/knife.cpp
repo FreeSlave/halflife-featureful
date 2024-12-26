@@ -66,7 +66,6 @@ bool CKnife::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 2;
-	p->iId = WeaponId();
 	p->iWeight = KNIFE_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;

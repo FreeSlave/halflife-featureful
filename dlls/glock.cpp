@@ -62,7 +62,6 @@ bool CGlock::GetItemInfo( ItemInfo *p )
 	p->iSlot = 1;
 	p->iPosition = 0;
 	p->iFlags = 0;
-	p->iId = WeaponId();
 	p->iWeight = GLOCK_WEIGHT;
 	p->pszAmmoEntity = "ammo_9mmclip";
 	p->iDropAmmo = AMMO_GLOCKCLIP_GIVE;

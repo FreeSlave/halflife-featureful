@@ -103,7 +103,6 @@ bool CShockrifle::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 4;
 #endif
-	p->iId = WeaponId();
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
 	p->iWeight = HORNETGUN_WEIGHT;
 	p->pszAmmoEntity = NULL;

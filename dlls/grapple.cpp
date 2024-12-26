@@ -278,7 +278,6 @@ bool CBarnacleGrapple::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 3;
-	p->iId = WeaponId();
 	p->iWeight = GRAPPLE_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;

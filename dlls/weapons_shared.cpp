@@ -179,7 +179,7 @@ int CBasePlayerWeapon::iMaxClip()
 {
 	int maxClip;
 #ifdef CLIENT_DLL
-		ItemInfo itemInfo = {0};
+		ItemInfo itemInfo{};
 		GetItemInfo( &itemInfo );
 		maxClip = itemInfo.iMaxClip;
 #else

@@ -5357,7 +5357,7 @@ void CBasePlayer::UpdateClientData( void )
 		{
 			ItemInfo& II = CBasePlayerWeapon::ItemInfoArray[i];
 
-			if( !II.iId )
+			if( II.iId == WEAPON_NONE )
 				continue;
 
 			const char *pszName;

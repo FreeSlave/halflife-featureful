@@ -166,17 +166,17 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 
 typedef struct
 {
-	int		iSlot;
-	int		iPosition;
-	const char	*pszAmmo1;	// ammo 1 type
-	const char	*pszAmmo2;	// ammo 2 type
-	const char	*pszName;
-	int		iMaxClip;
-	int		iId;
-	int		iFlags;
-	int		iWeight;// this value used to determine this weapon's importance in autoselection.
-	const char* pszAmmoEntity;
-	int iDropAmmo;
+	int		iSlot = 0;
+	int		iPosition = 0;
+	const char	*pszAmmo1 = nullptr;	// ammo 1 type
+	const char	*pszAmmo2 = nullptr;	// ammo 2 type
+	const char	*pszName = nullptr;
+	int		iMaxClip = 0;
+	int		iId = 0;
+	int		iFlags = 0;
+	int		iWeight = 0;// this value used to determine this weapon's importance in autoselection.
+	const char* pszAmmoEntity = nullptr;
+	int iDropAmmo = 0;
 } ItemInfo;
 
 #if !CLIENT_DLL

@@ -275,7 +275,7 @@ bool UTIL_PrecacheOtherWeapon( const char *szClassname )
 	bool result = true;
 	if( pEntity )
 	{
-		ItemInfo II = {0};
+		ItemInfo II{};
 		CBasePlayerWeapon* pWeapon = pEntity->MyWeaponPointer();
 		if( pWeapon != 0 )
 		{
@@ -285,6 +285,7 @@ bool UTIL_PrecacheOtherWeapon( const char *szClassname )
 
 				if (pWeapon->GetItemInfo( &II ))
 				{
+					II.iId = pWeapon->WeaponId();
 					CBasePlayerWeapon::ItemInfoArray[II.iId] = II;
 				}
 			}

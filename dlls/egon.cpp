@@ -95,7 +95,6 @@ bool CEgon::GetItemInfo( ItemInfo *p )
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 2;
-	p->iId = WeaponId();
 	p->iFlags = 0;
 	p->iWeight = EGON_WEIGHT;
 	p->pszAmmoEntity = "ammo_gaussclip";

@@ -415,7 +415,6 @@ bool CRpg::GetItemInfo( ItemInfo *p )
 	p->iMaxClip = RPG_MAX_CLIP;
 	p->iSlot = 3;
 	p->iPosition = 0;
-	p->iId = WeaponId();
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHTO;
 	p->iWeight = RPG_WEIGHT;
 	p->pszAmmoEntity = "ammo_rpgclip";

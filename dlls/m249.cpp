@@ -79,7 +79,6 @@ bool CM249::GetItemInfo(ItemInfo *p)
 	p->iPosition = 3;
 #endif
 	p->iFlags = 0;
-	p->iId = WeaponId();
 	p->iWeight = M249_WEIGHT;
 	p->pszAmmoEntity = "ammo_556";
 	p->iDropAmmo = AMMO_762BOX_GIVE;

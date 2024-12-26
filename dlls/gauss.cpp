@@ -89,7 +89,6 @@ bool CGauss::GetItemInfo( ItemInfo *p )
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 1;
-	p->iId = WeaponId();
 	p->iFlags = 0;
 	p->iWeight = GAUSS_WEIGHT;
 	p->pszAmmoEntity = "ammo_gaussclip";
