@@ -27,7 +27,7 @@
 
 #if FEATURE_SPORELAUNCHER
 
-LINK_ENTITY_TO_CLASS(weapon_sporelauncher, CSporelauncher)
+LINK_WEAPON_TO_CLASS(weapon_sporelauncher, CSporelauncher)
 
 void CSporelauncher::Spawn()
 {

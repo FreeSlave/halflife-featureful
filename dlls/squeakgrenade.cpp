@@ -506,7 +506,7 @@ LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )
 
 #endif
 
-LINK_ENTITY_TO_CLASS( weapon_snark, CSqueak )
+LINK_WEAPON_TO_CLASS( weapon_snark, CSqueak )
 
 void CSqueak::Spawn()
 {
@@ -741,7 +741,7 @@ const char* CSqueak::EventsFile() const
 }
 
 #if FEATURE_PENGUIN
-LINK_ENTITY_TO_CLASS( weapon_penguin, CPenguin )
+LINK_WEAPON_TO_CLASS( weapon_penguin, CPenguin )
 
 const char* CPenguin::GrenadeName() const
 {

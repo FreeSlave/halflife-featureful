@@ -29,7 +29,7 @@
 #define	KNIFE_WALLHIT_VOLUME 512
 #define	KNIFE_BODYHIT_VOLUME 128
 
-LINK_ENTITY_TO_CLASS(weapon_knife, CKnife)
+LINK_WEAPON_TO_CLASS(weapon_knife, CKnife)
 
 void CKnife::Spawn()
 {

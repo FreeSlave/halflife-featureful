@@ -25,7 +25,7 @@
 
 #if FEATURE_DESERT_EAGLE
 
-LINK_ENTITY_TO_CLASS( weapon_eagle, CEagle )
+LINK_WEAPON_TO_CLASS( weapon_eagle, CEagle )
 
 #if !CLIENT_DLL
 LINK_ENTITY_TO_CLASS( eagle_laser, CLaserSpot )

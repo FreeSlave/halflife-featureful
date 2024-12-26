@@ -20,7 +20,7 @@
 #include "weapons.h"
 #include "player.h"
 
-LINK_ENTITY_TO_CLASS( weapon_rpg, CRpg )
+LINK_WEAPON_TO_CLASS( weapon_rpg, CRpg )
 
 #if !CLIENT_DLL
 #include "gamerules.h"

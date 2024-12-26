@@ -25,7 +25,7 @@
 
 #if FEATURE_SNIPERRIFLE
 
-LINK_ENTITY_TO_CLASS( weapon_sniperrifle, CSniperrifle )
+LINK_WEAPON_TO_CLASS( weapon_sniperrifle, CSniperrifle )
 
 void CSniperrifle::Spawn( )
 {

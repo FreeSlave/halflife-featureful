@@ -26,7 +26,7 @@
 
 #if FEATURE_PIPEWRENCH
 
-LINK_ENTITY_TO_CLASS(weapon_pipewrench, CPipeWrench)
+LINK_WEAPON_TO_CLASS(weapon_pipewrench, CPipeWrench)
 
 #define	MELEE_WALLHIT_VOLUME 512
 #define MELEE_BODYHIT_VOLUME 128

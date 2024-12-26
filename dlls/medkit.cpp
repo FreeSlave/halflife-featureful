@@ -26,7 +26,7 @@
 
 #if FEATURE_MEDKIT
 
-LINK_ENTITY_TO_CLASS(weapon_medkit, CMedkit)
+LINK_WEAPON_TO_CLASS(weapon_medkit, CMedkit)
 
 CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 {

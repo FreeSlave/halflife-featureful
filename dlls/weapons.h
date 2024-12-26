@@ -183,6 +183,15 @@ typedef struct
 void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, CBasePlayer *pPlayer );
 #endif
 
+struct WeaponInfo
+{
+	int id = 0;
+	const char* classname = nullptr;
+	CBasePlayerWeapon* pWeapon = nullptr;
+};
+
+extern WeaponInfo& AccessWeaponInfo(int id);
+
 class CBasePlayerWeapon : public CBaseAnimating
 {
 public:
@@ -1289,5 +1298,20 @@ private:
 };
 
 #endif
+
+class WeaponRegistrator
+{
+public:
+	WeaponRegistrator(const char* classname, CBasePlayerWeapon* pWeapon);
+	WeaponRegistrator() = delete;
+	WeaponRegistrator& operator=(const WeaponRegistrator&) = delete;
+};
+
+#define LINK_WEAPON_TO_CLASS( mapClassName, DLLClassName )\
+namespace detail_##mapClassName {\
+	static DLLClassName instance;\
+	static WeaponRegistrator registry(#mapClassName, &instance);\
+}\
+LINK_ENTITY_TO_CLASS( mapClassName, DLLClassName )
 
 #endif // WEAPONS_H

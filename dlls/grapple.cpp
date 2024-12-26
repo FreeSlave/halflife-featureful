@@ -235,7 +235,7 @@ enum BarnacleGrappleAnim
 	BGRAPPLE_FIRERELEASE
 };
 
-LINK_ENTITY_TO_CLASS( weapon_grapple, CBarnacleGrapple )
+LINK_WEAPON_TO_CLASS( weapon_grapple, CBarnacleGrapple )
 
 void CBarnacleGrapple::Precache( void )
 {

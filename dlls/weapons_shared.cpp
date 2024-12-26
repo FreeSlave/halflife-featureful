@@ -8,6 +8,25 @@
 #include "gamerules.h"
 #endif
 
+WeaponInfo& AccessWeaponInfo(int id)
+{
+	static WeaponInfo arr[MAX_WEAPONS] = {};
+	return arr[id];
+}
+
+WeaponRegistrator::WeaponRegistrator(const char* classname, CBasePlayerWeapon* pWeapon)
+{
+	const int id = pWeapon->WeaponId();
+	WeaponInfo& info = AccessWeaponInfo(id);
+	if (info.classname)
+	{
+		return;
+	}
+	info.id = id;
+	info.classname = classname;
+	info.pWeapon = pWeapon;
+}
+
 bool CBasePlayerWeapon::CanDeploy( void )
 {
 	bool bHasAmmo = false;

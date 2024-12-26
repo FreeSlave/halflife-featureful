@@ -36,7 +36,7 @@ extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 #define DISPLACER_SECONDARY_USAGE 60
 #define DISPLACER_PRIMARY_USAGE 20
 
-LINK_ENTITY_TO_CLASS(weapon_displacer, CDisplacer)
+LINK_WEAPON_TO_CLASS(weapon_displacer, CDisplacer)
 
 bool CDisplacer::GetItemInfo(ItemInfo *p)
 {

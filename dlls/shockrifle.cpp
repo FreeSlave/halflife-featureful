@@ -28,7 +28,7 @@
 
 #if FEATURE_SHOCKRIFLE
 
-LINK_ENTITY_TO_CLASS(weapon_shockrifle, CShockrifle)
+LINK_WEAPON_TO_CLASS(weapon_shockrifle, CShockrifle)
 
 void CShockrifle::Spawn()
 {

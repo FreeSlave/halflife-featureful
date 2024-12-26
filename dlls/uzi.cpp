@@ -26,7 +26,7 @@
 
 #if FEATURE_UZI
 
-LINK_ENTITY_TO_CLASS( weapon_uzi, CUzi )
+LINK_WEAPON_TO_CLASS( weapon_uzi, CUzi )
 LINK_ENTITY_TO_CLASS( weapon_uziakimbo, CUzi ) // Link to single uzi until akimbo is implemented
 
 //=========================================================

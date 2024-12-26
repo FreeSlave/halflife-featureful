@@ -37,7 +37,7 @@
 #define EGON_SWITCH_NARROW_TIME			0.75f			// Time it takes to switch fire modes
 #define EGON_SWITCH_WIDE_TIME			1.5f
 
-LINK_ENTITY_TO_CLASS( weapon_egon, CEgon )
+LINK_WEAPON_TO_CLASS( weapon_egon, CEgon )
 
 void CEgon::Spawn()
 {

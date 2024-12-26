@@ -21,7 +21,7 @@
 #include "player.h"
 
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock )
-LINK_ENTITY_TO_CLASS( weapon_9mmhandgun, CGlock )
+LINK_WEAPON_TO_CLASS( weapon_9mmhandgun, CGlock )
 
 void CGlock::Spawn()
 {

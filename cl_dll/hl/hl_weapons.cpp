@@ -36,7 +36,7 @@ extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
 // Pool of client side entities/entvars_t
-static entvars_t ev[MAX_WEAPONS];
+static entvars_t ev[MAX_WEAPONS+1];
 static int num_ents = 0;
 
 // The entity we'll use to represent the local client
@@ -52,58 +52,6 @@ int g_irunninggausspred = 0;
 Vector g_vPlayerVelocity;
 
 Vector previousorigin;
-
-// HLDM Weapon placeholder entities.
-CGlock g_Glock;
-CCrowbar g_Crowbar;
-CPython g_Python;
-CMP5 g_Mp5;
-CCrossbow g_Crossbow;
-CShotgun g_Shotgun;
-CRpg g_Rpg;
-CGauss g_Gauss;
-CEgon g_Egon;
-CHgun g_HGun;
-CHandGrenade g_HandGren;
-CSatchel g_Satchel;
-CTripmine g_Tripmine;
-CSqueak g_Snark;
-#if FEATURE_DESERT_EAGLE
-CEagle g_Eagle;
-#endif
-#if FEATURE_PIPEWRENCH
-CPipeWrench g_PipeWrench;
-#endif
-#if FEATURE_KNIFE
-CKnife g_Knife;
-#endif
-#if FEATURE_PENGUIN
-CPenguin g_Penguin;
-#endif
-#if FEATURE_M249
-CM249 g_M249;
-#endif
-#if FEATURE_SNIPERRIFLE
-CSniperrifle g_Sniper;
-#endif
-#if FEATURE_DISPLACER
-CDisplacer g_Displacer;
-#endif
-#if FEATURE_SHOCKRIFLE
-CShockrifle g_Shock;
-#endif
-#if FEATURE_SPORELAUNCHER
-CSporelauncher g_Spore;
-#endif
-#if FEATURE_GRAPPLE
-CBarnacleGrapple g_Grapple;
-#endif
-#if FEATURE_MEDKIT
-CMedkit g_Medkit;
-#endif
-#if FEATURE_UZI
-CUzi g_Uzi;
-#endif
 
 /*
 ======================
@@ -498,56 +446,14 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &player, NULL );
 
 	// Allocate slot(s) for each weapon that we are going to be predicting
-	HUD_PrepEntity( &g_Glock, &player );
-	HUD_PrepEntity( &g_Crowbar, &player );
-	HUD_PrepEntity( &g_Python, &player );
-	HUD_PrepEntity( &g_Mp5, &player );
-	HUD_PrepEntity( &g_Crossbow, &player );
-	HUD_PrepEntity( &g_Shotgun, &player );
-	HUD_PrepEntity( &g_Rpg, &player );
-	HUD_PrepEntity( &g_Gauss, &player );
-	HUD_PrepEntity( &g_Egon, &player );
-	HUD_PrepEntity( &g_HGun, &player );
-	HUD_PrepEntity( &g_HandGren, &player );
-	HUD_PrepEntity( &g_Satchel, &player );
-	HUD_PrepEntity( &g_Tripmine, &player );
-	HUD_PrepEntity( &g_Snark, &player );
-#if FEATURE_DESERT_EAGLE
-	HUD_PrepEntity( &g_Eagle, &player );
-#endif
-#if FEATURE_PIPEWRENCH
-	HUD_PrepEntity( &g_PipeWrench, &player );
-#endif
-#if FEATURE_KNIFE
-	HUD_PrepEntity( &g_Knife, &player );
-#endif
-#if FEATURE_PENGUIN
-	HUD_PrepEntity( &g_Penguin, &player );
-#endif
-#if FEATURE_M249
-	HUD_PrepEntity( &g_M249, &player );
-#endif
-#if FEATURE_SNIPERRIFLE
-	HUD_PrepEntity( &g_Sniper, &player );
-#endif
-#if FEATURE_DISPLACER
-	HUD_PrepEntity( &g_Displacer, &player );
-#endif
-#if FEATURE_SHOCKRIFLE
-	HUD_PrepEntity( &g_Shock, &player );
-#endif
-#if FEATURE_SPORELAUNCHER
-	HUD_PrepEntity( &g_Spore, &player );
-#endif
-#if FEATURE_GRAPPLE
-	HUD_PrepEntity( &g_Grapple, &player );
-#endif
-#if FEATURE_MEDKIT
-	HUD_PrepEntity( &g_Medkit, &player );
-#endif
-#if FEATURE_UZI
-	HUD_PrepEntity( &g_Uzi, &player );
-#endif
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo& info = AccessWeaponInfo(i);
+		if (info.pWeapon)
+		{
+			HUD_PrepEntity( info.pWeapon, &player );
+		}
+	}
 }
 
 /*
@@ -597,7 +503,6 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 {
 	int i;
 	int buttonsChanged;
-	CBasePlayerWeapon *pWeapon = NULL;
 	CBasePlayerWeapon *pCurrent;
 	weapon_data_t nulldata = {0}, *pfrom, *pto;
 	static int lasthealth;
@@ -607,111 +512,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 	// Fill in data based on selected weapon
 	// FIXME, make this a method in each weapon?  where you pass in an entity_state_t *?
-	switch( from->client.m_iId )
-	{
-		case WEAPON_CROWBAR:
-			pWeapon = &g_Crowbar;
-			break;
-		case WEAPON_GLOCK:
-			pWeapon = &g_Glock;
-			break;
-		case WEAPON_PYTHON:
-			pWeapon = &g_Python;
-			break;
-		case WEAPON_MP5:
-			pWeapon = &g_Mp5;
-			break;
-		case WEAPON_CROSSBOW:
-			pWeapon = &g_Crossbow;
-			break;
-		case WEAPON_SHOTGUN:
-			pWeapon = &g_Shotgun;
-			break;
-		case WEAPON_RPG:
-			pWeapon = &g_Rpg;
-			break;
-		case WEAPON_GAUSS:
-			pWeapon = &g_Gauss;
-			break;
-		case WEAPON_EGON:
-			pWeapon = &g_Egon;
-			break;
-		case WEAPON_HORNETGUN:
-			pWeapon = &g_HGun;
-			break;
-		case WEAPON_HANDGRENADE:
-			pWeapon = &g_HandGren;
-			break;
-		case WEAPON_SATCHEL:
-			pWeapon = &g_Satchel;
-			break;
-		case WEAPON_TRIPMINE:
-			pWeapon = &g_Tripmine;
-			break;
-		case WEAPON_SNARK:
-			pWeapon = &g_Snark;
-			break;
-#if FEATURE_DESERT_EAGLE
-		case WEAPON_EAGLE:
-			pWeapon = &g_Eagle;
-			break;
-#endif
-#if FEATURE_PIPEWRENCH
-		case WEAPON_PIPEWRENCH:
-			pWeapon = &g_PipeWrench;
-			break;
-#endif
-#if FEATURE_KNIFE
-		case WEAPON_KNIFE:
-			pWeapon = &g_Knife;
-			break;
-#endif
-#if FEATURE_PENGUIN
-		case WEAPON_PENGUIN:
-			pWeapon = &g_Penguin;
-			break;
-#endif
-#if FEATURE_M249
-		case WEAPON_M249:
-			pWeapon = &g_M249;
-			break;
-#endif
-#if FEATURE_SNIPERRIFLE
-		case WEAPON_SNIPERRIFLE:
-			pWeapon = &g_Sniper;
-			break;
-#endif
-#if FEATURE_DISPLACER
-		case WEAPON_DISPLACER:
-			pWeapon = &g_Displacer;
-			break;
-#endif
-#if FEATURE_SHOCKRIFLE
-	case WEAPON_SHOCKRIFLE:
-			pWeapon = &g_Shock;
-			break;
-#endif
-#if FEATURE_SPORELAUNCHER
-	case WEAPON_SPORELAUNCHER:
-			pWeapon = &g_Spore;
-			break;
-#endif
-#if FEATURE_GRAPPLE
-	case WEAPON_GRAPPLE:
-			pWeapon = &g_Grapple;
-			break;
-#endif
-#if FEATURE_MEDKIT
-		case WEAPON_MEDKIT:
-			pWeapon = &g_Medkit;
-			break;
-#endif
-#if FEATURE_UZI
-		case WEAPON_UZI:
-			pWeapon = &g_Uzi;
-			break;
-#endif
-	}
+	CBasePlayerWeapon *pWeapon = AccessWeaponInfo(from->client.m_iId).pWeapon;
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
 	//  for setting up events on the client
