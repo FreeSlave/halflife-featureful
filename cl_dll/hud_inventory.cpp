@@ -83,7 +83,7 @@ bool InventoryHudSpec::ReadFromFile(const char *fileName)
 			}
 			auto colorIt = value.FindMember("color");
 
-			Color color;
+			Color3 color;
 			if (UpdatePropertyFromJson(color, value, "color"))
 			{
 				item.packedColor = PackRGB(color.r, color.g, color.b);

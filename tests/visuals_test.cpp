@@ -36,7 +36,7 @@ TEST(Visuals, Parse) {
 		const Visual* zapBeam = s.GetVisual("Vortigaunt.ZapBeam");
 		ASSERT_TRUE(zapBeam != nullptr);
 		EXPECT_TRUE(zapBeam->HasDefined(Visual::COLOR_DEFINED));
-		EXPECT_EQ(zapBeam->rendercolor, Color(242, 0, 213));
+		EXPECT_EQ(zapBeam->rendercolor, Color3(242, 0, 213));
 		EXPECT_TRUE(zapBeam->HasDefined(Visual::ALPHA_DEFINED));
 		EXPECT_EQ(zapBeam->renderamt, 200);
 		EXPECT_TRUE(zapBeam->HasDefined(Visual::MODEL_DEFINED));

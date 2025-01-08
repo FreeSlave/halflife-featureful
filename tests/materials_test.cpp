@@ -113,7 +113,7 @@ TEST(Materials, Parse) {
 		EXPECT_EQ(data->hit.volume, 0.7f);
 		EXPECT_EQ(data->hit.volumebar, 0.4f);
 		EXPECT_EQ(data->hit.attn, 1.25f);
-		EXPECT_EQ(data->hit.wallpuffColor, Color(170, 85, 0));
+		EXPECT_EQ(data->hit.wallpuffColor, Color3(170, 85, 0));
 		EXPECT_TRUE(data->hit.playSparks);
 	}
 

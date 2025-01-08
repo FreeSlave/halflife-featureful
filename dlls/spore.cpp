@@ -46,7 +46,7 @@ const NamedVisual CSpore::modelVisual = BuildVisual("Spore.Model")
 
 const NamedVisual CSpore::spriteVisual = BuildVisual("Spore.Sprite")
 		.Model("sprites/glow01.spr")
-		.RenderProps(kRenderTransAdd, Color(180, 180, 40), 100, kRenderFxDistort)
+		.RenderProps(kRenderTransAdd, Color3(180, 180, 40), 100, kRenderFxDistort)
 		.Scale(0.8f);
 
 const NamedVisual CSpore::blowVisual = BuildVisual::Animated("Spore.Blow")

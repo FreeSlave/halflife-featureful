@@ -12,7 +12,7 @@
 struct ObjectHintVisual
 {
 	std::string sprite;
-	Color color;
+	Color3 color;
 	float scale;
 };
 

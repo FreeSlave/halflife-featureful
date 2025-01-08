@@ -2,24 +2,24 @@
 #ifndef TEMPLATE_VALUE_TYPES_H
 #define TEMPLATE_VALUE_TYPES_H
 
-struct Color
+struct Color3
 {
-	constexpr Color(): r(0), g(0), b(0) {}
-	constexpr Color(int red, int green, int blue): r(red), g(green), b(blue) {}
+	constexpr Color3(): r(0), g(0), b(0) {}
+	constexpr Color3(int red, int green, int blue): r(red), g(green), b(blue) {}
 	int r;
 	int g;
 	int b;
 
-	constexpr inline bool operator==(Color o) const
+	constexpr inline bool operator==(Color3 o) const
 	{
 		return IsEqual(o);
 	}
-	constexpr inline bool operator!=(Color o) const
+	constexpr inline bool operator!=(Color3 o) const
 	{
 		return !IsEqual(o);
 	}
 private:
-	constexpr inline bool IsEqual(const Color& o) const {
+	constexpr inline bool IsEqual(const Color3& o) const {
 		return r == o.r && g == o.g && b == o.b;
 	}
 };

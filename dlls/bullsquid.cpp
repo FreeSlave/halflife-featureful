@@ -184,14 +184,14 @@ const NamedSoundScript CSquidToxicSpit::spithitSoundScript = {
 
 const NamedVisual CSquidToxicSpit::toxicSpitVisual = BuildVisual::Animated("Bullsquid.ToxicSpit")
 		.Model("sprites/cnt1.spr")
-		.RenderProps(kRenderTransAdd, Color(110, 120, 0), 228)
+		.RenderProps(kRenderTransAdd, Color3(110, 120, 0), 228)
 		.Scale(0.8f);
 
 const NamedVisual CSquidToxicSpit::fleckVisual = BuildVisual::Spray("Bullsquid.ToxicFleck").Mixin(&sharedTinySpitVisual);
 
 const NamedVisual CSquidToxicSpit::particleVisual = BuildVisual("Bullsquid.ToxicParticle")
 		.Model("sprites/glow01.spr")
-		.RenderProps(kRenderGlow, Color(80, 160, 0), 255, kRenderFxNoDissipation)
+		.RenderProps(kRenderGlow, Color3(80, 160, 0), 255, kRenderFxNoDissipation)
 		.Scale(0.3f)
 		.Life(0.1f);
 

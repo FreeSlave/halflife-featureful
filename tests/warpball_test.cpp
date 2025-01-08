@@ -180,7 +180,7 @@ TEST(WarpballTemplates, Parse) {
 
 	EXPECT_STREQ(xen->sprite1.sprite, "sprites/fexplo_1.spr");
 	EXPECT_EQ(xen->sprite1.alpha, 225);
-	EXPECT_EQ(xen->sprite1.color, Color(77, 210, 130));
+	EXPECT_EQ(xen->sprite1.color, Color3(77, 210, 130));
 	EXPECT_EQ(xen->sprite1.framerate, 12.0f);
 	EXPECT_EQ(xen->sprite1.scale, 1.0f);
 	EXPECT_EQ(xen->sprite1.rendermode, kRenderGlow);
@@ -188,7 +188,7 @@ TEST(WarpballTemplates, Parse) {
 
 	EXPECT_STREQ(xen->sprite2.sprite, "sprites/xflare_1.spr");
 	EXPECT_EQ(xen->sprite2.alpha, 200);
-	EXPECT_EQ(xen->sprite2.color, Color(70, 220, 120));
+	EXPECT_EQ(xen->sprite2.color, Color3(70, 220, 120));
 	EXPECT_EQ(xen->sprite2.framerate, 10.f);
 	EXPECT_EQ(xen->sprite2.scale, 1.1f);
 
@@ -200,7 +200,7 @@ TEST(WarpballTemplates, Parse) {
 	EXPECT_STREQ(xen->sound2.sound, "debris/beamstart_7.wav");
 
 	EXPECT_STREQ(xen->beam.sprite, "sprites/ligtning.spr");
-	EXPECT_EQ(xen->beam.color, Color(20, 240, 20));
+	EXPECT_EQ(xen->beam.color, Color3(20, 240, 20));
 	EXPECT_EQ(xen->beam.alpha, 240);
 	EXPECT_EQ(xen->beam.width, 30);
 	EXPECT_EQ(xen->beam.noise, 65);
@@ -210,7 +210,7 @@ TEST(WarpballTemplates, Parse) {
 	EXPECT_EQ(xen->beamCount, IntRange(10, 20));
 	EXPECT_EQ(xen->spawnDelay, 0.4f);
 
-	EXPECT_EQ(xen->light.color, Color(80, 210, 130));
+	EXPECT_EQ(xen->light.color, Color3(80, 210, 130));
 	EXPECT_EQ(xen->light.radius, 200);
 
 	EXPECT_FALSE(xen->shake.IsDefined());
@@ -221,23 +221,23 @@ TEST(WarpballTemplates, Parse) {
 		const WarpballTemplate* t = c.FindWarpballTemplate("xen_alt");
 		ASSERT_TRUE(t != nullptr);
 
-		EXPECT_EQ(t->beam.color, Color(217, 226, 146));
+		EXPECT_EQ(t->beam.color, Color3(217, 226, 146));
 		EXPECT_EQ(t->beam.alpha, 128);
 		EXPECT_EQ(t->beam.width, 25);
 		EXPECT_EQ(t->beam.noise, 50);
 		EXPECT_EQ(t->beam.life, xen->beam.life);
 
 		EXPECT_EQ(t->light.radius, xen->light.radius);
-		EXPECT_EQ(t->light.color, Color(39, 209, 137));
+		EXPECT_EQ(t->light.color, Color3(39, 209, 137));
 
 		EXPECT_TRUE(strcmp(t->sprite1.sprite, xen->sprite1.sprite) == 0);
-		EXPECT_EQ(t->sprite1.color, Color(65, 209, 61));
+		EXPECT_EQ(t->sprite1.color, Color3(65, 209, 61));
 		EXPECT_EQ(t->sprite1.alpha, xen->sprite1.alpha);
 		EXPECT_EQ(t->sprite1.framerate, xen->sprite1.framerate);
 		EXPECT_EQ(t->sprite1.scale, xen->sprite1.scale);
 
 		EXPECT_TRUE(strcmp(t->sprite2.sprite, xen->sprite2.sprite) == 0);
-		EXPECT_EQ(t->sprite2.color, Color(159, 240, 214));
+		EXPECT_EQ(t->sprite2.color, Color3(159, 240, 214));
 
 		EXPECT_STREQ(t->sound1.sound, "debris/alien_teleport.wav");
 
@@ -301,10 +301,10 @@ TEST(WarpballTemplates, Parse) {
 		const WarpballTemplate* t = c.FindWarpballTemplate("racex_big");
 		ASSERT_TRUE(t != nullptr);
 		EXPECT_STREQ(t->sprite1.sprite, "sprites/xflare2.spr");
-		EXPECT_EQ(t->sprite1.color, Color(200, 100, 200));
+		EXPECT_EQ(t->sprite1.color, Color3(200, 100, 200));
 
 		EXPECT_EQ(t->sprite2.sprite, nullptr);
-		EXPECT_EQ(t->beam.color, Color(240, 80, 160));
+		EXPECT_EQ(t->beam.color, Color3(240, 80, 160));
 		EXPECT_EQ(t->sound1.pitch, 105);
 		EXPECT_EQ(t->sound1.attenuation, ATTN_NONE);
 

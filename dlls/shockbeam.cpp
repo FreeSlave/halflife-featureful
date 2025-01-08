@@ -41,7 +41,7 @@ const NamedSoundScript CShock::impactSoundScript = {
 const NamedVisual CShock::spriteVisual = BuildVisual("ShockBeam.Sprite")
 		.Model("sprites/flare3.spr")
 		.Scale(0.35f)
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 255, kRenderFxDistort);
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxDistort);
 
 const NamedVisual CShock::beam1Visual = BuildVisual("ShockBeam.Beam1")
 		.Model("sprites/lgtning.spr")

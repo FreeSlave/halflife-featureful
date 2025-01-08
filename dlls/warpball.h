@@ -49,7 +49,7 @@ struct WarpballSprite
 		renderfx(kRenderFxNoDissipation)
 	{}
 	const char* sprite;
-	Color color;
+	Color3 color;
 	int alpha;
 	float scale;
 	float framerate;
@@ -69,7 +69,7 @@ struct WarpballBeam
 		life(0.5f, 1.6f) {}
 	const char* sprite;
 	int texture;
-	Color color;
+	Color3 color;
 	int alpha;
 	int width;
 	int noise;
@@ -82,7 +82,7 @@ struct WarpballLight
 		color(),
 		radius(192),
 		life(1.5f) {}
-	Color color;
+	Color3 color;
 	int radius;
 	float life;
 	inline bool IsDefined() const {

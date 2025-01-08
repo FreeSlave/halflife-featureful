@@ -439,7 +439,7 @@ bool UpdatePropertyFromJson(char& c, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(Color& color, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(Color3& color, Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())

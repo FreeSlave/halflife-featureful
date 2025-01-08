@@ -70,7 +70,7 @@ LINK_ENTITY_TO_CLASS( gonomeguts, CGonomeGuts )
 
 const NamedVisual CGonomeGuts::gutsVisual = BuildVisual::Animated("Gonome.Guts")
 		.Model("sprites/bigspit.spr")
-		.RenderProps(kRenderTransAlpha, Color(255, 0, 0), 255)
+		.RenderProps(kRenderTransAlpha, Color3(255, 0, 0), 255)
 		.Scale(0.5f);
 
 void CGonomeGuts::Spawn()

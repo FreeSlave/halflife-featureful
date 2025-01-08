@@ -78,11 +78,11 @@ TEST(ObjectHint, Parse) {
 		ASSERT_TRUE(buttonSpec->interactionVisualSet.lockedVisual != nullptr);
 		EXPECT_FALSE(buttonSpec->scanVisualSet.HasAnySpriteDefined());
 
-		EXPECT_EQ(buttonSpec->interactionVisualSet.defaultVisual->color, Color(255, 200, 50));
+		EXPECT_EQ(buttonSpec->interactionVisualSet.defaultVisual->color, Color3(255, 200, 50));
 		EXPECT_EQ(buttonSpec->interactionVisualSet.defaultVisual->sprite, "sprites/hud_brackets.spr");
 		EXPECT_EQ(buttonSpec->interactionVisualSet.defaultVisual->scale, 1.0f);
 
-		EXPECT_EQ(buttonSpec->interactionVisualSet.lockedVisual->color, Color(255, 50, 0));
+		EXPECT_EQ(buttonSpec->interactionVisualSet.lockedVisual->color, Color3(255, 50, 0));
 
 		EXPECT_EQ(buttonSpec, c.GetSpecByEntityName("func_button"));
 		EXPECT_EQ(buttonSpec, c.GetSpecByEntityName("func_rot_button"));
@@ -95,11 +95,11 @@ TEST(ObjectHint, Parse) {
 		ASSERT_TRUE(chargerSpec->interactionVisualSet.unusableVisual != nullptr);
 		EXPECT_EQ(chargerSpec->interactionVisualSet.lockedVisual, chargerSpec->interactionVisualSet.defaultVisual);
 
-		EXPECT_EQ(chargerSpec->interactionVisualSet.defaultVisual->color, Color(0, 255, 0));
+		EXPECT_EQ(chargerSpec->interactionVisualSet.defaultVisual->color, Color3(0, 255, 0));
 		EXPECT_EQ(chargerSpec->interactionVisualSet.defaultVisual->sprite, "sprites/hud_charged.spr");
 		EXPECT_EQ(chargerSpec->interactionVisualSet.defaultVisual->scale, 1.2f);
 
-		EXPECT_EQ(chargerSpec->interactionVisualSet.unusableVisual->color, Color(255, 0, 0));
+		EXPECT_EQ(chargerSpec->interactionVisualSet.unusableVisual->color, Color3(255, 0, 0));
 		EXPECT_EQ(chargerSpec->interactionVisualSet.unusableVisual->sprite, "sprites/hud_depleted.spr");
 
 		EXPECT_EQ(chargerSpec, c.GetSpecByEntityName("func_healthcharger"));
@@ -117,7 +117,7 @@ TEST(ObjectHint, Parse) {
 		ASSERT_TRUE(pickupSpec->scanVisualSet.unusableVisual == nullptr);
 		EXPECT_EQ(pickupSpec->scanVisualSet.lockedVisual, pickupSpec->scanVisualSet.defaultVisual);
 
-		EXPECT_EQ(pickupSpec->interactionVisualSet.defaultVisual->color, Color(255, 200, 50));
+		EXPECT_EQ(pickupSpec->interactionVisualSet.defaultVisual->color, Color3(255, 200, 50));
 
 		EXPECT_EQ(pickupSpec, c.GetSpecByEntityName("item_pickup"));
 

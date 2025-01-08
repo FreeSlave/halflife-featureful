@@ -56,7 +56,7 @@ struct MaterialHitData
 	bool allowWeaponSparks = true;
 	bool playSparks = false;
 
-	Color wallpuffColor = Color(40, 40, 40);
+	Color3 wallpuffColor = Color3(40, 40, 40);
 
 	fixed_vector<MaterialSoundString, 5> waves;
 

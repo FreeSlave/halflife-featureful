@@ -288,7 +288,7 @@ const NamedSoundScript CNihilanthHVR::teleAttackSoundScript = {
 
 const NamedVisual CNihilanthHVR::zapVisual = BuildVisual("NihilanthHVR.Zap")
 		.Model("sprites/nhth1.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 255)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255)
 		.Scale(2.0f);
 
 const NamedVisual CNihilanthHVR::zapBeamVisual = BuildVisual("NihilanthHVR.ZapBeam")
@@ -307,7 +307,7 @@ const NamedVisual CNihilanthHVR::zapLightVisual = BuildVisual("NihilanthHVR.ZapL
 
 const NamedVisual CNihilanthHVR::teleportVisual = BuildVisual("NihilanthHVR.Teleport")
 		.Model("sprites/exit1.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 255)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255)
 		.Scale(3.0f);
 
 const NamedVisual CNihilanthHVR::teleportLightVisual = BuildVisual("NihilanthHVR.TeleportLight")
@@ -318,12 +318,12 @@ const NamedVisual CNihilanthHVR::teleportLightVisual = BuildVisual("NihilanthHVR
 
 const NamedVisual CNihilanthHVR::dyingBallVisual = BuildVisual("NihilanthHVR.DyingBall")
 		.Model("sprites/exit1.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 255)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255)
 		.Scale(1.0f);
 
 const NamedVisual CNihilanthHVR::rechargerSphereVisual = BuildVisual("NihilanthHVR.RechargerSphere")
 		.Model("sprites/muzzleflash3.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 224, 192), 255)
+		.RenderProps(kRenderTransAdd, Color3(255, 224, 192), 255)
 		.Scale(2.0f);
 
 const NamedVisual CNihilanthHVR::absorbingBeamVisual = BuildVisual("NihilanthHVR.AbsorbingBeam")
@@ -404,7 +404,7 @@ const char *CNihilanth::pShootSounds[] =
 
 const NamedVisual CNihilanth::irritationBallVisual = BuildVisual("Nihilanth.IrritationBall")
 		.Model("sprites/tele1.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 255, kRenderFxNoDissipation)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNoDissipation)
 		.Scale(4.0f)
 		.Framerate(10.0f);
 

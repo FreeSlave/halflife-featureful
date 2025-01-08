@@ -61,7 +61,7 @@ extern void ReportPrecachedModels();
 extern void ReportPrecachedSounds();
 extern void AddMapBSPAsPrecachedModel();
 
-extern void WRITE_COLOR(const Color& color);
+extern void WRITE_COLOR(const Color3& color);
 extern void WRITE_COLOR(const Vector& color);
 extern void WRITE_VECTOR(const Vector& vecSrc);
 extern void WRITE_CIRCLE(const Vector& vecSrc, float radius);
@@ -583,7 +583,7 @@ inline bool LineOfSightSeparatedByWaterSurface(int lookerWaterlevel, int targetW
 
 void ReportAIStateByClassname(const char* name);
 
-inline Vector VectorFromColor(const Color& color) {
+inline Vector VectorFromColor(const Color3& color) {
 	return Vector(color.r, color.g, color.b);
 }
 

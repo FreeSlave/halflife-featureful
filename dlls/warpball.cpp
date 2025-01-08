@@ -228,9 +228,9 @@ const char warpballCatalogSchema[] = R"(
 }
 )";
 
-static Color DefaultWarpballColor()
+static Color3 DefaultWarpballColor()
 {
-	return Color(WARPBALL_RED_DEFAULT, WARPBALL_GREEN_DEFAULT, WARPBALL_BLUE_DEFAULT);
+	return Color3(WARPBALL_RED_DEFAULT, WARPBALL_GREEN_DEFAULT, WARPBALL_BLUE_DEFAULT);
 }
 
 static WarpballSprite DefaultWarpballSprite1()
@@ -271,7 +271,7 @@ static WarpballBeam DefaultWarpballBeam()
 {
 	WarpballBeam beam;
 	beam.sprite = WARPBALL_BEAM;
-	beam.color = Color(WARPBALL_BEAM_RED_DEFAULT, WARPBALL_BEAM_GREEN_DEFAULT, WARPBALL_BEAM_BLUE_DEFAULT);
+	beam.color = Color3(WARPBALL_BEAM_RED_DEFAULT, WARPBALL_BEAM_GREEN_DEFAULT, WARPBALL_BEAM_BLUE_DEFAULT);
 	return beam;
 }
 

@@ -207,7 +207,7 @@ void AddMapBSPAsPrecachedModel()
 	g_precachedModels.insert(buf);
 }
 
-void WRITE_COLOR(const Color& color)
+void WRITE_COLOR(const Color3& color)
 {
 	WRITE_BYTE( color.r );
 	WRITE_BYTE( color.g );

@@ -130,7 +130,7 @@ bool ObjectHintCatalog::HasAnyTemplates() const
 ObjectHintVisual DefaultObjectHintVisual()
 {
 	ObjectHintVisual visual;
-	visual.color = Color(0, 0, 0);
+	visual.color = Color3(0, 0, 0);
 	visual.scale = 1.0f;
 	return visual;
 }

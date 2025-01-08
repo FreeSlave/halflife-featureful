@@ -135,7 +135,7 @@ void CXenPLight::Spawn( void )
 		Visual glow = *pGlow;
 		if (!glow.HasDefined(Visual::COLOR_DEFINED))
 		{
-			glow.SetColor(Color((int)pev->rendercolor.x, (int)pev->rendercolor.y, (int)pev->rendercolor.z));
+			glow.SetColor(Color3((int)pev->rendercolor.x, (int)pev->rendercolor.y, (int)pev->rendercolor.z));
 		}
 		if (!glow.HasDefined(Visual::ALPHA_DEFINED))
 		{

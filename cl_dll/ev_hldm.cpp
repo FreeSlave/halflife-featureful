@@ -359,7 +359,7 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType, char cTextureType
 
 		if (mData && mData->hit.allowWallpuff && gHUD.WeaponWallpuffEnabled())
 		{
-			const Color smoke = mData->hit.wallpuffColor;
+			const Color3 smoke = mData->hit.wallpuffColor;
 			EV_CreateShotSmoke( SMOKE_WALLPUFF, pTrace->endpos + pTrace->plane.normal * 5, pTrace->plane.normal, 25, 0.5f, smoke.r, smoke.g, smoke.b, true );
 		}
 	}

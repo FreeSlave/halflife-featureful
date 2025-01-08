@@ -43,7 +43,7 @@ struct Visual
 
 	const char* model = nullptr;
 	int rendermode = kRenderNormal;
-	Color rendercolor;
+	Color3 rendercolor;
 	int renderamt = 0;
 	int renderfx = kRenderFxNone;
 	FloatRange scale = 1.0f;
@@ -68,7 +68,7 @@ struct Visual
 		this->rendermode = rendermode;
 		MarkAsDefined(RENDERMODE_DEFINED);
 	}
-	inline void SetColor(Color rendercolor)
+	inline void SetColor(Color3 rendercolor)
 	{
 		this->rendercolor = rendercolor;
 		MarkAsDefined(COLOR_DEFINED);
@@ -187,12 +187,12 @@ struct BuildVisual
 		visual.SetRenderMode(rendermode);
 		return *this;
 	}
-	inline BuildVisual& RenderColor(Color rendercolor) {
+	inline BuildVisual& RenderColor(Color3 rendercolor) {
 		visual.SetColor(rendercolor);
 		return *this;
 	}
 	inline BuildVisual& RenderColor(int r, int g, int b) {
-		return RenderColor(Color(r, g, b));
+		return RenderColor(Color3(r, g, b));
 	}
 	inline BuildVisual& Alpha(int renderamt) {
 		visual.SetAlpha(renderamt);
@@ -202,15 +202,15 @@ struct BuildVisual
 		visual.SetRenderFx(renderfx);
 		return *this;
 	}
-	inline BuildVisual& RenderProps(int rendermode, Color rendercolor, int renderamt, int renderfx)
+	inline BuildVisual& RenderProps(int rendermode, Color3 rendercolor, int renderamt, int renderfx)
 	{
 		return RenderMode(rendermode).RenderColor(rendercolor).Alpha(renderamt).RenderFx(renderfx);
 	}
-	inline BuildVisual& RenderProps(int rendermode, Color rendercolor, int renderamt)
+	inline BuildVisual& RenderProps(int rendermode, Color3 rendercolor, int renderamt)
 	{
 		return RenderMode(rendermode).RenderColor(rendercolor).Alpha(renderamt);
 	}
-	inline BuildVisual& RenderProps(int rendermode, Color rendercolor)
+	inline BuildVisual& RenderProps(int rendermode, Color3 rendercolor)
 	{
 		return RenderMode(rendermode).RenderColor(rendercolor);
 	}

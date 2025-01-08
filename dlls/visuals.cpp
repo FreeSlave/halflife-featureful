@@ -212,7 +212,7 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, Value &value)
 		}
 	}
 
-	Color color;
+	Color3 color;
 	if (UpdatePropertyFromJson(color, value, "color"))
 	{
 		visual.SetColor(color);

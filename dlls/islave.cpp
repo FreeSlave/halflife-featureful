@@ -81,13 +81,13 @@ enum
 
 #define ISLAVE_HAND_SPRITE_NAME "sprites/glow02.spr"
 
-constexpr Color VortigauntZapBeamColor = Color(180, 255, 96);
-constexpr Color VortigauntZapBeamLeaderColor = Color(150, 255, 120);
+constexpr Color3 VortigauntZapBeamColor = Color3(180, 255, 96);
+constexpr Color3 VortigauntZapBeamLeaderColor = Color3(150, 255, 120);
 
-constexpr Color VortigauntArmBeamColor = Color(96, 128, 16);
-constexpr Color VortigauntArmBeamLeaderColor = Color(72, 180, 72);
+constexpr Color3 VortigauntArmBeamColor = Color3(96, 128, 16);
+constexpr Color3 VortigauntArmBeamLeaderColor = Color3(72, 180, 72);
 
-constexpr Color VortigauntBeamLightColor = Color(255, 180, 96);
+constexpr Color3 VortigauntBeamLightColor = Color3(255, 180, 96);
 
 #define ISLAVE_ELECTROONLY	(1 << 0)
 #define ISLAVE_SNARKS		(1 << 1)
@@ -195,7 +195,7 @@ const NamedSoundScript CChargeToken::suitOnSoundScript = {
 
 const NamedVisual CChargeToken::tokenVisual = BuildVisual::Animated("Vortigaunt.ChargeToken")
 		.Model("sprites/xspark1.spr")
-		.RenderProps(kRenderTransAdd, Color(255, 255, 255), 225);
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 225);
 
 const NamedVisual CChargeToken::tokenLightVisual = BuildVisual("Vortigaunt.ChargeTokenLight")
 		.RenderColor(0, 255, 255)

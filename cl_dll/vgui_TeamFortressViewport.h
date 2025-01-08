@@ -227,11 +227,11 @@ class ColorButton : public CommandButton
 {
 private:
 
-	vgui::Color *ArmedColor;
-	vgui::Color *UnArmedColor;
+	Color *ArmedColor;
+	Color *UnArmedColor;
 
-	vgui::Color *ArmedBorderColor;
-	vgui::Color *UnArmedBorderColor;
+	Color *ArmedBorderColor;
+	Color *UnArmedBorderColor;
 
 public:
 	ColorButton( const char *text, int x, int y, int wide, int tall, bool bNoHighlight, bool bFlat ) :
@@ -246,7 +246,7 @@ public:
 	virtual void paintBackground()
 	{
 		int r, g, b, a;
-		vgui::Color bgcolor;
+		//Color bgcolor;
 
 		if( isArmed() )
 		{
@@ -303,22 +303,22 @@ public:
 
 	void setArmedColor( int r, int g, int b, int a )
 	{
-		ArmedColor = new vgui::Color( r, g, b, a );
+		ArmedColor = new Color( r, g, b, a );
 	}
 
 	void setUnArmedColor( int r, int g, int b, int a )
 	{
-		UnArmedColor = new vgui::Color( r, g, b, a );
+		UnArmedColor = new Color( r, g, b, a );
 	}
 
 	void setArmedBorderColor( int r, int g, int b, int a )
 	{
-		ArmedBorderColor = new vgui::Color( r, g, b, a );
+		ArmedBorderColor = new Color( r, g, b, a );
 	}
 
 	void setUnArmedBorderColor( int r, int g, int b, int a )
 	{
-		UnArmedBorderColor = new vgui::Color( r, g, b, a );
+		UnArmedBorderColor = new Color( r, g, b, a );
 	}
 };
 
