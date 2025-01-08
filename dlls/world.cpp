@@ -522,8 +522,6 @@ void CWorld::Spawn( void )
 	AddMapBSPAsPrecachedModel();
 }
 
-int CWorld::wallPuffsIndices[] = {0,0,0,0};
-
 void CWorld::Precache( void )
 {
 	g_pLastSpawn = NULL;
