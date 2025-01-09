@@ -75,6 +75,7 @@ ModFeatures::ModFeatures()
 	monsters_delegate_squad_leadership = true;
 	monsters_eat_for_health = true;
 	monsters_spawned_named_wait_trigger = true;
+	monsters_open_named_doors = true;
 	dying_monsters_block_player = true;
 
 	blackops_classify = false;
@@ -147,6 +148,7 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(monsters_delegate_squad_leadership),
 		KEY_VALUE_DEF(monsters_eat_for_health),
 		KEY_VALUE_DEF(monsters_spawned_named_wait_trigger),
+		KEY_VALUE_DEF(monsters_open_named_doors),
 		KEY_VALUE_DEF(dying_monsters_block_player),
 		KEY_VALUE_DEF(blackops_classify),
 		KEY_VALUE_DEF(opfor_grunts_dislike_civilians),

@@ -82,6 +82,7 @@ struct ModFeatures
 	bool monsters_delegate_squad_leadership;
 	bool monsters_eat_for_health;
 	bool monsters_spawned_named_wait_trigger;
+	bool monsters_open_named_doors;
 	bool dying_monsters_block_player;
 
 	bool blackops_classify;

@@ -820,7 +820,7 @@ NODE_LINKENT CBaseDoor::HandleLinkEnt(int afCapMask, bool nodeQueryStatic)
 		// door must be opened with a button or trigger field.
 		if( ( afCapMask & bits_CAP_OPEN_DOORS ) )
 		{
-			if (!FStringNull(pev->targetname) && !FBitSet(pev->spawnflags, SF_DOOR_FORCETOUCHABLE))
+			if (!g_modFeatures.monsters_open_named_doors && !FStringNull(pev->targetname) && !FBitSet(pev->spawnflags, SF_DOOR_FORCETOUCHABLE))
 			{
 				return NLE_PROHIBIT;
 			}
