@@ -2545,7 +2545,7 @@ void CBaseMonster::StartMonster( void )
 			if( !WALK_MOVE( ENT( pev ), 0, 0, WALKMOVE_NORMAL ) )
 			{
 				ALERT( at_error, "Monster %s stuck in wall--level design error\n", STRING( pev->classname ) );
-				if( g_psv_developer && g_psv_developer->value )
+				if( IsDeveloperModeOn() )
 					pev->effects |= EF_BRIGHTFIELD;
 			}
 		}
@@ -3401,7 +3401,7 @@ const char* CBaseMonster::MonsterStateDisplayString(MONSTERSTATE monsterState)
 
 void CBaseMonster::ReportAIState( ALERT_TYPE level )
 {
-	const bool shouldReportRoute = g_psv_developer && g_psv_developer->value >= 4;
+	const bool shouldReportRoute = DeveloperModeLevel() >= 3;
 	if (shouldReportRoute && !FRouteClear())
 	{
 		DrawRoute(this, m_movementGoal);

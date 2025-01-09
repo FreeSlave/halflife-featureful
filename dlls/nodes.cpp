@@ -1518,7 +1518,7 @@ void CTestHull::Spawn( entvars_t *pevMasterNode )
 //=========================================================
 void CTestHull::DropDelay( void )
 {
-	if (g_psv_developer && g_psv_developer->value)
+	if (IsDeveloperModeOn())
 		UTIL_CenterPrintAll( "Node Graph out of Date. Rebuilding..." );
 
 	UTIL_SetOrigin( VARS( pev ), WorldGraph.m_pNodes[0].m_vecOrigin );

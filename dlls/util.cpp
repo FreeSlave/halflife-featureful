@@ -29,6 +29,7 @@
 #include "player.h"
 #include "combat.h"
 #include "global_models.h"
+#include "game.h"
 #include "gamerules.h"
 #include "string_utils.h"
 
@@ -91,8 +92,6 @@ void ClearStringPool()
 	g_StringPool.Clear();
 }
 
-extern cvar_t *g_psv_developer;
-
 std::set<std::string> g_precachedModels;
 std::set<std::string> g_precachedSounds;
 
@@ -103,7 +102,7 @@ int PRECACHE_MODEL(const char* name)
 		ALERT(at_warning, "Tried to precache model by the null string!\n");
 		return -1;
 	}
-	if (g_psv_developer && g_psv_developer->value > 0)
+	if (IsDeveloperModeOn())
 		g_precachedModels.insert(name);
 	return g_engfuncs.pfnPrecacheModel(name);
 }
@@ -120,14 +119,14 @@ int PRECACHE_SOUND(const char* name)
 		// no need to precache since it's a sentence
 		return -1;
 	}
-	if (g_psv_developer && g_psv_developer->value > 0)
+	if (IsDeveloperModeOn())
 		g_precachedSounds.insert(name);
 	return g_engfuncs.pfnPrecacheSound(name);
 }
 
 void SET_MODEL(edict_t *e, const char *m)
 {
-	if (g_psv_developer && g_psv_developer->value > 0)
+	if (IsDeveloperModeOn())
 		g_precachedModels.insert(m);
 	g_engfuncs.pfnSetModel(e, m);
 }
@@ -2144,7 +2143,7 @@ void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd )
 			{
 				int componentsRead = 0;
 				UTIL_StringToVector( (float *)( (char *)pev + pField->fieldOffset ), pkvd->szValue, &componentsRead );
-				if (componentsRead != 3)
+				if (componentsRead != 3 && DeveloperModeLevel() >= 4)
 				{
 					ALERT( at_warning, "Incorrect number of components for vector. %s:%s == \"%s\"\n", pkvd->szClassName, pField->fieldName, pkvd->szValue );
 				}

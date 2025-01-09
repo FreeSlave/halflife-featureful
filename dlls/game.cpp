@@ -811,7 +811,7 @@ cvar_t *g_psv_allow_autoaim = NULL;
 cvar_t *g_footsteps = NULL;
 cvar_t *g_enable_cheats = NULL;
 
-cvar_t *g_psv_developer;
+cvar_t *g_psv_developer = NULL;
 
 #define DECLARE_SKILL_VALUE(name, defaultValue) \
 cvar_t name ## 1 = { #name "1", defaultValue, 0, 0, 0 }; \
@@ -1270,7 +1270,7 @@ void Cmd_NumberOfEntities()
 
 static bool CanRunCheatCommand()
 {
-	if (g_enable_cheats && g_enable_cheats->value)
+	if (CheatsEnabled())
 		return true;
 	ALERT(at_console, "%s is available only when cheats enabled\n", CMD_ARGV(0));
 	return false;
@@ -2167,4 +2167,21 @@ bool ItemsPickableByUse()
 int ItemsPhysicsFix()
 {
 	return static_cast<int>(items_physics_fix.value);
+}
+
+bool IsDeveloperModeOn()
+{
+	return g_psv_developer && g_psv_developer->value > 0;
+}
+
+int DeveloperModeLevel()
+{
+	if (g_psv_developer)
+		return (int)g_psv_developer->value;
+	return 0;
+}
+
+bool CheatsEnabled()
+{
+	return g_enable_cheats && g_enable_cheats->value != 0;
 }

@@ -208,11 +208,12 @@ extern cvar_t *g_psv_maxspeed;
 extern cvar_t *g_psv_aim;
 extern cvar_t *g_psv_allow_autoaim;
 extern cvar_t *g_footsteps;
-extern cvar_t *g_enable_cheats;
-
-extern cvar_t *g_psv_developer;
 
 extern cvar_t* violence_hgibs;
 extern cvar_t* violence_agibs;
+
+bool IsDeveloperModeOn();
+int DeveloperModeLevel();
+bool CheatsEnabled();
 
 #endif // GAME_H

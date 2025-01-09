@@ -4478,7 +4478,6 @@ void CBasePlayer::ForceClientDllUpdate( void )
 ImpulseCommands
 ============
 */
-extern cvar_t *g_enable_cheats;
 
 void CBasePlayer::ImpulseCommands()
 {
@@ -4562,7 +4561,7 @@ void CBasePlayer::ImpulseCommands()
 //=========================================================
 void CBasePlayer::CheatImpulseCommands( int iImpulse )
 {
-	if( g_enable_cheats->value == 0 )
+	if( !CheatsEnabled() )
 	{
 		return;
 	}

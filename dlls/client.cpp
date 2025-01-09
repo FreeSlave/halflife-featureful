@@ -478,7 +478,6 @@ ClientCommand
 called each time a player uses a "cmd" command
 ============
 */
-extern cvar_t *g_enable_cheats;
 
 // Use CMD_ARGV,  CMD_ARGV, and CMD_ARGC to get pointers the character string command.
 void ClientCommand( edict_t *pEntity )
@@ -507,7 +506,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "give" ) )
 	{
-		if( g_enable_cheats->value != 0 )
+		if( CheatsEnabled() )
 		{
 			string_t iszItem = ALLOC_STRING( CMD_ARGV( 1 ) );	// Make a copy of the classname
 			pPlayer->GiveNamedItem( STRING( iszItem ) );
@@ -515,7 +514,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "give_inventory" ) )
 	{
-		if( g_enable_cheats->value != 0 )
+		if( CheatsEnabled() )
 		{
 			const char* inventoryItemName = CMD_ARGV( 1 );
 			if (*inventoryItemName)
@@ -543,7 +542,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "remove_inventory" ) )
 	{
-		if( g_enable_cheats->value != 0 )
+		if( CheatsEnabled() )
 		{
 			const char* inventoryItemName = CMD_ARGV( 1 );
 			if (*inventoryItemName)
@@ -571,7 +570,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "fire" ) )
 	{
-		if( g_enable_cheats->value != 0 )
+		if( CheatsEnabled() )
 		{
 			CBaseEntity *pPlayer = CBaseEntity::Instance( pEntity );
 			const bool entityUnderCrosshair = CMD_ARGC() <= 1 || FStrEq( CMD_ARGV(1), "!cross" );
@@ -631,7 +630,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "fov" ) )
 	{
-		if( g_enable_cheats->value != 0 && CMD_ARGC() > 1 )
+		if( CheatsEnabled() && CMD_ARGC() > 1 )
 		{
 			pPlayer->m_iFOV = atoi( CMD_ARGV( 1 ) );
 		}
@@ -716,7 +715,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq(pcmd, "buddha" ) )
 	{
-		if (g_enable_cheats->value != 0)
+		if (CheatsEnabled())
 		{
 			if (pPlayer->m_buddha) {
 				pPlayer->m_buddha = false;
