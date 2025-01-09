@@ -144,6 +144,7 @@ public:
 	virtual bool IsFullyAlive( void );
 	virtual bool ShouldFadeOnDeath( void );
 	bool ShouldCollide(CBaseEntity *pOther) override;
+	bool ShouldCollideWithCorpses() override;
 
 	// Basic Monster AI functions
 	virtual float ChangeYaw( int yawSpeed );

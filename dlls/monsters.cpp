@@ -4301,6 +4301,13 @@ bool CBaseMonster::ShouldCollide(CBaseEntity *pOther)
 	return true;
 }
 
+bool CBaseMonster::ShouldCollideWithCorpses()
+{
+	if (FBitSet(pev->flags, FL_MONSTER))
+		return false;
+	return true;
+}
+
 const char* CBaseMonster::MyNonDefaultGibModel()
 {
 	if (!FStringNull(m_gibModel))
