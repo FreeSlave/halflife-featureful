@@ -1817,11 +1817,6 @@ void CTestHull::BuildNodeGraph( void )
 	fprintf( file, "----------------------------------------------------------------------------\n" );
 	fprintf( file, "Walk Rejection:\n");	
 
-	CBaseEntity* pWallToggle = NULL;
-	while ( (pWallToggle = UTIL_FindEntityByClassname(pWallToggle, "func_wall_toggle")) != 0 ) {
-		ClearBits(pWallToggle->pev->flags, FL_WORLDBRUSH);
-	}
-
 	for( i = 0; i < WorldGraph.m_cNodes; i++ )
 	{
 		pSrcNode = &WorldGraph.m_pNodes[i];
@@ -1883,7 +1878,6 @@ void CTestHull::BuildNodeGraph( void )
 						fclose( file );
 					}
 
-					ResetWallToggle();
 					return;
 				}
 				
@@ -1910,6 +1904,7 @@ void CTestHull::BuildNodeGraph( void )
 
 					// in this loop we take tiny steps from the current node to the nodes that it links to, one at a time.
 					// pev->angles.y = flYaw;
+					bool didResetWallToggleWorldBrush = false;
 					for( step = 0; step < flDist && !fWalkFailed; step += HULL_STEP_SIZE )
 					{
 						float stepSize = HULL_STEP_SIZE;
@@ -1917,13 +1912,26 @@ void CTestHull::BuildNodeGraph( void )
 						if( ( step + stepSize ) >= ( flDist - 1 ) )
 							stepSize = ( flDist - step ) - 1;
 
-						if( !WALK_MOVE( ENT( pev ), flYaw, stepSize, MoveMode ) )
+						int walkMoveResult = WALK_MOVE( ENT( pev ), flYaw, stepSize, MoveMode );
+						if( !walkMoveResult )
+						{
+							if (MoveMode == WALKMOVE_WORLDONLY && !FNullEnt(gpGlobals->trace_ent) && FClassnameIs(VARS(gpGlobals->trace_ent), "func_wall_toggle"))
+							{
+								entvars_t* traceEntPev = VARS(gpGlobals->trace_ent);
+								ClearBits(traceEntPev->flags, FL_WORLDBRUSH);
+								didResetWallToggleWorldBrush = true;
+								walkMoveResult = WALK_MOVE( ENT( pev ), flYaw, stepSize, MoveMode );
+							}
+						}
+						if (!walkMoveResult)
 						{
 							// can't take the next step
 							fWalkFailed = true;
 							break;
 						}
 					}
+					if (didResetWallToggleWorldBrush)
+						ResetWallToggle();
 
 					if( !fWalkFailed && ( pev->origin - vecSpot ).Length() > 64 )
 					{
@@ -1983,8 +1991,6 @@ void CTestHull::BuildNodeGraph( void )
 		}
 	}
 	fprintf( file, "-------------------------------------------------------------------------------\n\n\n" );
-
-	ResetWallToggle();
 
 	cPoolLinks -= WorldGraph.RejectInlineLinks( pTempPool, file );
 
