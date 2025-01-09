@@ -24,8 +24,6 @@
 
 #if FEATURE_GRAPPLE
 
-void FindHullIntersection(const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity);
-
 #if !CLIENT_DLL
 #include "game.h"
 #include "gamerules.h"
@@ -526,7 +524,7 @@ void CBarnacleGrapple::PrimaryAttack( void )
 			{
 				if (!tr.pHit || FNullEnt(tr.pHit) || ((CBaseEntity*)GET_PRIVATE(tr.pHit))->IsBSPModel())
 				{
-					FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+					FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
 				}
 			}
 		}

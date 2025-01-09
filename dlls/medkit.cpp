@@ -28,8 +28,6 @@
 
 LINK_ENTITY_TO_CLASS(weapon_medkit, CMedkit)
 
-void FindHullIntersection(const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity);
-
 CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 {
 #if !CLIENT_DLL
@@ -51,7 +49,7 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 			if( !pHit || pHit->IsBSPModel() )
 			{
-				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
 			}
 		}
 	}

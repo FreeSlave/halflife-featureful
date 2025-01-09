@@ -179,6 +179,10 @@ typedef struct
 	int iDropAmmo;
 } ItemInfo;
 
+#if !CLIENT_DLL
+void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, CBasePlayer *pPlayer );
+#endif
+
 class CBasePlayerWeapon : public CBaseAnimating
 {
 public:
