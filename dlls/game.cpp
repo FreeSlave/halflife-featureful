@@ -42,6 +42,7 @@ struct WeaponNameAndId
 	int id;
 };
 
+cvar_t corpse_player_collision_fix = {"corpse_player_collision_fix", "0"};
 cvar_t doors_open_in_move_direction = {"doors_open_in_move_direction", "0"};
 cvar_t doors_blocked_recheck = {"doors_blocked_recheck", "0"};
 cvar_t doors_blocked_fade_corpses = {"doors_blocked_fade_corpses", "0"};
@@ -81,6 +82,7 @@ ModFeatures::ModFeatures()
 	monsters_spawned_named_wait_trigger = true;
 	monsters_open_named_doors = true;
 	dying_monsters_block_player = true;
+	corpse_player_collision_fix = false;
 
 	blackops_classify = false;
 	opfor_grunts_dislike_civilians = FEATURE_OPFOR_SPECIFIC ? true : false;
@@ -154,6 +156,7 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(monsters_spawned_named_wait_trigger),
 		KEY_VALUE_DEF(monsters_open_named_doors),
 		KEY_VALUE_DEF(dying_monsters_block_player),
+		KEY_VALUE_DEF(corpse_player_collision_fix),
 		KEY_VALUE_DEF(blackops_classify),
 		KEY_VALUE_DEF(opfor_grunts_dislike_civilians),
 		KEY_VALUE_DEF(medic_drop_healthkit),
@@ -484,6 +487,11 @@ bool ModFeatures::DoorsRecheckWhenBlocked() const
 bool ModFeatures::DoorsFadeCorpsesWhenBlocked() const
 {
 	return ::doors_blocked_fade_corpses.value != 0;
+}
+
+bool ModFeatures::FixPlayerAndCorpseCollisionBug() const
+{
+	return ::corpse_player_collision_fix.value != 0;
 }
 
 byte* LoadFileForMeWithBackup(const char* fileName, const char* fileNameBackup, int* pFileSize, const char** chosenFileName)
@@ -1638,6 +1646,7 @@ void GameDLLInit( void )
 
 	CVAR_REGISTER( &findnearestnodefix );
 
+	CVAR_REGISTER_BOOLEAN(&corpse_player_collision_fix, g_modFeatures.corpse_player_collision_fix);
 	CVAR_REGISTER_BOOLEAN(&doors_open_in_move_direction, g_modFeatures.doors_open_in_move_direction);
 	CVAR_REGISTER_BOOLEAN(&doors_blocked_recheck, g_modFeatures.doors_blocked_recheck);
 	CVAR_REGISTER_BOOLEAN(&doors_blocked_fade_corpses, g_modFeatures.doors_blocked_fade_corpses);

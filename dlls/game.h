@@ -65,6 +65,7 @@ struct ModFeatures
 	bool DoorsOpenInMoveDirection() const;
 	bool DoorsRecheckWhenBlocked() const;
 	bool DoorsFadeCorpsesWhenBlocked() const;
+	bool FixPlayerAndCorpseCollisionBug() const;
 
 	int suit_light;
 	bool suit_light_allow_both;
@@ -88,6 +89,7 @@ struct ModFeatures
 	bool monsters_spawned_named_wait_trigger;
 	bool monsters_open_named_doors;
 	bool dying_monsters_block_player;
+	bool corpse_player_collision_fix;
 
 	bool blackops_classify;
 	bool opfor_grunts_dislike_civilians;

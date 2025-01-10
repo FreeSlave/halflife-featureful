@@ -6514,7 +6514,7 @@ void CBasePlayer::DisbandFollowers()
 
 bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked())
+	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked() && !g_modFeatures.FixPlayerAndCorpseCollisionBug())
 	{
 		Vector mins = pev->absmin;
 		Vector maxs = pev->absmax;
@@ -6527,6 +6527,15 @@ bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
 		}
 	}
 	return false;
+}
+
+bool CBasePlayer::ShouldCollideWithCorpses()
+{
+	if (g_modFeatures.FixPlayerAndCorpseCollisionBug())
+	{
+		return m_forceCollideWithCorpses;
+	}
+	return true;
 }
 
 //=========================================================

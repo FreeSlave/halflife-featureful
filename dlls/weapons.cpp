@@ -213,6 +213,7 @@ bool bIsMultiplayer()
 
 void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, CBasePlayer *pPlayer )
 {
+	pPlayer->m_forceCollideWithCorpses = true;
 	int		i, j, k;
 	float		distance;
 	float		*minmaxs[2] = {mins, maxs};
@@ -227,6 +228,7 @@ void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, f
 	if( tmpTrace.flFraction < 1.0f )
 	{
 		tr = tmpTrace;
+		pPlayer->m_forceCollideWithCorpses = false;
 		return;
 	}
 
@@ -253,6 +255,7 @@ void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, f
 			}
 		}
 	}
+	pPlayer->m_forceCollideWithCorpses = false;
 }
 
 // Precaches the weapon and queues the weapon info for sending to clients

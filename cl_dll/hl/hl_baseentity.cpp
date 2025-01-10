@@ -222,6 +222,7 @@ void CBasePlayer::AddPoints( int score, bool bAllowNegativeScore ) { }
 void CBasePlayer::AddFloatPoints(float score, bool bAllowNegativeScore) {}
 void CBasePlayer::AddPointsToTeam( int score, bool bAllowNegativeScore ) { }
 bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor) { return false; }
+bool CBasePlayer::ShouldCollideWithCorpses() { return false; }
 
 float CBasePlayerWeapon::GetNextAttackDelay( float flTime ) { return flTime; }
 void CBasePlayerWeapon::SetObjectCollisionBox( void ) { }

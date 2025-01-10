@@ -430,6 +430,7 @@ public:
 	int GetCustomDecalFrames( void );
 
 	bool HandleDoorBlockage(CBaseEntity* pDoor);
+	bool ShouldCollideWithCorpses();
 
 	void SetMovementMode();
 	void RecruitFollowers();
@@ -549,6 +550,8 @@ public:
 
 	float m_spriteHintTimeCheck;
 	bool m_needSatchelRecheck;
+
+	bool m_forceCollideWithCorpses;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
