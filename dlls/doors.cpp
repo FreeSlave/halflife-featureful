@@ -896,7 +896,7 @@ void CBaseDoor::DoorGoUp( void )
 			if( !FBitSet( pev->spawnflags, SF_DOOR_ONEWAY ) && pev->movedir.y ) 		// Y axis rotation, move away from the player
 			{
 				Vector vec = pevActivator->origin - pev->origin;
-				const bool allowOpenInMoveDirection = g_modFeatures.doors_open_in_move_direction;
+				const bool allowOpenInMoveDirection = g_modFeatures.DoorsOpenInMoveDirection();
 
 				Vector vnext;
 				if (!allowOpenInMoveDirection || FBitSet(pev->spawnflags, SF_DOOR_USE_ONLY))
@@ -1062,7 +1062,7 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 	bool shouldProceed = false;
 	if( pev->dmg ) {
 		pOther->TakeDamage( pev, pev, pev->dmg, DMG_CRUSH );
-		if (g_modFeatures.doors_blocked_recheck)
+		if (g_modFeatures.DoorsRecheckWhenBlocked())
 		{
 			// Entity became unsolid or killed
 			if (pOther->pev->solid == SOLID_NOT || FBitSet(pev->flags, FL_KILLME))

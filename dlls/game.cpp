@@ -42,6 +42,10 @@ struct WeaponNameAndId
 	int id;
 };
 
+cvar_t doors_open_in_move_direction = {"doors_open_in_move_direction", "0"};
+cvar_t doors_blocked_recheck = {"doors_blocked_recheck", "0"};
+cvar_t doors_blocked_fade_corpses = {"doors_blocked_fade_corpses", "0"};
+
 ModFeatures::ModFeatures()
 {
 	memset(monsters, 0, sizeof(monsters));
@@ -465,6 +469,21 @@ bool ModFeatures::IsMonsterEnabled(const char *name) const
 		}
 	}
 	return false;
+}
+
+bool ModFeatures::DoorsOpenInMoveDirection() const
+{
+	return ::doors_open_in_move_direction.value != 0;
+}
+
+bool ModFeatures::DoorsRecheckWhenBlocked() const
+{
+	return ::doors_blocked_recheck.value != 0;
+}
+
+bool ModFeatures::DoorsFadeCorpsesWhenBlocked() const
+{
+	return ::doors_blocked_fade_corpses.value != 0;
 }
 
 byte* LoadFileForMeWithBackup(const char* fileName, const char* fileNameBackup, int* pFileSize, const char** chosenFileName)
@@ -1618,6 +1637,10 @@ void GameDLLInit( void )
 #endif
 
 	CVAR_REGISTER( &findnearestnodefix );
+
+	CVAR_REGISTER_BOOLEAN(&doors_open_in_move_direction, g_modFeatures.doors_open_in_move_direction);
+	CVAR_REGISTER_BOOLEAN(&doors_blocked_recheck, g_modFeatures.doors_blocked_recheck);
+	CVAR_REGISTER_BOOLEAN(&doors_blocked_fade_corpses, g_modFeatures.doors_blocked_fade_corpses);
 
 	CVAR_REGISTER( &keepinventory );
 

@@ -4439,7 +4439,7 @@ bool CBaseMonster::IsFreeToManipulate()
 
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-	if (g_modFeatures.doors_blocked_fade_corpses)
+	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked())
 	{
 		if (pev->deadflag == DEAD_DEAD && pev->movetype == MOVETYPE_TOSS && pev->takedamage == DAMAGE_YES) {
 			SUB_StartFadeOut();

@@ -62,6 +62,10 @@ struct ModFeatures
 		return player_maxarmor > 0 ? player_maxarmor : MAX_NORMAL_BATTERY;
 	}
 
+	bool DoorsOpenInMoveDirection() const;
+	bool DoorsRecheckWhenBlocked() const;
+	bool DoorsFadeCorpsesWhenBlocked() const;
+
 	int suit_light;
 	bool suit_light_allow_both;
 	bool suit_sentences;

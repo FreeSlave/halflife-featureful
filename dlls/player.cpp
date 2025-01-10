@@ -6514,7 +6514,7 @@ void CBasePlayer::DisbandFollowers()
 
 bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-	if (g_modFeatures.doors_blocked_fade_corpses)
+	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked())
 	{
 		Vector mins = pev->absmin;
 		Vector maxs = pev->absmax;
