@@ -29,21 +29,13 @@ const char inventorySpecSchema[] = R"(
 
 InventoryItemSpec::InventoryItemSpec(): maxCount(0) {}
 
-class InventorySpec
+const char* InventorySpec::Schema() const
 {
-public:
-	bool ReadFromFile(const char* fileName);
-	const InventoryItemSpec* GetInventoryItemSpec(const char* itemName);
-private:
-	std::vector<InventoryItemSpec> inventory;
-};
+	return inventorySpecSchema;
+}
 
-bool InventorySpec::ReadFromFile(const char *fileName)
+bool InventorySpec::ReadFromDocument(rapidjson::Document& document, const char* fileName)
 {
-	Document document;
-	if (!ReadJsonDocumentWithSchemaFromFile(document, fileName, inventorySpecSchema))
-		return false;
-
 	auto itemsIt = document.FindMember("items");
 	if (itemsIt != document.MemberEnd())
 	{
@@ -85,13 +77,3 @@ const InventoryItemSpec* InventorySpec::GetInventoryItemSpec(const char *itemNam
 }
 
 InventorySpec g_InventorySpec;
-
-void ReadInventorySpec()
-{
-	g_InventorySpec.ReadFromFile("templates/inventory.json");
-}
-
-const InventoryItemSpec* GetInventoryItemSpec(const char* itemName)
-{
-	return g_InventorySpec.GetInventoryItemSpec(itemName);
-}

@@ -44,8 +44,8 @@ struct ObjectHintCatalog : public JSONConfig
 	bool HasAnyTemplates() const;
 
 protected:
-	const char* Schema() const;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 private:
 	const ObjectHintSpec* GetSpec(const std::string& name);
 

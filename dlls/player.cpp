@@ -6280,7 +6280,7 @@ int CBasePlayer::FindSlotForItem(string_t item, bool allowOverflow, int* result)
 		}
 	}
 
-	const InventoryItemSpec* spec = GetInventoryItemSpec(STRING(item));
+	const InventoryItemSpec* spec = g_InventorySpec.GetInventoryItemSpec(STRING(item));
 	if (!allowOverflow && spec && spec->maxCount > 0)
 	{
 		if (m_inventoryItemCounts[i] >= spec->maxCount)
@@ -6305,7 +6305,7 @@ int CBasePlayer::GiveInventoryItem(string_t item, int count, bool allowOverflow)
 	if (i < 0)
 		return ret;
 
-	const InventoryItemSpec* spec = GetInventoryItemSpec(STRING(item));
+	const InventoryItemSpec* spec = g_InventorySpec.GetInventoryItemSpec(STRING(item));
 	if (!allowOverflow && spec && spec->maxCount > 0)
 	{
 		if (m_inventoryItemCounts[i] >= spec->maxCount)
@@ -6361,7 +6361,7 @@ int CBasePlayer::SetInventoryItem(string_t item, int count, bool allowOverflow)
 			MESSAGE_END();
 
 			int result = INVENTORY_ITEM_COUNT_CHANGED;
-			const InventoryItemSpec* spec = GetInventoryItemSpec(STRING(item));
+			const InventoryItemSpec* spec = g_InventorySpec.GetInventoryItemSpec(STRING(item));
 			if (spec && spec->maxCount > 0)
 			{
 				if (oldCount <= spec->maxCount && count > spec->maxCount)
@@ -6745,7 +6745,7 @@ private:
 			{
 				if (isFraction)
 				{
-					const InventoryItemSpec* spec = GetInventoryItemSpec(STRING(pPlayer->m_inventoryItems[index]));
+					const InventoryItemSpec* spec = g_InventorySpec.GetInventoryItemSpec(STRING(pPlayer->m_inventoryItems[index]));
 					if (spec && spec->maxCount > 0)
 					{
 						return pPlayer->m_inventoryItemCounts[index] / (float)spec->maxCount;

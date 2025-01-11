@@ -280,8 +280,8 @@ public:
 	void DumpVisuals() const;
 	void DumpVisual(const char* name) const;
 protected:
-	const char* Schema() const;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 private:
 	void DumpVisualImpl(const char* name, const Visual& visual) const;
 

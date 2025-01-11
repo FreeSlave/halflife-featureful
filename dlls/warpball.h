@@ -9,7 +9,6 @@
 #include "const_render.h"
 #include "const_sound.h"
 #include "template_property_types.h"
-#include "rapidjson/document.h"
 #include "json_config.h"
 
 #define WARPBALL_RED_DEFAULT 77
@@ -156,7 +155,6 @@ struct WarpballTemplateCatalog : public JSONConfig
 protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
-
 public:
 	const WarpballTemplate* FindWarpballTemplate(const char* warpballName, const char* entityClassname = nullptr);
 	void PrecacheWarpballTemplate(const char* name, const char* entityClassname);

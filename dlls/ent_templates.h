@@ -186,8 +186,8 @@ public:
 	void EnsureVisualReplacementForTemplate(const char* templateName, const char* visualName);
 	void EnsureSoundScriptReplacementForTemplate(const char* templateName, const char* soundScriptName);
 protected:
-	const char* Schema() const;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 private:
 	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
 	std::string _temp;

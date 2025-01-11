@@ -1523,12 +1523,48 @@ cvar_t sv_busters = { "sv_busters", "0" };
 extern void RegisterAmmoTypes();
 extern void ReportRegisteredAmmoTypes();
 
+void ParseModConfigs()
+{
+	MaterialRegistry materialRegistry;
+	materialRegistry.FillDefaults();
+	materialRegistry.ReadFromFile("features/materials.json");
+	g_MaterialRegistry = std::move(materialRegistry);
+
+	InventorySpec inventorySpec;
+	inventorySpec.ReadFromFile("templates/inventory.json");
+	g_InventorySpec = std::move(inventorySpec);
+
+	WarpballTemplateCatalog warpballCatalog;
+	warpballCatalog.ReadFromFile("templates/warpball.json");
+	g_WarpballCatalog = std::move(warpballCatalog);
+
+	SoundScriptSystem soundScriptSystem;
+	soundScriptSystem.ReadFromFile("sound/soundscripts.json");
+	g_SoundScriptSystem = std::move(soundScriptSystem);
+
+	VisualSystem visualSystem;
+	visualSystem.ReadFromFile("templates/visuals.json");
+	g_VisualSystem = std::move(visualSystem);
+
+	EntTemplateSystem entTemplateSystem;
+	entTemplateSystem.SetSoundScriptSystem(&g_SoundScriptSystem);
+	entTemplateSystem.SetVisualSystem(&g_VisualSystem);
+	entTemplateSystem.ReadFromFile("templates/entities.json");
+	g_EntTemplateSystem = std::move(entTemplateSystem);
+
+	ObjectHintCatalog objectHintCatalog;
+	objectHintCatalog.ReadFromFile("templates/objecthint.json");
+	g_objectHintCatalog = std::move(objectHintCatalog);
+
+	FollowersDescription followersDescription;
+	followersDescription.ReadFromFile("features/followers.json");
+	g_FollowersDescription = std::move(followersDescription);
+}
+
 // Register your console variables here
 // This gets called one time when the game is initialied
 void GameDLLInit( void )
 {
-	g_MaterialRegistry.FillDefaults();
-
 	ReadServerFeatures();
 	ReadEnabledMonsters();
 	ReadEnabledWeapons();
@@ -1536,17 +1572,10 @@ void GameDLLInit( void )
 	ReadAmmoAmounts();
 
 	RegisterAmmoTypes();
-	g_WarpballCatalog.ReadFromFile("templates/warpball.json");
-	ReadInventorySpec();
-	g_SoundScriptSystem.ReadFromFile("sound/soundscripts.json");
-	g_VisualSystem.ReadFromFile("templates/visuals.json");
-	g_EntTemplateSystem.SetSoundScriptSystem(&g_SoundScriptSystem);
-	g_EntTemplateSystem.SetVisualSystem(&g_VisualSystem);
-	g_EntTemplateSystem.ReadFromFile("templates/entities.json");
-	g_FollowersDescription.ReadFromFile("features/followers.json");
+
+	ParseModConfigs();
+
 	ReadSaveTitles();
-	g_objectHintCatalog.ReadFromFile("templates/objecthint.json");
-	g_MaterialRegistry.ReadFromFile("features/materials.json");
 
 	// Register cvars here:
 

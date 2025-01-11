@@ -434,8 +434,6 @@ the hud variables.
 
 void DLLEXPORT HUD_Init( void )
 {
-	g_MaterialRegistry.FillDefaults();
-	g_MaterialRegistry.ReadFromFile("features/materials.json");
 	InitInput();
 	gHUD.Init();
 #if USE_VGUI

@@ -1043,6 +1043,7 @@ public:
 	CHudNightvision m_Nightvision;
 	CHudCaption		m_Caption;
 
+	void ParseModConfigs();
 	void Init( void );
 	void VidInit( void );
 	void Think(void);
@@ -1095,7 +1096,7 @@ public:
 
 	bool m_bFlashlight;
 
-	InventoryHudSpec inventorySpec;
+	InventoryHudSpec m_inventorySpec;
 	ObjectHintManager objectHintManager;
 
 	HudSpriteRenderer hudRenderer;

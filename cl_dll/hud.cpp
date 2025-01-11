@@ -34,6 +34,7 @@
 
 #include "environment.h"
 #include "error_collector.h"
+#include "tex_materials.h"
 
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
@@ -570,7 +571,22 @@ void __CmdFunc_HUDColor()
 }
 
 extern void ReportRegisteredAmmoTypes();
- 
+
+void CHud::ParseModConfigs()
+{
+	g_errorCollector.Clear();
+	MaterialRegistry materialRegistry;
+	materialRegistry.FillDefaults();
+	materialRegistry.ReadFromFile("features/materials.json");
+	g_MaterialRegistry = std::move(materialRegistry);
+
+	InventoryHudSpec spec;
+	spec.ReadFromFile("sprites/hud_inventory.json");
+	m_inventorySpec = std::move(spec);
+
+	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
+}
+
 // This is called every time the DLL is loaded
 void CHud::Init( void )
 {
@@ -628,6 +644,7 @@ void CHud::Init( void )
 	m_iFOV = 0;
 
 	ParseClientFeatures();
+	ParseModConfigs();
 
 	CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE );
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
@@ -745,8 +762,6 @@ void CHud::Init( void )
 	m_Menu.Init();
 
 	m_Caption.Init();
-
-	inventorySpec.ReadFromFile("sprites/hud_inventory.json");
 
 	hudRenderer.Init();
 
@@ -1111,6 +1126,18 @@ void CHud::LoadWallPuffSprites()
 
 void CHud::VidInit( void )
 {
+	static bool vidInitAtLeastOnce = false;
+	if (vidInitAtLeastOnce)
+	{
+		cvar_t* pCvarDeveloper = gEngfuncs.pfnGetCvarPointer("developer");
+		if (pCvarDeveloper && pCvarDeveloper->value)
+		{
+			gEngfuncs.Con_DPrintf("Re-parsing mod client configs\n");
+			ParseModConfigs();
+		}
+	}
+	vidInitAtLeastOnce = true;
+
 	int j;
 	m_scrinfo.iSize = sizeof(m_scrinfo);
 	GetScreenInfo( &m_scrinfo );

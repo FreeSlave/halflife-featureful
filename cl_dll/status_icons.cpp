@@ -125,12 +125,12 @@ int CHudStatusIcons::Draw( float flTime )
 			int rText = r;
 			int gText = g;
 			int bText = b;
-			ScaleColors(rText, gText, bText, gHUD.inventorySpec.TextAlpha());
+			ScaleColors(rText, gText, bText, gHUD.m_inventorySpec.TextAlpha());
 
 			int alpha = item.a;
 			if (alpha <= 0)
 			{
-				alpha = gHUD.inventorySpec.DefaultSpriteAlpha();
+				alpha = gHUD.m_inventorySpec.DefaultSpriteAlpha();
 			}
 			ScaleColors(r, g, b, alpha);
 
@@ -283,7 +283,7 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 		}
 	}
 
-	const InventoryItemHudSpec* itemSpec = gHUD.inventorySpec.GetInventoryItemSpec(itemName);
+	const InventoryItemHudSpec* itemSpec = gHUD.m_inventorySpec.GetInventoryItemSpec(itemName);
 
 	const char* spriteName = itemName;
 	if (itemSpec)

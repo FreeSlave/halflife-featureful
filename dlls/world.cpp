@@ -37,6 +37,9 @@
 #include "savetitles.h"
 #include "string_utils.h"
 #include "common_soundscripts.h"
+#include "objecthint_spec.h"
+#include "warpball.h"
+#include "error_collector.h"
 
 extern CSoundEnt *pSoundEnt;
 
@@ -524,6 +527,8 @@ void CWorld::Spawn( void )
 
 void CWorld::Precache( void )
 {
+	static bool worldInitAtLeastOnce = false;
+
 	g_pLastSpawn = NULL;
 #if 1
 	CVAR_SET_STRING( "sv_gravity", "800" ); // 67ft/sec
@@ -533,6 +538,13 @@ void CWorld::Precache( void )
 	CVAR_SET_STRING( "sv_stepsize", "24" );
 #endif
 	CVAR_SET_STRING( "room_type", "0" );// clear DSP
+
+	if (IsDeveloperModeOn() && worldInitAtLeastOnce)
+	{
+		ALERT(at_console, "Re-parsing mod server configs\n");
+		ParseModConfigs();
+	}
+	worldInitAtLeastOnce = true;
 
 	// Set up game rules
 	if( g_pGameRules )

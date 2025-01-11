@@ -1,9 +1,6 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-#include "r_studioint.h"
-
-extern engine_studio_api_t IEngineStudio;
 
 DECLARE_MESSAGE( m_ErrorCollection, ParseErrors )
 
@@ -18,7 +15,7 @@ int CHudErrorCollection::Init()
 
 int CHudErrorCollection::VidInit()
 {
-	m_pCvarDeveloper = IEngineStudio.GetCvar("developer");
+	m_pCvarDeveloper = gEngfuncs.pfnGetCvarPointer("developer");
 	return 1;
 }
 

@@ -20,6 +20,7 @@
 #include "cdll_dll.h"
 #include "soundreplacement.h"
 
+void ParseModConfigs();
 extern void GameDLLInit( void );
 
 #define MAX_NORMAL_HEALTH 100

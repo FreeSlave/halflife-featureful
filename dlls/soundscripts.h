@@ -105,8 +105,8 @@ public:
 	void DumpSoundScripts() const;
 	void DumpSoundScript(const char* name) const;
 protected:
-	const char* Schema() const;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 private:
 	void DumpSoundScriptImpl(const char* name, const SoundScript& soundScript, const SoundScriptMeta& meta) const;
 	void EnsureExistingScriptDefined(SoundScript& existing, SoundScriptMeta& meta, const SoundScript& soundScript);

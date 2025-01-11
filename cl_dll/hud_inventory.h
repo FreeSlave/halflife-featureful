@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include "json_config.h"
 
 #define INVENTORY_PLACE_HIDE -1
 #define INVENTORY_PLACE_DEFAULT 0
@@ -25,11 +26,13 @@ struct InventoryItemHudSpec
 	bool showInHistory;
 };
 
-class InventoryHudSpec
+class InventoryHudSpec : public JSONConfig
 {
+protected:
+	const char* Schema() const override;
+	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 public:
 	InventoryHudSpec();
-	bool ReadFromFile(const char* fileName);
 	const InventoryItemHudSpec* GetInventoryItemSpec(const char* itemName);
 
 	int DefaultSpriteAlpha() const { return defaultSpriteAlpha; }

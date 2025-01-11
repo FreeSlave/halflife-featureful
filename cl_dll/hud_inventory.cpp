@@ -51,14 +51,13 @@ InventoryItemHudSpec::InventoryItemHudSpec(): packedColor(0), alpha(0), position
 
 InventoryHudSpec::InventoryHudSpec(): defaultSpriteAlpha(175), textAlpha(225) {}
 
-bool InventoryHudSpec::ReadFromFile(const char *fileName)
+const char* InventoryHudSpec::Schema() const
 {
-	inventory.clear();
+	return hudInventorySchema;
+}
 
-	Document document;
-	if (!ReadJsonDocumentWithSchemaFromFile(document, fileName, hudInventorySchema))
-		return false;
-
+bool InventoryHudSpec::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+{
 	auto itemsIt = document.FindMember("items");
 	if (itemsIt != document.MemberEnd())
 	{
