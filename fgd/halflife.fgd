@@ -3648,11 +3648,12 @@
 [
 	noise(sound) : "Pickup sound" : "items/gunpickup4.wav"
 ]
-@PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_battery.mdl") = item_battery : "HEV battery"
+@BaseClass size(-16 -16 0, 16 16 36) base(Item) = ArmorItem
 [
-	health(integer) : "Charge Supplied"
+	health(integer) : "Armor Supplied"
 ]
-@PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/barney_vest.mdl") = item_armorvest : "Armor vest"
+@PointClass base(ArmorItem) studio("models/w_battery.mdl") = item_battery : "HEV battery" []
+@PointClass base(ArmorItem) studio("models/barney_vest.mdl") = item_armorvest : "Armor vest"
 [
 	sequence(choices) : "Placement" : 0 =
 	[
@@ -3662,7 +3663,7 @@
 		3 : "Reclining"
 	]
 ]
-@PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/barney_helmet.mdl") = item_helmet : "Helmet"
+@PointClass base(ArmorItem) studio("models/barney_helmet.mdl") = item_helmet : "Helmet"
 [
 	sequence(choices) : "Placement" : 0 =
 	[
