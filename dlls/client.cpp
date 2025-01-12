@@ -1060,9 +1060,8 @@ void ClientPrecache( void )
 	// player pain sounds
 	//PRECACHE_SOUND( "player/pl_pain2.wav" );
 	//PRECACHE_SOUND( "player/pl_pain4.wav" );
-	PRECACHE_SOUND( "player/pl_pain5.wav" );
-	PRECACHE_SOUND( "player/pl_pain6.wav" );
-	PRECACHE_SOUND( "player/pl_pain7.wav" );
+	pWorld->RegisterAndPrecacheSoundScript(Player::deathSoundScript);
+	pWorld->RegisterAndPrecacheSoundScript(Player::deathUnderwaterSoundScript);
 
 	PRECACHE_MODEL( "models/player.mdl" );
 

@@ -2159,7 +2159,7 @@ public:
 		}
 		if (!pOwner)
 		{
-			ALERT(at_console, "Removing %s because the owner has expired\n", STRING(pev->classname));
+			ALERT(at_console, "Removing '%s' because the owner has expired\n", STRING(pev->classname));
 			UTIL_Remove(this);
 			return;
 		}
@@ -2169,6 +2169,37 @@ public:
 
 LINK_ENTITY_TO_CLASS( extra_speaker, CExtraSpeaker )
 
+CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity)
+{
+	CBaseEntity* pEntity = nullptr;
+	while((pEntity = UTIL_FindEntityByClassname(pEntity, "extra_speaker")) != nullptr)
+	{
+		if (pTargetEntity->edict() == pEntity->pev->owner)
+		{
+			return pEntity;
+		}
+	}
+
+	if (!pEntity) {
+		pEntity = CBaseEntity::CreateNoSpawn("extra_speaker", pTargetEntity->pev->origin, pTargetEntity->pev->angles);
+
+		if (pEntity) {
+			ALERT(at_console, "Created '%s' for '%s'\n", STRING(pEntity->pev->classname), STRING(pTargetEntity->pev->classname));
+			pEntity->pev->movetype = MOVETYPE_FOLLOW;
+			pEntity->pev->aiment = pTargetEntity->edict();
+			pEntity->pev->owner = pTargetEntity->edict();
+			pEntity->m_EFlags |= EFLAG_PREVENT_ORIGIN_UNSETTING;
+			DispatchSpawn(pEntity->edict());
+			SET_MODEL(pEntity->edict(), "sprites/iunknown.spr");
+			pEntity->pev->rendermode = kRenderTransAlpha;
+			pEntity->pev->renderamt = 0;
+			pEntity->pev->nextthink = gpGlobals->time + 1.0f;
+		}
+	}
+
+	return pEntity;
+}
+
 class CAmbientExtraSpeaker : public CAmbientGeneric
 {
 public:
@@ -2177,7 +2208,6 @@ public:
 
 protected:
 	CBaseEntity* GetTargetEntity(CBaseEntity* pActivator);
-	CBaseEntity* GetSpeakerEntity(CBaseEntity* pTargetEntity);
 };
 
 LINK_ENTITY_TO_CLASS( ambient_extraspeaker, CAmbientExtraSpeaker )
@@ -2188,7 +2218,7 @@ CBaseEntity* CAmbientExtraSpeaker::GetEntityToPlayFrom(CBaseEntity *pActivator)
 	if (!pTargetEntity)
 		return nullptr;
 
-	CBaseEntity* pSpeakerEntity = GetSpeakerEntity(pTargetEntity);
+	CBaseEntity* pSpeakerEntity = GetExtraSpeakerForEntity(pTargetEntity);
 	if (pSpeakerEntity)
 	{
 		pSpeakerEntity->pev->movetype = MOVETYPE_FOLLOW;
@@ -2209,35 +2239,4 @@ CBaseEntity* CAmbientExtraSpeaker::GetTargetEntity(CBaseEntity *pActivator)
 		pTargetEntity = UTIL_FindEntityByTargetname(nullptr, STRING(pev->target), pActivator);
 	}
 	return pTargetEntity;
-}
-
-CBaseEntity* CAmbientExtraSpeaker::GetSpeakerEntity(CBaseEntity *pTargetEntity)
-{
-	CBaseEntity* pEntity = nullptr;
-	while((pEntity = UTIL_FindEntityByClassname(pEntity, "extra_speaker")) != nullptr)
-	{
-		if (pTargetEntity->edict() == pEntity->pev->owner)
-		{
-			return pEntity;
-		}
-	}
-
-	if (!pEntity) {
-		pEntity = CBaseEntity::CreateNoSpawn("extra_speaker", pTargetEntity->pev->origin, pTargetEntity->pev->angles);
-
-		if (pEntity) {
-			ALERT(at_console, "Created %s for %s\n", STRING(pEntity->pev->classname), STRING(pTargetEntity->pev->classname));
-			pEntity->pev->movetype = MOVETYPE_FOLLOW;
-			pEntity->pev->aiment = pTargetEntity->edict();
-			pEntity->pev->owner = pTargetEntity->edict();
-			pEntity->m_EFlags |= EFLAG_PREVENT_ORIGIN_UNSETTING;
-			DispatchSpawn(pEntity->edict());
-			SET_MODEL(pEntity->edict(), "sprites/iunknown.spr");
-			pEntity->pev->rendermode = kRenderTransAlpha;
-			pEntity->pev->renderamt = 0;
-			pEntity->pev->nextthink = gpGlobals->time + 1.0f;
-		}
-	}
-
-	return pEntity;
 }

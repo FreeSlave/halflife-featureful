@@ -358,16 +358,7 @@ LINK_ENTITY_TO_CLASS( player, CBasePlayer )
 
 void CBasePlayer::Pain( void )
 {
-	float flRndSound;//sound randomizer
-
-	flRndSound = RANDOM_FLOAT( 0.0f, 1.0f ); 
-
-	if( flRndSound <= 0.33f )
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain5.wav", 1, ATTN_NORM );
-	else if( flRndSound <= 0.66f )	
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain6.wav", 1, ATTN_NORM );
-	else
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain7.wav", 1, ATTN_NORM );
+	// not used
 }
 
 Vector VecVelocityForDamage( float flDamage )
@@ -450,31 +441,29 @@ int TrainSpeed( int iSpeed, int iMax )
 
 void CBasePlayer::DeathSound( void )
 {
-	// water death sounds
-	/*
-	if( pev->waterlevel == 3 )
+	const SoundScript* deathSoundScript = GetSoundScript(Player::deathSoundScript);
+	if (pev->waterlevel == WL_Eyes)
 	{
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/h2odeath.wav", 1, ATTN_NONE );
-		return;
+		const SoundScript* deathUnderwaterSoundScript = GetSoundScript(Player::deathUnderwaterSoundScript);
+		if (deathUnderwaterSoundScript)
+		{
+			deathSoundScript = deathUnderwaterSoundScript;
+		}
 	}
-	*/
-
-	// temporarily using pain sounds for death sounds
-	switch( RANDOM_LONG( 1, 5 ) )
+	if (deathSoundScript && !deathSoundScript->waves.empty())
 	{
-	case 1: 
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain5.wav", 1, ATTN_NORM );
-		break;
-	case 2: 
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain6.wav", 1, ATTN_NORM );
-		break;
-	case 3: 
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain7.wav", 1, ATTN_NORM );
-		break;
+		EmitSoundScript(deathSoundScript);
+		CBaseEntity* myExtraSpeaker = GetExtraSpeakerForEntity(this);
+		if (myExtraSpeaker)
+		{
+			EMIT_GROUPNAME_SUIT(myExtraSpeaker->edict(), "HEV_DEAD");
+		}
 	}
-
-	// play one of the suit death alarms
-	EMIT_GROUPNAME_SUIT( ENT( pev ), "HEV_DEAD" );
+	else
+	{
+		// play one of the suit death alarms
+		EMIT_GROUPNAME_SUIT( ENT( pev ), "HEV_DEAD" );
+	}
 }
 
 // override takehealth

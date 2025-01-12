@@ -270,4 +270,16 @@ const NamedSoundScript nvgOffSoundScript = {
 	"Player.NVGOff"
 };
 
+const NamedSoundScript deathSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Player.Death"
+};
+
+const NamedSoundScript deathUnderwaterSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Player.DeathUnderwater"
+};
+
 }

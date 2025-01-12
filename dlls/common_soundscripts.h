@@ -62,6 +62,8 @@ extern const NamedSoundScript flashlightOnSoundScript;
 extern const NamedSoundScript flashlightOffSoundScript;
 extern const NamedSoundScript nvgOnSoundScript;
 extern const NamedSoundScript nvgOffSoundScript;
+extern const NamedSoundScript deathSoundScript;
+extern const NamedSoundScript deathUnderwaterSoundScript;
 }
 
 #endif

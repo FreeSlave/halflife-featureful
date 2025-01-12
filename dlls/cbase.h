@@ -729,6 +729,7 @@ class CSound;
 #include "basemonster.h"
 
 const char *ButtonSound( int sound );				// get string of button sound number
+CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity);
 
 //
 // Weapons 
