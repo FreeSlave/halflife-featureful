@@ -28,6 +28,13 @@
 #define noiseMoving noise1
 #define noiseArrived noise2
 
+enum
+{
+	BLOCKER_RECHECK_DEFAULT = 0,
+	BLOCKER_RECHECK_YES = 1,
+	BLOCKER_RECHECK_NO = 2,
+};
+
 class CBaseDoor : public CBaseToggle
 {
 public:
@@ -102,6 +109,7 @@ public:
 
 	float m_returnSpeed;
 	bool m_ignoreCorpses;
+	short m_blockerRecheck;
 
 	float SoundAttenuation() const
 	{
@@ -147,6 +155,7 @@ TYPEDESCRIPTION	CBaseDoor::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseDoor, m_returnSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CBaseDoor, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseDoor, m_blockerRecheck, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CBaseDoor, CBaseToggle )
@@ -379,6 +388,11 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
 	{
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "blocker_recheck") )
+	{
+		m_blockerRecheck = (short)atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "soundradius" ) )
@@ -1062,7 +1076,21 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 	bool shouldProceed = false;
 	if( pev->dmg ) {
 		pOther->TakeDamage( pev, pev, pev->dmg, DMG_CRUSH );
-		if (g_modFeatures.DoorsRecheckWhenBlocked())
+
+		bool shouldRecheck;
+		switch (m_blockerRecheck) {
+		case BLOCKER_RECHECK_YES:
+			shouldRecheck = true;
+			break;
+		case BLOCKER_RECHECK_NO:
+			shouldRecheck = false;
+			break;
+		default:
+			shouldRecheck = g_modFeatures.DoorsRecheckWhenBlocked();
+			break;
+		}
+
+		if (shouldRecheck)
 		{
 			// Entity became unsolid or killed
 			if (pOther->pev->solid == SOLID_NOT || FBitSet(pev->flags, FL_KILLME))

@@ -903,6 +903,12 @@
 		0 : "Collide with corpses"
 		1 : "Don't collide with corpses"
 	]
+	blocker_recheck(choices) : "Continue moving if blocker is crushed" =
+	[
+		0 : "Default (as globally configured)"
+		1 : "Yes, continue"
+		2 : "No, go back (classic)"
+	]
 	_minlight(string) : "Minimum light level"
 ]
 
