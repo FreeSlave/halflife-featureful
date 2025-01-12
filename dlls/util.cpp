@@ -1172,7 +1172,7 @@ Vector UTIL_GetAimVector( edict_t *pent, float flSpeed )
 	return tmp;
 }
 
-int UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
+bool UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
 {
 	if( sMaster )
 	{
@@ -1202,7 +1202,7 @@ int UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
 	}
 
 	// if this isn't a master entity, just say yes.
-	return 1;
+	return true;
 }
 
 bool UTIL_IsPlayerReference(const char *name)

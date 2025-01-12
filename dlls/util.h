@@ -293,7 +293,7 @@ extern void			UTIL_TraceModel			(const Vector &vecStart, const Vector &vecEnd, i
 extern Vector		UTIL_GetAimVector		(edict_t* pent, float flSpeed);
 extern int			UTIL_PointContents		(const Vector &vec);
 
-extern int			UTIL_IsMasterTriggered	(string_t sMaster, CBaseEntity *pActivator);
+extern bool			UTIL_IsMasterTriggered	(string_t sMaster, CBaseEntity *pActivator);
 extern bool			UTIL_IsPlayerReference(const char* name);
 extern bool			UTIL_TargetnameIsActivator( const char* targetName );
 extern bool			UTIL_TargetnameIsActivator( string_t targetName );
