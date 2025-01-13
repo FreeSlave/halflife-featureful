@@ -903,6 +903,11 @@
 		0 : "Collide with corpses"
 		1 : "Don't collide with corpses"
 	]
+	locked_play_on_use(choices) : "If locked, play locked sound on use" : : "By default if door is locked by a master and is set to 'Use only' or triggered by something it won't play the locked sound. Set this option to change the behavior" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
 	blocker_recheck(choices) : "Continue moving if blocker is crushed" =
 	[
 		0 : "Default (as globally configured)"
@@ -2750,9 +2755,9 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Door, ZHLT, EntityUsePolicy) = func_door : "Basic door" []
+@SolidClass base(Door, EntityUsePolicy, ZHLT) = func_door : "Basic door" []
 
-@SolidClass base(Door, ZHLT, EntityUsePolicy) = func_door_rotating : "Rotating door"
+@SolidClass base(Door, EntityUsePolicy, ZHLT) = func_door_rotating : "Rotating door"
 [
 	spawnflags(flags) =
 	[

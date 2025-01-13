@@ -69,7 +69,7 @@ public:
 	void EXPORT DoorTouch( CBaseEntity *pOther );
 
 	// local functions
-	int DoorActivate();
+	int DoorActivate(bool activatedByUse = false);
 	void EXPORT DoorGoUp( void );
 	void EXPORT DoorGoDown( void );
 	void EXPORT DoorHitTop( void );
@@ -109,6 +109,7 @@ public:
 
 	float m_returnSpeed;
 	bool m_ignoreCorpses;
+	bool m_playLockedSoundOnUse;
 	short m_blockerRecheck;
 
 	float SoundAttenuation() const
@@ -155,6 +156,7 @@ TYPEDESCRIPTION	CBaseDoor::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseDoor, m_returnSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CBaseDoor, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseDoor, m_playLockedSoundOnUse, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseDoor, m_blockerRecheck, FIELD_SHORT ),
 };
 
@@ -388,6 +390,11 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
 	{
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "locked_play_on_use") )
+	{
+		m_playLockedSoundOnUse = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
 	else if ( FStrEq(pkvd->szKeyName, "blocker_recheck") )
@@ -785,7 +792,7 @@ void CBaseDoor::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	}
 
 	if( shouldActivate )
-		DoorActivate();
+		DoorActivate(true);
 }
 
 float CBaseDoor::InputByMonster(CBaseMonster *pMonster)
@@ -850,10 +857,16 @@ NODE_LINKENT CBaseDoor::HandleLinkEnt(int afCapMask, bool nodeQueryStatic)
 //
 // Causes the door to "do its thing", i.e. start moving, and cascade activation.
 //
-int CBaseDoor::DoorActivate()
+int CBaseDoor::DoorActivate(bool activatedByUse)
 {
 	if( !UTIL_IsMasterTriggered( m_sMaster, m_hActivator ) )
+	{
+		if (activatedByUse && m_playLockedSoundOnUse)
+		{
+			PlayLockSounds( pev, &m_ls, true, false );
+		}
 		return 0;
+	}
 
 	if( FBitSet( pev->spawnflags, SF_DOOR_NO_AUTO_RETURN ) && (m_toggle_state == TS_AT_TOP || (m_iObeyTriggerMode == 2 && m_toggle_state == TS_GOING_UP)) )
 	{
