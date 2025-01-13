@@ -1277,7 +1277,7 @@ we could also use the pas/ pvs that we set in SetupVisibility, if we wanted to. 
 int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *host, int hostflags, int player, unsigned char *pSet )
 {
 	int i;
-	CBaseEntity *Entity;
+	CBaseEntity* pEntity = (CBaseEntity*)GET_PRIVATE(ent);
 
 	// don't send if flagged for NODRAW and it's not the host getting the message
 	if( ( ent->v.effects & EF_NODRAW ) && ( ent != host ) )
@@ -1300,7 +1300,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		if( !ENGINE_CHECK_VISIBILITY( (const struct edict_s *)ent, pSet ) )
 		{
 			// env_sky is visible always
-			if( !FClassnameIs( ent, "env_sky" ) )
+			if( !(pEntity->m_EFlags & EFLAG_ALWAYS_SEND) )
 			{
 				return 0;
 			}
@@ -1394,7 +1394,6 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		state->eflags |= EFLAG_SLERP;
 	else state->eflags &= ~EFLAG_SLERP;
 
-	CBaseEntity* pEntity = (CBaseEntity*)GET_PRIVATE(ent);
 	if (pEntity)
 		state->eflags |= pEntity->m_EFlags;
 #endif
@@ -1473,8 +1472,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		state->health		= (int)ent->v.health;
 	}
 
-	if( ( Entity = CBaseEntity::Instance( ent ))
-		&& Entity->HasFlesh() )
+	if( pEntity && pEntity->HasFlesh() )
 	{
 		SetBits( state->eflags, EFLAG_FLESH_SOUND );
 	}

@@ -1751,7 +1751,7 @@
 
 @PointClass base(Targetname) = env_dlight : "Dynamic light effect"
 [
-	message(string) : "Position (blank = here) [LP]"
+	message(string) : "Position (blank = here) [LP], [LE]" : : "If 'Position is Locus Entity' spawnflag is ticked this parameter refers to the entity rather than position. The resulting light position is the entity origin. When 'Track position updates' is ticked using the entity as a reference point may produce better results (smooth movement), at the expense of not letting to set the arbitrary position. Otherwise, the light position is updated every 0.1 seconds."
 	rendercolor(color255) : "Light Color (R G B)" : "255 255 255"
 	renderamt(integer) : "Radius" : 80
 	health(string) : "Duration (0 = until triggered)" : "0.0"
@@ -1759,6 +1759,8 @@
 	[
 		1 : "Only once" : 0
 		2 : "Start on"  : 0
+		4 : "Track position updates"  : 0
+		8 : "Position is Locus Entity" : 0
 	]
 ]
 

@@ -133,26 +133,30 @@ int CHud::MsgFunc_KeyedDLight( const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 
 	int iKey = READ_BYTE();
-	dlight_t *dl = gEngfuncs.pEfxAPI->CL_AllocDlight( iKey );
+	if (iKey == 0)
+		return 1;
 
 	int bActive = READ_BYTE();
 	if (!bActive)
 	{
 		// die instantly
-		dl->die = gEngfuncs.GetClientTime();
+		keyedDlightManager.RemoveDlight(iKey);
+	}
+	else if (bActive == 2)
+	{
+		keyedDlightManager.SetPosition(iKey, READ_VECTOR());
 	}
 	else
 	{
 		// never die
+		dlight_t *dl = gEngfuncs.pEfxAPI->CL_AllocDlight( iKey );
 		dl->die = gEngfuncs.GetClientTime() + (float)1E6;
 
-		dl->origin[0] = READ_COORD();
-		dl->origin[1] = READ_COORD();
-		dl->origin[2] = READ_COORD();
+		dl->origin = READ_VECTOR();
 		dl->radius = READ_SHORT();
-		dl->color.r = READ_BYTE();
-		dl->color.g = READ_BYTE();
-		dl->color.b = READ_BYTE();
+		dl->color = READ_COLOR();
+		int entindex = READ_SHORT();
+		keyedDlightManager.AddDlight(dl, entindex);
 	}
 	return 1;
 }

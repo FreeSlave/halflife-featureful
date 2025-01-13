@@ -47,6 +47,7 @@
 #include "hud_inventory.h"
 #include "hud_objecthint.h"
 
+#include <array>
 #include <vector>
 #include <string>
 
@@ -856,6 +857,32 @@ struct ClientFeatures
 	char wall_puffs[MAX_WALLPUFF_COUNT][64];
 };
 
+#define MAX_DLIGHTS 32
+
+struct DlightExtraData
+{
+	int key;
+	int entindex;
+};
+
+class KeyedDLightManager
+{
+public:
+	void Reset();
+	void AddDlight(dlight_t* dl, int entindex = 0);
+	void RemoveDlight(int key);
+	void Update();
+	void SetPosition(int key, const Vector& pos);
+private:
+	struct DlightAndData
+	{
+		dlight_t* dl;
+		int entindex;
+	};
+	void Reset(DlightAndData& data);
+	std::array<DlightAndData, 32> _dlights;
+};
+
 //
 //-----------------------------------------------------
 //
@@ -1098,6 +1125,7 @@ public:
 
 	InventoryHudSpec m_inventorySpec;
 	ObjectHintManager objectHintManager;
+	KeyedDLightManager keyedDlightManager;
 
 	HudSpriteRenderer hudRenderer;
 	bool hasHudScaleInEngine;

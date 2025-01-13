@@ -667,6 +667,7 @@ void DLLEXPORT HUD_CreateEntities( void )
 	CL_UpdateLaserSpot();
 
 	gHUD.objectHintManager.Update();
+	gHUD.keyedDlightManager.Update();
 
 #if USE_VGUI
 	GetClientVoiceMgr()->CreateEntities();

@@ -1138,6 +1138,8 @@ void CHud::VidInit( void )
 	}
 	vidInitAtLeastOnce = true;
 
+	keyedDlightManager.Reset();
+
 	int j;
 	m_scrinfo.iSize = sizeof(m_scrinfo);
 	GetScreenInfo( &m_scrinfo );
@@ -1688,6 +1690,81 @@ void CHud::HUDColorCmd()
 HudSpriteRenderer& CHud::Renderer()
 {
 	return gHUD.hudRenderer.DefaultScale();
+}
+
+void KeyedDLightManager::Reset()
+{
+	for (auto& data : _dlights)
+	{
+		Reset(data);
+	}
+}
+
+void KeyedDLightManager::Reset(DlightAndData& data)
+{
+	data.dl = nullptr;
+	data.entindex = 0;
+}
+
+void KeyedDLightManager::AddDlight(dlight_t *dl, int entindex)
+{
+	for (auto& data : _dlights)
+	{
+		if (!data.dl)
+		{
+			data.dl = dl;
+			data.entindex = entindex;
+			return;
+		}
+	}
+}
+
+void KeyedDLightManager::RemoveDlight(int key)
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl && data.dl->key == key)
+		{
+			data.dl->die = gEngfuncs.GetClientTime();
+			Reset(data);
+			return;
+		}
+	}
+}
+
+void KeyedDLightManager::Update()
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl)
+		{
+			if (data.dl->key == 0)
+			{
+				Reset(data);
+				continue;
+			}
+			if (data.entindex)
+			{
+				cl_entity_t *pEntity = gEngfuncs.GetEntityByIndex(data.entindex);
+				if (pEntity)
+				{
+					data.dl->origin = pEntity->origin;
+				}
+			}
+		}
+	}
+}
+
+void KeyedDLightManager::SetPosition(int key, const Vector& pos)
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl && data.dl->key == key)
+		{
+			data.dl->origin = pos;
+			return;
+		}
+	}
 }
 
 DECLARE_MESSAGE( m_MoveMode, MoveMode )

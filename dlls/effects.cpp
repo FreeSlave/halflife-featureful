@@ -4067,6 +4067,8 @@ void CEnvShockwave::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 //==================================================================
 #define SF_DLIGHT_ONLYONCE 1
 #define SF_DLIGHT_STARTON  2
+#define SF_DLIGHT_TRACK_POSITION_UPDATE 4
+#define SF_DLIGHT_POS_IS_LOCUS_ENTITY 8
 #define SF_DLIGHT_POS_VALID ( 1 << 24 )
 class CEnvDLight : public CPointEntity
 {
@@ -4074,10 +4076,12 @@ public:
 	void	Activate( void );
 	void SendMessages(CBaseEntity* pClient);
 	virtual void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void	Think( void );
+	void EXPORT TurnOffThink();
+	void EXPORT TrackPositionThink();
 	void CalcMyPosition(CBaseEntity *pActivator);
 	void TurnOn(CBaseEntity* pClient = 0);
 	void TurnOff();
+	void SetupThink();
 	virtual int		Save( CSave &save );
 	virtual int		Restore( CRestore &restore );
 	static	TYPEDESCRIPTION m_SaveData[];
@@ -4088,16 +4092,23 @@ public:
 	Vector m_vecPos;
 	int m_iKey;
 	bool m_activated;
+	EHANDLE m_hActivator;
+	EHANDLE m_posEntity;
 	static int	ms_iNextFreeKey;
+
+private:
+	static bool EntityPositionIsKnownOnClient(CBaseEntity* pEntity);
 };
 
-LINK_ENTITY_TO_CLASS( env_dlight, CEnvDLight );
+LINK_ENTITY_TO_CLASS( env_dlight, CEnvDLight )
 
 TYPEDESCRIPTION	CEnvDLight::m_SaveData[] =
 {
 	DEFINE_FIELD( CEnvDLight, m_vecPos, FIELD_VECTOR ),
 	DEFINE_FIELD( CEnvDLight, m_iKey, FIELD_INTEGER ),
 	DEFINE_FIELD( CEnvDLight, m_activated, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CEnvDLight, m_hActivator, FIELD_EHANDLE ),
+	DEFINE_FIELD( CEnvDLight, m_posEntity, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CEnvDLight, CPointEntity );
@@ -4117,6 +4128,7 @@ void CEnvDLight::Activate( void )
 		if (FStringNull(pev->targetname) || IsActive())
 		{
 			CalcMyPosition(this);
+			SetupThink();
 		}
 	}
 }
@@ -4142,21 +4154,31 @@ void CEnvDLight::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 		return;
 	}
 
+	m_hActivator = pActivator;
 	CalcMyPosition(pActivator);
 	TurnOn();
-
-	if (pev->health > 0)
-	{
-		pev->nextthink = gpGlobals->time + pev->health;
-	}
+	SetupThink();
 }
 
 void CEnvDLight::CalcMyPosition(CBaseEntity* pActivator)
 {
-	if (pev->message)
+	if (!FStringNull(pev->message))
 	{
-		if (!TryCalcLocus_Position( this, pActivator, STRING(pev->message), m_vecPos ))
-			return;
+		if(FBitSet(pev->spawnflags, SF_DLIGHT_POS_IS_LOCUS_ENTITY))
+		{
+			m_posEntity = UTIL_FindEntityByTargetname(NULL, STRING(pev->message), pActivator);
+			if (m_posEntity != 0)
+			{
+				m_vecPos = m_posEntity->pev->origin;
+			}
+			else
+				return;
+		}
+		else
+		{
+			if (!TryCalcLocus_Position( this, pActivator, STRING(pev->message), m_vecPos ))
+				return;
+		}
 	}
 	else
 	{
@@ -4174,6 +4196,11 @@ void CEnvDLight::TurnOn(CBaseEntity *pClient)
 
 	const int msgType = pClient ? MSG_ONE : MSG_ALL;
 	edict_t* pClientEdict = pClient ? pClient->edict() : NULL;
+	int entindex = 0;
+	if (m_posEntity != 0 && EntityPositionIsKnownOnClient(m_posEntity))
+	{
+		entindex = m_posEntity->entindex();
+	}
 
 	SetBits(pev->spawnflags, SF_DLIGHT_STARTON);
 	MESSAGE_BEGIN( msgType, gmsgKeyedDLight, NULL, pClientEdict );
@@ -4182,6 +4209,7 @@ void CEnvDLight::TurnOn(CBaseEntity *pClient)
 		WRITE_VECTOR( m_vecPos );
 		WRITE_SHORT( pev->renderamt );		// radius
 		WRITE_COLOR( pev->rendercolor );
+		WRITE_SHORT( entindex );
 	MESSAGE_END();
 }
 
@@ -4191,13 +4219,15 @@ void CEnvDLight::TurnOff()
 		return;
 
 	ClearBits(pev->spawnflags, SF_DLIGHT_STARTON);
-	MESSAGE_BEGIN( MSG_ALL, gmsgKeyedDLight, NULL );
+	MESSAGE_BEGIN( MSG_ALL, gmsgKeyedDLight );
 		WRITE_BYTE( m_iKey );
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
+
+	m_posEntity = 0;
 }
 
-void CEnvDLight::Think( void )
+void CEnvDLight::TurnOffThink()
 {
 	TurnOff();
 
@@ -4206,6 +4236,80 @@ void CEnvDLight::Think( void )
 		SetThink( &CEnvDLight::SUB_Remove );
 		pev->nextthink = gpGlobals->time;
 	}
+}
+
+void CEnvDLight::TrackPositionThink()
+{
+	if (!FStringNull(pev->message))
+	{
+		bool shouldSendPosition = true;
+		if (FBitSet(pev->spawnflags, SF_DLIGHT_POS_IS_LOCUS_ENTITY))
+		{
+			CBaseEntity* pPosEntity = m_posEntity;
+			if (pPosEntity != 0)
+			{
+				m_vecPos = pPosEntity->pev->origin;
+				if (EntityPositionIsKnownOnClient(pPosEntity))
+				{
+					// For visible entities the position is updated automatically on the client
+					pPosEntity->m_EFlags |= EFLAG_ALWAYS_SEND;
+					shouldSendPosition = false;
+				}
+			}
+		}
+		else
+		{
+			CalcMyPosition(m_hActivator);
+		}
+		if (shouldSendPosition)
+		{
+			MESSAGE_BEGIN( MSG_ALL, gmsgKeyedDLight );
+				WRITE_BYTE( m_iKey );
+				WRITE_BYTE( 2 );
+				WRITE_VECTOR( m_vecPos );
+			MESSAGE_END();
+		}
+	}
+	if (pev->health > 0.0f && pev->dmgtime + pev->health <= gpGlobals->time)
+	{
+		TurnOffThink();
+	}
+	else
+	{
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
+}
+
+void CEnvDLight::SetupThink()
+{
+	const bool shouldTrackPosition = !FStringNull(pev->message) && FBitSet(pev->spawnflags, SF_DLIGHT_TRACK_POSITION_UPDATE);
+	if (pev->health > 0)
+	{
+		if (shouldTrackPosition)
+		{
+			SetThink(&CEnvDLight::TrackPositionThink);
+			pev->dmgtime = gpGlobals->time;
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+		else
+		{
+			SetThink(&CEnvDLight::TurnOffThink);
+			pev->nextthink = gpGlobals->time + pev->health;
+		}
+	}
+	else
+	{
+		if (shouldTrackPosition)
+		{
+			SetThink(&CEnvDLight::TrackPositionThink);
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+	}
+}
+
+bool CEnvDLight::EntityPositionIsKnownOnClient(CBaseEntity *pEntity)
+{
+	return pEntity->pev->modelindex && !FBitSet(pEntity->pev->effects, EF_NODRAW);
 }
 
 #define SF_ENVSTREAK_REMOVE_ON_FIRE 1
