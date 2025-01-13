@@ -450,19 +450,22 @@ void CBasePlayer::DeathSound( void )
 			deathSoundScript = deathUnderwaterSoundScript;
 		}
 	}
+	const bool canPlayHevDead = !g_modFeatures.hev_dead_requires_suit || HasSuit();
 	if (deathSoundScript && !deathSoundScript->waves.empty())
 	{
 		EmitSoundScript(deathSoundScript);
 		CBaseEntity* myExtraSpeaker = GetExtraSpeakerForEntity(this);
 		if (myExtraSpeaker)
 		{
-			EMIT_GROUPNAME_SUIT(myExtraSpeaker->edict(), "HEV_DEAD");
+			if (canPlayHevDead)
+				EMIT_GROUPNAME_SUIT(myExtraSpeaker->edict(), "HEV_DEAD");
 		}
 	}
 	else
 	{
 		// play one of the suit death alarms
-		EMIT_GROUPNAME_SUIT( ENT( pev ), "HEV_DEAD" );
+		if (canPlayHevDead)
+			EMIT_GROUPNAME_SUIT( ENT( pev ), "HEV_DEAD" );
 	}
 }
 

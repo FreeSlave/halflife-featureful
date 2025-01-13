@@ -66,6 +66,7 @@ ModFeatures::ModFeatures()
 	suit_light = SUIT_LIGHT_FLASHLIGHT;
 	suit_light_allow_both = false;
 	suit_sentences = true;
+	hev_dead_requires_suit = false;
 	nosuit_allow_healthcharger = false;
 	items_instant_drop = true;
 	tripmines_solid = FEATURE_OPFOR_SPECIFIC ? false : true;
@@ -142,6 +143,7 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 	KeyValueDefinition<bool> booleans[] = {
 		KEY_VALUE_DEF(suit_light_allow_both),
 		KEY_VALUE_DEF(suit_sentences),
+		KEY_VALUE_DEF(hev_dead_requires_suit),
 		KEY_VALUE_DEF(nosuit_allow_healthcharger),
 		KEY_VALUE_DEF(items_instant_drop),
 		KEY_VALUE_DEF(tripmines_solid),

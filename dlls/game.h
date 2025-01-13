@@ -71,6 +71,7 @@ struct ModFeatures
 	int suit_light;
 	bool suit_light_allow_both;
 	bool suit_sentences;
+	bool hev_dead_requires_suit;
 	bool nosuit_allow_healthcharger;
 	bool items_instant_drop;
 	bool tripmines_solid;
