@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <algorithm>
 
 #include "environment.h"
@@ -493,7 +494,7 @@ void CPartSnowFlake::Think( float flTime )
 	{
 		const float flDelta = flTime - g_Environment.GetOldTime();
 
-		const float flSpin = sin( flTime * 5.0 + reinterpret_cast<int>( this ) );
+		const float flSpin = sin( flTime * 5.0 + reinterpret_cast<std::intptr_t>( this ) );
 
 		m_vOrigin = m_vOrigin + m_vVelocity * flDelta;
 
