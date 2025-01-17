@@ -22,6 +22,8 @@
 #pragma once
 #if !defined(HUD_H)
 #define HUD_H
+
+#include <cstdint>
 #include "mod_features.h"
 
 #define FOG_LIMIT 30000

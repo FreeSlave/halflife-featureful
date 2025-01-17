@@ -13,6 +13,7 @@
 *
 ****/
 
+#include <cstdint>
 #include "cl_util.h"
 
 #include "event_api.h"
