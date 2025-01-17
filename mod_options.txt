@@ -1,7 +1,7 @@
 BARNACLE_FIX_VISIBILITY=OFF # Barnacle tongue length fix
 CLIENT_WEAPONS=ON # Client local weapons prediction
 
-GAMEDIR=valve # Gamedir path
+GAMEDIR=featureful # Gamedir path
 SERVER_INSTALL_DIR=dlls # Where put server dll
 CLIENT_INSTALL_DIR=cl_dlls # Where put client dll 
 SERVER_LIBRARY_NAME=hl # Library name for PC platforms
