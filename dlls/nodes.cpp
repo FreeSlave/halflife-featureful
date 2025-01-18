@@ -540,7 +540,7 @@ int CGraph::FindShortestPath(int *piPath, int pathSize, int iStart, int iDest, i
 {
 	int iVisitNode;
 	int iCurrentNode;
-	int iNumPathNodes;
+	int iNumPathNodes = 0;
 	int iHullMask = 0;
 
 	if( !m_fGraphPresent || !m_fGraphPointersSet )
@@ -564,42 +564,8 @@ int CGraph::FindShortestPath(int *piPath, int pathSize, int iStart, int iDest, i
 		return 2;
 	}
 
-	// Is routing information present.
-	//
-	if( !dynamic && m_fRoutingComplete )
-	{
-		//ALERT(at_aiconsole, "In m_fRoutingComplete\n");
-		int iCap = CapIndex( afCapMask );
-
-		iNumPathNodes = 0;
-		piPath[iNumPathNodes++] = iStart;
-		iCurrentNode = iStart;
-		int iNext;
-
-		//ALERT( at_aiconsole, "GOAL: %d to %d\n", iStart, iDest );
-
-		// Until we arrive at the destination
-		//
-		while( iCurrentNode != iDest )
-		{
-			iNext = NextNodeInRoute( iCurrentNode, iDest, iHull, iCap );
-			if( iCurrentNode == iNext )
-			{
-				//ALERT( at_aiconsole, "SVD: Can't get there from here..\n" );
-				return 0;
-				break;
-			}
-			if( iNumPathNodes >= MAX_PATH_SIZE )
-			{
-				//ALERT( at_aiconsole, "SVD: Don't return the entire path.\n" );
-				break;
-			}
-			piPath[iNumPathNodes++] = iNext;
-			iCurrentNode = iNext;
-		}
-		//ALERT( at_aiconsole, "SVD: Path with %d nodes.\n", iNumPathNodes );
-	}
-	else
+	bool useClassicFindShortestPath = !dynamic && m_fRoutingComplete;
+	if (!useClassicFindShortestPath)
 	{
 		int i;
 		CQueuePriority queue;
@@ -681,27 +647,64 @@ int CGraph::FindShortestPath(int *piPath, int pathSize, int iStart, int iDest, i
 		if( m_pNodes[iDest].m_flClosestSoFar < -0.5f )
 		{
 			// Destination is unreachable, no path found.
-			return 0;
+			useClassicFindShortestPath = true;
 		}
-
-		// the queue is not empty
-		// now we must walk backwards through the m_iPreviousNode field, and count how many connections there are in the path
-		iCurrentNode = iDest;
-		iNumPathNodes = 1;// count the dest
-
-		while( iCurrentNode != iStart )
+		else
 		{
-			iNumPathNodes++;
-			iCurrentNode = m_pNodes[iCurrentNode].m_iPreviousNode;
-		}
+			// the queue is not empty
+			// now we must walk backwards through the m_iPreviousNode field, and count how many connections there are in the path
+			iCurrentNode = iDest;
+			iNumPathNodes = 1;// count the dest
 
-		iCurrentNode = iDest;
-		for( i = iNumPathNodes - 1; i >= 0; i-- )
-		{
-			if ( i < pathSize)
-				piPath[i] = iCurrentNode;
-			iCurrentNode = m_pNodes[iCurrentNode].m_iPreviousNode;
+			while( iCurrentNode != iStart )
+			{
+				iNumPathNodes++;
+				iCurrentNode = m_pNodes[iCurrentNode].m_iPreviousNode;
+			}
+
+			iCurrentNode = iDest;
+			for( i = iNumPathNodes - 1; i >= 0; i-- )
+			{
+				if ( i < pathSize)
+					piPath[i] = iCurrentNode;
+				iCurrentNode = m_pNodes[iCurrentNode].m_iPreviousNode;
+			}
 		}
+	}
+	// Is routing information present.
+	//
+	if( useClassicFindShortestPath && m_fRoutingComplete )
+	{
+		//ALERT(at_aiconsole, "In m_fRoutingComplete\n");
+		int iCap = CapIndex( afCapMask );
+
+		iNumPathNodes = 0;
+		piPath[iNumPathNodes++] = iStart;
+		iCurrentNode = iStart;
+		int iNext;
+
+		//ALERT( at_aiconsole, "GOAL: %d to %d\n", iStart, iDest );
+
+		// Until we arrive at the destination
+		//
+		while( iCurrentNode != iDest )
+		{
+			iNext = NextNodeInRoute( iCurrentNode, iDest, iHull, iCap );
+			if( iCurrentNode == iNext )
+			{
+				//ALERT( at_aiconsole, "SVD: Can't get there from here..\n" );
+				return 0;
+				break;
+			}
+			if( iNumPathNodes >= MAX_PATH_SIZE )
+			{
+				//ALERT( at_aiconsole, "SVD: Don't return the entire path.\n" );
+				break;
+			}
+			piPath[iNumPathNodes++] = iNext;
+			iCurrentNode = iNext;
+		}
+		//ALERT( at_aiconsole, "SVD: Path with %d nodes.\n", iNumPathNodes );
 	}
 #if 0
 	if( m_fRoutingComplete )
