@@ -16,6 +16,7 @@
 #if !defined(CBASE_H)
 #define CBASE_H
 
+#include <cstdint>
 #include "extdll.h"
 #include "util.h"
 #include "soundscripts.h"
