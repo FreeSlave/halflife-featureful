@@ -173,7 +173,6 @@ typedef struct
 	const char	*pszName = nullptr;
 	int		iId = 0;
 	int		iFlags = 0;
-	int		iWeight = 0;// this value used to determine this weapon's importance in autoselection.
 	const char* pszAmmoEntity = nullptr;
 	int iDropAmmo = 0;
 } ItemInfo;
@@ -258,7 +257,7 @@ public:
 
 	const char	*pszName( void )	{ return ItemInfoArray[ WeaponId() ].pszName; }
 	int			iMaxClip( void );
-	int			iWeight( void )		{ return ItemInfoArray[ WeaponId() ].iWeight; }
+	int			iWeight( void )		{ return DefaultWeight(); }
 	int			iFlags( void )		{ return ItemInfoArray[ WeaponId() ].iFlags; }
 	const char* pszAmmoEntity( void ) { return ItemInfoArray[ WeaponId() ].pszAmmoEntity; }
 	int			iDropAmmo( void )	{ return ItemInfoArray[ WeaponId() ].iDropAmmo; }
@@ -324,6 +323,7 @@ public:
 		return false;
 #endif
 	}
+	virtual int DefaultWeight() { return 0; }
 
 	int	PrimaryAmmoIndex();
 	int	SecondaryAmmoIndex();
@@ -436,8 +436,8 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 
-	const char* MyWModel() { return "models/w_9mmhandgun.mdl"; }
-
+	const char* MyWModel() override { return "models/w_9mmhandgun.mdl"; }
+	int DefaultWeight() override { return GLOCK_WEIGHT; }
 private:
 	int m_iShell;
 
@@ -464,8 +464,8 @@ public:
 	int m_iSwing;
 	TraceResult m_trHit;
 
-	const char* MyWModel() { return "models/w_crowbar.mdl"; }
-
+	const char* MyWModel() override { return "models/w_crowbar.mdl"; }
+	int DefaultWeight() override { return CROWBAR_WEIGHT; }
 private:
 	unsigned short m_usCrowbar;
 };
@@ -488,7 +488,8 @@ public:
 
 	int ViewModelBody() override;
 
-	const char* MyWModel() { return "models/w_357.mdl"; }
+	const char* MyWModel() override { return "models/w_357.mdl"; }
+	int DefaultWeight() override { return PYTHON_WEIGHT; }
 private:
 	unsigned short m_usFirePython;
 };
@@ -509,7 +510,8 @@ public:
 	void WeaponIdle( void );
 	int m_iShell;
 
-	const char* MyWModel() { return "models/w_9mmAR.mdl"; }
+	const char* MyWModel() override { return "models/w_9mmAR.mdl"; }
+	int DefaultWeight() override { return MP5_WEIGHT; }
 
 private:
 	unsigned short m_usMP5;
@@ -534,7 +536,8 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 
-	const char* MyWModel() { return "models/w_crossbow.mdl"; }
+	const char* MyWModel() override { return "models/w_crossbow.mdl"; }
+	int DefaultWeight() override { return CROSSBOW_WEIGHT; }
 
 private:
 	unsigned short m_usCrossbow;
@@ -618,7 +621,8 @@ public:
 	int m_fSpotActive;
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
-	const char* MyWModel() { return "models/w_rpg.mdl"; }
+	const char* MyWModel() override { return "models/w_rpg.mdl"; }
+	int DefaultWeight() override { return RPG_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -660,7 +664,8 @@ public:
 	// we need to know so we can pick the right set of effects.
 	bool m_fPrimaryFire;
 
-	const char* MyWModel() { return "models/w_gauss.mdl"; }
+	const char* MyWModel() override { return "models/w_gauss.mdl"; }
+	int DefaultWeight() override { return GAUSS_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -716,7 +721,8 @@ public:
 	CSprite				*m_pSprite;
 #endif
 
-	const char* MyWModel() { return "models/w_egon.mdl"; }
+	const char* MyWModel() override { return "models/w_egon.mdl"; }
+	int DefaultWeight() override { return EGON_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -760,7 +766,8 @@ public:
 
 	int m_iFirePhase;
 
-	const char* MyWModel() { return "models/w_hgun.mdl"; }
+	const char* MyWModel() override { return "models/w_hgun.mdl"; }
+	int DefaultWeight() override { return HORNETGUN_WEIGHT; }
 private:
 	unsigned short m_usHornetFire;
 };
@@ -780,7 +787,8 @@ public:
 	void WeaponIdle( void );
 	bool PreferNewPhysics();
 
-	const char* MyWModel() { return "models/w_grenade.mdl"; }
+	const char* MyWModel() override { return "models/w_grenade.mdl"; }
+	int DefaultWeight() override { return HANDGRENADE_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -816,7 +824,8 @@ public:
 	void DrawSatchel( void );
 	void DrawRadio();
 
-	const char* MyWModel() { return "models/w_satchel.mdl"; }
+	const char* MyWModel() override { return "models/w_satchel.mdl"; }
+	int DefaultWeight() override { return SATCHEL_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -841,7 +850,8 @@ public:
 	void Holster();
 	void WeaponIdle( void );
 
-	const char* MyWModel() { return "models/v_tripmine.mdl"; }
+	const char* MyWModel() override { return "models/v_tripmine.mdl"; }
+	int DefaultWeight() override { return TRIPMINE_WEIGHT; }
 private:
 	unsigned short m_usTripFire;
 };
@@ -870,7 +880,8 @@ public:
 	virtual const char* AmmoName() const;
 	virtual const char* EventsFile() const;
 
-	const char* MyWModel() { return NestModel(); }
+	const char* MyWModel() override { return NestModel(); }
+	int DefaultWeight() override { return SNARK_WEIGHT; }
 private:
 	unsigned short m_usSnarkFire;
 };
@@ -902,7 +913,8 @@ public:
 	CLaserSpot *m_pEagleLaser;
 	int m_fEagleLaserActive;
 
-	const char* MyWModel() { return "models/w_desert_eagle.mdl"; }
+	const char* MyWModel() override { return "models/w_desert_eagle.mdl"; }
+	int DefaultWeight() override { return EAGLE_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -945,7 +957,8 @@ public:
 	int m_iSwingMode;
 	float m_flBigSwingStart;
 
-	const char* MyWModel() { return "models/w_pipe_wrench.mdl"; }
+	const char* MyWModel() override { return "models/w_pipe_wrench.mdl"; }
+	int DefaultWeight() override { return PIPEWRENCH_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -980,7 +993,8 @@ public:
 	bool ShouldWeaponIdle() override { return true; }
 	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 
-	const char* MyWModel() { return "models/w_medkit.mdl"; }
+	const char* MyWModel() override { return "models/w_medkit.mdl"; }
+	int DefaultWeight() override { return MEDKIT_WEIGHT; }
 
 	float	m_flSoundDelay;
 	float	m_flRechargeTime;
@@ -1028,8 +1042,8 @@ public:
 	void UpdateEffect( void );
 	void DestroyEffect( void );
 
-	const char* MyWModel() { return "models/w_bgrap.mdl"; }
-
+	const char* MyWModel() override { return "models/w_bgrap.mdl"; }
+	int DefaultWeight() override { return GRAPPLE_WEIGHT; }
 private:
 	CBarnacleGrappleTip* m_pTip;
 #if !CLIENT_DLL
@@ -1073,7 +1087,8 @@ public:
 	int m_iLink;
 	bool m_bAlternatingEject;
 
-	const char* MyWModel() { return "models/w_saw.mdl"; }
+	const char* MyWModel() override { return "models/w_saw.mdl"; }
+	int DefaultWeight() override { return M249_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -1115,10 +1130,9 @@ public:
 	void Holster();
 	void Reload(void);
 	void WeaponIdle(void);
-	//void ItemPostFrame(void);
 
-	const char* MyWModel() { return "models/w_m40a1.mdl"; }
-
+	const char* MyWModel() override { return "models/w_m40a1.mdl"; }
+	int DefaultWeight() override { return SNIPERRIFLE_WEIGHT; }
 private:
 	unsigned short m_usSniper;
 };
@@ -1147,7 +1161,8 @@ public:
 
 	bool PlayEmptySound( void ) override;
 
-	const char* MyWModel() { return "models/w_displacer.mdl"; }
+	const char* MyWModel() override { return "models/w_displacer.mdl"; }
+	int DefaultWeight() override { return DISPLACER_WEIGHT; }
 
 	bool CanFireDisplacer( int count ) const;
 
@@ -1188,7 +1203,8 @@ public:
 	void CreateChargeEffect(void);
 	void EXPORT ClearBeams(void);
 
-	const char* MyWModel() { return "models/w_shock_rifle.mdl"; }
+	const char* MyWModel() override { return "models/w_shock_rifle.mdl"; }
+	int DefaultWeight() override { return SHOCKRIFLE_WEIGHT; }
 private:
 	unsigned short m_usShockFire;
 #if !CLIENT_DLL
@@ -1229,7 +1245,8 @@ public:
 	int m_iSwingMode;
 	float m_flStabStart;
 
-	const char* MyWModel() { return "models/w_knife.mdl"; }
+	const char* MyWModel() override { return "models/w_knife.mdl"; }
+	int DefaultWeight() override { return KNIFE_WEIGHT; }
 
 	void GetWeaponData(weapon_data_t& data);
 	void SetWeaponData(const weapon_data_t& data);
@@ -1271,7 +1288,8 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 
-	const char* MyWModel() { return "models/w_spore_launcher.mdl"; }
+	const char* MyWModel() override { return "models/w_spore_launcher.mdl"; }
+	int DefaultWeight() override { return SPORELAUNCHER_WEIGHT; }
 
 	int m_iSquidSpitSprite;
 private:
@@ -1296,8 +1314,8 @@ public:
 	void WeaponIdle( void );
 	int m_iShell;
 
-	const char* MyWModel() { return "models/w_uzi.mdl"; }
-
+	const char* MyWModel() override { return "models/w_uzi.mdl"; }
+	int DefaultWeight() override { return UZI_WEIGHT; }
 private:
 	unsigned short m_usUzi;
 };

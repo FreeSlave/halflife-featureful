@@ -281,7 +281,6 @@ bool CCrossbow::GetItemInfo( ItemInfo *p )
 	p->iSlot = 2;
 	p->iPosition = 2;
 	p->iFlags = 0;
-	p->iWeight = CROSSBOW_WEIGHT;
 	p->pszAmmoEntity = "ammo_crossbow";
 	p->iDropAmmo = AMMO_CROSSBOWCLIP_GIVE;
 	return true;

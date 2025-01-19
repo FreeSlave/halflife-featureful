@@ -90,7 +90,6 @@ bool CGauss::GetItemInfo( ItemInfo *p )
 	p->iSlot = 3;
 	p->iPosition = 1;
 	p->iFlags = 0;
-	p->iWeight = GAUSS_WEIGHT;
 	p->pszAmmoEntity = "ammo_gaussclip";
 	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 

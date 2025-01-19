@@ -95,7 +95,6 @@ bool CHgun::GetItemInfo( ItemInfo *p )
 	p->iSlot = 3;
 	p->iPosition = 3;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	p->iWeight = HORNETGUN_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 

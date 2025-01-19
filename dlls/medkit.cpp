@@ -110,7 +110,6 @@ bool CMedkit::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 4;
-	p->iWeight = MEDKIT_WEIGHT;
 
 	if (CanRecharge()) {
 		p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;

@@ -75,7 +75,6 @@ bool CPipeWrench::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 1;
-	p->iWeight = PIPEWRENCH_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 	return true;

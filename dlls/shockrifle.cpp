@@ -104,7 +104,6 @@ bool CShockrifle::GetItemInfo(ItemInfo *p)
 	p->iPosition = 4;
 #endif
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	p->iWeight = HORNETGUN_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 

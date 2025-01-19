@@ -96,7 +96,6 @@ bool CEgon::GetItemInfo( ItemInfo *p )
 	p->iSlot = 3;
 	p->iPosition = 2;
 	p->iFlags = 0;
-	p->iWeight = EGON_WEIGHT;
 	p->pszAmmoEntity = "ammo_gaussclip";
 	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 

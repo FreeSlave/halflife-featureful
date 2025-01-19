@@ -66,7 +66,6 @@ bool CKnife::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 2;
-	p->iWeight = KNIFE_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 	return true;

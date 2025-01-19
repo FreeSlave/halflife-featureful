@@ -445,7 +445,6 @@ bool CTripmine::GetItemInfo( ItemInfo *p )
 	p->pszAmmo2 = NULL;
 	p->iSlot = 4;
 	p->iPosition = 2;
-	p->iWeight = TRIPMINE_WEIGHT;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->pszAmmoEntity = STRING(pev->classname);
 	p->iDropAmmo = TRIPMINE_DEFAULT_GIVE;

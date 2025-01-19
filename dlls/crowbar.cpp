@@ -61,7 +61,6 @@ bool CCrowbar::GetItemInfo( ItemInfo *p )
 	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 0;
-	p->iWeight = CROWBAR_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 	return true;

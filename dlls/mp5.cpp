@@ -81,7 +81,6 @@ bool CMP5::GetItemInfo( ItemInfo *p )
 	p->iSlot = 2;
 	p->iPosition = 0;
 	p->iFlags = 0;
-	p->iWeight = MP5_WEIGHT;
 	p->pszAmmoEntity = "ammo_9mmAR";
 	p->iDropAmmo = AMMO_MP5CLIP_GIVE;
 

@@ -278,7 +278,6 @@ bool CBarnacleGrapple::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 3;
-	p->iWeight = GRAPPLE_WEIGHT;
 	p->pszAmmoEntity = NULL;
 	p->iDropAmmo = 0;
 	return true;

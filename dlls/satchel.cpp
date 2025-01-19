@@ -366,7 +366,6 @@ bool CSatchel::GetItemInfo( ItemInfo *p )
 	p->iSlot = 4;
 	p->iPosition = 1;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
-	p->iWeight = SATCHEL_WEIGHT;
 	p->pszAmmoEntity = STRING(pev->classname);
 	p->iDropAmmo = SATCHEL_DEFAULT_GIVE;
 
