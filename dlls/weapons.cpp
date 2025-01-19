@@ -349,101 +349,36 @@ void W_Precache( CBaseEntity* pWorld )
 	UTIL_PrecacheOther( "item_flashlight" );
 	UTIL_PrecacheOther( "item_nvgs" );
 
-	// shotgun
-	UTIL_PrecacheOtherWeapon( "weapon_shotgun" );
 	UTIL_PrecacheOther( "ammo_buckshot" );
-
-	// crowbar
-	UTIL_PrecacheOtherWeapon( "weapon_crowbar" );
-
-	// glock
-	UTIL_PrecacheOtherWeapon( "weapon_9mmhandgun" );
 	UTIL_PrecacheOther( "ammo_9mmclip" );
-
-	// mp5
-	UTIL_PrecacheOtherWeapon( "weapon_9mmAR" );
 	UTIL_PrecacheOther( "ammo_9mmAR" );
 	UTIL_PrecacheOther( "ammo_ARgrenades" );
-
-	// 9mm ammo box
 	UTIL_PrecacheOther( "ammo_9mmbox" );
-
-	// python
-	UTIL_PrecacheOtherWeapon( "weapon_357" );
 	UTIL_PrecacheOther( "ammo_357" );
-
-	// gauss
-	UTIL_PrecacheOtherWeapon( "weapon_gauss" );
 	UTIL_PrecacheOther( "ammo_gaussclip" );
-
-	// rpg
-	UTIL_PrecacheOtherWeapon( "weapon_rpg" );
 	UTIL_PrecacheOther( "ammo_rpgclip" );
-
-	// crossbow
-	UTIL_PrecacheOtherWeapon( "weapon_crossbow" );
 	UTIL_PrecacheOther( "ammo_crossbow" );
 
-	// egon
-	UTIL_PrecacheOtherWeapon( "weapon_egon" );
-
-	// tripmine
-	UTIL_PrecacheOtherWeapon( "weapon_tripmine" );
-
-	// satchel charge
-	UTIL_PrecacheOtherWeapon( "weapon_satchel" );
-
-	// hand grenade
-	UTIL_PrecacheOtherWeapon("weapon_handgrenade");
-
-	// squeak grenade
-	UTIL_PrecacheOtherWeapon( "weapon_snark" );
-
-	// hornetgun
-	UTIL_PrecacheOtherWeapon( "weapon_hornetgun" );
-#if FEATURE_MEDKIT
-	UTIL_PrecacheOtherWeapon( "weapon_medkit" );
-#endif
 	if( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
 	}
-#if FEATURE_DESERT_EAGLE
-	UTIL_PrecacheOtherWeapon( "weapon_eagle" );
-#endif
-#if FEATURE_PIPEWRENCH
-	UTIL_PrecacheOtherWeapon( "weapon_pipewrench" );
-#endif
-#if FEATURE_KNIFE
-	UTIL_PrecacheOtherWeapon( "weapon_knife" );
-#endif
-#if FEATURE_GRAPPLE
-	if (UTIL_PrecacheOtherWeapon( "weapon_grapple" ))
-		UTIL_PrecacheOther( "grapple_tip" );
-#endif
-#if FEATURE_PENGUIN
-	UTIL_PrecacheOtherWeapon( "weapon_penguin" );
-#endif
 #if FEATURE_M249
-	if (UTIL_PrecacheOtherWeapon( "weapon_m249" ))
+	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249))
 		UTIL_PrecacheOther( "ammo_556" );
 #endif
 #if FEATURE_SNIPERRIFLE
-	if (UTIL_PrecacheOtherWeapon( "weapon_sniperrifle" ))
+	if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
 		UTIL_PrecacheOther( "ammo_762" );
 #endif
-#if FEATURE_DISPLACER
-	UTIL_PrecacheOtherWeapon( "weapon_displacer" );
-#endif
-#if FEATURE_SHOCKRIFLE
-	UTIL_PrecacheOtherWeapon( "weapon_shockrifle" );
-#endif
-#if FEATURE_SPORELAUNCHER
-	UTIL_PrecacheOtherWeapon( "weapon_sporelauncher" );
-#endif
-#if FEATURE_UZI
-	UTIL_PrecacheOtherWeapon( "weapon_uzi" );
-#endif
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo info = AccessWeaponInfo(i);
+		if (info.classname)
+		{
+			UTIL_PrecacheOtherWeapon(info.classname);
+		}
+	}
 	g_sModelIndexFireball = PRECACHE_MODEL( "sprites/zerogxplode.spr" );// fireball
 	g_sModelIndexWExplosion = PRECACHE_MODEL( "sprites/WXplo1.spr" );// underwater fireball
 	g_sModelIndexSmoke = PRECACHE_MODEL( g_pModelNameSmoke );// smoke
