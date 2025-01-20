@@ -193,6 +193,12 @@ const NamedSoundScript weaponEmptySoundScript = {
 	"Weapon.Empty"
 };
 
+const NamedSoundScript inventoryPickupSoundScript = {
+	CHAN_ITEM,
+	{},
+	"Inventory.Pickup"
+};
+
 }
 
 namespace Player

@@ -47,6 +47,8 @@ extern const NamedSoundScript ammoPickupSoundScript;
 extern const char* const weaponPickupSoundScript;
 extern const NamedSoundScript weaponDropSoundScript;
 extern const NamedSoundScript weaponEmptySoundScript;
+
+extern const NamedSoundScript inventoryPickupSoundScript;
 }
 
 namespace Player

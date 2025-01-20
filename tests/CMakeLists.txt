@@ -19,6 +19,7 @@ add_executable(test
 	fixed_string_test.cpp
 	fixed_vector_test.cpp
 	followers_test.cpp
+	inventory_test.cpp
 	materials_test.cpp
 	objecthint_test.cpp
 	parsetext_test.cpp
@@ -36,6 +37,7 @@ add_executable(test
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp
 	../dlls/followers.cpp
+	../dlls/inventory.cpp
 	../dlls/objecthint_spec.cpp
 	../dlls/soundscripts.cpp
 	../dlls/visuals.cpp

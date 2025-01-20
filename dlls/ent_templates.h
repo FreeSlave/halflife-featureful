@@ -182,6 +182,7 @@ public:
 	void SetVisualSystem(VisualSystem* visualSystem) {
 		_visualSystem = visualSystem;
 	}
+	void AddTemplateFromJsonValue(const char* name, rapidjson::Value& value);
 	const EntTemplate* GetTemplate(const char* name);
 	void EnsureVisualReplacementForTemplate(const char* templateName, const char* visualName);
 	void EnsureSoundScriptReplacementForTemplate(const char* templateName, const char* soundScriptName);
@@ -192,8 +193,8 @@ private:
 	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
 	std::string _temp;
 
-	SoundScriptSystem* _soundScriptSystem;
-	VisualSystem* _visualSystem;
+	SoundScriptSystem* _soundScriptSystem = nullptr;
+	VisualSystem* _visualSystem = nullptr;
 };
 
 extern EntTemplateSystem g_EntTemplateSystem;

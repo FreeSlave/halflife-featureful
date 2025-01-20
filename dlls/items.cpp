@@ -30,6 +30,7 @@
 #include "gamerules.h"
 #include "animation.h"
 #include "common_soundscripts.h"
+#include "inventory.h"
 
 extern int gmsgItemPickup;
 
@@ -734,25 +735,41 @@ class CItemSecurity : public CItem
 	}
 };
 
-LINK_ENTITY_TO_CLASS( item_security, CItemSecurity )
+LINK_ENTITY_TO_CLASS( item_security, CItemSecurity );
 
 class CItemPickup : public CItem
 {
+public:
 	void Spawn( void )
 	{
-		if (FStringNull(pev->model))
+		if (FStringNull(pev->netname))
 		{
-			ALERT(at_error, "%s with no model!", STRING(pev->classname));
-			REMOVE_ENTITY(edict());
-			return;
+			ALERT(at_warning, "%s without an inventory item type!\n", STRING(pev->classname));
 		}
+		if (FStringNull(m_entTemplate))
+		{
+			if (!FStringNull(pev->netname))
+			{
+				const InventoryItemSpec* spec = g_InventorySpec.GetInventoryItemSpec(STRING(pev->netname));
+				if (spec && !spec->pickupEntTemplateName.empty())
+				{
+					m_entTemplate = ALLOC_STRING(spec->pickupEntTemplateName.c_str());
+				}
+			}
+		}
+
 		Precache();
-		SET_MODEL( ENT( pev ), STRING(pev->model) );
+		SetMyModel("models/w_security.mdl");
 		CItem::Spawn();
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL( STRING(pev->model) );
+		if (!MyOwnModel(nullptr))
+		{
+			ALERT(at_console, "%s without model defined! Fallbacking to the security card model\n", STRING(pev->classname));
+		}
+		PrecacheMyModel("models/w_security.mdl");
+		RegisterAndPrecacheSoundScript(Items::inventoryPickupSoundScript);
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
@@ -786,8 +803,21 @@ class CItemPickup : public CItem
 				return false;
 		}
 
-		if (!FStringNull(pev->noise))
-			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
+		const SoundScript* pickupSoundScript = GetSoundScript(Items::inventoryPickupSoundScript);
+		if (pickupSoundScript)
+		{
+			if (!FStringNull(pev->noise))
+			{
+				SoundScript soundScript = *pickupSoundScript;
+				soundScript.waves.clear();
+				soundScript.waves.push_back(STRING(pev->noise));
+				pPlayer->EmitSoundScript(&soundScript);
+			}
+			else
+			{
+				pPlayer->EmitSoundScript(pickupSoundScript);
+			}
+		}
 
 		if (!FStringNull(pev->message))
 			UTIL_ShowMessage( STRING( pev->message ), pPlayer );

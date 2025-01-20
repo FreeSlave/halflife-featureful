@@ -1532,10 +1532,6 @@ void ParseModConfigs()
 	materialRegistry.ReadFromFile("features/materials.json");
 	g_MaterialRegistry = std::move(materialRegistry);
 
-	InventorySpec inventorySpec;
-	inventorySpec.ReadFromFile("templates/inventory.json");
-	g_InventorySpec = std::move(inventorySpec);
-
 	WarpballTemplateCatalog warpballCatalog;
 	warpballCatalog.ReadFromFile("templates/warpball.json");
 	g_WarpballCatalog = std::move(warpballCatalog);
@@ -1553,6 +1549,11 @@ void ParseModConfigs()
 	entTemplateSystem.SetVisualSystem(&g_VisualSystem);
 	entTemplateSystem.ReadFromFile("templates/entities.json");
 	g_EntTemplateSystem = std::move(entTemplateSystem);
+
+	InventorySpec inventorySpec;
+	inventorySpec.SetEntTemplateSystem(&g_EntTemplateSystem);
+	inventorySpec.ReadFromFile("templates/inventory.json");
+	g_InventorySpec = std::move(inventorySpec);
 
 	ObjectHintCatalog objectHintCatalog;
 	objectHintCatalog.ReadFromFile("templates/objecthint.json");

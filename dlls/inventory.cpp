@@ -18,6 +18,9 @@ const char inventorySpecSchema[] = R"(
 					"max_count": {
 						"type": "integer",
 						"minimum": 0
+					},
+					"pickup_template": {
+						"$ref": "definitions.json#/entity_template"
 					}
 				},
 				"additionalProperties": false
@@ -26,6 +29,22 @@ const char inventorySpecSchema[] = R"(
 	}
 }
 )";
+
+struct InventoryItemCompare
+{
+	bool operator ()(const InventoryItemSpec& lhs, const char* rhs)
+	{
+		return strcmp(lhs.itemName.c_str(), rhs) < 0;
+	}
+	bool operator ()(const char* lhs, const InventoryItemSpec& rhs)
+	{
+		return strcmp(lhs, rhs.itemName.c_str()) < 0;
+	}
+	bool operator ()(const InventoryItemSpec& lhs, const InventoryItemSpec& rhs)
+	{
+		return strcmp(lhs.itemName.c_str(), rhs.itemName.c_str()) < 0;
+	}
+};
 
 InventoryItemSpec::InventoryItemSpec(): maxCount(0) {}
 
@@ -46,27 +65,30 @@ bool InventorySpec::ReadFromDocument(rapidjson::Document& document, const char* 
 			item.itemName = itemIt->name.GetString();
 			Value& value = itemIt->value;
 			UpdatePropertyFromJson(item.maxCount, value, "max_count");
+
+			{
+				auto it = value.FindMember("pickup_template");
+				if (it != value.MemberEnd())
+				{
+					if (it->value.IsString())
+					{
+						item.pickupEntTemplateName = it->value.GetString();
+					}
+					else if (it->value.IsObject())
+					{
+						item.pickupEntTemplateName = item.itemName + "##pickup_template";
+						_entTemplateSystem->AddTemplateFromJsonValue(item.pickupEntTemplateName.c_str(), it->value);
+					}
+				}
+			}
+
 			inventory.push_back(item);
 		}
 	}
-	std::sort(inventory.begin(), inventory.end(), [](const InventoryItemSpec& a, const InventoryItemSpec& b) {
-		return strcmp(a.itemName.c_str(), b.itemName.c_str()) < 0;
-	});
+	std::sort(inventory.begin(), inventory.end(), InventoryItemCompare());
 
 	return true;
 }
-
-struct InventoryItemCompare
-{
-	bool operator ()(const InventoryItemSpec& lhs, const char* rhs)
-	{
-		return strcmp(lhs.itemName.c_str(), rhs) < 0;
-	}
-	bool operator ()(const char* lhs, const InventoryItemSpec& rhs)
-	{
-		return strcmp(lhs, rhs.itemName.c_str()) < 0;
-	}
-};
 
 const InventoryItemSpec* InventorySpec::GetInventoryItemSpec(const char *itemName)
 {

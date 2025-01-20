@@ -234,6 +234,85 @@ constexpr const char definitions[] = R"(
 			}
 		},
 		"additionalProperties": false
+	},
+	"entity_template": {
+		"type": ["object", "string"],
+		"properties": {
+			"own_visual": {
+				"$ref": "#/visual"
+			},
+			"gib_visual": {
+				"$ref": "#/visual"
+			},
+			"size": {
+				"type": ["object", "string"],
+				"properties": {
+					"mins": "#/vector",
+					"maxs": "#/vector"
+				},
+				"additionalProperties": false,
+				"required": ["mins", "maxs"]
+			},
+			"classify": {
+				"type": "string"
+			},
+			"blood": {
+				"type": "string"
+			},
+			"field_of_view": {
+				"type": ["number", "string"],
+				"minimum": -1.0,
+				"exclusiveMaximum": 1.0
+			},
+			"health": {
+				"type": "number",
+				"exclusiveMinimum": 0.0
+			},
+			"soundscripts": {
+				"type": "object",
+				"additionalProperties": {
+					"$ref": "#/soundscript"
+				}
+			},
+			"visuals": {
+				"type": "object",
+				"additionalProperties": {
+					"$ref": "#/visual"
+				}
+			},
+			"sound_replacement": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "string"
+				}
+			},
+			"precached_sounds": {
+				"type": "array",
+				"items": {
+					"type": "string"
+				}
+			},
+			"precached_soundscripts": {
+				"type": "array",
+				"items": {
+					"type": "string"
+				}
+			},
+			"autoprecache_sounds": {
+				"type": "boolean"
+			},
+			"autoprecache_soundscripts": {
+				"type": "boolean"
+			},
+			"size_for_grapple": {
+				"type": "string"
+			},
+			"speech_prefix": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"additionalProperties": false
 	}
 }
 )";
