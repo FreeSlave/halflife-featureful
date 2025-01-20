@@ -32,6 +32,7 @@
 #include "objecthint_spec.h"
 #include "vcs_info.h"
 #include "tex_materials.h"
+#include "error_collector.h"
 
 ModFeatures g_modFeatures;
 
@@ -1527,6 +1528,8 @@ extern void ReportRegisteredAmmoTypes();
 
 void ParseModConfigs()
 {
+	g_errorCollector.Clear();
+
 	MaterialRegistry materialRegistry;
 	materialRegistry.FillDefaults();
 	materialRegistry.ReadFromFile("features/materials.json");
