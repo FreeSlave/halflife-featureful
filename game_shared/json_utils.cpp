@@ -160,10 +160,10 @@ constexpr const char definitions[] = R"(
 				]
 			},
 			"color": {
-				"$ref": "definitions.json#/color"
+				"$ref": "#/color"
 			},
 			"alpha": {
-				"$ref": "definitions.json#/alpha"
+				"$ref": "#/alpha"
 			},
 			"renderfx": {
 				"oneof": [
@@ -191,7 +191,7 @@ constexpr const char definitions[] = R"(
 				]
 			},
 			"scale": {
-				"$ref": "definitions.json#/range",
+				"$ref": "#/range",
 				"minimum": 0.0
 			},
 			"framerate": {
