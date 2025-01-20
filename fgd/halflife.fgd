@@ -152,7 +152,12 @@
 	killtarget(target_destination) : "KillTarget on pickup" : : "When the item is picked up, remove the entity specified by this property from the game."
 ]
 
-@BaseClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Targetname, TargetOnPickup, Delay, Appearflags, Angles, Global, Scalable, CustomObjectHint) = Pickup
+@BaseClass = EntityTemplate
+[
+	ent_template(string): "Entity template" : : "A template name from templates/entities.json"
+]
+
+@BaseClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Targetname, TargetOnPickup, Delay, Appearflags, Angles, Global, Scalable, CustomObjectHint, EntityTemplate) = Pickup
 [
 	spawnflags(Flags) =
 	[
@@ -235,11 +240,6 @@
 @BaseClass = SoundReplacement
 [
 	soundlist(script) : "Sound Replacement File"
-]
-
-@BaseClass = EntityTemplate
-[
-	ent_template(string): "Entity template" : : "A template name from templates/entities.json"
 ]
 
 @BaseClass = BloodColor

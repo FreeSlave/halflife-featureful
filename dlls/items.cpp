@@ -527,24 +527,6 @@ void CItem::OnMaterialize()
 	SetThink( NULL );
 }
 
-void CItem::SetMyModel(const char *model)
-{
-	if (FStringNull(pev->model)) {
-		SET_MODEL( ENT( pev ), model );
-	} else {
-		SET_MODEL( ENT( pev ), STRING(pev->model) );
-	}
-}
-
-void CItem::PrecacheMyModel(const char *model)
-{
-	if (FStringNull(pev->model)) {
-		PRECACHE_MODEL( model );
-	} else {
-		PRECACHE_MODEL( STRING( pev->model ) );
-	}
-}
-
 class CItemSuit : public CItem
 {
 public:
