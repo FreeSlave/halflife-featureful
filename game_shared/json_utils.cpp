@@ -247,8 +247,12 @@ constexpr const char definitions[] = R"(
 			"size": {
 				"type": ["object", "string"],
 				"properties": {
-					"mins": "#/vector",
-					"maxs": "#/vector"
+					"mins": {
+						"$ref": "#/vector"
+					},
+					"maxs": {
+						"$ref": "#/vector"
+					}
 				},
 				"additionalProperties": false,
 				"required": ["mins", "maxs"]
