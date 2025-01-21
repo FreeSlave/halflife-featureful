@@ -9,6 +9,7 @@
 #include	"explode.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
+#include	"visuals_utils.h"
 #include	"mod_features.h"
 
 #if FEATURE_ROBOCOP
@@ -190,7 +191,6 @@ public:
 	bool m_renderAliveSaved;
 
 	int m_RobocopGibModel;
-	int m_WaveSprite;
 
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript chargeSoundScript;
@@ -199,6 +199,18 @@ public:
 	static const NamedSoundScript stepSoundScript;
 
 	static constexpr const char* sparkSoundScript = "RoboCop.Spark";
+
+	static const NamedVisual eyeVisual;
+	static const NamedVisual spotVisual;
+	static const NamedVisual beamVisual;
+	static const NamedVisual shockWaveBaseVisual;
+	static const NamedVisual shockWave1Visual;
+	static const NamedVisual shockWave2Visual;
+	static const NamedVisual shockWave3Visual;
+
+	const Visual* m_eyeVisual;
+	const Visual* m_spotVisual;
+	const Visual* m_beamVisual;
 };
 
 LINK_ENTITY_TO_CLASS( monster_robocop, CRoboCop )
@@ -255,6 +267,44 @@ const NamedSoundScript CRoboCop::stepSoundScript = {
 	IntRange(90, 110),
 	"RoboCop.Step"
 };
+
+const NamedVisual CRoboCop::eyeVisual = BuildVisual("RoboCop.Eye")
+		.Model(ROBOCOP_EYE_SPRITE_NAME)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNone)
+		.Scale(0.5f);
+
+const NamedVisual CRoboCop::spotVisual = BuildVisual("RoboCop.BeamSpot")
+		.Model(ROBOCOP_EYE_SPRITE_NAME)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNone)
+		.Scale(0.3f);
+
+const NamedVisual CRoboCop::beamVisual = BuildVisual("RoboCop.Beam")
+		.Model(ROBOCOP_EYE_BEAM_NAME)
+		.BeamParams(32, 0, 15)
+		.RenderColor(255, 0, 0)
+		.Alpha(255);
+
+const NamedVisual CRoboCop::shockWaveBaseVisual = BuildVisual("RoboCop.ShockWaveBase")
+		.Model("sprites/xbeam3.spr")
+		.Framerate(10)
+		.Life(0.2f)
+		.BeamWidth(32)
+		.Alpha(255);
+
+const NamedVisual CRoboCop::shockWave1Visual = BuildVisual("RoboCop.ShockWave1")
+		.RenderColor(101, 133, 221)
+		.Life(0.2f)
+		.Mixin(&CRoboCop::shockWaveBaseVisual);
+
+const NamedVisual CRoboCop::shockWave2Visual = BuildVisual("RoboCop.ShockWave2")
+		.RenderColor(67, 85, 255)
+		.Life(0.3f)
+		.Mixin(&CRoboCop::shockWaveBaseVisual);
+
+const NamedVisual CRoboCop::shockWave3Visual = BuildVisual("RoboCop.ShockWave3")
+		.RenderColor(62, 33, 211)
+		.Life(0.4f)
+		.Mixin(&CRoboCop::shockWaveBaseVisual);
 
 enum
 {
@@ -325,51 +375,30 @@ IMPLEMENT_CUSTOM_SCHEDULES( CRoboCop, CBaseMonster )
 
 void CRoboCop::FistAttack( void )
 {
-	int i;
-	unsigned char r, g, b;
-	TraceResult trace;
 	Vector vecDist;
 	float flDist, flAdjustedDamage;
 
 	UTIL_MakeVectors( pev->angles );
 	Vector vecSrc = pev->origin + 12 * gpGlobals->v_right + 95 * gpGlobals->v_forward;
 
-	for( i = 0; i < 3; i++ )
-	{
-		switch( i )
-		{
-		case 0:
-			r = 101; g = 133; b = 221;
-			break;
-		case 1:
-			r = 67; g = 85; b = 255;
-			break;
-		case 2:
-			r = 62; g = 33; b = 211;
-			break;
-		}
+	const Visual* waveVisuals[] = {GetVisual(shockWave1Visual), GetVisual(shockWave2Visual), GetVisual(shockWave3Visual)};
 
-		// blast circles
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_BEAMCYLINDER );
-			WRITE_COORD( vecSrc.x );
-			WRITE_COORD( vecSrc.y );
-			WRITE_COORD( vecSrc.z + 16 );
-			WRITE_COORD( vecSrc.x );
-			WRITE_COORD( vecSrc.y );
-			WRITE_COORD( vecSrc.z + gSkillData.robocopSWRadius / ( ( i + 1 ) * 0.2f ) ); // reach damage radius over .3 seconds
-			WRITE_SHORT( m_WaveSprite );
-			WRITE_BYTE( 0 ); // startframe
-			WRITE_BYTE( 10 ); // framerate
-			WRITE_BYTE( i + 2 ); // life
-			WRITE_BYTE( 32 );  // width
-			WRITE_BYTE( 0 );   // noise
-			WRITE_BYTE( r );  // r
-			WRITE_BYTE( g );  // g
-			WRITE_BYTE( b ); // b
-			WRITE_BYTE( 255 ); //brightness
-			WRITE_BYTE( 0 );          // speed
-		MESSAGE_END();
+	for( int i = 0; i < ARRAYSIZE(waveVisuals); i++ )
+	{
+		if (waveVisuals[i] && waveVisuals[i]->modelIndex)
+		{
+			// blast circles
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+				WRITE_BYTE( TE_BEAMCYLINDER );
+				WRITE_COORD( vecSrc.x );
+				WRITE_COORD( vecSrc.y );
+				WRITE_COORD( vecSrc.z + 16 );
+				WRITE_COORD( vecSrc.x );
+				WRITE_COORD( vecSrc.y );
+				WRITE_COORD( vecSrc.z + gSkillData.robocopSWRadius / ( ( i + 1 ) * 0.2f ) ); // reach damage radius over .3 seconds
+				WriteBeamVisual(waveVisuals[i]);
+			MESSAGE_END();
+		}
 	}
 
 	CBaseEntity *pEntity = NULL;
@@ -429,23 +458,26 @@ void CRoboCop::FistAttack( void )
 
 void CRoboCop::CreateLaser( void )
 {
-	m_pLaserPointer = CSprite::SpriteCreate( ROBOCOP_EYE_SPRITE_NAME, pev->origin, false );
-	m_pLaserPointer->SetTransparency( kRenderTransAdd, 255, 255, 255, 0, kRenderFxNone );
-	m_pLaserPointer->SetAttachment( edict(), 1 );
-	m_pLaserPointer->SetScale( 0.5f );
+	m_pLaserPointer = CreateSpriteFromVisual(m_eyeVisual, pev->origin);
+	if (m_pLaserPointer)
+	{
+		m_pLaserPointer->SetAttachment( edict(), 1 );
+		m_pLaserPointer->SetBrightness(0);
+	}
 
-	m_pBeamSpot = CSprite::SpriteCreate( ROBOCOP_EYE_SPRITE_NAME, pev->origin, false );
-	m_pBeamSpot->pev->origin = pev->origin;
-	m_pBeamSpot->SetTransparency( kRenderTransAdd, 255, 255, 255, 0, kRenderFxNone );
-	m_pBeamSpot->SetScale( 0.3f );
+	m_pBeamSpot = CreateSpriteFromVisual(m_spotVisual, pev->origin);
+	if (m_pBeamSpot)
+	{
+		m_pBeamSpot->SetBrightness(0);
+	}
 
-	m_pBeam = CBeam::BeamCreate( ROBOCOP_EYE_BEAM_NAME, 30 );
-	m_pBeam->PointEntInit( pev->origin, entindex() );
-	m_pBeam->SetEndAttachment( 1 );
-	m_pBeam->SetBrightness( 0 );
-	m_pBeam->SetColor( 255, 0, 0 );
-	m_pBeam->SetScrollRate( 15 );
-	m_pBeam->SetWidth(32);
+	m_pBeam = CreateBeamFromVisual(m_beamVisual);
+	if (m_pBeam)
+	{
+		m_pBeam->PointEntInit( pev->origin, entindex() );
+		m_pBeam->SetEndAttachment( 1 );
+		m_pBeam->SetBrightness( 0 );
+	}
 
 	ChangeLaserState();
 }
@@ -453,7 +485,7 @@ void CRoboCop::CreateLaser( void )
 void CRoboCop::ChangeLaserState( void )
 {
 	float time;
-	int brightness;
+	float brightnessFraction;
 
 	if( m_pBeam )
 		m_pBeam->SetEndAttachment( 1 );
@@ -482,7 +514,7 @@ void CRoboCop::ChangeLaserState( void )
 		{
 			if( m_iLaserFlags & LF_ROBOCOP_FULLBRIGHTNESS )
 			{
-				brightness = 224;
+				brightnessFraction = 0.875f;
 				goto end;
 			}
 		}
@@ -490,25 +522,25 @@ void CRoboCop::ChangeLaserState( void )
 		time = gpGlobals->time * 5.0f;
 	}
 
-	brightness = fabs( sin( time ) * 255.0f );
+	brightnessFraction = fabs( sin( time ) );
 
 end:
 	if( m_iLaserFlags & LF_ROBOCOP_LASER )
 	{
 		if( m_pLaserPointer )
-			m_pLaserPointer->SetBrightness( brightness );
+			m_pLaserPointer->SetBrightness( m_eyeVisual->renderamt * brightnessFraction );
 	}
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAM )
 	{
 		if( m_pBeam )
-			m_pBeam->SetBrightness( brightness );
+			m_pBeam->SetBrightness( m_beamVisual->renderamt * brightnessFraction );
 	}
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAMSPOT )
 	{
 		if( m_pBeamSpot )
-			m_pBeamSpot->SetBrightness( brightness );
+			m_pBeamSpot->SetBrightness( m_spotVisual->renderamt * brightnessFraction );
 	}
 }
 
@@ -614,7 +646,6 @@ void CRoboCop::Precache()
 	PRECACHE_MODEL( ROBOCOP_EYE_SPRITE_NAME );
 	PRECACHE_MODEL( ROBOCOP_EYE_BEAM_NAME );
 
-	m_WaveSprite = PRECACHE_MODEL( "sprites/xbeam3.spr" );
 	m_RobocopGibModel = PRECACHE_MODEL( "models/metalplategibs.mdl" );
 
 	RegisterAndPrecacheSoundScript(dieSoundScript);
@@ -627,6 +658,14 @@ void CRoboCop::Precache()
 	param.OverrideChannel(CHAN_VOICE);
 	param.OverrideVolumeRelative(0.6f);
 	RegisterAndPrecacheSoundScript(sparkSoundScript, ::sparkBaseSoundScript, param);
+
+	m_eyeVisual = RegisterVisual(eyeVisual);
+	m_spotVisual = RegisterVisual(spotVisual);
+	m_beamVisual = RegisterVisual(beamVisual);
+
+	RegisterVisual(shockWave1Visual);
+	RegisterVisual(shockWave2Visual);
+	RegisterVisual(shockWave3Visual);
 
 	UTIL_PrecacheOther( "monster_mortar" );
 }
