@@ -49,8 +49,7 @@ public:
 
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -400, -400, 0 );
-		pev->absmax = pev->origin + Vector( 400, 400, 850 );
+		SetMyObjectCollisionBox(Vector( -400, -400, 0 ), Vector( 400, 400, 850 ));
 	}
 
 	void EXPORT Cycle( void );

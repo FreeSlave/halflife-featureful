@@ -132,7 +132,7 @@ NEW_DLL_FUNCTIONS gNewDLLFunctions =
 	0
 };
 
-static void SetObjectCollisionBox( entvars_t *pev );
+static void SetObjectCollisionBox( entvars_t *pev, CBaseEntity* pEntity );
 
 #if !XASH_WIN32
 extern "C" {
@@ -480,7 +480,7 @@ void DispatchObjectCollsionBox( edict_t *pent )
 		pEntity->SetObjectCollisionBox();
 	}
 	else
-		SetObjectCollisionBox( &pent->v );
+		SetObjectCollisionBox( &pent->v, pEntity );
 }
 
 void SaveWriteFields( SAVERESTOREDATA *pSaveData, const char *pname, void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCount )
@@ -1337,7 +1337,7 @@ void CBaseEntity::Activate()
 }
 
 // Initialize absmin & absmax to the appropriate box
-void SetObjectCollisionBox( entvars_t *pev )
+void SetObjectCollisionBox(entvars_t *pev, CBaseEntity* pEntity)
 {
 	if( ( pev->solid == SOLID_BSP ) && 
 		 ( pev->angles.x || pev->angles.y || pev->angles.z ) )
@@ -1364,8 +1364,15 @@ void SetObjectCollisionBox( entvars_t *pev )
 	}
 	else
 	{
-		pev->absmin = pev->origin + pev->mins;
-		pev->absmax = pev->origin + pev->maxs;
+		if (pEntity)
+		{
+			pEntity->SetMyObjectCollisionBox(pev->mins, pev->maxs);
+		}
+		else
+		{
+			pev->absmin = pev->origin + pev->mins;
+			pev->absmax = pev->origin + pev->maxs;
+		}
 	}
 
 	pev->absmin.x -= 1;
@@ -1378,7 +1385,21 @@ void SetObjectCollisionBox( entvars_t *pev )
 
 void CBaseEntity::SetObjectCollisionBox( void )
 {
-	::SetObjectCollisionBox( pev );
+	::SetObjectCollisionBox( pev, this );
+}
+
+void CBaseEntity::SetMyObjectCollisionBox(const Vector& defaultMins, const Vector& defaultMaxs)
+{
+	Vector vecMins = defaultMins;
+	Vector vecMaxs = defaultMaxs;
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->IsCollisionBoxDefined())
+	{
+		vecMins = entTemplate->CollisionBoxMin();
+		vecMaxs = entTemplate->CollisionBoxMax();
+	}
+	pev->absmin = pev->origin + vecMins;
+	pev->absmax = pev->origin + vecMaxs;
 }
 
 int CBaseEntity::Intersects( CBaseEntity *pOther )

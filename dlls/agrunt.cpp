@@ -79,8 +79,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -32.0f, -32.0f, 0.0f );
-		pev->absmax = pev->origin + Vector( 32.0f, 32.0f, 85.0f );
+		SetMyObjectCollisionBox(Vector( -32.0f, -32.0f, 0.0f ), Vector( 32.0f, 32.0f, 85.0f ));
 	}
 
 	Schedule_t *GetSchedule( void );

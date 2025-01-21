@@ -119,6 +119,54 @@ bool EntTemplateSystem::ReadFromDocument(rapidjson::Document& document, const ch
 	return true;
 }
 
+static bool UpdateSizesFromJSON(rapidjson::Value& value, Vector& mins, Vector& maxs)
+{
+	if (value.IsString())
+	{
+		const char* sizePreset = value.GetString();
+		if (stricmp(sizePreset, "snark") == 0)
+		{
+			mins = Vector(-4.0f, -4.0f, 0.0f);
+			maxs = Vector(4.0f, 4.0f, 8.0f);
+			return true;
+		}
+		else if (stricmp(sizePreset, "headcrab") == 0)
+		{
+			mins = Vector(-12.0f, -12.0f, 0.0f);
+			maxs = Vector(12.0f, 12.0f, 24.0f);
+			return true;
+		}
+		else if (stricmp(sizePreset, "small") == 0)
+		{
+			mins = Vector(-16.0f, -16.0f, 0.0f);
+			maxs = Vector( 16.0f, 16.0f, 36.0f );
+			return true;
+		}
+		else if (stricmp(sizePreset, "human") == 0)
+		{
+			mins = VEC_HUMAN_HULL_MIN;
+			maxs = VEC_HUMAN_HULL_MAX;
+			return true;
+		}
+		else if (stricmp(sizePreset, "large") == 0 || stricmp(sizePreset, "wide") == 0)
+		{
+			mins = Vector(-32.0f, -32.0f, 0.0f);
+			maxs = Vector(32.0f, 32.0f, 64.0f);
+			return true;
+		}
+		else
+		{
+			LOG_WARNING("Unknown size preset '%s'\n", sizePreset);
+			return false;
+		}
+	}
+	else if (value.IsObject())
+	{
+		return UpdatePropertyFromJson(mins, value, "mins") && UpdatePropertyFromJson(maxs, value, "maxs");
+	}
+	return false;
+}
+
 void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Value& value)
 {
 	const std::string templateName = name;
@@ -352,41 +400,22 @@ void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Va
 		auto it = value.FindMember("size");
 		if (it != value.MemberEnd())
 		{
-			if (it->value.IsString())
+			Vector mins, maxs;
+			if (UpdateSizesFromJSON(it->value, mins, maxs))
 			{
-				const char* sizePreset = it->value.GetString();
-				if (stricmp(sizePreset, "snark") == 0)
-				{
-					entTemplate.SetSize(Vector(-4.0f, -4.0f, 0.0f), Vector(4.0f, 4.0f, 8.0f));
-				}
-				else if (stricmp(sizePreset, "headcrab") == 0)
-				{
-					entTemplate.SetSize(Vector(-12.0f, -12.0f, 0.0f), Vector(12.0f, 12.0f, 24.0f));
-				}
-				else if (stricmp(sizePreset, "small") == 0)
-				{
-					entTemplate.SetSize(Vector(-16.0f, -16.0f, 0.0f), Vector( 16.0f, 16.0f, 36.0f ));
-				}
-				else if (stricmp(sizePreset, "human") == 0)
-				{
-					entTemplate.SetSize(VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
-				}
-				else if (stricmp(sizePreset, "large") == 0)
-				{
-					entTemplate.SetSize(Vector(-32.0f, -32.0f, 0.0f), Vector(32.0f, 32.0f, 64.0f));
-				}
-				else
-				{
-					LOG_WARNING("Unknown size preset '%s'\n", sizePreset);
-				}
+				entTemplate.SetSize(mins, maxs);
 			}
-			else if (it->value.IsObject())
+		}
+	}
+
+	{
+		auto it = value.FindMember("collision_box");
+		if (it != value.MemberEnd())
+		{
+			Vector mins, maxs;
+			if (UpdateSizesFromJSON(it->value, mins, maxs))
 			{
-				Vector minVec, maxVec;
-				if (UpdatePropertyFromJson(minVec, it->value, "mins") && UpdatePropertyFromJson(maxVec, it->value, "maxs"))
-				{
-					entTemplate.SetSize(minVec, maxVec);
-				}
+				entTemplate.SetCollisionBox(mins, maxs);
 			}
 		}
 	}

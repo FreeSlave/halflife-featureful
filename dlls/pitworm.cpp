@@ -42,8 +42,7 @@ public:
 	virtual int	ObjectCaps(void) { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	void SetObjectCollisionBox()
 	{
-		pev->absmin = pev->origin + Vector( -400, -400, 0 );
-		pev->absmax = pev->origin + Vector( 400, 400, 850 );
+		SetMyObjectCollisionBox(Vector( -400, -400, 0 ), Vector( 400, 400, 850 ));
 	}
 	bool FVisible(CBaseEntity* pEntity) override;
 	bool FVisible(const Vector& vecOrigin) override;

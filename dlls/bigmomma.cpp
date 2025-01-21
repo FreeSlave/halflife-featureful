@@ -327,8 +327,7 @@ public:
 
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -95.0f, -95.0f, 0.0f );
-		pev->absmax = pev->origin + Vector( 95.0f, 95.0f, 190.0f );
+		SetMyObjectCollisionBox(Vector( -95.0f, -95.0f, 0.0f ), Vector( 95.0f, 95.0f, 190.0f ));
 	}
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;	// Slash

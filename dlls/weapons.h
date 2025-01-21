@@ -841,8 +841,7 @@ public:
 	void SetObjectCollisionBox( void )
 	{
 		//!!!BUGBUG - fix the model!
-		pev->absmin = pev->origin + Vector(-16, -16, -5);
-		pev->absmax = pev->origin + Vector(16, 16, 28);
+		SetMyObjectCollisionBox(Vector(-16, -16, -5), Vector(16, 16, 28));
 	}
 
 	void PrimaryAttack( void );

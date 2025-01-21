@@ -84,8 +84,7 @@ public:
 
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -8, -8, 0 );
-		pev->absmax = pev->origin + Vector( 8, 8, 2 );
+		SetMyObjectCollisionBox(Vector( -8, -8, 0 ), Vector( 8, 8, 2 ));
 	}
 
 	void AttackSound();

@@ -123,6 +123,22 @@ public:
 		_maxSize = maxSize;
 	}
 
+	bool IsCollisionBoxDefined() const {
+		return (_defined & COLLISIONBOX_DEFINED) != 0;
+	}
+	Vector CollisionBoxMin() const {
+		return _collisionBoxMin;
+	}
+	Vector CollisionBoxMax() const {
+		return _collisionBoxMax;
+	}
+	void SetCollisionBox(const Vector& minSize, const Vector& maxSize)
+	{
+		_defined |= COLLISIONBOX_DEFINED;
+		_collisionBoxMin = minSize;
+		_collisionBoxMax = maxSize;
+	}
+
 	bool IsSizeForGrappleDefined() const {
 		return (_defined & SIZEFORGRAPPLE_DEFINED) != 0;
 	}
@@ -158,7 +174,8 @@ private:
 		HEALTH_DEFINED = (1 << 2),
 		FIELDOFVIEW_DEFINED = (1 << 3),
 		SIZE_DEFINED = (1 << 4),
-		SIZEFORGRAPPLE_DEFINED = (1 << 5),
+		COLLISIONBOX_DEFINED = (1 << 5),
+		SIZEFORGRAPPLE_DEFINED = (1 << 6),
 	};
 
 	int _defined = 0;
@@ -168,6 +185,8 @@ private:
 	float _fieldOfView = 0.0f;
 	Vector _minSize = Vector(0,0,0);
 	Vector _maxSize = Vector(0,0,0);
+	Vector _collisionBoxMin = Vector(0,0,0);
+	Vector _collisionBoxMax = Vector(0,0,0);
 	short _sizeForGrapple = 0;
 
 	std::string _speechPrefix;

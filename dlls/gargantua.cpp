@@ -425,8 +425,7 @@ public:
 	bool CheckRangeAttack1( float flDot, float flDist ) override;		// Stomp attack
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -80, -80, 0 );
-		pev->absmax = pev->origin + Vector( 80, 80, 214 );
+		SetMyObjectCollisionBox(Vector( -80, -80, 0 ), Vector( 80, 80, 214 ));
 	}
 
 	Schedule_t *GetSchedule( void );
@@ -2012,8 +2011,7 @@ public:
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -32, -32, 0 );
-		pev->absmax = pev->origin + Vector( 32, 32, 100 );
+		SetMyObjectCollisionBox(Vector( -32, -32, 0 ), Vector( 32, 32, 100 ));
 	}
 	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }

@@ -432,8 +432,7 @@ public:
 
 	void SetObjectCollisionBox(void)
 	{
-		pev->absmin = pev->origin + Vector( -437, -720, -332 );
-		pev->absmax = pev->origin + Vector( 425, 164, 355 );
+		SetMyObjectCollisionBox(Vector( -437, -720, -332 ), Vector( 425, 164, 355 ));
 	}
 
 	void HandleAnimEvent(MonsterEvent_t *pEvent);

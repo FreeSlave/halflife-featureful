@@ -76,6 +76,19 @@ constexpr const char definitions[] = R"(
 		"minItems": 3,
 		"maxItems": 3
 	},
+	"object_size": {
+		"type": ["object", "string"],
+		"properties": {
+			"mins": {
+				"$ref": "#/vector"
+			},
+			"maxs": {
+				"$ref": "#/vector"
+			}
+		},
+		"additionalProperties": false,
+		"required": ["mins", "maxs"]
+	},
 	"attenuation": {
 		"oneof": [
 			{
@@ -245,17 +258,10 @@ constexpr const char definitions[] = R"(
 				"$ref": "#/visual"
 			},
 			"size": {
-				"type": ["object", "string"],
-				"properties": {
-					"mins": {
-						"$ref": "#/vector"
-					},
-					"maxs": {
-						"$ref": "#/vector"
-					}
-				},
-				"additionalProperties": false,
-				"required": ["mins", "maxs"]
+				"$ref": "#/object_size"
+			},
+			"collision_box": {
+				"$ref": "#/object_size"
 			},
 			"classify": {
 				"type": "string"

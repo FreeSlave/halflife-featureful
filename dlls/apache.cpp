@@ -52,8 +52,7 @@ public:
 
 	void SetObjectCollisionBox( void )
 	{
-		pev->absmin = pev->origin + Vector( -300.0f, -300.0f, -172.0f );
-		pev->absmax = pev->origin + Vector( 300.0f, 300.0f, 8.0f );
+		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
 	}
 
 	void EXPORT HuntThink( void );

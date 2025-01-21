@@ -431,8 +431,7 @@ IMPLEMENT_SAVERESTORE( CBasePlayerWeapon, CBaseAnimating )
 
 void CBasePlayerWeapon::SetObjectCollisionBox( void )
 {
-	pev->absmin = pev->origin + Vector( -24, -24, 0 );
-	pev->absmax = pev->origin + Vector( 24, 24, 16 ); 
+	SetMyObjectCollisionBox(Vector( -24, -24, 0 ), Vector( 24, 24, 16 ));
 }
 
 void CBasePlayerWeapon::KeyValue(KeyValueData *pkvd)
@@ -1451,8 +1450,7 @@ void CWeaponBox::SetWeaponModel(CBasePlayerWeapon *pItem)
 //=========================================================
 void CWeaponBox::SetObjectCollisionBox( void )
 {
-	pev->absmin = pev->origin + Vector( -16, -16, 0 );
-	pev->absmax = pev->origin + Vector( 16, 16, 16 ); 
+	SetMyObjectCollisionBox(Vector( -16, -16, 0 ), Vector( 16, 16, 16 ));
 }
 
 void CWeaponBox::InsertWeaponById(CBasePlayerWeapon *pItem)
