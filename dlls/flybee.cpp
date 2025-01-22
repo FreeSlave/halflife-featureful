@@ -16,6 +16,7 @@
 #include	"soundent.h"
 #include	"game.h"
 #include	"decals.h"
+#include	"visuals_utils.h"
 #include	"mod_features.h"
 
 #if FEATURE_FLYBEE
@@ -91,11 +92,7 @@ public:
 
 	Vector	m_vecAttack2;
 
-	int		m_iSpriteTexture;
-
-	CBeam *m_pBeam;
-
-	int		m_iFear;	
+	int		m_iFear;
 	float m_flNextAlert;
 	float m_flNextAttack;
 
@@ -118,6 +115,11 @@ public:
 	bool IsDisplaceable() { return true; }
 	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 24.0f ); }
+
+	static const NamedVisual zapBeamVisual;
+	static const NamedVisual zapBeamAltVisual;
+	static const NamedVisual zapVisual;
+	static const NamedVisual zapWaveVisual;
 };
 
 LINK_ENTITY_TO_CLASS( monster_flybee, CFlybee );
@@ -147,9 +149,10 @@ public :
 
 	static CFlyBall *CreateFlyBall(Vector vecOrigin, Vector vecAngles, entvars_s *pevOwner , EntityOverrides entityOverrides);
 
-	int m_iSprite;
-
 	static const NamedSoundScript electroSoundScript;
+
+	static const NamedVisual ballVisual;
+	static const NamedVisual ballTrailVisual;
 };
 LINK_ENTITY_TO_CLASS( flyball, CFlyBall );
 
@@ -161,6 +164,17 @@ const NamedSoundScript CFlyBall::electroSoundScript = {
 	IntRange(90, 99),
 	"Flybee.Electro"
 };
+
+const NamedVisual CFlyBall::ballVisual = BuildVisual("Flybee.Ball")
+		.Model("sprites/muz7.spr")
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 190)
+		.Scale(0.2f);
+
+const NamedVisual CFlyBall::ballTrailVisual = BuildVisual("Flybee.BallTrace")
+		.Model("sprites/xspark3.spr")
+		.Framerate(22.0f)
+		.Scale(0.2f)
+		.RenderProps(kRenderTransAdd, Color3(230, 255, 230), 150, kRenderFxNone);
 
 constexpr float flybeeAttenuation = 0.6f;
 constexpr IntRange flybeePitch(95, 105);
@@ -227,6 +241,30 @@ const NamedSoundScript CFlybee::beamSoundScript = {
 	IntRange(90, 99),
 	"Flybee.Beam"
 };
+
+const NamedVisual CFlybee::zapBeamVisual = BuildVisual("Flybee.ZapBeam")
+		.Model("sprites/laserbeam.spr")
+		.RenderColor(206, 118, 254)
+		.Alpha(192)
+		.BeamParams(8, 30)
+		.Life(0.35f);
+
+const NamedVisual CFlybee::zapBeamAltVisual = BuildVisual("Flybee.ZapBeamAlt")
+		.RenderColor(223, 224, 255)
+		.Mixin(&CFlybee::zapBeamVisual);
+
+const NamedVisual CFlybee::zapVisual = BuildVisual("Flybee.Zap")
+		.Model("sprites/nhth1.spr")
+		.Framerate(10.0f)
+		.Scale(0.8f)
+		.RenderProps(kRenderTransAdd, Color3(230, 255, 230), 150, kRenderFxNone);
+
+const NamedVisual CFlybee::zapWaveVisual = BuildVisual("Flybee.ZapWave")
+		.Model("sprites/shockwave.spr")
+		.Life(0.2f)
+		.BeamWidth(16)
+		.RenderColor(206, 118, 255)
+		.Alpha(80);
 
 void CFlybee::IdleSound()
 {
@@ -299,7 +337,6 @@ void CFlybee::Precache()
 	PrecacheMyGibModel();
 
 	PRECACHE_SOUND("zombie/claw_miss2.wav");
-	PRECACHE_MODEL("sprites/nhth1.spr");
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -309,9 +346,12 @@ void CFlybee::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(beamSoundScript);
 
-	UTIL_PrecacheOther ( "flyball", GetProjectileOverrides() );
+	RegisterVisual(zapBeamVisual);
+	RegisterVisual(zapBeamAltVisual);
+	RegisterVisual(zapVisual);
+	RegisterVisual(zapWaveVisual);
 
-	m_iSpriteTexture = PRECACHE_MODEL("sprites/shockwave.spr");
+	UTIL_PrecacheOther ( "flyball", GetProjectileOverrides() );
 }
 
 int	CFlybee::DefaultClassify ( void )
@@ -388,42 +428,35 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			for ( int i = 0; i<4; i ++ )
 			{
-				CBeam *pBeam = CBeam::BeamCreate( "sprites/laserbeam.spr", 8 );
+				const Visual* beamVisual = RANDOM_LONG(0,1) ? GetVisual(zapBeamVisual) : GetVisual(zapBeamAltVisual);
+				CBeam *pBeam = CreateBeamFromVisual(beamVisual);
+				if (pBeam)
+				{
+					pBeam->SetStartPos( vecStart );
+					pBeam->SetEndPos( vecEnd );
+					pBeam->RelinkBeam();
 
-				if ( RANDOM_LONG(0,1) )
-					pBeam->SetColor( 206,118, 254 );
-				else
-					pBeam->SetColor( 223,224, 255 );
-
-				pBeam->SetBrightness( 192 );
-
-				pBeam->SetStartPos( vecStart );
-				pBeam->SetEndPos( vecEnd );
-				pBeam->RelinkBeam( );
-
-				pBeam->SetNoise( 30 );
-				pBeam->LiveForTime( 0.35 );
+					pBeam->LiveForTime(RandomizeNumberFromRange(beamVisual->life));
+				}
 			}
 
-			CSprite *pSprite = CSprite::SpriteCreate ( "sprites/nhth1.spr", vecEnd, true );
-			pSprite->AnimateAndDie( 10 );
-			pSprite->SetScale( 0.8 );
-			pSprite->SetTransparency( kRenderTransAdd, 230, 255, 230, 150, kRenderFxNone );
-			pSprite->Expand( pSprite->pev->scale, 120 );
+			const Visual* visual = GetVisual(zapVisual);
+			CSprite *pSprite = CreateSpriteFromVisual(visual, vecEnd);
+			if (pSprite)
+			{
+				pSprite->AnimateAndDie(pSprite->pev->framerate);
+				pSprite->Expand( pSprite->pev->scale, 120 );
+			}
 
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_BEAMCYLINDER );
-				WRITE_CIRCLE( vecEnd, 1000 );
-				WRITE_SHORT( m_iSpriteTexture );
-				WRITE_BYTE( 0 ); // startframe
-				WRITE_BYTE( 0 ); // framerate
-				WRITE_BYTE( 2 ); // life
-				WRITE_BYTE( 16 );  // width
-				WRITE_BYTE( 0 );   // noise
-				WRITE_BYTE( 206 ); WRITE_BYTE( 118 ); WRITE_BYTE( 255 ); WRITE_BYTE( 80 ); // rgba
-				WRITE_BYTE( 0 );		// speed
-			MESSAGE_END();
-
+			const Visual* waveVisual = GetVisual(zapWaveVisual);
+			if (waveVisual && waveVisual->modelIndex)
+			{
+				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+					WRITE_BYTE( TE_BEAMCYLINDER );
+					WRITE_CIRCLE( vecEnd, 1000 );
+					WriteBeamVisual(waveVisual);
+				MESSAGE_END();
+			}
 			RadiusDamage( vecEnd, pev, pev, gSkillData.flybeeDmgBeam, CLASS_ALIEN_MONSTER, DMG_SHOCK );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);
@@ -1198,6 +1231,7 @@ CFlyBall *CFlyBall::CreateFlyBall( Vector vecOrigin, Vector vecAngles, entvars_s
 	UTIL_MakeAimVectors ( vecAngles );
 
 	float x, y, z;
+	// TODO: why such weird code?
 	do
 	{
 		x = RANDOM_FLOAT(-0.5,0.5) + RANDOM_FLOAT(-0.5,0.5);
@@ -1234,13 +1268,7 @@ void CFlyBall::Spawn( void )
 	pev->solid = SOLID_BBOX;
 	pev->classname = MAKE_STRING("flyball");
 
-	SET_MODEL(ENT(pev), "sprites/muz7.spr");
-	pev->rendermode = kRenderTransAdd;
-	pev->rendercolor.x = 255;
-	pev->rendercolor.y = 255;
-	pev->rendercolor.z = 255;
-	pev->renderamt = 190;
-	pev->scale = 0.2f;
+	ApplyVisual(GetVisual(ballVisual));
 
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1257,10 +1285,10 @@ void CFlyBall::Spawn( void )
 
 void CFlyBall::Precache( void )
 {
-	PRECACHE_MODEL("sprites/xspark3.spr");
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 
-	m_iSprite = PRECACHE_MODEL("sprites/muz7.spr");
+	RegisterVisual(ballVisual);
+	RegisterVisual(ballTrailVisual);
 }
 
 void CFlyBall::AnimateThink( void )
@@ -1275,13 +1303,14 @@ void CFlyBall::AnimateThink( void )
 		UTIL_Remove( this );
 	}
 
-	if ( delta > 0 && delta < 0.9 )
+	if ( delta > 0.0f && delta < 0.9f )
 	{
-		CSprite *pTrail = CSprite::SpriteCreate ( "sprites/xspark3.spr", pev->origin, true );
-		pTrail->AnimateAndDie ( 22 );
-		pTrail->SetScale ( 0.2 );
-		pTrail->SetTransparency ( kRenderTransAdd, 230, 255, 230, 150, kRenderFxNone );
-		pTrail->Expand ( pTrail->pev->scale, 120 );
+		CSprite *pTrail = CreateSpriteFromVisual(GetVisual(ballTrailVisual), pev->origin);
+		if (pTrail)
+		{
+			pTrail->AnimateAndDie ( pTrail->pev->framerate );
+			pTrail->Expand ( pTrail->pev->scale, 120 );
+		}
 	}
 }
 
