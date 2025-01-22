@@ -253,6 +253,8 @@ bool CBaseMonster::ShouldGetIdealState()
 // ensures that the monster leaves this function with a valid
 // schedule!
 //=========================================================
+extern cvar_t npc_run_task_instant;
+
 void CBaseMonster::MaintainSchedule( void )
 {
 	Schedule_t *pNewSchedule;
@@ -327,10 +329,24 @@ void CBaseMonster::MaintainSchedule( void )
 		}
 
 		if( !TaskIsComplete() && m_iTaskStatus != TASKSTATUS_NEW )
-			break;
+		{
+			if ( npc_run_task_instant.value && TaskIsRunning() && !HasConditions( bits_COND_TASK_FAILED ) )
+			{
+				Task_t *pTask = GetTask();
+				ASSERT( pTask != NULL );
+				RunTask( pTask );
+
+				if ( !TaskIsComplete() )
+					break;
+			}
+			else
+			{
+				break;
+			}
+		}
 	}
 
-	if( TaskIsRunning() )
+	if( !npc_run_task_instant.value && TaskIsRunning() )
 	{
 		Task_t *pTask = GetTask();
 		ASSERT( pTask != NULL );
@@ -1056,7 +1072,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_FACE_ENEMY:
 		{
 			MakeIdealYaw( m_vecEnemyLKP );
-			SetTurnActivity(); 
+			SetTurnActivity();
 			break;
 		}
 	case TASK_FACE_SCHEDULED:

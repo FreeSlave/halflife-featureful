@@ -130,10 +130,11 @@ int CBaseAnimating::GetSequenceFlags()
 //=========================================================
 // DispatchAnimEvents
 //=========================================================
+extern cvar_t animeventfix;
+extern cvar_t anim_dispatch_fix;
+
 void CBaseAnimating::DispatchAnimEvents( float flInterval )
 {
-	extern cvar_t animeventfix;
-
 	MonsterEvent_t	event;
 
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
@@ -144,17 +145,38 @@ void CBaseAnimating::DispatchAnimEvents( float flInterval )
 		return;
 	}
 
-	// FIXME: I have to do this or some events get missed, and this is probably causing the problem below
-	flInterval = 0.1f;
+	float flStart, flEnd;
+	if (anim_dispatch_fix.value)
+	{
+		// TODO: untested. Is it better?
+		flStart = m_flLastEventCheck;
+		flEnd = pev->frame;
 
-	// FIX: this still sometimes hits events twice
-	float flStart = pev->frame + ( m_flLastEventCheck - pev->animtime ) * m_flFrameRate * pev->framerate;
-	float flEnd = pev->frame + flInterval * m_flFrameRate * pev->framerate;
-	m_flLastEventCheck = pev->animtime + flInterval;
+		if ( !m_fSequenceLoops && m_fSequenceFinished )
+		{
+			// This magic number here is necessary to fix
+			// events on last frame getting skipped.
+			// To do so we go slightly further in the animation range so monster catches it before current think is over
+			// Valve sets flEnd to 1.01 here
+			// so we do the same but in Goldsrc's frame cycle range
+			flEnd = 258.5f;
+		}
+		m_flLastEventCheck = flEnd;
+	}
+	else
+	{
+		// FIXME: I have to do this or some events get missed, and this is probably causing the problem below
+		flInterval = 0.1f;
 
-	m_fSequenceFinished = false;
-	if( flEnd >= 256.0f || flEnd <= 0.0f )
-		m_fSequenceFinished = true;
+		// FIX: this still sometimes hits events twice
+		flStart = pev->frame + ( m_flLastEventCheck - pev->animtime ) * m_flFrameRate * pev->framerate;
+		flEnd = pev->frame + flInterval * m_flFrameRate * pev->framerate;
+		m_flLastEventCheck = pev->animtime + flInterval;
+
+		m_fSequenceFinished = false;
+		if( flEnd >= 256.0f || flEnd <= 0.0f )
+			m_fSequenceFinished = true;
+	}
 
 	int index = 0;
 
