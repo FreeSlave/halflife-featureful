@@ -1124,6 +1124,11 @@ bool CBaseMonster::FCanCheckAttacks( void )
 	return false;
 }
 
+bool CBaseMonster::WantsToGetCloseToEnemy()
+{
+	return !FBitSet(m_afCapability, bits_CAP_RANGE_ATTACK1|bits_CAP_RANGE_ATTACK2) && FBitSet(m_afCapability, bits_CAP_MELEE_ATTACK1|bits_CAP_MELEE_ATTACK1);
+}
+
 //=========================================================
 // CheckEnemy - part of the Condition collection process,
 // gets and stores data and conditions pertaining to a monster's
@@ -1282,7 +1287,7 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 	{
 		for( int i = m_iRouteIndex; i < ROUTE_SIZE; i++ )
 		{
-			if( m_Route[i].iType == ( bits_MF_IS_GOAL | bits_MF_TO_ENEMY ) )
+			if( m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY) || m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY|bits_MF_NEAREST_PATH) )
 			{
 				// UNDONE: Should we allow monsters to override this distance (80?)
 				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).Length() > 80.0f )
@@ -1686,7 +1691,11 @@ int CBaseMonster::RouteClassify( int iMoveFlag )
 			movementGoal = MOVEGOAL_TARGETENT_NEAREST;
 	}
 	else if( iMoveFlag & bits_MF_TO_ENEMY )
+	{
 		movementGoal = MOVEGOAL_ENEMY;
+		if( iMoveFlag & bits_MF_NEAREST_PATH )
+			movementGoal = MOVEGOAL_ENEMY_NEAREST;
+	}
 	else if( iMoveFlag & bits_MF_TO_PATHCORNER )
 		movementGoal = MOVEGOAL_PATHCORNER;
 	else if( iMoveFlag & bits_MF_TO_NODE )
@@ -1793,6 +1802,9 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 
 		m_vecMoveGoal = localMoveNearest;
 
+		// Prevent playing walk/run animation while standing in place
+		const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
+
 		Vector apex;
 		const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
 
@@ -1814,8 +1826,9 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 				RouteSimplify( pTarget );
 			}
 			m_vecMoveGoal = triangulatedNearest;
+			return true;
 		}
-		return true;
+		return distToMoveStraight >= 1.0f;
 	}
 
 	// b0rk

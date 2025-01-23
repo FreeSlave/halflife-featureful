@@ -108,6 +108,7 @@ bool CBaseMonster::CheckRangeAttack1( float flDot, float flDist ) { return false
 bool CBaseMonster::CheckRangeAttack2( float flDot, float flDist ) { return false; }
 bool CBaseMonster::CheckMeleeAttack1( float flDot, float flDist ) { return false; }
 bool CBaseMonster::CheckMeleeAttack2( float flDot, float flDist ) { return false; }
+bool CBaseMonster::WantsToGetCloseToEnemy() { return false; }
 bool CBaseMonster::FCanCheckAttacks( void ) { return false; }
 bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy ) { return false; }
 void CBaseMonster::SetActivity( Activity NewActivity ) { }

@@ -190,6 +190,7 @@ public:
 	virtual bool CheckRangeAttack2( float flDot, float flDist );
 	virtual bool CheckMeleeAttack1( float flDot, float flDist );
 	virtual bool CheckMeleeAttack2( float flDot, float flDist );
+	virtual bool WantsToGetCloseToEnemy();
 
 	bool FHaveSchedule( void );
 	bool FScheduleValid( void );

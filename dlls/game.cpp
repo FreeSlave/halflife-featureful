@@ -810,9 +810,8 @@ cvar_t use_through_walls = { "use_through_walls", "1", FCVAR_SERVER };
 cvar_t items_physics_fix = { "items_physics_fix", "0", FCVAR_SERVER };
 cvar_t npc_tridepth = { "npc_tridepth", "1", FCVAR_SERVER };
 cvar_t npc_tridepth_all = { "npc_tridepth_all", "0", FCVAR_SERVER };
-#if FEATURE_NPC_NEAREST_CVAR
-cvar_t npc_nearest = { "npc_nearest", "0", FCVAR_SERVER };
-#endif
+cvar_t npc_follow_nearest = { "npc_follow_nearest", "0", FCVAR_SERVER };
+cvar_t npc_get_to_enemy_nearest = { "npc_get_to_enemy_nearest", "0", FCVAR_SERVER };
 cvar_t npc_forget_enemy_time = { "npc_forget_enemy_time", "0", FCVAR_SERVER };
 #if FEATURE_NPC_FIX_MELEE_DISTANCE_CVAR
 cvar_t npc_fix_melee_distance = { "npc_fix_melee_distance", "0", FCVAR_SERVER };
@@ -1613,9 +1612,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &items_physics_fix );
 	CVAR_REGISTER( &npc_tridepth );
 	CVAR_REGISTER( &npc_tridepth_all );
-#if FEATURE_NPC_NEAREST_CVAR
-	CVAR_REGISTER( &npc_nearest );
-#endif
+	CVAR_REGISTER( &npc_follow_nearest );
+	CVAR_REGISTER( &npc_get_to_enemy_nearest );
 	CVAR_REGISTER( &npc_forget_enemy_time );
 #if FEATURE_NPC_FIX_MELEE_DISTANCE_CVAR
 	CVAR_REGISTER( &npc_fix_melee_distance );

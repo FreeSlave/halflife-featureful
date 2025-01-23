@@ -1306,7 +1306,12 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				return;
 			}
 
-			if( BuildRoute( pEnemy->pev->origin, bits_MF_TO_ENEMY, pEnemy ) )
+			int routeFlags = bits_MF_TO_ENEMY;
+			if (NpcGetToEnemyNearest() && WantsToGetCloseToEnemy())
+			{
+				routeFlags |= bits_MF_NEAREST_PATH;
+			}
+			if( BuildRoute( pEnemy->pev->origin, routeFlags, pEnemy ) )
 			{
 				TaskComplete();
 			}

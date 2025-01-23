@@ -420,6 +420,7 @@ int TridepthValue();
 bool TridepthForAll();
 bool AllowUseThroughWalls();
 bool NpcFollowNearest();
+bool NpcGetToEnemyNearest();
 float NpcForgetEnemyTime();
 bool NpcActiveAfterCombat();
 bool NpcFollowOutOfPvs();

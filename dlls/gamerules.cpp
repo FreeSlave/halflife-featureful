@@ -774,12 +774,14 @@ bool AllowUseThroughWalls()
 
 bool NpcFollowNearest()
 {
-#if FEATURE_NPC_NEAREST_CVAR
-	extern cvar_t npc_nearest;
-	return npc_nearest.value != 0;
-#else
-	return false;
-#endif
+	extern cvar_t npc_follow_nearest;
+	return npc_follow_nearest.value != 0;
+}
+
+bool NpcGetToEnemyNearest()
+{
+	extern cvar_t npc_get_to_enemy_nearest;
+	return npc_get_to_enemy_nearest.value != 0;
 }
 
 float NpcForgetEnemyTime()

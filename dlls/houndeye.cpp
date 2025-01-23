@@ -124,6 +124,7 @@ public:
 	void SetActivity( Activity NewActivity );
 	const Visual* GetWaveVisual();
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
+	bool WantsToGetCloseToEnemy() override;
 	bool FValidateHintType( short sHint ) override;
 	bool FCanActiveIdle( void ) override;
 	Schedule_t *GetScheduleOfType( int Type );
@@ -332,6 +333,11 @@ bool CHoundeye::CheckRangeAttack1( float flDot, float flDist )
 		return true;
 	}
 	return false;
+}
+
+bool CHoundeye::WantsToGetCloseToEnemy()
+{
+	return true;
 }
 
 //=========================================================
