@@ -1279,9 +1279,14 @@ void CBaseMonster::RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars
 //
 // Used for many contact-range melee attacks. Bites, claws, etc.
 //=========================================================
+extern cvar_t npc_trace_hull_attack_retry;
+
 CBaseEntity* CBaseMonster::CheckTraceHullAttack( float flDist, int iDamage, int iDmgType )
 {
-	return CheckTraceHullAttack( flDist, iDamage, iDmgType, pev->size.z * 0.5f );
+	CBaseEntity* pHurt = CheckTraceHullAttack( flDist, iDamage, iDmgType, pev->size.z * 0.5f );
+	if (npc_trace_hull_attack_retry.value && iDmgType > 0 && (!pHurt || !pHurt->pev->takedamage))
+		pHurt = CheckTraceHullAttack( flDist, iDamage, iDmgType, pev->size.z * 0.75f );
+	return pHurt;
 }
 
 CBaseEntity* CBaseMonster::CheckTraceHullAttack( float flDist, int iDamage, int iDmgType, float height )

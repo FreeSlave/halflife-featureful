@@ -813,6 +813,7 @@ cvar_t npc_tridepth_all = { "npc_tridepth_all", "0", FCVAR_SERVER };
 cvar_t npc_follow_nearest = { "npc_follow_nearest", "0", FCVAR_SERVER };
 cvar_t npc_get_to_enemy_nearest = { "npc_get_to_enemy_nearest", "0", FCVAR_SERVER };
 cvar_t npc_forget_enemy_time = { "npc_forget_enemy_time", "0", FCVAR_SERVER };
+cvar_t npc_trace_hull_attack_retry = { "npc_trace_hull_attack_retry", "0", FCVAR_SERVER };
 #if FEATURE_NPC_FIX_MELEE_DISTANCE_CVAR
 cvar_t npc_fix_melee_distance = { "npc_fix_melee_distance", "0", FCVAR_SERVER };
 #endif
@@ -1615,6 +1616,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &npc_follow_nearest );
 	CVAR_REGISTER( &npc_get_to_enemy_nearest );
 	CVAR_REGISTER( &npc_forget_enemy_time );
+	CVAR_REGISTER( &npc_trace_hull_attack_retry );
 #if FEATURE_NPC_FIX_MELEE_DISTANCE_CVAR
 	CVAR_REGISTER( &npc_fix_melee_distance );
 #endif
