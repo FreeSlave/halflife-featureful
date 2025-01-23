@@ -12,9 +12,11 @@
 #define PANTHEREYE_AE_STRIKE_RIGHT_LOW				( 2 )
 #define PANTHEREYE_AE_STRIKE_RIGHT_HIGH				( 3 )
 
+#define PANTHEREYE_MELEE_DISTANCE 84
+
 struct PantherStrikeParams
 {
-	float forwardDistance = 70.0f;
+	float forwardDistance = PANTHEREYE_MELEE_DISTANCE;
 	float punchz = 0.0f;
 	float velRightScalar = 0.0f;
 	float velForwardScalar = 0.0f;
@@ -46,8 +48,8 @@ public:
 	int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
 
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 64.0f ); }
 
 	static constexpr const char* attackHitSoundScript = "PantherEye.AttackHit";
 	static constexpr const char* attackMissSoundScript = "PantherEye.AttackMiss";
@@ -122,7 +124,7 @@ void CPantherEye::Spawn()
 	Precache();
 
 	SetMyModel("models/panthereye.mdl");
-	SetMySize(Vector (-32, -16, 0 ), Vector ( 32, 16, 64) );
+	SetMySize(DefaultMinHullSize(), DefaultMaxHullSize());
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
@@ -151,7 +153,7 @@ void CPantherEye::Precache()
 
 bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
 {
-	if ( flDist <= 64.0f && flDot >= 0.7f && m_hEnemy != 0 && FBitSet ( m_hEnemy->pev->flags, FL_ONGROUND ) )
+	if ( HasConditions(bits_COND_SEE_ENEMY) && flDist <= PANTHEREYE_MELEE_DISTANCE && flDot >= 0.7f && m_hEnemy != 0 )
 	{
 		return true;
 	}
