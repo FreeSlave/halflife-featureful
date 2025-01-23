@@ -44,8 +44,8 @@ public:
 	{
 		SetMyObjectCollisionBox(Vector( -400, -400, 0 ), Vector( 400, 400, 850 ));
 	}
-	bool FVisible(CBaseEntity* pEntity) override;
-	bool FVisible(const Vector& vecOrigin) override;
+	bool FVisible(CBaseEntity* pEntity, CBaseEntity** ppSightBlocker = nullptr) override;
+	bool FVisible(const Vector& vecOrigin, CBaseEntity** ppSightBlocker = nullptr) override;
 
 	void IdleSound(void);
 	void AlertSound(void);
@@ -388,7 +388,7 @@ void CPitWorm::Precache()
 	PRECACHE_MODEL("sprites/tele1.spr");
 }
 
-bool CPitWorm::FVisible(CBaseEntity *pEntity)
+bool CPitWorm::FVisible(CBaseEntity *pEntity, CBaseEntity** ppSightBlocker)
 {
 	if( FBitSet( pEntity->pev->flags, FL_NOTARGET ) )
 		return false;
@@ -406,7 +406,7 @@ bool CPitWorm::FVisible(CBaseEntity *pEntity)
 	return tr.flFraction == 1.0;
 }
 
-bool CPitWorm::FVisible(const Vector& vecOrigin)
+bool CPitWorm::FVisible(const Vector& vecOrigin, CBaseEntity** ppSightBlocker)
 {
 	TraceResult tr;
 	Vector vecLookerOrigin;

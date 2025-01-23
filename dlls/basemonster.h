@@ -234,6 +234,7 @@ public:
 
 	void CheckAttacks( CBaseEntity *pTarget, float flDist, float flMeleeDist );
 	virtual bool CheckEnemy( CBaseEntity *pEnemy );
+	virtual bool PerceiveEnemyAsOccluded(CBaseEntity* pEnemy, CBaseEntity* pOccluder) { return true; }
 	void SetEnemy( CBaseEntity* pEnemy );
 	void PushEnemy(CBaseEntity *pEnemy, const Vector &vecLastKnownPos );
 	bool PopEnemy( void );

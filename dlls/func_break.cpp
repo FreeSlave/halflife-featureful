@@ -932,6 +932,11 @@ int CBreakable::DamageDecal( int bitsDamageType )
 	return CBaseEntity::DamageDecal( bitsDamageType );
 }
 
+bool CBreakable::IsDestroyableObstacle()
+{
+	return CBaseDelay::IsDestroyableObstacle() && IsBreakable();
+}
+
 class CPushable : public CBreakable
 {
 public:
@@ -956,6 +961,7 @@ public:
 	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 
 	int DamageDecal(int bitsDamageType);
+	bool IsDestroyableObstacle();
 	bool ShouldCollideWithCorpses() { return !m_ignoreCorpses; }
 
 	static TYPEDESCRIPTION m_SaveData[];
@@ -1220,6 +1226,11 @@ int CPushable::DamageDecal(int bitsDamageType)
 		return CBreakable::DamageDecal(bitsDamageType);
 
 	return CBaseEntity::DamageDecal(bitsDamageType);
+}
+
+bool CPushable::IsDestroyableObstacle()
+{
+	return FBitSet(pev->spawnflags, SF_PUSH_BREAKABLE) && CBreakable::IsDestroyableObstacle();
 }
 
 #define FUNC_BREAKABLE_REPEATABLE 1

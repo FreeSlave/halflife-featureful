@@ -17,6 +17,7 @@ enum
 {
 	SCHED_HWGRUNT_SHOOT = LAST_FOLLOWINGMONSTER_SCHEDULE + 1,
 	SCHED_HWGRUNT_SPINDOWN,
+	SCHED_HWGRUNT_SUPPRESSING_FIRE,
 	SCHED_HWGRUNT_REPEL,
 	SCHED_HWGRUNT_REPEL_ATTACK,
 	SCHED_HWGRUNT_REPEL_LAND,
@@ -25,7 +26,10 @@ enum
 enum
 {
 	TASK_HWGRUNT_PLAY_SPINDOWN = LAST_FOLLOWINGMONSTER_TASK + 1,
+	TASK_HWGRUNT_RELOAD,
 };
+
+#define HWGRUNT_CLIP 100
 
 class CHWGrunt : public CFollowingMonster
 {
@@ -40,6 +44,7 @@ public:
 	int DefaultISoundMask( void );
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void SetActivity( Activity NewActivity );
+	void CheckAmmo();
 	bool CheckMeleeAttack1( float flDot, float flDist ) override {
 		return false;
 	}
@@ -50,6 +55,7 @@ public:
 	bool CheckRangeAttack2( float flDot, float flDist ) override {
 		return false;
 	}
+	bool PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder) override;
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
 
@@ -59,9 +65,11 @@ public:
 	void DeathSound( void );
 	void PainSound( void );
 	void Shoot();
+	void FinishReload();
 
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
+	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
 
 	virtual int SizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
@@ -75,6 +83,8 @@ public:
 	CUSTOM_SCHEDULES
 
 	float m_flNextPainTime;
+	EHANDLE m_lastOccluder;
+	bool m_firing;
 
 	int		m_iM249Shell;
 	int		m_iM249Link;
@@ -94,7 +104,8 @@ LINK_ENTITY_TO_CLASS( monster_hwgrunt, CHWGrunt )
 
 TYPEDESCRIPTION	CHWGrunt::m_SaveData[] =
 {
-	DEFINE_FIELD( CHGrunt, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CHWGrunt, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CHWGrunt, m_lastOccluder, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CHWGrunt, CFollowingMonster )
@@ -138,6 +149,7 @@ void CHWGrunt::Spawn()
 	m_fEnemyEluded		= false;
 
 	m_HackedGunPos = Vector( 0, 0, 55 );
+	m_cAmmoLoaded = HWGRUNT_CLIP;
 
 	FollowingMonsterInit();
 }
@@ -224,6 +236,14 @@ void CHWGrunt::SetActivity( Activity NewActivity )
 	CFollowingMonster::SetActivity(NewActivity);
 }
 
+void CHWGrunt::CheckAmmo()
+{
+	if (m_cAmmoLoaded <= 0)
+	{
+		SetConditions(bits_COND_NO_AMMO_LOADED);
+	}
+}
+
 bool CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist <= 2048 && flDot >= 0.5 && NoFriendlyFire() )
@@ -241,6 +261,20 @@ bool CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 	}
 
 	return false;
+}
+
+bool CHWGrunt::PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder)
+{
+	if (pOccluder->IsDestroyableObstacle())
+	{
+		if (pEnemy && m_lastOccluder != pOccluder)
+		{
+			m_lastOccluder = pOccluder;
+			m_vecEnemyLKP = pEnemy->pev->origin;
+		}
+		return false;
+	}
+	return true;
 }
 
 void CHWGrunt::StartTask( Task_t *pTask )
@@ -267,7 +301,27 @@ void CHWGrunt::StartTask( Task_t *pTask )
 		}
 		else
 		{
+			ALERT(at_aiconsole, "%s: couldn't find the \"spindown\" animation\n", STRING(pev->classname));
 			TaskComplete();
+		}
+	}
+		break;
+	case TASK_HWGRUNT_RELOAD:
+	{
+		if (m_cAmmoLoaded >= HWGRUNT_CLIP)
+			TaskComplete();
+		else
+		{
+			float delay = (HWGRUNT_CLIP - m_cAmmoLoaded) / static_cast<float>(HWGRUNT_CLIP);
+			if (delay >= 0.1f)
+			{
+				m_flWaitFinished = gpGlobals->time + delay;
+			}
+			else
+			{
+				FinishReload();
+				TaskComplete();
+			}
 		}
 	}
 		break;
@@ -304,6 +358,13 @@ void CHWGrunt::RunTask( Task_t *pTask )
 		// The fire rate depends on Think rate which is 0.1 for monsters.
 		Shoot();
 		CFollowingMonster::RunTask(pTask);
+		break;
+	case TASK_HWGRUNT_RELOAD:
+		if( gpGlobals->time >= m_flWaitFinished )
+		{
+			FinishReload();
+			TaskComplete();
+		}
 		break;
 	default:
 		CFollowingMonster::RunTask(pTask);
@@ -360,13 +421,23 @@ void CHWGrunt::Shoot()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
+	m_cAmmoLoaded--;
+
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
+}
+
+void CHWGrunt::FinishReload()
+{
+	m_cAmmoLoaded = HWGRUNT_CLIP;
+	ClearConditions( bits_COND_NO_AMMO_LOADED );
 }
 
 Task_t tlHWGruntStartRangeAttack[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_HWGRUNT_RELOAD, (float)0 },
 	{ TASK_PLAY_SEQUENCE_FACE_ENEMY, (float)ACT_THREAT_DISPLAY },
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_HWGRUNT_SPINDOWN },
 	{ TASK_SET_SCHEDULE, (float)SCHED_HWGRUNT_SHOOT }
@@ -381,8 +452,6 @@ Schedule_t slHWGruntStartRangeAttack[] =
 		bits_COND_ENEMY_DEAD |
 		bits_COND_ENEMY_LOST |
 		bits_COND_HEAVY_DAMAGE |
-		bits_COND_ENEMY_OCCLUDED |
-		bits_COND_NO_AMMO_LOADED |
 		bits_COND_NOFIRE |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER,
@@ -417,10 +486,63 @@ Schedule_t slHWGruntContinueRangeAttack[] =
 	},
 };
 
+Task_t tlHWGruntSuppressingRangeAttack[] =
+{
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_HWGRUNT_SPINDOWN },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+};
+
+Schedule_t slHWGruntSuppressingRangeAttack[] =
+{
+	{
+		tlHWGruntSuppressingRangeAttack,
+		ARRAYSIZE( tlHWGruntSuppressingRangeAttack ),
+		bits_COND_NEW_ENEMY |
+		bits_COND_ENEMY_DEAD |
+		bits_COND_ENEMY_LOST |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NO_AMMO_LOADED |
+		bits_COND_NOFIRE |
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER,
+		"HWGrunt Suppressing Range Attack"
+	},
+};
+
 Task_t tlHWGruntSpindown[] =
 {
 	{ TASK_HWGRUNT_PLAY_SPINDOWN, (float)0 },
 	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_HWGRUNT_RELOAD, (float)0 },
 };
 
 Schedule_t slHWGruntSpindown[] =
@@ -527,9 +649,19 @@ Schedule_t *CHWGrunt::GetSchedule( void )
 			return followingSchedule;
 		break;
 	}
+	case MONSTERSTATE_COMBAT:
+		if( HasConditions( bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST ) )
+			return CBaseMonster::GetSchedule();
+		if (HasConditions(bits_COND_ENEMY_OCCLUDED) && m_firing)
+		{
+			return GetScheduleOfType(SCHED_HWGRUNT_SUPPRESSING_FIRE);
+		}
+		break;
 	default:
 		break;
 	}
+	if (m_firing)
+		return GetScheduleOfType(SCHED_HWGRUNT_SPINDOWN);
 	return CFollowingMonster::GetSchedule();
 }
 
@@ -544,6 +676,10 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 	case SCHED_HWGRUNT_SHOOT:
 		{
 			return slHWGruntContinueRangeAttack;
+		}
+	case SCHED_HWGRUNT_SUPPRESSING_FIRE:
+		{
+			return slHWGruntSuppressingRangeAttack;
 		}
 	case SCHED_HWGRUNT_SPINDOWN:
 		{
@@ -564,6 +700,12 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 			return CFollowingMonster::GetScheduleOfType(Type);
 		}
 	}
+}
+
+void CHWGrunt::OnChangeSchedule(Schedule_t *pNewSchedule)
+{
+	CFollowingMonster::OnChangeSchedule(pNewSchedule);
+	m_firing = pNewSchedule == slHWGruntContinueRangeAttack;
 }
 
 class CHWGruntRepel : public CHGruntRepel

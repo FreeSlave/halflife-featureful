@@ -1377,7 +1377,7 @@ bool CBaseMonster::FInViewCone( Vector *pOrigin )
 // FVisible - returns true if a line can be traced from
 // the caller's eyes to the target
 //=========================================================
-bool CBaseEntity::FVisible( CBaseEntity *pEntity )
+bool CBaseEntity::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )
 {
 	TraceResult tr;
 	Vector		vecLookerOrigin;
@@ -1402,6 +1402,13 @@ bool CBaseEntity::FVisible( CBaseEntity *pEntity )
 
 	if( tr.flFraction != 1.0f )
 	{
+		if (ppSightBlocker)
+		{
+			if (tr.pHit)
+				*ppSightBlocker = CBaseEntity::Instance(tr.pHit);
+			else
+				*ppSightBlocker = nullptr;
+		}
 		return false;// Line of sight is not established
 	}
 	else
@@ -1414,7 +1421,7 @@ bool CBaseEntity::FVisible( CBaseEntity *pEntity )
 // FVisible - returns true if a line can be traced from
 // the caller's eyes to the target vector
 //=========================================================
-bool CBaseEntity::FVisible( const Vector &vecOrigin )
+bool CBaseEntity::FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocker )
 {
 	TraceResult tr;
 	Vector		vecLookerOrigin;
@@ -1425,6 +1432,13 @@ bool CBaseEntity::FVisible( const Vector &vecOrigin )
 
 	if( tr.flFraction != 1.0f )
 	{
+		if (ppSightBlocker)
+		{
+			if (tr.pHit)
+				*ppSightBlocker = CBaseEntity::Instance(tr.pHit);
+			else
+				*ppSightBlocker = nullptr;
+		}
 		return false;// Line of sight is not established
 	}
 	else

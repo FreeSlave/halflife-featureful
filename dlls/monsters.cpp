@@ -1142,10 +1142,19 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 	iUpdatedLKP = false;
 	ClearConditions( bits_COND_ENEMY_FACING_ME | bits_COND_ENEMY_LOST );
 
-	if( !FVisible( pEnemy ) )
+	CBaseEntity* pOccluder;
+	if( !FVisible( pEnemy, &pOccluder ) )
 	{
 		ASSERT( !HasConditions( bits_COND_SEE_ENEMY ) );
-		SetConditions( bits_COND_ENEMY_OCCLUDED );
+		if (pOccluder)
+		{
+			if (PerceiveEnemyAsOccluded(pEnemy, pOccluder))
+				SetConditions( bits_COND_ENEMY_OCCLUDED );
+			else
+				ClearConditions( bits_COND_ENEMY_OCCLUDED );
+		}
+		else
+			SetConditions( bits_COND_ENEMY_OCCLUDED );
 	}
 	else
 		ClearConditions( bits_COND_ENEMY_OCCLUDED );

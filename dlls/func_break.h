@@ -75,6 +75,7 @@ public:
 	bool IsBreakable( void );
 
 	int DamageDecal( int bitsDamageType );
+	bool IsDestroyableObstacle() override;
 
 	void EXPORT Die( void );
 	void DieToActivator(CBaseEntity* pActivator);

@@ -444,8 +444,8 @@ public:
 
 	virtual int Illumination() { return GETENTITYILLUM( ENT( pev ) ); };
 
-	virtual	bool FVisible( CBaseEntity *pEntity );
-	virtual	bool FVisible( const Vector &vecOrigin );
+	virtual	bool FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker = nullptr );
+	virtual	bool FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocker = nullptr );
 
 	virtual void AddFloatPoints( float score, bool bAllowNegativeScore ) {}
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_NOT_A_TARGET; }
@@ -458,6 +458,7 @@ public:
 	virtual bool HasFlesh() { return DefaultClassify() != CLASS_NONE && DefaultClassify() != CLASS_MACHINE; }
 	virtual float InputByMonster(CBaseMonster* pMonster) { return 0.0f; }
 	virtual NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) { return NLE_PROHIBIT; }
+	virtual bool IsDestroyableObstacle() { return false; }
 
 	virtual void SendMessages(CBaseEntity* pClient) {}
 	virtual bool HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
