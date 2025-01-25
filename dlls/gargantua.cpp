@@ -423,6 +423,9 @@ public:
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;		// Swipe
 	bool CheckMeleeAttack2( float flDot, float flDist ) override;		// Flames
 	bool CheckRangeAttack1( float flDot, float flDist ) override;		// Stomp attack
+	bool WantsToGetCloseToEnemy() override {
+		return true;
+	}
 	void SetObjectCollisionBox( void )
 	{
 		SetMyObjectCollisionBox(Vector( -80, -80, 0 ), Vector( 80, 80, 214 ));

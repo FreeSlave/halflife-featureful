@@ -1791,6 +1791,59 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 		}
 	}
 
+	auto nearestBuildRoute = [&]()
+	{
+		if (nearest && !FBitSet(buildRouteFlags, BUILDROUTE_NODEROUTE_ONLY))
+		{
+			SetBits(iMoveFlag, bits_MF_NEAREST_PATH);
+
+			const Vector localMoveNearest = pev->origin + (vecGoal - pev->origin).Normalize() * flDist;
+
+			m_Route[0].vecLocation = localMoveNearest;
+			m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+
+			m_vecMoveGoal = localMoveNearest;
+
+			// Prevent playing walk/run animation while standing in place
+			const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
+
+			Vector apex;
+			const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
+
+			if ((vecGoal - triangulatedNearest).Length2D() < (vecGoal - localMoveNearest).Length2D())
+			{
+				if ((apex - triangulatedNearest).Length2D() < 1)
+				{
+					m_Route[0].vecLocation = triangulatedNearest;
+					m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+				}
+				else
+				{
+					m_Route[0].vecLocation = apex;
+					m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
+
+					m_Route[1].vecLocation = triangulatedNearest;
+					m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
+
+					RouteSimplify( pTarget );
+				}
+				m_vecMoveGoal = triangulatedNearest;
+				return true;
+			}
+			return distToMoveStraight >= 1.0f;
+		}
+		return false;
+	};
+
+	// If monster want to nearest route to enemy, it means he wants to get closer, so do this check before nodes
+	if (FBitSet(iMoveFlag, bits_MF_TO_ENEMY))
+	{
+		if (nearestBuildRoute())
+		{
+			return true;
+		}
+	}
+
 	// last ditch, try nodes
 	if( !FBitSet(buildRouteFlags, BUILDROUTE_NO_NODEROUTE) && FGetNodeRoute( vecGoal ) )
 	{
@@ -1800,44 +1853,12 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 		return true;
 	}
 
-	if (nearest && !FBitSet(buildRouteFlags, BUILDROUTE_NODEROUTE_ONLY))
+	if (!FBitSet(iMoveFlag, bits_MF_TO_ENEMY))
 	{
-		SetBits(iMoveFlag, bits_MF_NEAREST_PATH);
-
-		const Vector localMoveNearest = pev->origin + (vecGoal - pev->origin).Normalize() * flDist;
-
-		m_Route[0].vecLocation = localMoveNearest;
-		m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
-
-		m_vecMoveGoal = localMoveNearest;
-
-		// Prevent playing walk/run animation while standing in place
-		const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
-
-		Vector apex;
-		const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
-
-		if ((vecGoal - triangulatedNearest).Length2D() < (vecGoal - localMoveNearest).Length2D())
+		if (nearestBuildRoute())
 		{
-			if ((apex - triangulatedNearest).Length2D() < 1)
-			{
-				m_Route[0].vecLocation = triangulatedNearest;
-				m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
-			}
-			else
-			{
-				m_Route[0].vecLocation = apex;
-				m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
-
-				m_Route[1].vecLocation = triangulatedNearest;
-				m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
-
-				RouteSimplify( pTarget );
-			}
-			m_vecMoveGoal = triangulatedNearest;
 			return true;
 		}
-		return distToMoveStraight >= 1.0f;
 	}
 
 	// b0rk
