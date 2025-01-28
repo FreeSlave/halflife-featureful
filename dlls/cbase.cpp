@@ -117,7 +117,17 @@ int ShouldCollide(edict_t *pentTouched, edict_t *pentOther)
 	if (!FNullEnt(pentTouched) && !FNullEnt(pentOther))
 	{
 		CBaseEntity* pTouched = CBaseEntity::Instance(pentTouched);
+		if (!pTouched)
+		{
+			ALERT(at_console, "ShouldCollide: pentTouched '%s' is reported as not null ent, but the instance is null!\n", STRING(pentTouched->v.classname));
+			return 1;
+		}
 		CBaseEntity* pOther = CBaseEntity::Instance(pentOther);
+		if (!pOther)
+		{
+			ALERT(at_console, "ShouldCollide: pentOther '%s' is reported as not null ent, but the instance is null!\n", STRING(pentOther->v.classname));
+			return 1;
+		}
 		return pTouched->ShouldCollide(pOther) ? 1 : 0;
 	}
 	return 1;
