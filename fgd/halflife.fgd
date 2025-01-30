@@ -433,6 +433,8 @@
 		9 : "Hear Combat"
 		10: "See Player Unconditional"
 		11: "See Player, Not In Combat"
+		12: "Provoked by player (got mad)"
+		13: "Got healed"
 	]
 	TriggerAltCondition(Choices) : "Trigger Alternative Condition" : : "Alternative condition to fire TriggerTarget (useful to make an important ally fire the same target both when either provoked or dead which is usually a load game condition)" =
 	[
@@ -446,6 +448,8 @@
 		9 : "Hear Combat"
 		10: "See Player Unconditional"
 		11: "See Player, Not In Combat"
+		12: "Provoked by player (got mad)"
+		13: "Got healed"
 	]
 	model(studio) : "Custom Model"
 ]
@@ -7486,6 +7490,8 @@
 		9 : "Hear Combat"
 		10: "See Player Unconditional"
 		11: "See Player, Not In Combat"
+		12: "Provoked by player (got mad)"
+		13: "Got healed"
 	]
 	trigger_alt_condition(Choices) : "Trigger Alternative Condition" : : "Alternative condition to fire TriggerTarget (useful to make an important ally fire the same target both when either provoked or dead which is usually a load game condition)" =
 	[
@@ -7499,6 +7505,8 @@
 		9 : "Hear Combat"
 		10: "See Player Unconditional"
 		11: "See Player, Not In Combat"
+		12: "Provoked by player (got mad)"
+		13: "Got healed"
 	]
 	new_model(studio) : "Custom model"
 ]

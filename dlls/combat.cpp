@@ -998,7 +998,12 @@ int CBaseMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamag
 
 	m_bitsDamageType &= ~( bitsDamageType & ~DMG_TIMEBASED );
 
-	return CBaseEntity::TakeHealth( pHealer, flHealth, bitsDamageType );
+	int result = CBaseEntity::TakeHealth( pHealer, flHealth, bitsDamageType );
+	if (result > 0 && pHealer != this)
+	{
+		Remember(bits_MEMORY_GOT_HEALED_RECENTLY);
+	}
+	return result;
 }
 
 void AddScoreForDamage(entvars_t *pevAttacker, CBaseEntity* victim, const float damage)

@@ -3840,6 +3840,22 @@ bool CBaseMonster::FCheckAITrigger( short condition )
 			fFireTarget = true;
 		}
 		break;
+	case AITRIGGER_PROVOKED_BY_PLAYER:
+		{
+			if (HasMemory(bits_MEMORY_PROVOKED))
+			{
+				fFireTarget = true;
+			}
+		}
+		break;
+	case AITRIGGER_GOTHEALED:
+		{
+			if (HasMemory(bits_MEMORY_GOT_HEALED_RECENTLY))
+			{
+				fFireTarget = true;
+			}
+		}
+		break;
 	}
 
 	if( fFireTarget )
@@ -3853,6 +3869,7 @@ bool CBaseMonster::FCheckAITrigger( short condition )
 		return true;
 	}
 
+	Forget(bits_MEMORY_GOT_HEALED_RECENTLY);
 	return false;
 }
 
