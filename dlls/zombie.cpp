@@ -231,7 +231,7 @@ void CZombie::ZombieSpawnHelper(const char* modelName, float health)
 	pev->view_ofs		= VEC_VIEW;// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability		= bits_CAP_DOORS_GROUP;
+	SetMyCanOpenDoors(true);
 
 	MonsterInit();
 }

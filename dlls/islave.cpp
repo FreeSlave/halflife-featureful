@@ -1405,10 +1405,9 @@ void CISlave::Spawn()
 	pev->view_ofs		= Vector( 0, 0, 64 );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // NOTE: we need a wide field of view so npc will notice player and say hello
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability		= bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_RANGE_ATTACK2 | bits_CAP_DOORS_GROUP;
-
-	if (g_modFeatures.vortigaunt_squad)
-		m_afCapability |= bits_CAP_SQUAD;
+	m_afCapability		= bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_RANGE_ATTACK2;
+	SetMySquadCapabilities(g_modFeatures.vortigaunt_squad ? bits_CAP_SQUAD : 0);
+	SetMyCanOpenDoors(true);
 
 	m_voicePitch		= RANDOM_LONG( 85, 110 );
 

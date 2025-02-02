@@ -124,6 +124,8 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 	void Activate();
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
+	void SetMySquadCapabilities(int defaultCaps = 0);
+	void SetMyCanOpenDoors(bool enable);
 
 	// monster use function
 	void EXPORT MonsterUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );

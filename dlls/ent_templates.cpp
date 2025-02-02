@@ -457,6 +457,38 @@ void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Va
 		}
 	}
 
+	{
+		auto it = value.FindMember("squad_capability");
+		if (it != value.MemberEnd())
+		{
+			if (it->value.IsBool())
+			{
+				SquadCapabilities caps;
+				caps.canRecruit = it->value.GetBool();
+				entTemplate.SetSquadCapabilities(caps);
+			}
+			else if (it->value.IsObject())
+			{
+				Value& obj = it->value;
+				SquadCapabilities caps;
+				UpdatePropertyFromJson(caps.canRecruit, obj, "can_recruit");
+				UpdatePropertyFromJson(caps.denyRecruiting, obj, "deny_recruiting");
+				UpdatePropertyFromJson(caps.allowDifferentClassification, obj, "allow_different_classification");
+				UpdatePropertyFromJson(caps.requireSameClassname, obj, "require_same_classname");
+				UpdatePropertyFromJson(caps.requireSameEntTemplate, obj, "require_same_ent_template");
+				entTemplate.SetSquadCapabilities(caps);
+			}
+		}
+	}
+
+	{
+		auto it = value.FindMember("open_door_capability");
+		if (it != value.MemberEnd())
+		{
+			entTemplate.SetCanOpenDoors(it->value.GetBool());
+		}
+	}
+
 	_entTemplates[templateName] = entTemplate;
 }
 

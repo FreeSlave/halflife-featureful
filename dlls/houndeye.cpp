@@ -456,7 +456,8 @@ void CHoundeye::Spawn()
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_iAsleep		= HOUNDEYE_AWAKE; // everyone spawns awake
 	m_iBlink		= HOUNDEYE_BLINK;
-	m_afCapability		|= bits_CAP_SQUAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD|bits_CAP_SQUAD_SAME_CLASSNAME);
+	SetMyCanOpenDoors(false);
 
 	MonsterInit();
 }

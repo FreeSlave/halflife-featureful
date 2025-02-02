@@ -6,11 +6,21 @@
 #include "visuals.h"
 #include "soundscripts.h"
 #include "json_config.h"
+#include "tribool.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
+
+struct SquadCapabilities
+{
+	tribool canRecruit;
+	tribool denyRecruiting;
+	tribool allowDifferentClassification;
+	tribool requireSameClassname;
+	tribool requireSameEntTemplate;
+};
 
 struct EntTemplate
 {
@@ -143,7 +153,7 @@ public:
 		return (_defined & SIZEFORGRAPPLE_DEFINED) != 0;
 	}
 	int SizeForGrapple() const {
-		return _sizeForGrapple;const char* SoundReplacementFor(const char* sound);
+		return _sizeForGrapple;
 	}
 	void SetSizeForGrapple(int sizeForGrapple)
 	{
@@ -154,6 +164,23 @@ public:
 	const char* SpeechPrefix() const;
 	void SetSpeechPrefix(const std::string& speechPrefix) {
 		_speechPrefix = speechPrefix;
+	}
+
+	SquadCapabilities GetSquadCapabilities() const {
+		return _squadCapabilities;
+	}
+	void SetSquadCapabilities(const SquadCapabilities& caps) {
+		_squadCapabilities = caps;
+	}
+
+	bool IsOpenDoorCapabilityDefined() const {
+		return !indeterminate(_openDoorCapability);
+	}
+	bool CanOpenDoors() const {
+		return (bool)_openDoorCapability;
+	}
+	void SetCanOpenDoors(bool enable) {
+		_openDoorCapability = enable;
 	}
 private:
 	std::map<std::string, std::string> _soundScripts;
@@ -190,6 +217,8 @@ private:
 	short _sizeForGrapple = 0;
 
 	std::string _speechPrefix;
+	SquadCapabilities _squadCapabilities;
+	tribool _openDoorCapability;
 };
 
 class EntTemplateSystem : public JSONConfig

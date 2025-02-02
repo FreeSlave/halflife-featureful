@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "tribool.h"
 #include "vector.h"
 #include "rapidjson/document.h"
 #include "template_property_types.h"
@@ -20,6 +21,7 @@ bool UpdatePropertyFromJson(Color3& color, rapidjson::Value& jsonValue, const ch
 bool UpdatePropertyFromJson(FloatRange& floatRange, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(IntRange& intRange, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(Vector& vector, rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(tribool& b, rapidjson::Value& jsonValue, const char* key);
 bool UpdateAttenuationFromJson(float& attn, rapidjson::Value& jsonValue);
 
 #endif

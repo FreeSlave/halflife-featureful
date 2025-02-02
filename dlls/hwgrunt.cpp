@@ -144,7 +144,9 @@ void CHWGrunt::Spawn()
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_flNextPainTime	= gpGlobals->time;
 
-	m_afCapability		= bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(true);
 
 	m_fEnemyEluded		= false;
 

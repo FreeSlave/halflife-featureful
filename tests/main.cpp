@@ -5,6 +5,7 @@
 #include "random_utils.h"
 #include "string_utils.h"
 #include "template_property_types.h"
+#include "tribool.h"
 
 TEST(Clamp, Cases) {
 	EXPECT_EQ(clamp(4, 1, 5), 4);
@@ -62,6 +63,30 @@ TEST(Random, Float) {
 		EXPECT_TRUE(val >= low);
 		EXPECT_TRUE(val <= high);
 	}
+}
+
+TEST(Tribool, Test)
+{
+	tribool u;
+	EXPECT_TRUE(indeterminate(u));
+	EXPECT_FALSE((bool)u);
+
+	u = true;
+	EXPECT_TRUE(u);
+	EXPECT_TRUE(u == true);
+	u = false;
+	EXPECT_FALSE(u);
+	EXPECT_TRUE(u == false);
+
+	u = indeterminate;
+	EXPECT_TRUE(indeterminate(u));
+
+	tribool t = true;
+	tribool f = false;
+	EXPECT_TRUE(t);
+	EXPECT_FALSE(!t);
+	EXPECT_FALSE(f);
+	EXPECT_TRUE(!f);
 }
 
 int main(int argc, char **argv)

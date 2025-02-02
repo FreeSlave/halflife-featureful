@@ -766,7 +766,9 @@ void CScientist::SciSpawnHelper(const char* modelName, float health)
 
 	//m_flDistTooFar = 256.0;
 
-	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE;
+	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 }
 
 int CScientist::GetDefaultVoicePitch()

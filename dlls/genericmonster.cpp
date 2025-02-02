@@ -155,6 +155,7 @@ void CGenericMonster::Spawn()
 	{
 		m_afCapability = bits_CAP_TURN_HEAD;
 	}
+	SetMyCanOpenDoors(false);
 
 	m_flIdealYaw = m_flCurrentYaw = 0;
 

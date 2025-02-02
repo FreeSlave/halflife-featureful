@@ -383,7 +383,9 @@ void CBarney::SpawnImpl(const char* modelName, float health)
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_HackedGunPos = Vector ( 0, 0, 55 );
 
-	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 
 	TalkMonsterInit();
 }

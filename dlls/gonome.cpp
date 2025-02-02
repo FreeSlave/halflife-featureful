@@ -644,7 +644,7 @@ void CGonome::Spawn()
 	SetMyHealth( gSkillData.gonomeHealth );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
-	m_afCapability = bits_CAP_DOORS_GROUP;
+	SetMyCanOpenDoors(true);
 
 	m_flNextThrowTime = gpGlobals->time;
 

@@ -391,7 +391,8 @@ int CSquadMonster::SquadRecruit( int searchRadius, int maxMembers )
 
 			if( pRecruit )
 			{
-				if( !pRecruit->InSquad() && pRecruit->Classify() == iMyClass && pRecruit != this )
+				const int rel = pRecruit->IRelationship(this);
+				if( !pRecruit->InSquad() && (rel == R_AL || rel == R_NO) && pRecruit != this && (FBitSet(m_afCapability, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY) || pRecruit->Classify() == iMyClass) )
 				{
 					// minimum protection here against user error.in worldcraft. 
 					if( !SquadAdd( pRecruit ) )
@@ -411,10 +412,12 @@ int CSquadMonster::SquadRecruit( int searchRadius, int maxMembers )
 
 			if( pRecruit && pRecruit != this && pRecruit->IsFullyAlive() && !pRecruit->m_pCine && !FBitSet(pRecruit->pev->spawnflags, SF_MONSTER_PRISONER) )
 			{
+				const int rel = pRecruit->IRelationship(this);
 				// Can we recruit this guy?
-				if( !pRecruit->InSquad() && pRecruit->Classify() == iMyClass &&
-				   ( ( DefaultClassify() != CLASS_ALIEN_MONSTER ) || FStrEq( STRING( pev->classname ), STRING( pRecruit->pev->classname ) ) ) &&
-				    FStringNull( pRecruit->pev->netname ) )
+				if( !pRecruit->InSquad() && (rel == R_AL || rel == R_NO) && FStringNull(pRecruit->pev->netname) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_DENY) &&
+					(FBitSet(m_afCapability, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY) || pRecruit->Classify() == iMyClass) &&
+					((!FBitSet(m_afCapability, bits_CAP_SQUAD_SAME_CLASSNAME) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_SAME_CLASSNAME)) || FStrEq( STRING( pev->classname ), STRING( pRecruit->pev->classname ) )) &&
+					((!FBitSet(m_afCapability, bits_CAP_SQUAD_SAME_TEMPLATE) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_SAME_TEMPLATE)) || FStrEq(m_entTemplate, pRecruit->m_entTemplate)) )
 				{
 					TraceResult tr;
 					UTIL_TraceLine( pev->origin + pev->view_ofs, pRecruit->pev->origin + pev->view_ofs, ignore_monsters, pRecruit->edict(), &tr );// try to hit recruit with a traceline.
@@ -471,7 +474,7 @@ void CSquadMonster::StartMonster( void )
 {
 	CBaseMonster::StartMonster();
 
-	if( ( m_afCapability & bits_CAP_SQUAD ) && !InSquad() )
+	if( ( FBitSet(m_afCapability, bits_CAP_SQUAD) ) && !InSquad() )
 	{
 		if( !FStringNull( pev->netname ) )
 		{

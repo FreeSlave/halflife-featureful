@@ -320,6 +320,29 @@ constexpr const char definitions[] = R"(
 			"speech_prefix": {
 				"type": "string",
 				"minLength": 1
+			},
+			"squad_capability": {
+				"type": ["boolean", "object"],
+				"properties": {
+					"can_recruit": {
+						"type": "boolean"
+					},
+					"deny_recruiting": {
+						"type": "boolean"
+					},
+					"allow_different_classification": {
+						"type": "boolean"
+					},
+					"require_same_classname": {
+						"type": "boolean"
+					},
+					"require_same_ent_template": {
+						"type": "boolean"
+					}
+				}
+			},
+			"open_door_capability": {
+				"type": "boolean"
 			}
 		},
 		"additionalProperties": false
@@ -670,6 +693,17 @@ bool UpdatePropertyFromJson(Vector& vector, Value& jsonValue, const char* key)
 		vector.y = arr[1].GetFloat();
 		vector.z = arr[2].GetFloat();
 
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(tribool& b, Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		b = it->value.GetBool();
 		return true;
 	}
 	return false;

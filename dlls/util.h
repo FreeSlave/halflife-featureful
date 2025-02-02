@@ -214,6 +214,19 @@ inline bool FStrEq(const char*sz1, const char*sz2)
 	return (strcmp(sz1, sz2) == 0);
 }
 
+inline bool FStrEq(string_t s1, string_t s2)
+{
+	if (s1 == s2)
+	{
+		return true;
+	}
+	if (!FStringNull(s1) && !FStringNull(s2))
+	{
+		return FStrEq(STRING(s1), STRING(s2));
+	}
+	return false;
+}
+
 inline bool FClassnameIs(edict_t* pent, const char* szClassname)
 {
 	return FStrEq(STRING(VARS(pent)->classname), szClassname);

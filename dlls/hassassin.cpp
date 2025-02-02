@@ -431,7 +431,9 @@ void CHAssassin::Spawn()
 	SetMyHealth( gSkillData.hassassinHealth );
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability		= bits_CAP_MELEE_ATTACK1 | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_MELEE_ATTACK1;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 	pev->friction		= 1;
 
 	m_HackedGunPos		= Vector( 0, 24, 48 );

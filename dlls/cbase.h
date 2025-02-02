@@ -672,6 +672,11 @@ public:
 
 #define bits_CAP_DOORS_GROUP    (bits_CAP_USE | bits_CAP_AUTO_DOORS | bits_CAP_OPEN_DOORS)
 
+#define bits_CAP_SQUAD_DENY		( 1 << 17 )
+#define bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY	( 1 << 18 )
+#define bits_CAP_SQUAD_SAME_CLASSNAME	( 1 << 19 )
+#define bits_CAP_SQUAD_SAME_TEMPLATE	( 1 << 20 )
+
 #define bits_CAP_MONSTERCLIPPED ( 1 << 31 )
 
 // used by suit voice to indicate damage sustained and repaired type to player

@@ -824,7 +824,9 @@ void CVoltigore::Spawn()
 	SetMyHealth(gSkillData.voltigoreHealth);
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability = bits_CAP_TURN_HEAD | bits_CAP_SQUAD;
+	m_afCapability = bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(false);
 
 	m_flNextBeamAttackCheck	= gpGlobals->time;
 
@@ -1190,7 +1192,9 @@ void CBabyVoltigore::Spawn()
 	SetMyHealth(gSkillData.babyVoltigoreHealth);
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability = bits_CAP_TURN_HEAD | bits_CAP_SQUAD;
+	m_afCapability = bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(false);
 
 	m_flNextBeamAttackCheck	= gpGlobals->time;
 

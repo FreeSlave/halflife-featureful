@@ -600,8 +600,8 @@ void CAGrunt::Spawn()
 	SetMyHealth( gSkillData.agruntHealth );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
-	m_afCapability = 0;
-	m_afCapability |= bits_CAP_SQUAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(false);
 
 	m_HackedGunPos = Vector( 24.0f, 64.0f, 48.0f );
 

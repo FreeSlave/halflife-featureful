@@ -1016,7 +1016,9 @@ void CHGrunt::SpawnHelper(const char* modelName, int health, int bloodColor)
 	m_flNextPainTime	= gpGlobals->time;
 	m_iSentence		= HGRUNT_SENT_NONE;
 
-	m_afCapability		= bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(true);
 
 	m_fEnemyEluded		= false;
 	m_fFirstEncounter	= true;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.

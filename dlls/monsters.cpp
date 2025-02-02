@@ -3605,6 +3605,12 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	if (HasConditions(bits_COND_SEE_ENEMY))
 		ALERT(level, "Sees enemy; ");
 
+	if (FBitSet(m_afCapability, bits_CAP_DOORS_GROUP))
+		ALERT(level, "Can open doors; ");
+
+	if (FBitSet(m_afCapability, bits_CAP_SQUAD))
+		ALERT(level, "Can form squads; ");
+
 	if (shouldReportRoute)
 	{
 		int iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
@@ -3753,6 +3759,47 @@ void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)
 		vecMaxs = entTemplate->MaxSize();
 	}
 	UTIL_SetSize(pev, m_minHullSize == g_vecZero ? vecMins : m_minHullSize, m_maxHullSize == g_vecZero ? vecMaxs : m_maxHullSize);
+}
+
+static void SetCapFromTriBool(int& ret, tribool b, int cap)
+{
+	if (!indeterminate(b))
+	{
+		if (b)
+		{
+			SetBits(ret, cap);
+		}
+		else
+		{
+			ClearBits(ret, cap);
+		}
+	}
+}
+
+void CBaseMonster::SetMySquadCapabilities(int defaultCaps)
+{
+	m_afCapability |= defaultCaps;
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		SquadCapabilities squadCaps = entTemplate->GetSquadCapabilities();
+		SetCapFromTriBool(m_afCapability, squadCaps.canRecruit, bits_CAP_SQUAD);
+		SetCapFromTriBool(m_afCapability, squadCaps.denyRecruiting, bits_CAP_SQUAD_DENY);
+		SetCapFromTriBool(m_afCapability, squadCaps.allowDifferentClassification, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY);
+		SetCapFromTriBool(m_afCapability, squadCaps.requireSameClassname, bits_CAP_SQUAD_SAME_CLASSNAME);
+		SetCapFromTriBool(m_afCapability, squadCaps.requireSameEntTemplate, bits_CAP_SQUAD_SAME_TEMPLATE);
+	}
+}
+
+void CBaseMonster::SetMyCanOpenDoors(bool enable)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->IsOpenDoorCapabilityDefined())
+	{
+		enable = entTemplate->CanOpenDoors();
+	}
+	if (enable)
+		m_afCapability |= bits_CAP_DOORS_GROUP;
 }
 
 //=========================================================
