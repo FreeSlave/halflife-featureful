@@ -4959,7 +4959,11 @@ void CTriggerMotion::KeyValue( KeyValueData *pkvd )
 void CTriggerMotion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	CBaseEntity *pTarget = UTIL_FindEntityByTargetname( NULL, STRING(pev->target), pActivator );
-	if (pTarget == NULL || pActivator == NULL) return;
+	if (!pTarget)
+	{
+		ALERT(at_warning, "%s \"%s\" can't find entity \"%s\" to affect\n", STRING(pev->classname), STRING(pev->targetname), STRING(pev->target));
+		return;
+	}
 
 	const bool debug = pev->spawnflags & SF_MOTION_DEBUG;
 
