@@ -675,7 +675,10 @@ void CBaseMonster::RouteClear( void )
 //=========================================================
 void CBaseMonster::RouteNew( void )
 {
-	m_Route[0].iType = 0;
+	for (int i=0; i<ARRAYSIZE(m_Route); ++i)
+	{
+		m_Route[i].iType = 0;
+	}
 	m_iRouteIndex = 0;
 }
 
@@ -3368,7 +3371,7 @@ bool CBaseMonster::FGetNodeRoute( Vector vecDest, int goalMoveFlag )
 	if( iNumToCopy < ROUTE_SIZE )
 	{
 		m_Route[iNumToCopy].vecLocation = vecDest;
-		m_Route[iNumToCopy].iType |= goalMoveFlag|bits_MF_IS_GOAL;
+		m_Route[iNumToCopy].iType = goalMoveFlag|bits_MF_IS_GOAL;
 	}
 
 	return true;
