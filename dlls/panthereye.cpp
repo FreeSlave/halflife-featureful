@@ -2,6 +2,7 @@
 #include	"util.h"
 #include	"cbase.h"
 #include	"monsters.h"
+#include	"squadmonster.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"mod_features.h"
@@ -23,7 +24,7 @@ struct PantherStrikeParams
 	float velUpScalar = 0.0f;
 };
 
-class CPantherEye : public CBaseMonster
+class CPantherEye : public CSquadMonster
 {
 public:
 	void Spawn();
@@ -132,6 +133,7 @@ void CPantherEye::Spawn()
 	SetMyHealth(gSkillData.panthereyeHealth);
 	SetMyFieldOfView(0.5f);
 	m_MonsterState = MONSTERSTATE_NONE;
+	SetMySquadCapabilities(bits_CAP_SQUAD|bits_CAP_SQUAD_SAME_CLASSNAME);
 
 	MonsterInit();
 }
@@ -187,7 +189,7 @@ void CPantherEye::PerformStrike(const PantherStrikeParams& params)
 
 void CPantherEye::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
 {
-	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
 }
 
 void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
@@ -230,7 +232,7 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		}
 	default:
-		CBaseMonster::HandleAnimEvent(pEvent);
+		CSquadMonster::HandleAnimEvent(pEvent);
 		break;
 	}
 }
@@ -239,8 +241,8 @@ Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 {
 	if (Type == SCHED_CHASE_ENEMY_FAILED && HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
 	{
-		return CBaseMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
+		return CSquadMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
 	}
-	return CBaseMonster::GetScheduleOfType(Type);
+	return CSquadMonster::GetScheduleOfType(Type);
 }
 #endif
