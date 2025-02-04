@@ -170,7 +170,7 @@ const NamedVisual CFlyBall::ballVisual = BuildVisual("Flybee.Ball")
 		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 190)
 		.Scale(0.2f);
 
-const NamedVisual CFlyBall::ballTrailVisual = BuildVisual("Flybee.BallTrace")
+const NamedVisual CFlyBall::ballTrailVisual = BuildVisual("Flybee.BallTrail")
 		.Model("sprites/xspark3.spr")
 		.Framerate(22.0f)
 		.Scale(0.2f)
