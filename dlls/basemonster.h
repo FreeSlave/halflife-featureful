@@ -241,7 +241,7 @@ public:
 	void PushEnemy(CBaseEntity *pEnemy, const Vector &vecLastKnownPos );
 	bool PopEnemy( void );
 
-	bool FGetNodeRoute( Vector vecDest );
+	bool FGetNodeRoute( Vector vecDest, int goalMoveFlag = 0 );
 	
 	inline void TaskComplete( void ) { if ( !HasConditions( bits_COND_TASK_FAILED ) ) m_iTaskStatus = TASKSTATUS_COMPLETE; }
 	void MovementComplete( void );

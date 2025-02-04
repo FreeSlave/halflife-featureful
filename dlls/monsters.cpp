@@ -740,7 +740,8 @@ bool CBaseMonster::FRefreshRoute( int buildRouteFlags )
 			}
 			break;
 		case MOVEGOAL_ENEMY:
-			returnCode = BuildRoute( m_vecEnemyLKP, bits_MF_TO_ENEMY, m_hEnemy, buildRouteFlags );
+		case MOVEGOAL_ENEMY_NEAREST:
+			returnCode = BuildRoute( m_vecEnemyLKP, m_movementGoal, m_hEnemy, buildRouteFlags );
 			break;
 		case MOVEGOAL_LOCATION:
 		case MOVEGOAL_LOCATION_NEAREST:
@@ -1292,7 +1293,7 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 		CheckAttacks( m_hEnemy, flDistToEnemy, flMeleeDist );
 	}
 
-	if( m_movementGoal == MOVEGOAL_ENEMY )
+	if( m_movementGoal == MOVEGOAL_ENEMY || m_movementGoal == MOVEGOAL_ENEMY_NEAREST )
 	{
 		for( int i = m_iRouteIndex; i < ROUTE_SIZE; i++ )
 		{
@@ -1845,7 +1846,7 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 	}
 
 	// last ditch, try nodes
-	if( !FBitSet(buildRouteFlags, BUILDROUTE_NO_NODEROUTE) && FGetNodeRoute( vecGoal ) )
+	if( !FBitSet(buildRouteFlags, BUILDROUTE_NO_NODEROUTE) && FGetNodeRoute( vecGoal, iMoveFlag & (bits_MF_TO_TARGETENT|bits_MF_TO_ENEMY) ) )
 	{
 		//ALERT( at_console, "Can get there on nodes\n" );
 		m_vecMoveGoal = vecGoal;
@@ -2294,12 +2295,12 @@ void CBaseMonster::Move( float flInterval )
 		flCheckDist = DIST_TO_CHECK;
 	}
 
-	if( ( m_Route[m_iRouteIndex].iType & ( ~bits_MF_NOT_TO_MASK ) ) == bits_MF_TO_ENEMY )
+	if( ( m_Route[m_iRouteIndex].iType & ( ~(bits_MF_NOT_TO_MASK|bits_MF_NEAREST_PATH) ) ) == bits_MF_TO_ENEMY )
 	{
 		// only on a PURE move to enemy ( i.e., ONLY MF_TO_ENEMY set, not MF_TO_ENEMY and DETOUR )
 		pTargetEnt = m_hEnemy;
 	}
-	else if( ( m_Route[m_iRouteIndex].iType & ~bits_MF_NOT_TO_MASK ) & bits_MF_TO_TARGETENT )
+	else if( ( m_Route[m_iRouteIndex].iType & ~(bits_MF_NOT_TO_MASK|bits_MF_NEAREST_PATH) ) == bits_MF_TO_TARGETENT )
 	{
 		pTargetEnt = m_hTargetEnt;
 	}
@@ -2365,7 +2366,7 @@ void CBaseMonster::Move( float flInterval )
 				}
 				else
 				{
-					if (m_movementGoal == MOVEGOAL_ENEMY && pBlocker && pBlocker == m_hEnemy)
+					if ((m_movementGoal == MOVEGOAL_ENEMY || m_movementGoal == MOVEGOAL_ENEMY_NEAREST) && pBlocker && pBlocker == m_hEnemy)
 					{
 						Remember(bits_MEMORY_BLOCKER_IS_ENEMY);
 					}
@@ -3280,7 +3281,7 @@ Vector CBaseMonster::GetGunPosition()
 // succeeds (path is valid) or false if failed (no path
 // exists )
 //=========================================================
-bool CBaseMonster::FGetNodeRoute( Vector vecDest )
+bool CBaseMonster::FGetNodeRoute( Vector vecDest, int goalMoveFlag )
 {
 	int iPath[ MAX_PATH_SIZE ];
 	int iSrcNode, iDestNode;
@@ -3362,7 +3363,7 @@ bool CBaseMonster::FGetNodeRoute( Vector vecDest )
 	if( iNumToCopy < ROUTE_SIZE )
 	{
 		m_Route[iNumToCopy].vecLocation = vecDest;
-		m_Route[iNumToCopy].iType |= bits_MF_IS_GOAL;
+		m_Route[iNumToCopy].iType |= goalMoveFlag|bits_MF_IS_GOAL;
 	}
 
 	return true;
@@ -3440,6 +3441,28 @@ const char* CBaseMonster::MonsterStateDisplayString(MONSTERSTATE monsterState)
 	default:
 		return "Unknown";
 	}
+}
+
+static void ReportRouteType(ALERT_TYPE level, int routeType)
+{
+	if (routeType & bits_MF_TO_TARGETENT)
+		ALERT(level, "To TargetEnt; ");
+	if (routeType & bits_MF_TO_ENEMY)
+		ALERT(level, "To Enemy; ");
+	if (routeType & bits_MF_TO_DETOUR)
+		ALERT(level, "Detour; ");
+	if (routeType & bits_MF_TO_PATHCORNER)
+		ALERT(level, "Path Corner; ");
+	if (routeType & bits_MF_TO_NODE)
+		ALERT(level, "Node; ");
+	if (routeType & bits_MF_TO_LOCATION)
+		ALERT(level, "Location; ");
+	if (routeType & bits_MF_IS_GOAL)
+		ALERT(level, "Goal; ");
+	if (routeType & bits_MF_DONT_SIMPLIFY)
+		ALERT(level, "Don't simplify; ");
+	if (routeType & bits_MF_NEAREST_PATH)
+		ALERT(level, "Nearest; ");
 }
 
 void CBaseMonster::ReportAIState( ALERT_TYPE level )
@@ -3531,7 +3554,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	{
 		ALERT( level, "Moving" );
 		if( m_flMoveWaitFinished > gpGlobals->time )
-			ALERT( level, ": Stopped for %.2f", (double)(m_flMoveWaitFinished - gpGlobals->time) );
+			ALERT( level, ": Stopped for %.2f", m_flMoveWaitFinished - gpGlobals->time );
 		else if( m_IdealActivity == GetStoppedActivity() )
 			ALERT( level, ": In stopped anim" );
 		ALERT( level, ". " );
@@ -3624,6 +3647,17 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 		else
 		{
 			ALERT(level, "No nearest node. ");
+		}
+
+		if (!FRouteClear())
+		{
+			ALERT(level, "\nRoute:\n");
+			for (int j = 0; m_Route[j].iType && j < ARRAYSIZE(m_Route); ++j)
+			{
+				ALERT(level, "%d: ", j);
+				ReportRouteType(level, m_Route[j].iType);
+				ALERT(level, "\n");
+			}
 		}
 	}
 }
