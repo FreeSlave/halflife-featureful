@@ -800,6 +800,11 @@ float CBaseDoor::InputByMonster(CBaseMonster *pMonster)
 	if (FBitSet(pev->spawnflags, SF_DOOR_NOMONSTERS))
 		return 0.0f;
 
+	if (m_toggle_state == TS_AT_TOP)
+	{
+		return 0.0f;
+	}
+
 	short originalTriggerMode = m_iObeyTriggerMode;
 	m_iObeyTriggerMode = 2;
 	Use(pMonster, pMonster, USE_ON, 0.0f);
