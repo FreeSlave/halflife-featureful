@@ -2376,7 +2376,12 @@ void CBaseMonster::Move( float flInterval )
 						m_pCine->OnMoveFail();
 					}
 					TaskFail("failed to move");
-					//ALERT( at_aiconsole, "Blocker is %s\n", STRING(pBlocker->pev->classname) );
+					if (DeveloperModeLevel() >= 4 && pBlocker && pBlocker->entindex() != 0)
+					{
+						ALERT( at_aiconsole, "%s: failed to move. Blocker is %s. Target is %s. Route waypoint type: %d\n",
+							STRING(pev->classname), STRING(pBlocker->pev->classname), pTargetEnt ? STRING(pTargetEnt->pev->classname) : "null",
+							m_Route[m_iRouteIndex].iType );
+					}
 					//ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING( pev->classname ), HasMemory( bits_MEMORY_MOVE_FAILED ) );
 					//ALERT( at_aiconsole, "%f, %f, %f\n", pev->origin.z, ( pev->origin + ( vecDir * flCheckDist ) ).z, m_Route[m_iRouteIndex].vecLocation.z );
 				}
