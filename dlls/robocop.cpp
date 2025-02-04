@@ -630,6 +630,7 @@ void CRoboCop::Spawn()
 	SetMyHealth(gSkillData.robocopHealth);
 	SetMyFieldOfView(VIEW_FIELD_WIDE);
 	m_MonsterState		= MONSTERSTATE_NONE;
+	SetMyCanOpenDoors(false);
 
 	MonsterInit();
 

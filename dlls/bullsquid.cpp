@@ -861,6 +861,7 @@ void CBullsquid::Spawn()
 	SetMyHealth( gSkillData.bullsquidHealth );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
+	SetMyCanOpenDoors(false);
 
 	m_fCanThreatDisplay = true;
 	m_flNextSpitTime = gpGlobals->time;

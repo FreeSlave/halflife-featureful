@@ -339,6 +339,7 @@ void CHeadCrab::SpawnHelper(const char *modelName, float health)
 	pev->yaw_speed		= 5;//!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
+	SetMyCanOpenDoors(false);
 }
 
 //=========================================================
@@ -809,6 +810,7 @@ void CShockRoach::Spawn()
 	pev->yaw_speed = 5;//!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
+	SetMyCanOpenDoors(false);
 
 	m_fRoachSolid = false;
 	m_flBirthTime = gpGlobals->time;

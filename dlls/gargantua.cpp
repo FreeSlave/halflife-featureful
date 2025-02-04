@@ -1054,6 +1054,8 @@ void CGargantua::Spawn()
 	//pev->view_ofs		= Vector ( 0, 0, 96 );// taken from mdl file
 	SetMyFieldOfView(-0.2f);// width of forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(false);
 
 	FollowingMonsterInit();
 
