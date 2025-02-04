@@ -5446,7 +5446,7 @@ void CBasePlayer::UpdateClientData( void )
 	}
 }
 
-static Vector CalcHintOrigin(CBaseEntity* pEntity, CBaseEntity* pLooker)
+static Vector CalcHintOrigin(CBaseEntity* pEntity, CBaseEntity* pLooker, int flags)
 {
 	if (pEntity->pev->model && *STRING(pEntity->pev->model) == '*')
 	{
@@ -5455,18 +5455,21 @@ static Vector CalcHintOrigin(CBaseEntity* pEntity, CBaseEntity* pLooker)
 		TraceResult tr;
 		UTIL_TraceLine(pLooker->EyePosition(), center, ignore_monsters, pLooker->edict(), &tr);
 
-		float maxDist = 0.0f;
-		int axis = 0;
-		for (int i=0; i<3; ++i)
+		if (tr.pHit == pEntity->edict() || FBitSet(flags, OBJECTHINT_FLAG_CLOSEST))
 		{
-			float dist = (center[i] - tr.vecEndPos[i]);
-			if (fabs(dist) > fabs(maxDist))
+			float maxDist = 0.0f;
+			int axis = 0;
+			for (int i=0; i<3; ++i)
 			{
-				maxDist = dist;
-				axis = i;
+				float dist = (center[i] - tr.vecEndPos[i]);
+				if (fabs(dist) > fabs(maxDist))
+				{
+					maxDist = dist;
+					axis = i;
+				}
 			}
+			center[axis] = tr.vecEndPos[axis];
 		}
-		center[axis] = tr.vecEndPos[axis];
 		return center;
 	}
 	else
@@ -5503,7 +5506,7 @@ void CBasePlayer::GatherAndSendObjectHints()
 			WRITE_SHORT(pEntity->entindex());
 			WRITE_COLOR(hintVisual->color);
 			WRITE_COORD(hintVisual->scale);
-			WRITE_VECTOR(CalcHintOrigin(pEntity, this) + Vector(0,0,spec->verticalOffset));
+			WRITE_VECTOR(CalcHintOrigin(pEntity, this, flags) + Vector(0,0,spec->verticalOffset));
 			WRITE_VECTOR(pEntity->pev->size);
 			WRITE_STRING(hintVisual->sprite.c_str());
 		MESSAGE_END();
