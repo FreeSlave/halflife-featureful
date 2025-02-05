@@ -359,3 +359,35 @@ TEST(WarpballTemplates, MissingParent) {
 	WarpballTemplateCatalog c;
 	ASSERT_FALSE(c.ReadFromContents(missingParent, ""));
 }
+const char baseAfterDerived[] = R"(
+{
+	"templates": {
+		"xen_alt": {
+			"inherits": "xen",
+		},
+		"xen": {
+			"sprite1": {
+				"color": "0 210 0",
+			},
+		}
+	}
+}
+)";
+
+TEST(WarpballTemplates, BaseAfterDerived)
+{
+	WarpballTemplateCatalog c;
+	ASSERT_TRUE(c.ReadFromContents(baseAfterDerived, ""));
+
+	{
+		const WarpballTemplate* t = c.FindWarpballTemplate("xen");
+		ASSERT_TRUE(t != nullptr);
+		EXPECT_EQ(t->sprite1.color, Color3(0, 210, 0));
+	}
+
+	{
+		const WarpballTemplate* t = c.FindWarpballTemplate("xen_alt");
+		ASSERT_TRUE(t != nullptr);
+		EXPECT_EQ(t->sprite1.color, Color3(0, 210, 0));
+	}
+}

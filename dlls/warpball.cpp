@@ -468,7 +468,7 @@ bool WarpballTemplateCatalog::AddWarpballTemplate(Value& allTemplatesJsonValue, 
 	if (existingTemplateIt != _templates.end())
 	{
 		// Already added, has been used as parent for another template
-		return false;
+		return true;
 	}
 
 	WarpballTemplate warpballTemplate;
