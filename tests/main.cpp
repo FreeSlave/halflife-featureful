@@ -2,6 +2,7 @@
 
 #include "clamp.h"
 #include "min_and_max.h"
+#include "optional.h"
 #include "random_utils.h"
 #include "string_utils.h"
 #include "template_property_types.h"
@@ -87,6 +88,49 @@ TEST(Tribool, Test)
 	EXPECT_FALSE(!t);
 	EXPECT_FALSE(f);
 	EXPECT_TRUE(!f);
+}
+
+TEST(Optional, Test)
+{
+	optional<int> oi;
+	EXPECT_FALSE(oi);
+	EXPECT_TRUE(!oi);
+
+	oi = 42;
+	EXPECT_TRUE(oi);
+	EXPECT_FALSE(!oi);
+	EXPECT_EQ(*oi, 42);
+
+	optional<int> oi2 = oi;
+	EXPECT_TRUE(oi2);
+	EXPECT_FALSE(!oi2);
+	EXPECT_EQ(*oi2, 42);
+
+	oi2 = 13;
+	oi = oi2;
+	EXPECT_EQ(*oi, 13);
+
+	optional<std::string> os;
+	EXPECT_FALSE(os);
+	EXPECT_TRUE(!os);
+
+	os = "Hello";
+	EXPECT_TRUE(os);
+	EXPECT_FALSE(!os);
+
+	EXPECT_EQ(*os, "Hello");
+
+	optional<std::string> os2{"World"};
+	os = os2;
+	EXPECT_EQ(*os, "World");
+	EXPECT_EQ(*os2, "World");
+
+	optional<float> of;
+	EXPECT_FALSE(of.has_value());
+	EXPECT_EQ(of.value_or(4.5f), 4.5f);
+	of = 6.9f;
+	EXPECT_TRUE(of.has_value());
+	EXPECT_EQ(of.value_or(0.0f), 6.9f);
 }
 
 int main(int argc, char **argv)

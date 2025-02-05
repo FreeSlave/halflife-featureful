@@ -77,7 +77,7 @@ bool InventorySpec::ReadFromDocument(rapidjson::Document& document, const char* 
 					else if (it->value.IsObject())
 					{
 						item.pickupEntTemplateName = item.itemName + "##pickup_template";
-						_entTemplateSystem->AddTemplateFromJsonValue(item.pickupEntTemplateName.c_str(), it->value);
+						_entTemplateSystem->AddTemplateFromJsonValue(item.pickupEntTemplateName.c_str(), it->value, fileName);
 					}
 				}
 			}

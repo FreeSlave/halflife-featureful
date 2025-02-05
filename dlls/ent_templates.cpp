@@ -6,6 +6,7 @@
 #include "grapple_target.h"
 #include "hull_sizes.h"
 
+#include <algorithm>
 #include <set>
 #include <utility>
 
@@ -111,7 +112,11 @@ bool EntTemplateSystem::ReadFromDocument(rapidjson::Document& document, const ch
 		const char* name = templateIt->name.GetString();
 		Value& value = templateIt->value;
 		if (value.IsObject())
-			AddTemplateFromJsonValue(templateIt->name.GetString(), value);
+		{
+			bool success = AddTemplateFromJsonValue(document, templateIt->name.GetString(), value, fileName);
+			if (!success)
+				return false;
+		}
 		else
 			g_errorCollector.AddFormattedError("%s: entity template '%s' is not an object!\n", fileName, name);
 	}
@@ -167,12 +172,96 @@ static bool UpdateSizesFromJSON(rapidjson::Value& value, Vector& mins, Vector& m
 	return false;
 }
 
-void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Value& value)
+bool EntTemplateSystem::AddTemplateFromJsonValue(Value& allTemplatesJsonValue, const char* name, Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
+{
+	const std::string templateName = name;
+
+	if (std::find(inheritanceChain.begin(), inheritanceChain.end(), templateName) != inheritanceChain.end())
+	{
+		std::string chainString;
+		for (auto it = inheritanceChain.begin(); it != inheritanceChain.end(); it++)
+		{
+			chainString += "'" + *it + "' -> ";
+		}
+		chainString += "'";
+		chainString += templateName;
+		chainString += "'";
+		g_errorCollector.AddFormattedError("%s: cycle in entity template inheritance detected: %s", fileName, chainString.c_str());
+		return false;
+	}
+
+	auto existingTemplateIt = _entTemplates.find(templateName);
+	if (existingTemplateIt != _entTemplates.end())
+	{
+		// Already added, has been used as parent for another template
+		return true;
+	}
+
+	EntTemplate entTemplate;
+
+	auto inheritsIt = value.FindMember("inherits");
+	if (inheritsIt != value.MemberEnd())
+	{
+		const char* parentName = inheritsIt->value.GetString();
+		existingTemplateIt = _entTemplates.find(parentName);
+		if (existingTemplateIt != _entTemplates.end())
+		{
+			entTemplate = existingTemplateIt->second;
+		}
+		else
+		{
+			auto parentIt = allTemplatesJsonValue.FindMember(parentName);
+			if (parentIt != allTemplatesJsonValue.MemberEnd())
+			{
+				inheritanceChain.push_back(templateName);
+				if (AddTemplateFromJsonValue(allTemplatesJsonValue, parentName, parentIt->value, fileName, inheritanceChain))
+				{
+					existingTemplateIt = _entTemplates.find(parentName);
+					if (existingTemplateIt != _entTemplates.end())
+					{
+						entTemplate = existingTemplateIt->second;
+					}
+				}
+				else
+					return false;
+			}
+			else
+			{
+				g_errorCollector.AddFormattedError("%s: couldn't find a parent entity template '%s' for '%s'", fileName, parentName, name);
+			}
+		}
+	}
+
+	AddTemplateFromJsonValueImpl(templateName, value, entTemplate);
+	return true;
+}
+
+void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Value& value, const char* fileName)
 {
 	const std::string templateName = name;
 
 	EntTemplate entTemplate;
 
+	auto inheritsIt = value.FindMember("inherits");
+	if (inheritsIt != value.MemberEnd())
+	{
+		const char* parentName = inheritsIt->value.GetString();
+		auto existingTemplateIt = _entTemplates.find(parentName);
+		if (existingTemplateIt != _entTemplates.end())
+		{
+			entTemplate = existingTemplateIt->second;
+		}
+		else
+		{
+			g_errorCollector.AddFormattedError("%s: couldn't find a parent entity template '%s' for '%s'", fileName, parentName, name);
+		}
+	}
+
+	AddTemplateFromJsonValueImpl(templateName, value, entTemplate);
+}
+
+void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& templateName, rapidjson::Value& value, EntTemplate& entTemplate)
+{
 	{
 		auto it = value.FindMember("own_visual");
 		if (it != value.MemberEnd())
@@ -463,14 +552,14 @@ void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Va
 		{
 			if (it->value.IsBool())
 			{
-				SquadCapabilities caps;
+				SquadCapabilities caps = entTemplate.GetSquadCapabilities();
 				caps.canRecruit = it->value.GetBool();
 				entTemplate.SetSquadCapabilities(caps);
 			}
 			else if (it->value.IsObject())
 			{
 				Value& obj = it->value;
-				SquadCapabilities caps;
+				SquadCapabilities caps = entTemplate.GetSquadCapabilities();
 				UpdatePropertyFromJson(caps.canRecruit, obj, "can_recruit");
 				UpdatePropertyFromJson(caps.denyRecruiting, obj, "deny_recruiting");
 				UpdatePropertyFromJson(caps.allowDifferentClassification, obj, "allow_different_classification");

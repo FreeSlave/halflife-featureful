@@ -251,6 +251,9 @@ constexpr const char definitions[] = R"(
 	"entity_template": {
 		"type": ["object", "string"],
 		"properties": {
+			"inherits": {
+				"type": "string"
+			},
 			"own_visual": {
 				"$ref": "#/visual"
 			},

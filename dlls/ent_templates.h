@@ -6,12 +6,21 @@
 #include "visuals.h"
 #include "soundscripts.h"
 #include "json_config.h"
+#include "optional.h"
 #include "tribool.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
+
+struct ObjectSize
+{
+	ObjectSize() = default;
+	ObjectSize(const Vector& minVec, const Vector& maxVec): mins(minVec), maxs(maxVec) {}
+	Vector mins{0.0f, 0.0f, 0.0f};
+	Vector maxs{0.0f, 0.0f, 0.0f};
+};
 
 struct SquadCapabilities
 {
@@ -74,90 +83,79 @@ public:
 	}
 
 	bool IsClassifyDefined() const {
-		return (_defined & CLASSIFY_DEFINED) != 0;
+		return _classify.has_value();
 	}
 	int Classify() const {
-		return _classify;
+		return _classify.value_or(0);
 	}
 	void SetClassify(int classify) {
-		_defined |= CLASSIFY_DEFINED;
 		_classify = classify;
 	}
 
 	bool IsBloodDefined() const {
-		return (_defined & BLOOD_DEFINED) != 0;
+		return _bloodColor.has_value();
 	}
 	int BloodColor() const {
-		return _bloodColor;
+		return _bloodColor.value_or(-1);
 	}
 	void SetBloodColor(int bloodColor) {
-		_defined |= BLOOD_DEFINED;
 		_bloodColor = bloodColor;
 	}
 
 	bool IsHealthDefined() const {
-		return (_defined & HEALTH_DEFINED) != 0;
+		return _health.has_value();
 	}
 	float Health() const {
-		return _health;
+		return _health.value_or(0.0f);
 	}
 	void SetHealth(float health) {
-		_defined |= HEALTH_DEFINED;
 		_health = health;
 	}
 
 	bool IsFielfOfViewDefined() const {
-		return (_defined & FIELDOFVIEW_DEFINED) != 0;
+		return _fieldOfView.has_value();
 	}
 	float FieldOfView() const {
-		return _fieldOfView;
+		return _fieldOfView.value_or(0.0f);
 	}
 	void SetFieldOfView(float fieldOfView) {
-		_defined |= FIELDOFVIEW_DEFINED;
 		_fieldOfView = fieldOfView;
 	}
 
 	bool IsSizeDefined() const {
-		return (_defined & SIZE_DEFINED) != 0;
+		return _size.has_value();
 	}
 	Vector MinSize() const {
-		return _minSize;
+		return _size.value_or(ObjectSize()).mins;
 	}
 	Vector MaxSize() const {
-		return _maxSize;
+		return _size.value_or(ObjectSize()).maxs;
 	}
-	void SetSize(const Vector& minSize, const Vector& maxSize)
-	{
-		_defined |= SIZE_DEFINED;
-		_minSize = minSize;
-		_maxSize = maxSize;
+	void SetSize(const Vector& minSize, const Vector& maxSize) {
+		_size = ObjectSize(minSize, maxSize);
 	}
 
 	bool IsCollisionBoxDefined() const {
-		return (_defined & COLLISIONBOX_DEFINED) != 0;
+		return _collisionBox.has_value();
 	}
 	Vector CollisionBoxMin() const {
-		return _collisionBoxMin;
+		return _collisionBox.value_or(ObjectSize()).mins;
 	}
 	Vector CollisionBoxMax() const {
-		return _collisionBoxMax;
+		return _collisionBox.value_or(ObjectSize()).maxs;
 	}
 	void SetCollisionBox(const Vector& minSize, const Vector& maxSize)
 	{
-		_defined |= COLLISIONBOX_DEFINED;
-		_collisionBoxMin = minSize;
-		_collisionBoxMax = maxSize;
+		_collisionBox = ObjectSize(minSize, maxSize);
 	}
 
 	bool IsSizeForGrappleDefined() const {
-		return (_defined & SIZEFORGRAPPLE_DEFINED) != 0;
+		return _sizeForGrapple.has_value();
 	}
 	int SizeForGrapple() const {
-		return _sizeForGrapple;
+		return _sizeForGrapple.value_or(0);
 	}
-	void SetSizeForGrapple(int sizeForGrapple)
-	{
-		_defined |= SIZEFORGRAPPLE_DEFINED;
+	void SetSizeForGrapple(int sizeForGrapple) {
 		_sizeForGrapple = sizeForGrapple;
 	}
 
@@ -194,27 +192,13 @@ private:
 	bool _autoprecachedSounds = false;
 	bool _autoprecachedSoundScripts = false;
 
-	enum
-	{
-		CLASSIFY_DEFINED = (1 << 0),
-		BLOOD_DEFINED = (1 << 1),
-		HEALTH_DEFINED = (1 << 2),
-		FIELDOFVIEW_DEFINED = (1 << 3),
-		SIZE_DEFINED = (1 << 4),
-		COLLISIONBOX_DEFINED = (1 << 5),
-		SIZEFORGRAPPLE_DEFINED = (1 << 6),
-	};
-
-	int _defined = 0;
-	int _classify = 0;
-	int _bloodColor = 0;
-	float _health = 0.0f;
-	float _fieldOfView = 0.0f;
-	Vector _minSize = Vector(0,0,0);
-	Vector _maxSize = Vector(0,0,0);
-	Vector _collisionBoxMin = Vector(0,0,0);
-	Vector _collisionBoxMax = Vector(0,0,0);
-	short _sizeForGrapple = 0;
+	optional<int> _classify;
+	optional<int> _bloodColor;
+	optional<float> _health;
+	optional<float> _fieldOfView;
+	optional<ObjectSize> _size;
+	optional<ObjectSize> _collisionBox;
+	optional<short> _sizeForGrapple;
 
 	std::string _speechPrefix;
 	SquadCapabilities _squadCapabilities;
@@ -230,7 +214,8 @@ public:
 	void SetVisualSystem(VisualSystem* visualSystem) {
 		_visualSystem = visualSystem;
 	}
-	void AddTemplateFromJsonValue(const char* name, rapidjson::Value& value);
+	bool AddTemplateFromJsonValue(rapidjson::Value& allTemplatesJsonValue, const char* name, rapidjson::Value& value, const char* fileName, std::vector<std::string> inheritanceChain = std::vector<std::string>());
+	void AddTemplateFromJsonValue(const char* name, rapidjson::Value& value, const char* fileName);
 	const EntTemplate* GetTemplate(const char* name);
 	void EnsureVisualReplacementForTemplate(const char* templateName, const char* visualName);
 	void EnsureSoundScriptReplacementForTemplate(const char* templateName, const char* soundScriptName);
@@ -238,6 +223,7 @@ protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
 private:
+	void AddTemplateFromJsonValueImpl(const std::string& templateName, rapidjson::Value& value, EntTemplate& entTemplate);
 	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
 	std::string _temp;
 

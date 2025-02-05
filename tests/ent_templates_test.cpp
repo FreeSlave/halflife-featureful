@@ -170,3 +170,146 @@ TEST(EntityTemplates, Parse)
 		EXPECT_TRUE(nonExistent == nullptr);
 	}
 }
+
+const char entitiesInherited[] = R"(
+{
+	"vort_alt": {
+		"inherits": "monster_alien_slave",
+		"field_of_view": "full",
+		"squad_capability": {
+			"require_same_ent_template": true,
+			"require_same_classname": false
+		},
+		"visuals": {
+			"Vortigaunt.PowerupBeam": "VortAlt.PowerupBeam"
+		},
+		"soundscripts": {
+			"Vortigaunt.ZapShoot": "VortAlt.ZapShoot"
+		}
+	},
+	"monster_alien_slave": {
+		"health": 100,
+		"squad_capability": {
+			"can_recruit": true,
+			"require_same_classname": true
+		},
+		"visuals": {
+			"Vortigaunt.ZapBeamColor": {
+				"color": [0, 255, 0]
+			},
+			"Vortigaunt.ArmBeamColor": "MyVort.ArmBeamColor"
+		},
+		"soundscripts": {
+			"Vortigaunt.Pain": {
+				"waves": ["vort/pain1.wav", "vort/pain2.wav"]
+			},
+			"Vortigaunt.Die": "MyVort.Die"
+		}
+	},
+	"monster_gargantua": {
+		"size": {
+			"mins": [-40,-40,0],
+			"maxs": [40,40,214]
+		}
+	},
+	"garg_alt": {
+		"inherits": "monster_gargantua",
+		"open_door_capability": true
+	}
+}
+)";
+
+TEST(EntityTemplates, Inheritance)
+{
+	SoundScriptSystem ss;
+	VisualSystem vs;
+	EntTemplateSystem es;
+	es.SetSoundScriptSystem(&ss);
+	es.SetVisualSystem(&vs);
+
+	ASSERT_TRUE(es.ReadFromContents(entitiesInherited, ""));
+
+	{
+		const EntTemplate* alienSlave = es.GetTemplate("monster_alien_slave");
+		ASSERT_TRUE(alienSlave != nullptr);
+
+		EXPECT_EQ(alienSlave->Health(), 100.0f);
+
+		SquadCapabilities squadCaps = alienSlave->GetSquadCapabilities();
+		EXPECT_TRUE(squadCaps.canRecruit);
+		EXPECT_TRUE(squadCaps.requireSameClassname);
+
+		EXPECT_STREQ(alienSlave->GetVisualNameOverride("Vortigaunt.ZapBeamColor"), "monster_alien_slave#Vortigaunt.ZapBeamColor");
+		EXPECT_STREQ(alienSlave->GetVisualNameOverride("Vortigaunt.ArmBeamColor"), "MyVort.ArmBeamColor");
+
+		EXPECT_STREQ(alienSlave->GetSoundScriptNameOverride("Vortigaunt.Pain"), "monster_alien_slave#Vortigaunt.Pain");
+		EXPECT_STREQ(alienSlave->GetSoundScriptNameOverride("Vortigaunt.Die"), "MyVort.Die");
+	}
+
+	{
+		const EntTemplate* vortAlt = es.GetTemplate("vort_alt");
+		ASSERT_TRUE(vortAlt != nullptr);
+
+		EXPECT_EQ(vortAlt->Health(), 100.0f);
+		EXPECT_EQ(vortAlt->FieldOfView(), -1.0f);
+
+		SquadCapabilities squadCaps = vortAlt->GetSquadCapabilities();
+		EXPECT_TRUE(squadCaps.canRecruit);
+		EXPECT_TRUE(squadCaps.requireSameEntTemplate);
+		EXPECT_FALSE(squadCaps.requireSameClassname);
+
+		EXPECT_STREQ(vortAlt->GetVisualNameOverride("Vortigaunt.ZapBeamColor"), "monster_alien_slave#Vortigaunt.ZapBeamColor");
+		EXPECT_STREQ(vortAlt->GetVisualNameOverride("Vortigaunt.ArmBeamColor"), "MyVort.ArmBeamColor");
+		EXPECT_STREQ(vortAlt->GetVisualNameOverride("Vortigaunt.PowerupBeam"), "VortAlt.PowerupBeam");
+
+		EXPECT_STREQ(vortAlt->GetSoundScriptNameOverride("Vortigaunt.Pain"), "monster_alien_slave#Vortigaunt.Pain");
+		EXPECT_STREQ(vortAlt->GetSoundScriptNameOverride("Vortigaunt.Die"), "MyVort.Die");
+		EXPECT_STREQ(vortAlt->GetSoundScriptNameOverride("Vortigaunt.ZapShoot"), "VortAlt.ZapShoot");
+	}
+
+	{
+		const EntTemplate* garg = es.GetTemplate("monster_gargantua");
+		ASSERT_TRUE(garg != nullptr);
+
+		EXPECT_TRUE(garg->IsSizeDefined());
+		EXPECT_EQ(garg->MinSize(), Vector(-40.0f, -40.0f, 0.0f));
+		EXPECT_EQ(garg->MaxSize(), Vector(40.0f, 40.0f, 214.0f));
+	}
+
+	{
+		const EntTemplate* garg = es.GetTemplate("garg_alt");
+		ASSERT_TRUE(garg != nullptr);
+
+		EXPECT_TRUE(garg->IsSizeDefined());
+		EXPECT_EQ(garg->MinSize(), Vector(-40.0f, -40.0f, 0.0f));
+		EXPECT_EQ(garg->MaxSize(), Vector(40.0f, 40.0f, 214.0f));
+
+		EXPECT_TRUE(garg->IsOpenDoorCapabilityDefined());
+		EXPECT_TRUE(garg->CanOpenDoors());
+	}
+}
+
+const char looped[] = R"(
+{
+	"zombie1": {
+		"inherits": "zombie3",
+	},
+	"zombie2": {
+		"inherits": "zombie1"
+	},
+	"zombie3": {
+		"inherits": "zombie2"
+	}
+}
+)";
+
+TEST(EntityTemplates, DetectLoop)
+{
+	SoundScriptSystem ss;
+	VisualSystem vs;
+	EntTemplateSystem es;
+	es.SetSoundScriptSystem(&ss);
+	es.SetVisualSystem(&vs);
+
+	ASSERT_FALSE(es.ReadFromContents(looped, ""));
+}
