@@ -2039,9 +2039,9 @@ protected:
 
 	static constexpr const char* attackHitSoundScript = "BabyGarg.AttackHit";
 	static constexpr const char* attackMissSoundScript = "BabyGarg.AttackMiss";
-	static constexpr const char* flameOnSoundScript = "BabyGarg.BeamAttackOn";
-	static constexpr const char* flameRunSoundScript = "BabyGarg.BeamAttackRun";
-	static constexpr const char* flameOffSoundScript = "BabyGarg.BeamAttackOff";
+	static const NamedSoundScript flameOnSoundScript;
+	static const NamedSoundScript flameRunSoundScript;
+	static const NamedSoundScript flameOffSoundScript;
 	static const NamedSoundScript footSoundScript;
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -2074,6 +2074,24 @@ protected:
 };
 
 LINK_ENTITY_TO_CLASS( monster_babygarg, CBabyGargantua )
+
+const NamedSoundScript CBabyGargantua::flameOnSoundScript = {
+	CHAN_BODY,
+	{"babygarg/gar_flameon1.wav"},
+	"BabyGarg.BeamAttackOn"
+};
+
+const NamedSoundScript CBabyGargantua::flameRunSoundScript = {
+	CHAN_WEAPON,
+	{"babygarg/gar_flamerun1.wav"},
+	"BabyGarg.BeamAttackRun"
+};
+
+const NamedSoundScript CBabyGargantua::flameOffSoundScript = {
+	CHAN_WEAPON,
+	{"babygarg/gar_flameoff1.wav"},
+	"BabyGarg.BeamAttackOff"
+};
 
 const NamedSoundScript CBabyGargantua::footSoundScript = {
 	CHAN_BODY,
@@ -2164,11 +2182,9 @@ void CBabyGargantua::Precache()
 	paramOverride.OverridePitchAbsolute(IntRange(60, 75));
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript, paramOverride);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript, paramOverride);
-	SoundScriptParamOverride flameParamOverride;
-	flameParamOverride.OverrideVolumeRelative(0.9f);
-	RegisterAndPrecacheSoundScript(flameOnSoundScript, CGargantua::flameOnSoundScript, flameParamOverride);
-	RegisterAndPrecacheSoundScript(flameRunSoundScript, CGargantua::flameRunSoundScript, flameParamOverride);
-	RegisterAndPrecacheSoundScript(flameOffSoundScript, CGargantua::flameOffSoundScript, flameParamOverride);
+	RegisterAndPrecacheSoundScript(flameOnSoundScript);
+	RegisterAndPrecacheSoundScript(flameRunSoundScript);
+	RegisterAndPrecacheSoundScript(flameOffSoundScript);
 	RegisterAndPrecacheSoundScript(footSoundScript);
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
