@@ -466,7 +466,6 @@ void CCineMonster::Pain( void )
 // find a viable entity
 CBaseMonster *CCineMonster::FindEntity( void )
 {
-	edict_t *pentTarget;
 	CBaseMonster *pTarget = NULL;
 	int checkFail;
 	bool failedCheckReported = false;
@@ -482,11 +481,11 @@ CBaseMonster *CCineMonster::FindEntity( void )
 		return NULL;
 	}
 
-	pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
 	pTarget = NULL;
 
 	if ( m_searchPolicy != SCRIPT_SEARCH_POLICY_CLASSNAME_ONLY )
 	{
+		edict_t *pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
 		while( !FNullEnt( pentTarget ) )
 		{
 			if( FBitSet( VARS( pentTarget )->flags, FL_MONSTER ) )
