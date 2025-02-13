@@ -100,7 +100,7 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 			{
 				mapConfig.suit_light = MapConfig::SUIT_LIGHT_FLASHLIGHT;
 			}
-			else if (strcmp(value, "nvg") == 0 || strcmp(value, "nvg") == 0)
+			else if (strcmp(value, "nvg") == 0 || strcmp(value, "nightvision") == 0)
 			{
 				mapConfig.suit_light = MapConfig::SUIT_LIGHT_NVG;
 			}
