@@ -2919,6 +2919,9 @@ void DrawChaoticBeams(Vector vecOrigin, edict_t* pentIgnore, int radius, const B
 #define SF_WARPBALL_DYNLIGHT	0x0008
 #define SF_WARPBALL_NOSOUND	0x0010
 
+constexpr int WARPBALL_DAMAGE_RADIUS = 48;
+constexpr float WARPBALL_DAMAGE = 300.0f;
+
 class CEnvWarpBall : public CBaseEntity
 {
 public:
@@ -3199,7 +3202,7 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	Vector vecOrigin;
 	edict_t* playSoundEnt = edict();
 	string_t warpTarget = WarpTarget();
-	int inflictedRadius = 48;
+	int inflictedRadius = WARPBALL_DAMAGE_RADIUS;
 
 	if (useType == USE_SET && pev->dmg_inflictor != NULL)
 	{
@@ -3321,16 +3324,122 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(vecOrigin, pev, pev, 300.0f, inflictedRadius, CLASS_NONE, DMG_SHOCK);
+			::RadiusDamage(vecOrigin, pev, pev, WARPBALL_DAMAGE, inflictedRadius, CLASS_NONE, DMG_SHOCK);
 		}
 		else
 		{
-			CWarpballHurt::SelfCreate(vecOrigin, 300.0f, inflictedRadius, damageDelay, edict());
+			CWarpballHurt::SelfCreate(vecOrigin, WARPBALL_DAMAGE, inflictedRadius, damageDelay, edict());
 		}
 	}
 
 	if( pev->spawnflags & SF_REMOVE_ON_FIRE )
 		UTIL_Remove( this );
+}
+
+class CEnvWarpballTemplated : public CBaseEntity
+{
+public:
+	void Precache();
+	void Spawn() { Precache(); }
+	void KeyValue(KeyValueData *pkvd);
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+
+	inline string_t WarpTarget() {
+		return pev->message;
+	}
+	inline void SetWarpTarget(string_t warpTarget) {
+		pev->message = warpTarget;
+	}
+	inline string_t WarpballName() {
+		return pev->netname;
+	}
+	inline void SetWarpballName(string_t warpballTemplate) {
+		pev->netname = warpballTemplate;
+	}
+	inline float DamageDelay() {
+		return pev->frags;
+	}
+	inline void SetDamageDelay(float delay) {
+		pev->frags = delay;
+	}
+};
+
+LINK_ENTITY_TO_CLASS( env_warpball_templated, CEnvWarpballTemplated )
+
+void CEnvWarpballTemplated::Precache()
+{
+	if (!FStringNull(WarpballName()))
+		g_WarpballCatalog.PrecacheWarpballTemplate(STRING(WarpballName()), nullptr);
+
+	UTIL_PrecacheOther("warpball_hurt");
+}
+
+void CEnvWarpballTemplated::KeyValue(KeyValueData *pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "warpball_template"))
+	{
+		SetWarpballName(ALLOC_STRING(pkvd->szValue));
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "warp_target"))
+	{
+		SetWarpTarget(ALLOC_STRING(pkvd->szValue));
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "damage_delay"))
+	{
+		SetDamageDelay(atof(pkvd->szValue));
+		pkvd->fHandled = true;
+	}
+	else
+		CBaseEntity::KeyValue(pkvd);
+}
+
+void CEnvWarpballTemplated::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	Vector vecOrigin = pev->origin;
+	edict_t* playSoundEnt = edict();
+	string_t warpTarget = WarpTarget();
+	string_t warpballName = WarpballName();
+
+	if (FStringNull(warpballName))
+	{
+		ALERT(at_error, "Triggering '%s' without a warpball template\n", STRING(pev->classname));
+		return;
+	}
+
+	if (!FStringNull(warpTarget))
+	{
+		if (!TryCalcLocus_Position(this, pActivator, STRING(warpTarget), vecOrigin))
+			return;
+	}
+
+	const WarpballTemplate* warpballTemplate = g_WarpballCatalog.FindWarpballTemplate(STRING(warpballName));
+	if (warpballTemplate)
+	{
+		PlayWarpballEffect(*warpballTemplate, vecOrigin, playSoundEnt);
+	}
+	else
+	{
+		ALERT(at_warning, "%s: couldn't find warpball template '%s'\n", STRING(pev->classname), STRING(warpballName));
+	}
+
+	if (FBitSet(pev->spawnflags, SF_KILL_CENTER))
+	{
+		int inflictedRadius = WARPBALL_DAMAGE_RADIUS;
+		const float damageDelay = DamageDelay();
+		if (damageDelay == 0)
+		{
+			::RadiusDamage(vecOrigin, pev, pev, WARPBALL_DAMAGE, inflictedRadius, CLASS_NONE, DMG_SHOCK);
+		}
+		else
+		{
+			CWarpballHurt::SelfCreate(vecOrigin, WARPBALL_DAMAGE, inflictedRadius, damageDelay, edict());
+		}
+	}
+
+	if (FBitSet(pev->spawnflags, SF_REMOVE_ON_FIRE))
+		UTIL_Remove(this);
 }
 
 #endif

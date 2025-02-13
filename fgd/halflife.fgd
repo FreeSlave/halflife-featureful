@@ -2595,6 +2595,18 @@
 	framerate2(string) : "Sprite 2 framerate"
 ]
 
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_warpball_templated : "Xen Warpball (template based)"
+[
+	warpball_template(string) : "Warpball template name" : : "A template name from templates/warpball.json"
+	warp_target(string) : "Warp position [LP]"
+	damage_delay(string) : "Damage delay"
+	spawnflags(flags) =
+	[
+		1: "Remove on fire" : 0
+		2: "Kill center" : 0
+	]
+]
+
 @PointClass base(Target, Targetname) size(-24 -24 -24,24 24 24) = env_xenmaker :"Xen Portal. This entity is present just for compatibility with Sven Co-op"
 [
 	spawnflags(flags) =
