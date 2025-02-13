@@ -123,6 +123,7 @@
 #define EF_NIGHTVISION			256	// player nightvision
 #define EF_SNIPERLASER			512	// sniper laser effect
 #define EF_FIBERCAMERA			1024	// fiber camera
+#define EF_MODEL_BRIGHT			2048
 
 #define EF_NOREFLECT		(1<<24)	// Entity won't reflecting in mirrors
 #define EF_REFLECTONLY		(1<<25)	// Entity will be drawing only in mirrors

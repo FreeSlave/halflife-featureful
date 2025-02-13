@@ -1222,6 +1222,12 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			lighting.plightvec = dir;
 			IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting);
 
+			if (m_pCurrentEntity->curstate.effects & EF_MODEL_BRIGHT)
+			{
+				lighting.color = Vector(1.0f, 1.0f, 1.0f);
+				lighting.ambientlight = Q_max(240, lighting.ambientlight);
+			}
+
 			IEngineStudio.StudioEntityLight(&lighting);
 
 			// model and frame independant
