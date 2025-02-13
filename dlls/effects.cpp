@@ -3321,7 +3321,7 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(pev->origin, pev, pev, 300.0f, inflictedRadius, CLASS_NONE, DMG_SHOCK);
+			::RadiusDamage(vecOrigin, pev, pev, 300.0f, inflictedRadius, CLASS_NONE, DMG_SHOCK);
 		}
 		else
 		{
