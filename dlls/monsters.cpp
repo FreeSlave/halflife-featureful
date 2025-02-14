@@ -4619,6 +4619,49 @@ int CBaseMonster::SizeForGrapple()
 	return DefaultSizeForGrapple();
 }
 
+void CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
+{
+	if (!pBlocker)
+		return;
+
+	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
+	if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
+		//ALERT(at_console, "%s sets %s as blocker\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
+		m_lastMoveBlocker = pBlocker;
+	}
+}
+
+bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
+{
+	if (FBitSet(pev->flags, FL_CLIENT))
+		return false;
+	if (FBitSet(pev->spawnflags, SF_MONSTER_IGNORE_PUSH))
+		return false;
+	int rel = IRelationship(pPusher);
+	if (rel == R_AL)
+		return true;
+	CBaseMonster* pMonster = pPusher->MyMonsterPointer();
+	if (pMonster && pMonster->m_pCine)
+		return rel == R_NO;
+	return false;
+}
+
+bool CBaseMonster::MakeMyBlockerMoveAway()
+{
+	if (m_lastMoveBlocker != 0)
+	{
+		bool success = false;
+		CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
+		if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
+			int flags = m_pCine ? SUGGEST_SCHEDULE_FLAG_RUN : 0;
+			success = blockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 256.0f, flags);
+		}
+		m_lastMoveBlocker = 0;
+		return success;
+	}
+	return false;
+}
+
 bool CBaseMonster::IsFreeToManipulate()
 {
 	return IsFullyAlive() && m_IdealMonsterState != MONSTERSTATE_SCRIPT &&

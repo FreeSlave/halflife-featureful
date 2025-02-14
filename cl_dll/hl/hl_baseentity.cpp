@@ -180,6 +180,8 @@ bool CBaseMonster::IsAlienMonster() {return false;}
 Vector CBaseMonster::DefaultMinHullSize() {return Vector(0,0,0); }
 Vector CBaseMonster::DefaultMaxHullSize() {return Vector(0,0,0); }
 int CBaseMonster::SizeForGrapple() { return GRAPPLE_NOT_A_TARGET; }
+void CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement) {}
+bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity* pPusher) { return false; }
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
 
 void CBasePlayer::DeathSound( void ) { }

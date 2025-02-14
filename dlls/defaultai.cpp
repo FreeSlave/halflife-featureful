@@ -941,6 +941,7 @@ Schedule_t slError[] =
 
 Task_t tlScriptedWalk[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_AISCRIPT_MOVE_FAILED },
 	{ TASK_WALK_TO_SCRIPT, (float)TARGET_MOVE_SCRIPTED },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
 	{ TASK_PLANT_ON_SCRIPT, (float)0 },
@@ -964,6 +965,7 @@ Schedule_t slWalkToScript[] =
 
 Task_t tlScriptedWalkToRadius[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_AISCRIPT_MOVE_FAILED },
 	{ TASK_WALK_TO_SCRIPT_RADIUS, (float)0 },
 	{ TASK_FACE_SCRIPT, (float)0 },
 	{ TASK_FACE_IDEAL, (float)0 },
@@ -985,6 +987,7 @@ Schedule_t slWalkToScriptRadius[] =
 
 Task_t tlScriptedRun[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_AISCRIPT_MOVE_FAILED },
 	{ TASK_RUN_TO_SCRIPT, (float)TARGET_MOVE_SCRIPTED },
 	{ TASK_WAIT_FOR_MOVEMENT,(float)0 },
 	{ TASK_PLANT_ON_SCRIPT, (float)0 },
@@ -1008,6 +1011,7 @@ Schedule_t slRunToScript[] =
 
 Task_t tlScriptedRunToRadius[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_AISCRIPT_MOVE_FAILED },
 	{ TASK_RUN_TO_SCRIPT_RADIUS, (float)0 },
 	{ TASK_FACE_SCRIPT, (float)0 },
 	{ TASK_FACE_IDEAL, (float)0 },
@@ -1495,6 +1499,11 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 			}
 			break;
 		}
+	case SCHED_AISCRIPT_MOVE_FAILED:
+		{
+			MakeMyBlockerMoveAway();
+			return GetScheduleOfType(SCHED_FAIL);
+		}
 	case SCHED_IDLE_STAND:
 		{
 			if( RANDOM_LONG( 0, 14 ) == 0 && FCanActiveIdle() )
@@ -1676,6 +1685,7 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 		}
 	case SCHED_RETREAT_FROM_SPOT_FAILED:
 		{
+			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FAIL);
 		}
 	case SCHED_IDLE_FACE:

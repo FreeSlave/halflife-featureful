@@ -720,7 +720,7 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 		if( FBitSet( pev->spawnflags, SF_MONSTERMAKER_ACT_IN_NON_PVS ) )
 			SetBits( pevCreate->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS );
 		if( FBitSet( pev->spawnflags, SF_MONSTERMAKER_IGNORE_PLAYER_PUSHING ) )
-			SetBits( pevCreate->spawnflags, SF_MONSTER_IGNORE_PLAYER_PUSH );
+			SetBits( pevCreate->spawnflags, SF_MONSTER_IGNORE_PUSH );
 		if (m_gag)
 			SetBits(pevCreate->spawnflags, SF_MONSTER_GAG);
 		pevCreate->weapons = pev->weapons;

@@ -891,10 +891,10 @@ void CTalkMonster::PrepareVoicePitch()
 		m_voicePitch = GetDefaultVoicePitch();
 }
 
-bool CTalkMonster::CanBePushed(CBaseEntity *pPusher)
+bool CTalkMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
 {
 	// Stay put during speech
-	return CFollowingMonster::CanBePushed(pPusher) && !IsTalking();
+	return CFollowingMonster::CanBeMadeMoveAway(pPusher) && !IsTalking();
 }
 
 //=========================================================

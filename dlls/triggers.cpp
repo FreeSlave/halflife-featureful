@@ -7064,7 +7064,7 @@ void CTriggerConfigureMonster::Affect(CBaseEntity *pEntity)
 		ConfiguredFlag(m_predisasterFlag, SF_MONSTER_PREDISASTER),
 		ConfiguredFlag(m_dontDropGunFlag, SF_MONSTER_DONT_DROP_GUN),
 		ConfiguredFlag(m_actOutOfPVS, SF_MONSTER_ACT_OUT_OF_PVS),
-		ConfiguredFlag(m_ignorePushFlag, SF_MONSTER_IGNORE_PLAYER_PUSH),
+		ConfiguredFlag(m_ignorePushFlag, SF_MONSTER_IGNORE_PUSH),
 	};
 
 	for (int i=0; i<ARRAYSIZE(flagParams); ++i)

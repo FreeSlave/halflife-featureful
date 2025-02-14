@@ -233,18 +233,12 @@ DEFINE_CUSTOM_SCHEDULES( CFollowingMonster )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CFollowingMonster, CSquadMonster )
 
-bool CFollowingMonster::CanBePushed(CBaseEntity *pPusher)
-{
-	// Ignore if pissed at player
-	return !FBitSet(pev->spawnflags, SF_MONSTER_IGNORE_PLAYER_PUSH) && IRelationship(pPusher) == R_AL;
-}
-
 void CFollowingMonster::Touch( CBaseEntity *pOther )
 {
 	// Did the player touch me?
 	if( pOther->IsPlayer() )
 	{
-		if( !CanBePushed(pOther) )
+		if( !CanBeMadeMoveAway(pOther) )
 			return;
 
 		// Heuristic for determining if the player is pushing me away
@@ -299,23 +293,11 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 		return slMoveAway;
 	case SCHED_MOVE_AWAY_FOLLOW:
 		return slMoveAwayFollow;
-	case SCHED_RETREAT_FROM_SPOT_FAILED:
 	case SCHED_MOVE_AWAY_FAIL:
-		if (m_lastMoveBlocker != 0)
-		{
-			CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
-			if (blockerMonster) {
-				CFollowingMonster* followingMonster = blockerMonster->MyFollowingMonsterPointer();
-				if (followingMonster && followingMonster->CanBePushed(this)) {
-					followingMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 256.0f);
-				}
-			}
-			m_lastMoveBlocker = 0;
-		}
-		if (Type == SCHED_MOVE_AWAY_FAIL)
-			return slMoveAwayFail;
-		else
-			return CSquadMonster::GetScheduleOfType(Type);
+	{
+		MakeMyBlockerMoveAway();
+		return slMoveAwayFail;
+	}
 	case SCHED_TARGET_FACE:
 	case SCHED_TARGET_REACHED:
 		return slFaceTarget;
@@ -823,23 +805,6 @@ void CFollowingMonster::ReportAIState(ALERT_TYPE level)
 	default:
 		ALERT(level, "Regular. ");
 		break;
-	}
-}
-
-void CFollowingMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
-{
-	if (!pBlocker)
-		return;
-
-	//ALERT(at_console, "%s's blocker is %s\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
-
-	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
-	if (blockerMonster) {
-		CFollowingMonster* followingMonster = blockerMonster->MyFollowingMonsterPointer();
-		if (followingMonster && followingMonster->CanBePushed(this)) {
-			//ALERT(at_console, "%s sets %s as blocker\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
-			m_lastMoveBlocker = pBlocker;
-		}
 	}
 }
 

@@ -66,7 +66,6 @@ class CFollowingMonster : public CSquadMonster
 {
 public:
 	// Base Monster functions
-	virtual bool CanBePushed(CBaseEntity* pPusher);
 	void Touch(	CBaseEntity *pOther );
 	void OnDying();
 	int ObjectCaps( void );
@@ -122,8 +121,6 @@ public:
 
 	void ReportAIState(ALERT_TYPE level);
 
-	void HandleBlocker(CBaseEntity* pBlocker, bool duringMovement);
-
 	virtual bool CanRoamAfterCombat();
 	virtual bool IsUsefulToDisplayHint(CBaseEntity* pPlayer);
 
@@ -133,8 +130,6 @@ public:
 
 	short m_followFailPolicy;
 	short m_followagePolicy;
-
-	EHANDLE m_lastMoveBlocker;
 
 	CUSTOM_SCHEDULES
 };

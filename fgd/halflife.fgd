@@ -486,6 +486,7 @@
 		8192: "No yellow blobs" : 0 : "When engine thinks that monster is stuck, don't draw yellow particles around it"
 		16384 : "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'No Dyn collision' flag"
 		65536: "Non-solid corpse" : 0 : "Become non-solid upon dying. Helps preventing dead corpses get into the way of moving entities like doors"
+		524288 : "Ignore move away requests" : 0 : "Don't move away when ally player tries to push me or when ally monster asks me to move away"
 		1048576: "Act out of PVS" : 0 : "Act as usual even if there're no players in the PVS"
 	]
 	is_player_ally(choices) : "Reverse Relationship" : : "Set inverted relationship with players. Sven Co-op compatible parameter. Simple alternative to custom classify." =
@@ -527,10 +528,6 @@
 @BaseClass base(FollowingMonsterProps, CustomObjectHint) = FollowingMonster
 [
 	master(string) : "Master" : : "Decline following if locked by master (for player ally monsters)"
-	spawnflags(Flags) =
-	[
-		524288 : "Ignore player push" : 0 : "Don't move away when player tries to push me"
-	]
 ]
 
 @BaseClass base(CustomSentences, FollowingMonster) = TalkMonster
@@ -7576,7 +7573,7 @@
 		16384: "No ground check" : 0 : "Don't check if something prevents a monster to fall on ground upon spawning. Useful for spawning flying monsters and those who are supposed to fall on whatever underneath them"
 		32768 : "Monster special flag" : 0 : "Set spawnflag 32768 for spawned monster"
 		65536 : "Non-solid corpse" : 0 : "The spawned monster will become non-solid upon dying. Helps preventing dead corpses get into the way of moving entities like doors"
-		524288 : "Ignore player pushing" : 0 : "Don't move away when player tries to push me (for following monsters)"
+		524288 : "Ignore move away requests" : 0 : "Don't move away when ally player tries to push me or when ally monster asks me to move away"
 		1048576: "Act out of PVS" : 0 : "The spawned monster will act as usual even if there're no players in the PVS"
 	]
 	body(integer) : "Body"
@@ -8684,7 +8681,7 @@
 		5 : "Absolute" : "Never get provoked"
 		6 : "Absolute, don't alert friends" : "Never get provoked, don't alert friends upon death"
 	]
-	ignore_push_flag(choices) : "'Ignore Player Push' flag" =
+	ignore_push_flag(choices) : "'Ignore move away requests' flag" =
 	[
 		-1 : "Remove flag"
 		0 : "No change"

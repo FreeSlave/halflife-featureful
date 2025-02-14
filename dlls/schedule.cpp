@@ -1222,6 +1222,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				{
 					if( pGoalEnt == 0 || !MoveToLocationClosest( newActivity, 2, pGoalEnt->pev->origin ) )
 					{
+						HandleBlocker(CBaseEntity::Instance( gpGlobals->trace_ent ), false);
 						TaskFail("failed to reach move target ent");
 						RouteClear();
 					}
