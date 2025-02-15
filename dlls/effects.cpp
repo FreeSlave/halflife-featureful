@@ -40,7 +40,8 @@
 #define FEATURE_ENV_WARPBALL 1
 #define FEATURE_ENV_XENMAKER 1
 
-#define	SF_GIBSHOOTER_REPEATABLE		1 // allows a gibshooter to be refired
+#define SF_GIBSHOOTER_REPEATABLE		1 // allows a gibshooter to be refired
+#define SF_GIBSHOOTER_INSTANT_START		8
 
 #define SF_FUNNEL_REVERSE			1 // funnel effect repels particles instead of attracting them.
 #define SF_FUNNEL_REPEATABLE		2 // allows a funnel to be refired
@@ -1754,8 +1755,15 @@ void CGibShooter::KeyValue( KeyValueData *pkvd )
 void CGibShooter::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	m_hActivator = pActivator;
-	SetThink( &CGibShooter::ShootThink );
-	pev->nextthink = gpGlobals->time;
+	if (FBitSet(pev->spawnflags, SF_GIBSHOOTER_INSTANT_START))
+	{
+		ShootThink();
+	}
+	else
+	{
+		SetThink( &CGibShooter::ShootThink );
+		pev->nextthink = gpGlobals->time;
+	}
 }
 
 void CGibShooter::Spawn( void )
@@ -1765,6 +1773,7 @@ void CGibShooter::Spawn( void )
 	pev->solid = SOLID_NOT;
 	pev->effects = EF_NODRAW;
 
+	// TODO: we comply to HL behavior here. Maybe should add a spawnflag to allow changing it?
 	if( m_flDelay == 0 )
 	{
 		m_flDelay = 0.1;
@@ -1805,7 +1814,7 @@ CGib *CGibShooter::CreateGib( float lifeTime )
 void CGibShooter::ShootThink( void )
 {
 	int i;
-	if (m_flDelay == 0) // LRC - delay is 0, fire them all at once.
+	if (m_flDelay <= 0) // LRC - delay is 0, fire them all at once.
 	{
 		i = m_iGibs;
 	}
