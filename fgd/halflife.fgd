@@ -2681,6 +2681,7 @@
 	]
 	gibmodel(studio) : "Gib Model"
 	m_iGibs(integer) : "Custom number of gibs"
+	position(string) : "At position (blank = here) [LP]"
 	spawnflags(Flags) =
 	[
 		1 : "Repeatable" : 0

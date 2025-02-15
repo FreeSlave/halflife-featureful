@@ -27,6 +27,7 @@
 #include "decals.h"
 #include "explode.h"
 #include "game.h"
+#include "locus.h"
 
 extern DLL_GLOBAL Vector	g_vecAttackDir;
 
@@ -1252,6 +1253,7 @@ public:
 	Materials m_Material;
 	string_t m_iszGibModel;
 	int m_iGibs;
+	string_t m_position;
 	int m_idShard;
 };
 
@@ -1280,6 +1282,11 @@ void CFuncBreakableEffect::KeyValue( KeyValueData* pkvd )
 		m_iGibs = atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "position" ) )
+	{
+		m_position = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
@@ -1291,6 +1298,7 @@ TYPEDESCRIPTION CFuncBreakableEffect::m_SaveData[] =
 	DEFINE_FIELD( CFuncBreakableEffect, m_Material, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncBreakableEffect, m_iszGibModel, FIELD_STRING ),
 	DEFINE_FIELD( CFuncBreakableEffect, m_iGibs, FIELD_INTEGER ),
+	DEFINE_FIELD( CFuncBreakableEffect, m_position, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncBreakableEffect, CBaseEntity )
@@ -1334,7 +1342,13 @@ void CFuncBreakableEffect::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	char cFlag = PlayBreakableBustSound(pev, m_Material, fvol, pitch);
 	cFlag |= ExtraBreakableFlags(pev->spawnflags);
 
-	Vector vecSpot = pev->origin + ( pev->mins + pev->maxs ) * 0.5f;
+	Vector vecOrigin = pev->origin;
+	if (!FStringNull(m_position))
+	{
+		if (!TryCalcLocus_Position(this, pActivator, STRING(m_position), vecOrigin))
+			return;
+	}
+	Vector vecSpot = vecOrigin + ( pev->mins + pev->maxs ) * 0.5f;
 
 	if (m_iGibs >= 0)
 	{
