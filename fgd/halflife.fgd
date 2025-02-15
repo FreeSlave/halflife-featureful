@@ -7990,9 +7990,19 @@
 
 @PointClass base(Targetname) color(255 0 255) = scripted_following : "Scripted Following"
 [
-	entity(string) : "Affected Monster"
-	on_start_following(target_destination) : "Fire on start following"
-	on_stop_following(target_destination) : "Fire on stop following"
+	entity(string) : "Affected Monster name" : : "The targetname of the affected monster"
+	on_start_following(target_destination) : "Fire on start following" : : "This will fire only if the following state has changed, i.e. if monster hasn't been following the player, but started after firing this script"
+	on_stop_following(target_destination) : "Fire on stop following" : : "This will fire only if the following state has changed, i.e. if monster has been following the player, but stopped after firting this script"
+	spawnflags(Flags) =
+	[
+		1 : "Remove on fire" : 0
+	]
+	use_type(choices) : "Use type" : 1 : "How the entity interprets its firing. With 'Forwad input' the ON input will make the monster start following, the OFF input will make the monster stop following, and TOGGLE will make it start/stop following depending on its current state" =
+	[
+		-1 : "Make stop following"
+		0 : "Forward input"
+		1 : "Make start following"
+	]
 ]
 
 @PointClass base(Targetname) color(255 0 255) = scripted_schedule : "Scripted Schedule"

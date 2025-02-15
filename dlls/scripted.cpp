@@ -1937,6 +1937,15 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 
 LINK_ENTITY_TO_CLASS( scripted_schedule, CScriptedSchedule )
 
+#define SF_SCRIPTED_FOLLOWING_ONCE (1 << 0)
+
+enum
+{
+	SCRIPTED_FOLLOW_STOP = -1,
+	SCRIPTED_FOLLOW_FORWARD = 0,
+	SCRIPTED_FOLLOW_START = 1,
+};
+
 class CScriptedFollowing : public CPointEntity
 {
 public:
@@ -1944,7 +1953,7 @@ public:
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT FindThink();
 
-	bool MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType);
+	int MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType);
 
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -1984,13 +1993,18 @@ void  CScriptedFollowing::KeyValue(KeyValueData *pkvd)
 		m_onStopFollowing = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq( pkvd->szKeyName, "use_type") )
+	{
+		pev->impulse = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CPointEntity::KeyValue( pkvd );
 }
 
-bool CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
+int CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
 {
-	int result = 0;
+	int result = FOLLOWING_INVALID;
 	CBaseEntity* pEntity = 0;
 	while( (pEntity = UTIL_FindEntityByTargetname(pEntity, STRING(pev->netname))) )
 	{
@@ -2000,25 +2014,21 @@ bool CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
 			if (pFollowingMonster)
 			{
 				result = pFollowingMonster->DoFollowerUse(pPlayer, false, useType, true);
-				// TODO: should it support many monsters? If not, we can break here
+				break;
 			}
 		}
 	}
-	if (result == FOLLOWING_NOTALLOWED)
-	{
-		return false;
-	}
-	else if (result == FOLLOWING_STARTED)
+	if (result == FOLLOWING_STARTED)
 	{
 		if (!FStringNull(m_onStartFollowing))
 			FireTargets(STRING(m_onStartFollowing), pPlayer, this);
 	}
-	else if (result == FOLLOWING_STOPPED)
+	if (result == FOLLOWING_STOPPED)
 	{
 		if (!FStringNull(m_onStopFollowing))
 			FireTargets(STRING(m_onStopFollowing), pPlayer, this);
 	}
-	return true;
+	return result;
 }
 
 void CScriptedFollowing::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
@@ -2028,14 +2038,29 @@ void CScriptedFollowing::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 		if (!pPlayer)
 			return;
 
-		SetThink(NULL);
-		if (!MakeFollowing(pPlayer, useType))
+		switch(pev->impulse)
 		{
-			if (useType == USE_ON)
-			{
-				SetThink(&CScriptedFollowing::FindThink);
-				pev->nextthink = gpGlobals->time + 0.1f;
-			}
+		case SCRIPTED_FOLLOW_STOP:
+			useType = USE_OFF;
+			break;
+		case SCRIPTED_FOLLOW_START:
+			useType = USE_ON;
+			break;
+		default:
+			break;
+		}
+
+		SetThink(NULL);
+		int result = MakeFollowing(pPlayer, useType);
+		if (result == FOLLOWING_BUSYINSCRIPT && useType == USE_ON)
+		{
+			SetThink(&CScriptedFollowing::FindThink);
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+		else
+		{
+			if (FBitSet(pev->spawnflags, SF_SCRIPTED_FOLLOWING_ONCE))
+				UTIL_Remove(this);
 		}
 	} else {
 		ALERT(at_aiconsole, "%s does not specify the affected monster!\n", STRING(pev->classname));
@@ -2050,12 +2075,15 @@ void CScriptedFollowing::FindThink()
 		SetThink(NULL);
 		return;
 	}
-	if (MakeFollowing(pPlayer, USE_ON))
+	int result = MakeFollowing(pPlayer, USE_ON);
+	if (result == FOLLOWING_BUSYINSCRIPT)
 	{
-		SetThink(NULL);
+		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 	else
 	{
-		pev->nextthink = gpGlobals->time + 0.1f;
+		SetThink(NULL);
+		if (FBitSet(pev->spawnflags, SF_SCRIPTED_FOLLOWING_ONCE))
+			UTIL_Remove(this);
 	}
 }

@@ -725,8 +725,15 @@ bool CFollowingMonster::ShouldDiscardFollowing(CBaseEntity *pCaller)
 
 int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE_TYPE useType, bool ignoreScriptedSentence)
 {
+	if (!IsFullyAlive())
+	{
+		return FOLLOWING_DEAD;
+	}
 	if( pCaller != NULL && pCaller->IsPlayer() )
 	{
+		if (!AbleToFollow())
+			return FOLLOWING_BUSYINSCRIPT;
+
 		if (!ignoreScriptedSentence && InScriptedSentence())
 			return FOLLOWING_NOTREADY;
 
@@ -740,9 +747,6 @@ int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE
 				DeclineFollowing(pCaller);
 			return FOLLOWING_DECLINED;
 		}
-
-		if (!AbleToFollow())
-			return FOLLOWING_NOTALLOWED;
 
 		const bool isFollowing = IsFollowingPlayer();
 		if (isFollowing && useType == USE_ON)
@@ -774,7 +778,7 @@ int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE
 			return FOLLOWING_STOPPED;
 		}
 	}
-	return FOLLOWING_NOTALLOWED;
+	return FOLLOWING_INVALID;
 }
 
 CBaseEntity* CFollowingMonster::PlayerToFace()
