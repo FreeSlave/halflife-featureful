@@ -484,7 +484,7 @@ class CXenSporeLarge : public CXenSpore
 {
 	void Spawn( void );
 	const char* DefaultModel() const override {
-		return "models/fungus(small).mdl";
+		return "models/fungus(large).mdl";
 	}
 
 	static const Vector m_hullSizes[];
