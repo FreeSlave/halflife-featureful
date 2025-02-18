@@ -841,7 +841,6 @@ int CGraph::FindNearestNode( const Vector &vecOrigin,  CBaseEntity *pEntity )
 int CGraph::FindNearestNode( const Vector &vecOrigin, int afNodeTypes )
 {
 	int i;
-	TraceResult tr;
 
 	if( !m_fGraphPresent || !m_fGraphPointersSet )
 	{

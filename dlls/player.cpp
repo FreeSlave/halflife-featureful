@@ -4754,8 +4754,9 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 199:
 		// show nearest node and all connections
 		{
-			ALERT( at_console, "%d\n", WorldGraph.FindNearestNode( pev->origin, bits_NODE_GROUP_REALM ) );
-			WorldGraph.ShowNodeConnections( WorldGraph.FindNearestNode( pev->origin, bits_NODE_GROUP_REALM ) );
+			const int iNode = WorldGraph.FindNearestNode( pev->origin, bits_NODE_GROUP_REALM );
+			ALERT( at_console, "%d\n", iNode );
+			WorldGraph.ShowNodeConnections( iNode );
 		}
 		break;
 	case 202:
