@@ -3267,31 +3267,6 @@
 @PointClass base(Targetname) = game_player_settings : "Initial player setting in singleplayer"
 [
 	target(target_destination) : "Fire on equip" : : "Fire after (and if) player got equipped."
-	spawnflags(flags) =
-	[
-		1: "[Deprecated] Give Medkit" : 0
-		2: "[Deprecated] Give Suit" : 0
-		4: "[Deprecated] Give Crowbar" : 0
-		8: "[Deprecated] Give Glock": 0
-		16: "[Deprecated] Give Python": 0
-		32: "[Deprecated] Give MP5": 0
-		64: "[Deprecated] Give Shotgun": 0
-		128: "[Deprecated] Give Crossbow": 0
-		256: "[Deprecated] Give RPG": 0
-		512: "[Deprecated] Give Gauss": 0
-		1024: "[Deprecated] Give Egon": 0
-		2048: "[Deprecated] Give Hornetgun": 0
-		4096: "[Deprecated] Give Pipe Wrench": 0
-		8192: "[Deprecated] Give Knife": 0
-		16384: "[Deprecated] Give Grapple": 0
-		32768: "[Deprecated] Give Desert Eagle": 0
-		65536: "[Deprecated] Give Sniper rifle": 0
-		131072: "[Deprecated] Give M249": 0
-		262144: "[Deprecated] Give Displacer": 0
-		524288: "[Deprecated] Give Shock rifle": 0
-		1048576: "[Deprecated] Give Spore launcher": 0
-		8388608: "[Deprecated] Give Long Jump": 0
-	]
 	_9mm(integer) : "9mm bullets"
 	_357(integer) : "357 bullets"
 	buckshot(integer) : "Shotgun shells"

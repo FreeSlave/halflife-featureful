@@ -1283,91 +1283,6 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 		break;
 	}
 
-	const int weaponFlags[] = {
-		SF_PLAYER_SETTINGS_CROWBAR,
-		SF_PLAYER_SETTINGS_GLOCK,
-		SF_PLAYER_SETTINGS_PYTHON,
-		SF_PLAYER_SETTINGS_MP5,
-		SF_PLAYER_SETTINGS_SHOTGUN,
-		SF_PLAYER_SETTINGS_CROSSBOW,
-		SF_PLAYER_SETTINGS_RPG,
-		SF_PLAYER_SETTINGS_GAUSS,
-		SF_PLAYER_SETTINGS_EGON,
-		SF_PLAYER_SETTINGS_HORNETGUN,
-		SF_PLAYER_SETTINGS_PIPEWRENCH,
-		SF_PLAYER_SETTINGS_KNIFE,
-		SF_PLAYER_SETTINGS_GRAPPLE,
-		SF_PLAYER_SETTINGS_DESERT_EAGLE,
-		SF_PLAYER_SETTINGS_SNIPERRIFLE,
-		SF_PLAYER_SETTINGS_M249,
-		SF_PLAYER_SETTINGS_DISPACER,
-		SF_PLAYER_SETTINGS_SHOCKRIFLE,
-		SF_PLAYER_SETTINGS_SPORELAUNCHER,
-		SF_PLAYER_SETTINGS_MEDKIT
-	};
-	const int weaponIds[ARRAYSIZE(weaponFlags)] = {
-		WEAPON_CROWBAR,
-		WEAPON_GLOCK,
-		WEAPON_PYTHON,
-		WEAPON_MP5,
-		WEAPON_SHOTGUN,
-		WEAPON_CROSSBOW,
-		WEAPON_RPG,
-		WEAPON_GAUSS,
-		WEAPON_EGON,
-		WEAPON_HORNETGUN,
-#if FEATURE_PIPEWRENCH
-		WEAPON_PIPEWRENCH,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_KNIFE
-		WEAPON_KNIFE,
-#else
-		WEAPON_NONE,
-#endif
-#if WEAPON_GRAPPLE
-		WEAPON_GRAPPLE,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_DESERT_EAGLE
-		WEAPON_EAGLE,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_SNIPERRIFLE
-		WEAPON_SNIPERRIFLE,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_M249
-		WEAPON_M249,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_DISPLACER
-		WEAPON_DISPLACER,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_SHOCKRIFLE
-		WEAPON_SHOCKRIFLE,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_SPORELAUNCHER
-		WEAPON_SPORELAUNCHER,
-#else
-		WEAPON_NONE,
-#endif
-#if FEATURE_MEDKIT
-		WEAPON_MEDKIT
-#else
-		WEAPON_NONE
-#endif
-	};
-
 	// Check this before giving ammo as player can get exhaustible weapon along with ammo.
 	const bool hadWeapons = player->m_pActiveItem != NULL;
 
@@ -1381,19 +1296,6 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 				player->GiveAmmo(m_ammoCounts[i], ammoInfo->name);
 			else if (m_ammoCounts[i] < 0)
 				player->RemoveAmmo(-m_ammoCounts[i], ammoInfo->name);
-		}
-	}
-
-	// This way of setting weapons is deprecated
-	for (i=0; i<ARRAYSIZE(weaponFlags); ++i)
-	{
-		if (pev->spawnflags & weaponFlags[i])
-		{
-			const ItemInfo& itemInfo = CBasePlayerWeapon::ItemInfoArray[weaponIds[i]];
-			if (itemInfo.pszName)
-			{
-				player->GiveNamedItem(itemInfo.pszName);
-			}
 		}
 	}
 
