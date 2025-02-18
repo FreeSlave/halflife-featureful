@@ -696,6 +696,39 @@ void ClientCommand( edict_t *pEntity )
 		if( pPlayer->IsObserver() )
 			pPlayer->Observer_FindNextPlayer( atoi( CMD_ARGV( 1 ) ) ? true : false );
 	}
+	else if ( FStrEq( pcmd, "teleport_to" ) )
+	{
+		if (CheatsEnabled())
+		{
+			Vector pos;
+			if (CMD_ARGC() == 4)
+			{
+				pos.x = atof(CMD_ARGV(1));
+				pos.y = atof(CMD_ARGV(2));
+				pos.z = atof(CMD_ARGV(3));
+			}
+			else if (CMD_ARGC() == 2)
+			{
+				const char* targetname = CMD_ARGV(1);
+				CBaseEntity* pFound = UTIL_FindEntityByTargetname(nullptr, targetname);
+				if (pFound)
+				{
+					pos = pFound->pev->origin;
+				}
+				else
+				{
+					ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "\"teleport_to\": couldn't find entity \"%s\" to teleport to\n", targetname);
+					return;
+				}
+			}
+			else
+			{
+				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "\"teleport_to\" expects 3 coordinates or entity name\n");
+				return;
+			}
+			UTIL_SetOrigin(pev, pos);
+		}
+	}
 	else if ( FStrEq( pcmd, "recruit_followers" ) )
 	{
 		pPlayer->RecruitFollowers();
