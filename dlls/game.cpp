@@ -832,6 +832,7 @@ cvar_t grenade_jump = { "grenade_jump","1", FCVAR_SERVER };
 #endif
 
 cvar_t findnearestnodefix = { "findnearestnodefix", "1", FCVAR_SERVER };
+cvar_t nodegraph_distinfo_sort_fix = {"nodegraph_distinfo_sort_fix", "0", FCVAR_SERVER};
 
 cvar_t keepinventory	= { "mp_keepinventory","0", FCVAR_SERVER }; // keep inventory across level transitions in multiplayer coop
 
@@ -1684,6 +1685,7 @@ void GameDLLInit( void )
 #endif
 
 	CVAR_REGISTER( &findnearestnodefix );
+	CVAR_REGISTER( &nodegraph_distinfo_sort_fix );
 
 	CVAR_REGISTER_BOOLEAN(&corpse_player_collision_fix, g_modFeatures.corpse_player_collision_fix);
 	CVAR_REGISTER_BOOLEAN(&doors_open_in_move_direction, g_modFeatures.doors_open_in_move_direction);

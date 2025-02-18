@@ -2995,6 +2995,8 @@ void CGraph::BuildLinkLookups( void )
 #endif
 }
 
+extern cvar_t nodegraph_distinfo_sort_fix;
+
 void CGraph::BuildRegionTables( void )
 {
 	int i, j;
@@ -3100,6 +3102,8 @@ void CGraph::BuildRegionTables( void )
 					int Tmp = m_di[j].m_SortedBy[i];
 					m_di[j].m_SortedBy[i] = m_di[k].m_SortedBy[i];
 					m_di[k].m_SortedBy[i] = Tmp;
+					if (nodegraph_distinfo_sort_fix.value)
+						jCode = kCode;
 				}
 			}
 		}
