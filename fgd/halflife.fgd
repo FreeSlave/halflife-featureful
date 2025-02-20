@@ -1950,6 +1950,7 @@
 		1: "Initially Off" : 0
 		2: "Drop to Floor" : 0
 		4: "Solid" : 0
+		16: "Client-side animation" : 0 : "Whether the model is animated client-side. This may help fixing some visible stuttering when playing animation"
 		32: "Always send to client (ignore PVS)" : 0 : "Make sure the model is sent to the client independent of player's PVS. This ensures the model will render even if its origin is not visible to the player"
 	]
 ]
