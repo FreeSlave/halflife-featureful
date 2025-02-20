@@ -3420,14 +3420,29 @@ public:
 	inline void SetDamageDelay(float delay) {
 		pev->frags = delay;
 	}
+
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_simulatedEntityClassname;
 };
 
 LINK_ENTITY_TO_CLASS( env_warpball_templated, CEnvWarpballTemplated )
 
+TYPEDESCRIPTION	CEnvWarpballTemplated::m_SaveData[] =
+{
+	DEFINE_FIELD(CEnvWarpballTemplated, m_simulatedEntityClassname, FIELD_STRING),
+};
+IMPLEMENT_SAVERESTORE( CEnvWarpballTemplated, CBaseEntity )
+
 void CEnvWarpballTemplated::Precache()
 {
 	if (!FStringNull(WarpballName()))
-		g_WarpballCatalog.PrecacheWarpballTemplate(STRING(WarpballName()), nullptr);
+	{
+		const char* entityClassname = FStringNull(m_simulatedEntityClassname) ? nullptr : STRING(m_simulatedEntityClassname);
+		g_WarpballCatalog.PrecacheWarpballTemplate(STRING(WarpballName()), entityClassname);
+	}
 
 	UTIL_PrecacheOther("warpball_hurt");
 }
@@ -3447,6 +3462,11 @@ void CEnvWarpballTemplated::KeyValue(KeyValueData *pkvd)
 	else if (FStrEq(pkvd->szKeyName, "damage_delay"))
 	{
 		SetDamageDelay(atof(pkvd->szValue));
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "simulated_classname"))
+	{
+		m_simulatedEntityClassname = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -3472,7 +3492,8 @@ void CEnvWarpballTemplated::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, U
 			return;
 	}
 
-	const WarpballTemplate* warpballTemplate = g_WarpballCatalog.FindWarpballTemplate(STRING(warpballName));
+	const char* entityClassname = FStringNull(m_simulatedEntityClassname) ? nullptr : STRING(m_simulatedEntityClassname);
+	const WarpballTemplate* warpballTemplate = g_WarpballCatalog.FindWarpballTemplate(STRING(warpballName), entityClassname);
 	if (warpballTemplate)
 	{
 		PlayWarpballEffect(*warpballTemplate, vecOrigin, playSoundEnt);

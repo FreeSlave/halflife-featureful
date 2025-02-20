@@ -2599,6 +2599,7 @@
 	warpball_template(string) : "Warpball template name" : : "A template name from templates/warpball.json"
 	warp_target(string) : "Warp position [LP]"
 	damage_delay(string) : "Damage delay"
+	simulated_classname(string) : "Simulated entity classname" : : "Allows to use warpball templates mapped to certain entity classname (entity_mappings in templates/warpball.json)"
 	spawnflags(flags) =
 	[
 		1: "Remove on fire" : 0
