@@ -3143,6 +3143,10 @@ enum
 	CHANGEVALUE_ACTION_MUL = 2,
 	CHANGEVALUE_ACTION_SUB = 3,
 	CHANGEVALUE_ACTION_DIV = 4,
+	CHANGEVALUE_ACTION_AND = 5,
+	CHANGEVALUE_ACTION_OR = 6,
+	CHANGEVALUE_ACTION_REMOVE_BITS = 9,
+	CHANGEVALUE_ACTION_XOR = 13,
 };
 
 class CTriggerChangeValue : public CBaseDelay
@@ -3345,6 +3349,18 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 					newInteger = oldInteger / newInteger;
 				else
 					return;
+				break;
+			case CHANGEVALUE_ACTION_AND:
+				newInteger = oldInteger & newInteger;
+				break;
+			case CHANGEVALUE_ACTION_OR:
+				newInteger = oldInteger | newInteger;
+				break;
+			case CHANGEVALUE_ACTION_REMOVE_BITS:
+				newInteger = oldInteger & ~newInteger;
+				break;
+			case CHANGEVALUE_ACTION_XOR:
+				newInteger = oldInteger ^ newInteger;
 				break;
 			default:
 				break;
