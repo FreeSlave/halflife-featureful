@@ -1440,6 +1440,7 @@ void CSprite::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTy
 #define SF_ENVMODEL_OFF			1
 #define SF_ENVMODEL_DROPTOFLOOR	2
 #define SF_ENVMODEL_SOLID		4
+#define SF_ENVMODEL_IGNORE_PVS	32
 
 class CEnvModel : public CBaseAnimating
 {
@@ -1531,6 +1532,11 @@ void CEnvModel :: Spawn( void )
 	{
 		pev->origin.z += 1;
 		DROP_TO_FLOOR ( ENT(pev) );
+	}
+
+	if (FBitSet(pev->spawnflags, SF_ENVMODEL_IGNORE_PVS))
+	{
+		m_EFlags |= EFLAG_ALWAYS_SEND;
 	}
 
 	SetBoneController( 0, 0 );
