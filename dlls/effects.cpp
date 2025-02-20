@@ -2414,7 +2414,13 @@ void CShake::KeyValue( KeyValueData *pkvd )
 
 void CShake::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	UTIL_ScreenShake( pev->origin, Amplitude(), Frequency(), Duration(), Radius() );
+	Vector pos = pev->origin;
+	if (!FStringNull(pev->message))
+	{
+		if (!TryCalcLocus_Position(this, pActivator, STRING(pev->message), pos))
+			return;
+	}
+	UTIL_ScreenShake( pos, Amplitude(), Frequency(), Duration(), Radius() );
 }
 
 
