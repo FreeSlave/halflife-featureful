@@ -1705,7 +1705,7 @@ public:
 	void EXPORT ShootThink( void );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	virtual CGib *CreateGib( float lifeTime );
+	virtual CBaseEntity *CreateGib(const Vector& vecPos, const Vector& vecVel, float lifeTime);
 
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -1718,6 +1718,7 @@ public:
 	float m_flGibVelocity;
 	float m_flVariance;
 	float m_flGibLife;
+	string_t m_iszTargetname;
 	string_t m_iszPosition;
 	string_t m_iszVelocity;
 	string_t m_iszVelFactor;
@@ -1733,6 +1734,7 @@ TYPEDESCRIPTION CGibShooter::m_SaveData[] =
 	//DEFINE_FIELD( CGibShooter, m_flGibVelocity, FIELD_FLOAT ),
 	DEFINE_FIELD( CGibShooter, m_flVariance, FIELD_FLOAT ),
 	DEFINE_FIELD( CGibShooter, m_flGibLife, FIELD_FLOAT ),
+	DEFINE_FIELD( CGibShooter, m_iszTargetname, FIELD_STRING),
 	DEFINE_FIELD( CGibShooter, m_iszPosition, FIELD_STRING),
 	DEFINE_FIELD( CGibShooter, m_iszVelocity, FIELD_STRING),
 	DEFINE_FIELD( CGibShooter, m_iszVelFactor, FIELD_STRING),
@@ -1767,6 +1769,11 @@ void CGibShooter::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "m_flGibLife" ) )
 	{
 		m_flGibLife = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszTargetName"))
+	{
+		m_iszTargetname = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszPosition"))
@@ -1831,7 +1838,7 @@ void CGibShooter::Spawn( void )
 	pev->body = MODEL_FRAMES( m_iGibModelIndex );
 }
 
-CGib *CGibShooter::CreateGib( float lifeTime )
+CBaseEntity *CGibShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, float lifeTime)
 {
 	if( violence_hgibs->value == 0 )
 		return NULL;
@@ -1839,6 +1846,9 @@ CGib *CGibShooter::CreateGib( float lifeTime )
 	CGib *pGib = GetClassPtr( (CGib *)NULL );
 	if (!pGib)
 		return NULL;
+
+	pGib->pev->origin = vecPos;
+	pGib->pev->velocity = vecVel;
 
 	pGib->Spawn( "models/hgibs.mdl" );
 	pGib->m_lifeTime = lifeTime;
@@ -1851,6 +1861,7 @@ CGib *CGibShooter::CreateGib( float lifeTime )
 
 	pGib->pev->body = RANDOM_LONG( 1, pev->body - 1 );// avoid throwing random amounts of the 0th gib. (skull).
 
+	pGib->FinalizeGibSpawn();
 	return pGib;
 }
 
@@ -1908,24 +1919,11 @@ void CGibShooter::ShootThink( void )
 		vecShootDir = vecShootDir.Normalize();
 
 		const float lifeTime = ( m_flGibLife * RANDOM_FLOAT( 0.95f, 1.05f ) );	// +/- 5%
-		CGib *pGib = CreateGib(lifeTime);
+		CBaseEntity *pGib = CreateGib(vecPos, vecShootDir * flGibVelocity, lifeTime);
 
 		if( pGib )
 		{
-			pGib->pev->origin = vecPos;
-			pGib->pev->velocity = vecShootDir * flGibVelocity;
-
-			pGib->pev->avelocity.x = RANDOM_FLOAT( 100.0f, 200.0f );
-			pGib->pev->avelocity.y = RANDOM_FLOAT( 100.0f, 300.0f );
-
-			float thinkTime = pGib->pev->nextthink - gpGlobals->time;
-
-			if( pGib->m_lifeTime < thinkTime )
-			{
-				pGib->pev->nextthink = gpGlobals->time + pGib->m_lifeTime;
-				pGib->m_lifeTime = 0;
-			}
-
+			pGib->pev->targetname = m_iszTargetname;
 			if (m_iszSpawnTarget)
 				FireTargets( STRING(m_iszSpawnTarget), pGib, this );
 		}
@@ -1950,6 +1948,32 @@ void CGibShooter::ShootThink( void )
 	}
 }
 
+// Shooter particle
+class CShot : public CSprite
+{
+public:
+	void Touch(CBaseEntity* pOther) override;
+	void Activate() {
+		CPointEntity::Activate();
+	}
+};
+
+void CShot::Touch(CBaseEntity* pOther)
+{
+	if (pev->teleport_time > gpGlobals->time)
+		return;
+	// don't fire too often in collisions!
+	// teleport_time is the soonest this can be touched again.
+	pev->teleport_time = gpGlobals->time + 0.1f;
+
+	if (pev->netname)
+		FireTargets(STRING(pev->netname), this, this);
+	if (pev->message && pOther && pOther->entindex() != 0)
+		FireTargets(STRING(pev->message), pOther, this);
+}
+
+LINK_ENTITY_TO_CLASS(shot, CShot)
+
 #define SF_ENVSHOOTER_SCALEMODELS 2
 #define SF_ENVSHOOTER_DONT_WAIT_TILL_LAND 4
 
@@ -1958,9 +1982,29 @@ class CEnvShooter : public CGibShooter
 	void Precache( void );
 	void KeyValue( KeyValueData *pkvd );
 
-	CGib *CreateGib( float lifeTime );
+	CBaseEntity *CreateGib(const Vector& vecPos, const Vector& vecVel, float lifeTime);
+
+	int Save( CSave &save );
+	int Restore( CRestore &restore );
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_iszTouch;
+	string_t m_iszTouchOther;
+	int m_iPhysics;
+	float m_fFriction;
+	Vector m_vecSize;
 };
 
+TYPEDESCRIPTION CEnvShooter::m_SaveData[] =
+{
+	DEFINE_FIELD(CEnvShooter, m_iszTouch, FIELD_STRING),
+	DEFINE_FIELD(CEnvShooter, m_iszTouchOther, FIELD_STRING),
+	DEFINE_FIELD(CEnvShooter, m_iPhysics, FIELD_INTEGER),
+	DEFINE_FIELD(CEnvShooter, m_fFriction, FIELD_FLOAT),
+	DEFINE_FIELD(CEnvShooter, m_vecSize, FIELD_VECTOR),
+};
+
+IMPLEMENT_SAVERESTORE( CEnvShooter, CGibShooter )
 LINK_ENTITY_TO_CLASS( env_shooter, CEnvShooter )
 
 void CEnvShooter::KeyValue( KeyValueData *pkvd )
@@ -1997,6 +2041,32 @@ void CEnvShooter::KeyValue( KeyValueData *pkvd )
 			break;
 		}
 	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszTouch"))
+	{
+		m_iszTouch = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszTouchOther"))
+	{
+		m_iszTouchOther = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iPhysics"))
+	{
+		m_iPhysics = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_fFriction"))
+	{
+		m_fFriction = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_vecSize"))
+	{
+		UTIL_StringToVector((float*)m_vecSize, pkvd->szValue);
+		m_vecSize = m_vecSize / 2;
+		pkvd->fHandled = true;
+	}
 	else
 	{
 		CGibShooter::KeyValue( pkvd );
@@ -2009,67 +2079,163 @@ void CEnvShooter::Precache( void )
 	CBreakable::MaterialSoundPrecache( (Materials)m_iGibMaterial );
 }
 
-CGib *CEnvShooter::CreateGib( float lifeTime )
+CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, float lifeTime)
 {
-	CGib *pGib = GetClassPtr( (CGib *)NULL );
-	if (!pGib)
-		return NULL;
-
-	pGib->Spawn( STRING( pev->model ) );
-	pGib->m_lifeTime = lifeTime;
-
-	if (FBitSet(pev->spawnflags, SF_ENVSHOOTER_DONT_WAIT_TILL_LAND))
-	{
-		pGib->SetThink( &CGib::StartFadeOut );
-		pGib->pev->nextthink = gpGlobals->time + lifeTime;
-	}
-
-	int bodyPart = 0;
-
-	if( pev->body > 1 )
-		bodyPart = RANDOM_LONG( 0, pev->body - 1 );
-
-	pGib->pev->body = bodyPart;
-	pGib->m_bloodColor = DONT_BLEED;
-	pGib->m_material = m_iGibMaterial;
-
-	pGib->pev->rendermode = pev->rendermode;
-	pGib->pev->renderamt = pev->renderamt;
-	pGib->pev->rendercolor = pev->rendercolor;
-	pGib->pev->renderfx = pev->renderfx;
-
-	/*
-	 * Some env_shooters in Half-Life maps have a custom scale value.
-	 * It did not have any effect in original Half-Life because models did not get scaled.
-	 * Now we have spirit-like scaling which may cause visual issues.
-	 * To avoid unintended scaling we allow model scaling only when the corresponding flag is set.
-	*/
 	const char* model = STRING(pev->model);
 	const char* found = strstr(model, ".mdl");
-	if (found && strlen(found) == 4)
+	const bool isMdl = found && strlen(found) == 4;
+
+	if (m_iPhysics <= 1)
 	{
-		if (FBitSet(pev->spawnflags, SF_ENVSHOOTER_SCALEMODELS))
+		CGib *pGib = GetClassPtr( (CGib *)NULL );
+		if (!pGib)
+			return NULL;
+
+		pGib->pev->origin = vecPos;
+		pGib->pev->velocity = vecVel;
+
+		pGib->Spawn( STRING( pev->model ) );
+		if (m_iPhysics) // sticky gib
+		{
+			pGib->pev->movetype = MOVETYPE_TOSS;
+			pGib->pev->solid = SOLID_BBOX;
+			UTIL_SetSize(pGib->pev, Vector(0, 0, 0), Vector(0, 0, 0));
+			pGib->SetTouch(&CGib::StickyGibTouch);
+		}
+		pGib->m_lifeTime = lifeTime;
+
+		if (FBitSet(pev->spawnflags, SF_ENVSHOOTER_DONT_WAIT_TILL_LAND))
+		{
+			pGib->SetThink( &CGib::StartFadeOut );
+			pGib->pev->nextthink = gpGlobals->time + lifeTime;
+		}
+
+		if (isMdl)
+		{
+			int bodyPart = 0;
+
+			if( pev->body > 1 )
+				bodyPart = RANDOM_LONG( 0, pev->body - 1 );
+
+			pGib->pev->body = bodyPart;
+		}
+
+		pGib->m_bloodColor = DONT_BLEED;
+		pGib->m_material = m_iGibMaterial;
+
+		pGib->pev->rendermode = pev->rendermode;
+		pGib->pev->renderamt = pev->renderamt;
+		pGib->pev->rendercolor = pev->rendercolor;
+		pGib->pev->renderfx = pev->renderfx;
+
+		/*
+		 * Some env_shooters in Half-Life maps have a custom scale value.
+		 * It did not have any effect in original Half-Life because models did not get scaled.
+		 * Now we have spirit-like scaling which may cause visual issues.
+		 * To avoid unintended scaling we allow model scaling only when the corresponding flag is set.
+		*/
+		if (isMdl)
+		{
+			if (FBitSet(pev->spawnflags, SF_ENVSHOOTER_SCALEMODELS))
+			{
+				pGib->pev->scale = pev->scale;
+			}
+		}
+		else
 		{
 			pGib->pev->scale = pev->scale;
 		}
+
+		if (pev->skin < 0)
+		{
+			studiohdr_t *pstudiohdr = (studiohdr_t *)GET_MODEL_PTR( pGib->edict() );
+			if (pstudiohdr && pstudiohdr->ident == IDSTUDIOHEADER && pstudiohdr->numskinfamilies > 0)
+				pGib->pev->skin = RANDOM_LONG(0, pstudiohdr->numskinfamilies-1);
+		}
+		else
+		{
+			pGib->pev->skin = pev->skin;
+		}
+
+		pGib->FinalizeGibSpawn();
+		return pGib;
 	}
 	else
 	{
-		pGib->pev->scale = pev->scale;
-	}
+		// special shot
+		CShot* pShot = GetClassPtr((CShot*)NULL);
+		//if (!m_iPhysics)
+		//	pShot->pev->movetype = MOVETYPE_BOUNCE;
+		pShot->pev->classname = MAKE_STRING("shot");
+		pShot->pev->solid = SOLID_SLIDEBOX;
+		pShot->pev->origin = vecPos;
+		pShot->pev->velocity = vecVel;
+		SET_MODEL(ENT(pShot->pev), STRING(pev->model));
+		UTIL_SetSize(pShot->pev, -m_vecSize, m_vecSize);
+		pShot->pev->renderamt = pev->renderamt;
+		pShot->pev->rendermode = pev->rendermode;
+		pShot->pev->rendercolor = pev->rendercolor;
+		pShot->pev->renderfx = pev->renderfx;
+		pShot->pev->netname = m_iszTouch;
+		pShot->pev->message = m_iszTouchOther;
+		if (isMdl)
+		{
+			pShot->pev->skin = pev->skin;
+			pShot->pev->body = pev->body;
+		}
+		pShot->pev->scale = pev->scale;
+		pShot->pev->frame = pev->frame;
+		pShot->pev->framerate = pev->framerate;
+		pShot->pev->friction = m_fFriction;
 
-	if (pev->skin < 0)
-	{
-		studiohdr_t *pstudiohdr = (studiohdr_t *)GET_MODEL_PTR( pGib->edict() );
-		if (pstudiohdr && pstudiohdr->ident == IDSTUDIOHEADER && pstudiohdr->numskinfamilies > 0)
-			pGib->pev->skin = RANDOM_LONG(0, pstudiohdr->numskinfamilies-1);
-	}
-	else
-	{
-		pGib->pev->skin = pev->skin;
-	}
+		switch (m_iPhysics)
+		{
+		case 2:
+			pShot->pev->movetype = MOVETYPE_NOCLIP;
+			pShot->pev->solid = SOLID_NOT;
+			break;
+		case 3:
+			pShot->pev->movetype = MOVETYPE_FLYMISSILE;
+			break;
+		case 4:
+			pShot->pev->movetype = MOVETYPE_BOUNCEMISSILE;
+			break;
+		case 5:
+			pShot->pev->movetype = MOVETYPE_TOSS;
+			break;
+		case 6:
+			pShot->pev->movetype = MOVETYPE_BOUNCE;
+			break;
+		}
 
-	return pGib;
+		if (pShot->pev->framerate)
+		{
+			pShot->m_maxFrame = (float)MODEL_FRAMES(pShot->pev->modelindex) - 1;
+			if (pShot->m_maxFrame > 1.0)
+			{
+				if (m_flGibLife)
+				{
+					pShot->pev->dmgtime = gpGlobals->time + m_flGibLife;
+					pShot->SetThink(&CShot::AnimateUntilDead);
+				}
+				else
+				{
+					pShot->SetThink(&CShot::AnimateThink);
+				}
+				pShot->pev->nextthink = gpGlobals->time;
+				pShot->m_lastTime = gpGlobals->time;
+				return pShot;
+			}
+		}
+
+		// if it's not animating
+		if (m_flGibLife)
+		{
+			pShot->SetThink(&CShot::SUB_Remove);
+			pShot->pev->nextthink = gpGlobals->time + m_flGibLife;
+		}
+		return pShot;
+	}
 }
 
 class CTestEffect : public CBaseDelay

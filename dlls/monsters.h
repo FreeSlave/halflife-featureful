@@ -181,6 +181,7 @@ class CGib : public CBaseEntity
 {
 public:
 	void Spawn( const char *szGibModel, const Visual* visual = nullptr );
+	void FinalizeGibSpawn();
 	void EXPORT BounceGibTouch( CBaseEntity *pOther );
 	void EXPORT StickyGibTouch( CBaseEntity *pOther );
 	void EXPORT WaitTillLand( void );

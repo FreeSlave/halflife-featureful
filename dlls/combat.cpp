@@ -918,7 +918,6 @@ void CGib::BounceGibTouch( CBaseEntity *pOther )
 //
 void CGib::StickyGibTouch( CBaseEntity *pOther )
 {
-	Vector	vecSpot;
 	TraceResult	tr;
 
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -970,6 +969,20 @@ void CGib::Spawn( const char *szGibModel, const Visual* visual )
 
 	m_material = matNone;
 	m_cBloodDecals = 5;// how many blood decals this gib can place (1 per bounce until none remain). 
+}
+
+void CGib::FinalizeGibSpawn()
+{
+	float thinkTime = pev->nextthink - gpGlobals->time;
+
+	if( m_lifeTime < thinkTime )
+	{
+		pev->nextthink = gpGlobals->time + m_lifeTime;
+		m_lifeTime = 0;
+	}
+
+	pev->avelocity.x = RANDOM_FLOAT( 100.0f, 200.0f );
+	pev->avelocity.y = RANDOM_FLOAT( 100.0f, 300.0f );
 }
 
 void CGib::StartFadeOut()

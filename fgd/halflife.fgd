@@ -2254,7 +2254,7 @@
 
 @PointClass base(gibshooterbase, RenderFields) color(184 90 164) = env_shooter : "Model Shooter"
 [
-	shootmodel(studio) : "Model or Sprite name" : ""
+	shootmodel(studio) : "Model or Sprite name"
 	shootsounds(choices) :"Material Sound" : -1 =
 	[
 		-1: "None"
@@ -2264,14 +2264,30 @@
 		3: "Flesh"
 		4: "Concrete"
 	]
-	scale(string) : "Gib Sprite Scale" : ""
-	skin(integer) : "Gib Skin (-1 is random)" : 0
+	scale(string) : "Gib/Shot Scale"
+	skin(integer) : "Gib Skin (-1 is random)"
 	spawnflags(Flags) =
 	[
 		1 : "Repeatable" 	: 0
 		2 : "Scale models" : 0
 		4 : "Don't wait till land" : 0 : "Start fading right after life time has expired"
 	]
+	m_iPhysics(choices) : "Gib/Shot physics" =
+	[
+		0: "Bouncy gib (normal)"
+		1: "Sticky gib"
+		2: "Noclip shot"
+		3: "Fly shot (ignore gravity)"
+		4: "Fly & bounce shot"
+		5: "Arc shot (obey gravity)"
+		6: "Arc & bounce shot"
+	]
+	frame(integer) : "Start frame (shot)"
+	framerate(string) : "Framerate (shot)"
+	m_fFriction(string) : "Bounce height (shot)" : "0.55"
+	m_iszTouch(string) : "Fire on collision (shot) (locus = shot)"
+	m_iszTouchOther(string) : "Fire on collision (shot) (locus = wall)"
+	m_vecSize(string) : "Shot size (X Y Z)"
 ]
 
 @PointClass base(Targetname, RenderFields) size(-16 -16 -16, 16 16 16) = env_smoker : "Smoker"

@@ -124,7 +124,6 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 	static CSprite *SpriteCreate(const char *pSpriteName, const Vector &origin, bool animate, int spawnflags = 0);
 
-private:
 	float m_lastTime;
 	float m_maxFrame;
 };
