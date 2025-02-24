@@ -869,10 +869,10 @@
 	wait(integer) : "delay before close, -1 stay open " : 4
 	lip(integer) : "Lip"
 	dmg(integer) : "Damage inflicted when blocked" : 0
-	message(string) : "Message if triggered"
 	target(target_destination) : "Target"
 	delay(integer) : "Delay before fire"
-	netname(string) : "Fire on Close"
+	netname(string) : "Fire on Close" : : "Fire when door has been closed"
+	message(string) : "Fire on Open" : : "Fire when door has been opened. SoHL compatible"
 	health(integer) : "Health (shoot open)"
 	m_fIgnoreTargetname(choices) : "Ignore Targetname" : : "Set whether the door should ignore its targetname or not. This is useful when you need to reference the func_door in another entity but still want the door to open on touch. Sven Co-op compatible. Effect is the same as 'Force Touchable' flag" =
 	[

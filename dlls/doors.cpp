@@ -995,8 +995,16 @@ void CBaseDoor::DoorHitTop( void )
 	}
 
 	// Fire the close target (if startopen is set, then "top" is closed) - netname is the close target
-	if( pev->netname && ( pev->spawnflags & SF_DOOR_START_OPEN ) )
-		FireTargets( STRING( pev->netname ), m_hActivator, this, USE_TOGGLE );
+	if (FBitSet(pev->spawnflags, SF_DOOR_START_OPEN))
+	{
+		if (!FStringNull(pev->netname))
+			FireTargets(STRING( pev->netname ), m_hActivator, this);
+	}
+	else
+	{
+		if (!FStringNull(pev->message))
+			FireTargets(STRING( pev->message ), m_hActivator, this);
+	}
 
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
@@ -1070,8 +1078,16 @@ void CBaseDoor::DoorHitBottom( void )
 	SUB_UseTargets( m_hActivator );
 
 	// Fire the close target (if startopen is set, then "top" is closed) - netname is the close target
-	if( pev->netname && !( pev->spawnflags & SF_DOOR_START_OPEN ) )
-		FireTargets( STRING( pev->netname ), m_hActivator, this, USE_TOGGLE );
+	if (!FBitSet(pev->spawnflags, SF_DOOR_START_OPEN))
+	{
+		if (!FStringNull(pev->netname))
+			FireTargets(STRING( pev->netname ), m_hActivator, this);
+	}
+	else
+	{
+		if (!FStringNull(pev->message))
+			FireTargets(STRING( pev->message ), m_hActivator, this);
+	}
 
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
