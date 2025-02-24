@@ -316,9 +316,10 @@ void CGameText::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	}
 	else
 	{
-		if( pActivator->IsNetClient() )
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if( pPlayer && pPlayer->IsNetClient() )
 		{
-			UTIL_HudMessage( pActivator, m_textParms, MessageGet() );
+			UTIL_HudMessage( pPlayer, m_textParms, MessageGet() );
 		}
 	}
 
