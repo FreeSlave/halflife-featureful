@@ -3484,13 +3484,14 @@
 	master(string) : "Master"
 ]
 
-@PointClass base(Targetname, Target) = game_text : "HUD Text Message"
+@PointClass base(Targetname) = game_text : "HUD Text Message"
 [
 	spawnflags(flags) =
 	[
 		1: "All Players" : 0
+		2: "Only once" : 0
 	]
-
+	target(target_destination) : "Fire when done"
 	message(string) : "Message Text"
 	x(string) : "X (0 - 1.0 = left to right) (-1 centers)" : "-1"
 	y(string) : "Y (0 - 1.0 = top to bottom) (-1 centers)" : "-1"

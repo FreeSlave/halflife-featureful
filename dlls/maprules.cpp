@@ -205,6 +205,7 @@ void CGameEnd::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useT
 //
 
 #define SF_ENVTEXT_ALLPLAYERS			0x0001
+#define SF_ENVTEXT_ONLY_ONCE			0x0002
 
 class CGameText : public CRulePointEntity
 {
@@ -220,9 +221,10 @@ public:
 	inline	void	MessageSet( const char *pMessage ) { pev->message = ALLOC_STRING(pMessage); }
 	inline	const char *MessageGet( void )	{ return STRING(pev->message); }
 
+	void EXPORT TriggerThink();
 private:
-
 	hudtextparms_t	m_textParms;
+	EHANDLE m_hActivator;
 };
 
 LINK_ENTITY_TO_CLASS( game_text, CGameText )
@@ -232,6 +234,7 @@ LINK_ENTITY_TO_CLASS( game_text, CGameText )
 TYPEDESCRIPTION	CGameText::m_SaveData[] = 
 {
 	DEFINE_ARRAY( CGameText, m_textParms, FIELD_CHARACTER, sizeof(hudtextparms_t) ),
+	DEFINE_FIELD( CGameText, m_hActivator, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CGameText, CRulePointEntity )
@@ -317,6 +320,30 @@ void CGameText::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 		{
 			UTIL_HudMessage( pActivator, m_textParms, MessageGet() );
 		}
+	}
+
+	if (pev->target)
+	{
+		m_hActivator = pActivator;
+		SetThink(&CGameText::TriggerThink);
+		pev->nextthink = gpGlobals->time + m_textParms.fadeinTime + m_textParms.holdTime + m_textParms.fadeoutTime;
+	}
+	else if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	{
+		SetThink(&CGameText::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
+}
+
+//LRC
+void CGameText::TriggerThink()
+{
+	SUB_UseTargets(m_hActivator, USE_TOGGLE);
+
+	if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	{
+		SetThink(&CGameText::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 }
 
