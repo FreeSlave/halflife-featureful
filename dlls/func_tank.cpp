@@ -83,9 +83,6 @@ public:
 	inline bool CanFire( void ) { return (gpGlobals->time - m_lastSightTime) < m_persist; }
 	bool InRange( float range );
 
-	// Acquire a target.  pPlayer is a player in the PVS
-	edict_t		*FindTarget( edict_t *pPlayer );
-
 	void		TankTrace( const Vector &vecStart, const Vector &vecForward, const Vector &vecSpread, TraceResult &tr );
 
 	Vector		BarrelPosition( void )
@@ -161,6 +158,11 @@ protected:
 
 	CBaseEntity* BarrelFireProxy();
 	void UpdateBarrelFireProxyPosition();
+
+	float m_checkOriginTime;
+	bool m_originIsInWorldBrush;
+
+	void UpdateOriginCheck();
 };
 
 TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
@@ -617,17 +619,26 @@ void CFuncTank::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	}
 }
 
-edict_t *CFuncTank::FindTarget( edict_t *pPlayer )
+void CFuncTank::UpdateOriginCheck()
 {
-	return pPlayer;
+	if (m_checkOriginTime < gpGlobals->time)
+	{
+		m_checkOriginTime = gpGlobals->time + 2.0f;
+		m_originIsInWorldBrush = UTIL_PointContents(pev->origin) == CONTENTS_SOLID;
+	}
 }
 
 CBaseEntity *CFuncTank:: BestVisibleEnemy ( void )
 {
+	// PVS check won't work if origin is in world
 	if (m_iTankClass == 0)
 	{
-		edict_t *pPlayer = FIND_CLIENT_IN_PVS( edict() );
-		return FNullEnt(pPlayer) ? NULL : CBaseEntity::Instance(pPlayer);
+		UpdateOriginCheck();
+		if (!m_originIsInWorldBrush)
+		{
+			edict_t *pPlayer = FIND_CLIENT_IN_PVS( edict() );
+			return FNullEnt(pPlayer) ? NULL : CBaseEntity::Instance(pPlayer);
+		}
 	}
 
 	CBaseEntity	*pReturn = NULL;
@@ -1050,6 +1061,8 @@ IMPLEMENT_SAVERESTORE( CFuncTankLaser, CFuncTank )
 
 void CFuncTankLaser::Activate( void )
 {
+	CFuncTank::Activate();
+
 	if( !GetLaser() )
 	{
 		UTIL_Remove( this );
