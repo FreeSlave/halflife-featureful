@@ -8752,6 +8752,14 @@
 	master(string) : "Master"
 ]
 
+@SolidClass base(Targetname, TriggerCond) = trigger_inout : "Trigger: Activate on entering or leaving"
+[
+	target(target_destination) : "Fire on entering"
+	m_iszAltTarget(target_destination) : "Fire on leaving"
+	m_iszBothTarget(target_destination) : "Fire on/off (entering/leaving)"
+	master(string) : "Master"
+]
+
 @SolidClass base(Angles) = trigger_monsterjump : "Trigger monster jump"
 [
 	master(string) : "Master"
