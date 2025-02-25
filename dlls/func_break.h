@@ -43,6 +43,7 @@ typedef enum
 #define SF_BREAK_TRIGGER_ONLY	1// may only be broken by trigger
 #define	SF_BREAK_TOUCH			2// can be 'crashed through' by running player (plate glass)
 #define SF_BREAK_PRESSURE		4// can be broken by a player standing on it
+#define SF_BREAKABLE_INVERT		16
 #define SF_BREAK_CROWBAR		256// instant break if hit with crowbar
 #define SF_BREAK_EXPLOSIVES_ONLY		512// can be damaged only by DMG_BLAST
 #define SF_BREAK_OP4MORTAR_ONLY	1024 // can be damaged only by op4mortar rockets
@@ -79,6 +80,7 @@ public:
 
 	void EXPORT Die( void );
 	void DieToActivator(CBaseEntity* pActivator);
+	void UpdateOnRemove() override;
 	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -109,5 +111,10 @@ public:
 
 	short m_targetActivator;
 	int m_iGibs;
+
+	string_t m_iszWhenHit; // locus trigger
+	CPointEntity* m_pHitProxy;
+
+	CBaseEntity* GetHitProxy();
 };
 #endif	// FUNC_BREAK_H

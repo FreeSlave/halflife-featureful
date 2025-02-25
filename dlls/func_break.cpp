@@ -161,6 +161,11 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 	}
 	else if( FStrEq( pkvd->szKeyName, "lip" ) )
 		pkvd->fHandled = true;
+	else if( FStrEq( pkvd->szKeyName, "whenhit" ) )
+	{
+		m_iszWhenHit = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseDelay::KeyValue( pkvd );
 }
@@ -183,6 +188,8 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_iszSpawnObject, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_targetActivator, FIELD_SHORT ),
 	DEFINE_FIELD( CBreakable, m_iGibs, FIELD_INTEGER ),
+	DEFINE_FIELD( CBreakable, m_iszWhenHit, FIELD_STRING ),
+	DEFINE_FIELD( CBreakable, m_pHitProxy, FIELD_CLASSPTR ),
 
 	// Explosion magnitude is stored in pev->impulse
 };
@@ -561,6 +568,16 @@ NODE_LINKENT CBreakable::HandleLinkEnt(int afCapMask, bool nodeQueryStatic)
 	return NLE_PROHIBIT;
 }
 
+CBaseEntity* CBreakable::GetHitProxy()
+{
+	if (!m_pHitProxy)
+	{
+		m_pHitProxy = GetClassPtr((CPointEntity*)NULL);
+		m_pHitProxy->pev->classname = MAKE_STRING("info_target");
+	}
+	return m_pHitProxy;
+}
+
 void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
 {
 	// random spark if this is a 'computer' object
@@ -589,6 +606,25 @@ void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 				break;
 			default:
 				break;
+		}
+	}
+
+	//LRC
+	if (!FStringNull(m_iszWhenHit))
+	{
+		CBaseEntity* pHitProxy = GetHitProxy();
+		if (pHitProxy)
+		{
+			pHitProxy->pev->origin = ptr->vecEndPos;
+			if (FBitSet(pev->spawnflags, SF_BREAKABLE_INVERT))
+			{
+				vecDir.y = -vecDir.y;
+				vecDir.x = -vecDir.x;
+			}
+			pHitProxy->pev->velocity = vecDir;
+			pHitProxy->pev->angles = UTIL_VecToAngles(vecDir); //AJH
+
+			FireTargets(STRING(m_iszWhenHit), pHitProxy, this);
 		}
 	}
 
@@ -914,6 +950,16 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 	if( Explodable() )
 	{
 		ExplosionCreate( Center(), pev->angles, edict(), ExplosionMagnitude(), true );
+	}
+}
+
+void CBreakable::UpdateOnRemove()
+{
+	CBaseDelay::UpdateOnRemove();
+	if (m_pHitProxy) {
+		m_pHitProxy->SetThink(&CBaseEntity::SUB_Remove);
+		m_pHitProxy->pev->nextthink = gpGlobals->time + 0.1f;
+		m_pHitProxy = NULL;
 	}
 }
 

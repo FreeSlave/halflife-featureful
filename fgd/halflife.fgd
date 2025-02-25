@@ -650,6 +650,7 @@
 @BaseClass base(Targetname,Global) = Breakable
 [
 	target(target_destination) : "Target on break"
+	whenhit(string) : "Trigger when hit (locus = position)"
 	killtarget(target_destination) : "Kill Target on break"
 	health(integer) : "Strength" : 1
 	material(choices) :"Material type" : 0 =
@@ -2663,6 +2664,7 @@
 [
 	spawnflags(Flags) =
 	[
+		16 : "Invert Hit Vector (trigger when hit)" : 0
 		8192: "Smoke trails on gibs" : 0
 		16384 : "Transparent gibs" : 0
 	]
