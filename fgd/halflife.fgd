@@ -932,6 +932,7 @@
 	// Mainly for use with 1009 team settings (game_team_master)
 	master(string) : "(Team) Master"
 
+	m_iszLocusFire(string) : "Trigger on firing (locus = barrel)"
 	yawrate(string) : "Yaw rate" : "30"
 	yawrange(string) : "Yaw range" : "180"
 	yawtolerance(string) : "Yaw tolerance" : "15"

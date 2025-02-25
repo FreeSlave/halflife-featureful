@@ -111,7 +111,7 @@ public:
 	void RemoveBullet();
 	void OnEmptyGun();
 
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 
 	CLaserSpot*  m_pSpot;		// Laser spot entity
 
@@ -155,6 +155,12 @@ protected:
 	int			m_iTankClass;	// Behave As
 
 	void UpdateSpot( void );
+
+	CPointEntity* m_pFireProxy; //LRC - locus position for custom shots
+	string_t m_iszLocusFire;
+
+	CBaseEntity* BarrelFireProxy();
+	void UpdateBarrelFireProxyPosition();
 };
 
 TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
@@ -189,6 +195,8 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_pSpot, FIELD_CLASSPTR ), //LRC
 	DEFINE_FIELD( CFuncTank, m_smokeRenderMode, FIELD_SHORT ),
 	DEFINE_FIELD( CFuncTank, m_iTankClass, FIELD_INTEGER ),
+	DEFINE_FIELD( CFuncTank, m_pFireProxy, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CFuncTank, m_iszLocusFire, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTank, CBaseEntity )
@@ -368,6 +376,11 @@ void CFuncTank::KeyValue( KeyValueData *pkvd )
 		m_iTankClass = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszLocusFire"))
+	{
+		m_iszLocusFire = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
@@ -472,6 +485,26 @@ void CFuncTank::UpdateSpot( void )
 	}
 }
 
+CBaseEntity* CFuncTank::BarrelFireProxy()
+{
+	if (!m_pFireProxy)
+	{
+		m_pFireProxy = GetClassPtr((CPointEntity*)NULL);
+		m_pFireProxy->pev->classname = MAKE_STRING("info_target");
+		UpdateBarrelFireProxyPosition();
+	}
+	return m_pFireProxy;
+}
+
+void CFuncTank::UpdateBarrelFireProxyPosition()
+{
+	if (m_pFireProxy)
+	{
+		m_pFireProxy->pev->origin = BarrelPosition();
+		UTIL_MakeVectorsPrivate(pev->angles, m_pFireProxy->pev->velocity, NULL, NULL);
+	}
+}
+
 void CFuncTank::UpdateOnRemove()
 {
 	StopControl();
@@ -479,6 +512,11 @@ void CFuncTank::UpdateOnRemove()
 	if (m_pSpot) {
 		UTIL_Remove(m_pSpot);
 		m_pSpot = NULL;
+	}
+	if (m_pFireProxy) {
+		m_pFireProxy->SetThink(&CBaseEntity::SUB_Remove);
+		m_pFireProxy->pev->nextthink = gpGlobals->time + 0.1f;
+		m_pFireProxy = NULL;
 	}
 }
 
@@ -687,6 +725,8 @@ void CFuncTank::TrackTarget( void )
 	Vector angles, direction, targetPosition, barrelEnd;
 	CBaseEntity *pTarget = NULL;
 
+	UpdateBarrelFireProxyPosition();
+
 	// Get a position to aim for
 	if( m_pController )
 	{
@@ -872,6 +912,14 @@ void CFuncTank::Fire( const Vector &barrelEnd, const Vector &forward, entvars_t 
 			// Hack Hack, make it stick around for at least 100 ms.
 			pSprite->pev->nextthink += 0.1f;
 		}
+
+		//LRC
+		if (!FStringNull(m_iszLocusFire))
+		{
+			CBaseEntity* pFireProxy = BarrelFireProxy();
+			FireTargets(STRING(m_iszLocusFire), pFireProxy, this);
+		}
+
 		SUB_UseTargets( this );
 	}
 	m_fireLast = gpGlobals->time;
