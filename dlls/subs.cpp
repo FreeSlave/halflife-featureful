@@ -225,10 +225,10 @@ void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *
 		return;
 
 	const char* useTypeString = UseTypeToString(useType);
-	ALERT( at_aiconsole, "Firing: (%s)\n", targetName );
 	const char* callerClassname = pCaller ? STRING(pCaller->pev->classname) : "";
 	const char* activatorClassname = pActivator ? STRING(pActivator->pev->classname) : "";
 
+	bool fired = false;
 	for( ; ; )
 	{
 		pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, pActivator);
@@ -237,9 +237,20 @@ void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *
 
 		if( pTarget && !( pTarget->pev->flags & FL_KILLME ) )	// Don't use dying ents
 		{
-			ALERT( at_aiconsole, "Found: %s, firing (%s, %s, called by '%s', activated by '%s')\n", STRING( pTarget->pev->classname ), targetName, useTypeString, callerClassname, activatorClassname );
+			if (useType == USE_SET)
+				ALERT(at_aiconsole, "Firing: %s (%s, %s, value is %g, called by '%s', activated by '%s')\n", STRING(pTarget->pev->classname), targetName, useTypeString, value, callerClassname, activatorClassname);
+			else
+				ALERT(at_aiconsole, "Firing: %s (%s, %s, called by '%s', activated by '%s')\n", STRING(pTarget->pev->classname), targetName, useTypeString, callerClassname, activatorClassname);
+			fired = true;
 			pTarget->Use( pActivator, pCaller, useType, value );
 		}
+	}
+	if (!fired)
+	{
+		if (useType == USE_SET)
+			ALERT(at_aiconsole, "Missing fire: (%s, %s, value is %g, caller is '%s', activator is '%s')\n", targetName, useTypeString, value, callerClassname, activatorClassname);
+		else
+			ALERT(at_aiconsole, "Missing fire: (%s, %s, caller is '%s', activator is '%s')\n", targetName, useTypeString, callerClassname, activatorClassname);
 	}
 }
 
