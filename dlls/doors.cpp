@@ -35,6 +35,18 @@ enum
 	BLOCKER_RECHECK_NO = 2,
 };
 
+static USE_TYPE DoorTriggerStateToUseType(BYTE triggerState)
+{
+	switch (triggerState) {
+	case 0:
+		return USE_OFF;
+	case 1:
+		return USE_ON;
+	default:
+		return USE_TOGGLE;
+	}
+}
+
 class CBaseDoor : public CBaseToggle
 {
 public:
@@ -93,10 +105,14 @@ public:
 
 	short m_soundRadius;
 
+	string_t m_fireOnStart;
+	string_t m_fireOnStop;
 	string_t m_fireOnOpening;
 	string_t m_fireOnClosing;
 	string_t m_fireOnOpened;
 	string_t m_fireOnClosed;
+	BYTE m_fireOnStartState;
+	BYTE m_fireOnStopState;
 	BYTE m_fireOnOpeningState;
 	BYTE m_fireOnClosingState;
 	BYTE m_fireOnOpenedState;
@@ -139,11 +155,15 @@ TYPEDESCRIPTION	CBaseDoor::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseDoor, m_soundRadius, FIELD_SHORT ),
 
+	DEFINE_FIELD( CBaseDoor, m_fireOnStart, FIELD_STRING ),
+	DEFINE_FIELD( CBaseDoor, m_fireOnStop, FIELD_STRING ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnOpening, FIELD_STRING ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnClosing, FIELD_STRING ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnOpened, FIELD_STRING ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnClosed, FIELD_STRING ),
 
+	DEFINE_FIELD( CBaseDoor, m_fireOnStartState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CBaseDoor, m_fireOnStopState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnOpeningState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnClosingState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_fireOnOpenedState, FIELD_CHARACTER ),
@@ -320,6 +340,26 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "WaveHeight" ) )
 	{
 		pev->scale = atof( pkvd->szValue ) * ( 1.0f / 8.0f );
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstart"))
+	{
+		m_fireOnStart = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstart_triggerstate"))
+	{
+		m_fireOnStartState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop"))
+	{
+		m_fireOnStop = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop_triggerstate"))
+	{
+		m_fireOnStopState = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "fireonopening"))
@@ -948,15 +988,18 @@ void CBaseDoor::DoorGoUp( void )
 	else
 		LinearMove( m_vecPosition2, pev->speed );
 
+	if (m_fireOnStart)
+		FireTargets(STRING(m_fireOnStart), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStartState));
+
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
 		if (m_fireOnClosing)
-			FireTargets(STRING(m_fireOnClosing), m_hActivator, this, (USE_TYPE)m_fireOnClosingState);
+			FireTargets(STRING(m_fireOnClosing), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosingState));
 	}
 	else
 	{
 		if (m_fireOnOpening)
-			FireTargets(STRING(m_fireOnOpening), m_hActivator, this, (USE_TYPE)m_fireOnOpeningState);
+			FireTargets(STRING(m_fireOnOpening), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpeningState));
 	}
 }
 
@@ -1006,15 +1049,18 @@ void CBaseDoor::DoorHitTop( void )
 			FireTargets(STRING( pev->message ), m_hActivator, this);
 	}
 
+	if (m_fireOnStop)
+		FireTargets(STRING(m_fireOnStop), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStopState));
+
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
 		if (m_fireOnClosed)
-			FireTargets(STRING(m_fireOnClosed), m_hActivator, this, (USE_TYPE)m_fireOnClosedState);
+			FireTargets(STRING(m_fireOnClosed), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosedState));
 	}
 	else
 	{
 		if (m_fireOnOpened)
-			FireTargets(STRING(m_fireOnOpened), m_hActivator, this, (USE_TYPE)m_fireOnOpenedState);
+			FireTargets(STRING(m_fireOnOpened), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpenedState));
 	}
 
 	SUB_UseTargets( m_hActivator );
@@ -1039,15 +1085,18 @@ void CBaseDoor::DoorGoDown( void )
 	else
 		LinearMove( m_vecPosition1, m_returnSpeed <= 0.0f ? pev->speed : m_returnSpeed );
 
+	if (m_fireOnStart)
+		FireTargets(STRING(m_fireOnStart), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStartState));
+
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
 		if (m_fireOnOpening)
-			FireTargets(STRING(m_fireOnOpening), m_hActivator, this, (USE_TYPE)m_fireOnOpeningState, 0.0f);
+			FireTargets(STRING(m_fireOnOpening), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpeningState));
 	}
 	else
 	{
 		if (m_fireOnClosing)
-			FireTargets(STRING(m_fireOnClosing), m_hActivator, this, (USE_TYPE)m_fireOnClosingState, 0.0f);
+			FireTargets(STRING(m_fireOnClosing), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosingState));
 	}
 }
 
@@ -1089,15 +1138,18 @@ void CBaseDoor::DoorHitBottom( void )
 			FireTargets(STRING( pev->message ), m_hActivator, this);
 	}
 
+	if (m_fireOnStop)
+		FireTargets(STRING(m_fireOnStop), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStopState));
+
 	if ( pev->spawnflags & SF_DOOR_START_OPEN )
 	{
 		if (m_fireOnOpened)
-			FireTargets(STRING(m_fireOnOpened), m_hActivator, this, (USE_TYPE)m_fireOnOpenedState);
+			FireTargets(STRING(m_fireOnOpened), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpenedState));
 	}
 	else
 	{
 		if (m_fireOnClosed)
-			FireTargets(STRING(m_fireOnClosed), m_hActivator, this, (USE_TYPE)m_fireOnClosedState);
+			FireTargets(STRING(m_fireOnClosed), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosedState));
 	}
 }
 

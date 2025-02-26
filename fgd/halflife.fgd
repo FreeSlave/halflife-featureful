@@ -801,6 +801,25 @@
 	]
 ]
 
+@BaseClass = StartStopable
+[
+	fireonstart(target_destination) : "Fire On Start" : : "Fire when door starts moving (either direction)"
+	fireonstart_triggerstate(choices) : "Fire On Start Trigger State" =
+	[
+		0: "Off"
+		1: "On"
+		2: "Toggle"
+	]
+
+	fireonstop(target_destination) : "Fire On Stop" : : "Fire when door hits the terminal state (either open or closed)"
+	fireonstop_triggerstate(choices) : "Fire On Stop Trigger State" =
+	[
+		0: "Off"
+		1: "On"
+		2: "Toggle"
+	]
+]
+
 @BaseClass = OpenClosable
 [
 	fireonopening(target_destination) : "Fire On Open Start"
@@ -836,7 +855,7 @@
 	]
 ]
 
-@BaseClass base(Appearflags, Targetname, RenderFields, Global, Angles, SoundRadius, BaseLockable, OpenClosable, CustomObjectHint) = Door
+@BaseClass base(Appearflags, Targetname, RenderFields, Global, Angles, SoundRadius, BaseLockable, StartStopable, OpenClosable, CustomObjectHint) = Door
 [
 	killtarget(target_destination) : "KillTarget"
 	speed(integer) : "Speed" : 100
