@@ -478,6 +478,67 @@ ClientCommand
 called each time a player uses a "cmd" command
 ============
 */
+static void PrintEntityKeyValues(entvars_t* pev, CBaseEntity* pEntity)
+{
+	const int end = CMD_ARGC();
+
+	ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs(
+					"Found '%s' at (%3.1f, %3.1f, %3.1f). Reading key-values\n", STRING(pEntity->pev->classname),
+					pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->origin.z));
+
+	for (int i=2; i<end; ++i)
+	{
+		const char* keyName = CMD_ARGV(i);
+
+		float myFloat;
+		int myInt;
+		Vector myVector;
+		string_t myString;
+		edict_t* myEdict;
+		const int fieldType = ReadEntvarKeyvalue(pEntity->pev, keyName, nullptr, &myFloat, &myInt, &myVector, &myString, &myEdict);
+
+		if (fieldType == -1)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s: unknown keyvalue!\n", keyName));
+		}
+		else
+		{
+			switch (fieldType) {
+			case FIELD_MODELNAME:
+			case FIELD_SOUNDNAME:
+			case FIELD_STRING:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %s\n", keyName, STRING(myString)));
+				break;
+			case FIELD_FLOAT:
+			case FIELD_TIME:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %g\n", keyName, myFloat));
+				break;
+			case FIELD_INTEGER:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %d\n", keyName, myInt));
+				break;
+			case FIELD_POSITION_VECTOR:
+			case FIELD_VECTOR:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = (%g, %g, %g)\n", keyName, myVector.x, myVector.y, myVector.z));
+				break;
+			case FIELD_EDICT:
+			{
+				if (myEdict)
+				{
+					ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is entity of classname '%s' and targetname '%s'\n", keyName, STRING(myEdict->v.classname), STRING(myEdict->v.targetname)));
+				}
+				else
+				{
+					ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is null\n", keyName));
+				}
+			}
+				break;
+			default:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s: can't print value of type %d\n", keyName, fieldType));
+				break;
+			}
+		}
+	}
+}
 
 // Use CMD_ARGV,  CMD_ARGV, and CMD_ARGC to get pointers the character string command.
 void ClientCommand( edict_t *pEntity )
@@ -616,6 +677,59 @@ void ClientCommand( edict_t *pEntity )
 			else
 			{
 				FireTargets( CMD_ARGV( 1 ), pPlayer, pPlayer, useType, value );
+			}
+		}
+	}
+	else if( FStrEq( pcmd, "read_keyvalue" ) )
+	{
+		if (IsDeveloperModeOn())
+		{
+			if (CMD_ARGC() < 3)
+			{
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("Usage: read_keyvalue <targetname> <keyname>\n"));
+			}
+			else
+			{
+				const char* targetName = CMD_ARGV(1);
+				const bool entityUnderCrosshair = FStrEq(targetName, "!cross");
+
+				if (entityUnderCrosshair)
+				{
+					TraceResult tr;
+					UTIL_MakeVectors( pev->v_angle );
+					UTIL_TraceLine(
+						pev->origin + pev->view_ofs,
+						pev->origin + pev->view_ofs + gpGlobals->v_forward * 1000,
+						dont_ignore_monsters, pEntity, &tr
+					);
+
+					if (tr.pHit && ENTINDEX(tr.pHit) != 0)
+					{
+						CBaseEntity *pHitEnt = CBaseEntity::Instance(tr.pHit);
+						if (pHitEnt)
+						{
+							PrintEntityKeyValues(pev, pHitEnt);
+						}
+					}
+					else
+					{
+						ClientPrint(pev, HUD_PRINTCONSOLE, "Couldn't find any entity under crosshair\n");
+					}
+				}
+				else
+				{
+					bool foundAny = false;
+					CBaseEntity* pEntity = nullptr;
+					while((pEntity = UTIL_FindEntityByTargetname(pEntity, targetName)) != nullptr)
+					{
+						PrintEntityKeyValues(pev, pEntity);
+						foundAny = true;
+					}
+					if (!foundAny)
+					{
+						ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("Couldn't find any entity by targetname '%s'\n", targetName));
+					}
+				}
 			}
 		}
 	}

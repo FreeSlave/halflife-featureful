@@ -406,7 +406,7 @@ extern float UTIL_DotPoints ( const Vector &vecSrc, const Vector &vecCheck, cons
 extern void UTIL_StripToken( const char *pKey, char *pDest, int nLen );// for redundant keynames
 
 extern void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
-extern int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString);
+extern int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString, edict_t** outEdict = nullptr);
 
 // Misc functions
 extern void SetMovedir(entvars_t* pev);

@@ -2170,7 +2170,7 @@ void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd )
 	}
 }
 
-int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString)
+int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString, edict_t** outEdict)
 {
 	for( int i = 0; i < (int)ENTVARS_COUNT; i++ )
 	{
@@ -2199,6 +2199,9 @@ int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* 
 				if (outVector)
 					*outVector = Vector((float *)( (char *)pev + pField->fieldOffset ));
 				break;
+			case FIELD_EDICT:
+				if (outEdict)
+					*outEdict = ( *(edict_t **)( (char *)pev + pField->fieldOffset ) );
 			}
 			if (offset)
 				*offset = pField->fieldOffset;
