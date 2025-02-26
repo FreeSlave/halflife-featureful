@@ -33,6 +33,7 @@
 #include "talkmonster.h"
 #include "locus.h"
 #include "common_soundscripts.h"
+#include "string_utils.h"
 
 #define FEATURE_TRIGGER_RANDOM 1
 #define FEATURE_TRIGGER_RESPAWN 1
@@ -3371,6 +3372,7 @@ enum
 	CHANGEVALUE_ACTION_AND = 5,
 	CHANGEVALUE_ACTION_OR = 6,
 	CHANGEVALUE_ACTION_REMOVE_BITS = 9,
+	CHANGEVALUE_ACTION_APPEND = 11,
 	CHANGEVALUE_ACTION_XOR = 13,
 };
 
@@ -3429,7 +3431,7 @@ void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	CBaseEntity *pTarget = NULL;
-	char buf[256];
+	char buf[256] = {'\0'};
 	const char* newValue = STRING(m_iszNewValue);
 
 	Vector newVector = g_vecZero;
@@ -3619,6 +3621,24 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 			}
 			snprintf(buf, sizeof(buf), "%g", newFloat);
 			newValue = buf;
+		}
+		case FIELD_STRING:
+		{
+			switch (m_iszValueType) {
+			case CHANGEVALUE_ACTION_APPEND:
+			{
+				if (!FStringNull(oldString))
+				{
+					strncpyEnsureTermination(buf, STRING(oldString));
+				}
+				size_t bufLen = strlen(buf);
+				strncpyEnsureTermination(buf + bufLen, newValue, sizeof(buf) - bufLen);
+				newValue = buf;
+			}
+				break;
+			default:
+				break;
+			}
 		}
 		default:
 			break;

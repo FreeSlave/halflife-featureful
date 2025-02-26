@@ -8370,6 +8370,7 @@
 		6 : "Bitwise OR (= old | source)"
 		13 : "Bitwise XOR (= old ^ source)"
 		9 : "Clear bits (= old & ~source)"
+		11 : "Append (String concatenation, = old + source)"
 	]
 	message(target_destination) : "Trigger after operation" : : "Trigger entities after the value was set. This can call another trigger_changevalue without any delay so it's useful for chained operations."
 	value_type(choices) : "Treat source value as" =
