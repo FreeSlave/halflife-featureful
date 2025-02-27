@@ -3362,23 +3362,34 @@ enum
 #define SF_TRIGGER_CHANGEVALUE_NO_Y (1<<1)
 #define SF_TRIGGER_CHANGEVALUE_NO_Z (1<<2)
 
-enum
-{
-	CHANGEVALUE_ACTION_REPLACE = 0,
-	CHANGEVALUE_ACTION_ADD = 1,
-	CHANGEVALUE_ACTION_MUL = 2,
-	CHANGEVALUE_ACTION_SUB = 3,
-	CHANGEVALUE_ACTION_DIV = 4,
-	CHANGEVALUE_ACTION_AND = 5,
-	CHANGEVALUE_ACTION_OR = 6,
-	CHANGEVALUE_ACTION_REMOVE_BITS = 9,
-	CHANGEVALUE_ACTION_APPEND = 11,
-	CHANGEVALUE_ACTION_XOR = 13,
-};
-
 class CTriggerChangeValue : public CBaseDelay
 {
 public:
+	enum
+	{
+		ACTION_REPLACE = 0,
+		ACTION_ADD = 1,
+		ACTION_MUL = 2,
+		ACTION_SUB = 3,
+		ACTION_DIV = 4,
+		ACTION_MOD = 12,
+		ACTION_POW = 16,
+		ACTION_AND = 5,
+		ACTION_OR = 6,
+		ACTION_XOR = 13,
+		ACTION_REMOVE_BITS = 15,
+		ACTION_APPEND = 11,
+		ACTION_MIN = 30,
+		ACTION_MAX = 31,
+	};
+
+	enum
+	{
+		NO_ERROR = 0,
+		ERROR_DIV_BY_ZERO,
+		ERROR_UNSUPPORTED_OPERATION
+	};
+
 	void KeyValue( KeyValueData *pkvd );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
@@ -3388,7 +3399,15 @@ public:
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
+	const char* GetTargetname() const {
+		return pev->targetname ? STRING(pev->targetname) : "";
+	}
+
 private:
+	static const char* OperationName(int operation);
+	static const char* KeyTypeName(short keyType);
+	int OperateInteger(int operation, int oldInteger, int sourceInteger, int& error);
+	float OperateFloat(int operation, float oldFloat, float sourceFloat, int& error);
 	void ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger);
 
 	string_t m_iszNewValue;
@@ -3430,6 +3449,120 @@ void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 		CBaseDelay::KeyValue( pkvd );
 }
 
+const char* CTriggerChangeValue::OperationName(int operation)
+{
+	switch (operation) {
+	case ACTION_REPLACE: return "Replace";
+	case ACTION_ADD: return "Add";
+	case ACTION_MUL: return "Mul";
+	case ACTION_SUB: return "Sub";
+	case ACTION_DIV: return "Div";
+	case ACTION_MOD: return "Mod";
+	case ACTION_AND: return "AND";
+	case ACTION_OR: return "OR";
+	case ACTION_XOR: return "XOR";
+	case ACTION_REMOVE_BITS: return "Clear Bits";
+	case ACTION_APPEND: return "Append";
+	case ACTION_MIN: return "Min";
+	case ACTION_MAX: return "Max";
+	default: return "Unknown";
+	}
+}
+
+const char* CTriggerChangeValue::KeyTypeName(short keyType)
+{
+	switch (keyType) {
+	case KEY_TYPE_INT: return "Integer";
+	case KEY_TYPE_FLOAT: return "Float";
+	case KEY_TYPE_VECTOR: return "Vector";
+	case KEY_TYPE_STRING: return "String";
+	case KEY_TYPE_EDICT: return "Edict";
+	default: return "Unknown";
+	}
+}
+
+int CTriggerChangeValue::OperateInteger(int operation, int oldInteger, int sourceInteger, int& error)
+{
+	switch(operation)
+	{
+	case ACTION_REPLACE:
+		return sourceInteger;
+	case ACTION_ADD:
+		return oldInteger + sourceInteger;
+	case ACTION_MUL:
+		return oldInteger * sourceInteger;
+	case ACTION_SUB:
+		return oldInteger - sourceInteger;
+	case ACTION_DIV:
+		if (sourceInteger != 0)
+			return oldInteger / sourceInteger;
+		else
+			error = ERROR_DIV_BY_ZERO;
+		break;
+	case ACTION_MOD:
+		if (sourceInteger != 0)
+			return oldInteger % sourceInteger;
+		else
+			error = ERROR_DIV_BY_ZERO;
+		break;
+	case ACTION_POW:
+		return (int)pow(oldInteger, sourceInteger);
+	case ACTION_AND:
+		return oldInteger & sourceInteger;
+	case ACTION_OR:
+		return oldInteger | sourceInteger;
+	case ACTION_REMOVE_BITS:
+		return oldInteger & ~sourceInteger;
+	case ACTION_XOR:
+		return oldInteger ^ sourceInteger;
+	case ACTION_MIN:
+		return Q_min(oldInteger, sourceInteger);
+	case ACTION_MAX:
+		return Q_max(oldInteger, sourceInteger);
+	default:
+		error = ERROR_UNSUPPORTED_OPERATION;
+		break;
+	}
+	return oldInteger;
+}
+
+float CTriggerChangeValue::OperateFloat(int operation, float oldFloat, float sourceFloat, int& error)
+{
+	switch(operation)
+	{
+	case ACTION_REPLACE:
+		return sourceFloat;
+	case ACTION_ADD:
+		return oldFloat + sourceFloat;
+	case ACTION_MUL:
+		return oldFloat * sourceFloat;
+	case ACTION_SUB:
+		return oldFloat - sourceFloat;
+	case ACTION_DIV:
+		if (sourceFloat != 0)
+			return oldFloat / sourceFloat;
+		else
+			error = ERROR_DIV_BY_ZERO;
+		break;
+	case ACTION_MOD:
+		if ((int)sourceFloat != 0)
+			return (int)oldFloat / (int)sourceFloat;
+		else
+			error = ERROR_DIV_BY_ZERO;
+		break;
+	case ACTION_POW:
+		return pow(oldFloat, sourceFloat);
+	case ACTION_MIN:
+		return Q_min(oldFloat, sourceFloat);
+	case ACTION_MAX:
+		return Q_max(oldFloat, sourceFloat);
+	default:
+		error = ERROR_UNSUPPORTED_OPERATION;
+		break;
+	}
+	return oldFloat;
+}
+
 void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger)
 {
 	const char* keyName = STRING(pev->netname);
@@ -3437,42 +3570,23 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 	char newValueBuf[256] = {'\0'};
 	const char* newValue = sourceValue;
 
+	int error = NO_ERROR;
+
 	switch (keyValue.keyType) {
 	case KEY_TYPE_VECTOR:
 	{
-		Vector newVector = sourceVector;
-		switch(m_iszValueType)
+		Vector newVector = keyValue.vVal;
+		if (!FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_X))
 		{
-		case CHANGEVALUE_ACTION_ADD:
-			newVector = keyValue.vVal + sourceVector;
-			break;
-		case CHANGEVALUE_ACTION_MUL:
-			newVector = Vector(keyValue.vVal.x * sourceVector.x, keyValue.vVal.y * sourceVector.y, keyValue.vVal.z * sourceVector.z);
-			break;
-		case CHANGEVALUE_ACTION_SUB:
-			newVector = keyValue.vVal - sourceVector;
-			break;
-		case CHANGEVALUE_ACTION_DIV:
-			if (sourceVector.x != 0.0f && sourceVector.y != 0.0f && sourceVector.z != 0.0f)
-				newVector = Vector(keyValue.vVal.x / sourceVector.x, keyValue.vVal.y / sourceVector.y, keyValue.vVal.z / sourceVector.z);
-			else
-				return;
-			break;
-		default:
-			break;
+			newVector.x = OperateFloat(m_iszValueType, keyValue.vVal.x, sourceVector.x, error);
 		}
-
-		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_X))
+		if (!FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Y))
 		{
-			newVector.x = keyValue.vVal.x;
+			newVector.y = OperateFloat(m_iszValueType, keyValue.vVal.y, sourceVector.y, error);
 		}
-		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Y))
+		if (!FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Z))
 		{
-			newVector.y = keyValue.vVal.y;
-		}
-		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Z))
-		{
-			newVector.z = keyValue.vVal.z;
+			newVector.z = OperateFloat(m_iszValueType, keyValue.vVal.z, sourceVector.z, error);
 		}
 		snprintf(newValueBuf, sizeof(newValueBuf), "%g %g %g", newVector.x, newVector.y, newVector.z);
 		newValue = newValueBuf;
@@ -3480,73 +3594,24 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 		break;
 	case KEY_TYPE_INT:
 	{
-		int newInteger = sourceInteger;
-		switch(m_iszValueType)
-		{
-		case CHANGEVALUE_ACTION_ADD:
-			newInteger = keyValue.iVal + sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_MUL:
-			newInteger = keyValue.iVal * sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_SUB:
-			newInteger = keyValue.iVal - sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_DIV:
-			if (sourceInteger != 0)
-				newInteger = keyValue.iVal / sourceInteger;
-			else
-				return;
-			break;
-		case CHANGEVALUE_ACTION_AND:
-			newInteger = keyValue.iVal & sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_OR:
-			newInteger = keyValue.iVal | sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_REMOVE_BITS:
-			newInteger = keyValue.iVal & ~sourceInteger;
-			break;
-		case CHANGEVALUE_ACTION_XOR:
-			newInteger = keyValue.iVal ^ sourceInteger;
-			break;
-		default:
-			break;
-		}
+		int newInteger = OperateInteger(m_iszValueType, keyValue.iVal, sourceInteger, error);
 		snprintf(newValueBuf, sizeof(newValueBuf), "%d", newInteger);
 		newValue = newValueBuf;
 	}
 		break;
 	case KEY_TYPE_FLOAT:
 	{
-		float newFloat = sourceFloat;
-		switch(m_iszValueType)
-		{
-		case CHANGEVALUE_ACTION_ADD:
-			newFloat = keyValue.fVal + sourceFloat;
-			break;
-		case CHANGEVALUE_ACTION_MUL:
-			newFloat = keyValue.fVal * sourceFloat;
-			break;
-		case CHANGEVALUE_ACTION_SUB:
-			newFloat = keyValue.fVal - sourceFloat;
-			break;
-		case CHANGEVALUE_ACTION_DIV:
-			if (sourceFloat != 0)
-				newFloat = keyValue.fVal / sourceFloat;
-			else
-				return;
-			break;
-		default:
-			break;
-		}
+		float newFloat = OperateFloat(m_iszValueType, keyValue.fVal, sourceFloat, error);
 		snprintf(newValueBuf, sizeof(newValueBuf), "%g", newFloat);
 		newValue = newValueBuf;
 	}
+		break;
 	case KEY_TYPE_STRING:
 	{
 		switch (m_iszValueType) {
-		case CHANGEVALUE_ACTION_APPEND:
+		case ACTION_REPLACE:
+			break;
+		case ACTION_APPEND:
 		{
 			if (!FStringNull(keyValue.sVal))
 			{
@@ -3558,20 +3623,41 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 		}
 			break;
 		default:
+			error = ERROR_UNSUPPORTED_OPERATION;
 			break;
 		}
 	}
+		break;
 	default:
+		error = ERROR_UNSUPPORTED_OPERATION;
 		break;
 	}
 
-	KeyValueData mypkvd;
-	mypkvd.szClassName = STRING(pTarget->pev->classname);
-	mypkvd.szKeyName = keyName;
-	mypkvd.szValue = newValue;
-	mypkvd.fHandled = false;
+	switch (error) {
+	case NO_ERROR:
+	{
+		KeyValueData mypkvd;
+		mypkvd.szClassName = STRING(pTarget->pev->classname);
+		mypkvd.szKeyName = keyName;
+		mypkvd.szValue = newValue;
+		mypkvd.fHandled = false;
 
-	DispatchKeyValue(pTarget->edict(), &mypkvd);
+		DispatchKeyValue(pTarget->edict(), &mypkvd);
+		ALERT(at_aiconsole, "'%s' (%s): dispatched value '%s' to key '%s' of entity '%s'\n", GetTargetname(), STRING(pev->classname), newValue, keyName, STRING(pTarget->pev->classname));
+	}
+		break;
+	case ERROR_DIV_BY_ZERO:
+		ALERT(at_aiconsole, "'%s' (%s) attempted to divide by zero\n", GetTargetname(), STRING(pev->classname));
+		break;
+	case ERROR_UNSUPPORTED_OPERATION:
+	{
+		ALERT(at_aiconsole, "'%s' (%s) can't do operation %s on key '%s' of type %s\n",
+			  GetTargetname(), STRING(pev->classname), OperationName(m_iszValueType), keyName, KeyTypeName(keyValue.keyType));
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
