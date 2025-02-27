@@ -8356,7 +8356,7 @@
 		2 : "Don't use Y" : 0
 		4 : "Don't use Z" : 0
 	]
-	target(target_destination) : "Destination entity [LE]"
+	target(target_generic) : "Destination entity [LE]"
 	m_iszValueName(string) : "Destination key"
 	m_iszNewValue(string) : "Source value" : : "Depending on the 'Treat source value as' it's either a literal value or the name of the entity to calc Ratio/Position/Velocity from and use it as a source value"
 	m_iszValueType(choices) : "Action" :  0 : "This specifies how destination keyvalue and static source-value correlate. What exactly happens also depends on the types of the two. While 'Replace' works on all parameters, other actions work only on the limited set of keyvalues (as they require reading of the original value by key which is not straightforward operation in Half-Life). If both the original value and the source value are vectors, it does a component-wise operation, e.g. {o.x * s.x, o.y * s.y, o.z * s.z} where 'o' is an original vector and 's' is a source vector. If the original value is vector and the source value is scalar, it applies operation to all components, e.g. {o.x + s, o.y + s, o.z + s} where 'o' is an original vector and 's' is a source scalar. Bitwise operators work only on integer fields like 'spawnflags' and 'effects'." =
@@ -8420,6 +8420,73 @@
 	trigger_on_less(target_destination) : "Fire On Less Than"
 	trigger_on_greater(target_destination) : "Fire On Greater Than"
 	trigger_on_fail(target_destination) : "Fire On Calc Fail"
+]
+
+@PointClass base(Targetname) color(120 180 10) = trigger_condition : "Trigger Condition"
+[
+	spawnflags(Flags) =
+	[
+		1 : "Start Off" : 0
+
+		// For vectors
+		2 : "Don't use X (R)" : 0
+		4 : "Don't use Y (G)" : 0
+		8 : "Don't use Z (B)" : 0
+
+		// Check once when fired - do not toggle
+		32 : "Cyclic; no toggle" : 0
+
+		// Forward original activator instead of overwriting it with the trigger_condition's entity id.
+		// Not done by default, as time that passes till condition is true and trigger_condition fires,
+		// activator may no longer exist and unwanted behaviour may be exhibited if it is used anyway.
+		// Hence, you have to explicitly set the forwarding of the activator with this flag in order to
+		// use it in entities targeted by trigger_condition.
+		64 : "Forward activator" : 0
+
+		128 : "Ignore initial result" : 0
+	]
+	target(target_generic) : "Monitored entity [LE]"
+	m_iszValueName(string) : "Monitored key"
+	m_iszSourceName(target_generic) : "Compare-entity [LE]"
+	m_iszSourceKey(string) : "Compare-key"
+	m_iszCheckValue(string) : "Compare-value (alternative)"
+	m_iCheckType(choices) : "Comparator; mon. val. -> comp.-val." :  0 =
+	[
+		// Ent keyvalue equals mappers value
+		0 : "== (Equal)"
+
+		// Ent keyvalue does not equal mappers value
+		1 : "!= (Not equal)"
+
+		// Ent keyvalue is smaller than mappers value
+		2 : "< (Less)"
+
+		// Ent keyvalue is greater than mappers value
+		3 : "> (Greater)"
+
+		// Ent keyvalue is less than or equal to mappers value
+		4 : "<= (Less or equal)"
+
+		// Ent keyvalue is greater than or equal to mappers value
+		5 : ">= (Greater or equal)"
+
+		// (Ent keyvalue & mappers value) does not equal 0 (Flag check)
+		6 : "& (Logical AND)"
+	]
+
+	netname(target_destination) : "Target for 'true'-case"
+	message(target_destination) : "Target for 'false'-case"
+
+	m_iCheckBehaviour(choices) : "In Constant Mode fire when" : 0 =
+	[
+		0 : "Result has changed"
+		1 : "Result has changed or it keeps being true"
+		2 : "Result has changed or it keeps being false"
+		3 : "Always"
+	]
+
+	// 0.0 means to check every frame
+	m_fCheckInterval(string) : "Check-interval (seconds)" : "0.1"
 ]
 
 @BaseClass = TriggerConfigureMonsterBase

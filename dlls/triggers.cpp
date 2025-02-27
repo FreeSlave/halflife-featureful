@@ -3350,6 +3350,121 @@ void CTriggerChangeTarget::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, U
 	}
 }
 
+
+#define SF_LOGIC_DONT_USE_X 1
+#define SF_LOGIC_DONT_USE_Y 2
+#define SF_LOGIC_DONT_USE_Z 4
+
+enum
+{
+	FLT2STR_6DP = 0, // 6 decimal places when converted to string
+	FLT2STR_5DP = 1,
+	FLT2STR_4DP = 4,
+	FLT2STR_3DP = 7,
+	FLT2STR_2DP = 10,
+	FLT2STR_1DP = 13,
+	FLT2STR_ROUND = 16, // round to nearest whole number when converted to string/int
+	FLT2STR_CEIL = 17,
+	FLT2STR_FLOOR = 18,
+};
+
+class CBaseLogic : public CPointEntity
+{
+public:
+	virtual int GetVectorDontUseFlags() { return 0; }
+
+	float VectorToFloat(Vector v);
+
+	std::string FloatToString(float f, int flt2str_mode);
+	std::string VectorToString(Vector v, int flt2str_mode);
+
+	const char* GetTargetname() const {
+		return pev->targetname ? STRING(pev->targetname) : "";
+	}
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	EHANDLE m_hActivator;
+};
+
+TYPEDESCRIPTION	CBaseLogic::m_SaveData[] =
+{
+	DEFINE_FIELD( CBaseLogic, m_hActivator, FIELD_EHANDLE ),
+};
+
+IMPLEMENT_SAVERESTORE(CBaseLogic, CPointEntity)
+
+float CBaseLogic::VectorToFloat(Vector v)
+{
+	int dont_use_coords = GetVectorDontUseFlags();
+
+	if (dont_use_coords == (SF_LOGIC_DONT_USE_Y | SF_LOGIC_DONT_USE_Z)) {
+		return v.x;
+	}
+	if (dont_use_coords == (SF_LOGIC_DONT_USE_X | SF_LOGIC_DONT_USE_Z)) {
+		return v.y;
+	}
+	if (dont_use_coords == (SF_LOGIC_DONT_USE_X | SF_LOGIC_DONT_USE_Y)) {
+		return v.z;
+	}
+
+	if (dont_use_coords & SF_LOGIC_DONT_USE_X) {
+		v.x = 0;
+	}
+	if (dont_use_coords & SF_LOGIC_DONT_USE_Y) {
+		v.y = 0;
+	}
+	if (dont_use_coords & SF_LOGIC_DONT_USE_Z) {
+		v.z = 0;
+	}
+
+	return v.Length();
+}
+
+std::string CBaseLogic::FloatToString(float f, int flt2str_mode)
+{
+	switch (flt2str_mode) {
+	case FLT2STR_5DP: return UTIL_VarArgs("%.5f", f);
+	case FLT2STR_4DP: return UTIL_VarArgs("%.4f", f);
+	case FLT2STR_3DP: return UTIL_VarArgs("%.3f", f);
+	case FLT2STR_2DP: return UTIL_VarArgs("%.2f", f);
+	case FLT2STR_1DP: return UTIL_VarArgs("%.1f", f);
+	case FLT2STR_ROUND: return UTIL_VarArgs("%d", (int)(f + 0.5f));
+	case FLT2STR_CEIL: return UTIL_VarArgs("%d", (int)ceilf(f));
+	case FLT2STR_FLOOR: return UTIL_VarArgs("%d", (int)f);
+	case FLT2STR_6DP:
+	default:
+		return UTIL_VarArgs("%f", f);
+	}
+}
+
+std::string CBaseLogic::VectorToString(Vector v, int flt2str_mode)
+{
+	int dont_use_coords = GetVectorDontUseFlags();
+
+	std::string s;
+
+	if (!(dont_use_coords & SF_LOGIC_DONT_USE_X)) {
+		s += FloatToString(v.x, flt2str_mode);
+	}
+	if (!(dont_use_coords & SF_LOGIC_DONT_USE_Y)) {
+		if (s.length()) {
+			s += " ";
+		}
+		s += FloatToString(v.y, flt2str_mode);
+	}
+	if (!(dont_use_coords & SF_LOGIC_DONT_USE_Z)) {
+		if (s.length()) {
+			s += " ";
+		}
+		s += FloatToString(v.z, flt2str_mode);
+	}
+
+	return s;
+}
+
 enum
 {
 	CHANGEVALUE_LITERAL = 0,
@@ -3362,7 +3477,7 @@ enum
 #define SF_TRIGGER_CHANGEVALUE_NO_Y (1<<1)
 #define SF_TRIGGER_CHANGEVALUE_NO_Z (1<<2)
 
-class CTriggerChangeValue : public CBaseDelay
+class CTriggerChangeValue : public CBaseLogic
 {
 public:
 	enum
@@ -3393,15 +3508,13 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	int ObjectCaps() override { return CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int GetVectorDontUseFlags() override {
+		return pev->spawnflags & (SF_TRIGGER_CHANGEVALUE_NO_X|SF_TRIGGER_CHANGEVALUE_NO_Y|SF_TRIGGER_CHANGEVALUE_NO_Z);
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
-
-	const char* GetTargetname() const {
-		return pev->targetname ? STRING(pev->targetname) : "";
-	}
 
 private:
 	static const char* OperationName(int operation);
@@ -3411,6 +3524,7 @@ private:
 	void ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger);
 
 	string_t m_iszNewValue;
+	string_t m_iszValueName;
 	int m_iszValueType;
 };
 LINK_ENTITY_TO_CLASS( trigger_changevalue, CTriggerChangeValue )
@@ -3418,10 +3532,11 @@ LINK_ENTITY_TO_CLASS( trigger_changevalue, CTriggerChangeValue )
 TYPEDESCRIPTION	CTriggerChangeValue::m_SaveData[] =
 {
 	DEFINE_FIELD( CTriggerChangeValue, m_iszNewValue, FIELD_STRING ),
+	DEFINE_FIELD( CTriggerChangeValue, m_iszValueName, FIELD_STRING ),
 	DEFINE_FIELD( CTriggerChangeValue, m_iszValueType, FIELD_INTEGER ),
 };
 
-IMPLEMENT_SAVERESTORE(CTriggerChangeValue, CBaseDelay)
+IMPLEMENT_SAVERESTORE(CTriggerChangeValue, CBaseLogic)
 
 void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 {
@@ -3432,7 +3547,7 @@ void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszValueName"))
 	{
-		pev->netname = ALLOC_STRING( pkvd->szValue );
+		m_iszValueName = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszValueType"))
@@ -3446,7 +3561,7 @@ void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 		pkvd->fHandled = true;
 	}
 	else
-		CBaseDelay::KeyValue( pkvd );
+		CBaseLogic::KeyValue( pkvd );
 }
 
 const char* CTriggerChangeValue::OperationName(int operation)
@@ -3565,7 +3680,7 @@ float CTriggerChangeValue::OperateFloat(int operation, float oldFloat, float sou
 
 void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger)
 {
-	const char* keyName = STRING(pev->netname);
+	const char* keyName = STRING(m_iszValueName);
 	const CKeyValue keyValue = ReadEntvarKeyvalue(pTarget->pev, keyName);
 	char newValueBuf[256] = {'\0'};
 	const char* newValue = sourceValue;
@@ -3647,11 +3762,11 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 	}
 		break;
 	case ERROR_DIV_BY_ZERO:
-		ALERT(at_aiconsole, "'%s' (%s) attempted to divide by zero\n", GetTargetname(), STRING(pev->classname));
+		ALERT(at_warning, "'%s' (%s) attempted to divide by zero\n", GetTargetname(), STRING(pev->classname));
 		break;
 	case ERROR_UNSUPPORTED_OPERATION:
 	{
-		ALERT(at_aiconsole, "'%s' (%s) can't do operation %s on key '%s' of type %s\n",
+		ALERT(at_warning, "'%s' (%s) can't do operation %s on key '%s' of type %s\n",
 			  GetTargetname(), STRING(pev->classname), OperationName(m_iszValueType), keyName, KeyTypeName(keyValue.keyType));
 	}
 		break;
@@ -3729,6 +3844,515 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	if (!FStringNull(pev->message))
 	{
 		FireTargets(STRING(pev->message), pActivator, this);
+	}
+}
+
+#define SF_TRIGGER_CONDITION_OFF (1 << 0)
+#define SF_TRIGGER_CONDITION_DONT_USE_X (1 << 1)
+#define SF_TRIGGER_CONDITION_DONT_USE_Y (1 << 2)
+#define SF_TRIGGER_CONDITION_DONT_USE_Z (1 << 3)
+#define SF_TRIGGER_CONDITION_CYCLIC (1 << 5)
+#define SF_TRIGGER_CONDITION_KEEP_ACTIVATOR (1 << 6)
+#define SF_TRIGGER_CONDITION_IGNORE_FIRST_RESULT (1 << 7)
+
+constexpr float VEC_EQ_EPSILON = 0.03125f;
+
+class CTriggerCondition : public CBaseLogic
+{
+	enum
+	{
+		COMPARE_EQUAL,
+		COMPARE_NEQUAL,
+		COMPARE_LESS,
+		COMPARE_GREATER,
+		COMPARE_LEQUAL,
+		COMPARE_GEQUAL,
+		COMPARE_BITSET,
+
+		COMPARE_TYPES,
+	};
+
+	enum
+	{
+		MODE_WAIT_BOTH, // only fire target when result changes
+		MODE_WAIT_AFTER_FALSE, // always fire true, only fire false when last result was true
+		MODE_WAIT_AFTER_TRUE, // always fire false, only fire true when last result was false
+		MODE_WAIT_NEVER, // always fire true/false
+
+		CONSTANT_MODES
+	};
+
+public:
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	void EXPORT MonitorThink();
+
+	bool IsActive() const {
+		return !FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_OFF);
+	}
+	void SetIsActive(bool enable) {
+		if (enable)
+			ClearBits(pev->spawnflags, SF_TRIGGER_CONDITION_OFF);
+		else
+			SetBits(pev->spawnflags, SF_TRIGGER_CONDITION_OFF);
+	}
+
+	void Evaluate();
+	bool Compare(const CKeyValue& monitorKey, const CKeyValue& compareKey);
+
+	int getValueAsInt(const CKeyValue& key);
+	float getValueAsFloat(const CKeyValue& key);
+	const char* getValueAsString(const CKeyValue& key);
+
+	bool CompareFloats(const CKeyValue& monitorKey, const CKeyValue& compareKey);
+	bool CompareInts(const CKeyValue& monitorKey, const CKeyValue& compareKey);
+	bool CompareVectors(const CKeyValue& monitorKey, const CKeyValue& compareKey);
+	bool CompareStrings(const CKeyValue& monitorKey, const CKeyValue& compareKey);
+
+	int GetVectorDontUseFlags() override {
+		return (pev->spawnflags & (SF_TRIGGER_CONDITION_DONT_USE_X | SF_TRIGGER_CONDITION_DONT_USE_Y | SF_TRIGGER_CONDITION_DONT_USE_Z)) >> 1;
+	}
+
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_iszValueName;
+	string_t m_iszSourceName;
+	string_t m_iszSourceKey;
+	string_t m_iszCheckValue;
+	int m_iCheckType;
+	int m_iCheckBehavior;
+	float m_fCheckInterval;
+
+	EHANDLE m_hActivator;
+
+	bool m_checkedFirstResult;
+	bool m_lastResult;
+	bool m_lastResultEvaluated;
+};
+
+LINK_ENTITY_TO_CLASS( trigger_condition, CTriggerCondition )
+
+TYPEDESCRIPTION	CTriggerCondition::m_SaveData[] =
+{
+	DEFINE_FIELD( CTriggerCondition, m_iszValueName, FIELD_STRING ),
+	DEFINE_FIELD( CTriggerCondition, m_iszSourceName, FIELD_STRING ),
+	DEFINE_FIELD( CTriggerCondition, m_iszSourceKey, FIELD_STRING ),
+	DEFINE_FIELD( CTriggerCondition, m_iszCheckValue, FIELD_STRING ),
+	DEFINE_FIELD( CTriggerCondition, m_iCheckType, FIELD_INTEGER ),
+	DEFINE_FIELD( CTriggerCondition, m_iCheckBehavior, FIELD_INTEGER ),
+	DEFINE_FIELD( CTriggerCondition, m_fCheckInterval, FIELD_FLOAT ),
+	DEFINE_FIELD( CTriggerCondition, m_hActivator, FIELD_EHANDLE ),
+	DEFINE_FIELD( CTriggerCondition, m_checkedFirstResult, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CTriggerCondition, m_lastResult, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CTriggerCondition, m_lastResultEvaluated, FIELD_BOOLEAN ),
+};
+
+IMPLEMENT_SAVERESTORE(CTriggerCondition, CBaseLogic)
+
+void CTriggerCondition::Spawn()
+{
+	CBaseLogic::Spawn();
+
+	if (!FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_OFF|SF_TRIGGER_CONDITION_CYCLIC))
+	{
+		SetThink(&CTriggerCondition::MonitorThink);
+		pev->nextthink = gpGlobals->time;
+	}
+}
+
+void CTriggerCondition::KeyValue(KeyValueData* pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "m_iszValueName"))
+	{
+		m_iszValueName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszSourceName"))
+	{
+		m_iszSourceName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszSourceKey"))
+	{
+		m_iszSourceKey = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iszCheckValue"))
+	{
+		m_iszCheckValue = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iCheckType"))
+	{
+		m_iCheckType = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_iCheckBehaviour"))
+	{
+		m_iCheckBehavior = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "m_fCheckInterval"))
+	{
+		m_fCheckInterval = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else {
+		CBaseLogic::KeyValue(pkvd);
+	}
+}
+
+void CTriggerCondition::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	if (useType == USE_ON)
+		SetIsActive(true);
+	else if (useType == USE_OFF)
+		SetIsActive(false);
+	else
+		SetIsActive(!IsActive());
+
+	m_hActivator = pActivator;
+
+	m_checkedFirstResult = false;
+	m_lastResultEvaluated = false;
+
+	if (FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_CYCLIC))
+	{
+		Evaluate();
+	}
+	else
+	{
+		if (IsActive())
+		{
+			SetThink(&CTriggerCondition::MonitorThink);
+			pev->nextthink = gpGlobals->time + m_fCheckInterval;
+		}
+		else
+		{
+			SetThink(NULL);
+			pev->nextthink = 0;
+		}
+	}
+}
+
+void CTriggerCondition::MonitorThink()
+{
+	Evaluate();
+	pev->nextthink = gpGlobals->time + m_fCheckInterval;
+}
+
+void CTriggerCondition::Evaluate()
+{
+	if (FStringNull(pev->target)) {
+		ALERT(at_console, "'%s' (%s): missing monitored entity\n", GetTargetname(), STRING(pev->classname));
+		return;
+	}
+	if (FStringNull(m_iszValueName)) {
+		ALERT(at_console, "'%s' (%s): missing monitored key\n", GetTargetname(), STRING(pev->classname));
+		return;
+	}
+	if (m_iCheckType < 0 || m_iCheckType >= COMPARE_TYPES) {
+		ALERT(at_console, "'%s' (%s): invalid check type %d\n", GetTargetname(), STRING(pev->classname), m_iCheckType);
+		return;
+	}
+
+	if (m_iCheckBehavior < 0 || m_iCheckBehavior >= CONSTANT_MODES) {
+		ALERT(at_console, "'%s' (%s): invalid constant mode behavior %d\n", GetTargetname(), STRING(pev->classname), m_iCheckType);
+		return;
+	}
+
+	CBaseEntity* pEntity = UTIL_FindEntityByTargetname(nullptr, STRING(pev->target), m_hActivator);
+	if (!pEntity) {
+		ALERT(at_console, "'%s' (%s): monitored entity %s is not found\n", GetTargetname(), STRING(pev->classname), STRING(pev->target));
+		return;
+	}
+
+	CKeyValue monitorKey = ReadEntvarKeyvalue(pEntity->pev, STRING(m_iszValueName));
+	if (!monitorKey.keyType)
+		return;
+
+	CKeyValue compareKey;
+
+	if (!FStringNull(m_iszSourceName) && !FStringNull(m_iszSourceKey))
+	{
+		CBaseEntity* pSourceEntity = UTIL_FindEntityByTargetname(nullptr, STRING(m_iszSourceName), m_hActivator);
+		if (pSourceEntity)
+		{
+			compareKey = ReadEntvarKeyvalue(pSourceEntity->pev, STRING(m_iszSourceKey));
+			if (!compareKey.keyType)
+				return;
+		}
+		else
+			return;
+	}
+	else
+	{
+		if (m_iszCheckValue)
+		{
+			compareKey.keyName = "m_iszCheckValue";
+			compareKey.keyType = KEY_TYPE_STRING;
+			compareKey.sVal = m_iszCheckValue;
+		}
+		else
+		{
+			compareKey.keyName = "m_iszCheckValue";
+			compareKey.keyType = KEY_TYPE_INT;
+			compareKey.iVal = 0;
+		}
+	}
+
+	bool result = Compare(monitorKey, compareKey);
+	bool isCyclic = pev->spawnflags & SF_TRIGGER_CONDITION_CYCLIC;
+	bool ignoreFirstResult = pev->spawnflags & SF_TRIGGER_CONDITION_IGNORE_FIRST_RESULT;
+	bool shouldFireResultTarget = !ignoreFirstResult || m_checkedFirstResult || isCyclic;
+
+	if (!isCyclic && shouldFireResultTarget)
+	{
+		switch (m_iCheckBehavior) {
+		case MODE_WAIT_BOTH:
+			shouldFireResultTarget = !m_lastResultEvaluated || m_lastResult != result;
+			break;
+		case MODE_WAIT_AFTER_FALSE:
+			shouldFireResultTarget = !m_lastResultEvaluated || m_lastResult != result || result == true;
+			break;
+		case MODE_WAIT_AFTER_TRUE:
+			shouldFireResultTarget = !m_lastResultEvaluated || m_lastResult != result || result == false;
+			break;
+		case MODE_WAIT_NEVER:
+		default:
+			break;
+		}
+	}
+
+	if (shouldFireResultTarget)
+	{
+		EHANDLE h_oldActivator = m_hActivator;
+
+		if (!(pev->spawnflags & SF_TRIGGER_CONDITION_KEEP_ACTIVATOR)) {
+			m_hActivator = this;
+		}
+
+		if (result && pev->netname) {
+			if (DeveloperModeLevel() >= 4)
+				ALERT(at_aiconsole, "'%s' (%s): Firing TRUE target %s\n", GetTargetname(), STRING(pev->classname), STRING(pev->netname));
+			FireTargets(STRING(pev->netname), m_hActivator, this);
+		}
+		else if (!result && pev->message) {
+			if (DeveloperModeLevel() >= 4)
+				ALERT(at_aiconsole, "'%s' (%s): Firing FALSE target %s\n", GetTargetname(), STRING(pev->classname), STRING(pev->message));
+			FireTargets(STRING(pev->message), m_hActivator, this);
+		}
+
+		m_hActivator = h_oldActivator;
+	}
+
+	m_checkedFirstResult = true;
+	m_lastResult = result;
+	m_lastResultEvaluated = true;
+}
+
+bool CTriggerCondition::Compare(const CKeyValue& monitorKey, const CKeyValue& compareKey)
+{
+	// TODO: does this ent follow c promotion rules? Would an int compared to a float mean
+	// the int is promoted to float, regardless of which side the float was on?
+
+	switch (monitorKey.keyType) {
+	case KEY_TYPE_FLOAT:
+		return CompareFloats(monitorKey, compareKey);
+	case KEY_TYPE_INT:
+		return CompareInts(monitorKey, compareKey);
+	case KEY_TYPE_VECTOR:
+		return CompareVectors(monitorKey, compareKey);
+	case KEY_TYPE_STRING:
+		return CompareStrings(monitorKey, compareKey);
+	default:
+		ALERT(at_console, "'%s' (%s): cannot compare key %s (invalid type)\n",
+			  GetTargetname(), STRING(pev->classname), monitorKey.keyName);
+		return false;
+	}
+}
+
+bool CTriggerCondition::CompareFloats(const CKeyValue& monitorKey, const CKeyValue& compareKey)
+{
+	switch (m_iCheckType) {
+	case COMPARE_EQUAL: return monitorKey.fVal == getValueAsFloat(compareKey);
+	case COMPARE_NEQUAL: return monitorKey.fVal != getValueAsFloat(compareKey);
+	case COMPARE_LESS: return monitorKey.fVal < getValueAsFloat(compareKey);
+	case COMPARE_GREATER: return monitorKey.fVal > getValueAsFloat(compareKey);
+	case COMPARE_LEQUAL: return monitorKey.fVal <= getValueAsFloat(compareKey);
+	case COMPARE_GEQUAL: return monitorKey.fVal >= getValueAsFloat(compareKey);
+	case COMPARE_BITSET:
+	default:
+		ALERT(at_console, "'%s' (%s): invalid compare type %d used on float key %s\n",
+			  GetTargetname(), STRING(pev->classname), m_iCheckType, monitorKey.keyName);
+		return false;
+	}
+}
+
+bool CTriggerCondition::CompareInts(const CKeyValue& monitorKey, const CKeyValue& compareKey)
+{
+	switch (m_iCheckType) {
+	case COMPARE_EQUAL: return monitorKey.iVal == getValueAsInt(compareKey);
+	case COMPARE_NEQUAL: return monitorKey.iVal != getValueAsInt(compareKey);
+	case COMPARE_LESS: return monitorKey.iVal < getValueAsInt(compareKey);
+	case COMPARE_GREATER: return monitorKey.iVal > getValueAsInt(compareKey);
+	case COMPARE_LEQUAL: return monitorKey.iVal <= getValueAsInt(compareKey);
+	case COMPARE_GEQUAL: return monitorKey.iVal >= getValueAsInt(compareKey);
+	case COMPARE_BITSET: return monitorKey.iVal & getValueAsInt(compareKey);
+	default:
+		ALERT(at_console, "'%s' (%s): invalid compare type %d used on int key %s\n",
+			  GetTargetname(), STRING(pev->classname), m_iCheckType, monitorKey.keyName);
+		return false;
+	}
+}
+
+bool CTriggerCondition::CompareVectors(const CKeyValue& monitorKey, const CKeyValue& compareKey)
+{
+	Vector monitorVector = monitorKey.vVal;
+	Vector compareVector = compareKey.vVal;
+	bool compareKeyIsVector = compareKey.keyType == KEY_TYPE_VECTOR;
+
+	if (!compareKeyIsVector && compareKey.keyType == KEY_TYPE_STRING) {
+		int componentsRead;
+		Vector temp;
+		UTIL_StringToVector(temp, STRING(compareKey.sVal), &componentsRead);
+		if (componentsRead >= 3)
+		{
+			compareVector = temp;
+			compareKeyIsVector = true;
+		}
+	}
+
+	if (pev->spawnflags & SF_TRIGGER_CONDITION_DONT_USE_X) {
+		monitorVector.x = 0;
+		compareVector.x = 0;
+	}
+	if (pev->spawnflags & SF_TRIGGER_CONDITION_DONT_USE_Y) {
+		monitorVector.y = 0;
+		compareVector.y = 0;
+	}
+	if (pev->spawnflags & SF_TRIGGER_CONDITION_DONT_USE_Z) {
+		monitorVector.z = 0;
+		compareVector.z = 0;
+	}
+
+	// lengths or single components are compared if the compare value is not a vector,
+	// or if check type is anything but ==/!=
+	float monitorFloat = VectorToFloat(monitorVector);
+	float compareFloat = getValueAsFloat(compareKey);
+
+	switch (m_iCheckType) {
+	case COMPARE_EQUAL:
+		if (compareKeyIsVector) {
+			Vector d = monitorVector - compareVector;
+			return fabs(d.x) <= VEC_EQ_EPSILON && fabs(d.y) <= VEC_EQ_EPSILON && fabs(d.z) <= VEC_EQ_EPSILON;
+		}
+		else {
+			return monitorFloat == compareFloat;
+		}
+	case COMPARE_NEQUAL:
+		if (compareKeyIsVector) {
+			Vector d = monitorVector - compareVector;
+			return fabs(d.x) > VEC_EQ_EPSILON || fabs(d.y) > VEC_EQ_EPSILON || fabs(d.z) > VEC_EQ_EPSILON;
+		}
+		else {
+			return monitorFloat != compareFloat;
+		}
+	case COMPARE_LESS: return monitorFloat < compareFloat;
+	case COMPARE_GREATER: return monitorFloat > compareFloat;
+	case COMPARE_LEQUAL: return monitorFloat <= compareFloat;
+	case COMPARE_GEQUAL: return monitorFloat >= compareFloat;
+	default:
+		ALERT(at_console, "'%s' (%s): invalid compare type %d used on vector key %s\n",
+			  GetTargetname(), STRING(pev->classname), m_iCheckType, monitorKey.keyName);
+		return false;
+	}
+}
+
+bool CTriggerCondition::CompareStrings(const CKeyValue& monitorKey, const CKeyValue& compareKey)
+{
+	switch (m_iCheckType) {
+	case COMPARE_EQUAL: return strcmp(STRING(monitorKey.sVal), getValueAsString(compareKey)) == 0;
+	case COMPARE_NEQUAL: return strcmp(STRING(monitorKey.sVal), getValueAsString(compareKey)) != 0;
+	default:
+		ALERT(at_console, "'%s' (%s): invalid compare type %d used on string key %s\n",
+			  GetTargetname(), STRING(pev->classname), m_iCheckType, monitorKey.keyName);
+		return false;
+	}
+}
+
+float CTriggerCondition::getValueAsFloat(const CKeyValue& key)
+{
+	switch (key.keyType) {
+	case KEY_TYPE_FLOAT:
+		return key.fVal;
+	case KEY_TYPE_INT:
+		return key.iVal;
+	case KEY_TYPE_VECTOR:
+		return VectorToFloat(key.vVal);
+	case KEY_TYPE_STRING:
+	{
+		int componentsRead;
+		Vector vTemp;
+		UTIL_StringToVector(vTemp, STRING(key.sVal), &componentsRead);
+		if (componentsRead >= 3)
+			return VectorToFloat(vTemp);
+		else
+			return atof(STRING(key.sVal));
+	}
+	default:
+		ALERT(at_console, "'%s' (%s): cannot convert key %s to float (invalid type)\n",
+			  GetTargetname(), STRING(pev->classname), key.keyName);
+		return 0;
+	}
+}
+
+int CTriggerCondition::getValueAsInt(const CKeyValue& key)
+{
+	switch (key.keyType) {
+	case KEY_TYPE_INT:
+		return key.iVal;
+	case KEY_TYPE_FLOAT:
+	case KEY_TYPE_VECTOR:
+		return (int)getValueAsFloat(key);
+	case KEY_TYPE_STRING:
+	{
+		int componentsRead;
+		Vector vTemp;
+		UTIL_StringToVector(vTemp, STRING(key.sVal), &componentsRead);
+		if (componentsRead >= 3)
+			return (int)VectorToFloat(vTemp);
+		else
+			return atoi(STRING(key.sVal));
+	}
+	default:
+		ALERT(at_console, "'%s' (%s): cannot convert key %s to int (invalid type)\n",
+			  GetTargetname(), STRING(pev->classname), key.keyName);
+		return 0;
+	}
+}
+
+const char* CTriggerCondition::getValueAsString(const CKeyValue& key)
+{
+	switch (key.keyType) {
+	case KEY_TYPE_FLOAT:
+		return UTIL_VarArgs("%f", key.fVal);
+	case KEY_TYPE_INT:
+		return UTIL_VarArgs("%d", key.iVal);
+	case KEY_TYPE_VECTOR:
+	{
+		std::string temp = VectorToString(key.vVal, FLT2STR_6DP);
+		return UTIL_VarArgs("%s", temp.c_str());
+	}
+	case KEY_TYPE_STRING:
+		return STRING(key.sVal);
+	default:
+		ALERT(at_console, "'%s' (%s): cannot convert key %s to string (invalid type)\n",
+			  GetTargetname(), STRING(pev->classname), key.keyName);
+		return "";
 	}
 }
 
