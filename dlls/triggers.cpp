@@ -3382,13 +3382,15 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	int ObjectCaps( void ) { return CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int ObjectCaps() override { return CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	static	TYPEDESCRIPTION m_SaveData[];
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 private:
+	void ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger);
+
 	string_t m_iszNewValue;
 	int m_iszValueType;
 };
@@ -3428,16 +3430,158 @@ void CTriggerChangeValue::KeyValue( KeyValueData *pkvd )
 		CBaseDelay::KeyValue( pkvd );
 }
 
+void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sourceValue, const Vector& sourceVector, const float sourceFloat, const int sourceInteger)
+{
+	const char* keyName = STRING(pev->netname);
+	const CKeyValue keyValue = ReadEntvarKeyvalue(pTarget->pev, keyName);
+	char newValueBuf[256] = {'\0'};
+	const char* newValue = sourceValue;
+
+	switch (keyValue.keyType) {
+	case KEY_TYPE_VECTOR:
+	{
+		Vector newVector = sourceVector;
+		switch(m_iszValueType)
+		{
+		case CHANGEVALUE_ACTION_ADD:
+			newVector = keyValue.vVal + sourceVector;
+			break;
+		case CHANGEVALUE_ACTION_MUL:
+			newVector = Vector(keyValue.vVal.x * sourceVector.x, keyValue.vVal.y * sourceVector.y, keyValue.vVal.z * sourceVector.z);
+			break;
+		case CHANGEVALUE_ACTION_SUB:
+			newVector = keyValue.vVal - sourceVector;
+			break;
+		case CHANGEVALUE_ACTION_DIV:
+			if (sourceVector.x != 0.0f && sourceVector.y != 0.0f && sourceVector.z != 0.0f)
+				newVector = Vector(keyValue.vVal.x / sourceVector.x, keyValue.vVal.y / sourceVector.y, keyValue.vVal.z / sourceVector.z);
+			else
+				return;
+			break;
+		default:
+			break;
+		}
+
+		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_X))
+		{
+			newVector.x = keyValue.vVal.x;
+		}
+		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Y))
+		{
+			newVector.y = keyValue.vVal.y;
+		}
+		if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Z))
+		{
+			newVector.z = keyValue.vVal.z;
+		}
+		snprintf(newValueBuf, sizeof(newValueBuf), "%g %g %g", newVector.x, newVector.y, newVector.z);
+		newValue = newValueBuf;
+	}
+		break;
+	case KEY_TYPE_INT:
+	{
+		int newInteger = sourceInteger;
+		switch(m_iszValueType)
+		{
+		case CHANGEVALUE_ACTION_ADD:
+			newInteger = keyValue.iVal + sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_MUL:
+			newInteger = keyValue.iVal * sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_SUB:
+			newInteger = keyValue.iVal - sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_DIV:
+			if (sourceInteger != 0)
+				newInteger = keyValue.iVal / sourceInteger;
+			else
+				return;
+			break;
+		case CHANGEVALUE_ACTION_AND:
+			newInteger = keyValue.iVal & sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_OR:
+			newInteger = keyValue.iVal | sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_REMOVE_BITS:
+			newInteger = keyValue.iVal & ~sourceInteger;
+			break;
+		case CHANGEVALUE_ACTION_XOR:
+			newInteger = keyValue.iVal ^ sourceInteger;
+			break;
+		default:
+			break;
+		}
+		snprintf(newValueBuf, sizeof(newValueBuf), "%d", newInteger);
+		newValue = newValueBuf;
+	}
+		break;
+	case KEY_TYPE_FLOAT:
+	{
+		float newFloat = sourceFloat;
+		switch(m_iszValueType)
+		{
+		case CHANGEVALUE_ACTION_ADD:
+			newFloat = keyValue.fVal + sourceFloat;
+			break;
+		case CHANGEVALUE_ACTION_MUL:
+			newFloat = keyValue.fVal * sourceFloat;
+			break;
+		case CHANGEVALUE_ACTION_SUB:
+			newFloat = keyValue.fVal - sourceFloat;
+			break;
+		case CHANGEVALUE_ACTION_DIV:
+			if (sourceFloat != 0)
+				newFloat = keyValue.fVal / sourceFloat;
+			else
+				return;
+			break;
+		default:
+			break;
+		}
+		snprintf(newValueBuf, sizeof(newValueBuf), "%g", newFloat);
+		newValue = newValueBuf;
+	}
+	case KEY_TYPE_STRING:
+	{
+		switch (m_iszValueType) {
+		case CHANGEVALUE_ACTION_APPEND:
+		{
+			if (!FStringNull(keyValue.sVal))
+			{
+				strncpyEnsureTermination(newValueBuf, STRING(keyValue.sVal));
+			}
+			size_t bufLen = strlen(newValueBuf);
+			strncpyEnsureTermination(newValueBuf + bufLen, newValue, sizeof(newValueBuf) - bufLen);
+			newValue = newValueBuf;
+		}
+			break;
+		default:
+			break;
+		}
+	}
+	default:
+		break;
+	}
+
+	KeyValueData mypkvd;
+	mypkvd.szClassName = STRING(pTarget->pev->classname);
+	mypkvd.szKeyName = keyName;
+	mypkvd.szValue = newValue;
+	mypkvd.fHandled = false;
+
+	DispatchKeyValue(pTarget->edict(), &mypkvd);
+}
+
 void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	CBaseEntity *pTarget = NULL;
 	char sourceValueBuf[256] = {'\0'};
 	const char* sourceValue = STRING(m_iszNewValue);
 
-	Vector sourceVector = g_vecZero;
+	Vector sourceVector{};
 	float sourceFloat = 0.0f;
 	int sourceInteger = 0;
-	bool treatNewValueAsVector = false;
 
 	const int treatValueAs = pev->impulse;
 	if (treatValueAs == CHANGEVALUE_CALCRATIO)
@@ -3459,7 +3603,6 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 		{
 			snprintf(sourceValueBuf, sizeof(sourceValueBuf), "%g %g %g", sourceVector.x, sourceVector.y, sourceVector.z);
 			sourceValue = sourceValueBuf;
-			treatNewValueAsVector= true;
 		}
 		else
 		{
@@ -3472,7 +3615,6 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 		{
 			snprintf(sourceValueBuf, sizeof(sourceValueBuf), "%g %g %g", sourceVector.x, sourceVector.y, sourceVector.z);
 			sourceValue = sourceValueBuf;
-			treatNewValueAsVector= true;
 		}
 		else
 		{
@@ -3486,162 +3628,16 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 		UTIL_StringToVector((float*)sourceVector, sourceValue, &componentsRead);
 		sourceFloat = atof(sourceValue);
 		sourceInteger = atoi(sourceValue);
-		treatNewValueAsVector = componentsRead >= 2;
+		if (componentsRead < 2)
+		{
+			sourceVector.x = sourceVector.y = sourceVector.z = sourceFloat;
+		}
 	}
 
-	while ((pTarget = UTIL_FindEntityByTargetname( pTarget, STRING( pev->target ), pActivator )) != NULL)
+	CBaseEntity* pTarget = nullptr;
+	while ((pTarget = UTIL_FindEntityByTargetname( pTarget, STRING( pev->target ), pActivator )) != nullptr)
 	{
-		const char* keyName = STRING(pev->netname);
-		const CKeyValue keyValue = ReadEntvarKeyvalue(pTarget->pev, keyName);
-		char newValueBuf[256] = {'\0'};
-		const char* newValue = sourceValue;
-
-		switch (keyValue.keyType) {
-		case KEY_TYPE_VECTOR:
-		{
-			Vector newVector = sourceVector;
-			switch(m_iszValueType)
-			{
-			case CHANGEVALUE_ACTION_ADD:
-				if (treatNewValueAsVector)
-					newVector = keyValue.vVal + sourceVector;
-				else
-					newVector = keyValue.vVal + Vector(sourceFloat, sourceFloat, sourceFloat);
-				break;
-			case CHANGEVALUE_ACTION_MUL:
-				if (treatNewValueAsVector)
-					newVector = Vector(keyValue.vVal.x * sourceVector.x, keyValue.vVal.y * sourceVector.y, keyValue.vVal.z * sourceVector.z);
-				else
-					newVector = keyValue.vVal * sourceFloat;
-				break;
-			case CHANGEVALUE_ACTION_SUB:
-				if (treatNewValueAsVector)
-					newVector = keyValue.vVal - sourceVector;
-				else
-					newVector = keyValue.vVal - Vector(sourceFloat, sourceFloat, sourceFloat);
-				break;
-			case CHANGEVALUE_ACTION_DIV:
-				if (treatNewValueAsVector)
-				{
-					if (sourceVector.x != 0.0f && sourceVector.y != 0.0f && sourceVector.z != 0.0f)
-						newVector = Vector(keyValue.vVal.x / sourceVector.x, keyValue.vVal.y / sourceVector.y, keyValue.vVal.z / sourceVector.z);
-				}
-				else
-				{
-					if (sourceFloat != 0.0f)
-						newVector = keyValue.vVal / sourceFloat;
-				}
-				break;
-			default:
-				break;
-			}
-
-			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_X))
-			{
-				newVector.x = keyValue.vVal.x;
-			}
-			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Y))
-			{
-				newVector.y = keyValue.vVal.y;
-			}
-			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Z))
-			{
-				newVector.z = keyValue.vVal.z;
-			}
-			snprintf(newValueBuf, sizeof(newValueBuf), "%g %g %g", newVector.x, newVector.y, newVector.z);
-			newValue = newValueBuf;
-		}
-			break;
-		case KEY_TYPE_INT:
-		{
-			int newInteger = sourceInteger;
-			switch(m_iszValueType)
-			{
-			case CHANGEVALUE_ACTION_ADD:
-				newInteger = keyValue.iVal + sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_MUL:
-				newInteger = keyValue.iVal * sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_SUB:
-				newInteger = keyValue.iVal - sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_DIV:
-				if (sourceInteger != 0)
-					newInteger = keyValue.iVal / sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_AND:
-				newInteger = keyValue.iVal & sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_OR:
-				newInteger = keyValue.iVal | sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_REMOVE_BITS:
-				newInteger = keyValue.iVal & ~sourceInteger;
-				break;
-			case CHANGEVALUE_ACTION_XOR:
-				newInteger = keyValue.iVal ^ sourceInteger;
-				break;
-			default:
-				break;
-			}
-			snprintf(newValueBuf, sizeof(newValueBuf), "%d", newInteger);
-			newValue = newValueBuf;
-		}
-			break;
-		case KEY_TYPE_FLOAT:
-		{
-			float newFloat = sourceFloat;
-			switch(m_iszValueType)
-			{
-			case CHANGEVALUE_ACTION_ADD:
-				newFloat = keyValue.fVal + sourceFloat;
-				break;
-			case CHANGEVALUE_ACTION_MUL:
-				newFloat = keyValue.fVal * sourceFloat;
-				break;
-			case CHANGEVALUE_ACTION_SUB:
-				newFloat = keyValue.fVal - sourceFloat;
-				break;
-			case CHANGEVALUE_ACTION_DIV:
-				if (sourceFloat != 0)
-					newFloat = keyValue.fVal / sourceFloat;
-				break;
-			default:
-				break;
-			}
-			snprintf(newValueBuf, sizeof(newValueBuf), "%g", newFloat);
-			newValue = newValueBuf;
-		}
-		case KEY_TYPE_STRING:
-		{
-			switch (m_iszValueType) {
-			case CHANGEVALUE_ACTION_APPEND:
-			{
-				if (!FStringNull(keyValue.sVal))
-				{
-					strncpyEnsureTermination(newValueBuf, STRING(keyValue.sVal));
-				}
-				size_t bufLen = strlen(newValueBuf);
-				strncpyEnsureTermination(newValueBuf + bufLen, newValue, sizeof(newValueBuf) - bufLen);
-				newValue = newValueBuf;
-			}
-				break;
-			default:
-				break;
-			}
-		}
-		default:
-			break;
-		}
-
-		KeyValueData mypkvd;
-		mypkvd.szClassName = STRING(pTarget->pev->classname);
-		mypkvd.szKeyName = keyName;
-		mypkvd.szValue = newValue;
-		mypkvd.fHandled = false;
-
-		DispatchKeyValue(pTarget->edict(), &mypkvd);
+		ApplySourceValue(pTarget, sourceValue, sourceVector, sourceFloat, sourceInteger);
 	}
 
 	if (!FStringNull(pev->message))
