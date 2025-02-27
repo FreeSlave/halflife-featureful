@@ -406,7 +406,32 @@ extern float UTIL_DotPoints ( const Vector &vecSrc, const Vector &vecCheck, cons
 extern void UTIL_StripToken( const char *pKey, char *pDest, int nLen );// for redundant keynames
 
 extern void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
-extern int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString, edict_t** outEdict = nullptr);
+
+enum
+{
+	KEY_TYPE_NONE, // indicates value failed to load
+	KEY_TYPE_INT,
+	KEY_TYPE_FLOAT,
+	KEY_TYPE_VECTOR,
+	KEY_TYPE_STRING,
+	KEY_TYPE_EDICT
+};
+
+struct CKeyValue
+{
+	short fieldType = -1;
+	short keyType = KEY_TYPE_NONE;
+	int offset = 0;
+	const char* keyName;
+
+	int iVal = 0;
+	float fVal = 0.0f;
+	string_t sVal = iStringNull;
+	Vector vVal{};
+	edict_t* eVal = nullptr;
+};
+
+extern CKeyValue ReadEntvarKeyvalue(entvars_t* pev, const char* keyName);
 
 // Misc functions
 extern void SetMovedir(entvars_t* pev);

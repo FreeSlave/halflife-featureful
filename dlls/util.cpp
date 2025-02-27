@@ -2170,45 +2170,48 @@ void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd )
 	}
 }
 
-int ReadEntvarKeyvalue(entvars_t* pev, const char* keyName, int* offset, float* outFloat, int* outInteger, Vector* outVector, string_t* outString, edict_t** outEdict)
+CKeyValue ReadEntvarKeyvalue(entvars_t* pev, const char* keyName)
 {
+	CKeyValue keyValue;
+	keyValue.keyName = keyName;
+
 	for( int i = 0; i < (int)ENTVARS_COUNT; i++ )
 	{
 		TYPEDESCRIPTION *pField = &gEntvarsDescription[i];
 		if( stricmp( pField->fieldName, keyName ) == 0 )
 		{
+			keyValue.fieldType = pField->fieldType;
+			keyValue.offset = pField->fieldOffset;
 			switch( pField->fieldType )
 			{
 			case FIELD_MODELNAME:
 			case FIELD_SOUNDNAME:
 			case FIELD_STRING:
-				if (outString)
-					*outString = ( *(string_t *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.sVal = ( *(string_t *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_STRING;
 				break;
 			case FIELD_TIME:
 			case FIELD_FLOAT:
-				if (outFloat)
-					*outFloat = ( *(float *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.fVal = ( *(float *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_FLOAT;
 				break;
 			case FIELD_INTEGER:
-				if (outInteger)
-					*outInteger = ( *(int *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.iVal = ( *(int *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_INT;
 				break;
 			case FIELD_POSITION_VECTOR:
 			case FIELD_VECTOR:
-				if (outVector)
-					*outVector = Vector((float *)( (char *)pev + pField->fieldOffset ));
+				keyValue.vVal = Vector((float *)( (char *)pev + pField->fieldOffset ));
+				keyValue.keyType = KEY_TYPE_VECTOR;
 				break;
 			case FIELD_EDICT:
-				if (outEdict)
-					*outEdict = ( *(edict_t **)( (char *)pev + pField->fieldOffset ) );
+				keyValue.eVal = ( *(edict_t **)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_EDICT;
 			}
-			if (offset)
-				*offset = pField->fieldOffset;
-			return pField->fieldType;
+			return keyValue;
 		}
 	}
-	return -1;
+	return keyValue;
 }
 
 int CSave::WriteEntVars( const char *pname, entvars_t *pev )

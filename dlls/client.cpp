@@ -489,42 +489,32 @@ static void PrintEntityKeyValues(entvars_t* pev, CBaseEntity* pEntity)
 	for (int i=2; i<end; ++i)
 	{
 		const char* keyName = CMD_ARGV(i);
+		const CKeyValue keyValue = ReadEntvarKeyvalue(pEntity->pev, keyName);
 
-		float myFloat;
-		int myInt;
-		Vector myVector;
-		string_t myString;
-		edict_t* myEdict;
-		const int fieldType = ReadEntvarKeyvalue(pEntity->pev, keyName, nullptr, &myFloat, &myInt, &myVector, &myString, &myEdict);
-
-		if (fieldType == -1)
+		if (!keyValue.keyType)
 		{
 			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s: unknown keyvalue!\n", keyName));
 		}
 		else
 		{
-			switch (fieldType) {
-			case FIELD_MODELNAME:
-			case FIELD_SOUNDNAME:
-			case FIELD_STRING:
-				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %s\n", keyName, STRING(myString)));
+			switch (keyValue.keyType) {
+			case KEY_TYPE_STRING:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %s\n", keyName, STRING(keyValue.sVal)));
 				break;
-			case FIELD_FLOAT:
-			case FIELD_TIME:
-				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %g\n", keyName, myFloat));
+			case KEY_TYPE_FLOAT:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %g\n", keyName, keyValue.fVal));
 				break;
-			case FIELD_INTEGER:
-				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %d\n", keyName, myInt));
+			case KEY_TYPE_INT:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = %d\n", keyName, keyValue.iVal));
 				break;
-			case FIELD_POSITION_VECTOR:
-			case FIELD_VECTOR:
-				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = (%g, %g, %g)\n", keyName, myVector.x, myVector.y, myVector.z));
+			case KEY_TYPE_VECTOR:
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s = (%g, %g, %g)\n", keyName, keyValue.vVal.x, keyValue.vVal.y, keyValue.vVal.z));
 				break;
-			case FIELD_EDICT:
+			case KEY_TYPE_EDICT:
 			{
-				if (myEdict)
+				if (keyValue.eVal)
 				{
-					ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is entity of classname '%s' and targetname '%s'\n", keyName, STRING(myEdict->v.classname), STRING(myEdict->v.targetname)));
+					ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is entity of classname '%s' and targetname '%s'\n", keyName, STRING(keyValue.eVal->v.classname), STRING(keyValue.eVal->v.targetname)));
 				}
 				else
 				{
@@ -533,7 +523,7 @@ static void PrintEntityKeyValues(entvars_t* pev, CBaseEntity* pEntity)
 			}
 				break;
 			default:
-				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s: can't print value of type %d\n", keyName, fieldType));
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s: can't print value of field type %d\n", keyName, keyValue.fieldType));
 				break;
 			}
 		}

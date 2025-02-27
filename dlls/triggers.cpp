@@ -3492,50 +3492,43 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 	while ((pTarget = UTIL_FindEntityByTargetname( pTarget, STRING( pev->target ), pActivator )) != NULL)
 	{
 		const char* keyName = STRING(pev->netname);
+		const CKeyValue keyValue = ReadEntvarKeyvalue(pTarget->pev, keyName);
 
-		int fieldOffset = 0;
-		float oldFloat = 0.0f;
-		int oldInteger = 0;
-		Vector oldVector = g_vecZero;
-		string_t oldString = iStringNull;
-		int fieldType = ReadEntvarKeyvalue(pTarget->pev, keyName, &fieldOffset, &oldFloat, &oldInteger, &oldVector, &oldString);
-
-		switch (fieldType) {
-		case FIELD_POSITION_VECTOR:
-		case FIELD_VECTOR:
+		switch (keyValue.keyType) {
+		case KEY_TYPE_VECTOR:
 		{
 			switch(m_iszValueType)
 			{
 			case CHANGEVALUE_ACTION_ADD:
 				if (treatNewValueAsVector)
-					newVector = oldVector + newVector;
+					newVector = keyValue.vVal + newVector;
 				else
-					newVector = oldVector + Vector(newFloat, newFloat, newFloat);
+					newVector = keyValue.vVal + Vector(newFloat, newFloat, newFloat);
 				break;
 			case CHANGEVALUE_ACTION_MUL:
 				if (treatNewValueAsVector)
-					newVector = Vector(oldVector.x * newVector.x, oldVector.y * newVector.y, oldVector.z * newVector.z);
+					newVector = Vector(keyValue.vVal.x * newVector.x, keyValue.vVal.y * newVector.y, keyValue.vVal.z * newVector.z);
 				else
-					newVector = oldVector * newFloat;
+					newVector = keyValue.vVal * newFloat;
 				break;
 			case CHANGEVALUE_ACTION_SUB:
 				if (treatNewValueAsVector)
-					newVector = oldVector - newVector;
+					newVector = keyValue.vVal - newVector;
 				else
-					newVector = oldVector - Vector(newFloat, newFloat, newFloat);
+					newVector = keyValue.vVal - Vector(newFloat, newFloat, newFloat);
 				break;
 			case CHANGEVALUE_ACTION_DIV:
 				if (treatNewValueAsVector)
 				{
 					if (newVector.x == 0.0f || newVector.y == 0.0f || newVector.z == 0.0f)
 						return;
-					newVector = Vector(oldVector.x / newVector.x, oldVector.y / newVector.y, oldVector.z / newVector.z);
+					newVector = Vector(keyValue.vVal.x / newVector.x, keyValue.vVal.y / newVector.y, keyValue.vVal.z / newVector.z);
 				}
 				else
 				{
 					if (newFloat == 0.0f)
 						return;
-					newVector = oldVector / newFloat;
+					newVector = keyValue.vVal / newFloat;
 				}
 				break;
 			default:
@@ -3544,50 +3537,50 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 
 			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_X))
 			{
-				newVector.x = oldVector.x;
+				newVector.x = keyValue.vVal.x;
 			}
 			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Y))
 			{
-				newVector.y = oldVector.y;
+				newVector.y = keyValue.vVal.y;
 			}
 			if (FBitSet(pev->spawnflags, SF_TRIGGER_CHANGEVALUE_NO_Z))
 			{
-				newVector.z = oldVector.z;
+				newVector.z = keyValue.vVal.z;
 			}
 			snprintf(buf, sizeof(buf), "%g %g %g", newVector.x, newVector.y, newVector.z);
 			newValue = buf;
 		}
 			break;
-		case FIELD_INTEGER:
+		case KEY_TYPE_INT:
 		{
 			switch(m_iszValueType)
 			{
 			case CHANGEVALUE_ACTION_ADD:
-				newInteger = oldInteger + newInteger;
+				newInteger = keyValue.iVal + newInteger;
 				break;
 			case CHANGEVALUE_ACTION_MUL:
-				newInteger = oldInteger * newInteger;
+				newInteger = keyValue.iVal * newInteger;
 				break;
 			case CHANGEVALUE_ACTION_SUB:
-				newInteger = oldInteger - newInteger;
+				newInteger = keyValue.iVal - newInteger;
 				break;
 			case CHANGEVALUE_ACTION_DIV:
 				if (newInteger != 0)
-					newInteger = oldInteger / newInteger;
+					newInteger = keyValue.iVal / newInteger;
 				else
 					return;
 				break;
 			case CHANGEVALUE_ACTION_AND:
-				newInteger = oldInteger & newInteger;
+				newInteger = keyValue.iVal & newInteger;
 				break;
 			case CHANGEVALUE_ACTION_OR:
-				newInteger = oldInteger | newInteger;
+				newInteger = keyValue.iVal | newInteger;
 				break;
 			case CHANGEVALUE_ACTION_REMOVE_BITS:
-				newInteger = oldInteger & ~newInteger;
+				newInteger = keyValue.iVal & ~newInteger;
 				break;
 			case CHANGEVALUE_ACTION_XOR:
-				newInteger = oldInteger ^ newInteger;
+				newInteger = keyValue.iVal ^ newInteger;
 				break;
 			default:
 				break;
@@ -3596,23 +3589,22 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 			newValue = buf;
 		}
 			break;
-		case FIELD_FLOAT:
-		case FIELD_TIME:
+		case KEY_TYPE_FLOAT:
 		{
 			switch(m_iszValueType)
 			{
 			case CHANGEVALUE_ACTION_ADD:
-				newFloat = oldFloat + newFloat;
+				newFloat = keyValue.fVal + newFloat;
 				break;
 			case CHANGEVALUE_ACTION_MUL:
-				newFloat = oldFloat * newFloat;
+				newFloat = keyValue.fVal * newFloat;
 				break;
 			case CHANGEVALUE_ACTION_SUB:
-				newFloat = oldFloat - newFloat;
+				newFloat = keyValue.fVal - newFloat;
 				break;
 			case CHANGEVALUE_ACTION_DIV:
 				if (newFloat != 0)
-					newFloat = oldFloat / newFloat;
+					newFloat = keyValue.fVal / newFloat;
 				else
 					return;
 				break;
@@ -3622,14 +3614,14 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 			snprintf(buf, sizeof(buf), "%g", newFloat);
 			newValue = buf;
 		}
-		case FIELD_STRING:
+		case KEY_TYPE_STRING:
 		{
 			switch (m_iszValueType) {
 			case CHANGEVALUE_ACTION_APPEND:
 			{
-				if (!FStringNull(oldString))
+				if (!FStringNull(keyValue.sVal))
 				{
-					strncpyEnsureTermination(buf, STRING(oldString));
+					strncpyEnsureTermination(buf, STRING(keyValue.sVal));
 				}
 				size_t bufLen = strlen(buf);
 				strncpyEnsureTermination(buf + bufLen, newValue, sizeof(buf) - bufLen);
