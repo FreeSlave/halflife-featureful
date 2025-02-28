@@ -8445,6 +8445,8 @@
 		64 : "Forward activator" : 0
 
 		128 : "Ignore initial result" : 0
+
+		512 : "Don't delay first check" : 0 : "Don't delay first check when gets activated in constant mode"
 	]
 	target(target_generic) : "Monitored entity [LE]"
 	m_iszValueName(string) : "Monitored key"

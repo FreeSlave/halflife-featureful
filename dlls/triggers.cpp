@@ -3854,6 +3854,7 @@ void CTriggerChangeValue::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 #define SF_TRIGGER_CONDITION_CYCLIC (1 << 5)
 #define SF_TRIGGER_CONDITION_KEEP_ACTIVATOR (1 << 6)
 #define SF_TRIGGER_CONDITION_IGNORE_FIRST_RESULT (1 << 7)
+#define SF_TRIGGER_CONDITION_DONT_DELAY_FIRST_CHECK (1 << 9)
 
 constexpr float VEC_EQ_EPSILON = 0.03125f;
 
@@ -4028,7 +4029,10 @@ void CTriggerCondition::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 		if (IsActive())
 		{
 			SetThink(&CTriggerCondition::MonitorThink);
-			pev->nextthink = gpGlobals->time + m_fCheckInterval;
+			if (FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_DONT_DELAY_FIRST_CHECK))
+				pev->nextthink = gpGlobals->time;
+			else
+				pev->nextthink = gpGlobals->time + m_fCheckInterval;
 		}
 		else
 		{
