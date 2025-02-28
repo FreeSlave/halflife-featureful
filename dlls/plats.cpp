@@ -47,6 +47,18 @@ float SoundAttenuation(short soundRadius)
 	}
 }
 
+static USE_TYPE PlatTriggerStateToUseType(BYTE triggerState)
+{
+	switch (triggerState) {
+	case 0:
+		return USE_OFF;
+	case 1:
+		return USE_ON;
+	default:
+		return USE_TOGGLE;
+	}
+}
+
 static void PlatSpawnInsideTrigger(entvars_t* pevPlatform);
 
 #define SF_PLAT_TOGGLE		0x0001
@@ -70,10 +82,18 @@ public:
 	float m_volume;			// Sound volume
 	short m_soundRadius;
 
+	string_t m_fireOnStart;
+	string_t m_fireOnStop;
+	BYTE m_fireOnStartState;
+	BYTE m_fireOnStopState;
+
 	float SoundAttenuation() const
 	{
 		return ::SoundAttenuation(m_soundRadius);
 	}
+
+	void OnStartMoving();
+	void OnStopMoving();
 };
 
 TYPEDESCRIPTION	CBasePlatTrain::m_SaveData[] =
@@ -82,6 +102,10 @@ TYPEDESCRIPTION	CBasePlatTrain::m_SaveData[] =
 	DEFINE_FIELD( CBasePlatTrain, m_bStopSnd, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBasePlatTrain, m_volume, FIELD_FLOAT ),
 	DEFINE_FIELD( CBasePlatTrain, m_soundRadius, FIELD_SHORT ),
+	DEFINE_FIELD( CBasePlatTrain, m_fireOnStart, FIELD_STRING ),
+	DEFINE_FIELD( CBasePlatTrain, m_fireOnStop, FIELD_STRING ),
+	DEFINE_FIELD( CBasePlatTrain, m_fireOnStartState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CBasePlatTrain, m_fireOnStopState, FIELD_CHARACTER ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlatTrain, CBaseToggle )
@@ -136,6 +160,26 @@ void CBasePlatTrain::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "customstopsnd" ) )
 	{
 		pev->noise1 = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	if (FStrEq(pkvd->szKeyName, "fireonstart"))
+	{
+		m_fireOnStart = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstart_triggerstate"))
+	{
+		m_fireOnStartState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop"))
+	{
+		m_fireOnStop = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop_triggerstate"))
+	{
+		m_fireOnStopState = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -257,6 +301,18 @@ void CBasePlatTrain::Precache( void )
 	}
 }
 
+void CBasePlatTrain::OnStartMoving()
+{
+	if (m_fireOnStart)
+		FireTargets(STRING(m_fireOnStart), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnStartState));
+}
+
+void CBasePlatTrain::OnStopMoving()
+{
+	if (m_fireOnStop)
+		FireTargets(STRING(m_fireOnStop), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnStopState));
+}
+
 //
 //====================== PLAT code ====================================================
 //
@@ -269,6 +325,7 @@ class CFuncPlat : public CBasePlatTrain
 public:
 	void Spawn( void );
 	void Precache( void );
+	void KeyValue( KeyValueData *pkvd ) override;
 	void Setup( void );
 
 	virtual void Blocked( CBaseEntity *pOther );
@@ -283,9 +340,37 @@ public:
 	virtual void GoDown( void );
 	virtual void HitTop( void );
 	virtual void HitBottom( void );
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_fireOnOpening;
+	string_t m_fireOnClosing;
+	string_t m_fireOnOpened;
+	string_t m_fireOnClosed;
+
+	BYTE m_fireOnOpeningState;
+	BYTE m_fireOnClosingState;
+	BYTE m_fireOnOpenedState;
+	BYTE m_fireOnClosedState;
 };
 
 LINK_ENTITY_TO_CLASS( func_plat, CFuncPlat )
+
+TYPEDESCRIPTION	CFuncPlat::m_SaveData[] =
+{
+	DEFINE_FIELD( CFuncPlat, m_fireOnOpening, FIELD_STRING ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnClosing, FIELD_STRING ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnOpened, FIELD_STRING ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnClosed, FIELD_STRING ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnOpeningState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnClosingState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnOpenedState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CFuncPlat, m_fireOnClosedState, FIELD_CHARACTER ),
+};
+
+IMPLEMENT_SAVERESTORE( CFuncPlat, CBasePlatTrain )
 
 // UNDONE: Need to save this!!! It needs class & linkage
 class CPlatTrigger : public CBaseEntity
@@ -374,6 +459,52 @@ void CFuncPlat::Spawn()
 		UTIL_SetOrigin( pev, m_vecPosition2 );
 		m_toggle_state = TS_AT_BOTTOM;
 	}
+}
+
+void CFuncPlat::KeyValue( KeyValueData *pkvd )
+{
+	if (FStrEq(pkvd->szKeyName, "fireonopening"))
+	{
+		m_fireOnOpening = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopening_triggerstate"))
+	{
+		m_fireOnOpeningState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosing"))
+	{
+		m_fireOnClosing = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosing_triggerstate"))
+	{
+		m_fireOnClosingState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopened"))
+	{
+		m_fireOnOpened = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopened_triggerstate"))
+	{
+		m_fireOnOpenedState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosed"))
+	{
+		m_fireOnClosed = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosed_triggerstate"))
+	{
+		m_fireOnClosedState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CBasePlatTrain::KeyValue( pkvd );
 }
 
 static void PlatSpawnInsideTrigger( entvars_t *pevPlatform )
@@ -478,6 +609,11 @@ void CFuncPlat::GoDown( void )
 	m_toggle_state = TS_GOING_DOWN;
 	SetMoveDone( &CFuncPlat::CallHitBottom );
 	LinearMove( m_vecPosition2, pev->speed );
+
+	OnStartMoving();
+
+	if (m_fireOnClosing)
+		FireTargets(STRING(m_fireOnClosing), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnClosingState));
 }
 
 //
@@ -493,6 +629,11 @@ void CFuncPlat::HitBottom( void )
 
 	ASSERT( m_toggle_state == TS_GOING_DOWN );
 	m_toggle_state = TS_AT_BOTTOM;
+
+	OnStopMoving();
+
+	if (m_fireOnClosed)
+		FireTargets(STRING(m_fireOnClosed), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnClosedState));
 }
 
 //
@@ -507,6 +648,10 @@ void CFuncPlat::GoUp( void )
 	m_toggle_state = TS_GOING_UP;
 	SetMoveDone( &CFuncPlat::CallHitTop );
 	LinearMove(m_vecPosition1, pev->speed);
+
+	OnStartMoving();
+	if (m_fireOnOpening)
+		FireTargets(STRING(m_fireOnOpening), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnOpeningState));
 }
 
 //
@@ -522,6 +667,11 @@ void CFuncPlat::HitTop( void )
 
 	ASSERT( m_toggle_state == TS_GOING_UP );
 	m_toggle_state = TS_AT_TOP;
+
+	OnStopMoving();
+
+	if (m_fireOnOpened)
+		FireTargets(STRING(m_fireOnOpened), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnOpenedState));
 
 	if( !IsTogglePlat() )
 	{

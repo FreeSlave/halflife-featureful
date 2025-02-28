@@ -2908,7 +2908,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname,Global,RenderFields, PlatSounds, ZHLT) = func_plat : "Elevator"
+@SolidClass base(Targetname,Global,RenderFields, PlatSounds, ZHLT, StartStopable, OpenClosable) = func_plat : "Elevator"
 [
 	spawnflags(Flags) =
 	[
@@ -2919,7 +2919,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname, Global, RenderFields, PlatSounds, Angles, ZHLT) = func_platrot : "Moving Rotating platform"
+@SolidClass base(Targetname, Global, RenderFields, PlatSounds, Angles, ZHLT, StartStopable, OpenClosable) = func_platrot : "Moving Rotating platform"
 [
 	spawnflags(Flags) =
 	[
