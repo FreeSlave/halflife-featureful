@@ -2305,7 +2305,7 @@
 	]
 	frame(integer) : "Start frame (shot)"
 	framerate(string) : "Framerate (shot)"
-	m_fFriction(string) : "Bounce height (shot)" : "0.55"
+	m_fFriction(string) : "Bounce friction (shot)" : "0.55"
 	m_iszTouch(string) : "Fire on collision (shot) (locus = shot)"
 	m_iszTouchOther(string) : "Fire on collision (shot) (locus = wall)"
 	m_vecSize(string) : "Shot size (X Y Z)"
@@ -2683,7 +2683,6 @@
 [
 	spawnflags(Flags) =
 	[
-		16 : "Invert Hit Vector (trigger when hit)" : 0
 		8192: "Smoke trails on gibs" : 0
 		16384 : "Transparent gibs" : 0
 	]
@@ -2697,6 +2696,7 @@
 		2 : "Touch"	   : 0
 		4 : "Pressure"     : 0
 		8: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Repairable' flag"
+		16 : "Invert Hit Vector (trigger when hit)" : 0
 		32: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Show HUD Info' flag"
 		64: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Immune To Clients' flag"
 		256: "Instant break by melee" : 0
@@ -2938,6 +2938,7 @@
 	spawnflags(flags) =
 	[
 		8: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Repairable' flag"
+		16 : "Invert Hit Vector (trigger when hit)" : 0
 		32: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Show HUD Info' flag"
 		128: "Breakable" : 0
 		512: "Explosives only": 0
@@ -3863,8 +3864,8 @@
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = locus_beam : "Locus System - Beam effect"
 [
-	m_iszStart(target_destination) : "Start at (blank = here)" : ""
-	m_iszEnd(target_destination) : "End at (blank = here)" : "*locus"
+	m_iszStart(target_generic) : "Start at (blank = here)" : ""
+	m_iszEnd(target_generic) : "End at (blank = here)" : "*locus"
 	impulse(choices) : "Start & End are" : 0 =
 	[
 		0: "Entity & Entity [LE LE]"
@@ -8012,7 +8013,7 @@
 	[
 		1 : "Remove on fire" : 0
 	]
-	use_type(choices) : "Use type" : 1 : "How the entity interprets its firing. With 'Forwad input' the ON input will make the monster start following, the OFF input will make the monster stop following, and TOGGLE will make it start/stop following depending on its current state" =
+	use_type(choices) : "Use type" : 1 : "How the entity interprets its firing. With 'Forward input' the ON input will make the monster start following, the OFF input will make the monster stop following, and TOGGLE will make it start/stop following depending on its current state" =
 	[
 		-1 : "Make stop following"
 		0 : "Forward input"
