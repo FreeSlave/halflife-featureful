@@ -3500,9 +3500,9 @@ public:
 
 	enum
 	{
-		NO_ERROR = 0,
-		ERROR_DIV_BY_ZERO,
-		ERROR_UNSUPPORTED_OPERATION
+		TCV_NO_ERROR = 0,
+		TCV_ERROR_DIV_BY_ZERO,
+		TCV_ERROR_UNSUPPORTED_OPERATION
 	};
 
 	void KeyValue( KeyValueData *pkvd );
@@ -3612,13 +3612,13 @@ int CTriggerChangeValue::OperateInteger(int operation, int oldInteger, int sourc
 		if (sourceInteger != 0)
 			return oldInteger / sourceInteger;
 		else
-			error = ERROR_DIV_BY_ZERO;
+			error = TCV_ERROR_DIV_BY_ZERO;
 		break;
 	case ACTION_MOD:
 		if (sourceInteger != 0)
 			return oldInteger % sourceInteger;
 		else
-			error = ERROR_DIV_BY_ZERO;
+			error = TCV_ERROR_DIV_BY_ZERO;
 		break;
 	case ACTION_POW:
 		return (int)pow(oldInteger, sourceInteger);
@@ -3635,7 +3635,7 @@ int CTriggerChangeValue::OperateInteger(int operation, int oldInteger, int sourc
 	case ACTION_MAX:
 		return Q_max(oldInteger, sourceInteger);
 	default:
-		error = ERROR_UNSUPPORTED_OPERATION;
+		error = TCV_ERROR_UNSUPPORTED_OPERATION;
 		break;
 	}
 	return oldInteger;
@@ -3657,13 +3657,13 @@ float CTriggerChangeValue::OperateFloat(int operation, float oldFloat, float sou
 		if (sourceFloat != 0)
 			return oldFloat / sourceFloat;
 		else
-			error = ERROR_DIV_BY_ZERO;
+			error = TCV_ERROR_DIV_BY_ZERO;
 		break;
 	case ACTION_MOD:
 		if ((int)sourceFloat != 0)
 			return (int)oldFloat / (int)sourceFloat;
 		else
-			error = ERROR_DIV_BY_ZERO;
+			error = TCV_ERROR_DIV_BY_ZERO;
 		break;
 	case ACTION_POW:
 		return pow(oldFloat, sourceFloat);
@@ -3672,7 +3672,7 @@ float CTriggerChangeValue::OperateFloat(int operation, float oldFloat, float sou
 	case ACTION_MAX:
 		return Q_max(oldFloat, sourceFloat);
 	default:
-		error = ERROR_UNSUPPORTED_OPERATION;
+		error = TCV_ERROR_UNSUPPORTED_OPERATION;
 		break;
 	}
 	return oldFloat;
@@ -3685,7 +3685,7 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 	char newValueBuf[256] = {'\0'};
 	const char* newValue = sourceValue;
 
-	int error = NO_ERROR;
+	int error = TCV_NO_ERROR;
 
 	switch (keyValue.keyType) {
 	case KEY_TYPE_VECTOR:
@@ -3738,18 +3738,18 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 		}
 			break;
 		default:
-			error = ERROR_UNSUPPORTED_OPERATION;
+			error = TCV_ERROR_UNSUPPORTED_OPERATION;
 			break;
 		}
 	}
 		break;
 	default:
-		error = ERROR_UNSUPPORTED_OPERATION;
+		error = TCV_ERROR_UNSUPPORTED_OPERATION;
 		break;
 	}
 
 	switch (error) {
-	case NO_ERROR:
+	case TCV_NO_ERROR:
 	{
 		KeyValueData mypkvd;
 		mypkvd.szClassName = STRING(pTarget->pev->classname);
@@ -3761,10 +3761,10 @@ void CTriggerChangeValue::ApplySourceValue(CBaseEntity* pTarget, const char* sou
 		ALERT(at_aiconsole, "'%s' (%s): dispatched value '%s' to key '%s' of entity '%s'\n", GetTargetname(), STRING(pev->classname), newValue, keyName, STRING(pTarget->pev->classname));
 	}
 		break;
-	case ERROR_DIV_BY_ZERO:
+	case TCV_ERROR_DIV_BY_ZERO:
 		ALERT(at_warning, "'%s' (%s) attempted to divide by zero\n", GetTargetname(), STRING(pev->classname));
 		break;
-	case ERROR_UNSUPPORTED_OPERATION:
+	case TCV_ERROR_UNSUPPORTED_OPERATION:
 	{
 		ALERT(at_warning, "'%s' (%s) can't do operation %s on key '%s' of type %s\n",
 			  GetTargetname(), STRING(pev->classname), OperationName(m_iszValueType), keyName, KeyTypeName(keyValue.keyType));
