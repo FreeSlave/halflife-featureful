@@ -6,7 +6,6 @@ DECLARE_MESSAGE( m_ErrorCollection, ParseErrors )
 
 int CHudErrorCollection::Init()
 {
-	m_pCvarDeveloper = nullptr;
 	gHUD.AddHudElem(this);
 	m_iFlags &= ~HUD_ACTIVE;
 	HOOK_MESSAGE(ParseErrors);
@@ -15,7 +14,6 @@ int CHudErrorCollection::Init()
 
 int CHudErrorCollection::VidInit()
 {
-	m_pCvarDeveloper = gEngfuncs.pfnGetCvarPointer("developer");
 	return 1;
 }
 
@@ -30,7 +28,7 @@ void CHudErrorCollection::Reset()
 
 int CHudErrorCollection::Draw(float flTime)
 {
-	if (!m_pCvarDeveloper || m_pCvarDeveloper->value == 0)
+	if (!gHUD.IsDeveloperModeOn())
 		return 1;
 
 	if (m_serverErrorString.empty() && m_clientErrorString.empty())

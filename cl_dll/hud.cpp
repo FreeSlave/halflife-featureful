@@ -589,6 +589,11 @@ void CHud::ParseModConfigs()
 	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
 }
 
+bool CHud::IsDeveloperModeOn()
+{
+	return m_pCvarDeveloper && m_pCvarDeveloper->value;
+}
+
 // This is called every time the DLL is loaded
 void CHud::Init( void )
 {
@@ -659,6 +664,7 @@ void CHud::Init( void )
 	m_pAllowHD = CVAR_CREATE ( "hud_allow_hd", "1", FCVAR_ARCHIVE );
 	CreateBooleanCvarConditionally(m_pCvarDrawMoveMode, "hud_draw_movemode", clientFeatures.movemode);
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
+	m_pCvarDeveloper = gEngfuncs.pfnGetCvarPointer( "developer" );
 	r_decals = gEngfuncs.pfnGetCvarPointer( "r_decals" );
 	m_pCvarCrosshair = gEngfuncs.pfnGetCvarPointer( "crosshair" );
 
@@ -1132,8 +1138,7 @@ void CHud::VidInit( void )
 	static bool vidInitAtLeastOnce = false;
 	if (vidInitAtLeastOnce)
 	{
-		cvar_t* pCvarDeveloper = gEngfuncs.pfnGetCvarPointer("developer");
-		if (pCvarDeveloper && pCvarDeveloper->value)
+		if (IsDeveloperModeOn())
 		{
 			gEngfuncs.Con_DPrintf("Re-parsing mod client configs\n");
 			ParseModConfigs();

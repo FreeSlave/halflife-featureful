@@ -267,8 +267,6 @@ private:
 
 	std::string m_clientErrorString;
 	std::string m_serverErrorString;
-
-	cvar_t* m_pCvarDeveloper;
 };
 
 struct CaptionProfile_t
@@ -303,8 +301,6 @@ struct Subtitle_t
 	bool radio;
 };
 
-#define CAPTION_PROFILES_MAX 32
-
 class CHudCaption : public CHudBase
 {
 public:
@@ -331,9 +327,9 @@ protected:
 	CaptionProfile_t *CaptionProfileLookup(char firstLetter, char secondLetter);
 
 	CaptionProfile_t defaultProfile;
-	CaptionProfile_t profiles[CAPTION_PROFILES_MAX];
+	std::vector<CaptionProfile_t> profiles;
+	Caption_t defaultCaption;
 	std::vector<Caption_t> captions;
-	int profileCount;
 
 	Subtitle_t subtitles[4];
 	int sub_count;
@@ -921,6 +917,7 @@ public:
 	int		m_iRes;
 	int		m_iMaxRes;
 	int		m_iHudNumbersYOffset;
+	cvar_t  *m_pCvarDeveloper;
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
 	cvar_t  *m_pAllowHD;
@@ -1073,6 +1070,7 @@ public:
 	CHudCaption		m_Caption;
 
 	void ParseModConfigs();
+	bool IsDeveloperModeOn();
 	void Init( void );
 	void VidInit( void );
 	void Think(void);

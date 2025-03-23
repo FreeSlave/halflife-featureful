@@ -27,13 +27,12 @@ int CHudCaption::Init()
 {
 	captionsInit = false;
 	memset(subtitles, 0, sizeof(subtitles));
-	memset(profiles, 0, sizeof(profiles));
-	profileCount = 0;
 	defaultProfile.r = 255;
 	defaultProfile.g = 255;
 	defaultProfile.b = 255;
 	defaultProfile.firstLetter = '_';
 	defaultProfile.secondLetter = '_';
+	defaultCaption.profile = &defaultProfile;
 
 	gHUD.AddHudElem( this );
 	HOOK_MESSAGE(Caption);
@@ -46,11 +45,29 @@ int CHudCaption::Init()
 
 int CHudCaption::VidInit()
 {
+	std::vector<Caption_t> oldCaptions;
+	if (gHUD.IsDeveloperModeOn())
+	{
+		profiles.clear();
+		oldCaptions = std::move(captions);
+		captionsInit = false;
+	}
 	if (!captionsInit)
 	{
 		ParseCaptionsProfilesFile();
 		ParseCaptionsFile();
 		captionsInit = true;
+
+		for (int i=0; i<sub_count; ++i)
+		{
+			if (subtitles[i].caption)
+			{
+				const Caption_t* caption = CaptionLookup(subtitles[i].caption->name);
+				subtitles[i].caption = caption ? caption : &defaultCaption;
+				if (!caption)
+					subtitles[i].timeLeft = 0.0f;
+			}
+		}
 	}
 	m_hVoiceIcon = SPR_Load("sprites/voiceicon.spr");
 	voiceIconWidth = SPR_Width(m_hVoiceIcon, 0);
@@ -428,30 +445,21 @@ bool CHudCaption::ParseCaptionsProfilesFile()
 				char secondLetter = *(pfile + currentIdStart + 1);
 				if (IsLatinLowerCase(firstLetter) && IsLatinLowerCase(secondLetter))
 				{
-					if (profileCount >= CAPTION_PROFILES_MAX)
+					CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
+					if (existingProfile)
 					{
-						gEngfuncs.Con_Printf("Too many caption profiles! Max is %d\n", CAPTION_PROFILES_MAX);
-						break;
+						gEngfuncs.Con_Printf("Multiple definitions of caption profile with ID '%c%c'! Skipping.\n", firstLetter, secondLetter);
+						ConsumeLine(pfile, i, length);
+						continue;
 					}
-					else
-					{
-						CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
-						if (existingProfile)
-						{
-							gEngfuncs.Con_Printf("Multiple definitions of caption profile with ID '%c%c'! Skipping.\n", firstLetter, secondLetter);
-							ConsumeLine(pfile, i, length);
-							continue;
-						}
 
-						CaptionProfile_t& profile = profiles[profileCount];
-						profile.firstLetter = firstLetter;
-						profile.secondLetter = secondLetter;
+					CaptionProfile_t profile;
+					profile.firstLetter = firstLetter;
+					profile.secondLetter = secondLetter;
+					ParseCaptionColor(pfile, i, length, profile);
+					profiles.push_back(profile);
 
-						ParseCaptionColor(pfile, i, length, profile);
-
-						profileCount++;
-						ReportParsedCaptionProfile(profile);
-					}
+					ReportParsedCaptionProfile(profile);
 				}
 				else
 				{
@@ -515,29 +523,22 @@ bool CHudCaption::ParseCaptionsFile()
 			// This code is left for compatibility with existing mods. We should define caption profiles in captions_profiles.txt now instead!
 			if (tokenLength == 2 && IsLatinLowerCase(captionName[0]) && IsLatinLowerCase(captionName[1]))
 			{
-				if (profileCount >= CAPTION_PROFILES_MAX)
+				char firstLetter = captionName[0];
+				char secondLetter = captionName[1];
+				CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
+				if (existingProfile)
 				{
-					ConsumeLine(pfile, i, length);
-					gEngfuncs.Con_Printf("Too many caption profiles! Max is %d\n", CAPTION_PROFILES_MAX);
+					gEngfuncs.Con_Printf("Redefining caption profile with ID '%c%c'!.\n", firstLetter, secondLetter);
+					ParseCaptionColor(pfile, i, length, *existingProfile);
+					ReportParsedCaptionProfile(*existingProfile);
 				}
 				else
 				{
-					char firstLetter = captionName[0];
-					char secondLetter = captionName[1];
-					CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
-					if (existingProfile)
-					{
-						gEngfuncs.Con_Printf("Redefining caption profile with ID '%c%c'!.\n", firstLetter, secondLetter);
-					}
-
-					CaptionProfile_t& profile = existingProfile ? *existingProfile : profiles[profileCount];
+					CaptionProfile_t profile;
 					profile.firstLetter = firstLetter;
 					profile.secondLetter = secondLetter;
-
 					ParseCaptionColor(pfile, i, length, profile);
-
-					if (!existingProfile)
-						profileCount++;
+					profiles.push_back(profile);
 					ReportParsedCaptionProfile(profile);
 				}
 			}
@@ -661,12 +662,12 @@ const Caption_t* CHudCaption::CaptionLookup(const char *name)
 
 CaptionProfile_t* CHudCaption::CaptionProfileLookup(char firstLetter, char secondLetter)
 {
-	for (int k=0; k<profileCount; ++k)
+	for (int k=0; k<profiles.size(); ++k)
 	{
 		if (profiles[k].firstLetter == firstLetter && profiles[k].secondLetter == secondLetter)
 		{
 			return &profiles[k];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
