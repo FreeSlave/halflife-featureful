@@ -25,6 +25,7 @@
 
 #include "pm_defs.h"
 #include "pmtrace.h"
+#include "clamp.h"
 
 extern const Vector g_vecZero;
 
@@ -146,8 +147,6 @@ bool CBaseParticle::CheckVisibility()
 	return true;
 }
 
-#define clampValue( val, min, max ) ( ((val) > (max)) ? (max) : ( ((val) < (min)) ? (min) : (val) ) )
-
 void CBaseParticle::Draw()
 {
 	if (m_flDieTime == gEngfuncs.GetClientTime())
@@ -195,9 +194,9 @@ void CBaseParticle::Draw()
 		resultColor.z = (intensity * m_vColor.z / 255.0f);
 	}
 
-	resultColor.x = clampValue(resultColor.x, 0.f, 255.f);
-	resultColor.y = clampValue(resultColor.y, 0.f, 255.f);
-	resultColor.z = clampValue(resultColor.z, 0.f, 255.f);
+	resultColor.x = clamp(resultColor.x, 0.f, 255.f);
+	resultColor.y = clamp(resultColor.y, 0.f, 255.f);
+	resultColor.z = clamp(resultColor.z, 0.f, 255.f);
 
 	Vector forward, right, up;
 	gEngfuncs.pfnAngleVectors(m_vAngles, forward, right, up);
