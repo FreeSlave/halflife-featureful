@@ -218,7 +218,7 @@ const char* UseTypeToString(USE_TYPE useType)
 	}
 }
 
-void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+void FireTargets(const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value, bool (*FilterEntities)(CBaseEntity*, CBaseEntity*, CBaseEntity*, USE_TYPE, float))
 {
 	CBaseEntity* pTarget = NULL;
 	if( !targetName || *targetName == '\0' )
@@ -235,7 +235,7 @@ void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *
 		if( !pTarget )
 			break;
 
-		if( pTarget && !( pTarget->pev->flags & FL_KILLME ) )	// Don't use dying ents
+		if( pTarget && !( pTarget->pev->flags & FL_KILLME ) && (!FilterEntities || FilterEntities(pTarget, pActivator, pCaller, useType, value)))	// Don't use dying ents
 		{
 			if (useType == USE_SET)
 				ALERT(at_aiconsole, "Firing: %s (%s, %s, value is %g, called by '%s', activated by '%s')\n", STRING(pTarget->pev->classname), targetName, useTypeString, value, callerClassname, activatorClassname);

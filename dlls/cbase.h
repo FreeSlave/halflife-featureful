@@ -108,7 +108,7 @@ typedef enum
 } USE_TYPE;
 
 const char* UseTypeToString(USE_TYPE useType);
-extern void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType = USE_TOGGLE, float value = 0.0f );
+extern void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType = USE_TOGGLE, float value = 0.0f, bool (*FilterEntities)(CBaseEntity*, CBaseEntity *, CBaseEntity *, USE_TYPE, float) = nullptr );
 extern void KillTargets( const char *targetName );
 
 typedef void(CBaseEntity::*BASEPTR)( void );
@@ -444,6 +444,7 @@ public:
 
 	virtual int Illumination() { return GETENTITYILLUM( ENT( pev ) ); };
 
+	virtual Vector LookerEyeOrigin() { return EyePosition(); }
 	virtual	bool FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker = nullptr );
 	virtual	bool FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocker = nullptr );
 

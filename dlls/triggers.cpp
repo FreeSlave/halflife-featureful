@@ -1044,6 +1044,7 @@ public:
 	void HurtNonMovingMonsters( void );
 	void EXPORT HurtNonMovingMonstersThink( void );
 	bool CanHurt( CBaseEntity* pOther );
+	virtual float DamageAmount();
 	void DoDamage( CBaseEntity* pTarget, float fldmg );
 
 	int DamageType() const {
@@ -1554,6 +1555,14 @@ bool CTriggerHurt::CanHurt(CBaseEntity *pOther)
 	return true;
 }
 
+float CTriggerHurt::DamageAmount()
+{
+	if (FBitSet(pev->spawnflags, SF_TRIGGER_HURT_FULL_DAMAGE_EVERY_HALF_SECOND))
+		return pev->dmg;
+	else
+		return pev->dmg * 0.5f;	// 0.5 seconds worth of damage, pev->dmg is damage/second
+}
+
 void CTriggerHurt::DoDamage(CBaseEntity *pTarget, float fldmg)
 {
 	if( fldmg < 0 )
@@ -1577,8 +1586,6 @@ void CTriggerHurt::DoDamage(CBaseEntity *pTarget, float fldmg)
 // When touched, a hurt trigger does DMG points of damage each half-second
 void CTriggerHurt::HurtTouch( CBaseEntity *pOther )
 {
-	float fldmg;
-
 	if ( !CanHurt(pOther) )
 		return;
 
@@ -1638,10 +1645,7 @@ void CTriggerHurt::HurtTouch( CBaseEntity *pOther )
 	// while touching the trigger.  Player continues taking damage for a while after
 	// leaving the trigger
 
-	if (FBitSet(pev->spawnflags, SF_TRIGGER_HURT_FULL_DAMAGE_EVERY_HALF_SECOND))
-		fldmg = pev->dmg;
-	else
-		fldmg = pev->dmg * 0.5f;	// 0.5 seconds worth of damage, pev->dmg is damage/second
+	float fldmg = DamageAmount();
 
 	// JAY: Cut this because it wasn't fully realized.  Damage is simpler now.
 #if 0
@@ -5562,12 +5566,15 @@ void CTriggerTimer::SetActive(bool active, CBaseEntity* pActivator)
 // CTriggerGenewormHit
 //=========================================================
 
-class CTriggerGenewormHit : public CBaseTrigger
+class CTriggerGenewormHit : public CTriggerHurt
 {
 public:
 	void Spawn();
 	void Precache();
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("geneworm"); }
+	float DamageAmount() override {
+		return pev->dmg ? pev->dmg : gSkillData.gwormDmgHit;
+	}
 	void EXPORT GeneWormTouch(CBaseEntity *pOther);
 
 	static TYPEDESCRIPTION m_SaveData[];
@@ -5580,30 +5587,25 @@ public:
 	static constexpr const char* attackHitSoundScript = "GeneWorm.AttackHit";
 };
 
+LINK_ENTITY_TO_CLASS(trigger_geneworm_hit, CTriggerGenewormHit)
+
 TYPEDESCRIPTION CTriggerGenewormHit::m_SaveData[] =
 {
 	DEFINE_FIELD(CTriggerGenewormHit, m_flLastDamageTime, FIELD_TIME),
 };
 
-IMPLEMENT_SAVERESTORE(CTriggerGenewormHit, CBaseTrigger)
+IMPLEMENT_SAVERESTORE(CTriggerGenewormHit, CTriggerHurt)
 
 void CTriggerGenewormHit::Spawn()
 {
 	Precache();
-	InitTrigger();
 
-	SetTouch(&CTriggerGenewormHit::GeneWormTouch);
-
-	if(pev->targetname)
-		SetUse(&CBaseTrigger::ToggleUse);
-
-
-	if(pev->spawnflags & SF_TRIGGER_HURT_START_OFF)
-		pev->solid = SOLID_NOT;
-
-	UTIL_SetOrigin(pev, pev->origin);
-	pev->dmg = gSkillData.gwormDmgHit;
+	if (m_bitsDamageInflict)
+		m_bitsDamageInflict = DMG_CRUSH;
 	m_flLastDamageTime = gpGlobals->time;
+
+	CTriggerHurt::Spawn();
+	SetTouch(&CTriggerGenewormHit::GeneWormTouch);
 }
 
 void CTriggerGenewormHit::Precache()
@@ -5615,104 +5617,15 @@ void CTriggerGenewormHit::Precache()
 
 void CTriggerGenewormHit::GeneWormTouch(CBaseEntity *pOther)
 {
-	if( gpGlobals->time - m_flLastDamageTime < 2 || !pOther->pev->takedamage )
+	if( gpGlobals->time - m_flLastDamageTime < 2 )
 		return;
 
-	if( ( pev->spawnflags & SF_TRIGGER_HURT_CLIENTONLYTOUCH ) && !pOther->IsPlayer() )
-	{
-		// this trigger is only allowed to touch clients, and this ain't a client.
-		return;
-	}
-
-	if( ( pev->spawnflags & SF_TRIGGER_HURT_NO_CLIENTS ) && pOther->IsPlayer() )
-		return;
-
-	// HACKHACK -- In multiplayer, players touch this based on packet receipt.
-	// So the players who send packets later aren't always hurt.  Keep track of
-	// how much time has passed and whether or not you've touched that player
-	if( g_pGameRules->IsMultiplayer() )
-	{
-		if( pev->dmgtime > gpGlobals->time )
-		{
-			if( gpGlobals->time != pev->pain_finished )
-			{
-				// too early to hurt again, and not same frame with a different entity
-				if( pOther->IsPlayer() )
-				{
-					int playerMask = 1 << ( pOther->entindex() - 1 );
-
-					// If I've already touched this player (this time), then bail out
-					if( pev->impulse & playerMask )
-						return;
-
-					// Mark this player as touched
-					// BUGBUG - There can be only 32 players!
-					pev->impulse |= playerMask;
-				}
-				else
-				{
-					return;
-				}
-			}
-		}
-		else
-		{
-			// New clock, "un-touch" all players
-			pev->impulse = 0;
-			if( pOther->IsPlayer() )
-			{
-				int playerMask = 1 << ( pOther->entindex() - 1 );
-
-				// Mark this player as touched
-				// BUGBUG - There can be only 32 players!
-				pev->impulse |= playerMask;
-			}
-		}
-	}
-	else	// Original code -- single player
-	{
-		if( pev->dmgtime > gpGlobals->time && gpGlobals->time != pev->pain_finished )
-		{
-			// too early to hurt again, and not same frame with a different entity
-			return;
-		}
-	}
-
-	// If this is time_based damage (poison, radiation), override the pev->dmg with a
-	// default for the given damage type.  Monsters only take time-based damage
-	// while touching the trigger.  Player continues taking damage for a while after
-	// leaving the trigger
-
-	pOther->TakeDamage( pev, pev, gSkillData.gwormDmgHit, m_bitsDamageInflict );
-
-	// Store pain time so we can get all of the other entities on this frame
-	pev->pain_finished = gpGlobals->time;
-
-	// Apply damage every half second
-	pev->dmgtime = gpGlobals->time + 0.5;// half second delay until this trigger can hurt toucher again
+	CTriggerHurt::HurtTouch(pOther);
 
 	EmitSoundScript(attackHitSoundScript);
 	m_flLastDamageTime = gpGlobals->time;
-
-	if( pev->target )
-	{
-		// trigger has a target it wants to fire.
-		if( pev->spawnflags & SF_TRIGGER_HURT_CLIENTONLYFIRE )
-		{
-			// if the toucher isn't a client, don't fire the target!
-			if( !pOther->IsPlayer() )
-			{
-				return;
-			}
-		}
-
-		SUB_UseTargets( pOther );
-		if( pev->spawnflags & SF_TRIGGER_HURT_TARGETONCE )
-			pev->target = 0;
-	}
 }
 
-LINK_ENTITY_TO_CLASS(trigger_geneworm_hit, CTriggerGenewormHit)
 #endif
 
 //===========================================================

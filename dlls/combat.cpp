@@ -1398,8 +1398,6 @@ bool CBaseMonster::FInViewCone( Vector *pOrigin )
 bool CBaseEntity::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )
 {
 	TraceResult tr;
-	Vector		vecLookerOrigin;
-	Vector		vecTargetOrigin;
 
 	if( !pEntity )
 		return false;
@@ -1413,8 +1411,8 @@ bool CBaseEntity::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )
 	if( LineOfSightSeparatedByWaterSurface(pev->waterlevel, pEntity->pev->waterlevel) )
 		return false;
 
-	vecLookerOrigin = pev->origin + pev->view_ofs;//look through the caller's 'eyes'
-	vecTargetOrigin = pEntity->EyePosition();
+	Vector vecLookerOrigin = LookerEyeOrigin();//look through the caller's 'eyes'
+	Vector vecTargetOrigin = pEntity->EyePosition();
 
 	UTIL_TraceLine( vecLookerOrigin, vecTargetOrigin, ignore_monsters, ignore_glass, ENT( pev )/*pentIgnore*/, &tr );
 
@@ -1442,9 +1440,7 @@ bool CBaseEntity::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )
 bool CBaseEntity::FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocker )
 {
 	TraceResult tr;
-	Vector		vecLookerOrigin;
-
-	vecLookerOrigin = EyePosition();//look through the caller's 'eyes'
+	Vector vecLookerOrigin = LookerEyeOrigin();//look through the caller's 'eyes'
 
 	UTIL_TraceLine( vecLookerOrigin, vecOrigin, ignore_monsters, ignore_glass, ENT( pev )/*pentIgnore*/, &tr );
 
