@@ -314,6 +314,7 @@ public:
 	int OverridenRenderProps();
 	virtual void ApplyDefaultRenderProps(int overridenRenderProps) {}
 	void ApplyVisual(const Visual* visual, const char* modelOverride = nullptr);
+	void ApplyVisual(const Visual* visual, const char* modelOverride, int alreadyOverriden);
 
 	static const EntTemplate* GetCacheableEntTemplate(entvars_t* pev, string_t templateName, const EntTemplate*& entTemplate, bool& templateChecked, bool checkByClassname);
 	const EntTemplate* GetMyEntTemplate();

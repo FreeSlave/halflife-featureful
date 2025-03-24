@@ -1105,7 +1105,11 @@ static bool CheckVisualDefine(const Visual* visual, int param, int ignored)
 
 void CBaseEntity::ApplyVisual(const Visual *visual, const char* modelOverride)
 {
-	const int alreadyOverriden = OverridenRenderProps();
+	ApplyVisual(visual, modelOverride, OverridenRenderProps());
+}
+
+void CBaseEntity::ApplyVisual(const Visual *visual, const char* modelOverride, int alreadyOverriden)
+{
 	ApplyDefaultRenderProps(alreadyOverriden);
 	const char* model = modelOverride;
 	if (!model && pev->model)

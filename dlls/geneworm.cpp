@@ -27,6 +27,7 @@
 #include	"game.h"
 #include	"combat.h"
 #include	"clamp.h"
+#include	"visuals_utils.h"
 
 #if FEATURE_GENEWORM
 
@@ -60,8 +61,6 @@
 
 #define GENEWORM_AE_MAD				( 9 )		// Room starts shaking!
 
-#define GENEWORM_AE_EYEPAIN			( 1012 )	// Still put here (In case we need to toggle eye pain status)
-
 class CGeneWormCloud : public CBaseEntity
 {
 public:
@@ -87,8 +86,10 @@ public:
 	float m_lastTime;
 
 	bool m_bLaunched;
-};
+	float m_baseScale;
 
+	static const NamedVisual cloudVisual;
+};
 
 LINK_ENTITY_TO_CLASS(env_genewormcloud, CGeneWormCloud)
 
@@ -99,13 +100,20 @@ TYPEDESCRIPTION CGeneWormCloud::m_SaveData[] =
 	DEFINE_FIELD(CGeneWormCloud, m_fadeRender, FIELD_FLOAT),
 	DEFINE_FIELD(CGeneWormCloud, m_lastTime, FIELD_TIME),
 	DEFINE_FIELD(CGeneWormCloud, m_bLaunched, FIELD_BOOLEAN),
+	DEFINE_FIELD(CGeneWormCloud, m_baseScale, FIELD_FLOAT),
 };
 
 IMPLEMENT_SAVERESTORE(CGeneWormCloud, CBaseEntity)
 
+const NamedVisual CGeneWormCloud::cloudVisual = BuildVisual("GeneWorm.Cloud")
+	.Model("sprites/ballsmoke.spr")
+	.RenderProps(kRenderGlow, Color3(0, 255, 0), 255, kRenderFxNoDissipation)
+	.Framerate(10.0f)
+	.Scale(0.5f);
+
 void CGeneWormCloud::Precache()
 {
-	PRECACHE_MODEL("sprites/ballsmoke.spr");
+	RegisterVisual(cloudVisual);
 }
 
 void CGeneWormCloud::Spawn()
@@ -117,17 +125,18 @@ void CGeneWormCloud::Spawn()
 	pev->effects = 0;
 	pev->frame = 0;
 
-	SET_MODEL(ENT(pev), "sprites/ballsmoke.spr");
+	ApplyVisual(GetVisual(cloudVisual));
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 
 	m_maxFrame = MODEL_FRAMES(pev->modelindex)-1;
-	pev->scale = 0.01f;
 
 	m_lastTime = gpGlobals->time;
 
 	m_fadeScale = 0;
 	m_bLaunched = false;
+
+	m_baseScale = pev->scale ? pev->scale : 1.0f;
 }
 
 void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
@@ -165,16 +174,16 @@ void CGeneWormCloud::RunGeneWormCloud(float frames)
 		pev->scale += m_fadeScale;
 		pev->renderamt -= m_fadeRender;
 
-		if (pev->scale >= 4.5f)
+		if (pev->scale >= m_baseScale * 9.0f)
 		{
 			pev->scale = 0;
 			UTIL_Remove(this);
 			return;
 		}
 	}
-	else if (pev->scale < 2.0)
+	else if (pev->scale < m_baseScale * 4.0f)
 	{
-		pev->scale += 0.05f;
+		pev->scale += m_baseScale * 0.1f;
 	}
 
 	pev->frame += frames;
@@ -275,6 +284,13 @@ public:
 	int m_iBeams;
 
 	static const NamedSoundScript spawnSoundScript;
+
+	static const NamedVisual glowVisual;
+	static const NamedVisual glowLightVisual;
+	static const NamedVisual teleSpriteVisual;
+	static const NamedVisual teleLightVisual;
+	static const NamedVisual teleBeamVisual;
+	static const NamedVisual teleBeamHitVisual;
 };
 
 LINK_ENTITY_TO_CLASS(env_genewormspawn, CGeneWormSpawn)
@@ -302,11 +318,46 @@ const NamedSoundScript CGeneWormSpawn::spawnSoundScript = {
 	"GeneWorm.Spawn"
 };
 
+const NamedVisual CGeneWormSpawn::glowVisual = BuildVisual("GeneWorm.SpawnGlow")
+	.Model("sprites/boss_glow.spr")
+	.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNoDissipation)
+	.Scale(0.95f).Framerate(10.0f);
+
+const NamedVisual CGeneWormSpawn::glowLightVisual = BuildVisual("GeneWorm.SpawnGlowLight")
+	.Radius(96.0f)
+	.RenderColor(207, 0, 214)
+	.Life(0.1f)
+	.Decay(1.0f);
+
+const NamedVisual CGeneWormSpawn::teleSpriteVisual = BuildVisual("GeneWorm.SpawnTeleSprite")
+	.Model("sprites/tele1.spr");
+
+const NamedVisual CGeneWormSpawn::teleLightVisual = BuildVisual("GeneWorm.SpawnTeleLight")
+	.Radius(96.0f)
+	.RenderColor(207, 214, 0)
+	.Life(0.1f)
+	.Decay(1.0f);
+
+const NamedVisual CGeneWormSpawn::teleBeamVisual = BuildVisual("GeneWorm.SpawnTeleBeam")
+	.Model("sprites/lgtning.spr")
+	.RenderColor(255, 255, 0)
+	.Alpha(192)
+	.BeamWidth(30)
+	.BeamNoise(80);
+
+const NamedVisual CGeneWormSpawn::teleBeamHitVisual = BuildVisual("GeneWorm.SpawnTeleBeamHit")
+	.Alpha(255)
+	.BeamNoise(20)
+	.Mixin(&CGeneWormSpawn::teleBeamVisual);
+
 void CGeneWormSpawn::Precache()
 {
-	PRECACHE_MODEL("sprites/tele1.spr");
-	PRECACHE_MODEL("sprites/lgtning.spr");
-	PRECACHE_MODEL("sprites/boss_glow.spr");
+	RegisterVisual(glowVisual);
+	RegisterVisual(glowLightVisual);
+	RegisterVisual(teleSpriteVisual);
+	RegisterVisual(teleLightVisual);
+	RegisterVisual(teleBeamVisual);
+	RegisterVisual(teleBeamHitVisual);
 
 	RegisterAndPrecacheSoundScript(spawnSoundScript);
 }
@@ -320,7 +371,7 @@ void CGeneWormSpawn::Spawn()
 
 	Precache();
 
-	SET_MODEL(edict(), "sprites/boss_glow.spr");
+	ApplyVisual(GetVisual(glowVisual));
 
 	UTIL_SetOrigin(pev, pev->origin);
 
@@ -439,35 +490,11 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 			pev->scale = pev->scale + 0.1;
 		}
 
-		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE(TE_ELIGHT);
-		WRITE_SHORT(entindex());
-		WRITE_COORD(pev->origin.x);
-		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z);
-		WRITE_COORD(96.0);
-		WRITE_BYTE(207);
-		WRITE_BYTE(214);
-		WRITE_BYTE(0);
-		WRITE_BYTE(1);
-		WRITE_COORD(1.0);
-		MESSAGE_END();
+		SendEntLight(entindex(), pev->origin, GetVisual(teleLightVisual));
 	}
 	else
 	{
-		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE(TE_ELIGHT);
-		WRITE_SHORT(entindex());
-		WRITE_COORD(pev->origin.x);
-		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z);
-		WRITE_COORD(96.0);
-		WRITE_BYTE(207);
-		WRITE_BYTE(0);
-		WRITE_BYTE(214);
-		WRITE_BYTE(1);
-		WRITE_COORD(1.0);
-		MESSAGE_END();
+		SendEntLight(entindex(), pev->origin, GetVisual(glowLightVisual));
 	}
 
 	pev->frame += frames;
@@ -524,7 +551,7 @@ void CGeneWormSpawn::LaunchSpawn(const Vector& origin, const Vector& aim, int nS
 	pev->aiment = nullptr;
 	pev->movetype = MOVETYPE_FLY;
 
-	SET_MODEL(edict(), "sprites/tele1.spr");
+	ApplyVisual(GetVisual(teleSpriteVisual), nullptr, 0);
 
 	m_maxFrame = MODEL_FRAMES(pev->modelindex) - 1;
 
@@ -564,25 +591,21 @@ void CGeneWormSpawn::CreateWarpBeams(int side)
 	if (flDist == 1.0)
 		return;
 
-	m_pBeam[m_iBeams] = CBeam::BeamCreate("sprites/lgtning.spr", 30);
-	if (!m_pBeam[m_iBeams])
-		return;
-
 	auto pHit = Instance(tr.pHit);
 
 	if (pHit && pHit->pev->takedamage != DAMAGE_NO)
 	{
+		m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(teleBeamHitVisual));
+		if (!m_pBeam[m_iBeams])
+			return;
 		m_pBeam[m_iBeams]->EntsInit(pHit->entindex(), entindex());
-		m_pBeam[m_iBeams]->SetColor(255, 255, 0);
-		m_pBeam[m_iBeams]->SetBrightness(255);
-		m_pBeam[m_iBeams]->SetNoise(20);
 	}
 	else
 	{
+		m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(teleBeamVisual));
+		if (!m_pBeam[m_iBeams])
+			return;
 		m_pBeam[m_iBeams]->PointEntInit(tr.vecEndPos, entindex());
-		m_pBeam[m_iBeams]->SetColor(255, 255, 0);
-		m_pBeam[m_iBeams]->SetBrightness(192);
-		m_pBeam[m_iBeams]->SetNoise(80);
 	}
 
 	m_pBeam[m_iBeams]->SetThink(&CBeam::SUB_Remove);
@@ -636,8 +659,6 @@ public:
 	Vector m_posTarget;
 	float m_flLastSeen;
 
-	CGeneWormCloud* m_pCloud;
-
 	int m_iWasHit;
 	float m_flHitTime;
 	float m_flNextMeleeTime;
@@ -681,6 +702,8 @@ public:
 	static const NamedSoundScript eyePainSoundScript;
 
 	static const NamedSoundScript launchSpawnSoundScript;
+
+	static const NamedVisual eyeLightVisual;
 };
 
 LINK_ENTITY_TO_CLASS(monster_geneworm, CGeneWorm)
@@ -690,7 +713,6 @@ TYPEDESCRIPTION CGeneWorm::m_SaveData[] =
 	DEFINE_FIELD(CGeneWorm, m_flNextPainSound, FIELD_TIME),
 	DEFINE_FIELD(CGeneWorm, m_posTarget, FIELD_POSITION_VECTOR),
 	DEFINE_FIELD(CGeneWorm, m_flLastSeen, FIELD_TIME),
-	DEFINE_FIELD(CGeneWorm, m_pCloud, FIELD_CLASSPTR),
 	DEFINE_FIELD(CGeneWorm, m_iWasHit, FIELD_INTEGER),
 	DEFINE_FIELD(CGeneWorm, m_flHitTime, FIELD_FLOAT),
 	DEFINE_FIELD(CGeneWorm, m_flNextMeleeTime, FIELD_FLOAT),
@@ -820,6 +842,12 @@ const NamedSoundScript CGeneWorm::launchSpawnSoundScript = {
 	"GeneWorm.LaunchSpawn"
 };
 
+const NamedVisual CGeneWorm::eyeLightVisual = BuildVisual("GeneWorm.EyeLight")
+	.Radius(48.0f)
+	.RenderColor(128, 255, 128)
+	.Life(0.1f)
+	.Decay(2.0f);
+
 void CGeneWorm::Spawn()
 {
 	Precache();
@@ -863,8 +891,6 @@ void CGeneWorm::Spawn()
 
 	m_MonsterState = MONSTERSTATE_IDLE;
 
-	m_pCloud = nullptr;
-
 	m_iMaxHitTimes = 4;
 
 	pev->deadflag = DEAD_NO;
@@ -904,8 +930,8 @@ void CGeneWorm::Precache()
 
 	RegisterAndPrecacheSoundScript(launchSpawnSoundScript);
 
-	PRECACHE_MODEL("sprites/tele1.spr");
-	PRECACHE_MODEL("sprites/boss_glow.spr");
+	RegisterVisual(eyeLightVisual);
+
 	UTIL_PrecacheOther("monster_shocktrooper");
 	UTIL_PrecacheOther("env_genewormcloud", GetProjectileOverrides());
 	UTIL_PrecacheOther("env_genewormspawn", GetProjectileOverrides());
@@ -1033,12 +1059,6 @@ void CGeneWorm::DyingThink()
 	if (pev->deadflag == DEAD_DYING)
 	{
 		pev->renderamt -= 1;
-	}
-
-	if (m_pCloud)
-	{
-		UTIL_Remove(m_pCloud);
-		m_pCloud = nullptr;
 	}
 
 	if (m_orificeGlow)
@@ -1443,12 +1463,6 @@ void CGeneWorm::HuntThink()
 	{
 		int piDir = 1;
 
-		if (m_pCloud)
-		{
-			UTIL_Remove(m_pCloud);
-			m_pCloud = nullptr;
-		}
-
 		if (m_fSpitting)
 			m_fSpitting = false;
 
@@ -1476,17 +1490,6 @@ void CGeneWorm::HuntThink()
 			GetAttachment(GENEWORM_ATTACHMENT_SPAWN, vecOrigin, vecAngles);
 
 			m_orificeGlow = CGeneWormSpawn::GeneWormSpawnCreate(vecOrigin, GetProjectileOverrides());
-
-			m_orificeGlow->pev->rendermode = kRenderTransAdd;
-			m_orificeGlow->pev->rendercolor.x = 255;
-			m_orificeGlow->pev->rendercolor.y = 255;
-			m_orificeGlow->pev->rendercolor.z = 255;
-			m_orificeGlow->pev->renderamt = 255;
-			m_orificeGlow->pev->renderfx = kRenderFxNoDissipation;
-
-			m_orificeGlow->pev->scale = 0.95;
-			m_orificeGlow->pev->framerate = 10;
-
 			m_orificeGlow->TurnOn();
 		}
 
@@ -1505,19 +1508,7 @@ void CGeneWorm::HuntThink()
 		Vector vecOrigin, vecAngles;
 		GetAttachment(GENEWORM_ATTACHMENT_RIGHTEYE, vecOrigin, vecAngles);
 
-		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE(TE_ELIGHT);
-		WRITE_SHORT(entindex() | (3 << 12));
-		WRITE_COORD(vecOrigin.x);
-		WRITE_COORD(vecOrigin.y);
-		WRITE_COORD(vecOrigin.z);
-		WRITE_COORD(48.0);
-		WRITE_BYTE(128);
-		WRITE_BYTE(255);
-		WRITE_BYTE(128);
-		WRITE_BYTE(1);
-		WRITE_COORD(2);
-		MESSAGE_END();
+		SendEntLight(entindex(), vecOrigin, GetVisual(eyeLightVisual), 3);
 	}
 
 	if (!m_fLeftEyeHit)
@@ -1525,19 +1516,7 @@ void CGeneWorm::HuntThink()
 		Vector vecOrigin, vecAngles;
 		GetAttachment(GENEWORM_ATTACHMENT_LEFTEYE, vecOrigin, vecAngles);
 
-		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE(TE_ELIGHT);
-		WRITE_SHORT(entindex() | (4 << 12));
-		WRITE_COORD(vecOrigin.x);
-		WRITE_COORD(vecOrigin.y);
-		WRITE_COORD(vecOrigin.z);
-		WRITE_COORD(48.0);
-		WRITE_BYTE(128);
-		WRITE_BYTE(255);
-		WRITE_BYTE(128);
-		WRITE_BYTE(1);
-		WRITE_COORD(1);
-		MESSAGE_END();
+		SendEntLight(entindex(), vecOrigin, GetVisual(eyeLightVisual), 4);
 	}
 
 	if (m_orificeGlow)
@@ -1570,42 +1549,22 @@ void CGeneWorm::HuntThink()
 	{
 		if (gpGlobals->time - m_flSpitStartTime <= 2.0)
 		{
-			Vector vecOrigin, vecAngles;
-			GetAttachment(GENEWORM_ATTACHMENT_MOUTH, vecOrigin, vecAngles);
-
-			m_pCloud = CGeneWormCloud::GeneWormCloudCreate(vecOrigin, GetProjectileOverrides());
-
 			if (m_hEnemy)
 			{
-				//This all looks like sprite code, but the cloud class doesn't inherit from it
-				//Could be it originally cast to sprite to use the helper methods
-				m_pCloud->pev->rendermode = kRenderGlow;
-				m_pCloud->pev->rendercolor.x = 255;
-				m_pCloud->pev->rendercolor.y = 255;
-				m_pCloud->pev->rendercolor.z = 255;
-				m_pCloud->pev->renderamt = 255;
-				m_pCloud->pev->renderfx = kRenderFxNoDissipation;
-
-				m_pCloud->pev->rendercolor.x = 0;
-				m_pCloud->pev->rendercolor.y = 255;
-				m_pCloud->pev->rendercolor.z = 0;
+				Vector vecOrigin, vecAngles;
+				GetAttachment(GENEWORM_ATTACHMENT_MOUTH, vecOrigin, vecAngles);
+				CGeneWormCloud* pCloud = CGeneWormCloud::GeneWormCloudCreate(vecOrigin, GetProjectileOverrides());
 
 				if (edict())
 				{
-					m_pCloud->pev->skin = entindex();
-					m_pCloud->pev->body = 1;
-					m_pCloud->pev->aiment = edict();
-					m_pCloud->pev->movetype = MOVETYPE_FOLLOW;
+					pCloud->pev->skin = entindex();
+					pCloud->pev->body = 1;
+					pCloud->pev->aiment = edict();
+					pCloud->pev->movetype = MOVETYPE_FOLLOW;
 				}
 
-				m_pCloud->pev->scale = 0.5;
-				m_pCloud->pev->framerate = 10;
-
-				m_pCloud->TurnOn();
-
-				m_pCloud->LaunchCloud(vecOrigin, (m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - vecOrigin).Normalize() + Vector(0, 0, RANDOM_FLOAT(-0.01, 0.01)), 1000, edict(), 35);
-
-				m_pCloud = nullptr;
+				pCloud->TurnOn();
+				pCloud->LaunchCloud(vecOrigin, (m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - vecOrigin).Normalize() + Vector(0, 0, RANDOM_FLOAT(-0.01, 0.01)), 1000, edict(), 35);
 			}
 		}
 		else
