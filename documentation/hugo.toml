@@ -68,10 +68,11 @@ theme = 'hugo-book'
       unsafe = true
       xhtml = false
 
-[[module.mounts]]
-source = 'assets'
-target = 'assets'
+[module]
+  [[module.mounts]]
+    source = 'assets'
+    target = 'assets'
 
-[[module.mounts]]
-source = 'static'
-target = 'assets'
+  [[module.mounts]]
+    source = 'static'
+    target = 'assets'
