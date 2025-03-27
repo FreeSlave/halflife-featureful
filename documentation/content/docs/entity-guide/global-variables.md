@@ -9,7 +9,7 @@ Global variables are named variables accessible across multiple levels. This fea
 
 In addition to **State** (which can be `On`, `Off` or `Dead`) each global variable has an associated numeric *integer* **Value**.
 
-Just like in original HL, global variables can be set and read via [env_global]({{< relref "env_global.md" >}}) entity. It got some new parameters in Featureful SDK.
+Just like in original HL, global variables can be set and read via [env_global]({{< ref env_global >}}) entity. It got some new parameters in Featureful SDK.
 
 ## Console commands
 

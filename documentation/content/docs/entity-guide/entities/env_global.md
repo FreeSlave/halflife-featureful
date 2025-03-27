@@ -16,7 +16,7 @@ See also: [Global variables]({{< ref global-variables >}})
 
 ### New spawnflags
 
-* `Act as Master`. See [master entities]({{< relref "master-entities.md" >}})
+* `Act as Master`. See [master entities]({{< ref master-entities >}})
 
 ### Reaction to use-type
 
