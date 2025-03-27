@@ -1,0 +1,4 @@
+{{ range readDir . }}
+  {{ $path := path.Join $ .Name }}
+  {{ $path }}
+{{ end }}

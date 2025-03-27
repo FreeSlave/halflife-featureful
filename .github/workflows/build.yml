@@ -1,6 +1,13 @@
 name: build
 
-on: [push, pull_request]
+on: 
+  push:
+    paths-ignore:
+      - 'documentation/**'
+  pull_request:
+    paths-ignore:
+      - 'documentation/**'
+
 
 jobs:
   build:

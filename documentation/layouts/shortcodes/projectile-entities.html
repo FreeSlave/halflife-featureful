@@ -1,0 +1,6 @@
+{{ range where (where .Site.RegularPages "Type" "docs") "File.Dir" "docs/entity-guide/entities/" -}}
+{{ $baseName := .File.BaseFileName -}}
+{{ if eq .Params.entityCategory "projectile" -}}
+  - [ {{ $baseName }} ]( {{ .Path }} )
+{{ end -}}
+{{ end }}

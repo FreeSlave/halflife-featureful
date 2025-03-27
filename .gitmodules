@@ -1,3 +1,6 @@
 [submodule "vgui_support"]
 	path = vgui_support
 	url = https://github.com/FWGS/vgui_support
+[submodule "documentation/themes/hugo-book"]
+	path = documentation/themes/hugo-book
+	url = https://github.com/alex-shpak/hugo-book

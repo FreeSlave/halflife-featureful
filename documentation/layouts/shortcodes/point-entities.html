@@ -1,0 +1,7 @@
+{{ range where (where .Site.RegularPages "Type" "docs") "File.Dir" "docs/entity-guide/entities/" -}}
+{{ $baseName := .File.BaseFileName -}}
+{{ $hasMonsterPrefix := hasPrefix $baseName "monster_" -}}
+{{ if and (not .Params.entityCategory) (not $hasMonsterPrefix) -}}
+  - [ {{ $baseName }} ]( {{ .Path }} )
+{{ end -}}
+{{ end }}
