@@ -60,10 +60,18 @@ theme = 'hugo-book'
         title = true
     [markup.goldmark.renderHooks]
       [markup.goldmark.renderHooks.image]
-        enableDefault = false
+        enableDefault = true
       [markup.goldmark.renderHooks.link]
-        enableDefault = false
+        enableDefault = true
     [markup.goldmark.renderer]
       hardWraps = false
       unsafe = true
       xhtml = false
+
+[[module.mounts]]
+source = 'assets'
+target = 'assets'
+
+[[module.mounts]]
+source = 'static'
+target = 'assets'
