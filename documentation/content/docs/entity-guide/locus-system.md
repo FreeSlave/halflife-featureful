@@ -11,7 +11,7 @@ Each entity has three values associated with them: `Position`, `Velocity` (direc
 
 * The `Position` is the origin for the most entities.
 * The `Velocity` is the velocity for the most entities.
-* The `Ratio` is 0 for the most entities, but there're [[some exceptions|Math#Calc Ratio]].
+* The `Ratio` is 0 for the most entities, but there're [some exceptions]({{< ref "math#calc-ratio" >}}).
 
 ### Locus parameters
 

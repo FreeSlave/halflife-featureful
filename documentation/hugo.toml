@@ -1,4 +1,4 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://freeslave.github.io/halflife-featureful/'
 languageCode = 'en-us'
 title = 'Featureful SDK'
 theme = 'hugo-book'

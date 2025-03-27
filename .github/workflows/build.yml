@@ -4,10 +4,11 @@ on:
   push:
     paths-ignore:
       - 'documentation/**'
+      - 'appveyor.yml'
   pull_request:
     paths-ignore:
       - 'documentation/**'
-
+      - 'appveyor.yml'
 
 jobs:
   build:
