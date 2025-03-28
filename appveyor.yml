@@ -4,6 +4,7 @@ skip_commits:
   files:
     - documentation/*
     - .github/workflows/*
+    - README.md
 
 environment:
   matrix:

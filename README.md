@@ -2,7 +2,7 @@
 
 Half-Life SDK for GoldSource & Xash3D with some bugfixes and features that can be useful for mod makers.
 
-See the feature overview on the [Wiki](https://github.com/FreeSlave/halflife-featureful/wiki).
+See [Documentation](https://freeslave.github.io/halflife-featureful/).
 
 # Obtaining source code
 

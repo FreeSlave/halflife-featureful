@@ -5,10 +5,12 @@ on:
     paths-ignore:
       - 'documentation/**'
       - 'appveyor.yml'
+      - 'README.md'
   pull_request:
     paths-ignore:
       - 'documentation/**'
       - 'appveyor.yml'
+      - 'README.md'
 
 jobs:
   build:
