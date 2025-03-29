@@ -113,7 +113,7 @@ Soundscripts used by a certain entity are listed on the page for the entity. See
 
 ### Effect soundscripts
 
-* **DoSpark** - sounds played by `env_spark` and sparking `func_button`.
+* **DoSpark** - sounds played by [env_spark]({{< ref env_spark >}}) and sparking [func_button]({{< ref func_button >}}).
 * **Material.Spark** - played when the player hits a texture of material that produces sparks (e.g. the computer material).
 
 ### Common Item soundscripts
@@ -150,14 +150,4 @@ Soundscripts used by a certain entity are listed on the page for the entity. See
 
 ### Player soundscripts
 
-* **Player.FlashlightOn** - turn on the flashlight.
-* **Player.FlashlightOff** - turn off the flashlight.
-* **Player.NVGOn** - turn on the NVG.
-* **Player.NVGOff** - turn off the NVG.
-* **Player.FallBodySplat** - played when player dies from fall damage.
-* **Player.TrainUse** - start using a train.
-* **Player.VehicleUse** - start using a vehicle.
-* **Player.UnderwaterExhale** - player is underwater and losing air. In Half-Life it's the sound of exhaling bubbles.
-* **Player.Undrown** - player gets out of the water while having no air left in lungs.
-* **Player.EmergeInhale** - player get out of the water after spending some amount of air.
-* **SprayCan.Paint** - player paints a spray on the wall. It's actually played on the entity created temporarily, not on the player.
+See [player soundscripts]({{< ref "player/#soundscripts" >}})
