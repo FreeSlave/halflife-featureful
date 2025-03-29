@@ -199,7 +199,7 @@ void CSquidToxicSpit::Spawn( void )
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
-	pev->classname = MAKE_STRING( "bigsquidspit" );
+	pev->classname = MAKE_STRING( "squidtoxicspit" );
 	pev->solid = SOLID_BBOX;
 
 	ApplyVisual(GetVisual(toxicSpitVisual));
