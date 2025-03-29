@@ -19,17 +19,23 @@ The boss worm creature from Opposing Force.
 
 ### Soundscripts
 
-* **PitWorm.HitGround**
-* **PitWorm.Angry**
-* **PitWorm.Blast**
-* **PitWorm.Swipe**
-* **PitWorm.Shoot**
-* **PitWorm.Idle**
-* **PitWorm.Alert**
-* **PitWorm.Pain**
-* **PitWorm.Die**
+* **PitWorm.HitGround** - hitting the ground (any material).
+* **PitWorm.Angry** - not used currently.
+* **PitWorm.Blast** - eye laser beam attack.
+* **PitWorm.Swipe** - melee attack.
+* **PitWorm.Shoot** - beam sounds.
+* **PitWorm.Idle** - idle sounds.
+* **PitWorm.Alert** - alert sounds.
+* **PitWorm.Pain** - pain sounds.
+* **PitWorm.Die** - death sounds.
 * **PitWorm.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 
 ### Visuals
 
-Configurable visuals are not implemented yet for this monster.
+* **PitWorm.Beam** - eye laser beam.
+* **PitWorm.EyeGlow** - eye glow during the laser beam attack.
+* **PitWorm.EyeLight** - entity light produce during the laser beam attack.
+
+### Reaction to use-type
+
+If called with `Off` or `Toggle`, PitWorm will start playing its dying sequence.

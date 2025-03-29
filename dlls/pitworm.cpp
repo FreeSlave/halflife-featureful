@@ -26,6 +26,7 @@
 #include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
+#include	"visuals_utils.h"
 
 #if FEATURE_PITWORM
 
@@ -146,6 +147,10 @@ public:
 	static const NamedSoundScript dieSoundScript;
 
 	static constexpr const char* attackHitSoundScript = "PitWorm.AttackHit";
+
+	static const NamedVisual beamVisual;
+	static const NamedVisual eyeGlowVisual;
+	static const NamedVisual eyeLightVisual;
 };
 
 LINK_ENTITY_TO_CLASS(monster_pitworm, CPitWorm)
@@ -291,6 +296,24 @@ const NamedSoundScript CPitWorm::dieSoundScript = {
 	"PitWorm.Die"
 };
 
+const NamedVisual CPitWorm::beamVisual = BuildVisual("PitWorm.Beam")
+	.Model("sprites/laserbeam.spr")
+	.BeamWidth(80)
+	.RenderColor(0, 255, 32)
+	.Alpha(128);
+
+const NamedVisual CPitWorm::eyeGlowVisual = BuildVisual("PitWorm.EyeGlow")
+	.Model("sprites/tele1.spr")
+	.RenderProps(kRenderGlow, Color3(0, 255, 0), 255, kRenderFxNoDissipation)
+	.Scale(0.75f)
+	.Framerate(10.0f);
+
+const NamedVisual CPitWorm::eyeLightVisual = BuildVisual("PitWorm.EyeLight")
+	.RenderColor(128, 255, 128)
+	.Radius(128)
+	.Life(0.1f)
+	.Decay(2);
+
 //=========================================================
 // Spawn
 //=========================================================
@@ -368,7 +391,6 @@ void CPitWorm::Precache()
 {
 	PrecacheMyModel("models/pit_worm_up.mdl");
 
-	PRECACHE_SOUND("pitworm/pit_worm_attack_eyeblast.wav");
 	PRECACHE_SOUND("pitworm/pit_worm_attack_eyeblast_impact.wav");
 
 	RegisterAndPrecacheSoundScript(hitGroundSoundScript);
@@ -384,8 +406,9 @@ void CPitWorm::Precache()
 
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
 
-	PRECACHE_MODEL("sprites/laserbeam.spr");
-	PRECACHE_MODEL("sprites/tele1.spr");
+	RegisterVisual(beamVisual);
+	RegisterVisual(eyeGlowVisual);
+	RegisterVisual(eyeLightVisual);
 }
 
 bool CPitWorm::FVisible(CBaseEntity *pEntity, CBaseEntity** ppSightBlocker)
@@ -943,17 +966,7 @@ void CPitWorm::NextActivity()
 
 void CPitWorm::EyeLight(const Vector &vecEyePos)
 {
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_ELIGHT );
-		WRITE_SHORT( entindex() | (1 << 12) );		// entity, attachment
-		WRITE_VECTOR( vecEyePos );		// origin
-		WRITE_COORD( 128 );	// radius
-		WRITE_BYTE( 128 );	// R
-		WRITE_BYTE( 255 );	// G
-		WRITE_BYTE( 128 );	// B
-		WRITE_BYTE( 1 );	// life * 10
-		WRITE_COORD( 2 ); // decay
-	MESSAGE_END();
+	SendEntLight(entindex(), vecEyePos, GetVisual(eyeLightVisual), 1);
 }
 
 void CPitWorm::BeamEffect(TraceResult &tr)
@@ -1155,14 +1168,11 @@ void CPitWorm::ShootBeam()
 		TraceResult tr;
 		UTIL_TraceLine(vecEyePos, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
 
-		m_pBeam = CBeam::BeamCreate("sprites/laserbeam.spr", 80);
+		m_pBeam = CreateBeamFromVisual(GetVisual(beamVisual));
 		if ( m_pBeam )
 		{
 			m_pBeam->PointEntInit(tr.vecEndPos, entindex());
 			m_pBeam->SetEndAttachment(1);
-			m_pBeam->SetColor(0,255,32);
-			m_pBeam->SetBrightness(128);
-			m_pBeam->SetWidth(32);
 			m_pBeam->pev->spawnflags |= SF_BEAM_SPARKSTART;
 
 			BeamEffect(tr);
@@ -1179,13 +1189,10 @@ void CPitWorm::ShootBeam()
 
 			EyeLight(vecEyePos);
 
-			m_pSprite = CSprite::SpriteCreate("sprites/tele1.spr", vecEyePos, true);
+			m_pSprite = CreateSpriteFromVisual(GetVisual(eyeGlowVisual), vecEyePos);
 			if ( m_pSprite )
 			{
-				m_pSprite->SetTransparency(kRenderGlow, 0, 255, 0, 255, kRenderFxNoDissipation);
 				m_pSprite->SetAttachment(edict(), 1);
-				m_pSprite->SetScale(0.75);
-				m_pSprite->pev->framerate = 10;
 				m_pSprite->TurnOn();
 			}
 		}
