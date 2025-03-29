@@ -267,7 +267,7 @@ bool CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 
 bool CHWGrunt::PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder)
 {
-	if (pOccluder->IsDestroyableObstacle())
+	/*if (pOccluder->IsDestroyableObstacle())
 	{
 		if (pEnemy && m_lastOccluder != pOccluder)
 		{
@@ -275,7 +275,7 @@ bool CHWGrunt::PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOcclud
 			m_vecEnemyLKP = pEnemy->pev->origin;
 		}
 		return false;
-	}
+	}*/
 	return true;
 }
 

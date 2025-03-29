@@ -981,7 +981,7 @@ int CBreakable::DamageDecal( int bitsDamageType )
 
 bool CBreakable::IsDestroyableObstacle()
 {
-	return CBaseDelay::IsDestroyableObstacle() && IsBreakable();
+	return pev->takedamage && IsBreakable();
 }
 
 class CPushable : public CBreakable
