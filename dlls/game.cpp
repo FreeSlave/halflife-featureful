@@ -33,6 +33,7 @@
 #include "vcs_info.h"
 #include "tex_materials.h"
 #include "error_collector.h"
+#include "weapon_templates.h"
 
 ModFeatures g_modFeatures;
 
@@ -1568,6 +1569,10 @@ void ParseModConfigs()
 	FollowersDescription followersDescription;
 	followersDescription.ReadFromFile("features/followers.json");
 	g_FollowersDescription = std::move(followersDescription);
+
+	WeaponTemplateSystem weaponTemplateSystem;
+	weaponTemplateSystem.ReadFromFile("templates/weapons.json");
+	g_WeaponTemplateSystem = std::move(weaponTemplateSystem);
 }
 
 // Register your console variables here

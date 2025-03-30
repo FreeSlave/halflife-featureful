@@ -192,6 +192,7 @@ set (SVDLL_SOURCES
 	visuals_utils.cpp
 	voltigore.cpp
 	warpball.cpp
+	weapon_templates.cpp
 	weapons.cpp
 	weapons_shared.cpp
 	world.cpp

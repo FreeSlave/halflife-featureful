@@ -364,7 +364,7 @@ void CRpg::Reload( void )
 #endif
 
 	bool iResult = false;
-	if( m_iClip < m_iMaxClip )
+	if( m_iClip < iMaxClip() )
 		iResult = DefaultClipReload( RPG_RELOAD, 2 );
 
 	if( iResult )
@@ -436,7 +436,7 @@ bool CRpg::AddToPlayer( CBasePlayer *pPlayer )
 
 bool CRpg::Deploy()
 {
-	if( m_iClip == 0 )
+	if( Emptied() )
 	{
 		return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_UL, "rpg" );
 	}
@@ -473,7 +473,7 @@ void CRpg::Holster()
 
 void CRpg::PrimaryAttack()
 {
-	if( m_iClip )
+	if( HasAmmoToFire() )
 	{
 		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 		m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
@@ -502,7 +502,7 @@ void CRpg::PrimaryAttack()
 #endif
 		PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usRpg );
 
-		m_iClip--; 
+		SpendAmmo();
 
 		m_flNextPrimaryAttack = GetNextAttackDelay( 1.5f );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5f;
@@ -546,7 +546,7 @@ void CRpg::WeaponIdle( void )
 		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0f, 1.0f );
 		if( flRand <= 0.75f || m_fSpotActive )
 		{
-			if( m_iClip == 0 )
+			if( Emptied() )
 				iAnim = RPG_IDLE_UL;
 			else
 				iAnim = RPG_IDLE;
@@ -555,7 +555,7 @@ void CRpg::WeaponIdle( void )
 		}
 		else
 		{
-			if( m_iClip == 0 )
+			if( Emptied() )
 				iAnim = RPG_FIDGET_UL;
 			else
 				iAnim = RPG_FIDGET;

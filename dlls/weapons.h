@@ -362,6 +362,13 @@ public:
 	void InitMaxClip(int defaultMaxClip);
 	int m_iMaxClip;
 	int m_iClientMaxClip;
+
+	bool UsesClip();
+	bool HasAmmoToFire(int ammo = 1);
+	bool IsOutOfAmmo();
+	void CheckOutOfAmmo();
+	void SpendAmmo(int ammo = 1);
+	bool Emptied();
 };
 
 #define LOUD_GUN_VOLUME			1000

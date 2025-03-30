@@ -98,13 +98,13 @@ bool CSporelauncher::Deploy()
 
 void CSporelauncher::PrimaryAttack()
 {
-	if (m_iClip <= 0)
+	if (!HasAmmoToFire())
 		return;
 
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip--;
+	SpendAmmo();
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -139,9 +139,7 @@ void CSporelauncher::PrimaryAttack()
 		1);
 
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+	CheckOutOfAmmo();
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
@@ -150,7 +148,7 @@ void CSporelauncher::PrimaryAttack()
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 #endif
 
-	if (m_iClip != 0)
+	if (!Emptied())
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 	else
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75;
@@ -160,13 +158,13 @@ void CSporelauncher::PrimaryAttack()
 
 void CSporelauncher::SecondaryAttack(void)
 {
-	if (m_iClip <= 0)
+	if (!HasAmmoToFire())
 		return;
 
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip--;
+	SpendAmmo();
 
 
 	int flags;
@@ -202,9 +200,7 @@ void CSporelauncher::SecondaryAttack(void)
 		0,
 		0);
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+	CheckOutOfAmmo();
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
@@ -213,7 +209,7 @@ void CSporelauncher::SecondaryAttack(void)
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 #endif
 
-	if (m_iClip != 0)
+	if (!Emptied())
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 	else
 		m_flTimeWeaponIdle = 1.5;
@@ -276,13 +272,13 @@ void CSporelauncher::WeaponIdle(void)
 
 	if (m_flTimeWeaponIdle <  UTIL_WeaponTimeBase())
 	{
-		if (m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
+		if (UsesClip() && m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 		{
 			Reload();
 		}
 		else if (m_fInSpecialReload != 0)
 		{
-			if (m_iClip != SPORELAUNCHER_DEFAULT_GIVE && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
+			if (m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 			{
 				Reload();
 			}

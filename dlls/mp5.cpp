@@ -107,7 +107,7 @@ void CMP5::PrimaryAttack()
 		return;
 	}
 
-	if( m_iClip <= 0 )
+	if( !HasAmmoToFire() )
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
@@ -117,7 +117,7 @@ void CMP5::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip--;
+	SpendAmmo();
 
 	m_pPlayer->pev->effects = (int)( m_pPlayer->pev->effects ) | EF_MUZZLEFLASH;
 
@@ -139,9 +139,7 @@ void CMP5::PrimaryAttack()
 #endif
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
-	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", false, 0 );
+	CheckOutOfAmmo();
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( 0.1f );
 

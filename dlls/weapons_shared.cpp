@@ -143,7 +143,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if( ( m_pPlayer->pev->button & IN_ATTACK ) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
-		if( ( m_iClip == 0 && UsesAmmo() ) || ( iMaxClip() == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
+		if( ( m_iClip == 0 && UsesAmmo() ) || ( !UsesClip() && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
 		{
 			m_fFireOnEmpty = true;
 		}
@@ -151,7 +151,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if (!FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK) && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN))
 			PrimaryAttack();
 	}
-	else if( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload  && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN) )
+	else if( m_pPlayer->pev->button & IN_RELOAD && UsesClip() && !m_fInReload  && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN) )
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
@@ -211,5 +211,69 @@ bool CBasePlayerWeapon::InZoom()
 
 bool CBasePlayerWeapon::CanReload()
 {
+	if (!UsesClip())
+		return false;
 	return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && m_iClip < m_iMaxClip;
+}
+
+bool CBasePlayerWeapon::UsesClip()
+{
+	return m_iMaxClip != WEAPON_NOCLIP;
+}
+
+bool CBasePlayerWeapon::HasAmmoToFire(int ammo)
+{
+	if (UsesClip())
+	{
+		return m_iClip >= ammo;
+	}
+	else
+	{
+		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= ammo;
+	}
+}
+
+bool CBasePlayerWeapon::IsOutOfAmmo()
+{
+	if (UsesClip())
+	{
+		return m_iClip <= 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 1;
+	}
+	else
+	{
+		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 1;
+	}
+}
+
+void CBasePlayerWeapon::CheckOutOfAmmo()
+{
+	if (IsOutOfAmmo())
+		// HEV suit - indicate out of ammo condition
+		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+}
+
+void CBasePlayerWeapon::SpendAmmo(int ammo)
+{
+	if (UsesClip())
+	{
+		m_iClip -= ammo;
+		m_iClip = Q_max(0, m_iClip);
+	}
+	else
+	{
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= ammo;
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = Q_max(0, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+	}
+}
+
+bool CBasePlayerWeapon::Emptied()
+{
+	if (UsesClip())
+	{
+		return m_iClip == 0;
+	}
+	else
+	{
+		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] == 0;
+	}
 }

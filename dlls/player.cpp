@@ -1021,7 +1021,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 			if( rgpPackWeapons[iPW] )
 			{
-				if (rgpPackWeapons[iPW]->iMaxClip() != WEAPON_NOCLIP)
+				if (rgpPackWeapons[iPW]->UsesClip())
 				{
 					// complete the reload.
 					// TODO: make it depend on the game rules
@@ -6707,7 +6707,7 @@ private:
 					CBasePlayerWeapon* pWeapon = pPlayer->WeaponById(i);
 					if (!pWeapon)
 						continue;
-					if (pWeapon->iMaxClip() == WEAPON_NOCLIP)
+					if (!pWeapon->UsesClip())
 						continue;
 					const char* ammo1 = pWeapon->pszAmmo1();
 					if (ammo1 && strcmp(ammo1, ammoName) == 0)
@@ -7789,7 +7789,7 @@ public:
 		CBasePlayerWeapon* pWeapon = pPlayer->GetWeaponByName(STRING(pev->message));
 		if (!pWeapon)
 			return;
-		if (pWeapon->iMaxClip() <= 0)
+		if (!pWeapon->UsesClip())
 		{
 			ALERT(at_warning, "%s: found %s, but it doesn't use clip\n", STRING(pev->classname), STRING(pev->message));
 			return;

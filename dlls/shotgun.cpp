@@ -100,10 +100,10 @@ void CShotgun::PrimaryAttack()
 		return;
 	}
 
-	if( m_iClip <= 0 )
+	if( !HasAmmoToFire() )
 	{
 		Reload();
-		if( m_iClip == 0 )
+		if( !HasAmmoToFire() )
 			PlayEmptySound();
 		return;
 	}
@@ -111,7 +111,7 @@ void CShotgun::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip--;
+	SpendAmmo();
 
 	int flags;
 #if CLIENT_WEAPONS
@@ -141,16 +141,14 @@ void CShotgun::PrimaryAttack()
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
-	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", false, 0 );
+	CheckOutOfAmmo();
 
 	//if( m_iClip != 0 )
 		m_flPumpTime = gpGlobals->time + 0.5f;
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( 0.75f );
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75f;
-	if( m_iClip != 0 )
+	if( !Emptied() )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
 	else
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75f;
@@ -167,7 +165,7 @@ void CShotgun::SecondaryAttack( void )
 		return;
 	}
 
-	if( m_iClip <= 1 )
+	if( !HasAmmoToFire(2) )
 	{
 		Reload();
 		PlayEmptySound();
@@ -177,7 +175,7 @@ void CShotgun::SecondaryAttack( void )
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip -= 2;
+	SpendAmmo(2);
 
 	int flags;
 #if CLIENT_WEAPONS
@@ -208,16 +206,14 @@ void CShotgun::SecondaryAttack( void )
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usDoubleFire, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
-	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", false, 0 );
+	CheckOutOfAmmo();
 
 	//if( m_iClip != 0 )
 		m_flPumpTime = gpGlobals->time + 0.95f;
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( 1.5f );
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5f;
-	if( m_iClip != 0 )
+	if( !Emptied() )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0f;
 	else
 		m_flTimeWeaponIdle = 1.5;
@@ -291,7 +287,7 @@ void CShotgun::WeaponIdle( void )
 
 	if( m_flTimeWeaponIdle <  UTIL_WeaponTimeBase() )
 	{
-		if( m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+		if( UsesClip() && m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
 		{
 			Reload();
 		}

@@ -91,7 +91,7 @@ void CGlock::PrimaryAttack( void )
 
 void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 {
-	if( m_iClip <= 0 )
+	if( !HasAmmoToFire() )
 	{
 		if( m_fFireOnEmpty )
 		{
@@ -102,7 +102,7 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 		return;
 	}
 
-	m_iClip--;
+	SpendAmmo();
 
 	m_pPlayer->pev->effects = (int)( m_pPlayer->pev->effects ) | EF_MUZZLEFLASH;
 
@@ -143,13 +143,11 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( flCycleTime );
 
-	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", false, 0 );
+	CheckOutOfAmmo();
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
@@ -161,7 +159,7 @@ void CGlock::Reload( void )
 
 	int iResult;
 
-	if( m_iClip == 0 )
+	if( Emptied() )
 		iResult = DefaultClipReload( GLOCK_RELOAD, 1.5f );
 	else
 		iResult = DefaultClipReload( GLOCK_RELOAD_NOT_EMPTY, 1.5f );
@@ -182,7 +180,7 @@ void CGlock::WeaponIdle( void )
 		return;
 
 	// only idle if the slid isn't back
-	if( m_iClip != 0 )
+	if( !Emptied() )
 	{
 		int iAnim;
 		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0, 1.0 );

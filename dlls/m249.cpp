@@ -113,7 +113,7 @@ void CM249::PrimaryAttack()
 		return;
 	}
 
-	if (m_iClip <= 0)
+	if (!HasAmmoToFire())
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = 0.15;
@@ -126,7 +126,7 @@ void CM249::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip--;
+	SpendAmmo();
 	UpdateTape();
 	m_bAlternatingEject = !m_bAlternatingEject;
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
@@ -188,9 +188,7 @@ void CM249::PrimaryAttack()
 	m_pPlayer->pev->velocity = vecNewVel;
 #endif
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+	CheckOutOfAmmo();
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.067);
 
@@ -217,7 +215,7 @@ void CM249::ItemPostFrame()
 {
 	if (!m_fInReload)
 	{
-		m_iVisibleClip = m_iClip;
+		m_iVisibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
 	}
 	if ( m_fInSpecialReload )
 	{
@@ -262,8 +260,10 @@ void CM249::WeaponIdle(void)
 
 void CM249::UpdateTape()
 {
-	UpdateTape(m_iClip);
-	m_iVisibleClip = m_iClip;
+	int visibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+
+	UpdateTape(visibleClip);
+	m_iVisibleClip = visibleClip;
 }
 
 void CM249::UpdateTape(int clip)

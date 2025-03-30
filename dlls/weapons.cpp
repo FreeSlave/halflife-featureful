@@ -34,6 +34,7 @@
 #include "ammoregistry.h"
 #include "ammo_amounts.h"
 #include "common_soundscripts.h"
+#include "weapon_templates.h"
 
 extern bool gEvilImpulse101;
 
@@ -735,6 +736,20 @@ void CBasePlayerWeapon::InitDefaultAmmo(int defaultGive)
 void CBasePlayerWeapon::InitMaxClip(int defaultMaxClip)
 {
 	m_iMaxClip = defaultMaxClip;
+	if (defaultMaxClip == WEAPON_NOCLIP)
+		return;
+	const WeaponTemplate* weaponTemplate = g_WeaponTemplateSystem.GetTemplate(STRING(pev->classname));
+	if (weaponTemplate)
+	{
+		if (weaponTemplate->IsMaxClipDefined())
+		{
+			int maxClip = weaponTemplate->MaxClip();
+			if (!maxClip)
+				m_iMaxClip = WEAPON_NOCLIP;
+			else
+				m_iMaxClip = maxClip;
+		}
+	}
 }
 
 // CALLED THROUGH the newly-touched weapon's instance. The existing player weapon is pOriginal
@@ -863,18 +878,16 @@ void CBasePlayerWeapon::SendWeaponAnim(int iAnim, int body )
 bool CBasePlayerWeapon::AddPrimaryAmmo( int iCount )
 {
 	int iIdAmmo;
-	int maxClip = iMaxClip();
 	const char* szName = pszAmmo1();
 
-	if( maxClip < 1 )
+	if( !UsesClip() )
 	{
 		m_iClip = -1;
 		iIdAmmo = m_pPlayer->GiveAmmo( iCount, szName );
 	}
 	else if( m_iClip == 0 )
 	{
-		int i;
-		i = Q_min( m_iClip + iCount, maxClip ) - m_iClip;
+		int i = Q_min( m_iClip + iCount, iMaxClip() ) - m_iClip;
 		m_iClip += i;
 		iIdAmmo = m_pPlayer->GiveAmmo( iCount - i, szName );
 	}
@@ -928,7 +941,7 @@ bool CBasePlayerWeapon::IsUseable( void )
 	}
 
 	// Player has unlimited ammo for this weapon or does not use magazines
-	if( iMaxAmmo1() == WEAPON_NOCLIP )
+	if( !UsesClip() )
 	{
 		return true;
 	}

@@ -120,7 +120,7 @@ void CEagle::SecondaryAttack()
 
 void CEagle::PrimaryAttack()
 {
-	if (m_iClip <= 0)
+	if (!HasAmmoToFire())
 	{
 		if (m_fFireOnEmpty)
 		{
@@ -140,7 +140,7 @@ void CEagle::PrimaryAttack()
 
 	float flSpread = 0.001;
 
-	m_iClip--;
+	SpendAmmo();
 
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 
@@ -179,11 +179,9 @@ void CEagle::PrimaryAttack()
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.22f;
 	}
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usEagle, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usEagle, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-	// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+	CheckOutOfAmmo();
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
@@ -204,7 +202,7 @@ void CEagle::Reload( void )
 
 	int iResult;
 
-	if (m_iClip == 0)
+	if (Emptied())
 		iResult = DefaultClipReload( EAGLE_RELOAD, 1.5f );
 	else
 		iResult = DefaultClipReload( EAGLE_RELOAD_NOT_EMPTY, 1.5f );
@@ -259,7 +257,7 @@ void CEagle::WeaponIdle( void )
 		return;
 
 	// only idle if the slid isn't back
-	if (m_iClip != 0)
+	if (!Emptied())
 	{
 		int iAnim;
 		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0, 1.0 );

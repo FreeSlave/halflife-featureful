@@ -117,7 +117,7 @@ void CSniperrifle::PrimaryAttack()
 	if ( m_fInSpecialReload )
 		return;
 
-	if (m_iClip <= 0)
+	if (!HasAmmoToFire())
 	{
 		if (m_fFireOnEmpty)
 		{
@@ -138,7 +138,7 @@ void CSniperrifle::PrimaryAttack()
 
 	float flSpread = 0.001f;
 
-	m_iClip--;
+	SpendAmmo();
 
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 
@@ -163,11 +163,9 @@ void CSniperrifle::PrimaryAttack()
 
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_762, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	m_flNextPrimaryAttack = 1.75f;
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSniper, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, ( m_iClip == 0 ) ? 1 : 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSniper, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, Emptied() ? 1 : 0, 0, 0, 0 );
 
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-	// HEV suit - indicate out of ammo condition
-	m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+	CheckOutOfAmmo();
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 68.0f / 38.0f;
 }
@@ -185,7 +183,7 @@ void CSniperrifle::Reload( void )
 		SecondaryAttack();
 	}
 
-	if (m_iClip == 0)
+	if (Emptied())
 	{
 		iResult = DefaultClipReload( SNIPER_RELOAD1, 80.0f / 34.0f );
 		m_fInSpecialReload = 1;
@@ -216,7 +214,7 @@ void CSniperrifle::WeaponIdle( void )
 	else
 	{
 		int iAnim;
-		if (m_iClip <= 0)
+		if (Emptied())
 		{
 			iAnim = SNIPER_SLOWIDLE2;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 80.0f / 16.0f;
