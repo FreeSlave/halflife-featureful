@@ -4444,11 +4444,9 @@ public:
 	}
 
 	Vector m_vecPos;
-	int m_iKey;
 	bool m_activated;
 	EHANDLE m_hActivator;
 	EHANDLE m_posEntity;
-	static int	ms_iNextFreeKey;
 
 private:
 	static bool EntityPositionIsKnownOnClient(CBaseEntity* pEntity);
@@ -4459,7 +4457,6 @@ LINK_ENTITY_TO_CLASS( env_dlight, CEnvDLight )
 TYPEDESCRIPTION	CEnvDLight::m_SaveData[] =
 {
 	DEFINE_FIELD( CEnvDLight, m_vecPos, FIELD_VECTOR ),
-	DEFINE_FIELD( CEnvDLight, m_iKey, FIELD_INTEGER ),
 	DEFINE_FIELD( CEnvDLight, m_activated, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CEnvDLight, m_hActivator, FIELD_EHANDLE ),
 	DEFINE_FIELD( CEnvDLight, m_posEntity, FIELD_EHANDLE ),
@@ -4467,16 +4464,11 @@ TYPEDESCRIPTION	CEnvDLight::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CEnvDLight, CPointEntity );
 
-int CEnvDLight::ms_iNextFreeKey = 1;
-
 void CEnvDLight::Activate( void )
 {
 	if (!m_activated)
 	{
 		// each env_dlight uses its own key to reference the light on the client
-		m_iKey = ms_iNextFreeKey;
-		ms_iNextFreeKey++;
-
 		m_activated = true;
 
 		if (FStringNull(pev->targetname) || IsActive())
@@ -4558,7 +4550,7 @@ void CEnvDLight::TurnOn(CBaseEntity *pClient)
 
 	SetBits(pev->spawnflags, SF_DLIGHT_STARTON);
 	MESSAGE_BEGIN( msgType, gmsgKeyedDLight, NULL, pClientEdict );
-		WRITE_BYTE( m_iKey );
+		WRITE_SHORT( this->entindex() );
 		WRITE_BYTE( 1 );
 		WRITE_VECTOR( m_vecPos );
 		WRITE_SHORT( pev->renderamt );		// radius
@@ -4574,7 +4566,7 @@ void CEnvDLight::TurnOff()
 
 	ClearBits(pev->spawnflags, SF_DLIGHT_STARTON);
 	MESSAGE_BEGIN( MSG_ALL, gmsgKeyedDLight );
-		WRITE_BYTE( m_iKey );
+		WRITE_SHORT( entindex() );
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
 
@@ -4618,7 +4610,7 @@ void CEnvDLight::TrackPositionThink()
 		if (shouldSendPosition)
 		{
 			MESSAGE_BEGIN( MSG_ALL, gmsgKeyedDLight );
-				WRITE_BYTE( m_iKey );
+				WRITE_SHORT( entindex() );
 				WRITE_BYTE( 2 );
 				WRITE_VECTOR( m_vecPos );
 			MESSAGE_END();

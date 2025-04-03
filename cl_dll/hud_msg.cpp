@@ -130,10 +130,7 @@ int CHud::MsgFunc_KeyedDLight( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 
-	int iKey = READ_BYTE();
-	if (iKey == 0)
-		return 1;
-
+	int iKey = READ_SHORT();
 	int bActive = READ_BYTE();
 	if (!bActive)
 	{

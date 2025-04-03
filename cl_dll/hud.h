@@ -874,8 +874,8 @@ public:
 private:
 	struct DlightAndData
 	{
-		dlight_t* dl;
-		int entindex;
+		dlight_t* dl = nullptr;
+		int entindex = 0;
 	};
 	void Reset(DlightAndData& data);
 	std::array<DlightAndData, 32> _dlights;
