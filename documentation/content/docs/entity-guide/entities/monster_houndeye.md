@@ -51,3 +51,17 @@ Shared visuals:
 * **Houndeye.WaveBase** - sprite, life, beam parameters and alpha used by **Houndeye.Wave1**, **Houndeye.Wave2**, **Houndeye.Wave3** and **Houndeye.Wave4**.
 
 Note: when customizing the wave color you usually want to configure it for each wave, for the consistent looks.
+
+### Attacks
+
+* *Range Attack 1* - sonic wave.
+
+### Animation events
+
+* `1` - play **HoundEye.Warn** soundscript.
+* `2` - play **HoundEye.Warmup** soundscript.
+* `3` - sonic wave attack. Plays **HoundEye.Sonic** soundscript.
+* `4` - play **HoundEye.Anger1** soundscript.
+* `5` - play **HoundEye.Anger2** soundscript.
+* `6` - jump back.
+* `7` - set model skin to value 2 if blinking is allowed at the moment.

@@ -51,3 +51,16 @@ Shared visuals:
 Notes:
 
 * **Controller.ZapBall** customizations are also applied to projectiles spawned by [env_energy_ball_trap]({{< ref env_energy_ball_trap >}}).
+
+### Attacks
+
+* *Range Attack 1* - fire energy balls from arms.
+* *Range Attack 2* - fire energy balls from head.
+
+### Animation events
+
+* `1` - make entity light with **Controller.HeadOpenLight** visuals.
+* `2` - fire a head energy ball, make entity light with **Controller.HeadShootLight** visuals.
+* `3` - start firing energy balls. The option should be an integer number. This number is divided by 15 to calculate the end fire time. Plays **Controller.Attack** soundscript.
+* `4` - set energy balls target brightness to 255. The option is an integer number which shows how fast the current brightness should approach the target.
+* `5` - set energy balls target brightness to 192. The option is an integer number which shows how fast the current brightness should approach the target.

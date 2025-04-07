@@ -26,3 +26,7 @@ Same as [monster_zombie]({{< ref monster_zombie >}}).
 ### Animation events
 
 Same as [monster_zombie]({{< ref monster_zombie >}}).
+
+### Bugfixes
+
+* Opposing Force zombie soldier model didn't set proper hitgroups for hitboxes (which prevented taking the increased headshot damage). The sample mod has the hitgroups fixed. If you use custom models, make sure the proper hitgroups are set for hitboxes.

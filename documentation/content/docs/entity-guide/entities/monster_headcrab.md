@@ -55,7 +55,7 @@ bookToC: false
                 "waves": ["chicken/ch_die1.wav", "chicken/ch_die2.wav"]
             },
             "Headcrab.Attack": {
-                "waves": ["chicken/ch_die1.wav", "chicken/ch_die2.wav"]
+                "waves": ["chicken/ch_attack1.wav", "chicken/ch_attack2.wav"]
             }
         },
         "classify": "Alien Monster"

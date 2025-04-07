@@ -36,8 +36,8 @@ bookToC: false
 ### Animation events
 
 * `2` - draw a weapon
-* `3` - fire a weapon.
-* `4` - holster a weapon. Plays **Barney.FirePistol** or **Barney.FirePython** soundscripts.
+* `3` - fire a weapon. Play **Barney.FirePistol** or **Barney.FirePython** soundscripts.
+* `4` - holster a weapon.
 
 ### Entity template examples
 

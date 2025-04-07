@@ -35,3 +35,7 @@ Same as [monster_human_grunt]({{< ref "monster_human_grunt/#attacks" >}}).
 ### Animation events
 
 Same as [monster_human_grunt]({{< ref "monster_human_grunt/#animation-events" >}}), but deals **sk_massassin_kick** damage on kick event.
+
+### Bugfixes
+
+* Opposing Force male assassin model didn't set proper hitgroups for hitboxes (which prevented taking the increased headshot damage). The sample mod has the hitgroups fixed. If you use custom models, make sure the proper hitgroups are set for hitboxes.

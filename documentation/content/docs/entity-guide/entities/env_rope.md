@@ -22,3 +22,7 @@ See also: [env_electrified_wire]({{< ref env_electrified_wire >}})
 
 * **Rope.Grab** - player grabbing a rope
 * **Rope.Creak** - creak sound.
+
+### Bugfixes
+
+* In Opposing Force player could stuck in brush geometry while on rope. Featureful SDK has additional checks to prevent stucking in the walls.
