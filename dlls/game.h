@@ -18,7 +18,6 @@
 
 #include "cvardef.h"
 #include "cdll_dll.h"
-#include "soundreplacement.h"
 
 void ParseModConfigs();
 extern void GameDLLInit( void );

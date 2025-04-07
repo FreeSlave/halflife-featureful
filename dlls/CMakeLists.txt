@@ -170,7 +170,6 @@ set (SVDLL_SOURCES
 	sniperrifle.cpp
 	sound.cpp
 	soundent.cpp
-	soundreplacement.cpp
 	soundscripts.cpp
 	spectator.cpp
 	spore.cpp

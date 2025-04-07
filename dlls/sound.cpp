@@ -26,7 +26,6 @@
 #include "soundent.h"
 #include "pm_shared.h"
 #include "locus.h"
-#include "soundreplacement.h"
 #include "bullet_types.h"
 #include "common_soundscripts.h"
 

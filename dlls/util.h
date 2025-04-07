@@ -345,7 +345,6 @@ struct EntityOverrides
 	string_t model = iStringNull;
 	string_t entTemplate = iStringNull;
 	string_t ownerEntTemplate = iStringNull;
-	string_t soundList = iStringNull;
 };
 
 // allows precacheing of other entities

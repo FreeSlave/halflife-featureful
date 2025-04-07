@@ -237,11 +237,6 @@
 	]
 ]
 
-@BaseClass = SoundReplacement
-[
-	soundlist(script) : "Sound Replacement File"
-]
-
 @BaseClass = BloodColor
 [
 	bloodcolor(choices) : "Blood Color" : : "Blood color of monster" =
@@ -472,7 +467,7 @@
 	]
 ]
 
-@BaseClass base(MonsterExtraBase, Scalable, Classification, BloodColor, FielfOfView, FreeRoaming, ActiveAfterAlert, SizeForGrapple, PrisonerTo, MonsterSoundMask, MonsterGibPolicy, SoundReplacement) = MonsterExtra
+@BaseClass base(MonsterExtraBase, Scalable, Classification, BloodColor, FielfOfView, FreeRoaming, ActiveAfterAlert, SizeForGrapple, PrisonerTo, MonsterSoundMask, MonsterGibPolicy) = MonsterExtra
 [
 	displayname(string) : "In-game Name" : : "Name that's displayed when player looks at the monster if mp_allowmonsterinfo is enabled"
 ]

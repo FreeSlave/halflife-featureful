@@ -1446,11 +1446,6 @@ void Cmd_CalcState()
 	}
 }
 
-void ReportSoundReplacements()
-{
-	g_soundReplacement.ReportSoundReplacements();
-}
-
 void ReportSoundScripts()
 {
 	int argc = CMD_ARGC();
@@ -2226,7 +2221,6 @@ void GameDLLInit( void )
 	g_engfuncs.pfnAddServerCommand("dump_warpballs", ReportWarpballTemplates);
 	g_engfuncs.pfnAddServerCommand("dump_precached_models", ReportPrecachedModels);
 	g_engfuncs.pfnAddServerCommand("dump_precached_sounds", ReportPrecachedSounds);
-	g_engfuncs.pfnAddServerCommand("dump_sound_replacements", ReportSoundReplacements);
 	g_engfuncs.pfnAddServerCommand("dump_soundscripts", ReportSoundScripts);
 	g_engfuncs.pfnAddServerCommand("dump_visuals", ReportVisuals);
 	g_engfuncs.pfnAddServerCommand("dump_materials", ReportMaterials);

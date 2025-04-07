@@ -400,7 +400,6 @@ void CMonsterMaker::Precache( void )
 	EntityOverrides entityOverrides;
 	entityOverrides.model = m_customModel;
 	entityOverrides.entTemplate = m_entTemplate;
-	entityOverrides.soundList = m_soundList;
 
 	if (CheckMonsterClassname())
 		m_childIsValid = UTIL_PrecacheMonster( STRING(m_iszMonsterClassname), m_reverseRelationship, &m_defaultMinHullSize, &m_defaultMaxHullSize, entityOverrides );
@@ -698,7 +697,6 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 	if (pEntity)
 	{
 		pEntity->m_entTemplate = m_entTemplate;
-		pEntity->m_soundList = m_soundList;
 	}
 	CBaseMonster* createdMonster = pEntity ? pEntity->MyMonsterPointer() : NULL;
 	if (createdMonster)

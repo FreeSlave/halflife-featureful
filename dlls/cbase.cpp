@@ -698,16 +698,12 @@ TYPEDESCRIPTION	CBaseEntity::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseEntity, m_entTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_ownerEntTemplate, FIELD_STRING ),
-	DEFINE_FIELD( CBaseEntity, m_soundList, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_objectHint, FIELD_STRING ),
 };
 
 void CBaseEntity::KeyValue(KeyValueData* pkvd)
 {
-	if (FStrEq(pkvd->szKeyName, "soundlist")) {
-		m_soundList = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = true;
-	} else if (FStrEq(pkvd->szKeyName, "ent_template")) {
+	if (FStrEq(pkvd->szKeyName, "ent_template")) {
 		m_entTemplate = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	} else if (FStrEq(pkvd->szKeyName, "objecthint")) {
@@ -720,19 +716,11 @@ void CBaseEntity::KeyValue(KeyValueData* pkvd)
 
 int CBaseEntity::PRECACHE_SOUND(const char *soundName)
 {
-	return PRECACHE_SOUND(soundName, m_soundList, GetMyEntTemplate());
+	return PRECACHE_SOUND(soundName, GetMyEntTemplate());
 }
 
-int CBaseEntity::PRECACHE_SOUND(const char *soundName, string_t soundList, const EntTemplate *entTemplate)
+int CBaseEntity::PRECACHE_SOUND(const char *soundName, const EntTemplate *entTemplate)
 {
-	if (!FStringNull(soundList)) {
-		if (g_soundReplacement.EnsureReplacementFile(STRING(soundList))) {
-			const auto& replacement = g_soundReplacement.FindReplacement(STRING(soundList), soundName);
-			if (!replacement.empty()) {
-				return ::PRECACHE_SOUND(replacement.c_str());
-			}
-		}
-	}
 	if (entTemplate)
 	{
 		const char* replacement = entTemplate->GetSoundReplacement(soundName);
@@ -745,12 +733,6 @@ int CBaseEntity::PRECACHE_SOUND(const char *soundName, string_t soundList, const
 bool CBaseEntity::EmitSoundDyn(int channel, const char *sample, float volume, float attenuation, int flags, int pitch)
 {
 	const char* soundToPlay = nullptr;
-	if (!FStringNull(m_soundList)) {
-		const auto& replacement = g_soundReplacement.FindReplacement(STRING(m_soundList), sample);
-		if (!replacement.empty()) {
-			soundToPlay = replacement.c_str();
-		}
-	}
 	if (!soundToPlay)
 	{
 		const EntTemplate* entTemplate = GetMyEntTemplate();
@@ -771,25 +753,11 @@ bool CBaseEntity::EmitSound(int channel, const char *sample, float volume, float
 
 void CBaseEntity::EmitAmbientSound(const Vector &vecOrigin, const char *sample, float vol, float attenuation, int iFlags, int pitch)
 {
-	if (!FStringNull(m_soundList)) {
-		const auto& replacement = g_soundReplacement.FindReplacement(STRING(m_soundList), sample);
-		if (!replacement.empty()) {
-			UTIL_EmitAmbientSound(edict(), vecOrigin, replacement.c_str(), vol, attenuation, iFlags, pitch);
-			return;
-		}
-	}
 	UTIL_EmitAmbientSound(edict(), vecOrigin, sample, vol, attenuation, iFlags, pitch);
 }
 
 void CBaseEntity::StopSound(int channel, const char *sample)
 {
-	if (!FStringNull(m_soundList)) {
-		const auto& replacement = g_soundReplacement.FindReplacement(STRING(m_soundList), sample);
-		if (!replacement.empty()) {
-			STOP_SOUND(edict(), channel, replacement.c_str());
-			return;
-		}
-	}
 	STOP_SOUND(edict(), channel, sample);
 }
 
@@ -1069,14 +1037,12 @@ void CBaseEntity::AssignEntityOverrides(EntityOverrides entityOverrides)
 		pev->model = entityOverrides.model;
 	m_entTemplate = entityOverrides.entTemplate;
 	m_ownerEntTemplate = entityOverrides.ownerEntTemplate;
-	m_soundList = entityOverrides.soundList;
 }
 
 EntityOverrides CBaseEntity::GetProjectileOverrides()
 {
 	EntityOverrides entityOverrides;
 	entityOverrides.ownerEntTemplate = GetMyTemplateName();
-	entityOverrides.soundList = m_soundList;
 	return entityOverrides;
 }
 

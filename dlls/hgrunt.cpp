@@ -2380,7 +2380,6 @@ void CHGruntRepel::Precache( void )
 	EntityOverrides entityOverrides;
 	entityOverrides.entTemplate = m_entTemplate;
 	entityOverrides.model = pev->model;
-	entityOverrides.soundList = m_soundList;
 
 	UTIL_PrecacheOther( TrooperName(), entityOverrides );
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/rope.spr" );
@@ -2438,7 +2437,6 @@ void CHGruntRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	pEntity->pev->health = pev->health;
 	pEntity->pev->model = pev->model;
 	pEntity->m_entTemplate = m_entTemplate;
-	pEntity->m_soundList = m_soundList;
 	pGrunt->m_iClass = m_iClass;
 	pGrunt->m_reverseRelationship = m_reverseRelationship;
 	pGrunt->SetMyBloodColor(m_bloodColor);

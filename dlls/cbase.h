@@ -310,7 +310,6 @@ public:
 
 	string_t m_entTemplate;
 	string_t m_ownerEntTemplate;
-	string_t m_soundList; // sound replacement list file name
 	string_t m_objectHint; // the name of the spritehint template
 
 	// Don't save those:
@@ -320,7 +319,7 @@ public:
 	bool m_ownerEntTemplateChecked;
 
 	int PRECACHE_SOUND(const char* soundName);
-	static int PRECACHE_SOUND(const char* soundName, string_t soundList, const EntTemplate* entTemplate);
+	static int PRECACHE_SOUND(const char* soundName, const EntTemplate* entTemplate);
 
 	bool EmitSoundDyn( int channel, const char *sample, float volume, float attenuation, int flags, int pitch );
 	bool EmitSound( int channel, const char *sample, float volume, float attenuation );
