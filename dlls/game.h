@@ -109,17 +109,14 @@ struct ModFeatures
 	bool vortigaunt_selfheal;
 	bool vortigaunt_heal;
 	bool vortigaunt_revive;
-	bool vortigaunt_squad;
 	bool vortigaunt_armor_charge;
 
 	bool sentry_retract;
 
 	bool bigmomma_wait_fix;
 	bool bigmomma_lastnode_fix;
-	bool gargantua_larger_size;
 
 	bool gonome_lock_player;
-	bool voltigore_lesser_size;
 
 	bool doors_open_in_move_direction;
 	bool doors_blocked_recheck;
@@ -132,10 +129,6 @@ struct ModFeatures
 	bool opfor_decals;
 	bool opfor_deadhaz;
 	bool tentacle_opfor_height;
-
-	// Strings for nvg sounds
-	StringBuf nvg_sound_on;
-	StringBuf nvg_sound_off;
 private:
 	bool UpdateBoolean(const char* value, bool& result, const char* key);
 	bool UpdateInteger(const char* value, int& result, const char* key);

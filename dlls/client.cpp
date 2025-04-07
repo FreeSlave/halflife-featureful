@@ -1186,11 +1186,6 @@ void ClientPrecache( void )
 	pWorld->RegisterAndPrecacheSoundScript(Player::nvgOnSoundScript);
 	pWorld->RegisterAndPrecacheSoundScript(Player::nvgOffSoundScript);
 
-	if (*g_modFeatures.nvg_sound_on)
-		PRECACHE_SOUND( g_modFeatures.nvg_sound_on );
-	if (*g_modFeatures.nvg_sound_off)
-		PRECACHE_SOUND( g_modFeatures.nvg_sound_off );
-
 	// player gib sounds
 	pWorld->RegisterAndPrecacheSoundScript(Player::fallBodySplatSoundScript);
 

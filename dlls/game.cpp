@@ -59,9 +59,6 @@ ModFeatures::ModFeatures()
 
 	EnableDefaultWeapons();
 
-	memset(nvg_sound_on, 0, sizeof(StringBuf));
-	memset(nvg_sound_off, 0, sizeof(StringBuf));
-
 	player_maxhealth = MAX_NORMAL_HEALTH;
 	player_maxarmor = MAX_NORMAL_BATTERY;
 
@@ -104,7 +101,6 @@ ModFeatures::ModFeatures()
 	vortigaunt_selfheal = true;
 	vortigaunt_heal = true;
 	vortigaunt_revive = true;
-	vortigaunt_squad = false;
 	vortigaunt_armor_charge = false;
 
 	sentry_retract = true;
@@ -112,11 +108,7 @@ ModFeatures::ModFeatures()
 	bigmomma_wait_fix = false;
 	bigmomma_lastnode_fix = false;
 
-	gargantua_larger_size = FEATURE_OPFOR_SPECIFIC ? true : false;
-
 	gonome_lock_player = false;
-
-	voltigore_lesser_size = false;
 
 	doors_open_in_move_direction = false;
 	doors_blocked_recheck = false;
@@ -174,14 +166,11 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(vortigaunt_selfheal),
 		KEY_VALUE_DEF(vortigaunt_heal),
 		KEY_VALUE_DEF(vortigaunt_revive),
-		KEY_VALUE_DEF(vortigaunt_squad),
 		KEY_VALUE_DEF(vortigaunt_armor_charge),
 		KEY_VALUE_DEF(sentry_retract),
 		KEY_VALUE_DEF(bigmomma_wait_fix),
 		KEY_VALUE_DEF(bigmomma_lastnode_fix),
-		KEY_VALUE_DEF(gargantua_larger_size),
 		KEY_VALUE_DEF(gonome_lock_player),
-		KEY_VALUE_DEF(voltigore_lesser_size),
 		KEY_VALUE_DEF(doors_open_in_move_direction),
 		KEY_VALUE_DEF(doors_blocked_recheck),
 		KEY_VALUE_DEF(doors_blocked_fade_corpses),
@@ -230,22 +219,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 			return false;
 		}
 		return true;
-	}
-	else
-	{
-		KeyValueDefinition<StringBuf> strings[] = {
-			KEY_VALUE_DEF(nvg_sound_on),
-			KEY_VALUE_DEF(nvg_sound_off),
-		};
-
-		for (i = 0; i<ARRAYSIZE(strings); ++i)
-		{
-			if (strcmp(key, strings[i].name) == 0)
-			{
-				strncpyEnsureTermination(strings[i].value, value);
-				return true;
-			}
-		}
 	}
 
 	ALERT(at_console, "Unknown mod feature key '%s'\n", key);

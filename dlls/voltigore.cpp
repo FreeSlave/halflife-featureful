@@ -407,16 +407,10 @@ public:
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
 	bool IsDisplaceable() { return true; }
 	Vector DefaultMinHullSize() {
-		if (g_modFeatures.voltigore_lesser_size)
-			return Vector( -40.0f, -40.0f, 0.0f );
-		else
-			return Vector( -80.0f, -80.0f, 0.0f );
+		return Vector( -80.0f, -80.0f, 0.0f );
 	}
 	Vector DefaultMaxHullSize() {
-		if (g_modFeatures.voltigore_lesser_size)
-			return Vector( 40.0f, 40.0f, 85.0f );
-		else
-			return Vector( 80.0f, 80.0f, 90.0f );
+		return Vector( 80.0f, 80.0f, 90.0f );
 	}
 
 	float m_flNextBeamAttackCheck; // next time the voltigore can use the spit attack.

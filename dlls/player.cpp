@@ -4408,8 +4408,6 @@ void CBasePlayer::NVGTurnOn()
 		const SoundScript* nvgOn = GetSoundScript(Player::nvgOnSoundScript);
 		if (nvgOn && !nvgOn->waves.empty())
 			EmitSoundScript(nvgOn);
-		else if (*g_modFeatures.nvg_sound_on)
-			EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, g_modFeatures.nvg_sound_on, 1.0, ATTN_NORM, 0, PITCH_NORM );
 
 		m_fNVGisON = true;
 		MESSAGE_BEGIN( MSG_ONE, gmsgNightvision, NULL, pev );
@@ -4430,8 +4428,6 @@ void CBasePlayer::NVGTurnOff(bool playOffSound)
 			const SoundScript* nvgOff = GetSoundScript(Player::nvgOffSoundScript);
 			if (nvgOff && !nvgOff->waves.empty())
 				EmitSoundScript(nvgOff);
-			else if (*g_modFeatures.nvg_sound_off)
-				EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, g_modFeatures.nvg_sound_off, 1.0, ATTN_NORM, 0, PITCH_NORM );
 		}
 
 		m_fNVGisON = false;
