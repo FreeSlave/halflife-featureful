@@ -200,7 +200,7 @@ bool SoundScriptSystem::ReadFromDocument(Document& document, const char* fileNam
 	return true;
 }
 
-void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, Value &value)
+void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, Value &value, int defaultChannel)
 {
 	SoundScript soundScript;
 	SoundScriptMeta soundScriptMeta;
@@ -229,6 +229,11 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, Value &val
 		if (it != value.MemberEnd())
 		{
 			soundScriptMeta.channelSet = ParseChannel(it->value.GetString(), soundScript.channel);
+		}
+		else if (defaultChannel != -1)
+		{
+			soundScript.channel = defaultChannel;
+			soundScriptMeta.channelSet = true;
 		}
 	}
 	soundScriptMeta.volumeSet = UpdatePropertyFromJson(soundScript.volume, value, "volume");

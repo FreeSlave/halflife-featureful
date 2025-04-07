@@ -52,7 +52,7 @@ public:
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() { return true; }
 };
@@ -77,10 +77,10 @@ void CBloater::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CBloater::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBloater::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 void CBloater::PainSound( void )
@@ -194,7 +194,7 @@ public:
 	void AlertSound();
 	void PainSound();
 	float HearingSensitivity( void );
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib);
 	void GibMonster();
 	void UpdateOnRemove();
@@ -493,7 +493,7 @@ void CFloater::FloaterTouch(CBaseEntity *pOther)
 	{
 		CBaseEntity* groundEnt = Instance(pOther->pev->groundentity);
 		if (groundEnt == this)
-			TakeDamage(pev,pev,pev->health,DMG_GENERIC);
+			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC));
 	}
 }
 
@@ -610,7 +610,7 @@ void CFloater::PrescheduleThink()
 		pev->scale = OriginalScale() + (TargetScale() - OriginalScale()) * fraction;
 		if (gpGlobals->time >= StartBloatingTime() + BLOATING_TIME)
 		{
-			TakeDamage(pev,pev,pev->health,DMG_GENERIC);
+			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC));
 		}
 		m_flGroundSpeed = BASE_FLOATER_SPEED + 400 * fraction;
 	}
@@ -920,10 +920,10 @@ float CFloater::HearingSensitivity()
 		return 0.6f;
 }
 
-int CFloater::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int CFloater::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
 	MakeProvoked();
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 void CFloater::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
@@ -1031,7 +1031,7 @@ void CFloater::ExplodeEffect()
 
 	EmitSoundScript(explodeSoundScript);
 
-	RadiusDamage(exploOrigin, pev, pev, gSkillData.floaterExplode, Classify(), DMG_BLAST|DMG_ACID);
+	RadiusDamage(exploOrigin, pev, pev, DamageInfo{gSkillData.floaterExplode, DMG_BLAST|DMG_ACID}, Classify());
 }
 
 void CFloater::FloaterBloatUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)

@@ -16,8 +16,8 @@
 #define DMG_SHOCK			(1 << 8)	// electric shock
 #define DMG_SONIC			(1 << 9)	// sound pulse shockwave
 #define DMG_ENERGYBEAM		(1 << 10)	// laser or other high energy beam
-#define DMG_NEVERGIB		(1 << 12)	// with this bit OR'd in, no damage type will be able to gib victims upon death
-#define DMG_ALWAYSGIB		(1 << 13)	// with this bit OR'd in, any damage type can be made to gib victims upon death.
+//#define DMG_NEVERGIB		(1 << 12)	// with this bit OR'd in, no damage type will be able to gib victims upon death
+//#define DMG_ALWAYSGIB		(1 << 13)	// with this bit OR'd in, any damage type can be made to gib victims upon death.
 #define DMG_DROWN			(1 << 14)	// Drowning
 // time-based damage
 
@@ -32,15 +32,6 @@
 
 // it's not time-based!
 #define DMG_MORTAR			(1 << 23)	// Hit by air raid (done to distinguish grenade from mortar)
-
-// additional flags
-// TODO: make into another set of flags?
-#define DMG_NONLETHAL		(1 << 24) // this damage shouldn't kill player or monster
-#define DMG_TIMEDNONLETHAL	(1 << 25) // timed damage, e.g. poison, shouldn't kill player completely
-#define DMG_DONTBLEED		(1 << 26) // used in TraceAttack. Force not to bleed.
-#define DMG_IGNORE_ARMOR	(1 << 27) // ignore player's armor, deal damage to health only
-#define DMG_NO_PUNCH	(1 << 28) // don't make a smalle punch on player's camera
-#define DMG_NO_PLAYER_PUSH (1 << 29) // don't push player
 
 // Modifiers to time-based damage, up to 8
 #define DMG_TIMED_MOD_NONLETHAL ( 1 << 0 )

@@ -175,7 +175,6 @@ public:
 	void Shotgun ( void );
 	void M249 ( void );
 	// Override these to set behavior
-	CBaseEntity	*Kick( void );
 	Schedule_t *GetScheduleOfType ( int Type );
 	Schedule_t *GetSchedule ( void );
 	Schedule_t *PrioritizedSchedule();
@@ -209,8 +208,8 @@ public:
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int DefaultToleranceLevel() { return TOLERANCE_HIGH; }
 	int IRelationship ( CBaseEntity *pTarget );
 
@@ -249,7 +248,7 @@ public:
 
 	void PlayGruntSentence(int group);
 protected:
-	void PerformKick(float kickDamage);
+	void PerformKick(int eventIndex, float kickDamage);
 	void PrecacheCommon();
 	void SpawnHelper(const char* defaultModel, float defaultHealth);
 	void SpeakCaughtEnemy();
@@ -1594,39 +1593,19 @@ bool CHFGrunt::CheckRangeAttack2Impl( float grenadeSpeed, float flDot, float flD
 }
 //=========================================================
 //=========================================================
-CBaseEntity *CHFGrunt :: Kick( void )
+void CHFGrunt::PerformKick(int eventIndex, float kickDamage)
 {
-	TraceResult tr;
+	TraceHullAttackParams params;
+	params.punchAngle.x = 15;
+	params.knockForward = 100;
+	params.knockUp = 50;
+	params.skipAllies = true;
+	params.useAimVectors = false;
+	params.damageInfo.damage = kickDamage;
+	params.damageInfo.type = DMG_CLUB;
+	SetTraceHullAttackParamsFromTemplate(eventIndex, params);
 
-	UTIL_MakeVectors( pev->angles );
-	Vector vecStart = pev->origin;
-	vecStart.z += pev->size.z * 0.5;
-	Vector vecEnd = vecStart + (gpGlobals->v_forward * 70);
-
-	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT(pev), &tr );
-
-	if ( tr.pHit )
-	{
-		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-		if (pEntity && IRelationship(pEntity) != R_AL)
-			return pEntity;
-	}
-
-	return NULL;
-}
-
-void CHFGrunt::PerformKick(float kickDamage)
-{
-	CBaseEntity *pHurt = Kick();
-
-	if ( pHurt )
-	{
-		// SOUND HERE!
-		UTIL_MakeVectors( pev->angles );
-		pHurt->pev->punchangle.x = 15;
-		pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
-		pHurt->TakeDamage( pev, pev, kickDamage, DMG_CLUB );
-	}
+	PerformTraceHullAttack(params);
 }
 
 //=========================================================
@@ -1843,7 +1822,7 @@ void CHFGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case HGRUNT_ALLY_AE_KICK:
 		{
-			PerformKick(gSkillData.fgruntDmgKick);
+			PerformKick(pEvent->event, gSkillData.fgruntDmgKick);
 		}
 		break;
 
@@ -2146,45 +2125,46 @@ void CHFGrunt::IdleSound()
 //=========================================================
 // TraceAttack - make sure we're not taking it in the helmet
 //=========================================================
-void CHFGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CHFGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
+	DamageInfo dmgInfo = damageInfo;
 	// reduce damage on vest
 	if (ptr->iHitgroup == HITGROUP_CHEST || ptr->iHitgroup == HITGROUP_STOMACH)
 	{
-		if (bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ))
+		if (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ))
 		{
-			flDamage *= 0.5;
+			dmgInfo.damage *= 0.5;
 		}
 	}
 	// check for helmet shot
 	if (ptr->iHitgroup == 11)
 	{
 		// make sure we're wearing one
-		if (bitsDamageType & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
+		if (dmgInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
 		{
 			// absorb damage
-			flDamage -= 20;
-			if (flDamage <= 0)
+			dmgInfo.damage -= 20;
+			if (dmgInfo.damage <= 0)
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-				flDamage = 0.01;
+				dmgInfo.damage = 0.01;
 			}
 		}
 		// it's head shot anyways
 		ptr->iHitgroup = HITGROUP_HEAD;
 	}
-	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 //=========================================================
 // TakeDamage - overridden for the grunt because the grunt
 // needs to forget that he is in cover if he's hurt. (Obviously
 // not in a safe place anymore).
 //=========================================================
-int CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Forget( bits_MEMORY_INCOVER );
 
-	return CTalkMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CTalkMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 //=========================================================
@@ -2950,7 +2930,7 @@ public:
 	void GibMonster();
 	void OnDying();
 	void UpdateOnRemove();
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void PrescheduleThink();
 
 	void DropMyItems(bool isGibbed);
@@ -3134,7 +3114,7 @@ void CTorch::HandleAnimEvent(MonsterEvent_t *pEvent)
 		break;
 	case HGRUNT_ALLY_AE_KICK:
 	{
-		PerformKick(gSkillData.torchDmgKick);
+		PerformKick(pEvent->event, gSkillData.torchDmgKick);
 	}
 	break;
 	default:
@@ -3217,19 +3197,21 @@ void CTorch::DropMyItems(bool isGibbed)
 	}
 }
 
-void CTorch::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CTorch::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
+	DamageInfo dmgInfo = damageInfo;
 	// check for gas tank
 	if (ptr->iHitgroup == 8)
 	{
-		if (bitsDamageType & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
+		if (dmgInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
 		{
 			if (!m_gasTankExploded && g_pGameRules->FMonsterCanTakeDamage(this, CBaseEntity::Instance(pevAttacker)))
 			{
 				m_gasTankExploded = true;
 
-				bitsDamageType = (DMG_ALWAYSGIB | DMG_BLAST);
-				flDamage = pev->health + 1;
+				dmgInfo.type = DMG_BLAST;
+				dmgInfo.SetGibPolicy(GIB_ALWAYS);
+				dmgInfo.damage = pev->health + 1;
 				UTIL_Ricochet( ptr->vecEndPos, 1.0 );
 				MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 					WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
@@ -3239,12 +3221,12 @@ void CTorch::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 					WRITE_BYTE( 15  ); // framerate
 					WRITE_BYTE( TE_EXPLFLAG_NONE );
 				MESSAGE_END();
-				::RadiusDamage ( pev->origin, pev, pev, Q_min(pev->max_health, 75), 125, CLASS_NONE, DMG_BLAST );
+				::RadiusDamage ( pev->origin, pev, pev, DamageInfo{Q_min(pev->max_health, 75), DMG_BLAST}, 125, CLASS_NONE );
 				Create( "spark_shower", pev->origin, ptr->vecPlaneNormal, NULL );
 			}
 		}
 	}
-	CHFGrunt::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CHFGrunt::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
 void CTorch::PrescheduleThink()
@@ -3883,7 +3865,7 @@ void CMedic::HandleAnimEvent(MonsterEvent_t *pEvent)
 		break;
 	case HGRUNT_ALLY_AE_KICK:
 	{
-		PerformKick(gSkillData.medicDmgKick);
+		PerformKick(pEvent->event, gSkillData.medicDmgKick);
 	}
 	break;
 	default:

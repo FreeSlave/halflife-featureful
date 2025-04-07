@@ -182,7 +182,7 @@ void CSpore::IgniteThink()
 
 	SendSpray(pev->origin, Vector(RANDOM_FLOAT(-1, 1), 1, RANDOM_FLOAT(-1, 1)), GetVisual(trailVisual), 2, 20, 80);
 
-	::RadiusDamage(pev->origin, pev, VARS(pev->owner), pev->dmg, 200, CLASS_NONE, DMG_ALWAYSGIB | DMG_BLAST);
+	::RadiusDamage(pev->origin, pev, VARS(pev->owner), DamageInfo(pev->dmg, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 200, CLASS_NONE);
 
 	SetThink(&CSpore::SUB_Remove);
 
@@ -210,7 +210,7 @@ void CSpore::RocketTouch(CBaseEntity* pOther)
 {
 	if (pOther->pev->takedamage != DAMAGE_NO)
 	{
-		pOther->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgSpore, DMG_GENERIC);
+		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(gSkillData.plrDmgSpore, DMG_GENERIC));
 	}
 
 	IgniteThink();
@@ -241,7 +241,7 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 	}
 	else
 	{
-		pOther->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgSpore, DMG_GENERIC);
+		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(gSkillData.plrDmgSpore, DMG_GENERIC));
 
 		IgniteThink();
 	}
@@ -302,7 +302,7 @@ public:
 	void Precache( void );
 	void EXPORT IdleThink ( void );
 	void EXPORT AmmoTouch ( CBaseEntity *pOther );
-	int  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
 	virtual int SizeForGrapple() { return GRAPPLE_FIXED; }
 
@@ -374,7 +374,7 @@ void CSporeAmmo::Spawn( void )
 //=========================================================
 // Override all damage
 //=========================================================
-int CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType )
+int CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
 {
 	if (pev->body != 0)
 	{
@@ -404,7 +404,7 @@ int CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 
 		UTIL_MakeVectors( vecLaunchDir );
 		Vector vecVelocity = gpGlobals->v_forward * CSpore::SporeGrenadeSpeed();
-		CSpore* pSpore = CSpore::CreateSpore(pev->origin, vecLaunchDir, vecVelocity, this, CSpore::GRENADE, false, true);
+		CSpore::CreateSpore(pev->origin, vecLaunchDir, vecVelocity, this, CSpore::GRENADE, false, true);
 
 		pev->frame = 0;
 		pev->animtime		= gpGlobals->time + 0.1;

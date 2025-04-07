@@ -215,12 +215,12 @@ bool CKnife::Swing(bool fFirst)
 #endif
 			{
 				// first swing does full damage
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgKnife, gpGlobals->v_forward, &tr, DMG_CLUB );
+				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgKnife, DMG_CLUB}, gpGlobals->v_forward, &tr );
 			}
 			else
 			{
 				// subsequent swings do half
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgKnife * 0.5f, gpGlobals->v_forward, &tr, DMG_CLUB );
+				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgKnife * 0.5f, DMG_CLUB}, gpGlobals->v_forward, &tr );
 			}
 			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
@@ -348,7 +348,7 @@ void CKnife::Stab()
 			if (flDamage > 100.0f) {
 				flDamage = 100.0f;
 			}
-			pEntity->TraceAttack(m_pPlayer->pev, m_pPlayer->pev, flDamage, gpGlobals->v_forward, &tr, DMG_CLUB|DMG_NEVERGIB);
+			pEntity->TraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER), gpGlobals->v_forward, &tr);
 
 			ApplyMultiDamage(m_pPlayer->pev, m_pPlayer->pev);
 		}

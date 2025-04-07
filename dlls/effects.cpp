@@ -757,10 +757,10 @@ void CBeam::BeamDamage(TraceResult *ptr , entvars_t *pevAttacker)
 		CBaseEntity *pHit = CBaseEntity::Instance( ptr->pHit );
 		if( pHit )
 		{
-			int dmgType = DMG_ENERGYBEAM;
+			DamageInfo damageInfo{pev->dmg * ( gpGlobals->time - pev->dmgtime ), DMG_ENERGYBEAM};
 			if (FBitSet(pev->spawnflags, SF_BEAM_NO_PUNCH))
-				dmgType |= DMG_NO_PUNCH;
-			pHit->ApplyTraceAttack( pev, pevAttacker ? pevAttacker : pev, pev->dmg * ( gpGlobals->time - pev->dmgtime ), ( ptr->vecEndPos - pev->origin ).Normalize(), ptr, dmgType );
+				damageInfo.SetNoPunch();
+			pHit->ApplyTraceAttack( pev, pevAttacker ? pevAttacker : pev, damageInfo, ( ptr->vecEndPos - pev->origin ).Normalize(), ptr );
 			if( pev->spawnflags & SF_BEAM_DECALS )
 			{
 				if( pHit->IsBSPModel() )
@@ -3402,7 +3402,7 @@ LINK_ENTITY_TO_CLASS( warpball_hurt, CWarpballHurt )
 
 void CWarpballHurt::Think()
 {
-	::RadiusDamage(pev->origin, pev, pev, pev->dmg, pev->button, CLASS_NONE, DMG_SHOCK);
+	::RadiusDamage(pev->origin, pev, pev, DamageInfo{pev->dmg, DMG_SHOCK}, pev->button, CLASS_NONE);
 	UTIL_Remove(this);
 }
 
@@ -3548,7 +3548,7 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(vecOrigin, pev, pev, WARPBALL_DAMAGE, inflictedRadius, CLASS_NONE, DMG_SHOCK);
+			::RadiusDamage(vecOrigin, pev, pev, DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius, CLASS_NONE);
 		}
 		else
 		{
@@ -3675,7 +3675,7 @@ void CEnvWarpballTemplated::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, U
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(vecOrigin, pev, pev, WARPBALL_DAMAGE, inflictedRadius, CLASS_NONE, DMG_SHOCK);
+			::RadiusDamage(vecOrigin, pev, pev, DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius, CLASS_NONE);
 		}
 		else
 		{

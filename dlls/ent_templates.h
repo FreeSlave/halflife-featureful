@@ -6,6 +6,7 @@
 #include "visuals.h"
 #include "soundscripts.h"
 #include "json_config.h"
+#include "fixed_string.h"
 #include "optional.h"
 #include "tribool.h"
 
@@ -34,6 +35,59 @@ struct SquadCapabilities
 struct EntTemplate
 {
 public:
+	struct DamageInfo
+	{
+		enum
+		{
+			REPLACE_DAMAGE_TYPE,
+			ADD_DAMAGE_TYPE,
+		};
+
+		optional<float> damage;
+		optional<int> type;
+		int typePolicy = ADD_DAMAGE_TYPE;
+		tribool nonLethal;
+		tribool ignoreArmor;
+		optional<int> gibPolicy;
+	};
+
+	static bool UpdateDamageInfoFromJSON(rapidjson::Value& value, DamageInfo& damageInfo);
+
+	struct CheckMeleeAttack
+	{
+		optional<float> distance;
+		optional<float> dot;
+	};
+
+	struct TraceHullAttack
+	{
+		struct PunchAngle
+		{
+			optional<float> pitch;
+			optional<float> yaw;
+			optional<float> roll;
+		};
+
+		struct Knock
+		{
+			optional<float> forward;
+			optional<float> right;
+			optional<float> up;
+			tribool playerOnly;
+		};
+
+		optional<float> distance;
+		optional<float> height;
+		bool heightIsFactor = false;
+		PunchAngle punchAngle;
+		Knock knock;
+		DamageInfo damageInfo;
+		tribool spawnBlood;
+
+		std::string hitSoundScript;
+		std::string missSoundScript;
+	};
+
 	const char* OwnVisualName() const;
 	void SetOwnVisualName(const std::string& name) {
 		_ownVisual = name;
@@ -68,6 +122,7 @@ public:
 		return _precachedSoundScripts.end();
 	}
 	void SetPrecachedSoundScripts(std::vector<std::string>&& soundScripts);
+	void AddPrecachedSoundScript(const std::string& soundScript);
 
 	inline bool AutoPrecacheSounds() const {
 		return _autoprecachedSounds;
@@ -180,7 +235,35 @@ public:
 	void SetCanOpenDoors(bool enable) {
 		_openDoorCapability = enable;
 	}
+
+	CheckMeleeAttack GetCheckMeleeAttack1() const {
+		return _checkMeleeAttack1;
+	}
+	void SetCheckMeleeAttack1(const CheckMeleeAttack& check) {
+		_checkMeleeAttack1 = check;
+	}
+
+	CheckMeleeAttack GetCheckMeleeAttack2() const {
+		return _checkMeleeAttack2;
+	}
+	void SetCheckMeleeAttack2(const CheckMeleeAttack& check) {
+		_checkMeleeAttack2 = check;
+	}
+
+	const TraceHullAttack* GetTraceHullAttackForEvent(int eventIndex) const {
+		auto it = _traceHullAttacks.find(eventIndex);
+		if (it == _traceHullAttacks.end())
+			return nullptr;
+		return &it->second;
+	}
+
+	void SetTraceHullAttackForEvent(int eventIndex, const TraceHullAttack& attack) {
+		_traceHullAttacks[eventIndex] = attack;
+	}
+
 private:
+	static int ParseDamageType(const char* type);
+
 	std::map<std::string, std::string> _soundScripts;
 	std::map<std::string, std::string> _visuals;
 	std::string _ownVisual;
@@ -203,6 +286,10 @@ private:
 	std::string _speechPrefix;
 	SquadCapabilities _squadCapabilities;
 	tribool _openDoorCapability;
+
+	CheckMeleeAttack _checkMeleeAttack1;
+	CheckMeleeAttack _checkMeleeAttack2;
+	std::map<int, TraceHullAttack> _traceHullAttacks;
 };
 
 class EntTemplateSystem : public JSONConfig

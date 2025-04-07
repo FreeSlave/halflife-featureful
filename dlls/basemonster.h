@@ -23,6 +23,33 @@ class CFollowingMonster;
 class CTalkMonster;
 class CDeadMonster;
 
+struct CheckMeleeAttackParams
+{
+	float distance = 64.0f;
+	float dot = 0.7f;
+};
+
+struct TraceHullAttackParams
+{
+	float distance = 70.0f;
+	optional<float> height;
+	Vector punchAngle = g_vecZero;
+	float knockForward = 0.0f;
+	float knockRight = 0.0f;
+	float knockUp = 0.0f;
+	bool knockPlayerOnly = false;
+	bool skipAllies = false;
+	bool useAimVectors = true;
+	bool allowRetry = true;
+	DamageInfo damageInfo{0.0f, DMG_SLASH};
+	bool spawnBlood = false;
+	optional<Vector> bloodOrigin;
+	float verticalDistance = 0.0f;
+
+	const char* hitSoundScript = nullptr;
+	const char* missSoundScript = nullptr;
+};
+
 //
 // generic Monster
 //
@@ -190,6 +217,7 @@ public:
 	// these functions will survey conditions and set appropriate conditions bits for attack types.
 	virtual bool CheckRangeAttack1( float flDot, float flDist );
 	virtual bool CheckRangeAttack2( float flDot, float flDist );
+	bool CheckMeleeAttackImpl(float flDot, float flDist, const CheckMeleeAttackParams& defaults, bool meleeAttack2);
 	virtual bool CheckMeleeAttack1( float flDot, float flDist );
 	virtual bool CheckMeleeAttack2( float flDot, float flDist );
 	virtual bool WantsToGetCloseToEnemy();
@@ -315,8 +343,10 @@ public:
 	bool FShouldEat( void );// see if a monster is 'hungry'
 	void Eat( float flFullDuration );// make the monster 'full' for a while.
 
-	CBaseEntity *CheckTraceHullAttack( float flDist, int iDamage, int iDmgType );
-	CBaseEntity *CheckTraceHullAttack( float flDist, int iDamage, int iDmgType, float height );
+	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
+	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params);
+	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params, float height );
+	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);
 	bool FacingIdeal( void );
 
 	bool FCheckAITrigger( void );// checks and, if necessary, fires the monster's trigger target.
@@ -330,7 +360,7 @@ public:
 	bool GetEnemy( bool forcePopping );
 	void MakeDamageBloodDecal( int cCount, float flNoise, TraceResult *ptr, const Vector &vecDir );
 	virtual float HeadHitGroupDamageMultiplier();
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	// combat functions
 	float UpdateTarget( entvars_t *pevTarget );
@@ -353,11 +383,11 @@ public:
 	virtual	Vector GetGunPosition( void );
 
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
-	int DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	int DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 
-	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int iClassIgnore, int bitsDamageType );
-	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int iClassIgnore, int bitsDamageType );
+	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
+	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 	virtual bool IsMoving( void ) override { return m_movementGoal != MOVEGOAL_NONE; }
 
 	void RouteClear( void );

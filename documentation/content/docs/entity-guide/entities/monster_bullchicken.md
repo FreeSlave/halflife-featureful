@@ -60,6 +60,21 @@ Notes:
 
 * Spit customizations are also applied to [env_blowercannon]({{< ref env_blowercannon >}}).
 
+### Attacks
+
+* *Melee Attack 1* - tail whip.
+* *Melee Attack 2* - bite.
+* *Range Attack 1* - spit.
+
+### Animation events
+
+* `1` - spawn spit projectile. Play **Bullsquid.Attack** or **Bullsquid.AttackToxic** soundscripts.
+* `2` - bite trace hull attack. Deals **sk_bullsquid_dmg_bite** damage.
+* `3` - change skin to 1 (close eyes).
+* `4` - tail whip trace hull attack. Deals **sk_bullsquid_dmg_whip** damage.
+* `5` - jump (when bullsquid is surprised by attack).
+* `6` - knock away trace hull attack (during bite). Doesn't do damage by default, just a knockback.
+
 ### Entity template examples
 
 {{% tabs %}}

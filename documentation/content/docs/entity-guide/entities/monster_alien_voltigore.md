@@ -47,6 +47,17 @@ Bolt projectile visuals:
 * **ChargedBolt.Beam** - the beam accompanying the projectile. This should match **Voltigore.ChargeBeam** for consistent looks.
 * **ChargedBolt.HitBeam** - the accompanying beam when it hits something capable of getting damage. This uses a slightly different color. Should be kept in match with **ChargedBolt.Beam** for consistent looks.
 
+### Attacks
+
+* *Melee Attack 1* - melee.
+* *Range Attack 1* - charged bolt attack.
+
+### Animation events
+
+* `2` - launch a charged bolt.
+* `12` - trace hull attack with both claws. Deals **sk_voltigore_dmg_punch** damage. Plays **Voltigore.AttackHit** or **Voltigore.AttackMiss** soundscripts.
+* `13` - trace hull attack with one claw. Deals **sk_voltigore_dmg_punch** damage. Plays **Voltigore.AttackHit** or **Voltigore.AttackMiss** soundscripts.
+
 ### Entity template examples
 
 {{% tabs %}}

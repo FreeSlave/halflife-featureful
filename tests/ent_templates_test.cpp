@@ -2,6 +2,8 @@
 #include "ent_templates.h"
 #include "blood_types.h"
 #include "classify.h"
+#include "dmg_types.h"
+#include "gib.h"
 #include "grapple_target.h"
 
 #include <algorithm>
@@ -50,6 +52,52 @@ const char entities[] = R"(
 	"small_bullsquid": {
 		"size": "small",
 		"size_for_grapple": "small"
+	},
+	"long_arms": {
+		"check_melee_attack1": {
+			"distance": 100,
+			"dot": 0.6
+		},
+		"check_melee_attack2": {
+			"distance": 110
+		},
+		"trace_hull_attacks": {
+			"10": {
+				"distance": 105,
+				"height": "*0.8",
+				"punchangle": {
+					"pitch": -5,
+					"roll": -36
+				},
+				"knock": {
+					"right": 150,
+					"forward": -200,
+					"up": 100
+				},
+				"spawn_blood": true,
+				"damage_info": {
+					"damage": 42,
+					"type": ["acid", "poison"],
+					"nonlethal": true,
+					"ignore_armor": true,
+					"gib": "never"
+				},
+				"hit_soundscript": {
+					"waves": ["long_arms/hit1.wav", "long_arms/hit2.wav"]
+				},
+				"miss_soundscript": {
+					"waves": ["long_arms/miss1.wav", "long_arms/miss2.wav"]
+				}
+			},
+			"11": {
+				"height": 64,
+				"damage_info": {
+					"type": "burn",
+					"type_policy": "replace",
+					"gib": "always"
+				}
+			}
+		}
 	}
 }
 )";
@@ -163,6 +211,87 @@ TEST(EntityTemplates, Parse)
 
 		EXPECT_TRUE(smallSquid->IsSizeForGrappleDefined());
 		EXPECT_EQ(smallSquid->SizeForGrapple(), GRAPPLE_SMALL);
+	}
+
+	{
+		const EntTemplate* longArms = es.GetTemplate("long_arms");
+		ASSERT_TRUE(longArms != nullptr);
+
+		EntTemplate::CheckMeleeAttack checkMelee1 = longArms->GetCheckMeleeAttack1();
+		EXPECT_TRUE(checkMelee1.distance.has_value());
+		EXPECT_EQ(*checkMelee1.distance, 100.0f);
+		EXPECT_TRUE(checkMelee1.dot.has_value());
+		EXPECT_EQ(*checkMelee1.dot, 0.6f);
+
+		EntTemplate::CheckMeleeAttack checkMelee2 = longArms->GetCheckMeleeAttack2();
+		EXPECT_TRUE(checkMelee2.distance.has_value());
+		EXPECT_EQ(*checkMelee2.distance, 110.0f);
+		EXPECT_FALSE(checkMelee2.dot.has_value());
+
+		const EntTemplate::TraceHullAttack* traceHullAttack = longArms->GetTraceHullAttackForEvent(10);
+		ASSERT_TRUE(traceHullAttack != nullptr);
+
+		EXPECT_TRUE(traceHullAttack->distance.has_value());
+		EXPECT_EQ(*traceHullAttack->distance, 105.0f);
+
+		EXPECT_TRUE(traceHullAttack->height.has_value());
+		EXPECT_EQ(*traceHullAttack->height, 0.8f);
+		EXPECT_TRUE(traceHullAttack->heightIsFactor);
+
+		EXPECT_TRUE(traceHullAttack->punchAngle.pitch.has_value());
+		EXPECT_EQ(*traceHullAttack->punchAngle.pitch, -5.0f);
+
+		EXPECT_FALSE(traceHullAttack->punchAngle.yaw.has_value());
+
+		EXPECT_TRUE(traceHullAttack->punchAngle.roll.has_value());
+		EXPECT_EQ(*traceHullAttack->punchAngle.roll, -36.0f);
+
+		EXPECT_TRUE(traceHullAttack->knock.right.has_value());
+		EXPECT_EQ(*traceHullAttack->knock.right, 150.0f);
+
+		EXPECT_TRUE(traceHullAttack->knock.forward.has_value());
+		EXPECT_EQ(*traceHullAttack->knock.forward, -200.0f);
+
+		EXPECT_TRUE(traceHullAttack->knock.up.has_value());
+		EXPECT_EQ(*traceHullAttack->knock.up, 100.0f);
+
+		EXPECT_TRUE(!indeterminate(traceHullAttack->spawnBlood));
+		EXPECT_TRUE(traceHullAttack->spawnBlood);
+
+		const EntTemplate::DamageInfo damageInfo = traceHullAttack->damageInfo;
+
+		EXPECT_TRUE(damageInfo.damage.has_value());
+		EXPECT_EQ(*damageInfo.damage, 42.0f);
+
+		EXPECT_TRUE(damageInfo.type.has_value());
+		EXPECT_EQ(*damageInfo.type, DMG_ACID|DMG_POISON);
+		EXPECT_EQ(damageInfo.typePolicy, EntTemplate::DamageInfo::ADD_DAMAGE_TYPE);
+
+		EXPECT_TRUE(!indeterminate(damageInfo.nonLethal));
+		EXPECT_TRUE(damageInfo.nonLethal);
+
+		EXPECT_TRUE(!indeterminate(damageInfo.ignoreArmor));
+		EXPECT_TRUE(damageInfo.ignoreArmor);
+
+		EXPECT_TRUE(damageInfo.gibPolicy.has_value());
+		EXPECT_EQ(*damageInfo.gibPolicy, GIB_NEVER);
+
+		EXPECT_EQ(traceHullAttack->hitSoundScript, "long_arms#trace_hull_attacks#10#hit_soundscript");
+		EXPECT_EQ(traceHullAttack->missSoundScript, "long_arms#trace_hull_attacks#10#miss_soundscript");
+
+		const EntTemplate::TraceHullAttack* traceHullAttack2 = longArms->GetTraceHullAttackForEvent(11);
+		ASSERT_TRUE(traceHullAttack2 != nullptr);
+
+		EXPECT_TRUE(traceHullAttack2->height.has_value());
+		EXPECT_EQ(*traceHullAttack2->height, 64.0f);
+		EXPECT_FALSE(traceHullAttack2->heightIsFactor);
+
+		const EntTemplate::DamageInfo damageInfo2 = traceHullAttack2->damageInfo;
+		EXPECT_TRUE(damageInfo2.type.has_value());
+		EXPECT_EQ(*damageInfo2.type, DMG_BURN);
+		EXPECT_EQ(damageInfo2.typePolicy, EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE);
+		EXPECT_TRUE(damageInfo2.gibPolicy.has_value());
+		EXPECT_EQ(*damageInfo2.gibPolicy, GIB_ALWAYS);
 	}
 
 	{

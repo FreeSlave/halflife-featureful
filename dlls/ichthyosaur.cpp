@@ -449,9 +449,32 @@ void CIchthyosaur::HandleAnimEvent( MonsterEvent_t *pEvent )
 				if( DotProduct( vecShootDir, gpGlobals->v_forward ) > 0.707f )
 				{
 					m_bOnAttack = true;
-					pHurt->pev->punchangle.z = -18;
-					pHurt->pev->punchangle.x = 5;
-					pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_right * 300.0f;
+
+					TraceHullAttackParams params;
+					params.punchAngle.x = 5;
+					params.punchAngle.z = -18;
+					params.knockRight = -300.0f;
+					params.damageInfo.damage = gSkillData.ichthyosaurDmgShake;
+					params.damageInfo.type = DMG_SLASH;
+					SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+					if (params.punchAngle.x)
+						pHurt->pev->punchangle.x = params.punchAngle.x;
+					if (params.punchAngle.y)
+						pHurt->pev->punchangle.y = params.punchAngle.y;
+					if (params.punchAngle.z)
+						pHurt->pev->punchangle.y = params.punchAngle.z;
+
+
+					const bool applyKnock = params.knockPlayerOnly ? pHurt->IsPlayer() : FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT);
+					if (applyKnock)
+					{
+						pHurt->pev->velocity = pHurt->pev->velocity +
+											   gpGlobals->v_forward * params.knockForward +
+											   gpGlobals->v_right * params.knockRight +
+											   gpGlobals->v_up * params.knockUp;
+					}
+
 					if( pHurt->IsPlayer() )
 					{
 						pHurt->pev->angles.x += RANDOM_FLOAT( -35.0f, 35.0f );
@@ -459,7 +482,7 @@ void CIchthyosaur::HandleAnimEvent( MonsterEvent_t *pEvent )
 						pHurt->pev->angles.z = 0;
 						pHurt->pev->fixangle = 1;
 					}
-					pHurt->TakeDamage( pev, pev, gSkillData.ichthyosaurDmgShake, DMG_SLASH );
+					pHurt->TakeDamage( pev, pev, params.damageInfo );
 				}
 			}
 			BiteSound();

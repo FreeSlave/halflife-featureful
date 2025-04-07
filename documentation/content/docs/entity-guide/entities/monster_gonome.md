@@ -38,6 +38,19 @@ bookToC: false
 
 * **Gonome.Guts** - guts projectile visual.
 
+### Attacks
+
+* *Melee Attack 1* - melee, including bite attack.
+* *Range Attack 1* - throw gonome guts.
+
+### Animation events
+
+* `1` - trace hull attack with right arm. Deals **sk_gonome_dmg_one_slash** damage. Plays **Gonome.AttackHit** or **Gonome.AttackMiss** soundscripts.
+* `2` - trace hull attack with left arm. Deals **sk_gonome_dmg_one_slash** damage. Plays **Gonome.AttackHit** or **Gonome.AttackMiss** soundscripts.
+* `3` - create a gut projectile.
+* `4` - launch a gut projectile.
+* `19` - `22` - bite trace hull attack. Deal **sk_gonome_dmg_one_bite** damage per bite. Plays **Gonome.Bite** soundscript on hit.
+
 ### Entity template examples
 
 {{% tabs %}}

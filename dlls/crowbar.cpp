@@ -190,12 +190,12 @@ bool CCrowbar::Swing(bool fFirst )
 #endif
 			{
 				// first swing does full damage
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_CLUB );
+				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgCrowbar, DMG_CLUB}, gpGlobals->v_forward, &tr );
 			}
 			else
 			{
 				// subsequent swings do half
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgCrowbar * 0.5f, gpGlobals->v_forward, &tr, DMG_CLUB );
+				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgCrowbar * 0.5f, DMG_CLUB}, gpGlobals->v_forward, &tr );
 			}
 			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 

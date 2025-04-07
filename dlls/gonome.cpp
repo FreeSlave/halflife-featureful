@@ -101,7 +101,7 @@ void CGonomeGuts::Touch( CBaseEntity *pOther )
 	}
 	else
 	{
-		pOther->TakeDamage( pev, pev, gSkillData.gonomeDmgGuts, DMG_GENERIC );
+		pOther->TakeDamage( pev, pev, DamageInfo(gSkillData.gonomeDmgGuts, DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -137,7 +137,7 @@ public:
 	Schedule_t *GetScheduleOfType( int Type );
 	void RunTask(Task_t* pTask);
 
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void OnDying();
 	void UpdateOnRemove();
 
@@ -295,16 +295,18 @@ int CGonome::LookupActivity(int activity)
 	if (activity == ACT_MELEE_ATTACK1 && m_hEnemy != 0)
 	{
 		// special melee animations
+		int sequence = -1;
 		if ((pev->origin - m_hEnemy->pev->origin).Length2D() >= 48 )
 		{
 			m_meleeAttack2 = false;
-			return LookupSequence("attack1");
+			sequence = LookupSequence("attack1");
 		}
 		else
 		{
 			m_meleeAttack2 = true;
-			return LookupSequence("attack2");
+			sequence = LookupSequence("attack2");
 		}
+		return (sequence == -1) ? CBaseMonster::LookupActivity(activity) : sequence;
 	}
 	else
 	{
@@ -353,13 +355,13 @@ int	CGonome::DefaultClassify(void)
 // TakeDamage - overridden for gonome so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	if( bitsDamageType == DMG_BULLET )
+	if( damageInfo.type == DMG_BULLET )
 	{
 		Vector vecDir = pev->origin - (pevInflictor->absmin + pevInflictor->absmax) * 0.5;
 		vecDir = vecDir.Normalize();
-		float flForce = DamageForce( flDamage );
+		float flForce = DamageForce( damageInfo.damage );
 		pev->velocity = pev->velocity + vecDir * flForce;
 #if 0
 		// Take 15% damage from bullets
@@ -371,7 +373,7 @@ int CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float f
 	if( IsAlive() )
 		PainSound();
 
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 
@@ -511,41 +513,33 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case GONOME_AE_SLASH_LEFT:
 	{
-		CBaseEntity *pHurt = CheckTraceHullAttack(GONOME_MELEE_ATTACK_RADIUS, gSkillData.gonomeDmgOneSlash, DMG_SLASH);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.z = 9;
-				pHurt->pev->punchangle.x = 5;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * 25;
-			}
-			EmitSoundScript(attackHitSoundScript);
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		TraceHullAttackParams params;
+		params.distance = GONOME_MELEE_ATTACK_RADIUS;
+		params.punchAngle.x = 5;
+		params.punchAngle.z = 9;
+		params.knockRight = 25.0f;
+		params.damageInfo.damage = gSkillData.gonomeDmgOneSlash;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
 	}
 	break;
 
 	case GONOME_AE_SLASH_RIGHT:
 	{
-		CBaseEntity *pHurt = CheckTraceHullAttack(GONOME_MELEE_ATTACK_RADIUS, gSkillData.gonomeDmgOneSlash, DMG_SLASH);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.z = -9;
-				pHurt->pev->punchangle.x = 5;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * -25;
-			}
-			EmitSoundScript(attackHitSoundScript);
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		TraceHullAttackParams params;
+		params.distance = GONOME_MELEE_ATTACK_RADIUS;
+		params.punchAngle.x = 5;
+		params.punchAngle.z = -9;
+		params.knockRight = -25.0f;
+		params.damageInfo.damage = gSkillData.gonomeDmgOneSlash;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
 	}
 	break;
 
@@ -554,26 +548,23 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case GONOME_AE_BITE3:
 	case GONOME_AE_BITE4:
 		{
-			CBaseEntity *pHurt = CheckTraceHullAttack(GONOME_MELEE_ATTACK_RADIUS, gSkillData.gonomeDmgOneBite, DMG_SLASH);
+			TraceHullAttackParams params;
+			params.distance = GONOME_MELEE_ATTACK_RADIUS;
+			params.punchAngle.x = 9;
+			params.knockForward = -25.0f;
+			params.damageInfo.damage = gSkillData.gonomeDmgOneBite;
+			if (pEvent->event == GONOME_AE_BITE4)
+			{
+				params.punchAngle.x = 15;
+				params.knockForward = -75.0f;
+			}
+			params.hitSoundScript = biteSoundScript; // croonchy bite sound
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+			CBaseEntity *pHurt = PerformTraceHullAttack(params);
 
 			if (pHurt)
 			{
-				// croonchy bite sound
-				EmitSoundScript(biteSoundScript);
-
-				if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-				{
-					if (pEvent->event == GONOME_AE_BITE4)
-					{
-						pHurt->pev->punchangle.x = 15;
-						pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 75;
-					}
-					else
-					{
-						pHurt->pev->punchangle.x = 9;
-						pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 25;
-					}
-				}
 				if (g_modFeatures.gonome_lock_player)
 				{
 					if (pEvent->event == GONOME_AE_BITE4)

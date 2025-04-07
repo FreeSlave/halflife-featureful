@@ -5,6 +5,8 @@
 #include "classify.h"
 #include "grapple_target.h"
 #include "hull_sizes.h"
+#include "dmg_types.h"
+#include "gib.h"
 
 #include <algorithm>
 #include <set>
@@ -90,6 +92,12 @@ void EntTemplate::SetPrecachedSoundScripts(std::vector<std::string> &&soundScrip
 	_precachedSoundScripts = soundScripts;
 }
 
+void EntTemplate::AddPrecachedSoundScript(const std::string& soundScript)
+{
+	if (std::find(_precachedSoundScripts.begin(), _precachedSoundScripts.end(), soundScript) == _precachedSoundScripts.end())
+		_precachedSoundScripts.push_back(soundScript);
+}
+
 const char* EntTemplate::SpeechPrefix() const
 {
 	return _speechPrefix.empty() ? nullptr : _speechPrefix.c_str();
@@ -170,6 +178,169 @@ static bool UpdateSizesFromJSON(rapidjson::Value& value, Vector& mins, Vector& m
 		return UpdatePropertyFromJson(mins, value, "mins") && UpdatePropertyFromJson(maxs, value, "maxs");
 	}
 	return false;
+}
+
+int EntTemplate::ParseDamageType(const char *type)
+{
+	if (stricmp(type, "generic") == 0)
+	{
+		return DMG_GENERIC;
+	}
+	else if (stricmp(type, "crush") == 0)
+	{
+		return DMG_CRUSH;
+	}
+	else if (stricmp(type, "bullet") == 0)
+	{
+		return DMG_BULLET;
+	}
+	else if (stricmp(type, "slash") == 0)
+	{
+		return DMG_SLASH;
+	}
+	else if (stricmp(type, "burn") == 0)
+	{
+		return DMG_BURN;
+	}
+	else if (stricmp(type, "freeze") == 0)
+	{
+		return DMG_FREEZE;
+	}
+	else if (stricmp(type, "blast") == 0)
+	{
+		return DMG_BLAST;
+	}
+	else if (stricmp(type, "club") == 0)
+	{
+		return DMG_CLUB;
+	}
+	else if (stricmp(type, "shock") == 0)
+	{
+		return DMG_SHOCK;
+	}
+	else if (stricmp(type, "sonic") == 0)
+	{
+		return DMG_SONIC;
+	}
+	else if (stricmp(type, "energybeam") == 0)
+	{
+		return DMG_ENERGYBEAM;
+	}
+	else if (stricmp(type, "paralyze") == 0)
+	{
+		return DMG_PARALYZE;
+	}
+	else if (stricmp(type, "nervegas") == 0)
+	{
+		return DMG_NERVEGAS;
+	}
+	else if (stricmp(type, "poison") == 0)
+	{
+		return DMG_POISON;
+	}
+	else if (stricmp(type, "radiation") == 0)
+	{
+		return DMG_RADIATION;
+	}
+	else if (stricmp(type, "acid") == 0)
+	{
+		return DMG_ACID;
+	}
+	else if (stricmp(type, "slowburn") == 0)
+	{
+		return DMG_SLOWBURN;
+	}
+	else if (stricmp(type, "slowfreeze") == 0)
+	{
+		return DMG_SLOWFREEZE;
+	}
+	return -1;
+}
+
+bool EntTemplate::UpdateDamageInfoFromJSON(rapidjson::Value &value, DamageInfo &damageInfo)
+{
+	UpdatePropertyFromJson(damageInfo.damage, value, "damage");
+
+	{
+		auto it = value.FindMember("type");
+		if (it != value.MemberEnd())
+		{
+			int damageType = 0;
+			if (it->value.IsArray())
+			{
+				Value::Array arr = it->value.GetArray();
+				for (size_t i=0; i<arr.Size(); ++i)
+				{
+					const char* damageTypeName = arr[i].GetString();
+					int subType = ParseDamageType(damageTypeName);
+					if (subType >= 0)
+					{
+						damageType |= subType;
+					}
+					else
+					{
+						LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
+					}
+				}
+			}
+			else
+			{
+				const char* damageTypeName = it->value.GetString();
+				int subType = ParseDamageType(damageTypeName);
+				if (subType >= 0)
+				{
+					damageType |= subType;
+				}
+				else
+				{
+					LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
+				}
+			}
+
+			damageInfo.type = damageType;
+		}
+	}
+
+	{
+		auto it = value.FindMember("type_policy");
+		if (it != value.MemberEnd())
+		{
+			const char* typePolicyName = it->value.GetString();
+			if (strcmp(typePolicyName, "add") == 0)
+			{
+				damageInfo.typePolicy = EntTemplate::DamageInfo::ADD_DAMAGE_TYPE;
+			}
+			else if (strcmp(typePolicyName, "replace") == 0)
+			{
+				damageInfo.typePolicy = EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE;
+			}
+		}
+	}
+
+	UpdatePropertyFromJson(damageInfo.nonLethal, value, "nonlethal");
+	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
+
+	{
+		auto it = value.FindMember("gib");
+		if (it != value.MemberEnd())
+		{
+			const char* gibPolicyName = it->value.GetString();
+			if (strcmp(gibPolicyName, "always") == 0)
+			{
+				damageInfo.gibPolicy = GIB_ALWAYS;
+			}
+			else if (strcmp(gibPolicyName, "never") == 0)
+			{
+				damageInfo.gibPolicy = GIB_NEVER;
+			}
+			else if (strcmp(gibPolicyName, "normal") == 0)
+			{
+				damageInfo.gibPolicy = GIB_NORMAL;
+			}
+		}
+	}
+
+	return true;
 }
 
 bool EntTemplateSystem::AddTemplateFromJsonValue(Value& allTemplatesJsonValue, const char* name, Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
@@ -575,6 +746,118 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		if (it != value.MemberEnd())
 		{
 			entTemplate.SetCanOpenDoors(it->value.GetBool());
+		}
+	}
+
+	{
+		auto it = value.FindMember("check_melee_attack1");
+		if (it != value.MemberEnd())
+		{
+			Value& obj = it->value;
+			EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack1();
+			UpdatePropertyFromJson(check.distance, obj, "distance");
+			UpdatePropertyFromJson(check.dot, obj, "dot");
+			entTemplate.SetCheckMeleeAttack1(check);
+		}
+	}
+
+	{
+		auto it = value.FindMember("check_melee_attack2");
+		if (it != value.MemberEnd())
+		{
+			Value& obj = it->value;
+			EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack2();
+			UpdatePropertyFromJson(check.distance, obj, "distance");
+			UpdatePropertyFromJson(check.dot, obj, "dot");
+			entTemplate.SetCheckMeleeAttack2(check);
+		}
+	}
+
+	{
+		auto it = value.FindMember("trace_hull_attacks");
+		if (it != value.MemberEnd())
+		{
+			Value& attacks = it->value;
+			for (auto attackIt = attacks.MemberBegin(); attackIt != attacks.MemberEnd(); ++attackIt)
+			{
+				const char* eventIndexStr = attackIt->name.GetString();
+				const int eventIndex = atoi(eventIndexStr);
+				Value& attackValue = attackIt->value;
+				const EntTemplate::TraceHullAttack* existingAttack = entTemplate.GetTraceHullAttackForEvent(eventIndex);
+				EntTemplate::TraceHullAttack traceHullAttack = existingAttack ? *existingAttack : EntTemplate::TraceHullAttack();
+				UpdatePropertyFromJson(traceHullAttack.distance, attackValue, "distance");
+
+				auto heightIt = attackValue.FindMember("height");
+				if (heightIt != attackValue.MemberEnd())
+				{
+					if (heightIt->value.IsString())
+					{
+						const char* heightStr = heightIt->value.GetString();
+						if (*heightStr == '*')
+						{
+							traceHullAttack.height = atof(heightStr + 1);
+							traceHullAttack.heightIsFactor = true;
+						}
+					}
+					else if (heightIt->value.IsNumber())
+					{
+						traceHullAttack.height = heightIt->value.GetFloat();
+						traceHullAttack.heightIsFactor = false;
+					}
+				}
+
+				auto punchAngleIt = attackValue.FindMember("punchangle");
+				if (punchAngleIt != attackValue.MemberEnd())
+				{
+					Value& punchAngleValue = punchAngleIt->value;
+					UpdatePropertyFromJson(traceHullAttack.punchAngle.pitch, punchAngleValue, "pitch");
+					UpdatePropertyFromJson(traceHullAttack.punchAngle.yaw, punchAngleValue, "yaw");
+					UpdatePropertyFromJson(traceHullAttack.punchAngle.roll, punchAngleValue, "roll");
+				}
+
+				auto knockIt = attackValue.FindMember("knock");
+				if (knockIt != attackValue.MemberEnd())
+				{
+					Value& knockValue = knockIt->value;
+					UpdatePropertyFromJson(traceHullAttack.knock.forward, knockValue, "forward");
+					UpdatePropertyFromJson(traceHullAttack.knock.right, knockValue, "right");
+					UpdatePropertyFromJson(traceHullAttack.knock.up, knockValue, "up");
+					UpdatePropertyFromJson(traceHullAttack.knock.playerOnly, knockValue, "player_only");
+				}
+
+				auto damageInfoIt = attackValue.FindMember("damage_info");
+				if (damageInfoIt != attackValue.MemberEnd())
+				{
+					EntTemplate::UpdateDamageInfoFromJSON(damageInfoIt->value, traceHullAttack.damageInfo);
+				}
+
+				UpdatePropertyFromJson(traceHullAttack.spawnBlood, attackValue, "spawn_blood");
+
+				auto setSoundScript = [&](const char* propertyName, std::string& outStr)
+				{
+					auto it = attackValue.FindMember(propertyName);
+					if (it != attackValue.MemberEnd())
+					{
+						if (it->value.IsString())
+						{
+							std::string soundScriptName = it->value.GetString();
+							entTemplate.AddPrecachedSoundScript(soundScriptName);
+							outStr = soundScriptName;
+						}
+						else if (it->value.IsObject())
+						{
+							std::string soundScriptName = templateName + "#trace_hull_attacks#" + eventIndexStr + '#' + propertyName;
+							_soundScriptSystem->AddSoundScriptFromJsonValue(soundScriptName.c_str(), it->value, CHAN_WEAPON);
+							entTemplate.AddPrecachedSoundScript(soundScriptName);
+							outStr = soundScriptName;
+						}
+					}
+				};
+				setSoundScript("hit_soundscript", traceHullAttack.hitSoundScript);
+				setSoundScript("miss_soundscript", traceHullAttack.missSoundScript);
+
+				entTemplate.SetTraceHullAttackForEvent(eventIndex, traceHullAttack);
+			}
 		}
 	}
 

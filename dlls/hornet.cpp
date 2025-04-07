@@ -81,13 +81,13 @@ const NamedVisual CHornet::puffVisual = BuildVisual("Hornet.Puff")
 //=========================================================
 // don't let hornets gib, ever.
 //=========================================================
-int CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// filter these bits a little.
-	bitsDamageType &= ~( DMG_ALWAYSGIB );
-	bitsDamageType |= DMG_NEVERGIB;
+	DamageInfo info = damageInfo;
+	info.SetGibPolicy(GIB_NEVER);
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 //=========================================================
@@ -409,7 +409,7 @@ void CHornet::DieTouch( CBaseEntity *pOther )
 		// do the damage
 		EmitSoundScript(dieSoundScript);
 
-		pOther->TakeDamage( pev, VARS( pev->owner ), pev->dmg, DMG_BULLET );
+		pOther->TakeDamage( pev, VARS( pev->owner ), DamageInfo(pev->dmg, DMG_BULLET) );
 	}
 
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid

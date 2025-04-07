@@ -1046,25 +1046,6 @@ public:
 	bool CanHurt( CBaseEntity* pOther );
 	virtual float DamageAmount();
 	void DoDamage( CBaseEntity* pTarget, float fldmg );
-
-	int DamageType() const {
-		int damageType = m_bitsDamageInflict;
-		switch (pev->impulse) {
-		case 1:
-			damageType = DMG_ALWAYSGIB;
-			break;
-		case 2:
-			damageType = DMG_NEVERGIB;
-			break;
-		default:
-			break;
-		}
-		if (pev->spawnflags & SF_TRIGGER_HURT_IGNORE_ARMOR)
-			damageType |= DMG_IGNORE_ARMOR;
-		if (pev->spawnflags & SF_TRIGGER_HURT_NO_PUNCH)
-			damageType |= DMG_NO_PUNCH;
-		return damageType;
-	}
 };
 
 LINK_ENTITY_TO_CLASS( trigger_hurt, CTriggerHurt )
@@ -1568,18 +1549,33 @@ void CTriggerHurt::DoDamage(CBaseEntity *pTarget, float fldmg)
 	if( fldmg < 0 )
 	{
 		if( !( g_pGameRules->IsMultiplayer() && pTarget->IsPlayer() && pTarget->pev->deadflag ))
-			pTarget->TakeHealth( this, -fldmg, m_bitsDamageInflict );
+			pTarget->TakeHealth( this, -fldmg, HEAL_GENERIC );
 	}
 	else
 	{
-		int damageType = DamageType();
+		DamageInfo damageInfo{fldmg, m_bitsDamageInflict};
+		switch (pev->impulse) {
+		case 1:
+			damageInfo.SetGibPolicy(GIB_ALWAYS);
+			break;
+		case 2:
+			damageInfo.SetGibPolicy(GIB_NEVER);
+			break;
+		default:
+			break;
+		}
+
+		if (pev->spawnflags & SF_TRIGGER_HURT_IGNORE_ARMOR)
+			damageInfo.SetIgnoreArmor();
+		if (pev->spawnflags & SF_TRIGGER_HURT_NO_PUNCH)
+			damageInfo.SetNoPunch();
 
 		const float minHealthThreshold = pev->dmg_save;
 		if (minHealthThreshold > 0) {
 			pTarget->m_healthMinThreshold = minHealthThreshold;
 		}
 
-		pTarget->TakeDamage( pev, pev, fldmg, damageType );
+		pTarget->TakeDamage( pev, pev, damageInfo );
 	}
 }
 
@@ -5317,10 +5313,10 @@ void CTriggerKillMonster::KillMonster(CBaseEntity *pEntity)
 			break;
 		}
 		pMonster->pev->health = 0;
-		int damageType = DMG_GENERIC;
+		DamageInfo damageInfo{1, DMG_GENERIC};
 		if (pev->spawnflags & SF_KILLMONSTER_GIBALWAYS)
-			damageType |= DMG_ALWAYSGIB;
-		pMonster->TakeDamage(pev, pev, 1, damageType );
+			damageInfo.SetGibPolicy(GIB_ALWAYS);
+		pMonster->TakeDamage(pev, pev, damageInfo );
 	}
 }
 
@@ -6484,24 +6480,6 @@ protected:
 	void DoDamage();
 	void DoDamage(CBaseEntity* pTarget);
 	string_t TargetClass() const { return pev->netname; }
-	int DamageType() const {
-		int damageType = pev->weapons;
-		switch (pev->impulse) {
-		case 1:
-			damageType |= DMG_ALWAYSGIB;
-			break;
-		case 2:
-			damageType |= DMG_NEVERGIB;
-			break;
-		default:
-			break;
-		}
-		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_IGNORE_ARMOR)
-			damageType |= DMG_IGNORE_ARMOR;
-		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_NO_PUNCH)
-			damageType |= DMG_NO_PUNCH;
-		return damageType | DMG_NO_PLAYER_PUSH;
-	}
 	float Delay() const { return pev->frags ? pev->frags : 0.1; }
 	bool IsActive() const { return FBitSet(pev->spawnflags, SF_TRIGGER_HURT_REMOTE_STARTON); }
 };
@@ -6634,8 +6612,23 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 
 	if (pev->dmg >= 0)
 	{
-		float fldmg = pev->dmg;
-		int damageType = DamageType();
+		DamageInfo damageInfo{pev->dmg, pev->weapons};
+
+		switch (pev->impulse) {
+		case 1:
+			damageInfo.SetGibPolicy(GIB_ALWAYS);
+			break;
+		case 2:
+			damageInfo.SetGibPolicy(GIB_NEVER);
+			break;
+		default:
+			break;
+		}
+		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_IGNORE_ARMOR)
+			damageInfo.SetIgnoreArmor();
+		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_NO_PUNCH)
+			damageInfo.SetNoPunch();
+		damageInfo.noPlayerPush = true;
 
 		const float minHealthThreshold = pev->dmg_save;
 		if (minHealthThreshold > 0) {
@@ -6648,16 +6641,19 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 			if (pTarget->IsPlayer())
 			{
 				CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pTarget);
-				pTarget->TakeDamage(pTarget->pev, pevAttacker, pTarget->pev->health + pTarget->pev->armorvalue * pPlayer->ArmorStrength(), damageType);
+				damageInfo.damage = pTarget->pev->health + pTarget->pev->armorvalue * pPlayer->ArmorStrength();
+				pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
 			}
 			else
 			{
-				pTarget->TakeDamage(pTarget->pev, pevAttacker, pTarget->pev->health, damageType | DMG_ALWAYSGIB);
+				damageInfo.damage = pTarget->pev->health;
+				damageInfo.SetGibPolicy(GIB_ALWAYS);
+				pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
 			}
 		}
 		else
 		{
-			pTarget->TakeDamage(pTarget->pev, pevAttacker, fldmg, damageType);
+			pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
 		}
 	}
 	else
@@ -6665,11 +6661,11 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 		CBaseEntity* healer = pActivator != 0 ? pActivator : this;
 		if (FBitSet(pev->spawnflags, SF_TRIGGER_HURT_REMOTE_INSTANT_KILL))
 		{
-			pTarget->TakeHealth(healer, Q_max( pTarget->pev->max_health - pTarget->pev->health, 0 ), DamageType());
+			pTarget->TakeHealth(healer, Q_max( pTarget->pev->max_health - pTarget->pev->health, 0 ), HEAL_GENERIC);
 		}
 		else
 		{
-			pTarget->TakeHealth(healer, -pev->dmg, DamageType());
+			pTarget->TakeHealth(healer, -pev->dmg, HEAL_GENERIC);
 		}
 	}
 }

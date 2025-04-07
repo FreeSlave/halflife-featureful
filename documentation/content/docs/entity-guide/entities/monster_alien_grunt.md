@@ -42,3 +42,16 @@ bookToC: false
 
 * **AlienGrunt.MuzzleFlash** - temporary flash sprite played when firing a hornet.
 * [hornet visuals]({{< ref "hornet/#visuals" >}}).
+
+### Attacks
+
+* *Melee Attack 1* - melee.
+* *Range Attack 1* - fire hornets.
+
+### Animation events
+
+* `1` - `5` - spawn a [hornet]({{< ref hornet >}}) projectile, with **AlienGrunt.MuzzleFlash** visual and **AlienGrunt.Fire** soundscript.
+* `10` - play **AlienGrunt.LeftFoot** soundscript.
+* `11` - play **AlienGrunt.RightFoot** soundscript.
+* `12` - trace hull attack with left arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.
+* `13` - trace hull attack with right arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.

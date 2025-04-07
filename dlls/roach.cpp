@@ -132,7 +132,7 @@ void CRoach::Touch( CBaseEntity *pOther )
 	// This isn't really blood.  So you don't have to screen it out based on violence levels (UTIL_ShouldShowBlood())
 	UTIL_DecalTrace( &tr, DECAL_YBLOOD1 + RANDOM_LONG( 0, 5 ) );
 
-	TakeDamage( pOther->pev, pOther->pev, pev->health, DMG_CRUSH );
+	TakeDamage( pOther->pev, pOther->pev, DamageInfo(pev->health, DMG_CRUSH) );
 }
 
 //=========================================================

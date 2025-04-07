@@ -25,6 +25,18 @@ bookToC: false
 * **HAssassin.Pain** - pain sounds. Empty by default.
 * **HAssassin.Die** - death sounds. Empty by default.
 
+### Attacks
+
+* *Melee Attack 1* - jump.
+* *Range Attack 1* - pistol attack.
+* *Range Attack 2* - throw grenade.
+
+### Animation events
+
+* `1` - fire a pistol. Play **HAssassin.Shot** soundscript.
+* `2` - throw a timed grenade.
+* `3` - jump.
+
 ### Entity template examples
 
 {{% tabs %}}

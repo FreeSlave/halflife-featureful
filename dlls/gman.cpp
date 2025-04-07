@@ -42,8 +42,8 @@ public:
 
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 
@@ -209,26 +209,26 @@ void CGMan::RunTask( Task_t *pTask )
 //=========================================================
 // Override all damage
 //=========================================================
-int CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	pev->health = pev->max_health / 2; // always trigger the 50% damage aitrigger
 
-	if( flDamage > 0 )
+	if( damageInfo.damage > 0 )
 	{
 		SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 
-	if( flDamage >= 20 )
+	if( damageInfo.damage >= 20 )
 	{
 		SetConditions( bits_COND_HEAVY_DAMAGE );
 	}
 	return 1;
 }
 
-void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-	AddMultiDamage( pevInflictor, pevAttacker, this, flDamage, bitsDamageType );
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 }
 
 void CGMan::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )

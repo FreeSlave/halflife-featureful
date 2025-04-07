@@ -53,7 +53,7 @@ public:
 	void EXPORT DartTouch( CBaseEntity *pOther );
 	void EXPORT DieTouch( CBaseEntity *pOther );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	float m_flStopAttack;
 	int m_iHornetType;

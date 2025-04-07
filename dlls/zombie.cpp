@@ -65,7 +65,7 @@ public:
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
@@ -74,7 +74,7 @@ public:
 	virtual float OneSlashDamage() { return gSkillData.zombieDmgOneSlash; }
 	virtual float BothSlashDamage() { return gSkillData.zombieDmgBothSlash; }
 protected:
-	void SlashAttack( float dmg, float rightScalar, float forwardScalar, float punchz );
+	void SlashAttack(const TraceHullAttackParams& params);
 	void ZombieSpawnHelper(const char* modelName, float health);
 	void PrecacheSounds();
 };
@@ -127,13 +127,13 @@ void CZombie::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if( bitsDamageType == DMG_BULLET )
+	if( damageInfo.type == DMG_BULLET )
 	{
 		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
 		vecDir = vecDir.Normalize();
-		float flForce = DamageForce( flDamage );
+		float flForce = DamageForce( damageInfo.damage );
 		pev->velocity = pev->velocity + vecDir * flForce;
 #if 0
 		// Take 30% damage from bullets
@@ -144,7 +144,7 @@ int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	// HACK HACK -- until we fix this.
 	if( IsAlive() )
 		PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 void CZombie::PainSound( void )
@@ -172,23 +172,9 @@ void CZombie::AttackSound( void )
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //=========================================================
-void CZombie::SlashAttack(float dmg, float rightScalar, float forwardScalar, float punchz )
+void CZombie::SlashAttack(const TraceHullAttackParams& params)
 {
-	CBaseEntity *pHurt = CheckTraceHullAttack( 70, dmg, DMG_SLASH );
-	if ( pHurt )
-	{
-		if ( pHurt->pev->flags & (FL_MONSTER|FL_CLIENT) )
-		{
-			if (punchz) {
-				pHurt->pev->punchangle.z = punchz;
-			}
-			pHurt->pev->punchangle.x = 5;
-			pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * rightScalar + gpGlobals->v_forward * forwardScalar;
-		}
-		EmitSoundScript(attackHitSoundScript);
-	}
-	else // Play a random attack miss sound
-		EmitSoundScript(attackMissSoundScript);
+	PerformTraceHullAttack(params);
 
 	if (RANDOM_LONG(0,1))
 		AttackSound();
@@ -199,15 +185,44 @@ void CZombie::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 		case ZOMBIE_AE_ATTACK_RIGHT:
-			SlashAttack(OneSlashDamage(), -100, 0, -18 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = OneSlashDamage();
+			params.knockRight = -100;
+			params.punchAngle.z = -18;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		case ZOMBIE_AE_ATTACK_LEFT:
-			SlashAttack(OneSlashDamage(), 100, 0, 18 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = OneSlashDamage();
+			params.knockRight = 100;
+			params.punchAngle.z = 18;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		case ZOMBIE_AE_ATTACK_BOTH:
-			SlashAttack(BothSlashDamage(), 0, -100, 0 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = BothSlashDamage();
+			params.knockForward = -100;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		default:

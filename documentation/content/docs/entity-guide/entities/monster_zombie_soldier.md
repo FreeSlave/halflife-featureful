@@ -18,3 +18,11 @@ bookToC: false
 ### Soundscripts
 
 Uses same soundscripts as [monster_zombie]({{< ref monster_zombie >}}).
+
+### Attacks
+
+Same as [monster_zombie]({{< ref monster_zombie >}}).
+
+### Animation events
+
+Same as [monster_zombie]({{< ref monster_zombie >}}).

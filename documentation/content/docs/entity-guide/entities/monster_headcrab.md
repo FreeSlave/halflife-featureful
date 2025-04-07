@@ -26,6 +26,10 @@ bookToC: false
 * **Headcrab.Attack** - attack sound on jump.
 * **Headcrab.Bite** - hit something.
 
+### Animation events
+
+* `2` - occasionally play **Headcrab.Attack** soundscript.
+
 ### Entity template examples
 
 {{% tabs %}}

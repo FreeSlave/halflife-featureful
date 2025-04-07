@@ -103,7 +103,7 @@ public:
 	bool HasAlienGibs() override {return true;}
 	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	void Activate( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int DefaultClassify( void ) { return CLASS_INSECT; }
 	const char* DefaultDisplayName() { return "Leech"; }
 	int IRelationship( CBaseEntity *pTarget );
@@ -314,7 +314,7 @@ void CLeech::Precache( void )
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 }
 
-int CLeech::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CLeech::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	pev->velocity = g_vecZero;
 
@@ -324,7 +324,7 @@ int CLeech::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float f
 		pev->velocity = ( pev->origin - pevInflictor->origin ).Normalize() * 25.0f;
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 void CLeech::HandleAnimEvent( MonsterEvent_t *pEvent )
@@ -348,7 +348,7 @@ void CLeech::HandleAnimEvent( MonsterEvent_t *pEvent )
 			face = face.Normalize();
 
 			if( DotProduct( dir, face ) > 0.9f )	// Only take damage if the leech is facing the prey
-				pEnemy->TakeDamage( pev, pev, gSkillData.leechDmgBite, DMG_SLASH );
+				pEnemy->TakeDamage( pev, pev, DamageInfo(gSkillData.leechDmgBite, DMG_SLASH) );
 		}
 		m_stateTime -= 2;
 		break;

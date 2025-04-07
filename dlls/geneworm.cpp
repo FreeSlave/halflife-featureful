@@ -144,7 +144,7 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 	if ((!pev->owner || pOther->pev->modelindex != pev->owner->v.modelindex) && pev->modelindex != pOther->pev->modelindex)
 	{
 		if(pOther->pev->takedamage)
-			pOther->TakeDamage(pev, pev, gSkillData.gwormDmgSpit, DMG_ACID);
+			pOther->TakeDamage(pev, pev, DamageInfo(gSkillData.gwormDmgSpit, DMG_ACID));
 
 		pev->nextthink = gpGlobals->time;
 		SetThink(NULL);
@@ -469,7 +469,7 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 					}
 					else
 					{
-						::RadiusDamage(pev->origin, pev, pev, 1000.0, 128.0, CLASS_NONE, DMG_ALWAYSGIB | DMG_SHOCK);
+						::RadiusDamage(pev->origin, pev, pev, DamageInfo(1000.0, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 128.0, CLASS_NONE);
 						CreateWarpBeams(1);
 						CreateWarpBeams(-1);
 					}
@@ -625,7 +625,7 @@ public:
 	void Precache(void);
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("geneworm"); }
 	int  DefaultClassify(void) { return CLASS_RACEX_SHOCK; }
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	static bool FilterHurtTargets(CBaseEntity *pTarget, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void FireHurtTargets(const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType);
 
@@ -650,7 +650,7 @@ public:
 
 	void TrackHead();
 
-	int  TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	int  TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 
 	bool ClawAttack();
 
@@ -971,17 +971,17 @@ void CGeneWorm::HitTouch( CBaseEntity *pOther )
 		switch (tr.iHitgroup)
 		{
 		case 1:
-			pOther->TakeDamage(pev, pev, 10, DMG_CRUSH | DMG_SLASH);
+			pOther->TakeDamage(pev, pev, DamageInfo(10, DMG_CRUSH | DMG_SLASH));
 			break;
 		case 2:
-			pOther->TakeDamage(pev, pev, 15, DMG_CRUSH | DMG_SLASH);
+			pOther->TakeDamage(pev, pev, DamageInfo(15, DMG_CRUSH | DMG_SLASH));
 			break;
 		case 3:
-			pOther->TakeDamage(pev, pev, 20, DMG_CRUSH | DMG_SLASH);
+			pOther->TakeDamage(pev, pev, DamageInfo(20, DMG_CRUSH | DMG_SLASH));
 			break;
 
 		default:
-			pOther->TakeDamage(pev, pev, pOther->pev->health, DMG_CRUSH | DMG_SLASH);
+			pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health, DMG_CRUSH | DMG_SLASH));
 			break;
 		}
 
@@ -1249,7 +1249,7 @@ bool CGeneWorm::ClawAttack()
 	return false;
 }
 
-void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	const bool isLaser = 0 == strcmp("env_laser", STRING(pevInflictor->classname));
 
@@ -1261,7 +1261,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 			{
 				UTIL_Sparks(ptr->vecEndPos);
 			}
-			else if ((bitsDamageType & DMG_BULLET) != 0)
+			else if ((damageInfo.type & DMG_BULLET) != 0)
 			{
 				UTIL_Ricochet(ptr->vecEndPos, RANDOM_FLOAT(1, 2));
 			}
@@ -1280,7 +1280,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		{
 			if (gpGlobals->time != pev->dmgtime || RANDOM_LONG(0, 10) <= 0)
 			{
-				if ((bitsDamageType & DMG_BULLET) != 0)
+				if ((damageInfo.type & DMG_BULLET) != 0)
 				{
 					UTIL_Ricochet(ptr->vecEndPos, RANDOM_FLOAT(1, 2));
 				}
@@ -1331,7 +1331,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 				if (m_bloodColor != DONT_BLEED)
 				{
 					SpawnBlood(ptr->vecEndPos - vecDir * 4, m_bloodColor, 300.0);
-					TraceBleed(flDamage, vecDir, ptr, bitsDamageType);
+					TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type);
 				}
 				break;
 			}
@@ -1365,7 +1365,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 				if (m_bloodColor != DONT_BLEED)
 				{
 					SpawnBlood(ptr->vecEndPos - vecDir * 4, m_bloodColor, 300.0);
-					TraceBleed(flDamage, vecDir, ptr, bitsDamageType);
+					TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type);
 				}
 				break;
 			}
@@ -1378,7 +1378,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 	{
 		if (m_flOrificeOpenTime > gpGlobals->time && !m_fOrificeHit)
 		{
-			pev->health -= flDamage;
+			pev->health -= damageInfo.damage;
 
 			if (pev->health <= 0)
 			{
@@ -1645,15 +1645,15 @@ void CGeneWorm::CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	}
 }
 
-int CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
+int CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
 {
-	if (flDamage >= pev->health)
+	if (damageInfo.damage >= pev->health)
 	{
 		pev->health = 1;
 	}
 	else
 	{
-		pev->health -= flDamage;
+		pev->health -= damageInfo.damage;
 	}
 
 	return 0;

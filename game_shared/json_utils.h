@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include "fixed_string.h"
+#include "optional.h"
 #include "tribool.h"
 #include "vector.h"
 #include "rapidjson/document.h"
@@ -12,9 +14,32 @@
 bool ReadJsonDocumentWithSchema(rapidjson::Document& document, const char* pMemFile, int fileSize, const char* schemaText, const char* fileName);
 bool ReadJsonDocumentWithSchemaFromFile(rapidjson::Document& document, const char* fileName, const char* schemaText);
 
+template<size_t N>
+bool UpdatePropertyFromJson(fixed_string<N>& str, rapidjson::Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		if (it->value.IsNull())
+		{
+			str.clear();
+			return true;
+		}
+		else if (it->value.IsString())
+		{
+			str = it->value.GetString();
+			return true;
+		}
+		else
+			return false;
+	}
+	return false;
+}
 bool UpdatePropertyFromJson(std::string& str, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(int& i, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(float& f, rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(optional<float>& f, rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(optional<int>& i, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(bool& b, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(char& c, rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(Color3& color, rapidjson::Value& jsonValue, const char* key);

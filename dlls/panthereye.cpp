@@ -15,15 +15,6 @@
 
 #define PANTHEREYE_MELEE_DISTANCE 84
 
-struct PantherStrikeParams
-{
-	float forwardDistance = PANTHEREYE_MELEE_DISTANCE;
-	float punchz = 0.0f;
-	float velRightScalar = 0.0f;
-	float velForwardScalar = 0.0f;
-	float velUpScalar = 0.0f;
-};
-
 class CPantherEye : public CSquadMonster
 {
 public:
@@ -42,9 +33,9 @@ public:
 	bool CheckRangeAttack1( float flDot, float flDist ) override {return false;}
 	bool CheckRangeAttack2( float flDot, float flDist ) override {return false;}
 
-	void PerformStrike(const PantherStrikeParams& params);
+	void PerformStrike(const TraceHullAttackParams& params);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
@@ -155,41 +146,22 @@ void CPantherEye::Precache()
 
 bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
 {
-	if ( HasConditions(bits_COND_SEE_ENEMY) && flDist <= PANTHEREYE_MELEE_DISTANCE && flDot >= 0.7f && m_hEnemy != 0 )
-	{
-		return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = PANTHEREYE_MELEE_DISTANCE;
+	return HasConditions(bits_COND_SEE_ENEMY) && CheckMeleeAttackImpl(flDot, flDist, params, false) && m_hEnemy != 0;
 }
 
-void CPantherEye::PerformStrike(const PantherStrikeParams& params)
+void CPantherEye::PerformStrike(const TraceHullAttackParams& params)
 {
-	CBaseEntity *pHurt = CheckTraceHullAttack( params.forwardDistance, gSkillData.panthereyeDmgClaw, DMG_SLASH );
-	if ( pHurt )
-	{
-		if ( pHurt->pev->flags & (FL_MONSTER|FL_CLIENT) )
-		{
-			if (params.punchz) {
-				pHurt->pev->punchangle.z = params.punchz;
-			}
-			pHurt->pev->punchangle.x = 5;
-			pHurt->pev->velocity = pHurt->pev->velocity +
-					gpGlobals->v_right * params.velRightScalar +
-					gpGlobals->v_forward * params.velForwardScalar +
-					gpGlobals->v_up * params.velUpScalar;
-		}
-		EmitSoundScript(attackHitSoundScript);
-	}
-	else
-		EmitSoundScript(attackMissSoundScript);
+	PerformTraceHullAttack( params );
 
 	if (RANDOM_LONG(0,1))
 		EmitSoundScript(attackSoundScript);
 }
 
-void CPantherEye::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CPantherEye::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
@@ -198,11 +170,17 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 	case PANTHEREYE_AE_STRIKE_LEFT:
 		{
-			PantherStrikeParams params;
-			params.punchz = 18.0f;
-			params.velRightScalar = 100.0f;
-			params.velForwardScalar = -50.0f;
-			params.velUpScalar = 50.0f;
+			TraceHullAttackParams params;
+			params.distance = PANTHEREYE_MELEE_DISTANCE;
+			params.punchAngle.x = 5;
+			params.punchAngle.z = 18.0f;
+			params.knockRight = 100.0f;
+			params.knockForward = -50.0f;
+			params.knockUp = 50.0f;
+			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
 			PerformStrike(params);
 			break;
@@ -210,11 +188,17 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	case PANTHEREYE_AE_STRIKE_RIGHT_LOW:
 		{
-			PantherStrikeParams params;
-			params.punchz = -9.0f;
-			params.velRightScalar = -25.0f;
-			params.velForwardScalar = -25.0f;
-			params.velUpScalar = 25.0f;
+			TraceHullAttackParams params;
+			params.distance = PANTHEREYE_MELEE_DISTANCE;
+			params.punchAngle.x = 5;
+			params.punchAngle.z = -9.0f;
+			params.knockRight = -25.0f;
+			params.knockForward = -25.0f;
+			params.knockUp = 25.0f;
+			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
 			PerformStrike(params);
 			break;
@@ -222,11 +206,17 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	case PANTHEREYE_AE_STRIKE_RIGHT_HIGH:
 		{
-			PantherStrikeParams params;
-			params.punchz = -18.0f;
-			params.velRightScalar = -100.0f;
-			params.velForwardScalar = -50.0f;
-			params.velUpScalar = 50.0f;
+			TraceHullAttackParams params;
+			params.distance = PANTHEREYE_MELEE_DISTANCE;
+			params.punchAngle.x = 5;
+			params.punchAngle.z = -18.0f;
+			params.knockRight = -100.0f;
+			params.knockForward = -50.0f;
+			params.knockUp = 50.0f;
+			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
 			PerformStrike(params);
 			break;

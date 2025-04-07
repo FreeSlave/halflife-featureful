@@ -610,26 +610,27 @@ int CHGrunt::GetRangeAttack2Sequence()
 //=========================================================
 // TraceAttack - make sure we're not taking it in the helmet
 //=========================================================
-void CHGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CHGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
+	DamageInfo dmgInfo = damageInfo;
 	// check for helmet shot
 	if( ptr->iHitgroup == 11 )
 	{
 		// make sure we're wearing one
-		if( GetBodygroup( HEAD_GROUP ) == HEAD_GRUNT && ( bitsDamageType & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB ) ) )
+		if( GetBodygroup( HEAD_GROUP ) == HEAD_GRUNT && ( dmgInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB ) ) )
 		{
 			// absorb damage
-			flDamage -= 20;
-			if( flDamage <= 0 )
+			dmgInfo.damage -= 20;
+			if( dmgInfo.damage <= 0 )
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-				flDamage = 0.01f;
+				dmgInfo.damage = 0.01f;
 			}
 		}
 		// it's head shot anyways
 		ptr->iHitgroup = HITGROUP_HEAD;
 	}
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
 //=========================================================
@@ -637,11 +638,11 @@ void CHGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 // needs to forget that he is in cover if he's hurt. (Obviously
 // not in a safe place anymore).
 //=========================================================
-int CHGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CHGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Forget( bits_MEMORY_INCOVER );
 
-	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 //=========================================================
@@ -762,40 +763,20 @@ const char* CHGrunt::ReverseRelationshipModel()
 
 //=========================================================
 //=========================================================
-CBaseEntity *CHGrunt::Kick( void )
+void CHGrunt::PerformKick(int eventIndex, float damage, float zpunch)
 {
-	TraceResult tr;
+	TraceHullAttackParams params;
+	params.punchAngle.x = 15;
+	params.punchAngle.z = zpunch;
+	params.knockForward = 100;
+	params.knockUp = 50;
+	params.skipAllies = true;
+	params.useAimVectors = false;
+	params.damageInfo.damage = damage;
+	params.damageInfo.type = DMG_CLUB;
+	SetTraceHullAttackParamsFromTemplate(eventIndex, params);
 
-	UTIL_MakeVectors( pev->angles );
-	Vector vecStart = pev->origin;
-	vecStart.z += pev->size.z * 0.5f;
-	Vector vecEnd = vecStart + ( gpGlobals->v_forward * 70 );
-
-	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
-
-	if( tr.pHit )
-	{
-		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-		if (pEntity && IRelationship(pEntity) != R_AL)
-			return pEntity;
-	}
-
-	return NULL;
-}
-
-void CHGrunt::PerformKick(float damage, float zpunch)
-{
-	CBaseEntity* pHurt = Kick();
-	if (pHurt)
-	{
-		UTIL_MakeVectors(pev->angles);
-		pHurt->pev->punchangle.x = 15;
-		if (zpunch)
-			pHurt->pev->punchangle.z = zpunch;
-
-		pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
-		pHurt->TakeDamage(pev, pev, damage, DMG_CLUB);
-	}
+	PerformTraceHullAttack(params);
 }
 
 //=========================================================
@@ -978,7 +959,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case HGRUNT_AE_KICK:
 		{
-			PerformKick(gSkillData.hgruntDmgKick);
+			PerformKick(pEvent->event, gSkillData.hgruntDmgKick);
 		}
 			break;
 		case HGRUNT_AE_CAUGHT_ENEMY:

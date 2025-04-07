@@ -67,8 +67,8 @@ public:
 	void FireRocket( void );
 	bool FireGun( void );
 
-	int  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	int  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	int m_iRockets;
 	float m_flForce;
@@ -429,7 +429,7 @@ void CApache::DyingThink( void )
 
 		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, 300, CLASS_NONE, DMG_BLAST );
+		RadiusDamage( pev->origin, pev, pev, DamageInfo{300, DMG_BLAST}, CLASS_NONE );
 
 		if(/*!( pev->spawnflags & SF_NOWRECKAGE ) && */( pev->flags & FL_ONGROUND ) )
 		{
@@ -961,14 +961,16 @@ void CApache::ShowDamage( void )
 		m_iDoSmokePuff--;
 }
 
-int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pevInflictor->owner == edict() )
 		return 0;
 
-	if( bitsDamageType & DMG_BLAST )
+	DamageInfo dmgInfo = damageInfo;
+
+	if( dmgInfo.type & DMG_BLAST )
 	{
-		flDamage *= 2.0f;
+		dmgInfo.damage *= 2.0f;
 	}
 
 	/*
@@ -980,7 +982,7 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	*/
 
 	// ALERT( at_console, "%.0f\n", flDamage );
-	int result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	int result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 
 	//Are we damaged at all?
 	if (pev->health < pev->max_health)
@@ -1007,20 +1009,20 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	return result;
 }
 
-void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
 
 	// ignore blades
-	if( ptr->iHitgroup == 6 && ( bitsDamageType & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
+	if( ptr->iHitgroup == 6 && ( damageInfo.type & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
 		return;
 
 	// hit hard, hits cockpit, hits engines
-	if( flDamage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 )
+	if( damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 )
 	{
 		// ALERT( at_console, "%.0f\n", flDamage );
-		AddMultiDamage( pevAttacker, pevAttacker, this, flDamage, bitsDamageType );
-		m_iDoSmokePuff = 3.0f + ( flDamage / 5.0f );
+		AddMultiDamage( pevAttacker, pevAttacker, this, damageInfo );
+		m_iDoSmokePuff = 3.0f + ( damageInfo.damage / 5.0f );
 	}
 	else
 	{

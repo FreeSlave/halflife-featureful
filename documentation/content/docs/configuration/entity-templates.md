@@ -14,10 +14,10 @@ The Entity templates are configured via **templates/entities.json**. Each templa
 
 # Examples
 
-There's a list of some useful example to give you the idea of what templates are capable of. You can skip it and jump right to the [format](#format-of-entitiesjson) description.
+Here's a list of some useful example to give you the idea of what templates are capable of.
 
-## Example 1: Custom bullsquids
-
+{{% details title="Example 1: Custom bullsquids" %}}
+\
 Let's say you want to add two new bullsquid variations: the yellow bullsquid from Half-Life Alpha and the crocodile-like green bullsquid from earlier stages of Half-Life 2 development. You made fine models for both bullsquids and grabbed custom sounds for the crocodile-like one. You also want to use the old spit model instead of a sprite as a projectile visual for the yellow bullsquid.
 
 Create a **templates/entities.json** with the following contents:
@@ -57,8 +57,10 @@ Here, we created two templates called `yellowbullsquid` and `crocsquid`. Each de
 
 Now, in the level editor all you have to do is to put some `monster_bullchicken` and set the desired template name in the `Entity Template` parameter (either `yellowbullsquid` or `crocsquid`). In the game these bullsquids will have the custom properties read from the template. Note that you still have access to the standard Half-Life bullsquid on your maps - just leave the `Entity Template` blank.
 
-## Example 2: Female NPC
+{{% /details %}}
 
+{{% details title="Example 2: Female NPC" %}}
+\
 Let's say you want to add a female civilian NPC. You could base it on [monster_civilian]({{< ref monster_civilian >}}) or [monster_scientist]({{< ref monster_scientist >}}), with custom model, sounds and speech prefix.
 
 ```json
@@ -80,8 +82,10 @@ Let's say you want to add a female civilian NPC. You could base it on [monster_c
 }
 ```
 
-## Example 3: Friendly Vortigaunt
+{{% /details %}}
 
+{{% details title="Example 3: Friendly Vortigaunt" %}}
+\
 Let's say your want a friendly vortigaunt variation in the mod, with a different model and beam effects. The default classification for the template can be changed via `classify` parameter:
 
 ```json
@@ -103,8 +107,10 @@ Let's say your want a friendly vortigaunt variation in the mod, with a different
 }
 ```
 
-## Example 4: Modified default for a classname
+{{% /details %}}
 
+{{% details title="Example 4: Modified default for a classname" %}}
+\
 If you give the template the same name as a monster's classname (e.g. `monster_scientist`), this template will be applied automatically to all instances of this class (unless the instance specifically refers to another template).
 
 Let's assume you want to change the scale of the gibs for [monster_babycrab]({{< ref monster_babycrab >}}) and its default appearance - e.g. remove the default translucency (if you never noticed before - babycrabs in Half-Life are not fully opaque). You need to define the `"monster_babycrab"` template:
@@ -124,15 +130,21 @@ Let's assume you want to change the scale of the gibs for [monster_babycrab]({{<
 
 Now all babycrabs will use this template (unless the different template is set in the babycrab's properties).
 
+{{% /details %}}
+
 # Format of entities.json
 
 The document is an object where each property presents a named entity template. Template names technically can be any string, but it's better to stick to some strict set of characters, like latin letters, digits and underscore symbol, to avoid potential problems with compilers, level editors and bsp.
 
-Note about naming: it's better to avoid names starting with `monster_` unless you create a default template for the existing monster class. Consider that you called a template `monster_bodyguard` and use it on some security guards in your mod. Then, at some point Featureful SDK gets updated and introduces a new monster called `monster_bodyguard`. The template you previously defined now automatically gets applied to the new monster class even though it wasn't your original intention.
+{{% hint warning %}}
+It's better to avoid names starting with `monster_` unless you create a default template for the existing monster class. Consider that you called a template `monster_bodyguard` and use it on some security guards in your mod. Then, at some point Featureful SDK gets updated and introduces a new monster called `monster_bodyguard`. The template you previously defined now automatically gets applied to the new monster class even though it wasn't your original intention.
+{{% /hint %}}
 
-Each template in the document may have the following properties:
+## Properties
 
-## own_visual
+Each template entry in the document may have the following properties:
+
+### own_visual
 
 The [visual]({{< ref visuals >}}) definition or the name of the visual from the *templates/visuals.json* for the monster's own model. This allows to change the default model of the monsters belonging to the template, the model scale or, for example, make the monsters semi-transparent:
 
@@ -149,7 +161,7 @@ The [visual]({{< ref visuals >}}) definition or the name of the visual from the 
 }
 ```
 
-## gib_visual
+### gib_visual
 
 The [visual]({{< ref visuals >}}) definition or the name of the visual from the *templates/visuals.json* for the monster's gibs. This allows to change the default model or other render properties of the monster's gibs.
 
@@ -165,7 +177,7 @@ The [visual]({{< ref visuals >}}) definition or the name of the visual from the 
 }
 ```
 
-## classify
+### classify
 
 Default relationship classification for the monsters belonging to this template. Possible values:
 
@@ -196,7 +208,7 @@ Example:
 }
 ```
 
-## health
+### health
 
 Default health amount for the monster belonging to this template. Currently only constant numbers are supported (i.e. it doesn't depend on the chosen game difficulty).
 
@@ -208,7 +220,7 @@ Default health amount for the monster belonging to this template. Currently only
 }
 ```
 
-## size
+### size
 
 The object with properties `min` and `max` each is 3-element array defining the mins and maxs for the Bounding Box:
 
@@ -240,7 +252,7 @@ Instead of the object you can also set one of the named presets:
 }
 ```
 
-## collision_box
+### collision_box
 
 Some monsters define the so called Object Collision Box which is different from their base size. This is required for the hitscan attacks and projectile of null size to properly hit the model. E.g. the alien grunt's Object Collision Box is higher than his defined size. Otherwise you wouldn't be able to hit his head.
 
@@ -256,7 +268,7 @@ Most entities has their collision box to match the size. However some monsters r
 * monster_robocop
 * monster_tentacle
 
-## blood
+### blood
 
 Default blood color of the monster belonging to this template. Possible values:
 
@@ -272,7 +284,7 @@ Default blood color of the monster belonging to this template. Possible values:
 }
 ```
 
-## field_of_view
+### field_of_view
 
 Default field of view of the monster belonging to this template. A number in range `[-1, 1]` where -1 means the full view in all directions and values closer to 1 mean narrower angle. The angle at which the monster can detect enemies depends on the field of view. If the monster has a full view it can't be ambushed from the back.
 
@@ -300,11 +312,11 @@ One of the predefined presets can be used instead:
 }
 ```
 
-## visuals
+### visuals
 
 The object consisting of the entries of the [visual]({{< ref visuals >}}) replacements. The entry key must be the name of the existing visual, used by a monster (consult the monster's entity page, e.g. [monster_bullchicken]({{< ref "monster_bullchicken/#visuals" >}})). The entry value should be either the name of the replacement visual from *templates/visuals.json* or the object defining the replacement visual.
 
-Example:
+{{% details title="Example" %}}
 
 ```json
 {
@@ -323,9 +335,13 @@ Example:
 
 In this example we redefine some properties of the `Bullsquid.Spit` visual for a monster belonging to the `bullsquid_template` template. The `Bullsquid.Fleck` is also replaced with `CustomBullsquid.Fleck` which is expected to be defined in the *templates/visuals.json*. The latter approach allows to define the visual once and reuse it in many templates. The former approach might be more convenient because it allows you to define the visual in the template file.
 
-## soundscripts
+{{% /details %}}
+
+### soundscripts
 
 The object consisting of the entries of the [soundscript]({{< ref soundscripts >}}) replacements. The entry key must be the name of the existing soundscript, used by a monster (consult the monster's entity page, e.g. [monster_bullchicken]({{< ref "monster_bullchicken/#soundscripts" >}}). The entry value should be either the name of the replacement soundscript from *sound/soundscripts.json* or the object defining the replacement soundscript.
+
+{{% details title="Example" %}}
 
 ```json
 {
@@ -343,11 +359,13 @@ The object consisting of the entries of the [soundscript]({{< ref soundscripts >
 
 In this example we redefine some properties of the `Bullsquid.Attack` soundscript for a monster belonging to the `bullsquid_template` template. The `Bullsquid.Growl` is also replaced with `Bullsquid_HL2.Growl` which is expected to be defined in the *sound/soundscripts.json*. The latter approach allows to define the soundscript once and reuse it in many templates. The former approach might be more convenient because it allows you to define the soundscript in the template file.
 
-## sound_replacement
+{{% /details %}}
+
+### sound_replacement
 
 The object consisting of the entries where the key is a path to the original sound and the value is a path to the custom sound which will be played instead. It's rare that you would need this. It's better to rely on soundscripts when possible.
 
-Example:
+{{% details title="Example" %}}
 
 ```json
 {
@@ -363,11 +381,11 @@ Example:
 }
 ```
 
-## precached_sounds
+{{% /details %}}
+
+### precached_sounds
 
 An array of additionally sounds to precache (so they can be played in game). This is useful when the model has some sound events and the entity implementation doesn't acknowledge these sounds. For example, the gonome model from Opposing Force refers to **gonome/gonome_step1.wav** and **gonome/gonome_step2.wav** in the running animations. These sounds do not exist in the game, but even if you put sounds with such names in the game resources it won't work, because they're not being precahed by the game-code. The `precached_sounds` allows to specifiy the extra sounds to precache for an entity.
-
-Example:
 
 ```json
 {
@@ -379,11 +397,9 @@ Example:
 
 If you don't want to specify the sounds manually you can rely on `autoprecache_sounds` instead.
 
-## autoprecache_sounds
+### autoprecache_sounds
 
 A boolean property which, if set to `true`, makes the entity belonging this template automatially precache all sounds referred in the model by the sound events. The sound events are `1004`, `1008`, `1011`, `1012`, `1013`. See also: [Model animation events]({{< ref "model animation events" >}}).
-
-Example:
 
 ```json
 {
@@ -393,11 +409,9 @@ Example:
 }
 ```
 
-## precached_soundscripts
+### precached_soundscripts
 
 An array of additional soundscripts to precache. This is useful when the model has some soundscript events (`1014`) and the entity implementation doesn't acknowledge these soundscripts.
-
-Example:
 
 ```json
 {
@@ -409,11 +423,9 @@ Example:
 
 If you don't want to specify the soundscripts manually you can rely on `autoprecache_soundscripts` instead.
 
-## autoprecache_soundscripts
+### autoprecache_soundscripts
 
 A boolean property which, if set to `true`, makes the entity belonging this template automatially precache all soundscripts referred in the model by the soundscript events (`1014`). See also: [Model animation events]({{< ref "model animation events" >}}).
-
-Example:
 
 ```json
 {
@@ -423,7 +435,7 @@ Example:
 }
 ```
 
-## size_for_grapple
+### size_for_grapple
 
 Defines the monster interaction with barnacle grapple (`weapon_grapple`). Possible values:
 
@@ -433,13 +445,13 @@ Defines the monster interaction with barnacle grapple (`weapon_grapple`). Possib
 * `"large"` - currently the same effect as `medium`.
 * `"fixed"` - grapple pulls the player to the target and the barnacle's tongue tip stays at the point of latching. The target is expected to be unmovable.
 
-## speech_prefix
+### speech_prefix
 
 Defines the speech prefix for the monster's sentences. E.g. if the template is applied to the scientist, and the speech prefix is `"FEM"` the scientist will replace `SC_` with `FEM_` when playing the sentences: `FEM_HELLO` instead of `SC_HELLO`, etc.
 
-## squad_capability
+### squad_capability
 
-The object that defines the squad capabilities of the monster. It has the following properties:
+Defines the squad capabilities of the monster. It has the following properties:
 
 * `"can_recruit"` - whether the monster can recruit other monsters into squad, i.e. whether he can be a squad leader. Some monsters that are able to be part of the squad, can't form squads by themselves. Examples: vortigaunts and female assassins. Set this to `true` to allow monsters belonging to this entity template to form squads.
 * `"deny_recruiting"` - whether the monster will refuse to be included in the implicit (i.e. unnamed) squads. If the monster is explicitly set to be part of squad in the level editor, he still will join the squad.
@@ -478,7 +490,7 @@ Note: not all monsters affected by these properties. The list of affected monste
 * Pitdrones
 * Voltigores
 
-## open_door_capability
+### open_door_capability
 
 Defines whether the monster can open doors. For example, alien slaves and zombies can open doors by default, while pitdrones and alien grunts can't. This property allows the change the monster's capability.
 
@@ -491,3 +503,158 @@ Example:
     }
 }
 ```
+
+### check_melee_attack1
+
+Redefines the check parameters for the monster's primary melee attack. Monsters do some checks before deciding what type of attack (if any) they want to perform, depending on the conditions like distance to the enemy.
+
+This object has following properties:
+
+* `"distance"` - distance from my origin to enemy's origin, in units. Most monsters have this value equal to 64 by default.
+* `"dot"` - dot product, a number in range `[0, 1]` representing the angle between monster's facing and the enemy placement relatively to the monster. The close it to 1 the narrower the possible field of attack. Most monsters have this value equal to 0.7 by default.
+
+When setting this property you probably also want to change the distance parameter on the corresponding [trace hull attack](#trace_hull_attacks) event. In the model find the animation with `ACT_MELEE_ATTACK1` activity (you'll need a model viewer with support for activity viewing, e.g. HLAM). Then look at events - one of them with a small value should correspond to the trace hull attack. Usually the monster entity page includes the information about events, so you don't need to do the datamining.
+
+### check_melee_attack2
+
+Same as `check_melee_attack1` but for the monster's secondary melee attack.
+
+### trace_hull_attacks
+
+The mapping between animation event indices and trace hull attack redefined parameters.
+
+Most of monster's melee attacks are done via the trace hull check - a small hull does a trace in front of the monster to hit the enemy. If something is found on the way the knockback and punchangle (for player's camera) is applied to the target.
+
+The property keys must be stringified numbers equal to the animation event indices. Each entry can have following properties:
+
+* `"distance"` - distance of the hull check. How much distance in front of the monster should be checked for the hit.
+* `"height"` - custom height (relative to the monster's origin) to perform a hull check from. By default for most monsters it's calculated as half of the monster's height, which is good enough for a general case. This property can be a number - a height in units, or a string in the form `"*<number>"` where the `<number>` is a number multiplied by monster's height to get the attack height, e.g. `*0.6`.
+* `"punchangle"` - punch angle applied to the player's camera. This is an object with following properties:
+    - `"pitch"` - pitch value.
+    - `"yaw"` - yaw value.
+    - `"roll"`- roll value.
+* `"knock"` - knockback velocity applied to the monster or player. This is an object with following properties:
+    - `"forward"` - forward velocity. Use negative value to pull the hit target inwards.
+    - `"right"` - right velocity. Use negative value to push to the left.
+    - `"up"` - upwards velocity.
+    - `"player_only"` - whether the knockback is applied to player only.
+* `"damage_info"` - [damage info](#damage_info). This allows to change the damage type of the attack and other damage characteristics.
+* `"spawn_blood"` - a boolean denoting whether melee attack should make the hit target bleed.
+* `"hit_soundscript"` - soundscript to play if trace hull attack hit something. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
+* `"miss_soundscript"` - soundscript to play if trace hull attack didn't hit anything. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
+
+The provided parameters are getting merged with the predefined parameters in-game (depending on the monster). For example, if the attack has the forward knock by default and your definition doesn't mention it, the forward knock is still preserved. You'll need to manually set it to 0 if you don't want it.
+
+{{% details title="Example" %}}
+\
+Let's say you have a zombie with long arms and you want his attacks to have larger effective distance.
+
+Zombie has following animation events:
+
+* `1` - right arm attack.
+* `2` - left arm attack.
+* `3` - attack with both arms.
+
+All these events are tied to animations with `ACT_MELEE_ATTACK1` activity.
+
+So, you need to increase the check distance for primary melee attack by configuring `check_melee_attack1` parameters. Then you set custom properties for the events in `trace_hull_attacks`.
+
+```json
+{
+    "long_arms": {
+        "check_melee_attack1": {
+            "distance": 100,
+            "dot": 0.6
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 110,
+                "punchangle": {
+                    "roll": -36
+                },
+                "knock": {
+                    "right": -150,
+                    "forward": -200
+                },
+                "spawn_blood": true
+            },
+            "2": {
+                "distance": 110,
+                "punchangle": {
+                    "roll": 36
+                },
+                "knock": {
+                    "right": 150,
+                    "forward": -200
+                },
+                "spawn_blood": true
+            },
+            "3": {
+                "distance": 110,
+                "knock": {
+                    "forward": -200
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["acid", "poison"],
+                    "type_policy": "add"
+                },
+                "hit_soundscript": {
+                    "waves": ["bullchicken/bc_spithit1.wav", "bullchicken/bc_spithit2.wav", "bullchicken/bc_spithit3.wav"]
+                },
+                "miss_soundscript": {
+                    "waves": ["bullchicken/bc_acid1.wav", "bullchicken/bc_acid2.wav"]
+                }
+            }
+        }
+    }
+}
+```
+
+In this example we also set the trace hull attack on event 3 to have acid and poison damage type (in addition to the default slash damage type). We also set the hit and miss soundscripts (the sound channel is automatically set to `"weapon"`).
+
+{{% /details %}}
+
+{{% hint info %}}
+You can create your own trace hull attacks without relying on the ones that are supported in the monster's code. Events with numbers in the `[20-999]` range should be safe to use for any monster. In this case the attack won't have any defined knock punch or damage, so you'll need to provide them. You'll also probably want to provide hit and miss soundscripts to play depending on the hit result. You can add unconditionally played sounds to the animation via events (see [model animation events]({{< ref "model-animation-events" >}})) and precache them via [precached_sounds](#precached_sounds) or [autoprecache_sounds](#autoprecache_sounds).
+{{% /hint %}}
+
+## Types
+
+### damage_info
+
+This type describes the damage data. It consists of the following properties:
+
+* `"damage"` - the amount of damage.
+* `"type"` - [damage type](#damage_type).
+* `"type_policy"` - how to apply the damage types defined in `"type"` property.
+    - `"replace"` - set the types from the `"type"` property only. Remove the types defined by default or inherited from the base template.
+    - `"add"` - add types to the default or inherited ones. This is default value.
+* `"nonlethal"` - a boolean that marks damage as non lethal. It can do damage, but can't kill a target.
+* `"ignore_armor"` - a boolean that makes damage to ignore armor (currently only players have armor).
+* `"gib"` - whether damage is set to force gibbing. Possible values:
+    - `"always"` - always gib.
+    - `"never"` - never gib.
+    - `"normal"` - gib if damage is significantly higher than the target's health at the moment of hit.
+
+### damage_type
+
+A single string or an array of strings describing the damage types. Supports following values:
+- `"generic"`
+- `"crush"`
+- `"bullet"`
+- `"slash"`
+- `"burn"`
+- `"freeze"`
+- `"blast"`
+- `"club"`
+- `"shock"`
+- `"sonic"`
+- `"energybeam"`
+- `"paralyze"`
+- `"nervegas"`
+- `"poison"`
+- `"radiation"`
+- `"acid"`
+- `"slowburn"`
+- `"slowfreeze"`

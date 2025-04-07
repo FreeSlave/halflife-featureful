@@ -1278,9 +1278,9 @@ bool CTalkMonster::SetAnswerQuestion( CTalkMonster *pSpeaker )
 	return false;
 }
 
-int CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	int ret = CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	int ret = CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 	if( IsAlive() )
 	{
 		// if player damaged this entity, have other friends talk about it
@@ -1302,7 +1302,7 @@ int CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 			}
 
 			if ( ret > 0 && IsFullyAlive() ) {
-				ReactToPlayerHit(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+				ReactToPlayerHit(pevInflictor, pevAttacker, damageInfo);
 			}
 		}
 	}
@@ -1327,7 +1327,7 @@ static bool IsFacing( entvars_t *pevTest, const Vector &reference )
 	return false;
 }
 
-void CTalkMonster::ReactToPlayerHit(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+void CTalkMonster::ReactToPlayerHit(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfos)
 {
 	// don't say anything if already provoked
 	if (HasMemory(bits_MEMORY_PROVOKED))

@@ -268,7 +268,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 			pevAttacker = pActivator->pev;
 		}
 		const float radius = m_iRadius > 0 ? m_iRadius : m_iMagnitude * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER;
-		::RadiusDamage( pev->origin, pev, pevAttacker, m_iMagnitude, radius, CLASS_NONE, DMG_BLAST );
+		::RadiusDamage( pev->origin, pev, pevAttacker, DamageInfo{(float)m_iMagnitude, DMG_BLAST}, radius, CLASS_NONE );
 	}
 
 	SetThink( &CEnvExplosion::Smoke );

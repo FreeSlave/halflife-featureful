@@ -15,20 +15,19 @@
 typedef struct
 {
 	CBaseEntity		*pEntity;
-	float			amount;
-	int				type;
+	DamageInfo damageInfo;
 } MULTIDAMAGE;
 
 extern MULTIDAMAGE gMultiDamage;
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
-extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, float flDamage, int bitsDamageType);
+extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo);
 
 extern void DecalGunshot( TraceResult *pTrace, int iBulletType );
 extern void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage);
 extern int DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
-extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType );
+extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore );
 
 enum
 {
@@ -41,7 +40,7 @@ enum
 };
 
 template<typename Filter>
-void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int bitsDamageType, int flags, Filter filter)
+void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int flags, Filter filter)
 {
 	CBaseEntity *pEntity = nullptr;
 	TraceResult	tr;
@@ -49,7 +48,7 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 	Vector		vecSpot;
 
 	if( flRadius )
-		falloff = flDamage / flRadius;
+		falloff = damageInfo.damage / flRadius;
 	else
 		falloff = 1.0f;
 
@@ -89,7 +88,7 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 
 			if (pLooker != nullptr)
 			{
-				flAdjustedDamage = flDamage;
+				flAdjustedDamage = damageInfo.damage;
 
 				if (flags & RADIUSDAMAGE_APPLY_FALLOFF)
 					flAdjustedDamage -= (vecSpot - vecSrc).Length() * falloff;
@@ -112,7 +111,9 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 
 				if( flAdjustedDamage > 0.0f )
 				{
-					pEntity->TakeDamage( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
+					DamageInfo dmgInfo = damageInfo;
+					dmgInfo.damage = flAdjustedDamage;
+					pEntity->TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 				}
 			}
 			else
@@ -140,19 +141,21 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 					}
 
 					// decrease damage for an ent that's farther from the bomb.
-					flAdjustedDamage = flDamage;
+					flAdjustedDamage = damageInfo.damage;
 					if (flags & RADIUSDAMAGE_APPLY_FALLOFF)
 						flAdjustedDamage -= ( vecSrc - tr.vecEndPos ).Length() * falloff;
 
 					if (flAdjustedDamage > 0.0f)
 					{
+						DamageInfo dmgInfo = damageInfo;
+						dmgInfo.damage = flAdjustedDamage;
 						if( tr.flFraction != 1.0f )
 						{
-							pEntity->ApplyTraceAttack( pevInflictor, pevAttacker, flAdjustedDamage, ( tr.vecEndPos - vecSrc ).Normalize(), &tr, bitsDamageType );
+							pEntity->ApplyTraceAttack( pevInflictor, pevAttacker, dmgInfo, ( tr.vecEndPos - vecSrc ).Normalize(), &tr );
 						}
 						else
 						{
-							pEntity->TakeDamage( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
+							pEntity->TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 						}
 					}
 				}

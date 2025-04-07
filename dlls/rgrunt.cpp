@@ -52,8 +52,8 @@ public:
 
 	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	void BecomeDead();
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	float m_flSparkTime;
 
@@ -330,7 +330,7 @@ void CRGrunt::Explode()
 
 	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
 
-	RadiusDamage( pev, pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	RadiusDamage( pev, pev, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
 
 	if( RANDOM_LONG(0,1) )
 	{
@@ -360,18 +360,19 @@ void CRGrunt::BecomeDead()
 
 #define ROBOGRUNT_DAMAGE (DMG_ENERGYBEAM|DMG_CRUSH|DMG_MORTAR|DMG_BLAST|DMG_SHOCK|DMG_FREEZE|DMG_ACID)
 
-int CRGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CRGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if ((bitsDamageType & ROBOGRUNT_DAMAGE) == 0)
+	DamageInfo info = damageInfo;
+	if ((info.type & ROBOGRUNT_DAMAGE) == 0)
 	{
-		flDamage *= 0.2f;
+		info.damage *= 0.2f;
 	}
-	return CHGrunt::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CHGrunt::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
-void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
-	if ((bitsDamageType & ROBOGRUNT_DAMAGE) == 0)
+	if ((damageInfo.type & ROBOGRUNT_DAMAGE) == 0)
 	{
 		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 10 ) < 1 ) )
 		{
@@ -379,7 +380,7 @@ void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float
 			pev->dmgtime = gpGlobals->time;
 		}
 	}
-	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 void CRGrunt::DoSpark(const Vector &sparkLocation, float flVolume)

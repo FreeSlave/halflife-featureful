@@ -24,3 +24,12 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 * **Kate.Pain** - pain sound.
 * **Kate.Die** - death sound.
 * **Kate.FirePistol** - firing a handgun.
+
+### Attacks
+
+* *Melee Attack 1* - melee (kick).
+* *Range Attack 1* - fire a gun.
+
+### Animation events
+
+* `6` - kick trace hull attack. Deals **sk_hgrunt_kick** damage.

@@ -139,7 +139,7 @@ void CPitdroneSpike::SpikeTouch(CBaseEntity *pOther)
 	else
 	{
 		entvars_t	*pevOwner = VARS(pev->owner);
-		pOther->TakeDamage(pev, pevOwner, gSkillData.pitdroneDmgSpit, DMG_GENERIC | DMG_NEVERGIB);
+		pOther->TakeDamage(pev, pevOwner, DamageInfo(gSkillData.pitdroneDmgSpit, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
 		EmitSoundScript(hitBodySoundScript);
 	}
 }
@@ -235,7 +235,7 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 	void BodyChange(int horns);
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info) override;
 	int IgnoreConditions(void);
 	Schedule_t* GetSchedule(void);
 	Schedule_t* GetScheduleOfType(int Type);
@@ -363,7 +363,7 @@ const NamedVisual CPitdrone::tinySpitVisual = BuildVisual::Spray("Pitdrone.TinyS
 // TakeDamage - overridden for gonome so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info)
 {
 	float flDist;
 	Vector vecApex;
@@ -387,7 +387,7 @@ int CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float
 
 	m_flLastHurtTime = gpGlobals->time;
 
-	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, info);
 }
 
 //=========================================================
@@ -470,24 +470,22 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case PIT_DRONE_AE_THROW:
 	{
 		// SOUND HERE (in the pitdrone model)
-		CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.pitdroneDmgWhip, DMG_SLASH );
+		TraceHullAttackParams params;
+		params.distance = 70.0f;
+		params.knockForward = 100.0f;
+		params.knockUp = 200.0f;
+		params.damageInfo.damage = gSkillData.pitdroneDmgWhip;
+		params.hitSoundScript = attackHitSoundScript; // croonchy bite sound
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		CBaseEntity *pHurt = PerformTraceHullAttack(params);
 
 		if( pHurt )
 		{
-			// croonchy bite sound
-			EmitSoundScript(attackHitSoundScript);
-
 			// screeshake transforms the viewmodel as well as the viewangle. No problems with seeing the ends of the viewmodels.
 			UTIL_ScreenShake( pHurt->pev->origin, 25.0, 1.5, 0.7, 2 );
-
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 200;
-			}
 		}
-		else
-			EmitSoundScript(attackMissSoundScript);
 	}
 	break;
 
@@ -497,18 +495,21 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 		 * Pitdrone always starts the attack with the right claw so we use shouldAttackWithLeftClaw to check which claw is used now.
 		 */
 		// SOUND HERE (in the pitdrone model)
-		CBaseEntity *pHurt = CheckTraceHullAttack(70, gSkillData.pitdroneDmgBite, DMG_SLASH);
-		if (pHurt)
+		TraceHullAttackParams params;
+		params.distance = 70.0f;
+		params.punchAngle = Vector(5.0f, 0.0f, -18);
+		params.knockRight =  -100;
+		params.damageInfo.damage = gSkillData.pitdroneDmgWhip;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+		if (shouldAttackWithLeftClaw)
 		{
-			if (pHurt->pev->flags & (FL_MONSTER | FL_CLIENT))
-			{
-				pHurt->pev->punchangle.z = shouldAttackWithLeftClaw ? 18 : -18;
-				pHurt->pev->punchangle.x = 5;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * ( shouldAttackWithLeftClaw ? 100 : -100 );
-			}
+			params.punchAngle.z = params.punchAngle.z * -1.0f;
+			params.knockRight = params.knockRight * -1.0f;
 		}
-		else // Play a random attack miss sound
-			EmitSoundScript(attackMissSoundScript);
+
+		PerformTraceHullAttack(params);
+
 		shouldAttackWithLeftClaw = !shouldAttackWithLeftClaw;
 	}
 	break;

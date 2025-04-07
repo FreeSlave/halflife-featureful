@@ -92,12 +92,11 @@ public:
 	int Save( CSave &save );
 	int Restore( CRestore &restore );
 
-	CBaseEntity *Kick( void );
-	void PerformKick(float damage, float zpunch = 0);
+	void PerformKick(int eventIndex, float damage, float zpunch = 0);
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	int IRelationship( CBaseEntity *pTarget );
 

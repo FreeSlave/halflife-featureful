@@ -312,7 +312,7 @@ void CChargedBolt::PreShutdownThink()
 void CChargedBolt::DoRadiusDamage(float dmg, float radius)
 {
 	CBaseMonster* pOwner = GetMonsterPointer(pev->owner);
-	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, dmg, radius, DMG_SHOCK, RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
+	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, DamageInfo{dmg, DMG_SHOCK}, radius, RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
 				   [=](CBaseEntity* pEntity) {
 		if (pOwner)
 			pOwner->IRelationship(pEntity) != R_AL;
@@ -342,7 +342,7 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 		if (!pAttacker)
 			pAttacker = pev;
 
-		pOther->TraceAttack(pev, pAttacker, gSkillData.voltigoreDmgBeam, pev->velocity, &tr, DMG_SHOCK|DMG_ALWAYSGIB);
+		pOther->TraceAttack(pev, pAttacker, DamageInfo(gSkillData.voltigoreDmgBeam, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
 		ApplyMultiDamage(pev, pAttacker);
 	}
 
@@ -631,13 +631,16 @@ void CVoltigore::DeathGibThink()
 
 		const float attackRadius = Q_max(Q_min(gSkillData.voltigoreDmgExplode * 2.0f, 200.0f), 160.0f);
 		ClearMultiDamage();
-		::RadiusDamage(pev->origin, pev, pev, gSkillData.voltigoreDmgExplode, attackRadius, CLASS_NONE, DMG_SHOCK);
+		::RadiusDamage(pev->origin, pev, pev, DamageInfo{gSkillData.voltigoreDmgExplode, DMG_SHOCK}, attackRadius, CLASS_NONE);
 	}
 }
 
 bool CVoltigore::CheckMeleeAttack1(float flDot, float flDist)
 {
-	if (HasConditions(bits_COND_SEE_ENEMY) && flDist <= 128.0f && flDot >= 0.6 && m_hEnemy != 0)
+	CheckMeleeAttackParams params;
+	params.distance = 128.0f;
+	params.dot = 0.6f;
+	if (HasConditions(bits_COND_SEE_ENEMY) && CheckMeleeAttackImpl(flDot, flDist, params, false) && m_hEnemy != 0)
 	{
 		return true;
 	}
@@ -745,53 +748,49 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case VOLTIGORE_AE_PUNCH_SINGLE:
 	{
 		// SOUND HERE!
-		CBaseEntity *pHurt = CheckTraceHullAttack(128.0f, gSkillData.voltigoreDmgPunch, DMG_CLUB);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.z = -15;
-				pHurt->pev->punchangle.x = 15;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * -150;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100;
-			}
 
-			EmitSoundScript(attackHitSoundScript);
+		Vector vecArmPos, vecArmAng;
+		GetAttachment(0, vecArmPos, vecArmAng);
 
-			Vector vecArmPos, vecArmAng;
-			GetAttachment( 0, vecArmPos, vecArmAng );
-			SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		TraceHullAttackParams params;
+		params.distance = 128.0f;
+		params.punchAngle.z = -15;
+		params.punchAngle.x = 15;
+		params.knockRight = -150;
+		params.knockUp = 100;
+		params.damageInfo.damage = gSkillData.voltigoreDmgPunch;
+		params.damageInfo.type = DMG_CLUB;
+		params.spawnBlood = true;
+		params.bloodOrigin = vecArmPos;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
 	}
 	break;
 
 	case VOLTIGORE_AE_PUNCH_BOTH:
 	{
 		// SOUND HERE!
-		CBaseEntity *pHurt = CheckTraceHullAttack(128.0f, gSkillData.voltigoreDmgPunch, DMG_CLUB);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.x = 20;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 150;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100;
-			}
 
-			EmitSoundScript(attackHitSoundScript);
+		Vector vecArmPos, vecArmAng;
+		GetAttachment(0, vecArmPos, vecArmAng);
 
-			Vector vecArmPos, vecArmAng;
-			GetAttachment( 0, vecArmPos, vecArmAng );
-			SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		TraceHullAttackParams params;
+		params.distance = 128.0f;
+		params.punchAngle.x = 20;
+		params.knockForward = 150;
+		params.knockUp = 100;
+		params.damageInfo.damage = gSkillData.voltigoreDmgPunch;
+		params.damageInfo.type = DMG_CLUB;
+		params.spawnBlood = true;
+		params.bloodOrigin = vecArmPos;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
 	}
 	break;
 
@@ -1234,52 +1233,48 @@ void CBabyVoltigore::HandleAnimEvent(MonsterEvent_t* pEvent)
 
 	case VOLTIGORE_AE_PUNCH_SINGLE:
 	{
-		CBaseEntity *pHurt = CheckTraceHullAttack(64, gSkillData.babyVoltigoreDmgPunch, DMG_CLUB, pev->size.z);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.z = -10;
-				pHurt->pev->punchangle.x = 10;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * -100;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 50;
-			}
+		Vector vecArmPos, vecArmAng;
+		GetAttachment(0, vecArmPos, vecArmAng);
 
-			EmitSoundScript(attackHitSoundScript);
+		TraceHullAttackParams params;
+		params.distance = 64.0f;
+		params.punchAngle.z = -10;
+		params.punchAngle.x = 10;
+		params.knockRight = -100;
+		params.knockUp = 50;
+		params.damageInfo.damage = gSkillData.babyVoltigoreDmgPunch;
+		params.damageInfo.type = DMG_CLUB;
+		params.spawnBlood = true;
+		params.bloodOrigin = vecArmPos;
+		params.height = pev->size.z;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-			Vector vecArmPos, vecArmAng;
-			GetAttachment( 0, vecArmPos, vecArmAng );
-			SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		PerformTraceHullAttack(params);
 	}
 	break;
 
 	case VOLTIGORE_AE_PUNCH_BOTH:
 	{
-		CBaseEntity *pHurt = CheckTraceHullAttack(64, gSkillData.babyVoltigoreDmgPunch, DMG_CLUB, pev->size.z);
-		if (pHurt)
-		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-			{
-				pHurt->pev->punchangle.x = 15;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 50;
+		Vector vecArmPos, vecArmAng;
+		GetAttachment(0, vecArmPos, vecArmAng);
 
-				Vector vecArmPos, vecArmAng;
-				GetAttachment( 0, vecArmPos, vecArmAng );
-				SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-			}
+		TraceHullAttackParams params;
+		params.distance = 64.0f;
+		params.punchAngle.x = 15;
+		params.knockForward = 100;
+		params.knockUp = 50;
+		params.damageInfo.damage = gSkillData.babyVoltigoreDmgPunch;
+		params.damageInfo.type = DMG_CLUB;
+		params.spawnBlood = true;
+		params.bloodOrigin = vecArmPos;
+		params.height = pev->size.z;
+		params.hitSoundScript = attackHitSoundScript;
+		params.missSoundScript = attackMissSoundScript;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-			EmitSoundScript(attackHitSoundScript);
-		}
-		else
-		{
-			EmitSoundScript(attackMissSoundScript);
-		}
+		PerformTraceHullAttack(params);
 	}
 	break;
 	default:
@@ -1290,11 +1285,10 @@ void CBabyVoltigore::HandleAnimEvent(MonsterEvent_t* pEvent)
 
 bool CBabyVoltigore::CheckMeleeAttack1(float flDot, float flDist)
 {
-	if (HasConditions(bits_COND_SEE_ENEMY) && flDist <= 64.0f && flDot >= 0.6f && m_hEnemy != 0)
-	{
-		return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = 64.0f;
+	params.dot = 0.6f;
+	return HasConditions(bits_COND_SEE_ENEMY) && CheckMeleeAttackImpl(flDot, flDist, params, false) && m_hEnemy != 0;
 }
 
 //=========================================================

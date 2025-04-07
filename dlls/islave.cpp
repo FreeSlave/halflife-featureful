@@ -377,8 +377,8 @@ public:
 	bool CheckHealOrReviveTargets( float flDist = 784, bool mustSee = false );
 	bool IsValidHealTarget( CBaseEntity* pEntity );
 	void CallForHelp( float flDist, EHANDLE hEnemy, Vector &vecLocation );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
 	void DeathSound( void );
 	void PainSound( void );
@@ -917,40 +917,30 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 				damage *= 1.5;
 			}
 			// SOUND HERE!
-			CBaseEntity *pHurt = CheckTraceHullAttack( 70, damage, damageType );
-			if( pHurt )
-			{
-				if( pHurt->pev->flags & ( FL_MONSTER | FL_CLIENT ) )
-				{
-					pHurt->pev->punchangle.z = 18;
-					pHurt->pev->punchangle.x = 5;
-				}
-				// Play a random attack hit sound
-				EmitSoundScriptTalk(attackHitSoundScript);
-			}
-			else
-			{
-				// Play a random attack miss sound
-				EmitSoundScriptTalk(attackMissSoundScript);
-			}
+
+			TraceHullAttackParams params;
+			params.punchAngle.z = 18;
+			params.punchAngle.x = 5;
+			params.damageInfo.damage = damage;
+			params.damageInfo.type = damageType;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+			PerformTraceHullAttack(params);
 		}
 			break;
 		case ISLAVE_AE_CLAWRAKE:
 		{
-			CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.slaveDmgClawrake, DMG_SLASH );
-			if( pHurt )
-			{
-				if( pHurt->pev->flags & ( FL_MONSTER | FL_CLIENT ) )
-				{
-					pHurt->pev->punchangle.z = -18;
-					pHurt->pev->punchangle.x = 5;
-				}
-				EmitSoundScriptTalk(attackHitSoundScript);
-			}
-			else
-			{
-				EmitSoundScriptTalk(attackMissSoundScript);
-			}
+			TraceHullAttackParams params;
+			params.punchAngle.z = -18;
+			params.punchAngle.x = 5;
+			params.damageInfo.damage = gSkillData.slaveDmgClawrake;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+			PerformTraceHullAttack(params);
 		}
 			break;
 		case ISLAVE_AE_ZAP_POWERUP:
@@ -1077,8 +1067,8 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				UTIL_ScreenShake( pev->origin, 3.0, 40.0, 1.0, ISLAVE_COIL_ATTACK_RADIUS );
 
-				::RadiusDamage(this, pev->origin, pev, pev, gSkillData.slaveDmgZap*2.5f,
-							   ISLAVE_COIL_ATTACK_RADIUS, DMG_SHOCK,
+				::RadiusDamage(this, pev->origin, pev, pev, DamageInfo{gSkillData.slaveDmgZap*2.5f, DMG_SHOCK},
+							   ISLAVE_COIL_ATTACK_RADIUS,
 							   RADIUSDAMAGE_SPOT_IS_TARGET_CENTER,
 							   [this](CBaseEntity* pEntity) {
 					const int rel = IRelationship(pEntity);
@@ -1502,22 +1492,22 @@ void CISlave::UpdateOnRemove()
 // TakeDamage - get provoked when injured
 //=========================================================
 
-int CISlave::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CISlave::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// don't slash one of your own
-	if( ( bitsDamageType & DMG_SLASH ) && pevAttacker ) {
+	if( ( damageInfo.type & DMG_SLASH ) && pevAttacker ) {
 		CBaseEntity* pAttacker = Instance( pevAttacker );
 		if (pAttacker && IRelationship( pAttacker ) == R_AL)
 			return 0;
 	}
 
 	m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
-	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
-void CISlave::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CISlave::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	if( (bitsDamageType & DMG_SHOCK)) {
+	if( (damageInfo.type & DMG_SHOCK)) {
 		if (!pevAttacker)
 			return;
 		CBaseEntity* pAttacker = Instance( pevAttacker );
@@ -1525,7 +1515,7 @@ void CISlave::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 			return;
 	}
 
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 //=========================================================
@@ -1970,7 +1960,7 @@ CBaseEntity *CISlave::ZapBeam( int side )
 				ALERT(at_aiconsole, "Vortigaunt healed friend with zap attack\n");
 			}
 		} else {
-			pEntity->TraceAttack( pev, pev, gSkillData.slaveDmgZap, vecAim, &tr, DMG_SHOCK );
+			pEntity->TraceAttack( pev, pev, DamageInfo{gSkillData.slaveDmgZap, DMG_SHOCK}, vecAim, &tr );
 #if FEATURE_ISLAVE_ENERGY
 			if (pEntity->pev->flags & (FL_CLIENT | FL_MONSTER)) {
 				//TODO: check that target is actually a living creature, not machine

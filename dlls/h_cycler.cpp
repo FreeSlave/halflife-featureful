@@ -37,7 +37,7 @@ class CCycler : public CBaseMonster
 public:
 	void GenericCyclerSpawn( const char *szModel, Vector vecMin, Vector vecMax );
 	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() | FCAP_IMPULSE_USE ); }
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	void Spawn( void );
 	void Think( void );
 	//void Pain( float flDamage );
@@ -183,8 +183,7 @@ void CCycler::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTy
 //
 // CyclerPain , changes sequences when shot
 //
-//void CCycler::Pain( float flDamage )
-int CCycler::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CCycler::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_animate )
 	{
@@ -228,7 +227,7 @@ public:
 			caps |= FCAP_IMPULSE_USE;
 		return caps;
 	}
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void Animate( float frames );
 
 	virtual int Save( CSave &save );
@@ -289,7 +288,7 @@ void CCyclerSprite::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	ALERT( at_console, "Sprite: %s\n", STRING( pev->model ) );
 }
 
-int CCyclerSprite::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CCyclerSprite::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_maxFrame > 1.0f )
 	{

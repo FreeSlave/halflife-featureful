@@ -33,6 +33,12 @@ bookToC: false
 * **Barney.FirePistol** - firing a handgun.
 * **Barney.FirePython** - firing a Python. Derived from **NPC.Python**.
 
+### Animation events
+
+* `2` - draw a weapon
+* `3` - fire a weapon.
+* `4` - holster a weapon. Plays **Barney.FirePistol** or **Barney.FirePython** soundscripts.
+
 ### Entity template examples
 
 {{% tabs %}}

@@ -4,7 +4,7 @@ title: "JSON"
 
 # {{% param "title" %}}
 
-Various configuration files in Featureful SDK are in [JSON](https://en.wikipedia.org/wiki/JSON) format. Such configuration files use the **.json** extension, e.g. **features/materials.json**, **templates/entitie.json**, etc. The format allows for structured hierarchical data representation which is not achievable with per-line configuration formats like **.cfg**.
+Various configuration files in Featureful SDK are in [JSON](https://en.wikipedia.org/wiki/JSON) format. Such configuration files use the **.json** extension, e.g. **features/materials.json**, **templates/entities.json**, etc. The format allows for structured hierarchical data representation which is not achievable with per-line configuration formats like **.cfg**.
 
 ## Editing
 
@@ -14,7 +14,7 @@ JSON files can be opened and modified in any text editor, but the text must be f
 
 JSON might look similar to the format used by Valve in some configuration files (especially in Source), but there're important differences which shoulnd't be overlooked.
 
-### Missing the comma
+### Missing comma
 
 Even though the document may look finely formatted with proper indentation, JSON still needs comma between property definitions.
 

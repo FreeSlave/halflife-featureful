@@ -598,8 +598,8 @@ void CHoundeye::SonicAttack( void )
 		flDamage = gSkillData.houndeyeDmgBlast + gSkillData.houndeyeDmgBlast * ( HOUNDEYE_SQUAD_BONUS * ( squadCount - 1 ) );
 	}
 
-	::RadiusDamage(this, pev->origin, pev, pev, flDamage,
-				   HOUNDEYE_MAX_ATTACK_RADIUS, DMG_SONIC | DMG_ALWAYSGIB,
+	::RadiusDamage(this, pev->origin, pev, pev, DamageInfo(flDamage, DMG_SONIC).SetGibPolicy(GIB_ALWAYS),
+				   HOUNDEYE_MAX_ATTACK_RADIUS,
 				   RADIUSDAMAGE_SPOT_IS_TARGET_CENTER|RADIUSDAMAGE_APPLY_FALLOFF,
 				   [this](CBaseEntity* pEntity) {
 		return !FClassnameIs( pEntity->pev, "monster_houndeye" ) || IRelationship(pEntity) >= R_DL;

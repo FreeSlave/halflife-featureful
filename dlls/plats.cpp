@@ -685,7 +685,7 @@ void CFuncPlat::Blocked( CBaseEntity *pOther )
 {
 	ALERT( at_aiconsole, "%s Blocked by %s\n", STRING( pev->classname ), STRING( pOther->pev->classname ) );
 	// Hurt the blocker a little
-	pOther->TakeDamage( pev, pev, 1, DMG_CRUSH );
+	pOther->TakeDamage( pev, pev, DamageInfo(1, DMG_CRUSH) );
 
 	if( pev->noiseMovement )
 		STOP_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMovement ) );
@@ -888,7 +888,7 @@ void CFuncTrain::Blocked( CBaseEntity *pOther )
 	m_flActivateFinished = gpGlobals->time + 0.5f;
 
 	if (pev->dmg)
-		pOther->TakeDamage( pev, pev, pev->dmg, DMG_CRUSH );
+		pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
 }
 
 void CFuncTrain::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
@@ -1231,7 +1231,7 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 	if( pev->dmg <= 0 )
 		return;
 	// we can't hurt this thing, so we're not concerned with it
-	pOther->TakeDamage( pev, pev, pev->dmg, DMG_CRUSH );
+	pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
 }
 
 void CFuncTrackTrain::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
@@ -2339,7 +2339,7 @@ public:
 
 	int		BloodColor( void ) { return DONT_BLEED; }
 	int		DefaultClassify( void ) { return CLASS_MACHINE; }
-	int		TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int		TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void		Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	Vector		BodyTarget( const Vector &posSrc ) { return pev->origin; }
 
@@ -2461,11 +2461,11 @@ void CGunTarget::Stop( void )
 	pev->takedamage = DAMAGE_NO;
 }
 
-int CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pev->health > 0 )
 	{
-		pev->health -= flDamage;
+		pev->health -= damageInfo.damage;
 		if( pev->health <= 0 )
 		{
 			pev->health = 0;

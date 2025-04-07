@@ -46,6 +46,19 @@ Shared visuals:
 
 * **Garg.FlameBase** - alpha and beam scrollrate used by **Garg.FlameBig** and **Garg.FlameSmall**.
 
+### Attacks
+
+* *Melee Attack 1* - melee.
+* *Melee Attack 2* - flames.
+* *Range Attack 1* - stomp.
+
+### Animation events
+
+* `1` - trace hull attack with right arm. Deals **sk_gargantua_dmg_slash** damage. Plays **Garg.AttackHit** or **Garg.AttackMiss** soundscripts.
+* `3` and `4` - play **Garg.Footstep** soundscript and shake effect.
+* `5` - create a stomp projectile. Play **Garg.StompSound** soundscript.
+* `6` - play **Garg.Breath** soundscript.
+
 ### Entity template examples
 
 {{% tabs %}}

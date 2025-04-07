@@ -26,3 +26,13 @@ bookToC: false
 * **Zombie.Attack** - plays occasionally on the slash attack.
 * **Zombie.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **Zombie.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
+
+### Attacks
+
+* *Melee Attack 1* - melee.
+
+### Animation events
+
+* `1` - trace hull attack with right arm. Deals **sk_zombie_dmg_one_slash** damage. Plays **Zombie.AttackHit** or **Zombie.AttackMiss**. Plays **Zombie.Attack** with 50% chance.
+* `2` - trace hull attack with left arm. Deals **sk_zombie_dmg_one_slash** damage. Plays **Zombie.AttackHit** or **Zombie.AttackMiss**. Plays **Zombie.Attack** with 50% chance.
+* `3` - trace hull attack with both arms. Deals **sk_zombie_dmg_both_slash** damage. Plays **Zombie.AttackHit** or **Zombie.AttackMiss**. Plays **Zombie.Attack** with 50% chance.

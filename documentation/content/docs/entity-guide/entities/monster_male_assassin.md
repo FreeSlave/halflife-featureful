@@ -27,3 +27,11 @@ bookToC: false
 * **Massn.9MM** - burst MP5 shot. Derived from **NPC.9MM**
 * **Massn.GrenadeLaunch** - MP5 grenade launch. Derived from **NPC.GrenadeLaunch**
 * **Massn.Sniper** - sniperrifle fire. Derived from **NPC.Sniper**
+
+### Attacks
+
+Same as [monster_human_grunt]({{< ref "monster_human_grunt/#attacks" >}}).
+
+### Animation events
+
+Same as [monster_human_grunt]({{< ref "monster_human_grunt/#animation-events" >}}), but deals **sk_massassin_kick** damage on kick event.

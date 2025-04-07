@@ -640,7 +640,7 @@ void CGamePlayerHurt::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		if( pev->dmg < 0 )
 			pActivator->TakeHealth( this, -pev->dmg, DMG_GENERIC );
 		else
-			pActivator->TakeDamage( pev, pev, pev->dmg, DMG_GENERIC );
+			pActivator->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_GENERIC) );
 	}
 
 	SUB_UseTargets( pActivator, useType, value );
@@ -1197,7 +1197,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 		player->TakeHealth(this, (int)pev->health, m_allowOverheal ? HEAL_ALLOW_OVERFLOW : HEAL_GENERIC);
 		break;
 	case VALUE_SETTING_SUBSTRUCT:
-		player->TakeDamage(pev, pev, pev->health, DMG_IGNORE_ARMOR|DMG_NO_PUNCH|DMG_NO_PLAYER_PUSH);
+		player->TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetIgnoreArmor().SetNoPlayerPush().SetNoPunch());
 		break;
 	case VALUE_SETTING_ATMAX:
 		if (player->pev->health > pev->health)

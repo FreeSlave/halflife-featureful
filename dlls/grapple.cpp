@@ -560,7 +560,7 @@ void CBarnacleGrapple::PrimaryAttack( void )
 								flDamage *= 2;
 							}
 
-							pHit->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
+							pHit->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
 
 							ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 

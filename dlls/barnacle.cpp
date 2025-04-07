@@ -42,7 +42,7 @@ public:
 	void EXPORT BarnacleThink( void );
 	void EXPORT WaitTillDead( void );
 	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void PainSound();
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -182,14 +182,15 @@ void CBarnacle::Spawn()
 	UTIL_SetOrigin( pev, pev->origin );
 }
 
-int CBarnacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBarnacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if( bitsDamageType & DMG_CLUB )
+	DamageInfo info = damageInfo;
+	if( damageInfo.type & DMG_CLUB )
 	{
-		flDamage = pev->health;
+		info.damage = pev->health;
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CBarnacle::PainSound()
@@ -278,7 +279,7 @@ void CBarnacle::BarnacleThink( void )
 				// kill!
 				if( pVictim )
 				{
-					pVictim->TakeDamage( pev, pev, pVictim->pev->health, DMG_SLASH | DMG_ALWAYSGIB );
+					pVictim->TakeDamage( pev, pev, DamageInfo(pVictim->pev->health, DMG_SLASH).SetGibPolicy(GIB_ALWAYS) );
 					m_cGibs = 3;
 				}
 

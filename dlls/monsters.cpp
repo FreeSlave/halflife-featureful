@@ -1042,17 +1042,32 @@ bool CBaseMonster::CheckRangeAttack2( float flDot, float flDist )
 //=========================================================
 // CheckMeleeAttack1
 //=========================================================
+bool CBaseMonster::CheckMeleeAttackImpl(float flDot, float flDist, const CheckMeleeAttackParams& defaults, bool meleeAttack2)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	CheckMeleeAttackParams params = defaults;
+	if (entTemplate)
+	{
+		EntTemplate::CheckMeleeAttack check = meleeAttack2 ? entTemplate->GetCheckMeleeAttack2() : entTemplate->GetCheckMeleeAttack1();
+		if (check.distance)
+		{
+			params.distance = *check.distance;
+		}
+		if (check.dot)
+		{
+			params.dot = *check.dot;
+		}
+	}
+	return flDist <= params.distance && flDot >= params.dot;
+}
+
 bool CBaseMonster::CheckMeleeAttack1( float flDot, float flDist )
 {
 	// Decent fix to keep folks from kicking/punching hornets and snarks is to check the onground flag(sjb)
 	// Note: the check for FL_ONGROUND actually causes problems. E.g. zombies can't attack sentry turrets and flying enemies.
 	// Hornets are not seen as enemies by everything except the machines, so they're not a problem at all.
 	// Disabling this check for now.
-	if( flDist <= 64.0f && flDot >= 0.7f && m_hEnemy != 0 /*&& FBitSet( m_hEnemy->pev->flags, FL_ONGROUND )*/ )
-	{
-		return true;
-	}
-	return false;
+	return CheckMeleeAttackImpl(flDot, flDist, CheckMeleeAttackParams(), false) && m_hEnemy != 0 /*&& FBitSet( m_hEnemy->pev->flags, FL_ONGROUND )*/;
 }
 
 //=========================================================
@@ -1060,11 +1075,7 @@ bool CBaseMonster::CheckMeleeAttack1( float flDot, float flDist )
 //=========================================================
 bool CBaseMonster::CheckMeleeAttack2( float flDot, float flDist )
 {
-	if( flDist <= 64.0f && flDot >= 0.7f )
-	{
-		return true;
-	}
-	return false;
+	return CheckMeleeAttackImpl(flDot, flDist, CheckMeleeAttackParams(), true);
 }
 
 //=========================================================
@@ -3256,7 +3267,17 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		}
 	default:
-		ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+		{
+			TraceHullAttackParams params;
+			if (SetTraceHullAttackParamsFromTemplate(pEvent->event, params))
+			{
+				PerformTraceHullAttack(params);
+			}
+			else
+			{
+				ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+			}
+		}
 		break;
 	}
 }
@@ -4697,7 +4718,7 @@ public:
 	void Spawn();
 	const char* DefaultModel() { return "models/skeleton.mdl"; }
 	int	DefaultClassify() { return	CLASS_NONE; }
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 
 	const char* getPos(int pos) const;
 	static const char *m_szPoses[4];
@@ -4718,9 +4739,9 @@ void CSkeleton::Spawn(void)
 	MonsterInitDead();
 }
 
-int CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return CDeadMonster::TakeDamage(pevInflictor, pevAttacker, 0.0, bitsDamageType);
+	return 1;
 }
 #endif
 

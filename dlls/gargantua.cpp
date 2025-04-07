@@ -321,7 +321,7 @@ void CStomp::Think( void )
 			entvars_t *pevOwner = pev;
 			if( pev->owner )
 				pevOwner = VARS( pev->owner );
-			pEntity->TakeDamage( pev, pevOwner, pev->dmg, DMG_SONIC );
+			pEntity->TakeDamage( pev, pevOwner, DamageInfo(pev->dmg, DMG_SONIC) );
 		}
 	}
 
@@ -416,8 +416,8 @@ public:
 	int DefaultClassify( void );
 	const char* DefaultGibModel() { return GARG_GIB_MODEL; }
 	const char* DefaultDisplayName() { return "Gargantua"; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;		// Swipe
@@ -456,7 +456,7 @@ public:
 	void FlameDestroy( void );
 	inline bool FlameIsOn( void ) { return m_pFlame[0] != NULL; }
 
-	void FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int iClassIgnore, int bitsDamageType );
+	void FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -494,8 +494,6 @@ protected:
 	virtual float FlameTimeDivider();
 	virtual Vector StompAttackStartVec();
 
-	void HandleSlashAnim(float damage, float punch, float velocity);
-
 	static constexpr const char* attackHitSoundScript = "Garg.AttackHit";
 	static constexpr const char* attackMissSoundScript = "Garg.AttackMiss";
 	static const NamedSoundScript flameOnSoundScript;
@@ -517,11 +515,11 @@ protected:
 	static const NamedVisual smallFlameVisual;
 	static const NamedVisual flameLightVisual;
 
-	virtual void PlayAttackHitSound() {
-		EmitSoundScript(attackHitSoundScript);
+	virtual const char* AttackHitSound() {
+		return attackHitSoundScript;
 	}
-	virtual void PlayAttackMissSound() {
-		EmitSoundScript(attackMissSoundScript);
+	virtual const char* AttackMissSound() {
+		return attackMissSoundScript;
 	}
 	virtual void FlameOnSound() {
 		EmitSoundScript(flameOnSoundScript);
@@ -532,8 +530,6 @@ protected:
 	virtual void FlameOffSound() {
 		EmitSoundScript(flameOffSoundScript);
 	}
-
-	CBaseEntity* GargantuaCheckTraceHullAttack(float flDist, int iDamage, int iDmgType);
 
 	CSprite		*m_pEyeGlow;		// Glow around the eyes
 	CBeam		*m_pFlame[4];		// Flame beams
@@ -896,7 +892,7 @@ void CGargantua::FlameUpdate( void )
 			}
 
 			// RadiusDamage( trace.vecEndPos, pev, pev, gSkillData.gargantuaDmgFire, CLASS_ALIEN_MONSTER, DMG_BURN );
-			FlameDamage( vecStart, trace.vecEndPos, pev, pev, FireAttackDamage(), Classify(), DMG_BURN );
+			FlameDamage( vecStart, trace.vecEndPos, pev, pev, DamageInfo{FireAttackDamage(), DMG_BURN}, Classify() );
 
 			SendEntLight(entindex(), vecStart, m_flameVisual, i + 2);
 		}
@@ -905,11 +901,10 @@ void CGargantua::FlameUpdate( void )
 		m_streakTime = gpGlobals->time;
 }
 
-void CGargantua::FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int iClassIgnore, int bitsDamageType )
+void CGargantua::FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore )
 {
 	CBaseEntity	*pEntity = NULL;
 	TraceResult	tr;
-	float		flAdjustedDamage;
 	Vector		vecSpot;
 
 	Vector vecMid = ( vecStart + vecEnd ) * 0.5f;
@@ -948,25 +943,22 @@ void CGargantua::FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInfl
 				// decrease damage for an ent that's farther from the flame.
 				dist = ( vecSrc - tr.vecEndPos ).Length();
 
+				DamageInfo dmgInfo = damageInfo;
 				if( dist > 64.0f )
 				{
-					flAdjustedDamage = flDamage - ( dist - 64.0f ) * 0.4f;
-					if( flAdjustedDamage <= 0 )
+					dmgInfo.damage = damageInfo.damage - ( dist - 64.0f ) * 0.4f;
+					if( dmgInfo.damage <= 0 )
 						continue;
-				}
-				else
-				{
-					flAdjustedDamage = flDamage;
 				}
 
 				// ALERT( at_console, "hit %s\n", STRING( pEntity->pev->classname ) );
 				if( tr.flFraction != 1.0f )
 				{
-					pEntity->ApplyTraceAttack( pevInflictor, pevAttacker, flAdjustedDamage, ( tr.vecEndPos - vecSrc ).Normalize(), &tr, bitsDamageType );
+					pEntity->ApplyTraceAttack( pevInflictor, pevAttacker, dmgInfo, ( tr.vecEndPos - vecSrc ).Normalize(), &tr );
 				}
 				else
 				{
-					pEntity->TakeDamage( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
+					pEntity->TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 				}
 			}
 		}
@@ -1115,16 +1107,16 @@ void CGargantua::UpdateOnRemove()
 	CFollowingMonster::UpdateOnRemove();
 }
 
-void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	if( !IsAlive() )
 	{
-		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 		return;
 	}
 
 	// UNDONE: Hit group specific damage?
-	if( bitsDamageType & ( GARG_DAMAGE | DMG_BLAST ) )
+	if( damageInfo.type & GARG_DAMAGE )
 	{
 		if( m_painSoundTime < gpGlobals->time )
 		{
@@ -1133,9 +1125,10 @@ void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 		}
 	}
 
-	bitsDamageType &= GARG_DAMAGE;
+	DamageInfo dmgInfo = damageInfo;
+	dmgInfo.type &= GARG_DAMAGE;
 
-	if( bitsDamageType == 0 )
+	if( dmgInfo.type == 0 )
 	{
 		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 100 ) < 20 ) )
 		{
@@ -1144,23 +1137,24 @@ void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 			//if ( RANDOM_LONG( 0, 100 ) < 25 )
 			//	EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, pRicSounds[RANDOM_LONG( 0, ARRAYSIZE( pRicSounds ) - 1 )], 1.0, ATTN_NORM, 0, PITCH_NORM );
 		}
-		flDamage = 0;
+		dmgInfo.damage = 0;
 	}
 
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
-int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	DamageInfo info = damageInfo;
 	if( IsAlive() )
 	{
-		if( !( bitsDamageType & GARG_DAMAGE ) )
-			flDamage *= 0.01f;
-		if( bitsDamageType & DMG_BLAST )
+		if( !( info.type & GARG_DAMAGE ) )
+			info.damage *= 0.01f;
+		if( info.type & DMG_BLAST )
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 
-	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CGargantua::DeathEffect( void )
@@ -1208,13 +1202,9 @@ void CGargantua::OnDying()
 bool CGargantua::CheckMeleeAttack1( float flDot, float flDist )
 {
 	//ALERT( at_aiconsole, "CheckMelee(%f, %f)\n", flDot, flDist );
-
-	if( flDot >= 0.7f )
-	{
-		if( flDist <= GARG_ATTACKDIST )
-			return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = GARG_ATTACKDIST;
+	return CheckMeleeAttackImpl(flDot, flDist, params, false);
 }
 
 // Flame thrower madness!
@@ -1224,10 +1214,21 @@ bool CGargantua::CheckMeleeAttack2( float flDot, float flDist )
 
 	if( gpGlobals->time > m_flameTime )
 	{
-		if( flDot >= 0.8f && flDist > GARG_ATTACKDIST )
+		float meleeAttack1Distance = GARG_ATTACKDIST;
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate)
 		{
-			if ( flDist <= FlameLength() )
-				return true;
+			EntTemplate::CheckMeleeAttack check = entTemplate->GetCheckMeleeAttack1();
+			if (check.distance)
+				meleeAttack1Distance = *check.distance;
+		}
+
+		if( flDist > meleeAttack1Distance )
+		{
+			CheckMeleeAttackParams params;
+			params.distance = FlameLength();
+			params.dot = 0.8f;
+			return CheckMeleeAttackImpl(flDot, flDist, params, true);
 		}
 	}
 	return false;
@@ -1263,7 +1264,21 @@ void CGargantua::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case GARG_AE_SLASH_LEFT:
-		HandleSlashAnim(gSkillData.gargantuaDmgSlash, 30, 100);
+	{
+		TraceHullAttackParams params;
+		params.punchAngle = Vector(-30, -30, 30);
+		params.knockRight = -100.0f;
+		params.distance = GARG_ATTACKDIST + 10.0f;
+		params.verticalDistance = params.distance * -0.3f;
+		params.height = 64;
+		params.damageInfo.damage = gSkillData.gargantuaDmgSlash;
+		params.useAimVectors = false;
+		params.hitSoundScript = AttackHitSound();
+		params.missSoundScript = AttackMissSound();
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
+	}
 		break;
 	case GARG_AE_RIGHT_FOOT:
 	case GARG_AE_LEFT_FOOT:
@@ -1280,66 +1295,6 @@ void CGargantua::HandleAnimEvent( MonsterEvent_t *pEvent )
 		CFollowingMonster::HandleAnimEvent( pEvent );
 		break;
 	}
-}
-
-void CGargantua::HandleSlashAnim(float damage, float punch, float velocity)
-{
-	// HACKHACK!!!
-	CBaseEntity *pHurt = GargantuaCheckTraceHullAttack( GARG_ATTACKDIST + 10.0f, damage, DMG_SLASH );
-	if( pHurt )
-	{
-		if( pHurt->pev->flags & ( FL_MONSTER | FL_CLIENT ) )
-		{
-			pHurt->pev->punchangle.x = -punch; // pitch
-			pHurt->pev->punchangle.y = -punch;	// yaw
-			pHurt->pev->punchangle.z = punch;	// roll
-			//UTIL_MakeVectors( pev->angles );	// called by CheckTraceHullAttack
-			pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_right * velocity;
-		}
-		PlayAttackHitSound();
-	}
-	else // Play a random attack miss sound
-		PlayAttackMissSound();
-
-	Vector forward;
-	UTIL_MakeVectorsPrivate( pev->angles, forward, NULL, NULL );
-}
-
-//=========================================================
-// CheckTraceHullAttack - expects a length to trace, amount 
-// of damage to do, and damage type. Returns a pointer to
-// the damaged entity in case the monster wishes to do
-// other stuff to the victim (punchangle, etc)
-// Used for many contact-range melee attacks. Bites, claws, etc.
-
-// Overridden for Gargantua because his swing starts lower as
-// a percentage of his height (otherwise he swings over the
-// players head)
-//=========================================================
-CBaseEntity* CGargantua::GargantuaCheckTraceHullAttack(float flDist, int iDamage, int iDmgType)
-{
-	TraceResult tr;
-
-	UTIL_MakeVectors( pev->angles );
-	Vector vecStart = pev->origin;
-	vecStart.z += 64;
-	Vector vecEnd = vecStart + ( gpGlobals->v_forward * flDist ) - ( gpGlobals->v_up * flDist * 0.3f );
-
-	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
-
-	if( tr.pHit )
-	{
-		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-
-		if( pEntity && iDamage > 0 )
-		{
-			pEntity->TakeDamage( pev, pev, iDamage, iDmgType );
-		}
-
-		return pEntity;
-	}
-
-	return NULL;
 }
 
 Schedule_t *CGargantua::GetSchedule()
@@ -2012,8 +1967,8 @@ public:
 	void PlayUnUseSentence();
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void DeathSound();
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void SetObjectCollisionBox( void )
 	{
 		SetMyObjectCollisionBox(Vector( -32, -32, 0 ), Vector( 32, 32, 100 ));
@@ -2056,11 +2011,11 @@ protected:
 	static const NamedVisual smallFlameVisual;
 	static const NamedVisual flameLightVisual;
 
-	virtual void PlayAttackHitSound() {
-		EmitSoundScript(attackHitSoundScript);
+	virtual const char* AttackHitSound() override {
+		return attackHitSoundScript;
 	}
-	virtual void PlayAttackMissSound() {
-		EmitSoundScript(attackMissSoundScript);
+	virtual const char* AttackMissSound() override {
+		return attackMissSoundScript;
 	}
 	virtual void FlameOnSound() {
 		EmitSoundScript(flameOnSoundScript);
@@ -2231,22 +2186,38 @@ void CBabyGargantua::HandleAnimEvent(MonsterEvent_t *pEvent)
 	switch( pEvent->event )
 	{
 	case GARG_AE_SLASH_LEFT:
-		HandleSlashAnim(gSkillData.babygargantuaDmgSlash, 20, 80);
+	{
+		TraceHullAttackParams params;
+		params.punchAngle = Vector(-20, -20, 20);
+		params.knockRight = -80.0f;
+		params.distance = GARG_ATTACKDIST + 10.0f;
+		params.verticalDistance = params.distance * -0.3f;
+		params.height = 64;
+		params.damageInfo.damage = gSkillData.babygargantuaDmgSlash;
+		params.useAimVectors = false;
+		params.hitSoundScript = AttackHitSound();
+		params.missSoundScript = AttackMissSound();
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
+	}
 		break;
 	case BABYGARG_AE_KICK:
 	{
-		CBaseEntity *pHurt = GargantuaCheckTraceHullAttack( GARG_ATTACKDIST, gSkillData.babygargantuaDmgSlash, DMG_SLASH );
-		if( pHurt )
-		{
-			if( pHurt->pev->flags & ( FL_MONSTER | FL_CLIENT ) )
-			{
-				pHurt->pev->punchangle.x = 20;
-				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100 + gpGlobals->v_forward * 200;
-			}
-			PlayAttackHitSound();
-		}
-		else // Play a random attack miss sound
-			PlayAttackMissSound();
+		TraceHullAttackParams params;
+		params.punchAngle.x = 20;
+		params.knockForward = 200.0f;
+		params.knockUp = 100;
+		params.distance = GARG_ATTACKDIST + 5.0f;
+		params.verticalDistance = params.distance * -0.3f;
+		params.height = 64;
+		params.damageInfo.damage = gSkillData.babygargantuaDmgSlash;
+		params.useAimVectors = false;
+		params.hitSoundScript = AttackHitSound();
+		params.missSoundScript = AttackMissSound();
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		PerformTraceHullAttack(params);
 	}
 		break;
 	default:
@@ -2280,16 +2251,16 @@ const char* CBabyGargantua::DefaultModel()
 	return "models/babygarg.mdl";
 }
 
-int CBabyGargantua::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int CBabyGargantua::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
-void CBabyGargantua::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CBabyGargantua::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	if( !IsFullyAlive() )
 	{
-		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 		return;
 	}
 
@@ -2299,7 +2270,7 @@ void CBabyGargantua::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker
 		m_painSoundTime = gpGlobals->time + RANDOM_FLOAT( 2.5, 4 );
 	}
 
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 void CBabyGargantua::FootEffect()

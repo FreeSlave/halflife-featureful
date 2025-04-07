@@ -23,6 +23,8 @@
 #include "visuals.h"
 #include "grapple_target.h"
 #include "classify.h"
+#include "dmg_types.h"
+#include "gib.h"
 #include <type_traits>
 /*
 
@@ -124,6 +126,50 @@ class CSquadMonster;
 
 struct EntTemplate;
 
+struct DamageInfo
+{
+	DamageInfo() {}
+	DamageInfo(float dmg, int dmgType): damage(dmg), type(dmgType) {}
+	float damage = 0.0f;
+	int type = DMG_GENERIC;
+	int gibPolicy = GIB_NORMAL;
+	bool nonLethal = false; // this damage shouldn't kill player or monster
+	bool timedNonLethal = false;
+	bool ignoreArmor = false; // ignore player's armor, deal damage to health only
+	bool noPlayerPush = false; // don't push player
+	bool noPunch = false; // don't make a smalle punch on player's camera
+	bool noBlood = false; // used in TraceAttack. Force not to bleed.
+
+	DamageInfo& SetGibPolicy(int gib) {
+		gibPolicy = gib;
+		return *this;
+	}
+	DamageInfo& SetNonLethal(bool enable = true) {
+		nonLethal = enable;
+		return *this;
+	}
+	DamageInfo& SetTimedNonLethal(bool enable = true) {
+		timedNonLethal = enable;
+		return *this;
+	}
+	DamageInfo& SetIgnoreArmor(bool enable = true) {
+		ignoreArmor = enable;
+		return *this;
+	}
+	DamageInfo& SetNoPlayerPush(bool enable = true) {
+		noPlayerPush = enable;
+		return *this;
+	}
+	DamageInfo& SetNoPunch(bool enable = true) {
+		noPunch = enable;
+		return *this;
+	}
+	DamageInfo& SetNoBlood(bool enable = true) {
+		noBlood = enable;
+		return *this;
+	}
+};
+
 #define SF_ITEM_TOUCH_ONLY 128
 #define SF_ITEM_USE_ONLY 256 //  ITEM_USE_ONLY = BUTTON_USE_ONLY = DOOR_USE_ONLY!!!
 
@@ -207,9 +253,9 @@ public:
 
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr);
+	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr );
+	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
 	virtual int TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return 0; }
 	virtual void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
@@ -725,12 +771,6 @@ public:
 #define	itbd_SlowBurn		6
 #define	itbd_SlowFreeze		7
 #define CDMG_TIMEBASED		8
-
-// when calling KILLED(), a value that governs gib behavior is expected to be 
-// one of these three values
-#define GIB_NORMAL			0// gib if entity was overkilled
-#define GIB_NEVER			1// never gib, no matter how much death damage is done ( freezing, etc )
-#define GIB_ALWAYS			2// always gib ( Houndeye Shock, Barnacle Bite )
 
 class CBaseMonster;
 class CCineMonster;

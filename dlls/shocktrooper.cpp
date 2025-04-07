@@ -95,7 +95,7 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	int	Save(CSave &save);
 	int Restore(CRestore &restore);
@@ -405,8 +405,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case STROOPER_AE_KICK:
 	{
-		PerformKick(gSkillData.strooperDmgKick, (m_bRightClaw) ? -10 : 10);
-
+		PerformKick(pEvent->event, gSkillData.strooperDmgKick, (m_bRightClaw) ? -10 : 10);
 		m_bRightClaw = !m_bRightClaw;
 	}
 	break;
@@ -533,9 +532,9 @@ void CShockTrooper::DeathSound(void)
 //=========================================================
 // TraceAttack - reimplemented in shock trooper because they never have helmets
 //=========================================================
-void CShockTrooper::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CShockTrooper::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
-	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 }
 
 bool CShockTrooper::CanDropGrenade() const

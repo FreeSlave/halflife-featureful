@@ -1298,7 +1298,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 			if( gpGlobals->time >= pev->dmgtime )
 			{
 				if( pev->dmg < 0 ) pOther->TakeHealth(this, -pev->dmg, DMG_GENERIC );
-				else pOther->TakeDamage( pev, pev, pev->dmg ? pev->dmg : 5, DMG_SHOCK );
+				else pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg ? pev->dmg : 5, DMG_SHOCK) );
 				pev->dmgtime = gpGlobals->time + 0.5f;
 			}
 		}

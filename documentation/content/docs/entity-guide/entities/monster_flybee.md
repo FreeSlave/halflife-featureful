@@ -41,3 +41,15 @@ The soundscripts use ichthyosaur sounds by default.
 * **Flybee.ZapBeamAlt** - zap attack alternative beam. Same as **Flybee.ZapBeam** but different default color.
 * **Flybee.Zap** - zap attack sprite.
 * **Flybee.ZapWave** - beam settings for the zap attack shockwave.
+
+### Attacks
+
+* *Melee Attack 1* - bite.
+* *Range Attack 1* - projectiles.
+* *Range Attack 2* - beam.
+
+### Animation events
+
+* `1` - bite trace hull attack. Plays **Flybee.Bite** soundscript.
+* `2` - fire 4 electric balls.
+* `3` - beam attack.

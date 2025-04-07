@@ -123,11 +123,11 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 
 		if( pOther->IsPlayer() )
 		{
-			pOther->TraceAttack( pev, pevOwner, gSkillData.plrDmgCrossbowClient, pev->velocity.Normalize(), &tr, DMG_NEVERGIB );
+			pOther->TraceAttack( pev, pevOwner, DamageInfo(gSkillData.plrDmgCrossbowClient, DMG_GENERIC).SetGibPolicy(GIB_NEVER), pev->velocity.Normalize(), &tr );
 		}
 		else
 		{
-			pOther->TraceAttack( pev, pevOwner, gSkillData.plrDmgCrossbowMonster, pev->velocity.Normalize(), &tr, DMG_BULLET | DMG_NEVERGIB );
+			pOther->TraceAttack( pev, pevOwner, DamageInfo(gSkillData.plrDmgCrossbowMonster, DMG_BULLET).SetGibPolicy(GIB_NEVER), pev->velocity.Normalize(), &tr );
 		}
 
 		ApplyMultiDamage( pev, pevOwner );
@@ -234,7 +234,7 @@ void CCrossbowBolt::ExplodeThink( void )
 
 	pev->owner = NULL; // can't traceline attack owner if this is set
 
-	::RadiusDamage( pev->origin, pev, pevOwner, pev->dmg, 128, CLASS_NONE, DMG_BLAST | DMG_ALWAYSGIB );
+	::RadiusDamage( pev->origin, pev, pevOwner, DamageInfo(pev->dmg, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
 
 	UTIL_Remove( this );
 }
@@ -359,7 +359,7 @@ void CCrossbow::FireSniperBolt()
 	if( tr.pHit->v.takedamage )
 	{
 		ClearMultiDamage();
-		CBaseEntity::Instance( tr.pHit )->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, 120, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB );
+		CBaseEntity::Instance( tr.pHit )->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
 		ApplyMultiDamage( pev, m_pPlayer->pev );
 	}
 #endif

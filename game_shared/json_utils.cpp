@@ -248,6 +248,105 @@ constexpr const char definitions[] = R"(
 		},
 		"additionalProperties": false
 	},
+	"damage_info": {
+		"type": "object",
+		"properties": {
+			"damage": {
+				"type": "number"
+			},
+			"type": {
+				"type": ["string", "array"],
+				"items": {
+					"type": "string"
+				}
+			},
+			"type_policy": {
+				"enum": ["replace", "add"]
+			},
+			"nonlethal": {
+				"type": "boolean"
+			},
+			"ignore_armor": {
+				"type": "boolean"
+			},
+			"gib": {
+				"enum": ["always", "never", "normal"]
+			}
+		},
+		"additionalProperties": false
+	},
+	"check_melee_attack": {
+		"type": "object",
+		"properties": {
+			"distance": {
+				"type": "number",
+				"minimum": 0.0
+			},
+			"dot": {
+				"type": "number",
+				"minimum": 0.0,
+				"maximum": 1.0
+			}
+		},
+		"additionalProperties": false
+	},
+	"trace_hull_attack": {
+		"type": "object",
+		"properties": {
+			"distance": {
+				"type": "number",
+				"minimum": 0
+			},
+			"height": {
+				"type": ["number", "string"],
+				"pattern": "^\\*[0-9]+(\\.[0-9]+)?$"
+			},
+			"punchangle": {
+				"type": "object",
+				"properties": {
+					"pitch": {
+						"type": "number"
+					},
+					"yaw": {
+						"type": "number"
+					},
+					"roll": {
+						"type": "number"
+					}
+				}
+			},
+			"knock": {
+				"type": "object",
+				"properties": {
+					"forward": {
+						"type": "number"
+					},
+					"right": {
+						"type": "number"
+					},
+					"up": {
+						"type": "number"
+					},
+					"player_only": {
+						"type": "boolean"
+					}
+				}
+			},
+			"damage_info": {
+				"$ref": "#/damage_info"
+			},
+			"spawn_blood": {
+				"type": "boolean"
+			},
+			"hit_soundscript": {
+				"$ref": "#/soundscript"
+			},
+			"miss_soundscript": {
+				"$ref": "#/soundscript"
+			}
+		},
+		"additionalProperties": false
+	},
 	"entity_template": {
 		"type": ["object", "string"],
 		"properties": {
@@ -346,6 +445,18 @@ constexpr const char definitions[] = R"(
 			},
 			"open_door_capability": {
 				"type": "boolean"
+			},
+			"check_melee_attack1": {
+				"$ref": "#/check_melee_attack"
+			},
+			"check_melee_attack2": {
+				"$ref": "#/check_melee_attack"
+			},
+			"trace_hull_attacks": {
+				"type": "object",
+				"patternProperties": {
+					"^[0-9]+$": { "$ref": "#/trace_hull_attack" }
+				}
 			}
 		},
 		"additionalProperties": false
@@ -524,6 +635,28 @@ bool UpdatePropertyFromJson(float& f, Value& jsonValue, const char* key)
 	if (it != jsonValue.MemberEnd())
 	{
 		f = it->value.GetFloat();
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(optional<float>& f, Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		f = it->value.GetFloat();
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(optional<int>& i, Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		i = it->value.GetInt();
 		return true;
 	}
 	return false;

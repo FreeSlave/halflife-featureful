@@ -129,7 +129,7 @@ void CMortarShell::MortarExplodeTouch(CBaseEntity *pOther)
 	entvars_t* pOwner = VARS(pev->owner);
 	pev->owner = NULL;
 
-	RadiusDamage(pev, pOwner, pev->dmg, CLASS_NONE, 64);
+	RadiusDamage(pev, pOwner, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE);
 
 	if (RANDOM_FLOAT(0, 1) >= 0.5)
 		UTIL_DecalTrace(&tr, DECAL_SCORCH2);
@@ -221,7 +221,7 @@ class COp4Mortar : public CBaseMonster
 {
 public:
 	void Spawn();
-	virtual int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	virtual void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void Precache();
 	void KeyValue(KeyValueData *pvkd);
@@ -610,9 +610,9 @@ CBaseEntity *COp4Mortar::FindTarget()
 	return pIdealTarget;
 }
 
-int COp4Mortar::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+int COp4Mortar::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, 0, bitsDamageType);
+	return 1;
 }
 
 void COp4Mortar::KeyValue(KeyValueData *pvkd)

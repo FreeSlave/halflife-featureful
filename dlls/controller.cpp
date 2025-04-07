@@ -102,7 +102,7 @@ public:
 	static const NamedVisual headShootLightVisual;
 	static const NamedVisual energyBallLightVisual;
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying();
 	void GibMonster( void );
 
@@ -218,12 +218,12 @@ void CController::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// HACK HACK -- until we fix this.
 	if( IsAlive() )
 		PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 void CController::OnDying()
@@ -1287,7 +1287,7 @@ void CControllerHeadBall::HuntThink( void )
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, gSkillData.controllerDmgZap, pev->velocity, &tr, DMG_SHOCK);
+			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{gSkillData.controllerDmgZap, DMG_SHOCK}, pev->velocity, &tr);
 		}
 
 		MakeTraceBeam(tr.vecEndPos);
@@ -1468,7 +1468,7 @@ void CControllerZapBall::ExplodeTouch( CBaseEntity *pOther )
 			pevOwner = pev;
 		}
 
-		pOther->ApplyTraceAttack(pev, pevOwner, gSkillData.controllerDmgBall, pev->velocity.Normalize(), &tr, DMG_ENERGYBEAM);
+		pOther->ApplyTraceAttack(pev, pevOwner, DamageInfo{gSkillData.controllerDmgBall, DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
 
 		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
 	}

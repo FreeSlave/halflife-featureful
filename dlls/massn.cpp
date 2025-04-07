@@ -80,7 +80,7 @@ public:
 	void PlayPainSound();
 	void IdleSound(void);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	void SetHead(int head);
 
@@ -277,7 +277,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case MASSN_AE_KICK:
 	{
-		PerformKick(gSkillData.massnDmgKick);
+		PerformKick(pEvent->event, gSkillData.massnDmgKick);
 	}
 	break;
 
@@ -382,9 +382,9 @@ void CMassn::DeathSound(void)
 //=========================================================
 // TraceAttack - reimplemented in male assassin because they never have helmets
 //=========================================================
-void CMassn::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CMassn::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
-	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 }
 
 void CMassn::SetHead(int head)

@@ -42,3 +42,12 @@ The resources for this NPC are not included in the sample mod. You can take them
 Shared visuals:
 
 * **RoboCop.ShockWaveBase** - the base visual for shockwave attack.
+
+### Attacks
+
+* *Melee Attack 1* - shock wave.
+* *Range Attack 1* - beam.
+
+### Animation events
+
+* `1` and `2` - play **RoboCop.Step** soundscript and shake effect.

@@ -74,8 +74,7 @@ Collects multiple small damages into a single damage
 void ClearMultiDamage( void )
 {
 	gMultiDamage.pEntity = NULL;
-	gMultiDamage.amount = 0;
-	gMultiDamage.type = 0;
+	gMultiDamage.damageInfo = DamageInfo{};
 }
 
 //
@@ -85,33 +84,34 @@ void ClearMultiDamage( void )
 //		gMultiDamage
 void ApplyMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker )
 {
-	Vector vecSpot1;//where blood comes from
-	Vector vecDir;//direction blood should go
-	TraceResult tr;
-
 	if( !gMultiDamage.pEntity )
 		return;
 
-	gMultiDamage.pEntity->TakeDamage( pevInflictor, pevAttacker, gMultiDamage.amount, gMultiDamage.type );
+	gMultiDamage.pEntity->TakeDamage( pevInflictor, pevAttacker, gMultiDamage.damageInfo );
 }
 
 // GLOBALS USED:
 //		gMultiDamage
-void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, float flDamage, int bitsDamageType )
+void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo )
 {
 	if( !pEntity )
 		return;
 
-	gMultiDamage.type |= bitsDamageType;
+	const int prevDamageType = gMultiDamage.damageInfo.type;
+	const float prevDamage = gMultiDamage.damageInfo.damage;
+
+	gMultiDamage.damageInfo = damageInfo;
+	gMultiDamage.damageInfo.damage = prevDamage;
+	gMultiDamage.damageInfo.type |= prevDamageType;
 
 	if( pEntity != gMultiDamage.pEntity )
 	{
 		ApplyMultiDamage( pevInflictor, pevAttacker );
 		gMultiDamage.pEntity = pEntity;
-		gMultiDamage.amount = 0;
+		gMultiDamage.damageInfo.damage = 0;
 	}
 
-	gMultiDamage.amount += flDamage;
+	gMultiDamage.damageInfo.damage += damageInfo.damage;
 }
 
 /*

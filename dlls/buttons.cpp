@@ -844,7 +844,7 @@ public:
 	void EXPORT ButtonBackHome( void );
 	void EXPORT ButtonUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT ButtonUse_IgnorePlayer( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 
@@ -1149,7 +1149,7 @@ void CBaseButton::KeyValue( KeyValueData *pkvd )
 //
 // ButtonShot
 //
-int CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	BUTTON_CODE code = ButtonResponseToTouch();
 
@@ -2285,7 +2285,7 @@ class CButtonTarget : public CBaseEntity
 public:
 	void Spawn( void );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	int ObjectCaps( void );	
 };
 
@@ -2323,7 +2323,7 @@ int CButtonTarget::ObjectCaps( void )
 		return caps;
 }
 
-int CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Use( Instance( pevAttacker ), this, USE_TOGGLE, 0 );
 

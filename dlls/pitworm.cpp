@@ -58,8 +58,8 @@ public:
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void HandleAnimEvent(MonsterEvent_t *pEvent);
-	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
+	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	void EXPORT StartupThink(void);
 	void EXPORT DyingThink(void);
@@ -530,13 +530,13 @@ void CPitWorm::HandleAnimEvent(MonsterEvent_t *pEvent)
 	}
 }
 
-void CPitWorm::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CPitWorm::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	if ( ptr->iHitgroup == HITGROUP_HEAD )
 	{
 		if (gpGlobals->time > m_flTakeHitTime )
 		{
-			pev->health -= flDamage;
+			pev->health -= damageInfo.damage;
 			if (pev->health <= 0)
 			{
 				pev->health = pev->max_health;
@@ -545,7 +545,7 @@ void CPitWorm::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 			}
 		}
 
-		UTIL_BloodDrips(ptr->vecEndPos, vecDir, m_bloodColor, flDamage * 10);
+		UTIL_BloodDrips(ptr->vecEndPos, vecDir, m_bloodColor, damageInfo.damage * 10);
 		UTIL_BloodDecalTrace(ptr, m_bloodColor);
 
 		if (m_hEnemy == 0)
@@ -596,7 +596,7 @@ void CPitWorm::CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 //=========================================================
 //
 //=========================================================
-int CPitWorm::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CPitWorm::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	PainSound();
 	return 0;
@@ -878,7 +878,7 @@ void CPitWorm::HitTouch(CBaseEntity* pOther)
 
 	if (pOther->pev->takedamage)
 	{
-		pOther->TakeDamage(pev, pev, gSkillData.pwormDmgSwipe, DMG_CRUSH|DMG_SLASH);
+		pOther->TakeDamage(pev, pev, DamageInfo(gSkillData.pwormDmgSwipe, DMG_CRUSH|DMG_SLASH));
 		pOther->pev->punchangle.z = 15;
 		pOther->pev->velocity.z += 200;
 		EmitSoundScript(attackHitSoundScript);
@@ -975,7 +975,7 @@ void CPitWorm::BeamEffect(TraceResult &tr)
 	if( pEntity != NULL && pEntity->pev->takedamage )
 	{
 		ClearMultiDamage();
-		pEntity->TraceAttack(pev, pev, gSkillData.pwormDmgBeam, m_vecBeam, &tr, DMG_ENERGYBEAM);
+		pEntity->TraceAttack(pev, pev, DamageInfo{gSkillData.pwormDmgBeam, DMG_ENERGYBEAM}, m_vecBeam, &tr);
 		ApplyMultiDamage(pev, pev);
 	}
 	else if ( tr.flFraction != 1.0f )

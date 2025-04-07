@@ -203,13 +203,13 @@ public:
 	void Precache( void );
 	void KeyValue( KeyValueData *pkvd );
 	void Activate( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	void RunTask( Task_t *pTask );
 	void StartTask( Task_t *pTask );
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	void NodeStart(string_t iszNextNode );
 	void NodeReach( void );
@@ -539,7 +539,7 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			if( pHurt )
 			{
-				pHurt->TakeDamage( pev, pev, gSkillData.bigmommaDmgSlash, DMG_CRUSH | DMG_SLASH );
+				pHurt->TakeDamage( pev, pev, DamageInfo(gSkillData.bigmommaDmgSlash, DMG_CRUSH | DMG_SLASH) );
 				pHurt->pev->punchangle.x = 15.0f;
 				switch( pEvent->event )
 				{
@@ -614,8 +614,9 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
-void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
+	DamageInfo dmgInfo = damageInfo;
 	if( ptr->iHitgroup != 1 )
 	{
 		// didn't hit the sack?
@@ -625,7 +626,7 @@ void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 			pev->dmgtime = gpGlobals->time;
 		}
 
-		flDamage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		dmgInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 	}
 	else if( !HasMemory(bits_MEMORY_KILLED) && gpGlobals->time > m_painSoundTime )
 	{
@@ -633,38 +634,39 @@ void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		EmitSoundScript(painSoundScript);
 	}
 
-	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
-int CBigMomma::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBigMomma::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// Don't take ally acid damage -- BigMomma's mortar is acid
-	if( bitsDamageType & DMG_ACID && pevAttacker )
+	DamageInfo info = damageInfo;
+	if( (info.type & DMG_ACID) && pevAttacker )
 	{
 		CBaseEntity* pAttacker = Instance( pevAttacker );
 		if (pAttacker == this)
 		{
-			flDamage = 0;
+			info.damage = 0;
 		}
 		else if (pAttacker)
 		{
 			const int rel = IRelationship( pAttacker );
 			if (rel < R_DL && rel != R_FR)
-				flDamage = 0.0f;
+				info.damage = 0.0f;
 		}
 	}
 
 	if( !HasMemory( bits_MEMORY_PATH_FINISHED ) )
 	{
-		if( pev->health <= flDamage )
+		if( pev->health <= info.damage )
 		{
-			pev->health = flDamage + 1;
+			pev->health = info.damage + 1;
 			Remember( bits_MEMORY_ADVANCE_NODE | bits_MEMORY_COMPLETED_NODE );
 			ALERT( at_aiconsole, "BM: Finished node health!!!\n" );
 		}
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CBigMomma::LayHeadcrab( void )
@@ -858,12 +860,9 @@ void CBigMomma::NodeReach( void )
 // Slash
 bool CBigMomma::CheckMeleeAttack1( float flDot, float flDist )
 {
-	if( flDot >= 0.7f )
-	{
-		if( flDist <= BIG_ATTACKDIST )
-			return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = BIG_ATTACKDIST;
+	return CheckMeleeAttackImpl(flDot, flDist, params, false);
 }
 
 // Lay a crab
@@ -1375,6 +1374,6 @@ void CBMortar::Touch( CBaseEntity *pOther )
 	if( pev->owner )
 		pevOwner = VARS(pev->owner);
 
-	RadiusDamage( pev->origin, pev, pevOwner, gSkillData.bigmommaDmgBlast, gSkillData.bigmommaRadiusBlast, CLASS_NONE, DMG_ACID );
+	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{gSkillData.bigmommaRadiusBlast, DMG_ACID}, gSkillData.bigmommaRadiusBlast, CLASS_NONE );
 	UTIL_Remove( this );
 }

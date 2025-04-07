@@ -22,3 +22,7 @@ bookToC: false
 * **Leech.Alert** - alert sounds.
 * **Leech.Pain** - pain sounds. Empty by default. Note: if **Leech.Die** is defined you probably won't ever hear a pain sound if leeches have a little health and die from one hit.
 * **Leech.Die** - death sounds. Empty by default.
+
+### Animation events
+
+* `1` - attack enemy.

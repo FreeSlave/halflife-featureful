@@ -77,7 +77,7 @@ public:
 
 	const char* DefaultSentenceGroup(int group);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
 
 	virtual int Save( CSave &save );
@@ -94,7 +94,7 @@ public:
 
 protected:
 	void SpawnImpl(const char* modelName, float health);
-	void TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType, bool hasHelmet);
+	void TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet);
 	virtual bool PrioritizeMeleeAttack() { return false; }
 };
 
@@ -486,25 +486,26 @@ void CBarney::DeathSound( void )
 	EmitSoundScriptTalk(dieSoundScript);
 }
 
-void CBarney::TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType, bool hasHelmet)
+void CBarney::TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet)
 {
+	DamageInfo dmgInfo = damageInfo;
 	switch( ptr->iHitgroup )
 	{
 	case HITGROUP_CHEST:
 	case HITGROUP_STOMACH:
-		if (bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ) )
+		if (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ) )
 		{
-			flDamage = flDamage * 0.5f;
+			dmgInfo.damage = dmgInfo.damage * 0.5f;
 		}
 		break;
 	case 10:
-		if( (bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_CLUB )) && hasHelmet )
+		if( (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB )) && hasHelmet )
 		{
-			flDamage -= 20.0f;
-			if( flDamage <= 0.0f )
+			dmgInfo.damage -= 20.0f;
+			if( dmgInfo.damage <= 0.0f )
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0f );
-				flDamage = 0.01f;
+				dmgInfo.damage = 0.01f;
 			}
 		}
 
@@ -513,12 +514,12 @@ void CBarney::TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		break;
 	}
 
-	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
-void CBarney::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CBarney::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	TraceAttackImpl( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType, true);
+	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, true);
 }
 
 void CBarney::OnDying()
@@ -693,7 +694,7 @@ public:
 	const char* DefaultDisplayName() { return "Otis"; }
 	const char* ReverseRelationshipModel() { return "models/otisf.mdl"; }
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
 	
 	void KeyValue( KeyValueData *pkvd );
@@ -782,9 +783,9 @@ const char* COtis::DefaultSentenceGroup(int group)
 	}
 }
 
-void COtis::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void COtis::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	TraceAttackImpl( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType, false);
+	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, false);
 }
 
 void COtis::KeyValue( KeyValueData *pkvd )
@@ -1067,7 +1068,7 @@ public:
 	void DeathSound( void );
 	void PlayPainSound( void );
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void OnDying();
 
 	static const NamedSoundScript painSoundScript;
@@ -1075,7 +1076,6 @@ public:
 	static const NamedSoundScript firePistolSoundScript;
 
 protected:
-	CBaseEntity* FindKickTarget();
 	bool PrioritizeMeleeAttack() { return true; }
 	float LimpHealth();
 
@@ -1175,8 +1175,15 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 		break;
 	case KATE_AE_KICK:
 	{
-		CBaseEntity *pHurt = FindKickTarget();
-		if( pHurt )
+		TraceHullAttackParams params;
+		params.punchAngle.x = 5;
+		params.knockForward = -100;
+		params.knockUp = 50;
+		params.damageInfo.type = DMG_CLUB;
+		params.skipAllies = true;
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+		if (PerformTraceHullAttack(params))
 		{
 			const char *pszSound;
 			if( m_iCombatState == -1 )
@@ -1192,11 +1199,6 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 					pszSound = "common/punch.wav";
 			}
 			EmitSoundDyn( CHAN_VOICE, pszSound, 1, ATTN_NORM, 0, PITCH_NORM );
-			UTIL_MakeVectors( pev->angles );
-
-			pHurt->pev->punchangle.x = 5;
-			pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
-			pHurt->TakeDamage( pev, pev, gSkillData.hgruntDmgKick, DMG_CLUB );
 		}
 	}
 		break;
@@ -1276,29 +1278,9 @@ void CKate::OnDying()
 	CTalkMonster::OnDying();
 }
 
-void CKate::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CKate::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	TraceAttackImpl( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType, false);
-}
-
-CBaseEntity* CKate::FindKickTarget()
-{
-	TraceResult tr;
-
-	UTIL_MakeVectors( pev->angles );
-	Vector vecStart = pev->origin;
-	vecStart.z += pev->size.z * 0.5f;
-	Vector vecEnd = vecStart + ( gpGlobals->v_forward * 70 );
-
-	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
-
-	if( tr.pHit )
-	{
-		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-		if (pEntity && IRelationship(pEntity) != R_AL)
-			return pEntity;
-	}
-	return NULL;
+	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, false);
 }
 
 float CKate::LimpHealth()

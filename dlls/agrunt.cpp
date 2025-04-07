@@ -94,7 +94,7 @@ public:
 	void AttackSound( void );
 	void PrescheduleThink( void );
 	float HeadHitGroupDamageMultiplier();
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	int IRelationship( CBaseEntity *pTarget );
 	void StopTalking( void );
 	bool ShouldSpeak( void );
@@ -233,9 +233,10 @@ int CAGrunt::DefaultISoundMask( void )
 //=========================================================
 // TraceAttack
 //=========================================================
-static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	if( ptr->iHitgroup == 10 && ( bitsDamageType & ( DMG_BULLET | DMG_SLASH | DMG_CLUB ) ) )
+	DamageInfo dmgInfo = damageInfo;
+	if( ptr->iHitgroup == 10 && ( dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB ) ) )
 	{
 		// hit armor
 		if( self->pev->dmgtime != gpGlobals->time || ( RANDOM_LONG( 0, 10 ) < 1 ) )
@@ -261,15 +262,15 @@ static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entv
 			MESSAGE_END();
 		}
 
-		flDamage -= 20.0f;
-		if( flDamage <= 0.0f )
-			flDamage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		dmgInfo.damage -= 20.0f;
+		if( dmgInfo.damage <= 0.0f )
+			dmgInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 
 		ptr->iHitgroup = HITGROUP_GENERIC;
-		bitsDamageType |= DMG_DONTBLEED;
+		dmgInfo.SetNoBlood();
 	}
 
-	self->CBaseMonster::TraceAttack(pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	self->CBaseMonster::TraceAttack(pevInflictor, pevAttacker, dmgInfo, vecDir, ptr);
 }
 
 float CAGrunt::HeadHitGroupDamageMultiplier()
@@ -277,9 +278,9 @@ float CAGrunt::HeadHitGroupDamageMultiplier()
 	return Q_min(gSkillData.monHead, 1.5f);
 }
 
-void CAGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CAGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	AgruntTraceAttack(this, pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	AgruntTraceAttack(this, pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 }
 
 //=========================================================
@@ -523,58 +524,46 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	case AGRUNT_AE_LEFT_PUNCH:
 		{
-			CBaseEntity *pHurt = CheckTraceHullAttack( AGRUNT_MELEE_DIST, gSkillData.agruntDmgPunch, DMG_CLUB );
+			Vector vecArmPos, vecArmAng;
+			GetAttachment(0, vecArmPos, vecArmAng);
 
-			if( pHurt )
-			{
-				pHurt->pev->punchangle.y = -25.0f;
-				pHurt->pev->punchangle.x = 8.0f;
+			TraceHullAttackParams params;
+			params.distance = AGRUNT_MELEE_DIST;
+			params.punchAngle.y = -25.0f;
+			params.punchAngle.x = 8.0f;
+			params.knockRight = 250.0f;
+			params.knockPlayerOnly = true;
+			params.damageInfo.damage = gSkillData.agruntDmgPunch;
+			params.damageInfo.type = DMG_CLUB;
+			params.spawnBlood = true;
+			params.bloodOrigin = vecArmPos;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				// OK to use gpGlobals without calling MakeVectors, cause CheckTraceHullAttack called it above.
-				if( pHurt->IsPlayer() )
-				{
-					// this is a player. Knock him around.
-					pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * 250.0f;
-				}
-
-				EmitSoundScript(attackHitSoundScript);
-
-				Vector vecArmPos, vecArmAng;
-				GetAttachment( 0, vecArmPos, vecArmAng );
-				SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-			}
-			else
-			{
-				EmitSoundScript(attackMissSoundScript);
-			}
+			PerformTraceHullAttack(params);
 		}
 		break;
 	case AGRUNT_AE_RIGHT_PUNCH:
 		{
-			CBaseEntity *pHurt = CheckTraceHullAttack( AGRUNT_MELEE_DIST, gSkillData.agruntDmgPunch, DMG_CLUB );
+			Vector vecArmPos, vecArmAng;
+			GetAttachment(0, vecArmPos, vecArmAng);
 
-			if( pHurt )
-			{
-				pHurt->pev->punchangle.y = 25.0f;
-				pHurt->pev->punchangle.x = 8.0f;
+			TraceHullAttackParams params;
+			params.distance = AGRUNT_MELEE_DIST;
+			params.punchAngle.y = 25.0f;
+			params.punchAngle.x = 8.0f;
+			params.knockRight = -250.0f;
+			params.knockPlayerOnly = true;
+			params.damageInfo.damage = gSkillData.agruntDmgPunch;
+			params.damageInfo.type = DMG_CLUB;
+			params.spawnBlood = true;
+			params.bloodOrigin = vecArmPos;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				// OK to use gpGlobals without calling MakeVectors, cause CheckTraceHullAttack called it above.
-				if( pHurt->IsPlayer() )
-				{
-					// this is a player. Knock him around.
-					pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * -250.0f;
-				}
-
-				EmitSoundScript(attackHitSoundScript);
-
-				Vector vecArmPos, vecArmAng;
-				GetAttachment( 0, vecArmPos, vecArmAng );
-				SpawnBlood( vecArmPos, pHurt->BloodColor(), 25 );// a little surface blood.
-			}
-			else
-			{
-				EmitSoundScript(attackMissSoundScript);
-			}
+			PerformTraceHullAttack(params);
 		}
 		break;
 	default:
@@ -917,11 +906,10 @@ bool CAGrunt::FCanCheckAttacks( void )
 //=========================================================
 bool CAGrunt::CheckMeleeAttack1( float flDot, float flDist )
 {
-	if( HasConditions( bits_COND_SEE_ENEMY ) && flDist <= AGRUNT_MELEE_DIST && flDot >= 0.6f && m_hEnemy != 0 )
-	{
-		return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = AGRUNT_MELEE_DIST;
+	params.dot = 0.6f;
+	return HasConditions( bits_COND_SEE_ENEMY ) && CheckMeleeAttackImpl(flDot, flDist, params, false) && m_hEnemy != 0;
 }
 
 //=========================================================
@@ -1195,7 +1183,7 @@ public:
 	void Spawn();
 	const char* DefaultModel() { return "models/agrunt.mdl"; }
 	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MILITARY; }
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	const char* getPos(int pos) const;
 	static const char *m_szPoses[2];
@@ -1217,7 +1205,7 @@ void CDeadAgrunt::Spawn()
 	pev->frame = 255;
 }
 
-void CDeadAgrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CDeadAgrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	AgruntTraceAttack(this, pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	AgruntTraceAttack(this, pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 }

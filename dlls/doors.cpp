@@ -1161,7 +1161,7 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 	// Hurt the blocker a little.
 	bool shouldProceed = false;
 	if( pev->dmg ) {
-		pOther->TakeDamage( pev, pev, pev->dmg, DMG_CRUSH );
+		pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
 
 		bool shouldRecheck;
 		switch (m_blockerRecheck) {

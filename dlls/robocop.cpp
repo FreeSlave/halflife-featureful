@@ -153,8 +153,8 @@ public:
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	void FistAttack( void );
 	void CreateLaser( void );
@@ -436,7 +436,7 @@ void CRoboCop::FistAttack( void )
 
 				if( flAdjustedDamage > 0 )
 				{
-					pEntity->TakeDamage( pev, pev, flAdjustedDamage, DMG_SONIC );
+					pEntity->TakeDamage( pev, pev, DamageInfo(flAdjustedDamage, DMG_SONIC) );
 				}
 
 				if( pEntity->IsPlayer() )
@@ -688,11 +688,12 @@ void CRoboCop::RemoveSpriteEffects()
 	m_pBeamSpot = NULL;
 }
 
-void CRoboCop::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CRoboCop::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
-	bitsDamageType &= ROBOCOP_DAMAGE;
+	DamageInfo dmgInfo = damageInfo;
+	dmgInfo.type &= ROBOCOP_DAMAGE;
 
-	if( IsAlive() && !FBitSet( bitsDamageType, ROBOCOP_DAMAGE ) )
+	if( IsAlive() && !FBitSet( dmgInfo.type, ROBOCOP_DAMAGE ) )
 	{
 		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 100 ) < 20 ) )
 		{
@@ -700,24 +701,25 @@ void CRoboCop::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 			pev->dmgtime = gpGlobals->time;
 		}
 
-		flDamage = 0.0f;
+		dmgInfo.damage = 0.0f;
 	}
 
-	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
 }
 
-int CRoboCop::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CRoboCop::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	DamageInfo info = damageInfo;
 	if( IsAlive() )
 	{
-		if( !( bitsDamageType & ROBOCOP_DAMAGE ) )
-			flDamage *= 0.01f;
+		if( !( damageInfo.type & ROBOCOP_DAMAGE ) )
+			info.damage *= 0.01f;
 
-		if( bitsDamageType & DMG_BLAST )
+		if( damageInfo.type & DMG_BLAST )
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CRoboCop::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
@@ -730,10 +732,10 @@ bool CRoboCop::CheckMeleeAttack1( float flDot, float flDist )
 {
 	if( m_flFistTime <= gpGlobals->time )
 	{
-		if( flDot >= 0.8f && flDist <= gSkillData.robocopSWRadius )
-		{
-			return true;
-		}
+		CheckMeleeAttackParams params;
+		params.dot = 0.8f;
+		params.distance = gSkillData.robocopSWRadius;
+		return CheckMeleeAttackImpl(flDot, flDist, params, false);
 	}
 	return false;
 }

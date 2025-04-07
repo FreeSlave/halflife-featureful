@@ -141,11 +141,11 @@ void CShockrifle::PrimaryAttack()
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
 #if !CLIENT_DLL
-		int attenuation = 150 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
-		int dmg = 100 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+		const float radius = 150 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+		const float dmg = 100 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_discharge.wav", VOL_NORM, ATTN_NORM);
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
-		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, dmg, attenuation, CLASS_NONE, DMG_SHOCK | DMG_ALWAYSGIB );
+		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );
 #endif
 		return;
 	}

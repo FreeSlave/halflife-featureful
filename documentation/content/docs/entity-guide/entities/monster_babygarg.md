@@ -39,3 +39,11 @@ bookToC: false
 * **BabyGarg.FlameSmall** - narrower part of the flame (bluish by default). Derived from **Garg.FlameSmall** with the smaller beam width.
 * **BabyGarg.FlameLight** - entity light emitted on each flame update. Derived from **Garg.FlameLight** without changes.
 * **BabyGarg.Stomp** - sprites emitted by the stomp attack.
+
+### Animation events
+
+* `1` - trace hull attack with right arm. Deals **sk_gargantua_dmg_slash** damage. Plays **BabyGarg.AttackHit** or **BabyGarg.AttackMiss** soundscripts.
+* `3` and `4` - play **BabyGarg.Footstep** soundscript and shake effect.
+* `5` - create a stomp projectile. Play **BabyGarg.StompSound** soundscript.
+* `6` - play **BabyGarg.Breath** soundscript.
+* `7` - kick trace hull attack.

@@ -28,3 +28,7 @@ Note: this makes pitdrones attack shockroaches. The behavior retained from Oppos
 * **Shockroach.Bite** - hit something.
 
 Note: the shockroach uses a lot of sounds in the sequence events. These sounds can't be changed via soundscripts.
+
+### Animation events
+
+* `2` - occasionally play **Shockroach.Attack** soundscript.

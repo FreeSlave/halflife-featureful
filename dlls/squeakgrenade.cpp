@@ -218,10 +218,8 @@ void CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 
 	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
 
-	if( m_hOwner != 0 )
-		RadiusDamage( pev, m_hOwner->pev, pev->dmg, CLASS_NONE, DMG_BLAST );
-	else
-		RadiusDamage( pev, pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	entvars_t* pevExploAttacker = m_hOwner != 0 ? m_hOwner->pev : pev;
+	RadiusDamage( pev, pevExploAttacker, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
 
 	// reset owner so death message happens
 	if( m_hOwner != 0 )
@@ -400,7 +398,7 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 			{
 				// ALERT( at_console, "hit enemy\n" );
 				ClearMultiDamage();
-				pOther->TraceAttack( pev, pev, gSkillData.snarkDmgBite, gpGlobals->v_forward, &tr, DMG_SLASH );
+				pOther->TraceAttack( pev, pev, DamageInfo{gSkillData.snarkDmgBite, DMG_SLASH}, gpGlobals->v_forward, &tr );
 				if( m_hOwner != 0 )
 					ApplyMultiDamage( pev, m_hOwner->pev );
 				else

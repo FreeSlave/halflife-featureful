@@ -150,7 +150,7 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgSpit, DMG_GENERIC );
+		pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgSpit, DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -230,7 +230,7 @@ void CSquidToxicSpit::Animate( void )
 	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
 		if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
 			if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, gSkillData.bullsquidDmgToxicPoison, DMG_POISON | DMG_TIMEDNONLETHAL | DMG_IGNORE_ARMOR);
+				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(gSkillData.bullsquidDmgToxicPoison, DMG_POISON).SetNonLethal().SetIgnoreArmor());
 			}
 		}
 	}
@@ -306,8 +306,8 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		CBaseMonster* spitOwner = GetSpitOwner();
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
-			pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgToxicImpact, DMG_ACID );
-			pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgToxicPoison, DMG_POISON | DMG_TIMEDNONLETHAL | DMG_IGNORE_ARMOR);
+			pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgToxicPoison, DMG_POISON).SetNonLethal().SetIgnoreArmor() );
+			pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgToxicImpact, DMG_ACID) );
 		}
 	}
 
@@ -358,7 +358,7 @@ public:
 	bool FValidateHintType(short sHint) override;
 	Schedule_t *GetSchedule(void);
 	Schedule_t *GetScheduleOfType(int Type);
-	virtual int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	virtual int IRelationship(CBaseEntity *pTarget);
 	virtual int IgnoreConditions(void);
 	MONSTERSTATE GetIdealState(void);
@@ -509,7 +509,7 @@ int CBullsquid::IRelationship( CBaseEntity *pTarget )
 // TakeDamage - overridden for bullsquid so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	float flDist;
 	Vector vecApex;
@@ -537,7 +537,7 @@ int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		m_flLastHurtTime = gpGlobals->time;
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 //=========================================================
@@ -585,11 +585,9 @@ bool CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 //=========================================================
 bool CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
 {
-	if( m_hEnemy->pev->health <= gSkillData.bullsquidDmgWhip && flDist <= 85.0f && flDot >= 0.7f )
-	{
-		return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = 85.0f;
+	return m_hEnemy->pev->health <= gSkillData.bullsquidDmgWhip && CheckMeleeAttackImpl(flDot, flDist, params, false);
 }
 
 //=========================================================
@@ -600,11 +598,9 @@ bool CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
 //=========================================================
 bool CBullsquid::CheckMeleeAttack2( float flDot, float flDist )
 {
-	if( flDist <= 85.0f && flDot >= 0.7f && !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )		// The player & bullsquid can be as much as their bboxes 
-	{										// apart (48 * sqrt(3)) and he can still attack (85 is a little more than 48*sqrt(3))
-		return true;
-	}
-	return false;
+	CheckMeleeAttackParams params;
+	params.distance = 85.0f;
+	return !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) && CheckMeleeAttackImpl(flDot, flDist, params, true);
 }
 
 //=========================================================
@@ -763,34 +759,27 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 		case BSQUID_AE_BITE:
 			{
 				// SOUND HERE!
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.bullsquidDmgBite, DMG_SLASH );
+				TraceHullAttackParams params;
+				params.knockForward = -100.0f;
+				params.knockUp = 100.0f;
+				params.damageInfo.damage = gSkillData.bullsquidDmgBite;
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				if( pHurt )
-				{
-					if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-					{
-						//pHurt->pev->punchangle.z = -15;
-						//pHurt->pev->punchangle.x = -45;
-						pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 100.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100.0f;
-					}
-				}
+				PerformTraceHullAttack(params);
 			}
 			break;
 		case BSQUID_AE_TAILWHIP:
 			{
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.bullsquidDmgWhip, DMG_CLUB | DMG_ALWAYSGIB );
+				TraceHullAttackParams params;
+				params.punchAngle = Vector(20.0f, 0.0f, -20.0f);
+				params.knockRight = 200.0f;
+				params.knockUp = 100.0f;
+				params.damageInfo.damage = gSkillData.bullsquidDmgWhip;
+				params.damageInfo.type = DMG_CLUB;
+				params.damageInfo.SetGibPolicy(GIB_ALWAYS);
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				if( pHurt ) 
-				{
-					if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-					{
-						pHurt->pev->punchangle.z = -20.0f;
-						pHurt->pev->punchangle.x = 20.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * 200.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100.0f;
-					}
-				}
+				PerformTraceHullAttack(params);
 			}
 			break;
 		case BSQUID_AE_BLINK:
@@ -816,26 +805,25 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case BSQUID_AE_THROW:
 			{
-				// squid throws its prey IF the prey is a client. 
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, 0, 0 );
+				// squid throws its prey IF the prey is a client.
+				TraceHullAttackParams params;
+				params.knockPlayerOnly = true;
+				params.knockForward = 300.0f;
+				params.knockUp = 300.0f;
+				params.useAimVectors = false;
+				params.hitSoundScript = biteSoundScript; // croonchy bite sound
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+				CBaseEntity *pHurt = PerformTraceHullAttack( params );
 
 				if( pHurt )
 				{
-					// croonchy bite sound
-					EmitSoundScript(biteSoundScript);
-
 					//pHurt->pev->punchangle.x = RANDOM_LONG( 0, 34 ) - 5;
 					//pHurt->pev->punchangle.z = RANDOM_LONG( 0, 49 ) - 25;
 					//pHurt->pev->punchangle.y = RANDOM_LONG( 0, 89 ) - 45;
 		
 					// screeshake transforms the viewmodel as well as the viewangle. No problems with seeing the ends of the viewmodels.
 					UTIL_ScreenShake( pHurt->pev->origin, 25.0f, 1.5f, 0.7f, 2.0f );
-
-					if( pHurt->IsPlayer() )
-					{
-						UTIL_MakeVectors( pev->angles );
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 300.0f + gpGlobals->v_up * 300.0f;
-					}
 				}
 			}
 			break;

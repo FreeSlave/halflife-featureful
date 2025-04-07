@@ -265,10 +265,10 @@ public:
 	void SetArmor(int armor, bool allowOvercharge = false);
 	float ArmorStrength();
 	bool IsInvulnerable();
-	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-	virtual int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	virtual void	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	virtual Vector BodyTarget( const Vector &posSrc ) { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); };		// position to shoot at
+	virtual Vector BodyTarget( const Vector &posSrc ) { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
 	virtual bool IsAlive( void ) override { return IsFullyAlive(); }
 	virtual bool ShouldFadeOnDeath( void ) override { return false; }
 	virtual	bool IsPlayer( void ) override { return true; }			// Spectators should return false for this, they aren't "players" as far as game logic is concerned

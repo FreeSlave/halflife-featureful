@@ -65,8 +65,8 @@ public:
 	void EXPORT DyingThink( void );
 	void EXPORT CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void ShowDamage( void );
 	void Update();
 
@@ -639,7 +639,7 @@ void COsprey::HitTouch( CBaseEntity *pOther )
 }
 
 /*
-int COsprey::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int COsprey::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_flRotortilt <= -90 )
 	{
@@ -815,7 +815,7 @@ void COsprey::DyingThink( void )
 
 		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, 300, CLASS_NONE, DMG_BLAST );
+		RadiusDamage( pev->origin, pev, pev, DamageInfo{300, DMG_BLAST}, CLASS_NONE );
 
 		// gibs
 		vecSpot = pev->origin + ( pev->mins + pev->maxs ) * 0.5f;
@@ -885,7 +885,7 @@ void COsprey::ShowDamage( void )
 	}
 }
 
-void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
 
@@ -895,8 +895,8 @@ void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 		if( m_flRightHealth < 0 )
 			return;
 		else
-			m_flRightHealth -= flDamage;
-		m_iDoRightSmokePuff = 3 + ( flDamage / 5.0f );
+			m_flRightHealth -= damageInfo.damage;
+		m_iDoRightSmokePuff = 3 + ( damageInfo.damage / 5.0f );
 	}
 
 	if( ptr->iHitgroup == 2 )
@@ -904,15 +904,15 @@ void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 		if( m_flLeftHealth < 0 )
 			return;
 		else
-			m_flLeftHealth -= flDamage;
-		m_iDoLeftSmokePuff = 3 + ( flDamage / 5.0f );
+			m_flLeftHealth -= damageInfo.damage;
+		m_iDoLeftSmokePuff = 3 + ( damageInfo.damage / 5.0f );
 	}
 
 	// hit hard, hits cockpit, hits engines
-	if( flDamage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 || ptr->iHitgroup == 3 )
+	if( damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 || ptr->iHitgroup == 3 )
 	{
 		// ALERT( at_console, "%.0f\n", flDamage );
-		AddMultiDamage( pevInflictor, pevAttacker, this, flDamage, bitsDamageType );
+		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 	}
 	else
 	{
@@ -933,7 +933,7 @@ void COsprey::Update()
 	GlowShellUpdate();
 }
 
-int COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
+int COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
 {
 	//Set enemy to last attacker.
 	//Ospreys are not capable of fighting so they'll get angry at whatever shoots at them, not whatever looks like an enemy.
@@ -942,7 +942,7 @@ int COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 	//It's on now!
 	m_MonsterState = MONSTERSTATE_COMBAT;
 
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 #if FEATURE_BLACK_OSPREY

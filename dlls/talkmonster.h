@@ -136,7 +136,7 @@ public:
 	void			StopTalking( void ) { SentenceStop(); }
 	
 	// Base Monster functions
-	int 			TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	int 			TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType);
 	bool			CanBePushed(CBaseEntity *pPusher);
 	void			Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
@@ -157,7 +157,7 @@ public:
 	void			RunTask( Task_t *pTask );
 	void			HandleAnimEvent( MonsterEvent_t *pEvent );
 	void			PrescheduleThink( void );
-	void			ReactToPlayerHit(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	void			ReactToPlayerHit(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo);
 	void			TalkMonsterInit();
 
 	// Conversations / communication

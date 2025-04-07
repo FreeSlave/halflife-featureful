@@ -106,7 +106,7 @@ void CShock::FlyThink()
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
 		EmitSoundScript(impactSoundScript);
-		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, pev->dmg * 3, 144, CLASS_NONE, DMG_SHOCK | DMG_ALWAYSGIB );
+		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, DamageInfo(pev->dmg * 3, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 144, CLASS_NONE );
 		ClearEffects();
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time;
@@ -171,7 +171,7 @@ void CShock::Touch(CBaseEntity *pOther)
 		}
 		entvars_t *pevOwner = VARS(pev->owner);
 		entvars_t *pevAttacker = pevOwner ? pevOwner : pev;
-		pOther->ApplyTraceAttack(pev, pevAttacker, pev->dmg, pev->velocity.Normalize(), &tr, damageType );
+		pOther->ApplyTraceAttack(pev, pevAttacker, DamageInfo{pev->dmg, damageType}, pev->velocity.Normalize(), &tr );
 		if (pOther->IsPlayer() && (UTIL_PointContents(pev->origin) != CONTENTS_WATER))
 		{
 			const Vector position = tr.vecEndPos;

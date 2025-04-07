@@ -337,7 +337,7 @@ public:
 	void Spawn( void );
 	void Precache( void );
 	int DefaultClassify() {return CLASS_NONE;}
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 };
 
 LINK_ENTITY_TO_CLASS(monster_op4loader, CLoader)
@@ -373,7 +373,7 @@ void CLoader::Precache()
 	PrecacheMyGibModel();
 }
 
-void CLoader::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CLoader::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT(1.0,2.0) );
 }

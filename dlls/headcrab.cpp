@@ -97,7 +97,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	virtual float GetDamageAmount( void ) { return gSkillData.headcrabDmgBite; }
 
@@ -404,7 +404,7 @@ void CHeadCrab::LeapTouch( CBaseEntity *pOther )
 	if( !FBitSet( pev->flags, FL_ONGROUND ) )
 	{
 		BiteSound();
-		pOther->TakeDamage( pev, pev, GetDamageAmount(), DMG_SLASH );
+		pOther->TakeDamage( pev, pev, DamageInfo(GetDamageAmount(), DMG_SLASH) );
 	}
 
 	SetTouch( NULL );
@@ -460,10 +460,10 @@ bool CHeadCrab::CheckRangeAttack2( float flDot, float flDist )
 	return false;
 }
 
-int CHeadCrab::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CHeadCrab::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// Don't take ally acid damage -- BigMomma's mortar is acid
-	if( ( bitsDamageType & DMG_ACID ) && pevAttacker)
+	if( ( damageInfo.type & DMG_ACID ) && pevAttacker)
 	{
 		CBaseEntity* pAttacker = Instance( pevAttacker );
 		if (pAttacker)
@@ -474,7 +474,7 @@ int CHeadCrab::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 		}
 	}
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 #define CRAB_ATTN_IDLE (float)1.5
@@ -698,7 +698,7 @@ public:
 	void MonsterThink(void);
 	void StartTask(Task_t* pTask);
 	bool ShouldFadeOnDeath() override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying();
 
 	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
@@ -864,7 +864,7 @@ void CShockRoach::LeapTouch(CBaseEntity *pOther)
 		if (!FBitSet(pev->flags, FL_ONGROUND))
 		{
 			EmitSoundScript(biteSoundScript);
-			pOther->TakeDamage(pev, pev, GetDamageAmount(), DMG_SLASH);
+			pOther->TakeDamage(pev, pev, DamageInfo(GetDamageAmount(), DMG_SLASH));
 		}
 	}
 
@@ -911,7 +911,7 @@ void CShockRoach::MonsterThink(void)
 	// die when ready
 	if (lifeTime >= gSkillData.sroachLifespan)
 	{
-		TakeDamage(pev, pev, pev->health, DMG_NEVERGIB);
+		TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
 	}
 
 	CHeadCrab::MonsterThink();
@@ -979,12 +979,12 @@ void CShockRoach::AttackSound()
 		EmitSoundScript(attackSoundScript);
 }
 
-int CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	DamageInfo info = damageInfo;
 	if ( gpGlobals->time - m_flBirthTime < 2.0 )
-		flDamage = 0.0;
-	// Skip headcrab's TakeDamage to avoid unwanted immunity to friendly acid.
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+		info.damage = 0.0;
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CShockRoach::OnDying()

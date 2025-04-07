@@ -110,9 +110,9 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	const float exploRadius = ExplosionRadius();
 	if (exploRadius)
-		::RadiusDamage(pev->origin, pev, pevOwner, pev->dmg, exploRadius, CLASS_NONE, bitsDamageType);
+		::RadiusDamage(pev->origin, pev, pevOwner, DamageInfo{pev->dmg, bitsDamageType}, exploRadius, CLASS_NONE);
 	else
-		RadiusDamage( pev, pevOwner, pev->dmg, CLASS_NONE, bitsDamageType );
+		RadiusDamage( pev, pevOwner, DamageInfo{pev->dmg, bitsDamageType}, CLASS_NONE );
 
 	if( RANDOM_FLOAT( 0, 1 ) < 0.5f )
 	{
@@ -237,7 +237,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		if( pevOwner && pOther->pev->takedamage )
 		{
 			TraceResult tr = UTIL_GetGlobalTrace();
-			pOther->ApplyTraceAttack( pev, pevOwner, 1, gpGlobals->v_forward, &tr, DMG_CLUB );
+			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo{1, DMG_CLUB}, gpGlobals->v_forward, &tr );
 		}
 		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
 	}

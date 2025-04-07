@@ -514,10 +514,10 @@ void CBreakable::BreakTouch( CBaseEntity *pOther )
 		if( flDamage >= pev->health )
 		{
 			SetTouch( NULL );
-			TakeDamage( pevToucher, pevToucher, flDamage, DMG_CRUSH );
+			TakeDamage( pevToucher, pevToucher, DamageInfo(flDamage, DMG_CRUSH) );
 
 			// do a little damage to player if we broke glass or computer
-			pOther->TakeDamage( pev, pev, flDamage/4, DMG_SLASH );
+			pOther->TakeDamage( pev, pev, DamageInfo(flDamage/4, DMG_SLASH) );
 		}
 	}
 
@@ -578,7 +578,7 @@ CBaseEntity* CBreakable::GetHitProxy()
 	return m_pHitProxy;
 }
 
-void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	// random spark if this is a 'computer' object
 	if( RANDOM_LONG( 0, 1 ) )
@@ -628,7 +628,7 @@ void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 		}
 	}
 
-	CBaseDelay::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	CBaseDelay::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 //=========================================================
@@ -636,11 +636,13 @@ void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 // exceptions that are breakable-specific
 // bitsDamageType indicates the type of damage sustained ie: DMG_CRUSH
 //=========================================================
-int CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Vector vecTemp;
 
-	if ((pev->spawnflags & SF_BREAK_EXPLOSIVES_ONLY) && !(bitsDamageType & DMG_BLAST))
+	DamageInfo dmgInfo = damageInfo;
+
+	if ((pev->spawnflags & SF_BREAK_EXPLOSIVES_ONLY) && !(damageInfo.type & DMG_BLAST))
 		return 0;
 	if ((pev->spawnflags & SF_BREAK_OP4MORTAR_ONLY) && !FClassnameIs(pevInflictor, "mortar_shell"))
 		return 0;
@@ -653,8 +655,8 @@ int CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		
 		// if a client hit the breakable with a crowbar, and breakable is crowbar-sensitive, break it now.
 		if( FBitSet ( pevAttacker->flags, FL_CLIENT ) &&
-				 FBitSet ( pev->spawnflags, SF_BREAK_CROWBAR ) && ( bitsDamageType & DMG_CLUB ) )
-			flDamage = pev->health;
+				 FBitSet ( pev->spawnflags, SF_BREAK_CROWBAR ) && ( dmgInfo.type & DMG_CLUB ) )
+			dmgInfo.damage = pev->health;
 	}
 	else
 	// an actual missile was involved.
@@ -666,21 +668,21 @@ int CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		return 0;
 
 	// Breakables take double damage from the crowbar
-	if( bitsDamageType & DMG_CLUB )
-		flDamage *= 2.0f;
+	if( dmgInfo.type & DMG_CLUB )
+		dmgInfo.damage *= 2.0f;
 
 	// Boxes / glass / etc. don't take much poison damage, just the impact of the dart - consider that 10%
-	if( bitsDamageType & DMG_POISON )
-		flDamage *= 0.1f;
+	if( dmgInfo.type & DMG_POISON )
+		dmgInfo.damage *= 0.1f;
 
 	// this global is still used for glass and other non-monster killables, along with decals.
 	g_vecAttackDir = vecTemp.Normalize();
 
 	if (pev->takedamage != DAMAGE_NO)
 	{
-		if (FBitSet(bitsDamageType, DMG_NONLETHAL))
+		if (dmgInfo.nonLethal)
 			SetNonLethalHealthThreshold();
-		ApplyDamageToHealth(flDamage);
+		ApplyDamageToHealth(dmgInfo.damage);
 	}
 
 	if( pev->health <= 0 )
@@ -1005,7 +1007,7 @@ public:
 	inline float MaxSpeed( void ) { return m_maxSpeed; }
 
 	// breakables use an overridden takedamage
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	int DamageDecal(int bitsDamageType);
 	bool IsDestroyableObstacle();
@@ -1258,10 +1260,10 @@ void CPushable::StopSound( void )
 }
 #endif
 
-int CPushable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CPushable::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pev->spawnflags & SF_PUSH_BREAKABLE )
-		return CBreakable::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+		return CBreakable::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 
 	return 1;
 }

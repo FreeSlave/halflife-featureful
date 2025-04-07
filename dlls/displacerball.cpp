@@ -153,7 +153,7 @@ void CDisplacerBall::ArmBeam( int iSide )
 	{
 		//Beam hit something, deal radius damage to it
 		m_pBeam[m_iBeams]->EntsInit( pHit->entindex(), entindex() );
-		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), 25, 15, CLASS_NONE, DMG_ENERGYBEAM );
+		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), DamageInfo{25, DMG_ENERGYBEAM}, 15, CLASS_NONE );
 	}
 	else
 	{
@@ -302,7 +302,7 @@ void CDisplacerBall::ExplodeThink( void )
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;
 
-	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, gSkillData.plrDmgDisplacer, gSkillData.plrDisplacerRadius, CLASS_NONE, DMG_ALWAYSGIB | DMG_BLAST );
+	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(gSkillData.plrDmgDisplacer, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), gSkillData.plrDisplacerRadius, CLASS_NONE );
 
 	UTIL_Remove( this );
 }

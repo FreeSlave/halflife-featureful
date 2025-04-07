@@ -70,6 +70,20 @@ Shared visuals:
 * **Vortigaunt.ArmBeamColor** - color shared by **Vortigaunt.PowerupBeam**, **Vortigaunt.IdleBeam** and **Vortigaunt.MeleeTrailBeam**.
 * **Vortigaunt.BeamLightColor** - color shared by **Vortigaunt.PowerupLight**, **Vortigaunt.IdleLight** and **Vortigaunt.SummonLight**.
 
+### Attacks
+
+* *Melee Attack 1* - melee.
+* *Range Attack 1* - zap beam or coil beam attack.
+* *Range Attack 2* - heal or revive other vortigaunt.
+
+### Animation events
+
+* `1` - trace hull attack with an arm. Deals **sk_islave_dmg_claw** damage. Plays **Vortigaunt.AttackHit** or **Vortigaunt.AttackMiss** soundscripts.
+* `2` - trace hull attack. Deals **sk_islave_dmg_clawrake** damage. Plays **Vortigaunt.AttackHit** or **Vortigaunt.AttackMiss** soundscripts. Not used in the standard model.
+* `3` - create arm beam with **Vortigaunt.PowerupBeam** or **Vortigaunt.RevivalBeam** visual on both arms and dynamic light with **Vortigaunt.PowerupLight** visual in front of the monster. Plays **Vortigaunt.ZapPowerup** soundscript.
+* `4` - perform the beam attack hit from two arms (deals **sk_islave_dmg_zap** damage per beam) with **Vortigaunt.ZapBeam** visuals or peform a coil attack with **Vortigaunt.CoilBeam** visual. Plays **Vortigaunt.Electro** soundscript.
+* `5` - clear zap beams.
+
 ### Entity template examples
 
 {{% tabs %}}

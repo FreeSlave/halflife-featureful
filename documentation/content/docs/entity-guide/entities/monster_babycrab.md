@@ -26,6 +26,10 @@ bookToC: false
 * **Babycrab.Attack** - attack sound on jump. Derived from **Headcrab.Attack** with increased pitch and decreased volume.
 * **Babycrab.Bite** - hit something. Derived from **Headcrab.Bite** with increased pitch and decreased volume.
 
+### Animation events
+
+* `2` - occasionally play **Babycrab.Attack** soundscript.
+
 ### Entity template examples
 
 {{% tabs %}}

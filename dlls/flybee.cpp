@@ -397,21 +397,14 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 	case FLYBEE_AE_HIT:
 		{
-			TraceResult tr;
+			TraceHullAttackParams params;
+			params.punchAngle.z = 25;
+			params.damageInfo.damage = gSkillData.flybeeDmgKick;
+			params.damageInfo.type = DMG_CLUB;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-			UTIL_MakeVectors( pev->angles );
-			Vector vecStart = pev->origin;
-			vecStart.z += pev->size.z * 0.5;
-			Vector vecEnd = vecStart + (gpGlobals->v_forward * 70);
+			PerformTraceHullAttack(params);
 
-			UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT(pev), &tr );
-			
-			if ( tr.pHit )
-			{
-				CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-				pEntity->pev->punchangle.z = 25;
-				pEntity->TakeDamage( pev, pev, gSkillData.flybeeDmgKick, DMG_CLUB );
-			}
 			BiteSound();
 			break;
 		}
@@ -457,7 +450,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 					WriteBeamVisual(waveVisual);
 				MESSAGE_END();
 			}
-			RadiusDamage( vecEnd, pev, pev, gSkillData.flybeeDmgBeam, CLASS_ALIEN_MONSTER, DMG_SHOCK );
+			RadiusDamage( vecEnd, pev, pev, DamageInfo{gSkillData.flybeeDmgBeam, DMG_SHOCK}, CLASS_ALIEN_MONSTER );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);
 			break;
@@ -1339,7 +1332,7 @@ void CFlyBall::ExplodeTouch( CBaseEntity *pOther )
 		if ( pOther->pev != VARS ( pev->owner ) )
 		{
 			CBaseEntity* pAttacker = !FNullEnt(pev->owner) ? CBaseEntity::Instance(pev->owner) : nullptr;
-			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, gSkillData.flybeeDmgFlyball, pev->velocity.Normalize(), &tr, DMG_ENERGYBEAM);
+			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, DamageInfo{gSkillData.flybeeDmgFlyball, DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
 		}
 	}
 

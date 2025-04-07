@@ -63,7 +63,7 @@ public:
 
 	float HearingSensitivity( void ) { return 2.0; };
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 
@@ -966,12 +966,12 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 
 	if( tr.iHitgroup >= 3 )
 	{
-		pOther->TakeDamage( pev, pev, m_iHitDmg, DMG_CRUSH );
+		pOther->TakeDamage( pev, pev, DamageInfo(m_iHitDmg, DMG_CRUSH) );
 		// ALERT( at_console, "wack %3d : ", m_iHitDmg );
 	}
 	else if( tr.iHitgroup != 0 )
 	{
-		pOther->TakeDamage( pev, pev, 20, DMG_CRUSH );
+		pOther->TakeDamage( pev, pev, DamageInfo(20, DMG_CRUSH) );
 		// ALERT( at_console, "tap  %3d : ", 20 );
 	}
 	else
@@ -986,20 +986,20 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 	// ALERT( at_console, "%.0f : %s : %d\n", pev->angles.y, STRING( pOther->pev->classname ), tr.iHitgroup );
 }
 
-int CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_painSoundTime < gpGlobals->time )
 	{
 		EmitSoundScript(painSoundScript);
 		m_painSoundTime = gpGlobals->time + RANDOM_FLOAT( 2.5, 4 );
 	}
-	if( flDamage > pev->health )
+	if( damageInfo.damage > pev->health )
 	{
 		pev->health = 1;
 	}
 	else
 	{
-		pev->health -= flDamage;
+		pev->health -= damageInfo.damage;
 	}
 	return 1;
 }

@@ -268,13 +268,14 @@ void CHalfLifeTeamplay::ChangePlayerTeam(CBasePlayer *pPlayer, const char *pTeam
 	int damageFlags = DMG_GENERIC;
 	int clientIndex = pPlayer->entindex();
 
+	DamageInfo damageInfo{900.0f, DMG_GENERIC};
 	if( !bGib )
 	{
-		damageFlags |= DMG_NEVERGIB;
+		damageInfo.SetGibPolicy(GIB_NEVER);
 	}
 	else
 	{
-		damageFlags |= DMG_ALWAYSGIB;
+		damageInfo.SetGibPolicy(GIB_ALWAYS);
 	}
 
 	if( bKill )
@@ -284,7 +285,7 @@ void CHalfLifeTeamplay::ChangePlayerTeam(CBasePlayer *pPlayer, const char *pTeam
 		m_DisableDeathPenalty = true;
 
 		entvars_t *pevWorld = VARS( INDEXENT( 0 ) );
-		pPlayer->TakeDamage( pevWorld, pevWorld, 900, damageFlags );
+		pPlayer->TakeDamage( pevWorld, pevWorld, damageInfo );
 
 		m_DisableDeathMessages = false;
 		m_DisableDeathPenalty = false;

@@ -56,8 +56,8 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 	void EXPORT TurretUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	virtual int Classify( void );
 	virtual int DefaultClassify();
 	int RealClassify();
@@ -660,7 +660,7 @@ void CBaseTurret::ActiveThink( void )
 		{
 			m_vecGoalAngles.y = RANDOM_FLOAT( 0, 360 );
 			m_vecGoalAngles.x = RANDOM_FLOAT( 0, 90 ) - 90 * m_iOrientation;
-			TakeDamage( pev, pev, 1, DMG_GENERIC ); // don't beserk forever
+			TakeDamage( pev, pev, DamageInfo(1, DMG_GENERIC) ); // don't beserk forever
 			return;
 		}
 	} 
@@ -1065,8 +1065,9 @@ void CBaseTurret::TurretDeath( void )
 	}
 }
 
-void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
+	DamageInfo dmgInfo = damageInfo;
 	if( ptr->iHitgroup == 10 )
 	{
 		// hit armor
@@ -1076,27 +1077,29 @@ void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 			pev->dmgtime = gpGlobals->time;
 		}
 
-		flDamage = 0.1;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		dmgInfo.damage = 0.1;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 	}
 
 	if( !pev->takedamage )
 		return;
 
-	AddMultiDamage( pevInflictor, pevAttacker, this, flDamage, bitsDamageType );
+	AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
 }
 
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
-int CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( !pev->takedamage )
 		return 0;
 
+	DamageInfo dmgInfo = damageInfo;
+
 	if( !m_iOn )
-		flDamage *= 0.1f;
+		dmgInfo.damage *= 0.1f;
 
-	AddScoreForDamage(pevAttacker, this, flDamage);
+	AddScoreForDamage(pevAttacker, this, dmgInfo.damage);
 
-	pev->health -= flDamage;
+	pev->health -= dmgInfo.damage;
 	if( pev->health <= 0 )
 	{
 		//HACK to trigger on death condition
@@ -1258,7 +1261,7 @@ public:
 	// other functions
 	const char* DefaultDisplayName() { return "Sentry Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void EXPORT SentryTouch( CBaseEntity *pOther );
 	void EXPORT SentryDeath( void );
 
@@ -1303,7 +1306,7 @@ void CSentry::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
 
-int CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( !pev->takedamage )
 		return 0;
@@ -1315,9 +1318,9 @@ int CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 
-	AddScoreForDamage(pevAttacker, this, flDamage);
+	AddScoreForDamage(pevAttacker, this, damageInfo.damage);
 
-	pev->health -= flDamage;
+	pev->health -= damageInfo.damage;
 	if( pev->health <= 0 )
 	{
 		pev->health = 0;
@@ -1345,7 +1348,7 @@ void CSentry::SentryTouch( CBaseEntity *pOther )
 {
 	if( pOther && ( pOther->IsPlayer() || ( pOther->pev->flags & FL_MONSTER ) ) && IDefaultRelationship(RealClassify(), pOther->Classify()) >= R_DL )
 	{
-		TakeDamage( pOther->pev, pOther->pev, 0, 0 );
+		TakeDamage( pOther->pev, pOther->pev, DamageInfo{} );
 	}
 }
 
@@ -1412,7 +1415,7 @@ public:
 	void Spawn();
 	void Precache();
 	void KeyValue( KeyValueData *pkvd );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 protected:
 	virtual void SetMyModel();
@@ -1480,7 +1483,7 @@ void CBaseDeadTurret::SetMyModel()
 	}
 }
 
-void CBaseDeadTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CBaseDeadTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	if( ptr->iHitgroup == 10 )
 	{

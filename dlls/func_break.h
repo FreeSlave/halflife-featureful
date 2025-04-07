@@ -69,9 +69,9 @@ public:
 	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag);
 
 	// breakables use an overridden takedamage
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	// To spark when hit
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	bool IsBreakable( void );
 

@@ -97,7 +97,7 @@ struct SoundScriptMeta
 class SoundScriptSystem : public JSONConfig
 {
 public:
-	void AddSoundScriptFromJsonValue(const char* name, rapidjson::Value& value);
+	void AddSoundScriptFromJsonValue(const char* name, rapidjson::Value& value, int defaultChannel = -1);
 	void EnsureSoundScriptExists(const std::string& name);
 	const SoundScript* GetSoundScript(const char* name);
 	const SoundScript* ProvideDefaultSoundScript(const char* name, const SoundScript& soundScript);

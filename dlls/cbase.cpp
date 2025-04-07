@@ -618,7 +618,7 @@ void CBaseEntity::SetNonLethalHealthThreshold()
 		m_healthMinThreshold = 1.0f;
 }
 
-int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Vector vecTemp;
 
@@ -649,14 +649,14 @@ int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
 		vecDir = vecDir.Normalize();
 
-		float flForce = flDamage * ( ( 32.0f * 32.0f * 72.0f ) / ( pev->size.x * pev->size.y * pev->size.z ) ) * 5.0f;
+		float flForce = damageInfo.damage * ( ( 32.0f * 32.0f * 72.0f ) / ( pev->size.x * pev->size.y * pev->size.z ) ) * 5.0f;
 
 		if( flForce > 1000.0f )
 			flForce = 1000.0f;
 		pev->velocity = pev->velocity + vecDir * flForce;
 	}
 
-	ApplyDamageToHealth(flDamage);
+	ApplyDamageToHealth(damageInfo.damage);
 
 	if( pev->health <= 0 )
 	{
