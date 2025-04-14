@@ -3936,8 +3936,6 @@ void CBasePlayer::Precache( void )
 	// Make sure any necessary user messages have been registered
 	LinkUserMessages();
 
-	m_nCustomSprayFrames = -1;
-
 	if( gInitHUD )
 		m_fInitHUD = true;
 
@@ -4027,6 +4025,8 @@ int CBasePlayer::Restore( CRestore &restore )
 		m_flFlashLightTime = 1.0f;
 
 	m_bResetViewEntity = true;
+
+	m_nCustomSprayFrames = -1;
 
 	return status;
 }

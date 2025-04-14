@@ -144,6 +144,8 @@ public:
 	bool m_reverseRelationship;
 	string_t m_displayName;
 
+	float m_flLastYawTime;
+
 	virtual int Save( CSave &save ); 
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
@@ -164,7 +166,7 @@ public:
 	virtual CBaseMonster *MyMonsterPointer( void ) { return this; }
 	virtual CFollowingMonster* MyFollowingMonsterPointer() { return NULL; }
 	virtual CTalkMonster* MyTalkMonsterPointer() { return NULL; }
-	virtual bool IsAllowedToSpeak( void ) override { return IsAlive(); }
+
 	virtual void Look( int iDistance );// basic sight function for monsters
 	virtual void RunAI( void );// core ai function!	
 	void Listen( void );
@@ -253,6 +255,7 @@ public:
 	// virtual int CanPlaySequence( void ) { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
 	virtual bool CanPlaySequence( int interruptFlags );
 	virtual bool CanPlaySentence( bool fDisregardState ) { return m_MonsterState == MONSTERSTATE_SCRIPT ? IsAlive() : IsFullyAlive(); }
+	virtual bool IsAllowedToSpeak( void ) override { return IsAlive(); }
 
 	Task_t *GetTask( void );
 	virtual MONSTERSTATE GetIdealState( void );
@@ -502,8 +505,6 @@ public:
 
 	short m_gibPolicy;
 	bool m_bForceConditionsGather;
-
-	float m_flLastYawTime;
 
 	const char* taskFailReason;
 };

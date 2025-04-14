@@ -255,10 +255,12 @@ static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entv
 
 			vecTracerDir = vecTracerDir * -512.0f;
 
+			Vector vecTracerEnd = ptr->vecEndPos + vecTracerDir;
+
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, ptr->vecEndPos );
 			WRITE_BYTE( TE_TRACER );
 				WRITE_VECTOR( ptr->vecEndPos );
-				WRITE_VECTOR( vecTracerDir );
+				WRITE_VECTOR( vecTracerEnd );
 			MESSAGE_END();
 		}
 

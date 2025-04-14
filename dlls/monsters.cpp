@@ -1596,7 +1596,7 @@ float CBaseMonster::OpenDoorAndWait( entvars_t *pevDoor )
 
 	//ALERT( at_aiconsole, "A door. " );
 	CBaseEntity *pcbeDoor = CBaseEntity::Instance( pevDoor );
-	if( pcbeDoor )
+	if( pcbeDoor && !pcbeDoor->IsLockedByMaster() )
 	{
 		//ALERT( at_aiconsole, "unlocked! " );
 		flTravelTime = pcbeDoor->InputByMonster(this);
