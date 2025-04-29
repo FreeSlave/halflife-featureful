@@ -8,6 +8,8 @@ entityCategory: projectile
 
 ### Skill variables
 
+* **sk_plr_hand_grenade** - explosion damage.
+
 ### Soundscripts
 
 * **BaseGrenade.Debris** - plays together with explosion. Used with other explosive projectiles as well like satchels, rockets and tripmines.

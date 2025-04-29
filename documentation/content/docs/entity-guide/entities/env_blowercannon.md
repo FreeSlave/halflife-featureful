@@ -31,3 +31,4 @@ The use-type is ignored. The entity is always getting toggled.
 * [displacer_ball]({{< ref displacer_ball >}})
 * [shock_beam]({{< ref shock_beam >}})
 * [spore]({{< ref spore >}})
+* [squidspit]({{< ref squidspit >}})

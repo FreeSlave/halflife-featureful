@@ -6,8 +6,6 @@ entityCategory: projectile
 
 # ![](/images/opfor.png) shock_beam
 
-[TWHL](https://twhl.info/wiki/page/shock_beam)
-
 ### Skill variables
 
 * **sk_plr_shockroachs** - impact damage in singleplayer.

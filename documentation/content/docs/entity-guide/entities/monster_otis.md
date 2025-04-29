@@ -24,11 +24,11 @@ bookToC: false
 
 {{% tabs %}}
 
-{{% tab "Ott" %}}
+{{% tab "Otto" %}}
 Otis'es evil twin from Sven Co-op.
 ```json
 {
-    "barnabus": {
+    "otto": {
         "own_visual": {
             "model": "models/otisf.mdl"
         },

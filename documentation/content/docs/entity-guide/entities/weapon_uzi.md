@@ -10,3 +10,4 @@ Uzi from Sven Co-op. Akimbo version is not implemented yet.
 
 ### Skill variables
 
+* **sk_plr_uzi** - bullet damage.

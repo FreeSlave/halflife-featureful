@@ -42,3 +42,20 @@ Note: the pitdrone uses a lot of sounds in the sequence events. These sounds can
 * **Pitdrone.Spike** - spike projectile.
 * **Pitdrone.SpikeTrail** - a trail beam following the projectile.
 * **Pitdrone.TinySpit** - sprites sprayed out of pitdrone head on spike attack.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Let pitdrones open doors" %}}
+*In Half-Life: Opposing Force pitdrones can't open doors.*
+```json
+{
+    "monster_pitdrone": {
+        "open_door_capability": true
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

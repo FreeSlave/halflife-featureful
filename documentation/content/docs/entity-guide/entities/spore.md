@@ -6,7 +6,7 @@ entityCategory: projectile
 
 # ![](/images/opfor.png) spore
 
-[TWHL](https://twhl.info/wiki/page/spore)
+A spore grenade used by [ammo_spore]({{< ref ammo_spore >}}), [monster_shocktrooper]({{< ref monster_shocktrooper >}}) and [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}). The rocket variant is used by [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}).
 
 ### Skill variables
 

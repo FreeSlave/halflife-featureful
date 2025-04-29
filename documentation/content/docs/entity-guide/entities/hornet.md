@@ -6,8 +6,6 @@ entityCategory: projectile
 
 # hornet
 
-[TWHL](https://twhl.info/wiki/page/hornet)
-
 ### Skill variables
 
 * **sk_hornet_dmg** - hornet damage.

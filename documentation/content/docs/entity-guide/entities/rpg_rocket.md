@@ -6,7 +6,7 @@ entityCategory: projectile
 
 # rpg_rocket
 
-The rocket entity shot by player's RPG or by `func_tankrocket`.
+The rocket entity fired by [weapon_rpg]({{< ref weapon_rpg >}}) or by `func_tankrocket`.
 
 ### Skill variables
 

@@ -449,6 +449,21 @@ Defines the monster interaction with barnacle grapple (`weapon_grapple`). Possib
 
 Defines the speech prefix for the monster's sentences. E.g. if the template is applied to the scientist, and the speech prefix is `"FEM"` the scientist will replace `SC_` with `FEM_` when playing the sentences: `FEM_HELLO` instead of `SC_HELLO`, etc.
 
+Currently this affects only limited number of monsters:
+
+* [monster_barney]({{< ref monster_barney >}})
+* [monster_barniel]({{< ref monster_barniel >}})
+* [monster_civilian]({{< ref monster_civilian >}})
+* [monster_cleansuit_scientist]({{< ref monster_cleansuit_scientist >}})
+* [monster_drillsergeant]({{< ref monster_drillsergeant >}})
+* [monster_human_grunt_ally]({{< ref monster_human_grunt_ally >}})
+* [monster_human_grunt_medic]({{< ref monster_human_medic_ally >}})
+* [monster_human_grunt_torch]({{< ref monster_human_torch_ally >}})
+* [monster_kate]({{< ref monster_kate >}})
+* [monster_otis]({{< ref monster_otis >}})
+* [monster_recruit]({{< ref monster_recruit >}})
+* [monster_scientist]({{< ref monster_scientist >}})
+
 ### squad_capability
 
 Defines the squad capabilities of the monster. It has the following properties:
@@ -457,7 +472,7 @@ Defines the squad capabilities of the monster. It has the following properties:
 * `"deny_recruiting"` - whether the monster will refuse to be included in the implicit (i.e. unnamed) squads. If the monster is explicitly set to be part of squad in the level editor, he still will join the squad.
 * `"allow_different_classification"` - whether the monster can form squads with monsters of different relationship classification (it still requires monsters to not be enemies). By default monsters can form squads only with monsters of the same relationship classification (e.g. human military can form squads only with human military despite having non-enemy relationship with machine classification).
 * `"require_same_classname"` - whether the monster requires the other monster to be of the same classname in order to form a squad. E.g. `monster_houndeye` can form squads only with other houndeyes by default.
-* `"require_same_ent_template"` - whether the monster require the other monster to be of the same entity templaate in order to form a squad.
+* `"require_same_ent_template"` - whether the monster require the other monster to be of the same entity template in order to form a squad.
 
 Note: the default squad capabilities are different depending on the monster's class. If some property is omitted the default one for the monster class will be used.
 
