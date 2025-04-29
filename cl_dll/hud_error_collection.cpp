@@ -99,9 +99,28 @@ int CHudErrorCollection::DrawMultiLineString(const char *str, int xpos, int ypos
 		const char *next_line = ch;
 		for(; *next_line != '\n' && *next_line != '\0'; next_line++)
 			;
-		CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, next_line - ch );
 
-		ypos += LineHeight;
+		const int lineLength = next_line - ch;
+		if (lineLength > 0)
+		{
+			const int lineWidth = CHud::UtfText::LineWidth(ch, lineLength);
+			const int numberOfLines = (lineWidth + xmax - xpos - 1) / (xmax - xpos);
+
+			int lineLengthRest = lineLength;
+			for (int i=0; i<numberOfLines; ++i)
+			{
+				int renderLineLength = i == 0 ? (lineLength - lineLength/numberOfLines * (numberOfLines-1)) : Q_min(lineLength/numberOfLines, lineLengthRest);
+				if (renderLineLength > 0)
+				{
+					while(isalpha(*(ch + renderLineLength)))
+						renderLineLength++;
+					CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, renderLineLength );
+					ypos += LineHeight;
+					lineLengthRest -= renderLineLength;
+					ch += renderLineLength;
+				}
+			}
+		}
 
 		ch = next_line;
 		if (*ch == '\n')

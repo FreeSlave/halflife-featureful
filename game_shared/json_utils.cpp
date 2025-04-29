@@ -456,7 +456,8 @@ constexpr const char definitions[] = R"(
 				"type": "object",
 				"patternProperties": {
 					"^[0-9]+$": { "$ref": "#/trace_hull_attack" }
-				}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false
@@ -559,19 +560,19 @@ bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fi
 		}
 
 		StringBuffer schemaPartBuffer;
-		Pointer schemaKeywordPointer = schemaPointer.Append(validator.GetInvalidSchemaKeyword());
-		Value* schemaPartValue = GetValueByPointer(schemaDocument, schemaKeywordPointer);
-		if (schemaPartValue)
+		const char* invalidKeyword = validator.GetInvalidSchemaKeyword();
+		auto& errorVal = validator.GetError();
+		if (errorVal.HasMember(invalidKeyword))
 		{
 			Writer<StringBuffer> writer(schemaPartBuffer);
-			schemaPartValue->Accept(writer);
+			errorVal[invalidKeyword].Accept(writer);
 		}
 
 		char buf[1028];
-		_snprintf(buf, sizeof(buf), "%s: value %s of property '%s' doesn't match the constraint '%s' in '%s': %s\n",
+		_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
 			fileName,
-			badValueBuffer.GetString(),
 			docPathBuffer.GetString(),
+			badValueBuffer.GetString(),
 			validator.GetInvalidSchemaKeyword(),
 			schemaPathBuffer.GetString(),
 			schemaPartBuffer.GetString());
