@@ -16,7 +16,7 @@ Allows to change the default max clip of the weapon.
 
 Currently it's not possible to set a max clip for a weapon that doesn't uses clips by default (e.g. [weapon_egon]({{< ref weapon_egon >}})).
 
-Set `max_clip` to disable weapon clip. This means the weapon won't need to be reloaded and will use ammo right from the player's ammo pool.
+Set `max_clip` to 0 to disable weapon clip. This means the weapon won't need to be reloaded and will use ammo right from the player's ammo pool.
 
 ```json
 {

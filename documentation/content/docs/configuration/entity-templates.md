@@ -526,7 +526,7 @@ Redefines the check parameters for the monster's primary melee attack. Monsters 
 This object has following properties:
 
 * `"distance"` - distance from my origin to enemy's origin, in units. Most monsters have this value equal to 64 by default.
-* `"dot"` - dot product, a number in range `[0, 1]` representing the angle between monster's facing and the enemy placement relatively to the monster. The close it to 1 the narrower the possible field of attack. Most monsters have this value equal to 0.7 by default.
+* `"dot"` - dot product, a number in range `[0, 1]` representing the angle between monster's facing and the enemy placement relatively to the monster. The closer this value to 1 the narrower the possible field of attack. Most monsters have this value equal to 0.7 by default.
 
 When setting this property you probably also want to change the distance parameter on the corresponding [trace hull attack](#trace_hull_attacks) event. In the model find the animation with `ACT_MELEE_ATTACK1` activity (you'll need a model viewer with support for activity viewing, e.g. HLAM). Then look at events - one of them with a small value should correspond to the trace hull attack. Usually the monster entity page includes the information about events, so you don't need to do the datamining.
 

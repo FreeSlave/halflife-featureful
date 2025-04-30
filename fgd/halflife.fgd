@@ -984,7 +984,7 @@
 	minRange(string) : "Minmum target range"
 	maxRange(string) : "Maximum target range"
 	bulletCount(integer) : "Bullet count" : : "Less or equal to 0 means infinite number of bullets"
-	m_iClass(choices) : "Behavior" =
+	m_iClass(choices) : "Behavior/Classification" =
 	[
 		 0: "Attack only players"
 		11: "Security guard"
