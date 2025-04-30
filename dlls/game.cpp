@@ -91,7 +91,6 @@ ModFeatures::ModFeatures()
 	racex_dislike_alien_military = true;
 	racex_dislike_gargs = true;
 	racex_dislike_alien_monsters = false;
-	shockroach_racex_classify = false;
 
 	scientist_random_heads =  4;
 
@@ -159,7 +158,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(racex_dislike_alien_military),
 		KEY_VALUE_DEF(racex_dislike_gargs),
 		KEY_VALUE_DEF(racex_dislike_alien_monsters),
-		KEY_VALUE_DEF(shockroach_racex_classify),
 		KEY_VALUE_DEF(vortigaunt_coil_attack),
 		KEY_VALUE_DEF(vortigaunt_idle_effects),
 		KEY_VALUE_DEF(vortigaunt_arm_boost),

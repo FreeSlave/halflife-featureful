@@ -99,7 +99,6 @@ struct ModFeatures
 	bool racex_dislike_alien_military;
 	bool racex_dislike_gargs;
 	bool racex_dislike_alien_monsters;
-	bool shockroach_racex_classify;
 
 	int scientist_random_heads;
 

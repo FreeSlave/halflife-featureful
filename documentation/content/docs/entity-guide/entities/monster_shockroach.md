@@ -32,3 +32,20 @@ Note: the shockroach uses a lot of sounds in the sequence events. These sounds c
 ### Animation events
 
 * `2` - occasionally play **Shockroach.Attack** soundscript.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Race X relationship classification" %}}
+In Half-Life: Opposing Force shockroaches have the same classification as headcrabs which makes pitdrones attack them. Set custom default classification to avoid this behavior.
+```json
+{
+    "monster_shockroach": {
+        "classify": "Race X Shock"
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

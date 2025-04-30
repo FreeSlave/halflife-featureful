@@ -674,12 +674,6 @@ public:
 	void Spawn(void);
 	void Precache(void);
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shockroach"); }
-	int DefaultClassify() {
-		if (g_modFeatures.shockroach_racex_classify)
-			return CLASS_RACEX_SHOCK;
-		else
-			return CHeadCrab::DefaultClassify();
-	}
 	const char* DefaultDisplayName() { return "Shock Roach"; }
 	virtual float GetDamageAmount( void ) { return gSkillData.sroachDmgBite; }
 	void EXPORT LeapTouch(CBaseEntity *pOther);
