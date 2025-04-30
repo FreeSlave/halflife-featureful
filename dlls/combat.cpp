@@ -1406,9 +1406,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 	CBaseEntity* pHurt = CheckTraceHullAttack( params, h );
 	if (params.allowRetry && !params.height && npc_trace_hull_attack_retry.value && params.damageInfo.damage > 0 && (!pHurt || !pHurt->pev->takedamage))
 	{
-		TraceHullAttackParams altParams = params;
-		altParams.height = pev->size.z * 0.75f;
-		pHurt = CheckTraceHullAttack( params );
+		pHurt = CheckTraceHullAttack( params, pev->size.z * 0.75f );
 	}
 	return pHurt;
 }
