@@ -204,10 +204,8 @@ enum
 // Monster's Anim Events Go Here
 //=========================================================
 #define PIT_DRONE_AE_SPIT			( 1 )
-// not sure what it is. It happens twice when pitdrone uses two claws at the same time
-// once before 'throw' event and once after
-#define PIT_DRONE_AE_ATTACK			( 2 )
-#define PIT_DRONE_AE_SLASH			( 4 )
+#define PIT_DRONE_AE_BOTH_SLASH		( 2 )
+#define PIT_DRONE_AE_SINGLE_SLASH	( 4 )
 #define PIT_DRONE_AE_HOP			( 5 )
 #define PIT_DRONE_AE_THROW			( 6 )
 #define PIT_DRONE_AE_RELOAD			( 7 )
@@ -215,8 +213,8 @@ enum
 class CPitdrone : public CFollowingMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
+	void Spawn();
+	void Precache();
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
 	void HandleAnimEvent(MonsterEvent_t *pEvent);
 	void SetYawSpeed(void);
@@ -467,38 +465,29 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 {
 	switch (pEvent->event)
 	{
-	case PIT_DRONE_AE_THROW:
+	case PIT_DRONE_AE_BOTH_SLASH:
 	{
-		// SOUND HERE (in the pitdrone model)
 		TraceHullAttackParams params;
 		params.distance = 70.0f;
 		params.knockForward = 100.0f;
-		params.knockUp = 200.0f;
-		params.damageInfo.damage = gSkillData.pitdroneDmgWhip;
-		params.hitSoundScript = attackHitSoundScript; // croonchy bite sound
-		params.missSoundScript = attackMissSoundScript;
+		params.knockUp = 100.0f;
+		params.damageInfo.damage = gSkillData.pitdroneDmgBite;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-		CBaseEntity *pHurt = PerformTraceHullAttack(params);
-
-		if( pHurt )
-		{
-			// screeshake transforms the viewmodel as well as the viewangle. No problems with seeing the ends of the viewmodels.
-			UTIL_ScreenShake( pHurt->pev->origin, 25.0, 1.5, 0.7, 2 );
-		}
+		PerformTraceHullAttack(params);
 	}
 	break;
 
-	case PIT_DRONE_AE_SLASH:
+	case PIT_DRONE_AE_SINGLE_SLASH:
 	{
 		/* The same event is reused for both right and left claw attacks.
 		 * Pitdrone always starts the attack with the right claw so we use shouldAttackWithLeftClaw to check which claw is used now.
 		 */
-		// SOUND HERE (in the pitdrone model)
 		TraceHullAttackParams params;
 		params.distance = 70.0f;
-		params.punchAngle = Vector(5.0f, 0.0f, -18);
+		params.punchAngle = Vector(20.0f, 0.0f, -20);
 		params.knockRight =  -100;
+		params.knockForward = 100;
 		params.damageInfo.damage = gSkillData.pitdroneDmgWhip;
 		params.missSoundScript = attackMissSoundScript;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -561,9 +550,24 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 		SendSpray(vecSpitOrigin, vecSpitDir, GetVisual(tinySpitVisual), 15, 210, 25);
 	}
 	break;
-	case PIT_DRONE_AE_ATTACK:
-		break;
+	case PIT_DRONE_AE_THROW:
+	{
+		TraceHullAttackParams params;
+		params.distance = 70.0f;
+		params.knockForward = 200.0f;
+		params.knockUp = 200.0f;
+		params.knockPlayerOnly = true;
+		params.hitSoundScript = attackHitSoundScript; // croonchy bite sound
+		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
+		CBaseEntity *pHurt = PerformTraceHullAttack(params);
+		if (pHurt)
+		{
+			// screeshake transforms the viewmodel as well as the viewangle. No problems with seeing the ends of the viewmodels.
+			UTIL_ScreenShake( pHurt->pev->origin, 25.0, 1.5, 0.7, 2 );
+		}
+	}
+	break;
 	default:
 		CFollowingMonster::HandleAnimEvent(pEvent);
 	}
