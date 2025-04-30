@@ -12,18 +12,18 @@ void LoadDefaultSprites()
 	cl_sprite_ricochet = const_cast<model_t*>(gEngfuncs.GetSpritePointer(gEngfuncs.pfnSPR_Load("sprites/richo1.spr")));
 }
 
-void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams)
+void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams, bool isDirectional)
 {
 	float maxLife = streakParams.maxLife;
 	float minLife = streakParams.minLife;
 	if (maxLife < minLife)
 		maxLife = minLife;
 
-	Vector vel;
-	VectorScale( dir,  streakParams.speed, vel );
+	const Vector baseVel = isDirectional ? dir * streakParams.speed : Vector{};
 
-	for( int i = 0; i <  streakParams.count; i++ )
+	for( int i = 0; i < streakParams.count; i++ )
 	{
+		Vector vel = baseVel;
 		vel.x += Com_RandomFloat( streakParams.velocityMin, streakParams.velocityMax );
 		vel.y += Com_RandomFloat( streakParams.velocityMin, streakParams.velocityMax );
 		vel.z += Com_RandomFloat( streakParams.velocityMin, streakParams.velocityMax );
@@ -31,9 +31,9 @@ void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams)
 		particle_t *p = gEngfuncs.pEfxAPI->R_TracerParticles( pos, vel, Com_RandomFloat( minLife, maxLife ));
 		if( !p ) return;
 
-		p->type =  streakParams.particleType;
-		p->color =  streakParams.color;
-		p->ramp =  streakParams.length;
+		p->type = streakParams.particleType;
+		p->color = streakParams.color;
+		p->ramp = streakParams.length;
 	}
 }
 

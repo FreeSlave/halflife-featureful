@@ -4659,6 +4659,7 @@ bool CEnvDLight::EntityPositionIsKnownOnClient(CBaseEntity *pEntity)
 }
 
 #define SF_ENVSTREAK_REMOVE_ON_FIRE 1
+#define SF_ENVSTREAK_DIRECTIONAL 2
 
 class CEnvStreak : public CPointEntity
 {
@@ -4721,21 +4722,30 @@ void CEnvStreak::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 {
 	extern int gmsgStreaks;
 
-	Vector origin;
+	Vector origin = pev->origin;
 	if (pev->message)
 	{
 		if (!TryCalcLocus_Position( this, pActivator, STRING(pev->message), origin )) {
 			return;
 		}
 	}
-	else
-		origin = pev->origin;
 
-	const Vector direction = pev->movedir;
+	bool isDirectional = FBitSet(pev->spawnflags, SF_ENVSTREAK_DIRECTIONAL);
+	Vector direction = pev->movedir;
+
+	if (pev->netname)
+	{
+		if (TryCalcLocus_Velocity(this, pActivator, STRING(pev->netname), direction))
+			isDirectional = true;
+		else
+			return;
+	}
 
 	MESSAGE_BEGIN( MSG_PVS, gmsgStreaks, origin );
+		WRITE_BYTE( isDirectional ? 1 : 0 );
 		WRITE_VECTOR( origin );		// origin
-		WRITE_VECTOR( direction );	// direction
+		if (isDirectional)
+			WRITE_VECTOR( direction );	// direction
 		WRITE_BYTE( pev->skin ); // color
 		WRITE_SHORT( pev->body );	// count
 		WRITE_SHORT( pev->speed );

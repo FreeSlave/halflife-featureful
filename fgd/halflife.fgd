@@ -2549,9 +2549,9 @@
 @PointClass base(Targetname) = env_streak : "Streak splash"
 [
 	count(integer) : "Count" : 20
-	speed(integer) : "Speed" : 50
+	speed(integer) : "Speed (directional)" : 50
 	scale(string) : "Length" : 1.0
-	randomness(integer) : "Random velocity modifier" : 400
+	randomness(integer) : "Random velocity variance" : 400
 	tracer_color(choices) : "Tracer color index" : 6 =
 	[
 		0: "White"
@@ -2568,7 +2568,7 @@
 		11: "Yellowish 4"
 	]
 	minlife : "Min life" : 0.1
-	maxlife : "Min life" : 0.5
+	maxlife : "Max life" : 0.5
 	pt_type(choices) : "Particle type" : 1 =
 	[
 		1 : "Gravity"
@@ -2582,9 +2582,11 @@
 		9 : "Vox gravity"
 	]
 	message(string) : "Position (blank = here) [LP]"
+	netname(string) : "Direction (blank = random) [LV]"
 	spawnflags(flags) =
 	[
 		1: "Remove on fire" : 0
+		2: "Use angles for direction" : 0
 	]
 ]
 

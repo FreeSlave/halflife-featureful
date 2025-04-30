@@ -478,8 +478,11 @@ int __MsgFunc_Streaks( const char* pszName, int iSize, void *pbuf )
 
 	StreakParams streakParams;
 
+	bool isDirectional = READ_BYTE() ? true : false;
 	Vector pos = READ_VECTOR();
-	Vector dir = READ_VECTOR();
+	Vector dir;
+	if (isDirectional)
+		dir = READ_VECTOR();
 	streakParams.color = READ_BYTE();
 	streakParams.count = READ_SHORT();
 	streakParams.speed = READ_SHORT();
@@ -490,7 +493,7 @@ int __MsgFunc_Streaks( const char* pszName, int iSize, void *pbuf )
 	streakParams.particleType = (ptype_t)READ_BYTE();
 	streakParams.length = READ_BYTE() * 0.1f;
 
-	FX_Streaks(pos, dir, streakParams);
+	FX_Streaks(pos, dir, streakParams, isDirectional);
 
 	return 1;
 }

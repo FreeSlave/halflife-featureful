@@ -336,7 +336,7 @@ void LinkUserMessages( void )
 	gmsgSprite = REG_USER_MSG( "Sprite", 18 );
 	gmsgSpriteTrail = REG_USER_MSG( "SpriteTrail", 26 );
 	gmsgSpray = REG_USER_MSG( "Spray", 27 );
-	gmsgStreaks = REG_USER_MSG( "Streaks", 23 );
+	gmsgStreaks = REG_USER_MSG( "Streaks", -1 );
 	gmsgSmoke = REG_USER_MSG( "Smoke", -1 );
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
