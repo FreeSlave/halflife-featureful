@@ -1677,7 +1677,7 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 			SpawnBlood( ptr->vecEndPos, BloodColor(), dmgInfo.damage );// a little surface blood.
 			TraceBleed( dmgInfo.damage, vecDir, ptr, dmgInfo.type );
 		}
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
 	}
 }
 
