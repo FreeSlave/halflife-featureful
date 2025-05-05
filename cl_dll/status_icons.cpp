@@ -60,7 +60,7 @@ void CHudStatusIcons::Reset( void )
 
 static void FillCharBufWithNumberSuffix(char* buf, int size, int count)
 {
-	_snprintf(buf, size, "x%d", count);
+	safe_snprintf(buf, size, "x%d", count);
 }
 
 static int ItemNumberSuffixWidth(int count)

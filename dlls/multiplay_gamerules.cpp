@@ -106,7 +106,7 @@ const char *GetAuthID( CBaseEntity *pPlayer )
 		{
 			char *pUid;
 
-			_snprintf( uid, 32, "IP_%s", ip );
+			safe_snprintf( uid, 32, "IP_%s", ip );
 
 			for( pUid = uid; *pUid; pUid++ )
 				if( *pUid == '.' ) *pUid = '_';
@@ -1572,8 +1572,7 @@ int ReloadMapCycleFile( const char *filename, mapcycle_t *cycle )
 			if( com_token[0] == '\0' )
 				break;
 
-			strncpy( szMap, com_token, sizeof( szMap ) - 1 );
-			szMap[sizeof( szMap ) - 1] = '\0';
+			strncpyEnsureTermination( szMap, com_token);
 
 			// Any more tokens on this line?
 			if( COM_TokenWaiting( pFileList ) )
@@ -1583,8 +1582,7 @@ int ReloadMapCycleFile( const char *filename, mapcycle_t *cycle )
 				if( com_token[0] != '\0' )
 				{
 					hasbuffer = 1;
-					strncpy( szBuffer, com_token, sizeof( szBuffer ) - 1 );
-					szBuffer[sizeof( szBuffer ) - 1] = '\0';
+					strncpyEnsureTermination( szBuffer, com_token );
 				}
 			}
 
@@ -1908,17 +1906,7 @@ void CHalfLifeMultiplay::SendMOTDToClient( edict_t *client )
 	while( pFileList && *pFileList && char_count < MAX_MOTD_LENGTH )
 	{
 		char chunk[MAX_MOTD_CHUNK + 1];
-
-		if( strlen( pFileList ) < MAX_MOTD_CHUNK )
-		{
-			strcpy( chunk, pFileList );
-		}
-		else
-		{
-			strncpy( chunk, pFileList, MAX_MOTD_CHUNK );
-			chunk[MAX_MOTD_CHUNK] = 0;		// strncpy doesn't always append the null terminator
-		}
-
+		strncpyEnsureTermination( chunk, pFileList );
 		char_count += strlen( chunk );
 		if( char_count < MAX_MOTD_LENGTH )
 			pFileList = aFileList + char_count; 

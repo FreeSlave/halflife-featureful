@@ -841,5 +841,5 @@ extern "C" EXPORT void SV_SaveGameComment( char *text, int maxlength )
 		}
 	}
 
-	_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(gpGlobals->time / 60.0 ), (int)fmod( gpGlobals->time, 60.0 ));
+	safe_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(gpGlobals->time / 60.0 ), (int)fmod( gpGlobals->time, 60.0 ));
 }

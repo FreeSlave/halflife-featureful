@@ -1225,7 +1225,7 @@ static const char* ConstructSentenceWithPrefix(const char* prefix, const char* d
 			str++;
 			size--;
 		}
-		_snprintf( str, size, "%s%s", prefix, foundUnderscore );
+		safe_snprintf( str, size, "%s%s", prefix, foundUnderscore );
 		return str;
 	}
 	else

@@ -1210,8 +1210,7 @@ void CHud::VidInit( void )
 					sprintf( sz, "sprites/%s.spr", p->szSprite );
 					m_rghSprites[index] = SPR_Load( sz );
 					m_rgrcRects[index] = p->rc;
-					strncpy( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH - 1 );
-					m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH + ( MAX_SPRITE_NAME_LENGTH - 1 )] = '\0';
+					strncpyEnsureTermination( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH );
 					index++;
 				}
 
@@ -1253,8 +1252,7 @@ void CHud::VidInit( void )
 				sprintf( sz, "sprites/%s.spr", p->szSprite );
 				m_rghSprites[index] = SPR_Load( sz );
 				m_rgrcRects[index] = p->rc;
-				strncpy( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH - 1 );
-				m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH + ( MAX_SPRITE_NAME_LENGTH - 1 )] = '\0';
+				strncpyEnsureTermination( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH );
 				index++;
 			}
 
@@ -1367,14 +1365,11 @@ void COM_FileBase ( const char *in, char *out )
 	else 
 		start++;
 
-	// Length of new sting
+	// Length of new string
 	len = end - start + 1;
 
 	// Copy partial string
-	strncpy( out, &in[start], len );
-
-	// Terminate it
-	out[len] = 0;
+	strncpyEnsureTermination( out, &in[start], len + 1 );
 }
 
 /*

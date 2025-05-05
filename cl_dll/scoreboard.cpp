@@ -21,7 +21,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-#include "triangleapi.h"
+#include "string_utils.h"
 
 cvar_t *cl_scoreboard_bg;
 cvar_t *cl_showpacketloss;
@@ -435,7 +435,7 @@ int CHudScoreboard::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf
 	if( cl > 0 && cl <= MAX_PLAYERS )
 	{
 		// set the players team
-		strncpy( g_PlayerExtraInfo[cl].teamname, READ_STRING(), MAX_TEAM_NAME - 1 );
+		strncpyEnsureTermination( g_PlayerExtraInfo[cl].teamname, READ_STRING() );
 	}
 
 	RebuildTeams();
@@ -540,7 +540,7 @@ void CHudScoreboard::RebuildTeams()
 			}
 			m_iNumTeams = Q_max( j, m_iNumTeams );
 
-			strncpy( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname, MAX_TEAM_NAME - 1 );
+			strncpyEnsureTermination( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname );
 			g_TeamInfo[j].players = 0;
 		}
 

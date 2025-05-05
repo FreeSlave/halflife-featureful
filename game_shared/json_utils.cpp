@@ -569,7 +569,7 @@ bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fi
 		}
 
 		char buf[1028];
-		_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
+		safe_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
 			fileName,
 			docPathBuffer.GetString(),
 			badValueBuffer.GetString(),

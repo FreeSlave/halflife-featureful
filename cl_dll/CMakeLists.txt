@@ -33,7 +33,7 @@ if(NOT MSVC)
 	add_compile_options(-fvisibility=hidden) # GCC/Clang flag
 	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp)
 	if(NOT MINGW)
-		add_definitions(-D_snprintf=snprintf -D_vsnprintf=vsnprintf)
+		add_definitions(-D_vsnprintf=vsnprintf)
 	endif()
 	if(CMAKE_BUILD_TYPE MATCHES "Release"
 		OR (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo"
@@ -154,6 +154,7 @@ set (CLDLL_SOURCES
 	particleman/CFrustum.cpp
 	particleman/CMiniMem.cpp
 	particleman/IParticleMan_Active.cpp
+	../public/safe_snprintf.c
 )
 
 if (USE_VGUI)
@@ -231,7 +232,7 @@ endif()
 set_target_properties (${CLDLL_LIBRARY} PROPERTIES
 	POSITION_INDEPENDENT_CODE 1)
 
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Android" OR XASH_TERMUX)
 	set(CLDLL_NAME "client")
 	set_target_properties(${CLDLL_LIBRARY} PROPERTIES
 		OUTPUT_NAME "${CLDLL_NAME}${POSTFIX}"

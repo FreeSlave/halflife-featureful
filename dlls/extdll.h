@@ -60,6 +60,9 @@ typedef unsigned char BYTE;
 #include <cstdio>
 #include <cstdlib>
 #include <cstddef>
+
+#include "safe_snprintf.h"
+
 #include <cmath>
 #include "pi_constant.h"
 

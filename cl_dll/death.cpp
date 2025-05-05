@@ -19,6 +19,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "string_utils.h"
 
 #if USE_VGUI
 #include "vgui_TeamFortressViewport.h"
@@ -180,8 +181,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 
 	char killedwith[32];
 	strcpy( killedwith, "d_" );
-	strncat( killedwith, READ_STRING(), sizeof(killedwith) - strlen(killedwith) - 1 );
-	killedwith[sizeof(killedwith) - 1] = '\0';
+	strcatEnsureTermination( killedwith, READ_STRING() );
 
 	gHUD.m_Scoreboard.DeathMsg( killer, victim );
 
@@ -212,8 +212,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 	else
 	{
 		rgDeathNoticeList[i].KillerColor = GetClientColor( killer );
-		strncpy( rgDeathNoticeList[i].szKiller, killer_name, MAX_PLAYER_NAME_LENGTH - 1 );
-		rgDeathNoticeList[i].szKiller[MAX_PLAYER_NAME_LENGTH - 1] = 0;
+		strncpyEnsureTermination( rgDeathNoticeList[i].szKiller, killer_name, MAX_PLAYER_NAME_LENGTH );
 	}
 
 	// Get the Victim's name
@@ -229,8 +228,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 	else
 	{
 		rgDeathNoticeList[i].VictimColor = GetClientColor( victim );
-		strncpy( rgDeathNoticeList[i].szVictim, victim_name, MAX_PLAYER_NAME_LENGTH - 1 );
-		rgDeathNoticeList[i].szVictim[MAX_PLAYER_NAME_LENGTH - 1] = 0;
+		strncpyEnsureTermination( rgDeathNoticeList[i].szVictim, victim_name, MAX_PLAYER_NAME_LENGTH );
 	}
 
 	// Is it a non-player object kill?

@@ -31,6 +31,8 @@
 // custom scheme handling
 #include "vgui_SchemeManager.h"
 
+#include "string_utils.h"
+
 #define TF_DEFS_ONLY
 #define PC_LASTCLASS 10
 #define PC_UNDEFINED 0
@@ -644,15 +646,13 @@ protected:
 public:
 	CMenuHandler_StringCommand( const char *pszCommand )
 	{
-		strncpy( m_pszCommand, pszCommand, MAX_COMMAND_SIZE - 1 );
-		m_pszCommand[MAX_COMMAND_SIZE - 1] = '\0';
+		strncpyEnsureTermination( m_pszCommand, pszCommand );
 		m_iCloseVGUIMenu = false;
 	}
 
 	CMenuHandler_StringCommand( const char *pszCommand, int iClose )
 	{
-		strncpy( m_pszCommand, pszCommand, MAX_COMMAND_SIZE - 1 );
-		m_pszCommand[MAX_COMMAND_SIZE - 1] = '\0';
+		strncpyEnsureTermination( m_pszCommand, pszCommand );
 		m_iCloseVGUIMenu = true;
 	}
 
@@ -841,8 +841,7 @@ protected:
 public:
 	CMenuHandler_SpectateFollow( char *player )
 	{
-		strncpy( m_szplayer, player, MAX_COMMAND_SIZE - 1 );
-		m_szplayer[MAX_COMMAND_SIZE-1] = '\0';
+		strncpyEnsureTermination( m_szplayer, player );
 	}
 
 	virtual void actionPerformed(Panel* panel)

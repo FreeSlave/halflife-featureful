@@ -32,7 +32,7 @@ if(NOT MSVC)
 	add_compile_options(-fno-rtti) # GCC/Clang flag
 	add_compile_options(-Wno-invalid-offsetof) # GCC/Clang flag
 	add_compile_options(-fvisibility=hidden) # GCC/Clang flag
-	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf )
+	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf )
 	if(CMAKE_BUILD_TYPE MATCHES "Release"
 		OR (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo"
 		AND CMAKE_SYSTEM_NAME STREQUAL "Android"))
@@ -210,6 +210,7 @@ set (SVDLL_SOURCES
 	../game_shared/random_utils.cpp
 	../game_shared/util_shared.cpp
 	../game_shared/vcs_info.cpp
+	../public/safe_snprintf.c
 )
 
 if(NOT MSVC)
@@ -237,7 +238,7 @@ add_library (${SVDLL_LIBRARY} SHARED ${SVDLL_SOURCES})
 set_target_properties (${SVDLL_LIBRARY} PROPERTIES
 	POSITION_INDEPENDENT_CODE 1)
 
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Android" OR XASH_TERMUX)
 	set(SVDLL_NAME "${SERVER_LIBRARY_NAME}")
 
 	set_target_properties(${SVDLL_LIBRARY} PROPERTIES

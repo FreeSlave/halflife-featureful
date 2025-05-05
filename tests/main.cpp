@@ -25,9 +25,27 @@ TEST(MinAndMax, Cases) {
 	EXPECT_EQ(Q_max(2, 2), 2);
 }
 
+TEST(StrncpyEnsureTermination, BufferIsEnough) {
+	char buf[14];
+	strncpyEnsureTermination(buf, "Hello, World!");
+	EXPECT_STREQ(buf, "Hello, World!");
+}
+
 TEST(StrncpyEnsureTermination, StringLongerThanBuffer) {
 	char buf[12];
 	strncpyEnsureTermination(buf, "Hello, World!");
+	EXPECT_STREQ(buf, "Hello, Worl");
+}
+
+TEST(StrcatEnsureTermination, BufferIsEnough) {
+	char buf[14] = "Hello";
+	strcatEnsureTermination(buf, ", World!");
+	EXPECT_STREQ(buf, "Hello, World!");
+}
+
+TEST(StrcatEnsureTermination, StringLongerThanBuffer) {
+	char buf[12] = "Hello";
+	strcatEnsureTermination(buf, ", World!");
 	EXPECT_STREQ(buf, "Hello, Worl");
 }
 

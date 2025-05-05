@@ -33,6 +33,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 include(CheckIncludeFile)
+include(CheckFunctionExists)
 include(CheckCSourceCompiles)
 include(VSForceXPToolchain) # Force XP toolchain for Visual Studio
 include(CheckIPOSupported)
@@ -146,6 +147,17 @@ endif()
 
 if(64BIT AND CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "You enabled XASH_64BIT, but compiler can't create 64 bit code!")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+	find_program(TERMUX_INFO termux-info)
+	if(NOT TERMUX_INFO)
+		# no-op
+	else()
+		# set through flags because otherwise macro won't be seen in tests
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__TERMUX__=1")
+		set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D__TERMUX__=1")
+	endif()
 endif()
 
 # Xash3D FWGS Library Naming Scheme compliance

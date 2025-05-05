@@ -1487,7 +1487,7 @@ void UTIL_StringToRandomVector( float *pVector, const char *pString )
 	int	j;
 	float pAltVec[3];
 
-	strcpy( tempString, pString );
+	strncpyEnsureTermination( tempString, pString );
 	pstr = pfront = tempString;
 
 	for ( j = 0; j < 3; j++ )			// lifted from pr_edict.c
