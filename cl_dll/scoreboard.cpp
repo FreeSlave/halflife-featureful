@@ -100,7 +100,9 @@ int CHudScoreboard::Draw( float fTime )
 	int can_show_packetloss = 0;
 	int FAR_RIGHT;
 
-	if( !m_iShowscoresHeld && gHUD.m_Health.m_iHealth > 0 && !gHUD.m_iIntermission )
+	bool showToDead = !gHUD.UseVguiScoreBoard();
+
+	if( !m_iShowscoresHeld && (showToDead ? gHUD.m_Health.m_iHealth > 0 : true) && !gHUD.m_iIntermission )
 		return 1;
 #if USE_VGUI
 	if (gViewPort && gViewPort->IsScoreBoardVisible())
