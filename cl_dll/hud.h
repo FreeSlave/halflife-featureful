@@ -910,6 +910,7 @@ public:
 	double m_flTimeDelta; // the difference between flTime and fOldTime
 	Vector	m_vecOrigin;
 	Vector	m_vecAngles;
+	Vector	m_velocity;
 	int		m_iKeyBits;
 	int		m_iHideHUDDisplay;
 	int		m_iFOV;
@@ -920,6 +921,7 @@ public:
 	cvar_t  *m_pCvarDeveloper;
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
+	cvar_t	*m_pCvarShowPos;
 	cvar_t  *m_pAllowHD;
 	cvar_t	*m_pCvarDrawMoveMode;
 	cvar_t	*m_pCvarCrosshair;

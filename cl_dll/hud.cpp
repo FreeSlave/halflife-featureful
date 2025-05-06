@@ -661,6 +661,17 @@ void CHud::Init( void )
 	default_fov = CVAR_CREATE( "default_fov", "90", FCVAR_ARCHIVE );
 	m_pCvarStealMouse = CVAR_CREATE( "hud_capturemouse", "1", FCVAR_ARCHIVE );
 	m_pCvarDraw = CVAR_CREATE( "hud_draw", "1", FCVAR_ARCHIVE );
+
+	if (gEngfuncs.pfnGetCvarPointer( "cl_showpos" ) != nullptr)
+	{
+		// cl_showpos exists in the engine. Probably running Xash3D-FWGS
+		m_pCvarShowPos = nullptr;
+	}
+	else
+	{
+		m_pCvarShowPos = CVAR_CREATE( "cl_showpos", "0", FCVAR_ARCHIVE );
+	}
+
 	m_pAllowHD = CVAR_CREATE ( "hud_allow_hd", "1", FCVAR_ARCHIVE );
 	CreateBooleanCvarConditionally(m_pCvarDrawMoveMode, "hud_draw_movemode", clientFeatures.movemode);
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );

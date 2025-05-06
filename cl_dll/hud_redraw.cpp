@@ -257,6 +257,33 @@ int CHud::Redraw( float flTime, int intermission )
 		CHud::Renderer().DrawCrosshair();
 	}
 
+	if (m_pCvarShowPos && m_pCvarShowPos->value > 0)
+	{
+		extern Vector v_origin, v_angles;
+
+		cl_entity_t* pl = gEngfuncs.GetLocalPlayer();
+
+		const Vector pos = m_pCvarShowPos->value == 2 ? pl->origin : v_origin;
+		const Vector ang = m_pCvarShowPos->value == 2 ? pl->angles : v_angles;
+		const char* posType = m_pCvarShowPos->value == 2 ? "ent" : "view";
+
+		const int x = ScreenWidth/2;
+		int y = 4;
+		const int textHeight = ConsoleText::LineHeight();
+		char posBuf[256];
+
+		safe_snprintf(posBuf, sizeof(posBuf), "pos (%s): %.2f %.2f %.2f", posType, pos.x, pos.y, pos.z);
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
+		y += textHeight;
+
+		safe_snprintf(posBuf, sizeof(posBuf), "ang (%s): %.2f %.2f %.2f", posType, ang.x, ang.y, ang.z);
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
+		y += textHeight;
+
+		safe_snprintf(posBuf, sizeof(posBuf), "velocity: %.2f", m_velocity.Length());
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
+	}
+
 	return 1;
 }
 

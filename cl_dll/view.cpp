@@ -1565,6 +1565,8 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	RenderFog();
 	g_iWaterLevel = pparams->waterlevel;
 
+	gHUD.m_velocity = pparams->simvel;
+
 	// intermission / finale rendering
 	if( pparams->intermission )
 	{
