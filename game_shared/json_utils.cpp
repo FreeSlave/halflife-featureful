@@ -2,6 +2,7 @@
 #include "json_utils.h"
 #include "logger.h"
 #include "const_sound.h"
+#include "safe_snprintf.h"
 
 #include "color_utils.h"
 #include "parsetext.h"

@@ -12,7 +12,7 @@ if(NOT MSVC)
 	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf )
 endif()
 
-include_directories (. ../common ../engine ../pm_shared ../game_shared ../dlls)
+include_directories (. ../common ../engine ../pm_shared ../game_shared ../dlls ../public)
 
 add_executable(test
 	ent_templates_test.cpp
@@ -34,6 +34,7 @@ add_executable(test
 	../game_shared/random_utils.cpp
 	../game_shared/tex_materials.cpp
 	../game_shared/util_shared.cpp
+	../public/safe_snprintf.c
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp
 	../dlls/followers.cpp
