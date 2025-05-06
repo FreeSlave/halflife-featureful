@@ -313,9 +313,9 @@ void CChargedBolt::DoRadiusDamage(float dmg, float radius)
 {
 	CBaseMonster* pOwner = GetMonsterPointer(pev->owner);
 	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, DamageInfo{dmg, DMG_SHOCK}, radius, RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
-				   [=](CBaseEntity* pEntity) {
+				   [pOwner](CBaseEntity* pEntity) {
 		if (pOwner)
-			pOwner->IRelationship(pEntity) != R_AL;
+			return pOwner->IRelationship(pEntity) != R_AL;
 		return true;
 	});
 }
