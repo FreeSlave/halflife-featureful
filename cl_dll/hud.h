@@ -673,6 +673,28 @@ private:
 	int m_HUD_title_force;
 };
 
+class CHudMonsterInfo : public CHudBase
+{
+public:
+	int Init() override;
+	int VidInit() override;
+	int Draw(float flTime) override;
+	void Reset();
+	int MsgFunc_MonsterInfo(const char *pszName, int iSize, void *pbuf);
+
+private:
+	cvar_t* m_pCvarShowMonsterInfo;
+
+	char displayName[128];
+	char healthDisplay[128];
+	char armorDisplay[128];
+	int health;
+	int maxHealth;
+	int armor;
+	bool isPlayer;
+	bool isAlly;
+};
+
 //
 //-----------------------------------------------------
 //
@@ -949,6 +971,7 @@ public:
 	struct ConsoleText
 	{
 		static int DrawString( int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length = -1 );
+		static int DrawString( int xpos, int ypos, const char *szString, int r, int g, int b, int length = -1 );
 		static int DrawNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 		static int DrawStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b, int length = -1 );
 		static int LineWidth( const char *szString, int length = -1 );
@@ -959,6 +982,7 @@ public:
 	struct AdditiveText
 	{
 		static int DrawString( int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length = -1 );
+		static int DrawString( int xpos, int ypos, const char *szString, int r, int g, int b, int length = -1 );
 		static int DrawNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 		static int DrawStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b, int length = -1 );
 		static int LineWidth( const char *szString, int length = -1 );
@@ -1070,6 +1094,7 @@ public:
 	CHudErrorCollection	m_ErrorCollection;
 	CHudNightvision m_Nightvision;
 	CHudCaption		m_Caption;
+	CHudMonsterInfo		m_MonsterInfo;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();

@@ -109,6 +109,7 @@ set (CLDLL_SOURCES
 	hud_caption.cpp
 	hud_error_collection.cpp
 	hud_inventory.cpp
+	hud_monsterinfo.cpp
 	hud_msg.cpp
 	hud_objecthint.cpp
 	hud_redraw.cpp

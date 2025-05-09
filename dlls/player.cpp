@@ -246,6 +246,7 @@ int gmsgMovementState = 0;
 int gmsgUseSound = 0;
 
 int gmsgCaption = 0;
+int gmsgMonsterInfo = 0;
 
 int gmsgInventory = 0;
 int gmsgObjectHint = 0;
@@ -348,6 +349,7 @@ void LinkUserMessages( void )
 	gmsgUseSound = REG_USER_MSG( "UseSound", 1 );
 
 	gmsgCaption = REG_USER_MSG("Caption", -1);
+	gmsgMonsterInfo = REG_USER_MSG("MonsterInfo", -1);
 
 	gmsgInventory = REG_USER_MSG("Inventory", -1);
 	gmsgObjectHint = REG_USER_MSG("ObjectHint", -1);
@@ -2259,35 +2261,7 @@ void CBasePlayer::InitStatusBar()
 	m_lastSeenTime = 0;
 }
 
-static void ClearMonsterInfoChannel(CBasePlayer* player)
-{
-	if (player->m_lastSeenEntityIndex < 0)
-		return;
-	player->m_lastSeenEntityIndex = -1;
-	player->m_lastSeenHealth = -1;
-	player->m_lastSeenArmor = -1;
-
-	hudtextparms_t  textParms;
-	textParms.channel = 3;
-	textParms.x = 0.1;
-	textParms.y = 0.6;
-	textParms.effect = 0;
-	textParms.r1 = 100;
-	textParms.g1 = 100;
-	textParms.b1 = 100;
-	textParms.a1 = 0;
-	textParms.r2 = 240;
-	textParms.g2 = 210;
-	textParms.b2 = 0;
-	textParms.a2 = 0;
-	textParms.fadeinTime = 0;
-	textParms.fadeoutTime = 0;
-	textParms.holdTime = 0.1;
-	textParms.fxTime = 0;
-	UTIL_HudMessage(player, textParms, "");
-}
-
-#define MONSTERINFO_LINGER_TIME 2
+#define MONSTERINFO_LINGER_TIME 1.6
 
 void CBasePlayer::UpdateStatusBar()
 {
@@ -2313,10 +2287,14 @@ void CBasePlayer::UpdateStatusBar()
 
 	bool showMonsterInfo = false;
 
-	if (pEntity && g_pGameRules->IsCoOp())
+	const bool isSingleplayer = !g_pGameRules->IsMultiplayer();
+	const int allowMonsterInfoValue = isSingleplayer ? sp_allowmonsterinfo.value : mp_allowmonsterinfo.value;
+
+	if (pEntity && allowMonsterInfoValue > 0 && (isSingleplayer || g_pGameRules->IsCoOp()))
 	{
 		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
-		if (pMonster && pMonster->IsAlive() && pMonster->m_IdealMonsterState != MONSTERSTATE_DEAD && g_pGameRules->IsMultiplayer()) {
+		if (pMonster && pMonster->IsFullyAlive())
+		{
 			const int entityIndex = ENTINDEX( pEntity->edict() );
 			int health = (int)ceil(pEntity->pev->health);
 			if (health < 0) {
@@ -2324,79 +2302,70 @@ void CBasePlayer::UpdateStatusBar()
 			}
 			const int armor = (int)pEntity->pev->armorvalue;
 
-			const bool isFriendPlayer = pEntity->IsPlayer() && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
+			const bool isPlayer = pEntity->IsPlayer();
+			const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
 			const bool isFriendMonster = (pMonster->IDefaultRelationship(this) == R_AL);
-			showMonsterInfo = isFriendPlayer || (allowmonsterinfo.value == 1 && !pMonster->IsPlayer()) || (allowmonsterinfo.value == 2 && isFriendMonster);
+			showMonsterInfo = isFriendPlayer || (allowMonsterInfoValue == 1 && !isPlayer) ||
+							  (allowMonsterInfoValue == 2 && isFriendMonster) ||
+							  (allowMonsterInfoValue == 3 && isFriendMonster && m_pActiveItem != 0 && m_pActiveItem->WeaponId() == WEAPON_MEDKIT);
 			if (showMonsterInfo)
 				m_lastSeenTime = gpGlobals->time;
 
-			if (showMonsterInfo && (m_lastSeenEntityIndex != entityIndex || m_lastSeenHealth != health || (m_lastSeenArmor != armor && isFriendPlayer))) {
+			if (showMonsterInfo && (m_lastSeenEntityIndex != entityIndex || m_lastSeenHealth != health || (m_lastSeenArmor != armor && isFriendPlayer)))
+			{
 				m_lastSeenEntityIndex = entityIndex;
 				m_lastSeenHealth = health;
 				m_lastSeenArmor = armor;
 
-				hudtextparms_t  textParms;
-				textParms.channel = 3;
-				textParms.x = 0.1;
-				textParms.y = 0.6;
-				textParms.effect = 0;
-				if (isFriendMonster || isFriendPlayer) {
-					textParms.r1 = 0;
-					textParms.g1 = 255;
-					textParms.b1 = 0;
-				} else {
-					textParms.r1 = 255;
-					textParms.g1 = 0;
-					textParms.b1 = 0;
-				}
-				textParms.a1 = 0;
-				textParms.r2 = 100;
-				textParms.g2 = 100;
-				textParms.b2 = 100;
-				textParms.a2 = 0;
-				textParms.fadeinTime = 0.1;
-				textParms.fadeoutTime = 0;
-				textParms.holdTime = 1000.0;
-				textParms.fxTime = 0;
+				char buf[128];
+				const char* displayName = nullptr;
 
-				char buf[512];
 				if (isFriendPlayer) {
-					sprintf(buf, "%s\nHealth: %d\nArmor: %d", STRING(pEntity->pev->netname), health, armor);
+					displayName = STRING(pEntity->pev->netname);
 				} else {
-					const char* displayName = pMonster->DisplayName();
-					const char* className = STRING(pEntity->pev->classname);
+					displayName = pMonster->DisplayName();
 					if (!displayName)
 					{
+						const char* className = STRING(pEntity->pev->classname);
 						if (strncmp(className, "monster_", 8) == 0)
-							displayName = className + 8;
+						{
+							strncpyEnsureTermination(buf, className + 8);
+
+							buf[0] = toupper(buf[0]); //Capitalize monster name
+							char* str = buf+1;
+							bool wasSpace = false;
+							while(*str != '\0' && *str != '\n')
+							{
+								if (*str == '_')
+								{
+									*str = ' ';
+									wasSpace = true;
+								}
+								else
+								{
+									if (wasSpace)
+										*str = toupper(*str);
+									wasSpace = false;
+								}
+								str++;
+							}
+							displayName = buf;
+						}
 						else
 							displayName = className;
 					}
-
-					sprintf(buf, "%s\nHealth: %d/%d", displayName, health, (int)ceil(pEntity->pev->max_health));
-					if (displayName == className + 8) {
-						buf[0] = toupper(buf[0]); //Capitalize monster name
-						char* str = buf;
-						str++;
-						bool wasSpace = false;
-						while(*str != '\0' && *str != '\n')
-						{
-							if (*str == '_')
-							{
-								*str = ' ';
-								wasSpace = true;
-							}
-							else
-							{
-								if (wasSpace)
-									*str = toupper(*str);
-								wasSpace = false;
-							}
-							str++;
-						}
-					}
 				}
-				UTIL_HudMessage(this, textParms, buf);
+				if (displayName && *displayName)
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+						WRITE_STRING(displayName);
+						WRITE_SHORT(health);
+						WRITE_SHORT((int)ceil(pEntity->pev->max_health));
+						WRITE_SHORT(armor);
+						WRITE_BYTE(isPlayer ? 1 : 0);
+						WRITE_BYTE((isFriendPlayer || isFriendMonster) ? 1 : 0);
+					MESSAGE_END();
+				}
 			}
 		}
 
@@ -2433,9 +2402,15 @@ void CBasePlayer::UpdateStatusBar()
 	{
 		return;
 	}
-	else if (m_lastSeenEntityIndex >= 0 && m_lastSeenTime + MONSTERINFO_LINGER_TIME <= gpGlobals->time  && g_pGameRules->IsCoOp())
+	else if (m_lastSeenEntityIndex >= 0 && m_lastSeenTime + MONSTERINFO_LINGER_TIME <= gpGlobals->time)
 	{
-		ClearMonsterInfoChannel(this);
+		m_lastSeenEntityIndex = -1;
+		m_lastSeenHealth = -1;
+		m_lastSeenArmor = -1;
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+			WRITE_STRING("");
+		MESSAGE_END();
 	}
 
 	bool bForceResend = false;

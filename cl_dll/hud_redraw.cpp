@@ -454,6 +454,11 @@ int CHud::ConsoleText::DrawString(int xpos, int ypos, int iMaxX, const char *szS
 	return gEngfuncs.pfnDrawConsoleString(xpos, ypos, str);
 }
 
+int CHud::ConsoleText::DrawString(int xpos, int ypos, const char *szString, int r, int g, int b, int length)
+{
+	return DrawString(xpos, ypos, ScreenWidth, szString, r, g, b, length);
+}
+
 int CHud::ConsoleText::DrawNumberString(int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b)
 {
 	char szString[32];
@@ -517,6 +522,11 @@ int CHud::AdditiveText::DrawString(int xpos, int ypos, int iMaxX, const char *sz
 	}
 
 	return xpos;
+}
+
+int CHud::AdditiveText::DrawString(int xpos, int ypos, const char *szString, int r, int g, int b, int length)
+{
+	return DrawString(xpos, ypos, ScreenWidth, szString, r, g, b, length);
 }
 
 int CHud::AdditiveText::DrawNumberString(int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b)

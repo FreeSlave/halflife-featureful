@@ -765,7 +765,8 @@ cvar_t teamoverride	= { "mp_teamoverride","1" };
 cvar_t defaultteam	= { "mp_defaultteam","0" };
 
 cvar_t allowmonsters	= { "mp_allowmonsters","0", FCVAR_SERVER };
-cvar_t allowmonsterinfo = { "mp_allowmonsterinfo","0", FCVAR_SERVER };
+cvar_t mp_allowmonsterinfo = { "mp_allowmonsterinfo","0", FCVAR_SERVER };
+cvar_t sp_allowmonsterinfo = { "sp_allowmonsterinfo","0", FCVAR_SERVER };
 cvar_t npc_dropweapons = { "npc_dropweapons", "1", FCVAR_SERVER };
 cvar_t dmgperscore = { "mp_dmgperscore", "0", FCVAR_SERVER };
 cvar_t allydmgpenalty = { "mp_allydmgpenalty", "2", FCVAR_SERVER };
@@ -1636,7 +1637,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &defaultteam );
 
 	CVAR_REGISTER( &allowmonsters );
-	CVAR_REGISTER( &allowmonsterinfo );
+	CVAR_REGISTER( &mp_allowmonsterinfo );
+	CVAR_REGISTER( &sp_allowmonsterinfo );
 	CVAR_REGISTER( &npc_dropweapons );
 	CVAR_REGISTER( &dmgperscore );
 	CVAR_REGISTER( &allydmgpenalty );

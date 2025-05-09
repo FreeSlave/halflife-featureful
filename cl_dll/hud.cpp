@@ -782,6 +782,7 @@ void CHud::Init( void )
 	m_Menu.Init();
 
 	m_Caption.Init();
+	m_MonsterInfo.Init();
 
 	hudRenderer.Init();
 
@@ -1316,6 +1317,7 @@ void CHud::VidInit( void )
 	m_Nightvision.VidInit();
 
 	m_Caption.VidInit();
+	m_MonsterInfo.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));

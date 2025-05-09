@@ -189,7 +189,8 @@ extern cvar_t teamoverride;
 extern cvar_t defaultteam;
 
 extern cvar_t allowmonsters;
-extern cvar_t allowmonsterinfo;
+extern cvar_t mp_allowmonsterinfo;
+extern cvar_t sp_allowmonsterinfo;
 extern cvar_t npc_dropweapons;
 extern cvar_t dmgperscore;
 extern cvar_t allydmgpenalty;
