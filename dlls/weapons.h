@@ -164,7 +164,7 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 
 #define WEAPON_IS_ONTARGET 0x40
 
-typedef struct
+struct ItemInfo
 {
 	int		iSlot = 0;
 	int		iPosition = 0;
@@ -175,7 +175,7 @@ typedef struct
 	int		iFlags = 0;
 	const char* pszAmmoEntity = nullptr;
 	int iDropAmmo = 0;
-} ItemInfo;
+};
 
 #if !CLIENT_DLL
 void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, CBasePlayer *pPlayer );
