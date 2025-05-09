@@ -72,8 +72,8 @@ public:
 
 	// Operators
 	constexpr Vector operator-( void ) const			{ return Vector( -x, -y, -z );			}
-	constexpr int operator==( const Vector& v ) const		{ return x==v.x && y==v.y && z==v.z;		}
-	constexpr int operator!=( const Vector& v ) const		{ return !( *this==v );				}
+	constexpr bool operator==( const Vector& v ) const		{ return x==v.x && y==v.y && z==v.z;		}
+	constexpr bool operator!=( const Vector& v ) const		{ return !( *this==v );				}
 	constexpr Vector operator+( const Vector& v ) const	{ return Vector( x + v.x, y + v.y, z + v.z );	}
 	constexpr Vector operator-( const Vector& v ) const	{ return Vector( x - v.x, y - v.y, z - v.z );	}
 	constexpr Vector operator*( float fl) const		{ return Vector( x * fl, y * fl, z * fl );	}
