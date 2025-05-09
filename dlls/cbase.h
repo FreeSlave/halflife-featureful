@@ -118,6 +118,7 @@ typedef void(CBaseEntity::*ENTITYFUNCPTR)( CBaseEntity *pOther );
 typedef void(CBaseEntity::*USEPTR)( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 class CBaseEntity;
+class CBaseAnimating;
 class CBaseToggle;
 class CBaseMonster;
 class CBasePlayerWeapon;
@@ -262,9 +263,10 @@ public:
 	virtual int BloodColor( void ) { return DONT_BLEED; }
 	virtual void TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
 	virtual bool IsTriggered( CBaseEntity *pActivator ) {return true; }
-	virtual CBaseToggle *MyTogglePointer( void ) { return NULL; }
-	virtual CBaseMonster *MyMonsterPointer( void ) { return NULL; }
-	virtual CSquadMonster *MySquadMonsterPointer( void ) { return NULL; }
+	virtual CBaseAnimating *MyAnimatingPointer() { return nullptr; }
+	virtual CBaseToggle *MyTogglePointer() { return nullptr; }
+	virtual CBaseMonster *MyMonsterPointer() { return nullptr; }
+	virtual CSquadMonster *MySquadMonsterPointer() { return nullptr; }
 	virtual	int GetToggleState( void ) { return TS_AT_TOP; }
 	virtual void AddPoints( int score, bool bAllowNegativeScore ) { AddFloatPoints((float)score, bAllowNegativeScore); }
 	virtual void AddPointsToTeam( int score, bool bAllowNegativeScore ) {}
@@ -595,6 +597,8 @@ public:
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
+
+	CBaseAnimating *MyAnimatingPointer() { return this; }
 
 	// Basic Monster Animation functions
 	float StudioFrameAdvance( float flInterval = 0.0 ); // accumulate animation frame time from last time called until now

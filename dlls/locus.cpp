@@ -436,6 +436,17 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 		}
 	}
 
+	CBaseAnimating* pAnimatingSubject = nullptr;
+	if (pev->impulse >= 5 && pev->impulse <= 8)
+	{
+		pAnimatingSubject = pSubject->MyAnimatingPointer();
+		if (!pAnimatingSubject)
+		{
+			ALERT(at_console, "%s \"%s\" can't get attachment points from non-animating entity\n");
+			return false;
+		}
+	}
+
 	Vector vecPosition;
 	Vector vecJunk;
 
@@ -468,21 +479,19 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 		);
 		break;
 	case 5:
-		// this could cause problems.
-		// is there a good way to check whether it's really a CBaseAnimating?
-		((CBaseAnimating*)pSubject)->GetAttachment( 0, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 0, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 6:
-		((CBaseAnimating*)pSubject)->GetAttachment( 1, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 1, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 7:
-		((CBaseAnimating*)pSubject)->GetAttachment( 2, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 2, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 8:
-		((CBaseAnimating*)pSubject)->GetAttachment( 3, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 3, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 9:
@@ -925,6 +934,17 @@ bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 		return false;
 	}
 
+	CBaseAnimating* pAnimatingSubject = nullptr;
+	if (pev->impulse >= 5 && pev->impulse <= 8)
+	{
+		pAnimatingSubject = pLocus->MyAnimatingPointer();
+		if (!pAnimatingSubject)
+		{
+			ALERT(at_console, "%s \"%s\" can't get attachment points from non-animating entity\n");
+			return false;
+		}
+	}
+
 	Vector vecAngles;
 	Vector vecJunk;
 
@@ -935,18 +955,16 @@ bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 	case 2: //v_angle
 		return ConvertAngles( pLocus, pLocus->pev->v_angle, outResult );
 	case 5:
-		// this could cause problems.
-		// is there a good way to check whether it's really a CBaseAnimating?
-		((CBaseAnimating*)pLocus)->GetAttachment( 0, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 0, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 6:
-		((CBaseAnimating*)pLocus)->GetAttachment( 1, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 1, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 7:
-		((CBaseAnimating*)pLocus)->GetAttachment( 2, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 2, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 8:
-		((CBaseAnimating*)pLocus)->GetAttachment( 3, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 3, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 10:
 	{
