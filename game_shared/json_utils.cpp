@@ -569,14 +569,24 @@ bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fi
 			errorVal[invalidKeyword].Accept(writer);
 		}
 
+		const char* keyword = validator.GetInvalidSchemaKeyword();
+
 		char buf[1028];
-		safe_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
-			fileName,
-			docPathBuffer.GetString(),
-			badValueBuffer.GetString(),
-			validator.GetInvalidSchemaKeyword(),
-			schemaPathBuffer.GetString(),
-			schemaPartBuffer.GetString());
+		if (strcmp(keyword, "additionalProperties") == 0)
+		{
+			safe_snprintf(buf, sizeof(buf), "%s: unknown property \"%s\" is prohibited\n", fileName, docPathBuffer.GetString());
+		}
+		else
+		{
+			safe_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
+				fileName,
+				docPathBuffer.GetString(),
+				badValueBuffer.GetString(),
+				keyword,
+				schemaPathBuffer.GetString(),
+				schemaPartBuffer.GetString());
+		}
+
 		g_errorCollector.AddError(buf);
 
 		return false;
