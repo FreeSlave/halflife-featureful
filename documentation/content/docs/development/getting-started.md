@@ -35,7 +35,7 @@ Decide which of the available weapons you want to include in your mod. Based on 
 * Projectile sprites and models (for some weapons, e.g. shock rifle, spore launcher)
 * Sounds
 * `events/*.sc` file (the Grapple doesn't need `.sc` file)
-* Additional [[skill cvars|Cvars-and-commands#weapons-cvars]] in skill.cfg.
+* Additional skill cvars in skill.cfg.
 
 Open **features/featureful_weapons.cfg** in your mod directory and configure the list of enabled custom weapons.
 
@@ -58,12 +58,12 @@ uzi
 
 ## Enabling custom monsters
 
-Decide which of available non-standard Half-Life [[monsters|Monsters#monsters-by-faction]] you want to be use in the mod. Monsters need new resources to be included in the mod directory.
+Decide which of available non-standard Half-Life monsters you want to be use in the mod. Monsters need new resources to be included in the mod directory.
 
 * Models (the monster's model itself; sometimes gibs and projectiles)
 * Sounds
 * Sprites (visual effects related to the monster)
-* Additional [[skill cvars|Cvars-and-commands#monster-cvars]] in skill.cfg
+* Additional skill cvars in skill.cfg
 * Some monsters need additional entries in the `sound/sentences.txt`. E.g. Otis needs sentences with `OT_`prefix.
 
 Open **features/featureful_monsters.cfg** in your mod directory and configure the list of enabled monsters.
@@ -115,7 +115,7 @@ robocop
 
 ## Configuring server-side features
 
-You can edit some server-side features via **features/featureful_server.cfg**. The file provided in the repo or mod sample directory contains comments describing the features, so we don't go into detail on each feature here.
+You can edit some server-side features via **features/featureful_server.cfg**. The file provided in the mod sample directory contains comments describing the features, so we don't go into detail on each feature here.
 
 There's also a **features/featureful_exec.cfg** file which is getting executed by the engine and needs to be in the regular `.cfg` format (like server.cfg or skill.cfg). In this file you can set some cvars to values specific for your mod for features that are currently implemented as cvars only (e.g. `pushablemode` cvar).
 

@@ -76,7 +76,6 @@ Here's the list of recommendations for **features/featureful_server.cfg**:
 * Set `monsters_spawned_named_wait_trigger` to `false` to fix problems with unresponsiveness of the monsters who come from monstermaker and have a targetname.
 * Set `doors_blocked_recheck` to `true` so doors continue moving in case they crushed the monster (instead of returning to "open" position).
 * Set `door_rotating_starts_open_fix` to `true` to fix the bug with func_door_rotating becoming unresponsive after the first use if it has `Starts Open` spawnflag.
-* Set `vortigaunt_squad` to `true` so vortigaunts could form squads.
 * Set `bigmomma_wait_fix` to `true` so wait values of `info_bigmomma` are actually used.
 * Set `bigmomma_lastnode_fix` fix to `true` so Big Momma won't reuse the last node more than once (the original Half-Life bug).
 * Set `items_instant_drop` to `false` to make healthkits and batteries fall from the center of the `func_breakable` instead of appearing on the floor right away.

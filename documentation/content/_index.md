@@ -65,7 +65,7 @@ Read [compatibility]({{< ref "compatibility" >}}) for more detailed overwiew.
 **A:** You can do it either on github [Issues](https://github.com/FreeSlave/halflife-featureful/issues) or in the Hazard Team's [Discord server](https://discord.gg/A7ZErQAjfa)
 
 **Q:** Is there a roadmap for future updates of this SDK?  
-**A:** There's no strict roadmap, but you can look at the [[TODO]] list.
+**A:** There's no strict roadmap, but you can look at the [TODO]({{< ref TODO >}}) list.
 
 **Q:** Is it well-tested?  
 **A:** The mods [Field Intensity](https://www.moddb.com/mods/field-intensity) and [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) are based on the same code. There're also several mods in development using this SDK. So one can say it's pretty well tested and continuously being tested in the new projects.

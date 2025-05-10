@@ -37,7 +37,7 @@ If your map hits this limit, there's a number of ways to decrease the quantity o
 
 * Weapons are always getting precached and usually each weapon precaches its own unique sounds. So if your mod doesn't need some custom weapons you better disable them (in **features/featureful_weapons.txt**).
 * Change the map so it uses less sounds. E.g. remove some ambient_generics or monster classes.
-* Configure the [[soundscripts]] to use less sounds. For example `monster_rosenberg` uses 9 pain sounds by default. You can redefine it to include less sounds.
+* Configure the [soundscripts]({{< ref soundscripts >}}) to use less sounds. For example `monster_rosenberg` uses 9 pain sounds by default. You can redefine it to include less sounds.
 
 ## The entities don't appear or the map crashes even if I just fly through it with the noclip.
 
