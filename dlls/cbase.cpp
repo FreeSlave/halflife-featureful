@@ -699,6 +699,7 @@ TYPEDESCRIPTION	CBaseEntity::m_SaveData[] =
 	DEFINE_FIELD( CBaseEntity, m_entTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_ownerEntTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_objectHint, FIELD_STRING ),
+	DEFINE_FIELD( CBaseEntity, m_displayName, FIELD_STRING ),
 };
 
 void CBaseEntity::KeyValue(KeyValueData* pkvd)
@@ -708,6 +709,9 @@ void CBaseEntity::KeyValue(KeyValueData* pkvd)
 		pkvd->fHandled = true;
 	} else if (FStrEq(pkvd->szKeyName, "objecthint")) {
 		m_objectHint = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	} else if (FStrEq(pkvd->szKeyName, "displayname")) {
+		m_displayName = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	} else {
 		pkvd->fHandled = false;
@@ -1510,4 +1514,9 @@ CBaseEntity *CBaseEntity::CreateNoSpawn( const char *szName, const Vector &vecOr
 	pEntity->pev->angles = vecAngles;
 	pEntity->AssignEntityOverrides(entityOverrides);
 	return pEntity;
+}
+
+const char* CBaseEntity::DisplayName()
+{
+	return FStringNull(m_displayName) ? DefaultDisplayName() : STRING(m_displayName);
 }

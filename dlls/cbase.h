@@ -313,6 +313,7 @@ public:
 	string_t m_entTemplate;
 	string_t m_ownerEntTemplate;
 	string_t m_objectHint; // the name of the spritehint template
+	string_t m_displayName;
 
 	// Don't save those:
 	const EntTemplate* m_cachedEntTemplate;
@@ -497,6 +498,11 @@ public:
 	virtual	bool FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocker = nullptr );
 
 	virtual void AddFloatPoints( float score, bool bAllowNegativeScore ) {}
+
+	virtual const char* DefaultDisplayName() { return nullptr; }
+	const char* DisplayName();
+	virtual bool MustDisplayHUDInfo() const { return false; }
+
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_NOT_A_TARGET; }
 	virtual int SizeForGrapple() { return DefaultSizeForGrapple(); }
 	virtual bool IsDisplaceable() { return false; }

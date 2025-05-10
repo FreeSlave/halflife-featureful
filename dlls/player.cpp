@@ -2288,12 +2288,23 @@ void CBasePlayer::UpdateStatusBar()
 	bool showMonsterInfo = false;
 
 	const bool isSingleplayer = !g_pGameRules->IsMultiplayer();
-	const int allowMonsterInfoValue = isSingleplayer ? sp_allowmonsterinfo.value : mp_allowmonsterinfo.value;
+	int allowMonsterInfoValue = isSingleplayer ? sp_allowmonsterinfo.value : mp_allowmonsterinfo.value;
 
-	if (pEntity && allowMonsterInfoValue > 0 && (isSingleplayer || g_pGameRules->IsCoOp()))
+	if (pEntity && (isSingleplayer || g_pGameRules->IsCoOp()))
 	{
 		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
-		if (pMonster && pMonster->IsFullyAlive())
+		bool validInfoTarget = false;
+		if (pEntity->MustDisplayHUDInfo())
+		{
+			validInfoTarget = true;
+			allowMonsterInfoValue = 1;
+		}
+		else
+		{
+			validInfoTarget = allowMonsterInfoValue > 0 && pMonster && pMonster->IsFullyAlive();
+		}
+
+		if (validInfoTarget)
 		{
 			const int entityIndex = ENTINDEX( pEntity->edict() );
 			int health = (int)ceil(pEntity->pev->health);
@@ -2304,7 +2315,7 @@ void CBasePlayer::UpdateStatusBar()
 
 			const bool isPlayer = pEntity->IsPlayer();
 			const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
-			const bool isFriendMonster = (pMonster->IDefaultRelationship(this) == R_AL);
+			const bool isFriendMonster = (pMonster && pMonster->IDefaultRelationship(this) == R_AL);
 			showMonsterInfo = isFriendPlayer || (allowMonsterInfoValue == 1 && !isPlayer) ||
 							  (allowMonsterInfoValue == 2 && isFriendMonster) ||
 							  (allowMonsterInfoValue == 3 && isFriendMonster && m_pActiveItem != 0 && m_pActiveItem->WeaponId() == WEAPON_MEDKIT);
@@ -2323,7 +2334,7 @@ void CBasePlayer::UpdateStatusBar()
 				if (isFriendPlayer) {
 					displayName = STRING(pEntity->pev->netname);
 				} else {
-					displayName = pMonster->DisplayName();
+					displayName = pEntity->DisplayName();
 					if (!displayName)
 					{
 						const char* className = STRING(pEntity->pev->classname);
@@ -2362,6 +2373,7 @@ void CBasePlayer::UpdateStatusBar()
 						WRITE_SHORT(health);
 						WRITE_SHORT((int)ceil(pEntity->pev->max_health));
 						WRITE_SHORT(armor);
+						WRITE_BYTE(pMonster ? 1 : 0);
 						WRITE_BYTE(isPlayer ? 1 : 0);
 						WRITE_BYTE((isFriendPlayer || isFriendMonster) ? 1 : 0);
 					MESSAGE_END();

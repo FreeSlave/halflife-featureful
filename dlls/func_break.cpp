@@ -1010,6 +1010,7 @@ public:
 	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	int DamageDecal(int bitsDamageType);
+	const char* DefaultDisplayName() override { return "Pushable"; }
 	bool IsDestroyableObstacle();
 	bool ShouldCollideWithCorpses() { return !m_ignoreCorpses; }
 

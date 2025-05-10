@@ -142,7 +142,6 @@ public:
 	string_t m_gibModel;
 
 	bool m_reverseRelationship;
-	string_t m_displayName;
 
 	float m_flLastYawTime;
 
@@ -444,9 +443,6 @@ public:
 	int GibCount();
 
 	virtual bool IsAlienMonster();
-
-	virtual const char* DefaultDisplayName() { return NULL; }
-	const char* DisplayName();
 
 	virtual Vector DefaultMinHullSize();
 	virtual Vector DefaultMaxHullSize();

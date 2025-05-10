@@ -110,7 +110,6 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_iClass, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_gibModel, FIELD_STRING ),
 	DEFINE_FIELD( CBaseMonster, m_reverseRelationship, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CBaseMonster, m_displayName, FIELD_STRING ),
 
 	DEFINE_FIELD( CBaseMonster, m_glowShellTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_glowShellUpdate, FIELD_BOOLEAN ),
@@ -3747,11 +3746,6 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 		m_reverseRelationship = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
-	else if ( FStrEq( pkvd->szKeyName, "displayname" ) )
-	{
-		m_displayName = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = true;
-	}
 	else if ( FStrEq( pkvd->szKeyName, "minhullsize" ) )
 	{
 		UTIL_StringToVector((float*)m_minHullSize, pkvd->szValue );
@@ -4566,11 +4560,6 @@ int CBaseMonster::Classify()
 int CBaseMonster::DefaultClassify()
 {
 	return CLASS_NONE;
-}
-
-const char* CBaseMonster::DisplayName()
-{
-	return FStringNull(m_displayName) ? DefaultDisplayName() : STRING(m_displayName);
 }
 
 Vector CBaseMonster::DefaultMinHullSize()

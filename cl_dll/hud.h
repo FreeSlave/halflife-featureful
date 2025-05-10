@@ -691,6 +691,7 @@ private:
 	int health;
 	int maxHealth;
 	int armor;
+	bool isMonster;
 	bool isPlayer;
 	bool isAlly;
 };

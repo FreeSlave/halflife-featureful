@@ -469,7 +469,7 @@
 
 @BaseClass base(MonsterExtraBase, Scalable, Classification, BloodColor, FielfOfView, FreeRoaming, ActiveAfterAlert, SizeForGrapple, PrisonerTo, MonsterSoundMask, MonsterGibPolicy) = MonsterExtra
 [
-	displayname(string) : "In-game Name" : : "Name that's displayed when player looks at the monster if mp_allowmonsterinfo is enabled"
+	displayname(string) : "In-game Name" : : "Name to display when player is looking at the monster if mp_allowmonsterinfo or sp_allowmonsterinfo is enabled"
 ]
 
 @BaseClass base(MonsterBase, EntityTemplate, MonsterExtra) flags(Angle) color(0 200 200) = Monster
@@ -2694,7 +2694,7 @@
 		4 : "Pressure"     : 0
 		8: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Repairable' flag"
 		16 : "Invert Hit Vector (trigger when hit)" : 0
-		32: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Show HUD Info' flag"
+		32: "Show HUD Info" : 0 : "Whether to show HUD info for players looking at this breakable. This is not affected by mp_allowmonsterinfo and sp_allowmonsterinfo cvars."
 		64: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Immune To Clients' flag"
 		256: "Instant break by melee" : 0
 		512: "Explosives only": 0
@@ -2702,6 +2702,7 @@
 		4096: "Not solid" : 0
 	]
 	_minlight(string) : "Minimum light level"
+	displayname(string) : "HUD Info name" : : "Name to display when player is looking at this breakable. Requires 'Show HUD Info' spawnflag."
 ]
 
 @SolidClass base(Targetname, BreakableSpawnFlags) = func_breakable_effect : "Effect similar to func_breakable destruction, but without visible object"
@@ -2936,7 +2937,7 @@
 	[
 		8: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Repairable' flag"
 		16 : "Invert Hit Vector (trigger when hit)" : 0
-		32: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Show HUD Info' flag"
+		32: "Show HUD Info" : 0 : "Whether to show HUD info for players looking at this pushable. This is not affected by mp_allowmonsterinfo and sp_allowmonsterinfo cvars."
 		128: "Breakable" : 0
 		512: "Explosives only": 0
 	]
@@ -2948,6 +2949,7 @@
 		1 : "Don't collide with corpses"
 	]
 	_minlight(string) : "Minimum light level"
+	displayname(string) : "HUD Info name" : : "Name to display when player is looking at this pushable. Requires 'Show HUD Info' spawnflag."
 ]
 
 @SolidClass base(Global, Recharger, EntityTemplate, RenderFields, ZHLT, CustomObjectHint) = func_recharge: "Battery recharger"

@@ -44,8 +44,8 @@ int CHudMonsterInfo::Draw(float flTime)
 	else
 	{
 		r = 255;
-		g = 0;
-		b = 0;
+		g = 75;
+		b = 75;
 	}
 
 	CHud::UtfText::DrawString(xPos, yPos, displayName, r, g, b);
@@ -84,6 +84,7 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 	health = READ_SHORT();
 	maxHealth = READ_SHORT();
 	armor = READ_SHORT();
+	isMonster = READ_BYTE() ? true : false;
 	isPlayer = READ_BYTE() ? true : false;
 	isAlly = READ_BYTE() ? true : false;
 
@@ -96,9 +97,13 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d", health);
 		safe_snprintf(armorDisplay, sizeof(armorDisplay), "Armor: %d", armor);
 	}
-	else
+	else if (isMonster)
 	{
 		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d/%d", health, maxHealth);
+	}
+	else
+	{
+		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Strength: %d", health);
 	}
 
 	return 1;
