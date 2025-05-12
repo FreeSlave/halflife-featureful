@@ -1160,43 +1160,48 @@ int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	}
 
 	// react to the damage (get mad)
-	if( ( pev->flags & FL_MONSTER ) && !FNullEnt( pevAttacker ) )
+	if (pev->flags & FL_MONSTER)
 	{
-		if( pevAttacker->flags & ( FL_MONSTER | FL_CLIENT ) )
-		{
-			// only if the attack was a monster or client!
-			// enemy's last known position is somewhere down the vector that the attack came from.
-			if( pevInflictor )
-			{
-				if( m_hEnemy == 0 || pevInflictor == m_hEnemy->pev || !HasConditions( bits_COND_SEE_ENEMY ) )
-				{
-					m_vecEnemyLKP = pevInflictor->origin;
-				}
-			}
-			else
-			{
-				m_vecEnemyLKP = pev->origin + ( g_vecAttackDir * 64.0f );
-			}
-
-			MakeIdealYaw( m_vecEnemyLKP );
-
-			// add pain to the conditions
-			if( damageInfo.damage > 0.0f )
-			{
-				SetConditions( bits_COND_LIGHT_DAMAGE );
-			}
-
-			const float heavyDamageValue = Q_min(60.0f, Q_max(20.0f, pev->max_health/3));
-			if( damageInfo.damage >= heavyDamageValue )
-			{
-				SetConditions( bits_COND_HEAVY_DAMAGE );
-			}
-
-			m_bForceConditionsGather = true;
-		}
+		ReactToDamage( pevInflictor, pevAttacker, damageInfo );
 	}
 
 	return 1;
+}
+
+void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+{
+	if( !FNullEnt( pevAttacker ) && pevAttacker->flags & ( FL_MONSTER | FL_CLIENT ) )
+	{
+		// only if the attack was a monster or client!
+		// enemy's last known position is somewhere down the vector that the attack came from.
+		if( pevInflictor )
+		{
+			if( m_hEnemy == 0 || pevInflictor == m_hEnemy->pev || !HasConditions( bits_COND_SEE_ENEMY ) )
+			{
+				m_vecEnemyLKP = pevInflictor->origin;
+			}
+		}
+		else
+		{
+			m_vecEnemyLKP = pev->origin + ( g_vecAttackDir * 64.0f );
+		}
+
+		MakeIdealYaw( m_vecEnemyLKP );
+
+		// add pain to the conditions
+		if( damageInfo.damage > 0.0f )
+		{
+			SetConditions( bits_COND_LIGHT_DAMAGE );
+		}
+
+		const float heavyDamageValue = Q_min(60.0f, Q_max(20.0f, pev->max_health/3));
+		if( damageInfo.damage >= heavyDamageValue )
+		{
+			SetConditions( bits_COND_HEAVY_DAMAGE );
+		}
+
+		m_bForceConditionsGather = true;
+	}
 }
 
 //=========================================================
