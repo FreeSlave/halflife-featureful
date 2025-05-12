@@ -1615,13 +1615,7 @@ void CBaseEntity::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	{
 		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 
-		int blood = BloodColor();
-
-		if( blood != DONT_BLEED )
-		{
-			SpawnBlood( vecOrigin, blood, damageInfo.damage );// a little surface blood.
-			TraceBleed( damageInfo.damage, vecDir, ptr, damageInfo.type );
-		}
+		BloodEffect(damageInfo, vecOrigin, vecDir, ptr);
 	}
 }
 
@@ -1630,6 +1624,15 @@ void CBaseEntity::ApplyTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttack
 	ClearMultiDamage();
 	TraceAttack(pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 	ApplyMultiDamage(pevInflictor, pevAttacker);
+}
+
+void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, TraceResult *ptr)
+{
+	if (!damageInfo.noBlood)
+	{
+		SpawnBlood( vecOrigin, BloodColor(), damageInfo.damage );// a little surface blood.
+		TraceBleed( damageInfo.damage, vecDir, ptr, damageInfo.type );
+	}
 }
 
 //=========================================================
@@ -1672,11 +1675,7 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 			break;
 		}
 
-		if (!dmgInfo.noBlood)
-		{
-			SpawnBlood( ptr->vecEndPos, BloodColor(), dmgInfo.damage );// a little surface blood.
-			TraceBleed( dmgInfo.damage, vecDir, ptr, dmgInfo.type );
-		}
+		BloodEffect(dmgInfo, vecDir, ptr);
 		AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
 	}
 }

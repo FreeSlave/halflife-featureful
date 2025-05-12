@@ -256,6 +256,10 @@ public:
 
 	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr);
 	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr );
+	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, TraceResult* ptr);
+	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, TraceResult* ptr) {
+		BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
+	}
 	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
 	virtual int TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return 0; }
