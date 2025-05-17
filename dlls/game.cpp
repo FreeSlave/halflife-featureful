@@ -1120,6 +1120,7 @@ DECLARE_SKILL_VALUE(sk_plr_9mmAR_bullet, "0")
 DECLARE_SKILL_VALUE(sk_plr_9mmAR_grenade, "0")
 
 // Shotgun buckshot
+DECLARE_SKILL_VALUE(sk_buckshot, "0")
 DECLARE_SKILL_VALUE(sk_plr_buckshot, "0")
 
 // Crossbow
@@ -2016,6 +2017,7 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_plr_9mmAR_grenade);
 
 	// Shotgun buckshot
+	REGISTER_SKILL_CVARS(sk_buckshot);
 	REGISTER_SKILL_CVARS(sk_plr_buckshot);
 
 	// Crossbow
