@@ -684,6 +684,8 @@ void CDeadBarney::Spawn()
 #define	OTIS_BODY_GUNDRAWN		1
 #define OTIS_BODY_DONUT			2
 
+#define bits_OTIS_DROPPED_GUN (bits_MEMORY_CUSTOM5)
+
 class COtis : public CBarney
 {
 public:
@@ -824,12 +826,13 @@ void COtis::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 void COtis::OnDying()
 {
-	if ( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && GetBodygroup(1) != OTIS_BODY_GUNHOLSTERED )
+	if ( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && !HasMemory(bits_OTIS_DROPPED_GUN) )
 	{
 		Vector vecGunPos;
 		Vector vecGunAngles;
 
-		SetBodygroup(1, OTIS_BODY_GUNHOLSTERED);
+		SetBodygroup(OTIS_GUN_GROUP, OTIS_BODY_GUNHOLSTERED);
+		Remember(bits_OTIS_DROPPED_GUN);
 
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
