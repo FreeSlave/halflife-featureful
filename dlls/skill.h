@@ -296,6 +296,7 @@ struct skilldata_t
 	float monDmg357;
 	float monDmg556;
 	float monDmg762;
+	float monDmgBuckshot;
 
 	// mortar
 	float mortarDmg;

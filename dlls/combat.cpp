@@ -1724,6 +1724,8 @@ static float DamageByBulletType(int bulletType, float defaultDamage)
 		return gSkillData.monDmg556;
 	case BULLET_MONSTER_762:
 		return gSkillData.monDmg762;
+	case BULLET_MONSTER_BUCKSHOT:
+		return gSkillData.monDmgBuckshot;
 	default:
 		return defaultDamage;
 	}

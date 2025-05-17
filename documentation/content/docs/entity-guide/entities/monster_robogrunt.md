@@ -16,7 +16,7 @@ After death robogrunts play spark effects and explode after 2 seconds.
 * **sk_hgrunt_pellets** - the number of shotgun pellets.
 * **sk_hgrunt_gspeed** - the grenade speed when it's thrown.
 * **sk_9mmAR_bullet** - 9mmAR damage.
-* **sk_plr_buckshot** - shotgun pellet damage.
+* **sk_buckshot** - shotgun pellet damage. If not defined, **sk_plr_buckshot** is used.
 * **sk_rgrunt_explode** - after death explosion damage. If not defined, **sk_plr_hand_grenade** is used.
 
 ### Default classification

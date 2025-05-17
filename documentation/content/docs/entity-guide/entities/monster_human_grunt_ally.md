@@ -16,7 +16,7 @@ bookToC: false
 * **sk_hgrunt_ally_pellets** - the number of shotgun pellets. If not defined, **sk_hgrunt_pellets** is used.
 * **sk_hgrunt_ally_gspeed** - the grenade speed when it's thrown. If not defined, **sk_hgrunt_gspeed** is used.
 * **sk_9mmAR_bullet** - 9mmAR damage.
-* **sk_plr_buckshot** - shotgun pellet damage.
+* **sk_buckshot** - shotgun pellet damage. If not defined, **sk_plr_buckshot** is used.
 * **sk_556_bullet** - M249 damage. If not defined, **sk_plr_556_bullet** is used.
 
 ### Default classification
