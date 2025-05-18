@@ -10,6 +10,7 @@ entityCategory: projectile
 
 * **sk_plr_shockroachs** - impact damage in singleplayer.
 * **sk_plr_shockroachm** - impact damage in multiplayer.
+* **sk_shockroach** - impact damage for Monster entites. If not defined, **sk_plr_shockroachs** is used.
 
 ### Soundscripts
 

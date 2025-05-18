@@ -1194,6 +1194,7 @@ DECLARE_SKILL_VALUE3(sk_762_bullet, "35", "40", "40")
 #if FEATURE_SHOCKBEAM
 DECLARE_SKILL_VALUE(sk_plr_shockroachs, "0")
 DECLARE_SKILL_VALUE(sk_plr_shockroachm, "0")
+DECLARE_SKILL_VALUE(sk_shockroach, "0")
 #endif
 
 #if FEATURE_SPOREGRENADE
@@ -2094,6 +2095,7 @@ void GameDLLInit( void )
 	{
 		REGISTER_SKILL_CVARS(sk_plr_shockroachs);
 		REGISTER_SKILL_CVARS(sk_plr_shockroachm);
+		REGISTER_SKILL_CVARS(sk_shockroach);
 	}
 #endif
 

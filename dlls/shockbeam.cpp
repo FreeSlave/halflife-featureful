@@ -78,10 +78,8 @@ void CShock::Spawn(void)
 	SET_MODEL(ENT(pev), "models/shock_effect.mdl");
 	UTIL_SetOrigin(pev, pev->origin);
 
-	if ( g_pGameRules->IsMultiplayer() )
-		pev->dmg = gSkillData.plrDmgShockroachM;
-	else
-		pev->dmg = gSkillData.plrDmgShockroach;
+	pev->dmg = gSkillData.monDmgShockroach;
+
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 
 	CreateEffects();
@@ -127,6 +125,14 @@ void CShock::Shoot(entvars_t *pevOwner, const Vector angles, const Vector vecSta
 	pShock->pev->velocity = vecVelocity;
 	pShock->pev->owner = ENT(pevOwner);
 	pShock->pev->angles = angles;
+
+	if (!FNullEnt(pShock->pev->owner) && (pShock->pev->owner->v.flags & FL_CLIENT))
+	{
+		if (g_pGameRules->IsMultiplayer())
+			pShock->pev->dmg = gSkillData.plrDmgShockroachM;
+		else
+			pShock->pev->dmg = gSkillData.plrDmgShockroach;
+	}
 
 	pShock->pev->nextthink = gpGlobals->time;
 }

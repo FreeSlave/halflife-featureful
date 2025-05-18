@@ -530,6 +530,7 @@ void CGameRules::RefreshSkillData ( void )
 	{
 		gSkillData.plrDmgShockroach = GetSkillCvar( "sk_plr_shockroachs" );
 		gSkillData.plrDmgShockroachM = GetSkillCvar( "sk_plr_shockroachm" );
+		gSkillData.monDmgShockroach = GetSkillCvar( "sk_shockroach", IsMultiplayer() ? gSkillData.plrDmgShockroachM : gSkillData.plrDmgShockroach );
 	}
 #endif
 
