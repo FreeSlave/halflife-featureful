@@ -272,7 +272,7 @@ private:
 class VisualSystem : public JSONConfig
 {
 public:
-	void AddVisualFromJsonValue(const char* name, rapidjson::Value& value);
+	void AddVisualFromJsonValue(const char* name, const rapidjson::Value& value);
 	void EnsureVisualExists(const std::string& name);
 	const Visual* GetVisual(const char* name);
 	const Visual* ProvideDefaultVisual(const char* name, const Visual& visual, bool doPrecache);
@@ -281,7 +281,7 @@ public:
 	void DumpVisual(const char* name) const;
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
 	void DumpVisualImpl(const char* name, const Visual& visual) const;
 

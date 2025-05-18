@@ -18,7 +18,7 @@ class InventorySpec : public JSONConfig
 {
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 public:
 	void SetEntTemplateSystem(EntTemplateSystem* entTemplateSystem) {
 		_entTemplateSystem = entTemplateSystem;

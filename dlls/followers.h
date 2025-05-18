@@ -20,8 +20,8 @@ public:
 		return fastRecruitMonsters.cend();
 	}
 protected:
-	const char* Schema() const;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
 	std::vector<std::string> fastRecruitMonsters;
 	float fastRecruitRange;

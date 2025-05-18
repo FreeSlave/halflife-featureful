@@ -113,12 +113,12 @@ const char* EntTemplateSystem::Schema() const
 	return entTemplatesSchema;
 }
 
-bool EntTemplateSystem::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool EntTemplateSystem::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	for (auto templateIt = document.MemberBegin(); templateIt != document.MemberEnd(); ++templateIt)
 	{
 		const char* name = templateIt->name.GetString();
-		Value& value = templateIt->value;
+		const Value& value = templateIt->value;
 		if (value.IsObject())
 		{
 			bool success = AddTemplateFromJsonValue(document, templateIt->name.GetString(), value, fileName);
@@ -132,7 +132,7 @@ bool EntTemplateSystem::ReadFromDocument(rapidjson::Document& document, const ch
 	return true;
 }
 
-static bool UpdateSizesFromJSON(rapidjson::Value& value, Vector& mins, Vector& maxs)
+static bool UpdateSizesFromJSON(const rapidjson::Value& value, Vector& mins, Vector& maxs)
 {
 	if (value.IsString())
 	{
@@ -257,35 +257,18 @@ int EntTemplate::ParseDamageType(const char *type)
 	return -1;
 }
 
-bool EntTemplate::UpdateDamageInfoFromJSON(rapidjson::Value &value, DamageInfo &damageInfo)
+bool EntTemplate::UpdateDamageInfoFromJSON(const rapidjson::Value &value, DamageInfo &damageInfo)
 {
 	UpdatePropertyFromJson(damageInfo.damage, value, "damage");
 
-	{
-		auto it = value.FindMember("type");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "type", [&damageInfo](const Value& value) {
+		int damageType = 0;
+		if (value.IsArray())
 		{
-			int damageType = 0;
-			if (it->value.IsArray())
+			Value::ConstArray arr = value.GetArray();
+			for (size_t i=0; i<arr.Size(); ++i)
 			{
-				Value::Array arr = it->value.GetArray();
-				for (size_t i=0; i<arr.Size(); ++i)
-				{
-					const char* damageTypeName = arr[i].GetString();
-					int subType = ParseDamageType(damageTypeName);
-					if (subType >= 0)
-					{
-						damageType |= subType;
-					}
-					else
-					{
-						LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
-					}
-				}
-			}
-			else
-			{
-				const char* damageTypeName = it->value.GetString();
+				const char* damageTypeName = arr[i].GetString();
 				int subType = ParseDamageType(damageTypeName);
 				if (subType >= 0)
 				{
@@ -296,54 +279,59 @@ bool EntTemplate::UpdateDamageInfoFromJSON(rapidjson::Value &value, DamageInfo &
 					LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
 				}
 			}
-
-			damageInfo.type = damageType;
 		}
-	}
-
-	{
-		auto it = value.FindMember("type_policy");
-		if (it != value.MemberEnd())
+		else
 		{
-			const char* typePolicyName = it->value.GetString();
-			if (strcmp(typePolicyName, "add") == 0)
+			const char* damageTypeName = value.GetString();
+			int subType = ParseDamageType(damageTypeName);
+			if (subType >= 0)
 			{
-				damageInfo.typePolicy = EntTemplate::DamageInfo::ADD_DAMAGE_TYPE;
+				damageType |= subType;
 			}
-			else if (strcmp(typePolicyName, "replace") == 0)
+			else
 			{
-				damageInfo.typePolicy = EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE;
+				LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
 			}
 		}
-	}
+
+		damageInfo.type = damageType;
+	});
+
+	HandleJSONMember(value, "type_policy", [&damageInfo](const Value& value) {
+		const char* typePolicyName = value.GetString();
+		if (strcmp(typePolicyName, "add") == 0)
+		{
+			damageInfo.typePolicy = EntTemplate::DamageInfo::ADD_DAMAGE_TYPE;
+		}
+		else if (strcmp(typePolicyName, "replace") == 0)
+		{
+			damageInfo.typePolicy = EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE;
+		}
+	});
 
 	UpdatePropertyFromJson(damageInfo.nonLethal, value, "nonlethal");
 	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
 
-	{
-		auto it = value.FindMember("gib");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "gib", [&](const Value& value) {
+		const char* gibPolicyName = value.GetString();
+		if (strcmp(gibPolicyName, "always") == 0)
 		{
-			const char* gibPolicyName = it->value.GetString();
-			if (strcmp(gibPolicyName, "always") == 0)
-			{
-				damageInfo.gibPolicy = GIB_ALWAYS;
-			}
-			else if (strcmp(gibPolicyName, "never") == 0)
-			{
-				damageInfo.gibPolicy = GIB_NEVER;
-			}
-			else if (strcmp(gibPolicyName, "normal") == 0)
-			{
-				damageInfo.gibPolicy = GIB_NORMAL;
-			}
+			damageInfo.gibPolicy = GIB_ALWAYS;
 		}
-	}
+		else if (strcmp(gibPolicyName, "never") == 0)
+		{
+			damageInfo.gibPolicy = GIB_NEVER;
+		}
+		else if (strcmp(gibPolicyName, "normal") == 0)
+		{
+			damageInfo.gibPolicy = GIB_NORMAL;
+		}
+	});
 
 	return true;
 }
 
-bool EntTemplateSystem::AddTemplateFromJsonValue(Value& allTemplatesJsonValue, const char* name, Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
+bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonValue, const char* name, const Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
 {
 	const std::string templateName = name;
 
@@ -407,16 +395,14 @@ bool EntTemplateSystem::AddTemplateFromJsonValue(Value& allTemplatesJsonValue, c
 	return true;
 }
 
-void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Value& value, const char* fileName)
+void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, const rapidjson::Value& value, const char* fileName)
 {
 	const std::string templateName = name;
 
 	EntTemplate entTemplate;
 
-	auto inheritsIt = value.FindMember("inherits");
-	if (inheritsIt != value.MemberEnd())
-	{
-		const char* parentName = inheritsIt->value.GetString();
+	HandleJSONMember(value, "inherits", [&entTemplate, this, fileName, name](const Value& value) {
+		const char* parentName = value.GetString();
 		auto existingTemplateIt = _entTemplates.find(parentName);
 		if (existingTemplateIt != _entTemplates.end())
 		{
@@ -426,134 +412,105 @@ void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, rapidjson::Va
 		{
 			g_errorCollector.AddFormattedError("%s: couldn't find a parent entity template '%s' for '%s'", fileName, parentName, name);
 		}
-	}
+	});
 
 	AddTemplateFromJsonValueImpl(templateName, value, entTemplate);
 }
 
-void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& templateName, rapidjson::Value& value, EntTemplate& entTemplate)
+void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate)
 {
-	{
-		auto it = value.FindMember("own_visual");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "own_visual", [&entTemplate, &templateName, this](const Value& value) {
+		if (value.IsString())
 		{
-			if (it->value.IsString())
-			{
-				entTemplate.SetOwnVisualName(it->value.GetString());
-			}
-			else if (it->value.IsObject())
-			{
-				std::string ownVisualName = templateName + "##own_visual";
-				entTemplate.SetOwnVisualName(ownVisualName);
-				_visualSystem->AddVisualFromJsonValue(ownVisualName.c_str(), it->value);
-			}
+			entTemplate.SetOwnVisualName(value.GetString());
 		}
-	}
+		else if (value.IsObject())
+		{
+			std::string ownVisualName = templateName + "##own_visual";
+			entTemplate.SetOwnVisualName(ownVisualName);
+			_visualSystem->AddVisualFromJsonValue(ownVisualName.c_str(), value);
+		}
+	});
 
-	{
-		auto it = value.FindMember("gib_visual");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "gib_visual", [&entTemplate, &templateName, this](const Value& value) {
+		if (value.IsString())
 		{
-			if (it->value.IsString())
-			{
-				entTemplate.SetGibVisualName(it->value.GetString());
-			}
-			else if (it->value.IsObject())
-			{
-				std::string gibVisualName = templateName + "##gib_visual";
-				entTemplate.SetGibVisualName(gibVisualName);
-				_visualSystem->AddVisualFromJsonValue(gibVisualName.c_str(), it->value);
-			}
+			entTemplate.SetGibVisualName(value.GetString());
 		}
-	}
+		else if (value.IsObject())
+		{
+			std::string gibVisualName = templateName + "##gib_visual";
+			entTemplate.SetGibVisualName(gibVisualName);
+			_visualSystem->AddVisualFromJsonValue(gibVisualName.c_str(), value);
+		}
+	});
 
-	{
-		auto it = value.FindMember("soundscripts");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "soundscripts", [&entTemplate, &templateName, this](const Value& value) {
+		for (auto scriptIt = value.MemberBegin(); scriptIt != value.MemberEnd(); ++scriptIt)
 		{
-			Value& soundScriptsObj = it->value;
-			for (auto scriptIt = soundScriptsObj.MemberBegin(); scriptIt != soundScriptsObj.MemberEnd(); ++scriptIt)
+			const char* soundScriptName = scriptIt->name.GetString();
+			if (scriptIt->value.IsString())
 			{
-				const char* soundScriptName = scriptIt->name.GetString();
-				if (scriptIt->value.IsString())
-				{
-					const char* replacement = scriptIt->value.GetString();
-					entTemplate.SetSoundScriptReplacement(soundScriptName, replacement);
-				}
-				else if (scriptIt->value.IsObject())
-				{
-					std::string replacement = GenerateResourceName(templateName, soundScriptName);
-					entTemplate.SetSoundScriptReplacement(soundScriptName, replacement);
-					_soundScriptSystem->AddSoundScriptFromJsonValue(replacement.c_str(), scriptIt->value);
-				}
+				const char* replacement = scriptIt->value.GetString();
+				entTemplate.SetSoundScriptReplacement(soundScriptName, replacement);
+			}
+			else if (scriptIt->value.IsObject())
+			{
+				std::string replacement = GenerateResourceName(templateName, soundScriptName);
+				entTemplate.SetSoundScriptReplacement(soundScriptName, replacement);
+				_soundScriptSystem->AddSoundScriptFromJsonValue(replacement.c_str(), scriptIt->value);
 			}
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("visuals");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "visuals", [&entTemplate, &templateName, this](const Value& value) {
+		for (auto visualIt = value.MemberBegin(); visualIt != value.MemberEnd(); ++visualIt)
 		{
-			Value& visualsObj = it->value;
-			for (auto visualIt = visualsObj.MemberBegin(); visualIt != visualsObj.MemberEnd(); ++visualIt)
+			const char* visualName = visualIt->name.GetString();
+			if (visualIt->value.IsString())
 			{
-				const char* visualName = visualIt->name.GetString();
-				if (visualIt->value.IsString())
-				{
-					const char* replacement = visualIt->value.GetString();
-					entTemplate.SetVisualReplacement(visualName, replacement);
-				}
-				else if (visualIt->value.IsObject())
-				{
-					std::string replacement = GenerateResourceName(templateName, visualName);
-					entTemplate.SetVisualReplacement(visualName, replacement);
-					_visualSystem->AddVisualFromJsonValue(replacement.c_str(), visualIt->value);
-				}
+				const char* replacement = visualIt->value.GetString();
+				entTemplate.SetVisualReplacement(visualName, replacement);
+			}
+			else if (visualIt->value.IsObject())
+			{
+				std::string replacement = GenerateResourceName(templateName, visualName);
+				entTemplate.SetVisualReplacement(visualName, replacement);
+				_visualSystem->AddVisualFromJsonValue(replacement.c_str(), visualIt->value);
 			}
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("sound_replacement");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "sound_replacement", [&entTemplate](const Value& value) {
+		for (auto sIt = value.MemberBegin(); sIt != value.MemberEnd(); ++sIt)
 		{
-			Value& soundReplacement = it->value;
-			for (auto sIt = soundReplacement.MemberBegin(); sIt != soundReplacement.MemberEnd(); ++sIt)
-			{
-				const char* originalSample = sIt->name.GetString();
-				const char* replacementSample = sIt->value.GetString();
-				entTemplate.SetSoundReplacement(originalSample, replacementSample);
-			}
+			const char* originalSample = sIt->name.GetString();
+			const char* replacementSample = sIt->value.GetString();
+			entTemplate.SetSoundReplacement(originalSample, replacementSample);
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("precached_sounds");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "precached_sounds", [&entTemplate](const Value& value) {
+		Value::ConstArray arr = value.GetArray();
+		std::vector<std::string> sounds;
+		sounds.reserve(arr.Size());
+		for (size_t i=0; i<arr.Size(); ++i)
 		{
-			Value::Array arr = it->value.GetArray();
-			std::vector<std::string> sounds;
-			for (size_t i=0; i<arr.Size(); ++i)
-			{
-				sounds.push_back(arr[i].GetString());
-			}
-			entTemplate.SetPrecachedSounds(std::move(sounds));
+			sounds.push_back(arr[i].GetString());
 		}
-	}
+		entTemplate.SetPrecachedSounds(std::move(sounds));
+	});
 
-	{
-		auto it = value.FindMember("precached_soundscripts");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "precached_soundscripts", [&entTemplate](const Value& value) {
+		Value::ConstArray arr = value.GetArray();
+		std::vector<std::string> soundsScripts;
+		soundsScripts.reserve(arr.Size());
+		for (size_t i=0; i<arr.Size(); ++i)
 		{
-			Value::Array arr = it->value.GetArray();
-			std::vector<std::string> soundsScripts;
-			for (size_t i=0; i<arr.Size(); ++i)
-			{
-				soundsScripts.push_back(arr[i].GetString());
-			}
-			entTemplate.SetPrecachedSoundScripts(std::move(soundsScripts));
+			soundsScripts.push_back(arr[i].GetString());
 		}
-	}
+		entTemplate.SetPrecachedSoundScripts(std::move(soundsScripts));
+	});
 
 	{
 		bool b;
@@ -571,295 +528,227 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 	}
 
-	{
-		auto it = value.FindMember("classify");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "classify", [&entTemplate](const Value& value) {
+		const char* classifyName = value.GetString();
+		int classify = ClassifyFromName(classifyName);
+		if (classify < 0)
 		{
-			const char* classifyName = it->value.GetString();
-			int classify = ClassifyFromName(classifyName);
-			if (classify < 0)
-			{
-				LOG("Unknown classification '%s'\n", classifyName);
-			}
-			else
-			{
-				entTemplate.SetClassify(classify);
-			}
+			LOG("Unknown classification '%s'\n", classifyName);
 		}
-	}
-
-	{
-		auto it = value.FindMember("blood");
-		if (it != value.MemberEnd())
+		else
 		{
-			const char* bloodType = it->value.GetString();
-			if (stricmp(bloodType, "red") == 0)
-			{
-				entTemplate.SetBloodColor(BLOOD_COLOR_RED);
-			}
-			else if (stricmp(bloodType, "yellow") == 0)
-			{
-				entTemplate.SetBloodColor(BLOOD_COLOR_YELLOW);
-			}
-			else if (stricmp(bloodType, "no") == 0)
-			{
-				entTemplate.SetBloodColor(DONT_BLEED);
-			}
-			else
-			{
-				LOG_WARNING("Unknown blood type '%s'\n", bloodType);
-			}
+			entTemplate.SetClassify(classify);
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("health");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "blood", [&entTemplate](const Value& value) {
+		const char* bloodType = value.GetString();
+		if (stricmp(bloodType, "red") == 0)
 		{
-			entTemplate.SetHealth(it->value.GetFloat());
+			entTemplate.SetBloodColor(BLOOD_COLOR_RED);
 		}
-	}
-
-	{
-		auto it = value.FindMember("field_of_view");
-		if (it != value.MemberEnd())
+		else if (stricmp(bloodType, "yellow") == 0)
 		{
-			if (it->value.IsNumber())
-			{
-				entTemplate.SetFieldOfView(it->value.GetFloat());
-			}
-			else if (it->value.IsString())
-			{
-				const char* fovType = it->value.GetString();
-				const std::pair<const char*, float> fovPairs[] = {
-					{"full", -1.0f},
-					{"wide", -0.7f},
-					{"average", 0.2f},
-					{"tunnel", 0.5f},
-					{"narrow", 0.7f},
-				};
-
-				bool foundFov = false;
-				for (auto p: fovPairs)
-				{
-					if (stricmp(p.first, fovType) == 0)
-					{
-						foundFov = true;
-						entTemplate.SetFieldOfView(p.second);
-						break;
-					}
-				}
-
-				if (!foundFov)
-					LOG_WARNING("Unknown FOV type '%s'\n", fovType);
-			}
+			entTemplate.SetBloodColor(BLOOD_COLOR_YELLOW);
 		}
-	}
-
-	{
-		auto it = value.FindMember("size");
-		if (it != value.MemberEnd())
+		else if (stricmp(bloodType, "no") == 0)
 		{
-			Vector mins, maxs;
-			if (UpdateSizesFromJSON(it->value, mins, maxs))
-			{
-				entTemplate.SetSize(mins, maxs);
-			}
+			entTemplate.SetBloodColor(DONT_BLEED);
 		}
-	}
-
-	{
-		auto it = value.FindMember("collision_box");
-		if (it != value.MemberEnd())
+		else
 		{
-			Vector mins, maxs;
-			if (UpdateSizesFromJSON(it->value, mins, maxs))
-			{
-				entTemplate.SetCollisionBox(mins, maxs);
-			}
+			LOG_WARNING("Unknown blood type '%s'\n", bloodType);
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("size_for_grapple");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "health", [&entTemplate](const Value& value) {
+		entTemplate.SetHealth(value.GetFloat());
+	});
+
+	HandleJSONMember(value, "field_of_view", [&entTemplate](const Value& value) {
+		if (value.IsNumber())
 		{
-			const char* targetType = it->value.GetString();
-			const std::pair<const char*, int> sizeValues[] = {
-				{"no", GRAPPLE_NOT_A_TARGET},
-				{"small", GRAPPLE_SMALL},
-				{"medium", GRAPPLE_MEDIUM},
-				{"large", GRAPPLE_LARGE},
-				{"fixed", GRAPPLE_FIXED},
+			entTemplate.SetFieldOfView(value.GetFloat());
+		}
+		else if (value.IsString())
+		{
+			const char* fovType = value.GetString();
+			const std::pair<const char*, float> fovPairs[] = {
+				{"full", -1.0f},
+				{"wide", -0.7f},
+				{"average", 0.2f},
+				{"tunnel", 0.5f},
+				{"narrow", 0.7f},
 			};
 
-			bool found = false;
-			for (auto p: sizeValues)
+			bool foundFov = false;
+			for (auto p: fovPairs)
 			{
-				if (stricmp(p.first, targetType) == 0)
+				if (stricmp(p.first, fovType) == 0)
 				{
-					found = true;
-					entTemplate.SetSizeForGrapple(p.second);
+					foundFov = true;
+					entTemplate.SetFieldOfView(p.second);
 					break;
 				}
 			}
 
-			if (!found)
-				LOG_WARNING("Unknown grapple target type '%s'\n", targetType);
+			if (!foundFov)
+				LOG_WARNING("Unknown FOV type '%s'\n", fovType);
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("speech_prefix");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "size", [&entTemplate](const Value& value) {
+		Vector mins, maxs;
+		if (UpdateSizesFromJSON(value, mins, maxs))
 		{
-			entTemplate.SetSpeechPrefix(it->value.GetString());
+			entTemplate.SetSize(mins, maxs);
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("squad_capability");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "collision_box", [&entTemplate](const Value& value) {
+		Vector mins, maxs;
+		if (UpdateSizesFromJSON(value, mins, maxs))
 		{
-			if (it->value.IsBool())
+			entTemplate.SetCollisionBox(mins, maxs);
+		}
+	});
+
+	HandleJSONMember(value, "size_for_grapple", [&entTemplate](const Value& value) {
+		const char* targetType = value.GetString();
+		const std::pair<const char*, int> sizeValues[] = {
+			{"no", GRAPPLE_NOT_A_TARGET},
+			{"small", GRAPPLE_SMALL},
+			{"medium", GRAPPLE_MEDIUM},
+			{"large", GRAPPLE_LARGE},
+			{"fixed", GRAPPLE_FIXED},
+		};
+
+		bool found = false;
+		for (auto p: sizeValues)
+		{
+			if (stricmp(p.first, targetType) == 0)
 			{
-				SquadCapabilities caps = entTemplate.GetSquadCapabilities();
-				caps.canRecruit = it->value.GetBool();
-				entTemplate.SetSquadCapabilities(caps);
-			}
-			else if (it->value.IsObject())
-			{
-				Value& obj = it->value;
-				SquadCapabilities caps = entTemplate.GetSquadCapabilities();
-				UpdatePropertyFromJson(caps.canRecruit, obj, "can_recruit");
-				UpdatePropertyFromJson(caps.denyRecruiting, obj, "deny_recruiting");
-				UpdatePropertyFromJson(caps.allowDifferentClassification, obj, "allow_different_classification");
-				UpdatePropertyFromJson(caps.requireSameClassname, obj, "require_same_classname");
-				UpdatePropertyFromJson(caps.requireSameEntTemplate, obj, "require_same_ent_template");
-				entTemplate.SetSquadCapabilities(caps);
-			}
-		}
-	}
-
-	{
-		auto it = value.FindMember("open_door_capability");
-		if (it != value.MemberEnd())
-		{
-			entTemplate.SetCanOpenDoors(it->value.GetBool());
-		}
-	}
-
-	{
-		auto it = value.FindMember("check_melee_attack1");
-		if (it != value.MemberEnd())
-		{
-			Value& obj = it->value;
-			EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack1();
-			UpdatePropertyFromJson(check.distance, obj, "distance");
-			UpdatePropertyFromJson(check.dot, obj, "dot");
-			entTemplate.SetCheckMeleeAttack1(check);
-		}
-	}
-
-	{
-		auto it = value.FindMember("check_melee_attack2");
-		if (it != value.MemberEnd())
-		{
-			Value& obj = it->value;
-			EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack2();
-			UpdatePropertyFromJson(check.distance, obj, "distance");
-			UpdatePropertyFromJson(check.dot, obj, "dot");
-			entTemplate.SetCheckMeleeAttack2(check);
-		}
-	}
-
-	{
-		auto it = value.FindMember("trace_hull_attacks");
-		if (it != value.MemberEnd())
-		{
-			Value& attacks = it->value;
-			for (auto attackIt = attacks.MemberBegin(); attackIt != attacks.MemberEnd(); ++attackIt)
-			{
-				const char* eventIndexStr = attackIt->name.GetString();
-				const int eventIndex = atoi(eventIndexStr);
-				Value& attackValue = attackIt->value;
-				const EntTemplate::TraceHullAttack* existingAttack = entTemplate.GetTraceHullAttackForEvent(eventIndex);
-				EntTemplate::TraceHullAttack traceHullAttack = existingAttack ? *existingAttack : EntTemplate::TraceHullAttack();
-				UpdatePropertyFromJson(traceHullAttack.distance, attackValue, "distance");
-
-				auto heightIt = attackValue.FindMember("height");
-				if (heightIt != attackValue.MemberEnd())
-				{
-					if (heightIt->value.IsString())
-					{
-						const char* heightStr = heightIt->value.GetString();
-						if (*heightStr == '*')
-						{
-							traceHullAttack.height = atof(heightStr + 1);
-							traceHullAttack.heightIsFactor = true;
-						}
-					}
-					else if (heightIt->value.IsNumber())
-					{
-						traceHullAttack.height = heightIt->value.GetFloat();
-						traceHullAttack.heightIsFactor = false;
-					}
-				}
-
-				auto punchAngleIt = attackValue.FindMember("punchangle");
-				if (punchAngleIt != attackValue.MemberEnd())
-				{
-					Value& punchAngleValue = punchAngleIt->value;
-					UpdatePropertyFromJson(traceHullAttack.punchAngle.pitch, punchAngleValue, "pitch");
-					UpdatePropertyFromJson(traceHullAttack.punchAngle.yaw, punchAngleValue, "yaw");
-					UpdatePropertyFromJson(traceHullAttack.punchAngle.roll, punchAngleValue, "roll");
-				}
-
-				auto knockIt = attackValue.FindMember("knock");
-				if (knockIt != attackValue.MemberEnd())
-				{
-					Value& knockValue = knockIt->value;
-					UpdatePropertyFromJson(traceHullAttack.knock.forward, knockValue, "forward");
-					UpdatePropertyFromJson(traceHullAttack.knock.right, knockValue, "right");
-					UpdatePropertyFromJson(traceHullAttack.knock.up, knockValue, "up");
-					UpdatePropertyFromJson(traceHullAttack.knock.playerOnly, knockValue, "player_only");
-				}
-
-				auto damageInfoIt = attackValue.FindMember("damage_info");
-				if (damageInfoIt != attackValue.MemberEnd())
-				{
-					EntTemplate::UpdateDamageInfoFromJSON(damageInfoIt->value, traceHullAttack.damageInfo);
-				}
-
-				UpdatePropertyFromJson(traceHullAttack.spawnBlood, attackValue, "spawn_blood");
-
-				auto setSoundScript = [&](const char* propertyName, std::string& outStr)
-				{
-					auto it = attackValue.FindMember(propertyName);
-					if (it != attackValue.MemberEnd())
-					{
-						if (it->value.IsString())
-						{
-							std::string soundScriptName = it->value.GetString();
-							entTemplate.AddPrecachedSoundScript(soundScriptName);
-							outStr = soundScriptName;
-						}
-						else if (it->value.IsObject())
-						{
-							std::string soundScriptName = templateName + "#trace_hull_attacks#" + eventIndexStr + '#' + propertyName;
-							_soundScriptSystem->AddSoundScriptFromJsonValue(soundScriptName.c_str(), it->value, CHAN_WEAPON);
-							entTemplate.AddPrecachedSoundScript(soundScriptName);
-							outStr = soundScriptName;
-						}
-					}
-				};
-				setSoundScript("hit_soundscript", traceHullAttack.hitSoundScript);
-				setSoundScript("miss_soundscript", traceHullAttack.missSoundScript);
-
-				entTemplate.SetTraceHullAttackForEvent(eventIndex, traceHullAttack);
+				found = true;
+				entTemplate.SetSizeForGrapple(p.second);
+				break;
 			}
 		}
-	}
+
+		if (!found)
+			LOG_WARNING("Unknown grapple target type '%s'\n", targetType);
+	});
+
+	HandleJSONMember(value, "speech_prefix", [&entTemplate](const Value& value) {
+		entTemplate.SetSpeechPrefix(value.GetString());
+	});
+
+	HandleJSONMember(value, "squad_capability", [&entTemplate](const Value& value) {
+		if (value.IsBool())
+		{
+			SquadCapabilities caps = entTemplate.GetSquadCapabilities();
+			caps.canRecruit = value.GetBool();
+			entTemplate.SetSquadCapabilities(caps);
+		}
+		else if (value.IsObject())
+		{
+			SquadCapabilities caps = entTemplate.GetSquadCapabilities();
+			UpdatePropertyFromJson(caps.canRecruit, value, "can_recruit");
+			UpdatePropertyFromJson(caps.denyRecruiting, value, "deny_recruiting");
+			UpdatePropertyFromJson(caps.allowDifferentClassification, value, "allow_different_classification");
+			UpdatePropertyFromJson(caps.requireSameClassname, value, "require_same_classname");
+			UpdatePropertyFromJson(caps.requireSameEntTemplate, value, "require_same_ent_template");
+			entTemplate.SetSquadCapabilities(caps);
+		}
+	});
+
+	HandleJSONMember(value, "open_door_capability", [&entTemplate](const Value& value) {
+		entTemplate.SetCanOpenDoors(value.GetBool());
+	});
+
+	HandleJSONMember(value, "check_melee_attack1", [&entTemplate](const Value& value) {
+		EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack1();
+		UpdatePropertyFromJson(check.distance, value, "distance");
+		UpdatePropertyFromJson(check.dot, value, "dot");
+		entTemplate.SetCheckMeleeAttack1(check);
+	});
+
+	HandleJSONMember(value, "check_melee_attack2", [&entTemplate](const Value& value) {
+		EntTemplate::CheckMeleeAttack check = entTemplate.GetCheckMeleeAttack2();
+		UpdatePropertyFromJson(check.distance, value, "distance");
+		UpdatePropertyFromJson(check.dot, value, "dot");
+		entTemplate.SetCheckMeleeAttack2(check);
+	});
+
+	HandleJSONMember(value, "trace_hull_attacks", [&entTemplate, &templateName, this](const Value& value) {
+		for (auto attackIt = value.MemberBegin(); attackIt != value.MemberEnd(); ++attackIt)
+		{
+			const char* eventIndexStr = attackIt->name.GetString();
+			const int eventIndex = atoi(eventIndexStr);
+			const Value& attackValue = attackIt->value;
+			const EntTemplate::TraceHullAttack* existingAttack = entTemplate.GetTraceHullAttackForEvent(eventIndex);
+			EntTemplate::TraceHullAttack traceHullAttack = existingAttack ? *existingAttack : EntTemplate::TraceHullAttack();
+			UpdatePropertyFromJson(traceHullAttack.distance, attackValue, "distance");
+
+			HandleJSONMember(attackValue, "height", [&traceHullAttack](const Value& value) {
+				if (value.IsString())
+				{
+					const char* heightStr = value.GetString();
+					if (*heightStr == '*')
+					{
+						traceHullAttack.height = atof(heightStr + 1);
+						traceHullAttack.heightIsFactor = true;
+					}
+				}
+				else if (value.IsNumber())
+				{
+					traceHullAttack.height = value.GetFloat();
+					traceHullAttack.heightIsFactor = false;
+				}
+			});
+
+			HandleJSONMember(attackValue, "punchangle", [&traceHullAttack](const Value& value) {
+				UpdatePropertyFromJson(traceHullAttack.punchAngle.pitch, value, "pitch");
+				UpdatePropertyFromJson(traceHullAttack.punchAngle.yaw, value, "yaw");
+				UpdatePropertyFromJson(traceHullAttack.punchAngle.roll, value, "roll");
+			});
+
+			HandleJSONMember(attackValue, "knock", [&traceHullAttack](const Value& value) {
+				UpdatePropertyFromJson(traceHullAttack.knock.forward, value, "forward");
+				UpdatePropertyFromJson(traceHullAttack.knock.right, value, "right");
+				UpdatePropertyFromJson(traceHullAttack.knock.up, value, "up");
+				UpdatePropertyFromJson(traceHullAttack.knock.playerOnly, value, "player_only");
+			});
+
+			HandleJSONMember(attackValue, "damage_info", [&traceHullAttack](const Value& value) {
+				EntTemplate::UpdateDamageInfoFromJSON(value, traceHullAttack.damageInfo);
+			});
+
+			UpdatePropertyFromJson(traceHullAttack.spawnBlood, attackValue, "spawn_blood");
+
+			auto setSoundScript = [&](const char* propertyName, std::string& outStr)
+			{
+				HandleJSONMember(attackValue, propertyName, [&](const Value& value) {
+					if (value.IsString())
+					{
+						std::string soundScriptName = value.GetString();
+						entTemplate.AddPrecachedSoundScript(soundScriptName);
+						outStr = soundScriptName;
+					}
+					else if (value.IsObject())
+					{
+						std::string soundScriptName = templateName + "#trace_hull_attacks#" + eventIndexStr + '#' + propertyName;
+						_soundScriptSystem->AddSoundScriptFromJsonValue(soundScriptName.c_str(), value, CHAN_WEAPON);
+						entTemplate.AddPrecachedSoundScript(soundScriptName);
+						outStr = soundScriptName;
+					}
+				});
+			};
+			setSoundScript("hit_soundscript", traceHullAttack.hitSoundScript);
+			setSoundScript("miss_soundscript", traceHullAttack.missSoundScript);
+
+			entTemplate.SetTraceHullAttackForEvent(eventIndex, traceHullAttack);
+		}
+	});
 
 	_entTemplates[templateName] = entTemplate;
 }

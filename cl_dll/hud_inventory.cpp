@@ -56,31 +56,29 @@ const char* InventoryHudSpec::Schema() const
 	return hudInventorySchema;
 }
 
-bool InventoryHudSpec::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool InventoryHudSpec::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	auto itemsIt = document.FindMember("items");
 	if (itemsIt != document.MemberEnd())
 	{
-		Value& items = itemsIt->value;
+		const Value& items = itemsIt->value;
 
 		for (auto itemIt = items.MemberBegin(); itemIt != items.MemberEnd(); ++itemIt)
 		{
 			InventoryItemHudSpec item;
 			item.itemName = itemIt->name.GetString();
-			Value& value = itemIt->value;
-			auto spriteIt = value.FindMember("sprite");
-			if (spriteIt != value.MemberEnd())
-			{
-				if (spriteIt->value.IsNull())
+			const Value& value = itemIt->value;
+
+			HandleJSONMember(value, "sprite", [&item](const Value& value) {
+				if (value.IsNull())
 				{
 					strncpyEnsureTermination(item.spriteName, item.itemName.c_str());
 				}
 				else
 				{
-					strncpyEnsureTermination(item.spriteName, spriteIt->value.GetString());
+					strncpyEnsureTermination(item.spriteName, value.GetString());
 				}
-			}
-			auto colorIt = value.FindMember("color");
+			});
 
 			Color3 color;
 			if (UpdatePropertyFromJson(color, value, "color"))
@@ -89,17 +87,11 @@ bool InventoryHudSpec::ReadFromDocument(rapidjson::Document& document, const cha
 				item.colorDefined = true;
 			}
 
-			if (colorIt != value.MemberEnd())
-			{
-				if (colorIt->value.IsString())
-					item.colorDefined = ParseColor(colorIt->value.GetString(), item.packedColor);
-			}
 			UpdatePropertyFromJson(item.alpha, value, "alpha");
 			UpdatePropertyFromJson(item.showInHistory, value, "show_in_history");
-			auto positionIt = value.FindMember("position");
-			if (positionIt != value.MemberEnd())
-			{
-				const char* positionStr = positionIt->value.GetString();
+
+			HandleJSONMember(value, "position", [&item](const Value& value) {
+				const char* positionStr = value.GetString();
 				if (strcmp(positionStr, "topleft") == 0 || strcmp(positionStr, "status") == 0)
 				{
 					item.position = INVENTORY_PLACE_TOP_LEFT;
@@ -116,7 +108,7 @@ bool InventoryHudSpec::ReadFromDocument(rapidjson::Document& document, const cha
 				{
 					item.position = INVENTORY_PLACE_HIDE;
 				}
-			}
+			});
 
 			inventory.push_back(item);
 		}

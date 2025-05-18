@@ -184,13 +184,13 @@ const char* SoundScriptSystem::Schema() const
 	return soundScriptsSchema;
 }
 
-bool SoundScriptSystem::ReadFromDocument(Document& document, const char* fileName)
+bool SoundScriptSystem::ReadFromDocument(const Document& document, const char* fileName)
 {
 	for (auto scriptIt = document.MemberBegin(); scriptIt != document.MemberEnd(); ++scriptIt)
 	{
 		const char* name = scriptIt->name.GetString();
 
-		Value& value = scriptIt->value;
+		const Value& value = scriptIt->value;
 		if (value.IsObject())
 			AddSoundScriptFromJsonValue(name, value);
 		else
@@ -200,30 +200,27 @@ bool SoundScriptSystem::ReadFromDocument(Document& document, const char* fileNam
 	return true;
 }
 
-void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, Value &value, int defaultChannel)
+void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, const Value &value, int defaultChannel)
 {
 	SoundScript soundScript;
 	SoundScriptMeta soundScriptMeta;
 
-	{
-		auto it = value.FindMember("waves");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "waves", [&soundScript, &soundScriptMeta, this](const Value& value) {
+		Value::ConstArray arr = value.GetArray();
+		for (size_t i=0; i<arr.Size(); ++i)
 		{
-			Value::Array arr = it->value.GetArray();
-			for (size_t i=0; i<arr.Size(); ++i)
+			std::string str = arr[i].GetString();
+			auto strIt = _waveStringSet.find(str);
+			if (strIt == _waveStringSet.end())
 			{
-				std::string str = arr[i].GetString();
-				auto strIt = _waveStringSet.find(str);
-				if (strIt == _waveStringSet.end())
-				{
-					auto p = _waveStringSet.insert(str);
-					strIt = p.first;
-				}
-				soundScript.waves.push_back(strIt->c_str());
+				auto p = _waveStringSet.insert(str);
+				strIt = p.first;
 			}
-			soundScriptMeta.wavesSet = true;
+			soundScript.waves.push_back(strIt->c_str());
 		}
-	}
+		soundScriptMeta.wavesSet = true;
+	});
+
 	{
 		auto it = value.FindMember("channel");
 		if (it != value.MemberEnd())
@@ -236,14 +233,13 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, Value &val
 			soundScriptMeta.channelSet = true;
 		}
 	}
+
 	soundScriptMeta.volumeSet = UpdatePropertyFromJson(soundScript.volume, value, "volume");
-	{
-		auto it = value.FindMember("attenuation");
-		if (it != value.MemberEnd())
-		{
-			soundScriptMeta.attenuationSet = UpdateAttenuationFromJson(soundScript.attenuation, it->value);
-		}
-	}
+
+	HandleJSONMember(value, "attenuation", [&soundScript, &soundScriptMeta, this](const Value& value) {
+		soundScriptMeta.attenuationSet = UpdateAttenuationFromJson(soundScript.attenuation, value);
+	});
+
 	soundScriptMeta.pitchSet = UpdatePropertyFromJson(soundScript.pitch, value, "pitch");
 
 	_soundScripts[name] = std::make_pair(soundScript, soundScriptMeta);

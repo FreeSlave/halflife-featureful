@@ -609,7 +609,7 @@ bool ReadJsonDocumentWithSchemaFromFile(Document &document, const char *fileName
 	return success;
 }
 
-bool UpdatePropertyFromJson(std::string& str, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(std::string& str, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -630,7 +630,7 @@ bool UpdatePropertyFromJson(std::string& str, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(int& i, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(int& i, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -641,7 +641,7 @@ bool UpdatePropertyFromJson(int& i, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(float& f, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(float& f, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -652,7 +652,7 @@ bool UpdatePropertyFromJson(float& f, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(optional<float>& f, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(optional<float>& f, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -663,7 +663,7 @@ bool UpdatePropertyFromJson(optional<float>& f, Value& jsonValue, const char* ke
 	return false;
 }
 
-bool UpdatePropertyFromJson(optional<int>& i, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(optional<int>& i, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -674,7 +674,7 @@ bool UpdatePropertyFromJson(optional<int>& i, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(bool& b, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(bool& b, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -685,7 +685,7 @@ bool UpdatePropertyFromJson(bool& b, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(char& c, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(char& c, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -699,7 +699,7 @@ bool UpdatePropertyFromJson(char& c, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(Color3& color, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(Color3& color, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -715,7 +715,7 @@ bool UpdatePropertyFromJson(Color3& color, Value& jsonValue, const char* key)
 		}
 		else if (it->value.IsArray())
 		{
-			Value::Array arr = it->value.GetArray();
+			Value::ConstArray arr = it->value.GetArray();
 			color.r = arr[0].GetInt();
 			color.g = arr[1].GetInt();
 			color.b = arr[2].GetInt();
@@ -725,12 +725,12 @@ bool UpdatePropertyFromJson(Color3& color, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(FloatRange& floatRange, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(FloatRange& floatRange, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		Value& value = it->value;
+		const Value& value = it->value;
 		if (value.IsNumber())
 		{
 			floatRange.min = value.GetFloat();
@@ -765,7 +765,7 @@ bool UpdatePropertyFromJson(FloatRange& floatRange, Value& jsonValue, const char
 		}
 		else if (value.IsArray())
 		{
-			Value::Array arr = value.GetArray();
+			Value::ConstArray arr = value.GetArray();
 			floatRange.min = arr[0].GetFloat();
 			floatRange.max = arr[1].GetFloat();
 		}
@@ -778,12 +778,12 @@ bool UpdatePropertyFromJson(FloatRange& floatRange, Value& jsonValue, const char
 	return false;
 }
 
-bool UpdatePropertyFromJson(IntRange& intRange, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(IntRange& intRange, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		Value& value = it->value;
+		const Value& value = it->value;
 		if (value.IsInt())
 		{
 			intRange.min = value.GetInt();
@@ -818,7 +818,7 @@ bool UpdatePropertyFromJson(IntRange& intRange, Value& jsonValue, const char* ke
 		}
 		else if (value.IsArray())
 		{
-			Value::Array arr = value.GetArray();
+			Value::ConstArray arr = value.GetArray();
 			intRange.min = arr[0].GetInt();
 			intRange.max = arr[1].GetInt();
 		}
@@ -831,12 +831,12 @@ bool UpdatePropertyFromJson(IntRange& intRange, Value& jsonValue, const char* ke
 	return false;
 }
 
-bool UpdatePropertyFromJson(Vector& vector, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(Vector& vector, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		Value::Array arr = it->value.GetArray();
+		Value::ConstArray arr = it->value.GetArray();
 		vector.x = arr[0].GetFloat();
 		vector.y = arr[1].GetFloat();
 		vector.z = arr[2].GetFloat();
@@ -846,7 +846,7 @@ bool UpdatePropertyFromJson(Vector& vector, Value& jsonValue, const char* key)
 	return false;
 }
 
-bool UpdatePropertyFromJson(tribool& b, Value& jsonValue, const char* key)
+bool UpdatePropertyFromJson(tribool& b, const Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
@@ -877,7 +877,7 @@ static bool ParseAttenuation(const char* str, float& attenuation)
 	return false;
 }
 
-bool UpdateAttenuationFromJson(float& attn, Value& jsonValue)
+bool UpdateAttenuationFromJson(float& attn, const Value& jsonValue)
 {
 	if (jsonValue.IsString())
 	{

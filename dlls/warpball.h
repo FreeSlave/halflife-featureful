@@ -154,7 +154,7 @@ struct WarpballTemplateCatalog : public JSONConfig
 {
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 public:
 	const WarpballTemplate* FindWarpballTemplate(const char* warpballName, const char* entityClassname = nullptr);
 	void PrecacheWarpballTemplate(const char* name, const char* entityClassname);
@@ -163,13 +163,13 @@ public:
 private:
 	WarpballTemplate* GetWarpballTemplateMutable(const char* warpballName, const char* entityClassname);
 	WarpballTemplate* GetWarpballTemplateByName(const char* warpballName);
-	bool AddWarpballTemplate(rapidjson::Value& allTemplatesJsonValue, const char* templateName, rapidjson::Value& templateJsonValue, const char* fileName, std::vector<std::string> inheritanceChain = std::vector<std::string>());
+	bool AddWarpballTemplate(const rapidjson::Value& allTemplatesJsonValue, const char* templateName, const rapidjson::Value& templateJsonValue, const char* fileName, std::vector<std::string> inheritanceChain = std::vector<std::string>());
 
-	void AssignWarpballSound(WarpballSound& sound, rapidjson::Value& soundJson);
-	void AssignWarpballSprite(WarpballSprite& sprite, rapidjson::Value& spriteJson);
-	void AssignWarpballBeam(WarpballBeam& beam, rapidjson::Value& beamJson);
+	void AssignWarpballSound(WarpballSound& sound, const rapidjson::Value& soundJson);
+	void AssignWarpballSprite(WarpballSprite& sprite, const rapidjson::Value& spriteJson);
+	void AssignWarpballBeam(WarpballBeam& beam, const rapidjson::Value& beamJson);
 
-	bool UpdateStringFromJson(const char*& str, rapidjson::Value& jsonValue, const char* key);
+	bool UpdateStringFromJson(const char*& str, const rapidjson::Value& jsonValue, const char* key);
 	const char* MakeConstantString(const char* str);
 
 	std::map<std::string, std::map<std::string, std::string> > _entityMappings;

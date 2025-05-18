@@ -51,7 +51,7 @@ public:
 		optional<int> gibPolicy;
 	};
 
-	static bool UpdateDamageInfoFromJSON(rapidjson::Value& value, DamageInfo& damageInfo);
+	static bool UpdateDamageInfoFromJSON(const rapidjson::Value& value, DamageInfo& damageInfo);
 
 	struct CheckMeleeAttack
 	{
@@ -301,16 +301,16 @@ public:
 	void SetVisualSystem(VisualSystem* visualSystem) {
 		_visualSystem = visualSystem;
 	}
-	bool AddTemplateFromJsonValue(rapidjson::Value& allTemplatesJsonValue, const char* name, rapidjson::Value& value, const char* fileName, std::vector<std::string> inheritanceChain = std::vector<std::string>());
-	void AddTemplateFromJsonValue(const char* name, rapidjson::Value& value, const char* fileName);
+	bool AddTemplateFromJsonValue(const rapidjson::Value& allTemplatesJsonValue, const char* name, const rapidjson::Value& value, const char* fileName, std::vector<std::string> inheritanceChain = std::vector<std::string>());
+	void AddTemplateFromJsonValue(const char* name, const rapidjson::Value& value, const char* fileName);
 	const EntTemplate* GetTemplate(const char* name);
 	void EnsureVisualReplacementForTemplate(const char* templateName, const char* visualName);
 	void EnsureSoundScriptReplacementForTemplate(const char* templateName, const char* soundScriptName);
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
-	void AddTemplateFromJsonValueImpl(const std::string& templateName, rapidjson::Value& value, EntTemplate& entTemplate);
+	void AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate);
 	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
 	std::string _temp;
 

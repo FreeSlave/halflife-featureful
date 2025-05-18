@@ -290,7 +290,7 @@ const char* WarpballTemplateCatalog::Schema() const {
 	return warpballCatalogSchema;
 }
 
-bool WarpballTemplateCatalog::ReadFromDocument(Document& document, const char* fileName)
+bool WarpballTemplateCatalog::ReadFromDocument(const Document& document, const char* fileName)
 {
 	bool fullSuccess = true;
 
@@ -381,7 +381,7 @@ WarpballTemplate* WarpballTemplateCatalog::GetWarpballTemplateByName(const char*
 	return nullptr;
 }
 
-static void AssignWarpballLight(WarpballLight& light, Value& lightJson)
+static void AssignWarpballLight(WarpballLight& light, const Value& lightJson)
 {
 	if (lightJson.IsNull())
 	{
@@ -395,7 +395,7 @@ static void AssignWarpballLight(WarpballLight& light, Value& lightJson)
 	}
 }
 
-static void AssignWarpballShake(WarpballShake& shake, Value& shakeJson)
+static void AssignWarpballShake(WarpballShake& shake, const Value& shakeJson)
 {
 	if (shakeJson.IsNull())
 	{
@@ -410,7 +410,7 @@ static void AssignWarpballShake(WarpballShake& shake, Value& shakeJson)
 	}
 }
 
-static void AssignWarpballAiSound(WarpballAiSound& aiSound, Value& aiSoundJson)
+static void AssignWarpballAiSound(WarpballAiSound& aiSound, const Value& aiSoundJson)
 {
 	if (aiSoundJson.IsNull())
 	{
@@ -420,10 +420,8 @@ static void AssignWarpballAiSound(WarpballAiSound& aiSound, Value& aiSoundJson)
 	{
 		UpdatePropertyFromJson(aiSound.radius, aiSoundJson, "radius");
 		UpdatePropertyFromJson(aiSound.duration, aiSoundJson, "duration");
-		auto it = aiSoundJson.FindMember("type");
-		if (it != aiSoundJson.MemberEnd())
-		{
-			const char* valStr = it->value.GetString();
+		HandleJSONMember(aiSoundJson, "type", [&aiSound](const Value& value) {
+			const char* valStr = value.GetString();
 			if (stricmp(valStr, "combat") == 0)
 			{
 				aiSound.type = bits_SOUND_COMBAT;
@@ -432,11 +430,11 @@ static void AssignWarpballAiSound(WarpballAiSound& aiSound, Value& aiSoundJson)
 			{
 				aiSound.type = bits_SOUND_DANGER;
 			}
-		}
+		});
 	}
 }
 
-static void AssignWarpballPosition(WarpballPosition& pos, Value& posJson)
+static void AssignWarpballPosition(WarpballPosition& pos, const Value& posJson)
 {
 	if (posJson.IsNull())
 	{
@@ -448,7 +446,7 @@ static void AssignWarpballPosition(WarpballPosition& pos, Value& posJson)
 	}
 }
 
-bool WarpballTemplateCatalog::AddWarpballTemplate(Value& allTemplatesJsonValue, const char* templateName, Value& templateJsonValue, const char* fileName, std::vector<std::string> inheritanceChain)
+bool WarpballTemplateCatalog::AddWarpballTemplate(const Value& allTemplatesJsonValue, const char* templateName, const Value& templateJsonValue, const char* fileName, std::vector<std::string> inheritanceChain)
 {
 	if (std::find(inheritanceChain.begin(), inheritanceChain.end(), templateName) != inheritanceChain.end())
 	{
@@ -510,59 +508,52 @@ bool WarpballTemplateCatalog::AddWarpballTemplate(Value& allTemplatesJsonValue, 
 	}
 	if (!inherited)
 		warpballTemplate = DefaultWarpballTemplate();
-	auto sound1It = templateJsonValue.FindMember("sound1");
-	if (sound1It != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballSound(warpballTemplate.sound1, sound1It->value);
-	}
-	auto sound2It = templateJsonValue.FindMember("sound2");
-	if (sound2It != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballSound(warpballTemplate.sound2, sound2It->value);
-	}
-	auto sprite1It = templateJsonValue.FindMember("sprite1");
-	if (sprite1It != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballSprite(warpballTemplate.sprite1, sprite1It->value);
-	}
-	auto sprite2It = templateJsonValue.FindMember("sprite2");
-	if (sprite2It != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballSprite(warpballTemplate.sprite2, sprite2It->value);
-	}
-	auto beamIt = templateJsonValue.FindMember("beam");
-	if (beamIt != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballBeam(warpballTemplate.beam, beamIt->value);
-	}
+
+	HandleJSONMember(templateJsonValue, "sound1", [&warpballTemplate, this](const Value& value) {
+		AssignWarpballSound(warpballTemplate.sound1, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "sound2", [&warpballTemplate, this](const Value& value) {
+		AssignWarpballSound(warpballTemplate.sound2, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "sprite1", [&warpballTemplate, this](const Value& value) {
+		AssignWarpballSprite(warpballTemplate.sprite1, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "sprite2", [&warpballTemplate, this](const Value& value) {
+		AssignWarpballSprite(warpballTemplate.sprite2, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "beam", [&warpballTemplate, this](const Value& value) {
+		AssignWarpballBeam(warpballTemplate.beam, value);
+	});
+
 	UpdatePropertyFromJson(warpballTemplate.beamRadius, templateJsonValue, "beam_radius");
 	UpdatePropertyFromJson(warpballTemplate.beamCount, templateJsonValue, "beam_count");
-	auto lightIt = templateJsonValue.FindMember("light");
-	if (lightIt != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballLight(warpballTemplate.light, lightIt->value);
-	}
-	auto shakeIt = templateJsonValue.FindMember("shake");
-	if (shakeIt != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballShake(warpballTemplate.shake, shakeIt->value);
-	}
-	auto aiSoundIt = templateJsonValue.FindMember("ai_sound");
-	if (aiSoundIt != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballAiSound(warpballTemplate.aiSound, aiSoundIt->value);
-	}
-	auto positionIt = templateJsonValue.FindMember("position");
-	if (positionIt != templateJsonValue.MemberEnd())
-	{
-		AssignWarpballPosition(warpballTemplate.position, positionIt->value);
-	}
+
+	HandleJSONMember(templateJsonValue, "light", [&warpballTemplate](const Value& value) {
+		AssignWarpballLight(warpballTemplate.light, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "shake", [&warpballTemplate](const Value& value) {
+		AssignWarpballShake(warpballTemplate.shake, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "ai_sound", [&warpballTemplate](const Value& value) {
+		AssignWarpballAiSound(warpballTemplate.aiSound, value);
+	});
+
+	HandleJSONMember(templateJsonValue, "position", [&warpballTemplate](const Value& value) {
+		AssignWarpballPosition(warpballTemplate.position, value);
+	});
+
 	UpdatePropertyFromJson(warpballTemplate.spawnDelay, templateJsonValue, "spawn_delay");
 	_templates[templateName] = warpballTemplate;
 	return true;
 }
 
-void WarpballTemplateCatalog::AssignWarpballSound(WarpballSound& sound, Value &soundJson)
+void WarpballTemplateCatalog::AssignWarpballSound(WarpballSound& sound, const Value &soundJson)
 {
 	if (soundJson.IsNull())
 	{
@@ -574,15 +565,13 @@ void WarpballTemplateCatalog::AssignWarpballSound(WarpballSound& sound, Value &s
 		UpdatePropertyFromJson(sound.volume, soundJson, "volume");
 		UpdatePropertyFromJson(sound.pitch, soundJson, "pitch");
 
-		auto attnIt = soundJson.FindMember("attenuation");
-		if (attnIt != soundJson.MemberEnd())
-		{
-			UpdateAttenuationFromJson(sound.attenuation, attnIt->value);
-		}
+		HandleJSONMember(soundJson, "attenuation", [&sound](const Value& value) {
+			UpdateAttenuationFromJson(sound.attenuation, value);
+		});
 	}
 }
 
-void WarpballTemplateCatalog::AssignWarpballSprite(WarpballSprite& sprite, rapidjson::Value& spriteJson)
+void WarpballTemplateCatalog::AssignWarpballSprite(WarpballSprite& sprite, const rapidjson::Value& spriteJson)
 {
 	if (spriteJson.IsNull())
 	{
@@ -598,7 +587,7 @@ void WarpballTemplateCatalog::AssignWarpballSprite(WarpballSprite& sprite, rapid
 	}
 }
 
-void WarpballTemplateCatalog::AssignWarpballBeam(WarpballBeam& beam, rapidjson::Value& beamJson)
+void WarpballTemplateCatalog::AssignWarpballBeam(WarpballBeam& beam, const rapidjson::Value& beamJson)
 {
 	if (beamJson.IsNull())
 	{
@@ -615,7 +604,7 @@ void WarpballTemplateCatalog::AssignWarpballBeam(WarpballBeam& beam, rapidjson::
 	}
 }
 
-bool WarpballTemplateCatalog::UpdateStringFromJson(const char*& str, rapidjson::Value& jsonValue, const char* key)
+bool WarpballTemplateCatalog::UpdateStringFromJson(const char*& str, const rapidjson::Value& jsonValue, const char* key)
 {
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())

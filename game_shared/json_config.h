@@ -11,7 +11,7 @@ public:
 	bool ReadFromContents(const char* contents, const char* fileName);
 protected:
 	virtual const char* Schema() const = 0;
-	virtual bool ReadFromDocument(rapidjson::Document& document, const char* fileName) = 0;
+	virtual bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) = 0;
 };
 
 #endif

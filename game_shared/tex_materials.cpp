@@ -355,23 +355,23 @@ const char* MaterialRegistry::Schema() const {
 using namespace rapidjson;
 
 template<typename S, size_t N>
-void FillVectorFromJsonArray(fixed_vector<S, N>& vec, Value& value)
+void FillVectorFromJsonArray(fixed_vector<S, N>& vec, const Value& value)
 {
 	vec.clear();
-	Value::Array arr = value.GetArray();
+	Value::ConstArray arr = value.GetArray();
 	for (size_t i=0; i<arr.Size(); ++i)
 	{
 		vec.push_back(arr[i].GetString());
 	}
 }
 
-void AssignStepSoundData(MaterialStepSoundData& data, Value& value)
+void AssignStepSoundData(MaterialStepSoundData& data, const Value& value)
 {
 	UpdatePropertyFromJson(data.volume, value, "volume");
 	UpdatePropertyFromJson(data.timeMsec, value, "time");
 }
 
-void AssignMaterialStepData(MaterialStepData& data, Value& stepJsonValue)
+void AssignMaterialStepData(MaterialStepData& data, const Value& stepJsonValue)
 {
 	auto rightIt = stepJsonValue.FindMember("right");
 	if (rightIt != stepJsonValue.MemberEnd())
@@ -397,7 +397,7 @@ void AssignMaterialStepData(MaterialStepData& data, Value& stepJsonValue)
 	UpdatePropertyFromJson(data.skipSomeSteps, stepJsonValue, "skip_some_steps");
 }
 
-bool MaterialRegistry::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool MaterialRegistry::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	auto materialsIt = document.FindMember("materials");
 	if (materialsIt != document.MemberEnd())
@@ -418,7 +418,7 @@ bool MaterialRegistry::ReadFromDocument(rapidjson::Document& document, const cha
 			if (existingMaterial)
 				data = *existingMaterial;
 
-			Value& materialJsonValue = matIt->value;
+			const Value& materialJsonValue = matIt->value;
 
 			{
 				auto stepIt = materialJsonValue.FindMember("step");
@@ -432,7 +432,7 @@ bool MaterialRegistry::ReadFromDocument(rapidjson::Document& document, const cha
 				auto hitIt = materialJsonValue.FindMember("hit");
 				if (hitIt != materialJsonValue.MemberEnd())
 				{
-					Value& hitJsonValue = hitIt->value;
+					const Value& hitJsonValue = hitIt->value;
 					auto wavesIt = hitJsonValue.FindMember("waves");
 					if (wavesIt != hitJsonValue.MemberEnd())
 					{

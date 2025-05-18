@@ -53,17 +53,17 @@ const char* InventorySpec::Schema() const
 	return inventorySpecSchema;
 }
 
-bool InventorySpec::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool InventorySpec::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	auto itemsIt = document.FindMember("items");
 	if (itemsIt != document.MemberEnd())
 	{
-		Value& items = itemsIt->value;
+		const Value& items = itemsIt->value;
 		for (auto itemIt = items.MemberBegin(); itemIt != items.MemberEnd(); ++itemIt)
 		{
 			InventoryItemSpec item;
 			item.itemName = itemIt->name.GetString();
-			Value& value = itemIt->value;
+			const Value& value = itemIt->value;
 			UpdatePropertyFromJson(item.maxCount, value, "max_count");
 
 			{

@@ -29,7 +29,7 @@ public:
 	const WeaponTemplate* GetTemplate(const char* name);
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
 	std::map<std::string, WeaponTemplate> _templates;
 	std::string _temp;

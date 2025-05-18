@@ -150,16 +150,16 @@ const char* ObjectHintCatalog::Schema() const
 	return objectHintCatalogSchema;
 }
 
-bool ObjectHintCatalog::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool ObjectHintCatalog::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	{
 		auto it = document.FindMember("visuals");
 		if (it != document.MemberEnd())
 		{
-			Value& visualsObj = it->value;
+			const Value& visualsObj = it->value;
 			for (auto visualIt = visualsObj.MemberBegin(); visualIt != visualsObj.MemberEnd(); ++visualIt)
 			{
-				Value& value = visualIt->value;
+				const Value& value = visualIt->value;
 
 				ObjectHintVisual visual = DefaultObjectHintVisual();
 				UpdatePropertyFromJson(visual.sprite, value, "sprite");
@@ -172,7 +172,7 @@ bool ObjectHintCatalog::ReadFromDocument(rapidjson::Document& document, const ch
 
 	_maxDistance = 0.0f;
 
-	auto readHintVisualSet = [this, fileName](ObjectHintVisualSet& visualSet, Value& value, const char* templateName)
+	auto readHintVisualSet = [this, fileName](ObjectHintVisualSet& visualSet, const Value& value, const char* templateName)
 	{
 		auto findHintVisual = [this, fileName, templateName](const std::string& name) -> const ObjectHintVisual*
 		{
@@ -216,10 +216,10 @@ bool ObjectHintCatalog::ReadFromDocument(rapidjson::Document& document, const ch
 		auto it = document.FindMember("templates");
 		if (it != document.MemberEnd())
 		{
-			Value& templatesObj = it->value;
+			const Value& templatesObj = it->value;
 			for (auto templateIt = templatesObj.MemberBegin(); templateIt != templatesObj.MemberEnd(); ++templateIt)
 			{
-				Value& value = templateIt->value;
+				const Value& value = templateIt->value;
 				const char* templateName = templateIt->name.GetString();
 
 				ObjectHintSpec spec = DefaultObjectHintSpec();
@@ -250,7 +250,7 @@ bool ObjectHintCatalog::ReadFromDocument(rapidjson::Document& document, const ch
 		auto it = document.FindMember("entity_mapping");
 		if (it != document.MemberEnd())
 		{
-			Value& mappingsObj = it->value;
+			const Value& mappingsObj = it->value;
 			for (auto mappingIt = mappingsObj.MemberBegin(); mappingIt != mappingsObj.MemberEnd(); ++mappingIt)
 			{
 				std::string entityName = mappingIt->name.GetString();
@@ -269,7 +269,7 @@ bool ObjectHintCatalog::ReadFromDocument(rapidjson::Document& document, const ch
 		auto it = document.FindMember("pickup_mapping");
 		if (it != document.MemberEnd())
 		{
-			Value& mappingsObj = it->value;
+			const Value& mappingsObj = it->value;
 			for (auto mappingIt = mappingsObj.MemberBegin(); mappingIt != mappingsObj.MemberEnd(); ++mappingIt)
 			{
 				std::string pickupName = mappingIt->name.GetString();

@@ -30,7 +30,7 @@ class InventoryHudSpec : public JSONConfig
 {
 protected:
 	const char* Schema() const override;
-	bool ReadFromDocument(rapidjson::Document& document, const char* fileName) override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 public:
 	InventoryHudSpec();
 	const InventoryItemHudSpec* GetInventoryItemSpec(const char* itemName);

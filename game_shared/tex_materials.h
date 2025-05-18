@@ -105,8 +105,8 @@ public:
 	void DumpMaterial(char c) const;
 
 protected:
-	virtual const char* Schema() const;
-	virtual bool ReadFromDocument(rapidjson::Document& document, const char* fileName);
+	const char* Schema() const override;
+	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 
 private:
 	void DumpMaterial(char c, const MaterialData& data) const;

@@ -32,12 +32,12 @@ const char* FollowersDescription::Schema() const
 	return followersSchema;
 }
 
-bool FollowersDescription::ReadFromDocument(rapidjson::Document& document, const char* fileName)
+bool FollowersDescription::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
 	auto monstersIt = document.FindMember("fast_recruit_monsters");
 	if (monstersIt != document.MemberEnd())
 	{
-		Value& a = monstersIt->value;
+		const Value& a = monstersIt->value;
 		for (auto it = a.Begin(); it != a.End(); ++it)
 		{
 			const char* recruitName = it->GetString();

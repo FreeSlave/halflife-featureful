@@ -27,11 +27,11 @@ const char* WeaponTemplateSystem::Schema() const
 	return weaponTemplatesSchema;
 }
 
-bool WeaponTemplateSystem::ReadFromDocument(Document &document, const char *fileName)
+bool WeaponTemplateSystem::ReadFromDocument(const Document &document, const char *fileName)
 {
 	for (auto weaponIt = document.MemberBegin(); weaponIt != document.MemberEnd(); ++weaponIt)
 	{
-		Value& value = weaponIt->value;
+		const Value& value = weaponIt->value;
 		const char* name = weaponIt->name.GetString();
 		WeaponTemplate weaponTemplate;
 

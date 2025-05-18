@@ -135,13 +135,13 @@ const char* VisualSystem::Schema() const
 	return visualsSchema;
 }
 
-bool VisualSystem::ReadFromDocument(Document& document, const char *fileName)
+bool VisualSystem::ReadFromDocument(const Document& document, const char *fileName)
 {
 	for (auto scriptIt = document.MemberBegin(); scriptIt != document.MemberEnd(); ++scriptIt)
 	{
 		const char* name = scriptIt->name.GetString();
 
-		Value& value = scriptIt->value;
+		const Value& value = scriptIt->value;
 		if (value.IsObject())
 			AddVisualFromJsonValue(name, value);
 		else
@@ -151,15 +151,29 @@ bool VisualSystem::ReadFromDocument(Document& document, const char *fileName)
 	return true;
 }
 
-void VisualSystem::AddVisualFromJsonValue(const char *name, Value &value)
+void VisualSystem::AddVisualFromJsonValue(const char *name, const Value &value)
 {
 	Visual visual;
 
-	{
-		auto it = value.FindMember("model");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "model", [&visual, this](const Value& value) {
+		std::string str = value.GetString();
+		auto strIt = _modelStringSet.find(str);
+		if (strIt == _modelStringSet.end())
 		{
-			std::string str = it->value.GetString();
+			auto p = _modelStringSet.insert(str);
+			strIt = p.first;
+		}
+		visual.SetModel(strIt->c_str());
+	});
+
+	HandleJSONMember(value, "sprite", [&visual, this, name](const Value& value) {
+		if (visual.HasDefined(Visual::MODEL_DEFINED))
+		{
+			LOG_WARNING("Visual \"%s\" has both 'model' and 'sprite' properties defined!\n", name);
+		}
+		else
+		{
+			std::string str = value.GetString();
 			auto strIt = _modelStringSet.find(str);
 			if (strIt == _modelStringSet.end())
 			{
@@ -168,49 +182,22 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, Value &value)
 			}
 			visual.SetModel(strIt->c_str());
 		}
-	}
+	});
 
-	{
-		auto it = value.FindMember("sprite");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "rendermode", [&visual](const Value& value) {
+		if (value.IsString())
 		{
-			if (visual.HasDefined(Visual::MODEL_DEFINED))
+			int rendermode;
+			if (ParseRenderMode(value.GetString(), rendermode))
 			{
-				LOG_WARNING("Visual \"%s\" has both 'model' and 'sprite' properties defined!\n", name);
-			}
-			else
-			{
-				std::string str = it->value.GetString();
-				auto strIt = _modelStringSet.find(str);
-				if (strIt == _modelStringSet.end())
-				{
-					auto p = _modelStringSet.insert(str);
-					strIt = p.first;
-				}
-				visual.SetModel(strIt->c_str());
+				visual.SetRenderMode(rendermode);
 			}
 		}
-	}
-
-	{
-		auto it = value.FindMember("rendermode");
-		if (it != value.MemberEnd())
+		else if (value.IsInt())
 		{
-			Value& rendermodeValue = it->value;
-			if (rendermodeValue.IsString())
-			{
-				int rendermode;
-				if (ParseRenderMode(rendermodeValue.GetString(), rendermode))
-				{
-					visual.SetRenderMode(rendermode);
-				}
-			}
-			else if (rendermodeValue.IsInt())
-			{
-				visual.SetRenderMode(rendermodeValue.GetInt());
-			}
+			visual.SetRenderMode(value.GetInt());
 		}
-	}
+	});
 
 	Color3 color;
 	if (UpdatePropertyFromJson(color, value, "color"))
@@ -224,25 +211,20 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, Value &value)
 		visual.SetAlpha(renderamt);
 	}
 
-	{
-		auto it = value.FindMember("renderfx");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "renderfx", [&visual](const Value& value) {
+		if (value.IsString())
 		{
-			Value& renderfxValue = it->value;
-			if (renderfxValue.IsString())
+			int renderfx;
+			if (ParseRenderFx(value.GetString(), renderfx))
 			{
-				int renderfx;
-				if (ParseRenderFx(renderfxValue.GetString(), renderfx))
-				{
-					visual.SetRenderFx(renderfx);
-				}
-			}
-			else if (renderfxValue.IsInt())
-			{
-				visual.SetRenderFx(renderfxValue.GetInt());
+				visual.SetRenderFx(renderfx);
 			}
 		}
-	}
+		else if (value.IsInt())
+		{
+			visual.SetRenderFx(value.GetInt());
+		}
+	});
 
 	FloatRange scale;
 	if (UpdatePropertyFromJson(scale, value, "scale"))
@@ -282,27 +264,23 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, Value &value)
 		visual.SetRadius(radius);
 	}
 
-	{
-		auto it = value.FindMember("beamflags");
-		if (it != value.MemberEnd())
+	HandleJSONMember(value, "beamflags", [&visual](const Value& value) {
+		int beamFlags = 0;
+		Value::ConstArray arr = value.GetArray();
+		for (size_t i=0; i<arr.Size(); ++i)
 		{
-			int beamFlags = 0;
-			Value::Array arr = it->value.GetArray();
-			for (size_t i=0; i<arr.Size(); ++i)
-			{
-				const char* str = arr[i].GetString();
-				if (stricmp(str, "sine") == 0)
-					beamFlags |= BEAM_FSINE;
-				else if (stricmp(str, "solid") == 0)
-					beamFlags |= BEAM_FSOLID;
-				else if (stricmp(str, "shadein") == 0)
-					beamFlags |= BEAM_FSHADEIN;
-				else if (stricmp(str, "shadeout") == 0)
-					beamFlags |= BEAM_FSHADEOUT;
-			}
-			visual.SetBeamFlags(beamFlags);
+			const char* str = arr[i].GetString();
+			if (stricmp(str, "sine") == 0)
+				beamFlags |= BEAM_FSINE;
+			else if (stricmp(str, "solid") == 0)
+				beamFlags |= BEAM_FSOLID;
+			else if (stricmp(str, "shadein") == 0)
+				beamFlags |= BEAM_FSHADEIN;
+			else if (stricmp(str, "shadeout") == 0)
+				beamFlags |= BEAM_FSHADEOUT;
 		}
-	}
+		visual.SetBeamFlags(beamFlags);
+	});
 
 	float decay;
 	if (UpdatePropertyFromJson(decay, value, "decay"))
