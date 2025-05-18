@@ -272,6 +272,7 @@ struct skilldata_t
 #if FEATURE_SHOCKBEAM
 	float plrDmgShockroach;
 	float plrDmgShockroachM;
+	float monDmgShockroach;
 #endif
 #if FEATURE_SPOREGRENADE
 	float plrDmgSpore;
