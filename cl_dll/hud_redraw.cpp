@@ -365,10 +365,23 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 	
 	if( iNumber > 0 )
 	{
-		// SPR_Draw 100's
+		// SPR_Draw 10000's
+		if ( iNumber >= 10000 )
+		{
+			k = iNumber / 10000;
+			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
+			x += iWidth;
+		}
+		else if ( iFlags & (DHN_5DIGITS) )
+		{
+			//SPR_DrawAdditive( 0, x, y, &rc );
+			x += iWidth;
+		}
+
+		// SPR_Draw 1000's
 		if( iNumber >= 1000 )
 		{
-			k = iNumber / 1000;
+			k = ( iNumber % 10000 ) / 1000;
 			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
 			x += iWidth;
 		}
@@ -381,7 +394,7 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 		// SPR_Draw 100's
 		if( iNumber >= 100 )
 		{
-			k = (iNumber % 1000) / 100;
+			k = ( iNumber % 1000 ) / 100;
 			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
 			x += iWidth;
 		}
@@ -411,6 +424,11 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 	}
 	else if( iFlags & DHN_DRAWZERO )
 	{
+		if ( iFlags & (DHN_5DIGITS) )
+		{
+			x += iWidth;
+		}
+
 		if( iFlags & ( DHN_4DIGITS ) )
 		{
 			x += iWidth;
@@ -570,6 +588,9 @@ int CHud::AdditiveText::LineHeight()
 
 int CHud::GetNumWidth( int iNumber, int iFlags )
 {
+	if ( iFlags & ( DHN_5DIGITS ) )
+		return 5;
+
 	if( iFlags & ( DHN_4DIGITS ) )
 		return 4;
 
@@ -596,7 +617,10 @@ int CHud::GetNumWidth( int iNumber, int iFlags )
 	if ( iNumber < 1000 )
 		return 3;
 
-	return 4;
+	if ( iNumber < 10000 )
+		return 4;
+
+	return 5;
 }	
 
 void CHud::DrawDarkRectangle( int x, int y, int wide, int tall )

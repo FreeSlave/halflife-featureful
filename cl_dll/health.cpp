@@ -270,7 +270,10 @@ int CHudHealth::DrawHealth()
 
 	x += CrossWidth;
 
-	const int digitFlag = m_iHealth >= 1000 ? DHN_4DIGITS : DHN_3DIGITS;
+	const int digitFlag = 
+		m_iHealth >= 10000 ? DHN_5DIGITS : 
+		m_iHealth >= 1000 ? DHN_4DIGITS : 
+		DHN_3DIGITS;
 	x = gHUD.DrawHudNumber( x, y + gHUD.m_iHudNumbersYOffset, digitFlag | DHN_DRAWZERO, m_iHealth, r, g, b );
 
 	x += HealthWidth / 2;
@@ -330,7 +333,10 @@ void CHudHealth::DrawArmor(int startX)
 
 	x += ( m_prc1->right - m_prc1->left );
 
-	const int digitFlag = m_iBat >= 1000 ? DHN_4DIGITS : DHN_3DIGITS;
+	const int digitFlag = 
+		m_iBat >= 10000 ? DHN_5DIGITS : 
+		m_iBat >= 1000 ? DHN_4DIGITS : 
+		DHN_3DIGITS;
 	x = gHUD.DrawHudNumber( x, y + gHUD.m_iHudNumbersYOffset, digitFlag | DHN_DRAWZERO, m_iBat, r, g, b );
 }
 

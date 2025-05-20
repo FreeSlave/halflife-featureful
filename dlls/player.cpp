@@ -5184,7 +5184,7 @@ void CBasePlayer::UpdateClientData( void )
 
 	if( pev->health != m_iClientHealth || (int)pev->max_health != m_iClientMaxHealth )
 	{
-		int iHealth = (int)clamp( pev->health, 0.0f, 9999.0f ); // make sure that no negative health values are sent
+		int iHealth = (int)clamp( pev->health, 0.0f, 32767.0f ); // make sure that no negative health values are sent
 		if( pev->health > 0.0f && pev->health <= 1.0f )
 			iHealth = 1;
 

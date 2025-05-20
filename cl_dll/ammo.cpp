@@ -1078,6 +1078,10 @@ int CHudAmmo::Draw( float flTime )
 	{
 		int ammoWidths = 8;
 		int drawNumberFlag = DHN_3DIGITS;
+		if (ammoType->maxAmmo >= 10000) {
+			ammoWidths++;
+			drawNumberFlag |= DHN_5DIGITS;
+		}
 		if (ammoType->maxAmmo >= 1000) {
 			ammoWidths++;
 			drawNumberFlag |= DHN_4DIGITS;
@@ -1088,6 +1092,10 @@ int CHudAmmo::Draw( float flTime )
 		if( pw->iClip >= 0 )
 		{
 			int drawNumberClipFlag = DHN_3DIGITS;
+			if (m_pWeapon->iClip >= 10000) {
+				ammoWidths++;
+				drawNumberClipFlag |= DHN_5DIGITS;
+			}
 			if (m_pWeapon->iClip >= 1000) {
 				ammoWidths++;
 				drawNumberClipFlag |= DHN_4DIGITS;
@@ -1121,6 +1129,9 @@ int CHudAmmo::Draw( float flTime )
 		else
 		{
 			ammoWidths = 4;
+			if (ammoType->maxAmmo >= 10000) {
+				ammoWidths++;
+			}
 			if (ammoType->maxAmmo >= 1000) {
 				ammoWidths++;
 			}
@@ -1146,6 +1157,10 @@ int CHudAmmo::Draw( float flTime )
 		{
 			int ammoWidths = 4;
 			int drawNumberFlag = DHN_3DIGITS;
+			if (ammo2Type->maxAmmo >= 10000) {
+				ammoWidths++;
+				drawNumberFlag |= DHN_5DIGITS;
+			}
 			if (ammo2Type->maxAmmo >= 1000) {
 				ammoWidths++;
 				drawNumberFlag |= DHN_4DIGITS;

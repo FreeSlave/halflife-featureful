@@ -59,6 +59,7 @@
 #define DHN_2DIGITS  2
 #define DHN_3DIGITS  4
 #define DHN_4DIGITS  8
+#define DHN_5DIGITS  16
 #define MIN_ALPHA	 100	
 
 #define		HUDELEM_ACTIVE	1
