@@ -166,6 +166,7 @@ extern cvar_t friendlyfire;
 extern cvar_t falldamage;
 extern cvar_t weaponstay;
 extern cvar_t mp_dropweapons;
+extern cvar_t sp_dropweapons;
 
 extern cvar_t weapon_respawndelay;
 extern cvar_t ammo_respawndelay;
@@ -192,7 +193,6 @@ extern cvar_t allowmonsters;
 extern cvar_t mp_allowmonsterinfo;
 extern cvar_t sp_allowmonsterinfo;
 extern cvar_t npc_dropweapons;
-extern cvar_t sp_dropweapons;
 extern cvar_t dmgperscore;
 extern cvar_t allydmgpenalty;
 extern cvar_t npckill;
