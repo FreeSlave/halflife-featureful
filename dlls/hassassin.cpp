@@ -226,17 +226,17 @@ void CHAssassin::OnDying()
 
 		if ( AllowHassassinDropAmmo() )
 		{
-			GetAttachment(0, vecGunPos, vecGunAngles);
-			DropItem("ammo_9mmclip", vecGunPos, vecGunAngles);
+			GetAttachment( 0, vecGunPos, vecGunAngles );
+			DropItem( "ammo_9mmclip", vecGunPos, vecGunAngles );
 		}
 
 		if ( AllowNPCDropHandGrenade() )
 		{
-			CBaseEntity* pGrenadeEnt = DropItem("weapon_handgrenade", BodyTarget(pev->origin), vecGunAngles);
+			CBaseEntity* pGrenadeEnt = DropItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles );
 			if (pGrenadeEnt)
 			{
 				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-				if (pGrenadeWeap)
+				if ( pGrenadeWeap )
 					pGrenadeWeap->m_iDefaultAmmo = 1;
 			}
 		}
