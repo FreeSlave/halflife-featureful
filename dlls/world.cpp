@@ -605,6 +605,9 @@ void CWorld::Precache( void )
 	PRECACHE_SOUND( "weapons/ric4.wav" );
 	PRECACHE_SOUND( "weapons/ric5.wav" );
 
+	//Do allow player drop weapons in Single Player, Precache required! --- Will be removed later.
+	PRECACHE_MODEL("models/w_weaponbox.mdl");
+
 	//
 	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
 	//

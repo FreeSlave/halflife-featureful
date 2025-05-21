@@ -29,8 +29,7 @@
 #include	"scripted.h"
 #include	"game.h"
 #include	"gamerules.h"
-
-#define FEATURE_HASSSASSIN_DROP_AMMO 0
+#include	"weapons.h"
 
 //=========================================================
 // monster-specific schedule types
@@ -218,28 +217,30 @@ void CHAssassin::PainSound( void )
 
 void CHAssassin::OnDying()
 {
-#if FEATURE_HASSSASSIN_DROP_AMMO || FEATURE_MONSTERS_DROP_HANDGRENADES
+	if ( AllowHassassinDropAmmo() || AllowNPCDropHandGrenade() )
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) )
 	{
 		// drop the gun!
 		Vector vecGunPos;
 		Vector vecGunAngles;
 
-		GetAttachment( 0, vecGunPos, vecGunAngles );
-#if FEATURE_HASSSASSIN_DROP_AMMO
-		DropItem( "ammo_9mmclip", vecGunPos, vecGunAngles );
-#endif
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
-		CBaseEntity* pGrenadeEnt = DropItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles );
-		if (pGrenadeEnt)
+		if ( AllowHassassinDropAmmo() )
 		{
-			CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-			if (pGrenadeWeap)
-				pGrenadeWeap->m_iDefaultAmmo = 1;
+			GetAttachment(0, vecGunPos, vecGunAngles);
+			DropItem("ammo_9mmclip", vecGunPos, vecGunAngles);
 		}
-#endif
+
+		if ( AllowNPCDropHandGrenade() )
+		{
+			CBaseEntity* pGrenadeEnt = DropItem("weapon_handgrenade", BodyTarget(pev->origin), vecGunAngles);
+			if (pGrenadeEnt)
+			{
+				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+				if (pGrenadeWeap)
+					pGrenadeWeap->m_iDefaultAmmo = 1;
+			}
+		}
 	}
-#endif
 	CFollowingMonster::OnDying();
 }
 

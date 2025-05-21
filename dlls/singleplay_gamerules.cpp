@@ -25,6 +25,7 @@
 #include	"gamerules.h"
 #include	"skill.h"
 #include	"items.h"
+#include	"game.h"
 
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL bool	g_fGameOver;
@@ -299,7 +300,7 @@ void CHalfLifeRules::PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerWeapon *p
 //
 bool CHalfLifeRules::PlayerCanDropWeapon(CBasePlayer *pPlayer)
 {
-	return false;
+	return sp_dropweapons.value > 0;
 }
 
 //=========================================================

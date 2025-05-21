@@ -10,6 +10,7 @@
 #include	"gamerules.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
+#include	"weapons.h"
 
 #if FEATURE_MASSN
 
@@ -199,7 +200,7 @@ void CMassn::DropMyItems(bool isGibbed)
 		if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
+		if ( AllowNPCDropHandGrenade() )
 		if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
 			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 			if (pGrenadeEnt)
@@ -209,7 +210,6 @@ void CMassn::DropMyItems(bool isGibbed)
 					pGrenadeWeap->m_iDefaultAmmo = 1;
 			}
 		}
-#endif
 	}
 	pev->weapons = 0;
 }

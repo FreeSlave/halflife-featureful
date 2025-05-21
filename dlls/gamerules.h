@@ -426,5 +426,7 @@ bool NpcActiveAfterCombat();
 bool NpcFollowOutOfPvs();
 bool NpcFixMeleeDistance();
 bool AllowGrenadeJump();
+bool AllowNPCDropHandGrenade();
+bool AllowHassassinDropAmmo();
 
 #endif // GAMERULES_H

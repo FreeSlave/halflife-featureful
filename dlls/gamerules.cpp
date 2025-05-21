@@ -827,3 +827,23 @@ bool AllowGrenadeJump()
 	return true;
 #endif
 }
+
+bool AllowNPCDropHandGrenade()
+{
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+	extern cvar_t npc_drop_handgrenade;
+	return npc_drop_handgrenade.value != 0;
+#else
+	return false;
+#endif
+}
+
+bool AllowHassassinDropAmmo()
+{
+#if FEATURE_HASSSASSIN_DROP_AMMO
+	extern cvar_t hassassin_drop_ammo;
+	return hassassin_drop_ammo.value != 0;
+#else
+	return false;
+#endif
+}

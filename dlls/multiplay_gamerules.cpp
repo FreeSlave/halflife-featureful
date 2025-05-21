@@ -1085,7 +1085,7 @@ void CHalfLifeMultiplay::PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerWeapo
 //
 bool CHalfLifeMultiplay::PlayerCanDropWeapon(CBasePlayer *pPlayer)
 {
-	return weaponstay.value == 0 && dropweapons.value > 0;
+	return weaponstay.value == 0 && mp_dropweapons.value > 0;
 }
 
 //=========================================================

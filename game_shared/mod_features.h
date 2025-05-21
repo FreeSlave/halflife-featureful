@@ -55,7 +55,10 @@
 #define FEATURE_REVERSE_RELATIONSHIP_MODELS 0
 
 // monsters who carry hand grenades will drop one hand grenade upon death
-#define FEATURE_MONSTERS_DROP_HANDGRENADES 0
+#define FEATURE_MONSTERS_DROP_HANDGRENADES 1
+
+// hassassins will drop 9mm clip upon death
+#define FEATURE_HASSSASSIN_DROP_AMMO 1
 
 // New weapons
 #define FEATURE_PIPEWRENCH (0 || FEATURE_OPFOR_WEAPONS)

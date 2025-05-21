@@ -737,7 +737,7 @@ cvar_t timelimit	= { "mp_timelimit","0", FCVAR_SERVER };
 cvar_t friendlyfire	= { "mp_friendlyfire","0", FCVAR_SERVER };
 cvar_t falldamage	= { "mp_falldamage","0", FCVAR_SERVER };
 cvar_t weaponstay	= { "mp_weaponstay","0", FCVAR_SERVER };
-cvar_t dropweapons	= { "mp_dropweapons","1", FCVAR_SERVER };
+cvar_t mp_dropweapons	= { "mp_dropweapons","1", FCVAR_SERVER };
 
 cvar_t weapon_respawndelay = { "mp_weapon_respawndelay","-2",FCVAR_SERVER };
 cvar_t ammo_respawndelay = { "mp_ammo_respawndelay","-2",FCVAR_SERVER };
@@ -768,6 +768,7 @@ cvar_t allowmonsters	= { "mp_allowmonsters","0", FCVAR_SERVER };
 cvar_t mp_allowmonsterinfo = { "mp_allowmonsterinfo","0", FCVAR_SERVER };
 cvar_t sp_allowmonsterinfo = { "sp_allowmonsterinfo","0", FCVAR_SERVER };
 cvar_t npc_dropweapons = { "npc_dropweapons", "1", FCVAR_SERVER };
+cvar_t sp_dropweapons = { "sp_dropweapons","0", FCVAR_SERVER };
 cvar_t dmgperscore = { "mp_dmgperscore", "0", FCVAR_SERVER };
 cvar_t allydmgpenalty = { "mp_allydmgpenalty", "2", FCVAR_SERVER };
 cvar_t npckill = { "mp_npckill", "1", FCVAR_SERVER };
@@ -795,6 +796,14 @@ cvar_t npc_active_after_combat = { "npc_active_after_combat", "0", FCVAR_SERVER 
 cvar_t npc_follow_out_of_pvs = { "npc_follow_out_of_pvs", "0", FCVAR_SERVER };
 #endif
 cvar_t npc_patrol = { "npc_patrol", "1", FCVAR_SERVER };
+
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+cvar_t npc_drop_handgrenade = { "npc_drop_handgrenade", "0", FCVAR_SERVER };
+#endif
+
+#if FEATURE_HASSSASSIN_DROP_AMMO
+cvar_t hassassin_drop_ammo = { "npc_hassassin_drop_ammo", "0", FCVAR_SERVER };
+#endif
 
 cvar_t mp_chattime	= { "mp_chattime","10", FCVAR_SERVER };
 
@@ -1601,6 +1610,14 @@ void GameDLLInit( void )
 #endif
 	CVAR_REGISTER( &npc_patrol );
 
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+	CVAR_REGISTER( &npc_drop_handgrenade );
+#endif
+
+#if FEATURE_HASSSASSIN_DROP_AMMO
+	CVAR_REGISTER( &hassassin_drop_ammo );
+#endif
+
 	CVAR_REGISTER( &teamplay );
 	CVAR_REGISTER( &fraglimit );
 	CVAR_REGISTER( &timelimit );
@@ -1611,7 +1628,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &friendlyfire );
 	CVAR_REGISTER( &falldamage );
 	CVAR_REGISTER( &weaponstay );
-	CVAR_REGISTER( &dropweapons );
+	CVAR_REGISTER( &mp_dropweapons );
 
 	CVAR_REGISTER( &weapon_respawndelay );
 	CVAR_REGISTER( &ammo_respawndelay );
@@ -1642,6 +1659,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &mp_allowmonsterinfo );
 	CVAR_REGISTER( &sp_allowmonsterinfo );
 	CVAR_REGISTER( &npc_dropweapons );
+	CVAR_REGISTER( &sp_dropweapons );
 	CVAR_REGISTER( &dmgperscore );
 	CVAR_REGISTER( &allydmgpenalty );
 	CVAR_REGISTER( &npckill );

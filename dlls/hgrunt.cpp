@@ -45,6 +45,7 @@
 #include	"hgrunt.h"
 #include	"mod_features.h"
 #include	"common_soundscripts.h"
+#include	"weapons.h"
 
 extern DLL_GLOBAL int		g_iSkillLevel;
 
@@ -277,7 +278,7 @@ void CHGrunt::DropMyItems(bool isGibbed)
 		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) ) {
 			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
+		if ( AllowNPCDropHandGrenade() )
 		if ( FBitSet (pev->weapons, HGRUNT_HANDGRENADE ) ) {
 			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
 			if (pGrenadeEnt)
@@ -287,7 +288,6 @@ void CHGrunt::DropMyItems(bool isGibbed)
 					pGrenadeWeap->m_iDefaultAmmo = 1;
 			}
 		}
-#endif
 	}
 	pev->weapons = 0;
 }
