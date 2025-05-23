@@ -650,7 +650,7 @@ public:
 
 	void TrackHead();
 
-	int  TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult  TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 
 	bool ClawAttack();
 
@@ -1645,7 +1645,7 @@ void CGeneWorm::CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	}
 }
 
-int CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
 {
 	if (damageInfo.damage >= pev->health)
 	{
@@ -1656,7 +1656,7 @@ int CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const
 		pev->health -= damageInfo.damage;
 	}
 
-	return 0;
+	return TakeDamageResult().SetTookDamageToHealth();
 }
 
 #endif

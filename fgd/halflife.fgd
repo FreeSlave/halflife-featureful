@@ -2685,7 +2685,7 @@
 	]
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT) = func_breakable : "Breakable Object"
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate) = func_breakable : "Breakable Object"
 [
 	spawnflags(flags) =
 	[
@@ -2698,7 +2698,7 @@
 		64: "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Immune To Clients' flag"
 		256: "Instant break by melee" : 0
 		512: "Explosives only": 0
-		1024: "Op4Mortar only" : 0
+		1024: "Op4Mortar only (deprecated)" : 0 : "Prefer using entity template based approach with configured take_damage property"
 		4096: "Not solid" : 0
 	]
 	_minlight(string) : "Minimum light level"
@@ -2931,7 +2931,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT) = func_pushable : "Pushable object"
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate) = func_pushable : "Pushable object"
 [
 	spawnflags(flags) =
 	[
@@ -4204,8 +4204,9 @@
 	]
 ]
 @PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/babygarg.mdl") = monster_babygarg : "Baby Gargantua" []
-@PointClass base(RenderFields, Sequence) size(-16 -16 -36, 16 16 0) studio("models/barnacle.mdl") = monster_barnacle : "Barnacle Monster"
+@PointClass base(RenderFields, Sequence, EntityTemplate) size(-16 -16 -36, 16 16 0) studio("models/barnacle.mdl") = monster_barnacle : "Barnacle Monster"
 [
+	health(string) : "Custom Health"
 	model(studio) : "Custom Model"
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[

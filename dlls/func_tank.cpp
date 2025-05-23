@@ -62,7 +62,7 @@ public:
 	void TrackTarget( void );
 
 	CBaseEntity* BestVisibleEnemy( void );
-	int IRelationship( CBaseEntity* pTarget );
+	int IRelationship( CBaseEntity* pTarget ) override;
 	int DefaultClassify( void ) { return m_iTankClass; }
 
 	virtual void Fire( const Vector &barrelEnd, const Vector &forward, entvars_t *pevAttacker );

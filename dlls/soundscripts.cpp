@@ -207,9 +207,9 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, const Valu
 
 	HandleJSONMember(value, "waves", [&soundScript, &soundScriptMeta, this](const Value& value) {
 		Value::ConstArray arr = value.GetArray();
-		for (size_t i=0; i<arr.Size(); ++i)
+		for (auto& item : arr)
 		{
-			std::string str = arr[i].GetString();
+			std::string str = item.GetString();
 			auto strIt = _waveStringSet.find(str);
 			if (strIt == _waveStringSet.end())
 			{

@@ -114,13 +114,13 @@ float CFlyingMonster::ChangeYaw( int yawSpeed )
 	return CBaseMonster::ChangeYaw( yawSpeed );
 }
 
-void CFlyingMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CFlyingMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->movetype = MOVETYPE_STEP;
 	ClearBits( pev->flags, FL_ONGROUND );
 	pev->angles.z = 0;
 	pev->angles.x = 0;
-	CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
 void CFlyingMonster::HandleAnimEvent( MonsterEvent_t *pEvent )

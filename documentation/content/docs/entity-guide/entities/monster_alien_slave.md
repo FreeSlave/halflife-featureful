@@ -150,4 +150,37 @@ Experimental fusion of human and chumtoad from Azure Sheep.
 ```
 {{% /tab %}}
 
+{{% tab "Trace Attack and Take Damage rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_slave": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["shock"],
+                    "attack_affinity": ["friendly", "self"]
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ],
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["slash"],
+                    "attack_affinity": ["friendly"]
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

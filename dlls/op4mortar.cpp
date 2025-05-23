@@ -221,7 +221,7 @@ class COp4Mortar : public CBaseMonster
 {
 public:
 	void Spawn();
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	virtual void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void Precache();
 	void KeyValue(KeyValueData *pvkd);
@@ -610,9 +610,9 @@ CBaseEntity *COp4Mortar::FindTarget()
 	return pIdealTarget;
 }
 
-int COp4Mortar::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult COp4Mortar::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return 1;
+	return TakeDamageResult();
 }
 
 void COp4Mortar::KeyValue(KeyValueData *pvkd)

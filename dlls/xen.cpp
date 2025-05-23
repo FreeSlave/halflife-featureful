@@ -301,7 +301,7 @@ public:
 	void Precache( void );
 	void Touch( CBaseEntity *pOther );
 	void Think( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return 0; }
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void Attack( void );	
 	int Classify( void ) { return CLASS_BARNACLE; }
@@ -456,7 +456,7 @@ public:
 	void Precache( void );
 	void Touch( CBaseEntity *pOther );
 	void Think( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return 0; }
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
 	//void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void Attack( void ) {}
 

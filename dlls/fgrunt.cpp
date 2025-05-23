@@ -208,10 +208,10 @@ public:
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int DefaultToleranceLevel() { return TOLERANCE_HIGH; }
-	int IRelationship ( CBaseEntity *pTarget );
+	int IRelationship ( CBaseEntity *pTarget ) override;
 
 	void SetHead(int head);
 
@@ -2125,42 +2125,45 @@ void CHFGrunt::IdleSound()
 //=========================================================
 // TraceAttack - make sure we're not taking it in the helmet
 //=========================================================
-void CHFGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CHFGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	DamageInfo dmgInfo = damageInfo;
+	DamageInfo damageInfo = inputDamageInfo;
+
 	// reduce damage on vest
 	if (ptr->iHitgroup == HITGROUP_CHEST || ptr->iHitgroup == HITGROUP_STOMACH)
 	{
-		if (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ))
+		if (damageInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ))
 		{
-			dmgInfo.damage *= 0.5;
+			damageInfo.damage *= 0.5;
 		}
 	}
 	// check for helmet shot
 	if (ptr->iHitgroup == 11)
 	{
 		// make sure we're wearing one
-		if (dmgInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
+		if (damageInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB))
 		{
 			// absorb damage
-			dmgInfo.damage -= 20;
-			if (dmgInfo.damage <= 0)
+			damageInfo.damage -= 20;
+			if (damageInfo.damage <= 0)
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-				dmgInfo.damage = 0.01;
+				damageInfo.damage = 0.01;
 			}
 		}
 		// it's head shot anyways
 		ptr->iHitgroup = HITGROUP_HEAD;
 	}
-	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
+
+	return damageInfo;
 }
+
 //=========================================================
 // TakeDamage - overridden for the grunt because the grunt
 // needs to forget that he is in cover if he's hurt. (Obviously
 // not in a safe place anymore).
 //=========================================================
-int CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Forget( bits_MEMORY_INCOVER );
 
@@ -3200,6 +3203,7 @@ void CTorch::DropMyItems(bool isGibbed)
 void CTorch::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	DamageInfo dmgInfo = damageInfo;
+	//TODO: account for custom trace attack rules?
 	// check for gas tank
 	if (ptr->iHitgroup == 8)
 	{

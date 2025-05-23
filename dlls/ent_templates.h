@@ -9,6 +9,7 @@
 #include "fixed_string.h"
 #include "optional.h"
 #include "tribool.h"
+#include "ent_filter.h"
 
 #include <map>
 #include <string>
@@ -32,6 +33,33 @@ struct SquadCapabilities
 	tribool requireSameEntTemplate;
 };
 
+enum class DamageTypeMatch
+{
+	INVALID = -1,
+	ONE = 0,
+	ALL,
+	NONE,
+	EXACT
+};
+
+enum class ValueComparison
+{
+	UNKNOWN,
+	LESS,
+	LESS_OR_EQUAL,
+	GREATER,
+	GREATER_OR_EQUAL
+};
+
+enum class ValueModifier
+{
+	UNKNOWN,
+	SET,
+	FACTOR,
+	SUBSTRUCT,
+	ADD
+};
+
 struct EntTemplate
 {
 public:
@@ -51,7 +79,48 @@ public:
 		optional<int> gibPolicy;
 	};
 
+	struct DamageConditions
+	{
+		optional<int> dmgType;
+		DamageTypeMatch dmgTypeMatch = DamageTypeMatch::ONE;
+		float dmg = 0.0f;
+		ValueComparison dmgComparison = ValueComparison::UNKNOWN;
+		optional<EntityFilter> inflictorFilter;
+		optional<EntityFilter> attackerFilter;
+		optional<EntityFilter> selfFilter;
+
+		enum AttackAffinity
+		{
+			ANY_SOURCE = 0,
+			ENEMY = (1<<0),
+			FRIENDLY = (1<<1),
+			SELF = (1<<2),
+			NEUTRAL = (1<<3)
+		};
+		int attackAffinity = ANY_SOURCE;
+		optional<int> gibPolicy;
+
+		void UpdateFromJSON(const rapidjson::Value& value);
+	};
+
+	struct DamageInfoModifier
+	{
+		float dmg = 0.0f;
+		ValueModifier dmgModifier = ValueModifier::UNKNOWN;
+		float dmgMinThreshold = 0.0f;
+		bool useHealthAsDmg = false;
+		bool skip = false;
+		tribool noBlood;
+		optional<int> gibPolicy;
+
+		void UpdateFromJSON(const rapidjson::Value& value);
+	};
+
+	static int DamageTypeFromJSON(const rapidjson::Value& value);
 	static bool UpdateDamageInfoFromJSON(const rapidjson::Value& value, DamageInfo& damageInfo);
+	static EntityFilter EntityFilterFromJSON(const rapidjson::Value& value);
+	static int HitgroupFromJSON(const rapidjson::Value& value);
+	static std::vector<int> HitgroupSetFromJSON(const rapidjson::Value& value);
 
 	struct CheckMeleeAttack
 	{
@@ -86,6 +155,59 @@ public:
 
 		std::string hitSoundScript;
 		std::string missSoundScript;
+	};
+
+	struct TraceAttackRule
+	{
+		struct Conditions : public DamageConditions
+		{
+			std::vector<int> hitgroups;
+			bool invertHitgroupCheck = false;
+
+			void UpdateFromJSON(const rapidjson::Value& value);
+		};
+		struct Modifier : public DamageInfoModifier
+		{
+			int hitgroup = -1;
+
+			void UpdateFromJSON(const rapidjson::Value& value);
+		};
+		struct Effects
+		{
+			struct Ricochet
+			{
+				float chance = 0.0f;
+				FloatRange scale = 1.0f;
+				bool certainOnNewFrame = true;
+			};
+			struct Tracer
+			{
+				float chance = 1.0f;
+				float variance = 0.3f;
+				bool certainOnNewFrame = false;
+			};
+
+			optional<Ricochet> ricochet;
+			optional<Tracer> tracer;
+		};
+
+		Conditions conditions;
+		Modifier modifier;
+		Effects effects;
+		Effects thresholdEffects;
+
+		static TraceAttackRule FromJSON(const rapidjson::Value& value);
+	};
+
+	struct TakeDamageRule
+	{
+		struct Conditions : public DamageConditions {};
+		struct Modifier : public DamageInfoModifier {};
+
+		Conditions conditions;
+		Modifier modifier;
+
+		static TakeDamageRule FromJSON(const rapidjson::Value& value);
 	};
 
 	const char* OwnVisualName() const;
@@ -261,9 +383,23 @@ public:
 		_traceHullAttacks[eventIndex] = attack;
 	}
 
+	std::pair<std::vector<TraceAttackRule>::const_iterator, std::vector<TraceAttackRule>::const_iterator> TraceAttackRulesRange() const;
+	void SetTraceAttackRules(std::vector<TraceAttackRule>&& traceAttackRules);
+	bool HasCustomTraceAttackRules() const {
+		return _traceAttackRulesDefined;
+	}
+
+	std::pair<std::vector<TakeDamageRule>::const_iterator, std::vector<TakeDamageRule>::const_iterator> TakeDamageRulesRange() const;
+	void SetTakeDamageRules(std::vector<TakeDamageRule>&& takeDamageRules);
+	bool HasCustomTakeDamageRules() const {
+		return _takeDamageRulesDefined;
+	}
+
 private:
 	static int ParseDamageType(const char* type);
+	static int ParseGibPolicy(const char* gibPolicyName);
 
+	mutable std::string tempString;
 	std::map<std::string, std::string> _soundScripts;
 	std::map<std::string, std::string> _visuals;
 	std::string _ownVisual;
@@ -290,6 +426,12 @@ private:
 	CheckMeleeAttack _checkMeleeAttack1;
 	CheckMeleeAttack _checkMeleeAttack2;
 	std::map<int, TraceHullAttack> _traceHullAttacks;
+
+	std::vector<TraceAttackRule> _traceAttackRules;
+	bool _traceAttackRulesDefined = false;
+
+	std::vector<TakeDamageRule> _takeDamageRules;
+	bool _takeDamageRulesDefined = false;
 };
 
 class EntTemplateSystem : public JSONConfig

@@ -39,7 +39,7 @@ public:
 	int DefaultClassify( void ) { return CLASS_ALIEN_MILITARY; }
 	void UpdateOnRemove();
 	int BloodColor( void ) { return BLOOD_COLOR_YELLOW; }
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster( void );
 
 	void SetObjectCollisionBox( void )
@@ -69,7 +69,7 @@ public:
 	void ShootBalls( void );
 	void MakeFriend( Vector vecPos );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	void PainSound( void );
@@ -591,9 +591,9 @@ void CNihilanth::StartupThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CNihilanth::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CNihilanth::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
 void CNihilanth::DyingThink( void )
@@ -1327,22 +1327,22 @@ void CNihilanth::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	}
 }
 
-int CNihilanth::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CNihilanth::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pevInflictor->owner == edict() )
-		return 0;
+		return TakeDamageResult();
 
 	if( damageInfo.damage >= pev->health )
 	{
 		pev->health = 1;
 		if( m_irritation != 3 )
-			return 0;
+			return TakeDamageResult().SetTookDamageToHealth();
 	}
 
 	PainSound();
 
 	pev->health -= damageInfo.damage;
-	return 0;
+	return TakeDamageResult().SetTookDamageToHealth();
 }
 
 void CNihilanth::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )

@@ -39,13 +39,13 @@ class CTripmineGrenade : public CGrenade
 
 	static TYPEDESCRIPTION m_SaveData[];
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 
 	void EXPORT WarningThink( void );
 	void EXPORT PowerupThink( void );
 	void EXPORT BeamBreakThink( void );
 	void EXPORT DelayDeathThink( void );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	void MakeBeam( void );
 	void KillBeam( void );
@@ -360,7 +360,7 @@ void CTripmineGrenade::BeamBreakThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-int CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( gpGlobals->time < m_flPowerUp && damageInfo.damage < pev->health )
 	{
@@ -369,12 +369,12 @@ int CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time + 0.1f;
 		KillBeam();
-		return 0;
+		return TakeDamageResult();
 	}
 	return CGrenade::TakeDamage( pevInflictor, pevAttacker, damageInfo);
 }
 
-void CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->takedamage = DAMAGE_NO;
 
@@ -388,6 +388,7 @@ void CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 0.1f, 0.3f );
 
 	EMIT_SOUND( ENT( pev ), CHAN_BODY, "common/null.wav", 0.5f, ATTN_NORM ); // shut off chargeup
+	return KilledResult();
 }
 
 void CTripmineGrenade::DelayDeathThink( void )

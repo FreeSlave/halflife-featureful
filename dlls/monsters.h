@@ -18,6 +18,7 @@
 #define MONSTERS_H
 
 #include "cbase.h"
+#include "hitgroup.h"
 
 /*
 
@@ -31,16 +32,6 @@
 #define	LOCALMOVE_INVALID					0 // move is not possible
 #define LOCALMOVE_INVALID_DONT_TRIANGULATE	1 // move is not possible, don't try to triangulate
 #define LOCALMOVE_VALID						2 // move is possible
-
-// Hit Group standards
-#define	HITGROUP_GENERIC	0
-#define	HITGROUP_HEAD		1
-#define	HITGROUP_CHEST		2
-#define	HITGROUP_STOMACH	3
-#define HITGROUP_LEFTARM	4	
-#define HITGROUP_RIGHTARM	5
-#define HITGROUP_LEFTLEG	6
-#define HITGROUP_RIGHTLEG	7
 
 // Monster Spawnflags
 #define	SF_MONSTER_WAIT_TILL_SEEN		1// spawnflag that makes monsters wait until player can see them before attacking.
@@ -88,14 +79,6 @@ extern void EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float
 extern void ExplodeModel( const Vector &vecOrigin, float speed, int model, int count );
 
 bool FBoxVisible( entvars_t *pevLooker, entvars_t *pevTarget, Vector &vecTargetOrigin, float flSize = 0.0 );
-
-// monster to monster relationship types
-#define R_AL	-2 // (ALLY) pals. Good alternative to R_NO when applicable.
-#define R_FR	-1// (FEAR)will run
-#define	R_NO	0// (NO RELATIONSHIP) disregard
-#define R_DL	1// (DISLIKE) will attack
-#define R_HT	2// (HATE)will attack this character instead of any visible DISLIKEd characters
-#define R_NM	3// (NEMESIS)  A monster Will ALWAYS attack its nemsis, no matter what
 
 // these bits represent the monster's memory
 #define MEMORY_CLEAR					0

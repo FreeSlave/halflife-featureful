@@ -53,3 +53,57 @@ bookToC: false
 * `9` - drop a timed grenade.
 * `10` - talk about found enemy that previously has eluded the squad.
 * `11` - drop a weapon (on death).
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+{{% hint info %}}
+Hitgroup 11 is always getting changed to the head hitgroup, but the resistance is applied only with helmet submodel, thus it has two trace attack rules.
+{{% /hint %}}
+
+```json
+{
+    "monster_human_grunt": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["bullet", "slash", "blast", "club"],
+                    "hitgroup": 11,
+                    "self": {
+                        "body": {
+                            "bodygroup": 1,
+                            "submodel": 0
+                        }
+                    }
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.01,
+                    "hitgroup": "head"
+                },
+                "threshold_effects": {
+                    "ricochet": {
+                        "chance": 1.0,
+                        "scale": 1
+                    }
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": 11
+                },
+                "modifier": {
+                    "hitgroup": "head"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

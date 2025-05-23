@@ -63,9 +63,9 @@ public:
 
 	float HearingSensitivity( void ) { return 2.0; };
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	MONSTERSTATE GetIdealState( void ) { return MONSTERSTATE_IDLE; };
 	bool CanPlaySequence( int interruptFlags ) { return true; }
@@ -986,7 +986,7 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 	// ALERT( at_console, "%.0f : %s : %d\n", pev->angles.y, STRING( pOther->pev->classname ), tr.iHitgroup );
 }
 
-int CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_painSoundTime < gpGlobals->time )
 	{
@@ -1001,13 +1001,13 @@ int CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	{
 		pev->health -= damageInfo.damage;
 	}
-	return 1;
+	return TakeDamageResult().SetTookDamageToHealth();
 }
 
-void CTentacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CTentacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	m_iGoalAnim = TENTACLE_ANIM_Pit_Idle;
-	return;
+	return KilledResult();
 }
 
 class CTentacleMaw : public CBaseMonster

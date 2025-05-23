@@ -7,6 +7,7 @@
 #include "hull_sizes.h"
 #include "dmg_types.h"
 #include "gib.h"
+#include "hitgroup.h"
 
 #include <algorithm>
 #include <set>
@@ -27,7 +28,31 @@ const char* entTemplatesSchema = R"(
 }
 )";
 
-static std::string g_tempString;
+static DamageTypeMatch ParseDamageTypeMatch(const char* str)
+{
+	if (stricmp(str, "one") == 0)
+		return DamageTypeMatch::ONE;
+	else if (stricmp(str, "all") == 0)
+		return DamageTypeMatch::ALL;
+	else if (stricmp(str, "none") == 0)
+		return DamageTypeMatch::NONE;
+	else if (stricmp(str, "exact") == 0)
+		return DamageTypeMatch::EXACT;
+	return DamageTypeMatch::INVALID;
+}
+
+static std::pair<ValueComparison, float> ParseValueComparison(const char* str)
+{
+	if (strncmp(str, "<=", 2) == 0)
+		return std::make_pair(ValueComparison::LESS_OR_EQUAL, atof(str+2));
+	else if (strncmp(str, ">=", 2) == 0)
+		return std::make_pair(ValueComparison::GREATER_OR_EQUAL, atof(str+2));
+	else if (strncmp(str, "<", 1) == 0)
+		return std::make_pair(ValueComparison::LESS, atof(str+1));
+	else if (strncmp(str, ">", 1) == 0)
+		return std::make_pair(ValueComparison::GREATER, atof(str+1));
+	return std::make_pair(ValueComparison::UNKNOWN, 0.0f);
+}
 
 const char* EntTemplate::OwnVisualName() const
 {
@@ -41,8 +66,10 @@ const char* EntTemplate::GibVisualName() const
 
 const char* EntTemplate::GetSoundScriptNameOverride(const char *name) const
 {
-	g_tempString = name;
-	auto it = _soundScripts.find(g_tempString);
+	if (_soundScripts.empty())
+		return nullptr;
+	tempString = name;
+	auto it = _soundScripts.find(tempString);
 	if (it != _soundScripts.end())
 		return it->second.c_str();
 	return nullptr;
@@ -50,8 +77,10 @@ const char* EntTemplate::GetSoundScriptNameOverride(const char *name) const
 
 const char* EntTemplate::GetVisualNameOverride(const char *name) const
 {
-	g_tempString = name;
-	auto it = _visuals.find(g_tempString);
+	if (_visuals.empty())
+		return nullptr;
+	tempString = name;
+	auto it = _visuals.find(tempString);
 	if (it != _visuals.end())
 		return it->second.c_str();
 	return nullptr;
@@ -101,6 +130,28 @@ void EntTemplate::AddPrecachedSoundScript(const std::string& soundScript)
 const char* EntTemplate::SpeechPrefix() const
 {
 	return _speechPrefix.empty() ? nullptr : _speechPrefix.c_str();
+}
+
+std::pair<std::vector<EntTemplate::TraceAttackRule>::const_iterator, std::vector<EntTemplate::TraceAttackRule>::const_iterator> EntTemplate::TraceAttackRulesRange() const
+{
+	return std::make_pair(_traceAttackRules.cbegin(), _traceAttackRules.cend());
+}
+
+void EntTemplate::SetTraceAttackRules(std::vector<EntTemplate::TraceAttackRule>&& traceAttackRules)
+{
+	_traceAttackRules = traceAttackRules;
+	_traceAttackRulesDefined = true;
+}
+
+std::pair<std::vector<EntTemplate::TakeDamageRule>::const_iterator, std::vector<EntTemplate::TakeDamageRule>::const_iterator> EntTemplate::TakeDamageRulesRange() const
+{
+	return std::make_pair(_takeDamageRules.cbegin(), _takeDamageRules.cend());
+}
+
+void EntTemplate::SetTakeDamageRules(std::vector<EntTemplate::TakeDamageRule>&& takeDamageRules)
+{
+	_takeDamageRules = takeDamageRules;
+	_takeDamageRulesDefined = true;
 }
 
 static std::string GenerateResourceName(const std::string& templateName, const char* resourceName)
@@ -257,44 +308,41 @@ int EntTemplate::ParseDamageType(const char *type)
 	return -1;
 }
 
+int EntTemplate::ParseGibPolicy(const char *gibPolicyName)
+{
+	if (stricmp(gibPolicyName, "always") == 0)
+	{
+		return GIB_ALWAYS;
+	}
+	else if (stricmp(gibPolicyName, "never") == 0)
+	{
+		return GIB_NEVER;
+	}
+	return GIB_NORMAL;
+}
+
+int EntTemplate::DamageTypeFromJSON(const Value& value)
+{
+	return JSONStringSetToFlags(value, [](const char* damageTypeName) {
+		int subType = ParseDamageType(damageTypeName);
+		if (subType >= 0)
+		{
+			return subType;
+		}
+		else
+		{
+			LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
+			return 0;
+		}
+	});
+}
+
 bool EntTemplate::UpdateDamageInfoFromJSON(const rapidjson::Value &value, DamageInfo &damageInfo)
 {
 	UpdatePropertyFromJson(damageInfo.damage, value, "damage");
 
 	HandleJSONMember(value, "type", [&damageInfo](const Value& value) {
-		int damageType = 0;
-		if (value.IsArray())
-		{
-			Value::ConstArray arr = value.GetArray();
-			for (size_t i=0; i<arr.Size(); ++i)
-			{
-				const char* damageTypeName = arr[i].GetString();
-				int subType = ParseDamageType(damageTypeName);
-				if (subType >= 0)
-				{
-					damageType |= subType;
-				}
-				else
-				{
-					LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
-				}
-			}
-		}
-		else
-		{
-			const char* damageTypeName = value.GetString();
-			int subType = ParseDamageType(damageTypeName);
-			if (subType >= 0)
-			{
-				damageType |= subType;
-			}
-			else
-			{
-				LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
-			}
-		}
-
-		damageInfo.type = damageType;
+		damageInfo.type = DamageTypeFromJSON(value);
 	});
 
 	HandleJSONMember(value, "type_policy", [&damageInfo](const Value& value) {
@@ -313,22 +361,392 @@ bool EntTemplate::UpdateDamageInfoFromJSON(const rapidjson::Value &value, Damage
 	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
 
 	HandleJSONMember(value, "gib", [&](const Value& value) {
-		const char* gibPolicyName = value.GetString();
-		if (strcmp(gibPolicyName, "always") == 0)
-		{
-			damageInfo.gibPolicy = GIB_ALWAYS;
-		}
-		else if (strcmp(gibPolicyName, "never") == 0)
-		{
-			damageInfo.gibPolicy = GIB_NEVER;
-		}
-		else if (strcmp(gibPolicyName, "normal") == 0)
-		{
-			damageInfo.gibPolicy = GIB_NORMAL;
-		}
+		damageInfo.gibPolicy = ParseGibPolicy(value.GetString());
 	});
 
 	return true;
+}
+
+EntityFilter EntTemplate::EntityFilterFromJSON(const Value &value)
+{
+	EntityFilter filter;
+
+	HandleJSONMember(value, "classname", [&filter](const Value& value) {
+		auto handleClassname = [&filter](const char* classname)
+		{
+			if (stricmp(classname, "same") == 0)
+			{
+				filter.sameClassname = true;
+			}
+			else
+			{
+				filter.classnames.push_back(classname);
+			}
+		};
+
+		if (value.IsArray())
+		{
+			Value::ConstArray arr = value.GetArray();
+			filter.classnames.reserve(arr.Size());
+			for (auto& item : arr)
+			{
+				handleClassname(item.GetString());
+			}
+		}
+		else
+		{
+			handleClassname(value.GetString());
+		}
+	});
+
+	HandleJSONMember(value, "ent_template", [&filter](const Value& value) {
+		auto handleEntTemplate = [&filter](const char* entTemplate)
+		{
+			if (stricmp(entTemplate, "same") == 0)
+			{
+				filter.sameEntTemplate = true;
+			}
+			else
+			{
+				filter.entTemplates.push_back(entTemplate);
+			}
+		};
+
+		if (value.IsArray())
+		{
+			Value::ConstArray arr = value.GetArray();
+			filter.entTemplates.reserve(arr.Size());
+			for (auto& item : arr)
+			{
+				handleEntTemplate(item.GetString());
+			}
+		}
+		else
+		{
+			handleEntTemplate(value.GetString());
+		}
+	});
+
+	HandleJSONMember(value, "classify", [&filter](const Value& value) {
+		auto handleClassify = [&filter](const char* classifyName)
+		{
+			if (stricmp(classifyName, "same") == 0)
+			{
+				filter.sameClassify = true;
+			}
+			else
+			{
+				int classify = ClassifyFromName(classifyName);
+				if (classify >= 0)
+					filter.classifications.push_back(classify);
+				else
+					LOG("Unknown classification '%s'\n", classifyName);
+			}
+		};
+
+		if (value.IsArray())
+		{
+			Value::ConstArray arr = value.GetArray();
+			filter.classifications.reserve(arr.Size());
+			for (auto& item : arr)
+			{
+				handleClassify(item.GetString());
+			}
+		}
+		else
+		{
+			handleClassify(value.GetString());
+		}
+	});
+
+	UpdatePropertyFromJson(filter.isCombatCharacter, value, "is_combat_character");
+
+	HandleJSONMember(value, "life_state", [&filter](const Value& value) {
+		filter.lifeState = static_cast<EntityFilter::LifeState>(JSONStringSetToFlags(value, [](const char* name) {
+			if (stricmp(name, "alive") == 0)
+				return EntityFilter::LifeState::ALIVE;
+			else if (stricmp(name, "dead") == 0)
+				return EntityFilter::LifeState::DEAD;
+			else if (stricmp(name, "dying") == 0)
+				return EntityFilter::LifeState::DYING;
+			return EntityFilter::LifeState::ANY_LIFESTATE;
+		}));
+	});
+
+	HandleJSONMember(value, "body", [&filter](const Value& value) {
+		auto readBodyFilter = [](const Value& value) {
+			if (value.IsObject())
+			{
+				int bodyGroup = value.FindMember("bodygroup")->value.GetInt();
+				int submodel = value.FindMember("submodel")->value.GetInt();
+				return EntityFilter::BodyFilter(bodyGroup, submodel);
+			}
+			else
+			{
+				return EntityFilter::BodyFilter(value.GetInt());
+			}
+		};
+
+		if (value.IsArray())
+		{
+			Value::ConstArray arr = value.GetArray();
+			filter.bodyFilter.reserve(arr.Size());
+
+			for (auto& item : arr)
+			{
+				filter.bodyFilter.push_back(readBodyFilter(item));
+			}
+		}
+		else
+		{
+			filter.bodyFilter.push_back(readBodyFilter(value));
+		}
+	});
+
+	UpdatePropertyFromJson(filter.invertBodyCheck, value, "invert_body_check");
+
+	UpdatePropertyFromJson(filter.negate, value, "negate");
+
+	return filter;
+}
+
+void EntTemplate::DamageConditions::UpdateFromJSON(const Value &value)
+{
+	HandleJSONMember(value, "dmg_type", [this](const Value& value) {
+		dmgType = DamageTypeFromJSON(value);
+	});
+
+	HandleJSONMember(value, "dmg_type_match", [this](const Value& value) {
+		auto dmgTypeMatchResult = ParseDamageTypeMatch(value.GetString());
+		if (dmgTypeMatchResult != DamageTypeMatch::INVALID)
+			dmgTypeMatch = dmgTypeMatchResult;
+	});
+
+	HandleJSONMember(value, "dmg", [this](const Value& value) {
+		auto result = ParseValueComparison(value.GetString());
+		dmgComparison = result.first;
+		dmg = result.second;
+	});
+
+	HandleJSONMember(value, "inflictor", [this](const Value& value) {
+		inflictorFilter = EntityFilterFromJSON(value);
+	});
+
+	HandleJSONMember(value, "attacker", [this](const Value& value) {
+		attackerFilter = EntityFilterFromJSON(value);
+	});
+
+	HandleJSONMember(value, "self", [this](const Value& value) {
+		selfFilter = EntityFilterFromJSON(value);
+	});
+
+	HandleJSONMember(value, "attack_affinity", [this](const Value& value) {
+		attackAffinity = JSONStringSetToFlags(value, [](const char* str) {
+			if (stricmp(str, "enemy") == 0)
+			{
+				return ENEMY;
+			}
+			else if (stricmp(str, "friendly") == 0)
+			{
+				return FRIENDLY;
+			}
+			else if (stricmp(str, "self") == 0)
+			{
+				return SELF;
+			}
+			else if (stricmp(str, "neutral") == 0)
+			{
+				return NEUTRAL;
+			}
+			return ANY_SOURCE;
+		});
+	});
+
+	HandleJSONMember(value, "gib", [this](const Value& value) {
+		gibPolicy = ParseGibPolicy(value.GetString());
+	});
+}
+
+void EntTemplate::DamageInfoModifier::UpdateFromJSON(const Value &value)
+{
+	HandleJSONMember(value, "dmg", [this](const Value& value) {
+		const char* str = value.GetString();
+
+		if (strncmp(str, "=", 1) == 0)
+		{
+			dmgModifier = ValueModifier::SET;
+		}
+		else if (strncmp(str, "*", 1) == 0)
+		{
+			dmgModifier = ValueModifier::FACTOR;
+		}
+		else if (strncmp(str, "-", 1) == 0)
+		{
+			dmgModifier = ValueModifier::SUBSTRUCT;
+		}
+		else if (strncmp(str, "+", 1) == 0)
+		{
+			dmgModifier = ValueModifier::ADD;
+		}
+		else
+			return;
+		str++;
+		if (strcmp(str, "health") == 0)
+		{
+			useHealthAsDmg = true;
+		}
+		else
+		{
+			dmg = atof(str);
+		}
+	});
+
+	UpdatePropertyFromJson(dmgMinThreshold, value, "dmg_min_threshold");
+	UpdatePropertyFromJson(skip, value, "skip_damage");
+	UpdatePropertyFromJson(noBlood, value, "no_blood");
+
+	HandleJSONMember(value, "gib", [this](const Value& value) {
+		gibPolicy = ParseGibPolicy(value.GetString());
+	});
+}
+
+void EntTemplate::TraceAttackRule::Conditions::UpdateFromJSON(const Value &value)
+{
+	DamageConditions::UpdateFromJSON(value);
+
+	HandleJSONMember(value, "hitgroup", [this](const Value& value) {
+		hitgroups = HitgroupSetFromJSON(value);
+	});
+
+	UpdatePropertyFromJson(invertHitgroupCheck, value, "invert_hitgroup_check");
+}
+
+void EntTemplate::TraceAttackRule::Modifier::UpdateFromJSON(const Value &value)
+{
+	DamageInfoModifier::UpdateFromJSON(value);
+
+	HandleJSONMember(value, "hitgroup", [this](const Value& value) {
+		hitgroup = HitgroupFromJSON(value);
+	});
+}
+
+int EntTemplate::HitgroupFromJSON(const Value &value)
+{
+	if (value.IsInt())
+	{
+		return value.GetInt();
+	}
+	else if (value.IsString())
+	{
+		const char* str = value.GetString();
+		if (stricmp(str, "generic") == 0)
+			return HITGROUP_GENERIC;
+		else if (stricmp(str, "head") == 0)
+			return HITGROUP_HEAD;
+		else if (stricmp(str, "chest") == 0)
+			return HITGROUP_CHEST;
+		else if (stricmp(str, "stomach") == 0)
+			return HITGROUP_STOMACH;
+		else if (stricmp(str, "left_arm") == 0 || stricmp(str, "left arm") == 0)
+			return HITGROUP_LEFTARM;
+		else if (stricmp(str, "right_arm") == 0 || stricmp(str, "right arm") == 0)
+			return HITGROUP_RIGHTARM;
+		else if (stricmp(str, "left_leg") == 0 || stricmp(str, "left leg") == 0)
+			return HITGROUP_LEFTLEG;
+		else if (stricmp(str, "right_leg") == 0 || stricmp(str, "right leg") == 0)
+			return HITGROUP_RIGHTLEG;
+	}
+	return -1;
+}
+
+std::vector<int> EntTemplate::HitgroupSetFromJSON(const Value &value)
+{
+	std::vector<int> vec;
+
+	if (value.IsArray())
+	{
+		Value::ConstArray arr = value.GetArray();
+		vec.reserve(arr.Size());
+		for (auto& item : arr)
+		{
+			const int hitgroup = HitgroupFromJSON(item);
+			if (hitgroup >= 0)
+				vec.push_back(hitgroup);
+		}
+	}
+	else
+	{
+		const int hitgroup = HitgroupFromJSON(value);
+		if (hitgroup >= 0)
+			vec.push_back(hitgroup);
+	}
+
+	return vec;
+}
+
+EntTemplate::TraceAttackRule EntTemplate::TraceAttackRule::FromJSON(const Value &value)
+{
+	TraceAttackRule rule;
+
+	HandleJSONMember(value, "conditions", [&rule](const Value& value) {
+		rule.conditions.UpdateFromJSON(value);
+	});
+
+	HandleJSONMember(value, "modifier", [&rule](const Value& value) {
+		rule.modifier.UpdateFromJSON(value);
+	});
+
+	auto parseEffects = [](const Value& value)
+	{
+		TraceAttackRule::Effects effects;
+
+		HandleJSONMember(value, "ricochet", [&effects](const Value& value) {
+			TraceAttackRule::Effects::Ricochet ricochet;
+
+			UpdatePropertyFromJson(ricochet.chance, value, "chance");
+			UpdatePropertyFromJson(ricochet.scale, value, "scale");
+			UpdatePropertyFromJson(ricochet.certainOnNewFrame, value, "certain_on_new_frame");
+
+			effects.ricochet = ricochet;
+		});
+
+		HandleJSONMember(value, "tracer", [&effects](const Value& value) {
+			TraceAttackRule::Effects::Tracer tracer;
+
+			UpdatePropertyFromJson(tracer.chance, value, "chance");
+			UpdatePropertyFromJson(tracer.certainOnNewFrame, value, "certain_on_new_frame");
+			UpdatePropertyFromJson(tracer.variance, value, "variance");
+
+			effects.tracer = tracer;
+		});
+
+		return effects;
+	};
+
+	HandleJSONMember(value, "effects", [&rule, &parseEffects](const Value& value) {
+		rule.effects = parseEffects(value);
+	});
+
+	HandleJSONMember(value, "threshold_effects", [&rule, &parseEffects](const Value& value) {
+		rule.thresholdEffects = parseEffects(value);
+	});
+
+	return rule;
+}
+
+EntTemplate::TakeDamageRule EntTemplate::TakeDamageRule::FromJSON(const Value &value)
+{
+	TakeDamageRule rule;
+
+	HandleJSONMember(value, "conditions", [&rule](const Value& value) {
+		rule.conditions.UpdateFromJSON(value);
+	});
+
+	HandleJSONMember(value, "modifier", [&rule](const Value& value) {
+		rule.modifier.UpdateFromJSON(value);
+	});
+
+	return rule;
 }
 
 bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonValue, const char* name, const Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
@@ -494,9 +912,9 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		Value::ConstArray arr = value.GetArray();
 		std::vector<std::string> sounds;
 		sounds.reserve(arr.Size());
-		for (size_t i=0; i<arr.Size(); ++i)
+		for (auto& item : arr)
 		{
-			sounds.push_back(arr[i].GetString());
+			sounds.push_back(item.GetString());
 		}
 		entTemplate.SetPrecachedSounds(std::move(sounds));
 	});
@@ -505,9 +923,9 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		Value::ConstArray arr = value.GetArray();
 		std::vector<std::string> soundsScripts;
 		soundsScripts.reserve(arr.Size());
-		for (size_t i=0; i<arr.Size(); ++i)
+		for (auto& item : arr)
 		{
-			soundsScripts.push_back(arr[i].GetString());
+			soundsScripts.push_back(item.GetString());
 		}
 		entTemplate.SetPrecachedSoundScripts(std::move(soundsScripts));
 	});
@@ -748,6 +1166,32 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 
 			entTemplate.SetTraceHullAttackForEvent(eventIndex, traceHullAttack);
 		}
+	});
+
+	HandleJSONMember(value, "take_damage", [&entTemplate](const Value& value) {
+		std::vector<EntTemplate::TakeDamageRule> takeDamageRules;
+		Value::ConstArray arr = value.GetArray();
+		takeDamageRules.reserve(arr.Size());
+
+		for (auto& item : arr)
+		{
+			takeDamageRules.push_back(EntTemplate::TakeDamageRule::FromJSON(item));
+		}
+
+		entTemplate.SetTakeDamageRules(std::move(takeDamageRules));
+	});
+
+	HandleJSONMember(value, "trace_attack", [&entTemplate](const Value& value) {
+		std::vector<EntTemplate::TraceAttackRule> traceAttackRules;
+		Value::ConstArray arr = value.GetArray();
+		traceAttackRules.reserve(arr.Size());
+
+		for (auto& item : arr)
+		{
+			traceAttackRules.push_back(EntTemplate::TraceAttackRule::FromJSON(item));
+		}
+
+		entTemplate.SetTraceAttackRules(std::move(traceAttackRules));
 	});
 
 	_entTemplates[templateName] = entTemplate;

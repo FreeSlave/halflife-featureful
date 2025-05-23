@@ -42,7 +42,7 @@ public:
 
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
@@ -209,20 +209,23 @@ void CGMan::RunTask( Task_t *pTask )
 //=========================================================
 // Override all damage
 //=========================================================
-int CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	TakeDamageResult takeDamageResult;
 	pev->health = pev->max_health / 2; // always trigger the 50% damage aitrigger
 
 	if( damageInfo.damage > 0 )
 	{
 		SetConditions( bits_COND_LIGHT_DAMAGE );
+		takeDamageResult.SetGotLightDamage();
 	}
 
 	if( damageInfo.damage >= 20 )
 	{
 		SetConditions( bits_COND_HEAVY_DAMAGE );
+		takeDamageResult.SetGotHeavyDamage();
 	}
-	return 1;
+	return takeDamageResult;
 }
 
 void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )

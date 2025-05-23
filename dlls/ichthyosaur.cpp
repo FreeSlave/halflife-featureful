@@ -62,7 +62,7 @@ public:
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType ( int Type );
 
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void BecomeDead( void );
 
 	void EXPORT CombatUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -406,10 +406,11 @@ void CIchthyosaur::SetYawSpeed( void )
 //=========================================================
 // Killed - overrides CFlyingMonster.
 //
-void CIchthyosaur::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CIchthyosaur::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
+	KilledResult killedResult = CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
 	pev->velocity = Vector( 0, 0, 0 );
+	return killedResult;
 }
 
 void CIchthyosaur::BecomeDead( void )

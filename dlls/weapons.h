@@ -593,7 +593,7 @@ public:
 
 	void Suspend( float flSuspendTime );
 	void EXPORT Revive( void );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	static CLaserSpot *CreateSpot( edict_t* pOwner = 0 );
 };

@@ -35,8 +35,6 @@ public:
 
 	void PerformStrike(const TraceHullAttackParams& params);
 
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
-
 	int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
 
@@ -157,11 +155,6 @@ void CPantherEye::PerformStrike(const TraceHullAttackParams& params)
 
 	if (RANDOM_LONG(0,1))
 		EmitSoundScript(attackSoundScript);
-}
-
-void CPantherEye::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
-{
-	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )

@@ -97,8 +97,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	virtual float GetDamageAmount( void ) { return gSkillData.headcrabDmgBite; }
 
 	Schedule_t* GetScheduleOfType ( int Type );
@@ -460,21 +459,24 @@ bool CHeadCrab::CheckRangeAttack2( float flDot, float flDist )
 	return false;
 }
 
-int CHeadCrab::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CHeadCrab::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
 	// Don't take ally acid damage -- BigMomma's mortar is acid
-	if( ( damageInfo.type & DMG_ACID ) && pevAttacker)
+	if( ( inputDamageInfo.type & DMG_ACID ) && pevAttacker)
 	{
 		CBaseEntity* pAttacker = Instance( pevAttacker );
 		if (pAttacker)
 		{
 			const int rel = IRelationship( pAttacker );
 			if (rel < R_DL && rel != R_FR)
-				return 0;
+			{
+				DamageInfo damageInfo = inputDamageInfo;
+				damageInfo.mustSkip = true;
+				return damageInfo;
+			}
 		}
 	}
-
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
+	return inputDamageInfo;
 }
 
 #define CRAB_ATTN_IDLE (float)1.5
@@ -692,7 +694,7 @@ public:
 	void MonsterThink(void);
 	void StartTask(Task_t* pTask);
 	bool ShouldFadeOnDeath() override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying();
 
 	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
@@ -973,12 +975,12 @@ void CShockRoach::AttackSound()
 		EmitSoundScript(attackSoundScript);
 }
 
-int CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	DamageInfo info = damageInfo;
+	DamageInfo dmgInfo = damageInfo;
 	if ( gpGlobals->time - m_flBirthTime < 2.0 )
-		info.damage = 0.0;
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
+		dmgInfo.damage = 0.0;
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
 void CShockRoach::OnDying()

@@ -41,8 +41,8 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void EXPORT BarnacleThink( void );
 	void EXPORT WaitTillDead( void );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	void PainSound();
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -179,18 +179,18 @@ void CBarnacle::Spawn()
 	SetThink( &CBarnacle::BarnacleThink );
 	pev->nextthink = gpGlobals->time + 0.5f;
 
+	pev->max_health = pev->health;
 	UTIL_SetOrigin( pev, pev->origin );
 }
 
-int CBarnacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CBarnacle::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
-	DamageInfo info = damageInfo;
-	if( damageInfo.type & DMG_CLUB )
+	DamageInfo damageInfo = inputDamageInfo;
+	if (damageInfo.type & DMG_CLUB)
 	{
-		info.damage = pev->health;
+		damageInfo.damage = pev->health;
 	}
-
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
+	return damageInfo;
 }
 
 void CBarnacle::PainSound()
@@ -368,7 +368,7 @@ void CBarnacle::BarnacleThink( void )
 //=========================================================
 // Killed.
 //=========================================================
-void CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	CBaseMonster *pVictim;
 
@@ -396,6 +396,7 @@ void CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib
 
 	pev->nextthink = gpGlobals->time + 0.1f;
 	SetThink( &CBarnacle::WaitTillDead );
+	return KilledResult();
 }
 
 //=========================================================

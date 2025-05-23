@@ -95,10 +95,10 @@ public:
 	void PerformKick(int eventIndex, float damage, float zpunch = 0);
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	int IRelationship( CBaseEntity *pTarget );
+	int IRelationship( CBaseEntity *pTarget ) override;
 
 	virtual bool FOkToSpeak( void );
 	virtual bool CanDropGrenade() const;

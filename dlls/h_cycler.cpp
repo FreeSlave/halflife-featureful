@@ -37,7 +37,7 @@ class CCycler : public CBaseMonster
 public:
 	void GenericCyclerSpawn( const char *szModel, Vector vecMin, Vector vecMax );
 	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() | FCAP_IMPULSE_USE ); }
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	void Spawn( void );
 	void Think( void );
 	//void Pain( float flDamage );
@@ -183,7 +183,7 @@ void CCycler::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTy
 //
 // CyclerPain , changes sequences when shot
 //
-int CCycler::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CCycler::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_animate )
 	{
@@ -206,7 +206,7 @@ int CCycler::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const 
 		ALERT( at_console, "sequence: %d, frame %.0f\n", pev->sequence, (double)pev->frame );
 	}
 
-	return 0;
+	return TakeDamageResult();
 }
 #endif
 
@@ -227,7 +227,7 @@ public:
 			caps |= FCAP_IMPULSE_USE;
 		return caps;
 	}
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void Animate( float frames );
 
 	virtual int Save( CSave &save );
@@ -288,13 +288,13 @@ void CCyclerSprite::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	ALERT( at_console, "Sprite: %s\n", STRING( pev->model ) );
 }
 
-int CCyclerSprite::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CCyclerSprite::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( m_maxFrame > 1.0f )
 	{
 		Animate( 1.0f );
 	}
-	return 1;
+	return TakeDamageResult();
 }
 
 void CCyclerSprite::Animate( float frames )

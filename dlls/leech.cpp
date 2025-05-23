@@ -101,12 +101,12 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	int BloodColor( void ) { return DONT_BLEED; }
 	bool HasAlienGibs() override {return true;}
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void Activate( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int DefaultClassify( void ) { return CLASS_INSECT; }
 	const char* DefaultDisplayName() { return "Leech"; }
-	int IRelationship( CBaseEntity *pTarget );
+	int IRelationship( CBaseEntity *pTarget ) override;
 
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
@@ -314,7 +314,7 @@ void CLeech::Precache( void )
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 }
 
-int CLeech::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CLeech::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	pev->velocity = g_vecZero;
 
@@ -688,7 +688,7 @@ void CLeech::SwimThink( void )
 	UpdateMotion();
 }
 
-void CLeech::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CLeech::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	Vector vecSplatDir;
 	TraceResult tr;
@@ -718,4 +718,5 @@ void CLeech::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 	pev->takedamage = DAMAGE_NO;
 	SetThink( &CLeech::DeadThink );
 	DeathSound();
+	return KilledResult();
 }

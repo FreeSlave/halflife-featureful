@@ -844,7 +844,7 @@ public:
 	void EXPORT ButtonBackHome( void );
 	void EXPORT ButtonUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT ButtonUse_IgnorePlayer( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 
@@ -1149,18 +1149,18 @@ void CBaseButton::KeyValue( KeyValueData *pkvd )
 //
 // ButtonShot
 //
-int CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	BUTTON_CODE code = ButtonResponseToTouch();
 
 	if( code == BUTTON_NOTHING )
-		return 0;
+		return TakeDamageResult();
 	// Temporarily disable the touch function, until movement is finished.
 	SetTouch( NULL );
 
 	m_hActivator = CBaseEntity::Instance( pevAttacker );
 	if( m_hActivator == 0 )
-		return 0;
+		return TakeDamageResult();
 
 	if( code == BUTTON_RETURN )
 	{
@@ -1174,7 +1174,7 @@ int CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 	else // code == BUTTON_ACTIVATE
 		ButtonActivate();
 
-	return 0;
+	return TakeDamageResult();
 }
 
 /*QUAKED func_button (0 .5 .8) ?
@@ -2285,7 +2285,7 @@ class CButtonTarget : public CBaseEntity
 public:
 	void Spawn( void );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 	int ObjectCaps( void );	
 };
 
@@ -2323,9 +2323,9 @@ int CButtonTarget::ObjectCaps( void )
 		return caps;
 }
 
-int CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Use( Instance( pevAttacker ), this, USE_TOGGLE, 0 );
 
-	return 1;
+	return TakeDamageResult();
 }

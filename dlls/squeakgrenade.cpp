@@ -44,7 +44,7 @@ public:
 	void EXPORT SuperBounceTouch( CBaseEntity *pOther );
 	void EXPORT HuntThink( void );
 	int	BloodColor( void ) { return CBaseMonster::BloodColor(); }
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster( void );
 
 	virtual int Save( CSave &save ); 
@@ -199,7 +199,7 @@ void CSqueakGrenade::PrecacheImpl( const char* modelName )
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 }
 
-void CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->model = iStringNull;// make invisible
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -225,7 +225,7 @@ void CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 	if( m_hOwner != 0 )
 		pev->owner = m_hOwner->edict();
 
-	CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
 }
 
 void CSqueakGrenade::GibMonster( void )
@@ -458,7 +458,7 @@ class CPenguinGrenade : public CSqueakGrenade
 {
 	void Spawn( void );
 	void Precache( void );
-	void Killed(entvars_t *pevInflictor,entvars_t *pevAttacker, int iGib);
+	KilledResult Killed(entvars_t *pevInflictor,entvars_t *pevAttacker, int iGib) override;
 	float AdditionalExplosionDamage();
 	float MaximumExplosionDamage();
 	float ExplosionRadius()
@@ -479,7 +479,7 @@ void CPenguinGrenade::Precache()
 	PrecacheImpl("models/w_penguin.mdl");
 }
 
-void CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
+KilledResult CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
 	if( m_hOwner != 0 )
 		pev->owner = m_hOwner->edict();
@@ -487,6 +487,7 @@ void CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, in
 	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
 	if( m_hOwner != 0 )
 		pev->owner = m_hOwner->edict();
+	return KilledResult();
 }
 
 float CPenguinGrenade::AdditionalExplosionDamage()

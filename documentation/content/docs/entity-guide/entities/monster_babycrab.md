@@ -50,4 +50,8 @@ By default babycrabs have a bit of transparency in them. This template makes the
 ```
 {{% /tab %}}
 
+{{% tab "Take Damage rules" %}}
+Uses same rules as [monster_headcrab]({{< ref monster_headcrab >}}).
+{{% /tab %}}
+
 {{% /tabs %}}

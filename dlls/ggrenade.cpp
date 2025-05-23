@@ -159,9 +159,10 @@ void CGrenade::Smoke( void )
 	UTIL_Remove( this );
 }
 
-void CGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	Detonate();
+	return KilledResult();
 }
 
 // Timed grenade, this think is called when time runs out.

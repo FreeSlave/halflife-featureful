@@ -370,15 +370,16 @@ public:
 	int DefaultClassify( void );
 	const char* DefaultDisplayName() { return "Alien Slave"; }
 	const char* ReverseRelationshipModel() { return "models/islavef.mdl"; }
-	int IRelationship( CBaseEntity *pTarget );
+	int IRelationship( CBaseEntity *pTarget ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
 	bool CheckHealOrReviveTargets( float flDist = 784, bool mustSee = false );
 	bool IsValidHealTarget( CBaseEntity* pEntity );
 	void CallForHelp( float flDist, EHANDLE hEnemy, Vector &vecLocation );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
 	void DeathSound( void );
 	void PainSound( void );
@@ -1491,30 +1492,45 @@ void CISlave::UpdateOnRemove()
 // TakeDamage - get provoked when injured
 //=========================================================
 
-int CISlave::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CISlave::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
 	// don't slash one of your own
-	if( ( damageInfo.type & DMG_SLASH ) && pevAttacker ) {
-		CBaseEntity* pAttacker = Instance( pevAttacker );
+	if( ( inputDamageInfo.type & DMG_SLASH ) && pevAttacker ) {
+		CBaseEntity* pAttacker = OwnInstance( pevAttacker );
 		if (pAttacker && IRelationship( pAttacker ) == R_AL)
-			return 0;
+		{
+			DamageInfo damageInfo = inputDamageInfo;
+			damageInfo.mustSkip = true;
+			return damageInfo;
+		}
 	}
+	return inputDamageInfo;
+}
 
+TakeDamageResult CISlave::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+{
 	m_afMemory |= bits_MEMORY_ISLAVE_PROVOKED;
 	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
-void CISlave::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CISlave::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	if( (damageInfo.type & DMG_SHOCK)) {
+	if( (inputDamageInfo.type & DMG_SHOCK))
+	{
+		DamageInfo damageInfo = inputDamageInfo;
 		if (!pevAttacker)
-			return;
-		CBaseEntity* pAttacker = Instance( pevAttacker );
+		{
+			damageInfo.mustSkip = true;
+			return damageInfo;
+		}
+		CBaseEntity* pAttacker = OwnInstance( pevAttacker );
 		if (pAttacker && IRelationship( pAttacker ) == R_AL)
-			return;
+		{
+			damageInfo.mustSkip = true;
+			return damageInfo;
+		}
 	}
-
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
+	return inputDamageInfo;
 }
 
 //=========================================================

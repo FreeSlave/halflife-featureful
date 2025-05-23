@@ -16,11 +16,10 @@ bool ReadJsonDocumentWithSchema(rapidjson::Document& document, const char* pMemF
 bool ReadJsonDocumentWithSchemaFromFile(rapidjson::Document& document, const char* fileName, const char* schemaText);
 
 template<typename F, typename = std::enable_if<
-						 std::is_convertible<
-							 decltype(std::declval<F>()(std::declval<const rapidjson::Value&>())), void
-							 >::value
-						 >
-		 >
+	std::is_convertible<
+		decltype(std::declval<F>()(std::declval<const rapidjson::Value&>())), void
+		>::value>
+>
 void HandleJSONMember(const rapidjson::Value& value, const char* name, F f)
 {
 	auto it = value.FindMember(name);
@@ -28,6 +27,29 @@ void HandleJSONMember(const rapidjson::Value& value, const char* name, F f)
 	{
 		f(it->value);
 	}
+}
+
+template<typename F, typename = std::enable_if<
+	std::is_convertible<
+		decltype(std::declval<F>()(std::declval<const char*>())), int
+		>::value>
+>
+int JSONStringSetToFlags(const rapidjson::Value& value, F f)
+{
+	int result{};
+	if (value.IsArray())
+	{
+		rapidjson::Value::ConstArray arr = value.GetArray();
+		for (auto& item : arr)
+		{
+			result |= f(item.GetString());
+		}
+	}
+	else
+	{
+		result = f(value.GetString());
+	}
+	return result;
 }
 
 template<size_t N>

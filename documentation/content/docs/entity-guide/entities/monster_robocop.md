@@ -51,3 +51,49 @@ Shared visuals:
 ### Animation events
 
 * `1` and `2` - play **RoboCop.Step** soundscript and shake effect.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack and Take Damage rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_gargantua": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["energybeam", "crush", "blast"],
+                    "dmg_type_match": "none"
+                },
+                "modifier": {
+                    "dmg": "=0"
+                },
+                "effects": {
+                    "ricochet": {
+                        "chance": 0.2,
+                        "scale": [0.5, 1.5],
+                        "certain_on_new_frame": true
+                    }
+                }
+            }
+        ],
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["energybeam", "crush", "blast"],
+                    "dmg_type_match": "none"
+                },
+                "modifier": {
+                    "dmg": "*0.01"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

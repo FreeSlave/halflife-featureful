@@ -77,6 +77,13 @@ constexpr const char definitions[] = R"(
 		"minItems": 3,
 		"maxItems": 3
 	},
+	"string_set": {
+		"type": ["string", "array"],
+		"items": {
+			"type": "string"
+		},
+		"uniqueItems": true
+	},
 	"object_size": {
 		"type": ["object", "string"],
 		"properties": {
@@ -249,6 +256,73 @@ constexpr const char definitions[] = R"(
 		},
 		"additionalProperties": false
 	},
+	"body_filter": {
+		"type": ["integer", "object"],
+		"minimum": 0,
+		"properties": {
+			"bodygroup": {
+				"type": "integer",
+				"minimum": "0"
+			},
+			"submodel": {
+				"type": "integer",
+				"minimum": "0"
+			}
+		},
+		"required": ["bodygroup", "submodel"],
+		"additionalProperties": false
+	},
+	"entity_filter": {
+		"type": "object",
+		"properties": {
+			"classname": {
+				"$ref": "#/string_set"
+			},
+			"ent_template": {
+				"$ref": "#/string_set"
+			},
+			"classify": {
+				"$ref": "#/string_set"
+			},
+			"is_combat_character": {
+				"type": "boolean"
+			},
+			"life_state": {
+				"oneof": [
+					{
+						"type": "array",
+						"items": {
+							"enum": ["alive", "dead", "dying"]
+						},
+						"uniqueItems": true,
+					},
+					{
+						"enum": ["alive", "dead", "dying"]
+					}
+				]
+			},
+			"body": {
+				"oneof": [
+					{
+						"$ref": "#/body_filter"
+					},
+					{
+						"type": "array",
+						"items": {
+							"$ref": "#/body_filter"
+						}
+					}
+				]
+			},
+			"invert_body_check": {
+				"type": "boolean"
+			},
+			"negate": {
+				"type": "boolean"
+			}
+		},
+		"additionalProperties": false
+	},
 	"damage_info": {
 		"type": "object",
 		"properties": {
@@ -256,10 +330,7 @@ constexpr const char definitions[] = R"(
 				"type": "number"
 			},
 			"type": {
-				"type": ["string", "array"],
-				"items": {
-					"type": "string"
-				}
+				"$ref": "#/string_set"
 			},
 			"type_policy": {
 				"enum": ["replace", "add"]
@@ -275,6 +346,30 @@ constexpr const char definitions[] = R"(
 			}
 		},
 		"additionalProperties": false
+	},
+	"hitgroup_set": {
+		"type": ["array", "string", "integer"],
+		"minimum": 0,
+		"minItems": 1,
+		"items": {
+			"type": ["string", "integer"],
+			"minimum": 0,
+		},
+		"uniqueItems": true
+	},
+	"attack_affinity": {
+		"oneof": [
+			{
+				"type": "array",
+				"items": {
+					"enum": ["enemy", "friendly", "self", "neutral"]
+				},
+				"uniqueItems": true
+			},
+			{
+				"enum": ["enemy", "friendly", "self", "neutral"]
+			}
+		]
 	},
 	"check_melee_attack": {
 		"type": "object",
@@ -347,6 +442,182 @@ constexpr const char definitions[] = R"(
 			}
 		},
 		"additionalProperties": false
+	},
+	"damage_comparator": {
+		"type": "string",
+		"pattern": "^(<=|>=|<|>)([0-9]+)(\\.[0-9]+)?$"
+	},
+	"damage_modifier": {
+		"type": "string",
+		"pattern": "^(\\*|\\+|-|=)((([0-9]+)(\\.[0-9]+)?)|health)$"
+	},
+	"trace_attack_effects": {
+		"type": "object",
+		"properties": {
+			"ricochet": {
+				"type": "object",
+				"properties": {
+					"chance": {
+						"type": "number",
+						"minimum": 0.0,
+						"maximum": 1.0,
+					},
+					"certain_on_new_frame": {
+						"type": "boolean",
+					},
+					"scale": {
+						"$ref": "#/range"
+					}
+				}
+			},
+			"tracer": {
+				"type": "object",
+				"properties": {
+					"chance": {
+						"type": "number",
+						"minimum": 0.0,
+						"maximum": 1.0,
+					},
+					"certain_on_new_frame": {
+						"type": "boolean",
+					},
+					"variance": {
+						"type": "number"
+					}
+				}
+			}
+		},
+		"additionalProperties": false
+	},
+	"trace_attack_rule": {
+		"type": "object",
+		"properties": {
+			"conditions": {
+				"type": "object",
+				"properties": {
+					"dmg_type": {
+						"$ref": "#/string_set"
+					},
+					"dmg_type_match": {
+						"enum": ["one", "all", "none", "exact"]
+					},
+					"dmg": {
+						"$ref": "#/damage_comparator"
+					},
+					"inflictor": {
+						"$ref": "#/entity_filter"
+					},
+					"attacker": {
+						"$ref": "#/entity_filter"
+					},
+					"self": {
+						"$ref": "#/entity_filter"
+					},
+					"attack_affinity": {
+						"$ref": "#/attack_affinity"
+					},
+					"gib": {
+						"enum": ["always", "never", "normal"]
+					},
+					"hitgroup": {
+						"$ref": "#/hitgroup_set"
+					},
+					"invert_hitgroup_check": {
+						"type": "boolean"
+					}
+				},
+				"additionalProperties": false
+			},
+			"modifier": {
+				"type": "object",
+				"properties": {
+					"dmg": {
+						"$ref": "#/damage_modifier"
+					},
+					"dmg_min_threshold": {
+						"type": "number",
+						"minimum": 0
+					},
+					"skip_damage": {
+						"type": "boolean"
+					},
+					"no_blood": {
+						"type": "boolean"
+					},
+					"gib": {
+						"enum": ["always", "never", "normal"]
+					},
+					"hitgroup": {
+						"type": ["string", "integer"],
+						"minimum": 0
+					}
+				},
+				"additionalProperties": false
+			},
+			"effects": {
+				"$ref": "#/trace_attack_effects"
+			},
+			"threshold_effects": {
+				"$ref": "#/trace_attack_effects"
+			}
+		}
+	},
+	"take_damage_rule": {
+		"type": "object",
+		"properties": {
+			"conditions": {
+				"type": "object",
+				"properties": {
+					"dmg_type": {
+						"$ref": "#/string_set"
+					},
+					"dmg_type_match": {
+						"enum": ["one", "all", "none", "exact"]
+					},
+					"dmg": {
+						"$ref": "#/damage_comparator"
+					},
+					"inflictor": {
+						"$ref": "#/entity_filter"
+					},
+					"attacker": {
+						"$ref": "#/entity_filter"
+					},
+					"self": {
+						"$ref": "#/entity_filter"
+					},
+					"attack_affinity": {
+						"$ref": "#/attack_affinity"
+					},
+					"gib": {
+						"enum": ["always", "never", "normal"]
+					}
+				},
+				"additionalProperties": false
+			},
+			"modifier": {
+				"type": "object",
+				"properties": {
+					"dmg": {
+						"$ref": "#/damage_modifier"
+					},
+					"dmg_min_threshold": {
+						"type": "number",
+						"minimum": 0
+					},
+					"skip_damage": {
+						"type": "boolean"
+					},
+					"no_blood": {
+						"type": "boolean"
+					},
+					"gib": {
+						"enum": ["always", "never", "normal"]
+					}
+				},
+				"additionalProperties": false
+			}
+		}
 	},
 	"entity_template": {
 		"type": ["object", "string"],
@@ -459,6 +730,18 @@ constexpr const char definitions[] = R"(
 					"^[0-9]+$": { "$ref": "#/trace_hull_attack" }
 				},
 				"additionalProperties": false
+			},
+			"take_damage": {
+				"type": "array",
+				"items": {
+					"$ref": "#/take_damage_rule"
+				}
+			},
+			"trace_attack": {
+				"type": "array",
+				"items": {
+					"$ref": "#/trace_attack_rule"
+				}
 			}
 		},
 		"additionalProperties": false

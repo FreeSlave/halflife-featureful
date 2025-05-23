@@ -233,7 +233,7 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 	void BodyChange(int horns);
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info) override;
 	int IgnoreConditions(void);
 	Schedule_t* GetSchedule(void);
 	Schedule_t* GetScheduleOfType(int Type);
@@ -361,7 +361,7 @@ const NamedVisual CPitdrone::tinySpitVisual = BuildVisual::Spray("Pitdrone.TinyS
 // TakeDamage - overridden for gonome so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info)
+TakeDamageResult CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info)
 {
 	float flDist;
 	Vector vecApex;

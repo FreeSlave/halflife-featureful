@@ -563,6 +563,8 @@ CBaseEntity * EHANDLE::operator -> ()
 	return (CBaseEntity *)GET_PRIVATE( Get() ); 
 }
 
+bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator);
+
 // give health
 int CBaseEntity::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType )
 {
@@ -590,8 +592,10 @@ int CBaseEntity::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamage
 
 // inflict damage on this entity.  bitsDamageType indicates type of damage inflicted, ie: DMG_CRUSH
 
-void CBaseEntity::ApplyDamageToHealth(float flDamage)
+bool CBaseEntity::ApplyDamageToHealth(float flDamage)
 {
+	BeforeApplyDamageToHealth(flDamage);
+
 	const float healthBeforeDamage = pev->health;
 
 	// do the damage
@@ -610,6 +614,7 @@ void CBaseEntity::ApplyDamageToHealth(float flDamage)
 		}
 		m_healthMinThreshold = 0.0f;
 	}
+	return pev->health < healthBeforeDamage;
 }
 
 void CBaseEntity::SetNonLethalHealthThreshold()
@@ -618,12 +623,42 @@ void CBaseEntity::SetNonLethalHealthThreshold()
 		m_healthMinThreshold = 1.0f;
 }
 
-int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CBaseEntity::TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo)
 {
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->HasCustomTakeDamageRules())
+	{
+		DamageInfo damageInfo = inputDamageInfo;
+
+		auto ruleRange = entTemplate->TakeDamageRulesRange();
+		for (auto it = ruleRange.first; it != ruleRange.second; ++it)
+		{
+			const EntTemplate::TakeDamageRule& takeDamageRule = *it;
+			if (CheckTakeDamageConditions(takeDamageRule.conditions, pevInflictor, pevAttacker, damageInfo, this))
+			{
+				ApplyTakeDamageModifier(takeDamageRule.modifier, damageInfo, this);
+				return damageInfo;
+			}
+		}
+		return damageInfo;
+	}
+	else
+	{
+		return DefaultTransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	}
+}
+
+TakeDamageResult CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
+{
+	TakeDamageResult takeDamageResult;
 	Vector vecTemp;
 
 	if( !pev->takedamage )
-		return 0;
+		return takeDamageResult;
+
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return takeDamageResult;
 
 	// UNDONE: some entity types may be immune or resistant to some bitsDamageType
 	
@@ -656,22 +691,24 @@ int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 		pev->velocity = pev->velocity + vecDir * flForce;
 	}
 
-	ApplyDamageToHealth(damageInfo.damage);
+	if (ApplyDamageToHealth(damageInfo.damage))
+		takeDamageResult.SetTookDamageToHealth();
 
 	if( pev->health <= 0 )
 	{
-		Killed( pevInflictor, pevAttacker, GIB_NORMAL );
-		return 0;
+		KilledResult killedResult = Killed( pevInflictor, pevAttacker, GIB_NORMAL );
+		takeDamageResult.SetKilledResult(killedResult);
 	}
 
-	return 1;
+	return takeDamageResult;
 }
 
-void CBaseEntity::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CBaseEntity::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->takedamage = DAMAGE_NO;
 	pev->deadflag = DEAD_DEAD;
 	UTIL_Remove( this );
+	return KilledResult();
 }
 
 CBaseEntity *CBaseEntity::GetNextTarget( void )
@@ -1519,4 +1556,303 @@ CBaseEntity *CBaseEntity::CreateNoSpawn( const char *szName, const Vector &vecOr
 const char* CBaseEntity::DisplayName()
 {
 	return FStringNull(m_displayName) ? DefaultDisplayName() : STRING(m_displayName);
+}
+
+int CBaseEntity::IRelationship( CBaseEntity *pTarget )
+{
+	return R_NO;
+}
+
+bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
+{
+	auto matchClassname = [&]() -> bool {
+		if (filter.sameClassname || !filter.classnames.empty())
+		{
+			if (filter.sameClassname && FClassnameIs(pEntity->pev, STRING(pInitiator->pev->classname)))
+			{
+				return true;
+			}
+			else
+			{
+				for (const auto& classname : filter.classnames)
+				{
+					if (FClassnameIs(pEntity->pev, classname.c_str()))
+						return true;
+				}
+				return false;
+			}
+		}
+		return true;
+	};
+
+	auto matchEntTemplate = [&]() -> bool {
+		if (filter.sameEntTemplate || !filter.entTemplates.empty())
+		{
+			if (filter.sameEntTemplate && (pEntity->m_entTemplate == pInitiator->m_entTemplate || strcmp(STRING(pEntity->m_entTemplate), STRING(pInitiator->m_entTemplate)) == 0))
+			{
+				return true;
+			}
+			else
+			{
+				for (const auto& entTemplate : filter.entTemplates)
+				{
+					if (entTemplate.empty())
+						return pEntity->m_entTemplate == iStringNull;
+					else if (pEntity->m_entTemplate == iStringNull)
+						return false;
+					else if (strcmp(STRING(pEntity->m_entTemplate), entTemplate.c_str()) == 0)
+						return true;
+				}
+				return false;
+			}
+		}
+		return true;
+	};
+
+	auto matchClassify = [&]() -> bool {
+		if (filter.sameClassify || !filter.classifications.empty())
+		{
+			const int entClassify = pEntity->Classify();
+			if (filter.sameClassify && entClassify == pInitiator->Classify())
+			{
+				return true;
+			}
+			else
+			{
+				for (auto classify : filter.classifications)
+				{
+					if (entClassify == classify)
+						return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	};
+
+	auto matchCombatCharacter = [&]() -> bool {
+		if (!indeterminate(filter.isCombatCharacter))
+		{
+			if (filter.isCombatCharacter)
+			{
+				return FBitSet(pEntity->pev->flags, FL_MONSTER|FL_CLIENT);
+			}
+			else
+			{
+				return !FBitSet(pEntity->pev->flags, FL_MONSTER|FL_CLIENT);
+			}
+		}
+		return true;
+	};
+
+	auto matchLifeState = [&]() -> bool {
+		if (filter.lifeState != EntityFilter::ANY_LIFESTATE)
+		{
+			return (FBitSet(filter.lifeState, EntityFilter::ALIVE) && pEntity->IsFullyAlive()) ||
+				   (FBitSet(filter.lifeState, EntityFilter::DYING) && pEntity->pev->deadflag == DEAD_DYING) ||
+				   (FBitSet(filter.lifeState, EntityFilter::DEAD) && !pEntity->IsFullyAlive());
+		}
+		return true;
+	};
+
+	auto matchBodyFilter = [&]() -> bool {
+		if (filter.bodyFilter.size())
+		{
+			bool result = false;
+			for (auto bodyFilter : filter.bodyFilter)
+			{
+				if (bodyFilter.IsGroupAndSubmodel())
+				{
+					CBaseAnimating* pAnimating = pEntity->MyAnimatingPointer();
+					if (pAnimating)
+					{
+						if (pAnimating->GetBodygroup(bodyFilter.BodyGroup()) == bodyFilter.Submodel())
+						{
+							result = true;
+							break;
+						}
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (pEntity->pev->body == bodyFilter.Submodel())
+					{
+						result = true;
+						break;
+					}
+				}
+			}
+			return result;
+		}
+		return true;
+	};
+
+	bool match = matchClassname() && matchEntTemplate() && matchClassify() &&
+				 matchCombatCharacter() && matchLifeState() && matchBodyFilter();
+
+	return filter.negate ? !match : match;
+}
+
+static bool MatchDamageType(int damageType, int matchedDamageType, DamageTypeMatch damageTypeMatch)
+{
+	switch (damageTypeMatch) {
+	case DamageTypeMatch::ONE:
+		return FBitSet(damageType, matchedDamageType);
+	case DamageTypeMatch::ALL:
+		return (damageType & matchedDamageType) == matchedDamageType;
+	case DamageTypeMatch::NONE:
+		return !FBitSet(damageType, matchedDamageType);
+	case DamageTypeMatch::EXACT:
+		return damageType == matchedDamageType;
+	default:
+		return false;
+	}
+}
+
+static bool MatchDamageValue(float damage, float matchedDamage, ValueComparison comparison)
+{
+	switch (comparison) {
+	case ValueComparison::LESS:
+		return damage < matchedDamage;
+	case ValueComparison::LESS_OR_EQUAL:
+		return damage <= matchedDamage;
+	case ValueComparison::GREATER:
+		return damage > matchedDamage;
+	case ValueComparison::GREATER_OR_EQUAL:
+		return damage >= matchedDamage;
+	default:
+		return false;
+	}
+}
+
+bool CheckTakeDamageConditions(const EntTemplate::DamageConditions& conditions, entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo, CBaseEntity* pInitiator)
+{
+	if (conditions.dmgType)
+	{
+		if (!MatchDamageType(damageInfo.type, *conditions.dmgType, conditions.dmgTypeMatch))
+			return false;
+	}
+	if (conditions.dmgComparison != ValueComparison::UNKNOWN)
+	{
+		if (!MatchDamageValue(damageInfo.damage, conditions.dmg, conditions.dmgComparison))
+			return false;
+	}
+	if (conditions.inflictorFilter)
+	{
+		CBaseEntity* pInflictor = CBaseEntity::OwnInstance(pevInflictor);
+		if (!pInflictor)
+			return false;
+
+		if (!FilterEntity(pInflictor, *conditions.inflictorFilter, pInitiator))
+			return false;
+	}
+
+	if (conditions.attackerFilter)
+	{
+		CBaseEntity* pAttacker = CBaseEntity::OwnInstance(pevAttacker);
+		if (!pAttacker)
+			return false;
+
+		if (!FilterEntity(pAttacker, *conditions.attackerFilter, pInitiator))
+			return false;
+	}
+
+	if (conditions.selfFilter)
+	{
+		if (!FilterEntity(pInitiator, *conditions.selfFilter, pInitiator))
+			return false;
+	}
+
+	auto checkAttackAffinity = [pevAttacker, pInitiator](int attackAffinity) {
+		CBaseEntity* pAttacker = CBaseEntity::OwnInstance(pevAttacker);
+		if (!pAttacker)
+			return (attackAffinity & EntTemplate::DamageConditions::NEUTRAL) != 0;
+
+		if ((attackAffinity & EntTemplate::DamageConditions::SELF) && pAttacker == pInitiator)
+			return true;
+
+		const int relToAttacker = pInitiator->IRelationship(pAttacker);
+		const int relToInitiator = pAttacker->IRelationship(pInitiator);
+
+		if (relToAttacker >= R_DL || relToInitiator >= R_DL)
+			return (attackAffinity & EntTemplate::DamageConditions::ENEMY) != 0;
+
+		if (relToAttacker == R_NO && relToInitiator == R_NO)
+			return (attackAffinity & EntTemplate::DamageConditions::NEUTRAL) != 0;
+
+		const bool atLeastOneIsAlly = (relToAttacker == R_NO && relToInitiator == R_AL) || (relToAttacker == R_AL && relToInitiator == R_NO);
+		if (atLeastOneIsAlly && (attackAffinity & EntTemplate::DamageConditions::FRIENDLY))
+			return true;
+
+		return false;
+	};
+
+	if (conditions.attackAffinity != EntTemplate::DamageConditions::ANY_SOURCE)
+	{
+		if (!checkAttackAffinity(conditions.attackAffinity))
+			return false;
+	}
+
+	if (conditions.gibPolicy)
+	{
+		if (*conditions.gibPolicy != damageInfo.gibPolicy)
+			return false;
+	}
+
+	return true;
+}
+
+ApplyTakeDamageModifierResult ApplyTakeDamageModifier(const EntTemplate::DamageInfoModifier& modifier, DamageInfo& damageInfo, CBaseEntity* pTarget)
+{
+	ApplyTakeDamageModifierResult result;
+
+	result.originalDamage = damageInfo.damage;
+
+	const float damage = modifier.useHealthAsDmg ? pTarget->pev->health : modifier.dmg;
+
+	switch (modifier.dmgModifier) {
+	case ValueModifier::SET:
+		damageInfo.damage = damage;
+		break;
+	case ValueModifier::FACTOR:
+		damageInfo.damage *= damage;
+		break;
+	case ValueModifier::SUBSTRUCT:
+		damageInfo.damage -= damage;
+		break;
+	case ValueModifier::ADD:
+		damageInfo.damage += damage;
+		break;
+	default:
+		break;
+	}
+
+	if (modifier.skip)
+	{
+		damageInfo.mustSkip = true;
+	}
+
+	if (!indeterminate(modifier.noBlood))
+	{
+		damageInfo.noBlood = (bool)modifier.noBlood;
+	}
+
+	if (modifier.gibPolicy)
+	{
+		damageInfo.gibPolicy = *modifier.gibPolicy;
+	}
+
+	if (damageInfo.damage < result.originalDamage && damageInfo.damage <= modifier.dmgMinThreshold)
+	{
+		damageInfo.damage = Q_min(result.originalDamage, modifier.dmgMinThreshold);
+		result.wentUnderMinThreshold = true;
+	}
+
+	result.modifiedDamage = damageInfo.damage;
+
+	return result;
 }

@@ -267,9 +267,9 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, const Value &value)
 	HandleJSONMember(value, "beamflags", [&visual](const Value& value) {
 		int beamFlags = 0;
 		Value::ConstArray arr = value.GetArray();
-		for (size_t i=0; i<arr.Size(); ++i)
+		for (auto& item : arr)
 		{
-			const char* str = arr[i].GetString();
+			const char* str = item.GetString();
 			if (stricmp(str, "sine") == 0)
 				beamFlags |= BEAM_FSINE;
 			else if (stricmp(str, "solid") == 0)

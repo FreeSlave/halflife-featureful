@@ -358,8 +358,8 @@ public:
 	bool FValidateHintType(short sHint) override;
 	Schedule_t *GetSchedule(void);
 	Schedule_t *GetScheduleOfType(int Type);
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	virtual int IRelationship(CBaseEntity *pTarget);
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	int IRelationship(CBaseEntity *pTarget) override;
 	virtual int IgnoreConditions(void);
 	MONSTERSTATE GetIdealState(void);
 
@@ -509,7 +509,7 @@ int CBullsquid::IRelationship( CBaseEntity *pTarget )
 // TakeDamage - overridden for bullsquid so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	float flDist;
 	Vector vecApex;

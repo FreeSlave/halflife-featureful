@@ -77,7 +77,7 @@ public:
 
 	const char* DefaultSentenceGroup(int group);
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
 
 	virtual int Save( CSave &save );
@@ -94,7 +94,7 @@ public:
 
 protected:
 	void SpawnImpl(const char* modelName, float health);
-	void TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet);
+	DamageInfo DefaultHandleTraceAttackImpl(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet);
 	virtual bool PrioritizeMeleeAttack() { return false; }
 };
 
@@ -486,26 +486,32 @@ void CBarney::DeathSound( void )
 	EmitSoundScriptTalk(dieSoundScript);
 }
 
-void CBarney::TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet)
+DamageInfo CBarney::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	DamageInfo dmgInfo = damageInfo;
+	return DefaultHandleTraceAttackImpl(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr, true);
+}
+
+DamageInfo CBarney::DefaultHandleTraceAttackImpl(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet)
+{
+	DamageInfo damageInfo = inputDamageInfo;
+
 	switch( ptr->iHitgroup )
 	{
 	case HITGROUP_CHEST:
 	case HITGROUP_STOMACH:
-		if (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ) )
+		if (damageInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_BLAST ) )
 		{
-			dmgInfo.damage = dmgInfo.damage * 0.5f;
+			damageInfo.damage = damageInfo.damage * 0.5f;
 		}
 		break;
 	case 10:
-		if( (dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB )) && hasHelmet )
+		if( (damageInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB )) && hasHelmet )
 		{
-			dmgInfo.damage -= 20.0f;
-			if( dmgInfo.damage <= 0.0f )
+			damageInfo.damage -= 20.0f;
+			if( damageInfo.damage <= 0.0f )
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0f );
-				dmgInfo.damage = 0.01f;
+				damageInfo.damage = 0.01f;
 			}
 		}
 
@@ -514,12 +520,7 @@ void CBarney::TraceAttackImpl( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		break;
 	}
 
-	CTalkMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
-}
-
-void CBarney::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
-{
-	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, true);
+	return damageInfo;
 }
 
 void CBarney::OnDying()
@@ -696,7 +697,7 @@ public:
 	const char* DefaultDisplayName() { return "Otis"; }
 	const char* ReverseRelationshipModel() { return "models/otisf.mdl"; }
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
 	
 	void KeyValue( KeyValueData *pkvd );
@@ -785,9 +786,9 @@ const char* COtis::DefaultSentenceGroup(int group)
 	}
 }
 
-void COtis::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo COtis::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, false);
+	return DefaultHandleTraceAttackImpl(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr, false);
 }
 
 void COtis::KeyValue( KeyValueData *pkvd )
@@ -1071,7 +1072,7 @@ public:
 	void DeathSound( void );
 	void PlayPainSound( void );
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
 
 	static const NamedSoundScript painSoundScript;
@@ -1281,9 +1282,9 @@ void CKate::OnDying()
 	CTalkMonster::OnDying();
 }
 
-void CKate::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CKate::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	TraceAttackImpl( pevInflictor, pevAttacker, damageInfo, vecDir, ptr, false);
+	return DefaultHandleTraceAttackImpl(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr, false);
 }
 
 float CKate::LimpHealth()

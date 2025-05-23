@@ -44,7 +44,7 @@ public:
 	void Move( float flInterval );
 	void PickNewDest( int iCondition );
 	void EXPORT Touch( CBaseEntity *pOther );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	float m_flLastLightLevel;
 	float m_flNextSmellTime;
@@ -193,7 +193,7 @@ void CRoach::Precache()
 //=========================================================
 // Killed.
 //=========================================================
-void CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->solid = SOLID_NOT;
 
@@ -211,6 +211,7 @@ void CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 
 	OnDying();
 	UTIL_Remove( this );
+	return KilledResult();
 }
 
 //=========================================================

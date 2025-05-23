@@ -7,7 +7,7 @@ bookToC: false
 
 Robogrunts act mostly the same way as human grunts, but they don't bleed and have 80% resistance to every types of damage besides explosion, shock, frost, acid and energy beam.
 
-After death robogrunts play spark effects and explode after 2 seconds.
+When die robogrunts play spark effects and explode after 2 seconds.
 
 ### Skill variables
 
@@ -33,3 +33,46 @@ After death robogrunts play spark effects and explode after 2 seconds.
 * **RGrunt.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
 * **RGrunt.Use** - start following the ally player.
 * **RGrunt.UnUse** - stop following the ally player.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack and Take Damage rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_robogrunt": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["energybeam", "crush", "blast", "shock", "freeze", "acid"],
+                    "dmg_type_match": "none"
+                },
+                "effects": {
+                    "ricochet": {
+                        "chance": 0.1,
+                        "scale": [1, 2],
+                        "certain_on_new_frame": true
+                    }
+                }
+            }
+        ],
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["energybeam", "crush", "blast"],
+                    "dmg_type_match": "none"
+                },
+                "modifier": {
+                    "dmg": "*0.2"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

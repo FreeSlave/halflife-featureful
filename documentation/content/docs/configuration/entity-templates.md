@@ -12,7 +12,7 @@ This is where Entity templates come to the rescue. You define the template with 
 
 The Entity templates are configured via **templates/entities.json**. Each template has a name that is used by entities to refer to the template.
 
-# Examples
+## Examples
 
 Here's a list of some useful example to give you the idea of what templates are capable of.
 
@@ -554,7 +554,7 @@ The property keys must be stringified numbers equal to the animation event indic
     - `"up"` - upwards velocity.
     - `"player_only"` - whether the knockback is applied to player only.
 * `"damage_info"` - [damage info](#damage_info). This allows to change the damage type of the attack and other damage characteristics.
-* `"spawn_blood"` - a boolean denoting whether melee attack should make the hit target bleed.
+* `"spawn_blood"` - a boolean denoting whether melee attack should make the hit target bleed if damage has been dealt.
 * `"hit_soundscript"` - soundscript to play if trace hull attack hit something. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
 * `"miss_soundscript"` - soundscript to play if trace hull attack didn't hit anything. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
 
@@ -634,6 +634,201 @@ In this example we also set the trace hull attack on event 3 to have acid and po
 You can create your own trace hull attacks without relying on the ones that are supported in the monster's code. Events with numbers in the `[20-999]` range should be safe to use for any monster. In this case the attack won't have any defined knock punch or damage, so you'll need to provide them. You'll also probably want to provide hit and miss soundscripts to play depending on the hit result. You can add unconditionally played sounds to the animation via events (see [model animation events]({{< ref "model-animation-events" >}})) and precache them via [precached_sounds](#precached_sounds) or [autoprecache_sounds](#autoprecache_sounds).
 {{% /hint %}}
 
+### take_damage
+
+The rules for how incoming damage is dealt to the entity, depending on the amount of damage, type of damage or even the type of entity who dealt the damage. This allows to make monsters immune, resistant or vulnerable to certain attack types (e.g. think of something like Gargantua being resistant to most types of damage).
+
+`"take_damage"` is an **array** of rules. Each rule is an object that includes *conditions* and *modifier*. Conditions consist of checks against incoming damage type, attacker type, etc. If conditions are met, the modifier is applied to the incoming damage. Otherwise the next rule in the array is examined (if there're any). If none criteria are met, the damage is applied without modifications.
+
+As the rules are checked in order of definition, the more specialized checks must go first, and more general checks can go later.
+
+{{% details title="Example" %}}
+
+```json
+{
+    "weak_against_bullets_and_player": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["bullet"]
+                },
+                "modifier": {
+                    "dmg": "*2"
+                }
+            },
+            {
+                "conditions": {
+                    "attacker": {
+                        "classname": ["player"]
+                    }
+                },
+                "modifier": {
+                    "dmg": "+20"
+                }
+            }
+        ]
+    }
+}
+```
+
+The entity of `weak_against_bullets_and_player` template will take double damage from bullets. If the damage is not a bullet type, but the attacker is player, the entity will take damage increased by 20. Otherwise, the damage will be applied as is.
+
+{{% /details %}}
+
+{{% hint info %}}
+The take damage rules provided in the entity template completely replace the "native" rules the entity might have. So the presence of empty `"take_damage"` array cancels the native resistance the entity might have (e.g. Gargantua's resistance to certain types of damage).
+{{% /hint %}}
+
+#### conditions
+
+An object consisting of the following properties:
+
+* `"dmg_type"` - array or single entry of [damage type](#damage_type). The incoming damage type is matched against this set using the `"dmg_type_match"` property.
+* `"dmg_type_match"` - how the incoming damage type must be matched against the `"dmg_type"`. Possible values:
+    - `"one"` - at least one of the types must match. This is the default (so you can omit defining `"dmg_type_match"` entirely).
+    - `"all"` - the incoming damage must include all of the types defined in `"dmg_type"`.
+    - `"none"` - the incoming damage must include none of the types defined in `"dmg_type"`.
+    - `"exact"` - the set of incoming damage types must be equal to set defined by `"dmg_type"`.
+* `"dmg"` - a string defining the comparison to the incoming damage amount. This must start with `<=`, `>=`, `<` and `>` and followed by a number. E.g. `"<=10"`. Possible comparators:
+    - `<=` - less or equal.
+    - `>=` - greater or equal.
+    - `<` - strictly less.
+    - `>` - strictly greater.
+* `"attacker"` - an attacker [entity filter](#entity_filter). If attacker passes the filter, the criteria is met. The attacker is an entity who initiated the attack. E.g. player or monster.
+* `"inflictor"` - an inflictor [entity filter](#entity_filter). If inflictor passes the filter, the criteria is met. The inflictor is an entity that dealt the damage. E.g. a projectile. For hitscan and melee attacks the inflictor is the same as attacker.
+* `"self"` - [entity filter](#entity_filter) for the entity itself. This allows to check for own life state, body group value, etc.
+* `"attack_affinity"` - the relationship between entity and attacker. This allows to check for friendly fire or self-inflicted harm. Can be a single entry or array of entries. Entries can have following values:
+    - `"enemy"` - whether either this entity or attacker see the other one as enemy. If at least one of two entities is hostile to another, the rest of checks are ignored.
+    - `"friendly"` - whether this entity sees attacker as ally, or attacker sees this entity as ally.
+    - `"self"` - whether this entity inflicted damage on itself (e.g. getting damage from previously thrown grenade).
+    - `"neutral"` - whether both entities see each other as neutrals.
+* `"gib"` - check the incoming damage for the gibbing rule (whether the monster should turn into gibs on death).
+    - `"normal"` - the incoming damage follows normal gibbing rule (gib if the incoming damage in significantly higher than the current health).
+    - `"always"` - the incoming damage forces gibbing.
+    - `"never"` - the incoming damage is set to never gib the monster.
+
+All properties are optional.
+
+#### modifier
+
+An object consisting of the following properties:
+
+* `"dmg"` - a damage amount modifier. This must be a string starting with `=`, `*`, `+` or `-` and followed by the number or `health` string. If it's set to `health`, the current entity's health value will be used in place of damage value.
+    - `=` - set the damage to the provided value. Setting `"=health"` will make an entity to take damage equal to its current health.
+    - `*` - multiply the damage by the provided value. This allows to scale the incoming damage. Use values between 0 and 1 to decrease the amount of damage. E.g. setting `"*2"` will double the incoming damage and setting `"*0.5"` will halve it.
+    - `+` - increase the damage by the provided value.
+    - `-` - decrease the damage by the provided value. Damage can't go lower than 0. If the original damage value is less than provided one, it will be set to 0.
+* `"dmg_min_threshold"` - optional numeric value which denotes that the incoming damage can't be decreased lower than this value (e.g. due to `*` or `-` damage modifiers).
+* `"skip_damage"` - when set to true, makes entity completely skip taking the damage.
+* `"no_blood"` - when set to true, prevents entity from spawning blood.
+* `"gib"` - change the gibbing rule.
+    - `"normal"` - set normal gibbing rule (gib if the incoming damage in much higher than the current health).
+    - `"always"` - force gibbing.
+    - `"never"` - don't gib the monster even on high damage.
+
+All properties are optional.
+
+### trace_attack
+
+The rules for how incoming trace attacks affect the entity. Trace attacks are directional attacks that usually lead to displaying effects like blood or ricochet (e.g. when hitting the armor) at the place of hit. Trace attack handling happens **before** the entity takes damage.
+
+Just like [take_damage](#take_damage), `"trace_attack"` is an array of rules. Each rule includes conditions and modifier similar to ones of `"take_damage"`. The difference is that it allows to take into account the monster's hitgroup and modify the damage accordingly and add some visual effects (e.g. ricochet).
+
+As the rules are checked in order of definition, the more specialized checks must go first, and more general checks can go later.
+
+{{% details title="Example" %}}
+
+```json
+{
+    "armored": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": 10,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.01,
+                    "hitgroup": "head"
+                },
+                "threshold_effects": {
+                    "ricochet": {}
+                },
+            },
+            {
+                "conditions": {
+                    "hitgroup": ["chest", "stomach"],
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            }
+        ]
+    }
+}
+```
+
+In this example if hitgroup 10 is hit by bullet or melee attack, the incoming damage is decreased by 20 and the perceived hitgroup is changed to head hitgroup. If damage has crossed the minimum threshold, the threshold effects are played (ricochet in this case).
+
+If stomach or chest are hit with bullet or melee attack the incoming damage is halved.
+
+{{% /details %}}
+
+{{% hint info %}}
+Generally there's no point in defining `"trace_attack"` rules if you're not going to check for hitgroups or add visual effects. Just use `"take_damage"` instead.
+{{% /hint %}}
+
+{{% hint info %}}
+The trace attack rules provided in the entity template completely replace the "native" rules the entity might have. So the presence of empty `"trace_attack"` array cancels the native resistance and effects the entity might have (e.g. Gargantua's resistance to certain types of damage and ricochet effect).
+{{% /hint %}}
+
+#### conditions
+
+Has same properties as conditions of [take_damage](#take_damage), but also has hitgroup related checks:
+
+* `"hitgroup"` - a single entry or array of hitgroups to test against. Entries can be be numbers representing the hitgroup value in the model (e.g. stomach hitgroup has a number 3) or they can be strings corresponding to the standard hitgroups:
+    - `"generic"` (0)
+    - `"head"` (1)
+    - `"chest"` (2)
+    - `"stomach"` (3)
+    - `"left arm"` (4)
+    - `"right arm"` (5)
+    - `"left leg"` (6)
+    - `"right leg"` (7)
+    - custom hitgroups must be referred by a number (e.g. armor hitgroup is usually implemented via hitgroup 10).
+* `"invert_hitgroup_check"` - a boolean. Whether to invert the hitgroup check, i.e. instead of testing whether the hitgroup is from specified the set, test that the hitgroup is not in the set.
+
+#### modifier
+
+Has same properties as modifier of [take_damage](#take_damage), but also provides a way to modify the perceived hitgroup:
+
+* `"hitgroup"` - a single entry to change the perceived hitgroup to. This is useful with custom hitgroups in order to change them into some standard one, so the hitgroup damage multiplier (e.g. for headshots) is properly applied and monster knows their last body part that took damage to play a proper death animation in case of death.
+
+{{% hint info %}}
+You can omit the modifier completely if you want just to play `effects`.
+{{% /hint %}}
+
+#### effects
+
+An object that allows to add some visual effects at the hit location when conditions are met. It has following properties:
+
+* `"ricochet"` - an object decribing the ricochet effect (ricochet sprite and streaks). Example: shooting at the Barney's helmet.
+    - `"certain_on_new_frame"` - whether the ricochet has 100% chance of playing if entity was hit for the first time on the current frame. This is `true` by default.
+    - `"chance"` - chance of playing ricochet effect, in range `[0.0, 1.0]` where 0.0 means zero chance of playing, 1.0 means 100% chance (and 0.5 means 50% chance). If `certain_on_new_frame` set to `true` and entity wasn't yet hit on the current frame the chance is ignored (i.e. the ricochet always plays). If it was already hit on the current frame or `certain_on_new_frame` set to `false`, the ricochet is playing randomdly depending on the chance. Default chance is `0.0`.
+    - `"scale"` - scale of ricochet sprite. Can be [range]({{< ref "JSON/#range" >}}). The default scale is `1.0`.
+    - All properties are optional. You can define an empty object to get the effect.
+* `"tracer"` - an object describing the tracer effect (single tracer line) that is displayed at the direction opposite to the direction of attack. Example: shooting at the alien grunt's armor.
+    - `"certain_on_new_frame"` - similar to one for `ricochet` effect, but set to `false` by default.
+    - `"chance"` - same as for `ricochet` effect. The default chance is `1.0`.
+    - `"variance"` - the random variance of tracer direction. The default variance is `0.3`.
+    - All properties are optional. You can define an empty object to get the effect.
+
+#### threshold_effects
+
+Same as `effects`, but plays only if `dmg_min_threshold` has been applied. `effects` are still played independently.
+
 ## Types
 
 ### damage_info
@@ -673,3 +868,25 @@ A single string or an array of strings describing the damage types. Supports fol
 - `"acid"`
 - `"slowburn"`
 - `"slowfreeze"`
+
+### entity_filter
+
+Set of conditions to filter entities by. When matching against the filter, some entity acts as an *initiator*, which allows to compare some parameters of the entity that is being filtered to the parameters of the initiator. E.g. `"attacker"` and `"inflictor"` filters in [take_damage](#take_damage) and [trace_attack](#trace_attack) have the entity that is taking damage as an initiator.
+
+* `"classname"` - a single string or array of strings to match the entity's classname against. Special value `"same"` means "same classname as initiator". E.g. `["same", "monster_zombie"]` means 'the classname of the filtered entity must be either the same as initiator's classname or equals to `monster_zombie`'.
+* `"ent_template"` - a single string or array of strings to match the entity's template against. Special value `"same"` means "same entity template as initiator". Use `""` (empty string) if you want to check for entities without an entity template.
+* `"classify"` - a single string or array of strings to match the entity's relationship classification against. Special value `"same"` means "same classification as initiator". See [classify](#classify) for the possible values.
+* `"is_combat_character"` - a boolean. Whether the entity is capable of participating in classification relationships, i.e. a monster or a player.
+* `"life_state"` - a life state of the filtered entity. Can be a single entry or an array of entries.
+    - `"alive"` - entity is alive.
+    - `"dying"` - entity is dying (e.g. monster in the death animation).
+    - `"dead"` - entity is dead (e.g. monster's corpse lying on ground after the death animation is over).
+    - Combination `["alive", "dying"]` means still alive or currently dying.
+    - Combination `["dying", "dead"]` means 'not alive'.
+* `"body_filter"` - an array of entity body values to test for. Each item can be either integer or an object. If it's an integer the filter checks if the current entity's absolute body value equals to this value. If it's the object it can have the following properties:
+    - `"bodygroup"` - the body group number to check. E.g. human grunts use bodygroup 1 as a head group.
+    - `"submodel"` - the current value of the specified body group.
+    - Both properties are required.
+* `"negate"` - a boolean. Whether to change the filter result to opposite (a logical *Not* applied to the filter result).
+
+All properties are optional. All checks are joined by logical *And* to evaluate the filter result.

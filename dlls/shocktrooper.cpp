@@ -95,7 +95,9 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
+		return inputDamageInfo;
+	}
 
 	int	Save(CSave &save);
 	int Restore(CRestore &restore);
@@ -527,14 +529,6 @@ void CShockTrooper::PlayPainSound(void)
 void CShockTrooper::DeathSound(void)
 {
 	EmitSoundScript(dieSoundScript);
-}
-
-//=========================================================
-// TraceAttack - reimplemented in shock trooper because they never have helmets
-//=========================================================
-void CShockTrooper::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
-{
-	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
 }
 
 bool CShockTrooper::CanDropGrenade() const

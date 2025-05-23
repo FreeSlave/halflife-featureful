@@ -34,7 +34,7 @@ public:
 
 	virtual void BounceSound( void );
 	virtual int	BloodColor( void ) { return DONT_BLEED; }
-	virtual void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual float ExplosionRadius() { return 0.0f; } // if 0 the default radius is used (depending on amount of damage)
 
 	bool m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.

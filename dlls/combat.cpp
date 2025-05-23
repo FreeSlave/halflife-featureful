@@ -733,13 +733,15 @@ void CBaseMonster::CallGibMonster( void )
 Killed
 ============
 */
-void CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
+	KilledResult killedResult;
+
 	if( HasMemory( bits_MEMORY_KILLED ) )
 	{
 		if( ShouldGibMonster( iGib ) )
 			CallGibMonster();
-		return;
+		return killedResult.SetGibbed();
 	}
 
 	// clear the deceased's sound channels.(may have been firing or reloading when killed)
@@ -753,7 +755,7 @@ void CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int 
 	if( ShouldGibMonster( iGib ) )
 	{
 		CallGibMonster();
-		return;
+		return killedResult.SetGibbed();
 	}
 	else if( pev->flags & FL_MONSTER )
 	{
@@ -768,6 +770,7 @@ void CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int 
 	}
 
 	m_IdealMonsterState = MONSTERSTATE_DEAD;
+	return killedResult;
 }
 
 void CBaseMonster::OnDying()
@@ -1061,25 +1064,28 @@ When a monster is poisoned via an arrow etc it takes all the poison damage at on
 GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
 */
-int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
-	float	flTake;
-	Vector	vecDir;
+	TakeDamageResult takeDamageResult;
 
 	if( !pev->takedamage )
-		return 0;
+		return takeDamageResult;
 
 	if (!g_pGameRules->FMonsterCanTakeDamage(this, CBaseEntity::Instance(pevAttacker)))
-		return 0;
+		return takeDamageResult;
+
+	const short takeDamagePolicy = m_pCine ? m_pCine->m_takeDamagePolicy : 0;
+	if (takeDamagePolicy == SCRIPT_TAKE_DAMAGE_POLICY_INVULNERABLE)
+		return takeDamageResult;
+
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return takeDamageResult;
 
 	if( !IsAlive() )
 	{
 		return DeadTakeDamage( pevInflictor, pevAttacker, damageInfo );
 	}
-
-	const short takeDamagePolicy = m_pCine ? m_pCine->m_takeDamagePolicy : 0;
-	if (takeDamagePolicy == SCRIPT_TAKE_DAMAGE_POLICY_INVULNERABLE)
-		return 0;
 
 	if( pev->deadflag == DEAD_NO && damageInfo.damage > 0 )
 	{
@@ -1088,21 +1094,18 @@ int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	}
 
 	//!!!LATER - make armor consideration here!
-	flTake = damageInfo.damage;
+	float flTake = damageInfo.damage;
 
 	// set damage type sustained
 	m_bitsDamageType |= damageInfo.type;
 
 	// grab the vector of the incoming attack. ( pretend that the inflictor is a little lower than it really is, so the body will tend to fly upward a bit).
-	vecDir = Vector( 0, 0, 0 );
-	if( !FNullEnt( pevInflictor ) )
+	Vector vecDir{};
+	CBaseEntity *pInflictor = CBaseEntity::OwnInstance( pevInflictor );
+	if( pInflictor )
 	{
-		CBaseEntity *pInflictor = CBaseEntity::Instance( pevInflictor );
-		if( pInflictor )
-		{
-			vecDir = ( pInflictor->Center() - Vector ( 0, 0, 10 ) - Center() ).Normalize();
-			vecDir = g_vecAttackDir = vecDir.Normalize();
-		}
+		vecDir = ( pInflictor->Center() - Vector ( 0, 0, 10 ) - Center() ).Normalize();
+		vecDir = g_vecAttackDir = vecDir.Normalize();
 	}
 
 	// add to the damage total for clients, which will be sent as a single
@@ -1118,7 +1121,7 @@ int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 		// check for godmode or invincibility
 		if( pev->flags & FL_GODMODE )
 		{
-			return 0;
+			return takeDamageResult;
 		}
 
 		// if this is a player, move him around!
@@ -1138,7 +1141,8 @@ int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	if ((m_MonsterState == MONSTERSTATE_SCRIPT && takeDamagePolicy == SCRIPT_TAKE_DAMAGE_POLICY_NONLETHAL) || damageInfo.nonLethal)
 		SetNonLethalHealthThreshold();
 
-	ApplyDamageToHealth(flTake);
+	if (ApplyDamageToHealth(flTake))
+		takeDamageResult.SetTookDamageToHealth();
 
 	// HACKHACK Don't kill monsters in a script.  Let them break their scripts first
 	if( m_MonsterState == MONSTERSTATE_SCRIPT )
@@ -1146,29 +1150,36 @@ int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 		if ( m_pCine && m_pCine->m_interruptionPolicy == SCRIPT_INTERRUPTION_POLICY_ONLY_DEATH )
 		{
 			if (pev->health <= 0.0f)
+			{
 				SetConditions( bits_COND_HEAVY_DAMAGE );
+				takeDamageResult.SetGotHeavyDamage();
+			}
 		}
 		else if (damageInfo.damage > 0)
+		{
 			SetConditions( bits_COND_LIGHT_DAMAGE );
-		return 0;
+			takeDamageResult.SetGotLightDamage();
+		}
+		return takeDamageResult;
 	}
 
 	if( pev->health <= 0 )
 	{
-		Killed( pevInflictor, pevAttacker, damageInfo.gibPolicy );
-		return 0;
+		KilledResult killedResult = Killed( pevInflictor, pevAttacker, damageInfo.gibPolicy );
+		takeDamageResult.SetKilledResult(killedResult);
+		return takeDamageResult;
 	}
 
 	// react to the damage (get mad)
 	if (pev->flags & FL_MONSTER)
 	{
-		ReactToDamage( pevInflictor, pevAttacker, damageInfo );
+		ReactToDamage( pevInflictor, pevAttacker, damageInfo, takeDamageResult );
 	}
 
-	return 1;
+	return takeDamageResult;
 }
 
-void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, TakeDamageResult& takeDamageResult )
 {
 	if( !FNullEnt( pevAttacker ) && pevAttacker->flags & ( FL_MONSTER | FL_CLIENT ) )
 	{
@@ -1192,12 +1203,14 @@ void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 		if( damageInfo.damage > 0.0f )
 		{
 			SetConditions( bits_COND_LIGHT_DAMAGE );
+			takeDamageResult.SetGotLightDamage();
 		}
 
 		const float heavyDamageValue = Q_min(60.0f, Q_max(20.0f, pev->max_health/3));
 		if( damageInfo.damage >= heavyDamageValue )
 		{
 			SetConditions( bits_COND_HEAVY_DAMAGE );
+			takeDamageResult.SetGotHeavyDamage();
 		}
 
 		m_bForceConditionsGather = true;
@@ -1208,20 +1221,15 @@ void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 // DeadTakeDamage - takedamage function called when a monster's
 // corpse is damaged.
 //=========================================================
-int CBaseMonster::DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBaseMonster::DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	Vector vecDir;
-
 	// grab the vector of the incoming attack. ( pretend that the inflictor is a little lower than it really is, so the body will tend to fly upward a bit).
-	vecDir = Vector( 0, 0, 0 );
-	if( !FNullEnt( pevInflictor ) )
+	Vector vecDir{};
+	CBaseEntity *pInflictor = CBaseEntity::OwnInstance( pevInflictor );
+	if( pInflictor )
 	{
-		CBaseEntity *pInflictor = CBaseEntity::Instance( pevInflictor );
-		if( pInflictor )
-		{
-			vecDir = ( pInflictor->Center() - Vector ( 0.0f, 0.0f, 10.0f ) - Center() ).Normalize();
-			vecDir = g_vecAttackDir = vecDir.Normalize();
-		}
+		vecDir = ( pInflictor->Center() - Vector ( 0.0f, 0.0f, 10.0f ) - Center() ).Normalize();
+		vecDir = g_vecAttackDir = vecDir.Normalize();
 	}
 
 #if 0// turn this back on when the bounding box issues are resolved.
@@ -1235,20 +1243,24 @@ int CBaseMonster::DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 		pev->velocity = pev->velocity + vecDir * -DamageForce( flDamage );
 	}
 #endif
+	TakeDamageResult takeDamageResult;
+	takeDamageResult.SetWasAlreadyDead();
+
 	// kill the corpse if enough damage was done to destroy the corpse and the damage is of a type that is allowed to destroy the corpse.
 	if( damageInfo.type & DMG_GIB_CORPSE )
 	{
 		if( pev->health <= damageInfo.damage )
 		{
 			pev->health = -50;
-			Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
-			return 0;
+			KilledResult killedResult = Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
+			return takeDamageResult.SetKilledResult(killedResult).SetTookDamageToHealth();
 		}
 		// Accumulate corpse gibbing damage, so you can gib with multiple hits
 		pev->health -= damageInfo.damage * 0.1f;
+		takeDamageResult.SetTookDamageToHealth();
 	}
 
-	return 1;
+	return takeDamageResult;
 }
 
 float CBaseMonster::DamageForce( float damage )
@@ -1437,9 +1449,9 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 
 		if( pEntity && params.damageInfo.damage > 0 && pEntity->pev->takedamage && !(params.skipAllies && (pEntity && IRelationship(pEntity) == R_AL)) )
 		{
-			pEntity->TakeDamage(pev, pev, params.damageInfo);
+			TakeDamageResult takeDamageResult = pEntity->TakeDamage(pev, pev, params.damageInfo);
 
-			if (params.spawnBlood)
+			if (params.spawnBlood && takeDamageResult.TookDamageToHealth())
 			{
 				SpawnBlood(params.bloodOrigin ? *params.bloodOrigin : tr.vecEndPos, pEntity->BloodColor(), 25);// a little surface blood.
 			}
@@ -1612,6 +1624,140 @@ bool CBaseEntity::FVisible( const Vector &vecOrigin, CBaseEntity** ppSightBlocke
 TraceAttack
 ================
 */
+static void PlayTraceAttackEffects(CBaseEntity* pEntity, const EntTemplate::TraceAttackRule::Effects& effects, Vector vecDir, TraceResult *ptr)
+{
+	const bool differentFrame = pEntity->pev->dmgtime != gpGlobals->time;
+	bool shouldUpdateDmgTime = false;
+
+	if (effects.ricochet.has_value())
+	{
+		const EntTemplate::TraceAttackRule::Effects::Ricochet& ricochet = *effects.ricochet;
+
+		bool shouldPlay = false;
+		if (ricochet.certainOnNewFrame && differentFrame)
+		{
+			shouldPlay = true;
+			shouldUpdateDmgTime = true;
+		}
+		else
+		{
+			if (ricochet.chance == 1.0f)
+			{
+				shouldPlay = true;
+			}
+			else if (ricochet.chance > 0.0f && RANDOM_FLOAT(0.0f, 1.0f) <= ricochet.chance)
+			{
+				shouldPlay = true;
+			}
+		}
+
+		if (shouldPlay)
+		{
+			UTIL_Ricochet(ptr->vecEndPos, RandomizeNumberFromRange(ricochet.scale));
+		}
+	}
+
+	if (effects.tracer.has_value())
+	{
+		const EntTemplate::TraceAttackRule::Effects::Tracer& tracer = *effects.tracer;
+
+		bool shouldPlay = false;
+		if (tracer.certainOnNewFrame && differentFrame)
+		{
+			shouldPlay = true;
+			shouldUpdateDmgTime = true;
+		}
+		else
+		{
+			if (tracer.chance == 1.0f)
+			{
+				shouldPlay = true;
+			}
+			else if (tracer.chance > 0.0f && RANDOM_FLOAT(0.0f, 1.0f) <= tracer.chance)
+			{
+				shouldPlay = true;
+			}
+		}
+
+		if (shouldPlay)
+		{
+			Vector vecTracerDir = vecDir;
+
+			if (tracer.variance != 0.0f)
+			{
+				vecTracerDir.x += RANDOM_FLOAT(-tracer.variance, tracer.variance);
+				vecTracerDir.y += RANDOM_FLOAT(-tracer.variance, tracer.variance);
+				vecTracerDir.z += RANDOM_FLOAT(-tracer.variance, tracer.variance);
+			}
+
+			vecTracerDir = vecTracerDir * -512.0f;
+
+			Vector vecTracerEnd = ptr->vecEndPos + vecTracerDir;
+
+			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, ptr->vecEndPos );
+			WRITE_BYTE( TE_TRACER );
+			WRITE_VECTOR( ptr->vecEndPos );
+			WRITE_VECTOR( vecTracerEnd );
+			MESSAGE_END();
+		}
+	}
+
+	if (shouldUpdateDmgTime)
+	{
+		pEntity->pev->dmgtime = gpGlobals->time;
+	}
+}
+
+DamageInfo CBaseEntity::HandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->HasCustomTraceAttackRules())
+	{
+		DamageInfo damageInfo = inputDamageInfo;
+
+		auto ruleRange = entTemplate->TraceAttackRulesRange();
+		for (auto it = ruleRange.first; it != ruleRange.second; ++it)
+		{
+			const EntTemplate::TraceAttackRule& traceAttackRule = *it;
+
+			bool hitgroupTest = true;
+			if (traceAttackRule.conditions.hitgroups.size())
+			{
+				hitgroupTest = false;
+				for (int hg : traceAttackRule.conditions.hitgroups)
+				{
+					if (hg == ptr->iHitgroup)
+					{
+						hitgroupTest = true;
+						break;
+					}
+				}
+				if (traceAttackRule.conditions.invertHitgroupCheck)
+					hitgroupTest = !hitgroupTest;
+			}
+
+			if (hitgroupTest && CheckTakeDamageConditions(traceAttackRule.conditions, pevInflictor, pevAttacker, damageInfo, this))
+			{
+				auto result = ApplyTakeDamageModifier(traceAttackRule.modifier, damageInfo, this);
+				if (traceAttackRule.modifier.hitgroup >= 0)
+					ptr->iHitgroup = traceAttackRule.modifier.hitgroup;
+
+				PlayTraceAttackEffects(this, traceAttackRule.effects, vecDir, ptr);
+				if (result.wentUnderMinThreshold)
+					PlayTraceAttackEffects(this, traceAttackRule.thresholdEffects, vecDir, ptr);
+
+				break;
+			}
+		}
+
+		return damageInfo;
+	}
+	else
+	{
+		return DefaultHandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+	}
+}
+
 void CBaseEntity::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	Vector vecOrigin = ptr->vecEndPos - vecDir * 4.0f;
@@ -1648,11 +1794,15 @@ float CBaseMonster::HeadHitGroupDamageMultiplier()
 	return gSkillData.monHead;
 }
 
-void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
 {
-	DamageInfo dmgInfo = damageInfo;
 	if( pev->takedamage )
 	{
+		DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+
+		if (damageInfo.mustSkip)
+			return;
+
 		m_LastHitGroup = ptr->iHitgroup;
 
 		switch( ptr->iHitgroup )
@@ -1660,28 +1810,28 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		case HITGROUP_GENERIC:
 			break;
 		case HITGROUP_HEAD:
-			dmgInfo.damage *= HeadHitGroupDamageMultiplier();
+			damageInfo.damage *= HeadHitGroupDamageMultiplier();
 			break;
 		case HITGROUP_CHEST:
-			dmgInfo.damage *= gSkillData.monChest;
+			damageInfo.damage *= gSkillData.monChest;
 			break;
 		case HITGROUP_STOMACH:
-			dmgInfo.damage *= gSkillData.monStomach;
+			damageInfo.damage *= gSkillData.monStomach;
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
-			dmgInfo.damage *= gSkillData.monArm;
+			damageInfo.damage *= gSkillData.monArm;
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
-			dmgInfo.damage *= gSkillData.monLeg;
+			damageInfo.damage *= gSkillData.monLeg;
 			break;
 		default:
 			break;
 		}
 
-		BloodEffect(dmgInfo, vecDir, ptr);
-		AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
+		BloodEffect(damageInfo, vecDir, ptr);
+		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 	}
 }
 

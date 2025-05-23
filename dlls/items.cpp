@@ -1133,7 +1133,7 @@ public:
 	void Think();
 	int ObjectCaps( void ) { return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE; }
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void SetActivity(Activity NewActivity);
 
 	virtual int Save( CSave &save );
@@ -1389,7 +1389,7 @@ bool CEyeScanner::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 	return false;
 }
 
-int CEyeScanner::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult CEyeScanner::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return 0;
+	return TakeDamageResult();
 }

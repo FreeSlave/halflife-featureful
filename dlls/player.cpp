@@ -680,14 +680,13 @@ static DamageInfo UpdatedDamageInfoeFromTBDMod(DamageInfo damageInfo, BYTE timeB
 	return damageInfo;
 }
 
-int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// have suit diagnose the problem - ie: report damage type
 	int bitsDamage = damageInfo.type;
 	bool ffound = true;
 	int fmajor;
 	int fcritical;
-	int fTookDamage;
 	int ftrivial;
 	float flRatio;
 	float flArmorStrength;
@@ -704,10 +703,10 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 
 	// Already dead
 	if( !IsAlive() )
-		return 0;
+		return TakeDamageResult();
 
 	if (IsInvulnerable())
-		return 0;
+		return TakeDamageResult();
 
 	// go take the damage first
 	CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
@@ -715,7 +714,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 	if( !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
 	{
 		// Refuse the damage
-		return 0;
+		return TakeDamageResult();
 	}
 
 	float flDamage = damageInfo.damage;
@@ -749,7 +748,9 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
-	fTookDamage = CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
+	TakeDamageResult takeDamageResult = CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
+
+	const bool fTookDamage = takeDamageResult.TookDamageToHealth() && !takeDamageResult.Killed();
 
 	// reset damage time countdown for each type of time based damage player just sustained
 	{
@@ -915,7 +916,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 			SetSuitUpdate( "!HEV_HLTH1", false, SUIT_NEXT_IN_10MIN );	// health dropping
 	}
 
-	if (fTookDamage > 0 && pAttacker != NULL)
+	if (takeDamageResult.TookDamageToHealth() && pAttacker != NULL)
 	{
 		CBaseMonster* pAttackerMonster = pAttacker->MyMonsterPointer();
 		if (pAttackerMonster &&
@@ -950,7 +951,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 		}
 	}
 
-	return fTookDamage;
+	return takeDamageResult;
 }
 
 struct AmmoCountInfo
@@ -1185,11 +1186,12 @@ void CBasePlayer::RemoveAllAmmo()
  * ENTITY_METHOD(PlayerDie)
  */
 
-void CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
+	KilledResult killedResult;
 	if (m_buddha && pev->health < 1) {
 		pev->health = 1;
-		return;
+		return killedResult;
 	}
 
 	CSound *pSound;
@@ -1258,7 +1260,7 @@ void CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int i
 		pev->solid = SOLID_NOT;
 		GibMonster();	// This clears pev->model
 		pev->effects |= EF_NODRAW;
-		return;
+		return killedResult.SetGibbed();
 	}
 
 	DeathSound();
@@ -1268,6 +1270,7 @@ void CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int i
 
 	SetThink( &CBasePlayer::PlayerDeathThink );
 	pev->nextthink = gpGlobals->time + 0.1f;
+	return killedResult;
 }
 
 // Set the activity based on an event or current state

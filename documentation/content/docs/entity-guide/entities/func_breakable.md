@@ -26,3 +26,63 @@ entityCategory: solid
 ### Bugfixes
 
 * Fixed `func_breakable` taking damage from some attacks even if `Only Trigger` spawnflag is set (original Half-Life bug).
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Take Damage rules" %}}
+The [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate entity's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "func_breakable": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": "club"
+                },
+                "modifier": {
+                    "dmg": "*2"
+                }
+            },
+            {
+                "conditions": {
+                    "dmg_type": "poison"
+                },
+                "modifier": {
+                    "dmg": "*0.1"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Vulnerable only to certain projectile type" %}}
+The `func_breakable` belonging to the following entity template will take damage from [shockroach projectiles]({{< ref shock_beam >}}) only.
+
+```json
+{
+    "shockable_breakable": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "inflictor": {
+                        "classname": "shock_beam",
+                        "negate": true
+                    }
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ]
+    }
+}
+```
+
+{{% /tab %}}
+
+{{% /tabs %}}

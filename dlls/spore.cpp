@@ -302,7 +302,7 @@ public:
 	void Precache( void );
 	void EXPORT IdleThink ( void );
 	void EXPORT AmmoTouch ( CBaseEntity *pOther );
-	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
 	virtual int SizeForGrapple() { return GRAPPLE_FIXED; }
 
@@ -374,7 +374,7 @@ void CSporeAmmo::Spawn( void )
 //=========================================================
 // Override all damage
 //=========================================================
-int CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
 {
 	if (pev->body != 0)
 	{
@@ -412,9 +412,9 @@ int CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, con
 		pev->body			= 0;
 		pev->nextthink = gpGlobals->time + 0.66f;
 		SetThink (&CSporeAmmo::IdleThink);
-		return 1;
+		return TakeDamageResult().SetTookDamageToHealth();
 	}
-	return 0;
+	return TakeDamageResult();
 }
 
 void CSporeAmmo::IdleThink ( void )

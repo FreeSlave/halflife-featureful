@@ -610,27 +610,28 @@ int CHGrunt::GetRangeAttack2Sequence()
 //=========================================================
 // TraceAttack - make sure we're not taking it in the helmet
 //=========================================================
-void CHGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+
+DamageInfo CHGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	DamageInfo dmgInfo = damageInfo;
+	DamageInfo damageInfo = inputDamageInfo;
 	// check for helmet shot
 	if( ptr->iHitgroup == 11 )
 	{
 		// make sure we're wearing one
-		if( GetBodygroup( HEAD_GROUP ) == HEAD_GRUNT && ( dmgInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB ) ) )
+		if( GetBodygroup( HEAD_GROUP ) == HEAD_GRUNT && ( damageInfo.type & (DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB ) ) )
 		{
 			// absorb damage
-			dmgInfo.damage -= 20;
-			if( dmgInfo.damage <= 0 )
+			damageInfo.damage -= 20;
+			if( damageInfo.damage <= 0 )
 			{
 				UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-				dmgInfo.damage = 0.01f;
+				damageInfo.damage = 0.01f;
 			}
 		}
 		// it's head shot anyways
 		ptr->iHitgroup = HITGROUP_HEAD;
 	}
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
+	return damageInfo;
 }
 
 //=========================================================
@@ -638,7 +639,7 @@ void CHGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 // needs to forget that he is in cover if he's hurt. (Obviously
 // not in a safe place anymore).
 //=========================================================
-int CHGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CHGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Forget( bits_MEMORY_INCOVER );
 

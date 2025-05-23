@@ -4707,7 +4707,7 @@ public:
 	void Spawn();
 	const char* DefaultModel() { return "models/skeleton.mdl"; }
 	int	DefaultClassify() { return	CLASS_NONE; }
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 
 	const char* getPos(int pos) const;
 	static const char *m_szPoses[4];
@@ -4728,9 +4728,9 @@ void CSkeleton::Spawn(void)
 	MonsterInitDead();
 }
 
-int CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return 1;
+	return TakeDamageResult();
 }
 #endif
 

@@ -65,7 +65,7 @@ public:
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }
@@ -127,7 +127,7 @@ void CZombie::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( damageInfo.type == DMG_BULLET )
 	{

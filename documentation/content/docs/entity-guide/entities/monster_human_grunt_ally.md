@@ -5,6 +5,12 @@ bookToC: false
 
 # ![](/images/opfor.png) monster_human_grunt_ally
 
+Opposing Force human grunt.
+
+{{% hint info %}}
+Despite the `ally` part in the entity name, the monster can be made enemy to the player via custom classification in the entity parameters or entity template.
+{{% /hint %}}
+
 ### Changes
 
 * When human grunt checks for friendly fire he takes into account all allies, not only those who are in the same squad as him.
@@ -34,3 +40,60 @@ bookToC: false
 * **HGruntAlly.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
 * **HGruntAlly.M249** - M249 fire. Derived from **NPC.M249**
 * **HGruntAlly.ReloadM249** - M249 reload.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+{{% hint info %}}
+Opposing Force human grunt model doesn't actually have hitgroup 11. If you want to enable the helmet protection behavior, you must change the model and add a filter for the body group (so only helmet variations would have an additional protection) similarly to how it's implemented in [monster_human_grunt]({{% ref monster_human_grunt %}}) trace attack rules.
+{{% /hint %}}
+
+```json
+{
+    "monster_human_grunt_ally": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": ["chest", "stomach"],
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            },
+            {
+                "conditions": {
+                    "dmg_type": ["bullet", "slash", "blast", "club"],
+                    "hitgroup": 11
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.01,
+                    "hitgroup": "head"
+                },
+                "threshold_effects": {
+                    "ricochet": {
+                        "chance": 1.0,
+                        "scale": 1
+                    }
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": 11
+                },
+                "modifier": {
+                    "hitgroup": "head"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

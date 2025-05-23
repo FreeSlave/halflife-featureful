@@ -81,7 +81,7 @@ public:
 	void AlertFlock( void );
 	void SpreadFlock( void );
 	void SpreadFlock2( void );
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void Poop ( void );
 	bool FPathBlocked( void );
 	//void KeyValue( KeyValueData *pkvd );
@@ -311,7 +311,7 @@ void CFlockingFlyer::MakeSound( void )
 
 //=========================================================
 //=========================================================
-void CFlockingFlyer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CFlockingFlyer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	CFlockingFlyer *pSquad;
 
@@ -338,6 +338,7 @@ void CFlockingFlyer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 
 	SetThink( &CFlockingFlyer::FallHack );
 	pev->nextthink = gpGlobals->time + 0.1f;
+	return KilledResult();
 }
 
 void CFlockingFlyer::FallHack( void )

@@ -56,6 +56,8 @@ bookToC: false
 * `12` - trace hull attack with left arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.
 * `13` - trace hull attack with right arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.
 
+### Entity template examples
+
 {{% tabs %}}
 
 {{% tab "Let alien grunts open doors" %}}
@@ -104,6 +106,42 @@ In order to make this work correctly some adjustments to the model are needed:
             },
         },
         "precached_sounds": ["franklin/franklin_step.wav", "player/pl_tile1.wav"]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_grunt": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": 10,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.1,
+                    "hitgroup": "generic",
+                    "no_blood": true
+                },
+                "effects": {
+                    "ricochet": {
+                        "certain_on_new_frame": true,
+                        "chance": 0.1,
+                        "scale": [1.0, 2.0]
+                    },
+                    "tracer": {
+                        "chance": 0.5,
+                        "variance": 0.3
+                    }
+                }
+            }
+        ]
     }
 }
 ```

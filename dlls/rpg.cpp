@@ -94,13 +94,13 @@ void CLaserSpot::Revive( void )
 	SetThink( NULL );
 }
 
-void CLaserSpot::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
+KilledResult CLaserSpot::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
 #if FEATURE_PREDICTABLE_LASER_SPOT
 	if (!FNullEnt(pev->owner))
 		pev->owner->v.flags &= ~FL_LASERDOT;
 #endif
-	CBaseEntity::Killed( pevInflictor, pevAttacker, iGib );
+	return CBaseEntity::Killed( pevInflictor, pevAttacker, iGib );
 }
 
 void CLaserSpot::Precache( void )

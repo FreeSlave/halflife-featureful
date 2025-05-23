@@ -49,7 +49,7 @@ public:
 	const char* DefaultDisplayName() { return "Osprey"; }
 	int DefaultClassify( void ) { return CLASS_MACHINE; }
 	int BloodColor( void ) { return DONT_BLEED; }
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	void UpdateGoal( void );
 	bool HasDead( void );
@@ -65,7 +65,7 @@ public:
 	void EXPORT DyingThink( void );
 	void EXPORT CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void ShowDamage( void );
 	void Update();
@@ -654,7 +654,7 @@ int COsprey::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const 
 }
 */
 
-void COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->movetype = MOVETYPE_TOSS;
 	pev->gravity = 0.3f;
@@ -671,6 +671,7 @@ void COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib 
 	pev->deadflag = DEAD_DYING;
 
 	m_startTime = gpGlobals->time + 4.0f;
+	return KilledResult();
 }
 
 void COsprey::CrashTouch( CBaseEntity *pOther )
@@ -933,7 +934,7 @@ void COsprey::Update()
 	GlowShellUpdate();
 }
 
-int COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)
 {
 	//Set enemy to last attacker.
 	//Ospreys are not capable of fighting so they'll get angry at whatever shoots at them, not whatever looks like an enemy.

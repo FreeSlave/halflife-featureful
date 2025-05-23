@@ -186,7 +186,7 @@ public:
 	// stuff written for new state machine
 	virtual void MonsterThink( void );
 	void EXPORT CallMonsterThink( void ) { this->MonsterThink(); }
-	virtual int IRelationship( CBaseEntity *pTarget );
+	int IRelationship( CBaseEntity *pTarget ) override;
 	int IDefaultRelationship(CBaseEntity *pTarget );
 	int IDefaultRelationship( int classify );
 	
@@ -368,7 +368,7 @@ public:
 	float UpdateTarget( entvars_t *pevTarget );
 	virtual Activity GetDeathActivity( void );
 	Activity GetSmallFlinchActivity( void );
-	virtual void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual void OnDying();
 	virtual void GibMonster( void );
 	virtual void UpdateOnRemove( void );
@@ -385,9 +385,9 @@ public:
 	virtual	Vector GetGunPosition( void );
 
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	void ReactToDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo);
-	int DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	void ReactToDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, TakeDamageResult& takeDamageResult);
+	TakeDamageResult DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 
 	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );

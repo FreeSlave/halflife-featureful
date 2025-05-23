@@ -25,6 +25,8 @@
 #include "classify.h"
 #include "dmg_types.h"
 #include "gib.h"
+#include "relationship.h"
+#include "optional.h"
 #include <type_traits>
 /*
 
@@ -141,6 +143,8 @@ struct DamageInfo
 	bool noPunch = false; // don't make a smalle punch on player's camera
 	bool noBlood = false; // used in TraceAttack. Force not to bleed.
 
+	bool mustSkip = false;
+
 	DamageInfo& SetGibPolicy(int gib) {
 		gibPolicy = gib;
 		return *this;
@@ -168,6 +172,77 @@ struct DamageInfo
 	DamageInfo& SetNoBlood(bool enable = true) {
 		noBlood = enable;
 		return *this;
+	}
+};
+
+struct KilledResult
+{
+private:
+	bool _gibbed = false;
+public:
+	KilledResult& SetGibbed() {
+		_gibbed = true;
+		return *this;
+	}
+	bool Gibbed() const {
+		return _gibbed;
+	}
+};
+
+struct TakeDamageResult
+{
+private:
+	enum
+	{
+		TOOK_DAMAGE_TO_HEALTH = (1 << 0),
+		GOT_LIGHT_DAMAGE = (1 << 1),
+		GOT_HEAVY_DAMAGE = (1 << 2),
+		WAS_ALREADY_DEAD = (1 << 3),
+	};
+	int _flags = 0;
+	optional<KilledResult> _killedResult;
+public:
+	inline TakeDamageResult& SetTookDamageToHealth() {
+		_flags |= TOOK_DAMAGE_TO_HEALTH;
+		return *this;
+	}
+	inline bool TookDamageToHealth() const {
+		return _flags & TOOK_DAMAGE_TO_HEALTH;
+	}
+
+	inline TakeDamageResult& SetKilledResult(const KilledResult& killedResult) {
+		_killedResult = killedResult;
+		return *this;
+	}
+	inline bool Killed() const {
+		return _killedResult.has_value();
+	}
+	inline KilledResult GetKilledResult() const {
+		return _killedResult.has_value() ? *_killedResult : KilledResult();
+	}
+
+	inline TakeDamageResult& SetGotLightDamage() {
+		_flags |= GOT_LIGHT_DAMAGE;
+		return *this;
+	}
+	inline bool GotLightDamage() const {
+		return _flags & GOT_LIGHT_DAMAGE;
+	}
+
+	inline TakeDamageResult& SetGotHeavyDamage() {
+		_flags |= GOT_HEAVY_DAMAGE;
+		return *this;
+	}
+	inline bool GotHeavyDamage() const {
+		return _flags & GOT_HEAVY_DAMAGE;
+	}
+
+	inline TakeDamageResult& SetWasAlreadyDead() {
+		_flags |= WAS_ALREADY_DEAD;
+		return *this;
+	}
+	inline bool WasAlreadyDead() const {
+		return _flags & WAS_ALREADY_DEAD;
 	}
 };
 
@@ -250,20 +325,25 @@ public:
 	// still realize that they are teammates. (overridden for monsters that form groups)
 	virtual int Classify( void ) { return DefaultClassify(); }
 	virtual int DefaultClassify() { return CLASS_NONE; }
+	virtual int IRelationship( CBaseEntity *pTarget );
 	virtual void DeathNotice( entvars_t *pevChild ) {}// monster maker children use this to tell the monster maker that they have died.
 
 	static TYPEDESCRIPTION m_SaveData[];
 
+	DamageInfo HandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr);
+	virtual DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr) { return inputDamageInfo; }
 	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr);
 	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr );
 	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, TraceResult* ptr);
 	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, TraceResult* ptr) {
 		BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
 	}
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
+	virtual DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) { return inputDamageInfo; }
+	DamageInfo TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
+	virtual TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
 	virtual int TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return 0; }
-	virtual void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	virtual KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	virtual int BloodColor( void ) { return DONT_BLEED; }
 	virtual void TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
 	virtual bool IsTriggered( CBaseEntity *pActivator ) {return true; }
@@ -429,6 +509,20 @@ public:
 	}
 	static CBaseEntity *Instance( int eoffset) { return Instance( ENT( eoffset) ); }
 
+	static CBaseEntity* OwnInstance(edict_t* pent)
+	{
+		if (FNullEnt(pent))
+			return nullptr;
+		return (CBaseEntity *)GET_PRIVATE(pent);
+	}
+
+	static CBaseEntity* OwnInstance(entvars_t* pev)
+	{
+		if (FNullEnt(pev))
+			return nullptr;
+		return OwnInstance(ENT(pev));
+	}
+
 	CBaseMonster *GetMonsterPointer( entvars_t *pevMonster ) 
 	{ 
 		CBaseEntity *pEntity = Instance( pevMonster );
@@ -522,7 +616,8 @@ public:
 	virtual void SendMessages(CBaseEntity* pClient) {}
 	virtual bool HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
 
-	void ApplyDamageToHealth(float flDamage);
+	virtual void BeforeApplyDamageToHealth(float flDamage) {}
+	bool ApplyDamageToHealth(float flDamage);
 	void SetNonLethalHealthThreshold();
 	float m_healthMinThreshold;
 
@@ -793,6 +888,16 @@ class CSound;
 
 const char *ButtonSound( int sound );				// get string of button sound number
 CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity);
+
+struct ApplyTakeDamageModifierResult
+{
+	float originalDamage;
+	float modifiedDamage;
+	bool wentUnderMinThreshold = false;
+};
+
+bool CheckTakeDamageConditions(const EntTemplate::DamageConditions& conditions, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, CBaseEntity* pInitiator);
+ApplyTakeDamageModifierResult ApplyTakeDamageModifier(const EntTemplate::DamageInfoModifier& modifier, DamageInfo& damageInfo, CBaseEntity* pTarget);
 
 //
 // Weapons 

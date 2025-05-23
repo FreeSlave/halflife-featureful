@@ -137,7 +137,7 @@ public:
 	Schedule_t *GetScheduleOfType( int Type );
 	void RunTask(Task_t* pTask);
 
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void OnDying();
 	void UpdateOnRemove();
 
@@ -355,7 +355,7 @@ int	CGonome::DefaultClassify(void)
 // TakeDamage - overridden for gonome so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
 	if( damageInfo.type == DMG_BULLET )
 	{

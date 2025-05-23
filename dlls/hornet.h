@@ -40,7 +40,7 @@ public:
 	void Precache( void );
 	int DefaultClassify( void );
 	int Classify( void );
-	int IRelationship( CBaseEntity *pTarget );
+	int IRelationship( CBaseEntity *pTarget ) override;
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
@@ -53,7 +53,7 @@ public:
 	void EXPORT DartTouch( CBaseEntity *pOther );
 	void EXPORT DieTouch( CBaseEntity *pOther );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	float m_flStopAttack;
 	int m_iHornetType;

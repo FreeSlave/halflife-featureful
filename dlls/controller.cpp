@@ -102,7 +102,7 @@ public:
 	static const NamedVisual headShootLightVisual;
 	static const NamedVisual energyBallLightVisual;
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying();
 	void GibMonster( void );
 
@@ -218,7 +218,7 @@ void CController::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	// HACK HACK -- until we fix this.
 	if( IsAlive() )

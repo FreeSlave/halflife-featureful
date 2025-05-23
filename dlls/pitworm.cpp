@@ -58,7 +58,7 @@ public:
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void HandleAnimEvent(MonsterEvent_t *pEvent);
-	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	void EXPORT StartupThink(void);
@@ -596,10 +596,10 @@ void CPitWorm::CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 //=========================================================
 //
 //=========================================================
-int CPitWorm::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CPitWorm::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	PainSound();
-	return 0;
+	return TakeDamageResult();
 }
 
 

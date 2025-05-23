@@ -2339,7 +2339,7 @@ public:
 
 	int		BloodColor( void ) { return DONT_BLEED; }
 	int		DefaultClassify( void ) { return CLASS_MACHINE; }
-	int		TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult	TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void		Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	Vector		BodyTarget( const Vector &posSrc ) { return pev->origin; }
 
@@ -2461,11 +2461,13 @@ void CGunTarget::Stop( void )
 	pev->takedamage = DAMAGE_NO;
 }
 
-int CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	TakeDamageResult takeDamageResult;
 	if( pev->health > 0 )
 	{
 		pev->health -= damageInfo.damage;
+		takeDamageResult.SetTookDamageToHealth();
 		if( pev->health <= 0 )
 		{
 			pev->health = 0;
@@ -2474,7 +2476,7 @@ int CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, con
 				FireTargets( STRING( pev->message ), this, this );
 		}
 	}
-	return 0;
+	return takeDamageResult;
 }
 
 void CGunTarget::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )

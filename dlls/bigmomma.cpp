@@ -203,12 +203,14 @@ public:
 	void Precache( void );
 	void KeyValue( KeyValueData *pkvd );
 	void Activate( void );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	void BeforeApplyDamageToHealth(float flDamage) override;
 
 	void RunTask( Task_t *pTask );
 	void StartTask( Task_t *pTask );
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	void NodeStart(string_t iszNextNode );
@@ -614,9 +616,10 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
-void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CBigMomma::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	DamageInfo dmgInfo = damageInfo;
+	DamageInfo damageInfo = inputDamageInfo;
+
 	if( ptr->iHitgroup != 1 )
 	{
 		// didn't hit the sack?
@@ -626,47 +629,58 @@ void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, co
 			pev->dmgtime = gpGlobals->time;
 		}
 
-		dmgInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		damageInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 	}
-	else if( !HasMemory(bits_MEMORY_KILLED) && gpGlobals->time > m_painSoundTime )
+
+	return damageInfo;
+}
+
+void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+{
+	// TODO: how to adjust this for custom trace attack rules?
+	if (ptr->iHitgroup == 1 && !HasMemory(bits_MEMORY_KILLED) && gpGlobals->time > m_painSoundTime)
 	{
 		m_painSoundTime = gpGlobals->time + RANDOM_LONG( 1, 3 );
 		EmitSoundScript(painSoundScript);
 	}
 
-	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
+	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
-int CBigMomma::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CBigMomma::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
 	// Don't take ally acid damage -- BigMomma's mortar is acid
-	DamageInfo info = damageInfo;
-	if( (info.type & DMG_ACID) && pevAttacker )
+	DamageInfo damageInfo = inputDamageInfo;
+
+	if( (damageInfo.type & DMG_ACID) && pevAttacker )
 	{
 		CBaseEntity* pAttacker = Instance( pevAttacker );
 		if (pAttacker == this)
 		{
-			info.damage = 0;
+			damageInfo.damage = 0;
 		}
 		else if (pAttacker)
 		{
 			const int rel = IRelationship( pAttacker );
 			if (rel < R_DL && rel != R_FR)
-				info.damage = 0.0f;
+				damageInfo.damage = 0.0f;
 		}
 	}
 
+	return damageInfo;
+}
+
+void CBigMomma::BeforeApplyDamageToHealth(float flDamage)
+{
 	if( !HasMemory( bits_MEMORY_PATH_FINISHED ) )
 	{
-		if( pev->health <= info.damage )
+		if( pev->health <= flDamage )
 		{
-			pev->health = info.damage + 1;
+			pev->health = flDamage + 1;
 			Remember( bits_MEMORY_ADVANCE_NODE | bits_MEMORY_COMPLETED_NODE );
 			ALERT( at_aiconsole, "BM: Finished node health!!!\n" );
 		}
 	}
-
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
 }
 
 void CBigMomma::LayHeadcrab( void )

@@ -41,7 +41,7 @@ public:
 	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 	void IdleHeadTurn( Vector &vecFriend );
 	void MonsterThink();
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	int Save( CSave &save );
 	int Restore( CRestore &restore );
@@ -233,10 +233,10 @@ void CGenericMonster::MonsterThink()
 	CBaseMonster::MonsterThink();
 }
 
-void CGenericMonster::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
+KilledResult CGenericMonster::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
 	SentenceStop();
-	CBaseMonster::Killed(pevInflictor, pevAttacker, iGib);
+	return CBaseMonster::Killed(pevInflictor, pevAttacker, iGib);
 }
 
 class CDeadGenericMonster : public CBaseMonster

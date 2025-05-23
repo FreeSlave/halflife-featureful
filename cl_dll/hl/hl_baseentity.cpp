@@ -45,7 +45,7 @@ void SET_MODEL(edict_t *e, const char *m) {}
 
 // CBaseEntity Stubs
 int CBaseEntity::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) { return 1; }
-int CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return 1; }
+TakeDamageResult CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
 CBaseEntity *CBaseEntity::GetNextTarget( void ) { return NULL; }
 void CBaseEntity::KeyValue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 int CBaseEntity::Save( CSave &save ) { return 1; }
@@ -56,6 +56,7 @@ void CBaseEntity::SetMyObjectCollisionBox(const Vector& defaultMins, const Vecto
 bool CBaseEntity::IsInWorld( void ) { return true; }
 int CBaseEntity::DamageDecal( int bitsDamageType ) { return -1; }
 void CBaseEntity::UpdateOnRemove( void ) { }
+int CBaseEntity::IRelationship( CBaseEntity *pTarget ) { return 0; }
 int CBaseEntity::PRECACHE_SOUND(const char *soundName) { return 0; }
 
 // CBaseDelay Stubs
@@ -164,11 +165,11 @@ void CBaseMonster::StartTask( Task_t *pTask ) { }
 Schedule_t *CBaseMonster::ScheduleFromName( const char *pName ) { return NULL;}
 void CBaseMonster::BecomeDead( void ) {}
 void CBaseMonster::RunAI( void ) {}
-void CBaseMonster::Killed( entvars_t * pevInflictor, entvars_t *pevAttacker, int iGib ) {}
+KilledResult CBaseMonster::Killed( entvars_t * pevInflictor, entvars_t *pevAttacker, int iGib ) { return KilledResult(); }
 void CBaseMonster::OnDying() {}
 void CBaseMonster::UpdateOnRemove() {}
 int CBaseMonster::TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType) { return 0; }
-int CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return 0; }
+TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
 int CBaseMonster::Restore( class CRestore & ) { return 1; }
 int CBaseMonster::Save( class CSave & ) { return 1; }
 int CBaseMonster::DefaultClassify() { return 0; }
@@ -185,7 +186,7 @@ void CBasePlayer::DeathSound( void ) { }
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) { return 0; }
 int CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags) { return 0; }
 void CBasePlayer::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) { }
-int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return 0; }
+TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
 void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim ) { }
 void CBasePlayer::WaterMove() { }
 bool CBasePlayer::IsOnLadder( void ) { return false; }

@@ -136,13 +136,13 @@ public:
 	void			StopTalking( void ) { SentenceStop(); }
 	
 	// Base Monster functions
-	int 			TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType);
 	bool			CanBePushed(CBaseEntity *pPusher);
-	void			Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void			OnDying();
 	void			StartMonster( void );
-	int				IRelationship ( CBaseEntity *pTarget );
+	int				IRelationship ( CBaseEntity *pTarget ) override;
 	bool			IsFriendWithPlayerBeforeProvoked();
 	virtual bool	CanPlaySentence( bool fDisregardState ) override;
 	virtual bool PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle = false );

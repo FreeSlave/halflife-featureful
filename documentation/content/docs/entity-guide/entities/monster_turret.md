@@ -35,3 +35,37 @@ bookToC: false
 ### Visuals
 
 * **Turret.Glow** - turret sprite. Active while searching for enemy.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_turret": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": 10
+                },
+                "modifier": {
+                    "dmg": "=0.1"
+                },
+                "effects": {
+                    "ricochet": {
+                        "chance": 0.1,
+                        "scale": [1, 2],
+                        "certain_on_new_frame": true
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

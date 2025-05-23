@@ -50,10 +50,10 @@ public:
 		return "models/computergibs.mdl";
 	}
 
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void BecomeDead();
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	float m_flSparkTime;
 
@@ -347,9 +347,9 @@ void CRGrunt::Explode()
 	pev->nextthink = gpGlobals->time;
 }
 
-void CRGrunt::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CRGrunt::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
 void CRGrunt::BecomeDead()
@@ -360,18 +360,19 @@ void CRGrunt::BecomeDead()
 
 #define ROBOGRUNT_DAMAGE (DMG_ENERGYBEAM|DMG_CRUSH|DMG_MORTAR|DMG_BLAST|DMG_SHOCK|DMG_FREEZE|DMG_ACID)
 
-int CRGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CRGrunt::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
-	DamageInfo info = damageInfo;
-	if ((info.type & ROBOGRUNT_DAMAGE) == 0)
+	DamageInfo damageInfo = inputDamageInfo;
+	if ((damageInfo.type & ROBOGRUNT_DAMAGE) == 0)
 	{
-		info.damage *= 0.2f;
+		damageInfo.damage *= 0.2f;
 	}
-	return CHGrunt::TakeDamage( pevInflictor, pevAttacker, info );
+	return damageInfo;
 }
 
-void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
+DamageInfo CRGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
+	DamageInfo damageInfo = inputDamageInfo;
 	if ((damageInfo.type & ROBOGRUNT_DAMAGE) == 0)
 	{
 		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 10 ) < 1 ) )
@@ -380,7 +381,7 @@ void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const
 			pev->dmgtime = gpGlobals->time;
 		}
 	}
-	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
+	return damageInfo;
 }
 
 void CRGrunt::DoSpark(const Vector &sparkLocation, float flVolume)

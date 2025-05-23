@@ -29,3 +29,13 @@ bookToC: false
 * **Turret.Spinup** - a looping spin sound.
 * **Turret.Die** - death sound.
 * **MiniTurret.Shoot** - single shot. Derived from **NPC.9MMSingle**
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+Uses same rules as [monster_turret]({{< ref monster_turret >}}).
+{{% /tab %}}
+
+{{% /tabs %}}

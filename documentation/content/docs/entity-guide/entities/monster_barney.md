@@ -57,4 +57,51 @@ Barney's evil twin from Sven Co-op.
 ```
 {{% /tab %}}
 
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_barney": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": ["chest", "stomach"],
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": 10,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.01,
+                    "hitgroup": "head"
+                },
+                "threshold_effects": {
+                    "ricochet": {
+                        "chance": 1.0,
+                        "scale": 1
+                    }
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": 10
+                },
+                "modifier": {
+                    "hitgroup": "head"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

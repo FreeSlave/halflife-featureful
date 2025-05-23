@@ -568,7 +568,7 @@ void CTalkMonster::RunTask( Task_t *pTask )
 	}
 }
 
-void CTalkMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CTalkMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	// If a client killed me (unless I was already Barnacle'd), make everyone else mad/afraid of him
 	if( ( pevAttacker->flags & FL_CLIENT) && m_MonsterState != MONSTERSTATE_PRONE
@@ -579,7 +579,7 @@ void CTalkMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int 
 		AlertFriends();
 		LimitFollowers( CBaseEntity::Instance( pevAttacker ), 0 );
 	}
-	CFollowingMonster::Killed( pevInflictor, pevAttacker, iGib );
+	return CFollowingMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
 void CTalkMonster::OnDying()
@@ -1278,9 +1278,9 @@ bool CTalkMonster::SetAnswerQuestion( CTalkMonster *pSpeaker )
 	return false;
 }
 
-int CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	int ret = CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
+	TakeDamageResult ret = CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 	if( IsAlive() )
 	{
 		// if player damaged this entity, have other friends talk about it
@@ -1301,7 +1301,7 @@ int CTalkMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 				}
 			}
 
-			if ( ret > 0 && IsFullyAlive() ) {
+			if ( ret.TookDamageToHealth() && IsFullyAlive() ) {
 				ReactToPlayerHit(pevInflictor, pevAttacker, damageInfo);
 			}
 		}

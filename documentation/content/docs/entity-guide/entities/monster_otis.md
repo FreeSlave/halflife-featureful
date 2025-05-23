@@ -25,7 +25,7 @@ bookToC: false
 {{% tabs %}}
 
 {{% tab "Otto" %}}
-Otis'es evil twin from Sven Co-op.
+Otis's evil twin from Sven Co-op.
 ```json
 {
     "otto": {
@@ -33,6 +33,28 @@ Otis'es evil twin from Sven Co-op.
             "model": "models/otisf.mdl"
         },
         "classify": "Human Military"
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_otis": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": ["chest", "stomach"],
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            }
+        ]
     }
 }
 ```

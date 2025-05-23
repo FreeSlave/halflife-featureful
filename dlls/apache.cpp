@@ -47,7 +47,7 @@ public:
 	const char* DefaultDisplayName() { return "Apache"; }
 	const char* ReverseRelationshipModel() { return "models/apachef.mdl"; }
 	int BloodColor( void ) { return DONT_BLEED; }
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster( void );
 
 	void SetObjectCollisionBox( void )
@@ -67,7 +67,10 @@ public:
 	void FireRocket( void );
 	bool FireGun( void );
 
-	int  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	TakeDamageResult  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	bool MustDoSmoke(const DamageInfo& damageInfo, const TraceResult* ptr);
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	int m_iRockets;
@@ -304,7 +307,7 @@ void CApache::StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	SetUse( NULL );
 }
 
-void CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->movetype = MOVETYPE_TOSS;
 	pev->gravity = 0.3f;
@@ -327,6 +330,7 @@ void CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib 
 	{
 		m_flNextRocket = gpGlobals->time + 15.0f;
 	}
+	return KilledResult();
 }
 
 void CApache::DyingThink( void )
@@ -961,17 +965,22 @@ void CApache::ShowDamage( void )
 		m_iDoSmokePuff--;
 }
 
-int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CApache::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
+{
+	DamageInfo damageInfo = inputDamageInfo;
+
+	if (damageInfo.type & DMG_BLAST)
+	{
+		damageInfo.damage *= 2.0f;
+	}
+
+	return damageInfo;
+}
+
+TakeDamageResult CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pevInflictor->owner == edict() )
-		return 0;
-
-	DamageInfo dmgInfo = damageInfo;
-
-	if( dmgInfo.type & DMG_BLAST )
-	{
-		dmgInfo.damage *= 2.0f;
-	}
+		return TakeDamageResult();
 
 	/*
 	if( ( bitsDamageType & DMG_BULLET ) && flDamage > 50.0f )
@@ -982,18 +991,22 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const 
 	*/
 
 	// ALERT( at_console, "%.0f\n", flDamage );
-	int result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
+	if (damageInfo.nonLethal)
+		SetNonLethalHealthThreshold();
+	TakeDamageResult result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 
 	//Are we damaged at all?
 	if (pev->health < pev->max_health)
 	{
 		//Took some damage.
 		SetConditions(bits_COND_LIGHT_DAMAGE);
+		result.SetGotLightDamage();
 
 		if (pev->health < (pev->max_health / 2))
 		{
 			//Seriously damaged now.
 			SetConditions(bits_COND_HEAVY_DAMAGE);
+			result.SetGotHeavyDamage();
 		}
 		else
 		{
@@ -1009,26 +1022,50 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const 
 	return result;
 }
 
-void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+bool CApache::MustDoSmoke(const DamageInfo &damageInfo, const TraceResult *ptr)
 {
-	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
+	// hit hard, hits cockpit, hits engines
+	return damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2;
+}
 
+DamageInfo CApache::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
+{
 	// ignore blades
-	if( ptr->iHitgroup == 6 && ( damageInfo.type & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
+	if( ptr->iHitgroup == 6 && ( inputDamageInfo.type & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
+	{
+		DamageInfo damageInfo = inputDamageInfo;
+		damageInfo.mustSkip = true;
+		return damageInfo;
+	}
+
+	if( !MustDoSmoke(inputDamageInfo, ptr) )
+	{
+		UTIL_Ricochet( ptr->vecEndPos, 2.0f );
+		DamageInfo damageInfo = inputDamageInfo;
+		damageInfo.mustSkip = true;
+		return damageInfo;
+	}
+
+	return inputDamageInfo;
+}
+
+void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
+{
+	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+
+	if (damageInfo.mustSkip)
 		return;
 
-	// hit hard, hits cockpit, hits engines
-	if( damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 )
+	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
+	if (pev->takedamage)
 	{
-		// ALERT( at_console, "%.0f\n", flDamage );
-		AddMultiDamage( pevAttacker, pevAttacker, this, damageInfo );
-		m_iDoSmokePuff = 3.0f + ( damageInfo.damage / 5.0f );
-	}
-	else
-	{
-		// do half damage in the body
-		// AddMultiDamage( pevAttacker, this, flDamage / 2.0f, bitsDamageType );
-		UTIL_Ricochet( ptr->vecEndPos, 2.0f );
+		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+
+		// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
+		if( MustDoSmoke(damageInfo, ptr) )
+		{
+			m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
+		}
 	}
 }
 

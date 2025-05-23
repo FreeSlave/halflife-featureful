@@ -81,13 +81,12 @@ const NamedVisual CHornet::puffVisual = BuildVisual("Hornet.Puff")
 //=========================================================
 // don't let hornets gib, ever.
 //=========================================================
-int CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	// filter these bits a little.
-	DamageInfo info = damageInfo;
-	info.SetGibPolicy(GIB_NEVER);
+	DamageInfo dmgInfo = damageInfo;
+	dmgInfo.SetGibPolicy(GIB_NEVER);
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, info );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
 //=========================================================

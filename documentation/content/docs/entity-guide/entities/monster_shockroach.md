@@ -48,4 +48,8 @@ In Half-Life: Opposing Force shockroaches have the same classification as headcr
 ```
 {{% /tab %}}
 
+{{% tab "Take Damage rules" %}}
+Uses same rules as [monster_headcrab]({{< ref monster_headcrab >}}).
+{{% /tab %}}
+
 {{% /tabs %}}

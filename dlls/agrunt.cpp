@@ -94,8 +94,8 @@ public:
 	void AttackSound( void );
 	void PrescheduleThink( void );
 	float HeadHitGroupDamageMultiplier();
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
-	int IRelationship( CBaseEntity *pTarget );
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	int IRelationship( CBaseEntity *pTarget ) override;
 	void StopTalking( void );
 	bool ShouldSpeak( void );
 	void PlayUseSentence();
@@ -233,10 +233,11 @@ int CAGrunt::DefaultISoundMask( void )
 //=========================================================
 // TraceAttack
 //=========================================================
-static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+static DamageInfo AgruntHandleTraceAttack(CBaseMonster* self, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	DamageInfo dmgInfo = damageInfo;
-	if( ptr->iHitgroup == 10 && ( dmgInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB ) ) )
+	DamageInfo damageInfo = inputDamageInfo;
+
+	if( ptr->iHitgroup == 10 && ( damageInfo.type & ( DMG_BULLET | DMG_SLASH | DMG_CLUB ) ) )
 	{
 		// hit armor
 		if( self->pev->dmgtime != gpGlobals->time || ( RANDOM_LONG( 0, 10 ) < 1 ) )
@@ -259,20 +260,20 @@ static void AgruntTraceAttack( CBaseMonster* self, entvars_t *pevInflictor, entv
 
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, ptr->vecEndPos );
 			WRITE_BYTE( TE_TRACER );
-				WRITE_VECTOR( ptr->vecEndPos );
-				WRITE_VECTOR( vecTracerEnd );
+			WRITE_VECTOR( ptr->vecEndPos );
+			WRITE_VECTOR( vecTracerEnd );
 			MESSAGE_END();
 		}
 
-		dmgInfo.damage -= 20.0f;
-		if( dmgInfo.damage <= 0.0f )
-			dmgInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		damageInfo.damage -= 20.0f;
+		if( damageInfo.damage <= 0.0f )
+			damageInfo.damage = 0.1f;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
 
 		ptr->iHitgroup = HITGROUP_GENERIC;
-		dmgInfo.SetNoBlood();
+		damageInfo.SetNoBlood();
 	}
 
-	self->CBaseMonster::TraceAttack(pevInflictor, pevAttacker, dmgInfo, vecDir, ptr);
+	return damageInfo;
 }
 
 float CAGrunt::HeadHitGroupDamageMultiplier()
@@ -280,9 +281,9 @@ float CAGrunt::HeadHitGroupDamageMultiplier()
 	return Q_min(gSkillData.monHead, 1.5f);
 }
 
-void CAGrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CAGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	AgruntTraceAttack(this, pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
+	return AgruntHandleTraceAttack(this, pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 }
 
 //=========================================================
@@ -1185,7 +1186,7 @@ public:
 	void Spawn();
 	const char* DefaultModel() { return "models/agrunt.mdl"; }
 	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MILITARY; }
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	const char* getPos(int pos) const;
 	static const char *m_szPoses[2];
@@ -1207,7 +1208,7 @@ void CDeadAgrunt::Spawn()
 	pev->frame = 255;
 }
 
-void CDeadAgrunt::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
+DamageInfo CDeadAgrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	AgruntTraceAttack(this, pevInflictor, pevAttacker, damageInfo, vecDir, ptr);
+	return AgruntHandleTraceAttack(this, pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 }

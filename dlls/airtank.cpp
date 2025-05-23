@@ -25,8 +25,8 @@ class CAirtank : public CGrenade
 	void Precache( void );
 	void EXPORT TankThink( void );
 	void EXPORT TankTouch( CBaseEntity *pOther );
-	int  BloodColor( void ) { return DONT_BLEED; };
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	int  BloodColor( void ) { return DONT_BLEED; }
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	virtual int Save( CSave &save ); 
 	virtual int Restore( CRestore &restore );
@@ -90,13 +90,14 @@ void CAirtank::Precache( void )
 	RegisterAndPrecacheSoundScript(denySoundScript);
 }
 
-void CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->owner = ENT( pevAttacker );
 
 	// UNDONE: this should make a big bubble cloud, not an explosion
 
 	Explode( pev->origin, Vector( 0, 0, -1 ) );
+	return KilledResult();
 }
 
 void CAirtank::TankThink( void )

@@ -5,6 +5,10 @@ bookToC: false
 
 # ![](/images/opfor.png) monster_human_medic_ally
 
+{{% hint info %}}
+Despite the `ally` part in the entity name, the monster can be made enemy to the player via custom classification in the entity parameters or entity template.
+{{% /hint %}}
+
 ### Changes
 
 * Besides healing ally soldiers medics can also heal ally scientists and security guards.
@@ -32,3 +36,13 @@ bookToC: false
 * **MedicGrunt.Reload** - handgun reload. Derived from **NPC.Reload**
 * **MedicGrunt.DesertEagle** - Desert Eagle fire. Derived from **NPC.DesertEagle**
 * **MedicGrunt.ReloadDesertEagle** - Desert Eagle reload. Derived from **NPC.ReloadDesertEagle**
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+Uses same rules as [monster_human_grunt_ally]({{< ref monster_human_grunt_ally >}}).
+{{% /tab %}}
+
+{{% /tabs %}}

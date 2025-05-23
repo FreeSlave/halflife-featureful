@@ -359,9 +359,9 @@ void FillVectorFromJsonArray(fixed_vector<S, N>& vec, const Value& value)
 {
 	vec.clear();
 	Value::ConstArray arr = value.GetArray();
-	for (size_t i=0; i<arr.Size(); ++i)
+	for (auto& item : arr)
 	{
-		vec.push_back(arr[i].GetString());
+		vec.push_back(item.GetString());
 	}
 }
 

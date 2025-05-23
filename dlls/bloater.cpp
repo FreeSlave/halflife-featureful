@@ -52,7 +52,7 @@ public:
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() { return true; }
 };
@@ -77,7 +77,7 @@ void CBloater::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-int CBloater::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBloater::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	PainSound();
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
@@ -176,7 +176,7 @@ public:
 	int DefaultISoundMask();
 	int DefaultClassify( void );
 	const char* DefaultDisplayName() { return "Floater"; }
-	int IRelationship(CBaseEntity *pTarget);
+	int IRelationship(CBaseEntity *pTarget) override;
 	int SizeForGrapple() { return GRAPPLE_SMALL; }
 	Vector DefaultMinHullSize() { return Vector( -16.0f, -16.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() { return Vector( 16.0f, 16.0f, 36.0f ); }
@@ -194,8 +194,8 @@ public:
 	void AlertSound();
 	void PainSound();
 	float HearingSensitivity( void );
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	void Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib);
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	KilledResult Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib) override;
 	void GibMonster();
 	void UpdateOnRemove();
 
@@ -920,19 +920,20 @@ float CFloater::HearingSensitivity()
 		return 0.6f;
 }
 
-int CFloater::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
+TakeDamageResult CFloater::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
 	MakeProvoked();
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
-void CFloater::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
+KilledResult CFloater::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
-	CBaseMonster::Killed(pevInflictor, pevAttacker, GIB_ALWAYS);
+	KilledResult killedResult = CBaseMonster::Killed(pevInflictor, pevAttacker, GIB_ALWAYS);
 	g_howlTime = gpGlobals->time;
 	StopSoundScript(howlSoundScript);
 	ExplodeEffect();
 	CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, 300, 0.3 );
+	return killedResult;
 }
 
 void CFloater::GibMonster()

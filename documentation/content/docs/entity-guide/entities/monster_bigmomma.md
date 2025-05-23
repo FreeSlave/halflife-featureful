@@ -37,3 +37,51 @@ bookToC: false
 
 * **BigMomma.Mortar** - the spit projectile.
 * **BigMomma.MortarSpray** - sprite spray that comes from Big Momma when launching the spit projectile and when this projectile touches the wall.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack and Take Damage rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_bigmomma": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": [1],
+                    "invert_hitgroup_check": true
+                },
+                "modifier": {
+                    "dmg": "=0.1"
+                },
+                "effects": {
+                    "ricochet": {
+                        "certain_on_new_frame": true,
+                        "chance": 0.1,
+                        "scale": [1.0, 2.0]
+                    }
+                }
+            }
+        ],
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["acid"],
+                    "attacker": {
+                        "relationship_to_them": ["ally", "neutral"]
+                    }
+                },
+                "modifier": {
+                    "dmg": "=0"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

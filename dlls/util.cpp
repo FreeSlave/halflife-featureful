@@ -1263,10 +1263,10 @@ void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color,
 
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount )
 {
-	if( !UTIL_ShouldShowBlood( color ) )
+	if( color == DONT_BLEED || amount == 0 )
 		return;
 
-	if( color == DONT_BLEED || amount == 0 )
+	if( !UTIL_ShouldShowBlood( color ) )
 		return;
 
 	if( g_pGameRules->IsMultiplayer() )

@@ -416,7 +416,8 @@ public:
 	int DefaultClassify( void );
 	const char* DefaultGibModel() { return GARG_GIB_MODEL; }
 	const char* DefaultDisplayName() { return "Gargantua"; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 
@@ -441,7 +442,7 @@ public:
 
 	void PrescheduleThink( void );
 
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void OnDying();
 	void DeathEffect( void );
 
@@ -1103,6 +1104,26 @@ void CGargantua::UpdateOnRemove()
 	CFollowingMonster::UpdateOnRemove();
 }
 
+DamageInfo CGargantua::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
+{
+	DamageInfo damageInfo = inputDamageInfo;
+	damageInfo.type &= GARG_DAMAGE;
+
+	if( damageInfo.type == 0 )
+	{
+		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 100 ) < 20 ) )
+		{
+			UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT( 0.5 ,1.5 ) );
+			pev->dmgtime = gpGlobals->time;
+			//if ( RANDOM_LONG( 0, 100 ) < 25 )
+			//	EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, pRicSounds[RANDOM_LONG( 0, ARRAYSIZE( pRicSounds ) - 1 )], 1.0, ATTN_NORM, 0, PITCH_NORM );
+		}
+		damageInfo.damage = 0;
+	}
+
+	return damageInfo;
+}
+
 void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	if( !IsAlive() )
@@ -1111,6 +1132,7 @@ void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 		return;
 	}
 
+	//TODO: adjust for custom trace attack rules
 	// UNDONE: Hit group specific damage?
 	if( damageInfo.type & GARG_DAMAGE )
 	{
@@ -1121,36 +1143,22 @@ void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 		}
 	}
 
-	DamageInfo dmgInfo = damageInfo;
-	dmgInfo.type &= GARG_DAMAGE;
-
-	if( dmgInfo.type == 0 )
-	{
-		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 100 ) < 20 ) )
-		{
-			UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT( 0.5 ,1.5 ) );
-			pev->dmgtime = gpGlobals->time;
-			//if ( RANDOM_LONG( 0, 100 ) < 25 )
-			//	EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, pRicSounds[RANDOM_LONG( 0, ARRAYSIZE( pRicSounds ) - 1 )], 1.0, ATTN_NORM, 0, PITCH_NORM );
-		}
-		dmgInfo.damage = 0;
-	}
-
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, ptr );
+	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
-int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+DamageInfo CGargantua::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
-	DamageInfo info = damageInfo;
+	DamageInfo damageInfo = inputDamageInfo;
+
 	if( IsAlive() )
 	{
-		if( !( info.type & GARG_DAMAGE ) )
-			info.damage *= 0.01f;
-		if( info.type & DMG_BLAST )
+		if( !( damageInfo.type & GARG_DAMAGE ) )
+			damageInfo.damage *= 0.01f;
+		if( damageInfo.type & DMG_BLAST )
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 
-	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, info );
+	return damageInfo;
 }
 
 void CGargantua::DeathEffect( void )
@@ -1177,9 +1185,9 @@ void CGargantua::DeathEffect( void )
 	pSmoker->pev->nextthink = gpGlobals->time + 2.5f;	// Start in 2.5 seconds
 }
 
-void CGargantua::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CGargantua::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CFollowingMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
+	return CFollowingMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
 void CGargantua::OnDying()
@@ -1963,7 +1971,12 @@ public:
 	void PlayUnUseSentence();
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void DeathSound();
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override {
+		return inputDamageInfo;
+	}
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
+		return inputDamageInfo;
+	}
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void SetObjectCollisionBox( void )
 	{
@@ -2245,11 +2258,6 @@ float CBabyGargantua::StompAttackDamage()
 const char* CBabyGargantua::DefaultModel()
 {
 	return "models/babygarg.mdl";
-}
-
-int CBabyGargantua::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
-{
-	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 void CBabyGargantua::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)

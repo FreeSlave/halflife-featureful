@@ -64,4 +64,26 @@ bookToC: false
 ```
 {{% /tab %}}
 
+{{% tab "Take Damage rules" %}}
+The [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_headcrab": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["acid"],
+                    "attack_affinity": ["friendly", "neutral"]
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

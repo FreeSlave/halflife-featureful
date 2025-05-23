@@ -4,6 +4,7 @@
 #include "classify.h"
 #include "dmg_types.h"
 #include "gib.h"
+#include "hitgroup.h"
 #include "grapple_target.h"
 
 #include <algorithm>
@@ -297,6 +298,282 @@ TEST(EntityTemplates, Parse)
 	{
 		const EntTemplate* nonExistent = es.GetTemplate("nonexistent");
 		EXPECT_TRUE(nonExistent == nullptr);
+	}
+}
+
+const char entitiesTakeDamage[] = R"(
+{
+	"test": {
+		"trace_attack": [
+			{
+				"conditions": {
+					"dmg_type": "burn",
+					"dmg": ">=10",
+					"inflictor": {
+						"classname": "test_classname",
+						"ent_template": "test_template",
+						"classify": "Alien Bioweapon"
+					},
+					"attacker": {
+						"classname": ["classname1", "classname2"],
+						"ent_template": ["template1", "template2"],
+						"classify": ["Human Military", "Alien Military"],
+						"is_combat_character": true
+					},
+					"self": {
+						"body": [1, 3, {"bodygroup": 1, "submodel": 2}],
+						"invert_body_check": true,
+						"life_state": "alive"
+					},
+					"attack_affinity": ["enemy", "neutral", "self"],
+					"hitgroup": ["left arm", "left leg"],
+					"invert_hitgroup_check": true
+				},
+				"modifier": {
+					"dmg": "*2.5",
+					"dmg_min_threshold": 0.1,
+					"no_blood": true,
+					"hitgroup": "head"
+				},
+				"effects": {
+					"tracer": {
+						"chance": 0.6,
+						"certain_on_new_frame": true,
+						"variance": 0.2
+					}
+				},
+				"threshold_effects": {
+					"ricochet": {
+						"chance": 0.6,
+						"certain_on_new_frame": false,
+						"scale": 1.5
+					}
+				}
+			},
+			{
+				"conditions": {
+					"dmg_type": ["bullet", "blast"],
+					"dmg_type_match": "exact",
+					"dmg": "<=2.5",
+					"attacker": {
+						"classname": ["same", "someone_else"],
+						"ent_template": ["", "same"],
+						"classify": ["same"]
+					},
+					"attack_affinity": "friendly"
+				},
+				"modifier": {
+					"skip_damage": true
+				}
+			}
+		],
+		"take_damage": [
+			{
+				"conditions": {
+					"dmg_type": ["acid", "poison"],
+					"dmg_type_match": "all",
+					"dmg": ">50",
+					"attacker": {
+						"classname": "same",
+						"ent_template": "same",
+						"classify": "same",
+						"negate": true
+					},
+					"self": {
+						"body": {
+							"bodygroup": 0,
+							"submodel": 1
+						}
+					},
+					"gib": "normal"
+				},
+				"modifier": {
+					"gib": "always",
+					"dmg": "+10"
+				}
+			},
+			{
+				"conditions": {
+					"dmg_type": ["freeze"],
+					"dmg_type_match": "none",
+					"dmg": "<1"
+				},
+				"modifier": {
+					"gib": "never",
+					"dmg": "=health"
+				}
+			}
+		]
+	}
+}
+)";
+
+TEST(EntityTemplates, ParseTakeDamage)
+{
+	SoundScriptSystem ss;
+	VisualSystem vs;
+	EntTemplateSystem es;
+	es.SetSoundScriptSystem(&ss);
+	es.SetVisualSystem(&vs);
+
+	ASSERT_TRUE(es.ReadFromContents(entitiesTakeDamage, ""));
+
+	const EntTemplate* test = es.GetTemplate("test");
+	ASSERT_TRUE(test != nullptr);
+
+	ASSERT_TRUE(test->HasCustomTraceAttackRules());
+
+	auto traceAttackRange = test->TraceAttackRulesRange();
+	auto traceAttackIt = traceAttackRange.first;
+	ASSERT_NE(traceAttackIt, traceAttackRange.second);
+
+	{
+		const EntTemplate::TraceAttackRule::Conditions& conditions = traceAttackIt->conditions;
+
+		ASSERT_TRUE(conditions.dmgType.has_value());
+		EXPECT_EQ(*conditions.dmgType, DMG_BURN);
+		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::ONE);
+		EXPECT_EQ(conditions.dmgComparison, ValueComparison::GREATER_OR_EQUAL);
+		EXPECT_EQ(conditions.dmg, 10.0f);
+
+		ASSERT_TRUE(conditions.inflictorFilter.has_value());
+		const EntityFilter& inflictorFilter = *conditions.inflictorFilter;
+		ASSERT_EQ(inflictorFilter.classnames.size(), 1);
+		EXPECT_EQ(inflictorFilter.classnames[0], "test_classname");
+		ASSERT_EQ(inflictorFilter.entTemplates.size(), 1);
+		EXPECT_EQ(inflictorFilter.entTemplates[0], "test_template");
+		ASSERT_EQ(inflictorFilter.classifications.size(), 1);
+		EXPECT_EQ(inflictorFilter.classifications[0], CLASS_ALIEN_BIOWEAPON);
+
+		ASSERT_TRUE(conditions.attackerFilter.has_value());
+		const EntityFilter& attackerFilter = *conditions.attackerFilter;
+		ASSERT_EQ(attackerFilter.classnames.size(), 2);
+		EXPECT_EQ(attackerFilter.classnames[0], "classname1");
+		EXPECT_EQ(attackerFilter.classnames[1], "classname2");
+		ASSERT_EQ(attackerFilter.entTemplates.size(), 2);
+		EXPECT_EQ(attackerFilter.entTemplates[0], "template1");
+		EXPECT_EQ(attackerFilter.entTemplates[1], "template2");
+		ASSERT_EQ(attackerFilter.classifications.size(), 2);
+		EXPECT_EQ(attackerFilter.classifications[0], CLASS_HUMAN_MILITARY);
+		EXPECT_EQ(attackerFilter.classifications[1], CLASS_ALIEN_MILITARY);
+		EXPECT_TRUE(attackerFilter.isCombatCharacter);
+
+		ASSERT_TRUE(conditions.selfFilter.has_value());
+
+		const EntityFilter& selfFilter = *conditions.selfFilter;
+		ASSERT_EQ(selfFilter.bodyFilter.size(), 3);
+		EXPECT_EQ(selfFilter.bodyFilter[0], EntityFilter::BodyFilter(1));
+		EXPECT_EQ(selfFilter.bodyFilter[1], EntityFilter::BodyFilter(3));
+		EXPECT_EQ(selfFilter.bodyFilter[2], EntityFilter::BodyFilter(1, 2));
+		EXPECT_TRUE(selfFilter.invertBodyCheck);
+
+		EXPECT_EQ(selfFilter.lifeState, EntityFilter::ALIVE);
+		EXPECT_EQ(conditions.attackAffinity, EntTemplate::DamageConditions::ENEMY | EntTemplate::DamageConditions::NEUTRAL | EntTemplate::DamageConditions::SELF);
+
+		ASSERT_EQ(conditions.hitgroups.size(), 2);
+		EXPECT_EQ(conditions.hitgroups[0], HITGROUP_LEFTARM);
+		EXPECT_EQ(conditions.hitgroups[1], HITGROUP_LEFTLEG);
+		EXPECT_TRUE(conditions.invertHitgroupCheck);
+
+		const EntTemplate::TraceAttackRule::Modifier& modifier = traceAttackIt->modifier;
+		EXPECT_EQ(modifier.dmgModifier, ValueModifier::FACTOR);
+		EXPECT_EQ(modifier.dmg, 2.5f);
+		EXPECT_EQ(modifier.dmgMinThreshold, 0.1f);
+		EXPECT_TRUE(modifier.noBlood);
+		EXPECT_EQ(modifier.hitgroup, HITGROUP_HEAD);
+
+		const EntTemplate::TraceAttackRule::Effects& effects = traceAttackIt->effects;
+		ASSERT_TRUE(effects.tracer.has_value());
+		EXPECT_EQ(effects.tracer->chance, 0.6f);
+		EXPECT_TRUE(effects.tracer->certainOnNewFrame);
+		EXPECT_EQ(effects.tracer->variance, 0.2f);
+
+		const EntTemplate::TraceAttackRule::Effects& thresholdEffects = traceAttackIt->thresholdEffects;
+		ASSERT_TRUE(thresholdEffects.ricochet.has_value());
+		EXPECT_EQ(thresholdEffects.ricochet->chance, 0.6f);
+		EXPECT_FALSE(thresholdEffects.ricochet->certainOnNewFrame);
+		EXPECT_EQ(thresholdEffects.ricochet->scale, 1.5f);
+	}
+
+	traceAttackIt++;
+	ASSERT_NE(traceAttackIt, traceAttackRange.second);
+
+	{
+		const EntTemplate::TraceAttackRule::Conditions& conditions = traceAttackIt->conditions;
+
+		ASSERT_TRUE(conditions.dmgType.has_value());
+		EXPECT_EQ(*conditions.dmgType, DMG_BULLET | DMG_BLAST);
+		EXPECT_EQ(conditions.dmgComparison, ValueComparison::LESS_OR_EQUAL);
+		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::EXACT);
+		EXPECT_EQ(conditions.dmg, 2.5f);
+
+		ASSERT_TRUE(conditions.attackerFilter.has_value());
+		const EntityFilter& attackerFilter = *conditions.attackerFilter;
+		EXPECT_EQ(attackerFilter.classnames.size(), 1);
+		EXPECT_EQ(attackerFilter.classnames[0], "someone_else");
+		EXPECT_TRUE(attackerFilter.sameClassname);
+		EXPECT_EQ(attackerFilter.entTemplates.size(), 1);
+		EXPECT_TRUE(attackerFilter.entTemplates[0].empty());
+		EXPECT_TRUE(attackerFilter.sameEntTemplate);
+		EXPECT_EQ(attackerFilter.classifications.size(), 0);
+		EXPECT_TRUE(attackerFilter.sameClassify);
+
+		EXPECT_EQ(conditions.attackAffinity, EntTemplate::DamageConditions::FRIENDLY);
+
+		const EntTemplate::TraceAttackRule::Modifier& modifier = traceAttackIt->modifier;
+		EXPECT_TRUE(modifier.skip);
+	}
+
+	traceAttackIt++;
+	EXPECT_EQ(traceAttackIt, traceAttackRange.second);
+
+	ASSERT_TRUE(test->HasCustomTakeDamageRules());
+
+	auto takeDamageRange = test->TakeDamageRulesRange();
+	auto takeDamageIt = takeDamageRange.first;
+	ASSERT_NE(takeDamageIt, takeDamageRange.second);
+
+	{
+		const EntTemplate::TakeDamageRule::Conditions& conditions = takeDamageIt->conditions;
+		ASSERT_TRUE(conditions.dmgType.has_value());
+		EXPECT_EQ(*conditions.dmgType, DMG_ACID | DMG_POISON);
+		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::ALL);
+		EXPECT_EQ(conditions.dmg, 50);
+		EXPECT_EQ(conditions.dmgComparison, ValueComparison::GREATER);
+
+		ASSERT_TRUE(conditions.attackerFilter.has_value());
+		const EntityFilter& attackerFilter = *conditions.attackerFilter;
+		EXPECT_TRUE(attackerFilter.sameClassname);
+		EXPECT_TRUE(attackerFilter.sameEntTemplate);
+		EXPECT_TRUE(attackerFilter.sameClassify);
+		EXPECT_TRUE(attackerFilter.negate);
+
+		ASSERT_TRUE(conditions.gibPolicy.has_value());
+		EXPECT_EQ(*conditions.gibPolicy, GIB_NORMAL);
+
+		const EntTemplate::TakeDamageRule::Modifier& modifier = takeDamageIt->modifier;
+		ASSERT_TRUE(modifier.gibPolicy.has_value());
+		EXPECT_EQ(*modifier.gibPolicy, GIB_ALWAYS);
+		EXPECT_EQ(modifier.dmg, 10);
+		EXPECT_EQ(modifier.dmgModifier, ValueModifier::ADD);
+	}
+
+	takeDamageIt++;
+	ASSERT_NE(takeDamageIt, takeDamageRange.second);
+
+	{
+		const EntTemplate::TakeDamageRule::Conditions& conditions = takeDamageIt->conditions;
+		ASSERT_TRUE(conditions.dmgType.has_value());
+		EXPECT_EQ(*conditions.dmgType, DMG_FREEZE);
+		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::NONE);
+		EXPECT_EQ(conditions.dmg, 1);
+		EXPECT_EQ(conditions.dmgComparison, ValueComparison::LESS);
+
+		const EntTemplate::TakeDamageRule::Modifier& modifier = takeDamageIt->modifier;
+		ASSERT_TRUE(modifier.gibPolicy.has_value());
+		EXPECT_EQ(*modifier.gibPolicy, GIB_NEVER);
+		EXPECT_TRUE(modifier.useHealthAsDmg);
+		EXPECT_EQ(modifier.dmgModifier, ValueModifier::SET);
 	}
 }
 
