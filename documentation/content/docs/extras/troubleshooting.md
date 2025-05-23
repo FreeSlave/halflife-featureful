@@ -58,3 +58,7 @@ You probably didn't enable the monster in the **features/featureful_monsters.cfg
 
 1. Make sure you set the right **fgd** in the mod profile configuration and open the map in the this configuration.
 2. Make sure you're using the latest [JACK](https://jack.hlfx.ru/en/download.html)
+
+## Some weapons don't do damage or some monsters die from one hit and don't behave correctly
+
+Make sure you provided the damage and health values in the **skill.cfg**.
