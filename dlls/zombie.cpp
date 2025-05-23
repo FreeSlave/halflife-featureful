@@ -129,7 +129,7 @@ void CZombie::SetYawSpeed( void )
 
 TakeDamageResult CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if( damageInfo.type == DMG_BULLET )
+	if( damageInfo.type == DMG_BULLET && damageInfo.gibPolicy != GIB_NEVER )
 	{
 		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
 		vecDir = vecDir.Normalize();
