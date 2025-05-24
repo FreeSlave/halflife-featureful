@@ -71,7 +71,7 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damag
                 "conditions": {
                     "dmg_type": ["acid"],
                     "attacker": {
-                        "relationship_to_them": ["ally", "neutral"]
+                        "attack_affinity": ["friendly", "self", "neutral"]
                     }
                 },
                 "modifier": {

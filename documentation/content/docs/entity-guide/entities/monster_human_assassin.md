@@ -45,7 +45,7 @@ bookToC: false
 Allow female assassins to be squad leaders (in original Half-Life they can't).
 ```json
 {
-    "monster_alien_slave": {
+    "monster_human_assassin": {
         "squad_capability": {
             "can_recruit": true
         }

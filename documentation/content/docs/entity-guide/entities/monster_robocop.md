@@ -61,7 +61,7 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damag
 
 ```json
 {
-    "monster_gargantua": {
+    "monster_robocop": {
         "trace_attack": [
             {
                 "conditions": {
