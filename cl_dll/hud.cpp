@@ -929,6 +929,7 @@ void CHud::ParseClientFeatures()
 		{ "flashlight.distance", clientFeatures.flashlight.distance },
 	};
 	KeyValueDefinition<ConfigurableBooleanValue> configurableBooleans[] = {
+		{ "hud_armor_near_health.", clientFeatures.hud_armor_near_health},
 		{ "flashlight.custom.", clientFeatures.flashlight.custom},
 		{ "view_bob.", clientFeatures.view_bob},
 		{ "weapon_wallpuff.", clientFeatures.weapon_wallpuff},
