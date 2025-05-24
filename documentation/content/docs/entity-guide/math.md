@@ -13,7 +13,8 @@ All entities have a calculable value associated with them - the concept borrowed
 
 * [game_counter]({{< ref game_counter >}}) - the Calc Ratio is the current counter value. Note that `game_counter` holds integer values only.
 * [env_global]({{< ref env_global >}}) - since each global has an integer number associated with them in Featureful SDK, the `env_global` can be used to access this number.
-* Monsters. For them Calc Ratio is the *health* / *max health* fraction (the the number in [0..1] range).
+* Monsters. For them Calc Ratio is the *health* / *max health* fraction (the the number in [0..1] range). Killed monsters report 0.
+* [func_breakable]({{< ref func_breakable >}}). Same as for monsters, the Calc Ratio is the *health* / *max health* fraction.
 * Wall rechargers (health and armor). For them Calc Ratio is the *juice left* / *max juice capacity* fraction (the the number in [0..1] range).
 * [calc_ratio]({{< ref calc_ratio >}}) - Calc Ratio is calculated based on Calc Ratio of another entity.
 * [calc_eval_number]({{< ref calc_eval_number >}}) - calculate a number from two operands.

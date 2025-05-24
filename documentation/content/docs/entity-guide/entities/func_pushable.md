@@ -14,6 +14,10 @@ Has same changes as [func_breakable]({{< ref func_breakable >}}) (for breakable 
 
 * `Collision with corpses` - allows to ignore collision with dead monsters. This will ensure that the dead body won't block the pushable.
 
+### Calc Ratio
+
+Reports the *health* / *max health* fraction.
+
 ### Soundscripts
 
 * **Pushable.Move** - played when pushed.

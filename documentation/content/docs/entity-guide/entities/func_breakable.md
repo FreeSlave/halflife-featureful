@@ -23,6 +23,10 @@ entityCategory: solid
 * `Smoke trails on gibs` - add gray particle trails on gibs (using the default effect from the engine).
 * `Transparent gibs` - make gibs semi-transparent.
 
+### Calc Ratio
+
+Reports the *health* / *max health* fraction.
+
 ### Bugfixes
 
 * Fixed `func_breakable` taking damage from some attacks even if `Only Trigger` spawnflag is set (original Half-Life bug).

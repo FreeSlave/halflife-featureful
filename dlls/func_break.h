@@ -69,6 +69,15 @@ public:
 
 	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag);
 
+	bool CalcRatio(CBaseEntity* pLocus, float* outResult)
+	{
+		if (pev->health > 0 && pev->max_health > 0)
+			*outResult = pev->health / pev->max_health;
+		else
+			*outResult = 0;
+		return true;
+	}
+
 	// breakables use an overridden takedamage
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
