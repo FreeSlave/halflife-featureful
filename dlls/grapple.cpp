@@ -551,8 +551,6 @@ void CBarnacleGrapple::PrimaryAttack( void )
 					{
 						if( m_flDamageTime + 0.5 < gpGlobals->time )
 						{
-							ClearMultiDamage();
-
 							float flDamage = gSkillData.plrDmgGrapple;
 
 							if( g_pGameRules->IsMultiplayer() )
@@ -560,9 +558,7 @@ void CBarnacleGrapple::PrimaryAttack( void )
 								flDamage *= 2;
 							}
 
-							pHit->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
-
-							ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+							pHit->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
 
 							m_flDamageTime = gpGlobals->time;
 

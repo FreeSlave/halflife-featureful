@@ -204,7 +204,7 @@ bool CKnife::Swing(bool fFirst)
 
 		if( pEntity )
 		{
-			ClearMultiDamage();
+			float flDamage;
 			// If building with the clientside weapon prediction system,
 			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
 			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
@@ -215,14 +215,14 @@ bool CKnife::Swing(bool fFirst)
 #endif
 			{
 				// first swing does full damage
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgKnife, DMG_CLUB}, gpGlobals->v_forward, &tr );
+				flDamage = gSkillData.plrDmgKnife;
 			}
 			else
 			{
 				// subsequent swings do half
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgKnife * 0.5f, DMG_CLUB}, gpGlobals->v_forward, &tr );
+				flDamage = gSkillData.plrDmgKnife * 0.5f;
 			}
-			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
 
 			if( pEntity->HasFlesh() )
 			{
@@ -343,14 +343,11 @@ void CKnife::Stab()
 
 		if( pEntity )
 		{
-			ClearMultiDamage();
 			float flDamage = (gpGlobals->time - m_flStabStart) * gSkillData.plrDmgKnife + gSkillData.plrDmgKnife*2.0f;
 			if (flDamage > 100.0f) {
 				flDamage = 100.0f;
 			}
-			pEntity->TraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER), gpGlobals->v_forward, &tr);
-
-			ApplyMultiDamage(m_pPlayer->pev, m_pPlayer->pev);
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER), gpGlobals->v_forward, &tr);
 		}
 
 		// play thwack, smack, or dong sound

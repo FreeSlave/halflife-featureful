@@ -257,12 +257,10 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 		if( pev->dmgtime < gpGlobals->time )
 		{
 			// Narrow mode only does damage to the entity it hits
-			ClearMultiDamage();
 			if( pEntity->pev->takedamage )
 			{
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgEgonNarrow, DMG_ENERGYBEAM}, vecDir, &tr );
+				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgEgonNarrow, DMG_ENERGYBEAM}, vecDir, &tr );
 			}
-			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
 			if( g_pGameRules->IsMultiplayer() )
 			{
@@ -294,12 +292,10 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 		if( pev->dmgtime < gpGlobals->time )
 		{
 			// wide mode does damage to the ent, and radius damage
-			ClearMultiDamage();
 			if( pEntity->pev->takedamage )
 			{
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide, DMG_ENERGYBEAM).SetGibPolicy(GIB_ALWAYS), vecDir, &tr);
+				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide, DMG_ENERGYBEAM).SetGibPolicy(GIB_ALWAYS), vecDir, &tr);
 			}
-			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
 			if( g_pGameRules->IsMultiplayer() )
 			{

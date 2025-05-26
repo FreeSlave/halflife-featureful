@@ -179,7 +179,7 @@ bool CCrowbar::Swing(bool fFirst )
 
 		if( pEntity )
 		{
-			ClearMultiDamage();
+			float flDamage;
 			// If building with the clientside weapon prediction system,
 			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
 			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
@@ -190,14 +190,14 @@ bool CCrowbar::Swing(bool fFirst )
 #endif
 			{
 				// first swing does full damage
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgCrowbar, DMG_CLUB}, gpGlobals->v_forward, &tr );
+				flDamage = gSkillData.plrDmgCrowbar;
 			}
 			else
 			{
 				// subsequent swings do half
-				pEntity->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgCrowbar * 0.5f, DMG_CLUB}, gpGlobals->v_forward, &tr );
+				flDamage = gSkillData.plrDmgCrowbar * 0.5f;
 			}
-			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
 
 			if( pEntity->HasFlesh() )
 			{

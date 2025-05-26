@@ -337,13 +337,8 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 	else
 	{
 		TraceResult tr = UTIL_GetGlobalTrace();
-		ClearMultiDamage();
-		entvars_t* pAttacker = VARS(pev->owner);
-		if (!pAttacker)
-			pAttacker = pev;
-
-		pOther->TraceAttack(pev, pAttacker, DamageInfo(gSkillData.voltigoreDmgBeam, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
-		ApplyMultiDamage(pev, pAttacker);
+		entvars_t* pAttacker = FNullEnt(pev->owner) ? pev : VARS(pev->owner);
+		pOther->ApplyTraceAttack(pev, pAttacker, DamageInfo(gSkillData.voltigoreDmgBeam, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
 	}
 
 	pev->velocity = g_vecZero;
@@ -624,7 +619,6 @@ void CVoltigore::DeathGibThink()
 		}
 
 		const float attackRadius = Q_max(Q_min(gSkillData.voltigoreDmgExplode * 2.0f, 200.0f), 160.0f);
-		ClearMultiDamage();
 		::RadiusDamage(pev->origin, pev, pev, DamageInfo{gSkillData.voltigoreDmgExplode, DMG_SHOCK}, attackRadius, CLASS_NONE);
 	}
 }

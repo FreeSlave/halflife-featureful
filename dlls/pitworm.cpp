@@ -974,9 +974,7 @@ void CPitWorm::BeamEffect(TraceResult &tr)
 	CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 	if( pEntity != NULL && pEntity->pev->takedamage )
 	{
-		ClearMultiDamage();
-		pEntity->TraceAttack(pev, pev, DamageInfo{gSkillData.pwormDmgBeam, DMG_ENERGYBEAM}, m_vecBeam, &tr);
-		ApplyMultiDamage(pev, pev);
+		pEntity->ApplyTraceAttack(pev, pev, DamageInfo{gSkillData.pwormDmgBeam, DMG_ENERGYBEAM}, m_vecBeam, &tr);
 	}
 	else if ( tr.flFraction != 1.0f )
 	{

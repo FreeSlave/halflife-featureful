@@ -114,23 +114,17 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 	if( pOther->pev->takedamage )
 	{
 		TraceResult tr = UTIL_GetGlobalTrace();
-		entvars_t *pevOwner;
+		entvars_t *pevOwner = VARS( pev->owner );
 
-		pevOwner = VARS( pev->owner );
-
-		// UNDONE: this needs to call TraceAttack instead
-		ClearMultiDamage();
+		DamageInfo damageInfo(gSkillData.plrDmgCrossbowMonster, DMG_BULLET);
+		damageInfo.SetGibPolicy(GIB_NEVER);
 
 		if( pOther->IsPlayer() )
 		{
-			pOther->TraceAttack( pev, pevOwner, DamageInfo(gSkillData.plrDmgCrossbowClient, DMG_GENERIC).SetGibPolicy(GIB_NEVER), pev->velocity.Normalize(), &tr );
+			damageInfo.damage = gSkillData.plrDmgCrossbowClient;
+			damageInfo.type = DMG_GENERIC;
 		}
-		else
-		{
-			pOther->TraceAttack( pev, pevOwner, DamageInfo(gSkillData.plrDmgCrossbowMonster, DMG_BULLET).SetGibPolicy(GIB_NEVER), pev->velocity.Normalize(), &tr );
-		}
-
-		ApplyMultiDamage( pev, pevOwner );
+		pOther->ApplyTraceAttack( pev, pevOwner, damageInfo, pev->velocity.Normalize(), &tr );
 
 		pev->velocity = Vector( 0, 0, 0 );
 		// play body "thwack" sound
@@ -358,9 +352,7 @@ void CCrossbow::FireSniperBolt()
 #if !CLIENT_DLL
 	if( tr.pHit->v.takedamage )
 	{
-		ClearMultiDamage();
-		CBaseEntity::Instance( tr.pHit )->TraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
-		ApplyMultiDamage( pev, m_pPlayer->pev );
+		CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
 	}
 #endif
 }

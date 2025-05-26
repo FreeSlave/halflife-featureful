@@ -209,7 +209,6 @@ bool CPipeWrench::Swing(bool fFirst)
 
 		if( pEntity )
 		{
-			ClearMultiDamage();
 			float flDamage;
 #ifdef CLIENT_WEAPONS
 			if( ( m_flNextPrimaryAttack + 1.0f == UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
@@ -226,9 +225,7 @@ bool CPipeWrench::Swing(bool fFirst)
 				flDamage = gSkillData.plrDmgPWrench * 0.5f;
 			}
 			// Send trace attack to player.
-			pEntity->TraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
-
-			ApplyMultiDamage(m_pPlayer->pev, m_pPlayer->pev);
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
 
 			if ( pEntity->HasFlesh() )
 			{
@@ -351,14 +348,11 @@ void CPipeWrench::BigSwing(void)
 
 		if( pEntity )
 		{
-			ClearMultiDamage();
 			float flDamage = (gpGlobals->time - m_flBigSwingStart) * gSkillData.plrDmgPWrench + 25.0f;
 			if (flDamage > 150.0f) {
 				flDamage = 150.0f;
 			}
-			pEntity->TraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
-
-			ApplyMultiDamage(m_pPlayer->pev, m_pPlayer->pev);
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
 		}
 
 		// play thwack, smack, or dong sound
