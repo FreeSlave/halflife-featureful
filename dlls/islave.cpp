@@ -1975,7 +1975,7 @@ CBaseEntity *CISlave::ZapBeam( int side )
 				ALERT(at_aiconsole, "Vortigaunt healed friend with zap attack\n");
 			}
 		} else {
-			pEntity->TraceAttack( pev, pev, DamageInfo{gSkillData.slaveDmgZap, DMG_SHOCK}, vecAim, &tr );
+			pEntity->TraceAttack( pev, pev, DamageInfo{gSkillData.slaveDmgZap, DMG_SHOCK}, vecAim.Normalize(), &tr );
 #if FEATURE_ISLAVE_ENERGY
 			if (pEntity->pev->flags & (FL_CLIENT | FL_MONSTER)) {
 				//TODO: check that target is actually a living creature, not machine

@@ -1549,7 +1549,7 @@ void CNihilanthHVR::ZapThink( void )
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack( pev, pev, DamageInfo{gSkillData.nihilanthZap, DMG_SHOCK}, pev->velocity, &tr );
+			pEntity->ApplyTraceAttack( pev, pev, DamageInfo{gSkillData.nihilanthZap, DMG_SHOCK}, pev->velocity.Normalize(), &tr );
 		}
 
 		const Visual* pBeamVisual = GetVisual(zapBeamVisual);

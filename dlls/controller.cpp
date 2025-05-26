@@ -1287,7 +1287,7 @@ void CControllerHeadBall::HuntThink( void )
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{gSkillData.controllerDmgZap, DMG_SHOCK}, pev->velocity, &tr);
+			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{gSkillData.controllerDmgZap, DMG_SHOCK}, pev->velocity.Normalize(), &tr);
 		}
 
 		MakeTraceBeam(tr.vecEndPos);

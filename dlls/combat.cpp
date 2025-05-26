@@ -1994,7 +1994,7 @@ void CBaseEntity::FireBullets( ULONG cShots, Vector vecSrc, Vector vecDirShootin
 		// do damage, paint decals
 		if( tr.flFraction != 1.0f )
 		{
-			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir, vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.monDmg9MM);
+			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.monDmg9MM);
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (int)( ( flDistance * tr.flFraction ) / 64.0f ) );
@@ -2046,7 +2046,7 @@ Vector CBaseEntity::FireBulletsPlayer( ULONG cShots, Vector vecSrc, Vector vecDi
 		// do damage, paint decals
 		if( tr.flFraction != 1.0f )
 		{
-			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir, vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.plrDmg9MM, true);
+			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.plrDmg9MM, true);
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (int)( ( flDistance * tr.flFraction ) / 64.0f ) );
