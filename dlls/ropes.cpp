@@ -283,6 +283,19 @@ void CRope::Activate()
 	}
 }
 
+void CRope::UpdateOnRemove()
+{
+	for (size_t i=0; i<MAX_SEGMENTS; ++i)
+	{
+		UTIL_Remove(seg[i]);
+		UTIL_Remove(altseg[i]);
+	}
+	for (size_t i=0; i<MAX_SAMPLES; ++i)
+	{
+		UTIL_Remove(m_Samples[i]);
+	}
+}
+
 int CRope::ObjectCaps()
 {
 	if (FBitSet(pev->spawnflags, SF_ROPE_NO_TRANSITION))
@@ -322,8 +335,6 @@ void CRope::InitRope()
 
 	if( m_iSegments > 2 )
 	{
-		CRopeSample** ppCurrentSys = m_Samples;
-
 		for( int uiSeg = 1; uiSeg < m_iSegments - 1; ++uiSeg )
 		{
 			CRopeSample* pSegSample = m_Samples[ uiSeg ];
@@ -807,7 +818,6 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 			}
 			else
 			{
-				CBaseEntity* pEnt = (CBaseEntity*)GET_PRIVATE( tr.pHit );
 				const Vector vecNormal = tr.vecPlaneNormal.Normalize();
 
 				Vector vecOrigin = tr.vecEndPos + vecNormal * 10.0;

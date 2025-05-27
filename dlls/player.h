@@ -493,7 +493,7 @@ public:
 #if FEATURE_ROPE
 	bool m_bIsClimbing;
 	float m_flLastClimbTime;
-	CRope *m_pRope;
+	EHANDLE m_hRope;
 	bool IsOnRope()
 	{
 		return ( m_afPhysicsFlags & PFLAG_ONROPE ) != 0;
@@ -501,7 +501,7 @@ public:
 
 	void SetRope( CBaseEntity *pRope )
 	{
-		m_pRope = (CRope*)pRope;
+		m_hRope = pRope;
 	}
 	void SetOnRopeState( bool onRope )
 	{
@@ -511,10 +511,10 @@ public:
 		m_afPhysicsFlags &= ~PFLAG_ONROPE;
 
 	}
-	CRope* GetRope() { return m_pRope; }
-
+	CRope* GetRope();
 	void LetGoRope(float delay = 2.0f);
 	bool SetClosestOriginOnRope(const Vector& vecPos);
+	void HandleRopePhysics(CRope* pRope);
 #endif
 	int m_iItemsBits;
 	int m_iClientItemsBits;
