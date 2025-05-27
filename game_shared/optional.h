@@ -105,7 +105,7 @@ private:
 	}
 
 	bool f;
-	char v[sizeof(T)];
+	alignas(T) char v[sizeof(T)];
 };
 
 #endif
