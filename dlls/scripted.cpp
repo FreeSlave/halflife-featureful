@@ -468,7 +468,6 @@ CBaseMonster *CCineMonster::FindEntity( void )
 {
 	CBaseMonster *pTarget = NULL;
 	int checkFail;
-	bool failedCheckReported = false;
 
 	if (UTIL_TargetnameIsActivator(m_iszEntity))
 	{
@@ -476,12 +475,13 @@ CBaseMonster *CCineMonster::FindEntity( void )
 		{
 			if (IsAppropriateTarget(pTarget, m_iPriority | SS_INTERRUPT_ALERT, m_applySearchRadius == SCRIPT_APPLY_SEARCH_RADIUS_ALWAYS, &checkFail))
 				return pTarget;
-			failedCheckReported = failedCheckReported || MayReportInappropriateTarget(checkFail);
+			MayReportInappropriateTarget(checkFail);
 		}
 		return NULL;
 	}
 
 	pTarget = NULL;
+	bool failedCheckReported = false;
 
 	if ( m_searchPolicy != SCRIPT_SEARCH_POLICY_CLASSNAME_ONLY )
 	{

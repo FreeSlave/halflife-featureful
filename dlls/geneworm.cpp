@@ -567,6 +567,7 @@ void CGeneWormSpawn::LaunchSpawn(const Vector& origin, const Vector& aim, int nS
 void CGeneWormSpawn::CreateWarpBeams(int side)
 {
 	TraceResult tr;
+	tr.pHit = nullptr;
 	float flDist = 1.0;
 
 	if (m_iBeams >= GENEWORM_SPAWN_BEAM_COUNT)

@@ -2062,7 +2062,8 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 			}
 		}
 	}
-	cd->vuser2.x = pl->m_suppressedCapabilities;
+	if (pl)
+		cd->vuser2.x = pl->m_suppressedCapabilities;
 #endif
 }
 

@@ -176,8 +176,6 @@ void CSniperrifle::Reload( void )
 	if (!CanReload())
 		return;
 
-	int iResult;
-
 	if ( InZoom() )
 	{
 		SecondaryAttack();
@@ -185,14 +183,14 @@ void CSniperrifle::Reload( void )
 
 	if (Emptied())
 	{
-		iResult = DefaultClipReload( SNIPER_RELOAD1, 80.0f / 34.0f );
+		DefaultClipReload( SNIPER_RELOAD1, 80.0f / 34.0f );
 		m_fInSpecialReload = 1;
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.25;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.25;
 	}
 	else
 	{
-		iResult = DefaultClipReload( SNIPER_RELOAD3, 2.25f );
+		DefaultClipReload( SNIPER_RELOAD3, 2.25f );
 	}
 }
 void CSniperrifle::WeaponIdle( void )

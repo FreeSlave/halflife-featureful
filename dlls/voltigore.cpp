@@ -211,6 +211,7 @@ void CChargedBolt::SetAttachment(CBaseAnimating* pAttachEnt, int iAttachIdx)
 void CChargedBolt::ArmBeam(int side)
 {
 	TraceResult tr;
+	tr.pHit = nullptr;
 	float flDist = 1.0;
 
 	if (m_iBeams >= VOLTIGORE_BEAM_COUNT)
@@ -571,6 +572,7 @@ void CVoltigore::DeathGibThink()
 			UTIL_MakeAimVectors(pev->angles);
 
 			TraceResult tr;
+			tr.pHit = nullptr;
 
 			const auto vecSrc = pev->origin + gpGlobals->v_forward * 32 + side * gpGlobals->v_right * 16 + gpGlobals->v_up * 36;
 
