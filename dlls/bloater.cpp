@@ -44,11 +44,6 @@ public:
 	int DefaultClassify( void );
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSnd( void );
-
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
@@ -79,24 +74,7 @@ void CBloater::SetYawSpeed( void )
 
 TakeDamageResult CBloater::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	PainSound();
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
-}
-
-void CBloater::PainSound( void )
-{
-}
-
-void CBloater::AlertSound( void )
-{
-}
-
-void CBloater::IdleSound( void )
-{
-}
-
-void CBloater::AttackSnd( void )
-{
 }
 
 //=========================================================
@@ -110,7 +88,6 @@ void CBloater::HandleAnimEvent( MonsterEvent_t *pEvent )
 		case BLOATER_AE_ATTACK_MELEE1:
 			{
 				// do stuff for this event.
-				AttackSnd();
 			}
 			break;
 		default:
@@ -192,7 +169,8 @@ public:
 
 	void IdleSound();
 	void AlertSound();
-	void PainSound();
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	float HearingSensitivity( void );
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib) override;
@@ -300,7 +278,6 @@ TYPEDESCRIPTION	CFloater::m_SaveData[] =
 {
 	DEFINE_FIELD( CFloater, m_leftGlow, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CFloater, m_rightGlow, FIELD_CLASSPTR ),
-	DEFINE_FIELD( CFloater, m_nextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CFloater, m_originalScale, FIELD_FLOAT ),
 	DEFINE_FIELD( CFloater, m_targetScale, FIELD_FLOAT ),
 	DEFINE_FIELD( CFloater, m_idleSoundTime, FIELD_TIME ),
@@ -595,7 +572,7 @@ void CFloater::PrescheduleThink()
 {
 	if (g_howlTime <= gpGlobals->time && IsMoving() && RANDOM_LONG(0,10) == 0)
 	{
-		if (gpGlobals->time > m_nextPainTime && !FBitSet(pev->spawnflags, SF_MONSTER_GAG))
+		if (gpGlobals->time > m_flNextPainTime && !FBitSet(pev->spawnflags, SF_MONSTER_GAG))
 		{
 			if (EmitSoundScript(howlSoundScript))
 			{
@@ -903,13 +880,16 @@ void CFloater::AlertSound()
 	EmitSoundScript(alertSoundScript);
 }
 
-void CFloater::PainSound( void )
+PainSoundRule CFloater::DefaultPainSoundRule()
 {
-	if( gpGlobals->time > m_nextPainTime )
-	{
-		m_nextPainTime = gpGlobals->time + 1.5;
-		EmitSoundScript(painSoundScript);
-	}
+	PainSoundRule rule;
+	rule.delay = 1.5f;
+	return rule;
+}
+
+void CFloater::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 float CFloater::HearingSensitivity()

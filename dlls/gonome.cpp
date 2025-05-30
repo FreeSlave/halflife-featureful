@@ -123,10 +123,11 @@ public:
 	void SetYawSpeed();
 	void HandleAnimEvent(MonsterEvent_t *pEvent);
 	int IgnoreConditions();
-	void IdleSound(void);
-	void PainSound(void);
-	void DeathSound(void);
-	void AlertSound(void);
+	void IdleSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void DeathSound() override;
+	void AlertSound() override;
 
 	bool CheckMeleeAttack2(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
@@ -368,11 +369,6 @@ TakeDamageResult CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAtta
 		flDamage *= 0.15;
 #endif
 	}
-
-	// HACK HACK -- until we fix this.
-	if( IsAlive() )
-		PainSound();
-
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
@@ -440,16 +436,23 @@ void CGonome::IdleSound(void)
 //=========================================================
 // PainSound 
 //=========================================================
-void CGonome::PainSound(void)
+PainSoundRule CGonome::DefaultPainSoundRule()
 {
-	if (RANDOM_LONG(0, 5) < 2)
-		EmitSoundScript(painSoundScript);
+	PainSoundRule rule;
+	rule.allowWhenDying = true;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
+}
+
+void CGonome::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================
 // AlertSound
 //=========================================================
-void CGonome::AlertSound(void)
+void CGonome::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -458,7 +461,7 @@ void CGonome::AlertSound(void)
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGonome::SetYawSpeed( void )
+void CGonome::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }

@@ -71,6 +71,8 @@ public:
 	bool CanPlaySequence( int interruptFlags ) { return true; }
 
 	int DefaultClassify( void );
+	PainSoundRule DefaultPainSoundRule();
+	void PainSound();
 
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_FIXED; }
 
@@ -101,8 +103,6 @@ public:
 
 	Vector m_vecPrevSound;
 	float m_flPrevSoundTime;
-
-	float m_painSoundTime;
 
 	static const NamedSoundScript fliesSoundScript;
 	static const NamedSoundScript squirmSoundScript;
@@ -213,7 +213,6 @@ TYPEDESCRIPTION	CTentacle::m_SaveData[] =
 	DEFINE_FIELD( CTentacle, m_flMaxYaw, FIELD_FLOAT ),
 	DEFINE_FIELD( CTentacle, m_vecPrevSound, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CTentacle, m_flPrevSoundTime, FIELD_TIME ),
-	DEFINE_FIELD( CTentacle, m_painSoundTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CTentacle, CBaseMonster )
@@ -988,11 +987,7 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 
 TakeDamageResult CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if( m_painSoundTime < gpGlobals->time )
-	{
-		EmitSoundScript(painSoundScript);
-		m_painSoundTime = gpGlobals->time + RANDOM_FLOAT( 2.5, 4 );
-	}
+	PainReaction(damageInfo);
 	if( damageInfo.damage > pev->health )
 	{
 		pev->health = 1;
@@ -1002,6 +997,17 @@ TakeDamageResult CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevA
 		pev->health -= damageInfo.damage;
 	}
 	return TakeDamageResult().SetTookDamageToHealth();
+}
+
+PainSoundRule CTentacle::DefaultPainSoundRule()
+{
+	PainSoundRule rule;
+	rule.delay = FloatRange{2.5f, 4.0f};
+	return rule;
+}
+void CTentacle::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 KilledResult CTentacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )

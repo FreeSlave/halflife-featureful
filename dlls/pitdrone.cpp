@@ -226,10 +226,10 @@ public:
 
 	bool CheckMeleeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
-	void IdleSound(void);
-	void PainSound(void);
-	void AlertSound(void);
-	void DeathSound(void);
+	void IdleSound() override;
+	void PainSound() override;
+	void AlertSound() override;
+	void DeathSound() override;
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 	void BodyChange(int horns);
@@ -686,7 +686,7 @@ void CPitdrone::Precache()
 // IdleSound
 //=========================================================
 
-void CPitdrone::IdleSound(void)
+void CPitdrone::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -694,7 +694,7 @@ void CPitdrone::IdleSound(void)
 //=========================================================
 // PainSound
 //=========================================================
-void CPitdrone::PainSound(void)
+void CPitdrone::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -702,14 +702,14 @@ void CPitdrone::PainSound(void)
 //=========================================================
 // AlertSound
 //=========================================================
-void CPitdrone::AlertSound(void)
+void CPitdrone::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
 //=========================================================
 // DeathSound
 //=========================================================
-void CPitdrone::DeathSound(void)
+void CPitdrone::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

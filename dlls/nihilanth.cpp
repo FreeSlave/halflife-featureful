@@ -72,8 +72,9 @@ public:
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
-	void PainSound( void );
-	void DeathSound( void );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void DeathSound() override;
 
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
 
@@ -95,8 +96,6 @@ public:
 	// x_teleattack1.wav	the looping sound of the teleport attack ball.
 
 	float m_flForce;
-
-	float m_flNextPainSound;
 
 	Vector m_velocity;
 	Vector m_avelocity;
@@ -147,7 +146,6 @@ LINK_ENTITY_TO_CLASS( monster_nihilanth, CNihilanth )
 TYPEDESCRIPTION	CNihilanth::m_SaveData[] =
 {
 	DEFINE_FIELD( CNihilanth, m_flForce, FIELD_FLOAT ),
-	DEFINE_FIELD( CNihilanth, m_flNextPainSound, FIELD_TIME ),
 	DEFINE_FIELD( CNihilanth, m_velocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CNihilanth, m_avelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CNihilanth, m_vecTarget, FIELD_VECTOR ),
@@ -525,13 +523,15 @@ void CNihilanth::UpdateOnRemove()
 	}
 }
 
-void CNihilanth::PainSound( void )
+PainSoundRule CNihilanth::DefaultPainSoundRule()
 {
-	if( m_flNextPainSound > gpGlobals->time )
-		return;
+	PainSoundRule rule;
+	rule.delay = FloatRange{2, 5};
+	return rule;
+}
 
-	m_flNextPainSound = gpGlobals->time + RANDOM_FLOAT( 2, 5 );
-
+void CNihilanth::PainSound()
+{
 	if( pev->health > gSkillData.nihilanthHealth / 2 )
 	{
 		EmitSoundScript(painLaughSoundScript);
@@ -542,7 +542,7 @@ void CNihilanth::PainSound( void )
 	}
 }
 
-void CNihilanth::DeathSound( void )
+void CNihilanth::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

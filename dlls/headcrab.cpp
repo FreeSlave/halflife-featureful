@@ -87,10 +87,10 @@ public:
 	void EXPORT LeapTouch ( CBaseEntity *pOther );
 	Vector Center( void );
 	Vector BodyTarget( const Vector &posSrc );
-	void PainSound( void );
-	void DeathSound( void );
-	void IdleSound( void );
-	void AlertSound( void );
+	void PainSound() override;
+	void DeathSound() override;
+	void IdleSound() override;
+	void AlertSound() override;
 	void PrescheduleThink( void );
 	int  DefaultClassify ( void );
 	const char* DefaultDisplayName() { return "Headcrab"; }
@@ -484,7 +484,7 @@ DamageInfo CHeadCrab::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvar
 //=========================================================
 // IdleSound
 //=========================================================
-void CHeadCrab::IdleSound( void )
+void CHeadCrab::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -492,7 +492,7 @@ void CHeadCrab::IdleSound( void )
 //=========================================================
 // AlertSound 
 //=========================================================
-void CHeadCrab::AlertSound( void )
+void CHeadCrab::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -500,7 +500,7 @@ void CHeadCrab::AlertSound( void )
 //=========================================================
 // AlertSound 
 //=========================================================
-void CHeadCrab::PainSound( void )
+void CHeadCrab::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -508,7 +508,7 @@ void CHeadCrab::PainSound( void )
 //=========================================================
 // DeathSound 
 //=========================================================
-void CHeadCrab::DeathSound( void )
+void CHeadCrab::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -574,10 +574,10 @@ public:
 	void AlertSound() {
 		EmitSoundScript(alertSoundScript);
 	}
-	void PainSound() {
+	void PainSound() override {
 		EmitSoundScript(painSoundScript);
 	}
-	void DeathSound( void ) {
+	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
 protected:
@@ -687,10 +687,10 @@ public:
 		else
 			return CBaseMonster::ObjectCaps();
 	}
-	void PainSound(void);
-	void DeathSound(void);
-	void IdleSound(void);
-	void AlertSound(void);
+	void PainSound() override;
+	void DeathSound() override;
+	void IdleSound() override;
+	void AlertSound() override;
 	void MonsterThink(void);
 	void StartTask(Task_t* pTask);
 	bool ShouldFadeOnDeath() override;

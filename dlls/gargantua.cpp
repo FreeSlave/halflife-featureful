@@ -418,7 +418,6 @@ public:
 	const char* DefaultDisplayName() { return "Gargantua"; }
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;		// Swipe
@@ -442,6 +441,8 @@ public:
 
 	void PrescheduleThink( void );
 
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void OnDying();
 	void DeathEffect( void );
@@ -534,7 +535,6 @@ protected:
 	int		m_eyeBrightness;	// Brightness target
 	float		m_seeTime;		// Time to attack (when I see the enemy, I set this)
 	float		m_flameTime;		// Time of next flame attack
-	float		m_painSoundTime;	// Time of next pain sound
 	float		m_streakTime;		// streak timer (don't send too many)
 	float		m_flameX;		// Flame thrower aim
 	float		m_flameY;			
@@ -553,7 +553,6 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_FIELD( CGargantua, m_seeTime, FIELD_TIME ),
 	DEFINE_FIELD( CGargantua, m_flameTime, FIELD_TIME ),
 	DEFINE_FIELD( CGargantua, m_streakTime, FIELD_TIME ),
-	DEFINE_FIELD( CGargantua, m_painSoundTime, FIELD_TIME ),
 	DEFINE_ARRAY( CGargantua, m_pFlame, FIELD_CLASSPTR, 4 ),
 	DEFINE_FIELD( CGargantua, m_flameX, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
@@ -1124,28 +1123,6 @@ DamageInfo CGargantua::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars
 	return damageInfo;
 }
 
-void CGargantua::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
-{
-	if( !IsAlive() )
-	{
-		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
-		return;
-	}
-
-	//TODO: adjust for custom trace attack rules
-	// UNDONE: Hit group specific damage?
-	if( damageInfo.type & GARG_DAMAGE )
-	{
-		if( m_painSoundTime < gpGlobals->time )
-		{
-			EmitSoundScript(painSoundScript);
-			m_painSoundTime = gpGlobals->time + RANDOM_FLOAT( 2.5, 4 );
-		}
-	}
-
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
-}
-
 DamageInfo CGargantua::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
 	DamageInfo damageInfo = inputDamageInfo;
@@ -1159,6 +1136,19 @@ DamageInfo CGargantua::DefaultTransformDamageInfo(entvars_t *pevInflictor, entva
 	}
 
 	return damageInfo;
+}
+
+PainSoundRule CGargantua::DefaultPainSoundRule()
+{
+	PainSoundRule rule;
+	rule.delay = FloatRange{2.5f, 4.0f};
+	rule.allowWhenDying = true;
+	return rule;
+}
+
+void CGargantua::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 void CGargantua::DeathEffect( void )
@@ -1970,6 +1960,7 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void PainSound() override;
 	void DeathSound();
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override {
 		return inputDamageInfo;
@@ -1977,7 +1968,6 @@ public:
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
 		return inputDamageInfo;
 	}
-	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void SetObjectCollisionBox( void )
 	{
 		SetMyObjectCollisionBox(Vector( -32, -32, 0 ), Vector( 32, 32, 100 ));
@@ -2235,6 +2225,11 @@ void CBabyGargantua::HandleAnimEvent(MonsterEvent_t *pEvent)
 	}
 }
 
+void CBabyGargantua::PainSound()
+{
+	EmitSoundScript(painSoundScript);
+}
+
 void CBabyGargantua::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
@@ -2258,23 +2253,6 @@ float CBabyGargantua::StompAttackDamage()
 const char* CBabyGargantua::DefaultModel()
 {
 	return "models/babygarg.mdl";
-}
-
-void CBabyGargantua::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
-{
-	if( !IsFullyAlive() )
-	{
-		CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
-		return;
-	}
-
-	if( m_painSoundTime < gpGlobals->time )
-	{
-		EmitSoundScript(painSoundScript);
-		m_painSoundTime = gpGlobals->time + RANDOM_FLOAT( 2.5, 4 );
-	}
-
-	CFollowingMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 void CBabyGargantua::FootEffect()

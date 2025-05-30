@@ -1087,11 +1087,7 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 		return DeadTakeDamage( pevInflictor, pevAttacker, damageInfo );
 	}
 
-	if( pev->deadflag == DEAD_NO && damageInfo.damage > 0 )
-	{
-		// no pain sound during death animation.
-		PainSound();// "Ouch!"
-	}
+	PainReaction(damageInfo);
 
 	//!!!LATER - make armor consideration here!
 	float flTake = damageInfo.damage;
@@ -1214,6 +1210,27 @@ void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 		}
 
 		m_bForceConditionsGather = true;
+	}
+}
+
+void CBaseMonster::PainReaction(const DamageInfo &damageInfo)
+{
+	PainSoundRule painSoundRule = DefaultPainSoundRule();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		entTemplate->UpdatePainSoundRule(painSoundRule);
+	}
+
+	if (damageInfo.damage > painSoundRule.lowerBound)
+	{
+		bool allowPainSound = painSoundRule.allowWhenDying ? IsAlive() : pev->deadflag == DEAD_NO;
+		if (allowPainSound && (painSoundRule.delay == 0.0f || m_flNextPainTime <= gpGlobals->time) && (painSoundRule.chance == 1.0f || RANDOM_FLOAT(0, 1.0f) >= painSoundRule.chance))
+		{
+			PainSound();// "Ouch!"
+			m_flNextPainTime = gpGlobals->time + RandomizeNumberFromRange(painSoundRule.delay);
+		}
 	}
 }
 

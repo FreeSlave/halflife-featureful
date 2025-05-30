@@ -21,7 +21,13 @@ const char entities[] = R"(
 			},
 			"Civilian.Die": "Female.Die"
 		},
-		"speech_prefix": "FEM"
+		"speech_prefix": "FEM",
+		"pain": {
+			"delay": [0.5, 1.5],
+			"chance": 0.6,
+			"lower_bound_dmg": 0.1,
+			"allow_when_dying": true
+		}
 	},
 	"vort_friendly": {
 		"classify": "Player Ally",
@@ -142,6 +148,16 @@ TEST(EntityTemplates, Parse)
 		EXPECT_FALSE(femaleCiv->IsSizeForGrappleDefined());
 
 		EXPECT_STREQ(femaleCiv->SpeechPrefix(), "FEM");
+
+		EntTemplate::PainSoundRule rule = femaleCiv->GetPainSoundRule();
+		ASSERT_TRUE(rule.delay.has_value());
+		EXPECT_EQ(*rule.delay, FloatRange(0.5f, 1.5f));
+		ASSERT_TRUE(rule.chance.has_value());
+		EXPECT_EQ(*rule.chance, 0.6f);
+		ASSERT_TRUE(rule.lowerBound.has_value());
+		EXPECT_EQ(*rule.lowerBound, 0.1f);
+		EXPECT_FALSE(indeterminate(rule.allowWhenDying));
+		EXPECT_TRUE(rule.allowWhenDying);
 	}
 
 	{

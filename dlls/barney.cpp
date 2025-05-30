@@ -67,8 +67,8 @@ public:
 	Schedule_t *GetScheduleOfType( int Type );
 	Schedule_t *GetSchedule( void );
 
-	void DeathSound( void );
-	void PlayPainSound( void );
+	void DeathSound() override;
+	void PainSound() override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -473,7 +473,7 @@ void CBarney::KeyValue(KeyValueData *pkvd)
 //=========================================================
 // PainSound
 //=========================================================
-void CBarney::PlayPainSound( void )
+void CBarney::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -481,7 +481,7 @@ void CBarney::PlayPainSound( void )
 //=========================================================
 // DeathSound 
 //=========================================================
-void CBarney::DeathSound( void )
+void CBarney::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
@@ -712,10 +712,10 @@ public:
 	static constexpr const char* painSoundScript = "Otis.Pain";
 	static constexpr const char* dieSoundScript = "Otis.Die";
 
-	void DeathSound() {
+	void DeathSound() override {
 		EmitSoundScriptTalk(dieSoundScript);
 	}
-	void PlayPainSound() {
+	void PainSound() override {
 		EmitSoundScriptTalk(painSoundScript);
 	}
 };
@@ -902,8 +902,8 @@ public:
 	const char* DefaultDisplayName() { return "Barniel"; }
 	const char* ReverseRelationshipModel() { return NULL; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void DeathSound( void );
-	void PlayPainSound( void );
+	void DeathSound() override;
+	void PainSound() override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -1001,12 +1001,12 @@ void CBarniel::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
-void CBarniel::DeathSound( void )
+void CBarniel::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
 
-void CBarniel::PlayPainSound()
+void CBarniel::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -1069,8 +1069,8 @@ public:
 	int LookupActivity(int activity);
 	int DefaultToleranceLevel() { return TOLERANCE_AVERAGE; }
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
-	void DeathSound( void );
-	void PlayPainSound( void );
+	void DeathSound() override;
+	void PainSound() override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying();
@@ -1262,7 +1262,7 @@ void CKate::DeathSound( void )
 	EmitSoundScriptTalk(dieSoundScript);
 }
 
-void CKate::PlayPainSound()
+void CKate::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }

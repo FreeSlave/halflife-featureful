@@ -749,6 +749,26 @@ EntTemplate::TakeDamageRule EntTemplate::TakeDamageRule::FromJSON(const Value &v
 	return rule;
 }
 
+void EntTemplate::UpdatePainSoundRule(::PainSoundRule &rule) const
+{
+	if (_painSoundRule.delay.has_value())
+	{
+		rule.delay = *_painSoundRule.delay;
+	}
+	if (_painSoundRule.chance.has_value())
+	{
+		rule.chance = *_painSoundRule.chance;
+	}
+	if (_painSoundRule.lowerBound.has_value())
+	{
+		rule.lowerBound = *_painSoundRule.lowerBound;
+	}
+	if (!indeterminate(_painSoundRule.allowWhenDying))
+	{
+		rule.allowWhenDying = (bool)_painSoundRule.allowWhenDying;
+	}
+}
+
 bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonValue, const char* name, const Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
 {
 	const std::string templateName = name;
@@ -1192,6 +1212,15 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 
 		entTemplate.SetTraceAttackRules(std::move(traceAttackRules));
+	});
+
+	HandleJSONMember(value, "pain", [&entTemplate](const Value& value) {
+		EntTemplate::PainSoundRule rule = entTemplate.GetPainSoundRule();
+		UpdatePropertyFromJson(rule.delay, value, "delay");
+		UpdatePropertyFromJson(rule.chance, value, "chance");
+		UpdatePropertyFromJson(rule.lowerBound, value, "lower_bound_dmg");
+		UpdatePropertyFromJson(rule.allowWhenDying, value, "allow_when_dying");
+		entTemplate.SetPainSoundRule(rule);
 	});
 
 	_entTemplates[templateName] = entTemplate;

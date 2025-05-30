@@ -381,10 +381,11 @@ public:
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
-	void DeathSound( void );
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void AlertSound() override;
+	void IdleSound() override;
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 	bool EmitSoundScriptTalk(const char* name);
@@ -786,7 +787,7 @@ void CISlave::CallForHelp(float flDist, EHANDLE hEnemy, Vector &vecLocation )
 //=========================================================
 // ALertSound - scream
 //=========================================================
-void CISlave::AlertSound( void )
+void CISlave::AlertSound()
 {
 	if( m_hEnemy != 0 )
 	{
@@ -799,7 +800,7 @@ void CISlave::AlertSound( void )
 //=========================================================
 // IdleSound
 //=========================================================
-void CISlave::IdleSound( void )
+void CISlave::IdleSound()
 {
 	if( RANDOM_LONG( 0, 2 ) == 0 )
 	{
@@ -823,18 +824,22 @@ void CISlave::IdleSound( void )
 //=========================================================
 // PainSound
 //=========================================================
-void CISlave::PainSound( void )
+PainSoundRule CISlave::DefaultPainSoundRule()
 {
-	if( RANDOM_LONG( 0, 2 ) == 0 )
-	{
-		EmitSoundScriptTalk(painSoundScript);
-	}
+	PainSoundRule rule;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
+}
+
+void CISlave::PainSound()
+{
+	EmitSoundScriptTalk(painSoundScript);
 }
 
 //=========================================================
 // DieSound
 //=========================================================
-void CISlave::DeathSound( void )
+void CISlave::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }

@@ -88,10 +88,11 @@ public:
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	void StartTask( Task_t *pTask );
-	void AlertSound( void );
-	void DeathSound( void );
-	void PainSound( void );
-	void AttackSound( void );
+	void AlertSound() override;
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void AttackSound();
 	void PrescheduleThink( void );
 	float HeadHitGroupDamageMultiplier();
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
@@ -128,8 +129,6 @@ public:
 	bool m_fCanHornetAttack;
 	float m_flNextHornetAttackCheck;
 
-	float m_flNextPainTime;
-
 	// three hacky fields for speech stuff. These don't really need to be saved.
 	float m_flNextSpeakTime;
 	float m_flNextWordTime;
@@ -144,7 +143,6 @@ TYPEDESCRIPTION	CAGrunt::m_SaveData[] =
 {
 	DEFINE_FIELD( CAGrunt, m_fCanHornetAttack, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CAGrunt, m_flNextHornetAttackCheck, FIELD_TIME ),
-	DEFINE_FIELD( CAGrunt, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CAGrunt, m_flNextSpeakTime, FIELD_TIME ),
 	DEFINE_FIELD( CAGrunt, m_flNextWordTime, FIELD_TIME ),
 	DEFINE_FIELD( CAGrunt, m_iLastWord, FIELD_INTEGER ),
@@ -379,7 +377,7 @@ void CAGrunt::PrescheduleThink( void )
 //=========================================================
 // DieSound
 //=========================================================
-void CAGrunt::DeathSound( void )
+void CAGrunt::DeathSound()
 {
 	StopTalking();
 	EmitSoundScript(dieSoundScript);
@@ -388,7 +386,7 @@ void CAGrunt::DeathSound( void )
 //=========================================================
 // AlertSound
 //=========================================================
-void CAGrunt::AlertSound( void )
+void CAGrunt::AlertSound()
 {
 	StopTalking();
 	EmitSoundScript(alertSoundScript);
@@ -397,7 +395,7 @@ void CAGrunt::AlertSound( void )
 //=========================================================
 // AttackSound
 //=========================================================
-void CAGrunt::AttackSound( void )
+void CAGrunt::AttackSound()
 {
 	StopTalking();
 	EmitSoundScript(attackSoundScript);
@@ -406,14 +404,15 @@ void CAGrunt::AttackSound( void )
 //=========================================================
 // PainSound
 //=========================================================
-void CAGrunt::PainSound( void )
+PainSoundRule CAGrunt::DefaultPainSoundRule()
 {
-	if( m_flNextPainTime > gpGlobals->time )
-	{
-		return;
-	}
-	m_flNextPainTime = gpGlobals->time + 0.6f;
+	PainSoundRule rule;
+	rule.delay = 0.6f;
+	return rule;
+}
 
+void CAGrunt::PainSound()
+{
 	StopTalking();
 	EmitSoundScript(painSoundScript);
 }

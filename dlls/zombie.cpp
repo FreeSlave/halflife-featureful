@@ -50,10 +50,11 @@ public:
 
 	float m_flNextFlinch;
 
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSound( void );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void AlertSound() override;
+	void IdleSound() override;
+	void AttackSound();
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -140,30 +141,33 @@ TakeDamageResult CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 		flDamage *= 0.3f;
 #endif
 	}
-
-	// HACK HACK -- until we fix this.
-	if( IsAlive() )
-		PainSound();
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
-void CZombie::PainSound( void )
+PainSoundRule CZombie::DefaultPainSoundRule()
 {
-	if( RANDOM_LONG( 0, 5 ) < 2 )
-		EmitSoundScript(painSoundScript);
+	PainSoundRule rule;
+	rule.allowWhenDying = true;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
 }
 
-void CZombie::AlertSound( void )
+void CZombie::PainSound()
+{
+	EmitSoundScript(painSoundScript);
+}
+
+void CZombie::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
 
-void CZombie::IdleSound( void )
+void CZombie::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
 
-void CZombie::AttackSound( void )
+void CZombie::AttackSound()
 {
 	EmitSoundScript(attackSoundScript);
 }

@@ -84,9 +84,10 @@ public:
 	void RunTask( Task_t *pTask );
 	void PlayUseSentence();
 	void PlayUnUseSentence();
-	void DeathSound( void );
-	void IdleSound( void );
-	void PainSound( void );
+	void DeathSound() override;
+	void IdleSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	void OnDying();
 	CUSTOM_SCHEDULES
 
@@ -112,8 +113,6 @@ public:
 
 	int m_iFrustration;
 	float m_nextWalkFootstep;
-
-	float m_flNextPainTime;
 
 	int m_iShell;
 
@@ -141,7 +140,6 @@ TYPEDESCRIPTION	CHAssassin::m_SaveData[] =
 
 	DEFINE_FIELD( CHAssassin, m_iTargetRanderamt, FIELD_INTEGER ),
 	DEFINE_FIELD( CHAssassin, m_iFrustration, FIELD_INTEGER ),
-	DEFINE_FIELD( CHAssassin, m_flNextPainTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CHAssassin, CFollowingMonster )
@@ -195,7 +193,7 @@ void CHAssassin::PlayUnUseSentence()
 //=========================================================
 // DieSound
 //=========================================================
-void CHAssassin::DeathSound( void )
+void CHAssassin::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -203,17 +201,20 @@ void CHAssassin::DeathSound( void )
 //=========================================================
 // IdleSound
 //=========================================================
-void CHAssassin::IdleSound( void )
+void CHAssassin::IdleSound()
 {
 }
 
-void CHAssassin::PainSound( void )
+PainSoundRule CHAssassin::DefaultPainSoundRule()
 {
-	if( gpGlobals->time > m_flNextPainTime )
-	{
-		EmitSoundScript(painSoundScript);
-		m_flNextPainTime = gpGlobals->time + 1;
-	}
+	PainSoundRule rule;
+	rule.delay = 1.0f;
+	return rule;
+}
+
+void CHAssassin::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 void CHAssassin::OnDying()

@@ -62,8 +62,9 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 
-	void DeathSound( void );
-	void PainSound( void );
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	void Shoot();
 	void FinishReload();
 
@@ -82,7 +83,6 @@ public:
 
 	CUSTOM_SCHEDULES
 
-	float m_flNextPainTime;
 	EHANDLE m_lastOccluder;
 	bool m_firing;
 
@@ -104,7 +104,6 @@ LINK_ENTITY_TO_CLASS( monster_hwgrunt, CHWGrunt )
 
 TYPEDESCRIPTION	CHWGrunt::m_SaveData[] =
 {
-	DEFINE_FIELD( CHWGrunt, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CHWGrunt, m_lastOccluder, FIELD_EHANDLE ),
 };
 
@@ -391,14 +390,16 @@ void CHWGrunt::DeathSound()
 	EmitSoundScript(dieSoundScript);
 }
 
-void CHWGrunt::PainSound( void )
+PainSoundRule CHWGrunt::DefaultPainSoundRule()
 {
-	if( gpGlobals->time > m_flNextPainTime )
-	{
-		EmitSoundScript(painSoundScript);
+	PainSoundRule rule;
+	rule.delay = 1.0f;
+	return rule;
+}
 
-		m_flNextPainTime = gpGlobals->time + 1;
-	}
+void CHWGrunt::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 void CHWGrunt::Shoot()

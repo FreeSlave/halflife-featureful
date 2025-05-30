@@ -61,7 +61,6 @@ TYPEDESCRIPTION	CTalkMonster::m_SaveData[] =
 	DEFINE_FIELD( CTalkMonster, m_iPlayerHits, FIELD_INTEGER ),
 	DEFINE_FIELD( CTalkMonster, m_flStopLookTime, FIELD_TIME ),
 	DEFINE_FIELD( CTalkMonster, m_flNextFlinch, FIELD_TIME ),
-	DEFINE_FIELD( CTalkMonster, m_painTime, FIELD_TIME ),
 	DEFINE_FIELD( CTalkMonster, m_allowUseScriptedSentence, FIELD_BOOLEAN ),
 };
 
@@ -987,14 +986,11 @@ bool CTalkMonster::CanPlaySentence( bool fDisregardState )
 	return FOkToSpeak(); 
 }
 
-void CTalkMonster::PainSound()
+PainSoundRule CTalkMonster::DefaultPainSoundRule()
 {
-	if( gpGlobals->time < m_painTime )
-		return;
-
-	m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5f, 0.75f );
-
-	PlayPainSound();
+	PainSoundRule rule;
+	rule.delay = FloatRange{0.5f, 0.75f};
+	return rule;
 }
 
 //=========================================================

@@ -48,10 +48,11 @@ public:
 	bool FVisible(CBaseEntity* pEntity, CBaseEntity** ppSightBlocker = nullptr) override;
 	bool FVisible(const Vector& vecOrigin, CBaseEntity** ppSightBlocker = nullptr) override;
 
-	void IdleSound(void);
-	void AlertSound(void);
-	void DeathSound(void);
-	void PainSound(void);
+	void IdleSound() override;
+	void AlertSound() override;
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 
 	int		Save(CSave &save);
 	int		Restore(CRestore &restore);
@@ -82,9 +83,6 @@ public:
 	void BeamEffect(TraceResult& tr);
 
 	int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-
-	//
-	float m_flNextPainSound;
 
 	Vector m_vecTarget;
 	Vector m_posTarget;
@@ -179,8 +177,6 @@ LINK_ENTITY_TO_CLASS(monster_pitworm_up, CPitWorm)
 //=========================================================
 TYPEDESCRIPTION	CPitWorm::m_SaveData[] =
 {
-	DEFINE_FIELD(CPitWorm, m_flNextPainSound, FIELD_TIME),
-
 	DEFINE_FIELD(CPitWorm, m_vecTarget, FIELD_POSITION_VECTOR),
 	DEFINE_FIELD(CPitWorm, m_posTarget, FIELD_POSITION_VECTOR),
 	DEFINE_FIELD(CPitWorm, m_vecDesired, FIELD_POSITION_VECTOR),
@@ -472,13 +468,16 @@ void CPitWorm::DeathSound(void)
 	EmitSoundScript(dieSoundScript);
 }
 
-void CPitWorm::PainSound(void)
+PainSoundRule CPitWorm::DefaultPainSoundRule()
 {
-	if (m_flNextPainSound <= gpGlobals->time)
-	{
-		m_flNextPainSound = gpGlobals->time + RANDOM_LONG(2, 5);
-		EmitSoundScript(painSoundScript);
-	}
+	PainSoundRule rule;
+	rule.delay = FloatRange{2, 5};
+	return rule;
+}
+
+void CPitWorm::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================

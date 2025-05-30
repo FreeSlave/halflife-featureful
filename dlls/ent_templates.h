@@ -33,6 +33,14 @@ struct SquadCapabilities
 	tribool requireSameEntTemplate;
 };
 
+struct PainSoundRule
+{
+	FloatRange delay = 0.0f;
+	float chance = 1.0f;
+	float lowerBound = 0.0f;
+	bool allowWhenDying = false;
+};
+
 enum class DamageTypeMatch
 {
 	INVALID = -1,
@@ -63,6 +71,14 @@ enum class ValueModifier
 struct EntTemplate
 {
 public:
+	struct PainSoundRule
+	{
+		optional<FloatRange> delay;
+		optional<float> chance;
+		optional<float> lowerBound;
+		tribool allowWhenDying;
+	};
+
 	struct DamageInfo
 	{
 		enum
@@ -395,6 +411,13 @@ public:
 		return _takeDamageRulesDefined;
 	}
 
+	PainSoundRule GetPainSoundRule() const {
+		return _painSoundRule;
+	}
+	void SetPainSoundRule(const PainSoundRule& rule) {
+		_painSoundRule = rule;
+	}
+	void UpdatePainSoundRule(::PainSoundRule& rule) const;
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
@@ -432,6 +455,8 @@ private:
 
 	std::vector<TakeDamageRule> _takeDamageRules;
 	bool _takeDamageRulesDefined = false;
+
+	PainSoundRule _painSoundRule;
 };
 
 class EntTemplateSystem : public JSONConfig

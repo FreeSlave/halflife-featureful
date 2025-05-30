@@ -43,8 +43,8 @@ public:
 	void PlayUseSentence();
 	void PlayUnUseSentence();
 
-	void DeathSound(void);
-	void PainSound(void);
+	void DeathSound() override;
+	void PainSound() override;
 
 	const char* DefaultGibModel() {
 		return "models/computergibs.mdl";

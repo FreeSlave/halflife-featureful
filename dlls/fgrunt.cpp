@@ -180,10 +180,10 @@ public:
 	Schedule_t *PrioritizedSchedule();
 	Schedule_t *GetReloadSchedule();
 
-	void AlertSound( void );
-	void DeathSound( void );
-	void PlayPainSound( void );
-	void IdleSound( void );
+	void AlertSound() override;
+	void DeathSound() override;
+	void PainSound() override;
+	void IdleSound() override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -353,7 +353,7 @@ public:
 	static constexpr const char* desertEagleSoundScript = "MedicGrunt.DesertEagle";
 	static constexpr const char* desertEagleReloadSoundScript = "MedicGrunt.ReloadDesertEagle";
 
-	void PlayPainSound() { EmitSoundScriptTalk(painSoundScript); }
+	void PainSound() { EmitSoundScriptTalk(painSoundScript); }
 	void DeathSound() { EmitSoundScriptTalk(dieSoundScript); }
 	void PlayCallForMedic() { EmitSoundScriptTalk(callMedicSoundScript); }
 
@@ -2058,10 +2058,7 @@ void CHFGrunt::SpeakCaughtEnemy()
 	}
 }
 
-//=========================================================
-// PainSound
-//=========================================================
-void CHFGrunt::PlayPainSound( void )
+void CHFGrunt::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -2074,10 +2071,7 @@ void CHFGrunt::AlertSound()
 	}
 }
 
-//=========================================================
-// DeathSound
-//=========================================================
-void CHFGrunt :: DeathSound ( void )
+void CHFGrunt::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
@@ -2122,9 +2116,6 @@ void CHFGrunt::IdleSound()
 	}
 }
 
-//=========================================================
-// TraceAttack - make sure we're not taking it in the helmet
-//=========================================================
 DamageInfo CHFGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
 	DamageInfo damageInfo = inputDamageInfo;
@@ -2957,7 +2948,7 @@ public:
 	static constexpr const char* desertEagleSoundScript = "TorchGrunt.DesertEagle";
 	static constexpr const char* desertEagleReloadSoundScript = "TorchGrunt.ReloadDesertEagle";
 
-	void PlayPainSound() { EmitSoundScriptTalk(painSoundScript); }
+	void PainSound() { EmitSoundScriptTalk(painSoundScript); }
 	void DeathSound() { EmitSoundScriptTalk(dieSoundScript); }
 	void PlayCallForMedic() { EmitSoundScriptTalk(callMedicSoundScript); }
 

@@ -119,12 +119,12 @@ public:
 	static const NamedSoundScript attackSoundScript;
 	static const NamedSoundScript biteSoundScript;
 
-	void IdleSound( void );
-	void AlertSound( void );
-	void AttackSound( void );
-	void BiteSound( void );
-	void DeathSound( void );
-	void PainSound( void );
+	void IdleSound() override;
+	void AlertSound() override;
+	void AttackSound();
+	void BiteSound();
+	void DeathSound() override;
+	void PainSound() override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_ichthyosaur, CIchthyosaur )
@@ -201,32 +201,32 @@ const NamedSoundScript CIchthyosaur::biteSoundScript = {
 	"Ichthyosaur.Bite"
 };
 
-void CIchthyosaur::IdleSound( void )
+void CIchthyosaur::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
 
-void CIchthyosaur::AlertSound( void ) 
+void CIchthyosaur::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
 
-void CIchthyosaur::AttackSound( void )
+void CIchthyosaur::AttackSound()
 {
 	EmitSoundScript(attackSoundScript);
 }
 
-void CIchthyosaur::BiteSound( void ) 
+void CIchthyosaur::BiteSound()
 {
 	EmitSoundScript(biteSoundScript);
 }
 
-void CIchthyosaur::DeathSound( void ) 
+void CIchthyosaur::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
 
-void CIchthyosaur::PainSound( void )	
+void CIchthyosaur::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }

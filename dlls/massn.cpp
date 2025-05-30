@@ -76,9 +76,9 @@ public:
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
 	void MonsterInit();
 
-	void DeathSound(void);
-	void PlayPainSound();
-	void IdleSound(void);
+	void DeathSound() override;
+	void PainSound() override;
+	void IdleSound() override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
 		return inputDamageInfo;
@@ -368,7 +368,7 @@ void CMassn::Precache()
 //=========================================================
 // PainSound
 //=========================================================
-void CMassn::PlayPainSound()
+void CMassn::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -376,7 +376,7 @@ void CMassn::PlayPainSound()
 //=========================================================
 // DeathSound
 //=========================================================
-void CMassn::DeathSound(void)
+void CMassn::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

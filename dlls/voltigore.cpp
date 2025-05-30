@@ -371,11 +371,11 @@ public:
 	virtual int  DefaultClassify(void);
 	const char* DefaultDisplayName() { return "Voltigore"; }
 	virtual void HandleAnimEvent(MonsterEvent_t *pEvent);
-	virtual void IdleSound();
-	virtual void PainSound();
-	virtual void PlayPainSound();
-	virtual void DeathSound();
-	virtual void AlertSound();
+	void IdleSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void DeathSound() override;
+	void AlertSound() override;
 	virtual void StartTask(Task_t *pTask);
 	virtual bool CheckMeleeAttack1(float flDot, float flDist) override;
 	virtual bool CheckRangeAttack1(float flDot, float flDist) override;
@@ -411,7 +411,6 @@ public:
 
 	float m_flNextBeamAttackCheck; // next time the voltigore can use the spit attack.
 	EHANDLE m_pBeam[3];
-	float m_flNextPainTime;
 	EHANDLE m_pChargedBolt;
 
 	static const NamedSoundScript idleSoundScript;
@@ -439,7 +438,6 @@ TYPEDESCRIPTION	CVoltigore::m_SaveData[] =
 {
 	DEFINE_FIELD(CVoltigore, m_flNextBeamAttackCheck, FIELD_TIME),
 	DEFINE_ARRAY(CVoltigore, m_pBeam, FIELD_EHANDLE, 3),
-	DEFINE_FIELD(CVoltigore, m_flNextPainTime, FIELD_TIME),
 	DEFINE_FIELD(CVoltigore, m_pChargedBolt, FIELD_EHANDLE),
 };
 
@@ -649,7 +647,7 @@ int	CVoltigore::DefaultClassify(void)
 //=========================================================
 // IdleSound 
 //=========================================================
-void CVoltigore::IdleSound(void)
+void CVoltigore::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -657,16 +655,14 @@ void CVoltigore::IdleSound(void)
 //=========================================================
 // PainSound 
 //=========================================================
-void CVoltigore::PainSound(void)
+PainSoundRule CVoltigore::DefaultPainSoundRule()
 {
-	if (m_flNextPainTime > gpGlobals->time)
-		return;
-
-	PlayPainSound();
-	m_flNextPainTime = gpGlobals->time + 0.6;
+	PainSoundRule rule;
+	rule.delay = 0.6f;
+	return rule;
 }
 
-void CVoltigore::PlayPainSound()
+void CVoltigore::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -674,7 +670,7 @@ void CVoltigore::PlayPainSound()
 //=========================================================
 // AlertSound
 //=========================================================
-void CVoltigore::AlertSound(void)
+void CVoltigore::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -870,7 +866,7 @@ void CVoltigore::Precache()
 //=========================================================
 // DeathSound
 //=========================================================
-void CVoltigore::DeathSound(void)
+void CVoltigore::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -1141,7 +1137,7 @@ public:
 
 	void IdleSound();
 	void AlertSound();
-	void PlayPainSound();
+	void PainSound();
 	void DeathSound();
 	void AttackSound();
 
@@ -1376,7 +1372,7 @@ void CBabyVoltigore::AlertSound()
 	EmitSoundScript(idleSoundScript);
 }
 
-void CBabyVoltigore::PlayPainSound()
+void CBabyVoltigore::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }

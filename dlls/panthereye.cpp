@@ -50,17 +50,21 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript attackSoundScript;
 
-	void IdleSound() {
+	void IdleSound() override {
 		EmitSoundScript(idleSoundScript);
 	}
-	void AlertSound() {
+	void AlertSound() override {
 		EmitSoundScript(alertSoundScript);
 	}
-	void PainSound() {
-		if(RANDOM_LONG(0, 5) < 2)
-			EmitSoundScript(painSoundScript);
+	PainSoundRule DefaultPainSoundRule() override {
+		PainSoundRule rule;
+		rule.chance = 1.0f/ 3.0f;
+		return rule;
 	}
-	void DeathSound() {
+	void PainSound() override {
+		EmitSoundScript(painSoundScript);
+	}
+	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
 };

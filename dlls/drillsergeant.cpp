@@ -20,8 +20,8 @@ public:
 	void SetYawSpeed(void);
 	int DefaultISoundMask(void);
 	int DefaultClassify(void);
-	void DeathSound( void );
-	void PlayPainSound( void );
+	void DeathSound() override;
+	void PainSound() override;
 
 	Schedule_t *GetSchedule( void );
 
@@ -115,7 +115,7 @@ int CDrillSergeant::DefaultClassify(void)
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
 
-void CDrillSergeant::PlayPainSound( void )
+void CDrillSergeant::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -123,7 +123,7 @@ void CDrillSergeant::PlayPainSound( void )
 //=========================================================
 // DeathSound
 //=========================================================
-void CDrillSergeant::DeathSound( void )
+void CDrillSergeant::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }

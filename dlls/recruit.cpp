@@ -19,8 +19,8 @@ public:
 	void SetYawSpeed(void);
 	int DefaultISoundMask(void);
 	int DefaultClassify(void);
-	void DeathSound( void );
-	void PlayPainSound( void );
+	void DeathSound() override;
+	void PainSound() override;
 
 	Schedule_t *GetSchedule( void );
 
@@ -114,15 +114,12 @@ int CRecruit::DefaultClassify(void)
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
 
-void CRecruit::PlayPainSound( void )
+void CRecruit::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
 
-//=========================================================
-// DeathSound
-//=========================================================
-void CRecruit::DeathSound( void )
+void CRecruit::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }

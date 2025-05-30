@@ -83,11 +83,12 @@ public:
 	float m_flShootTime;
 	float m_flShootEnd;
 
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSound( void );
-	void DeathSound( void );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void AlertSound() override;
+	void IdleSound() override;
+	void AttackSound();
+	void DeathSound() override;
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -102,7 +103,6 @@ public:
 	static const NamedVisual headShootLightVisual;
 	static const NamedVisual energyBallLightVisual;
 
-	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying();
 	void GibMonster( void );
 
@@ -218,14 +218,6 @@ void CController::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-TakeDamageResult CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
-{
-	// HACK HACK -- until we fix this.
-	if( IsAlive() )
-		PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
-}
-
 void CController::OnDying()
 {
 	// shut off balls
@@ -256,28 +248,35 @@ void CController::GibMonster( void )
 	CSquadMonster::GibMonster();
 }
 
-void CController::PainSound( void )
+PainSoundRule CController::DefaultPainSoundRule()
 {
-	if( RANDOM_LONG( 0, 5 ) < 2 )
-		EmitSoundScript(painSoundScript);
+	PainSoundRule rule;
+	rule.allowWhenDying = true;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
 }
 
-void CController::AlertSound( void )
+void CController::PainSound()
+{
+	EmitSoundScript(painSoundScript);
+}
+
+void CController::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
 
-void CController::IdleSound( void )
+void CController::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
 
-void CController::AttackSound( void )
+void CController::AttackSound()
 {
 	EmitSoundScript(attackSoundScript);
 }
 
-void CController::DeathSound( void )
+void CController::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

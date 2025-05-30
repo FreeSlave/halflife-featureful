@@ -89,8 +89,8 @@ public:
 	bool CheckRangeAttack2(float flDot, float flDist) override;
 	void HandleAnimEvent(MonsterEvent_t *pEvent);
 
-	void DeathSound(void);
-	void PlayPainSound(void);
+	void DeathSound() override;
+	void PainSound() override;
 	void GibMonster(void);
 	void PlayUseSentence();
 	void PlayUnUseSentence();
@@ -518,7 +518,7 @@ void CShockTrooper::Precache()
 //=========================================================
 // PainSound
 //=========================================================
-void CShockTrooper::PlayPainSound(void)
+void CShockTrooper::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -526,7 +526,7 @@ void CShockTrooper::PlayPainSound(void)
 //=========================================================
 // DeathSound
 //=========================================================
-void CShockTrooper::DeathSound(void)
+void CShockTrooper::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

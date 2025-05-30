@@ -43,7 +43,7 @@ public:
 	void EXPORT WaitTillDead( void );
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
-	void PainSound();
+	void PainSound() override;
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];

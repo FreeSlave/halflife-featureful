@@ -129,8 +129,8 @@ public:
 		return FOLLOW_FAIL_STOP;
 	}
 
-	void DeathSound( void );
-	void PlayPainSound();
+	void DeathSound() override;
+	void PainSound() override;
 
 	const char* DefaultSentenceGroup(int group);
 
@@ -891,7 +891,7 @@ int CScientist::DefaultISoundMask( void )
 //=========================================================
 // PainSound
 //=========================================================
-void CScientist::PlayPainSound()
+void CScientist::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -899,7 +899,7 @@ void CScientist::PlayPainSound()
 //=========================================================
 // DeathSound 
 //=========================================================
-void CScientist::DeathSound( void )
+void CScientist::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
@@ -1561,10 +1561,10 @@ public:
 	static constexpr const char* painSoundScript = "CleansuitScientist.Pain";
 	static constexpr const char* dieSoundScript = "CleansuitScientist.Die";
 
-	void PlayPainSound() {
+	void PainSound() override {
 		EmitSoundScriptTalk(painSoundScript);
 	}
-	void DeathSound() {
+	void DeathSound() override {
 		EmitSoundScriptTalk(dieSoundScript);
 	}
 };
@@ -1653,8 +1653,8 @@ public:
 	const char* DefaultDisplayName() { return "Dr. Rosenberg"; }
 	const char* DefaultSentenceGroup(int group);
 	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
-	void PlayPainSound();
-	void DeathSound();
+	void PainSound() override;
+	void DeathSound() override;
 
 #if FEATURE_ROSENBERG_DECAY
 	bool AbleToHeal() { return false; }
@@ -1743,7 +1743,7 @@ const char* CRosenberg::DefaultSentenceGroup(int group)
 	}
 }
 
-void CRosenberg::PlayPainSound()
+void CRosenberg::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }
@@ -1899,8 +1899,8 @@ public:
 	const char* DefaultDisplayName() { return "Richard Keller"; }
 	const char* DefaultSentenceGroup(int group);
 	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
-	void PlayPainSound();
-	void DeathSound();
+	void PainSound() override;
+	void DeathSound() override;
 
 	bool AbleToHeal() { return false; }
 
@@ -1987,7 +1987,7 @@ const char* CKeller::DefaultSentenceGroup(int group)
 	}
 }
 
-void CKeller::PlayPainSound()
+void CKeller::PainSound()
 {
 	EmitSoundScriptTalk(painSoundScript);
 }

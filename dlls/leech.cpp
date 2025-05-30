@@ -88,9 +88,9 @@ public:
 	}
 
 	void AttackSound();
-	void AlertSound();
-	void PainSound();
-	void DeathSound();
+	void AlertSound() override;
+	void PainSound() override;
+	void DeathSound() override;
 	void UpdateMotion( void );
 	float ObstacleDistance( CBaseEntity *pTarget );
 	void MakeVectors( void );
@@ -279,7 +279,7 @@ int CLeech::IRelationship( CBaseEntity *pTarget )
 	return CBaseMonster::IRelationship( pTarget );
 }
 
-void CLeech::AttackSound( void )
+void CLeech::AttackSound()
 {
 	if( gpGlobals->time > m_attackSoundTime )
 	{
@@ -288,7 +288,7 @@ void CLeech::AttackSound( void )
 	}
 }
 
-void CLeech::AlertSound( void )
+void CLeech::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }

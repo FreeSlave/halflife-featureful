@@ -742,6 +742,25 @@ constexpr const char definitions[] = R"(
 				"items": {
 					"$ref": "#/trace_attack_rule"
 				}
+			},
+			"pain": {
+				"type": "object",
+				"properties": {
+					"delay": {
+						"$ref": "#/range"
+					},
+					"chance": {
+						"type": "number",
+						"exclusiveMinimum": 0.0,
+						"maximum": 1.0,
+					},
+					"lower_bound_dmg": {
+						"type": "number"
+					},
+					"allow_when_dying": {
+						"type": "boolean"
+					}
+				}
 			}
 		},
 		"additionalProperties": false
@@ -930,28 +949,6 @@ bool UpdatePropertyFromJson(float& f, const Value& jsonValue, const char* key)
 	if (it != jsonValue.MemberEnd())
 	{
 		f = it->value.GetFloat();
-		return true;
-	}
-	return false;
-}
-
-bool UpdatePropertyFromJson(optional<float>& f, const Value& jsonValue, const char* key)
-{
-	auto it = jsonValue.FindMember(key);
-	if (it != jsonValue.MemberEnd())
-	{
-		f = it->value.GetFloat();
-		return true;
-	}
-	return false;
-}
-
-bool UpdatePropertyFromJson(optional<int>& i, const Value& jsonValue, const char* key)
-{
-	auto it = jsonValue.FindMember(key);
-	if (it != jsonValue.MemberEnd())
-	{
-		i = it->value.GetInt();
 		return true;
 	}
 	return false;

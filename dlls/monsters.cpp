@@ -138,6 +138,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBaseMonster, m_gibPolicy, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_bForceConditionsGather, FIELD_BOOLEAN ),
 };
 

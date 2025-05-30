@@ -94,7 +94,6 @@ LINK_ENTITY_TO_CLASS( monster_human_grunt, CHGrunt )
 TYPEDESCRIPTION	CHGrunt::m_SaveData[] =
 {
 	DEFINE_FIELD( CHGrunt, m_flNextGrenadeCheck, FIELD_TIME ),
-	DEFINE_FIELD( CHGrunt, m_flNextPainTime, FIELD_TIME ),
 	//DEFINE_FIELD( CHGrunt, m_flLastEnemySightTime, FIELD_TIME ), // don't save, go to zero
 	DEFINE_FIELD( CHGrunt, m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CHGrunt, m_fThrowGrenade, FIELD_BOOLEAN ),
@@ -693,7 +692,7 @@ void CHGrunt::SetYawSpeed( void )
 	pev->yaw_speed = ys;
 }
 
-void CHGrunt::IdleSound( void )
+void CHGrunt::IdleSound()
 {
 	if( FOkToSpeak() && ( *GruntQuestionVar() || RANDOM_LONG( 0, 1 ) ) )
 	{
@@ -1173,36 +1172,34 @@ void CHGrunt::RunTask( Task_t *pTask )
 //=========================================================
 // PainSound
 //=========================================================
-void CHGrunt::PainSound( void )
+PainSoundRule CHGrunt::DefaultPainSoundRule()
 {
-	if( gpGlobals->time > m_flNextPainTime )
-	{
-#if 0
-		if( RANDOM_LONG( 0, 99 ) < 5 )
-		{
-			// pain sentences are rare
-			if( FOkToSpeak() )
-			{
-				SENTENCEG_PlayRndSz( ENT( pev ), "HG_PAIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, PITCH_NORM );
-				JustSpoke();
-				return;
-			}
-		}
-#endif
-		PlayPainSound();
-		m_flNextPainTime = gpGlobals->time + 1;
-	}
+	PainSoundRule rule;
+	rule.delay = 1.0f;
+	return rule;
 }
 
-void CHGrunt::PlayPainSound()
+void CHGrunt::PainSound()
 {
+#if 0
+	if( RANDOM_LONG( 0, 99 ) < 5 )
+	{
+		// pain sentences are rare
+		if( FOkToSpeak() )
+		{
+			SENTENCEG_PlayRndSz( ENT( pev ), "HG_PAIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, PITCH_NORM );
+			JustSpoke();
+			return;
+		}
+	}
+#endif
 	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================
 // DeathSound 
 //=========================================================
-void CHGrunt::DeathSound( void )
+void CHGrunt::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }

@@ -72,10 +72,10 @@ public:
 	int LookupActivity(int activity);
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
-	void DeathSound( void );
-	void PainSound( void );
-	virtual void PlayPainSound();
-	void IdleSound( void );
+	void DeathSound();
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void IdleSound() override;
 	Vector GetGunPosition( void );
 	void Shoot( void );
 	void Shotgun( void );
@@ -119,7 +119,6 @@ public:
 	// checking the feasibility of a grenade toss is kind of costly, so we do it every couple of seconds,
 	// not every server frame.
 	float m_flNextGrenadeCheck;
-	float m_flNextPainTime;
 	float m_flLastEnemySightTime;
 
 	Vector m_vecTossVelocity;

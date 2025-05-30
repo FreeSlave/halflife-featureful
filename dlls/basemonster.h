@@ -387,6 +387,7 @@ public:
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void ReactToDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, TakeDamageResult& takeDamageResult);
+	void PainReaction(const DamageInfo& damageInfo);
 	TakeDamageResult DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 
 	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
@@ -396,10 +397,11 @@ public:
 	void RouteClear( void );
 	void RouteNew( void );
 
-	virtual void DeathSound( void ) { return; };
-	virtual void AlertSound( void ) { return; };
-	virtual void IdleSound( void ) { return; };
-	virtual void PainSound( void ) { return; };
+	virtual void DeathSound( void ) { return; }
+	virtual void AlertSound( void ) { return; }
+	virtual void IdleSound( void ) { return; }
+	virtual PainSoundRule DefaultPainSoundRule() { return PainSoundRule{}; }
+	virtual void PainSound( void ) { return; }
 
 	virtual void StopFollowing( bool clearSchedule, bool saySentence = true ) {}
 
@@ -501,6 +503,7 @@ public:
 	int m_suggestedScheduleFlags;
 
 	short m_gibPolicy;
+	float m_flNextPainTime;
 	bool m_bForceConditionsGather;
 
 	const char* taskFailReason;

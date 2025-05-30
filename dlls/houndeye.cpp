@@ -109,12 +109,12 @@ public:
 	const char* DefaultDisplayName() { return "Houndeye"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void SetYawSpeed( void );
-	void WarmUpSound( void );
-	void AlertSound( void );
-	void DeathSound( void );
-	void WarnSound( void );
-	void PainSound( void );
-	void IdleSound( void );
+	void WarmUpSound();
+	void AlertSound() override;
+	void DeathSound() override;
+	void WarnSound();
+	void PainSound() override;
+	void IdleSound() override;
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
 	void SonicAttack( void );
@@ -491,7 +491,7 @@ void CHoundeye::Precache()
 //=========================================================
 // IdleSound
 //=========================================================
-void CHoundeye::IdleSound( void )
+void CHoundeye::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -499,7 +499,7 @@ void CHoundeye::IdleSound( void )
 //=========================================================
 // IdleSound
 //=========================================================
-void CHoundeye::WarmUpSound( void )
+void CHoundeye::WarmUpSound()
 {
 	EmitSoundScript(warmupSoundScript);
 }
@@ -507,7 +507,7 @@ void CHoundeye::WarmUpSound( void )
 //=========================================================
 // WarnSound 
 //=========================================================
-void CHoundeye::WarnSound( void )
+void CHoundeye::WarnSound()
 {
 	EmitSoundScript(warnSoundScript);
 }
@@ -515,7 +515,7 @@ void CHoundeye::WarnSound( void )
 //=========================================================
 // AlertSound 
 //=========================================================
-void CHoundeye::AlertSound( void )
+void CHoundeye::AlertSound()
 {
 	if( InSquad() && !IsLeader() )
 	{
@@ -528,7 +528,7 @@ void CHoundeye::AlertSound( void )
 //=========================================================
 // DeathSound 
 //=========================================================
-void CHoundeye::DeathSound( void )
+void CHoundeye::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -536,7 +536,7 @@ void CHoundeye::DeathSound( void )
 //=========================================================
 // PainSound 
 //=========================================================
-void CHoundeye::PainSound( void )
+void CHoundeye::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }

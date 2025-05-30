@@ -210,9 +210,9 @@ public:
 	void StartTask( Task_t *pTask );
 	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
-
 	void NodeStart(string_t iszNextNode );
 	void NodeReach( void );
 	bool ShouldGoToNode( void );
@@ -365,7 +365,6 @@ private:
 	float m_nodeTime;
 	float m_crabTime;
 	float m_mortarTime;
-	float m_painSoundTime;
 	int m_crabCount;
 
 	int m_SpitSprite;
@@ -378,7 +377,6 @@ TYPEDESCRIPTION	CBigMomma::m_SaveData[] =
 	DEFINE_FIELD( CBigMomma, m_nodeTime, FIELD_TIME ),
 	DEFINE_FIELD( CBigMomma, m_crabTime, FIELD_TIME ),
 	DEFINE_FIELD( CBigMomma, m_mortarTime, FIELD_TIME ),
-	DEFINE_FIELD( CBigMomma, m_painSoundTime, FIELD_TIME ),
 	DEFINE_FIELD( CBigMomma, m_crabCount, FIELD_INTEGER ),
 };
 
@@ -616,6 +614,19 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
+PainSoundRule CBigMomma::DefaultPainSoundRule()
+{
+	PainSoundRule rule;
+	rule.delay = FloatRange{1.0f, 3.0f};
+	rule.lowerBound = 0.1f;
+	return rule;
+}
+
+void CBigMomma::PainSound()
+{
+	EmitSoundScript(painSoundScript);
+}
+
 DamageInfo CBigMomma::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
 	DamageInfo damageInfo = inputDamageInfo;
@@ -633,18 +644,6 @@ DamageInfo CBigMomma::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_
 	}
 
 	return damageInfo;
-}
-
-void CBigMomma::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
-{
-	// TODO: how to adjust this for custom trace attack rules?
-	if (ptr->iHitgroup == 1 && !HasMemory(bits_MEMORY_KILLED) && gpGlobals->time > m_painSoundTime)
-	{
-		m_painSoundTime = gpGlobals->time + RANDOM_LONG( 1, 3 );
-		EmitSoundScript(painSoundScript);
-	}
-
-	CBaseMonster::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
 }
 
 DamageInfo CBigMomma::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)

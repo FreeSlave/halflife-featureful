@@ -76,8 +76,6 @@ bool UpdatePropertyFromJson(fixed_string<N>& str, const rapidjson::Value& jsonVa
 bool UpdatePropertyFromJson(std::string& str, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(int& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(float& f, const rapidjson::Value& jsonValue, const char* key);
-bool UpdatePropertyFromJson(optional<float>& f, const rapidjson::Value& jsonValue, const char* key);
-bool UpdatePropertyFromJson(optional<int>& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(bool& b, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(char& c, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(Color3& color, const rapidjson::Value& jsonValue, const char* key);
@@ -85,6 +83,19 @@ bool UpdatePropertyFromJson(FloatRange& floatRange, const rapidjson::Value& json
 bool UpdatePropertyFromJson(IntRange& intRange, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(Vector& vector, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(tribool& b, const rapidjson::Value& jsonValue, const char* key);
+
+template<typename T>
+bool UpdatePropertyFromJson(optional<T>& v, const rapidjson::Value& jsonValue, const char* key)
+{
+	T val;
+	if (UpdatePropertyFromJson(val, jsonValue, key))
+	{
+		v = val;
+		return true;
+	}
+	return false;
+}
+
 bool UpdateAttenuationFromJson(float& attn, const rapidjson::Value& jsonValue);
 
 #endif

@@ -104,12 +104,12 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript beamSoundScript;
 
-	void IdleSound();
-	void AlertSound();
+	void IdleSound() override;
+	void AlertSound() override;
 	void AttackSound();
 	void BiteSound();
-	void DeathSound();
-	void PainSound();
+	void DeathSound() override;
+	void PainSound() override;
 
 	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() { return true; }

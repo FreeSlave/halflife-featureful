@@ -474,10 +474,11 @@ Defines the squad capabilities of the monster. It has the following properties:
 * `"require_same_classname"` - whether the monster requires the other monster to be of the same classname in order to form a squad. E.g. `monster_houndeye` can form squads only with other houndeyes by default.
 * `"require_same_ent_template"` - whether the monster require the other monster to be of the same entity template in order to form a squad.
 
-Note: the default squad capabilities are different depending on the monster's class. If some property is omitted the default one for the monster class will be used.
+{{% hint info %}}
+The default squad capabilities are different depending on the monster's class. If some property is omitted the default one for the monster class will be used.
+{{% /hint %}}
 
-Example:
-
+{{% details title="Example" %}}
 ```json
 {
     "special_vort": {
@@ -491,10 +492,12 @@ Example:
     }
 }
 ```
+{{% /details %}}
 
-Note: not all monsters affected by these properties. The list of affected monsters currently includes:
+{{% hint warning %}}
+Not all monsters affected by these properties. The list of affected monsters currently includes:
 
-* All grunt-like monsters, like human grunts, male assassins, shock troopers and robogrunts.
+* All grunt-like monsters, like human grunts, heavy weapons grunts, male assassins, shock troopers and robogrunts.
 * Houndeyes
 * Alien slaves
 * Alien grunts
@@ -504,6 +507,7 @@ Note: not all monsters affected by these properties. The list of affected monste
 * All talk monsters like security guards, scientists and opfor human grunts.
 * Pitdrones
 * Voltigores
+{{% /hint %}}
 
 ### open_door_capability
 
@@ -828,6 +832,34 @@ An object that allows to add some visual effects at the hit location when condit
 #### threshold_effects
 
 Same as `effects`, but plays only if `dmg_min_threshold` has been applied. `effects` are still played independently.
+
+### pain
+
+Monsters have different rules for playing the pain sounds. Some set a delay before playing the pain sound again (e.g. [alien grunts]({{< ref monster_alien_grunt >}})). Some play it by random chance (e.g. [zombies]({{< ref monster_zombie >}})). This object allows to configure the pain sound behavior via the following properties:
+
+* `"delay"` - the minimum interval (in seconds) between pain sounds. Useful to prevent sound spamming when monster is being hit frequently. Can be [range]({{< ref "JSON/#range" >}}).
+* `"chance"` - the chance of playing the pain sound when getting damage. Can be used as an alternative to `"delay"` in order to prevent sound spamming. `1.0` means 100% chance. Must be a number larger than `0.0`.
+* `"lower_bound_dmg"` - the monster will play pain sound only if damage is strictly higher than this value. This is `0` for most monsters.
+* `"allow_when_dying"` - monster is allowed to play pain sound when it's in dying animation.
+
+{{% hint info %}}
+If some property is omitted the default one for the monster class will be used.
+{{% /hint %}}
+
+{{% details title="Example" %}}
+```json
+{
+    "monster_bullchicken": {
+        "pain": {
+            "delay": 0.2,
+            "chance": 0.5,
+            "lower_bound_dmg": 8,
+            "allow_when_dying": true
+        }
+    }
+}
+```
+{{% /details %}}
 
 ## Types
 

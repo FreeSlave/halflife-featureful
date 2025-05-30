@@ -344,10 +344,10 @@ public:
 	virtual int  DefaultClassify(void);
 	const char* DefaultDisplayName() { return "Bullsquid"; }
 	virtual void HandleAnimEvent(MonsterEvent_t *pEvent);
-	virtual void IdleSound(void);
-	virtual void PainSound(void);
-	virtual void DeathSound(void);
-	virtual void AlertSound(void);
+	void IdleSound() override;
+	void PainSound() override;
+	void DeathSound() override;
+	void AlertSound() override;
 	virtual void AttackSound(bool bigSpit);
 	virtual void StartTask(Task_t *pTask);
 	void RunTask(Task_t *pTask);
@@ -655,7 +655,7 @@ int CBullsquid::DefaultClassify( void )
 // IdleSound 
 //=========================================================
 
-void CBullsquid::IdleSound( void )
+void CBullsquid::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -663,7 +663,7 @@ void CBullsquid::IdleSound( void )
 //=========================================================
 // PainSound 
 //=========================================================
-void CBullsquid::PainSound( void )
+void CBullsquid::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -671,7 +671,7 @@ void CBullsquid::PainSound( void )
 //=========================================================
 // AlertSound
 //=========================================================
-void CBullsquid::AlertSound( void )
+void CBullsquid::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -889,7 +889,7 @@ void CBullsquid::Precache()
 //=========================================================
 // DeathSound
 //=========================================================
-void CBullsquid::DeathSound( void )
+void CBullsquid::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
