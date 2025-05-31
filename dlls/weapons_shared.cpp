@@ -143,9 +143,16 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if( ( m_pPlayer->pev->button & IN_ATTACK ) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
-		if( ( m_iClip == 0 && UsesAmmo() ) || ( !UsesClip() && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
+		if (UsesAmmo())
 		{
-			m_fFireOnEmpty = true;
+			if (UsesClip())
+			{
+				m_fFireOnEmpty = m_iClip == 0;
+			}
+			else
+			{
+				m_fFireOnEmpty = !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+			}
 		}
 
 		if (!FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK) && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN))
@@ -202,6 +209,24 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 int CBasePlayerWeapon::iMaxClip()
 {
 	return m_iMaxClip;
+}
+
+int CBasePlayerWeapon::PrimaryAmmoIndex()
+{
+	if (m_iPrimaryAmmoType <= 0)
+	{
+		ALERT(at_error, "Accessing primary ammo with invalid type %d!\n", m_iPrimaryAmmoType);
+	}
+	return m_iPrimaryAmmoType;
+}
+
+int CBasePlayerWeapon::SecondaryAmmoIndex()
+{
+	if (m_iSecondaryAmmoType <= 0)
+	{
+		ALERT(at_error, "Accessing secondary ammo with invalid type %d!\n", m_iSecondaryAmmoType);
+	}
+	return m_iSecondaryAmmoType;
 }
 
 bool CBasePlayerWeapon::InZoom()

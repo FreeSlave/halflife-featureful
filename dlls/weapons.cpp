@@ -1006,20 +1006,6 @@ bool CBasePlayerWeapon::PlayEmptySound( void )
 	return 0;
 }
 
-//=========================================================
-//=========================================================
-int CBasePlayerWeapon::PrimaryAmmoIndex( void )
-{
-	return m_iPrimaryAmmoType;
-}
-
-//=========================================================
-//=========================================================
-int CBasePlayerWeapon::SecondaryAmmoIndex( void )
-{
-	return m_iSecondaryAmmoType;
-}
-
 const char* CBasePlayerWeapon::AmmoName(const char* defaultAmmoName)
 {
 	if (!defaultAmmoName)
