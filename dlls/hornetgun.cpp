@@ -89,14 +89,10 @@ bool CHgun::AddToPlayer( CBasePlayer *pPlayer )
 
 bool CHgun::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "Hornets";
-	p->pszAmmo2 = NULL;
+	p->pszAmmo1 = AmmoName("Hornets");
 	p->iSlot = 3;
 	p->iPosition = 3;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	p->pszAmmoEntity = NULL;
-	p->iDropAmmo = 0;
 
 	return true;
 }

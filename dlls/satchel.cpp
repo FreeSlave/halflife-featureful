@@ -360,9 +360,7 @@ void CSatchel::Precache( void )
 
 bool CSatchel::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "Satchel Charge";
-	p->pszAmmo2 = NULL;
+	p->pszAmmo1 = AmmoName("Satchel Charge");
 	p->iSlot = 4;
 	p->iPosition = 1;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;

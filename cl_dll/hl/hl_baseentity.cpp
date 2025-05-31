@@ -247,6 +247,7 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer ) { return 0; }
 bool CBasePlayerWeapon::IsUseable( void ) { return true; }
 int CBasePlayerWeapon::PrimaryAmmoIndex( void ) { return -1; }
 int CBasePlayerWeapon::SecondaryAmmoIndex( void ) { return -1; }
+const char* CBasePlayerWeapon::AmmoName(const char* defaultAmmoName) { return nullptr; }
 bool CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon ) { return false; }
 bool CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return false; }
 void CBasePlayerWeapon::RetireWeapon( void ) { }

@@ -58,9 +58,7 @@ void CSniperrifle::Precache( void )
 
 bool CSniperrifle::GetItemInfo(ItemInfo *p)
 {
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "762";
-	p->pszAmmo2 = NULL;
+	p->pszAmmo1 = AmmoName("762");
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 5;
 	p->iPosition = 2;
@@ -68,7 +66,6 @@ bool CSniperrifle::GetItemInfo(ItemInfo *p)
 	p->iSlot = 2;
 	p->iPosition = 4;
 #endif
-	p->iFlags = 0;
 	p->pszAmmoEntity = "ammo_762";
 	p->iDropAmmo = AMMO_762BOX_GIVE;
 

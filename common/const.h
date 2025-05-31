@@ -672,7 +672,6 @@
 #define TE_BOUNCE_SHOTSHELL		2
 
 typedef unsigned int		func_t;
-typedef int		string_t;
 
 typedef struct link_s
 {

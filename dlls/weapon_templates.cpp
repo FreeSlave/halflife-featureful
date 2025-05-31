@@ -1,4 +1,5 @@
 #include "weapon_templates.h"
+#include "ammoregistry.h"
 
 #include "json_utils.h"
 #include "logger.h"
@@ -15,6 +16,10 @@ const char* weaponTemplatesSchema = R"(
 			"max_clip": {
 				"type": "integer",
 				"minimum": 0
+			},
+			"ammo_name": {
+				"type": "string",
+				"minLength": 1
 			}
 		},
 		"additionalProperties": false
@@ -42,6 +47,20 @@ bool WeaponTemplateSystem::ReadFromDocument(const Document &document, const char
 				weaponTemplate.SetMaxClip(maxClip);
 			}
 		}
+
+		HandleJSONMember(value, "ammo_name", [&weaponTemplate, fileName](const Value& value) {
+			const char* ammoName = value.GetString();
+			if (g_AmmoRegistry.GetByName(ammoName) == nullptr)
+			{
+				char buf[512];
+				safe_snprintf(buf, sizeof(buf), "%s: \"%s\" is not a registered ammo type", fileName, ammoName);
+				g_errorCollector.AddError(buf);
+			}
+			else
+			{
+				weaponTemplate.SetAmmoName(ammoName);
+			}
+		});
 
 		_templates[name] = weaponTemplate;
 	}

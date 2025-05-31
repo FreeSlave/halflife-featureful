@@ -61,13 +61,8 @@ void CKnife::Precache(void)
 
 bool CKnife::GetItemInfo(ItemInfo *p)
 {
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = NULL;
-	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 2;
-	p->pszAmmoEntity = NULL;
-	p->iDropAmmo = 0;
 	return true;
 }
 

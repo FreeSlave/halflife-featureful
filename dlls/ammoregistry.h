@@ -2,15 +2,12 @@
 #define AMMOREGISTRY_H
 
 #include "cdll_dll.h"
+#include "common_types.h"
 
 struct AmmoType
 {
 	int id;
-#if CLIENT_DLL
 	char name[32];
-#else
-	const char* name;
-#endif
 	void SetName(const char* ammoName);
 	bool IsValid() const;
 

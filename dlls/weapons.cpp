@@ -288,6 +288,7 @@ bool UTIL_PrecacheOtherWeapon( const char *szClassname )
 
 				if (pWeapon->GetItemInfo( &II ))
 				{
+					II.pszName = szClassname;
 					II.iId = pWeapon->WeaponId();
 					CBasePlayerWeapon::ItemInfoArray[II.iId] = II;
 				}
@@ -1017,6 +1018,20 @@ int CBasePlayerWeapon::PrimaryAmmoIndex( void )
 int CBasePlayerWeapon::SecondaryAmmoIndex( void )
 {
 	return m_iSecondaryAmmoType;
+}
+
+const char* CBasePlayerWeapon::AmmoName(const char* defaultAmmoName)
+{
+	if (!defaultAmmoName)
+		return defaultAmmoName;
+	const WeaponTemplate* weaponTemplate = g_WeaponTemplateSystem.GetTemplate(STRING(pev->classname));
+	if (weaponTemplate)
+	{
+		const char* ammoName = weaponTemplate->AmmoName();
+		if (ammoName)
+			return ammoName;
+	}
+	return defaultAmmoName;
 }
 
 void CBasePlayerWeapon::Holster()

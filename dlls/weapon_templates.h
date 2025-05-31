@@ -2,6 +2,7 @@
 #ifndef WEAPON_TEMPLATES_H
 #define WEAPON_TEMPLATES_H
 
+#include "fixed_string.h"
 #include "json_config.h"
 #include "optional.h"
 
@@ -19,8 +20,15 @@ struct WeaponTemplate
 	void SetMaxClip(int maxClip) {
 		_maxClip = maxClip;
 	}
+	const char* AmmoName() const {
+		return _ammoName.empty() ? nullptr : _ammoName.c_str();
+	}
+	void SetAmmoName(const char* name) {
+		_ammoName = name;
+	}
 private:
 	optional<int> _maxClip;
+	fixed_string<32> _ammoName;
 };
 
 class WeaponTemplateSystem : public JSONConfig

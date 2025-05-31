@@ -11,4 +11,6 @@ typedef struct
 	byte	r, g, b;
 } color24;
 
+typedef int		string_t;
+
 #endif

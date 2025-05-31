@@ -29,10 +29,7 @@ LINK_WEAPON_TO_CLASS( weapon_357, CPython )
 
 bool CPython::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "357";
-	p->pszAmmo2 = NULL;
-	p->iFlags = 0;
+	p->pszAmmo1 = AmmoName("357");
 	p->iSlot = 1;
 	p->iPosition = 1;
 	p->pszAmmoEntity = "ammo_357";

@@ -75,12 +75,10 @@ void CMP5::Precache( void )
 
 bool CMP5::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "9mm";
+	p->pszAmmo1 = AmmoName("9mm");
 	p->pszAmmo2 = "ARgrenades";
 	p->iSlot = 2;
 	p->iPosition = 0;
-	p->iFlags = 0;
 	p->pszAmmoEntity = "ammo_9mmAR";
 	p->iDropAmmo = AMMO_MP5CLIP_GIVE;
 

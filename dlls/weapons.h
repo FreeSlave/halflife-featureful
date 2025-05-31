@@ -327,6 +327,7 @@ public:
 
 	int	PrimaryAmmoIndex();
 	int	SecondaryAmmoIndex();
+	const char* AmmoName(const char* defaultAmmoName);
 
 	void PrintState( void );
 
@@ -883,7 +884,7 @@ public:
 	virtual const char* VModel() const;
 	virtual int PositionInSlot() const;
 	virtual int DefaultGive() const;
-	virtual const char* AmmoName() const;
+	virtual const char* DefaultAmmoName() const;
 	virtual const char* EventsFile() const;
 
 	const char* MyWModel() override { return NestModel(); }
@@ -1266,14 +1267,14 @@ class CPenguin : public CSqueak
 {
 public:
 	int WeaponId() const override { return WEAPON_PENGUIN; }
-	virtual const char* GrenadeName() const;
-	virtual const char* NestModel() const;
-	virtual const char* PModel() const;
-	virtual const char* VModel() const;
-	virtual int PositionInSlot() const;
-	virtual int DefaultGive() const;
-	virtual const char* AmmoName() const;
-	virtual const char* EventsFile() const;
+	const char* GrenadeName() const override;
+	const char* NestModel() const override;
+	const char* PModel() const override;
+	const char* VModel() const override;
+	int PositionInSlot() const override;
+	int DefaultGive() const override;
+	const char* DefaultAmmoName() const override;
+	const char* EventsFile() const override;
 };
 #endif
 

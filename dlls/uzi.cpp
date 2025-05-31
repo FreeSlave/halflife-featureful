@@ -69,12 +69,9 @@ void CUzi::Precache( void )
 
 bool CUzi::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "9mm";
-	p->pszAmmo2 = NULL;
+	p->pszAmmo1 = AmmoName("9mm");
 	p->iSlot = 1;
 	p->iPosition = 3;
-	p->iFlags = 0;
 	p->pszAmmoEntity = "ammo_9mmclip";
 	p->iDropAmmo = AMMO_GLOCKCLIP_GIVE;
 

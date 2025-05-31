@@ -273,13 +273,8 @@ void CBarnacleGrapple::Spawn( void )
 
 bool CBarnacleGrapple::GetItemInfo(ItemInfo *p)
 {
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = NULL;
-	p->pszAmmo2 = NULL;
 	p->iSlot = 0;
 	p->iPosition = 3;
-	p->pszAmmoEntity = NULL;
-	p->iDropAmmo = 0;
 	return true;
 }
 

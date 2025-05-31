@@ -84,12 +84,9 @@ bool CGauss::AddToPlayer( CBasePlayer *pPlayer )
 
 bool CGauss::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "uranium";
-	p->pszAmmo2 = NULL;
+	p->pszAmmo1 = AmmoName("uranium");
 	p->iSlot = 3;
 	p->iPosition = 1;
-	p->iFlags = 0;
 	p->pszAmmoEntity = "ammo_gaussclip";
 	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 

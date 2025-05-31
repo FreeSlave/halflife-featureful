@@ -4,14 +4,13 @@
 #include "arraysize.h"
 #include "logger.h"
 #include "string_utils.h"
+#if !CLIENT_DLL
+#include "util.h"
+#endif
 
 void AmmoType::SetName(const char *ammoName)
 {
-#if CLIENT_DLL
 	strncpyEnsureTermination(name, ammoName);
-#else
-	name = ammoName;
-#endif
 }
 
 bool AmmoType::IsValid() const
