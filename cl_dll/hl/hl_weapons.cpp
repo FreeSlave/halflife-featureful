@@ -44,9 +44,8 @@ static int num_ents = 0;
 static CBasePlayer player;
 
 // Local version of game .dll global variables ( time, etc. )
-static globalvars_t Globals; 
+static globalvars_t Globals;
 
-static CBasePlayerWeapon *g_pWpns[MAX_WEAPONS];
 float g_flApplyVel = 0.0;
 int g_irunninggausspred = 0;
 
@@ -107,10 +106,6 @@ void HUD_PrepEntity( CBaseEntity *pEntity, CBasePlayer *pWeaponOwner )
 	{
 		CBasePlayerWeapon* pWeapon = (CBasePlayerWeapon *)pEntity;
 		pWeapon->m_pPlayer = pWeaponOwner;
-
-		if (pWeapon->WeaponId() == WEAPON_NONE)
-			gEngfuncs.Con_Printf("Got 0 as weapon id!\n");
-		g_pWpns[pWeapon->WeaponId()] = (CBasePlayerWeapon *)pEntity;
 	}
 }
 
@@ -557,7 +552,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 	for( i = 0; i < MAX_WEAPONS; i++ )
 	{
-		pCurrent = g_pWpns[i];
+		pCurrent = AccessWeaponInfo(i).pWeapon;
 		if( !pCurrent )
 		{
 			continue;
@@ -618,7 +613,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	// Point to current weapon object
 	if( from->client.m_iId )
 	{
-		player.m_pActiveItem = g_pWpns[from->client.m_iId];
+		player.m_pActiveItem = AccessWeaponInfo(from->client.m_iId).pWeapon;
 	}
 
 	player.m_suppressedCapabilities = from->client.vuser2[0];
@@ -643,7 +638,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		// Switched to a different weapon?
 		if( from->weapondata[cmd->weaponselect].m_iId == cmd->weaponselect )
 		{
-			CBasePlayerWeapon *pNew = g_pWpns[cmd->weaponselect];
+			CBasePlayerWeapon *pNew = AccessWeaponInfo(cmd->weaponselect).pWeapon;
 			if( pNew && ( pNew != pWeapon ) )
 			{
 				// Put away old weapon
@@ -686,7 +681,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 	for( i = 0; i < MAX_WEAPONS; i++ )
 	{
-		pCurrent = g_pWpns[i];
+		pCurrent = AccessWeaponInfo(i).pWeapon;
 
 		pto = &to->weapondata[i];
 
