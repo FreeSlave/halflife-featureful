@@ -144,6 +144,10 @@ It's better to avoid names starting with `monster_` unless you create a default 
 
 Each template entry in the document may have the following properties:
 
+### inherits
+
+See [inheriting templates](#inheriting-templates).
+
 ### own_visual
 
 The [visual]({{< ref visuals >}}) definition or the name of the visual from the *templates/visuals.json* for the monster's own model. This allows to change the default model of the monsters belonging to the template, the model scale or, for example, make the monsters semi-transparent:
@@ -860,6 +864,46 @@ If some property is omitted the default one for the monster class will be used.
 }
 ```
 {{% /details %}}
+
+## Inheriting templates
+
+Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.
+
+The inheritance is done via `"inherits"` property with value set to the template name which is used as a base. The derived entity template inherits everything from the base allowing to extend upon it. The derived template can be used as a base for another template (e.g. A -> B -> C), but loops (A -> B -> A) are prohibited.
+
+Example:
+
+```json
+{
+    "monster_alien_slave": {
+        "visuals": {
+            "Vortigaunt.ZapBeamColor": {
+                "color": [255, 96, 180]
+            }
+        }
+    },
+    "custom_vort": {
+        "inherits": "monster_alien_slave",
+        "own_visual": {
+            "model": "models/custom_vort.mdl"
+        }
+    },
+    "custom_vort2": {
+        "inherits": "custom_vort",
+        "visuals": {
+            "Vortigaunt.ArmBeamColor": {
+                "color": [128, 16, 96]
+            }
+        }
+    }
+}
+```
+
+In this example the template `custom_vort2` inherits both `own_visual` from `custom_vort` and `visuals` from the `monster_alien_slave`, extending the latter with its own visuals.
+
+{{% hint info %}}
+Some properties can't be extended via the entity template inheritance. E.g. [take_damage](#take_damage) and [trace_attack](#trace_attack) are either inherited as is or they are getting replaced completely if they are defined in the derived template.
+{{% /hint %}}
 
 ## Types
 
