@@ -6109,7 +6109,7 @@ void CEnvExtinguisher::ExtinguisherUse(CBaseEntity *pActivator, CBaseEntity *pCa
 	const float scales[3] = {baseScale, baseScale * 1.5f,  baseScale * 1.75f};
 	const float turnoffTime = gpGlobals->time + 1.5f;
 
-	for (int i=0; i<ARRAYSIZE(scales); ++i)
+	for (size_t i=0; i<ARRAYSIZE(scales); ++i)
 	{
 		CSprite* blastSprite = CreateSpriteFromVisual(pVisual, pev->origin + i*(gpGlobals->v_forward * 16.0f));
 		if (blastSprite)

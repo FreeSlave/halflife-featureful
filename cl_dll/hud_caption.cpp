@@ -662,11 +662,11 @@ const Caption_t* CHudCaption::CaptionLookup(const char *name)
 
 CaptionProfile_t* CHudCaption::CaptionProfileLookup(char firstLetter, char secondLetter)
 {
-	for (int k=0; k<profiles.size(); ++k)
+	for (CaptionProfile_t& profile : profiles)
 	{
-		if (profiles[k].firstLetter == firstLetter && profiles[k].secondLetter == secondLetter)
+		if (profile.firstLetter == firstLetter && profile.secondLetter == secondLetter)
 		{
-			return &profiles[k];
+			return &profile;
 		}
 	}
 	return nullptr;

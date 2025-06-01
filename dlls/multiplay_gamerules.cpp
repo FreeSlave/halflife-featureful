@@ -165,7 +165,7 @@ bool RestorePlayerState(CBasePlayer* player)
 {
 	const char* uid = GetAuthID(player);
 	const char* nickname = STRING(player->pev->netname);
-	for (int i=0; i<ARRAYSIZE(g_playerStates); ++i)
+	for (size_t i=0; i<ARRAYSIZE(g_playerStates); ++i)
 	{
 		PlayerState* state = &g_playerStates[i];
 		if (strcmp(uid, state->uid) == 0 && strcmp(nickname, state->nickname) == 0)

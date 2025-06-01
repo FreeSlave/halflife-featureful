@@ -320,7 +320,6 @@ void PM_UpdateStepSound( void )
 	float velwalk;
 	float flduck;
 	int fLadder;
-	int step;
 
 	if( pmove->flTimeStepSound > 0 )
 		return;

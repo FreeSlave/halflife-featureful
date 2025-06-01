@@ -40,6 +40,7 @@
 #include "visuals_utils.h"
 #include "classify.h"
 #include "studio.h"
+#include "clamp.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
@@ -675,9 +676,9 @@ void CBaseMonster::RouteClear( void )
 //=========================================================
 void CBaseMonster::RouteNew( void )
 {
-	for (int i=0; i<ARRAYSIZE(m_Route); ++i)
+	for (auto& route : m_Route)
 	{
-		m_Route[i].iType = 0;
+		route.iType = 0;
 	}
 	m_iRouteIndex = 0;
 }
@@ -1757,10 +1758,7 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 		if (shouldApplyTridepth)
 		{
 			triangDepth = TridepthValue();
-			if (triangDepth < 1)
-				triangDepth = 1;
-			if (triangDepth > ARRAYSIZE(vecApexes))
-				triangDepth = ARRAYSIZE(vecApexes);
+			triangDepth = clamp(triangDepth, 1, static_cast<int>(ARRAYSIZE(vecApexes)));
 		}
 	}
 
@@ -3516,7 +3514,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 
 	ALERT( level, "State: %s, ", MonsterStateDisplayString(m_MonsterState) );
 
-	if( pev->deadflag < ARRAYSIZE( pDeadNames ) )
+	if( pev->deadflag < static_cast<int>(ARRAYSIZE( pDeadNames )) )
 		ALERT( level, "Dead flag: %s, ", pDeadNames[pev->deadflag] );
 	else
 		ALERT( level, "Dead flag: %d, ", pev->deadflag );
@@ -3681,9 +3679,9 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 		if (!FRouteClear())
 		{
 			ALERT(level, "\nRoute:\n");
-			for (int j = 0; m_Route[j].iType && j < ARRAYSIZE(m_Route); ++j)
+			for (size_t j = 0; m_Route[j].iType && j < ARRAYSIZE(m_Route); ++j)
 			{
-				ALERT(level, "%d: ", j);
+				ALERT(level, "%d: ", static_cast<int>(j));
 				ReportRouteType(level, m_Route[j].iType);
 				ALERT(level, "\n");
 			}

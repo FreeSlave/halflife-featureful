@@ -563,7 +563,7 @@ void GoldSourceInput::IN_Shutdown (void)
 	}
 #endif
 
-	for (int j=0; j<ARRAYSIZE(sdlFunctions); ++j) {
+	for (size_t j=0; j<ARRAYSIZE(sdlFunctions); ++j) {
 		*(sdlFunctions[j].ppfnFunc) = NULL;
 	}
 #if XASH_WIN32
@@ -1669,7 +1669,7 @@ void GoldSourceInput::IN_Init (void)
 	sdl2Lib = dlopen(SDL2_FULL_LIBNAME, RTLD_NOW|RTLD_LOCAL);
 #endif
 	if (sdl2Lib) {
-		for (int j=0; j<ARRAYSIZE(sdlFunctions); ++j) {
+		for (size_t j=0; j<ARRAYSIZE(sdlFunctions); ++j) {
 #if XASH_WIN32
 			*(sdlFunctions[j].ppfnFunc) = GetProcAddress((HMODULE)sdl2Lib, sdlFunctions[j].name);
 #else

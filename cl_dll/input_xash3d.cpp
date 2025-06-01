@@ -57,11 +57,11 @@ float IN_GetMouseSensitivity()
 	// Absurdly high sensitivity values can cause the game to hang, so clamp
 	if( sensitivity->value > 10000.0 )
 	{
-		gEngfuncs.Cvar_SetValue( "sensitivity", 10000.0 );
+		gEngfuncs.Cvar_SetValue( "sensitivity", 10000.0f );
 	}
-	else if( sensitivity->value < 0.01 )
+	else if( sensitivity->value < 0.01f )
 	{
-		gEngfuncs.Cvar_SetValue( "sensitivity", 0.01 );
+		gEngfuncs.Cvar_SetValue( "sensitivity", 0.01f );
 	}
 	return sensitivity->value;
 }

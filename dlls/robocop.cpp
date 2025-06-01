@@ -383,7 +383,7 @@ void CRoboCop::FistAttack( void )
 
 	const Visual* waveVisuals[] = {GetVisual(shockWave1Visual), GetVisual(shockWave2Visual), GetVisual(shockWave3Visual)};
 
-	for( int i = 0; i < ARRAYSIZE(waveVisuals); i++ )
+	for( size_t i = 0; i < ARRAYSIZE(waveVisuals); i++ )
 	{
 		if (waveVisuals[i] && waveVisuals[i]->modelIndex)
 		{

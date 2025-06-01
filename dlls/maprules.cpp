@@ -1152,8 +1152,7 @@ void CGamePlayerSettings::KeyValue(KeyValueData *pkvd)
 	}
 	else if (strncmp(pkvd->szKeyName, "weapon_", 7) == 0)
 	{
-		int i;
-		for (i=0; i<ARRAYSIZE(m_weapons); ++i)
+		for (size_t i=0; i<ARRAYSIZE(m_weapons); ++i)
 		{
 			if (FStringNull(m_weapons[i]))
 			{
@@ -1314,7 +1313,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	// Check this before giving ammo as player can get exhaustible weapon along with ammo.
 	const bool hadWeapons = player->m_pActiveItem != NULL;
 
-	int i;
+	size_t i;
 	for (i=1; i<MAX_AMMO_TYPES; ++i)
 	{
 		const AmmoType* ammoInfo = g_AmmoRegistry.GetByIndex(i);

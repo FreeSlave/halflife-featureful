@@ -118,7 +118,7 @@ void CDisplacerBall::FlyThink()
 void CDisplacerBall::ArmBeam( int iSide )
 {
 	//This method is identical to the Alien Slave's ArmBeam, except it treats m_pBeam as a circular buffer.
-	if( m_iBeams >= ARRAYSIZE(m_pBeam) )
+	if( m_iBeams >= static_cast<int>(ARRAYSIZE(m_pBeam)) )
 		m_iBeams = 0;
 
 	TraceResult tr;

@@ -5115,7 +5115,7 @@ void CBasePlayer::UpdateClientData( void )
 
 			g_pGameRules->InitHUD( this );
 
-			for (int i=0; i<ARRAYSIZE(m_inventoryItems); ++i)
+			for (size_t i=0; i<ARRAYSIZE(m_inventoryItems); ++i)
 			{
 				if (!FStringNull(m_inventoryItems[i]))
 				{
@@ -6407,7 +6407,7 @@ bool CBasePlayer::RemoveInventoryItem(string_t item, int count)
 
 void CBasePlayer::RemoveAllInventoryItems()
 {
-	for (int i=0; i<ARRAYSIZE(m_inventoryItems); ++i)
+	for (size_t i=0; i<ARRAYSIZE(m_inventoryItems); ++i)
 	{
 		if (!FStringNull(m_inventoryItems[i]))
 		{

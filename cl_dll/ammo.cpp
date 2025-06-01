@@ -143,9 +143,8 @@ void WeaponsResource::AddWeapon(WEAPON *wp)
 {
 	// Check user preferences
 	bool foundUserPreference = false;
-	for (int i=0; i<ARRAYSIZE(bucketPreferences); ++i)
+	for (const BucketPreference& pref : bucketPreferences)
 	{
-		const BucketPreference& pref = bucketPreferences[i];
 		if (pref.szName[0] == '\0')
 			break;
 
