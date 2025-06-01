@@ -8,6 +8,9 @@
 // studio_model.cpp
 // routines for setting up to draw 3DStudio models
 
+#include "windows_lean.h"
+#include "gl_dynamic.h"
+
 #include <cstdlib>
 #include "cl_util.h"
 #include "com_model.h"
@@ -22,8 +25,6 @@
 
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
-
-#include "gl_dynamic.h"
 
 #if OPENGL_AVAILABLE
 #define GL_CLAMP_TO_EDGE 0x812F
