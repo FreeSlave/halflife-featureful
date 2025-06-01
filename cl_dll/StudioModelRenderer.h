@@ -9,8 +9,10 @@
 #if !defined ( STUDIOMODELRENDERER_H )
 #define STUDIOMODELRENDERER_H
 
-#include <string>
-#include <vector>
+#include "com_model.h"
+#include "fixed_string.h"
+#include "icase_compare.h"
+#include <set>
 
 /*
 ====================
@@ -193,8 +195,8 @@ public:
 
 	bool HasFullbrightSupportInEngine();
 
-	std::vector<std::string> m_szCheckedModels;
-	std::vector<std::string> m_szFullBrightModels;
+	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szCheckedModels;
+	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szFullBrightModels;
 };
 
 #endif // STUDIOMODELRENDERER_H

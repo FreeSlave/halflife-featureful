@@ -26,6 +26,8 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+#include <vector>
+
 #if OPENGL_AVAILABLE
 #define GL_CLAMP_TO_EDGE 0x812F
 
@@ -1732,21 +1734,16 @@ bool CStudioModelRenderer::StudioGetFullbright(model_s* pmodel)
 		return false;
 
 	// check if this model is already been checked
-	for (size_t list = 0; list < m_szFullBrightModels.size(); list++)
+	auto foundFullBright = m_szFullBrightModels.find(pmodel->name);
+	if (foundFullBright != m_szFullBrightModels.cend())
 	{
-		if (!stricmp(pmodel->name, m_szFullBrightModels[list].c_str()))
-		{
-			return true;
-		}
+		return true;
 	}
 
-	// check if this model is already on our list
-	for (size_t list = 0; list < m_szCheckedModels.size(); list++)
+	auto foundCheckedModel = m_szCheckedModels.find(pmodel->name);
+	if (foundCheckedModel != m_szCheckedModels.cend())
 	{
-		if (!strcmp(pmodel->name, m_szCheckedModels[list].c_str()))
-		{
-			return false;
-		}
+		return false;
 	}
 
 	studiohdr_t* pHdr = (studiohdr_t*)IEngineStudio.Mod_Extradata(pmodel);
@@ -1754,7 +1751,7 @@ bool CStudioModelRenderer::StudioGetFullbright(model_s* pmodel)
 
 	if (strncmp((const char*)pHdr, "IDST", 4) && strncmp((const char*)pHdr, "IDSQ", 4))
 	{
-		m_szCheckedModels.push_back(pmodel->name);
+		m_szCheckedModels.insert(pmodel->name);
 		return false;
 	}
 
@@ -1771,11 +1768,11 @@ bool CStudioModelRenderer::StudioGetFullbright(model_s* pmodel)
 		}
 		if (foundfullbright)
 		{
-			m_szFullBrightModels.push_back(pmodel->name);
+			m_szFullBrightModels.insert(pmodel->name);
 		}
 	}
 
-	m_szCheckedModels.push_back(pmodel->name);
+	m_szCheckedModels.insert(pmodel->name);
 
 	return foundfullbright;
 #else
