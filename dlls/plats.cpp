@@ -2378,6 +2378,7 @@ void CGunTarget::Spawn( void )
 	pev->flags |= FL_MONSTER;
 
 	m_on = false;
+	SetMyHealth(0.0f);
 	pev->max_health = pev->health;
 
 	if( pev->spawnflags & FGUNTARGET_START_ON )
@@ -2461,9 +2462,14 @@ void CGunTarget::Stop( void )
 	pev->takedamage = DAMAGE_NO;
 }
 
-TakeDamageResult CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CGunTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
 	TakeDamageResult takeDamageResult;
+
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return takeDamageResult;
+
 	if( pev->health > 0 )
 	{
 		pev->health -= damageInfo.damage;

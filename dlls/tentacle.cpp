@@ -985,18 +985,24 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 	// ALERT( at_console, "%.0f : %s : %d\n", pev->angles.y, STRING( pOther->pev->classname ), tr.iHitgroup );
 }
 
-TakeDamageResult CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CTentacle::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
+	TakeDamageResult takeDamageResult;
+	if( !pev->takedamage )
+		return takeDamageResult;
+
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return takeDamageResult;
+
 	PainReaction(damageInfo);
-	if( damageInfo.damage > pev->health )
+	if (ApplyDamageToHealth(damageInfo.damage))
 	{
-		pev->health = 1;
+		takeDamageResult.SetTookDamageToHealth();
+		if (pev->health <= 0)
+			pev->health = 1;
 	}
-	else
-	{
-		pev->health -= damageInfo.damage;
-	}
-	return TakeDamageResult().SetTookDamageToHealth();
+	return takeDamageResult;
 }
 
 PainSoundRule CTentacle::DefaultPainSoundRule()

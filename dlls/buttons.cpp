@@ -1149,8 +1149,15 @@ void CBaseButton::KeyValue( KeyValueData *pkvd )
 //
 // ButtonShot
 //
-TakeDamageResult CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CBaseButton::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
+	if (!pev->takedamage)
+		return TakeDamageResult();
+
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return TakeDamageResult();
+
 	BUTTON_CODE code = ButtonResponseToTouch();
 
 	if( code == BUTTON_NOTHING )
@@ -2323,8 +2330,12 @@ int CButtonTarget::ObjectCaps( void )
 		return caps;
 }
 
-TakeDamageResult CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CButtonTarget::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
+	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+	if (damageInfo.mustSkip)
+		return TakeDamageResult();
+
 	Use( Instance( pevAttacker ), this, USE_TOGGLE, 0 );
 
 	return TakeDamageResult();

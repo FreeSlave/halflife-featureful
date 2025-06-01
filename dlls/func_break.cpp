@@ -696,7 +696,7 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 		if (damageInfo.nonLethal)
 			SetNonLethalHealthThreshold();
 		if (ApplyDamageToHealth(damageInfo.damage))
-			takeDamageResult.TookDamageToHealth();
+			takeDamageResult.SetTookDamageToHealth();
 	}
 
 	if( pev->health <= 0 )
