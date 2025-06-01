@@ -71,14 +71,14 @@ extern engine_studio_api_t IEngineStudio;
 
 #include "hud_renderer.h"
 
-#ifdef CLDLL_FOG
-GLAPI_glEnable GL_glEnable = NULL;
-GLAPI_glDisable GL_glDisable = NULL;
-GLAPI_glFogi GL_glFogi = NULL;
-GLAPI_glFogf GL_glFogf = NULL;
-GLAPI_glFogfv GL_glFogfv = NULL;
-GLAPI_glHint GL_glHint = NULL;
-GLAPI_glGetIntegerv GL_glGetIntegerv = NULL;
+#if OPENGL_AVAILABLE
+GLAPI_glFogi GL_glFogi = nullptr;
+
+GLAPI_glPixelStorei GL_glPixelStorei = nullptr;
+GLAPI_glGenTextures GL_glGenTextures = nullptr;
+GLAPI_glBindTexture GL_glBindTexture = nullptr;
+GLAPI_glTexImage2D GL_glTexImage2D = nullptr;
+GLAPI_glTexParameteri GL_glTexParameteri = nullptr;
 
 #ifdef _WIN32
 HMODULE libOpenGL = NULL;
@@ -380,7 +380,7 @@ int DLLEXPORT HUD_VidInit( void )
 	VGui_Startup();
 #endif
 
-#ifdef CLDLL_FOG
+#if OPENGL_AVAILABLE
 	gEngfuncs.Con_DPrintf("Hardware Mode: %d\n", gHUD.m_iHardwareMode);
 	if (gHUD.m_iHardwareMode == 1)
 	{
@@ -395,6 +395,12 @@ int DLLEXPORT HUD_VidInit( void )
 #endif
 			{
 				GL_glFogi = (GLAPI_glFogi)LoadLibFunc(libOpenGL, "glFogi");
+
+				GL_glPixelStorei = (GLAPI_glPixelStorei)LoadLibFunc(libOpenGL, "glPixelStorei");
+				GL_glGenTextures = (GLAPI_glGenTextures)LoadLibFunc(libOpenGL, "glGenTextures");
+				GL_glBindTexture = (GLAPI_glBindTexture)LoadLibFunc(libOpenGL, "glBindTexture");
+				GL_glTexImage2D = (GLAPI_glTexImage2D)LoadLibFunc(libOpenGL, "glTexImage2D");
+				GL_glTexParameteri = (GLAPI_glTexParameteri)LoadLibFunc(libOpenGL, "glTexParameteri");
 			}
 
 			if (GL_glFogi)
@@ -639,7 +645,7 @@ bool HUD_MessageBox( const char *msg )
 void DLLEXPORT HUD_Shutdown( void )
 {
 	ShutdownInput();
-#ifdef CLDLL_FOG
+#if OPENGL_AVAILABLE
 	UnloadOpenGL();
 #endif
 	g_Environment.Clear();
@@ -650,6 +656,19 @@ void DLLEXPORT HUD_Shutdown( void )
 		miniMem->Shutdown();
 	}
 	CL_UnloadParticleMan();
+}
+
+static bool isSomeXash = false;
+
+extern "C" int DLLEXPORT HUD_GetRenderInterface( int version, void *renderfuncs, void *callback )
+{
+	isSomeXash = true;
+	return 0;
+}
+
+bool IsAnyXash()
+{
+	return isSomeXash;
 }
 
 bool IsXashFWGS()

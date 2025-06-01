@@ -9,6 +9,9 @@
 #if !defined ( STUDIOMODELRENDERER_H )
 #define STUDIOMODELRENDERER_H
 
+#include <string>
+#include <vector>
+
 /*
 ====================
 CStudioModelRenderer
@@ -182,6 +185,16 @@ public:
 	// Concatenated bone and light transforms
 	float			(*m_pbonetransform)[MAXSTUDIOBONES][3][4];
 	float			(*m_plighttransform)[MAXSTUDIOBONES][3][4];
+
+	bool StudioGetFullbright(model_s* pmodel);
+
+	void StudioRenderEntity(bool fullbright = false);
+	void StudioCacheFullbrightNames();
+
+	bool HasFullbrightSupportInEngine();
+
+	std::vector<std::string> m_szCheckedModels;
+	std::vector<std::string> m_szFullBrightModels;
 };
 
 #endif // STUDIOMODELRENDERER_H

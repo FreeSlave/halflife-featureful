@@ -23,6 +23,14 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+#include "gl_dynamic.h"
+
+#if OPENGL_AVAILABLE
+#define GL_CLAMP_TO_EDGE 0x812F
+
+static GLuint g_iBlankTex = 0;
+#endif
+
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
 
@@ -51,6 +59,8 @@ Init
 */
 void CStudioModelRenderer::Init( void )
 {
+	StudioCacheFullbrightNames();
+
 	// Set up some variables shared with engine
 	m_pCvarHiModels			= IEngineStudio.GetCvar( "cl_himodels" );
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
@@ -1165,21 +1175,29 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if( flags & STUDIO_RENDER )
 	{
-		lighting.plightvec = dir;
-		IEngineStudio.StudioDynamicLight( m_pCurrentEntity, &lighting );
-
-		IEngineStudio.StudioEntityLight( &lighting );
-
-		// model and frame independant
-		IEngineStudio.StudioSetupLighting( &lighting );
-
 		// get remap colors
 		m_nTopColor = m_pCurrentEntity->curstate.colormap & 0xFF;
 		m_nBottomColor = ( m_pCurrentEntity->curstate.colormap & 0xFF00 ) >> 8;
 
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
-		StudioRenderModel();
+		if (HasFullbrightSupportInEngine() || IEngineStudio.IsHardware() != 1 || !StudioGetFullbright(m_pRenderModel))
+		{
+			lighting.plightvec = dir;
+			IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting);
+
+			IEngineStudio.StudioEntityLight(&lighting);
+
+			// model and frame independant
+			IEngineStudio.StudioSetupLighting(&lighting);
+
+			StudioRenderModel();
+		}
+		else
+		{
+			StudioRenderEntity(false);
+			StudioRenderEntity(true);
+		}
 	}
 
 	return 1;
@@ -1697,4 +1715,187 @@ void CStudioModelRenderer::StudioRenderFinal( void )
 	{
 		StudioRenderFinal_Software();
 	}
+}
+/*
+====================
+StudioGetFullbright
+
+returns true if model has a fullbright texture
+also caches the name if it isnt cached yet
+====================
+*/
+bool CStudioModelRenderer::StudioGetFullbright(model_s* pmodel)
+{
+#if OPENGL_AVAILABLE
+	if (!pmodel || pmodel->type != mod_studio)
+		return false;
+
+	// check if this model is already been checked
+	for (size_t list = 0; list < m_szFullBrightModels.size(); list++)
+	{
+		if (!stricmp(pmodel->name, m_szFullBrightModels[list].c_str()))
+		{
+			return true;
+		}
+	}
+
+	// check if this model is already on our list
+	for (size_t list = 0; list < m_szCheckedModels.size(); list++)
+	{
+		if (!strcmp(pmodel->name, m_szCheckedModels[list].c_str()))
+		{
+			return false;
+		}
+	}
+
+	studiohdr_t* pHdr = (studiohdr_t*)IEngineStudio.Mod_Extradata(pmodel);
+	mstudiotexture_t* pTexture = (mstudiotexture_t*)((byte*)pmodel->cache.data + pHdr->textureindex);
+
+	if (strncmp((const char*)pHdr, "IDST", 4) && strncmp((const char*)pHdr, "IDSQ", 4))
+	{
+		m_szCheckedModels.push_back(pmodel->name);
+		return false;
+	}
+
+	bool foundfullbright = false;
+	if (pHdr->textureindex)
+	{
+		for (int i = 0; i < pHdr->numtextures; i++)
+		{
+			if (pTexture[i].flags & STUDIO_NF_FULLBRIGHT)
+			{
+				foundfullbright = true;
+				break;
+			}
+		}
+		if (foundfullbright)
+		{
+			m_szFullBrightModels.push_back(pmodel->name);
+		}
+	}
+
+	m_szCheckedModels.push_back(pmodel->name);
+
+	return foundfullbright;
+#else
+	return false;
+#endif
+}
+
+/*
+====================
+StudioRenderEntity
+
+if fullbright boolean is true, it renders only the fullbright texture
+if false, it renders all non-fullbright textures
+====================
+*/
+void CStudioModelRenderer::StudioRenderEntity(bool fullbright)
+{
+#if OPENGL_AVAILABLE
+	studiohdr_t* pHdr = (studiohdr_t*)m_pStudioHeader;
+	mstudiotexture_t* pTexture = (mstudiotexture_t*)((byte*)m_pRenderModel->cache.data + pHdr->textureindex);
+
+	std::vector<mstudiotexture_t> savedtexture;
+
+	if (pHdr->textureindex > 0)
+	{
+		for (int i = 0; i < pHdr->numtextures; i++)
+		{
+			savedtexture.push_back(pTexture[i]);
+			if ((pTexture[i].flags & STUDIO_NF_FULLBRIGHT) != 0)
+			{
+				if (!fullbright)
+				{
+					pTexture[i].index = g_iBlankTex;
+					pTexture[i].flags |= STUDIO_NF_ADDITIVE;
+				}
+			}
+			else if (fullbright)
+			{
+				pTexture[i].index = g_iBlankTex;
+				pTexture[i].flags |= STUDIO_NF_ADDITIVE;
+			}
+		}
+	}
+
+	alight_t lighting;
+	Vector dir;
+	lighting.plightvec = dir;
+
+	if (fullbright)
+	{
+		lighting.ambientlight = 128;
+		lighting.shadelight = 192;
+		lighting.color = {255, 255, 255};
+		// model and frame independant
+		IEngineStudio.StudioSetupLighting(&lighting);
+
+		StudioRenderModel();
+	}
+	else
+	{
+		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting);
+		IEngineStudio.StudioEntityLight(&lighting);
+		// model and frame independant
+		IEngineStudio.StudioSetupLighting(&lighting);
+
+		StudioRenderModel();
+	}
+
+	for (int i = 0; i < pHdr->numtextures; i++)
+	{
+		memcpy(&pTexture[i], &savedtexture[i], sizeof(mstudiotexture_t));
+	}
+#endif
+}
+
+#if OPENGL_AVAILABLE
+void GenBlackTex()
+{
+	if (GL_glGenTextures)
+	{
+		GLubyte pixels[3] = {0,0,0};
+
+		GL_glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		GL_glGenTextures(1, &g_iBlankTex);
+		GL_glBindTexture(GL_TEXTURE_2D, g_iBlankTex);
+
+		GL_glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+		GL_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		GL_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		GL_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+}
+#endif
+
+/*
+====================
+StudioCacheFullbrightNames
+
+====================
+*/
+void CStudioModelRenderer::StudioCacheFullbrightNames()
+{
+#if OPENGL_AVAILABLE
+	if (HasFullbrightSupportInEngine())
+		return;
+
+	if (g_iBlankTex == 0)
+		GenBlackTex();
+
+	// clear the cache
+	m_szFullBrightModels.clear();
+	m_szCheckedModels.clear();
+
+	for (int i = 0; i < 512; i++)
+	{
+		StudioGetFullbright(IEngineStudio.GetModelByIndex(i));
+	}
+#endif
+}
+
+bool CStudioModelRenderer::HasFullbrightSupportInEngine()
+{
+	return IsAnyXash();
 }

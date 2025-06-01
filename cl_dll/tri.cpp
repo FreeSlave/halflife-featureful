@@ -27,6 +27,9 @@ extern "C"
 	void DLLEXPORT HUD_DrawTransparentTriangles( void );
 }
 
+void CacheFullbrightModels();
+bool m_bCacheFullbrightModels = true;
+
 #include "com_model.h"
 #include "particleman.h"
 #include "environment.h"
@@ -114,7 +117,7 @@ static void RenderFogImpl(short r, short g, short b, float startDist, float endD
 	float fogColor[] = {(float)r, (float)g, (float)b};
 	gEngfuncs.pTriAPI->Fog ( fogColor, startDist, endDist, 1 );
 
-#ifdef CLDLL_FOG
+#if OPENGL_AVAILABLE
 	int glFogType = 0;
 
 	switch (type) {
@@ -180,6 +183,12 @@ void DLLEXPORT HUD_DrawTransparentTriangles( void )
 #if TEST_IT
 //	Draw_Triangles();
 #endif
+
+	if (m_bCacheFullbrightModels)
+	{
+		CacheFullbrightModels();
+		m_bCacheFullbrightModels = false;
+	}
 
 	if ( g_pParticleMan )
 	{

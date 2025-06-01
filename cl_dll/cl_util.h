@@ -175,6 +175,7 @@ float UTIL_ApproachAngle( float target, float value, float speed );
 HSPRITE LoadSprite( const char *pszName );
 
 bool HUD_MessageBox( const char *msg );
+bool IsAnyXash();
 bool IsXashFWGS();
 void ShutdownInput( void );
 #endif

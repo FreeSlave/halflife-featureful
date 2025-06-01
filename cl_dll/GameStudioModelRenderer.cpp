@@ -109,3 +109,8 @@ extern "C" int DLLEXPORT HUD_GetStudioModelInterface( int version, struct r_stud
 	// Success
 	return 1;
 }
+
+void CacheFullbrightModels()
+{
+	g_StudioRenderer.StudioCacheFullbrightNames();
+}

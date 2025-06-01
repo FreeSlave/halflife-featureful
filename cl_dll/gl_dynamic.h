@@ -2,13 +2,13 @@
 #ifndef GL_DYNAMIC_H
 #define GL_DYNAMIC_H
 
-#include "mod_features.h"
-
 #if (_WIN32 || (__unix__ && !__ANDROID__) || __APPLE__)
-#define CLDLL_FOG
+#define OPENGL_AVAILABLE 1
+#else
+#define OPENGL_AVAILABLE 0
 #endif
 
-#ifdef CLDLL_FOG
+#if OPENGL_AVAILABLE
 
 #if defined (_WIN32)
 
@@ -24,21 +24,27 @@
 #include <GL/gl.h>
 #endif
 
-typedef void (APIENTRY *GLAPI_glEnable)(GLenum cap);
-typedef void (APIENTRY *GLAPI_glDisable)(GLenum cap);
 typedef void (APIENTRY *GLAPI_glFogi)(GLenum pname, GLint param);
-typedef void (APIENTRY *GLAPI_glFogf)(GLenum pname, GLfloat param);
-typedef void (APIENTRY *GLAPI_glFogfv)(GLenum pname, const GLfloat *params);
-typedef void (APIENTRY *GLAPI_glHint)(GLenum target, GLenum mode);
-typedef void (APIENTRY *GLAPI_glGetIntegerv)(GLenum pname, GLint* params);
 
-extern GLAPI_glEnable GL_glEnable;
-extern GLAPI_glDisable GL_glDisable;
+typedef void (APIENTRY *GLAPI_glPixelStorei)(GLenum pname, GLint param);
+typedef void (APIENTRY *GLAPI_glGenTextures)(GLsizei n, GLuint *textures);
+typedef void (APIENTRY *GLAPI_glBindTexture)(GLenum target, GLuint texture);
+typedef void (APIENTRY *GLAPI_glTexImage2D)(GLenum target, GLint level,
+										   GLint internalFormat,
+										   GLsizei width, GLsizei height,
+										   GLint border, GLenum format, GLenum type,
+										   const GLvoid *pixels);
+typedef void (APIENTRY *GLAPI_glTexParameteri)(GLenum target, GLenum pname, GLint param);
+
+// For fog
 extern GLAPI_glFogi GL_glFogi;
-extern GLAPI_glFogf GL_glFogf;
-extern GLAPI_glFogfv GL_glFogfv;
-extern GLAPI_glHint GL_glHint;
-extern GLAPI_glGetIntegerv GL_glGetIntegerv;
+
+// For fullbright textures on models
+extern GLAPI_glPixelStorei GL_glPixelStorei;
+extern GLAPI_glGenTextures GL_glGenTextures;
+extern GLAPI_glBindTexture GL_glBindTexture;
+extern GLAPI_glTexImage2D GL_glTexImage2D;
+extern GLAPI_glTexParameteri GL_glTexParameteri;
 
 #endif
 

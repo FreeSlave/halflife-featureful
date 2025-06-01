@@ -36,6 +36,8 @@
 #include "error_collector.h"
 #include "tex_materials.h"
 
+extern bool m_bCacheFullbrightModels;
+
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 team_info_t		g_TeamInfo[MAX_TEAMS + 1];
@@ -1326,6 +1328,8 @@ void CHud::VidInit( void )
 	RecacheValues();
 	m_colorableCrosshair = CrosshairColorable();
 	m_lastCrosshairColor = m_cachedHudColor;
+
+	m_bCacheFullbrightModels = true;
 }
 
 int CHud::MsgFunc_Logo( const char *pszName,  int iSize, void *pbuf )
