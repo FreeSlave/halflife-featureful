@@ -301,6 +301,7 @@ void CTentacle::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->effects = 0;
 	SetMyHealth( 75 );
+	pev->max_health = pev->health;
 	pev->sequence = 0;
 	//Always interpolate tentacles since they don't actually move.
 	m_EFlags |= EFLAG_SLERP;
