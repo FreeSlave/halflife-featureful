@@ -3173,7 +3173,8 @@ void CBaseMonster::SetEyePosition( void )
 
 	if( pev->view_ofs == g_vecZero )
 	{
-		ALERT( at_aiconsole, "%s has no view_ofs!\n", STRING( pev->classname ) );
+		ALERT( at_aiconsole, "%s has no view_ofs! Fallback to %.2f\n", STRING( pev->classname ), pev->maxs.z );
+		pev->view_ofs = Vector(0, 0, pev->maxs.z);
 	}
 }
 
