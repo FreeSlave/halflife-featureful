@@ -106,14 +106,14 @@ void CM249::PrimaryAttack()
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
 		PlayEmptySound();
-		m_flNextPrimaryAttack = 0.15;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
 	}
 
 	if (!HasAmmoToFire())
 	{
 		PlayEmptySound();
-		m_flNextPrimaryAttack = 0.15;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
 	}
 
@@ -126,7 +126,7 @@ void CM249::PrimaryAttack()
 	SpendAmmo();
 	UpdateTape();
 	m_bAlternatingEject = !m_bAlternatingEject;
-	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
+	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -134,8 +134,45 @@ void CM249::PrimaryAttack()
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
 
-	// optimized multiplayer. Widened to make it easier to hit a moving player
-	const Vector vecSpread = bIsMultiplayer() ? VECTOR_CONE_6DEGREES : VECTOR_CONE_3DEGREES;
+	Vector vecSpread;
+
+	if (bIsMultiplayer())
+	{
+		if ((m_pPlayer->pev->button & IN_DUCK) != 0)
+		{
+			vecSpread = VECTOR_CONE_3DEGREES;
+		}
+		else if ((m_pPlayer->pev->button & (IN_MOVERIGHT |
+											IN_MOVELEFT |
+											IN_FORWARD |
+											IN_BACK)) != 0)
+		{
+			vecSpread = VECTOR_CONE_15DEGREES;
+		}
+		else
+		{
+			vecSpread = VECTOR_CONE_6DEGREES;
+		}
+	}
+	else
+	{
+		if ((m_pPlayer->pev->button & IN_DUCK) != 0)
+		{
+			vecSpread = VECTOR_CONE_2DEGREES;
+		}
+		else if ((m_pPlayer->pev->button & (IN_MOVERIGHT |
+											IN_MOVELEFT |
+											IN_FORWARD |
+											IN_BACK)) != 0)
+		{
+			vecSpread = VECTOR_CONE_10DEGREES;
+		}
+		else
+		{
+			vecSpread = VECTOR_CONE_4DEGREES;
+		}
+	}
+
 	Vector vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, vecSpread, 8192, BULLET_PLAYER_556, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
 	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usM249, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, pev->body, m_bAlternatingEject ? 1 : 0, 0);
@@ -179,10 +216,10 @@ void CM249::PrimaryAttack()
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.067);
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.067f);
 
 	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.067f;
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
 }
