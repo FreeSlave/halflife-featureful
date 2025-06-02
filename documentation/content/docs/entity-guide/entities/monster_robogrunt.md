@@ -26,6 +26,7 @@ When die robogrunts play spark effects and explode after 2 seconds.
 ### Soundscripts
 
 * **RGrunt.Die** - death sound.
+* **RGrunt.Pain** - pain sound. Empty by default.
 * **RGrunt.Spark** - spark sound (when low on health or about to explode)
 * **RGrunt.Reload** - reload sound. Derived from **NPC.Reload**
 * **RGrunt.9MM** - burst MP5 shot. Derived from **NPC.9MM**

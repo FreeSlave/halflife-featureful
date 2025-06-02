@@ -105,8 +105,6 @@ void CFireTrail::Touch( CBaseEntity *pOther )
 void SpawnExplosion( Vector center, float randomRange, float time, int magnitude );
 
 #define ROBOCOP_DAMAGE				(DMG_ENERGYBEAM|DMG_CRUSH|DMG_MORTAR|DMG_BLAST)
-#define ROBOCOP_EYE_SPRITE_NAME			"sprites/gargeye1.spr"
-#define ROBOCOP_EYE_BEAM_NAME			"sprites/smoke.spr"
 
 #define ROBOCOP_DEATH_DURATION			2.1f
 
@@ -147,6 +145,10 @@ public:
 
 	void PrescheduleThink( void );
 	void OnChangeSchedule( Schedule_t* pNewSchedule );
+
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 
 	Schedule_t *GetScheduleOfType( int Type );
@@ -193,6 +195,7 @@ public:
 	int m_RobocopGibModel;
 
 	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript chargeSoundScript;
 	static const NamedSoundScript fistSoundScript;
 	static const NamedSoundScript laserSoundScript;
@@ -242,6 +245,12 @@ const NamedSoundScript CRoboCop::dieSoundScript = {
 	"RoboCop.Die"
 };
 
+const NamedSoundScript CRoboCop::painSoundScript = {
+	CHAN_VOICE,
+	{},
+	"RoboCop.Pain"
+};
+
 const NamedSoundScript CRoboCop::chargeSoundScript = {
 	CHAN_BODY,
 	{"robocop/rc_charge.wav"},
@@ -269,17 +278,17 @@ const NamedSoundScript CRoboCop::stepSoundScript = {
 };
 
 const NamedVisual CRoboCop::eyeVisual = BuildVisual("RoboCop.Eye")
-		.Model(ROBOCOP_EYE_SPRITE_NAME)
+		.Model("sprites/gargeye1.spr")
 		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNone)
 		.Scale(0.5f);
 
 const NamedVisual CRoboCop::spotVisual = BuildVisual("RoboCop.BeamSpot")
-		.Model(ROBOCOP_EYE_SPRITE_NAME)
+		.Model("sprites/gargeye1.spr")
 		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxNone)
 		.Scale(0.3f);
 
 const NamedVisual CRoboCop::beamVisual = BuildVisual("RoboCop.Beam")
-		.Model(ROBOCOP_EYE_BEAM_NAME)
+		.Model("sprites/smoke.spr")
 		.BeamParams(32, 0, 15)
 		.RenderColor(255, 0, 0)
 		.Alpha(255);
@@ -644,12 +653,10 @@ void CRoboCop::Precache()
 	PrecacheMyModel( "models/robocop.mdl" );
 	PrecacheMyGibModel();
 
-	PRECACHE_MODEL( ROBOCOP_EYE_SPRITE_NAME );
-	PRECACHE_MODEL( ROBOCOP_EYE_BEAM_NAME );
-
 	m_RobocopGibModel = PRECACHE_MODEL( "models/metalplategibs.mdl" );
 
 	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(chargeSoundScript);
 	RegisterAndPrecacheSoundScript(fistSoundScript);
 	RegisterAndPrecacheSoundScript(laserSoundScript);
@@ -720,6 +727,18 @@ DamageInfo CRoboCop::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 	return damageInfo;
+}
+
+PainSoundRule CRoboCop::DefaultPainSoundRule()
+{
+	PainSoundRule rule;
+	rule.delay = FloatRange{2.5f, 4.0f};
+	return rule;
+}
+
+void CRoboCop::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 KilledResult CRoboCop::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )

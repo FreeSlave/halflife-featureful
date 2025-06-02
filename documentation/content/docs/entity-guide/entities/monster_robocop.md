@@ -7,10 +7,6 @@ bookToC: false
 
 A boss robot ported from Poke646.
 
-{{% hint info %}}
-The resources for this NPC are not included in the sample mod. You can take them from Poke646.
-{{% /hint %}}
-
 ### Skill variables
 
 * **sk_robocop_health** - monster's health.
@@ -25,6 +21,7 @@ The resources for this NPC are not included in the sample mod. You can take them
 ### Soundscripts
 
 * **RoboCop.Die** - death sound.
+* **RoboCop.Pain** - pain sound. Empty by default.
 * **RoboCop.Fist** - fist attack.
 * **RoboCop.Charge** - charging laser attack.
 * **RoboCop.Laser** - laser sound.

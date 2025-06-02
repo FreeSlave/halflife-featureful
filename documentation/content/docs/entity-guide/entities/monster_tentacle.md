@@ -27,3 +27,4 @@ Currently doesn't use any skill variables. The health (the amount of damage tent
 * **Tentacle.Flies** - starting sound of one of the tentacles. It's unknown why it's used at all, but that's what original Half-Life does.
 * **Tentacle.Squirm** - starting sound of one of the tentacles. It's unknown why it's used at all, but that's what original Half-Life does.
 * **Tentacle.Alert** - hearing a new interesting sound. Empty by default (but the game has tentacle alert sounds in the resources).
+* **Tentacle.Pain** - pain sound. Empty by default.

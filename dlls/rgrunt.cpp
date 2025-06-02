@@ -62,6 +62,7 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript painSoundScript;
 	static constexpr const char* sparkSoundScript = "RGrunt.Spark";
 
 	static constexpr const char* reloadSoundScript = "RGrunt.Reload";
@@ -127,6 +128,12 @@ const NamedSoundScript CRGrunt::dieSoundScript = {
 	"RGrunt.Die"
 };
 
+const NamedSoundScript CRGrunt::painSoundScript = {
+	CHAN_VOICE,
+	{},
+	"RGrunt.Pain"
+};
+
 const NamedSoundScript CRGrunt::useSoundScript = {
 	CHAN_VOICE,
 	{"buttons/button3.wav"},
@@ -175,6 +182,7 @@ void CRGrunt::Precache()
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
 	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
 
 	SoundScriptParamOverride param;
 	param.OverrideChannel(CHAN_BODY);
@@ -213,6 +221,7 @@ void CRGrunt::DeathSound()
 
 void CRGrunt::PainSound()
 {
+	EmitSoundScript(painSoundScript);
 }
 
 void CRGrunt::RunAI()
