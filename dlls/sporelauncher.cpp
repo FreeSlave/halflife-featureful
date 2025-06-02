@@ -103,15 +103,6 @@ void CSporelauncher::PrimaryAttack()
 
 	SpendAmmo();
 
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-
-	// m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
@@ -122,7 +113,7 @@ void CSporelauncher::PrimaryAttack()
 #endif
 
 	PLAYBACK_EVENT_FULL(
-		flags,
+		PlaybackFlags(),
 		m_pPlayer->edict(),
 		m_usSporeFire,
 		0.0,
@@ -163,16 +154,6 @@ void CSporelauncher::SecondaryAttack(void)
 
 	SpendAmmo();
 
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-	//m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
@@ -184,7 +165,7 @@ void CSporelauncher::SecondaryAttack(void)
 #endif
 
 	PLAYBACK_EVENT_FULL(
-		flags,
+		PlaybackFlags(),
 		m_pPlayer->edict(),
 		m_usSporeFire,
 		0.0,

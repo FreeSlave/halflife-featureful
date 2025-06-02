@@ -323,6 +323,14 @@ public:
 		return false;
 #endif
 	}
+	inline int PlaybackFlags()
+	{
+#if CLIENT_WEAPONS
+		return FEV_NOTHOST;
+#else
+		return 0;
+#endif
+	}
 	virtual int DefaultWeight() { return 0; }
 
 	int	PrimaryAmmoIndex();
