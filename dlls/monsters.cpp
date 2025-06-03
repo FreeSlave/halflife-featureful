@@ -1812,14 +1812,6 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 
 			const Vector localMoveNearest = pev->origin + (vecGoal - pev->origin).Normalize() * flDist;
 
-			m_Route[0].vecLocation = localMoveNearest;
-			m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
-
-			m_vecMoveGoal = localMoveNearest;
-
-			// Prevent playing walk/run animation while standing in place
-			const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
-
 			Vector apex;
 			const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
 
@@ -1827,23 +1819,43 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 			{
 				if ((apex - triangulatedNearest).Length2D() < 1)
 				{
-					m_Route[0].vecLocation = triangulatedNearest;
-					m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+					if ((triangulatedNearest - pev->origin).Length2D() >= 1.0f)
+					{
+						m_Route[0].vecLocation = triangulatedNearest;
+						m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+						m_vecMoveGoal = triangulatedNearest;
+						return true;
+					}
 				}
 				else
 				{
-					m_Route[0].vecLocation = apex;
-					m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
+					if ((triangulatedNearest - pev->origin).Length2D() >= 1.0f)
+					{
+						m_Route[0].vecLocation = apex;
+						m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
 
-					m_Route[1].vecLocation = triangulatedNearest;
-					m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
+						m_Route[1].vecLocation = triangulatedNearest;
+						m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
 
-					RouteSimplify( pTarget );
+						RouteSimplify( pTarget );
+						m_vecMoveGoal = triangulatedNearest;
+						return true;
+					}
 				}
-				m_vecMoveGoal = triangulatedNearest;
-				return true;
 			}
-			return distToMoveStraight >= 1.0f;
+			else
+			{
+				// Prevent playing walk/run animation while standing in place
+				const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
+				if (distToMoveStraight >= 1.0f)
+				{
+					m_Route[0].vecLocation = localMoveNearest;
+					m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+
+					m_vecMoveGoal = localMoveNearest;
+					return true;
+				}
+			}
 		}
 		return false;
 	};

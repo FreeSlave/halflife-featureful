@@ -1307,7 +1307,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			}
 
 			int routeFlags = bits_MF_TO_ENEMY;
-			if (NpcGetToEnemyNearest() && WantsToGetCloseToEnemy())
+			if (NpcGetToEnemyNearest() && WantsToGetCloseToEnemy() && !HasConditions(bits_COND_CAN_RANGE_ATTACK1|bits_COND_CAN_RANGE_ATTACK2))
 			{
 				routeFlags |= bits_MF_NEAREST_PATH;
 			}
