@@ -537,7 +537,8 @@ protected:
 	float		m_flameTime;		// Time of next flame attack
 	float		m_streakTime;		// streak timer (don't send too many)
 	float		m_flameX;		// Flame thrower aim
-	float		m_flameY;			
+	float		m_flameY;
+	float m_stompTime;
 	float m_breatheTime;
 
 	const Visual* m_eyeVisual; // this is accessed quite often so cache it
@@ -556,6 +557,7 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_ARRAY( CGargantua, m_pFlame, FIELD_CLASSPTR, 4 ),
 	DEFINE_FIELD( CGargantua, m_flameX, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
+	DEFINE_FIELD( CGargantua, m_breatheTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CGargantua, CFollowingMonster )
@@ -983,6 +985,9 @@ void CGargantua::PrescheduleThink( void )
 	else
 		EyeOn( m_eyeVisual->renderamt );
 
+	if (HasConditions(bits_COND_NEW_ENEMY))
+		m_stompTime = gpGlobals->time + 5.0f;
+
 	EyeUpdate();
 	CFollowingMonster::PrescheduleThink();
 }
@@ -1054,8 +1059,9 @@ void CGargantua::Spawn()
 		m_pEyeGlow->SetBrightness(0); // start with eye off
 	}
 	EyeOff();
-	m_seeTime = gpGlobals->time + 5;
-	m_flameTime = gpGlobals->time + 2;
+	m_seeTime = gpGlobals->time + 5.0f;
+	m_flameTime = gpGlobals->time + 2.0f;
+	m_stompTime = gpGlobals->time + 5.0f;
 }
 
 //=========================================================
@@ -1239,7 +1245,7 @@ bool CGargantua::CheckMeleeAttack2( float flDot, float flDist )
 //=========================================================
 bool CGargantua::CheckRangeAttack1( float flDot, float flDist )
 {
-	if( gpGlobals->time > m_seeTime )
+	if( gpGlobals->time > m_stompTime )
 	{
 		if( flDot >= 0.7f && flDist > GARG_ATTACKDIST )
 		{
@@ -1280,7 +1286,7 @@ void CGargantua::HandleAnimEvent( MonsterEvent_t *pEvent )
 		break;
 	case GARG_AE_STOMP:
 		StompAttack();
-		m_seeTime = gpGlobals->time + 12.0f;
+		m_stompTime = gpGlobals->time + 12.0f;
 		break;
 	case GARG_AE_BREATHE:
 		BreatheSound();
