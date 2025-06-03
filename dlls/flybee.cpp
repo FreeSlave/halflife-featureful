@@ -726,9 +726,9 @@ Schedule_t* CFlybee::GetScheduleOfType ( int Type )
 
 	case SCHED_RANGE_ATTACK2:
 
-		if ( m_hEnemy->pev->velocity.Length() <= 100 )
+		if ( m_hEnemy->pev->velocity.IsLengthLessThanOrEqual(100) )
 		{
-			if ( (Center()-m_hEnemy->Center()).Length() <= 300 && fabs(pev->origin.z-m_hEnemy->pev->origin.z) <= 128 )
+			if ( (Center() - m_hEnemy->Center()).IsLengthLessThanOrEqual(300) && fabs(pev->origin.z - m_hEnemy->pev->origin.z) <= 128 )
 				return slFlybeeRunAttack;
 			else
 			{
@@ -823,7 +823,7 @@ void CFlybee::RunTask ( Task_t *pTask )
 			Vector vecSwim = CrossProduct( vecDelta, Vector( 0, 0, 1 ) ).Normalize( );
 			
 			if (DotProduct( vecSwim, m_SaveVelocity ) < 0)
-				vecSwim = vecSwim * -1.0;
+				vecSwim *= -1.0f;
 
 			Vector vecPos = vecFrom + vecDelta * m_idealDist + vecSwim * 32;
 
@@ -1290,7 +1290,7 @@ void CFlyBall::AnimateThink( void )
 
 	float delta = gpGlobals->time - pev->dmgtime;
 
-	if ( delta > 5 || pev->velocity.Length() < 10 )
+	if ( delta > 5 || pev->velocity.IsLengthLessThan(10) )
 	{
 		SetTouch( NULL );
 		UTIL_Remove( this );

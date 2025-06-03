@@ -286,18 +286,12 @@ void CRpgRocket::FollowThink( void )
 		if( pev->waterlevel == WL_Eyes )
 		{
 			// go slow underwater
-			if( pev->velocity.Length() > 300.0f )
-			{
-				pev->velocity = pev->velocity.Normalize() * 300.0f;
-			}
+			pev->velocity.ClampToLengthInPlace(300.0f);
 			UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1f, pev->origin, 4 );
 		} 
 		else 
 		{
-			if( pev->velocity.Length() > 2000.0f )
-			{
-				pev->velocity = pev->velocity.Normalize() * 2000.0f;
-			}
+			pev->velocity.ClampToLengthInPlace(2000.0f);
 		}
 	}
 	else
@@ -308,14 +302,14 @@ void CRpgRocket::FollowThink( void )
 			StopSoundScript(rocketIgniteSoundScript);
 		}
 		pev->velocity = pev->velocity * 0.2f + vecTarget * flSpeed * 0.798f;
-		if( pev->waterlevel == WL_NotInWater && pev->velocity.Length() < 1500.0f )
+		if( pev->waterlevel == WL_NotInWater && pev->velocity.IsLengthLessThan(1500.0f) )
 			Detonate();
 	}
 	// ALERT( at_console, "%.0f\n", flSpeed );
 
 	if( CRpg *pLauncher = GetLauncher())
 	{
-		if( ( pev->origin - pLauncher->pev->origin ).Length() > 8192 || gpGlobals->time - m_flIgniteTime > 6.0f )
+		if( ( pev->origin - pLauncher->pev->origin ).IsLengthGreaterThan(8192) || gpGlobals->time - m_flIgniteTime > 6.0f )
 		{
 			// my launcher is still around, tell it I'm dead.
 			pLauncher->m_cActiveRockets--;

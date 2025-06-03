@@ -523,10 +523,8 @@ void CFollowingMonster::RunTask( Task_t *pTask )
 	case TASK_MOVE_AWAY_PATH:
 	case TASK_MOVE_AWAY_PATH_RUNNING:
 		{
-			float distance = ( m_vecLastPosition - pev->origin ).Length2D();
-
 			// Walk path until far enough away
-			if( distance > pTask->flData || MovementIsComplete() )
+			if( ( m_vecLastPosition - pev->origin ).IsLength2DGreaterThan(pTask->flData) || MovementIsComplete() )
 			{
 				TaskComplete();
 				//RouteClear();		Called by TASK_STOP_MOVING

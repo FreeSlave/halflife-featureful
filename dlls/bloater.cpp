@@ -554,8 +554,7 @@ void CFloater::RunTask( Task_t *pTask )
 		{
 			MakeIdealYaw( m_vecEnemyLKP );
 			ChangeYaw( pev->yaw_speed );
-			const float distance = (m_hEnemy->Center() - pev->origin).Length();
-			if (distance < 128 && !Bloating())
+			if (((m_hEnemy->Center() - pev->origin)).IsLengthLessThan(128) && !Bloating())
 			{
 				StartBloating();
 			}

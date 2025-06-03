@@ -986,7 +986,7 @@ bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 bool CCalcSubVelocity::Convert( CBaseEntity *pLocus, Vector vecDir, Vector* outVector )
 {
 	if (pev->spawnflags & SF_CALCVELOCITY_NORMALIZE)
-		vecDir = vecDir.Normalize();
+		vecDir.NormalizeInPlace();
 	
 	float fRatio = 1;
 	if (m_iszFactor) {
@@ -1077,7 +1077,7 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 	case 0:
 		if (!TryCalcLocus_Position( this, pLocus, STRING(pev->netname), vecOffs ))
 			return false;
-		vecOffs = vecOffs - vecStart;
+		vecOffs -= vecStart;
 		break;
 	case 1:
 		if (!TryCalcLocus_Velocity( this, pLocus, STRING(pev->netname), vecOffs ))
@@ -1092,21 +1092,21 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 		switch ((int)pev->health)
 		{
 		case 1:
-			vecOffs = vecOffs/len;
+			vecOffs /= len;
 			break;
 		case 2:
-			vecOffs = vecOffs/(len*len);
+			vecOffs /= len*len;
 			break;
 		case 3:
-			vecOffs = vecOffs/(len*len*len);
+			vecOffs /= len*len*len;
 			break;
 		case 4:
-			vecOffs = vecOffs*len;
+			vecOffs *= len;
 			break;
 		}
 	}
 
-	vecOffs = vecOffs * fFactor;
+	vecOffs *= fFactor;
 
 	if (pev->frags)
 	{

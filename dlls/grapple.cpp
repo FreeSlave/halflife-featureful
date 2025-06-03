@@ -85,18 +85,12 @@ void CBarnacleGrappleTip::FlyThink()
 	if( !g_pGameRules->IsMultiplayer() )
 	{
 		//Note: the old grapple had a maximum velocity of 1600. - Solokiller
-		if( pev->velocity.Length() > 750.0 )
-		{
-			pev->velocity = pev->velocity.Normalize() * 750.0;
-		}
+		pev->velocity.ClampToLengthInPlace(750.0f);
 	}
 	else
 	{
 		//TODO: should probably clamp at sv_maxvelocity to prevent the tip from going off course. - Solokiller
-		if( pev->velocity.Length() > 2000.0 )
-		{
-			pev->velocity = pev->velocity.Normalize() * 2000.0;
-		}
+		pev->velocity.ClampToLengthInPlace(2000.0f);
 	}
 
 	pev->nextthink = gpGlobals->time + 0.02;

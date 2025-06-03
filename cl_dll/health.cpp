@@ -351,9 +351,8 @@ void CHudHealth::CalcDamageDirection( Vector vecFrom )
 
 	VectorSubtract( vecFrom, vecOrigin, vecFrom );
 
-	float flDistToTarget = vecFrom.Length();
+	float flDistToTarget = vecFrom.NormalizeInPlace();
 
-	vecFrom = vecFrom.Normalize();
 	AngleVectors( vecAngles, forward, right, up );
 
 	front = DotProduct( vecFrom, right );

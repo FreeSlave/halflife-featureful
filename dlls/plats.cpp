@@ -1649,7 +1649,7 @@ void CFuncTrackTrain::NearestPath( void )
 	pTrack = ( (CPathTrack *)pNearest )->GetNext();
 	if( pTrack )
 	{
-		if( ( pev->origin - pTrack->pev->origin ).Length() < ( pev->origin - pNearest->pev->origin ).Length() )
+		if( ( pev->origin - pTrack->pev->origin ).LengthSqr() < ( pev->origin - pNearest->pev->origin ).LengthSqr() )
 			pNearest = pTrack;
 	}
 
@@ -2081,7 +2081,7 @@ void CFuncTrackChange::UpdateTrain( Vector &dest )
 	local.y = DotProduct( offset, gpGlobals->v_right );
 	local.z = DotProduct( offset, gpGlobals->v_up );
 
-	local = local - offset;
+	local -= offset;
 	m_train->pev->velocity = pev->velocity + ( local * ( 1.0f / time ) );
 }
 

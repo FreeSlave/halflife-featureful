@@ -493,7 +493,7 @@ bool CHGrunt::CheckRangeAttack2Impl( float grenadeSpeed, float flDot, float flDi
 		vecTarget = m_vecEnemyLKP + ( m_hEnemy->BodyTarget( pev->origin ) - m_hEnemy->pev->origin );
 		// estimate position
 		if( HasConditions( bits_COND_SEE_ENEMY ) )
-			vecTarget = vecTarget + ( ( vecTarget - pev->origin).Length() / grenadeSpeed ) * m_hEnemy->pev->velocity;
+			vecTarget += ( ( vecTarget - pev->origin).Length() / grenadeSpeed ) * m_hEnemy->pev->velocity;
 	}
 
 	// are any of my allies near the intended grenade impact area?
@@ -505,7 +505,7 @@ bool CHGrunt::CheckRangeAttack2Impl( float grenadeSpeed, float flDot, float flDi
 		return m_fThrowGrenade;
 	}
 
-	if( ( vecTarget - pev->origin ).Length2D() <= 256.0f )
+	if( ( vecTarget - pev->origin ).IsLength2DLessThanOrEqual(256.0f) )
 	{
 		// crap, I don't want to blow myself up
 		m_flNextGrenadeCheck = gpGlobals->time + 1; // one full second.

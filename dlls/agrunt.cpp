@@ -252,7 +252,7 @@ static DamageInfo AgruntHandleTraceAttack(CBaseMonster* self, entvars_t *pevInfl
 			vecTracerDir.y += RANDOM_FLOAT( -0.3f, 0.3f );
 			vecTracerDir.z += RANDOM_FLOAT( -0.3f, 0.3f );
 
-			vecTracerDir = vecTracerDir * -512.0f;
+			vecTracerDir *= -512.0f;
 
 			Vector vecTracerEnd = ptr->vecEndPos + vecTracerDir;
 
@@ -473,7 +473,7 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			{
 				vecDirToEnemy = ( ( m_vecEnemyLKP ) - pev->origin );
 				angDir = UTIL_VecToAngles( vecDirToEnemy );
-				vecDirToEnemy = vecDirToEnemy.Normalize();
+				vecDirToEnemy.NormalizeInPlace();
 			}
 			else
 			{
@@ -493,7 +493,7 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			SetBlending( 0, angDir.x );
 			GetAttachment( 0, vecArmPos, vecArmDir );
 
-			vecArmPos = vecArmPos + vecDirToEnemy * 32.0f;
+			vecArmPos += vecDirToEnemy * 32.0f;
 
 			SendSprite(vecArmPos, GetVisual(muzzleFlashVisual));
 

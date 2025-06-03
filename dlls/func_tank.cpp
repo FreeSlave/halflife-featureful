@@ -398,7 +398,7 @@ bool CFuncTank::OnControls( entvars_t *pevTest )
 
 	//Vector offset = pevTest->origin - pev->origin;
 
-	if( ( m_vecControllerUsePos - pevTest->origin ).Length() < 30 )
+	if( ( m_vecControllerUsePos - pevTest->origin ).IsLengthLessThan(30) )
 		return true;
 
 	return false;

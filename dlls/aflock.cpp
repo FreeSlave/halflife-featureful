@@ -493,22 +493,19 @@ void CFlockingFlyer::FormFlock( void )
 //=========================================================
 void CFlockingFlyer::SpreadFlock()
 {
-	Vector vecDir;
 	float flSpeed;// holds vector magnitude while we fiddle with the direction
 
 	CFlockingFlyer *pList = m_pSquadLeader;
 	while( pList )
 	{
-		if( pList != this && ( pev->origin - pList->pev->origin ).Length() <= AFLOCK_TOO_CLOSE )
+		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(AFLOCK_TOO_CLOSE) )
 		{
 			// push the other away
-			vecDir = pList->pev->origin - pev->origin;
-			vecDir = vecDir.Normalize();
+			const Vector vecDir = (pList->pev->origin - pev->origin).Normalize();
 
 			// store the magnitude of the other boid's velocity, and normalize it so we
 			// can average in a course that points away from the leader.
-			flSpeed = pList->pev->velocity.Length();
-			pList->pev->velocity = pList->pev->velocity.Normalize();
+			flSpeed = pList->pev->velocity.NormalizeInPlace();
 			pList->pev->velocity = ( pList->pev->velocity + vecDir ) * 0.5f;
 			pList->pev->velocity = pList->pev->velocity * flSpeed;
 		}
@@ -524,15 +521,12 @@ void CFlockingFlyer::SpreadFlock()
 //=========================================================
 void CFlockingFlyer::SpreadFlock2()
 {
-	Vector vecDir;
-
 	CFlockingFlyer *pList = m_pSquadLeader;
 	while( pList )
 	{
-		if( pList != this && ( pev->origin - pList->pev->origin ).Length() <= AFLOCK_TOO_CLOSE )
+		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(AFLOCK_TOO_CLOSE) )
 		{
-			vecDir = pev->origin - pList->pev->origin;
-			vecDir = vecDir.Normalize();
+			const Vector vecDir = (pev->origin - pList->pev->origin).Normalize();
 
 			pev->velocity = pev->velocity + vecDir;
 		}
@@ -725,7 +719,7 @@ void CFlockingFlyer::FlockFollowerThink( void )
 	}
 
 	vecDirToLeader = ( m_pSquadLeader->pev->origin - pev->origin );
-	flDistToLeader = vecDirToLeader.Length();
+	flDistToLeader = vecDirToLeader.NormalizeInPlace();
 	
 	// match heading with leader
 	pev->angles = m_pSquadLeader->pev->angles;
@@ -755,13 +749,11 @@ void CFlockingFlyer::FlockFollowerThink( void )
 
 	SpreadFlock2();
 
-	pev->speed = pev->velocity.Length();
-	pev->velocity = pev->velocity.Normalize();
+	pev->speed = pev->velocity.NormalizeInPlace();
 
 	// if we are too far from leader, average a vector towards it into our current velocity
 	if( flDistToLeader > AFLOCK_TOO_FAR )
 	{
-		vecDirToLeader = vecDirToLeader.Normalize();
 		pev->velocity = (pev->velocity + vecDirToLeader) * 0.5f;
 	}
 

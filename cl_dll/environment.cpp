@@ -387,7 +387,7 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 
 			Vector vecNewBegin;
 
-			while( vecDist.Length() > 4.0 )
+			while( vecDist.IsLengthGreaterThan(4.0) )
 			{
 				vecDist = vecDist * 0.5;
 

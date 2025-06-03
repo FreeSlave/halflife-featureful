@@ -1247,7 +1247,7 @@ void CTargetCDAudio::Think( void )
 
 	pev->nextthink = gpGlobals->time + 0.5f;
 
-	if( ( pClient->v.origin - pev->origin ).Length() <= pev->scale )
+	if( ( pClient->v.origin - pev->origin ).IsLengthLessThanOrEqual(pev->scale) )
 		Play();
 }
 
@@ -2829,13 +2829,13 @@ void CTriggerPush::Touch( CBaseEntity *pOther )
 	{
 		float factor;
 		if (TryCalcLocus_Ratio( pOther, STRING(m_iszPushSpeed), factor ))
-			vecPush = vecPush * factor;
+			vecPush *= factor;
 	}
 
 	if (pev->speed)
-		vecPush = vecPush * pev->speed;
+		vecPush *= pev->speed;
 	else
-		vecPush = vecPush * 100;
+		vecPush *= 100;
 
 	if( pevToucher->solid != SOLID_NOT && pevToucher->solid != SOLID_BSP )
 	{
@@ -2851,7 +2851,7 @@ void CTriggerPush::Touch( CBaseEntity *pOther )
 		{
 			// Push field, transfer to base velocity
 			if( pevToucher->flags & FL_BASEVELOCITY )
-				vecPush = vecPush + pevToucher->basevelocity;
+				vecPush += pevToucher->basevelocity;
 
 			pevToucher->basevelocity = vecPush;
 
@@ -3010,7 +3010,7 @@ bool CTriggerTeleport::TeleportToDestination( CBaseEntity *pOther )
 			Vector vecPlayerOffsNew = gpGlobals->v_forward * vecPlayerOffs.Length();
 			vecPlayerOffsNew.z = -vecPlayerOffsNew.z;
 
-			vecOriginOffs = vecOriginOffs + vecPlayerOffsNew - vecPlayerOffs;
+			vecOriginOffs += vecPlayerOffsNew - vecPlayerOffs;
 		}
 
 		LetGoRope(pOther);
@@ -3026,7 +3026,7 @@ bool CTriggerTeleport::TeleportToDestination( CBaseEntity *pOther )
 			if (pOther->IsPlayer())
 				subjectPos.z += pOther->pev->mins.z;
 			Vector offset = subjectPos - pev->origin;
-			tmp = tmp + offset;
+			tmp += offset;
 		}
 
 		if( pOther->IsPlayer() )
@@ -4639,7 +4639,7 @@ void CTriggerCamera::FollowTarget()
 	if( !( FBitSet( pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL ) ) )
 	{
 		pev->velocity = pev->velocity * 0.8f;
-		if( pev->velocity.Length() < 10.0f )
+		if( pev->velocity.IsLengthLessThan(10.0f) )
 			pev->velocity = g_vecZero;
 	}
 

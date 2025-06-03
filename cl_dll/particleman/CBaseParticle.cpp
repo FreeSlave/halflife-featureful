@@ -399,7 +399,7 @@ void CBaseParticle::CheckCollision(float time)
 		{
 			m_vVelocity = m_vVelocity * 0.6;
 
-			if (m_vVelocity.Length() < 10)
+			if (m_vVelocity.IsLengthLessThan(10))
 			{
 				m_iCollisionFlags = 0;
 				m_vVelocity = g_vecZero;

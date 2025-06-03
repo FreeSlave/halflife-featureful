@@ -702,7 +702,7 @@ bool CSquadMonster::AllyMonsterInRange( const Vector &vecLocation, float flDist 
 		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
 		{
 			CSquadMonster *pSquadMember = pSquadLeader->MySquadMember( i );
-			if( pSquadMember && ( vecLocation - pSquadMember->pev->origin ).Length2D() <= flDist )
+			if( pSquadMember && ( vecLocation - pSquadMember->pev->origin ).IsLength2DLessThanOrEqual(flDist) )
 				return true;
 		}
 	}

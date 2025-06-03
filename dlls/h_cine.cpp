@@ -216,7 +216,7 @@ void CCineBlood :: BloodGush ( void )
 	{
 		// decals the floor with blood.
 		vecSplatDir = Vector ( 0 , 0 , -1 );
-		vecSplatDir = vecSplatDir + (RANDOM_FLOAT(-1,1) * 0.6f * gpGlobals->v_right) + (RANDOM_FLOAT(-1,1) * 0.6f * gpGlobals->v_forward);// randomize a bit
+		vecSplatDir += (RANDOM_FLOAT(-1,1) * 0.6f * gpGlobals->v_right) + (RANDOM_FLOAT(-1,1) * 0.6f * gpGlobals->v_forward);// randomize a bit
 		UTIL_TraceLine( pev->origin + Vector ( 0, 0 , 64) , pev->origin + vecSplatDir * 256, ignore_monsters, ENT(pev), &tr);
 		if ( tr.flFraction != 1.0f )
 		{

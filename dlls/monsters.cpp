@@ -260,7 +260,7 @@ void CBaseMonster::Listen( void )
 
 		if( pCurrentSound &&
 			( pCurrentSound->m_iType & iMySounds )	&&
-			( pCurrentSound->m_vecOrigin - EarPosition() ).Length() <= pCurrentSound->m_iVolume * hearingSensitivity )
+			( pCurrentSound->m_vecOrigin - EarPosition() ).IsLengthLessThanOrEqual(pCurrentSound->m_iVolume * hearingSensitivity) )
 
 		//if( ( g_pSoundEnt->m_SoundPool[iSound].m_iType & iMySounds ) && ( g_pSoundEnt->m_SoundPool[iSound].m_vecOrigin - EarPosition()).Length () <= g_pSoundEnt->m_SoundPool[iSound].m_iVolume * hearingSensitivity )
 		{
@@ -1091,7 +1091,7 @@ void CBaseMonster::CheckAttacks(CBaseEntity *pTarget, float flDist, float flMele
 	UTIL_MakeVectors( pev->angles );
 
 	vec2LOS = ( pTarget->pev->origin - pev->origin ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
@@ -1315,7 +1315,7 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 			if( m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY) || m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY|bits_MF_NEAREST_PATH) )
 			{
 				// UNDONE: Should we allow monsters to override this distance (80?)
-				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).Length() > 80.0f )
+				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).IsLengthGreaterThan(80.0f) )
 				{
 					// Refresh
 					FRefreshRoute();
@@ -1815,11 +1815,11 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 			Vector apex;
 			const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
 
-			if ((vecGoal - triangulatedNearest).Length2D() < (vecGoal - localMoveNearest).Length2D())
+			if ((vecGoal - triangulatedNearest).Length2DSqr() < (vecGoal - localMoveNearest).Length2DSqr())
 			{
-				if ((apex - triangulatedNearest).Length2D() < 1)
+				if ((apex - triangulatedNearest).IsLength2DLessThan(1))
 				{
-					if ((triangulatedNearest - pev->origin).Length2D() >= 1.0f)
+					if ((triangulatedNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
 					{
 						m_Route[0].vecLocation = triangulatedNearest;
 						m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
@@ -1829,7 +1829,7 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 				}
 				else
 				{
-					if ((triangulatedNearest - pev->origin).Length2D() >= 1.0f)
+					if ((triangulatedNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
 					{
 						m_Route[0].vecLocation = apex;
 						m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
@@ -1846,8 +1846,7 @@ bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 			else
 			{
 				// Prevent playing walk/run animation while standing in place
-				const float distToMoveStraight = (localMoveNearest - pev->origin).Length2D();
-				if (distToMoveStraight >= 1.0f)
+				if ((localMoveNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
 				{
 					m_Route[0].vecLocation = localMoveNearest;
 					m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
@@ -1964,9 +1963,9 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 
 	vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
 
-	vecDir = vecDir * sizeX * 2;
+	vecDir *= sizeX * 2;
 	if( pev->movetype == MOVETYPE_FLY )
-		vecDirUp = vecDirUp * sizeZ * 2;
+		vecDirUp *= sizeZ * 2;
 
 	for( i = 0; i < tries; i++ )
 	{
@@ -2101,12 +2100,12 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 #endif
 		}
 
-		vecRight = vecRight + vecDir;
-		vecLeft = vecLeft - vecDir;
+		vecRight += vecDir;
+		vecLeft -= vecDir;
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			vecTop = vecTop + vecDirUp;
-			vecBottom = vecBottom - vecDirUp;
+			vecTop += vecDirUp;
+			vecBottom -= vecDirUp;
 		}
 	}
 
@@ -2157,9 +2156,9 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 
 	vecFarSide = vecEnd;
 
-	vecDir = vecDir * sizeX * 2;
+	vecDir *= sizeX * 2;
 	if( pev->movetype == MOVETYPE_FLY )
-		vecDirUp = vecDirUp * sizeZ * 2;
+		vecDirUp *= sizeZ * 2;
 
 	const int tries = 8;
 	Vector vecNearest = vecStart;
@@ -2178,7 +2177,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			else
 			{
 				vecTest = vecRight + (vecFarSide - vecRight).Normalize() * localMoveDist;
-				if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+				if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 				{
 					vecNearest = vecTest;
 					vecBestApex = vecRight;
@@ -2188,7 +2187,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 		else
 		{
 			vecTest = vecStart + (vecRight - vecStart).Normalize() * localMoveDist;
-			if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+			if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 			{
 				vecNearest = vecTest;
 				vecBestApex = vecNearest;
@@ -2204,7 +2203,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			else
 			{
 				vecTest = vecLeft + (vecFarSide - vecLeft).Normalize() * localMoveDist;
-				if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+				if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 				{
 					vecNearest = vecTest;
 					vecBestApex = vecLeft;
@@ -2214,7 +2213,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 		else
 		{
 			vecTest = vecStart + (vecLeft - vecStart).Normalize() * localMoveDist;
-			if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+			if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 			{
 				vecNearest = vecTest;
 				vecBestApex = vecNearest;
@@ -2241,12 +2240,12 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			}
 		}
 
-		vecRight = vecRight + vecDir;
-		vecLeft = vecLeft - vecDir;
+		vecRight += vecDir;
+		vecLeft -= vecDir;
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			vecTop = vecTop + vecDirUp;
-			vecBottom = vecBottom - vecDirUp;
+			vecTop += vecDirUp;
+			vecBottom -= vecDirUp;
 		}
 	}
 
@@ -2785,7 +2784,6 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 	int iMyHullIndex;
 	int iMyNode;
 	int iThreatNode;
-	float flDist;
 	Vector vecLookersOffset;
 	TraceResult tr;
 
@@ -2835,11 +2833,11 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 		CNode &node = WorldGraph.Node( nodeNumber );
 
 		// could use an optimization here!!
-		flDist = ( pev->origin - node.m_vecOrigin ).Length();
+		const float flDistSqr = ( pev->origin - node.m_vecOrigin ).LengthSqr();
 
 		// DON'T do the trace check on a node that is farther away than a node that we've already found to 
 		// provide cover! Also make sure the node is within the mins/maxs of the search.
-		if( flDist >= flMinDist && flDist < flMaxDist )
+		if( flDistSqr >= flMinDist*flMinDist && flDistSqr < flMaxDist*flMaxDist )
 		{
 			bool traceOk = true;
 			if (FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER))
@@ -2996,7 +2994,7 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 {
 	CBaseEntity	*pReturn = NULL;
 	CBaseEntity	*pNextEnt = m_pLink;
-	int		iNearest = 8192;// so first visible entity will become the closest.
+	int		iNearestSqr = 8192 * 8192;// so first visible entity will become the closest.
 	int		iBestRelationship = R_NO;
 
 	while( pNextEnt != NULL )
@@ -3010,7 +3008,7 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 				// currently think is the best visible enemy. No need to do 
 				// a distance check, just get mad at this one for now.
 				iBestRelationship = relationship;
-				iNearest = ( pNextEnt->pev->origin - pev->origin ).Length();
+				iNearestSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
 				pReturn = pNextEnt;
 			}
 			else if( relationship == iBestRelationship )
@@ -3018,11 +3016,11 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 				// this entity is disliked just as much as the entity that
 				// we currently think is the best visible enemy, so we only
 				// get mad at it if it is closer.
-				const int iDist = ( pNextEnt->pev->origin - pev->origin ).Length();
+				const int iDistSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
 				
-				if( iDist <= iNearest )
+				if( iDistSqr <= iNearestSqr )
 				{
-					iNearest = iDist;
+					iNearestSqr = iDistSqr;
 					pReturn = pNextEnt;
 				}
 			}
@@ -4070,7 +4068,7 @@ bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, 
 		const Vector vecLeftTest = vecStart - startOffset - vecStepRight * ( coverChecks - i );
 		const Vector vecRightTest = vecStart + startOffset + vecStepRight * ( coverChecks - i );
 
-		if (threatIsMyself || (vecStart - vecLeftTest).Length() < (vecThreat - vecLeftTest).Length())
+		if (threatIsMyself || (vecStart - vecLeftTest).LengthSqr() < (vecThreat - vecLeftTest).LengthSqr())
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecLeftTest )) )
 			{
@@ -4081,7 +4079,7 @@ bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, 
 			}
 		}
 
-		if (threatIsMyself || (vecStart - vecRightTest).Length() < (vecThreat - vecRightTest).Length())
+		if (threatIsMyself || (vecStart - vecRightTest).LengthSqr() < (vecThreat - vecRightTest).LengthSqr())
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecRightTest )) )
 			{
@@ -4322,8 +4320,8 @@ bool CBaseMonster::BBoxFlat( void )
 	TraceResult	tr;
 	Vector		vecPoint;
 	float		flXSize, flYSize;
-	float		flLength;
-	float		flLength2;
+	float		flLengthSqr;
+	float		flLength2Sqr;
 
 	flXSize = pev->size.x / 2;
 	flYSize = pev->size.y / 2;
@@ -4333,34 +4331,34 @@ bool CBaseMonster::BBoxFlat( void )
 	vecPoint.z = pev->origin.z;
 
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength = ( vecPoint - tr.vecEndPos ).Length();
+	flLengthSqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
 
 	vecPoint.x = pev->origin.x - flXSize;
 	vecPoint.y = pev->origin.y - flYSize;
 
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
 		return false;
 	}
-	flLength = flLength2;
+	flLengthSqr = flLength2Sqr;
 
 	vecPoint.x = pev->origin.x - flXSize;
 	vecPoint.y = pev->origin.y + flYSize;
 	UTIL_TraceLine ( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
 		return false;
 	}
-	flLength = flLength2;
+	flLengthSqr = flLength2Sqr;
 
 	vecPoint.x = pev->origin.x + flXSize;
 	vecPoint.y = pev->origin.y - flYSize;
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
 		return false;
 	}

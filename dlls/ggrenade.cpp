@@ -232,7 +232,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		return;
 
 	// only do damage if we're moving fairly fast
-	if( m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100 )
+	if( m_flNextAttack < gpGlobals->time && pev->velocity.IsLengthGreaterThan(100) )
 	{
 		entvars_t *pevOwner = VARS( pev->owner );
 		if( pevOwner && pOther->pev->takedamage )
@@ -252,7 +252,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 	vecTestVelocity = pev->velocity; 
 	vecTestVelocity.z *= 0.45f;
 
-	if( !m_fRegisteredSound && vecTestVelocity.Length() <= 60 )
+	if( !m_fRegisteredSound && vecTestVelocity.IsLengthLessThanOrEqual(60) )
 	{
 		//ALERT( at_console, "Grenade Registered!: %f\n", vecTestVelocity.Length() );
 

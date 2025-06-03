@@ -496,7 +496,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				{
 					distance = ( m_vecMoveGoal - pev->origin ).Length2D();
 					// Re-evaluate when you think your finished, or the target has moved too far
-					if( ( distance < checkDistance ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).Length() > pTask->flData * 0.5f )
+					if( ( distance < checkDistance ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).IsLengthGreaterThan(pTask->flData * 0.5f) )
 					{
 						m_vecMoveGoal = m_hTargetEnt->pev->origin;
 						distance = ( m_vecMoveGoal - pev->origin ).Length2D();
@@ -1135,7 +1135,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		{
 			if ( m_hTargetEnt == 0 )
 				TaskFail("no target ent");
-			else if( ( m_hTargetEnt->pev->origin - pev->origin ).Length() < 1 )
+			else if( ( m_hTargetEnt->pev->origin - pev->origin ).IsLengthLessThan(1) )
 				TaskComplete();
 			else
 			{
@@ -1154,7 +1154,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 
 			if ( pGoalEnt == 0 )
 				TaskFail("no move target ent");
-			else if( ( pGoalEnt->pev->origin - pev->origin ).Length() < 1 )
+			else if( ( pGoalEnt->pev->origin - pev->origin ).IsLengthLessThan(1) )
 				TaskComplete();
 			else
 			{
@@ -1206,7 +1206,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 
 			if ( pGoalEnt == 0 )
 				TaskFail("no move target ent");
-			else if( ( pGoalEnt->pev->origin - pev->origin ).Length2D() <= radius )
+			else if( ( pGoalEnt->pev->origin - pev->origin ).IsLength2DLessThanOrEqual(radius) )
 				TaskComplete();
 			else
 			{
@@ -1740,7 +1740,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 					CNode &node = WorldGraph.Node( nodeNumber );
 
 					// Don't go to the node if already is close enough
-					if ((node.m_vecOrigin - pev->origin).Length() < 16.0f)
+					if ((node.m_vecOrigin - pev->origin).IsLengthLessThan(16.0f))
 						continue;
 
 					TraceResult tr;

@@ -280,7 +280,7 @@ void UTIL_ParametricRocket( entvars_t *pev, Vector vecOrigin, Vector vecAngles, 
 	// Now compute how long it will take based on current velocity
 	Vector vecTravel = pev->endpos - pev->startpos;
 	float travelTime = 0.0f;
-	if( pev->velocity.Length() > 0.0f )
+	if( pev->velocity.IsLengthGreaterThan(0.0f) )
 	{
 		travelTime = vecTravel.Length() / pev->velocity.Length();
 	}
@@ -1764,7 +1764,7 @@ float UTIL_DotPoints( const Vector &vecSrc, const Vector &vecCheck, const Vector
 	Vector2D vec2LOS;
 
 	vec2LOS = ( vecCheck - vecSrc ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	return DotProduct( vec2LOS, ( vecDir.Make2D() ) );
 }
@@ -2098,7 +2098,7 @@ void CSave::WritePositionVector( const char *pname, const float *value, int coun
 		Vector tmp( value[0], value[1], value[2] );
 
 		if( m_pdata && m_pdata->fUseLandmark )
-			tmp = tmp - m_pdata->vecLandmarkOffset;
+			tmp -= m_pdata->vecLandmarkOffset;
 
 		BufferData( (const char *)&tmp.x, sizeof(float) * 3 );
 		value += 3;

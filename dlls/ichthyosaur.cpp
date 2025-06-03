@@ -441,7 +441,7 @@ void CIchthyosaur::HandleAnimEvent( MonsterEvent_t *pEvent )
 			{
 				CBaseEntity *pHurt = m_hEnemy;
 
-				if( m_flEnemyTouched < gpGlobals->time - 0.2f && ( m_hEnemy->BodyTarget( pev->origin ) - pev->origin).Length() > ( 32.0f + 16.0f + 32.0f ) )
+				if( m_flEnemyTouched < gpGlobals->time - 0.2f && (m_hEnemy->BodyTarget( pev->origin ) - pev->origin).IsLengthGreaterThan( 32.0f + 16.0f + 32.0f ) )
 					break;
 
 				Vector vecShootDir = ShootAtEnemy( pev->origin );
@@ -679,7 +679,7 @@ void CIchthyosaur::RunTask( Task_t *pTask )
 			Vector vecSwim = CrossProduct( vecDelta, Vector( 0, 0, 1 ) ).Normalize();
 
 			if( DotProduct( vecSwim, m_SaveVelocity ) < 0 )
-				vecSwim = vecSwim * -1.0f;
+				vecSwim *= -1.0f;
 
 			Vector vecPos = vecFrom + vecDelta * m_idealDist + vecSwim * 32.0f;
 

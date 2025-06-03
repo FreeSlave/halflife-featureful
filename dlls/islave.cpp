@@ -1055,14 +1055,14 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 				}
 				// make coil attack on purpose to heal only if two wounded friends around
 				if ( HasFreeEnergy() && IsValidHealTarget(m_hWounded) && IsValidHealTarget(m_hWounded2) &&
-						(pev->origin - m_hWounded->pev->origin).Length() <= ISLAVE_COIL_ATTACK_RADIUS &&
-						(pev->origin - m_hWounded2->pev->origin).Length() <= ISLAVE_COIL_ATTACK_RADIUS) {
+						(pev->origin - m_hWounded->pev->origin).IsLengthLessThanOrEqual(ISLAVE_COIL_ATTACK_RADIUS) &&
+						(pev->origin - m_hWounded2->pev->origin).IsLengthLessThanOrEqual(ISLAVE_COIL_ATTACK_RADIUS)) {
 					if (m_hWounded.Get() == m_hWounded2.Get()) {
 						ALERT(at_console, "m_hWounded && m_hWounded2 are the same!\n");
 					}
 					coilAttack = true;
 					ALERT(at_aiconsole, "Vort makes coil attack to heal friends\n");
-				} else if ( m_hEnemy != 0 && (pev->origin - m_hEnemy->pev->origin).Length() <= ISLAVE_COIL_ATTACK_RADIUS && !HasMemory(bits_MEMORY_ISLAVE_LAST_ATTACK_WAS_COIL) ) {
+				} else if ( m_hEnemy != 0 && (pev->origin - m_hEnemy->pev->origin).IsLengthLessThanOrEqual(ISLAVE_COIL_ATTACK_RADIUS) && !HasMemory(bits_MEMORY_ISLAVE_LAST_ATTACK_WAS_COIL) ) {
 					coilAttack = true;
 				}
 			}
@@ -1169,7 +1169,7 @@ bool CISlave::CheckHealOrReviveTargets(float flDist, bool mustSee)
 		TraceResult tr;
 
 		UTIL_TraceLine( EyePosition(), pEntity->EyePosition(), ignore_monsters, ENT( pev ), &tr );
-		if( (mustSee && (tr.flFraction == 1.0f || tr.pHit == pEntity->edict())) || (!mustSee && (pEntity->pev->origin -pev->origin).Length() < flDist ) )
+		if( (mustSee && (tr.flFraction == 1.0f || tr.pHit == pEntity->edict())) || (!mustSee && (pEntity->pev->origin -pev->origin).IsLengthLessThan(flDist) ) )
 		{
 			if( AbleToRevive() && CanBeRevived(pEntity) )
 			{
@@ -1745,7 +1745,7 @@ Schedule_t *CISlave::GetSchedule( void )
 		{
 			CBasePlayer* pPlayer = static_cast<CBasePlayer*>(FollowedPlayer());
 			if (pPlayer && pPlayer->HasSuit() && pPlayer->IsAlive() && pPlayer->pev->armorvalue < pPlayer->MaxArmor()/4 &&
-					FVisible(pPlayer) && (pPlayer->pev->origin - pev->origin).Length() < 128)
+					FVisible(pPlayer) && (pPlayer->pev->origin - pev->origin).IsLengthLessThan(128))
 			{
 				return GetScheduleOfType(SCHED_ISLAVE_GIVE_CHARGE);
 			}
@@ -1959,7 +1959,7 @@ CBaseEntity *CISlave::ZapBeam( int side )
 	}
 
 	float deflection = 0.01;
-	vecAim = vecAim + side * gpGlobals->v_right * RANDOM_FLOAT( 0, deflection ) + gpGlobals->v_up * RANDOM_FLOAT( -deflection, deflection );
+	vecAim += side * gpGlobals->v_right * RANDOM_FLOAT( 0, deflection ) + gpGlobals->v_up * RANDOM_FLOAT( -deflection, deflection );
 	UTIL_TraceLine( vecSrc, vecSrc + vecAim * 1024, dont_ignore_monsters, ENT( pev ), &tr );
 
 	m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(zapBeamVisual));

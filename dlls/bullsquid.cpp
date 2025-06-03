@@ -511,19 +511,14 @@ int CBullsquid::IRelationship( CBaseEntity *pTarget )
 //=========================================================
 TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	float flDist;
-	Vector vecApex;
-
 	// if the squid is running, has an enemy, was hurt by the enemy, hasn't been hurt in the last 3 seconds, and isn't too close to the enemy,
 	// it will swerve. (whew).
 	if( m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3.0f )
 	{
-		flDist = ( pev->origin - m_hEnemy->pev->origin ).Length2D();
-
-		if( flDist > SQUID_SPRINT_DIST )
+		if( ( pev->origin - m_hEnemy->pev->origin ).IsLength2DGreaterThan(SQUID_SPRINT_DIST) )
 		{
-			flDist = ( pev->origin - m_Route[m_iRouteIndex].vecLocation ).Length2D();// reusing flDist.
-
+			float flDist = ( pev->origin - m_Route[m_iRouteIndex].vecLocation ).Length2D();
+			Vector vecApex;
 			if( FTriangulate( pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist * 0.5f, m_hEnemy, &vecApex ) )
 			{
 				InsertWaypoint( vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY );
@@ -929,7 +924,7 @@ void CBullsquid::RunAI( void )
 	if( m_hEnemy != 0 && m_Activity == ACT_RUN )
 	{
 		// chasing enemy. Sprint for last bit
-		if( ( pev->origin - m_hEnemy->pev->origin).Length2D() < SQUID_SPRINT_DIST )
+		if( ( pev->origin - m_hEnemy->pev->origin).IsLength2DLessThan(SQUID_SPRINT_DIST) )
 		{
 			pev->framerate = 1.25f;
 		}

@@ -722,7 +722,7 @@ bool CCineMonster::IsAppropriateTarget(CBaseMonster *pTarget, int interruptFlags
 	}
 	else if (shouldCheckRadius)
 	{
-		if ((pev->origin - pTarget->pev->origin).Length() > m_flRadius)
+		if ((pev->origin - pTarget->pev->origin).IsLengthGreaterThan(m_flRadius))
 		{
 			searchFail = CHECKFAIL_TARGET_IS_TOOFAR;
 		}
@@ -1145,7 +1145,7 @@ bool CBaseMonster::CineCleanup()
 			// UNDONE: ugly hack.  Don't move monster if they don't "seem" to move
 			// this really needs to be done with the AX,AY,etc. flags, but that aren't consistantly
 			// being set, so animations that really do move won't be caught.
-			if( ( oldOrigin - new_origin).Length2D() < 8.0f )
+			if( ( oldOrigin - new_origin).IsLength2DLessThan(8.0f) )
 				new_origin = oldOrigin;
 
 			pev->origin.x = new_origin.x;
@@ -1540,7 +1540,7 @@ bool CScriptedSentence::InterlocutorIsInRange(CBaseEntity *pTarget, float flRadi
 {
 	if (!pTarget)
 		return false;
-	return (searchOrigin - pTarget->pev->origin).Length() <= flRadius;
+	return (searchOrigin - pTarget->pev->origin).IsLengthLessThanOrEqual(flRadius);
 }
 
 CBaseToggle *CScriptedSentence::FindEntity( void )

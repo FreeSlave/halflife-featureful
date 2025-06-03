@@ -633,7 +633,7 @@ void CBaseTurret::ActiveThink( void )
 	*/
 	
 	Vector vecLOS = vecDirToEnemy; //vecMid - m_vecLastSight;
-	vecLOS = vecLOS.Normalize();
+	vecLOS.NormalizeInPlace();
 
 	// Is the Gun looking at the target
 	if( DotProduct( vecLOS, gpGlobals->v_forward ) <= 0.866f ) // 30 degree slop
@@ -1052,9 +1052,9 @@ void CBaseTurret::TurretDeath( void )
 	{
 		Vector vecSrc = Vector( RANDOM_FLOAT( pev->absmin.x, pev->absmax.x ), RANDOM_FLOAT( pev->absmin.y, pev->absmax.y ), 0 );
 		if( m_iOrientation == 0 )
-			vecSrc = vecSrc + Vector( 0, 0, RANDOM_FLOAT( pev->origin.z, pev->absmax.z ) );
+			vecSrc += Vector( 0, 0, RANDOM_FLOAT( pev->origin.z, pev->absmax.z ) );
 		else
-			vecSrc = vecSrc + Vector( 0, 0, RANDOM_FLOAT( pev->absmin.z, pev->origin.z ) );
+			vecSrc += Vector( 0, 0, RANDOM_FLOAT( pev->absmin.z, pev->origin.z ) );
 
 		UTIL_Sparks( vecSrc );
 	}

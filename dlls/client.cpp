@@ -1378,7 +1378,7 @@ void SetupVisibility( edict_t *pViewEntity, edict_t *pClient, unsigned char **pv
 		org = pView->v.origin + pView->v.view_ofs;
 		if( pView->v.flags & FL_DUCKING )
 		{
-			org = org + ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			org += ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 		}
 	}
 

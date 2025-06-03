@@ -543,7 +543,7 @@ void CScientist::StartTask( Task_t *pTask )
 				TaskFail("no target ent");
 			else
 			{
-				if( ( m_hTargetEnt->pev->origin - pev->origin ).Length() < 1.0f )
+				if( ( m_hTargetEnt->pev->origin - pev->origin ).IsLengthLessThan(1.0f) )
 				{
 					TaskComplete();
 				}
@@ -611,7 +611,7 @@ void CScientist::RunTask( Task_t *pTask )
 
 				distance = ( m_vecMoveGoal - pev->origin ).Length2D();
 				// Re-evaluate when you think your finished, or the target has moved too far
-				if( ( distance < pTask->flData ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).Length() > pTask->flData * 0.5f )
+				if( ( distance < pTask->flData ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).IsLengthGreaterThan(pTask->flData * 0.5f) )
 				{
 					m_vecMoveGoal = m_hTargetEnt->pev->origin;
 					distance = ( m_vecMoveGoal - pev->origin ).Length2D();
@@ -1180,7 +1180,7 @@ void CScientist::Heal( void )
 		return;
 
 	Vector target = m_hTargetEnt->pev->origin - pev->origin;
-	if( target.Length() > 100.0f )
+	if( target.IsLengthGreaterThan(100.0f) )
 		return;
 
 	m_hTargetEnt->TakeHealth(this, gSkillData.scientistHeal, DMG_GENERIC );

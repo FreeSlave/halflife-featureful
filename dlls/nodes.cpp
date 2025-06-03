@@ -1406,9 +1406,8 @@ int CGraph::RejectInlineLinks( CLink *pLinkPool, FILE *file )
 		{
 			pCheckNode = &m_pNodes[pLinkPool[pSrcNode->m_iFirstLink + j].m_iDestNode];
 
-			vec2DirToCheckNode = ( pCheckNode->m_vecOrigin - pSrcNode->m_vecOrigin ).Make2D(); 
-			flDistToCheckNode = vec2DirToCheckNode.Length();
-			vec2DirToCheckNode = vec2DirToCheckNode.Normalize();
+			vec2DirToCheckNode = ( pCheckNode->m_vecOrigin - pSrcNode->m_vecOrigin ).Make2D();
+			flDistToCheckNode = vec2DirToCheckNode.NormalizeInPlace();
 
 			pLinkPool[pSrcNode->m_iFirstLink + j].m_flWeight = flDistToCheckNode;
 
@@ -1425,8 +1424,7 @@ int CGraph::RejectInlineLinks( CLink *pLinkPool, FILE *file )
 
 				vec2DirToTestNode = ( pTestNode->m_vecOrigin - pSrcNode->m_vecOrigin ).Make2D(); 
 
-				flDistToTestNode = vec2DirToTestNode.Length();
-				vec2DirToTestNode = vec2DirToTestNode.Normalize();
+				flDistToTestNode = vec2DirToTestNode.NormalizeInPlace();
 
 				if( DotProduct( vec2DirToCheckNode, vec2DirToTestNode ) >= 0.998f )
 				{
@@ -1933,7 +1931,7 @@ void CTestHull::BuildNodeGraph( void )
 					if (didResetWallToggleWorldBrush)
 						ResetWallToggle();
 
-					if( !fWalkFailed && ( pev->origin - vecSpot ).Length() > 64 )
+					if( !fWalkFailed && ( pev->origin - vecSpot ).IsLengthGreaterThan(64) )
 					{
 						// ALERT( at_console, "bogus walk\n" );
 						// we thought we 

@@ -822,8 +822,7 @@ void CLightning::RandomArea( void )
 	{
 		Vector vecSrc = pev->origin;
 
-		Vector vecDir1 = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ),RANDOM_FLOAT( -1.0f, 1.0f ) );
-		vecDir1 = vecDir1.Normalize();
+		const Vector vecDir1 = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ),RANDOM_FLOAT( -1.0f, 1.0f ) ).Normalize();
 		TraceResult tr1;
 		UTIL_TraceLine( vecSrc, vecSrc + vecDir1 * m_radius, ignore_monsters, ENT( pev ), &tr1 );
 
@@ -835,14 +834,14 @@ void CLightning::RandomArea( void )
 		{
 			vecDir2 = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ),RANDOM_FLOAT( -1.0f, 1.0f ) );
 		} while( DotProduct( vecDir1, vecDir2 ) > 0.0f );
-		vecDir2 = vecDir2.Normalize();
+		vecDir2.NormalizeInPlace();
 		TraceResult tr2;
 		UTIL_TraceLine( vecSrc, vecSrc + vecDir2 * m_radius, ignore_monsters, ENT( pev ), &tr2 );
 
 		if( tr2.flFraction == 1.0f )
 			continue;
 
-		if( ( tr1.vecEndPos - tr2.vecEndPos ).Length() < m_radius * 0.1f )
+		if( ( tr1.vecEndPos - tr2.vecEndPos ).IsLengthLessThan(m_radius * 0.1f) )
 			continue;
 
 		UTIL_TraceLine( tr1.vecEndPos, tr2.vecEndPos, ignore_monsters, ENT( pev ), &tr2 );
@@ -862,12 +861,11 @@ void CLightning::RandomPoint( Vector &vecSrc )
 
 	for( iLoops = 0; iLoops < 10; iLoops++ )
 	{
-		Vector vecDir1 = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ) );
-		vecDir1 = vecDir1.Normalize();
+		const Vector vecDir1 = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ) ).Normalize();
 		TraceResult tr1;
 		UTIL_TraceLine( vecSrc, vecSrc + vecDir1 * m_radius, ignore_monsters, ENT( pev ), &tr1 );
 
-		if( ( tr1.vecEndPos - vecSrc ).Length() < m_radius * 0.1f )
+		if( ( tr1.vecEndPos - vecSrc ).IsLengthLessThan(m_radius * 0.1f) )
 			continue;
 
 		if( tr1.flFraction == 1.0f )
@@ -1893,8 +1891,7 @@ void CGibShooter::ShootThink( void )
 	{
 		if (!TryCalcLocus_Velocity(this, m_hActivator, STRING(m_iszVelocity), baseShootDir))
 			return;
-		flGibVelocity = flGibVelocity * baseShootDir.Length();
-		baseShootDir = baseShootDir.Normalize();
+		flGibVelocity *= baseShootDir.NormalizeInPlace();
 	}
 	else
 		baseShootDir = pev->movedir;
@@ -1912,11 +1909,11 @@ void CGibShooter::ShootThink( void )
 	{
 		Vector vecShootDir = baseShootDir;
 
-		vecShootDir = vecShootDir + gpGlobals->v_right * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
-		vecShootDir = vecShootDir + gpGlobals->v_forward * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
-		vecShootDir = vecShootDir + gpGlobals->v_up * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
+		vecShootDir += gpGlobals->v_right * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
+		vecShootDir += gpGlobals->v_forward * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
+		vecShootDir += gpGlobals->v_up * RANDOM_FLOAT( -1.0f, 1.0f ) * m_flVariance;;
 
-		vecShootDir = vecShootDir.Normalize();
+		vecShootDir.NormalizeInPlace();
 
 		const float lifeTime = ( m_flGibLife * RANDOM_FLOAT( 0.95f, 1.05f ) );	// +/- 5%
 		CBaseEntity *pGib = CreateGib(vecPos, vecShootDir * flGibVelocity, lifeTime);
@@ -2277,9 +2274,8 @@ void CTestEffect::TestThink( void )
 
 		TraceResult tr;
 
-		Vector vecSrc = pev->origin;
-		Vector vecDir = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ),RANDOM_FLOAT( -1.0f, 1.0f ) );
-		vecDir = vecDir.Normalize();
+		const Vector vecSrc = pev->origin;
+		const Vector vecDir = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ),RANDOM_FLOAT( -1.0f, 1.0f ) ).Normalize();
 		UTIL_TraceLine( vecSrc, vecSrc + vecDir * 128, ignore_monsters, ENT( pev ), &tr );
 
 		pbeam->PointsInit( vecSrc, tr.vecEndPos );
@@ -3109,7 +3105,7 @@ void DrawChaoticBeams(Vector vecOrigin, edict_t* pentIgnore, int radius, const B
 	while( iDrawn < iBeams && iTimes < ( iBeams * 2 ) )
 	{
 		TraceResult tr;
-		Vector vecDest = vecOrigin + radius * ( Vector( RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ) ).Normalize() );
+		const Vector vecDest = vecOrigin + radius * ( Vector( RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ) ).Normalize() );
 		UTIL_TraceLine( vecOrigin, vecDest, ignore_monsters, pentIgnore, &tr );
 		if( tr.flFraction != 1.0 )
 		{
@@ -4182,7 +4178,7 @@ void CBlowerCannon::BlowerCannonThink( void )
 			if (evaluated)
 			{
 				direction.z += m_iZOffset;
-				direction = direction.Normalize();
+				direction.NormalizeInPlace();
 				angles = UTIL_VecToAngles( direction );
 				angles.z = -angles.z;
 			}
@@ -4196,7 +4192,7 @@ void CBlowerCannon::BlowerCannonThink( void )
 				{
 					direction = pTarget->pev->origin - position;
 					direction.z += m_iZOffset;
-					direction = direction.Normalize();
+					direction.NormalizeInPlace();
 					angles = UTIL_VecToAngles( direction );
 					angles.z = -angles.z;
 				}
@@ -5974,7 +5970,7 @@ void CParticleShooter::ShootParticle()
 			ALERT(at_error, "%s can't calc its direction from '%s'!\n", STRING(pev->classname), STRING(m_iszDirection));
 			return;
 		}
-		vecShootDir = vecShootDir.Normalize();
+		vecShootDir.NormalizeInPlace();
 	}
 	else
 	{

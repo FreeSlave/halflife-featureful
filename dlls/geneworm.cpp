@@ -1096,7 +1096,7 @@ void CGeneWorm::NextActivity(void)
 			m_hEnemy = nullptr;
 	}
 
-	if (gpGlobals->time > m_flLastSeen + 15.0 && nullptr != m_hEnemy && (pev->origin - m_hEnemy->pev->origin).Length2D() > 700.0)
+	if (gpGlobals->time > m_flLastSeen + 15.0 && nullptr != m_hEnemy && (pev->origin - m_hEnemy->pev->origin).IsLength2DGreaterThan(700.0))
 	{
 		m_hEnemy = nullptr;
 	}
@@ -1218,7 +1218,7 @@ bool CGeneWorm::ClawAttack()
 					return true;
 				}
 
-				if ((pev->origin - pEnemy->pev->origin).Length2D() < 1280)
+				if ((pev->origin - pEnemy->pev->origin).IsLength2DLessThan(1280))
 				{
 					if (m_posTarget.z <= pev->origin.z)
 					{

@@ -230,9 +230,9 @@ void CDisplacer::Displace( void )
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 
 	vecSrc = m_pPlayer->GetGunPosition();
-	vecSrc = vecSrc + gpGlobals->v_forward	* 22;
-	vecSrc = vecSrc + gpGlobals->v_right	* 8;
-	vecSrc = vecSrc + gpGlobals->v_up		* -12;
+	vecSrc += gpGlobals->v_forward	* 22;
+	vecSrc += gpGlobals->v_right	* 8;
+	vecSrc += gpGlobals->v_up		* -12;
 
 	CDisplacerBall::Shoot( m_pPlayer->pev, vecSrc, gpGlobals->v_forward * CDisplacerBall::BallSpeed(), m_pPlayer->pev->v_angle );
 

@@ -905,7 +905,7 @@ void CPitWorm::NextActivity()
 	{
 		if (m_hEnemy != 0)
 		{
-			if ((pev->origin - m_hEnemy->pev->origin).Length() > 700)
+			if ((pev->origin - m_hEnemy->pev->origin).IsLengthGreaterThan(700))
 				m_hEnemy = NULL;
 		}
 	}

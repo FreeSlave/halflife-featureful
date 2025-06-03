@@ -828,7 +828,7 @@ void CFuncVehicle::NearestPath()
 
 	if( pTrack != NULL )
 	{
-		if( ( pev->origin - pTrack->pev->origin ).Length() < ( pev->origin - pNearest->pev->origin ).Length())
+		if( ( pev->origin - pTrack->pev->origin ).LengthSqr() < ( pev->origin - pNearest->pev->origin ).LengthSqr())
 		{
 			pNearest = pTrack;
 		}

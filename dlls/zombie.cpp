@@ -132,8 +132,7 @@ TakeDamageResult CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 {
 	if( damageInfo.type == DMG_BULLET && damageInfo.gibPolicy != GIB_NEVER )
 	{
-		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
-		vecDir = vecDir.Normalize();
+		const Vector vecDir = (pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f).Normalize();
 		float flForce = DamageForce( damageInfo.damage );
 		pev->velocity = pev->velocity + vecDir * flForce;
 #if 0

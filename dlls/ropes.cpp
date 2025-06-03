@@ -601,7 +601,7 @@ void CRope::ComputeSpringForce( RopeSampleData& first, RopeSampleData& second )
 
 	const double flNewRelativeDist = DotProduct( first.mVelocity - second.mVelocity, vecDist ) * SPRING_DAMPING;
 
-	vecDist = vecDist.Normalize();
+	vecDist.NormalizeInPlace();
 
 	const double flSpringFactor = -( flNewRelativeDist / flDistance + flForce );
 
@@ -1095,7 +1095,7 @@ bool CRope::ShouldCreak() const
 	{
 		CRopeSample* pSample = seg[ mAttachedObjectsSegment ]->GetSample();
 
-		if( pSample->GetData().mVelocity.Length() > 20.0 )
+		if( pSample->GetData().mVelocity.IsLengthGreaterThan(20.0) )
 			return RANDOM_LONG( 1, 5 ) == 1;
 	}
 
@@ -1208,8 +1208,7 @@ Vector CRope::GetAttachedObjectsPosition() const
 	if( mAttachedObjectsSegment < m_iSegments )
 		vecResult = m_Samples[ mAttachedObjectsSegment ]->GetData().mPosition;
 
-	vecResult = vecResult +
-		( mAttachedObjectsOffset * GetSegmentDirFromOrigin( mAttachedObjectsSegment ) );
+	vecResult += ( mAttachedObjectsOffset * GetSegmentDirFromOrigin( mAttachedObjectsSegment ) );
 
 	return vecResult;
 }
@@ -1330,7 +1329,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 
 				const Vector& vecVelocity = pOther->pev->velocity;
 
-				if( vecVelocity.Length() > 0.5 )
+				if( vecVelocity.IsLengthGreaterThan(0.5) )
 				{
 					//Apply some external force to move the rope. - Solokiller
 					data.mApplyExternalForce = true;

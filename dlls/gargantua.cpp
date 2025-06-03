@@ -333,7 +333,7 @@ void CStomp::Think( void )
 	if (!pDamagedEntity)
 	{
 		// Try again a bit higher
-		vecStart = vecStart + Vector(0, 0, 30);
+		vecStart += Vector(0, 0, 30);
 		FindSomethingAndDoDamage();
 	}
 
@@ -1586,7 +1586,7 @@ void CGargantua::RunTask( Task_t *pTask )
 				angles = UTIL_VecToAngles( dir );
 				angles.x = -angles.x;
 				angles.y -= pev->angles.y;
-				if( dir.Length() > 400 )
+				if( dir.IsLengthGreaterThan(400) )
 					cancel = true;
 			}
 			if( fabs(angles.y) > 60 )
@@ -1861,7 +1861,7 @@ void CSmoker::Think( void )
 		directed = true;
 		isDirValid = TryCalcLocus_Velocity(this, m_hActivator, STRING(m_iszDirection), direction);
 		if (isDirValid)
-			direction = direction.Normalize();
+			direction.NormalizeInPlace();
 	}
 	else if (!FStringNull(pev->target))
 	{
@@ -1974,7 +1974,7 @@ void CSpiral::Think( void )
 		position.z += ( pev->health * pev->dmg ) * fraction;
 		pev->angles.y = ( pev->health * 360 * 8 ) * fraction;
 		UTIL_MakeVectors( pev->angles );
-		position = position + gpGlobals->v_forward * radius;
+		position += gpGlobals->v_forward * radius;
 		direction = ( direction + gpGlobals->v_forward ).Normalize();
 
 		StreakSplash( position, Vector( 0, 0, 1 ), RANDOM_LONG( 8, 11 ), 20, RANDOM_LONG( 50, 150 ), 400 );

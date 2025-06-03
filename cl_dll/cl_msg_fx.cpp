@@ -116,10 +116,7 @@ int __MsgFunc_RandomGibs( const char *pszName, int iSize, void *pbuf )
 
 		gibVelocity = gibVelocity * gEngfuncs.pfnRandomFloat( 300, 400 ) * velocityMultiplier;
 
-		if (gibVelocity.Length() > 1500)
-		{
-			gibVelocity = gibVelocity.Normalize() * 1500;
-		}
+		gibVelocity.ClampToLengthInPlace(1500);
 
 		TEMPENTITY* pTemp = gEngfuncs.pEfxAPI->CL_TempEntAlloc(gibPos, model);
 		if (!pTemp)

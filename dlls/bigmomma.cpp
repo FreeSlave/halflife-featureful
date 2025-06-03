@@ -1137,7 +1137,7 @@ void CBigMomma::StartTask( Task_t *pTask )
 				TaskFail("no target bigmomma node");
 			else
 			{
-				if( ( pTarget->pev->origin - pev->origin ).Length() < GetNodeRange() )
+				if( ( pTarget->pev->origin - pev->origin ).IsLengthLessThan(GetNodeRange()) )
 					TaskComplete();
 				else
 				{
@@ -1175,16 +1175,13 @@ void CBigMomma::RunTask( Task_t *pTask )
 	{
 	case TASK_MOVE_TO_NODE_RANGE:
 		{
-			float distance;
-
 			if( m_hTargetEnt == 0 )
 				TaskFail("no target ent");
 			else
 			{
-				distance = ( m_vecMoveGoal - pev->origin ).Length2D();
 				// Set the appropriate activity based on an overlapping range
 				// overlap the range to prevent oscillation
-				if( (distance < GetNodeRange() ) || MovementIsComplete() )
+				if( (m_vecMoveGoal - pev->origin ).IsLength2DLessThan(GetNodeRange()) || MovementIsComplete() )
 				{
 					ALERT( at_aiconsole, "BM: Reached node!\n" );
 					TaskComplete();
@@ -1286,7 +1283,7 @@ Vector VecCheckSplatToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot
 	vecGrenadeVel.z = 0.0f;
 	
 	// Travel half the distance to the target in that time (apex is at the midpoint)
-	vecGrenadeVel = vecGrenadeVel / time;
+	vecGrenadeVel /= time;
 	// Speed to offset gravity at the desired height
 	vecGrenadeVel.z = speed;
 

@@ -344,8 +344,8 @@ void CLeech::HandleAnimEvent( MonsterEvent_t *pEvent )
 			face.z = 0;
 			dir = (pEnemy->pev->origin - pev->origin);
 			dir.z = 0;
-			dir = dir.Normalize();
-			face = face.Normalize();
+			dir.NormalizeInPlace();
+			face.NormalizeInPlace();
 
 			if( DotProduct( dir, face ) > 0.9f )	// Only take damage if the leech is facing the prey
 				pEnemy->TakeDamage( pev, pev, DamageInfo(gSkillData.leechDmgBite, DMG_SLASH) );
@@ -602,7 +602,7 @@ void CLeech::SwimThink( void )
 				m_height = m_top;
 			Vector location = pTarget->pev->origin - pev->origin;
 			location.z += (pTarget->pev->view_ofs.z);
-			if( location.Length() < 40 )
+			if( location.IsLengthLessThan(40) )
 				SetConditions( bits_COND_CAN_MELEE_ATTACK1 );
 			// Turn towards target ent
 			targetYaw = UTIL_VecToYaw( location );
@@ -629,7 +629,7 @@ void CLeech::SwimThink( void )
 		pTarget = NULL;
 
 		// oldorigin test
-		if( ( pev->origin - pev->oldorigin ).Length() < 1 )
+		if( ( pev->origin - pev->oldorigin ).IsLengthLessThan(1) )
 		{
 			// If leech didn't move, there must be something blocking it, so try to turn
 			m_sideTime = 0;

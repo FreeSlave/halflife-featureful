@@ -656,7 +656,7 @@ void CApache::HuntThink( void )
 					TraceResult tr;
 
 					UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, ignore_monsters, edict(), &tr );
-					if( (tr.vecEndPos - m_posTarget ).Length() < 512.0f )
+					if( (tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
 						FireRocket();
 				}
 			}
@@ -666,7 +666,7 @@ void CApache::HuntThink( void )
 
 				UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, dont_ignore_monsters, edict(), &tr );
 				// just fire when close
-				if( ( tr.vecEndPos - m_posTarget ).Length() < 512.0f )
+				if( ( tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
 					FireRocket();
 			}
 		}
@@ -846,16 +846,16 @@ void CApache::FireRocket( void )
 	switch( m_iRockets % 5 )
 	{
 	case 0:
-		vecSrc = vecSrc + gpGlobals->v_right * 10.0f;
+		vecSrc += gpGlobals->v_right * 10.0f;
 		break;
 	case 1:
-		vecSrc = vecSrc - gpGlobals->v_right * 10.0f;
+		vecSrc -= gpGlobals->v_right * 10.0f;
 		break;
 	case 2:
-		vecSrc = vecSrc + gpGlobals->v_up * 10.0f;
+		vecSrc += gpGlobals->v_up * 10.0f;
 		break;
 	case 3:
-		vecSrc = vecSrc - gpGlobals->v_up * 10.0f;
+		vecSrc -= gpGlobals->v_up * 10.0f;
 		break;
 	case 4:
 		break;

@@ -503,7 +503,7 @@ void CTalkMonster::RunTask( Task_t *pTask )
 			}
 
 			// fail out if the player looks away or moves away.
-			if( ( pPlayer->pev->origin - pev->origin ).Length2D() > TLK_STARE_DIST )
+			if( ( pPlayer->pev->origin - pev->origin ).IsLength2DGreaterThan(TLK_STARE_DIST) )
 			{
 				// player moved away.
 				TaskFail("player moved away");
@@ -868,7 +868,7 @@ CBaseEntity *CTalkMonster::FindNearestFriend(bool fPlayer )
 				if( tr.flFraction == 1.0f )
 				{
 					// visible and in range, this is the new nearest scientist
-					if( ( vecStart - vecCheck ).Length() < TALKRANGE_MIN )
+					if( ( vecStart - vecCheck ).IsLengthLessThan(TALKRANGE_MIN) )
 					{
 						pNearest = pFriend;
 						range = ( vecStart - vecCheck ).Length();
@@ -1309,7 +1309,7 @@ static bool IsFacing( entvars_t *pevTest, const Vector &reference )
 {
 	Vector vecDir = reference - pevTest->origin;
 	vecDir.z = 0.0f;
-	vecDir = vecDir.Normalize();
+	vecDir.NormalizeInPlace();
 	Vector forward, angle;
 	angle = pevTest->v_angle;
 	angle.x = 0;
@@ -1484,7 +1484,7 @@ Schedule_t *CTalkMonster::GetScheduleOfType( int Type )
 				{
 					// watch the client.
 					UTIL_MakeVectors( pPlayer->pev->angles );
-					if( ( pPlayer->pev->origin - pev->origin ).Length2D() < TLK_STARE_DIST &&
+					if( ( pPlayer->pev->origin - pev->origin ).IsLength2DLessThan(TLK_STARE_DIST) &&
 						UTIL_DotPoints( pPlayer->pev->origin, pev->origin, gpGlobals->v_forward ) >= m_flFieldOfView )
 					{
 						// go into the special STARE schedule if the player is close, and looking at me too.

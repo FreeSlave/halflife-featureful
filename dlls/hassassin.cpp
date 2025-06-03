@@ -822,7 +822,7 @@ bool CHAssassin::CheckRangeAttack2( float flDot, float flDist )
 		}
 
 		// Originally assassins didn't have this check.
-		if( ( vecTarget - pev->origin ).Length2D() <= 128.0f )
+		if( ( vecTarget - pev->origin ).IsLength2DLessThanOrEqual(128.0f) )
 		{
 			m_flNextGrenadeCheck = gpGlobals->time + 0.5f;
 			return m_fThrowGrenade;

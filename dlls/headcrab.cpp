@@ -283,7 +283,7 @@ void CHeadCrab::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				// Scale the sideways velocity to get there at the right time
 				vecJumpDir = m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin;
-				vecJumpDir = vecJumpDir * ( 1.0f / time );
+				vecJumpDir *= ( 1.0f / time );
 
 				// Speed to offset gravity at the desired height
 				vecJumpDir.z = speed;
@@ -293,7 +293,7 @@ void CHeadCrab::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				if( distance > 650.0f )
 				{
-					vecJumpDir = vecJumpDir * ( 650.0f / distance );
+					vecJumpDir *= ( 650.0f / distance );
 				}
 			}
 			else

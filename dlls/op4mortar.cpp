@@ -448,9 +448,9 @@ void COp4Mortar::MortarThink()
 
 		if (pEnemy)
 		{
-			const float distance = (pEnemy->pev->origin - pev->origin).Length();
+			const float distanceSqr = (pEnemy->pev->origin - pev->origin).Length();
 
-			if (pEnemy->IsAlive() && m_minRange <= distance && distance <= m_maxRange)
+			if (pEnemy->IsAlive() && m_minRange*m_minRange <= distanceSqr && distanceSqr <= m_maxRange*m_maxRange)
 			{
 				if (gpGlobals->time - m_trackDelay > 0.5)
 				{

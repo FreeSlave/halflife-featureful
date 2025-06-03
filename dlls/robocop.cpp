@@ -450,7 +450,7 @@ void CRoboCop::FistAttack( void )
 
 				if( pEntity->IsPlayer() )
 				{
-					vecDist = vecDist.Normalize();
+					vecDist.NormalizeInPlace();
 					vecDist.x = vecDist.x * flDist * 600.0f;
 					vecDist.y = vecDist.y * flDist * 600.0f;
 					vecDist.z = flDist * 450.0f;

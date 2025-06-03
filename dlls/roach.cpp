@@ -362,7 +362,7 @@ void CRoach::PickNewDest( int iCondition )
 		flDist = 256 + ( RANDOM_LONG( 0, 255 ) );
 		vecDest = pev->origin + vecNewDir * flDist;
 
-	} while( ( vecDest - pev->origin ).Length2D() < 128 );
+	} while( ( vecDest - pev->origin ).IsLength2DLessThan(128) );
 
 	m_Route[0].vecLocation.x = vecDest.x;
 	m_Route[0].vecLocation.y = vecDest.y;

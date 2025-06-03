@@ -370,11 +370,11 @@ Vector VecVelocityForDamage( float flDamage )
 	Vector vec( RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( 200, 300 ) );
 
 	if( flDamage > -50 )
-		vec = vec * 0.7f;
+		vec *= 0.7f;
 	else if( flDamage > -200 )
-		vec = vec * 2;
+		vec *= 2;
 	else
-		vec = vec * 10;
+		vec *= 10;
 
 	return vec;
 }
@@ -2136,7 +2136,7 @@ void CBasePlayer::Jump()
 	if( m_fLongJump &&
 		( pev->button & IN_DUCK ) &&
 		( pev->flDuckTime > 0 ) &&
-		pev->velocity.Length() > 50 )
+		pev->velocity.IsLengthGreaterThan(50) )
 	{
 		SetAnimation( PLAYER_SUPERJUMP );
 	}
@@ -2507,7 +2507,7 @@ void CBasePlayer::SetMovementMode()
 	{
 		currentMovementState = MovementCrouch;
 	}
-	else if (pev->velocity.Length2D() > 220)
+	else if (pev->velocity.IsLength2DGreaterThan(220))
 	{
 		currentMovementState = MovementRun;
 	}
@@ -2775,7 +2775,7 @@ bool CBasePlayer::SetClosestOriginOnRope(const Vector &vecPos)
 			{
 				if (j == 0)
 				{
-					return (vecPos - pev->origin).Length() <= 16.0f;
+					return (vecPos - pev->origin).IsLengthLessThanOrEqual(16.0f);
 				}
 				return true;
 			}
@@ -2891,11 +2891,9 @@ void CBasePlayer::HandleRopePhysics(CRope *pRope)
 		LetGoRope();
 		//We've jumped off the rope, give us some momentum - Solokiller
 
-		Vector vecDir = gpGlobals->v_up * 165.0 + gpGlobals->v_forward * 150.0;
-		Vector vecVelocity = pRope->GetAttachedObjectsVelocity() * 2;
+		const Vector vecDir = gpGlobals->v_up * 165.0 + gpGlobals->v_forward * 150.0;
+		const Vector vecVelocity = (pRope->GetAttachedObjectsVelocity() * 2).Normalize() * 200;
 
-		vecVelocity = vecVelocity.Normalize();
-		vecVelocity = vecVelocity * 200;
 		pev->velocity = vecVelocity + vecDir;
 	}
 }
@@ -6460,7 +6458,7 @@ void CBasePlayer::RecruitFollowers()
 				continue;
 			Vector vecCheck = pFriend->pev->origin;
 			vecCheck.z = pFriend->pev->absmax.z;
-			if ((vecCheck - vecStart).Length() <= maxRange)
+			if ((vecCheck - vecStart).IsLengthLessThanOrEqual(maxRange))
 			{
 				TraceResult tr;
 				UTIL_TraceLine( vecStart, vecCheck, ignore_monsters, ENT( pev ), &tr );

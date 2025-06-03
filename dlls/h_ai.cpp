@@ -90,9 +90,9 @@ Vector VecCheckToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot2, fl
 
 	UTIL_MakeVectors( pev->angles );
 
-	// toss a little bit to the left or right, not right down on the enemy's bean (head). 
-	vecSpot2 = vecSpot2 + gpGlobals->v_right * ( RANDOM_FLOAT( -8, 8 ) + RANDOM_FLOAT( -16, 16 ) );
-	vecSpot2 = vecSpot2 + gpGlobals->v_forward * ( RANDOM_FLOAT( -8, 8 ) + RANDOM_FLOAT( -16, 16 ) );
+	// toss a little bit to the left or right, not right down on the enemy's bean (head).
+	vecSpot2 += gpGlobals->v_right * ( RANDOM_FLOAT( -8, 8 ) + RANDOM_FLOAT( -16, 16 ) );
+	vecSpot2 += gpGlobals->v_forward * ( RANDOM_FLOAT( -8, 8 ) + RANDOM_FLOAT( -16, 16 ) );
 
 	// calculate the midpoint and apex of the 'triangle'
 	// UNDONE: normalize any Z position differences between spot1 and spot2 so that triangle is always RIGHT
@@ -165,7 +165,7 @@ Vector VecCheckThrow( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot2, f
 
 	// throw at a constant time
 	float time = vecGrenadeVel.Length() / flSpeed;
-	vecGrenadeVel = vecGrenadeVel * ( 1.0f / time );
+	vecGrenadeVel *= ( 1.0f / time );
 
 	// adjust upward toss to compensate for gravity loss
 	vecGrenadeVel.z += flGravity * time * 0.5f;

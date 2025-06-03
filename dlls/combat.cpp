@@ -50,12 +50,9 @@ extern DLL_GLOBAL int			g_iSkillLevel;
 // HACKHACK -- The gib velocity equations don't work
 void CGib::LimitVelocity( void )
 {
-	float length = pev->velocity.Length();
-
 	// ceiling at 1500.  The gib velocity equation is not bounded properly.  Rather than tune it
 	// in 3 separate places again, I'll just limit it here.
-	if( length > 1500.0f )
-		pev->velocity = pev->velocity.Normalize() * 1500.0f;		// This should really be sv_maxvelocity * 0.75 or something
+	pev->velocity.ClampToLengthInPlace(1500.0f); // This should really be sv_maxvelocity * 0.75 or something
 }
 
 
@@ -1525,7 +1522,7 @@ bool CBaseMonster::FInViewCone( CBaseEntity *pEntity )
 	UTIL_MakeVectors( pev->angles );
 
 	vec2LOS = ( pEntity->pev->origin - pev->origin ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
@@ -1552,7 +1549,7 @@ bool CBaseMonster::FInViewCone( Vector *pOrigin )
 	UTIL_MakeVectors( pev->angles );
 
 	vec2LOS = ( *pOrigin - pev->origin ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
@@ -1707,7 +1704,7 @@ static void PlayTraceAttackEffects(CBaseEntity* pEntity, const EntTemplate::Trac
 				vecTracerDir.z += RANDOM_FLOAT(-tracer.variance, tracer.variance);
 			}
 
-			vecTracerDir = vecTracerDir * -512.0f;
+			vecTracerDir *= -512.0f;
 
 			Vector vecTracerEnd = ptr->vecEndPos + vecTracerDir;
 

@@ -293,7 +293,7 @@ void CSqueakGrenade::HuntThink( void )
 
 	Vector vecFlat = pev->velocity;
 	vecFlat.z = 0;
-	vecFlat = vecFlat.Normalize();
+	vecFlat.NormalizeInPlace();
 
 	UTIL_MakeVectors( pev->angles );
 
@@ -350,7 +350,7 @@ void CSqueakGrenade::HuntThink( void )
 		}
 	}
 
-	if( ( pev->origin - m_posPrev ).Length() < 1.0f )
+	if( ( pev->origin - m_posPrev ).IsLengthLessThan(1.0f) )
 	{
 		pev->velocity.x = RANDOM_FLOAT( -100, 100 );
 		pev->velocity.y = RANDOM_FLOAT( -100, 100 );

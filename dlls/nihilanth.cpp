@@ -661,26 +661,26 @@ void CNihilanth::DyingThink( void )
 	case 1:
 		// head
 		vecDir.z = fabs( vecDir.z ) * 0.5f;
-		vecDir = vecDir + 2 * gpGlobals->v_up;
+		vecDir += 2 * gpGlobals->v_up;
 		break;
 	case 2:
 		// eyes
 		if( DotProduct( vecDir, gpGlobals->v_forward ) < 0 )
-			vecDir = vecDir * -1;
+			vecDir *= -1;
 
-		vecDir = vecDir + 2 * gpGlobals->v_forward;
+		vecDir += 2 * gpGlobals->v_forward;
 		break;
 	case 3:
 		// left hand
 		if( DotProduct( vecDir, gpGlobals->v_right ) > 0 )
-			vecDir = vecDir * -1;
-		vecDir = vecDir - 2 * gpGlobals->v_right;
+			vecDir *= -1;
+		vecDir -= 2 * gpGlobals->v_right;
 		break;
 	case 4:
 		// right hand
 		if( DotProduct( vecDir, gpGlobals->v_right ) < 0 )
-			vecDir = vecDir * -1;
-		vecDir = vecDir + 2 * gpGlobals->v_right;
+			vecDir *= -1;
+		vecDir += 2 * gpGlobals->v_right;
 		break;
 	}
 
@@ -769,7 +769,7 @@ void CNihilanth::ShootBalls( void )
 				vecSrc = vecHand + pev->velocity * ( m_flShootTime - gpGlobals->time );
 				// vecDir = ( m_posTarget - vecSrc ).Normalize();
 				vecDir = ( m_posTarget - pev->origin ).Normalize();
-				vecSrc = vecSrc + vecDir * ( gpGlobals->time - m_flShootTime );
+				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
 				pEntity = (CNihilanthHVR *)Create( "nihilanth_energy_ball", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
 				pEntity->pev->velocity = vecDir * 200.0f; 
 				pEntity->ZapInit( m_hEnemy );
@@ -778,7 +778,7 @@ void CNihilanth::ShootBalls( void )
 				vecSrc = vecHand + pev->velocity * ( m_flShootTime - gpGlobals->time );
 				// vecDir = ( m_posTarget - vecSrc ).Normalize();
 				vecDir = ( m_posTarget - pev->origin ).Normalize();
-				vecSrc = vecSrc + vecDir * ( gpGlobals->time - m_flShootTime );
+				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
 				pEntity = (CNihilanthHVR *)Create( "nihilanth_energy_ball", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
 				pEntity->pev->velocity = vecDir * 200.0f; 
 				pEntity->ZapInit( m_hEnemy );
@@ -1533,14 +1533,14 @@ void CNihilanthHVR::ZapThink( void )
 		return;
 	}
 
-	if( pev->velocity.Length() < 2000 )
+	if( pev->velocity.IsLengthLessThan(2000) )
 	{
 		pev->velocity = pev->velocity * 1.2f;
 	}
 
 	// MovetoTarget( m_hEnemy->Center() );
 
-	if( ( m_hEnemy->Center() - pev->origin ).Length() < 256 )
+	if( ( m_hEnemy->Center() - pev->origin ).IsLengthLessThan(256) )
 	{
 		TraceResult tr;
 
@@ -1640,7 +1640,7 @@ void CNihilanthHVR::TeleportThink( void )
 		return;
 	}
 
-	if( ( m_hEnemy->Center() - pev->origin).Length() < 128 )
+	if( ( m_hEnemy->Center() - pev->origin).IsLengthLessThan(128) )
 	{
 		StopSoundScript(teleAttackSoundScript);
 		UTIL_Remove( this );

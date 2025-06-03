@@ -594,7 +594,7 @@ Vector Intersect( Vector vecSrc, Vector vecDst, Vector vecMove, float flSpeed )
 
 int CController::LookupFloat()
 {
-	if( m_velocity.Length() < 32.0f )
+	if( m_velocity.IsLengthLessThan(32.0f) )
 	{
 		return LookupSequence( "up" );
 	}
@@ -670,9 +670,9 @@ void CController::RunTask( Task_t *pTask )
 					vecDir = Intersect( vecSrc, m_hEnemy->BodyTarget( pev->origin ), m_vecEstVelocity, gSkillData.controllerSpeedBall );
 				}
 				float delta = 0.03490f; // +-2 degree
-				vecDir = vecDir + Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * gSkillData.controllerSpeedBall;
+				vecDir += Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * gSkillData.controllerSpeedBall;
 
-				vecSrc = vecSrc + vecDir * ( gpGlobals->time - m_flShootTime );
+				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
 				CBaseMonster *pBall = (CBaseMonster*)Create( "controller_energy_ball", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
 				pBall->pev->velocity = vecDir;
 			}
@@ -1277,7 +1277,7 @@ void CControllerHeadBall::HuntThink( void )
 
 	MovetoTarget( m_hEnemy->Center() );
 
-	if( ( m_hEnemy->Center() - pev->origin ).Length() < 64 )
+	if( ( m_hEnemy->Center() - pev->origin ).IsLengthLessThan(64) )
 	{
 		TraceResult tr;
 
@@ -1443,7 +1443,7 @@ void CControllerZapBall::AnimateThink( void )
 
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 
-	if( gpGlobals->time - pev->dmgtime > 5 || pev->velocity.Length() < 10.0f )
+	if( gpGlobals->time - pev->dmgtime > 5 || pev->velocity.IsLengthLessThan(10.0f) )
 	{
 		SetTouch( NULL );
 		UTIL_Remove( this );

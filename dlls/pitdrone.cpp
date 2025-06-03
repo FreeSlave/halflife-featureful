@@ -363,19 +363,14 @@ const NamedVisual CPitdrone::tinySpitVisual = BuildVisual::Spray("Pitdrone.TinyS
 //=========================================================
 TakeDamageResult CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info)
 {
-	float flDist;
-	Vector vecApex;
-
 	// if the pitdrone is running, has an enemy, was hurt by the enemy, and isn't too close to the enemy,
 	// it will swerve. (whew).
 	if (m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3)
 	{
-		flDist = (pev->origin - m_hEnemy->pev->origin).Length2D();
-
-		if (flDist > PITDRONE_SPRINT_DIST)
+		if ((pev->origin - m_hEnemy->pev->origin).IsLength2DGreaterThan(PITDRONE_SPRINT_DIST))
 		{
-			flDist = (pev->origin - m_Route[m_iRouteIndex].vecLocation).Length2D();// reusing flDist. 
-
+			float flDist = (pev->origin - m_Route[m_iRouteIndex].vecLocation).Length2D();
+			Vector vecApex;
 			if (FTriangulate(pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist * 0.5, m_hEnemy, &vecApex))
 			{
 				InsertWaypoint(vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY);
@@ -722,7 +717,7 @@ void CPitdrone::RunAI(void)
 	if (m_hEnemy != 0 && m_Activity == ACT_RUN)
 	{
 		// chasing enemy. Sprint for last bit
-		if ((pev->origin - m_hEnemy->pev->origin).Length2D() < PITDRONE_SPRINT_DIST)
+		if ((pev->origin - m_hEnemy->pev->origin).IsLength2DLessThan(PITDRONE_SPRINT_DIST))
 		{
 			pev->framerate = 1.25;
 		}

@@ -303,7 +303,7 @@ void CHornet::TrackTarget( void )
 
 	vecDirToEnemy = ( m_vecEnemyLKP - pev->origin ).Normalize();
 
-	if( pev->velocity.Length() < 0.1f )
+	if( pev->velocity.IsLengthLessThan(0.1f) )
 		vecFlightDir = vecDirToEnemy;
 	else 
 		vecFlightDir = pev->velocity.Normalize();
@@ -353,7 +353,7 @@ void CHornet::TrackTarget( void )
 	// (only in the single player game)
 	if( m_hEnemy != 0 && !g_pGameRules->IsMultiplayer() )
 	{
-		if( flDelta >= 0.4f && ( pev->origin - m_vecEnemyLKP ).Length() <= 300 )
+		if( flDelta >= 0.4f && ( pev->origin - m_vecEnemyLKP ).IsLengthLessThanOrEqual(300) )
 		{
 			SendSprite(pev->origin, GetVisual(puffVisual));
 
@@ -382,7 +382,7 @@ void CHornet::TrackTouch( CBaseEntity *pOther )
 	{
 		// hit something we don't want to hurt, so turn around.
 
-		pev->velocity = pev->velocity.Normalize();
+		pev->velocity.NormalizeInPlace();
 
 		pev->velocity.x *= -1.0f;
 		pev->velocity.y *= -1.0f;

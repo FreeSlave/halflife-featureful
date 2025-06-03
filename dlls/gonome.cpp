@@ -297,7 +297,7 @@ int CGonome::LookupActivity(int activity)
 	{
 		// special melee animations
 		int sequence = -1;
-		if ((pev->origin - m_hEnemy->pev->origin).Length2D() >= 48 )
+		if ((pev->origin - m_hEnemy->pev->origin).IsLengthGreaterThanOrEqual(48) )
 		{
 			m_meleeAttack2 = false;
 			sequence = LookupSequence("attack1");
@@ -314,7 +314,7 @@ int CGonome::LookupActivity(int activity)
 		if (activity == ACT_RUN && m_hEnemy != 0)
 		{
 			// special run animations
-			if ((pev->origin - m_hEnemy->pev->origin).Length2D() <= 512 )
+			if ((pev->origin - m_hEnemy->pev->origin).IsLengthLessThanOrEqual(512) )
 			{
 				return LookupSequence("runshort");
 			}
@@ -360,8 +360,7 @@ TakeDamageResult CGonome::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAtta
 {
 	if( damageInfo.type == DMG_BULLET && damageInfo.gibPolicy != GIB_NEVER )
 	{
-		Vector vecDir = pev->origin - (pevInflictor->absmin + pevInflictor->absmax) * 0.5;
-		vecDir = vecDir.Normalize();
+		const Vector vecDir = (pev->origin - (pevInflictor->absmin + pevInflictor->absmax) * 0.5f).Normalize();
 		float flForce = DamageForce( damageInfo.damage );
 		pev->velocity = pev->velocity + vecDir * flForce;
 #if 0

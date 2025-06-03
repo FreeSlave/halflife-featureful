@@ -177,32 +177,32 @@ void CHgun::SecondaryAttack( void )
 	switch( m_iFirePhase )
 	{
 	case 1:
-		vecSrc = vecSrc + gpGlobals->v_up * 8.0f;
+		vecSrc += gpGlobals->v_up * 8.0f;
 		break;
 	case 2:
-		vecSrc = vecSrc + gpGlobals->v_up * 8.0f;
-		vecSrc = vecSrc + gpGlobals->v_right * 8.0f;
+		vecSrc += gpGlobals->v_up * 8.0f;
+		vecSrc += gpGlobals->v_right * 8.0f;
 		break;
 	case 3:
-		vecSrc = vecSrc + gpGlobals->v_right * 8.0f;
+		vecSrc += gpGlobals->v_right * 8.0f;
 		break;
 	case 4:
-		vecSrc = vecSrc + gpGlobals->v_up * -8.0f;
-		vecSrc = vecSrc + gpGlobals->v_right * 8.0f;
+		vecSrc += gpGlobals->v_up * -8.0f;
+		vecSrc += gpGlobals->v_right * 8.0f;
 		break;
 	case 5:
-		vecSrc = vecSrc + gpGlobals->v_up * -8.0f;
+		vecSrc += gpGlobals->v_up * -8.0f;
 		break;
 	case 6:
-		vecSrc = vecSrc + gpGlobals->v_up * -8.0f;
-		vecSrc = vecSrc + gpGlobals->v_right * -8.0f;
+		vecSrc += gpGlobals->v_up * -8.0f;
+		vecSrc += gpGlobals->v_right * -8.0f;
 		break;
 	case 7:
-		vecSrc = vecSrc + gpGlobals->v_right * -8.0f;
+		vecSrc += gpGlobals->v_right * -8.0f;
 		break;
 	case 8:
-		vecSrc = vecSrc + gpGlobals->v_up * 8.0f;
-		vecSrc = vecSrc + gpGlobals->v_right * -8.0f;
+		vecSrc += gpGlobals->v_up * 8.0f;
+		vecSrc += gpGlobals->v_right * -8.0f;
 		m_iFirePhase = 0;
 		break;
 	}
