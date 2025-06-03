@@ -577,7 +577,7 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_ARRAY( CGargantua, m_pFlame, FIELD_CLASSPTR, 4 ),
 	DEFINE_FIELD( CGargantua, m_flameX, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
-	DEFINE_FIELD( CGargantua, m_breatheTime, FIELD_TIME ),
+	DEFINE_FIELD( CGargantua, m_stompTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CGargantua, CFollowingMonster )
