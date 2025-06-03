@@ -306,23 +306,35 @@ void CStomp::Think( void )
 
 	pev->nextthink = gpGlobals->time + 0.1f;
 
+	// Find the ground and do damage from the floor.
+	// TODO: use radius damage instead?
+	UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, 500 ), ignore_monsters, edict(), &tr );
+
 	// Do damage for this frame
-	Vector vecStart = pev->origin;
-	vecStart.z += 30;
-	Vector vecEnd = vecStart + ( pev->movedir * pev->speed * STOMP_FRAMETIME );
+	Vector vecStart = tr.vecEndPos + Vector(0, 0, 30);
 
-	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT(pev), &tr );
+	auto FindSomethingAndDoDamage = [&]() -> CBaseEntity* {
+		const Vector vecEnd = vecStart + ( pev->movedir * pev->speed * STOMP_FRAMETIME );
+		UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT(pev), &tr );
 
-	if( tr.pHit && tr.pHit != pev->owner )
-	{
-		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-		if (pEntity && pEntity->pev->takedamage)
+		if( tr.pHit && tr.pHit != pev->owner )
 		{
-			entvars_t *pevOwner = pev;
-			if( pev->owner )
-				pevOwner = VARS( pev->owner );
-			pEntity->TakeDamage( pev, pevOwner, DamageInfo(pev->dmg, DMG_SONIC) );
+			CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+			if (pEntity && pEntity->pev->takedamage)
+			{
+				entvars_t *pevAttacker = pev->owner ? VARS( pev->owner ) : pev;
+				pEntity->TakeDamage( pev, pevAttacker, DamageInfo(pev->dmg, DMG_SONIC) );
+				return pEntity;
+			}
 		}
+		return nullptr;
+	};
+	CBaseEntity* pDamagedEntity = FindSomethingAndDoDamage();
+	if (!pDamagedEntity)
+	{
+		// Try again a bit higher
+		vecStart = vecStart + Vector(0, 0, 30);
+		FindSomethingAndDoDamage();
 	}
 
 	// Accelerate the effect
@@ -342,19 +354,23 @@ void CStomp::Think( void )
 	const int freeEnts = gpGlobals->maxEntities - NUMBER_OF_ENTITIES();
 	maxNumOfSprites = Q_min(maxNumOfSprites, freeEnts);
 
-	// TODO: make it into clint side effects?
+	// TODO: make it into client side effects?
 	// Move and spawn trails
 	while( gpGlobals->time - pev->dmgtime > stompInterval )
 	{
 		pev->origin = pev->origin + pev->movedir * pev->speed * stompInterval;
 		for( int i = 0; i < numOfSprites && maxNumOfSprites > 0; i++ )
 		{
+			if (i == 0)
+			{
+				// Calculate trace result once
+				UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, 500 ), ignore_monsters, edict(), &tr );
+			}
+
 			maxNumOfSprites--;
-			CSprite *pSprite = CreateSpriteFromVisual(m_stompVisual, pev->origin);
+			CSprite *pSprite = CreateSpriteFromVisual(m_stompVisual, tr.vecEndPos);
 			if( pSprite )
 			{
-				UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, 500 ), ignore_monsters, edict(), &tr );
-				pSprite->pev->origin = tr.vecEndPos;
 				pSprite->pev->velocity = Vector( RANDOM_FLOAT( -200.0f, 200.0f ), RANDOM_FLOAT( -200.0f, 200.0f ), 175 );
 				// pSprite->AnimateAndDie( RANDOM_FLOAT( 8.0f, 12.0f ) );
 				pSprite->pev->nextthink = gpGlobals->time + 0.3f;
@@ -420,6 +436,8 @@ public:
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 
+	bool FVisible(CBaseEntity *pEntity, CBaseEntity** ppSightBlocker = nullptr) override;
+	bool FCanCheckAttacks() override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;		// Swipe
 	bool CheckMeleeAttack2( float flDot, float flDist ) override;		// Flames
 	bool CheckRangeAttack1( float flDot, float flDist ) override;		// Stomp attack
@@ -543,6 +561,8 @@ protected:
 
 	const Visual* m_eyeVisual; // this is accessed quite often so cache it
 	const Visual* m_flameVisual; // this is accessed quite often so cache it
+
+	bool m_checkStompAttackOnly;
 };
 
 LINK_ENTITY_TO_CLASS( monster_gargantua, CGargantua )
@@ -1194,6 +1214,42 @@ void CGargantua::OnDying()
 	CFollowingMonster::OnDying();
 }
 
+bool CGargantua::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )
+{
+	m_checkStompAttackOnly = false;
+	if (CFollowingMonster::FVisible(pEntity, ppSightBlocker))
+	{
+		return true;
+	}
+	if (m_hEnemy != 0 && m_hEnemy == pEntity)
+	{
+		CBaseEntity* pEnemy = m_hEnemy;
+		const Vector vecSrc = pev->origin + Vector(0, 0, pev->mins.z + 2);
+		const Vector vecTarget = pEnemy->pev->origin + Vector(0, 0, pEnemy->pev->mins.z + 2);
+
+		TraceResult tr;
+		UTIL_TraceLine(vecSrc, vecTarget, ignore_monsters, ignore_glass, ENT(pev), &tr);
+		if( tr.flFraction == 1.0f )
+		{
+			m_checkStompAttackOnly = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CGargantua::FCanCheckAttacks()
+{
+	if (HasConditions( bits_COND_ENEMY_TOOFAR ))
+		return false;
+
+	if (HasConditions( bits_COND_SEE_ENEMY ))
+	{
+		return true;
+	}
+	return m_checkStompAttackOnly;
+}
+
 //=========================================================
 // CheckMeleeAttack1
 // Garg swipe attack
@@ -1201,6 +1257,9 @@ void CGargantua::OnDying()
 //=========================================================
 bool CGargantua::CheckMeleeAttack1( float flDot, float flDist )
 {
+	if (m_checkStompAttackOnly)
+		return false;
+
 	//ALERT( at_aiconsole, "CheckMelee(%f, %f)\n", flDot, flDist );
 	CheckMeleeAttackParams params;
 	params.distance = GARG_ATTACKDIST;
@@ -1211,6 +1270,8 @@ bool CGargantua::CheckMeleeAttack1( float flDot, float flDist )
 bool CGargantua::CheckMeleeAttack2( float flDot, float flDist )
 {
 	//ALERT( at_aiconsole, "CheckMelee(%f, %f)\n", flDot, flDist );
+	if (m_checkStompAttackOnly)
+		return false;
 
 	if( gpGlobals->time > m_flameTime )
 	{
@@ -1249,7 +1310,7 @@ bool CGargantua::CheckRangeAttack1( float flDot, float flDist )
 	{
 		if( flDot >= 0.7f && flDist > GARG_ATTACKDIST )
 		{
-				return true;
+			return true;
 		}
 	}
 	return false;
