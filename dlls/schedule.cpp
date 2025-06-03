@@ -29,6 +29,8 @@
 #include "gamerules.h"
 #include "game.h"
 
+extern cvar_t npc_lateral_retreat;
+
 //=========================================================
 // FHaveSchedule - Returns true if monster's m_pSchedule
 // is anything other than NULL.
@@ -1779,6 +1781,11 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				TaskComplete();
 			}
 			else if (FindSpotAway( pevThreat->origin, 128, CoverRadius(), FINDSPOTAWAY_CHECK_SPOT|FINDSPOTAWAY_RUN ))
+			{
+				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+				TaskComplete();
+			}
+			else if( npc_lateral_retreat.value != 0 && FindLateralSpotAway( pevThreat->origin, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), FINDSPOTAWAY_CHECK_SPOT|FINDSPOTAWAY_RUN ) )
 			{
 				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 				TaskComplete();
