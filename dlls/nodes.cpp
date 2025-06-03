@@ -402,14 +402,11 @@ int CGraph::HullIndex( const CBaseEntity *pEntity )
 	if( pEntity->pev->movetype == MOVETYPE_FLY )
 		return NODE_FLY_HULL;
 
-	if( pEntity->pev->mins == Vector( -12, -12, 0 ) )
+	if( pEntity->pev->maxs.x <= 12 && pEntity->pev->maxs.y <= 12 )
 		return NODE_SMALL_HULL;
-	else if( pEntity->pev->mins == VEC_HUMAN_HULL_MIN )
-		return NODE_HUMAN_HULL;
-	else if( pEntity->pev->mins == Vector( -32, -32, 0 ) )
+	else if( pEntity->pev->maxs.x >= 32 || pEntity->pev->maxs.y >= 32 )
 		return NODE_LARGE_HULL;
 
-	//ALERT( at_aiconsole, "Unknown Hull Mins!\n" );
 	return NODE_HUMAN_HULL;
 }
 
