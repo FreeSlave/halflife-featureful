@@ -791,6 +791,7 @@ cvar_t npc_trace_hull_attack_retry = { "npc_trace_hull_attack_retry", "0", FCVAR
 cvar_t npc_fix_melee_distance = { "npc_fix_melee_distance", "0", FCVAR_SERVER };
 #endif
 cvar_t npc_active_after_combat = { "npc_active_after_combat", "0", FCVAR_SERVER };
+cvar_t npc_combat_fail_schedule = { "npc_combat_fail_schedule", "0", FCVAR_SERVER };
 #if FEATURE_NPC_FOLLOW_OUT_OF_PVS_CVAR
 cvar_t npc_follow_out_of_pvs = { "npc_follow_out_of_pvs", "0", FCVAR_SERVER };
 #endif
@@ -1596,6 +1597,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &npc_fix_melee_distance );
 #endif
 	CVAR_REGISTER( &npc_active_after_combat );
+	CVAR_REGISTER( &npc_combat_fail_schedule );
 #if FEATURE_NPC_FOLLOW_OUT_OF_PVS_CVAR
 	CVAR_REGISTER( &npc_follow_out_of_pvs );
 #endif

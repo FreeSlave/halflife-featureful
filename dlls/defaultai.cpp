@@ -24,6 +24,8 @@
 #include	"soundent.h"
 #include	"scripted.h"
 
+extern cvar_t npc_combat_fail_schedule;
+
 //=========================================================
 // Fail
 //=========================================================
@@ -43,6 +45,25 @@ Schedule_t slFail[] =
 		bits_COND_CAN_ATTACK,
 		0,
 		"Fail"
+	},
+};
+
+Task_t tlCombatFail[] =
+{
+	{ TASK_STOP_MOVING, 0 },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_WAIT_FACE_ENEMY, (float)2 },
+	{ TASK_WAIT_PVS, (float)0 },
+};
+
+Schedule_t slCombatFail[] =
+{
+	{
+		tlCombatFail,
+		ARRAYSIZE( tlCombatFail ),
+		bits_COND_CAN_ATTACK,
+		0,
+		"CombatFail"
 	},
 };
 
@@ -1392,7 +1413,8 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slRetreatFromEnemy,
 	slRetreatFromSpot,
 	slIdleFace,
-	slFail
+	slFail,
+	slCombatFail
 };
 
 Schedule_t *CBaseMonster::ScheduleFromName( const char *pName )
@@ -1624,6 +1646,8 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 		}
 	case SCHED_FAIL:
 		{
+			if (npc_combat_fail_schedule.value != 0 && m_MonsterState == MONSTERSTATE_COMBAT && m_hEnemy != 0)
+				return slCombatFail;
 			return slFail;
 		}
 	case SCHED_FREEROAM:
