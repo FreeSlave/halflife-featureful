@@ -67,7 +67,7 @@ Schedule_t slFollowCautious[] =
 
 Task_t tlFollowTargetNearest[] =
 {
-	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_FAIL_PVS_INDEPENDENT },
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_FOLLOW_NEAREST_FAILED },
 	{ TASK_GET_NEAREST_PATH_TO_TARGET, 64.0f },
 	{ TASK_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
@@ -325,6 +325,11 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
 		}
+	}
+	case SCHED_FOLLOW_NEAREST_FAILED:
+	{
+		SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
+		return GetScheduleOfType(m_suggestedSchedule);
 	}
 	case SCHED_CANT_FOLLOW:
 	{

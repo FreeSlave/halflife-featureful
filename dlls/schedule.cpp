@@ -369,7 +369,7 @@ void CBaseMonster::MaintainSchedule()
 				else
 					pNewSchedule = GetScheduleOfType( SCHED_FAIL );
 
-				ChangeSchedule( pNewSchedule );
+				ChangeSchedule( pNewSchedule, FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ON_FAIL) );
 			}
 			else
 			{

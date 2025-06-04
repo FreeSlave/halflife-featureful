@@ -151,6 +151,7 @@ enum
 // utility flags
 #define SUGGEST_SCHEDULE_FLAG_SPOT_IS_INVALID ( 1 << 24 )
 #define SUGGEST_SCHEDULE_FLAG_SPOT_ENTITY_IS_PROVIDED ( 1 << 25 )
+#define SUGGEST_SCHEDULE_FLAG_ON_FAIL ( 1 << 26 )
 
 enum
 {
