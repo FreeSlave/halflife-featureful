@@ -1922,13 +1922,10 @@ void CBaseMonster::InsertWaypoint( Vector vecLocation, int afMoveFlags )
 int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector *pApexes, int n, int tries, bool recursive )
 {
 	Vector		vecDir;
-	Vector		vecForward;
 	Vector		vecLeft;// the spot we'll try to triangulate to on the left
 	Vector		vecRight;// the spot we'll try to triangulate to on the right
 	Vector		vecTop;// the spot we'll try to triangulate to on the top
 	Vector		vecBottom;// the spot we'll try to triangulate to on the bottom
-	Vector		vecFarSide;// the spot that we'll move to after hitting the triangulated point, before moving on to our normal goal.
-	int		i;
 	float		sizeX, sizeZ;
 
 	// If the hull width is less than 24, use 24 because CheckLocalMove uses a min of
@@ -1942,7 +1939,7 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 	//if( sizeZ < 24.0f )
 	//	sizeZ = 24.0f;
 
-	vecForward = ( vecEnd - vecStart ).Normalize();
+	const Vector vecForward = ( vecEnd - vecStart ).Normalize();
 
 	Vector vecDirUp( 0, 0, 1 );
 	vecDir = CrossProduct( vecForward, vecDirUp );
@@ -1961,13 +1958,13 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		vecBottom = vecStart + ( vecForward * flDist ) - ( vecDirUp *  sizeZ * 3 );
 	}
 
-	vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
+	const Vector vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
 
 	vecDir *= sizeX * 2;
 	if( pev->movetype == MOVETYPE_FLY )
 		vecDirUp *= sizeZ * 2;
 
-	for( i = 0; i < tries; i++ )
+	for( int i = 0; i < tries; i++ )
 	{
 // Debug, Draw the triangulation
 #if 0
@@ -2005,14 +2002,10 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		{
 			if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 			{
-				if( pApexes )
-				{
-					*pApexes = vecRight;
-				}
-
+				*pApexes = vecRight;
 				return 1;
 			}
-			else if (n>1 && pApexes)
+			else if (n>1)
 			{
 				result = FTriangulate(vecRight, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 2, true);
 				if (result)
@@ -2022,12 +2015,12 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 				}
 			}
 		}
-		else if (n>1 && pApexes)
+		else if (n>1)
 		{
-			result = FTriangulate(vecStart, vecRight, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
-			if (result)
+			if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
 			{
-				if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+				result = FTriangulate(vecStart, vecRight, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
+				if (result)
 				{
 					pApexes[n-1] = vecRight;
 					return result+1;
@@ -2038,14 +2031,10 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		{
 			if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 			{
-				if( pApexes )
-				{
-					*pApexes = vecLeft;
-				}
-
+				*pApexes = vecLeft;
 				return 1;
 			}
-			else if (n>1 && pApexes)
+			else if (n>1)
 			{
 				result = FTriangulate(vecLeft, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 2, true);
 				if (result)
@@ -2055,12 +2044,12 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 				}
 			}
 		}
-		else if (n>1 && pApexes)
+		else if (n>1)
 		{
-			result = FTriangulate(vecStart, vecLeft, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
-			if (result)
+			if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
 			{
-				if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+				result = FTriangulate(vecStart, vecLeft, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
+				if (result)
 				{
 					pApexes[n-1] = vecLeft;
 					return result+1;
@@ -2074,12 +2063,7 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 			{
 				if( CheckLocalMove ( vecTop, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
 				{
-					if( pApexes )
-					{
-						*pApexes = vecTop;
-						//ALERT(at_aiconsole, "triangulate over\n");
-					}
-
+					*pApexes = vecTop;
 					return 1;
 				}
 			}
@@ -2088,12 +2072,7 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 			{
 				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
 				{
-					if( pApexes )
-					{
-						*pApexes = vecBottom;
-						//ALERT(at_aiconsole, "triangulate under\n");
-					}
-
+					*pApexes = vecBottom;
 					return 1;
 				}
 			}

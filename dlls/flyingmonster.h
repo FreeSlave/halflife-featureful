@@ -23,7 +23,6 @@ class CFlyingMonster : public CBaseMonster
 {
 public:
 	int 		CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );// check validity of a straight move through space
-	int FTriangulate(const Vector &vecStart, const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector *pApexes, int n = 1, int tries = 8);
 	Activity	GetStoppedActivity( void );
 	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void		Stop( void );
