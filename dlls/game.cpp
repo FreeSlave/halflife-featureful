@@ -783,6 +783,7 @@ cvar_t use_through_walls = { "use_through_walls", "1", FCVAR_SERVER };
 cvar_t items_physics_fix = { "items_physics_fix", "0", FCVAR_SERVER };
 cvar_t npc_tridepth = { "npc_tridepth", "1", FCVAR_SERVER };
 cvar_t npc_tridepth_all = { "npc_tridepth_all", "0", FCVAR_SERVER };
+cvar_t npc_tridepth_vertical = { "npc_tridepth_vertical", "0", FCVAR_SERVER };
 cvar_t npc_follow_nearest = { "npc_follow_nearest", "0", FCVAR_SERVER };
 cvar_t npc_get_to_enemy_nearest = { "npc_get_to_enemy_nearest", "0", FCVAR_SERVER };
 cvar_t npc_forget_enemy_time = { "npc_forget_enemy_time", "0", FCVAR_SERVER };
@@ -1590,6 +1591,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &items_physics_fix );
 	CVAR_REGISTER( &npc_tridepth );
 	CVAR_REGISTER( &npc_tridepth_all );
+	CVAR_REGISTER( &npc_tridepth_vertical );
 	CVAR_REGISTER( &npc_follow_nearest );
 	CVAR_REGISTER( &npc_get_to_enemy_nearest );
 	CVAR_REGISTER( &npc_forget_enemy_time );

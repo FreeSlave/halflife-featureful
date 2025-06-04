@@ -1954,8 +1954,8 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 	vecRight = vecStart + ( vecForward * ( flDist + ( recursive ? 0 : sizeX ) ) ) + vecDir * ( recursive ? sizeX : sizeX * 3 );
 	if( pev->movetype == MOVETYPE_FLY )
 	{
-		vecTop = vecStart + ( vecForward * flDist ) + ( vecDirUp * sizeZ * 3 );
-		vecBottom = vecStart + ( vecForward * flDist ) - ( vecDirUp *  sizeZ * 3 );
+		vecTop = vecStart + ( vecForward * flDist ) + ( vecDirUp * (recursive ? sizeZ : sizeZ * 3) );
+		vecBottom = vecStart + ( vecForward * flDist ) - ( vecDirUp * (recursive ? sizeZ : sizeZ * 3) );
 	}
 
 	const Vector vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
@@ -2059,24 +2059,66 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			if( CheckLocalMove( vecStart, vecTop, pTargetEnt, NULL ) == LOCALMOVE_VALID)
+			const bool applyTridepth = TridepthVertical();
+
+			if( CheckLocalMove( vecStart, vecTop, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID)
 			{
-				if( CheckLocalMove ( vecTop, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+				if( CheckLocalMove ( vecTop, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 				{
 					*pApexes = vecTop;
 					return 1;
 				}
+				else if (n>1 && applyTridepth)
+				{
+					result = FTriangulate(vecTop, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 3, true);
+					if (result)
+					{
+						*pApexes = vecTop;
+						return result+1;
+					}
+				}
 			}
-#if 1
-			if( CheckLocalMove( vecStart, vecBottom, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+			else if (n>1 && applyTridepth)
 			{
-				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+				if( CheckLocalMove( vecTop, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
+				{
+					result = FTriangulate(vecStart, vecTop, localMoveDist, pTargetEnt, pApexes, n-1, tries - 3, true);
+					if (result)
+					{
+						pApexes[n-1] = vecTop;
+						return result+1;
+					}
+				}
+			}
+			if( CheckLocalMove( vecStart, vecBottom, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+			{
+				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 				{
 					*pApexes = vecBottom;
 					return 1;
 				}
+				else if (n>1 && applyTridepth)
+				{
+					result = FTriangulate(vecBottom, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 3, true);
+					if (result)
+					{
+						*pApexes = vecBottom;
+						return result+1;
+					}
+				}
 			}
-#endif
+			else if (n>1 && applyTridepth)
+			{
+				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
+				{
+					result = FTriangulate(vecStart, vecBottom, localMoveDist, pTargetEnt, pApexes, n-1, tries - 3, true);
+					if (result)
+					{
+						pApexes[n-1] = vecBottom;
+						return result+1;
+					}
+				}
+			}
 		}
 
 		vecRight += vecDir;

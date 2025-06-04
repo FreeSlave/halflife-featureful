@@ -418,6 +418,7 @@ extern DLL_GLOBAL CGameRules *g_pGameRules;
 
 int TridepthValue();
 bool TridepthForAll();
+bool TridepthVertical();
 bool AllowUseThroughWalls();
 bool NpcFollowNearest();
 bool NpcGetToEnemyNearest();

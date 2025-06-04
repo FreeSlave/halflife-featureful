@@ -764,6 +764,12 @@ bool TridepthForAll()
 	return npc_tridepth_all.value > 0;
 }
 
+bool TridepthVertical()
+{
+	extern cvar_t npc_tridepth_vertical;
+	return npc_tridepth_vertical.value > 0;
+}
+
 bool AllowUseThroughWalls()
 {
 #if FEATURE_USE_THROUGH_WALLS_CVAR
