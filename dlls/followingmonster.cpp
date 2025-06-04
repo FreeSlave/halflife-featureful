@@ -328,8 +328,20 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 	}
 	case SCHED_FOLLOW_NEAREST_FAILED:
 	{
-		SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
-		return GetScheduleOfType(m_suggestedSchedule);
+		if (m_hTargetEnt != 0 && FVisible(m_hTargetEnt))
+		{
+			if (RANDOM_LONG(0, 1) == 1)
+			{
+				SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_WALK|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
+				return GetScheduleOfType(m_suggestedSchedule);
+			}
+			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
+		}
+		else
+		{
+			SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
+			return GetScheduleOfType(m_suggestedSchedule);
+		}
 	}
 	case SCHED_CANT_FOLLOW:
 	{
