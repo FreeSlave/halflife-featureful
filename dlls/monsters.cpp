@@ -3622,6 +3622,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	ALERT( level, "Yaw speed: %3.1f, Current Yaw: %3.1f, Ideal Yaw: %3.1f, ", pev->yaw_speed, UTIL_AngleMod( pev->angles.y ), pev->ideal_yaw );
 	ALERT( level, "Health: %3.1f / %3.1f, ", pev->health, pev->max_health );
 	ALERT( level, "Field of View: %3.1f. ", m_flFieldOfView );
+	ALERT( level, "Origin: (%g, %g, %g). ", pev->origin.x, pev->origin.y, pev->origin.z );
 	ALERT( level, "Boundbox: (%g, %g, %g), (%g, %g, %g). Size: (%g, %g, %g). ",
 		   pev->mins.x, pev->mins.y, pev->mins.z,
 		   pev->maxs.x, pev->maxs.y, pev->maxs.z,
@@ -3715,7 +3716,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 			{
 				ALERT(level, "%d: ", static_cast<int>(j));
 				ReportRouteType(level, m_Route[j].iType);
-				ALERT(level, "\n");
+				ALERT(level, "(%g, %g, %g)\n", m_Route[j].vecLocation.x, m_Route[j].vecLocation.y, m_Route[j].vecLocation.z);
 			}
 		}
 	}
