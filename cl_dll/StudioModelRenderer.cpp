@@ -1895,5 +1895,5 @@ void CStudioModelRenderer::StudioCacheFullbrightNames()
 
 bool CStudioModelRenderer::HasFullbrightSupportInEngine()
 {
-	return IsAnyXash();
+	return IsAnyXash() || !LibrarySideFullbrightSupportIsOn();
 }

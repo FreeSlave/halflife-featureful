@@ -125,6 +125,8 @@ ClientFeatures::ClientFeatures()
 
 	memset(wall_puffs, 0, sizeof(wall_puffs));
 	strcpy(wall_puffs[0], "sprites/stmbal1.spr");
+
+	fullbright_textures = true;
 }
 
 static cvar_t* CVAR_CREATE_INTVALUE(const char* name, int value, int flags)
@@ -953,6 +955,7 @@ void CHud::ParseClientFeatures()
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
 		{ "opfor_title", clientFeatures.opfor_title },
+		{ "fullbright_textures", clientFeatures.fullbright_textures },
 	};
 
 	char valueBuf[CLIENT_FEATURE_VALUE_LENGTH+1];

@@ -876,6 +876,8 @@ struct ClientFeatures
 	char nvg_full_sprite[MAX_SPRITE_NAME_LENGTH];
 
 	char wall_puffs[MAX_WALLPUFF_COUNT][64];
+
+	bool fullbright_textures;
 };
 
 #define MAX_DLIGHTS 32

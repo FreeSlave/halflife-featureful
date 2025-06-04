@@ -675,3 +675,8 @@ bool IsXashFWGS()
 {
 	return gMobileEngfuncs != NULL;
 }
+
+bool LibrarySideFullbrightSupportIsOn()
+{
+	return gHUD.clientFeatures.fullbright_textures;
+}

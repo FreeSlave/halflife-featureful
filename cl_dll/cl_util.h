@@ -177,5 +177,6 @@ HSPRITE LoadSprite( const char *pszName );
 bool HUD_MessageBox( const char *msg );
 bool IsAnyXash();
 bool IsXashFWGS();
+bool LibrarySideFullbrightSupportIsOn();
 void ShutdownInput( void );
 #endif
