@@ -531,6 +531,18 @@ void CFollowingMonster::RunTask( Task_t *pTask )
 			}
 		}
 		break;
+	case TASK_WAIT_PVS:
+		{
+			if ( IsFollowingPlayer() )
+			{
+				TaskComplete();
+			}
+			else
+			{
+				CSquadMonster::RunTask( pTask );
+			}
+		}
+		break;
 	default:
 		CSquadMonster::RunTask( pTask );
 		break;
