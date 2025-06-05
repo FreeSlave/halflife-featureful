@@ -837,6 +837,45 @@ void ClientCommand( edict_t *pEntity )
 	{
 		pPlayer->DisbandFollowers();
 	}
+	else if ( FStrEq( pcmd, "make_start_following" ) || FStrEq( pcmd, "make_stop_following" ) )
+	{
+		bool startFollowing = FStrEq( pcmd, "make_start_following" );
+
+		if (CheatsEnabled())
+		{
+			if (CMD_ARGC() < 2)
+			{
+				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "Need a classname or targetname as an argument!\n");
+			}
+			else
+			{
+				const char* name = CMD_ARGV(1);
+				if (*name)
+				{
+					auto doFollowing = [pPlayer, startFollowing](CBaseMonster* pMonster) {
+						if (startFollowing)
+							pPlayer->MakeStartFollowing(pMonster->MyFollowingMonsterPointer());
+						else
+							pPlayer->MakeStopFollowing(pMonster->MyFollowingMonsterPointer());
+					};
+
+					CBaseEntity *pEntity = nullptr;
+					while((pEntity = UTIL_FindEntityByTargetname(pEntity, name)) != nullptr)
+					{
+						CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+						if (pMonster)
+							doFollowing(pMonster);
+					}
+					while((pEntity = UTIL_FindEntityByClassname(pEntity, name)) != nullptr)
+					{
+						CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+						if (pMonster)
+							doFollowing(pMonster);
+					}
+				}
+			}
+		}
+	}
 	else if( g_pGameRules->ClientCommand( GetClassPtr( (CBasePlayer *)pev ), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

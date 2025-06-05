@@ -435,6 +435,8 @@ public:
 	void SetMovementMode();
 	void RecruitFollowers();
 	void DisbandFollowers();
+	void MakeStartFollowing(CFollowingMonster* pMonster);
+	void MakeStopFollowing(CFollowingMonster* pMonster);
 
 	float m_flStartCharge;
 	float m_flAmmoStartCharge;

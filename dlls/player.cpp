@@ -6512,6 +6512,55 @@ void CBasePlayer::DisbandFollowers()
 	}
 }
 
+void CBasePlayer::MakeStartFollowing(CFollowingMonster *pMonster)
+{
+	if (!pMonster || !pMonster->IsFullyAlive())
+		return;
+
+	const int result = pMonster->DoFollowerUse(this, false, USE_ON, true);
+	ALERT(at_aiconsole, "Monster %s at (%g, %g, %g) ",
+		  STRING(pMonster->pev->classname), pMonster->pev->origin.x, pMonster->pev->origin.y, pMonster->pev->origin.z);
+	switch (result) {
+	case FOLLOWING_BUSYINSCRIPT:
+		ALERT(at_aiconsole, "can't follow because busy in script\n");
+		break;
+	case FOLLOWING_DISCARDED:
+		ALERT(at_aiconsole, "discarded following request\n");
+		break;
+	case FOLLOWING_DECLINED:
+		ALERT(at_aiconsole, "declined following request\n");
+		break;
+	case FOLLOWING_NOCHANGE:
+		ALERT(at_aiconsole, "is already following a player\n");
+		break;
+	case FOLLOWING_STARTED:
+		ALERT(at_aiconsole, "started following the player by request\n");
+		break;
+	default:
+		break;
+	}
+}
+
+void CBasePlayer::MakeStopFollowing(CFollowingMonster *pMonster)
+{
+	if (!pMonster || !pMonster->IsFullyAlive())
+		return;
+
+	const int result = pMonster->DoFollowerUse(this, false, USE_OFF, true);
+	ALERT(at_aiconsole, "Monster %s at (%g, %g, %g) ",
+		  STRING(pMonster->pev->classname), pMonster->pev->origin.x, pMonster->pev->origin.y, pMonster->pev->origin.z);
+	switch (result) {
+	case FOLLOWING_NOCHANGE:
+		ALERT(at_aiconsole, "is already not following a player\n");
+		break;
+	case FOLLOWING_STOPPED:
+		ALERT(at_aiconsole, "stopped following the player by request\n");
+		break;
+	default:
+		break;
+	}
+}
+
 bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
 {
 	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked() && !g_modFeatures.FixPlayerAndCorpseCollisionBug())
