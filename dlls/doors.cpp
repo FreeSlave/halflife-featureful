@@ -24,6 +24,7 @@
 #include "doors.h"
 #include "game.h"
 #include "soundradius.h"
+#include "nodes.h"
 
 #define noiseMoving noise1
 #define noiseArrived noise2
@@ -1037,6 +1038,8 @@ void CBaseDoor::DoorHitTop( void )
 		}
 	}
 
+	WorldGraph.ResetNearestNodeCache();
+
 	// Fire the close target (if startopen is set, then "top" is closed) - netname is the close target
 	if (FBitSet(pev->spawnflags, SF_DOOR_START_OPEN))
 	{
@@ -1124,6 +1127,7 @@ void CBaseDoor::DoorHitBottom( void )
 	else // touchable door
 		SetTouch( &CBaseDoor::DoorTouch );
 
+	WorldGraph.ResetNearestNodeCache();
 	SUB_UseTargets( m_hActivator );
 
 	// Fire the close target (if startopen is set, then "top" is closed) - netname is the close target

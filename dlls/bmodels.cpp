@@ -24,6 +24,7 @@
 #include "util.h"
 #include "cbase.h"
 #include "doors.h"
+#include "nodes.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -110,6 +111,7 @@ void CFuncWallToggle::TurnOff( void )
 	pev->solid = SOLID_NOT;
 	pev->effects |= EF_NODRAW;
 	UTIL_SetOrigin( pev, pev->origin );
+	WorldGraph.ResetNearestNodeCache();
 }
 
 void CFuncWallToggle::TurnOn( void )
@@ -117,6 +119,7 @@ void CFuncWallToggle::TurnOn( void )
 	pev->solid = SOLID_BSP;
 	pev->effects &= ~EF_NODRAW;
 	UTIL_SetOrigin( pev, pev->origin );
+	WorldGraph.ResetNearestNodeCache();
 }
 
 bool CFuncWallToggle::IsOn( void )

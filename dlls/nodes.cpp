@@ -825,6 +825,11 @@ void CGraph::CheckNode( Vector vecOrigin, int iNode )
 	}
 }
 
+void CGraph::ResetNearestNodeCache()
+{
+	memset( m_Cache, 0, sizeof(m_Cache) );
+}
+
 //=========================================================
 // CGraph - FindNearestNode - returns the index of the node nearest
 // the given vector -1 is failure (couldn't find a valid
@@ -851,7 +856,7 @@ int CGraph::FindNearestNode( const Vector &vecOrigin, int afNodeTypes )
 	ULONG iHash = ( CACHE_SIZE - 1 ) & Hash( (void *)(const float *)vecOrigin, sizeof(vecOrigin) );
 	if( m_Cache[iHash].v == vecOrigin )
 	{
-		//ALERT( at_aiconsole, "Cache Hit.\n" );
+		//ALERT( at_aiconsole, "Cache Hit for (%g, %g, %g). Node: %d.\n", vecOrigin.x, vecOrigin.y, vecOrigin.z, m_Cache[iHash].n );
 		return m_Cache[iHash].n;
 	}
 /*	else
@@ -3144,7 +3149,7 @@ void CGraph::BuildRegionTables( void )
 
 	// Initialize the cache.
 	//
-	memset( m_Cache, 0, sizeof(m_Cache) );
+	ResetNearestNodeCache();
 }
 
 void CGraph::ComputeStaticRoutingTables( void )

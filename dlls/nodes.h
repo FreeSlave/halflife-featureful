@@ -174,6 +174,7 @@ public:
 	int		LinkVisibleNodes ( CLink *pLinkPool, FILE *file, int *piBadNode );
 	int		RejectInlineLinks ( CLink *pLinkPool, FILE *file );
 	int		FindShortestPath ( int *piPath, int pathSize, int iStart, int iDest, int iHull, int afCapMask, bool dynamic = false );
+	void	ResetNearestNodeCache();
 	int		FindNearestNode ( const Vector &vecOrigin, CBaseEntity *pEntity );
 	int		FindNearestNode ( const Vector &vecOrigin, int afNodeTypes );
 	//bool		FindNearestLink ( const Vector &vecTestPoint, int *piNearestLink, bool *pfAlongLine );
