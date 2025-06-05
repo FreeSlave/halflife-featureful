@@ -3455,6 +3455,13 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_uzi(choices) : "Uzi" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 	weapon_m249(choices) : "M249" =
 	[
 		-1: "Remove"
@@ -3463,6 +3470,13 @@
 		2: "Give (allow duplicate)"
 	]
 	weapon_sniperrifle(choices) : "Sniperrifle" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_displacer(choices) : "Displacer" =
 	[
 		-1: "Remove"
 		0: "No change"
