@@ -1468,6 +1468,40 @@ void ReportMaterials()
 		g_MaterialRegistry.DumpMaterials();
 }
 
+void ForceScheduleFail()
+{
+	if (!CanRunCheatCommand())
+		return;
+
+	const int argc = CMD_ARGC();
+	if (argc > 1)
+	{
+		auto forceFail = [](CBaseMonster* pMonster) {
+			pMonster->m_failSchedule = SCHED_NONE;
+			pMonster->TaskFail("forced fail by command");
+		};
+
+		const char* name = CMD_ARGV(1);
+		CBaseEntity *pEntity = nullptr;
+		while((pEntity = UTIL_FindEntityByTargetname(pEntity, name)) != nullptr)
+		{
+			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+			if (pMonster)
+				forceFail(pMonster);
+		}
+		while((pEntity = UTIL_FindEntityByClassname(pEntity, name)) != nullptr)
+		{
+			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+			if (pMonster)
+				forceFail(pMonster);
+		}
+	}
+	else
+	{
+		ALERT(at_console, "Usage: %s <targetname or classname>\n", CMD_ARGV(0));
+	}
+}
+
 static void CVAR_REGISTER_INTEGER( cvar_t* cvar, int value )
 {
 	char valueStr[12];
@@ -2207,6 +2241,7 @@ void GameDLLInit( void )
 	g_engfuncs.pfnAddServerCommand("dump_soundscripts", ReportSoundScripts);
 	g_engfuncs.pfnAddServerCommand("dump_visuals", ReportVisuals);
 	g_engfuncs.pfnAddServerCommand("dump_materials", ReportMaterials);
+	g_engfuncs.pfnAddServerCommand("force_schedule_fail", ForceScheduleFail);
 }
 
 bool ItemsPickableByTouch()
