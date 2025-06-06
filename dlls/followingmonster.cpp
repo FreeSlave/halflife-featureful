@@ -317,10 +317,12 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 		}
 		else if (failPolicy == FOLLOW_FAIL_TRY_NEAREST)
 		{
+			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FOLLOW_NEAREST);
 		}
 		else
 		{
+			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
 		}
 	}

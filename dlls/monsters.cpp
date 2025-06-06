@@ -4644,7 +4644,7 @@ bool CBaseMonster::MakeMyBlockerMoveAway()
 		bool success = false;
 		CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
 		if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
-			int flags = m_pCine ? SUGGEST_SCHEDULE_FLAG_RUN : 0;
+			int flags = (m_pCine || m_hTargetEnt != 0) ? SUGGEST_SCHEDULE_FLAG_RUN : 0;
 			success = blockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 256.0f, flags);
 		}
 		m_lastMoveBlocker = 0;
