@@ -2826,13 +2826,6 @@ int CBaseMonster::IDefaultRelationship(int classify1, int classify2)
 
 bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist, int flags , const char *displayName)
 {
-	int i;
-	int iMyHullIndex;
-	int iMyNode;
-	int iThreatNode;
-	Vector vecLookersOffset;
-	TraceResult tr;
-
 	if( !flMaxDist )
 	{
 		// user didn't supply a MaxDist, so work up a crazy one.
@@ -2853,50 +2846,44 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 		return false;
 	}
 
-	iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
-	iThreatNode = WorldGraph.FindNearestNode ( vecThreat, this );
-	iMyHullIndex = WorldGraph.HullIndex( this );
+	const int iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
 
 	if( iMyNode == NO_NODE )
 	{
 		ALERT( at_aiconsole, "%s - %s has no nearest node!\n", displayName, STRING( pev->classname ) );
 		return false;
 	}
-	if( iThreatNode == NO_NODE )
-	{
-		// ALERT( at_aiconsole, "%s - Threat has no nearest node!\n", displayName );
-		iThreatNode = iMyNode;
-		// return false;
-	}
 
-	vecLookersOffset = vecThreat + vecViewOffset;// calculate location of enemy's eyes
+	const int iThreatNode = WorldGraph.FindNearestNode ( vecThreat, this );
+	const int iMyHullIndex = WorldGraph.HullIndex( this );
+
+	const Vector vecLookersSpot = vecThreat + vecViewOffset;// calculate location of enemy's eyes
 
 	// we'll do a rough sample to find nodes that are relatively nearby
-	for( i = 0; i < WorldGraph.m_cNodes; i++ )
+	for( int i = 0; i < WorldGraph.m_cNodes; i++ )
 	{
 		int nodeNumber = ( i + WorldGraph.m_iLastCoverSearch ) % WorldGraph.m_cNodes;
 
 		CNode &node = WorldGraph.Node( nodeNumber );
 
-		// could use an optimization here!!
 		const float flDistSqr = ( pev->origin - node.m_vecOrigin ).LengthSqr();
 
 		// DON'T do the trace check on a node that is farther away than a node that we've already found to 
 		// provide cover! Also make sure the node is within the mins/maxs of the search.
 		if( flDistSqr >= flMinDist*flMinDist && flDistSqr < flMaxDist*flMaxDist )
 		{
+			const bool mustTraceLooker = FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER);
 			bool traceOk = true;
-			if (FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER))
+			if (mustTraceLooker)
 			{
-				UTIL_TraceLine( node.m_vecOrigin + vecViewOffset, vecLookersOffset, ignore_monsters, ignore_glass,  ENT( pev ), &tr );
-				// if this node will block the threat's line of sight to me...
+				TraceResult tr;
+				UTIL_TraceLine( node.m_vecOrigin + vecViewOffset, vecLookersSpot, ignore_monsters, ignore_glass,  ENT( pev ), &tr );
 				traceOk = tr.flFraction != 1.0f;
 			}
 			if( traceOk )
 			{
-				// ..and is also closer to me than the threat, or the same distance from myself and the threat the node is good.
-				bool distanceOk = iMyNode == iThreatNode;
-				if (!distanceOk)
+				bool distanceOk = iThreatNode == NO_NODE || (mustTraceLooker && iThreatNode == iMyNode);
+				if (!distanceOk && (mustTraceLooker || iThreatNode != iMyNode))
 				{
 					float myPathLength = WorldGraph.PathLength( iMyNode, nodeNumber, iMyHullIndex, m_afCapability );
 					float threatPathLength = WorldGraph.PathLength( iThreatNode, nodeNumber, iMyHullIndex, m_afCapability );
@@ -4629,7 +4616,8 @@ void CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
 
 	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
 	if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
-		//ALERT(at_console, "%s sets %s as blocker\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
+		if (DeveloperModeLevel() >= 4)
+			ALERT(at_console, "%s (%s) sets %s as blocker (%s)\n", STRING(pev->classname), m_pSchedule ? m_pSchedule->pName : "", STRING(pBlocker->pev->classname), duringMovement ? "movement" : "path searching");
 		m_lastMoveBlocker = pBlocker;
 	}
 }
