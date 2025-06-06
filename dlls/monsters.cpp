@@ -46,6 +46,28 @@
 
 Vector VecBModelOrigin( entvars_t *pevBModel );
 
+static void ReportRouteType(ALERT_TYPE level, int routeType)
+{
+	if (routeType & bits_MF_TO_TARGETENT)
+		ALERT(level, "To TargetEnt; ");
+	if (routeType & bits_MF_TO_ENEMY)
+		ALERT(level, "To Enemy; ");
+	if (routeType & bits_MF_TO_DETOUR)
+		ALERT(level, "Detour; ");
+	if (routeType & bits_MF_TO_PATHCORNER)
+		ALERT(level, "Path Corner; ");
+	if (routeType & bits_MF_TO_NODE)
+		ALERT(level, "Node; ");
+	if (routeType & bits_MF_TO_LOCATION)
+		ALERT(level, "Location; ");
+	if (routeType & bits_MF_IS_GOAL)
+		ALERT(level, "Goal; ");
+	if (routeType & bits_MF_DONT_SIMPLIFY)
+		ALERT(level, "Don't simplify; ");
+	if (routeType & bits_MF_NEAREST_PATH)
+		ALERT(level, "Nearest; ");
+}
+
 // Global Savedata for monster
 // UNDONE: Save schedule data?  Can this be done?  We may
 // lose our enemy pointer or other data (goal ent, target, etc)
@@ -2422,9 +2444,12 @@ void CBaseMonster::Move( float flInterval )
 					TaskFail("failed to move");
 					if (DeveloperModeLevel() >= 4 && pBlocker && pBlocker->entindex() != 0)
 					{
-						ALERT( at_aiconsole, "%s: failed to move. Blocker is %s. Target is %s. Route waypoint type: %d\n",
-							STRING(pev->classname), STRING(pBlocker->pev->classname), pTargetEnt ? STRING(pTargetEnt->pev->classname) : "null",
-							m_Route[m_iRouteIndex].iType );
+						ALERT(at_aiconsole, "%s: failed to move. Blocker is %s. Target is %s. Route waypoint type: ",
+							STRING(pev->classname),
+							STRING(pBlocker->pev->classname),
+							pTargetEnt ? STRING(pTargetEnt->pev->classname) : "null");
+						ReportRouteType(at_aiconsole, m_Route[m_iRouteIndex].iType);
+						ALERT(at_aiconsole, "Schedule is \"%s\"\n", m_pSchedule ? m_pSchedule->pName : "null");
 					}
 					//ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING( pev->classname ), HasMemory( bits_MEMORY_MOVE_FAILED ) );
 					//ALERT( at_aiconsole, "%f, %f, %f\n", pev->origin.z, ( pev->origin + ( vecDir * flCheckDist ) ).z, m_Route[m_iRouteIndex].vecLocation.z );
@@ -3500,28 +3525,6 @@ const char* CBaseMonster::MonsterStateDisplayString(MONSTERSTATE monsterState)
 	default:
 		return "Unknown";
 	}
-}
-
-static void ReportRouteType(ALERT_TYPE level, int routeType)
-{
-	if (routeType & bits_MF_TO_TARGETENT)
-		ALERT(level, "To TargetEnt; ");
-	if (routeType & bits_MF_TO_ENEMY)
-		ALERT(level, "To Enemy; ");
-	if (routeType & bits_MF_TO_DETOUR)
-		ALERT(level, "Detour; ");
-	if (routeType & bits_MF_TO_PATHCORNER)
-		ALERT(level, "Path Corner; ");
-	if (routeType & bits_MF_TO_NODE)
-		ALERT(level, "Node; ");
-	if (routeType & bits_MF_TO_LOCATION)
-		ALERT(level, "Location; ");
-	if (routeType & bits_MF_IS_GOAL)
-		ALERT(level, "Goal; ");
-	if (routeType & bits_MF_DONT_SIMPLIFY)
-		ALERT(level, "Don't simplify; ");
-	if (routeType & bits_MF_NEAREST_PATH)
-		ALERT(level, "Nearest; ");
 }
 
 void CBaseMonster::ReportAIState( ALERT_TYPE level )
