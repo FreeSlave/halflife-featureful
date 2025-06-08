@@ -48,7 +48,6 @@
 #else // _WIN32
 #include <climits>
 #include <cstdarg>
-typedef unsigned int ULONG;
 typedef unsigned char BYTE;
 #define MAX_PATH PATH_MAX
 #if !defined(PATH_MAX)

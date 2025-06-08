@@ -44,10 +44,10 @@
 #include "common_soundscripts.h"
 #include "tex_materials.h"
 
-extern DLL_GLOBAL ULONG		g_ulModelIndexPlayer;
+extern DLL_GLOBAL unsigned int		g_ulModelIndexPlayer;
 extern DLL_GLOBAL bool		g_fGameOver;
 extern DLL_GLOBAL int		g_iSkillLevel;
-extern DLL_GLOBAL ULONG		g_ulFrameCount;
+extern DLL_GLOBAL unsigned int		g_ulFrameCount;
 
 extern void CopyToBodyQue( entvars_t* pev );
 extern int giPrecacheGrunt;
