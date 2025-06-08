@@ -153,8 +153,6 @@ inline void PlaySound( int iSound, float vol ) { gEngfuncs.pfnPlaySoundByIndex( 
 
 #include "min_and_max.h"
 
-#define fabs(x)	   ((x) > 0 ? (x) : 0 - (x))
-
 int GetSpriteRes( int width, int height );
 
 void ScaleColors( int &r, int &g, int &b, int a );
