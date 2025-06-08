@@ -787,15 +787,6 @@ static void ReportWarpballShake(const WarpballShake& shake)
 	}
 }
 
-static void ReportWarpballAiSound(const WarpballAiSound& aiSound)
-{
-	if (!aiSound.IsDefined()) {
-		LOG("undefined\n");
-	} else {
-		LOG("Type: %d. Radius: %d. Duration: %g\n", aiSound.type, aiSound.radius, aiSound.duration);
-	}
-}
-
 void WarpballTemplateCatalog::DumpWarpballTemplates() const
 {
 	for (auto it = _templates.begin(); it != _templates.end(); ++it)
@@ -830,6 +821,9 @@ void WarpballTemplateCatalog::DumpWarpballTemplates() const
 			LOG("Position: default\n");
 		else
 			LOG("Position: Vertical shift: %g\n", w.position.verticalShift);
+
+		if (w.aiSound.IsDefined())
+			LOG("AI sound: Type: %d. Radius: %d. Duration: %g\n", w.aiSound.type, w.aiSound.radius, w.aiSound.duration);
 
 		LOG("\n");
 	}

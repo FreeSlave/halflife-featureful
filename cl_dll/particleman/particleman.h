@@ -7,6 +7,7 @@
 class IParticleMan
 {
 public:
+	virtual ~IParticleMan() {}
 	virtual void SetUp(cl_enginefunc_t* pEnginefuncs) = 0;
 	virtual void Update() = 0;
 	virtual void SetVariables(float flGravity, Vector vViewAngles) = 0;

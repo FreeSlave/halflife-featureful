@@ -15,6 +15,7 @@
 //
 // cl_util.h
 //
+#pragma once
 #if !defined(CL_UTIL_H)
 #define CL_UTIL_H
 #include "cl_dll.h"

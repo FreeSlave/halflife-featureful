@@ -5895,11 +5895,6 @@ int CBasePlayer::GetCustomDecalFrames( void )
 	return m_nCustomSprayFrames;
 }
 
-static bool ItemDropIsProhibited()
-{
-	return !g_pGameRules->IsMultiplayer() || ( weaponstay.value > 0 );
-}
-
 //=========================================================
 // DropPlayerItem - drop the named item, or if no name,
 // the active item. 

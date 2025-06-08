@@ -509,7 +509,7 @@ bool CHudCaption::ParseCaptionsFile()
 		{
 			currentTokenStart = i;
 			ConsumeNonSpaceCharacters(pfile, i, length);
-			int tokenLength = i-currentTokenStart;
+			unsigned int tokenLength = i-currentTokenStart;
 			if (!tokenLength || tokenLength >= sizeof(captions[0].name))
 			{
 				gEngfuncs.Con_Printf("invalid caption name length! Max is %d\n", sizeof(captions[0].name)-1);
@@ -591,7 +591,7 @@ bool CHudCaption::ParseCaptionsFile()
 	return true;
 }
 
-bool CHudCaption::ParseFloatParameter(char* pfile, int& currentTokenStart, int& tokenLength, Caption_t& caption)
+bool CHudCaption::ParseFloatParameter(char* pfile, int& currentTokenStart, unsigned int& tokenLength, Caption_t& caption)
 {
 	if (tokenLength <= 0)
 		return false;

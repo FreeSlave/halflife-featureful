@@ -46,7 +46,7 @@ const char* SoundScript::Wave() const
 
 const char* SoundScript::Wave(int index) const
 {
-	if (index >= 0 && index < waves.size())
+	if (index >= 0 && static_cast<unsigned int>(index) < waves.size())
 		return waves[index];
 	return nullptr;
 }

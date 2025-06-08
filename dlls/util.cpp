@@ -2207,6 +2207,9 @@ CKeyValue ReadEntvarKeyvalue(entvars_t* pev, const char* keyName)
 			case FIELD_EDICT:
 				keyValue.eVal = ( *(edict_t **)( (char *)pev + pField->fieldOffset ) );
 				keyValue.keyType = KEY_TYPE_EDICT;
+				break;
+			default:
+				break;
 			}
 			return keyValue;
 		}
@@ -2935,8 +2938,8 @@ void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles )
 
 void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles, bool bInitiator)
 {
-	Vector vecDiff = vecAngles - pEntity->pev->angles;
 #if 0
+	Vector vecDiff = vecAngles - pEntity->pev->angles;
 	if (vecDiff.Length() > 0.01 && CVAR_GET_FLOAT("sohl_mwdebug"))
 		ALERT(at_console,"SetAngles %s %s: (%f %f %f) goes to (%f %f %f)\n",STRING(pEntity->pev->classname), STRING(pEntity->pev->targetname), pEntity->pev->angles.x, pEntity->pev->angles.y, pEntity->pev->angles.z, vecAngles.x, vecAngles.y, vecAngles.z);
 #endif

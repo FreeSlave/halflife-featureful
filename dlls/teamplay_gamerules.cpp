@@ -259,7 +259,6 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 
 void CHalfLifeTeamplay::ChangePlayerTeam(CBasePlayer *pPlayer, const char *pTeamName, bool bKill, bool bGib )
 {
-	int damageFlags = DMG_GENERIC;
 	int clientIndex = pPlayer->entindex();
 
 	DamageInfo damageInfo{900.0f, DMG_GENERIC};

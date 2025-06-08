@@ -472,7 +472,7 @@ int CHudAmmo::VidInit( void )
 	m_HUD_selection = gHUD.GetSpriteIndex( "selection" );
 
 	char bucketName[8] = "bucket";
-	for (int i=0; i<ARRAYSIZE(m_HUD_buckets); ++i)
+	for (unsigned int i=0; i<ARRAYSIZE(m_HUD_buckets); ++i)
 	{
 		bucketName[6] = '0' + i + 1;
 		bucketName[7] = '\0';
@@ -1228,7 +1228,7 @@ void DrawAmmoBar( WEAPON *p, int x, int y, int width, int height )
 int CHudAmmo::SpriteIndexForSlot(int iSlot)
 {
 	int result = -1;
-	if (iSlot >=0 && iSlot < ARRAYSIZE(m_HUD_buckets))
+	if (iSlot >=0 && iSlot < static_cast<int>(ARRAYSIZE(m_HUD_buckets)))
 	{
 		result = m_HUD_buckets[iSlot];
 	}

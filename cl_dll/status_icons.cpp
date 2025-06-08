@@ -258,7 +258,7 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 
 	int freeSlot = -1;
 	int i;
-	for (i=0; i<ARRAYSIZE(m_InventoryList); ++i)
+	for (i=0; i<static_cast<int>(ARRAYSIZE(m_InventoryList)); ++i)
 	{
 		if (freeSlot < 0 && m_InventoryList[i].itemName.empty())
 		{
@@ -270,7 +270,7 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 		}
 	}
 
-	if (i == ARRAYSIZE(m_InventoryList))
+	if (i == static_cast<int>(ARRAYSIZE(m_InventoryList)))
 	{
 		if (freeSlot >= 0)
 		{

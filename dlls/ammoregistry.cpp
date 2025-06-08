@@ -96,7 +96,7 @@ int AmmoRegistry::IndexOf(const char *name) const
 {
 	if (!name)
 		return -1;
-	for (int i = 0; i<ARRAYSIZE(ammoTypes); ++i)
+	for (int i = 0; i < static_cast<int>(ARRAYSIZE(ammoTypes)); ++i)
 	{
 		if (!ammoTypes[i].IsValid())
 			continue;

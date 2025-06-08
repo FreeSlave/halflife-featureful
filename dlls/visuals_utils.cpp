@@ -177,11 +177,6 @@ void SendBeamFollow(int entIndex, const Visual* visual)
 	MESSAGE_END();
 }
 
-static bool CheckVisualDefine(const Visual& visual, int param, int ignored)
-{
-	return visual.HasDefined(param) && (ignored & param) == 0;
-}
-
 float AnimateWithFramerate(float frame, float maxFrame, float framerate, float* pLastTime)
 {
 	if (maxFrame == 0 || framerate == 0.0f)

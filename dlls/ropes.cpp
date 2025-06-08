@@ -210,6 +210,8 @@ void CRope::KeyValue( KeyValueData* pkvd )
 
 		m_iSegments = strtol( pkvd->szValue, NULL, 10 );
 
+		if (m_iSegments < 1)
+			m_iSegments = 1;
 		if( m_iSegments >= MAX_SEGMENTS )
 			m_iSegments = MAX_SEGMENTS - 1;
 	}
@@ -749,7 +751,7 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 
 	if( mObjectAttached )
 	{
-		for( unsigned int uiSeg = 1; uiSeg < m_iSegments; ++uiSeg )
+		for( unsigned int uiSeg = 1; uiSeg < (unsigned int)m_iSegments; ++uiSeg )
 		{
 			CRopeSample* pSample = m_Samples[ uiSeg ];
 
@@ -801,7 +803,7 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 	}
 	else
 	{
-		for( unsigned int uiSeg = 1; uiSeg < m_iSegments; ++uiSeg )
+		for( unsigned int uiSeg = 1; uiSeg < (unsigned int)m_iSegments; ++uiSeg )
 		{
 			UTIL_TraceLine(
 				ppHiddenSegs[ uiSeg ]->pev->origin,

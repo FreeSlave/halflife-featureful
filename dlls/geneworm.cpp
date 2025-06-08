@@ -157,7 +157,7 @@ void CGeneWormCloud::TurnOn()
 {
 	pev->effects = 0;
 
-	if (pev->framerate != 0 && m_maxFrame > 1.0f || (pev->spawnflags & 2) != 0)
+	if ((pev->framerate != 0 && m_maxFrame > 1.0f) || (pev->spawnflags & 2) != 0)
 	{
 		SetThink(&CGeneWormCloud::GeneWormCloudThink);
 		pev->nextthink = gpGlobals->time;
@@ -509,7 +509,7 @@ void CGeneWormSpawn::TurnOn()
 {
 	pev->effects = 0;
 
-	if (pev->framerate != 0 && m_maxFrame > 1.0 || (pev->spawnflags & 2) != 0)
+	if ((pev->framerate != 0 && m_maxFrame > 1.0f) || (pev->spawnflags & 2) != 0)
 	{
 		SetThink(&CGeneWormSpawn::GeneWormSpawnThink);
 		pev->nextthink = gpGlobals->time;
@@ -1302,7 +1302,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, con
 			return;
 		}
 
-		if (m_fLeftEyeHit && m_fRightEyeHit || m_fGetMad)
+		if ((m_fLeftEyeHit && m_fRightEyeHit) || m_fGetMad)
 			return;
 	}
 

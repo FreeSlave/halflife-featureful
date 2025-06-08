@@ -35,6 +35,7 @@ private:
 	float m_flPlayerDistance; //Used for sorting the particles, DO NOT TOUCH.
 
 public:
+	virtual ~CBaseParticle() {}
 	void* operator new(size_t size)
 	{
 		return CMiniMem::Instance()->Allocate(size);

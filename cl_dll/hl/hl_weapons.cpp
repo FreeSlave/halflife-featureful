@@ -515,7 +515,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	int i;
 	int buttonsChanged;
 	CBasePlayerWeapon *pCurrent;
-	weapon_data_t nulldata = {0}, *pfrom, *pto;
+	weapon_data_t *pfrom, *pto;
 	static int lasthealth;
 
 	// Get current clock

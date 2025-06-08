@@ -328,7 +328,7 @@ void RegisterAmmoTypes()
 	g_AmmoRegistry.Register("Shocks", SHOCK_MAX_CARRY);
 	g_AmmoRegistry.Register("spores", SPORE_MAX_CARRY);
 
-	for (int i = 0; i<g_modFeatures.maxAmmoCount; ++i)
+	for (unsigned int i = 0; i<g_modFeatures.maxAmmoCount; ++i)
 	{
 		g_AmmoRegistry.SetMaxAmmo(g_modFeatures.maxAmmos[i].name, g_modFeatures.maxAmmos[i].maxAmmo);
 	}

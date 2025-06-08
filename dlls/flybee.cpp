@@ -916,7 +916,7 @@ void CFlybee::RunTask ( Task_t *pTask )
 
 			m_SaveVelocity = (tr.vecEndPos - pev->origin).Normalize() * m_flightSpeed;
 
-			m_flightSpeed = Q_min ( m_flMaxSpeed, m_flightSpeed *= 1.2 );
+			m_flightSpeed = Q_min ( m_flMaxSpeed, m_flightSpeed * 1.2 );
 
 
 			break;

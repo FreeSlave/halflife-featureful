@@ -7058,7 +7058,7 @@ void CTriggerConfigureMonster::Affect(CBaseEntity *pEntity)
 	if (!pMonster)
 		return;
 
-	ConfiguredFlag flagParams[] = {
+	const ConfiguredFlag flagParams[] = {
 		ConfiguredFlag(m_gagFlag, SF_MONSTER_GAG),
 		ConfiguredFlag(m_prisonerFlag, SF_MONSTER_PRISONER),
 		ConfiguredFlag(m_predisasterFlag, SF_MONSTER_PREDISASTER),
@@ -7067,12 +7067,12 @@ void CTriggerConfigureMonster::Affect(CBaseEntity *pEntity)
 		ConfiguredFlag(m_ignorePushFlag, SF_MONSTER_IGNORE_PUSH),
 	};
 
-	for (int i=0; i<ARRAYSIZE(flagParams); ++i)
+	for (const auto& flagParam : flagParams)
 	{
-		if (flagParams[i].value < 0)
-			ClearBits(pMonster->pev->spawnflags, flagParams[i].flagBit);
-		else if (flagParams[i].value > 0)
-			SetBits(pMonster->pev->spawnflags, flagParams[i].flagBit);
+		if (flagParam.value < 0)
+			ClearBits(pMonster->pev->spawnflags, flagParam.flagBit);
+		else if (flagParam.value > 0)
+			SetBits(pMonster->pev->spawnflags, flagParam.flagBit);
 	}
 
 	if (m_monsterClipFlag < 0)
@@ -7699,14 +7699,17 @@ void CTriggerSkillTest::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		FireTargets(STRING(pev->message), pActivator, this);
 	}
 
-	int skills[] = { SKILL_EASY, SKILL_MEDIUM, SKILL_HARD };
-	string_t skillTriggers[] = { m_triggerOnEasy, m_triggerOnMedium, m_triggerOnHard };
+	const std::pair<int, string_t> skillTriggers[] = {
+		{SKILL_EASY, m_triggerOnEasy},
+		{SKILL_MEDIUM, m_triggerOnMedium},
+		{SKILL_HARD, m_triggerOnHard},
+	};
 
-	for (int i=0; i<ARRAYSIZE(skills); ++i)
+	for (const auto& skillTrigger : skillTriggers)
 	{
-		if (skillTriggers[i] && skills[i] == skillLevel)
+		if (skillTrigger.second && skillTrigger.first == skillLevel)
 		{
-			FireTargets(STRING(skillTriggers[i]), pActivator, this);
+			FireTargets(STRING(skillTrigger.second), pActivator, this);
 			break;
 		}
 	}

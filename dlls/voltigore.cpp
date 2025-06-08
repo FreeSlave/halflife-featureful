@@ -1066,7 +1066,7 @@ void CVoltigore::UpdateBeamAndBoltPositions()
 		const Vector pos = BoltPosition();
 		UTIL_SetOrigin(m_pChargedBolt->pev, pos);
 
-		for (int i=0; i<ARRAYSIZE(m_pBeam); ++i)
+		for (size_t i=0; i<ARRAYSIZE(m_pBeam); ++i)
 		{
 			CBeam* pBeam = m_pBeam[i].Entity<CBeam>();
 			if (!pBeam)

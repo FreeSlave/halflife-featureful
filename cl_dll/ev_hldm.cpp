@@ -1823,7 +1823,6 @@ void EV_FireEagle( event_args_t *args )
 	int shell;
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
-	float flSpread = 0.01;
 
 	idx = args->entindex;
 	VectorCopy( args->origin, origin );
@@ -1995,7 +1994,6 @@ void EV_FireM249( event_args_t *args )
 	int shell;
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
-	float flSpread = 0.01;
 
 	idx = args->entindex;
 	VectorCopy( args->origin, origin );

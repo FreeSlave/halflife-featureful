@@ -187,7 +187,7 @@ public:
 	{
 		color[0] = color[1] = color[2] = 255;
 
-		if( entindex >= 0 && entindex < ARRAYSIZE(g_PlayerExtraInfo) )
+		if( entindex >= 0 && entindex < static_cast<int>(ARRAYSIZE(g_PlayerExtraInfo)) )
 		{
 			int iTeam = g_PlayerExtraInfo[entindex].teamnumber;
 
@@ -1139,7 +1139,7 @@ int CHud::GetSpriteIndex( const char *SpriteName )
 void CHud::LoadWallPuffSprites()
 {
 	int i = 0;
-	for (i=0; i<ARRAYSIZE(wallPuffs); ++i)
+	for (i=0; i<static_cast<int>(ARRAYSIZE(wallPuffs)); ++i)
 	{
 		if (*clientFeatures.wall_puffs[i])
 		{
@@ -1649,7 +1649,7 @@ void CHud::HUDColorCmd()
 			else if (strncmp(param, "0x", 2) == 0 || *param == '#')
 			{
 				const bool sharp = *param == '#';
-				const int expectedLength = sharp ? 7 : 8;
+				const unsigned int expectedLength = sharp ? 7 : 8;
 				const int shift = sharp ? 1 : 2;
 				if (strlen(param) != expectedLength)
 				{

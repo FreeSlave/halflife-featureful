@@ -322,7 +322,7 @@ public:
 	const Caption_t* CaptionLookup(const char* name);
 
 protected:
-	bool ParseFloatParameter(char* pfile, int& currentTokenStart, int& tokenLength, Caption_t &caption);
+	bool ParseFloatParameter(char* pfile, int& currentTokenStart, unsigned int& tokenLength, Caption_t &caption);
 
 	CaptionProfile_t *CaptionProfileLookup(char firstLetter, char secondLetter);
 
@@ -1107,7 +1107,7 @@ public:
 	int Redraw( float flTime, int intermission );
 	int UpdateClientData( client_data_t *cdata, float time );
 
-	CHud() : m_iSpriteCount(0), m_pHudList(NULL) {}  
+	CHud() : m_pHudList(NULL), m_iSpriteCount(0) {}
 	~CHud();			// destructor, frees allocated memory
 
 	static HudSpriteRenderer& Renderer();
