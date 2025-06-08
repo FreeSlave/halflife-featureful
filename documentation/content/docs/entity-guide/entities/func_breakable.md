@@ -12,11 +12,11 @@ entityCategory: solid
 
 * ![](/images/svencoop.png) Most of spawnobject values are compatible with those in Sven Co-op.
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
-* `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
+* ![](/images/svencoop.png) `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
 
 ### New spawnflags
 
-* `Show HUD Info` - whether to show HUD info for players looking at this breakable. This is not affected by `mp_allowmonsterinfo` and `sp_allowmonsterinfo` cvars.
+* ![](/images/svencoop.png) `Show HUD Info` - whether to show HUD info for players looking at this breakable. This is not affected by `mp_allowmonsterinfo` and `sp_allowmonsterinfo` cvars.
 * ![](/images/svencoop.png) `Explosive Only` - make the breakable immune to any non-explosive damage.
 * `Op4Mortar only` - make the breakable resistant to anything besides `op4mortar` shells.
 * `Not solid` - make breakable non-solid (can be destroyed only with trigger).

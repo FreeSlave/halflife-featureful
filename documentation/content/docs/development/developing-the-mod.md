@@ -28,7 +28,6 @@ Featureful SDK introduces some new console commands designed to aid the develope
 * `fire` - trigger entity(-ies) by name (the first argument) or the entity in front of the player (if the argument is not provided). The special name `!cross` means the entity in front of the player. The second (optional) argument is either `on`, `off` or `set` allows to change the input trigger type. If the second argument is `set`, the third argument is expected which is a number to set (can be used to set the value for `game_counter`, etc.). Note: the player is passed as an *activator*.
 * [global variables related commands]({{< ref "global-variables/#console-commands" >}})
 * [Player inventory related commands]({{< ref "player-inventory/#developer-commands" >}})
-* `report_ai_state` - report AI state of all monsters with the provided classname.
 * `entities_count` - print the current number of entities on the map at console. Use it to see how close the map is to the entity limit.
 * `calc_ratio` - report a Calc Ratio of specified entity. See [Math]({{< ref math >}}) and [Locus system]({{< ref locus-system >}}).
 * `calc_state` - report state of specified entity (On or Off). See [Master entities]({{< ref master-entities >}}).
@@ -39,3 +38,4 @@ Featureful SDK introduces some new console commands designed to aid the develope
 * `dump_soundscripts` - report soundscripts. See [soundscript debugging]({{< ref "soundscripts/#debugging" >}}).
 * `dump_visuals` - report visuals. See [visuals debugging]({{< ref "visuals/#debugging" >}}).
 * `test_particles` - produce some particles. This is for ParticleMan testing.
+* Various commands for [monsters testing and debugging]({{< ref "monsters/#debugging" >}}).

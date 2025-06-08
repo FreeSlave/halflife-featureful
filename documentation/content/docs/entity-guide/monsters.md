@@ -13,6 +13,7 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * After battle, in alert state, monsters try to freeroam and investigate danger sounds if `npc_active_after_combat` is set.
 * Monsters forget their enemies if they didn't see an enemy for some period of time and `npc_forget_enemy_time` is set.
 * When look for cover from danger, monsters will try to just run away if could not find a cover.
+* When monster's path to the scripted sequence is blocked by an ally monster, the first monster will ask the second one to move away.
 
 ## Path finding changes
 
@@ -26,15 +27,16 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * ![](/images/svencoop.png) New parameter `Is Player Ally` inverts monster relationship with player.
 * ![](/images/svencoop.png) New parameter `In-game name` to set a custom display name.
 * ![](/images/svencoop.png) New parameter `Monster Roaming` to make monsters free roam on nodes.
-* ![](/images/spirit.png) New flag `Don't Drop Gun` to disable weapon and item dropping upon death (applicable to monsters who drop a gun).
-* New flag `Non-solid corpse` that makes monster's model non-solid upon dying (useful if you want to prevent blocking doors or pushables by dead bodies).
+* ![](/images/spirit.png) New spawnflag `Don't Drop Gun` to disable weapon and item dropping upon death (applicable to monsters who drop a gun).
+* New spawnflag `Non-solid corpse` that makes monster's model non-solid upon dying (useful if you want to prevent blocking doors or pushables by dead bodies).
+* New spawnflag `Ignore move away requests` to make monster ignore others monsters' requests to move away and player's attempts to push the monster.
 * New parameter `Trigger Alternative Condition`. Additional condition to fire a Trigger Target.
 * Repel spawners (human grunts and male assassins when they come down with a rope) have options to configure the spawned monster similar to monstermaker.
 * New parameter `Custom Sound Mask` to configure what sounds monster regards.
 * Monsters can correctly patrol on path_corners now (the feature was unfinished in Half-Life) and use wait times specified in path_corners.
 * `impulse 103` (Report AI state) is much more informative now.
 * New parameter `Custom Field Of View` to configure the monster's field of view.
-* New flag `Act ouf of PVS` to make monsters look for enemies and listen to the world independently of the player's presence.
+* New spawnflag `Act ouf of PVS` to make monsters look for enemies and listen to the world independently of the player's presence.
 
 ## Squad monsters features
 
@@ -47,8 +49,8 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * ![](/images/svencoop.png) Many monsters who are by default player's enemies can be used to follow a player when set to be a player ally (similar to scientists and security guards in Half-Life).
 * ![](/images/spirit.png) Ally monsters can be 'locked' by master, so they decline following even if they are not pre-disaster.
 * ![](/images/opfor.png) Opposing Force soldiers following the player will attack player's attacker.
-* New flag `Ignore player pushing` to make monster ignore player's attempts to push them.
-* When monster is "pushed" by a player, but can't move away because of the other ally monster blocking the path, this second monster also tries to move away. This may help to get out when two or more ally monsters are blocking the player.
+* When a monster is following a player, but is unable to follow them due to another ally monster blocking the path, the first monster will ask the second one to move away.
+* When a monster is "pushed" by a player, but is unable to move away due to another ally monster blocking the path, this second monster will also try to move away. This may help player to get out when two or more ally monsters are blocking the player.
 
 ## Talkmonster features
 
@@ -63,3 +65,12 @@ Talkmonsters are monsters who talk to each other and a player and can follow the
 * New flag `Don't idle talk to player` to disallow idle speaking to the player.
 * If monster does not have a question sentence group or it's missing from sentences.txt, the monster will not try to start a conversation with other friend. In Half-Life talkmonsters could start conversations even in the absence of question sentences that led to weird situations when other monster answered to unspoken questions.
 * ![](/images/opfor.png)  If player is attacked by the enemy monster, the ally soldiers (Opposing Force human grunts) following the player will instantly know about the attacker even if they didn't see the enemy yet.
+
+## Debugging
+
+Commands used for testing and debugging the monster behavior:
+
+* `impulse 103` - report AI state of the monster in front of the player.
+* `make_start_following` - make the monster (or monsters) start following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
+* `make_stop_following` - make the monster (or monsters) stop following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
+* `report_ai_state` - report AI state of all monsters with the provided classname. It's like `impulse 103`, but player doesn't have to look at the monster.
