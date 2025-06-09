@@ -2377,13 +2377,11 @@ void CBaseMonster::Move( float flInterval )
 	flDist = 0;
 	if( CheckLocalMove( pev->origin, pev->origin + vecDir * flCheckDist, pTargetEnt, &flDist ) != LOCALMOVE_VALID )
 	{
-		CBaseEntity *pBlocker;
-
 		// Can't move, stop
 		Stop();
 
 		// Blocking entity is in global trace_ent
-		pBlocker = CBaseEntity::Instance( gpGlobals->trace_ent );
+		CBaseEntity *pBlocker = CBaseEntity::Instance( gpGlobals->trace_ent );
 		if( pBlocker )
 		{
 			DispatchBlocked( edict(), pBlocker->edict() );
@@ -2428,6 +2426,12 @@ void CBaseMonster::Move( float flInterval )
 							Remember( bits_MEMORY_MOVE_FAILED );
 
 						m_flMoveWaitFinished = gpGlobals->time + 0.1f;
+
+						if (m_pCine || m_hTargetEnt != 0)
+						{
+							if (HandleBlocker(pBlocker, true))
+								MakeMyBlockerMoveAway();
+						}
 					}
 				}
 				else
@@ -2858,6 +2862,13 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 	const int iMyHullIndex = WorldGraph.HullIndex( this );
 
 	const Vector vecLookersSpot = vecThreat + vecViewOffset;// calculate location of enemy's eyes
+	const bool mustTraceLooker = FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER);
+
+	if (!mustTraceLooker && iThreatNode != NO_NODE && iThreatNode == iMyNode)
+	{
+		ALERT( at_aiconsole, "%s - %s: my nearest node and threat nearest node are the same!\n", displayName, STRING( pev->classname ) );
+		return false;
+	}
 
 	// we'll do a rough sample to find nodes that are relatively nearby
 	for( int i = 0; i < WorldGraph.m_cNodes; i++ )
@@ -2872,7 +2883,6 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 		// provide cover! Also make sure the node is within the mins/maxs of the search.
 		if( flDistSqr >= flMinDist*flMinDist && flDistSqr < flMaxDist*flMaxDist )
 		{
-			const bool mustTraceLooker = FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER);
 			bool traceOk = true;
 			if (mustTraceLooker)
 			{
@@ -2882,8 +2892,10 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 			}
 			if( traceOk )
 			{
-				bool distanceOk = iThreatNode == NO_NODE || (mustTraceLooker && iThreatNode == iMyNode);
-				if (!distanceOk && (mustTraceLooker || iThreatNode != iMyNode))
+				bool distanceOk = iThreatNode == NO_NODE;
+				if (!distanceOk && mustTraceLooker)
+					distanceOk = iThreatNode == iMyNode;
+				if (!distanceOk)
 				{
 					float myPathLength = WorldGraph.PathLength( iMyNode, nodeNumber, iMyHullIndex, m_afCapability );
 					float threatPathLength = WorldGraph.PathLength( iThreatNode, nodeNumber, iMyHullIndex, m_afCapability );
@@ -4630,17 +4642,19 @@ int CBaseMonster::SizeForGrapple()
 	return DefaultSizeForGrapple();
 }
 
-void CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
+bool CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
 {
 	if (!pBlocker)
-		return;
+		return false;
 
 	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
 	if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
 		if (DeveloperModeLevel() >= 4)
 			ALERT(at_console, "%s (%s) sets %s as blocker (%s)\n", STRING(pev->classname), m_pSchedule ? m_pSchedule->pName : "", STRING(pBlocker->pev->classname), duringMovement ? "movement" : "path searching");
 		m_lastMoveBlocker = pBlocker;
+		return true;
 	}
+	return false;
 }
 
 bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
@@ -4665,8 +4679,11 @@ bool CBaseMonster::MakeMyBlockerMoveAway()
 		bool success = false;
 		CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
 		if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
-			int flags = (m_pCine || m_hTargetEnt != 0) ? SUGGEST_SCHEDULE_FLAG_RUN : 0;
-			success = blockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 256.0f, flags);
+			const int flags = SUGGEST_SCHEDULE_FLAG_RUN;
+			CBaseEntity* pGoalEntity = this;
+			if (m_hMoveGoalEnt != 0)
+				pGoalEntity = m_hMoveGoalEnt;
+			success = blockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pGoalEntity, 0.0f, 256.0f, flags);
 		}
 		m_lastMoveBlocker = 0;
 		return success;

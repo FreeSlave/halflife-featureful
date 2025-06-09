@@ -455,7 +455,7 @@ public:
 	// Allows to set a head via monstermaker before spawn
 	virtual void SetHead(int head) {}
 
-	virtual void HandleBlocker(CBaseEntity* pBlocker, bool duringMovement);
+	virtual bool HandleBlocker(CBaseEntity* pBlocker, bool duringMovement);
 	virtual bool CanBeMadeMoveAway(CBaseEntity* pPusher);
 	bool MakeMyBlockerMoveAway();
 

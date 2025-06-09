@@ -1803,29 +1803,61 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			if (CalcSuggestedSpot(&vecSpot))
 			{
 				const int moveFlag = FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_RUN) ? FINDSPOTAWAY_RUN : FINDSPOTAWAY_WALK;
-				if ( FindStraightSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ) )
+
+				fixed_vector<CBaseEntity*, 3> pBlockers;
+
+				auto addBlocker = [this, &pBlockers](const char* context) {
+					CBaseEntity* pBlocker = CBaseEntity::Instance(gpGlobals->trace_ent);
+					if (pBlocker->entindex() != 0)
+					{
+						pBlockers.push_back(pBlocker);
+						//ALERT(at_aiconsole, "%s:  %s blocker is %s\n", STRING(pev->classname), context, STRING(pBlocker->pev->classname));
+					}
+				};
+
+				if (FindSpotAway( vecSpot, SuggestedMinDist(64), SuggestedMaxDist(784), moveFlag ))
 				{
 					m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 					TaskComplete();
 				}
 				else
 				{
-					HandleBlocker(CBaseEntity::Instance( gpGlobals->trace_ent ), false);
+					addBlocker("FindSpotAway");
+				}
 
-					if( FindLateralSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ) )
-					{
-						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
-						TaskComplete();
-					}
-					else if ( FindSpotAway( vecSpot, SuggestedMinDist(64), SuggestedMaxDist(784), moveFlag ) )
+				if (!TaskIsComplete())
+				{
+					if (FindStraightSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ))
 					{
 						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 						TaskComplete();
 					}
 					else
 					{
-						TaskFail("no spot found");
+						addBlocker("FindStraightSpotAway");
 					}
+				}
+
+				if (!TaskIsComplete())
+				{
+					if (FindLateralSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ))
+					{
+						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+						TaskComplete();
+					}
+					else
+					{
+						addBlocker("FindLateralSpotAway");
+					}
+				}
+
+				if (!TaskIsComplete()) {
+					for (auto pBlocker : pBlockers)
+					{
+						if (HandleBlocker(pBlocker, false))
+							break;
+					}
+					TaskFail("no spot found");
 				}
 			}
 			else
