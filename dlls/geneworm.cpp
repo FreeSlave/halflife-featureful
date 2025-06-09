@@ -1183,7 +1183,7 @@ void CGeneWorm::TrackHead()
 
 bool CGeneWorm::ClawAttack()
 {
-	CBaseEntity* pEnemy = m_hEnemy.Entity<CBaseEntity>();
+	CBaseEntity* pEnemy = m_hEnemy;
 
 	if (pEnemy)
 	{
