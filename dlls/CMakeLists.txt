@@ -98,6 +98,7 @@ set (SVDLL_SOURCES
 	glock.cpp
 	gman.cpp
 	gonome.cpp
+	graphic_debug.cpp
 	grapple.cpp
 	h_ai.cpp
 	h_battery.cpp

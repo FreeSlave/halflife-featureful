@@ -41,6 +41,7 @@
 #include "classify.h"
 #include "studio.h"
 #include "clamp.h"
+#include "graphic_debug.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
@@ -838,27 +839,6 @@ bool CBaseMonster::MoveToNode( Activity movementAct, float waitTime, const Vecto
 	return FRefreshRoute();
 }
 
-static void DrawRoutePart(const Vector& vecStart, const Vector& vecEnd, int r, int g, int b, int life, int width = 16)
-{
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMPOINTS);
-		WRITE_VECTOR( vecStart );
-		WRITE_VECTOR( vecEnd );
-
-		WRITE_SHORT( g_sModelIndexLaser );
-		WRITE_BYTE( 0 ); // frame start
-		WRITE_BYTE( 10 ); // framerate
-		WRITE_BYTE( life ); // life
-		WRITE_BYTE( width );  // width
-		WRITE_BYTE( 0 );   // noise
-		WRITE_BYTE( r );   // r, g, b
-		WRITE_BYTE( g );   // r, g, b
-		WRITE_BYTE( b );   // r, g, b
-		WRITE_BYTE( 255 );	// brightness
-		WRITE_BYTE( 10 );		// speed
-	MESSAGE_END();
-}
-
 void DrawRoute( entvars_t *pev, WayPoint_t *m_Route, int m_iRouteIndex, int r, int g, int b, int life = 1 )
 {
 	int i;
@@ -870,14 +850,14 @@ void DrawRoute( entvars_t *pev, WayPoint_t *m_Route, int m_iRouteIndex, int r, i
 	}
 
 	//UTIL_ParticleEffect ( m_Route[m_iRouteIndex].vecLocation, g_vecZero, 255, 25 );
-	DrawRoutePart( pev->origin, m_Route[m_iRouteIndex].vecLocation, r, g, b, life, 16 );
+	DrawBeamLine( pev->origin, m_Route[m_iRouteIndex].vecLocation, r, g, b, life, 16 );
 
 	for( i = m_iRouteIndex; i < ROUTE_SIZE - 1; i++ )
 	{
 		if( ( m_Route[i].iType & bits_MF_IS_GOAL ) || ( m_Route[i + 1].iType == 0 ) )
 			break;
 
-		DrawRoutePart( m_Route[m_iRouteIndex].vecLocation, m_Route[i + 1].vecLocation, r, g, b, life, 8 );
+		DrawBeamLine( m_Route[m_iRouteIndex].vecLocation, m_Route[i + 1].vecLocation, r, g, b, life, 8 );
 		//UTIL_ParticleEffect( m_Route[i].vecLocation, g_vecZero, 255, 25 );
 	}
 }
@@ -3704,7 +3684,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 			ALERT(level, "Nearest node: %d. ", iMyNode);
 
 			CNode &node = WorldGraph.Node( iMyNode );
-			DrawRoutePart(node.m_vecOrigin, node.m_vecOrigin + Vector(0,0,72), 0, 0, 200, 25, 16);
+			DrawBeamLine(node.m_vecOrigin, node.m_vecOrigin + Vector(0,0,72), 0, 0, 200, 25, 16);
 		}
 		else
 		{
