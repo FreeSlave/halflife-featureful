@@ -33,13 +33,34 @@ class Vector2D
 public:
 	constexpr Vector2D(void): x( 0.0f ), y( 0.0f ) {}
 	constexpr Vector2D(float X, float Y): x( X ), y( Y ) {}
+	NODISCARD constexpr Vector2D operator-() const			{ return Vector2D( -x, -y); }
+	NODISCARD constexpr bool operator==( const Vector2D& v ) const		{ return x==v.x && y==v.y; }
+	NODISCARD constexpr bool operator!=( const Vector2D& v ) const		{ return !( *this==v ); }
 	NODISCARD constexpr Vector2D operator+(const Vector2D& v)	const	{ return Vector2D( x + v.x, y + v.y );	}
 	NODISCARD constexpr Vector2D operator-(const Vector2D& v)	const	{ return Vector2D( x - v.x, y - v.y );	}
 	NODISCARD constexpr Vector2D operator*(float fl)		const	{ return Vector2D( x * fl, y * fl );	}
 	NODISCARD constexpr Vector2D operator/(float fl)		const	{ return Vector2D( x / fl, y / fl );	}
 
+	inline Vector2D& operator+=(const Vector2D& v) { x += v.x; y += v.y; return *this; }
+	inline Vector2D& operator-=(const Vector2D& v) { x -= v.x; y -= v.y; return *this; }
+	inline Vector2D& operator*=(float fl) { x *= fl; y *= fl;; return *this; }
+	inline Vector2D& operator/=(float fl) { x /= fl; y /= fl;; return *this; }
+
 	NODISCARD inline float Length() const	{ return sqrt(x * x + y * y ); }
 	NODISCARD inline constexpr float LengthSqr() const	{ return x * x + y * y; }
+
+	NODISCARD inline constexpr bool IsLengthGreaterThan(float val) const {
+		return LengthSqr() > val*val;
+	}
+	NODISCARD inline constexpr bool IsLengthGreaterThanOrEqual(float val) const {
+		return LengthSqr() >= val*val;
+	}
+	NODISCARD inline constexpr bool IsLengthLessThan(float val) const {
+		return LengthSqr() < val*val;
+	}
+	NODISCARD inline constexpr bool IsLengthLessThanOrEqual(float val) const {
+		return LengthSqr() <= val*val;
+	}
 
 	NODISCARD inline Vector2D Normalize() const
 	{
