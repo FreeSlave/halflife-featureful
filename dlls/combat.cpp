@@ -1223,7 +1223,7 @@ void CBaseMonster::PainReaction(const DamageInfo &damageInfo)
 	if (damageInfo.damage > painSoundRule.lowerBound)
 	{
 		bool allowPainSound = painSoundRule.allowWhenDying ? IsAlive() : pev->deadflag == DEAD_NO;
-		if (allowPainSound && (painSoundRule.delay == 0.0f || m_flNextPainTime <= gpGlobals->time) && (painSoundRule.chance == 1.0f || RANDOM_FLOAT(0, 1.0f) >= painSoundRule.chance))
+		if (allowPainSound && (painSoundRule.delay == 0.0f || m_flNextPainTime <= gpGlobals->time) && (painSoundRule.chance == 1.0f || (painSoundRule.chance > 0.0f && RANDOM_FLOAT(0.0f, 1.0f) <= painSoundRule.chance)))
 		{
 			PainSound();// "Ouch!"
 			m_flNextPainTime = gpGlobals->time + RandomizeNumberFromRange(painSoundRule.delay);
