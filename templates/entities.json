@@ -1,0 +1,163 @@
+{
+    "monster_alien_slave": {
+        "precached_sounds": ["aslave/slv_word5.wav", "aslave/slv_word7.wav"],
+        "squad_capability": true
+    },
+    "vort_intense": {
+        "visuals": {
+            "Vortigaunt.ZapBeamColor": {
+                "color": [120, 225, 140]
+            },
+            "Vortigaunt.ArmBeamColor": {
+                "color": [72, 225, 90]
+            },
+            "Vortigaunt.BeamLightColor": {
+                "color": [150, 225, 120]
+            }
+        },
+        "precached_sounds": ["aslave/slv_word5.wav", "aslave/slv_word7.wav"],
+        "squad_capability": true,
+        "skill": {
+            "islave_revival": "islave_intense_revival",
+            "islave_initial_energy": "islave_intense_initial_energy",
+            "islave_max_energy": "islave_intense_max_energy",
+            "islave_health": "islave_intense_health",
+            "islave_dmg_zap": "islave_intense_dmg_zap",
+            "islave_zap_rate": "islave_intense_zap_rate",
+            "islave_coil_attack": "islave_intense_coil_attack",
+            "islave_idle_effects": 1,
+            "islave_fear": 0
+        },
+        "own_visual": {
+            "scale": 1.05
+        }
+    },
+    "monster_barnacle": {
+        "size_for_grapple": "no"
+    },
+    "monster_gonome": {
+        "precached_sounds": ["gonome/gonome_step1.wav", "gonome/gonome_step2.wav", "gonome/gonome_step3.wav", "gonome/gonome_step4.wav"]
+    },
+    "monster_gargantua": {
+        "size": {
+            "mins": [-40, -40, 0],
+            "maxs": [40, 40, 128]
+        }
+    },
+    "monster_alien_voltigore": {
+        "size": {
+            "mins": [-40, -40, 0],
+            "maxs": [40, 40, 85]
+        }
+    },
+    "monster_cleansuit_scientist": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "attack_affinity": "friendly",
+                    "inflictor": {
+                        "classname": "displacer_ball"
+                    }
+                },
+                "modifier": {
+                    "dmg": "*0.2"
+                }
+            }
+        ]
+    },
+    "monster_human_grunt_ally": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "attack_affinity": ["friendly", "self"],
+                    "attacker": {
+                        "classname": "player",
+                        "negate": true
+                    }
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            }
+        ],
+        "displayname": "HECU Grunt"
+    },
+    "monster_human_torch_ally": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "attack_affinity": ["friendly", "self"],
+                    "attacker": {
+                        "classname": "player",
+                        "negate": true
+                    }
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            }
+        ],
+        "displayname": "HECU Engineer"
+    },
+    "monster_human_medic_ally": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "attack_affinity": ["friendly", "self"],
+                    "attacker": {
+                        "classname": "player",
+                        "negate": true
+                    }
+                },
+                "modifier": {
+                    "dmg": "*0.5"
+                }
+            }
+        ],
+        "displayname": "HECU Medic"
+    },
+    "invulnerable_tripmine": {
+        "take_damage": [
+            {
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ]
+    },
+    "blkop_apc": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "dmg_type": ["energybeam", "blast"]
+                },
+                "modifier": {
+                    "dmg": "*2"
+                }
+            },
+            {
+                "conditions": {
+                    "dmg_type": "poison"
+                },
+                "modifier": {
+                    "dmg": "*0.1"
+                }
+            }
+        ]
+    },
+    "breakable_only_by_mortar": {
+        "take_damage": [
+            {
+                "conditions": {
+                    "inflictor": {
+                        "classname": "mortar_shell",
+                        "negate": true
+                    }
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            }
+        ]
+    }
+}

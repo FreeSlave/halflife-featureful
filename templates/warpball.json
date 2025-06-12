@@ -1,0 +1,304 @@
+{
+  "entity_mappings": {
+    "auto": {
+      // the mapping between monster name and template name
+      "monster_alien_slave": "xen",
+      "monster_alien_grunt": "xen_big",
+      "monster_alien_controller": "xen_flying",
+      "monster_babygarg": "xen_big",
+      "monster_bigmomma": "xen_huge",
+      "monster_bullchicken": "xen_squid",
+      "monster_headcrab": "xen_small",
+      "monster_houndeye": "xen_small",
+      "monster_gargantua": "xen_huge",
+      "monster_ichthyosaur": "xen_flying",
+      "monster_alien_babyvoltigore": "racex",
+      "monster_alien_voltigore": "racex_big",
+      "monster_pitdrone": "racex",
+      "monster_shocktrooper": "racex_big",
+      "monster_floater": "xen_flying",
+      "monster_kingpin": "kingpin",
+      "default": "xen"
+    },
+    "auto_noisy": {
+      "monster_headcrab": "xen_small_noisy",
+      "monster_houndeye": "xen_small_noisy",
+      "default": "xen_noisy"
+    },
+    "auto_shake": {
+      "monster_headcrab": "xen_small_shake",
+      "monster_houndeye": "xen_small_shake",
+      "default": "xen_shake"
+    }
+  },
+  "templates": {
+    "xen": {
+      "sprite1": {
+        "sprite": "sprites/fexplo1.spr",
+        "alpha": 255,
+        "color": [184, 250, 214],
+        "framerate": 12,
+        "scale": 1.0
+      },
+      "sprite2": {
+        "sprite": "sprites/xflare1.spr",
+        "alpha": 255,
+        "color": [184, 250, 214],
+        "framerate": 12,
+        "scale": 1.0
+      },
+      "sound1": {
+        "sound": "debris/alien_teleport.wav",
+        "volume": 1,
+        "pitch": 100,
+        "attenuation": 0.8
+      },
+      "sound2": null,
+      "beam": {
+        "sprite": "sprites/lgtning.spr",
+        "color": [20, 243, 20],
+        "alpha": 220,
+        "width": 30,
+        "noise": 65,
+        "life": [0.5, 1.6]
+      },
+      "beam_radius": 256,
+      "beam_count": [10, 20],
+      "light": {
+        "color": [77, 210, 130],
+        "radius": 200
+      },
+      "shake": null,
+      "spawn_delay": 0.4
+    },
+    "xen_alt": {
+      "inherits": "xen",
+      "beam": {
+        "color": [217, 226, 146],
+        "alpha": 128,
+        "width": 25,
+        "noise": 50
+      },
+      "light": {
+        "radius": 160,
+        "color": [39, 209, 137]
+      },
+      "sprite1": {
+        "color": [65, 209, 61]
+      },
+      "sprite2": {
+        "color": [159, 240, 214]
+      },
+      "beam_count": 8
+    },
+    "xen_lower_volume": {
+      "inherits": "xen",
+      "sound1": {
+        "volume": 0.75
+      }
+    },
+    "xen_noisy": {
+      "inherits": "xen",
+      "ai_sound": {
+        "type": "combat",
+        "duration": 0.3,
+        "radius": 192
+      }
+    },
+    "xen_shake": {
+      "inherits": "xen",
+      "shake": {
+        "radius": 300,
+        "duration": 1.0,
+        "frequency": 5,
+        "amplitude": 4
+      }
+    },
+    "xen_small": {
+      "inherits": "xen",
+      "sprite1": {
+        "scale": 0.8
+      },
+      "sprite2": {
+        "scale": 0.8
+      },
+      "sound1": {
+        "attenuation": 1.0,
+        "volume": 0.9,
+        "pitch": 105
+      },
+      "light": {
+        "radius": 160
+      },
+      "shake": null,
+      "beam_count": [10, 15],
+      "spawn_delay": 0.3
+    },
+    "xen_small_noisy": {
+      "inherits": "xen_small",
+      "ai_sound": {
+        "type": "combat",
+        "duration": 0.3,
+        "radius": 192
+      }
+    },
+    "xen_small_shake": {
+      "inherits": "xen_small",
+      "shake": {
+        "radius": 300,
+        "duration": 1.0,
+        "frequency": 5,
+        "amplitude": 4
+      }
+    },
+    "xen_flying": {
+      "inherits": "xen",
+      "beam_radius": 256,
+      "sound1": {
+        "attenuation": 0.6
+      }
+    },
+    "xen_squid": {
+      "inherits": "xen",
+      "sprite1": {
+        "scale": 1.1
+      },
+      "sprite2": {
+        "scale": 1.1
+      },
+      "beam_radius": 256,
+      "shake": {
+        "radius": 256,
+        "duration": 1.0,
+        "frequency": 160,
+        "amplitude": 6
+      },
+      "sound1": {
+        "attenuation": 0.6
+      }
+    },
+    "xen_big": {
+      "inherits": "xen",
+      "sprite1": {
+        "scale": 1.2
+      },
+      "sprite2": {
+        "scale": 1.2
+      },
+      "beam_radius": 256,
+      "shake": {
+        "radius": 256,
+        "duration": 1.0,
+        "frequency": 160,
+        "amplitude": 6
+      },
+      "sound1": {
+        "attenuation": 0.6
+      },
+      "position": {
+        "vertical_shift": 42
+      }
+    },
+    "xen_huge": {
+      "inherits": "xen_big",
+      "sprite1": {
+        "sprite": "sprites/b-tele1.spr",
+        "scale": 2.5
+      },
+      "sprite2": {
+        "scale": 2.0
+      },
+      "sound1": {
+        "attenuation": 0.3,
+        "pitch": 95
+      },
+      "beam_count": [20, 30],
+      "beam_radius": 512,
+      "shake": {
+        "radius": 512
+      },
+      "spawn_delay": 0.5,
+      "position": {
+        "vertical_shift": 95.0
+      }
+    },
+    "racex": {
+      "inherits": "xen",
+      "sprite1": {
+        "sprite": "sprites/xflare2.spr",
+        "color": [200, 100, 200]
+      },
+      "sprite2": null,
+      "beam": {
+        "color": [240, 80, 160]
+      },
+      "light": {
+        "color": [200, 100, 200]
+      },
+      "sound1": {
+        "pitch": 105
+      },
+      "shake": {
+        "radius": 192,
+        "duration": 1.0,
+        "frequency": 16,
+        "amplitude": 6
+      },
+    },
+    "racex_big": {
+      "inherits": "racex",
+      "sprite1": {
+        "scale": 1.25
+      },
+      "beam_radius": 256,
+      "shake": {
+        "radius": 192,
+        "duration": 1.0,
+        "frequency": 160,
+        "amplitude": 6
+      },
+      "sound1": {
+        "attenuation": 0.6,
+      },
+      "position": {
+        "vertical_shift": 40
+      }
+    },
+    "panther": {
+      "sprite1": {
+        "sprite": "sprites/zerogxplode.spr",
+        "alpha": 192,
+        "color": [128, 0, 128],
+        "framerate": 12,
+        "scale": 0.8
+      },
+      "sprite2": null,
+      "sound1": {
+        "sound": "debris/alien_teleport.wav",
+        "volume": 1,
+        "pitch": 100,
+        "attenuation": 0.8
+      },
+      "sound2": null,
+      "beam": {
+        "sprite": "sprites/lgtning.spr",
+        "color": [128, 0, 0],
+        "alpha": 220,
+        "width": 30,
+        "noise": 65,
+        "life": [0.5, 1.6]
+      },
+      "beam_radius": 256,
+      "beam_count": [10, 20], 
+      "shake": null
+    },
+    "kingpin": {
+      "inherits": "xen",
+      "sprite1": {
+        "sprite": "sprites/xflare2.spr",
+        "scale": 2
+      },
+      "spawn_delay": 0.2
+    }
+  }
+}

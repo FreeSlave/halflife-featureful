@@ -1,0 +1,15 @@
+{
+    "weapon_eagle": {
+        "start_in_alt_mode": true
+    },
+    "weapon_shockrifle": {
+        "recharge": {
+            "only_when_deployed": false
+        }
+    },
+    "weapon_grapple": {
+        "fire": {
+            "weapon_volume": 140
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "items": {
+        "item_antidote": {
+            "position": "hide",
+            "show_in_history": false
+        },
+        "item_gasoline": {
+            "position": "topright",
+        },
+        "item_carkey": {
+            "position": "topright",
+        },
+        "item_security": {
+            "position": "topright",
+        },
+        "item_radio": {
+            "position": "hide",
+        },
+        "item_valve": {
+            "position": "topright",
+        },
+        "item_xenvalve": {
+            "position": "topright",
+        }
+    }
+}

@@ -1,0 +1,59 @@
+{
+    "items": {
+        "item_security": {
+            "max_count": 1,
+            "pickup_template": {
+                "own_visual": {
+                    "model": "models/w_security.mdl"
+                },
+                "soundscripts": {
+                    "Inventory.Pickup": {
+                        "waves": ["items/gunpickup4.wav"]
+                    }
+                }
+            }
+        },
+        "item_valve": {
+            "max_count": 1,
+            "pickup_template": {
+                "own_visual": {
+                    "model": "models/w_security.mdl",
+                    "rendermode": "texture",
+                    "alpha": 0
+                },
+                "soundscripts": {
+                    "Inventory.Pickup": {
+                        "waves": ["items/gunpickup4.wav"]
+                    }
+                }
+            }
+        },
+        "item_xenvalve": {
+            "max_count": 1,
+            "pickup_template": {
+                "own_visual": {
+                    "model": "models/w_security.mdl",
+                    "rendermode": "texture",
+                    "alpha": 0
+                },
+                "soundscripts": {
+                    "Inventory.Pickup": {
+                        "waves": ["items/gunpickup4.wav"]
+                    }
+                }
+            }
+        },
+        "item_radio": {
+            "max_count": 1
+        },
+        "item_gasoline": {
+            "max_count": 1
+        },
+        "item_carkey": {
+            "max_count": 1
+        },
+        "item_antidote": {
+            "max_count": 1
+        }
+    }
+}

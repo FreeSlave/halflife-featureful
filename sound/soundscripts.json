@@ -1,0 +1,11 @@
+{
+    "Player.NVGOn": {
+        "waves": ["items/nightvision_on.wav"]
+    },
+    "Player.NVGOff": {
+        "waves": ["items/nightvision_off.wav"]
+    },
+    "NPC.Sniper": {
+        "attenuation": 0.4
+    }
+}
