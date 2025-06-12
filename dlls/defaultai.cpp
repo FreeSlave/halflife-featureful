@@ -461,7 +461,7 @@ Task_t tlMoveToSpot[] =
 	{ TASK_FACE_IDEAL, (float)0 },
 	{ TASK_WALK_OR_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
-	{ TASK_PLAY_SEQUENCE, (float)ACT_IDLE },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
 };
 
 Schedule_t slMoveToSpot[] =
