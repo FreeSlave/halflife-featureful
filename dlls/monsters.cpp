@@ -2711,13 +2711,9 @@ void CBaseMonster::MovementComplete( void )
 	m_movementGoal = MOVEGOAL_NONE;
 }
 
-int CBaseMonster::TaskIsRunning( void )
+bool CBaseMonster::TaskIsRunning( void )
 {
-	if( m_iTaskStatus != TASKSTATUS_COMPLETE && 
-		 m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT )
-		 return 1;
-
-	return 0;
+	return ( m_iTaskStatus != TASKSTATUS_COMPLETE && m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT );
 }
 
 //=========================================================

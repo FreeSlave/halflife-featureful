@@ -189,14 +189,14 @@ void CEagle::Reload( void )
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5f;
 	}
 
-	int iResult;
+	bool result;
 
 	if (Emptied())
-		iResult = DefaultClipReload( EAGLE_RELOAD, 1.5f );
+		result = DefaultClipReload( EAGLE_RELOAD, 1.5f );
 	else
-		iResult = DefaultClipReload( EAGLE_RELOAD_NOT_EMPTY, 1.5f );
+		result = DefaultClipReload( EAGLE_RELOAD_NOT_EMPTY, 1.5f );
 
-	if (iResult)
+	if (result)
 	{
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	}

@@ -277,9 +277,9 @@ public:
 	void MovementComplete( void );
 	inline void TaskFail( const char* reason = NULL ) { SetConditions( bits_COND_TASK_FAILED ); taskFailReason = reason; }
 	inline void TaskBegin( void ) { m_iTaskStatus = TASKSTATUS_RUNNING; }
-	int TaskIsRunning( void );
-	inline int TaskIsComplete( void ) { return ( m_iTaskStatus == TASKSTATUS_COMPLETE ); }
-	inline int MovementIsComplete( void ) { return ( m_movementGoal == MOVEGOAL_NONE ); }
+	bool TaskIsRunning( void );
+	inline bool TaskIsComplete( void ) { return ( m_iTaskStatus == TASKSTATUS_COMPLETE ); }
+	inline bool MovementIsComplete( void ) { return ( m_movementGoal == MOVEGOAL_NONE ); }
 
 	int IScheduleFlags( void );
 	bool FRefreshRoute( int buildRouteFlags = 0 );
