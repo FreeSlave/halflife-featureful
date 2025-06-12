@@ -101,8 +101,22 @@ jobs:
       run: cp fgd/halflife.fgd dist/${{ steps.extract_gamedir.outputs.gamedir }}/${{ env.fgd_name }}
 
     - name: Copy features to dist dir
+      shell: bash
       if:  ${{ env.include_features == 'true' }}
-      run: cp -r features/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+      run: |
+        cp -r features/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        if [ -d templates ]
+        then
+            cp -r templates/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        fi
+        if [ -d sound ]
+        then
+            cp -r sound/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        fi
+        if [ -d sprites ]
+        then
+            cp -r sprites/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        fi
 
     - name: Install Google Test
       if: startsWith(matrix.os, 'ubuntu')
