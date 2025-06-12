@@ -474,6 +474,22 @@ ClientCommand
 called each time a player uses a "cmd" command
 ============
 */
+static bool CanRunCheatCommand(entvars_t *pev)
+{
+	if (CheatsEnabled())
+		return true;
+	ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is available only when cheats enabled\n", CMD_ARGV(0)));
+	return false;
+}
+
+static bool CanRunDeveloperCommand(entvars_t *pev)
+{
+	if (IsDeveloperModeOn())
+		return true;
+	ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("%s is available only in developer mode\n", CMD_ARGV(0)));
+	return false;
+}
+
 static void PrintEntityKeyValues(entvars_t* pev, CBaseEntity* pEntity)
 {
 	const int end = CMD_ARGC();
@@ -553,7 +569,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "give" ) )
 	{
-		if( CheatsEnabled() )
+		if( CanRunCheatCommand(pev) )
 		{
 			string_t iszItem = ALLOC_STRING( CMD_ARGV( 1 ) );	// Make a copy of the classname
 			pPlayer->GiveNamedItem( STRING( iszItem ) );
@@ -561,7 +577,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "give_inventory" ) )
 	{
-		if( CheatsEnabled() )
+		if( CanRunCheatCommand(pev) )
 		{
 			const char* inventoryItemName = CMD_ARGV( 1 );
 			if (*inventoryItemName)
@@ -589,7 +605,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq(pcmd, "remove_inventory" ) )
 	{
-		if( CheatsEnabled() )
+		if( CanRunCheatCommand(pev) )
 		{
 			const char* inventoryItemName = CMD_ARGV( 1 );
 			if (*inventoryItemName)
@@ -617,7 +633,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "fire" ) )
 	{
-		if( CheatsEnabled() )
+		if( CanRunCheatCommand(pev) )
 		{
 			CBaseEntity *pPlayer = CBaseEntity::Instance( pEntity );
 			const bool entityUnderCrosshair = CMD_ARGC() <= 1 || FStrEq( CMD_ARGV(1), "!cross" );
@@ -668,7 +684,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "read_keyvalue" ) )
 	{
-		if (IsDeveloperModeOn())
+		if (CanRunDeveloperCommand(pev))
 		{
 			if (CMD_ARGC() < 3)
 			{
@@ -798,7 +814,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq( pcmd, "teleport_to" ) )
 	{
-		if (CheatsEnabled())
+		if (CanRunCheatCommand(pev))
 		{
 			Vector pos;
 			if (CMD_ARGC() == 4)
@@ -839,9 +855,9 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq( pcmd, "make_start_following" ) || FStrEq( pcmd, "make_stop_following" ) )
 	{
-		bool startFollowing = FStrEq( pcmd, "make_start_following" );
+		const bool startFollowing = FStrEq( pcmd, "make_start_following" );
 
-		if (CheatsEnabled())
+		if (CanRunCheatCommand(pev))
 		{
 			if (CMD_ARGC() < 2)
 			{
@@ -876,18 +892,9 @@ void ClientCommand( edict_t *pEntity )
 			}
 		}
 	}
-	else if( g_pGameRules->ClientCommand( GetClassPtr( (CBasePlayer *)pev ), pcmd ) )
-	{
-		// MenuSelect returns true only if the command is properly handled,  so don't print a warning
-	}
-	else if( FStrEq( pcmd, "VModEnable" ) )
-	{
-		// clear 'Unknown command: VModEnable' in singleplayer
-		return;
-	}
 	else if ( FStrEq(pcmd, "buddha" ) )
 	{
-		if (CheatsEnabled())
+		if (CanRunCheatCommand(pev))
 		{
 			if (pPlayer->m_buddha) {
 				pPlayer->m_buddha = false;
@@ -897,6 +904,15 @@ void ClientCommand( edict_t *pEntity )
 				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "Buddha Mode on\n");
 			}
 		}
+	}
+	else if( g_pGameRules->ClientCommand( GetClassPtr( (CBasePlayer *)pev ), pcmd ) )
+	{
+		// MenuSelect returns true only if the command is properly handled,  so don't print a warning
+	}
+	else if( FStrEq( pcmd, "VModEnable" ) )
+	{
+		// clear 'Unknown command: VModEnable' in singleplayer
+		return;
 	}
 	else
 	{

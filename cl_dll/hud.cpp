@@ -791,6 +791,17 @@ void CHud::Init( void )
 	hudRenderer.Init();
 
 	gEngfuncs.pfnAddCommand("dump_ammo_types_client", ReportRegisteredAmmoTypes);
+	gEngfuncs.pfnAddCommand("give_inventory", nullptr);
+	gEngfuncs.pfnAddCommand("remove_inventory", nullptr);
+	gEngfuncs.pfnAddCommand("give", nullptr);
+	gEngfuncs.pfnAddCommand("read_keyvalue", nullptr);
+	gEngfuncs.pfnAddCommand("nightvision", nullptr);
+	gEngfuncs.pfnAddCommand("teleport_to", nullptr);
+	gEngfuncs.pfnAddCommand("recruit_followers", nullptr);
+	gEngfuncs.pfnAddCommand("disband_followers", nullptr);
+	gEngfuncs.pfnAddCommand("make_stop_following", nullptr);
+	gEngfuncs.pfnAddCommand("make_start_following", nullptr);
+	gEngfuncs.pfnAddCommand("buddha", nullptr);
 
 	MsgFunc_ResetHUD( 0, 0, NULL );
 	ClientCmd( "richpresence_gamemode\n" );
