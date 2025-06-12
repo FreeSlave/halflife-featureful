@@ -297,7 +297,7 @@ int CGonome::LookupActivity(int activity)
 	{
 		// special melee animations
 		int sequence = -1;
-		if ((pev->origin - m_hEnemy->pev->origin).IsLengthGreaterThanOrEqual(48) )
+		if ((pev->origin - m_hEnemy->pev->origin).IsLength2DGreaterThanOrEqual(48) )
 		{
 			m_meleeAttack2 = false;
 			sequence = LookupSequence("attack1");
