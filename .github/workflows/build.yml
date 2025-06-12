@@ -32,7 +32,7 @@ jobs:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
       STEAMRT_SNAPSHOT: latest-steam-client-general-availability
-      include_features: "false"
+      include_features: "true"
       fgd_name: "halflife_field_intensity.fgd"
     steps:
     - name: Checkout
