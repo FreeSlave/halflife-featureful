@@ -103,7 +103,7 @@ public:
 	static const NamedVisual headShootLightVisual;
 	static const NamedVisual energyBallLightVisual;
 
-	void OnDying();
+	void OnDying(bool gibbed) override;
 	void GibMonster( void );
 
 	bool IsDisplaceable() { return true; }
@@ -218,7 +218,7 @@ void CController::SetYawSpeed( void )
 	pev->yaw_speed = 120;
 }
 
-void CController::OnDying()
+void CController::OnDying(bool gibbed)
 {
 	// shut off balls
 	/*
@@ -239,7 +239,7 @@ void CController::OnDying()
 		m_pBall[1]->SUB_StartFadeOut();
 		m_pBall[1] = NULL;
 	}
-	CSquadMonster::OnDying();
+	CSquadMonster::OnDying(gibbed);
 }
 
 void CController::GibMonster( void )

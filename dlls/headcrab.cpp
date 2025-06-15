@@ -695,7 +695,7 @@ public:
 	void StartTask(Task_t* pTask);
 	bool ShouldFadeOnDeath() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	void OnDying();
+	void OnDying(bool gibbed) override;
 
 	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() { return Vector( 12.0f, 12.0f, 4.0f ); }
@@ -983,9 +983,10 @@ TakeDamageResult CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
-void CShockRoach::OnDying()
+void CShockRoach::OnDying(bool gibbed)
 {
 	SetUse(NULL);
+	CHeadCrab::OnDying(gibbed);
 }
 
 class CDeadShockRoach : public CDeadMonster

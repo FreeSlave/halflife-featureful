@@ -209,7 +209,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 
 	CSoundEnt::InsertSound( bits_SOUND_WORLD, pev->origin, 128, 1 );
 
-	OnDying();
+	OnDying(true);
 	UTIL_Remove( this );
 	return KilledResult();
 }

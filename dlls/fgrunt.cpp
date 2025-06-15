@@ -2922,7 +2922,7 @@ public:
 	bool CheckRangeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack2(float flDot, float flDist) override;
 	void GibMonster();
-	void OnDying();
+	void OnDying(bool gibbed) override;
 	void UpdateOnRemove();
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void PrescheduleThink();
@@ -3164,10 +3164,10 @@ void CTorch::GibMonster()
 	CTalkMonster::GibMonster();
 }
 
-void CTorch::OnDying()
+void CTorch::OnDying(bool gibbed)
 {
 	KillGas();
-	CHFGrunt::OnDying();
+	CHFGrunt::OnDying(gibbed);
 }
 
 void CTorch::UpdateOnRemove()

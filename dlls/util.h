@@ -345,10 +345,11 @@ struct EntityOverrides
 	string_t model = iStringNull;
 	string_t entTemplate = iStringNull;
 	string_t ownerEntTemplate = iStringNull;
+	string_t netname = iStringNull;
 };
 
 // allows precacheing of other entities
-extern void			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides= EntityOverrides());
+extern void			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides = EntityOverrides());
 extern bool			UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship , Vector *vecMin = NULL, Vector *vecMax = NULL, EntityOverrides entityOverrides= EntityOverrides());
 
 // prints a message to each client

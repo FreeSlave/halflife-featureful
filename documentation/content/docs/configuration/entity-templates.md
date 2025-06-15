@@ -837,6 +837,91 @@ An object that allows to add some visual effects at the hit location when condit
 
 Same as `effects`, but plays only if `dmg_min_threshold` has been applied. `effects` are still played independently.
 
+### loot_drop
+
+Defines additional items dropped from monster when it dies.
+
+{{% hint info %}}
+Loot drop doesn't interfere with weapons the monster drops by default (e.g. `monster_human_grunt` dropping his weapon). Loot drops are extra items.
+{{% /hint %}}
+
+Loot can be defined in 2 forms: as an array and as an object.
+
+Array example:
+
+```json
+{
+    "monster_zombie": {
+        "loot_drop": [
+            {
+                "classname": "ammo_9mmAR",
+                "chance": 0.3
+            },
+            {
+                "classname": "item_healthkit",
+                "ent_template": "custom_healthkit",
+            },
+            {
+                "classname": "item_pickup",
+                "pickup_name": "battery_blue",
+                "chance": 0.5
+            }
+        ]
+    }
+}
+```
+
+This defines 3 items which may drop from zombie upon its death. Each entry can have following properties:
+
+* `"classname"` - the entity classname to spawn.
+* `"ent_template"` - the entity template name to apply to the spawned item (e.g. if you want items with custom models to be dropped).
+* `"pickup_name"` - the [Player Inventory]({{< ref player-inventory >}}) item name. This applied only if the classname is [item_pickup]({{< ref item_pickup >}}).
+* `"chance"` - the chance of drop, the number between 0 and 1, where 1 equals 100% chance of drop (this is a default value).
+* `"weight"` - if maximum weight is defined (see below), whether the item will drop depends on the weight of other items. Default weight is 1.
+
+Object example:
+
+```json
+{
+    "monster_zombie": {
+        "loot_drop": {
+            "items": [
+                {
+                    "classname": "ammo_9mmAR",
+                    "weight": 1
+                },
+                {
+                    "classname": "item_healthkit",
+                    "ent_template": "custom_healthkit",
+                    "weight": 0.5
+                },
+                {
+                    "classname": "item_pickup",
+                    "pickup_name": "battery_blue",
+                    "weight": 1.5
+                }
+            ],
+            "max_weight": 2
+        } 
+    }
+}
+```
+
+This is similar to array definition, but the item list goes into the `"items"` property. When using the object definition, it becomes possible to define the `"max_weight"` value. The weight sum of dropped items can't exceed the `"max_weight"` value. The items to spawn are chosen in random order from the list until adding the next item would exceed the limit. In this example:
+
+* Monster can drop `ammo_9mmAR` and `item_healthkit` at the same time because the sum of their weights doesn't exceed the maximum.
+* Monster can drop `item_pickup` and `item_healthkit` at the same time because the sum of their weights doesn't exceed the maximum.
+* Monster can't drop `ammo_9mmAR` and `item_pickup` at the same time because the sum of their weights exceeds the maximum.
+* Monster can't drop all 3 items at the same time.
+
+Thus the weights allow to balance how much "goodies" can be dropped from the monster. The empty string (`""`) can be provided as a classname if you want the "empty drop" to have a weight.
+
+The `"chance"` property still can be applied for more randomization.
+
+{{% hint info %}}
+If `"max_weight"` is 0 (default) or the list consists of 1 item only, the weight limit is not applied.
+{{% /hint %}}
+
 ### pain
 
 Monsters have different rules for playing the pain sounds. Some set a delay before playing the pain sound again (e.g. [alien grunts]({{< ref monster_alien_grunt >}})). Some play it by random chance (e.g. [zombies]({{< ref monster_zombie >}})). This object allows to configure the pain sound behavior via the following properties:

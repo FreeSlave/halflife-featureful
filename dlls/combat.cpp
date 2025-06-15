@@ -39,6 +39,9 @@
 #include "visuals_utils.h"
 #include "ent_templates.h"
 
+#include <algorithm>
+#include <random>
+
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
 
@@ -747,9 +750,10 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	// Make sure this condition is fired too (TakeDamage breaks out before this happens on death)
 	SetConditions( bits_COND_LIGHT_DAMAGE );
 
-	OnDying();
+	const bool shouldGib = ShouldGibMonster( iGib );
+	OnDying(shouldGib);
 
-	if( ShouldGibMonster( iGib ) )
+	if (shouldGib)
 	{
 		CallGibMonster();
 		return killedResult.SetGibbed();
@@ -770,11 +774,90 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	return killedResult;
 }
 
-void CBaseMonster::OnDying()
+void CBaseMonster::OnDying(bool gibbed)
 {
 	if (!g_modFeatures.dying_monsters_block_player)
 		pev->iuser3 = -1;
 	Remember( bits_MEMORY_KILLED );
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const DropItemSet& lootDrop = entTemplate->GetLootDrop();
+
+		auto dropItem = [this, gibbed](const char* classname, const char* entTemplate, const char* pickupName) {
+			if (!classname || !*classname)
+				return;
+
+			EntityOverrides entityOverrides;
+			if (entTemplate && *entTemplate)
+			{
+				entityOverrides.entTemplate = MAKE_STRING(entTemplate);
+			}
+			if (pickupName && *pickupName && strcmp(classname, "item_pickup") == 0)
+			{
+				entityOverrides.netname = MAKE_STRING(pickupName);
+			}
+
+			CBaseEntity* pItem = Create(classname, Center(), pev->angles, edict(), entityOverrides);
+			if (pItem)
+			{
+				const float velocity = gibbed ? 100.0f : 75.0f;
+
+				pItem->pev->avelocity = Vector( 0, RANDOM_FLOAT( 0, 100 ), 0 );
+				pItem->pev->velocity = Vector( RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( velocity*2, velocity*3 ) );
+				if (strncmp(classname, "ammo_", 5) == 0 || strncmp(classname, "item_", 5) == 0 || strncmp(classname, "weapon_", 7) == 0)
+					pItem->pev->spawnflags |= SF_NORESPAWN;
+			}
+		};
+
+		auto shouldDrop = [this](const DropItemInfoHandle& handle) {
+			if (handle.chance >= 1.0f)
+				return true;
+			if (handle.chance > 0.0f && SharedRandomFloat(0.0f, 1.0f) <= handle.chance)
+				return true;
+			return false;
+		};
+
+		if (lootDrop.maxWeight > 0 && lootDrop.items.size() > 1)
+		{
+			std::vector<DropItemInfoHandle> handles;
+			handles.reserve(lootDrop.items.size());
+
+			for (const auto& itemInfo : lootDrop.items)
+			{
+				handles.push_back(DropItemInfoHandle(itemInfo));
+			}
+
+			std::minstd_rand rg(static_cast<unsigned int>(m_lootRandomSeed));
+			std::shuffle(handles.begin(), handles.end(), rg);
+			m_lootRandomSeed = static_cast<int>(rg());
+
+			float totalWeight = 0.0f;
+			for (const auto& handle : handles)
+			{
+				if ((totalWeight == 0.0f || totalWeight + handle.weight <= lootDrop.maxWeight) && shouldDrop(handle))
+				{
+					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
+					totalWeight += handle.weight;
+					if (totalWeight >= lootDrop.maxWeight)
+						break;
+				}
+			}
+		}
+		else
+		{
+			for (const auto& itemInfo : lootDrop.items)
+			{
+				const DropItemInfoHandle handle{itemInfo};
+				if (shouldDrop(handle))
+				{
+					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
+				}
+			}
+		}
+	}
+
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
 	CBaseEntity *pOwner = CBaseEntity::Instance( pev->owner );
 	if( pOwner )

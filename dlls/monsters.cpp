@@ -38,6 +38,7 @@
 #include "game.h"
 #include "common_soundscripts.h"
 #include "visuals_utils.h"
+#include "inventory.h"
 #include "classify.h"
 #include "studio.h"
 #include "clamp.h"
@@ -162,8 +163,9 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBaseMonster, m_gibPolicy, FIELD_SHORT ),
-	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_bForceConditionsGather, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_lootRandomSeed, FIELD_INTEGER ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -2552,6 +2554,15 @@ void CBaseMonster::MonsterInit( void )
 	SetThink( &CBaseMonster::MonsterInitThink );
 	pev->nextthink = gpGlobals->time + 0.1f;
 	SetUse( &CBaseMonster::MonsterUse );
+
+	InitRandomSeeds();
+}
+
+void CBaseMonster::InitRandomSeeds()
+{
+	m_lootRandomSeed = RANDOM_LONG((1<<20), (1<<30));
+	if (m_lootRandomSeed % 2 == 0)
+		m_lootRandomSeed++;
 }
 
 //=========================================================
@@ -3810,6 +3821,29 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 void CBaseMonster::Activate()
 {
 	CBaseToggle::Activate();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		for (const auto& itemInfo : entTemplate->GetLootDrop().items)
+		{
+			if (!itemInfo.classname.empty())
+			{
+				const char* classname = itemInfo.classname.c_str();
+				EntityOverrides entityOverrides;
+				if (!itemInfo.entTemplate.empty())
+				{
+					entityOverrides.entTemplate = MAKE_STRING(itemInfo.entTemplate.c_str());
+				}
+				if (!itemInfo.pickupName.empty() && strcmp(classname, "item_pickup") == 0)
+				{
+					entityOverrides.netname = MAKE_STRING(itemInfo.pickupName.c_str());
+				}
+				UTIL_PrecacheOther(classname, entityOverrides);
+			}
+		}
+	}
+
 	if (!g_modFeatures.dying_monsters_block_player && pev->deadflag == DEAD_DYING && HasMemory(bits_MEMORY_KILLED)) {
 		pev->iuser3 = -1;
 	}
@@ -4686,6 +4720,20 @@ bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 		}
 	}
 	return false;
+}
+
+int CBaseMonster::SharedRandomLong(int low, int high)
+{
+	int result = UTIL_SharedRandomLong(static_cast<unsigned int>(m_lootRandomSeed), low, high);
+	m_lootRandomSeed = UTIL_LastRandomSeed();
+	return result;
+}
+
+float CBaseMonster::SharedRandomFloat(float low, float high)
+{
+	float result = UTIL_SharedRandomFloat(static_cast<unsigned int>(m_lootRandomSeed), low, high);
+	m_lootRandomSeed = UTIL_LastRandomSeed();
+	return result;
 }
 
 void CBaseMonster::GlowShellOn(const Visual* visual)

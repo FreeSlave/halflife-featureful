@@ -105,6 +105,48 @@ const char entities[] = R"(
 				}
 			}
 		}
+	},
+	"monster_zombie": {
+		"loot_drop": {
+			"items": [
+				{
+					"classname": "ammo_buckshot",
+					"weight": 1
+				},
+				{
+					"classname": "item_healthkit",
+					"ent_template": "custom_healthkit",
+					"weight": 0.5
+				},
+				{
+					"classname": "item_pickup",
+					"pickup_name": "battery_blue",
+					"weight": 1.5
+				},
+				{
+					"classname": "weapon_shotgun",
+					"weight": 2
+				}
+			],
+			"max_weight": 2
+		}
+	},
+	"monster_zombie_barney": {
+		"loot_drop": [
+			{
+				"classname": "ammo_9mmAR",
+				"chance": 0.6
+			},
+			{
+				"classname": "item_battery",
+				"chance": 0.3
+			},
+			{
+				"classname": "item_pickup",
+				"pickup_name": "battery_red",
+				"chance": 0.2
+			}
+		]
 	}
 }
 )";
@@ -309,6 +351,48 @@ TEST(EntityTemplates, Parse)
 		EXPECT_EQ(damageInfo2.typePolicy, EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE);
 		EXPECT_TRUE(damageInfo2.gibPolicy.has_value());
 		EXPECT_EQ(*damageInfo2.gibPolicy, GIB_ALWAYS);
+	}
+
+	{
+		const EntTemplate* zombie = es.GetTemplate("monster_zombie");
+		ASSERT_TRUE(zombie != nullptr);
+
+		const DropItemSet& dropItemSet = zombie->GetLootDrop();
+		ASSERT_EQ(dropItemSet.items.size(), 4);
+		EXPECT_EQ(dropItemSet.maxWeight, 2.0f);
+
+		EXPECT_EQ(dropItemSet.items[0].classname, "ammo_buckshot");
+		EXPECT_EQ(dropItemSet.items[0].weight, 1.0f);
+
+		EXPECT_EQ(dropItemSet.items[1].classname, "item_healthkit");
+		EXPECT_EQ(dropItemSet.items[1].entTemplate, "custom_healthkit");
+		EXPECT_EQ(dropItemSet.items[1].weight, 0.5f);
+
+		EXPECT_EQ(dropItemSet.items[2].classname, "item_pickup");
+		EXPECT_EQ(dropItemSet.items[2].pickupName, "battery_blue");
+		EXPECT_EQ(dropItemSet.items[2].weight, 1.5f);
+
+		EXPECT_EQ(dropItemSet.items[3].classname, "weapon_shotgun");
+		EXPECT_EQ(dropItemSet.items[3].weight, 2.0f);
+	}
+
+	{
+		const EntTemplate* zombie = es.GetTemplate("monster_zombie_barney");
+		ASSERT_TRUE(zombie != nullptr);
+
+		const DropItemSet& dropItemSet = zombie->GetLootDrop();
+		ASSERT_EQ(dropItemSet.items.size(), 3);
+		EXPECT_EQ(dropItemSet.maxWeight, 0.0f);
+
+		EXPECT_EQ(dropItemSet.items[0].classname, "ammo_9mmAR");
+		EXPECT_EQ(dropItemSet.items[0].chance, 0.6f);
+
+		EXPECT_EQ(dropItemSet.items[1].classname, "item_battery");
+		EXPECT_EQ(dropItemSet.items[1].chance, 0.3f);
+
+		EXPECT_EQ(dropItemSet.items[2].classname, "item_pickup");
+		EXPECT_EQ(dropItemSet.items[2].pickupName, "battery_red");
+		EXPECT_EQ(dropItemSet.items[2].chance, 0.2f);
 	}
 
 	{

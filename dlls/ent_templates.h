@@ -68,6 +68,38 @@ enum class ValueModifier
 	ADD
 };
 
+struct DropItemInfo
+{
+	std::string classname;
+	std::string entTemplate;
+	std::string pickupName;
+	float chance = 1.0f;
+	float weight = 1.0f;
+};
+
+struct DropItemInfoHandle
+{
+	DropItemInfoHandle(const DropItemInfo& item): chance(item.chance), weight(item.weight) {
+		classname = item.classname.empty() ? nullptr : item.classname.c_str();
+		entTemplate = item.entTemplate.empty() ? nullptr : item.entTemplate.c_str();
+		pickupName = item.pickupName.empty() ? nullptr : item.pickupName.c_str();
+	}
+
+	const char* classname;
+	const char* entTemplate;
+	const char* pickupName;
+	float chance;
+	float weight;
+};
+
+struct DropItemSet
+{
+	std::vector<DropItemInfo> items;
+	float maxWeight = 0.0f;
+
+	static DropItemSet FromJSON(const rapidjson::Value& value);
+};
+
 struct EntTemplate
 {
 public:
@@ -411,6 +443,13 @@ public:
 		return _takeDamageRulesDefined;
 	}
 
+	const DropItemSet& GetLootDrop() const {
+		return _lootDrop;
+	}
+	void SetLootDrop(DropItemSet&& dropItemSet) {
+		_lootDrop = dropItemSet;
+	}
+
 	PainSoundRule GetPainSoundRule() const {
 		return _painSoundRule;
 	}
@@ -455,6 +494,8 @@ private:
 
 	std::vector<TakeDamageRule> _takeDamageRules;
 	bool _takeDamageRulesDefined = false;
+
+	DropItemSet _lootDrop;
 
 	PainSoundRule _painSoundRule;
 };

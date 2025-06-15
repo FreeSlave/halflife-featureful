@@ -100,6 +100,11 @@ float UTIL_SharedRandomFloat( unsigned int seed, float low, float high )
 	}
 }
 
+int UTIL_LastRandomSeed()
+{
+	return glSeed;
+}
+
 // ripped this out of the engine
 float UTIL_AngleMod( float a )
 {

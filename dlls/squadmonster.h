@@ -78,7 +78,7 @@ public:
 	void StartMonster( void );
 	void VacateSlot( void );
 	void ScheduleChange( void );
-	void OnDying();
+	void OnDying(bool gibbed) override;
 	bool OccupySlot( int iDesiredSlot );
 	bool NoFriendlyFire( void );
 

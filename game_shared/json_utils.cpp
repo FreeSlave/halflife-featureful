@@ -77,6 +77,11 @@ constexpr const char definitions[] = R"(
 		"minItems": 3,
 		"maxItems": 3
 	},
+	"chance": {
+		"type": "number",
+		"minimum": 0.0,
+		"maximum": 1.0,
+	},
 	"string_set": {
 		"type": ["string", "array"],
 		"items": {
@@ -458,9 +463,7 @@ constexpr const char definitions[] = R"(
 				"type": "object",
 				"properties": {
 					"chance": {
-						"type": "number",
-						"minimum": 0.0,
-						"maximum": 1.0,
+						"$ref": "#/chance"
 					},
 					"certain_on_new_frame": {
 						"type": "boolean",
@@ -474,9 +477,7 @@ constexpr const char definitions[] = R"(
 				"type": "object",
 				"properties": {
 					"chance": {
-						"type": "number",
-						"minimum": 0.0,
-						"maximum": 1.0,
+						"$ref": "#/chance"
 					},
 					"certain_on_new_frame": {
 						"type": "boolean",
@@ -619,6 +620,35 @@ constexpr const char definitions[] = R"(
 			}
 		}
 	},
+	"drop_item": {
+		"type": ["object", "string"],
+		"properties": {
+			"classname": {
+				"type": "string"
+			},
+			"ent_template": {
+				"type": "string"
+			},
+			"pickup_name": {
+				"type": "string"
+			},
+			"chance": {
+				"$ref": "#/chance"
+			},
+			"weight": {
+				"type": "number",
+				"minimum": 0
+			}
+		},
+		"required": ["classname"],
+		"additionalProperties": false
+	},
+	"drop_item_list": {
+		"type": "array",
+		"items": {
+			"$ref": "#/drop_item"
+		}
+	},
 	"entity_template": {
 		"type": ["object", "string"],
 		"properties": {
@@ -743,6 +773,27 @@ constexpr const char definitions[] = R"(
 					"$ref": "#/trace_attack_rule"
 				}
 			},
+			"loot_drop": {
+				"oneof": [
+					{
+						"$ref": "#/drop_item_list"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"items": {
+								"$ref": "#/drop_item_list"
+							},
+							"max_weight": {
+								"type": "number",
+								"exlusiveMinimum": 0
+							}
+						},
+						"required": ["items"],
+						"additionalProperties": false
+					}
+				]
+			},
 			"pain": {
 				"type": "object",
 				"properties": {
@@ -750,9 +801,7 @@ constexpr const char definitions[] = R"(
 						"$ref": "#/range"
 					},
 					"chance": {
-						"type": "number",
-						"exclusiveMinimum": 0.0,
-						"maximum": 1.0,
+						"$ref": "#/chance"
 					},
 					"lower_bound_dmg": {
 						"type": "number"
@@ -760,7 +809,8 @@ constexpr const char definitions[] = R"(
 					"allow_when_dying": {
 						"type": "boolean"
 					}
-				}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false
@@ -938,6 +988,39 @@ bool UpdatePropertyFromJson(int& i, const Value& jsonValue, const char* key)
 	if (it != jsonValue.MemberEnd())
 	{
 		i = it->value.GetInt();
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(unsigned int& i, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		i = it->value.GetUint();
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(std::int64_t & i, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		i = it->value.GetInt64();
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(std::uint64_t & i, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		i = it->value.GetUint64();
 		return true;
 	}
 	return false;

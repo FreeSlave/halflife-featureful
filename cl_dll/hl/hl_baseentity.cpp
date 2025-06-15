@@ -166,7 +166,7 @@ Schedule_t *CBaseMonster::ScheduleFromName( const char *pName ) { return NULL;}
 void CBaseMonster::BecomeDead( void ) {}
 void CBaseMonster::RunAI( void ) {}
 KilledResult CBaseMonster::Killed( entvars_t * pevInflictor, entvars_t *pevAttacker, int iGib ) { return KilledResult(); }
-void CBaseMonster::OnDying() {}
+void CBaseMonster::OnDying(bool gibbed) {}
 void CBaseMonster::UpdateOnRemove() {}
 int CBaseMonster::TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType) { return 0; }
 TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }

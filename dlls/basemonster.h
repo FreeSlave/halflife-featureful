@@ -194,6 +194,7 @@ public:
 	
 	virtual void MonsterInit( void );
 	virtual void MonsterInitDead( void );	// Call after animation/pose is set up
+	void InitRandomSeeds();
 	virtual void BecomeDead( void );
 	void EXPORT CorpseFallThink( void );
 
@@ -369,7 +370,7 @@ public:
 	virtual Activity GetDeathActivity( void );
 	Activity GetSmallFlinchActivity( void );
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	virtual void OnDying();
+	virtual void OnDying(bool gibbed);
 	virtual void GibMonster( void );
 	virtual void UpdateOnRemove( void );
 	bool ShouldGibMonster( int iGib );
@@ -465,6 +466,9 @@ public:
 
 	bool HandleDoorBlockage(CBaseEntity* pDoor);
 
+	int SharedRandomLong(int low, int high);
+	float SharedRandomFloat(float low, float high);
+
 	//
 	// Glowshell effects
 	//
@@ -507,8 +511,9 @@ public:
 	EHANDLE m_lastMoveBlocker;
 
 	short m_gibPolicy;
-	float m_flNextPainTime;
 	bool m_bForceConditionsGather;
+	float m_flNextPainTime;
+	int m_lootRandomSeed;
 
 	const char* taskFailReason;
 };

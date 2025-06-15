@@ -1689,9 +1689,7 @@ static void UTIL_PrecacheOtherWithOverride(CBaseEntity* pEntity, EntityOverrides
 
 void UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides )
 {
-	edict_t	*pent;
-
-	pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
+	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
 	if( FNullEnt( pent ) )
 	{
 		ALERT( at_console, "NULL Ent in UTIL_PrecacheOther\n" );

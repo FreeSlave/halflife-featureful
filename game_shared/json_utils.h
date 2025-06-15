@@ -2,6 +2,7 @@
 #ifndef JSON_UTILS_H
 #define JSON_UTILS_H
 
+#include <cstdint>
 #include <string>
 #include <type_traits>
 
@@ -75,6 +76,9 @@ bool UpdatePropertyFromJson(fixed_string<N>& str, const rapidjson::Value& jsonVa
 }
 bool UpdatePropertyFromJson(std::string& str, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(int& i, const rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(unsigned int& i, const rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(std::int64_t& i, const rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(std::uint64_t& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(float& f, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(bool& b, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(char& c, const rapidjson::Value& jsonValue, const char* key);

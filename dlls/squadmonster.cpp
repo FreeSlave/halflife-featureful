@@ -117,7 +117,7 @@ void CSquadMonster::ScheduleChange ( void )
 	VacateSlot();
 }
 
-void CSquadMonster::OnDying()
+void CSquadMonster::OnDying(bool gibbed)
 {
 	VacateSlot();
 
@@ -144,7 +144,7 @@ void CSquadMonster::OnDying()
 
 		pSquadLeader->SquadRemove( this );
 	}
-	CBaseMonster::OnDying();
+	CBaseMonster::OnDying(gibbed);
 }
 
 // These functions are still awaiting conversion to CSquadMonster 

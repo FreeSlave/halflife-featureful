@@ -67,7 +67,7 @@ class CFollowingMonster : public CSquadMonster
 public:
 	// Base Monster functions
 	void Touch(	CBaseEntity *pOther );
-	void OnDying();
+	void OnDying(bool gibbed) override;
 	int ObjectCaps( void );
 	void KeyValue( KeyValueData *pkvd );
 

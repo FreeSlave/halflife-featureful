@@ -742,6 +742,12 @@ class CItemPickup : public CItem
 public:
 	void Spawn( void )
 	{
+		Precache();
+		SetMyModel("models/w_security.mdl");
+		CItem::Spawn();
+	}
+	void Precache( void )
+	{
 		if (FStringNull(pev->netname))
 		{
 			ALERT(at_warning, "%s without an inventory item type!\n", STRING(pev->classname));
@@ -758,12 +764,6 @@ public:
 			}
 		}
 
-		Precache();
-		SetMyModel("models/w_security.mdl");
-		CItem::Spawn();
-	}
-	void Precache( void )
-	{
 		if (!MyOwnModel(nullptr))
 		{
 			ALERT(at_console, "%s without model defined! Fallbacking to the security card model\n", STRING(pev->classname));

@@ -1077,6 +1077,8 @@ void CBaseEntity::AssignEntityOverrides(EntityOverrides entityOverrides)
 		pev->model = entityOverrides.model;
 	m_entTemplate = entityOverrides.entTemplate;
 	m_ownerEntTemplate = entityOverrides.ownerEntTemplate;
+	if (entityOverrides.netname)
+		pev->netname = entityOverrides.netname;
 }
 
 EntityOverrides CBaseEntity::GetProjectileOverrides()

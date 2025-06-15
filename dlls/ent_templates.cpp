@@ -54,6 +54,52 @@ static std::pair<ValueComparison, float> ParseValueComparison(const char* str)
 	return std::make_pair(ValueComparison::UNKNOWN, 0.0f);
 }
 
+DropItemSet DropItemSet::FromJSON(const Value &value)
+{
+	DropItemSet result;
+
+	auto readItemList = [](const Value& value) {
+		std::vector<DropItemInfo> items;
+		Value::ConstArray arr = value.GetArray();
+		items.reserve(arr.Size());
+
+		for (auto& item : arr)
+		{
+			DropItemInfo itemInfo;
+
+			if (item.IsString())
+			{
+				itemInfo.classname = item.GetString();
+			}
+			else
+			{
+				UpdatePropertyFromJson(itemInfo.classname, item, "classname");
+				UpdatePropertyFromJson(itemInfo.entTemplate, item, "ent_template");
+				UpdatePropertyFromJson(itemInfo.pickupName, item, "pickup_name");
+				UpdatePropertyFromJson(itemInfo.chance, item, "chance");
+				UpdatePropertyFromJson(itemInfo.weight, item, "weight");
+			}
+			items.push_back(std::move(itemInfo));
+		}
+
+		return std::move(items);
+	};
+
+	if (value.IsArray())
+	{
+		result.items = readItemList(value);
+	}
+	else
+	{
+		HandleJSONMember(value, "items", [&result, &readItemList](const Value& value) {
+			result.items = readItemList(value);
+		});
+		UpdatePropertyFromJson(result.maxWeight, value, "max_weight");
+	}
+
+	return result;
+}
+
 const char* EntTemplate::OwnVisualName() const
 {
 	return _ownVisual.empty() ? nullptr : _ownVisual.c_str();
@@ -1212,6 +1258,10 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 
 		entTemplate.SetTraceAttackRules(std::move(traceAttackRules));
+	});
+
+	HandleJSONMember(value, "loot_drop", [&entTemplate](const Value& value) {
+		entTemplate.SetLootDrop(DropItemSet::FromJSON(value));
 	});
 
 	HandleJSONMember(value, "pain", [&entTemplate](const Value& value) {
