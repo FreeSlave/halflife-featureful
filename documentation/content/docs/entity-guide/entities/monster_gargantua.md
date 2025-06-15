@@ -118,4 +118,37 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damag
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_gargantua": {
+        "check_melee_attack1": {
+            "distance": 80,
+            "dot": 0.7
+        },
+        "check_melee_attack2": {
+            "distance": 330,
+            "dot": 0.8
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 90,
+                "height": 64,
+                "punchangle": {
+                    "pitch": -30,
+                    "yaw": -30,
+                    "roll": 30
+                },
+                "knock": {
+                    "right": -100
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

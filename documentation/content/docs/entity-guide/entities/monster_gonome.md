@@ -66,4 +66,77 @@ The gonome model refers to nonexistent step sounds in animation events. Even if 
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_gonome": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": -9
+                },
+                "knock": {
+                    "right": -25
+                }
+            },
+            "2": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": 9
+                },
+                "knock": {
+                    "right": 25
+                }
+            },
+            "19": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "20": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "21": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "22": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 15
+                },
+                "knock": {
+                    "forward": -75
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

@@ -106,4 +106,34 @@ Hitgroup 11 is always getting changed to the head hitgroup, but the resistance i
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_human_grunt": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "3": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5
+                },
+                "knock": {
+                    "forward": 100,
+                    "up": 50
+                },
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

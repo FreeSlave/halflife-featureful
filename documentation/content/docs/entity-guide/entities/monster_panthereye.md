@@ -37,3 +37,62 @@ An alien creature cut from Half-Life.
 * `3` - Right claw high attack. Similar to `2`, but the punch and the push are stronger (like in left claw attack, but the opposite side).
 
 Note: each event deals the same amount of damage defined by the **sk_panthereye_dmg_claw** skill value. But one animation may include several events. E.g. `attack_primary` animation in the panthereye model distributed in the demo mod plays events `1` and `2` on different frames.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_panthereye": {
+        "check_melee_attack1": {
+            "distance": 84,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 84,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": 18
+                },
+                "knock": {
+                    "right": 100,
+                    "forward": -50,
+                    "up": 50
+                }
+            },
+            "2": {
+                "distance": 84,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": -9
+                },
+                "knock": {
+                    "right": -25,
+                    "forward": -25,
+                    "up": 25
+                }
+            },
+            "3": {
+                "distance": 84,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": -18
+                },
+                "knock": {
+                    "right": -100,
+                    "forward": -50,
+                    "up": 50
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

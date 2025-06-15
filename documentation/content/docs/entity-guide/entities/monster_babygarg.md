@@ -47,3 +47,51 @@ bookToC: false
 * `5` - create a stomp projectile. Play **BabyGarg.StompSound** soundscript.
 * `6` - play **BabyGarg.Breath** soundscript.
 * `7` - kick trace hull attack.
+
+{{% tabs %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_babygarg": {
+        "check_melee_attack1": {
+            "distance": 80,
+            "dot": 0.7
+        },
+        "check_melee_attack2": {
+            "distance": 165,
+            "dot": 0.8
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 90,
+                "height": 64,
+                "punchangle": {
+                    "pitch": -20,
+                    "yaw": -20,
+                    "roll": 20
+                },
+                "knock": {
+                    "right": -80
+                }
+            },
+            "7": {
+                "distance": 85,
+                "height": 64,
+                "punchangle": {
+                    "pitch": 20,
+                },
+                "knock": {
+                    "forward": 200,
+                    "up": 100
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

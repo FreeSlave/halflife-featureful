@@ -183,4 +183,35 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damag
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_slave": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": 18
+                }
+            },
+            "2": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": 18
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

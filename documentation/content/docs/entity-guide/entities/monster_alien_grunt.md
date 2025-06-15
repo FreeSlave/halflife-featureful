@@ -147,4 +147,51 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emul
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_grunt": {
+        "check_melee_attack1": {
+            "distance": 100,
+            "dot": 0.6
+        },
+        "trace_hull_attacks": {
+            "12": {
+                "distance": 100,
+                "punchangle": {
+                    "pitch": 8,
+                    "yaw": -25
+                },
+                "knock": {
+                    "right": 250,
+                    "player_only": true
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            },
+            "13": {
+                "distance": 100,
+                "punchangle": {
+                    "pitch": 8,
+                    "yaw": 25
+                },
+                "knock": {
+                    "right": -250,
+                    "player_only": true
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

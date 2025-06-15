@@ -76,4 +76,50 @@ Opposing Force voltigore geometry is kinda big which makes it harder for voltigo
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_voltigore": {
+        "check_melee_attack1": {
+            "distance": 128,
+            "dot": 0.6
+        },
+        "trace_hull_attacks": {
+            "12": {
+                "distance": 128,
+                "punchangle": {
+                    "pitch": 20,
+                },
+                "knock": {
+                    "forward": 150,
+                    "up": 100
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            },
+            "13": {
+                "distance": 128,
+                "punchangle": {
+                    "pitch": 15,
+                    "roll": -15
+                },
+                "knock": {
+                    "right": -150,
+                    "up": 100
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

@@ -73,4 +73,51 @@ Note: the pitdrone uses a lot of sounds in the sequence events. These sounds can
 ```
 {{% /tab %}}
 
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_pitdrone": {
+        "check_melee_attack1": {
+            "distance": 70,
+            "dot": 0.7
+        },
+        "check_melee_attack2": {
+            "distance": 70,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "2": {
+                "distance": 70,
+                "knock": {
+                    "forward": 100,
+                    "up": 100
+                }
+            },
+            "4": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 20,
+                    "roll": -20
+                },
+                "knock": {
+                    "right": -100,
+                    "up": 100
+                }
+            },
+            "6": {
+                "distance": 70,
+                "knock": {
+                    "forward": 200,
+                    "up": 200,
+                    "player_only": true
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

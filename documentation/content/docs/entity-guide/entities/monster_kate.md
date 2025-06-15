@@ -33,3 +33,39 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 ### Animation events
 
 * `6` - kick trace hull attack. Deals **sk_hgrunt_kick** damage.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_kate": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "6": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5
+                },
+                "knock": {
+                    "forward": -100,
+                    "up": 50
+                },
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

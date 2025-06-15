@@ -53,3 +53,31 @@ The soundscripts use ichthyosaur sounds by default.
 * `1` - bite trace hull attack. Plays **Flybee.Bite** soundscript.
 * `2` - fire 4 electric balls.
 * `3` - beam attack.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_flybee": {
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 70,
+                "punchangle": {
+                    "roll": 25
+                },
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}
