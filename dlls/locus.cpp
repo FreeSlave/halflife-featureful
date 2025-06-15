@@ -37,7 +37,7 @@ bool TryCalcLocus_Position(CBaseEntity *pEntity, CBaseEntity *pLocus, const char
 	{
 		const char* requesterClassname = pEntity ? STRING(pEntity->pev->classname) : "";
 		const char* requesterTargetname = pEntity ? STRING(pEntity->pev->targetname) : "";
-		ALERT(at_error, "%s \"%s\" has bad or missing calc_position value \"%s\"\n", requesterClassname, requesterTargetname, szText);
+		ALERT(at_error, "%s \"%s\" has bad or missing [LP] value \"%s\"\n", requesterClassname, requesterTargetname, szText);
 	}
 	return false;
 }
@@ -62,12 +62,12 @@ bool TryCalcLocus_Velocity(CBaseEntity *pEntity, CBaseEntity *pLocus, const char
 	{
 		const char* requesterClassname = pEntity ? STRING(pEntity->pev->classname) : "";
 		const char* requesterTargetname = pEntity ? STRING(pEntity->pev->targetname) : "";
-		ALERT(at_error, "%s \"%s\" has bad or missing calc_velocity value \"%s\"\n", requesterClassname, requesterTargetname, szText);
+		ALERT(at_error, "%s \"%s\" has bad or missing [LV] value \"%s\"\n", requesterClassname, requesterTargetname, szText);
 	}
 	return false;
 }
 
-bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText, float& result, bool showError)
+bool TryCalcLocus_RatioNonRandom(CBaseEntity *pLocus, const char *szText, float& result, bool showError)
 {
 	if (IsLikelyNumber(szText))
 	{ // assume it's a float
@@ -84,9 +84,38 @@ bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText, float& result, 
 
 	if (showError)
 	{
-		ALERT(at_error, "Bad or missing calc_ratio entity \"%s\"\n", szText);
+		ALERT(at_error, "Bad or missing [LR] value \"%s\"\n", szText);
 	}
 	return false;
+}
+
+bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText, float& result, bool showError)
+{
+	for (int i = 0; szText[i]; i++)
+	{
+		if (szText[i] == '.' && szText[i + 1] == '.')
+		{
+			char szComponentName[128];
+			strncpy(szComponentName, szText, i);
+			szComponentName[i] = '\0';
+
+			float A, B;
+			bool bA = TryCalcLocus_RatioNonRandom(pLocus, szComponentName, A, showError);
+			bool bB = TryCalcLocus_RatioNonRandom(pLocus, &szText[i + 2], B, showError);
+
+			if (bA && bB)
+				result = RANDOM_FLOAT(A, B);
+			else if (bA)
+				result = A;
+			else if (bB)
+				result = B;
+			else
+				return false;
+
+			return true;
+		}
+	}
+	return TryCalcLocus_RatioNonRandom(pLocus, szText, result, showError);
 }
 
 bool TryCalcLocus_Color(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError)

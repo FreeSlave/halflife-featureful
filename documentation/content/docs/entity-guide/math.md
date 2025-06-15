@@ -18,6 +18,7 @@ All entities have a calculable value associated with them - the concept borrowed
 * Wall rechargers (health and armor). For them Calc Ratio is the *juice left* / *max juice capacity* fraction (the the number in [0..1] range).
 * [calc_ratio]({{< ref calc_ratio >}}) - Calc Ratio is calculated based on Calc Ratio of another entity.
 * [calc_eval_number]({{< ref calc_eval_number >}}) - calculate a number from two operands.
+* [calc_numfromvec]({{< ref calc_numfromvec >}}) - get a component from a vector.
 * [game_number]({{< ref game_number >}}) - Calc Ratio is a stored floating point value.
 * [player_calc_ratio]({{< ref player_calc_ratio >}}) - report some player related values like current health, armor and ammo.
 

@@ -29,7 +29,7 @@ Featureful SDK introduces some new console commands designed to aid the develope
 * [global variables related commands]({{< ref "global-variables/#console-commands" >}})
 * [Player inventory related commands]({{< ref "player-inventory/#developer-commands" >}})
 * `entities_count` - print the current number of entities on the map at console. Use it to see how close the map is to the entity limit.
-* `calc_ratio` - report a Calc Ratio of specified entity. See [Math]({{< ref math >}}) and [Locus system]({{< ref locus-system >}}).
+* [Locus system related commands]({{< ref "locus-system/#console-commands" >}}).
 * `calc_state` - report state of specified entity (On or Off). See [Master entities]({{< ref master-entities >}}).
 * `dump_ammo_types` - report registered ammo types.
 * `dump_ammo_types_client` - report ammo types as known to the client (should be the same as `dump_ammo_types`).
