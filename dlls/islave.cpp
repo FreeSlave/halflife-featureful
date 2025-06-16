@@ -527,6 +527,8 @@ public:
 
 	CChargeToken* m_chargeToken;
 
+	static const NamedSoundScript idleSoundScript;
+	static const NamedSoundScript alertSoundScript;
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
 	static constexpr const char* attackHitSoundScript = "Vortigaunt.AttackHit";
@@ -538,6 +540,8 @@ public:
 	static const NamedSoundScript idleZapSoundScript;
 	static const NamedSoundScript summonStartSoundScript;
 	static const NamedSoundScript summonEndSoundScript;
+	static constexpr const char* useSoundScript = "Vortigaunt.Use";
+	static constexpr const char* unuseSoundScript = "Vortigaunt.UnUse";
 
 	static const NamedVisual zapBeamColorVisual;
 	static const NamedVisual armBeamColorVisual;
@@ -593,6 +597,22 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CISlave, CFollowingMonster )
+
+const NamedSoundScript CISlave::idleSoundScript = {
+	CHAN_VOICE,
+	{"SLV_IDLE"},
+	0.85f,
+	ATTN_NORM,
+	"Vortigaunt.Idle"
+};
+
+const NamedSoundScript CISlave::alertSoundScript = {
+	CHAN_VOICE,
+	{"SLV_ALERT"},
+	0.85f,
+	ATTN_NORM,
+	"Vortigaunt.Alert"
+};
 
 const NamedSoundScript CISlave::painSoundScript = {
 	CHAN_WEAPON,
@@ -791,7 +811,7 @@ void CISlave::AlertSound()
 {
 	if( m_hEnemy != 0 )
 	{
-		SENTENCEG_PlayRndSz( ENT( pev ), "SLV_ALERT", 0.85, ATTN_NORM, 0, m_voicePitch );
+		EmitSoundScriptTalk(alertSoundScript);
 
 		CallForHelp( 512, m_hEnemy, m_vecEnemyLKP );
 	}
@@ -804,7 +824,7 @@ void CISlave::IdleSound()
 {
 	if( RANDOM_LONG( 0, 2 ) == 0 )
 	{
-		SENTENCEG_PlayRndSz( ENT( pev ), "SLV_IDLE", 0.85, ATTN_NORM, 0, m_voicePitch );
+		EmitSoundScriptTalk(idleSoundScript);
 	}
 
 	if (g_modFeatures.vortigaunt_idle_effects)
@@ -1444,6 +1464,8 @@ void CISlave::Precache()
 	PrecacheMyModel( "models/islave.mdl" );
 	PrecacheMyGibModel();
 
+	RegisterAndPrecacheSoundScript(idleSoundScript);
+	RegisterAndPrecacheSoundScript(alertSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
@@ -1454,6 +1476,8 @@ void CISlave::Precache()
 	RegisterAndPrecacheSoundScript(idleZapSoundScript);
 	RegisterAndPrecacheSoundScript(summonStartSoundScript);
 	RegisterAndPrecacheSoundScript(summonEndSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 
 	UTIL_PrecacheOther( "test_effect" );
 
@@ -2199,12 +2223,12 @@ bool CISlave::CanSpawnFamiliar()
 
 void CISlave::PlayUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "SLV_IDLE", 0.85, ATTN_NORM, 0, m_voicePitch );
+	EmitSoundScriptTalk(useSoundScript);
 }
 
 void CISlave::PlayUnUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "SLV_ALERT", 0.85, ATTN_NORM, 0, m_voicePitch );
+	EmitSoundScriptTalk(unuseSoundScript);
 }
 
 bool CISlave::EmitSoundScriptTalk(const char *name)

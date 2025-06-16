@@ -34,6 +34,8 @@ bookToC: false
 
 ### Soundscripts
 
+* **Vortigaunt.Idle** - idle sounds.
+* **Vortigaunt.Alert** - alert sounds.
 * **Vortigaunt.Pain** - pain sounds.
 * **Vortigaunt.Die** - death sounds.
 * **Vortigaunt.ZapPowerup** - played several times during the zap attack powerup.
@@ -46,6 +48,8 @@ bookToC: false
 * **Vortigaunt.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **Vortigaunt.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
 * **Vortigaunt.SuitOn** - charge token of friendly vortigaunt touches the player.
+* **Vortigaunt.Use** - start following the ally player. Derived from **Vortigaunt.Idle**
+* **Vortigaunt.UnUse** - stop following the ally player. Derived from **Vortigaunt.Alert**
 
 ### Visuals
 
