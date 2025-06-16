@@ -154,6 +154,89 @@ Experimental fusion of human and chumtoad from Azure Sheep.
 ```
 {{% /tab %}}
 
+{{% tab "Azure Sheep Pantheyeye" %}}
+The Panthereye in Azure Sheep is based on vortigaunt, so we can implement it via entity template. Do not confuse it with [monster_panthereye]({{< ref monster_panthereye >}}). The only thing that is currently missing is replacement of skill values (for higher damage output). We also took liberty of increasing the monster's bounding box size to allow projectiles properly hit the panther.
+
+```json
+{
+    "asheep_panther": {
+        "health": 800,
+        "own_visual": {
+            "model": "models/panther.mdl"
+        },
+        "size": {
+            "mins": [-32, -32, 0],
+            "maxs": [32, 32, 112]
+        },
+        "soundscripts": {
+            "Vortigaunt.Idle": {
+                "waves": ["panther/p_idle1.wav", "panther/p_idle2.wav"]
+            },
+            "Vortigaunt.Alert": {
+                "waves": ["panther/p_alert1.wav", "panther/p_alert2.wav"]
+            },
+            "Vortigaunt.Pain": {
+                "waves": ["panther/p_pain1.wav", "panther/p_pain2.wav"]
+            },
+            "Vortigaunt.Die": {
+                "waves": ["panther/p_die1.wav", "panther/p_die2.wav"]
+            },
+            "Vortigaunt.AttackHit": {
+                "waves": ["panther/pclaw_strike1.wav", "panther/pclaw_strike2.wav", "panther/pclaw_strike3.wav"]
+            },
+            "Vortigaunt.AttackMiss": {
+                "waves": ["panther/pclaw_miss1.wav", "panther/pclaw_miss2.wav"]
+            },
+            "Vortigaunt.ZapPowerup": {
+                "waves": ["panther/p_zap2.wav"]
+            },
+            "Vortigaunt.ZapShoot": {
+                "waves": ["panther/p_shoot1.wav"]
+            },
+            "Vortigaunt.Electro": {
+                "waves": ["panther/p_electro1.wav"]
+            }
+        },
+        "visuals": {
+            "Vortigaunt.ZapBeamColor": {
+                "color": [192, 64, 8]
+            },
+            "Vortigaunt.ArmBeamColor": {
+                "color": [192, 64, 8]
+            },
+            "Vortigaunt.BeamLightColor": {
+                "color": [192, 64, 8]
+            }
+        },
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["shock"],
+                    "attack_affinity": ["friendly", "self"]
+                },
+                "modifier": {
+                    "skip_damage": true
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": "head",
+                    "invert_hitgroup_check": true,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "=0.01"
+                },
+                "effects": {
+                    "ricochet": {}
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% tab "Trace Attack and Take Damage rules" %}}
 The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
 
