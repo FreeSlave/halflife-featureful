@@ -842,6 +842,20 @@ const SoundScript* CBaseEntity::GetSoundScript(const char *name)
 	return g_SoundScriptSystem.GetSoundScript(name);
 }
 
+static bool IsProbablySentenceGroup(const char* name)
+{
+	if (!name || !*name || *name == '!')
+		return false;
+	const char* str = name;
+	while(*str)
+	{
+		if (*str == '/' || *str == '.')
+			return false;
+		++str;
+	}
+	return true;
+}
+
 bool CBaseEntity::EmitSoundScript(const SoundScript *soundScript, const SoundScriptParamOverride paramsOverride, int flags)
 {
 	if (soundScript)
@@ -883,7 +897,14 @@ bool CBaseEntity::EmitSoundScriptSelectedSample(const SoundScript* soundScript, 
 
 		paramsOverride.ApplyOverride(channel, volume, attenuation, pitch);
 
-		return EmitSoundDyn(soundScript->channel, sample, RandomizeNumberFromRange(volume), attenuation, flags, RandomizeNumberFromRange(pitch));
+		if (IsProbablySentenceGroup(sample))
+		{
+			return SENTENCEG_PlayRndSz(edict(), sample, RandomizeNumberFromRange(volume), attenuation, flags, RandomizeNumberFromRange(pitch), soundScript->channel) >= 0;
+		}
+		else
+		{
+			return EmitSoundDyn(soundScript->channel, sample, RandomizeNumberFromRange(volume), attenuation, flags, RandomizeNumberFromRange(pitch));
+		}
 	}
 	return false;
 }
@@ -976,7 +997,8 @@ void CBaseEntity::PrecacheSoundScript(const SoundScript& soundScript)
 {
 	for (const auto& wave : soundScript.waves)
 	{
-		PRECACHE_SOUND(wave);
+		if (!IsProbablySentenceGroup(wave))
+			PRECACHE_SOUND(wave);
 	}
 }
 
