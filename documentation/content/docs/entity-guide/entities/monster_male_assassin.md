@@ -27,6 +27,8 @@ bookToC: false
 * **Massn.9MM** - burst MP5 shot. Derived from **NPC.9MM**
 * **Massn.GrenadeLaunch** - MP5 grenade launch. Derived from **NPC.GrenadeLaunch**
 * **Massn.Sniper** - sniperrifle fire. Derived from **NPC.Sniper**
+* **Massn.Use** - start following the ally player.
+* **Massn.UnUse** - stop following the ally player.
 
 ### Attacks
 

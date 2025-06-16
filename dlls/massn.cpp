@@ -92,6 +92,8 @@ public:
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
 
 	static constexpr const char* reloadSoundScript = "Massn.Reload";
 	static constexpr const char* burst9mmSoundScript = "Massn.9MM";
@@ -127,16 +129,26 @@ const NamedSoundScript CMassn::dieSoundScript = {
 	"Massn.Die"
 };
 
+const NamedSoundScript CMassn::useSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.Use"
+};
+
+const NamedSoundScript CMassn::unuseSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.UnUse"
+};
+
 void CMassn::PlayUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "BA_OK", SentenceVolume(), SentenceAttn(), 0, 85 );
-	JustSpoke();
+	PlaySentenceSoundScript(useSoundScript);
 }
 
 void CMassn::PlayUnUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "BA_WAIT", SentenceVolume(), SentenceAttn(), 0, 85 );
-	JustSpoke();
+	PlaySentenceSoundScript(unuseSoundScript);
 }
 
 bool CMassn::FOkToSpeak(void)
@@ -356,12 +368,15 @@ void CMassn::Precache()
 	// Note: these are optional
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
 	RegisterAndPrecacheSoundScript(reloadSoundScript, NPC::reloadSoundScript);
 	RegisterAndPrecacheSoundScript(burst9mmSoundScript, NPC::burst9mmSoundScript);
 	RegisterAndPrecacheSoundScript(grenadeLaunchSoundScript, NPC::grenadeLaunchSoundScript);
 	RegisterAndPrecacheSoundScript(sniperSoundScript, NPC::sniperSoundScript);
 
+	m_voicePitch = 100;
 	m_iBrassShell = PRECACHE_MODEL("models/shell.mdl");// brass shell
 }
 
