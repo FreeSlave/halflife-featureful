@@ -1445,7 +1445,7 @@ int SENTENCEG_PlayRndI( edict_t *entity, int isentenceg, float volume, float att
 
 // same as above, but takes sentence group name instead of index
 
-static int SENTENCEG_PlayRndSzImpl( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch, bool subtitle = false, int holdTime = 0 )
+static int SENTENCEG_PlayRndSzImpl( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch, int channel = 0, bool subtitle = false, int holdTime = 0 )
 {
 	char name[64];
 	int ipick;
@@ -1469,22 +1469,22 @@ static int SENTENCEG_PlayRndSzImpl( edict_t *entity, const char *szgroupname, fl
 	{
 		ClearBits(flags, SND_DONT_REPORT_MISSING);
 		if (subtitle)
-			EMIT_SOUND_DYN_SUB( entity, CHAN_VOICE, name, volume, attenuation, flags, pitch, holdTime );
+			EMIT_SOUND_DYN_SUB( entity, channel ? channel : CHAN_VOICE, name, volume, attenuation, flags, pitch, holdTime );
 		else
-			EMIT_SOUND_DYN( entity, CHAN_VOICE, name, volume, attenuation, flags, pitch );
+			EMIT_SOUND_DYN( entity, channel ? channel : CHAN_VOICE, name, volume, attenuation, flags, pitch );
 	}
 
 	return ipick;
 }
 
-int SENTENCEG_PlayRndSz( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch )
+int SENTENCEG_PlayRndSz( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch, int channel )
 {
-	return SENTENCEG_PlayRndSzImpl(entity, szgroupname, volume, attenuation, flags, pitch);
+	return SENTENCEG_PlayRndSzImpl(entity, szgroupname, volume, attenuation, flags, pitch, channel, false, 0);
 }
 
 int SENTENCEG_PlayRndSzSub( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch, int holdTime )
 {
-	return SENTENCEG_PlayRndSzImpl(entity, szgroupname, volume, attenuation, flags, pitch, true, holdTime);
+	return SENTENCEG_PlayRndSzImpl(entity, szgroupname, volume, attenuation, flags, pitch, 0, true, holdTime);
 }
 
 // play sentences in sequential order from sentence group.  Reset after last sentence.

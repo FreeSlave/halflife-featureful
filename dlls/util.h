@@ -536,7 +536,7 @@ void USENTENCEG_InitLRU(unsigned char *plru, int count);
 void SENTENCEG_Init();
 void SENTENCEG_Stop(edict_t *entity, int isentenceg, int ipick);
 int SENTENCEG_PlayRndI(edict_t *entity, int isentenceg, float volume, float attenuation, int flags, int pitch);
-int SENTENCEG_PlayRndSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch);
+int SENTENCEG_PlayRndSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int channel = 0);
 int SENTENCEG_PlayRndSzSub(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int holdTime);
 int SENTENCEG_PlaySequentialSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int ipick, bool freset);
 int SENTENCEG_GetIndex(const char *szrootname);
