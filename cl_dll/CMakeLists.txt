@@ -124,6 +124,7 @@ set (CLDLL_SOURCES
 	interpolation.cpp
 	menu.cpp
 	message.cpp
+	message_strings.cpp
 	MOTD.cpp
 	nightvision.cpp
 	parsemsg.cpp

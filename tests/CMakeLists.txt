@@ -21,6 +21,7 @@ add_executable(test
 	followers_test.cpp
 	inventory_test.cpp
 	materials_test.cpp
+	messages_test.cpp
 	objecthint_test.cpp
 	parsetext_test.cpp
 	soundscripts_test.cpp
@@ -36,6 +37,7 @@ add_executable(test
 	../game_shared/util_shared.cpp
 	../public/safe_snprintf.c
 	../cl_dll/hud_inventory.cpp
+	../cl_dll/message_strings.cpp
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp
 	../dlls/followers.cpp

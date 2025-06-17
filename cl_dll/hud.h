@@ -48,6 +48,7 @@
 #include "hud_renderer.h"
 #include "hud_inventory.h"
 #include "hud_objecthint.h"
+#include "message_strings.h"
 
 #include <array>
 #include <vector>
@@ -1155,6 +1156,7 @@ public:
 	bool m_bFlashlight;
 
 	InventoryHudSpec m_inventorySpec;
+	MessageStrings m_messageStrings;
 	ObjectHintManager objectHintManager;
 	KeyedDLightManager keyedDlightManager;
 

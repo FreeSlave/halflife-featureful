@@ -578,6 +578,22 @@ void __CmdFunc_HUDColor()
 
 extern void ReportRegisteredAmmoTypes();
 
+void GetTranslatedMessage()
+{
+	if (gEngfuncs.Cmd_Argc() <= 1)
+	{
+		gEngfuncs.Con_Printf("usage: %s <message-id>\n", gEngfuncs.Cmd_Argv(0));
+		return;
+	}
+
+	const char* msgId = gEngfuncs.Cmd_Argv(1);
+	const char* msgText = gHUD.m_messageStrings.GetText(msgId);
+	if (msgText)
+		gEngfuncs.Con_Printf("%s\n", msgText);
+	else
+		gEngfuncs.Con_Printf("No message with id \"%s\"\n", msgId);
+}
+
 void CHud::ParseModConfigs()
 {
 	g_errorCollector.Clear();
@@ -589,6 +605,11 @@ void CHud::ParseModConfigs()
 	InventoryHudSpec spec;
 	spec.ReadFromFile("sprites/hud_inventory.json");
 	m_inventorySpec = std::move(spec);
+
+	MessageStrings translatedStrings;
+	translatedStrings.ReadFromFile("messages.en.json");
+	translatedStrings.ReadFromFile("messages.json");
+	m_messageStrings = std::move(translatedStrings);
 
 	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
 }
@@ -791,6 +812,7 @@ void CHud::Init( void )
 	hudRenderer.Init();
 
 	gEngfuncs.pfnAddCommand("dump_ammo_types_client", ReportRegisteredAmmoTypes);
+	gEngfuncs.pfnAddCommand("get_message", GetTranslatedMessage);
 	gEngfuncs.pfnAddCommand("give_inventory", nullptr);
 	gEngfuncs.pfnAddCommand("remove_inventory", nullptr);
 	gEngfuncs.pfnAddCommand("give", nullptr);
