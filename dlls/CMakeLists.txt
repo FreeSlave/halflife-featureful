@@ -209,6 +209,7 @@ set (SVDLL_SOURCES
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/random_utils.cpp
+	../game_shared/unicode.cpp
 	../game_shared/util_shared.cpp
 	../game_shared/vcs_info.cpp
 	../public/safe_snprintf.c

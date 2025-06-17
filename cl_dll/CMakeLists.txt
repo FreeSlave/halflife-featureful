@@ -138,6 +138,7 @@ set (CLDLL_SOURCES
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/random_utils.cpp
+	../game_shared/unicode.cpp
 	../game_shared/util_shared.cpp
 	saytext.cpp
 	scoreboard.cpp
