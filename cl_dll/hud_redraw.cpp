@@ -654,6 +654,19 @@ void CHud::RecacheValues()
 	{
 		m_cachedHudColor = clientFeatures.hud_color;
 	}
+
+	m_cachedTextColor = m_cachedHudColor;
+	int r, g, b;
+	UnpackRGB(r, g, b, m_cachedTextColor);
+	const int rgbSum  = r + g + b;
+	if (rgbSum < 224 && rgbSum > 0)
+	{
+		const float multiplier = 224.0 / rgbSum;
+		r = Q_min(r * multiplier, 255);
+		g = Q_min(g * multiplier, 255);
+		b = Q_min(b * multiplier, 255);
+		m_cachedTextColor = PackRGB(r, g, b);
+	}
 }
 
 int CHud::GetCrosshairColor()
@@ -688,4 +701,9 @@ void CHud::ResetCrosshair()
 			}
 		}
 	}
+}
+
+int CHud::HUDTextColor()
+{
+	return m_cachedTextColor;
 }

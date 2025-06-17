@@ -936,6 +936,7 @@ private:
 
 	int m_cachedMinAlpha; // cache per frame
 	int m_cachedHudColor;
+	int m_cachedTextColor;
 
 	// this is solely to track whether we need to reset the crosshair
 	bool m_colorableCrosshair;
@@ -1016,6 +1017,7 @@ public:
 	void RecacheValues();
 	int GetCrosshairColor();
 	void ResetCrosshair();
+	int HUDTextColor();
 	ClientFeatures clientFeatures;
 
 	bool HasSuit() const
