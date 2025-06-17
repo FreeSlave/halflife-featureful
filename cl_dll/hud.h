@@ -658,6 +658,7 @@ public:
 	void MessageScanStart( void );
 	void MessageScanNextChar( void );
 	void Reset( void );
+	void SetColorParams( bool consoleFont );
 
 private:
 	client_textmessage_t		*m_pMessages[maxHUDMessages];

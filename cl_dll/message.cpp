@@ -21,6 +21,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "unicode.h"
 
 DECLARE_MESSAGE( m_Message, HudText )
 DECLARE_MESSAGE( m_Message, GameTitle )
@@ -140,19 +141,30 @@ int CHudMessage::YPosition( float y, int height )
 
 void CHudMessage::MessageScanNextChar( void )
 {
+	SetColorParams(false);
+
+	if( m_parms.pMessage->effect == 1 && m_parms.charTime != 0 )
+	{
+		if( m_parms.x >= 0 && m_parms.y >= 0 && ( m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text] ) <= ScreenWidth )
+			TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2 );
+	}
+}
+
+void CHudMessage::SetColorParams(bool consoleFont)
+{
 	int srcRed, srcGreen, srcBlue, destRed = 0, destGreen = 0, destBlue = 0;
-	int blend;
+	int blend = 0;	// Pure source
 
 	srcRed = m_parms.pMessage->r1;
 	srcGreen = m_parms.pMessage->g1;
 	srcBlue = m_parms.pMessage->b1;
-	blend = 0;	// Pure source
 
 	switch( m_parms.pMessage->effect )
 	{
 	// Fade-in / Fade-out
 	case 0:
 	case 1:
+	default:
 		destRed = destGreen = destBlue = 0;
 		blend = m_parms.fadeBlend;
 		break;
@@ -162,6 +174,13 @@ void CHudMessage::MessageScanNextChar( void )
 		{
 			srcRed = srcGreen = srcBlue = 0;
 			blend = 0;	// pure source
+			if (consoleFont)
+			{
+				blend = 160;
+				destRed = m_parms.pMessage->r2;
+				destGreen = m_parms.pMessage->g2;
+				destBlue = m_parms.pMessage->b2;
+			}
 		}
 		else
 		{
@@ -191,15 +210,14 @@ void CHudMessage::MessageScanNextChar( void )
 	else if( blend < 0 )
 		blend = 0;
 
+	if (consoleFont && blend > 96)
+	{
+		blend = 96;
+	}
+
 	m_parms.r = ( ( srcRed * ( 255 - blend ) ) + ( destRed * blend ) ) >> 8;
 	m_parms.g = ( ( srcGreen * (255 - blend ) ) + ( destGreen * blend ) ) >> 8;
 	m_parms.b = ( ( srcBlue * ( 255 - blend ) ) + ( destBlue * blend ) ) >> 8;
-
-	if( m_parms.pMessage->effect == 1 && m_parms.charTime != 0 )
-	{
-		if( m_parms.x >= 0 && m_parms.y >= 0 && ( m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text] ) <= ScreenWidth )
-			TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2 );
-	}
 }
 
 void CHudMessage::MessageScanStart( void )
@@ -209,6 +227,7 @@ void CHudMessage::MessageScanStart( void )
 	// Fade-in / out with flicker
 	case 1:
 	case 0:
+	default:
 		m_parms.fadeTime = m_parms.pMessage->fadein + m_parms.pMessage->holdtime;
 		
 
@@ -248,7 +267,7 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	const char *pText;
 	const char *pLineStart;
 
-	const bool useConsoleFont = pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0;
+	bool useConsoleFont = (pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0) || (pMessage->effect == 4);
 
 	pText = pMessage->pMessage;
 	// Count lines
@@ -262,6 +281,20 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 
 	char consoleStringBuf[512] = {0};
 	unsigned int consoleBufIndex = 0;
+
+	if (!useConsoleFont)
+	{
+		const char* pCheck = pText;
+		while(*pCheck)
+		{
+			if (*pCheck > 127 || *pCheck < 0)
+			{
+				useConsoleFont = Q_UnicodeValidate(pCheck);
+				break;
+			}
+			pCheck++;
+		}
+	}
 
 	while( *pText )
 	{
@@ -346,7 +379,8 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
 
 		if (useConsoleFont) {
-			gEngfuncs.pfnDrawSetTextColor(0,0,0);
+			SetColorParams(true);
+			gEngfuncs.pfnDrawSetTextColor(m_parms.r/255.0f, m_parms.g/255.0f, m_parms.b/255.0f);
 			gEngfuncs.pfnDrawConsoleString(m_parms.x, m_parms.y, consoleStringBuf);
 		} else {
 			for( j = 0; j < m_parms.lineLength; j++ )
@@ -441,6 +475,7 @@ int CHudMessage::Draw( float fTime )
 			{
 			case 0:
 			case 1:
+			default:
 				endTime = m_startTime[i] + pMessage->fadein + pMessage->fadeout + pMessage->holdtime;
 				break;
 
