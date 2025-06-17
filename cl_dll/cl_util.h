@@ -18,6 +18,7 @@
 #pragma once
 #if !defined(CL_UTIL_H)
 #define CL_UTIL_H
+#include <cassert>
 #include "cl_dll.h"
 #include "exportdef.h"
 #include "cvardef.h"

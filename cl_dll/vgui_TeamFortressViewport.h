@@ -34,7 +34,7 @@
 #include "string_utils.h"
 
 #define TF_DEFS_ONLY
-#define PC_LASTCLASS 10
+#define PC_LASTCLASS 12
 #define PC_UNDEFINED 0
 #define MENU_DEFAULT				1
 #define MENU_TEAM 					2
