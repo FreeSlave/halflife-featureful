@@ -44,6 +44,7 @@
 #include "cl_dll.h"
 #include "ammo.h"
 #include "dlight.h"
+#include "template_property_types.h"
 
 #include "hud_renderer.h"
 #include "hud_inventory.h"
@@ -908,6 +909,16 @@ private:
 	std::array<DlightAndData, 32> _dlights;
 };
 
+struct RectangleRenderProperties
+{
+	Color3 frameColor{255, 140, 0};
+	Color3 backgroundColor{0, 0, 0};
+	int frameAlpha = 255;
+	int backgroundAlpha = 160;
+	bool frameBlend = false;
+	bool backgroundBlend = true;
+};
+
 //
 //-----------------------------------------------------
 //
@@ -972,6 +983,7 @@ public:
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 	int GetNumWidth( int iNumber, int iFlags );
 	void DrawDarkRectangle( int x, int y, int wide, int tall );
+	void DrawDarkRectangle( int x, int y, int wide, int tall, const RectangleRenderProperties& rectProps );
 
 	struct ConsoleText
 	{

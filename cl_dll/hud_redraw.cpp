@@ -601,12 +601,22 @@ int CHud::GetNumWidth( int iNumber, int iFlags )
 
 void CHud::DrawDarkRectangle( int x, int y, int wide, int tall )
 {
-	//gEngfuncs.pTriAPI->RenderMode( kRenderTransTexture );
-	gEngfuncs.pfnFillRGBABlend( x, y, wide, tall, 0, 0, 0, 255 * 0.6 );
-	FillRGBA( x + 1, y, wide - 1, 1, 255, 140, 0, 255 );
-	FillRGBA( x, y, 1, tall - 1, 255, 140, 0, 255 );
-	FillRGBA( x + wide - 1, y + 1, 1, tall - 1, 255, 140, 0, 255 );
-	FillRGBA( x, y + tall - 1, wide - 1, 1, 255, 140, 0, 255 );
+	DrawDarkRectangle(x, y, wide, tall, RectangleRenderProperties{});
+}
+
+void CHud::DrawDarkRectangle(int x, int y, int wide, int tall, const RectangleRenderProperties& rectProps )
+{
+	const auto& background = rectProps.backgroundColor;
+	const auto& frame = rectProps.frameColor;
+
+	auto fillBackgroundFunc = rectProps.backgroundBlend ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+	auto fillFrameFunc = rectProps.frameBlend ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+
+	fillBackgroundFunc( x, y, wide, tall, background.r, background.g, background.b, rectProps.backgroundAlpha );
+	fillFrameFunc( x + 1, y, wide - 1, 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x, y, 1, tall - 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x + wide - 1, y + 1, 1, tall - 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x, y + tall - 1, wide - 1, 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
 }
 
 int CHud::HUDColor()
