@@ -174,14 +174,14 @@ if (USE_VGUI)
 		vgui_SpectatorPanel.cpp
 		vgui_teammenu.cpp
 		voice_status.cpp
-		../game_shared/vgui_checkbutton2.cpp
-		../game_shared/vgui_grid.cpp
-		../game_shared/vgui_helpers.cpp
-		../game_shared/vgui_listbox.cpp
-		../game_shared/vgui_loadtga.cpp
-		../game_shared/vgui_scrollbar2.cpp
-		../game_shared/vgui_slider2.cpp
-		../game_shared/voice_banmgr.cpp
+		vgui_checkbutton2.cpp
+		vgui_grid.cpp
+		vgui_helpers.cpp
+		vgui_listbox.cpp
+		vgui_loadtga.cpp
+		vgui_scrollbar2.cpp
+		vgui_slider2.cpp
+		voice_banmgr.cpp
 		)
 endif()
 

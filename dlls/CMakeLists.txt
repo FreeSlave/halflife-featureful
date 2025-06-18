@@ -230,7 +230,7 @@ endif()
 if(USE_VOICEMGR)
 	set(SVDLL_SOURCES
 		${SVDLL_SOURCES}
-		../game_shared/voice_gamemgr.cpp)
+		voice_gamemgr.cpp)
 else()
 	add_definitions(-DNO_VOICEGAMEMGR)
 endif()
