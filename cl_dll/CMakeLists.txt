@@ -108,10 +108,8 @@ set (CLDLL_SOURCES
 	hud.cpp
 	hud_caption.cpp
 	hud_error_collection.cpp
-	hud_inventory.cpp
 	hud_monsterinfo.cpp
 	hud_msg.cpp
-	hud_objecthint.cpp
 	hud_redraw.cpp
 	hud_spectator.cpp
 	hud_renderer.cpp
@@ -122,11 +120,13 @@ set (CLDLL_SOURCES
 	input_mouse.cpp
 	input_xash3d.cpp
 	interpolation.cpp
+	inventory_config.cpp
 	menu.cpp
 	message.cpp
 	message_strings.cpp
 	MOTD.cpp
 	nightvision.cpp
+	objecthint_manager.cpp
 	parsemsg.cpp
 	../pm_shared/pm_debug.cpp
 	../pm_shared/pm_math.cpp

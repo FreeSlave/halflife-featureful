@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "hud_inventory.h"
+#include "inventory_config.h"
 
 #include "parsetext.h"
 #include "color_utils.h"

@@ -1,4 +1,4 @@
-#include "hud_objecthint.h"
+#include "objecthint_manager.h"
 #include "hud.h"
 #include "event_api.h"
 #include "color_utils.h"
