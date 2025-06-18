@@ -41,22 +41,22 @@ struct fixed_string
 		return *this;
 	}
 	bool operator==(const char* str) const {
-		return strncmp(str, _a, _size) == 0;
+		return strcmp(_a, str) == 0;
 	}
 	bool operator!=(const char* str) const {
-		return strncmp(str, _a, _size) != 0;
+		return strcmp(_a, str) != 0;
 	}
 	bool operator<=(const char* str) const {
-		return strncmp(str, _a, _size) <= 0;
+		return strcmp(_a, str) <= 0;
 	}
 	bool operator<(const char* str) const {
-		return strncmp(str, _a, _size) < 0;
+		return strcmp(_a, str) < 0;
 	}
 	bool operator>=(const char* str) const {
-		return strncmp(str, _a, _size) >= 0;
+		return strcmp(_a, str) >= 0;
 	}
 	bool operator>(const char* str) const {
-		return strncmp(str, _a, _size) > 0;
+		return strcmp(_a, str) > 0;
 	}
 	template<size_t K>
 	bool operator==(const fixed_string<K>& s) const {

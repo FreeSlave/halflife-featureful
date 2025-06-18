@@ -44,7 +44,7 @@ TEST(FixedString, AssignmentOperator) {
 
 	fixed_string<8> s2 = "TestTest";
 	s = s2;
-	EXPECT_TRUE(s == "TestTest");
+	EXPECT_TRUE(s == "TestTes");
 }
 
 TEST(FixedString, EqualOperator) {
@@ -102,4 +102,10 @@ TEST(FixedString, Clear) {
 TEST(FixedString, GetCString) {
 	fixed_string<16> s = "Hello World";
 	EXPECT_STREQ(s.c_str(), "Hello World");
+}
+
+TEST(FixedString, CompareToCString) {
+	fixed_string<16> s = "Hello";
+	EXPECT_FALSE(s == "Hello world");
+	EXPECT_TRUE(s != "Hello world");
 }
