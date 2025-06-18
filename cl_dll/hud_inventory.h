@@ -2,8 +2,6 @@
 #ifndef HUD_INVENTORY_H
 #define HUD_INVENTORY_H
 
-#include "cl_dll.h"
-
 #include <string>
 #include <vector>
 #include "json_config.h"

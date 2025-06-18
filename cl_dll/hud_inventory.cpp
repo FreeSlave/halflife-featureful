@@ -2,7 +2,6 @@
 
 #include "hud_inventory.h"
 
-#include "cl_util.h"
 #include "parsetext.h"
 #include "color_utils.h"
 #include "string_utils.h"
