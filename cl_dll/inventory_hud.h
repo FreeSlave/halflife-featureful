@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HUD_INVENTORY_H
-#define HUD_INVENTORY_H
+#ifndef INVENTORY_HUD_H
+#define INVENTORY_HUD_H
 
 #include <string>
 #include <vector>

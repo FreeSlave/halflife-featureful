@@ -36,7 +36,7 @@ add_executable(test
 	../game_shared/tex_materials.cpp
 	../game_shared/util_shared.cpp
 	../public/safe_snprintf.c
-	../cl_dll/hud_inventory.cpp
+	../cl_dll/inventory_hud.cpp
 	../cl_dll/message_strings.cpp
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp

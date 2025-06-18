@@ -120,7 +120,7 @@ set (CLDLL_SOURCES
 	input_mouse.cpp
 	input_xash3d.cpp
 	interpolation.cpp
-	inventory_config.cpp
+	inventory_hud.cpp
 	menu.cpp
 	message.cpp
 	message_strings.cpp

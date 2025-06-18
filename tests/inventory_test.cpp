@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "inventory.h"
-#include "hud_inventory.h"
+#include "inventory_hud.h"
 #include "color_utils.h"
 
 const char inventorySpecs[] = R"(

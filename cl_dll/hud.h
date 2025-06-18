@@ -47,7 +47,7 @@
 #include "template_property_types.h"
 
 #include "hud_renderer.h"
-#include "inventory_config.h"
+#include "inventory_hud.h"
 #include "objecthint_manager.h"
 #include "message_strings.h"
 
