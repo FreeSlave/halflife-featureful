@@ -29,7 +29,6 @@
 #if !defined(CL_DLL_H)
 #define CL_DLL_H
 #include "build.h"
-typedef unsigned char byte;
 // redefine
 //typedef int ( *pfnUserMsgHook )( const char *pszName, int iSize, void *pbuf );
 
