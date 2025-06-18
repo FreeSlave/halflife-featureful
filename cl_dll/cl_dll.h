@@ -36,7 +36,7 @@ typedef unsigned char byte;
 #include "mathlib.h"
 
 #include "../engine/cdll_int.h"
-#include "../dlls/cdll_dll.h"
+#include "cdll_dll.h"
 
 #if !XASH_WIN32
 #define _cdecl

@@ -19,9 +19,8 @@
 #pragma once
 #if !defined(CDLL_DLL_H)
 #define CDLL_DLL_H
+#include "common_limits.h"
 #include "player_items.h"
-
-#define MAX_WEAPONS		64
 
 #define MAX_ITEMS				5	// hard coded item types
 
@@ -30,17 +29,12 @@
 #define	HIDEHUD_ALL		( 1<<2 )
 #define HIDEHUD_HEALTH		( 1<<3 )
 
-#define	MAX_AMMO_TYPES		32
 #define AMMO_EXHAUSTIBLE_NETWORK_BIT ( 1 << 6 )
 
 #define HUD_PRINTNOTIFY		1
 #define HUD_PRINTCONSOLE	2
 #define HUD_PRINTTALK		3
 #define HUD_PRINTCENTER		4
-
-
-#define MAX_INVENTORY_ITEMS 8
-#define MAX_ICONSPRITES 6
 
 #define PLAYER_STATUS_ICON_ENABLE (1 << 0)
 #define PLAYER_STATUS_ICON_ALLOW_DUPLICATE (1 << 1)

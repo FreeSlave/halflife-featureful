@@ -715,6 +715,8 @@ struct inventory_t
 	int count;
 };
 
+#define MAX_ICONSPRITES 6
+
 class CHudStatusIcons : public CHudBase
 {
 public:
