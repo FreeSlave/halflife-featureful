@@ -184,8 +184,24 @@ bool CHalfLifeRules::ClientConnected( edict_t *pEntity, const char *pszName, con
 	return true;
 }
 
+extern int gmsgJournal;
+
 void CHalfLifeRules::InitHUD( CBasePlayer *pPlayer )
 {
+	if (!pPlayer->IsNetClient())
+		return;
+
+	for (unsigned int i = 0; i < MAX_JOURNAL_RECORDS; ++i)
+	{
+		if (!FStringNull(pPlayer->m_journalSections[i]) && !FStringNull(pPlayer->m_journalRecords[i]))
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgJournal, NULL, pPlayer->pev );
+				WRITE_BYTE(0);
+				WRITE_STRING(STRING(pPlayer->m_journalSections[i]));
+				WRITE_STRING(STRING(pPlayer->m_journalRecords[i]));
+			MESSAGE_END();
+		}
+	}
 }
 
 //=========================================================

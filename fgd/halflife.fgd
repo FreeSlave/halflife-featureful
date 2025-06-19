@@ -3264,6 +3264,17 @@
 	master(string) : "Master"
 ]
 
+@PointClass base(Targetname) color(170 255 255) = game_journal : "Update player's journal"
+[
+	netname(string) : "Journal Section"
+	message(string) : "Journal Record"
+	spawnflags(flags) =
+	[
+		1: "Repeatable" : 0 : "Don't remove entity after firing"
+		2: "Don't notify" : 0 : "Don't notify about journal update"
+	]
+]
+
 @PointClass base(Targetname) = game_player_equip : "Initial player equipment"
 [
 	spawnflags(flags) =

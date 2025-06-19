@@ -78,6 +78,9 @@ int CHudStatusIcons::Draw( float flTime )
 	if( gEngfuncs.IsSpectateOnly() )
 		return 1;
 
+	if (gHUD.m_Journal.m_iShowscoresHeld && gHUD.m_Journal.HasInventorySection())
+		return 1;
+
 	bool drawStatusIcons = gHUD.CanDrawStatusIcons();
 
 	int i;

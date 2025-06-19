@@ -651,13 +651,16 @@ void IN_ScoreDown( void )
 {
 	KeyDown( &in_score );
 #if USE_VGUI
-	if ( gHUD.UseVguiScoreBoard() && gViewPort )
+	if ( gEngfuncs.GetMaxClients() > 1 && gHUD.UseVguiScoreBoard() && gViewPort )
 	{
 		gViewPort->ShowScoreBoard();
 		return;
 	}
 #endif
-	gHUD.m_Scoreboard.UserCmd_ShowScores();
+	if (gEngfuncs.GetMaxClients() > 1)
+		gHUD.m_Scoreboard.UserCmd_ShowScores();
+	else
+		gHUD.m_Journal.UserCmd_ShowJournal();
 }
 
 void IN_ScoreUp( void )
@@ -669,7 +672,10 @@ void IN_ScoreUp( void )
 		gViewPort->HideScoreBoard();
 	}
 #endif
-	gHUD.m_Scoreboard.UserCmd_HideScores();
+	if (gEngfuncs.GetMaxClients() > 1)
+		gHUD.m_Scoreboard.UserCmd_HideScores();
+	else
+		gHUD.m_Journal.UserCmd_HideJournal();
 }
 
 void IN_MLookUp( void )

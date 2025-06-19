@@ -611,6 +611,10 @@ void CHud::ParseModConfigs()
 	translatedStrings.ReadFromFile("messages.json");
 	m_messageStrings = std::move(translatedStrings);
 
+	JournalConfig journalConfig;
+	journalConfig.ReadFromFile("journal.json");
+	m_journalConfig = std::move(journalConfig);
+
 	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
 }
 
@@ -802,6 +806,7 @@ void CHud::Init( void )
 
 	m_MOTD.Init();
 	m_Scoreboard.Init();
+	m_Journal.Init();
 	m_ErrorCollection.Init();
 
 	m_Menu.Init();
@@ -1352,6 +1357,7 @@ void CHud::VidInit( void )
 #endif
 	m_MOTD.VidInit();
 	m_Scoreboard.VidInit();
+	m_Journal.VidInit();
 	m_ErrorCollection.VidInit();
 	m_Nightvision.VidInit();
 

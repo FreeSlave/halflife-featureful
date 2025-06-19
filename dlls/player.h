@@ -74,6 +74,7 @@ enum
 //This is Half-Life player entity
 //-----------------------------------------------------
 #define CSUITPLAYLIST	4		// max of 4 suit sentences queued up at any time
+#define MAX_JOURNAL_RECORDS 4
 
 #define	SUIT_REPEAT_OK		0
 #define SUIT_NEXT_IN_30SEC	30
@@ -554,6 +555,10 @@ public:
 	bool m_needSatchelRecheck;
 
 	bool m_forceCollideWithCorpses;
+
+	bool AddJournalRecord(string_t section, string_t record);
+	string_t m_journalSections[MAX_JOURNAL_RECORDS];
+	string_t m_journalRecords[MAX_JOURNAL_RECORDS];
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

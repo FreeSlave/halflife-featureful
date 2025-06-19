@@ -12,6 +12,7 @@ protected:
 public:
 	const char* GetText(const char* id) const;
 	void SetText(const char* id, const char* text);
+	typedef fixed_string<64> ID;
 private:
-	std::map<fixed_string<64>, std::string, CaseInsensitiveCompare> _messages;
+	std::map<ID, std::string, CaseInsensitiveCompare> _messages;
 };

@@ -150,6 +150,9 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_camera, FIELD_EHANDLE),
 	DEFINE_FIELD(CBasePlayer, m_cameraFlags, FIELD_INTEGER),
 
+	DEFINE_ARRAY(CBasePlayer, m_journalSections, FIELD_STRING, MAX_JOURNAL_RECORDS),
+	DEFINE_ARRAY(CBasePlayer, m_journalRecords, FIELD_STRING, MAX_JOURNAL_RECORDS),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -254,6 +257,8 @@ int gmsgObjectHint = 0;
 int gmsgRain = 0;
 int gmsgSnow = 0;
 
+int gmsgJournal = 0;
+
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
 	if (!pFriend->IsFullyAlive())
@@ -356,6 +361,8 @@ void LinkUserMessages( void )
 
 	gmsgRain = REG_USER_MSG("Rain", -1);
 	gmsgSnow = REG_USER_MSG("Snow", -1);
+
+	gmsgJournal = REG_USER_MSG("Journal", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -6434,6 +6441,39 @@ int CBasePlayer::InventoryItemIndex(string_t item)
 		}
 	}
 	return -1;
+}
+
+bool CBasePlayer::AddJournalRecord(string_t section, string_t record)
+{
+	if (FStringNull(section))
+	{
+		ALERT(at_console, "Tried to add a journal record without section\n");
+		return false;
+	}
+
+	unsigned int i;
+	for (i = 0; i < ARRAYSIZE(m_journalSections); ++i)
+	{
+		if (!FStringNull(m_journalSections[i]))
+		{
+			if (stricmp(STRING(section), STRING(m_journalSections[i])) == 0)
+			{
+				m_journalRecords[i] = record;
+				return true;
+			}
+		}
+	}
+	for (i = 0; i < ARRAYSIZE(m_journalSections); ++i)
+	{
+		if (FStringNull(m_journalSections[i]))
+		{
+			m_journalSections[i] = section;
+			m_journalRecords[i] = record;
+			return true;
+		}
+	}
+	ALERT(at_console, "Couldn't find place for %s journal section record\n", STRING(section));
+	return false;
 }
 
 void CBasePlayer::RecruitFollowers()

@@ -2,7 +2,6 @@
 
 #include "inventory_hud.h"
 
-#include "parsetext.h"
 #include "color_utils.h"
 #include "string_utils.h"
 #include "json_utils.h"

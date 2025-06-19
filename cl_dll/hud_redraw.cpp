@@ -166,7 +166,9 @@ int CHud::Redraw( float flTime, int intermission )
 
 	m_iHudNumbersYOffset = UsingHighResSprites() ? m_iFontHeight * 0.2 : 0;
 
-	m_Caption.Update( flTime, m_flTimeDelta );
+	m_Caption.Update(flTime, m_flTimeDelta);
+	m_Journal.Update(flTime, m_flTimeDelta);
+
 	if( m_pCvarDraw->value )
 	{
 		HUDLIST *pList = m_pHudList;
@@ -253,7 +255,7 @@ int CHud::Redraw( float flTime, int intermission )
 		ResetCrosshair();
 	}
 
-	if (m_pCvarCrosshair->value > 0.0f) {
+	if (m_pCvarCrosshair->value > 0.0f && !gHUD.m_Scoreboard.m_iShowscoresHeld && !gHUD.m_Journal.m_iShowscoresHeld) {
 		CHud::Renderer().DrawCrosshair();
 	}
 

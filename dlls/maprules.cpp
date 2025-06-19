@@ -1424,3 +1424,38 @@ void CGameNumber::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 }
 
 LINK_ENTITY_TO_CLASS( game_number, CGameNumber )
+
+extern int gmsgJournal;
+
+#define SF_GAMEJOURNAL_REPEATABLE 1
+#define SF_GAMEJOURNAL_DONT_NOTIFY 2
+
+class CGameJournal : public CPointEntity
+{
+public:
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+
+		if (pPlayer)
+		{
+			string_t section = MySection();
+			const bool shouldNotify = !FBitSet(pev->spawnflags, SF_GAMEJOURNAL_DONT_NOTIFY);
+			if (pPlayer->AddJournalRecord(section, pev->message))
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgJournal, NULL, pPlayer->pev );
+				WRITE_BYTE(shouldNotify);
+				WRITE_STRING(STRING(section));
+				WRITE_STRING(STRING(pev->message));
+				MESSAGE_END();
+			}
+		}
+		if (!FBitSet(pev->spawnflags, SF_GAMEJOURNAL_REPEATABLE))
+			UTIL_Remove(this);
+	}
+	virtual string_t MySection() {
+		return pev->netname;
+	}
+};
+
+LINK_ENTITY_TO_CLASS( game_journal, CGameJournal )

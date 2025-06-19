@@ -108,6 +108,7 @@ set (CLDLL_SOURCES
 	hud.cpp
 	hud_caption.cpp
 	hud_error_collection.cpp
+	hud_journal.cpp
 	hud_monsterinfo.cpp
 	hud_msg.cpp
 	hud_redraw.cpp
@@ -121,6 +122,7 @@ set (CLDLL_SOURCES
 	input_xash3d.cpp
 	interpolation.cpp
 	inventory_hud.cpp
+	journal_config.cpp
 	menu.cpp
 	message.cpp
 	message_strings.cpp

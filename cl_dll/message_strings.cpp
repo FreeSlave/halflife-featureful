@@ -27,6 +27,8 @@ bool MessageStrings::ReadFromDocument(const rapidjson::Document& document, const
 
 const char* MessageStrings::GetText(const char *id) const
 {
+	if (!id || !*id)
+		return nullptr;
 	const auto& it =_messages.find(id);
 	if (it != _messages.end())
 	{
@@ -37,5 +39,6 @@ const char* MessageStrings::GetText(const char *id) const
 
 void MessageStrings::SetText(const char *id, const char *text)
 {
-	_messages[id] = text;
+	if (id && text)
+		_messages[id] = text;
 }

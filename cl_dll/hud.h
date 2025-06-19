@@ -45,11 +45,13 @@
 #include "ammo.h"
 #include "dlight.h"
 #include "template_property_types.h"
+#include "fixed_vector.h"
 
 #include "hud_renderer.h"
 #include "inventory_hud.h"
 #include "objecthint_manager.h"
 #include "message_strings.h"
+#include "journal_config.h"
 
 #include <array>
 #include <vector>
@@ -339,6 +341,60 @@ protected:
 	HSPRITE m_hVoiceIcon;
 	int voiceIconWidth;
 	int voiceIconHeight;
+};
+
+class CHudJournal : public CHudBase
+{
+	struct JournalSection
+	{
+		const char* sectionName = nullptr;
+		bool showInventory = false;
+		bool alwaysShow = false;
+
+		const char* headerMessage = nullptr;
+		MessageStrings::ID messageId;
+		const char* messageText = nullptr;
+		fixed_vector<std::pair<int, int>, 10> lineOffsets;
+
+		const char* notificationMessage = nullptr;
+		const char* notificationMessageRight = nullptr;
+		const char* notificationSound = nullptr;
+
+		void UpdateLineOffsets();
+	};
+
+	struct Notification
+	{
+		std::string message;
+		float fadeTime;
+		int alpha;
+	};
+public:
+	int Init() override;
+	void InitHUDData() override;
+	int VidInit() override;
+	int Draw(float flTime) override;
+	void Update(float flTime, float flTimeDelta);
+
+	void UserCmd_ShowJournal();
+	void UserCmd_HideJournal();
+
+	int MsgFunc_Journal( const char *pszName, int iSize, void *pbuf );
+private:
+	void InitJournal();
+	void AddNotification(const char* message);
+	bool ShouldDraw();
+
+	std::vector<JournalSection> sections;
+	std::vector<Notification> notifications;
+
+	bool journalInit;
+	bool hasInventorySection;
+public:
+	bool m_iShowscoresHeld;
+	bool HasInventorySection() const {
+		return hasInventorySection;
+	}
 };
 
 class CHudScoreboard : public CHudBase
@@ -713,6 +769,10 @@ struct inventory_t
 	unsigned char r, g, b, a;
 	int position;
 	int count;
+
+	bool CanRender() const {
+		return !itemName.empty() && spr;
+	}
 };
 
 #define MAX_ICONSPRITES 6
@@ -739,6 +799,7 @@ private:
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
+public:
 	inventory_t m_InventoryList[MAX_INVENTORY_ITEMS];
 };
 
@@ -1111,6 +1172,7 @@ public:
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
 	CHudScoreboard	m_Scoreboard;
+	CHudJournal	m_Journal;
 	CHudMOTD	m_MOTD;
 	CHudErrorCollection	m_ErrorCollection;
 	CHudNightvision m_Nightvision;
@@ -1173,6 +1235,7 @@ public:
 
 	InventoryHudSpec m_inventorySpec;
 	MessageStrings m_messageStrings;
+	JournalConfig m_journalConfig;
 	ObjectHintManager objectHintManager;
 	KeyedDLightManager keyedDlightManager;
 

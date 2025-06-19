@@ -19,7 +19,7 @@ const char messagesTranslated[] = R"(
 TEST(MessageStrings, Parse)
 {
 	MessageStrings strings;
-	strings.ReadFromContents(messages, "");
+	ASSERT_TRUE(strings.ReadFromContents(messages, ""));
 
 	const char* hello = strings.GetText("HELLO");
 	ASSERT_TRUE(hello != nullptr);

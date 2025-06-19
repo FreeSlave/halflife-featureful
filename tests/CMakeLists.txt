@@ -20,6 +20,7 @@ add_executable(test
 	fixed_vector_test.cpp
 	followers_test.cpp
 	inventory_test.cpp
+	journal_test.cpp
 	materials_test.cpp
 	messages_test.cpp
 	objecthint_test.cpp
@@ -37,6 +38,7 @@ add_executable(test
 	../game_shared/util_shared.cpp
 	../public/safe_snprintf.c
 	../cl_dll/inventory_hud.cpp
+	../cl_dll/journal_config.cpp
 	../cl_dll/message_strings.cpp
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp

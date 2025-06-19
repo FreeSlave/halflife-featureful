@@ -166,10 +166,21 @@ void ToggleScores( void )
 		return;
 	}
 #endif
-	if (gHUD.m_Scoreboard.m_iShowscoresHeld) {
-		gHUD.m_Scoreboard.UserCmd_HideScores();
-	} else {
-		gHUD.m_Scoreboard.UserCmd_ShowScores();
+	if (gEngfuncs.GetMaxClients() > 1)
+	{
+		if (gHUD.m_Scoreboard.m_iShowscoresHeld) {
+			gHUD.m_Scoreboard.UserCmd_HideScores();
+		} else {
+			gHUD.m_Scoreboard.UserCmd_ShowScores();
+		}
+	}
+	else
+	{
+		if (gHUD.m_Journal.m_iShowscoresHeld) {
+			gHUD.m_Journal.UserCmd_HideJournal();
+		} else {
+			gHUD.m_Journal.UserCmd_ShowJournal();
+		}
 	}
 }
 
