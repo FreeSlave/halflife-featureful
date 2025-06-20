@@ -641,6 +641,8 @@ void CHud::ParseModConfigs()
 	MessageStrings translatedStrings;
 	translatedStrings.ReadFromFile("messages.en.json");
 	translatedStrings.ReadFromFile("messages.json");
+	translatedStrings.ReadLegacyJournalFiles();
+
 	m_messageStrings = std::move(translatedStrings);
 
 	DisplayNames displayNames;

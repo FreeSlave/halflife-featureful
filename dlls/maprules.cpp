@@ -1492,3 +1492,27 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( game_journal, CGameJournal )
+
+class CGameObjective : public CGameJournal
+{
+public:
+	string_t MySection() override { return MAKE_STRING("objectives"); }
+};
+
+LINK_ENTITY_TO_CLASS( game_objective, CGameObjective )
+
+class CGameThought : public CGameJournal
+{
+public:
+	string_t MySection() override { return MAKE_STRING("thoughts"); }
+};
+
+LINK_ENTITY_TO_CLASS( game_thought, CGameThought )
+
+class CGameHint : public CGameJournal
+{
+public:
+	string_t MySection() override { return MAKE_STRING("hints"); }
+};
+
+LINK_ENTITY_TO_CLASS( game_hint, CGameHint )

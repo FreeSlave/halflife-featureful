@@ -10,9 +10,13 @@ protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 public:
+	void ReadLegacyJournalFiles();
 	const char* GetText(const char* id, const char* fallback = nullptr) const;
 	void SetText(const char* id, const char* text);
 	typedef fixed_string<64> ID;
 private:
 	std::map<ID, std::string, CaseInsensitiveCompare> _messages;
+
+	void ParseQuestTexts(char* pfile, int length, const char* objectType, const char* fileName);
+	bool ParseLegacyJournalFile(const char* fileName, const char* objectName);
 };

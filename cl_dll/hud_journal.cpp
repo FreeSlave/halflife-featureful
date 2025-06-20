@@ -376,8 +376,44 @@ int CHudJournal::MsgFunc_Journal(const char *pszName, int iSize, void *pbuf)
 
 void CHudJournal::InitJournal()
 {
+	const bool useLegacySystem = true;
+
 	sections.clear();
 	hasInventorySection = false;
+
+	if (useLegacySystem)
+	{
+		auto createLegacySection = [](const char* sectionName, const char* headerId, const char* headerFallback) -> JournalSection {
+			JournalSection section;
+			section.sectionName = sectionName;
+			section.headerMessage = gHUD.m_messageStrings.GetText(headerId);
+			if (!section.headerMessage)
+				section.headerMessage = headerFallback;
+			return section;
+		};
+
+		JournalSection objectivesSection = createLegacySection("objectives", "__OBJECTIVES", "OBJECTIVES:");
+		objectivesSection.notificationSound = "misc/talk.wav";
+
+		objectivesSection.notificationMessage = gHUD.m_messageStrings.GetText("__OBJUPDATED1");
+		if (!objectivesSection.notificationMessage)
+			objectivesSection.notificationMessage = "Objective updated. Press [";
+
+		objectivesSection.notificationMessageRight = gHUD.m_messageStrings.GetText("__OBJUPDATED2");
+		if (!objectivesSection.notificationMessageRight)
+			objectivesSection.notificationMessageRight = "] to read.";
+
+		sections.push_back(objectivesSection);
+		sections.push_back(createLegacySection("thoughts", "__THOUGHTS", "THOUGHTS:"));
+		sections.push_back(createLegacySection("hints", "__HINTS", "HINTS:"));
+
+		JournalSection inventorySection = createLegacySection("inventory", "__INVENTORY", "INVENTORY:");
+		inventorySection.showInventory = true;
+		sections.push_back(inventorySection);
+
+		hasInventorySection = true;
+		return;
+	}
 
 	auto p = gHUD.m_journalConfig.SectionsRange();
 	for (auto it = p.first; it != p.second; ++it)
