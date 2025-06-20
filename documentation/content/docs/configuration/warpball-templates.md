@@ -2,7 +2,7 @@
 title: "Warpball templates"
 ---
 
-# # {{% param "title" %}}
+# {{% param "title" %}}
 
 **Warpball** is a set of visual and sound effects usually played when the alien monster spawns (gets teleported plot-wise) via the [monstermaker]({{< ref monstermaker >}}) entity. In original Half-Life such effect usually was implemented as a combination of `env_sprite`, `env_beam` and a couple of `ambient_generic` entities. Of course such approach is tedious and is prone to errors as a level designer needs to create bunch of entities for every spawn.
 

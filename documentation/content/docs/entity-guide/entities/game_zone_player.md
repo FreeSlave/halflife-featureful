@@ -1,6 +1,7 @@
 ---
 bookHidden: true
 bookToC: false
+entityCategory: solid
 ---
 
 # game_zone_player

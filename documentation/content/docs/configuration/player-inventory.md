@@ -167,3 +167,7 @@ Example: `remove_inventory battery_red 2`
 **Q:** Why there're two files describing the inventory items?
 
 **A:** The **templates/inventory.json** is read *server-side* and includes game logic parameters. The **sprites/hud_inventory.json** is read *client-side* and defines only how the inventory item is rendered in the client's HUD. If you were making a multiplayer mod the user could configure what the inventory would look like in their HUD.
+
+**Q:** Why is the entity for inventory item placed in the world called `item_pickup` rather than `item_inventory`?
+
+**A:** This is to avoid confusion with `item_inventory` from Sven Co-op.
