@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 #include "json_config.h"
+#include "optional.h"
+#include "template_property_types.h"
 
 class JournalConfig : public JSONConfig
 {
@@ -23,14 +25,50 @@ public:
 		bool showInventory = false;
 		bool alwaysShow = false;
 	};
+	struct Geometry
+	{
+		float width = 7.0f / 9.0f;
+		float height = 11.0f / 15.0f;
+		float paddingHorizontal = 1.0f / 14;
+		float paddingVertical = 1.0f / 13;
+	};
+	struct Position
+	{
+		float x;
+		float y;
+	};
+	struct Render
+	{
+		optional<Color3> textColor;
+		optional<Color3> notificationTextColor;
+		optional<Color3> frameColor;
+		Color3 backgroundColor{};
+		int frameAlpha = 255;
+		int backgroundAlpha = 160;
+		bool frameBlend = false;
+		bool backgroundBlend = true;
+	};
+
 	std::pair<std::vector<Section>::const_iterator, std::vector<Section>::const_iterator> SectionsRange() const {
 		return std::make_pair(sections.begin(), sections.end());
 	}
 	bool IsEmpy() const {
 		return sections.empty();
 	}
+	const Geometry& WindowGeometry() const {
+		return geometry;
+	}
+	const Position& NotificationPosition() const {
+		return notificationPosition;
+	}
+	const Render& RenderProps() const {
+		return render;
+	}
 private:
 	std::vector<Section> sections;
+	Geometry geometry;
+	Position notificationPosition{1.0 / 18, 1.0 / 5};
+	Render render;
 };
 
 #endif

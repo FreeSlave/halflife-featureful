@@ -51,14 +51,6 @@ void CHudJournal::InitHUDData()
 	m_iFlags |= HUD_ACTIVE;
 }
 
-#define JOURNAL_MARGIN (ScreenWidth / 18 * 2)
-#define JOURNAL_MARGIN_Y (ScreenHeight / 15 * 2)
-#define JOURNAL_PADDING (ScreenWidth / 18)
-#define JOURNAL_PADDING_Y (ScreenHeight / 15)
-#define JOURNAL_MAX_XPOS (ScreenWidth - JOURNAL_PADDING - JOURNAL_MARGIN)
-#define JOURNAL_WIDTH (ScreenWidth - JOURNAL_MARGIN * 2)
-#define JOURNAL_TEXT_WIDTH (JOURNAL_WIDTH - JOURNAL_PADDING * 2)
-
 void CHudJournal::Update(float flTime, float flTimeDelta)
 {
 	for (auto& notification : notifications)
@@ -111,38 +103,76 @@ int CHudJournal::Draw(float flTime)
 	if (!ShouldDraw())
 		return 1;
 
+	auto renderProps = gHUD.m_journalConfig.RenderProps();
+
 	int r, g, b;
-	const int currentHudColor = gHUD.HUDTextColor();
-	UnpackRGB(r, g, b, currentHudColor);
+	if (renderProps.textColor.has_value())
+	{
+		r = renderProps.textColor->r;
+		g = renderProps.textColor->g;
+		b = renderProps.textColor->b;
+	}
+	else
+	{
+		const int currentHudColor = gHUD.HUDTextColor();
+		UnpackRGB(r, g, b, currentHudColor);
+	}
+
 
 	if (!m_iShowscoresHeld)
 	{
-		int ytext = JOURNAL_PADDING_Y * 3;
+		int nR = r;
+		int nG = g;
+		int nB = b;
+		if (renderProps.notificationTextColor.has_value())
+		{
+			nR = renderProps.notificationTextColor->r;
+			nG = renderProps.notificationTextColor->g;
+			nB = renderProps.notificationTextColor->b;
+		}
+
+		auto notificationPosition = gHUD.m_journalConfig.NotificationPosition();
+		const int xtext = notificationPosition.x * ScreenWidth;
+		int ytext = notificationPosition.y * ScreenHeight;
 		const int lineHeight = CHud::UtfText::LineHeight();
 		const int afterIndent = Q_max(lineHeight / 4, 1);
 
 		for (auto& notification : notifications)
 		{
-			CHud::UtfText::DrawString(JOURNAL_PADDING, ytext, JOURNAL_MAX_XPOS, notification.message.c_str(), r, g, b);
+			CHud::UtfText::DrawString(xtext, ytext, ScreenWidth, notification.message.c_str(), nR, nG, nB);
 			ytext += lineHeight + afterIndent;
 		}
 		return 1;
 	}
 	notifications.clear();
 
-	const int xrect = JOURNAL_MARGIN;
-	const int width = JOURNAL_WIDTH;
-	const int yrect = JOURNAL_MARGIN_Y;
-	const int height = ScreenHeight - JOURNAL_MARGIN_Y * 2;
+	auto geometry = gHUD.m_journalConfig.WindowGeometry();
+
+	const int xrect = (1.0f - geometry.width) / 2 * ScreenWidth;
+	const int width = geometry.width * ScreenWidth;
+	const int yrect = (1.0f - geometry.height) / 2 * ScreenHeight;
+	const int height = geometry.height * ScreenHeight;
 
 	RectangleRenderProperties rectProps;
-	rectProps.frameColor = Color3(r, g, b);
+	if (renderProps.frameColor.has_value())
+	{
+		rectProps.frameColor = *renderProps.frameColor;
+	}
+	else
+	{
+		rectProps.frameColor = Color3(r, g, b);
+	}
+	rectProps.frameAlpha = renderProps.frameAlpha;
+	rectProps.frameBlend = renderProps.frameBlend;
+	rectProps.backgroundColor = renderProps.backgroundColor;
+	rectProps.backgroundAlpha = renderProps.backgroundAlpha;
+	rectProps.backgroundBlend = renderProps.backgroundBlend;
 	gHUD.DrawDarkRectangle(xrect, yrect, width, height, rectProps);
 
-	const int paddingX = JOURNAL_PADDING;
-	const int paddingY = JOURNAL_PADDING_Y;
+	const int paddingX = geometry.paddingHorizontal * width;
+	const int paddingY = geometry.paddingVertical * height;
 
-	const int xmax = JOURNAL_MAX_XPOS;
+	const int xmax = ((1.0f + geometry.width) / 2 - geometry.paddingHorizontal * geometry.width) * ScreenWidth;
 
 	const int xtext = xrect + paddingX;
 	int ytext = yrect + paddingY;
@@ -403,7 +433,8 @@ void CHudJournal::JournalSection::UpdateLineOffsets()
 	lineOffsets.clear();
 
 	const char* str = messageText;
-	const int maxwidth = JOURNAL_TEXT_WIDTH;
+	auto geometry = gHUD.m_journalConfig.WindowGeometry();
+	const int maxwidth = (geometry.width - geometry.paddingHorizontal * geometry.width * 2) * ScreenWidth;
 
 	if (CHud::ShouldUseConsoleFont())
 	{

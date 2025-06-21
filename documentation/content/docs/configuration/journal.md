@@ -1,6 +1,5 @@
 ---
 title: "Journal"
-bookToC: false
 ---
 
 # {{% param "title" %}}
@@ -13,7 +12,7 @@ Journal is currently for singleplayer only, and it can be opened by the same key
 
 Getting a new journal record can show the notification message on the player's screen and optionally play a notification sound.
 
-## Journal configuration
+## Configuration
 
 The journal sections are configured in the **journal.json** file (in the mod main directory).
 
@@ -41,12 +40,16 @@ Example:
         "inventory": {
             "header": "INVENTORY_HEADER",
             "show_inventory": true
-        },
+        }
     }
 }
 ```
 
-The root document has the property `"sections"`, which has subproperties defining the possible sections of the journal. The name of the subproperty is also the section ID used by the [game_journal]({{< ref game_journal >}}) entity. The sections will be shown in the same order as they're defined in **journal.json**.
+Properties:
+
+### sections
+
+An object with properties defining the possible sections of the journal. The name of each property is also the section ID used by the [game_journal]({{< ref game_journal >}}) entity. The sections will be shown in the same order as they're defined in **journal.json**.
 
 Each section can have the following properties:
 
@@ -59,6 +62,24 @@ Each section can have the following properties:
     - If it's the last section, the section will gravitate to the bottom of the journal window for better separation of the inventory section from other sections.
     - While the journal window is active the inventory items won't be shown at other parts of the screen to avoid duplication.
 * `"always_show"` - show the section header even if there's no message set (and if player doesn't have any inventory items for the section with `"show_inventory"`).
+
+### geometry
+
+An optional property that lets you to configure geometry settings of the journal window.
+
+* `"width"` - the journal window width, as fraction of the screen width. Accepts values in range (0, 1]. The default value is 7 / 9 (~ 0.78).
+* `"height"` - the journal window height, as fraction of the screen height. Accepts values in range (0, 1]. The default value is 11 / 15 (~ 0.73).
+* `"padding_horizontal"` - left and right padding before and after text inside the journal window, as fraction of the journal width. Accepts values in range [0, 0.5). The default value is 1 / 14 (~ 0.071).
+* `"padding_vertical"` - bottom and top padding before and after text inside the journal window, as fraction of the journal height. Accepts values in range [0, 0.5). The default value is 1 / 13 (~ 0.077).
+
+### notification_position
+
+An optional property that lets you to configure the position of the notification messages on the screen.
+
+* `"x"` - the X coordinate of the text on the screen, as fraction of the screen width. Accepts values in range [0, 1). The default value is 1 / 18.
+* `"y"` - the Y coordinate of the text on the screen, as fraction of the screen height. Accepts values in range [0, 1). The default value is 0.2.
+
+## Usage
 
 For the **journal.json** example above you'll need to define [text messages]({{< ref "text-messages/#translatable-messages" >}}) for headers and journal records. Example:
 

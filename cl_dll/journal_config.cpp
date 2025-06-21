@@ -30,8 +30,81 @@ const char* journalConfiggSchema = R"(
 					"always_show": {
 						"type": "boolean"
 					}
-				}
+				},
+				"additionalProperties": false
 			}
+		},
+		"geometry": {
+			"type": "object",
+			"properties": {
+				"width": {
+					"type": "number",
+					"exclusiveMinimum": 0.0,
+					"maximum": 1.0
+				},
+				"height": {
+					"type": "number",
+					"exclusiveMinimum": 0.0,
+					"maximum": 1.0
+				},
+				"padding_horizontal": {
+					"type": "number",
+					"minimum": 0.0,
+					"exclusiveMaximum": 0.5
+				},
+				"padding_vertical": {
+					"type": "number",
+					"minimum": 0.0,
+					"exclusiveMaximum": 0.5
+				}
+			},
+			"additionalProperties": false
+		},
+		"notification_position": {
+			"type": "object",
+			"properties": {
+				"x": {
+					"type": "number",
+					"minimum": 0.0,
+					"exclusiveMaximum": 1.0
+				},
+				"y": {
+					"type": "number",
+					"minimum": 0.0,
+					"exclusiveMaximum": 1.0
+				}
+			},
+			"additionalProperties": false
+		},
+		"render": {
+			"type": "object",
+			"properties": {
+				"text_color": {
+					"$ref": "#/color"
+				},
+				"notification_text_color": {
+					"$ref": "#/color"
+				},
+				"background_color": {
+					"$ref": "#/color"
+				},
+				"background_alpha": {
+					"$ref": "#/alpha"
+				},
+				"background_additive": {
+					"type": "boolean"
+				},
+				"frame_color": {
+					"$ref": "#/color"
+				},
+				"frame_alpha": {
+					"$ref": "#/alpha"
+				},
+				"frame_additive": {
+					"type": "boolean"
+				}
+			},
+			"additionalProperties": false
 		}
 	},
 	"additionalProperties": false
@@ -71,5 +144,29 @@ bool JournalConfig::ReadFromDocument(const rapidjson::Document& document, const 
 			sections.push_back(section);
 		}
 	});
+
+	HandleJSONMember(document, "geometry", [this](const Value& value) {
+		UpdatePropertyFromJson(geometry.width, value, "width");
+		UpdatePropertyFromJson(geometry.height, value, "height");
+		UpdatePropertyFromJson(geometry.paddingHorizontal, value, "padding_horizontal");
+		UpdatePropertyFromJson(geometry.paddingVertical, value, "padding_vertical");
+	});
+
+	HandleJSONMember(document, "notification_position", [this](const Value& value) {
+		UpdatePropertyFromJson(notificationPosition.x, value, "x");
+		UpdatePropertyFromJson(notificationPosition.y, value, "y");
+	});
+
+	HandleJSONMember(document, "render", [this](const Value& value) {
+		UpdatePropertyFromJson(render.textColor, value, "text_color");
+		UpdatePropertyFromJson(render.notificationTextColor, value, "notification_text_color");
+		UpdatePropertyFromJson(render.backgroundColor, value, "background_color");
+		UpdatePropertyFromJson(render.backgroundAlpha, value, "background_alpha");
+		UpdatePropertyFromJson(render.backgroundBlend, value, "background_additive");
+		UpdatePropertyFromJson(render.frameColor, value, "frame_color");
+		UpdatePropertyFromJson(render.frameAlpha, value, "frame_alpha");
+		UpdatePropertyFromJson(render.frameBlend, value, "frame_additive");
+	});
+
 	return true;
 }

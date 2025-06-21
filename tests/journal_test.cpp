@@ -19,6 +19,26 @@ const char journalConfig[] = R"(
 			"header": "INVENTORY_HEADER",
 			"show_inventory": true
 		}
+	},
+	"geometry": {
+		"width": 0.9,
+		"height": 1.0,
+		"padding_horizontal": 0.15,
+		"padding_vertical": 0.2
+	},
+	"notification_position": {
+		"x": 0.1,
+		"y": 0.2
+	},
+	"render": {
+		"text_color": [0, 100, 255],
+		"notification_text_color": [100, 255, 0],
+		"background_color": [50, 50, 50],
+		"background_alpha": 200,
+		"background_additive": false,
+		"frame_color": [255, 255, 0],
+		"frame_alpha": 220,
+		"frame_additive": true
 	}
 }
 
@@ -58,4 +78,30 @@ TEST(Journal, Parse)
 
 	++it;
 	ASSERT_EQ(it, range.second);
+
+	auto geometry = config.WindowGeometry();
+	EXPECT_EQ(geometry.width, 0.9f);
+	EXPECT_EQ(geometry.height, 1.0f);
+	EXPECT_EQ(geometry.paddingHorizontal, 0.15f);
+	EXPECT_EQ(geometry.paddingVertical, 0.2f);
+
+	auto notifiation = config.NotificationPosition();
+	EXPECT_EQ(notifiation.x, 0.1f);
+	EXPECT_EQ(notifiation.y, 0.2f);
+
+	auto renderProps = config.RenderProps();
+	ASSERT_TRUE(renderProps.textColor.has_value());
+	EXPECT_EQ(*renderProps.textColor, Color3(0, 100, 255));
+
+	ASSERT_TRUE(renderProps.notificationTextColor.has_value());
+	EXPECT_EQ(*renderProps.notificationTextColor, Color3(100, 255, 0));
+
+	EXPECT_EQ(renderProps.backgroundColor, Color3(50, 50, 50));
+	EXPECT_EQ(renderProps.backgroundAlpha, 200);
+	EXPECT_FALSE(renderProps.backgroundBlend);
+
+	ASSERT_TRUE(renderProps.frameColor.has_value());
+	EXPECT_EQ(*renderProps.frameColor, Color3(255, 255, 0));
+	EXPECT_EQ(renderProps.frameAlpha, 220);
+	EXPECT_TRUE(renderProps.frameBlend);
 }
