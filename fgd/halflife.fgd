@@ -3548,6 +3548,7 @@
 		0 : "Fade In/Out"
 		1 : "Credits"
 		2 : "Scan Out"
+		3 : "Use console font"
 	]
 	color(color255) : "Color1" : "100 100 100"
 	color2(color255) : "Color2" : "240 110 0"

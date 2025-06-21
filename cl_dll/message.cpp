@@ -267,7 +267,7 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	const char *pText;
 	const char *pLineStart;
 
-	bool useConsoleFont = (pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0) || (pMessage->effect == 4);
+	bool useConsoleFont = (pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0) || (pMessage->effect == 3);
 
 	pText = pMessage->pMessage;
 	// Count lines

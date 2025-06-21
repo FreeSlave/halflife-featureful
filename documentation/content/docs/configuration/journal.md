@@ -97,3 +97,7 @@ To update the thoughts you would set:
 * `Journal Record` = `THOUGHT_EXAMPLE`
 
 The inventory section gets updated automatically as player receives or loses inventory items.
+
+{{% hint info %}}
+If there's no record for the specified message ID the message ID will be displayed instead of text.
+{{% /hint %}}
