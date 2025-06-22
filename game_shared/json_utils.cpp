@@ -1118,10 +1118,10 @@ bool UpdatePropertyFromJson(FloatRange& floatRange, const Value& jsonValue, cons
 		{
 			const char* str = value.GetString();
 			const char* found = strchr(str, ',');
-			floatRange.min = atof(str);
+			floatRange.min = (float)atof(str);
 			if (found) {
 				found++;
-				floatRange.max = atof(found);
+				floatRange.max = (float)atof(found);
 			} else {
 				floatRange.max = floatRange.min;
 			}

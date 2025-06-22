@@ -501,7 +501,7 @@ void ExpandCallback(TEMPENTITY *ent, float frametime, float currenttime)
 	const float timeCreated = ent->entity.curstate.fuser1;
 	const float originalScale = ent->entity.curstate.fuser2;
 	const float scaleSpeed = ent->entity.curstate.fuser3;
-	const bool fade = ent->entity.curstate.iuser1;
+	const bool fade = ent->entity.curstate.iuser1 != 0;
 
 	if (fade)
 	{

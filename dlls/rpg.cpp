@@ -370,7 +370,7 @@ void CRpg::Spawn()
 	Precache();
 
 	SET_MODEL( ENT( pev ), MyWModel() );
-	m_fSpotActive = 1;
+	m_fSpotActive = true;
 
 	if( bIsMultiplayer() )
 	{

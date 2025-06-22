@@ -355,7 +355,7 @@ so the HUD can reinitialize itself.
 
 int DLLEXPORT HUD_VidInit( void )
 {
-	gHUD.m_iHardwareMode = IEngineStudio.IsHardware();
+	gHUD.m_iHardwareMode = IEngineStudio.IsHardware() != 0;
 	gHUD.VidInit();
 	LoadDefaultSprites();
 #if USE_FAKE_VGUI

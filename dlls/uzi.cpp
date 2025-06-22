@@ -85,7 +85,7 @@ bool CUzi::AddToPlayer( CBasePlayer *pPlayer )
 
 bool CUzi::Deploy()
 {
-	int r = DefaultDeploy( "models/v_uzi.mdl", "models/p_uzi.mdl", UZI_DEPLOY, "mp5" );
+	bool r = DefaultDeploy( "models/v_uzi.mdl", "models/p_uzi.mdl", UZI_DEPLOY, "mp5" );
 	if (r)
 	{
 		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.2;

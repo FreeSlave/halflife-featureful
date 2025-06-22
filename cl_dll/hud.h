@@ -646,7 +646,7 @@ public:
 #endif
 	bool IsOn();
 private:
-	int m_fOn;
+	bool m_fOn;
 #if FEATURE_CS_NIGHTVISION
 	dlight_t* m_pLightCS;
 #endif

@@ -821,7 +821,7 @@ int CHudAmmo::MsgFunc_AmmoList( const char *pszName, int iSize, void *pbuf )
 	const char* ammoName = READ_STRING();
 	int maxAmmo = READ_SHORT();
 	int idAndExhaustibleByte = READ_CHAR();
-	bool exhaustible = idAndExhaustibleByte & AMMO_EXHAUSTIBLE_NETWORK_BIT;
+	bool exhaustible = (idAndExhaustibleByte & AMMO_EXHAUSTIBLE_NETWORK_BIT) != 0;
 	int id = idAndExhaustibleByte & ~AMMO_EXHAUSTIBLE_NETWORK_BIT;
 	g_AmmoRegistry.RegisterOnClient(ammoName, maxAmmo, id, exhaustible);
 

@@ -998,13 +998,13 @@ bool CBaseTrigger::CanTouch(entvars_t *pevToucher)
 	{
 		// Only touch clients, monsters, or pushables (depending on flags)
 		if (pevToucher->flags & FL_CLIENT)
-			return !(pev->spawnflags & SF_TRIGGER_NOCLIENTS);
+			return !FBitSet(pev->spawnflags, SF_TRIGGER_NOCLIENTS);
 		else if (pevToucher->flags & FL_MONSTER)
-			return pev->spawnflags & SF_TRIGGER_ALLOWMONSTERS;
+			return FBitSet(pev->spawnflags, SF_TRIGGER_ALLOWMONSTERS);
 		else if (FClassnameIs(pevToucher,"func_pushable"))
-			return pev->spawnflags & SF_TRIGGER_PUSHABLES;
+			return FBitSet(pev->spawnflags, SF_TRIGGER_PUSHABLES);
 		else
-			return pev->spawnflags & SF_TRIGGER_EVERYTHING;
+			return FBitSet(pev->spawnflags, SF_TRIGGER_EVERYTHING);
 	}
 	else
 	{

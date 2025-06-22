@@ -38,8 +38,8 @@ void CEagle::Spawn( void )
 
 	InitDefaultAmmo(EAGLE_DEFAULT_GIVE);
 	InitMaxClip(EAGLE_MAX_CLIP);
-	m_fEagleLaserActive = 0;
-	m_pEagleLaser = 0;
+	m_fEagleLaserActive = false;
+	m_pEagleLaser = nullptr;
 
 	FallInit();// get ready to fall down.
 }
@@ -288,12 +288,12 @@ void CEagle::WeaponIdle( void )
 
 void CEagle::GetWeaponData(weapon_data_t& data)
 {
-	data.iuser1 = m_fEagleLaserActive;
+	data.iuser1 = m_fEagleLaserActive ? 1 : 0;
 }
 
 void CEagle::SetWeaponData(const weapon_data_t& data)
 {
-	m_fEagleLaserActive = data.iuser1;
+	m_fEagleLaserActive = data.iuser1 != 0;
 }
 
 #endif

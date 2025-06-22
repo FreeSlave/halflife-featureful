@@ -39,7 +39,7 @@ DECLARE_MESSAGE( m_Nightvision, Nightvision )
 
 int CHudNightvision::Init(void)
 {
-	m_fOn = 0;
+	m_fOn = false;
 
 	HOOK_MESSAGE(Nightvision);
 
@@ -60,7 +60,7 @@ int CHudNightvision::Init(void)
 
 void CHudNightvision::Reset(void)
 {
-	m_fOn = 0;
+	m_fOn = false;
 }
 
 int CHudNightvision::VidInit(void)
@@ -84,7 +84,7 @@ int CHudNightvision::VidInit(void)
 int CHudNightvision::MsgFunc_Nightvision(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
-	m_fOn = READ_BYTE();
+	m_fOn = READ_BYTE() != 0;
 	if (!m_fOn) {
 		RemoveCSdlight();
 		RemoveOFdlight();

@@ -120,7 +120,7 @@ int CHud::MsgFunc_SetFog( const char *pszName, int iSize, void *pbuf )
 
 	fog.density = READ_LONG() / 10000.0f;
 	fog.type = READ_BYTE();
-	fog.affectSkybox = READ_BYTE();
+	fog.affectSkybox = READ_BYTE() != 0;
 
 	return 1;
 }

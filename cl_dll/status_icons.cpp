@@ -229,9 +229,9 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 {
 	BEGIN_READ( pbuf, iSize );
 
-	int flags = READ_BYTE();
-	bool shouldEnable = flags & PLAYER_STATUS_ICON_ENABLE;
-	bool allowDuplicate = flags & PLAYER_STATUS_ICON_ALLOW_DUPLICATE;
+	const int flags = READ_BYTE();
+	const bool shouldEnable = (flags & PLAYER_STATUS_ICON_ENABLE) != 0;
+	const bool allowDuplicate = (flags & PLAYER_STATUS_ICON_ALLOW_DUPLICATE) != 0;
 	const char *pszIconName = READ_STRING();
 	if( shouldEnable )
 	{

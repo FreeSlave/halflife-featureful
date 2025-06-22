@@ -56,6 +56,7 @@ protected:
 
 #if XASH_WIN32
 #define HSPRITE WINDOWS_HSPRITE
+#define NOMINMAX
 #include <windows.h>
 #undef HSPRITE
 #else

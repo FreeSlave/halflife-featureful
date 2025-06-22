@@ -634,7 +634,7 @@ public:
 	bool ShouldWeaponIdle() override { return true; }
 
 	CLaserSpot *m_pSpot;
-	int m_fSpotActive;
+	bool m_fSpotActive;
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
 	const char* MyWModel() override { return "models/w_rpg.mdl"; }
@@ -926,7 +926,7 @@ public:
 
 	void UpdateSpot( void );
 	CLaserSpot *m_pEagleLaser;
-	int m_fEagleLaserActive;
+	bool m_fEagleLaserActive;
 
 	const char* MyWModel() override { return "models/w_desert_eagle.mdl"; }
 	int DefaultWeight() override { return EAGLE_WEIGHT; }
