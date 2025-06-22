@@ -342,7 +342,7 @@ int __MsgFunc_GameMode( const char *pszName, int iSize, void *pbuf )
 
 void PlayMP3( const char* pszMp3, bool loop = false )
 {
-	if( !IsXashFWGS() && gEngfuncs.pfnGetCvarPointer( "gl_overbright" ) )
+	if( !IsAnyXash() )
 	{
 		char cmd[256];
 
@@ -358,7 +358,7 @@ void PlayMP3( const char* pszMp3, bool loop = false )
 
 void StopMp3()
 {
-	if( !IsXashFWGS() && gEngfuncs.pfnGetCvarPointer( "gl_overbright" ) )
+	if( !IsAnyXash() )
 		gEngfuncs.pfnClientCmd( "mp3 stop\n" );
 	else
 		gEngfuncs.pfnPrimeMusicStream( 0, 0 );
