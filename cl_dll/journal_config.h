@@ -67,7 +67,7 @@ public:
 private:
 	std::vector<Section> sections;
 	Geometry geometry;
-	Position notificationPosition{1.0 / 18, 1.0 / 5};
+	Position notificationPosition{1.0f / 18, 1.0f / 5};
 	Render render;
 };
 

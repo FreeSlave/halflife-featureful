@@ -93,7 +93,7 @@ For the **journal.json** example above you'll need to define [text messages]({{<
     "SECONDARY_OBJECTIVE_UPDATED2": "] to read",
     "THOUGHTS_HEADER": "THOUGHTS:",
     "INVENTORY_HEADER": "INVENTORY:",
-    "INVENTORY_DESCRIPTION": "This is inventory",
+    "NEW_THOUGHT": "Got a new thought!",
     
     "PRIMARY_OBJECTIVE_EXAMPLE": "Run. Shoot. Think.",
     "PRIMARY_OBJECTIVE_EXAMPLE2": "Save the world from alien invasion.",

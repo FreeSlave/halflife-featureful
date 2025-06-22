@@ -207,7 +207,7 @@ public:
 		return *this;
 	}
 	inline bool TookDamageToHealth() const {
-		return _flags & TOOK_DAMAGE_TO_HEALTH;
+		return (_flags & TOOK_DAMAGE_TO_HEALTH) != 0;
 	}
 
 	inline TakeDamageResult& SetKilledResult(const KilledResult& killedResult) {
@@ -226,7 +226,7 @@ public:
 		return *this;
 	}
 	inline bool GotLightDamage() const {
-		return _flags & GOT_LIGHT_DAMAGE;
+		return (_flags & GOT_LIGHT_DAMAGE) != 0;
 	}
 
 	inline TakeDamageResult& SetGotHeavyDamage() {
@@ -234,7 +234,7 @@ public:
 		return *this;
 	}
 	inline bool GotHeavyDamage() const {
-		return _flags & GOT_HEAVY_DAMAGE;
+		return (_flags & GOT_HEAVY_DAMAGE) != 0;
 	}
 
 	inline TakeDamageResult& SetWasAlreadyDead() {
@@ -242,7 +242,7 @@ public:
 		return *this;
 	}
 	inline bool WasAlreadyDead() const {
-		return _flags & WAS_ALREADY_DEAD;
+		return (_flags & WAS_ALREADY_DEAD) != 0;
 	}
 };
 

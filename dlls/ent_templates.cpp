@@ -44,13 +44,13 @@ static DamageTypeMatch ParseDamageTypeMatch(const char* str)
 static std::pair<ValueComparison, float> ParseValueComparison(const char* str)
 {
 	if (strncmp(str, "<=", 2) == 0)
-		return std::make_pair(ValueComparison::LESS_OR_EQUAL, atof(str+2));
+		return std::make_pair(ValueComparison::LESS_OR_EQUAL, (float)atof(str+2));
 	else if (strncmp(str, ">=", 2) == 0)
-		return std::make_pair(ValueComparison::GREATER_OR_EQUAL, atof(str+2));
+		return std::make_pair(ValueComparison::GREATER_OR_EQUAL, (float)atof(str+2));
 	else if (strncmp(str, "<", 1) == 0)
-		return std::make_pair(ValueComparison::LESS, atof(str+1));
+		return std::make_pair(ValueComparison::LESS, (float)atof(str+1));
 	else if (strncmp(str, ">", 1) == 0)
-		return std::make_pair(ValueComparison::GREATER, atof(str+1));
+		return std::make_pair(ValueComparison::GREATER, (float)atof(str+1));
 	return std::make_pair(ValueComparison::UNKNOWN, 0.0f);
 }
 

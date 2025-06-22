@@ -2,6 +2,8 @@
 #ifndef UTIL_SHARED_H
 #define UTIL_SHARED_H
 
+#include <type_traits>
+
 int UTIL_SharedRandomLong( unsigned int seed, int low, int high );
 float UTIL_SharedRandomFloat( unsigned int seed, float low, float high );
 int UTIL_LastRandomSeed();
@@ -18,9 +20,22 @@ extern void			UTIL_StringToVector( float *pVector, const char *pString, int* com
 const char* RenderModeToString(int rendermode);
 const char* RenderFxToString(int renderfx);
 
-// Keeps clutter down a bit, when using a float as a bit-vector
-#define SetBits(flBitVector, bits)		((flBitVector) = (int)(flBitVector) | (bits))
-#define ClearBits(flBitVector, bits)	((flBitVector) = (int)(flBitVector) & ~(bits))
-#define FBitSet(flBitVector, bit)		((int)(flBitVector) & (bit))
+template<typename T1, typename T2, typename = std::enable_if<std::is_integral<T1>::value>>
+void SetBits(T1& bitVector, T2 bits)
+{
+	bitVector |= bits;
+}
+
+template<typename T1, typename T2, typename = std::enable_if<std::is_integral<T1>::value>>
+void ClearBits(T1& bitVector, T2 bits)
+{
+	bitVector &= ~bits;
+}
+
+template<typename T1, typename T2, typename = std::enable_if<std::is_integral<T1>::value>>
+bool FBitSet(T1 bitVector, T2 bit)
+{
+	return (bitVector & bit) != 0;
+}
 
 #endif
