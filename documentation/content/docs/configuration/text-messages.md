@@ -4,7 +4,7 @@ title: "Text messages"
 
 # {{% param "title" %}}
 
-Featureful SDK supports the same means to show text as original Half-Life along with some new methods and improvements.
+Featureful SDK supports the same means to show text as original Half-Life ([env_message]({{< ref env_message >}}) and [game_text]({{< ref game_text >}})) along with some new methods and improvements.
 
 ## Titles
 

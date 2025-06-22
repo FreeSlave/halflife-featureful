@@ -79,6 +79,19 @@ An optional property that lets you to configure the position of the notification
 * `"x"` - the X coordinate of the text on the screen, as fraction of the screen width. Accepts values in range [0, 1). The default value is 1 / 18.
 * `"y"` - the Y coordinate of the text on the screen, as fraction of the screen height. Accepts values in range [0, 1). The default value is 0.2.
 
+### render
+
+An optional property that lets you to configure the colors for the journal window.
+
+* `"text_color"` - the [color]({{< ref "JSON/#color" >}}) used to draw both header and record texts. By default the color based on HUD color is used.
+* `"notification_text_color"` - the color used to draw notification messages. By default the color based on HUD color is used.
+* `"background_color"` - the background color for the journal window. The default vlaue is  `[0, 0, 0]` (black color).
+* `"background_alpha"` - the background [alpha]({{< ref "JSON/#alpha" >}}) value. The default value is 160.
+* `"background_additive"` a boolean. Whether the background should be rendered in additive mode to allow semitransparency. This is true by default.
+* `"frame_color"` - the window frame color. By default the color based on HUD color is used.
+* `"frame_alpha"` - the frame alpha value.
+* `"frame_additive"` - a boolean. Whether the frame should be rendered in additive mode to allow semitransparency. This is false by default.
+
 ## Usage
 
 For the **journal.json** example above you'll need to define [text messages]({{< ref "text-messages/#translatable-messages" >}}) for headers and journal records. Example:

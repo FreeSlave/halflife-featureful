@@ -80,25 +80,25 @@ const char* journalConfiggSchema = R"(
 			"type": "object",
 			"properties": {
 				"text_color": {
-					"$ref": "#/color"
+					"$ref": "definitions.json#/color"
 				},
 				"notification_text_color": {
-					"$ref": "#/color"
+					"$ref": "definitions.json#/color"
 				},
 				"background_color": {
-					"$ref": "#/color"
+					"$ref": "definitions.json#/color"
 				},
 				"background_alpha": {
-					"$ref": "#/alpha"
+					"$ref": "definitions.json#/alpha"
 				},
 				"background_additive": {
 					"type": "boolean"
 				},
 				"frame_color": {
-					"$ref": "#/color"
+					"$ref": "definitions.json#/color"
 				},
 				"frame_alpha": {
-					"$ref": "#/alpha"
+					"$ref": "definitions.json#/alpha"
 				},
 				"frame_additive": {
 					"type": "boolean"
