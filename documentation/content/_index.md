@@ -18,13 +18,15 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 * Improvements to [monsters]({{< ref monsters >}}) AI and new abilities for standard monsters.
 * The concept of [Soundscripts]({{< ref soundscripts >}}) similar to one from Source, which allows to configure sounds used by monsters and some other entities without changing the source code.
 * The concept of [Visuals]({{< ref visuals >}}) that allows to configure models/sprites and render properties of some visual effects without changing the source code.
+* The concept of [Entity templates]({{< ref entity-templates >}}).
 * A lot of features and behavior aspects can be adjusted specifically for your mod via the [Feature configuration]({{< ref configuration >}}) files without rebuilding the game libraries. E.g. the unused custom weapons can be disabled and their assets won't need to be distributed with the mod.
 * Configurable [warpball effects]({{< ref warpball-templates >}}) for monstermakers.
 * [Subtitles]({{< ref subtitles >}}) system.
-* Simple [player inventory]({{< ref player-inventory >}}) system.
+* [Journal]({{< ref journal >}}) system (for objectives information, etc.)
+* [Player inventory]({{< ref player-inventory >}}) system (for quest items).
 * [HUD scaling]({{< ref "hud#hud-scaling" >}})
 * Weather effects like [rain]({{< ref env_rain >}}) and [snow]({{< ref env_snow >}}).
-* Crossplatform. Support for GoldSource (including old pre-SDL2 versions) and Xash3D-FWGS engines. VGUI and VGUI-less builds. SDK potentially may work on mobile platforms, but it needs to be tested.
+* Crossplatform (Windows and Linux). Support for GoldSource (including old pre-SDL2 versions) and Xash3D-FWGS engines. VGUI and VGUI-less builds. SDK potentially may work on mobile platforms, but it needs to be tested.
 
 ## SDK usage in real projects
 
@@ -69,9 +71,6 @@ Read [compatibility]({{< ref "compatibility" >}}) for more detailed overwiew.
 
 **Q:** Is it well-tested?  
 **A:** The mods [Field Intensity](https://www.moddb.com/mods/field-intensity) and [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) are based on the same code. There're also several mods in development using this SDK. So one can say it's pretty well tested and continuously being tested in the new projects.
-
-**Q:** If Field Intensity uses the same codebase, why Featureful SDK lacks some of FI additions like objectives interface and improved squad mechanic?  
-**A:** Some of these features were quite experimental and not ready to be merged back into the main codebase. Some of them are made for Field Intensity only and probably won't be merged back at all.
 
 **Q:** Can I play the original Half-Life campaign using Featureful SDK?  
 **A:** Very likely yes. It's been a long time since I tested it though, so you're welcome to try and report any discovered issues.

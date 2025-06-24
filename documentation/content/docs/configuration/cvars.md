@@ -9,29 +9,57 @@ Featureful SDK introduces new client cvars that can be set by player to adjust t
 
 The cvars also can be included as options in the [Advanced settings menu]({{< ref "shipping-your-mod/#advanced-settings" >}}) to make accessing them even more convenient for the player.
 
-* `cl_viewbob` - disable (0) or enable (1) weapon bobbing.
+### View
+
+* `cl_viewbob` - disable (0) or enable (1) weapon bobbing. The latter is the same as in HL Anniversary version.
 * `cl_rollangle` - angle of view rolling when player goes sideways. Set to 0 to disable viewroll.
+
+### HUD
+
+* [HUD]({{< ref "HUD" >}}) related cvars.
+* `cl_subtitles` - whether to show captions. For mods that use [sound/captions.txt]({{< ref subtitles >}}) system.
+
+### Weapon effects
+
 * `cl_weapon_sparks` - whether to create sparks from the bullet impact on the walls. Similar to Counter-Strike.
 * `cl_weapon_wallpuff` - whether to create a puff from the bullet impact on the walls. Similar to Counter-Strike.
 * `cl_muzzlelight` - whether some player weapons produce a dynamic light upon firing.
+
+### Flashlight
+
 * `cl_flashlight_custom` - whether to use a custom flashlight code.
 * `cl_flashlight_radius` - radius of light spot for a custom flashlight.
-* `cl_flashlight_fade_distance` - the distance the falloff of custom flashlight begins.
+* `cl_flashlight_fade_distance` - the distance at which the falloff of custom flashlight begins.
+
+### Nightvision
+
 * `cl_nvgstyle` - configurable nightvision style. This is available only if `nvgstyle.configurable` feature is enabled. See [Nightvision]({{< ref nightvision >}}).
     - 0 - Opposing Force nightvision style.
     - 1 - Counter-Strike nightvision style.
 * `cl_nvgradius_cs` - radius of dynamic light of Counter-Strike like nightvision.
 * `cl_nvgradius_of` - radius of dynamic light of Opposing Force like nightvision.
-* `cl_autojump` - jump automatically as soon as player touches the ground while +jump is held.
+
+### Debugging
+
+* `cl_pmanstats` - show ParticleMan statistics (particles drawn via TriAPI).
 * `cl_showpos` - whether to show current position, angles and velocity info, similar to Source games.
     - 0 - don't show.
     - 1 - show **eye position** and angles. E.g. if [trigger_camera]({{< ref trigger_camera >}}) is active the position and angles of the camera will be displayed.
     - 2 - show **player's origin** and angles.
     - If cvar exists in the engine (e.g. on Xash3D FWGS), the engine implementation is used.
-* `cl_subtitles` - whether to show captions. For mods that use [sound/captions.txt]({{< ref subtitles >}}) system.
-* [HUD]({{< ref "HUD" >}}) related cvars.
+
+### Weapon behavior (HL Anniversary compatibility)
+
 * `_satctrl` - the Satchel Charge control scheme. **0** is classic (secondary attack throws more satchels, the detonation is always on the primary attack), **1** is anniversary (throw by primary attack, detonate by secondary attack).
 * `_grenphys` - the Hand Grenade physics. **0** is classic, **1** is anniversary (higher velocity).
+
+### Speedrunning
+
+* `cl_autojump` - jump automatically as soon as player touches the ground while +jump is held.
+* `hud_speedometer` - show [speedometer]({{< ref "HUD/#speedometer" >}}).
+
+### Multiplayer
+
 * `cl_motd_vgui` - whether the VGUI interface is preferred for MOTD (Message Of The Day) over the non-VGUI one (used in multiplayer). The client library must be built with VGUI support.
 * `cl_scoreboard_vgui` - whether the VGUI interface is preferred for Scoreboard in multiplayer. The client library must be built with VGUI support.
 
@@ -45,6 +73,8 @@ Technically user can change server cvars anytime via console and this may affect
 Changes to the server cvars values are not saved between game launches, unlike for client ones.
 {{% /hint %}}
 
+### Item interaction
+
 * `pushablemode` controls how [func_pushables]({{< ref func_pushable >}}) are pushed by a player.
     - -1 is for default Half-Life behavior before the anniversary update (the excessive acceleration is present).
     - 0 is for default Half-Life behavior in anniversary update.
@@ -53,17 +83,20 @@ Changes to the server cvars values are not saved between game launches, unlike f
     - 0 is by touch only (like in Half-Life).
     - 1 is by pressing +use only.
     - 2 is for both by touch and pressing +use.
+* `items_physics_fix` - various attempts to fix some bugs with items that drop from breakables.
+    - 0 - default Half-Life behavior (items fall through in a right space).
+    - 1 - items dropped from [func_breakable]({{< ref func_breakable >}}) boxes placed in a tight space don't fall through. Items still fall through if box is in the air.
+    - 2 - same effect as 1 plus items placed in a tight space don't fall through at the level start. But prespawned items start to fall through clip brushes.
+    - 3 - same effect as 1 plus fix for boxes in the air. Items placed in a tight space don't fall through, but they fall through clip brushes no matter whether they're prespawned or come from func_breakable.
+
+### NPC
+
 * `npc_tridepth`. Triangulation depth to use when building paths for monsters. Possible values: 1, 2, 3. Note that higher values may affect the performance.
 * `npc_tridepth_all`. If set to 0, only player's followers and monsters in scripts will use the value specified by `npc_tridepth` as the triangulation depth, and other monsters will use the value 1. If set to 1, all monsters will use the value specified by `npc_tridepth`. Note that this may affect the performance.
 * `npc_forget_enemy_time`. If monster didn't observe its enemy for this amount of time (in seconds), the monster forgets about their enemy. Setting 0 means that monsters never forget their enemies (the standard behavior in Half-Life).
 * `npc_active_after_combat`. If set to 1, monsters will wander around a bit after the combat ends.
 * `npc_get_to_enemy_nearest`. If set to 1, melee-oriented monsters will try to get closer to the enemy even if they can't build the proper route to the enemy. This is especially helpful to fix the exploit that allows player to "hide" from enemy path finding by standing on small elevations (e.g. tables).
 * `npc_trace_hull_attack_retry`. If set to 1, monsters performing the hull trace for melee attacks will retry the failed trace starting from a different point a bit higher than before. This helps to deal damage to the enemy standing on small elevations compared to the attacker.
-* `items_physics_fix` - various attempts to fix some bugs with items that drop from breakables.
-    - 0 - default Half-Life behavior (items fall through in a right space).
-    - 1 - items dropped from [func_breakable]({{< ref func_breakable >}}) boxes placed in a tight space don't fall through. Items still fall through if box is in the air.
-    - 2 - same effect as 1 plus items placed in a tight space don't fall through at the level start. But prespawned items start to fall through clip brushes.
-    - 3 - same effect as 1 plus fix for boxes in the air. Items placed in a tight space don't fall through, but they fall through clip brushes no matter whether they're prespawned or come from func_breakable.
 * `sp_allowmonsterinfo` - show monsters' display names and current health in singleplayer when player looks at the monster.
     - 0 - don't show monster info.
     - 1 - show info for all monsters.

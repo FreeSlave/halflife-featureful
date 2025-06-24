@@ -112,7 +112,6 @@ Status effects like burning, frozen, electrified, stunned, poisoned, "silenced" 
 
 ### HUD
 
-* Current objectives / journal (with support for localization)
 * Floating combat text - damage numbers appearing when monster is hit.
 * Radar from Counter-Strike (configurable in regard to what entities should be displayed on the radar and how)
 
