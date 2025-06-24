@@ -10,7 +10,7 @@ Featureful SDK implements a simple journal window that can be used to show objec
 
 Journal is currently for singleplayer only, and it can be opened by the same key that is used to show scoreboard in multiplayer.
 
-Getting a new journal record can show the notification message on the player's screen and optionally play a notification sound.
+Getting a new journal record can show the notification message on the player's screen and optionally play a notification sound. Multiple notifications may render at the same time: they will appear in the delivery order.
 
 ## Configuration
 
@@ -41,6 +41,26 @@ Example:
             "header": "INVENTORY_HEADER",
             "show_inventory": true
         }
+    },
+    "geometry": {
+        "width": 0.75,
+        "height": 0.75,
+        "padding_horizontal": 0.1,
+        "padding_vertical": 0.1
+    },
+    "notification_position": {
+        "x": 0.1,
+        "y": 0.2
+    },
+    "render": {
+        "text_color": [255, 0, 0],
+        "notification_text_color": [0, 255, 0],
+        "background_color": [0, 0, 0],
+        "background_alpha": 160,
+        "background_additive": true,
+        "frame_color": [255, 160, 0],
+        "frame_alpha": 0,
+        "frame_additive": false
     }
 }
 ```
@@ -67,17 +87,17 @@ Each section can have the following properties:
 
 An optional property that lets you to configure geometry settings of the journal window.
 
-* `"width"` - the journal window width, as fraction of the screen width. Accepts values in range (0, 1]. The default value is 7 / 9 (~ 0.78).
-* `"height"` - the journal window height, as fraction of the screen height. Accepts values in range (0, 1]. The default value is 11 / 15 (~ 0.73).
-* `"padding_horizontal"` - left and right padding before and after text inside the journal window, as fraction of the journal width. Accepts values in range [0, 0.5). The default value is 1 / 14 (~ 0.071).
-* `"padding_vertical"` - bottom and top padding before and after text inside the journal window, as fraction of the journal height. Accepts values in range [0, 0.5). The default value is 1 / 13 (~ 0.077).
+* `"width"` - the journal window width, as fraction of the screen width. Accepts values in range (0, 1]. The default value is `0.78`.
+* `"height"` - the journal window height, as fraction of the screen height. Accepts values in range (0, 1]. The default value is `0.73`.
+* `"padding_horizontal"` - left and right padding before and after text inside the journal window, as fraction of the journal width. Accepts values in range [0, 0.5). The default value is `0.0714`.
+* `"padding_vertical"` - bottom and top padding before and after text inside the journal window, as fraction of the journal height. Accepts values in range [0, 0.5). The default value is `0.077`.
 
 ### notification_position
 
-An optional property that lets you to configure the position of the notification messages on the screen.
+An optional property that lets you to configure the position of the notification area on the screen.
 
-* `"x"` - the X coordinate of the text on the screen, as fraction of the screen width. Accepts values in range [0, 1). The default value is 1 / 18.
-* `"y"` - the Y coordinate of the text on the screen, as fraction of the screen height. Accepts values in range [0, 1). The default value is 0.2.
+* `"x"` - the X coordinate of the text on the screen, as fraction of the screen width. Accepts values in range [0, 1). The default value is `0.556`.
+* `"y"` - the Y coordinate of the text on the screen, as fraction of the screen height. Accepts values in range [0, 1). The default value is `0.2`.
 
 ### render
 
