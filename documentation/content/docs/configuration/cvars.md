@@ -28,10 +28,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
     - 2 - show **player's origin** and angles.
     - If cvar exists in the engine (e.g. on Xash3D FWGS), the engine implementation is used.
 * `cl_subtitles` - whether to show captions. For mods that use [sound/captions.txt]({{< ref subtitles >}}) system.
-* `hud_armor_near_health` - see [Drawing armor icon next to health]({{< ref "HUD/#drawing-armor-icon-next-to-health" >}}).
-* `hud_draw_movemode` - see [Move Mode]({{< ref "HUD/#move-mode" >}}).
-* `hud_min_alpha` - the minimum alpha values for HUD parameters like health, armor and ammo.
-* `hud_scale` - see [HUD scaling]({{< ref "HUD/#hud-scaling" >}}).
+* [HUD]({{< ref "HUD" >}}) related cvars.
 * `_satctrl` - the Satchel Charge control scheme. **0** is classic (secondary attack throws more satchels, the detonation is always on the primary attack), **1** is anniversary (throw by primary attack, detonate by secondary attack).
 * `_grenphys` - the Hand Grenade physics. **0** is classic, **1** is anniversary (higher velocity).
 * `cl_motd_vgui` - whether the VGUI interface is preferred for MOTD (Message Of The Day) over the non-VGUI one (used in multiplayer). The client library must be built with VGUI support.

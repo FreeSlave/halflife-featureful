@@ -14,7 +14,7 @@ Notes:
 
 * Rescaling is not available in Software Mode.
 * Xash3D has its own engine-side `hud_scale` cvar. If the engine provides its own cvar, the game library doesn't create one and relies on the default sprite rendering.
-* HUD scaling is not the same as high resolution HUD added in Half-Life anniversary update. Support for larger HUD sprite resolutions will be added to the codebase later.
+* HUD scaling is not the same as high resolution HUD added in Half-Life anniversary update. The former scales sprites dynamically, the latter uses large sprites and depends on new entries in **sprites/hud.txt**.
 
 ### Drawing armor icon next to health
 
@@ -43,3 +43,14 @@ Default HUD color is set by `hud_color` feature in **features/featureful_client.
 There's also a client command `hud_color` available for a user to customize their HUD color (but only when `hud_color.configurable` is set to `true`).
 E.g. `hud_color 0 160 0` sets the HUD color to green.
 `hud_color default` resets the color to the default value.
+
+### HUD minimum alpha
+
+Upon changing, health, armor and ammo numbers in HUD temporarily brighten up and then gradually decrease their alpha value (opaqueness). This value can be configured by the `hud_min_alpha` cvar. The value is clamped between 100 and 200.
+
+### Speedometer
+
+The speedometer can be useful for debugging and for speedrunning.
+
+* `hud_speedometer` - shows the player speed (this doesn't include the vertical velocity).
+* `hud_speedometer_below_cross` - shows the speedometer under the crosshair.

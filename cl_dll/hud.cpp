@@ -813,6 +813,7 @@ void CHud::Init( void )
 
 	m_Caption.Init();
 	m_MonsterInfo.Init();
+	m_Speedometer.Init();
 
 	hudRenderer.Init();
 
@@ -1363,6 +1364,7 @@ void CHud::VidInit( void )
 
 	m_Caption.VidInit();
 	m_MonsterInfo.VidInit();
+	m_Speedometer.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));
