@@ -22,6 +22,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
     - 1 - Counter-Strike nightvision style.
 * `cl_nvgradius_cs` - radius of dynamic light of Counter-Strike like nightvision.
 * `cl_nvgradius_of` - radius of dynamic light of Opposing Force like nightvision.
+* `cl_autojump` - jump automatically as soon as player touches the ground while +jump is held.
 * `cl_showpos` - whether to show current position, angles and velocity info, similar to Source games.
     - 0 - don't show.
     - 1 - show **eye position** and angles. E.g. if [trigger_camera]({{< ref trigger_camera >}}) is active the position and angles of the camera will be displayed.
