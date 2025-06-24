@@ -8267,6 +8267,16 @@
 	health(string) : "Minimum Hit Points" : : "Don't save when player has less than this many hitpoints."
 ]
 
+@SolidClass base(Trigger, TriggerCond, Angles) = trigger_bounce : "Bouncey area"
+[
+	frags(string) : "Factor (0=stop, 1=perfect bounce)" : "0.9"
+	armorvalue(string) : "Minimum Speed" : "100"
+	spawnflags(flags) =
+	[
+		16: "Truncate Speed" : 0
+	]
+]
+
 @PointClass base(Targetx, Targetname) iconsprite("sprites/trigger_camera.spr") = trigger_camera : "Trigger Camera"
 [
 	wait(integer) : "Hold time" : 10

@@ -2861,6 +2861,45 @@ void CTriggerPush::Touch( CBaseEntity *pOther )
 	}
 }
 
+//===========================================================
+//LRC- trigger_bounce
+//===========================================================
+#define SF_BOUNCE_CUTOFF 16
+
+class CTriggerBounce : public CBaseTrigger
+{
+public:
+	void Spawn();
+	void Touch(CBaseEntity *pOther);
+};
+
+LINK_ENTITY_TO_CLASS( trigger_bounce, CTriggerBounce )
+
+
+void CTriggerBounce::Spawn()
+{
+	SetMovedir(pev);
+	InitTrigger();
+}
+
+void CTriggerBounce::Touch(CBaseEntity *pOther)
+{
+	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
+		return;
+	if (!CanTouch(pOther->pev))
+		return;
+
+	float dot = DotProduct(pev->movedir, pOther->pev->velocity);
+	if (dot < -pev->armorvalue)
+	{
+		if (FBitSet(pev->spawnflags, SF_BOUNCE_CUTOFF))
+			pOther->pev->velocity -= (dot + pev->frags*(dot+pev->armorvalue))*pev->movedir;
+		else
+			pOther->pev->velocity -= (dot + pev->frags*dot)*pev->movedir;
+		SUB_UseTargets(pOther);
+	}
+}
+
 //======================================
 // teleport trigger
 //
