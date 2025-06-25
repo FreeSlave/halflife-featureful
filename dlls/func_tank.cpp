@@ -46,18 +46,24 @@ enum TANKBULLET
 	TANK_BULLET_12MM = 3
 };
 
+class CFuncTank;
+
 class CFuncTankControls : public CBaseEntity
 {
 public:
 	int ObjectCaps() override;
 	void Spawn( void );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void UpdateOnRemove();
 
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool OnControls(entvars_t* pevTest) override;
+	void CheckAnyTanksLeft(CFuncTank* pBesidesMe);
+	void ReleaseTanks();
+	void ReleaseController();
 
 	bool m_active;
 	Vector m_vecControllerUsePos;
@@ -492,7 +498,12 @@ void CFuncTank::UpdateBarrelFireProxyPosition()
 
 void CFuncTank::UpdateOnRemove()
 {
+	CFuncTankControls* pTankControls = m_pControls;
 	StopControl(m_pControls);
+	if (pTankControls)
+	{
+		pTankControls->CheckAnyTanksLeft(this);
+	}
 	CBaseEntity::UpdateOnRemove();
 	if (m_pSpot) {
 		UTIL_Remove(m_pSpot);
@@ -1261,6 +1272,56 @@ bool CFuncTankControls::OnControls(entvars_t* pevTest)
 	return false;
 }
 
+static CFuncTank* GetFuncTankPointer(CBaseEntity* pEntity)
+{
+	if (FClassnameIs(pEntity->pev, "func_tank") || FClassnameIs(pEntity->pev, "func_tanklaser") ||
+		FClassnameIs(pEntity->pev, "func_tankmortar") || FClassnameIs(pEntity->pev, "func_tankrocket"))
+	{
+		return (CFuncTank*)pEntity;
+	}
+	return nullptr;
+}
+
+void CFuncTankControls::CheckAnyTanksLeft(CFuncTank* pBesidesMe)
+{
+	CBaseEntity* tryTank = nullptr;
+	while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
+	{
+		if (tryTank != pBesidesMe && GetFuncTankPointer(tryTank))
+			return;
+	}
+	ReleaseController();
+}
+
+void CFuncTankControls::ReleaseTanks()
+{
+	CBaseEntity* tryTank = nullptr;
+	while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
+	{
+		CFuncTank* pTank = GetFuncTankPointer(tryTank);
+		if (pTank)
+		{
+			pTank->StopControl(this);
+		}
+	}
+}
+
+void CFuncTankControls::ReleaseController()
+{
+	if (m_pController)
+	{
+		// bring back player's weapons
+		if ( m_pController->m_pActiveItem )
+			m_pController->m_pActiveItem->Deploy();
+
+		m_pController->m_iHideHUD &= ~(HIDEHUD_WEAPONS);
+		m_pController->m_hTankControls = 0;
+
+		m_pController = nullptr;
+	}
+	m_active = false;
+}
+
 void CFuncTankControls::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	// LRC- rewritten to allow TankControls to be the thing that handles the relationship
@@ -1282,12 +1343,11 @@ void CFuncTankControls::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 		//TODO: we don't support aliases in Featureful yet
 		while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
 		{
-			if (!strncmp( STRING(tryTank->pev->classname), "func_tank", 9 ))
+			CFuncTank* pTank = GetFuncTankPointer(tryTank);
+			if (pTank)
 			{
-				if (((CFuncTank*)tryTank)->StartControl(pPlayer, this))
+				if (pTank->StartControl(pPlayer, this))
 				{
-					//ALERT(at_console,"started controlling tank %s\n",STRING(tryTank->pev->targetname));
-					// here's a tank we can control. Phew.
 					m_active = true;
 				}
 			}
@@ -1313,30 +1373,17 @@ void CFuncTankControls::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	else if (m_pController && useType != USE_ON)
 	{
 		// player stepped away or died, most likely.
-		//ALERT(at_console, "TANK controls deactivated\n");
+		ReleaseTanks();
+		ReleaseController();
+	}
+}
 
-		//LRC- Now uses FindEntityByTargetname, so that aliases work.
-		while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
-		{
-			if( FClassnameIs( tryTank->pev, "func_tank" ) ||
-				FClassnameIs( tryTank->pev, "func_tanklaser" ) ||
-				FClassnameIs( tryTank->pev, "func_tankmortar" ) ||
-				FClassnameIs( tryTank->pev, "func_tankrocket" ) )
-			{
-				// this is a tank we're controlling.
-				((CFuncTank*)tryTank)->StopControl(this);
-			}
-		}
-
-		// bring back player's weapons
-		if ( m_pController->m_pActiveItem )
-			m_pController->m_pActiveItem->Deploy();
-
-		m_pController->m_iHideHUD &= ~(HIDEHUD_WEAPONS);
-		m_pController->m_hTankControls = 0;
-
-		m_pController = nullptr;
-		m_active = false;
+void CFuncTankControls::UpdateOnRemove()
+{
+	if (m_active)
+	{
+		ReleaseTanks();
+		ReleaseController();
 	}
 }
 
