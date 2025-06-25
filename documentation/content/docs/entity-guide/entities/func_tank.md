@@ -13,6 +13,7 @@ entityCategory: solid
 * `Bullet count` - configure a limited number of bullets for tank.
 * ![](/images/spirit.png) `Behavior` - set the relationship classification for the tank. Allow tank to attack monsters, not only the player.
 * ![](/images/spirit.png) `Trigger on firing (locus = barrel)` - a target to trigger when tank is firing a shot, with the end of the barrel as activator (the special invisible entity is created automatically). This will work even if tank doesn't actually use bullets.
+* ![](/images/spirit.png) `Fire Master` - allows to lock the firing ability (the tank still can rotate).
 
 ### New spawnflags
 

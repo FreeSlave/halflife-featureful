@@ -943,6 +943,7 @@
 
 	// Mainly for use with 1009 team settings (game_team_master)
 	master(string) : "(Team) Master"
+	firemaster(string) : "Fire Master"
 
 	m_iszLocusFire(string) : "Trigger on firing (locus = barrel)"
 	yawrate(string) : "Yaw rate" : "30"
