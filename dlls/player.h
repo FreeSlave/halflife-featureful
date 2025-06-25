@@ -204,7 +204,7 @@ public:
 	int					m_iTrain;				// Train control position
 	bool				m_fWeapon;				// Set this to false to force a reset of the current weapon HUD info
 
-	EHANDLE				m_pTank;				// the tank which the player is currently controlling,  NULL if no tank
+	EHANDLE				m_hTankControls;				// the tank which the player is currently controlling,  NULL if no tank
 	EHANDLE				m_hViewEntity;			// The view entity being used, or null if the player is using itself as the view entity
 	bool				m_bResetViewEntity;		//True if the player's view needs to be set back to the view entity
 	float				m_fDeadTime;			// the time at which the player died  (used in PlayerDeathThink())
@@ -404,6 +404,7 @@ public:
 	void EXPORT PlayerDeathThink( void );
 	std::pair<CBaseEntity*, const ObjectHintSpec*> GetInteractiveEntity(std::vector<std::pair<CBaseEntity*, const ObjectHintSpec*>>* hintedEntities = nullptr);
 	void PlayerUse( void );
+	void ReleaseTank();
 
 	void CheckSuitUpdate();
 	void SetSuitUpdate( const char *name, bool fgroup, int iNoRepeat );

@@ -119,7 +119,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_fInitHUD, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBasePlayer, m_tbdPrev, FIELD_TIME ),
 
-	DEFINE_FIELD( CBasePlayer, m_pTank, FIELD_EHANDLE ),
+	DEFINE_FIELD( CBasePlayer, m_hTankControls, FIELD_EHANDLE ),
 	DEFINE_FIELD( CBasePlayer, m_hViewEntity, FIELD_EHANDLE ),
 	DEFINE_FIELD( CBasePlayer, m_iHideHUD, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_iFOV, FIELD_INTEGER ),
@@ -1128,8 +1128,7 @@ void CBasePlayer::RemoveAllItems( int stripFlags )
 {
 	RemoveAllWeapons();
 
-	if( m_pTank != 0 )
-		m_pTank->Use( this, this, USE_OFF, 0 );
+	ReleaseTank();
 
 	m_iTrain = TRAIN_NEW; // turn off train
 
@@ -1209,8 +1208,7 @@ KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 
 	g_pGameRules->PlayerKilled( this, pevAttacker, pevInflictor );
 
-	if( m_pTank != 0 )
-		m_pTank->Use( this, this, USE_OFF, 0 );
+	ReleaseTank();
 
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn
 	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
@@ -1787,8 +1785,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	if( m_pActiveItem )
 		m_pActiveItem->Holster();
 
-	if( m_pTank != 0 )
-		m_pTank->Use( this, this, USE_OFF, 0 );
+	ReleaseTank();
 
 	// clear out the suit message cache so we don't keep chattering
 	SetSuitUpdate( NULL, false, 0 );
@@ -2010,11 +2007,11 @@ void CBasePlayer::PlayerUse( void )
 			m_camera = 0;
 			return;
 		}
-		else if( m_pTank != 0 )
+		else if( m_hTankControls != 0 )
 		{
 			// Stop controlling the tank
 			// TODO: Send HUD Update
-			m_pTank->Use( this, this, USE_OFF, 0 );
+			ReleaseTank();
 			return;
 		}
 		else
@@ -2104,6 +2101,15 @@ void CBasePlayer::PlayerUse( void )
 			EMIT_SOUND( ENT( pev ), CHAN_ITEM, "common/wpn_denyselect.wav", 0.4, ATTN_NORM );
 #endif
 		}
+	}
+}
+
+void CBasePlayer::ReleaseTank()
+{
+	if (m_hTankControls != 0)
+	{
+		m_hTankControls->Use(this, this, USE_OFF, 0);
+		m_hTankControls = 0;
 	}
 }
 
@@ -3487,17 +3493,13 @@ void CBasePlayer::PostThink()
 		goto pt_end;
 
 	// Handle Tank controlling
-	if( m_pTank != 0 )
+	if( m_hTankControls != 0 )
 	{
 		// if they've moved too far from the gun,  or selected a weapon, unuse the gun
-		if( m_pTank->OnControls( pev ) && !pev->viewmodel )
-		{  
-			m_pTank->Use( this, this, USE_SET, 2 );	// try fire the gun
-		}
-		else
+		if (!m_hTankControls->OnControls( pev ) || pev->viewmodel)
 		{
 			// they've moved off the platform
-			m_pTank->Use( this, this, USE_OFF, 0 );
+			ReleaseTank();
 		}
 	}
 
@@ -5011,7 +5013,7 @@ Called every frame by the player PostThink
 void CBasePlayer::ItemPostFrame()
 {
 	// check if the player is using a tank
-	if( m_pTank != 0 )
+	if( m_hTankControls != 0 )
 		return;
 
 	ImpulseCommands();

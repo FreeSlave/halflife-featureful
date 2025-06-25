@@ -46,6 +46,24 @@ enum TANKBULLET
 	TANK_BULLET_12MM = 3
 };
 
+class CFuncTankControls : public CBaseEntity
+{
+public:
+	int ObjectCaps() override;
+	void Spawn( void );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+
+	virtual int Save( CSave &save );
+	virtual int Restore( CRestore &restore );
+	static TYPEDESCRIPTION m_SaveData[];
+
+	bool OnControls(entvars_t* pevTest) override;
+
+	bool m_active;
+	Vector m_vecControllerUsePos;
+	CBasePlayer* m_pController;
+};
+
 //			Custom damage
 //			env_laser (duration is 0.5 rate of fire)
 //			rockets
@@ -63,7 +81,7 @@ public:
 
 	CBaseEntity* BestVisibleEnemy( void );
 	int IRelationship( CBaseEntity* pTarget ) override;
-	int DefaultClassify( void ) { return m_iTankClass; }
+	int DefaultClassify() override { return m_iTankClass; }
 
 	virtual void Fire( const Vector &barrelEnd, const Vector &forward, entvars_t *pevAttacker );
 	virtual Vector UpdateTargetPosition( CBaseEntity *pTarget )
@@ -75,7 +93,7 @@ public:
 	void StopRotSound( void );
 
 	// Bmodels don't go across transitions
-	virtual int ObjectCaps( void ) { return CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
 	inline bool IsActive( void ) { return (pev->spawnflags & SF_TANK_ACTIVE); }
 	inline void TankActivate( void ) { pev->spawnflags |= SF_TANK_ACTIVE; pev->nextthink = pev->ltime + 0.1f; m_fireLast = 0; }
@@ -98,11 +116,12 @@ public:
 	virtual int	Restore( CRestore &restore );
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	bool OnControls( entvars_t *pevTest ) override;
-	bool StartControl( CBasePlayer* pController );
-	void StopControl( void );
-	void ControllerPostFrame( void );
-	virtual void StopFire( void ){}
+	bool StartControl(CBasePlayer* pController, CFuncTankControls* pControls);
+	void StopControl(CFuncTankControls* pControls);
+
+	CFuncTankControls* m_pControls; //LRC - tankcontrols is used as a go-between.
+
+	virtual void StopFire() {}
 
 	inline bool HaveBullets() { return m_bulletCount != 0; }
 	void RemoveBullet();
@@ -113,9 +132,7 @@ public:
 	CLaserSpot*  m_pSpot;		// Laser spot entity
 
 protected:
-	CBasePlayer* m_pController;
 	float		m_flNextAttack;
-	Vector		m_vecControllerUsePos;
 	
 	float		m_yawCenter;	// "Center" yaw
 	float		m_yawRate;		// Max turn rate to track targets
@@ -188,8 +205,7 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_bulletType, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncTank, m_sightOrigin, FIELD_VECTOR ),
 	DEFINE_FIELD( CFuncTank, m_spread, FIELD_INTEGER ),
-	DEFINE_FIELD( CFuncTank, m_pController, FIELD_CLASSPTR ),
-	DEFINE_FIELD( CFuncTank, m_vecControllerUsePos, FIELD_VECTOR ),
+	DEFINE_FIELD( CFuncTank, m_pControls, FIELD_CLASSPTR ), //LRC
 	DEFINE_FIELD( CFuncTank, m_flNextAttack, FIELD_TIME ),
 	DEFINE_FIELD( CFuncTank, m_iBulletDamage, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncTank, m_iszMaster, FIELD_STRING ),
@@ -387,26 +403,9 @@ void CFuncTank::KeyValue( KeyValueData *pkvd )
 		CBaseEntity::KeyValue( pkvd );
 }
 
-////////////// START NEW STUFF //////////////
-
-//==================================================================================
-// TANK CONTROLLING
-bool CFuncTank::OnControls( entvars_t *pevTest )
+bool CFuncTank::StartControl(CBasePlayer* pController, CFuncTankControls* pControls)
 {
-	if( !( pev->spawnflags & SF_TANK_CANCONTROL ) )
-		return false;
-
-	//Vector offset = pevTest->origin - pev->origin;
-
-	if( ( m_vecControllerUsePos - pevTest->origin ).IsLengthLessThan(30) )
-		return true;
-
-	return false;
-}
-
-bool CFuncTank::StartControl( CBasePlayer *pController )
-{
-	if( m_pController != NULL )
+	if( m_pControls != nullptr )
 		return false;
 
 	// Team only or disabled?
@@ -416,49 +415,33 @@ bool CFuncTank::StartControl( CBasePlayer *pController )
 			return false;
 	}
 
-	ALERT( at_aiconsole, "using TANK!\n");
+	if (m_pSpot)
+		m_pSpot->Revive();
 
-	if (m_pSpot) m_pSpot->Revive();
-
-	m_pController = pController;
-	m_pController->m_pTank = this;
-	if( m_pController->m_pActiveItem )
-	{
-		m_pController->m_pActiveItem->Holster();
-		m_pController->pev->weaponmodel = 0;
-		m_pController->pev->viewmodel = 0;
-	}
-
-	m_pController->m_iHideHUD |= HIDEHUD_WEAPONS;
-	m_vecControllerUsePos = m_pController->pev->origin;
+	m_pControls = pControls;
 
 	pev->nextthink = pev->ltime + 0.1f;
-
 	return true;
 }
 
-void CFuncTank::StopControl()
+void CFuncTank::StopControl(CFuncTankControls* pControls)
 {
 	StopFire();
 
-	// TODO: bring back the controllers current weapon
-	if( !m_pController )
+	//LRC- various commands moved from here to FuncTankControls
+	if (!m_pControls || m_pControls != pControls)
+	{
+		//ALERT(at_debug,"StopControl failed, not in use\n");
 		return;
-
-	if( m_pController->m_pActiveItem )
-		m_pController->m_pActiveItem->Deploy();
-
-	ALERT( at_aiconsole, "stopped using TANK\n");
-
-	m_pController->m_iHideHUD &= ~HIDEHUD_WEAPONS;
+	}
 
 	if (m_pSpot)
 		m_pSpot->pev->effects |= EF_NODRAW;
 
-	pev->nextthink = 0;
+	StopRotSound();
 
-	m_pController->m_pTank = NULL;
-	m_pController = NULL;
+	pev->nextthink = 0;
+	m_pControls = nullptr;
 
 	if( IsActive() )
 		pev->nextthink = pev->ltime + 1.0f;
@@ -509,7 +492,7 @@ void CFuncTank::UpdateBarrelFireProxyPosition()
 
 void CFuncTank::UpdateOnRemove()
 {
-	StopControl();
+	StopControl(m_pControls);
 	CBaseEntity::UpdateOnRemove();
 	if (m_pSpot) {
 		UTIL_Remove(m_pSpot);
@@ -519,31 +502,6 @@ void CFuncTank::UpdateOnRemove()
 		m_pFireProxy->SetThink(&CBaseEntity::SUB_Remove);
 		m_pFireProxy->pev->nextthink = gpGlobals->time + 0.1f;
 		m_pFireProxy = NULL;
-	}
-}
-
-// Called each frame by the player's ItemPostFrame
-void CFuncTank::ControllerPostFrame( void )
-{
-	ASSERT( m_pController != NULL );
-
-	if( gpGlobals->time < m_flNextAttack )
-		return;
-
-	if( m_pController->pev->button & IN_ATTACK )
-	{
-		Vector vecForward;
-		UTIL_MakeVectorsPrivate( pev->angles, vecForward, NULL, NULL );
-
-		m_fireLast = gpGlobals->time - ( 1.0f / m_fireRate ) - 0.01f;  // to make sure the gun doesn't fire too many bullets
-
-		Fire( BarrelPosition(), vecForward, m_pController->pev );
-		
-		// HACKHACK -- make some noise (that the AI can hear)
-		if( m_pController && m_pController->IsPlayer() )
-			( (CBasePlayer *)m_pController )->m_iWeaponVolume = LOUD_GUN_VOLUME;
-
-		m_flNextAttack = gpGlobals->time + ( 1.0f / m_fireRate );
 	}
 }
 
@@ -585,19 +543,6 @@ void CFuncTank::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 		{
 			ALERT(at_warning, "Triggering a controllable %s with non-player activator. Probably a mapping error?\n", STRING(pev->classname));
 			return;
-		}
-
-		if( value == 2 && useType == USE_SET )
-		{
-			ControllerPostFrame();
-		}
-		else if( !m_pController && useType != USE_OFF )
-		{
-			StartControl( (CBasePlayer*)pActivator );
-		}
-		else
-		{
-			StopControl();
 		}
 	}
 	else
@@ -734,17 +679,19 @@ void CFuncTank::TrackTarget( void )
 	TraceResult tr;
 	bool updateTime = false;
 	Vector angles, direction, targetPosition, barrelEnd;
-	CBaseEntity *pTarget = NULL;
+	CBaseEntity* pTarget = nullptr;
+	CBasePlayer* pController = nullptr;
 
 	UpdateBarrelFireProxyPosition();
 
 	// Get a position to aim for
-	if( m_pController )
+	if (m_pControls && m_pControls->m_pController)
 	{
 		UpdateSpot();
+		pController = m_pControls->m_pController;
 
 		// Tanks attempt to mirror the player's angles
-		angles = m_pController->pev->v_angle;
+		angles = pController->pev->v_angle;
 		angles[0] = 0 - angles[0];
 		pev->nextthink = pev->ltime + 0.05f;
 	}
@@ -758,15 +705,12 @@ void CFuncTank::TrackTarget( void )
 		UpdateSpot();
 
 		pTarget = BestVisibleEnemy();
-		if( pTarget == 0 )
+		if (!pTarget)
 		{
 			if( IsActive() )
 				pev->nextthink = pev->ltime + 2.0f;	// Wait 2 secs
 			return;
 		}
-
-		if( !pTarget )
-			return;
 
 		// Calculate angle needed to aim at target
 		barrelEnd = BarrelPosition();
@@ -841,10 +785,29 @@ void CFuncTank::TrackTarget( void )
 	else if( pev->avelocity.x < -m_pitchRate )
 		pev->avelocity.x = -m_pitchRate;
 
-	if( m_pController )
-		return;
+	if( pController )
+	{
+		if ( gpGlobals->time < m_flNextAttack )
+			return;
 
-	if( CanFire() && ( ( fabs( distX ) < m_pitchTolerance && fabs( distY ) < m_yawTolerance ) || ( pev->spawnflags & SF_TANK_LINEOFSIGHT ) ) )
+		if ( pController->pev->button & IN_ATTACK )
+		{
+			Vector forward;
+			UTIL_MakeVectorsPrivate( pev->angles, forward, NULL, NULL );
+
+			// to make sure the gun doesn't fire too many bullets
+			m_fireLast = gpGlobals->time - (1.0f / m_fireRate) - 0.01f;
+
+			Fire( BarrelPosition(), forward, pController->pev );
+
+			// HACKHACK -- make some noise (that the AI can hear)
+			if ( pController && pController->IsPlayer() )
+				((CBasePlayer *)pController)->m_iWeaponVolume = LOUD_GUN_VOLUME;
+
+			m_flNextAttack = gpGlobals->time + (1.0f / m_fireRate);
+		}
+	}
+	else if( CanFire() && ( ( fabs( distX ) < m_pitchTolerance && fabs( distY ) < m_yawTolerance ) || ( pev->spawnflags & SF_TANK_LINEOFSIGHT ) ) )
 	{
 		bool fire = false;
 		Vector forward;
@@ -1039,7 +1002,7 @@ public:
 	virtual int Save( CSave &save );
 	virtual int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
-	virtual void StopFire( void );
+	void StopFire() override;
 
 	void UpdateOnRemove();
 
@@ -1272,27 +1235,15 @@ void CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, entv
 //============================================================================
 // FUNC TANK CONTROLS
 //============================================================================
-class CFuncTankControls : public CBaseEntity
-{
-public:
-	virtual int ObjectCaps( void );
-	void Spawn( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void Think( void );
-
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	static TYPEDESCRIPTION m_SaveData[];
-
-	EHANDLE m_pTank;
-};
 
 LINK_ENTITY_TO_CLASS( func_tankcontrols, CFuncTankControls )
 LINK_ENTITY_TO_CLASS( func_tankcontrols_of, CFuncTankControls )
 
 TYPEDESCRIPTION	CFuncTankControls::m_SaveData[] =
 {
-	DEFINE_FIELD( CFuncTankControls, m_pTank, FIELD_EHANDLE ),
+	DEFINE_FIELD(CFuncTankControls, m_active, FIELD_BOOLEAN),
+	DEFINE_FIELD(CFuncTankControls, m_pController, FIELD_CLASSPTR),
+	DEFINE_FIELD(CFuncTankControls, m_vecControllerUsePos, FIELD_VECTOR)
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTankControls, CBaseEntity )
@@ -1302,33 +1253,91 @@ int CFuncTankControls::ObjectCaps( void )
 	return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_IMPULSE_USE; 
 }
 
-void CFuncTankControls::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+bool CFuncTankControls::OnControls(entvars_t* pevTest)
 {
-	// pass the Use command onto the controls
-	if( m_pTank != 0 )
-		m_pTank->Use( pActivator, pCaller, useType, value );
-	else
-		UTIL_Remove(this);
+	if ((m_vecControllerUsePos - pevTest->origin).IsLengthLessThan(30))
+		return true;
 
-	//ASSERT( m_pTank != NULL );	// if this fails,  most likely means save/restore hasn't worked properly
+	return false;
 }
 
-void CFuncTankControls::Think( void )
+void CFuncTankControls::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	edict_t *pTarget = NULL;
+	// LRC- rewritten to allow TankControls to be the thing that handles the relationship
+	// between the player and one or more faithful tanks.
+	CBaseEntity* tryTank = nullptr;
 
-	do
+	if ( !m_pController && useType != USE_OFF )
 	{
-		pTarget = FIND_ENTITY_BY_TARGETNAME( pTarget, STRING( pev->target ) );
-	} while( !FNullEnt( pTarget ) && strncmp( STRING( pTarget->v.classname ), "func_tank", 9 ) );
+		// if not activated by a player, don't work.
+		if (!pActivator || !pActivator->IsPlayer())
+			return;
+		CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
+		// if I've already got a controller, or the player's already using
+		// another controls, then forget it.
+		if (m_active || pPlayer->m_hTankControls != 0)
+			return;
 
-	if( FNullEnt( pTarget ) )
-	{
-		ALERT( at_console, "No tank %s\n", STRING( pev->target ) );
-		return;
+		//LRC- Now uses FindEntityByTargetname, so that aliases work.
+		//TODO: we don't support aliases in Featureful yet
+		while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
+		{
+			if (!strncmp( STRING(tryTank->pev->classname), "func_tank", 9 ))
+			{
+				if (((CFuncTank*)tryTank)->StartControl(pPlayer, this))
+				{
+					//ALERT(at_console,"started controlling tank %s\n",STRING(tryTank->pev->targetname));
+					// here's a tank we can control. Phew.
+					m_active = true;
+				}
+			}
+		}
+		if (m_active)
+		{
+			// we found at least one tank to use, so holster player's weapon
+			m_pController = pPlayer;
+			m_pController->m_hTankControls = this;
+			if ( m_pController->m_pActiveItem )
+			{
+				m_pController->m_pActiveItem->Holster();
+				m_pController->pev->weaponmodel = 0;
+				m_pController->pev->viewmodel = 0;
+			}
+
+			m_pController->m_iHideHUD |= HIDEHUD_WEAPONS;
+
+			// remember where the player's standing, so we can tell when he walks away
+			m_vecControllerUsePos = m_pController->pev->origin;
+		}
 	}
+	else if (m_pController && useType != USE_ON)
+	{
+		// player stepped away or died, most likely.
+		//ALERT(at_console, "TANK controls deactivated\n");
 
-	m_pTank = (CFuncTank*)Instance( pTarget );
+		//LRC- Now uses FindEntityByTargetname, so that aliases work.
+		while( ( tryTank = UTIL_FindEntityByTargetname( tryTank, STRING( pev->target ) ) ) )
+		{
+			if( FClassnameIs( tryTank->pev, "func_tank" ) ||
+				FClassnameIs( tryTank->pev, "func_tanklaser" ) ||
+				FClassnameIs( tryTank->pev, "func_tankmortar" ) ||
+				FClassnameIs( tryTank->pev, "func_tankrocket" ) )
+			{
+				// this is a tank we're controlling.
+				((CFuncTank*)tryTank)->StopControl(this);
+			}
+		}
+
+		// bring back player's weapons
+		if ( m_pController->m_pActiveItem )
+			m_pController->m_pActiveItem->Deploy();
+
+		m_pController->m_iHideHUD &= ~(HIDEHUD_WEAPONS);
+		m_pController->m_hTankControls = 0;
+
+		m_pController = nullptr;
+		m_active = false;
+	}
 }
 
 void CFuncTankControls::Spawn( void )
@@ -1341,7 +1350,7 @@ void CFuncTankControls::Spawn( void )
 	UTIL_SetSize( pev, pev->mins, pev->maxs );
 	UTIL_SetOrigin( pev, pev->origin );
 
-	pev->nextthink = gpGlobals->time + 0.3f;	// After all the func_tank's have spawned
+	//pev->nextthink = gpGlobals->time + 0.3f;	// After all the func_tank's have spawned
 
 	CBaseEntity::Spawn();
 }
