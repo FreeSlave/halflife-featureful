@@ -710,10 +710,45 @@ void CFuncTank::TrackTarget( void )
 		UpdateSpot();
 		pController = m_pControls->m_pController;
 
-		// Tanks attempt to mirror the player's angles
-		angles = pController->pev->v_angle;
-		angles[0] = 0 - angles[0];
 		pev->nextthink = pev->ltime + 0.05f;
+
+		// LRC- changed here to allow "match target" as well as "match angles" mode.
+		if (pev->spawnflags & SF_TANK_MATCHTARGET)
+		{
+			// "Match target" mode:
+			// first, get the player's angles
+			angles = pController->pev->v_angle;
+			// Work out what point the player is looking at
+			UTIL_MakeVectorsPrivate(angles, direction,NULL,NULL);
+
+			targetPosition = pController->EyePosition() + direction * 1000;
+
+			edict_t *ownerTemp = pev->owner; //LRC store the owner, so we can put it back after the check
+			pev->owner = pController->edict(); //LRC when doing the matchtarget check, don't hit the player or the tank.
+
+			UTIL_TraceLine(
+				pController->EyePosition(),
+				targetPosition,
+				missile, //the opposite of ignore_monsters: target them if we go anywhere near!
+				ignore_glass,
+				edict(), &tr
+				);
+
+			pev->owner = ownerTemp; //LRC put the owner back
+
+			// Work out what angle we need to face to look at that point
+			direction = tr.vecEndPos - pev->origin;
+			angles = UTIL_VecToAngles( direction );
+			targetPosition = tr.vecEndPos;
+
+			AdjustAnglesForBarrel( angles, direction.Length() );
+		}
+		else
+		{
+			// Tanks attempt to mirror the player's angles
+			angles = pController->pev->v_angle;
+			angles[0] = 0 - angles[0];
+		}
 	}
 	else
 	{

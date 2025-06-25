@@ -937,7 +937,7 @@
 		16: "Only Direct" : 0
 		32: "Controllable" : 0
 		64: "Laser Spot" : 0
-		128: "Reserved (Don't use)" : 0 : "Reserved for 'Match Target' from Spirit"
+		128: "Match Target" : 0
 		256: "Smoke when no ammo" : 0
 	]
 

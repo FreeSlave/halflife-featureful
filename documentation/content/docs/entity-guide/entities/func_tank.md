@@ -18,6 +18,7 @@ entityCategory: solid
 ### New spawnflags
 
 * ![](/images/spirit.png) `Laser spot` - show laser spot when the tank is used.
+* ![](/images/spirit.png) `Match Target` - make controllable tank rotations match player's view target (center of the screen), instead of just following the player's angles.
 
 ### Bugfixes
 
