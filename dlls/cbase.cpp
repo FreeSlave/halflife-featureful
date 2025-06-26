@@ -1360,7 +1360,7 @@ static void PrecacheSequenceSounds(CBaseEntity* pEntity, bool precacheSounds, bo
 	}
 }
 
-void CBaseEntity::Activate()
+void CBaseEntity::PrecacheEntTemplateResources()
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate)
@@ -1377,7 +1377,30 @@ void CBaseEntity::Activate()
 		}
 
 		PrecacheSequenceSounds(this, entTemplate->AutoPrecacheSounds(), entTemplate->AutoPrecacheSoundScripts());
+
+		for (const auto& itemInfo : entTemplate->GetLootDrop().items)
+		{
+			if (!itemInfo.classname.empty())
+			{
+				const char* classname = itemInfo.classname.c_str();
+				EntityOverrides entityOverrides;
+				if (!itemInfo.entTemplate.empty())
+				{
+					entityOverrides.entTemplate = MAKE_STRING(itemInfo.entTemplate.c_str());
+				}
+				if (!itemInfo.pickupName.empty() && strcmp(classname, "item_pickup") == 0)
+				{
+					entityOverrides.netname = MAKE_STRING(itemInfo.pickupName.c_str());
+				}
+				UTIL_PrecacheOther(classname, entityOverrides);
+			}
+		}
 	}
+}
+
+void CBaseEntity::Activate()
+{
+	PrecacheEntTemplateResources();
 }
 
 // Initialize absmin & absmax to the appropriate box

@@ -3822,28 +3822,6 @@ void CBaseMonster::Activate()
 {
 	CBaseToggle::Activate();
 
-	const EntTemplate* entTemplate = GetMyEntTemplate();
-	if (entTemplate)
-	{
-		for (const auto& itemInfo : entTemplate->GetLootDrop().items)
-		{
-			if (!itemInfo.classname.empty())
-			{
-				const char* classname = itemInfo.classname.c_str();
-				EntityOverrides entityOverrides;
-				if (!itemInfo.entTemplate.empty())
-				{
-					entityOverrides.entTemplate = MAKE_STRING(itemInfo.entTemplate.c_str());
-				}
-				if (!itemInfo.pickupName.empty() && strcmp(classname, "item_pickup") == 0)
-				{
-					entityOverrides.netname = MAKE_STRING(itemInfo.pickupName.c_str());
-				}
-				UTIL_PrecacheOther(classname, entityOverrides);
-			}
-		}
-	}
-
 	if (!g_modFeatures.dying_monsters_block_player && pev->deadflag == DEAD_DYING && HasMemory(bits_MEMORY_KILLED)) {
 		pev->iuser3 = -1;
 	}

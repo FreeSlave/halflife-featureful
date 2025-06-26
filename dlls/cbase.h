@@ -309,6 +309,7 @@ public:
 	// initialization functions
 	virtual void Spawn( void ) { return; }
 	virtual void Precache( void ) { return; }
+	void PrecacheEntTemplateResources();
 	virtual bool IsEnabledInMod() { return true; }
 	virtual void PreEntvarsKeyvalue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 	virtual void KeyValue( KeyValueData* pkvd );

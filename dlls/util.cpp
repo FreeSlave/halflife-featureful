@@ -1685,6 +1685,7 @@ static void UTIL_PrecacheOtherWithOverride(CBaseEntity* pEntity, EntityOverrides
 {
 	pEntity->AssignEntityOverrides(entityOverrides);
 	pEntity->Precache();
+	pEntity->PrecacheEntTemplateResources();
 }
 
 void UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides )

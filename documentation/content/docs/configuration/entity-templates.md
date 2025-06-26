@@ -401,6 +401,8 @@ An array of additionally sounds to precache (so they can be played in game). Thi
 
 If you don't want to specify the sounds manually you can rely on `autoprecache_sounds` instead.
 
+[Known issue](#model-sound-precaching-issue)
+
 ### autoprecache_sounds
 
 A boolean property which, if set to `true`, makes the entity belonging this template automatially precache all sounds referred in the model by the sound events. The sound events are `1004`, `1008`, `1011`, `1012`, `1013`. See also: [Model animation events]({{< ref "model animation events" >}}).
@@ -412,6 +414,8 @@ A boolean property which, if set to `true`, makes the entity belonging this temp
     }
 }
 ```
+
+[Known issue](#model-sound-precaching-issue)
 
 ### precached_soundscripts
 
@@ -427,6 +431,8 @@ An array of additional soundscripts to precache. This is useful when the model h
 
 If you don't want to specify the soundscripts manually you can rely on `autoprecache_soundscripts` instead.
 
+[Known issue](#model-sound-precaching-issue)
+
 ### autoprecache_soundscripts
 
 A boolean property which, if set to `true`, makes the entity belonging this template automatially precache all soundscripts referred in the model by the soundscript events (`1014`). See also: [Model animation events]({{< ref "model animation events" >}}).
@@ -438,6 +444,8 @@ A boolean property which, if set to `true`, makes the entity belonging this temp
     }
 }
 ```
+
+[Known issue](#model-sound-precaching-issue)
 
 ### size_for_grapple
 
@@ -1051,3 +1059,11 @@ Set of conditions to filter entities by. When matching against the filter, some 
 * `"negate"` - a boolean. Whether to change the filter result to opposite (a logical *Not* applied to the filter result).
 
 All properties are optional. All checks are joined by logical *And* to evaluate the filter result.
+
+## Known issues
+
+### Model sound precaching issue
+
+{{% hint warning %}}
+There might be problems with precaching sounds from models for entities (mainly monsters) coming from the [monstermaker]({{< ref monstermaker >}}). Until the issue is resolved you should ensure the map has at least one spawned monster of the same entity template and model as long as such monster can spawn from the monstermaker.
+{{% /hint %}}
