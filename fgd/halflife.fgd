@@ -8178,6 +8178,61 @@
 	]
 ]
 
+@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) color(255 0 255) = scripted_tanksequence : "Scripted Tank Sequence"
+[
+	m_iszEntity(target_destination) : "Tank to affect"
+	m_iTurn(choices) : "Turn to" : 2 =
+	[
+		0: "Don't turn"
+		1: "Match sequence angle"
+		2: "Face sequence"
+		3: "Face enemy"
+	]
+	m_iszEnemy(string) : "Enemy to face"
+	m_iShoot(choices) : "Fire gun" : 1 =
+	[
+		0: "Don't fire"
+		1: "Once (at end)"
+		2: "Constantly"
+		3: "While facing target"
+	]
+	m_iUntil(choices) : "Halt condition" : 1 =
+	[
+		0: "None"
+		1: "Tank faces target"
+		2: "Enemy dies"
+	]
+	target(target_destination) : "Trigger on halt"
+	m_fDuration(string) : "Time limit (0 = no limit)" : "0"
+	netname(target_destination) : "Trigger on timeout"
+	m_iActive(choices) : "Tank state afterwards" : 0 =
+	[
+		0: "No change"
+		1: "Active"
+		2: "Inactive"
+		3: "Toggle"
+	]
+	m_iControllable(choices) : "Control afterwards" : 0 =
+	[
+		0: "No change"
+		1: "Controllable"
+		2: "Not Controllable"
+		3: "Toggle"
+	]
+	m_iLaserSpot(choices) : "Laser Spot afterwards" : 0 =
+	[
+		0: "No change"
+		1: "Turn on"
+		2: "Turn off"
+		3: "Toggle"
+	]
+	spawnflags(flags) =
+	[
+		1: "Dump player" : 0
+		2: "Repeatable" : 0
+	]
+]
+
 @PointClass iconsprite("sprites/speaker.spr") base(Targetname) = speaker : "Announcement Speaker"
 [
 	preset(choices) :"Announcement Presets" : 0 =
