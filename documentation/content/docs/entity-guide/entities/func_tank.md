@@ -14,6 +14,13 @@ entityCategory: solid
 * ![](/images/spirit.png) `Behavior` - set the relationship classification for the tank. Allow tank to attack monsters, not only the player.
 * ![](/images/spirit.png) `Trigger on firing (locus = barrel)` - a target to trigger when tank is firing a shot, with the end of the barrel as activator (the special invisible entity is created automatically). This will work even if tank doesn't actually use bullets.
 * ![](/images/spirit.png) `Fire Master` - allows to lock the firing ability (the tank still can rotate).
+* `Extra barrels name` - the name of other tank entities which will fire their shots along with main one.
+    - Tanks that act as extra barrels must be deactivated (so they don't act on their own).
+    - Their origin brush should be placed at the same place as the origina brush of the main tank. The `Barrel Horizontal` and `Barrel Vertical` offsets should be provided accordingly to the geometry.
+    - In fact, tanks acting as barrels can consist of single origin brush only.
+    - Barrel tanks can still have different fire rates, but they currently can't fire faster than the main tank, so it's better if the main tank has the same or higher fire rate.
+    - The main tank can be a fake tank (i.e. not firing anything) used only for visuals and as the rotation reference of barrels which actually do damage.
+    - You can temporarily disable certain barrels from the set via `Fire Master`.
 
 {{% hint info %}}
 ![](/images/spirit.png) The tank can be controlled by [scripted_tanksequence]({{< ref scripted_tanksequence >}}).

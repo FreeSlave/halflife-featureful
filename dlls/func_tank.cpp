@@ -136,6 +136,9 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void Think( void );
+	virtual void TankSpecialThink() {}
+	void UpdateFireLast();
+	void UpdateNextAttack();
 	void TrackTarget( void );
 
 	CBaseEntity* BestVisibleEnemy( void );
@@ -143,6 +146,7 @@ public:
 	int DefaultClassify() override { return m_iTankClass; }
 
 	void TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker = nullptr );
+	void FireBarrels(bool controlledOrScripted, const Vector &forward, CBaseEntity *pAttacker = nullptr);
 	virtual void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker );
 	virtual Vector UpdateTargetPosition( CBaseEntity *pTarget )
 	{
@@ -244,6 +248,8 @@ protected:
 	CBaseEntity* BarrelFireProxy();
 	void UpdateBarrelFireProxyPosition();
 
+	string_t m_extraBarrelsName;
+
 	float m_checkOriginTime;
 	bool m_originIsInWorldBrush;
 
@@ -300,6 +306,18 @@ static Vector gTankSpread[] =
 };
 
 #define MAX_FIRING_SPREADS ARRAYSIZE( gTankSpread )
+
+static CFuncTank* GetFuncTankPointer(CBaseEntity* pEntity)
+{
+	if (!pEntity)
+		return nullptr;
+	if (FClassnameIs(pEntity->pev, "func_tank") || FClassnameIs(pEntity->pev, "func_tanklaser") ||
+		FClassnameIs(pEntity->pev, "func_tankmortar") || FClassnameIs(pEntity->pev, "func_tankrocket"))
+	{
+		return (CFuncTank*)pEntity;
+	}
+	return nullptr;
+}
 
 void CFuncTank::Spawn( void )
 {
@@ -473,6 +491,11 @@ void CFuncTank::KeyValue( KeyValueData *pkvd )
 	else if (FStrEq(pkvd->szKeyName, "m_iszLocusFire"))
 	{
 		m_iszLocusFire = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "extra_barrels"))
+	{
+		m_extraBarrelsName = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -765,13 +788,25 @@ void CFuncTank::StopSequence( )
 
 void CFuncTank::Think( void )
 {
+	TankSpecialThink();
 	pev->avelocity = g_vecZero;
+
 	TrackTarget();
 
 	if( fabs( pev->avelocity.x ) > 1 || fabs( pev->avelocity.y ) > 1 )
 		StartRotSound();
 	else
 		StopRotSound();
+}
+
+void CFuncTank::UpdateFireLast()
+{
+	m_fireLast = gpGlobals->time - (1.0f / m_fireRate) - 0.01f;
+}
+
+void CFuncTank::UpdateNextAttack()
+{
+	m_flNextAttack = gpGlobals->time + (1.0f / m_fireRate);
 }
 
 void CFuncTank::TrackTarget( void )
@@ -957,6 +992,23 @@ void CFuncTank::TrackTarget( void )
 	if( m_pSequence && fabs( distY ) < 0.1f && fabs( distX ) < 0.1f )
 		m_pSequence->FacingNotify();
 
+	if (!FStringNull(m_extraBarrelsName))
+	{
+		CBaseEntity* pTryBarrel = nullptr;
+		while((pTryBarrel = UTIL_FindEntityByTargetname(pTryBarrel, STRING(m_extraBarrelsName))) != nullptr)
+		{
+			CFuncTank* pBarrel = GetFuncTankPointer(pTryBarrel);
+			if (pBarrel && pBarrel != this)
+			{
+				pBarrel->pev->angles = pev->angles;
+				pBarrel->TankSpecialThink();
+
+				// update sooner if have any barrels
+				pev->nextthink = pev->ltime + 0.05f;
+			}
+		}
+	}
+
 	// firing in tanksequences:
 	if ( m_pSequence )
 	{
@@ -969,11 +1021,10 @@ void CFuncTank::TrackTarget( void )
 			UTIL_MakeVectorsPrivate( pev->angles, forward, NULL, NULL );
 
 			// to make sure the gun doesn't fire too many bullets
-			m_fireLast = gpGlobals->time - (1.0f / m_fireRate) - 0.01f;
-
+			UpdateFireLast();
 			TryFire( BarrelPosition(), forward );
-
-			m_flNextAttack = gpGlobals->time + (1.0f / m_fireRate);
+			FireBarrels(true, forward);
+			UpdateNextAttack();
 		}
 		return;
 	}
@@ -989,15 +1040,16 @@ void CFuncTank::TrackTarget( void )
 			UTIL_MakeVectorsPrivate( pev->angles, forward, NULL, NULL );
 
 			// to make sure the gun doesn't fire too many bullets
-			m_fireLast = gpGlobals->time - (1.0f / m_fireRate) - 0.01f;
+			UpdateFireLast();
 
 			TryFire( BarrelPosition(), forward, pController );
+			FireBarrels(true, forward, pController);
 
 			// HACKHACK -- make some noise (that the AI can hear)
 			if ( pController && pController->IsPlayer() )
 				((CBasePlayer *)pController)->m_iWeaponVolume = LOUD_GUN_VOLUME;
 
-			m_flNextAttack = gpGlobals->time + (1.0f / m_fireRate);
+			UpdateNextAttack();
 		}
 	}
 	else if( CanFire() && ( ( fabs( distX ) < m_pitchTolerance && fabs( distY ) < m_yawTolerance ) || ( pev->spawnflags & SF_TANK_LINEOFSIGHT ) ) )
@@ -1019,6 +1071,7 @@ void CFuncTank::TrackTarget( void )
 		if( fire )
 		{
 			TryFire( BarrelPosition(), forward );
+			FireBarrels(false, forward);
 		}
 		else
 			m_fireLast = 0;
@@ -1060,6 +1113,29 @@ void CFuncTank::TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 			return;
 		}
 		Fire( barrelEnd, forward, pAttacker ? pAttacker : this );
+	}
+}
+
+void CFuncTank::FireBarrels(bool controlledOrScripted, const Vector &forward, CBaseEntity *pAttacker)
+{
+	if (!FStringNull(m_extraBarrelsName))
+	{
+		CBaseEntity* pTryBarrel = nullptr;
+		while((pTryBarrel = UTIL_FindEntityByTargetname(pTryBarrel, STRING(m_extraBarrelsName))) != nullptr)
+		{
+			CFuncTank* pBarrel = GetFuncTankPointer(pTryBarrel);
+			if (pBarrel && pBarrel != this)
+			{
+				if (!controlledOrScripted || gpGlobals->time >= pBarrel->m_flNextAttack)
+				{
+					if (controlledOrScripted)
+						pBarrel->UpdateFireLast();
+					pBarrel->TryFire(pBarrel->BarrelPosition(), forward, pAttacker);
+					if (controlledOrScripted)
+						pBarrel->UpdateNextAttack();
+				}
+			}
+		}
 	}
 }
 
@@ -1189,7 +1265,7 @@ public:
 	void Activate( void );
 	void KeyValue( KeyValueData *pkvd );
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
-	void Think( void );
+	void TankSpecialThink() override;
 	CLaser *GetLaser( void );
 
 	virtual int Save( CSave &save );
@@ -1268,14 +1344,12 @@ CLaser *CFuncTankLaser::GetLaser( void )
 	return m_pLaser;
 }
 
-void CFuncTankLaser::Think( void )
+void CFuncTankLaser::TankSpecialThink()
 {
 	if( m_pLaser && (gpGlobals->time > m_laserTime) && m_pLaser->IsOn() ) {
 		ClearBits(pev->flags, FL_ALWAYSTHINK);
 		m_pLaser->TurnOff();
 	}
-
-	CFuncTank::Think();
 }
 
 void CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
@@ -1433,18 +1507,6 @@ bool CFuncTankControls::OnControls(entvars_t* pevTest)
 		return true;
 
 	return false;
-}
-
-static CFuncTank* GetFuncTankPointer(CBaseEntity* pEntity)
-{
-	if (!pEntity)
-		return nullptr;
-	if (FClassnameIs(pEntity->pev, "func_tank") || FClassnameIs(pEntity->pev, "func_tanklaser") ||
-		FClassnameIs(pEntity->pev, "func_tankmortar") || FClassnameIs(pEntity->pev, "func_tankrocket"))
-	{
-		return (CFuncTank*)pEntity;
-	}
-	return nullptr;
 }
 
 void CFuncTankControls::CheckAnyTanksLeft(CFuncTank* pBesidesMe)

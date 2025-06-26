@@ -991,6 +991,7 @@
 		15 : "Race X shock"
 		16 : "Opfor ally"
 	]
+	extra_barrels(string) : "Extra barrels name" : : "This must refer to another deactivated tank"
 	_minlight(string) : "Minimum light level"
 ]
 
