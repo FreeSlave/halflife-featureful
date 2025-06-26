@@ -935,7 +935,7 @@
 	[
 		1 : "Active" : 0
 		16: "Only Direct" : 0
-		32: "Controllable" : 0
+		32: "Controllable (outdated)" : 0 : "Tanks don't need this spawnflag anymore. func_tankcontrols targetting this tank is enough."
 		64: "Laser Spot" : 0
 		128: "Match Target" : 0
 		256: "Smoke when no ammo" : 0

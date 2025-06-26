@@ -30,9 +30,13 @@ entityCategory: solid
 ### New spawnflags
 
 * ![](/images/spirit.png) `Laser spot` - show laser spot when the tank is used.
-* ![](/images/spirit.png) `Match Target` - make controllable tank rotations match player's view target (center of the screen), instead of just following the player's angles.
+* ![](/images/spirit.png) `Match Target` - make controllable tank rotations match player's view target (center of the screen), instead of just following the player's angles. This is also a recommended option for setups where multiple tanks are controlled by single [func_tankcontrols]({{< ref func_tankcontrols >}}), so the tanks fire at the same target.
 
 ### Bugfixes
 
 * Controllable tanks now can be removed from the map without a risk of crashing the game if tank was removed during the player's usage.
 * `func_tank` properly finds the player when the origin of the tank is inside the worldbrush.
+
+### Notes
+
+* The `Controllable` spawnflag is not required anymore. [func_tankcontrols]({{< ref func_tankcontrols >}}) targetting the tank is enough. The `Controllable` spawnflag basically prevents tanks from being activated and deactivated via triggers.
