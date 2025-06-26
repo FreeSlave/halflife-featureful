@@ -21,6 +21,7 @@ entityCategory: solid
     - Barrel tanks can still have different fire rates, but they currently can't fire faster than the main tank, so it's better if the main tank has the same or higher fire rate.
     - The main tank can be a fake tank (i.e. not firing anything) used only for visuals and as the rotation reference of barrels which actually do damage.
     - You can temporarily disable certain barrels from the set via `Fire Master`.
+* `Custom player weapon volume` - the radius of AI sound produced by a player when he's firing a tank. If it's zero or omitted the default value 1000 is used. Set to negative value to disable AI sound for tank shots.
 
 {{% hint info %}}
 ![](/images/spirit.png) The tank can be controlled by [scripted_tanksequence]({{< ref scripted_tanksequence >}}).

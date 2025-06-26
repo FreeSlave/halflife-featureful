@@ -239,6 +239,7 @@ protected:
 	short		m_smokeRenderMode;
 
 	int			m_iTankClass;	// Behave As
+	int			m_iPlayerWeaponVolume;
 
 	void UpdateSpot( void );
 
@@ -290,6 +291,7 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_pSpot, FIELD_CLASSPTR ), //LRC
 	DEFINE_FIELD( CFuncTank, m_smokeRenderMode, FIELD_SHORT ),
 	DEFINE_FIELD( CFuncTank, m_iTankClass, FIELD_INTEGER ),
+	DEFINE_FIELD( CFuncTank, m_iPlayerWeaponVolume, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncTank, m_pFireProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CFuncTank, m_iszLocusFire, FIELD_STRING ),
 };
@@ -496,6 +498,11 @@ void CFuncTank::KeyValue( KeyValueData *pkvd )
 	else if (FStrEq(pkvd->szKeyName, "extra_barrels"))
 	{
 		m_extraBarrelsName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "player_weapon_volume"))
+	{
+		m_iPlayerWeaponVolume = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -1046,8 +1053,8 @@ void CFuncTank::TrackTarget( void )
 			FireBarrels(true, forward, pController);
 
 			// HACKHACK -- make some noise (that the AI can hear)
-			if ( pController && pController->IsPlayer() )
-				((CBasePlayer *)pController)->m_iWeaponVolume = LOUD_GUN_VOLUME;
+			if ( pController && pController->IsPlayer() && m_iPlayerWeaponVolume >= 0 )
+				((CBasePlayer *)pController)->m_iWeaponVolume = m_iPlayerWeaponVolume > 0 ? m_iPlayerWeaponVolume : LOUD_GUN_VOLUME;
 
 			UpdateNextAttack();
 		}

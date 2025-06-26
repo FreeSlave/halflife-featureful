@@ -992,6 +992,7 @@
 		16 : "Opfor ally"
 	]
 	extra_barrels(string) : "Extra barrels name" : : "This must refer to another deactivated tank"
+	player_weapon_volume : "Custom player weapon volume" : : "The radius of AI sound produced by a player when he's firing a tank. Default is 1000. Negative values won't produce AI sound at all."
 	_minlight(string) : "Minimum light level"
 ]
 
