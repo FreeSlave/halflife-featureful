@@ -57,7 +57,7 @@ Various parameters available for the visual effects configuration.
 * `No rain splashes` - disable rain splashes on the ground.
 * `No ripples` - disable ripples on the water.
 * `Localized` - tick this flag to make rain localized in the certain area independent of player position. By default the raindrops will appear around the player giving the illusion of global rain.
-* `Distance is radius` - by default `Rain max distance` means half of the square area side the raindrops will spawn in. This flag makes it treat distance as circle radius."
+* `Distance is radius` - by default `Rain max distance` means half of the square area side the raindrops will spawn in. This flag makes it treat distance as circle radius.
 
 ### Reaction to use-type
 

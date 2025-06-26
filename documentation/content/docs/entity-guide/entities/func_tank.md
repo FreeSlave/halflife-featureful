@@ -32,6 +32,10 @@ entityCategory: solid
 * ![](/images/spirit.png) `Laser spot` - show laser spot when the tank is used.
 * ![](/images/spirit.png) `Match Target` - make controllable tank rotations match player's view target (center of the screen), instead of just following the player's angles. This is also a recommended option for setups where multiple tanks are controlled by single [func_tankcontrols]({{< ref func_tankcontrols >}}), so the tanks fire at the same target.
 
+### Soundscripts
+
+* **Weapon.Empty** - player is trying to fire using a tank, but the tank has no ammo left.
+
 ### Bugfixes
 
 * Controllable tanks now can be removed from the map without a risk of crashing the game if tank was removed during the player's usage.
