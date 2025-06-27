@@ -333,8 +333,8 @@ public:
 	}
 	virtual int DefaultWeight() { return 0; }
 
-	int	PrimaryAmmoIndex();
-	int	SecondaryAmmoIndex();
+	int	PrimaryAmmoIndex() const;
+	int	SecondaryAmmoIndex() const;
 	const char* AmmoName(const char* defaultAmmoName);
 
 	void PrintState( void );
@@ -376,6 +376,7 @@ public:
 	bool HasAmmoToFire(int ammo = 1);
 	bool IsOutOfAmmo();
 	void CheckOutOfAmmo();
+	void CheckOutOfSecondaryAmmo();
 	void SpendAmmo(int ammo = 1);
 	bool Emptied();
 };
@@ -724,10 +725,6 @@ public:
 	float GetDischargeInterval( void );
 
 	void Fire( const Vector &vecOrigSrc, const Vector &vecDir );
-
-	bool HasAmmo( void );
-
-	void UseAmmo( int count );
 
 	enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE};
 
@@ -1178,8 +1175,6 @@ public:
 
 	const char* MyWModel() override { return "models/w_displacer.mdl"; }
 	int DefaultWeight() override { return DISPLACER_WEIGHT; }
-
-	bool CanFireDisplacer( int count ) const;
 
 	enum DISPLACER_FIREMODE { FIREMODE_FORWARD = 1, FIREMODE_BACKWARD };
 

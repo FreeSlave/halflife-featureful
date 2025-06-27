@@ -779,11 +779,9 @@ bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 
 	pPlayer->SetWeaponBit(WeaponId());
 
-	if( !m_iPrimaryAmmoType )
-	{
-		m_iPrimaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo1() );
-		m_iSecondaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo2() );
-	}
+	m_iPrimaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo1() );
+	m_iSecondaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo2() );
+
 	// Remove weapon's global name to avoid problems with carrying the weapon to other maps
 	pev->globalname = iStringNull;
 	m_iClientMaxClip = 0;
@@ -898,8 +896,6 @@ bool CBasePlayerWeapon::AddPrimaryAmmo( int iCount )
 		iIdAmmo = m_pPlayer->GiveAmmo( iCount, szName );
 	}
 
-	// m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxCarry; // hack for testing
-
 	if( iIdAmmo > 0 )
 	{
 		m_iPrimaryAmmoType = iIdAmmo;
@@ -917,8 +913,6 @@ bool CBasePlayerWeapon::AddPrimaryAmmo( int iCount )
 bool CBasePlayerWeapon::AddSecondaryAmmo(int iCount)
 {
 	int iIdAmmo = m_pPlayer->GiveAmmo( iCount, pszAmmo2() );
-
-	//m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] = iMax; // hack for testing
 
 	if( iIdAmmo > 0 )
 	{

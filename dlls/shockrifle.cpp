@@ -131,16 +131,16 @@ void CShockrifle::Holster()
 
 void CShockrifle::PrimaryAttack()
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+	if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] <= 0)
 		return;
 
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
 #if !CLIENT_DLL
-		const float radius = 150 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
-		const float dmg = 100 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+		const float radius = 150 * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+		const float dmg = 100 * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_discharge.wav", VOL_NORM, ATTN_NORM);
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 0;
 		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );
 #endif
 		return;
@@ -166,8 +166,7 @@ void CShockrifle::PrimaryAttack()
 
 	m_flRechargeTime = gpGlobals->time + 1.0f;
 #endif
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
-
+	SpendAmmo();
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
@@ -194,14 +193,14 @@ void CShockrifle::SecondaryAttack( void )
 
 void CShockrifle::Reload(void)
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType))
+	if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()))
 		return;
 
-	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType) && m_flRechargeTime < gpGlobals->time)
+	while (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()) && m_flRechargeTime < gpGlobals->time)
 	{
 		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/shock_recharge.wav", 1, ATTN_NORM);
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
 #if !CLIENT_DLL
 		if( g_pGameRules->IsMultiplayer() )
 			m_flRechargeTime += 0.25;

@@ -39,11 +39,11 @@ bool CBasePlayerWeapon::CanDeploy( void )
 
 	if( UsesAmmo() )
 	{
-		bHasAmmo |= ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] != 0 );
+		bHasAmmo |= ( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 );
 	}
 	if( UsesSecondaryAmmo() )
 	{
-		bHasAmmo |= ( m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] != 0 );
+		bHasAmmo |= ( m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] > 0 );
 	}
 	if( m_iClip > 0 )
 	{
@@ -59,10 +59,10 @@ bool CBasePlayerWeapon::CanDeploy( void )
 
 bool CBasePlayerWeapon::DefaultReload( int iClipSize, int iAnim, float fDelay, int body )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] <= 0 )
 		return false;
 
-	int j = Q_min( iClipSize - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] );
+	int j = Q_min( iClipSize - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
 
 	if( j == 0 )
 		return false;
@@ -114,11 +114,11 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	{
 		int maxClip = iMaxClip();
 		// complete the reload.
-		int j = Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+		int j = Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
 
 		// Add them to the clip
 		m_iClip += j;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= j;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= j;
 
 		m_fInReload = false;
 	}
@@ -211,20 +211,22 @@ int CBasePlayerWeapon::iMaxClip()
 	return m_iMaxClip;
 }
 
-int CBasePlayerWeapon::PrimaryAmmoIndex()
+int CBasePlayerWeapon::PrimaryAmmoIndex() const
 {
-	if (m_iPrimaryAmmoType <= 0)
+	if (m_iPrimaryAmmoType <= 0 || m_iPrimaryAmmoType >= MAX_AMMO_TYPES)
 	{
-		ALERT(at_error, "Accessing primary ammo with invalid type %d!\n", m_iPrimaryAmmoType);
+		ALERT(at_error, "Weapon %d accessing primary ammo with invalid type %d!\n", WeaponId(), m_iPrimaryAmmoType);
+		return 0;
 	}
 	return m_iPrimaryAmmoType;
 }
 
-int CBasePlayerWeapon::SecondaryAmmoIndex()
+int CBasePlayerWeapon::SecondaryAmmoIndex() const
 {
-	if (m_iSecondaryAmmoType <= 0)
+	if (m_iSecondaryAmmoType <= 0 || m_iSecondaryAmmoType >= MAX_AMMO_TYPES)
 	{
-		ALERT(at_error, "Accessing secondary ammo with invalid type %d!\n", m_iSecondaryAmmoType);
+		ALERT(at_error, "Weapon %d accessing secondary ammo with invalid type %d!\n", WeaponId(), m_iSecondaryAmmoType);
+		return 0;
 	}
 	return m_iSecondaryAmmoType;
 }
@@ -238,7 +240,7 @@ bool CBasePlayerWeapon::CanReload()
 {
 	if (!UsesClip())
 		return false;
-	return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && m_iClip < m_iMaxClip;
+	return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 && m_iClip < m_iMaxClip;
 }
 
 bool CBasePlayerWeapon::UsesClip()
@@ -254,7 +256,7 @@ bool CBasePlayerWeapon::HasAmmoToFire(int ammo)
 	}
 	else
 	{
-		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= ammo;
+		return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= ammo;
 	}
 }
 
@@ -262,17 +264,24 @@ bool CBasePlayerWeapon::IsOutOfAmmo()
 {
 	if (UsesClip())
 	{
-		return m_iClip <= 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 1;
+		return m_iClip <= 0 && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < 1;
 	}
 	else
 	{
-		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 1;
+		return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < 1;
 	}
 }
 
 void CBasePlayerWeapon::CheckOutOfAmmo()
 {
 	if (IsOutOfAmmo())
+		// HEV suit - indicate out of ammo condition
+		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
+}
+
+void CBasePlayerWeapon::CheckOutOfSecondaryAmmo()
+{
+	if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < 1)
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
 }
@@ -286,8 +295,8 @@ void CBasePlayerWeapon::SpendAmmo(int ammo)
 	}
 	else
 	{
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= ammo;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = Q_max(0, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= ammo;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
 	}
 }
 
@@ -299,6 +308,6 @@ bool CBasePlayerWeapon::Emptied()
 	}
 	else
 	{
-		return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] == 0;
+		return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] == 0;
 	}
 }

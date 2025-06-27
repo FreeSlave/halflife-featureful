@@ -119,7 +119,7 @@ void CGauss::PrimaryAttack()
 		return;
 	}
 
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2 )
+	if( !HasAmmoToFire(2) )
 	{
 		PlayEmptySound();
 		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
@@ -129,7 +129,7 @@ void CGauss::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = GAUSS_PRIMARY_FIRE_VOLUME;
 	m_fPrimaryFire = true;
 
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
+	SpendAmmo(2);
 
 	StartFire();
 	m_fInAttack = 0;
@@ -162,7 +162,7 @@ void CGauss::SecondaryAttack()
 
 	if( m_fInAttack == 0 )
 	{
-		if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+		if( !HasAmmoToFire() )
 		{
 #if !CLIENT_DLL
 			m_pPlayer->EmitSoundScript(Items::weaponEmptySoundScript);
@@ -173,7 +173,7 @@ void CGauss::SecondaryAttack()
 
 		m_fPrimaryFire = false;
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;// take one ammo just to start the spin
+		SpendAmmo();
 		m_pPlayer->m_flNextAmmoBurn = UTIL_WeaponTimeBase();
 
 		// spin up
@@ -204,17 +204,17 @@ void CGauss::SecondaryAttack()
 		{
 			if( bIsMultiplayer() )
 			{
-				m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+				SpendAmmo();
 				m_pPlayer->m_flNextAmmoBurn = UTIL_WeaponTimeBase() + 0.1f;
 			}
 			else
 			{
-				m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+				SpendAmmo();
 				m_pPlayer->m_flNextAmmoBurn = UTIL_WeaponTimeBase() + 0.3f;
 			}
 		}
 
-		if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+		if( !HasAmmoToFire() )
 		{
 			// out of ammo! force the gun to fire
 			StartFire();

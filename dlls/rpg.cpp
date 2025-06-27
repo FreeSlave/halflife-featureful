@@ -524,7 +524,7 @@ void CRpg::WeaponIdle( void )
 	if( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 	{
 		ResetEmptySound();
 

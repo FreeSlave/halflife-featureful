@@ -135,7 +135,7 @@ void CMedkit::Holster()
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 
 	//HACKHACK - can't select medkit if it's empty! no way to get ammo for it, either
-	if( CanRecharge() && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) {
+	if( CanRecharge() && !HasAmmoToFire() ) {
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
 	}
 
@@ -147,7 +147,7 @@ void CMedkit::PrimaryAttack(void)
 	Reload();
 
 	CBaseEntity* healTarget;
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && (healTarget = FindHealTarget()) ) {
+	if (HasAmmoToFire() && (healTarget = FindHealTarget()) ) {
 		//
 	} else {
 		PlayEmptySound();
@@ -169,7 +169,7 @@ void CMedkit::SecondaryAttack()
 {
 	Reload();
 
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] == 0 || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
+	if (!HasAmmoToFire() || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
 		PlayEmptySound();
 		m_flNextSecondaryAttack = GetNextAttackDelay(0.8);
 		return;
@@ -188,11 +188,11 @@ void CMedkit::SecondaryAttack()
 
 void CMedkit::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= MEDKIT_MAX_CARRY )
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= MEDKIT_MAX_CARRY )
 		return;
 	if( CanRecharge() && m_flRechargeTime < gpGlobals->time )
 	{
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
 		m_flRechargeTime = gpGlobals->time + gSkillData.plrMedkitTime;
 	}
 }
@@ -202,12 +202,13 @@ void CMedkit::WeaponIdle(void)
 	Reload();
 	ResetEmptySound();
 
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
+	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
 	{
-		const int maxHeal = Q_min((int)gSkillData.plrDmgMedkit, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+		const int maxHeal = Q_min((int)gSkillData.plrDmgMedkit, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
 		if (m_secondaryAttack) {
 			const int diff = (int)ceil(m_pPlayer->pev->max_health - m_pPlayer->pev->health);
-			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
+			const int healResult = m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
+			SpendAmmo(healResult);
 			EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot5.wav", 1.0, ATTN_NORM, 0, 100);
 		} else {
 			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -217,7 +218,7 @@ void CMedkit::WeaponIdle(void)
 			if (healTarget) {
 				const int diff = (int)ceil(healTarget->pev->max_health - healTarget->pev->health);
 				const int healResult = healTarget->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
-				m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= healResult;
+				SpendAmmo(healResult);
 				EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot4.wav", 1.0, ATTN_NORM, 0, 100);
 			}
 		}

@@ -120,7 +120,7 @@ void CDisplacer::Holster()
 
 void CDisplacer::SecondaryAttack(void)
 {
-	if (m_fFireOnEmpty || !CanFireDisplacer(DISPLACER_SECONDARY_USAGE))
+	if (m_fFireOnEmpty || !HasAmmoToFire(DISPLACER_SECONDARY_USAGE))
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
@@ -139,7 +139,7 @@ void CDisplacer::SecondaryAttack(void)
 
 void CDisplacer::PrimaryAttack()
 {
-	if ( m_fFireOnEmpty || !CanFireDisplacer(DISPLACER_PRIMARY_USAGE))
+	if ( m_fFireOnEmpty || !HasAmmoToFire(DISPLACER_PRIMARY_USAGE))
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
@@ -225,7 +225,7 @@ void CDisplacer::Displace( void )
 	m_pPlayer->pev->punchangle.x -= 2;
 #if !CLIENT_DLL
 	Vector vecSrc;
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= DISPLACER_PRIMARY_USAGE;
+	SpendAmmo(DISPLACER_PRIMARY_USAGE);
 
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 
@@ -285,7 +285,7 @@ void CDisplacer::Teleport( void )
 		// UTIL_ScreenFade( m_pPlayer, Vector( 0, 200, 0 ), 0.5, 0.5, 255, FFADE_IN );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= DISPLACER_SECONDARY_USAGE;
+		SpendAmmo(DISPLACER_SECONDARY_USAGE);
 
 		UTIL_CleanSpawnPoint( newOrigin, 50 );
 
@@ -368,8 +368,4 @@ void CDisplacer::ClearBeams( void )
 #endif
 }
 
-bool CDisplacer::CanFireDisplacer( int count ) const
-{
-	return m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= count;
-}
 #endif

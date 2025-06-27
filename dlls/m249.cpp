@@ -241,14 +241,14 @@ void CM249::ItemPostFrame()
 {
 	if (!m_fInReload)
 	{
-		m_iVisibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+		m_iVisibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
 	}
 	if ( m_fInSpecialReload )
 	{
 		if (m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase())
 		{
 			int maxClip = iMaxClip();
-			m_iVisibleClip = m_iClip + Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] );
+			m_iVisibleClip = m_iClip + Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
 
 			UpdateTape(m_iVisibleClip);
 			m_fInSpecialReload = 0;
@@ -286,7 +286,7 @@ void CM249::WeaponIdle(void)
 
 void CM249::UpdateTape()
 {
-	int visibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+	int visibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
 
 	UpdateTape(visibleClip);
 	m_iVisibleClip = visibleClip;

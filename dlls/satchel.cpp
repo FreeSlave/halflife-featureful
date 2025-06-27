@@ -433,7 +433,7 @@ void CSatchel::Holster()
 	}
 	EMIT_SOUND( ENT( m_pPlayer->pev ), CHAN_WEAPON, "common/null.wav", 1.0f, ATTN_NORM );
 
-	if( !m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] && m_chargeReady != SATCHEL_READY )
+	if( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] && m_chargeReady != SATCHEL_READY )
 	{
 		m_pPlayer->ClearWeaponBit(WeaponId());
 		DestroyItem();
@@ -465,7 +465,7 @@ void CSatchel::SecondaryAttack( void )
 
 void CSatchel::Throw( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 	{
 #if !CLIENT_DLL
 		Vector vecSrc = m_pPlayer->pev->origin;
@@ -490,7 +490,7 @@ void CSatchel::Throw( void )
 
 		m_chargeReady = SATCHEL_READY;
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		SpendAmmo();
 
 		m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
@@ -570,7 +570,7 @@ void CSatchel::WeaponIdle( void )
 		strcpy( m_pPlayer->m_szAnimExtention, "hive" );
 		break;
 	case SATCHEL_RELOAD:
-		if( !m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+		if( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
 		{
 			m_chargeReady = 0;
 			RetireWeapon();
@@ -588,7 +588,7 @@ void CSatchel::ItemPreFrame()
 	CBasePlayerWeapon::ItemPreFrame();
 	if (m_pPlayer->m_needSatchelRecheck)
 	{
-		if (m_chargeReady == SATCHEL_READY && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0)
+		if (m_chargeReady == SATCHEL_READY && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0)
 		{
 #if !CLIENT_DLL
 			bool anySatchelsLeft = AnySatchelsLeft(m_pPlayer->edict());

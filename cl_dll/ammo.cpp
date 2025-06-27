@@ -221,7 +221,7 @@ int WeaponsResource::HasAmmo( WEAPON *p )
 		return 0;
 
 	// weapons with no max ammo can always be selected
-	return ( p->iAmmoType == -1 ) || p->iClip > 0 || CountAmmo( p->iAmmoType ) 
+	return ( p->iAmmoType <= 0 ) || p->iClip > 0 || CountAmmo( p->iAmmoType )
 		|| CountAmmo( p->iAmmo2Type ) || ( p->iFlags & WEAPON_FLAGS_SELECTONEMPTY );
 }
 
@@ -850,9 +850,9 @@ int CHudAmmo::MsgFunc_WeaponList( const char *pszName, int iSize, void *pbuf )
 		return 0;
 	if( Weapon.iSlotPos < 0 || Weapon.iSlotPos >= MAX_WEAPON_POSITIONS + 1 )
 		return 0;
-	if( Weapon.iAmmoType < -1 || Weapon.iAmmoType >= MAX_AMMO_TYPES )
+	if( Weapon.iAmmoType < 0 || Weapon.iAmmoType >= MAX_AMMO_TYPES )
 		return 0;
-	if( Weapon.iAmmo2Type < -1 || Weapon.iAmmo2Type >= MAX_AMMO_TYPES )
+	if( Weapon.iAmmo2Type < 0 || Weapon.iAmmo2Type >= MAX_AMMO_TYPES )
 		return 0;
 
 	gWR.AddWeapon( &Weapon );
@@ -1051,7 +1051,7 @@ int CHudAmmo::Draw( float flTime )
 	WEAPON *pw = m_pWeapon; // shorthand
 
 	// SPR_Draw Ammo
-	if( ( pw->iAmmoType < 0 ) && ( pw->iAmmo2Type < 0 ) )
+	if( ( pw->iAmmoType <= 0 ) && ( pw->iAmmo2Type <= 0 ) )
 		return 0;
 
 	int iFlags = DHN_DRAWZERO; // draw 0 values

@@ -112,22 +112,6 @@ float CEgon::GetDischargeInterval( void )
 	return EGON_DISCHARGE_INTERVAL;
 }
 
-bool CEgon::HasAmmo( void )
-{
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		return false;
-
-	return true;
-}
-
-void CEgon::UseAmmo( int count )
-{
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= count )
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= count;
-	else
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
-}
-
 void CEgon::Attack( void )
 {
 	// don't fire underwater
@@ -163,7 +147,7 @@ void CEgon::Attack( void )
 	{
 		case FIRE_OFF:
 		{
-			if( !HasAmmo() )
+			if( !HasAmmoToFire() )
 			{
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25f;
 				PlayEmptySound( );
@@ -195,7 +179,7 @@ void CEgon::Attack( void )
 				pev->fuser1 = 1000;
 			}
 
-			if( !HasAmmo() )
+			if( !HasAmmoToFire() )
 			{
 				EndAttack();
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;
@@ -265,7 +249,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
 					if( !g_pGameRules->IsBustingGame())
-						UseAmmo( 1 );
+						SpendAmmo( 1 );
 					m_flAmmoUseTime = gpGlobals->time + 0.1f;
 				}
 			}
@@ -274,7 +258,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				// single player, use 3 ammo/second
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
-					UseAmmo( 1 );
+					SpendAmmo( 1 );
 					m_flAmmoUseTime = gpGlobals->time + 0.166f;
 				}
 			}
@@ -309,7 +293,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
 					if( !g_pGameRules->IsBustingGame())
-						UseAmmo( 1 );
+						SpendAmmo( 1 );
 					m_flAmmoUseTime = gpGlobals->time + 0.2f;
 				}
 			}
@@ -318,7 +302,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				// Wide mode uses 10 charges per second in single player
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
-					UseAmmo( 1 );
+					SpendAmmo( 1 );
 					m_flAmmoUseTime = gpGlobals->time + 0.1f;
 				}
 			}

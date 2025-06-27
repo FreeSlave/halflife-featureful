@@ -26,7 +26,7 @@ int AmmoRegistry::Register(const char *name, int maxAmmo, bool exhaustible)
 		return -1;
 	// make sure it's not already in the registry
 	const int index = IndexOf(name);
-	if (index != -1)
+	if (index > 0)
 	{
 		const AmmoType* type = GetByIndex(index);
 		if (type->maxAmmo != maxAmmo || type->exhaustible != exhaustible)
@@ -95,7 +95,7 @@ const AmmoType* AmmoRegistry::GetByIndex(int id) const
 int AmmoRegistry::IndexOf(const char *name) const
 {
 	if (!name)
-		return -1;
+		return 0;
 	for (int i = 0; i < static_cast<int>(ARRAYSIZE(ammoTypes)); ++i)
 	{
 		if (!ammoTypes[i].IsValid())
@@ -105,7 +105,7 @@ int AmmoRegistry::IndexOf(const char *name) const
 			return i+1;
 		}
 	}
-	return -1;
+	return 0;
 }
 
 int AmmoRegistry::GetMaxAmmo(const char *name) const

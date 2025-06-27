@@ -492,7 +492,7 @@ int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamag
 		if (rest > 0) {
 			const int medAmmoIndex = GetAmmoIndex(pPlayerMedkit->pszAmmo1());
 			const int medAmmo = AmmoInventory(medAmmoIndex);
-			if (medAmmo >= 0 && medAmmo < pPlayerMedkit->iMaxAmmo1()) {
+			if (medAmmoIndex > 0 && medAmmo >= 0 && medAmmo < pPlayerMedkit->iMaxAmmo1()) {
 				const int toAdd = Q_min(rest, pPlayerMedkit->iMaxAmmo1() - medAmmo);
 				m_rgAmmo[medAmmoIndex] += toAdd;
 
@@ -1004,14 +1004,14 @@ void CBasePlayer::PackDeadPlayerItems( void )
 		if ( pPlayerItem && pPlayerItem->CanBeDropped() && iPW < MAX_WEAPONS )
 		{
 			int ammoIndex = GetAmmoIndex( pPlayerItem->pszAmmo1() );
-			if (ammoIndex >= 0) {
+			if (ammoIndex > 0) {
 				if (!iPackAmmo[ammoIndex].weaponCount) {
 					iPackAmmo[ammoIndex].ammoCount = AmmoInventory(ammoIndex);
 				}
 				iPackAmmo[ammoIndex].weaponCount++;
 			}
 			int ammo2Index = GetAmmoIndex( pPlayerItem->pszAmmo2() );
-			if (ammo2Index >= 0) {
+			if (ammo2Index > 0) {
 				if (!iPackAmmo[ammo2Index].weaponCount) {
 					iPackAmmo[ammo2Index].ammoCount = AmmoInventory(ammo2Index);
 				}
@@ -1040,11 +1040,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				{
 					// complete the reload.
 					// TODO: make it depend on the game rules
-					const int j = Q_min( rgpPackWeapons[iPW]->iMaxClip() - rgpPackWeapons[iPW]->m_iClip, iPackAmmo[rgpPackWeapons[iPW]->m_iPrimaryAmmoType].ammoCount );
+					const int j = Q_min( rgpPackWeapons[iPW]->iMaxClip() - rgpPackWeapons[iPW]->m_iClip, iPackAmmo[rgpPackWeapons[iPW]->PrimaryAmmoIndex()].ammoCount );
 
 					// Add them to the clip
 					rgpPackWeapons[iPW]->m_iClip += j;
-					iPackAmmo[rgpPackWeapons[iPW]->m_iPrimaryAmmoType].ammoCount -= j;
+					iPackAmmo[rgpPackWeapons[iPW]->PrimaryAmmoIndex()].ammoCount -= j;
 				}
 				iPW++;
 			}
@@ -5035,8 +5035,8 @@ void CBasePlayer::ItemPostFrame()
 
 int CBasePlayer::AmmoInventory( int iAmmoIndex )
 {
-	if( iAmmoIndex == -1 || iAmmoIndex >= MAX_AMMO_TYPES )
-		return -1;
+	if( iAmmoIndex > 0 || iAmmoIndex >= MAX_AMMO_TYPES )
+		return 0;
 	return m_rgAmmo[iAmmoIndex];
 }
 
@@ -5968,7 +5968,7 @@ void CBasePlayer::DropPlayerItemImpl(CBasePlayerWeapon *pWeapon, int dropType, f
 
 	// drop ammo for this weapon.
 	int iAmmoIndex = GetAmmoIndex( pWeapon->pszAmmo1() ); // ???
-	if( iAmmoIndex != -1 )
+	if( iAmmoIndex > 0 )
 	{
 		// this weapon weapon uses ammo, so pack an appropriate amount.
 		if( pWeapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE )
@@ -6004,7 +6004,7 @@ void CBasePlayer::DropPlayerItemImpl(CBasePlayerWeapon *pWeapon, int dropType, f
 
 	// same for ammo2
 	iAmmoIndex = GetAmmoIndex( pWeapon->pszAmmo2() );
-	if( iAmmoIndex != -1 )
+	if( iAmmoIndex > 0 )
 	{
 		if (dropType == DropAmmoFair) {
 			int weaponCount = 1; // number of weapons that use the same ammo
@@ -6062,7 +6062,7 @@ void CBasePlayer::DropAmmo()
 			int ammoCount = pWeapon->iDropAmmo();
 			if (entName && ammoCount) {
 				int iAmmoIndex = GetAmmoIndex( pWeapon->pszAmmo1() );
-				if( iAmmoIndex != -1 )
+				if( iAmmoIndex > 0 )
 				{
 					if (m_rgAmmo[iAmmoIndex] >= ammoCount) {
 						UTIL_MakeVectors( pev->angles );

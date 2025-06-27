@@ -248,7 +248,7 @@ void CShotgun::Reload( void )
 	{
 		// Add them to the clip
 		m_iClip += 1;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 1;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= 1;
 		m_fInSpecialReload = 1;
 	}
 }
@@ -273,13 +273,13 @@ void CShotgun::WeaponIdle( void )
 
 	if( m_flTimeWeaponIdle <  UTIL_WeaponTimeBase() )
 	{
-		if( UsesClip() && m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+		if( UsesClip() && m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
 		{
 			Reload();
 		}
 		else if( m_fInSpecialReload != 0 )
 		{
-			if( m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
+			if( m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 			{
 				Reload();
 			}

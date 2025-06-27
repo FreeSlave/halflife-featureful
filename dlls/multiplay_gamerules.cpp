@@ -2122,5 +2122,5 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerWeapon
 	pPlayer->pev->renderfx = kRenderFxGlowShell;
 	pPlayer->pev->renderamt = 25;
 	pPlayer->pev->rendercolor = Vector( 0, 75, 250 );
-	pPlayer->m_rgAmmo[pWeapon->PrimaryAmmoIndex()] = 100;
+	pPlayer->m_rgAmmo[pWeapon->PrimaryAmmoIndex()] = pWeapon->iMaxAmmo1();
 }

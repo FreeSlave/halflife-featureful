@@ -210,7 +210,7 @@ int CBasePlayer::Save( CSave &save ) { return 0; }
 int CBasePlayer::Restore( CRestore &restore ) { return 0; }
 void CBasePlayer::ImpulseCommands() { }
 int CBasePlayer::AddPlayerItem( CBasePlayerWeapon *pItem ) { return DID_NOT_GET_ITEM; }
-int CBasePlayer::GetAmmoIndex( const char *psz ) { return -1; }
+int CBasePlayer::GetAmmoIndex( const char *psz ) { return 0; }
 void CBasePlayer::UpdateClientData( void ) { }
 bool CBasePlayer::FBecomeProne( void ) { return true; }
 void CBasePlayer::BarnacleVictimBitten( entvars_t *pevBarnacle ) { }

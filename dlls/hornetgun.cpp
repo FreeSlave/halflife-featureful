@@ -108,7 +108,7 @@ void CHgun::Holster()
 	SendWeaponAnim( HGUN_DOWN );
 
 	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either.
-	if( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
+	if( !HasAmmoToFire() )
 	{
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
 	}
@@ -118,7 +118,7 @@ void CHgun::PrimaryAttack()
 {
 	Reload();
 
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	if( !HasAmmoToFire() )
 	{
 		return;
 	}
@@ -135,7 +135,7 @@ void CHgun::PrimaryAttack()
 
 	m_flRechargeTime = gpGlobals->time + flRechargeTimePause;
 #endif
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+	SpendAmmo();
 	
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
@@ -159,7 +159,7 @@ void CHgun::SecondaryAttack( void )
 {
 	Reload();
 
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	if( !HasAmmoToFire() )
 	{
 		return;
 	}
@@ -223,7 +223,7 @@ void CHgun::SecondaryAttack( void )
 
 	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usHornetFire, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, 0, 0, 0, 0 );
 
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+	SpendAmmo();
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
 
@@ -236,16 +236,16 @@ void CHgun::SecondaryAttack( void )
 
 void CHgun::Reload( void )
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType) )
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()) )
 		return;
 
-	while( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType) && m_flRechargeTime < gpGlobals->time )
+	while( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()) && m_flRechargeTime < gpGlobals->time )
 	{
 		float flRechargeTimePause = 0.5f;
 		if( bIsMultiplayer() )
 			flRechargeTimePause = 0.3f;
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
 		m_flRechargeTime += flRechargeTimePause;
 	}
 }
