@@ -4685,7 +4685,8 @@ bool CBaseMonster::IsFreeToManipulate()
 			m_IdealMonsterState != MONSTERSTATE_PRONE &&
 				 (m_MonsterState == MONSTERSTATE_ALERT ||
 				  m_MonsterState == MONSTERSTATE_IDLE ||
-				  m_MonsterState == MONSTERSTATE_HUNT);
+				  m_MonsterState == MONSTERSTATE_HUNT ||
+				  m_MonsterState == MONSTERSTATE_NONE);
 }
 
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
