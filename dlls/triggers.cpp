@@ -5710,42 +5710,47 @@ void CTriggerSetPatrol::Spawn( void )
 
 void CTriggerSetPatrol::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	CBaseEntity *pTarget = NULL;
+	auto checkMonster = [](CBaseEntity* pEntity) -> CBaseMonster*
+	{
+		if (!pEntity)
+			return nullptr;
+		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+		if (pMonster && FBitSet(pMonster->pev->flags, FL_MONSTER))
+		{
+			if (pMonster->IsFreeToManipulate())
+				return pMonster;
+		}
+		return nullptr;
+	};
+
+	CBaseEntity *pPath = UTIL_FindEntityByTargetname( NULL, STRING( m_iszPath ) );
+	if (!pPath)
+		return;
+
+	CBaseEntity *pTarget = nullptr;
 
 	if (UTIL_TargetnameIsActivator(STRING(pev->target)))
 	{
-		if (pActivator != 0 && pActivator->MyMonsterPointer() && FBitSet(pActivator->pev->flags, FL_MONSTER))
-		{
-			pTarget = pActivator;
-		}
-		else
-		{
-			return;
-		}
+		pTarget = pActivator;
 	}
 	else
 	{
 		pTarget = UTIL_FindEntityByTargetname( NULL, STRING( pev->target ) );
 	}
 
-	CBaseEntity *pPath = UTIL_FindEntityByTargetname( NULL, STRING( m_iszPath ) );
-
-	if (pTarget && pPath)
+	CBaseMonster *pMonster = checkMonster(pTarget);
+	if (pMonster)
 	{
-		CBaseMonster *pMonster = pTarget->MyMonsterPointer();
-		if (pMonster)
+		Schedule_t* patrolSchedule = pMonster->StartPatrol(pPath);
+		if (patrolSchedule)
 		{
-			Schedule_t* patrolSchedule = pMonster->StartPatrol(pPath);
-			if (patrolSchedule)
+			CFollowingMonster* followingMonster = pMonster->MyFollowingMonsterPointer();
+			if (followingMonster->IsFollowingPlayer())
 			{
-				CFollowingMonster* followingMonster = pMonster->MyFollowingMonsterPointer();
-				if (followingMonster->IsFollowingPlayer())
-				{
-					followingMonster->StopFollowing(true, false);
-				}
-				pMonster->SetState( MONSTERSTATE_IDLE );
-				pMonster->ChangeSchedule( patrolSchedule );
+				followingMonster->StopFollowing(true, false);
 			}
+			pMonster->SetState( MONSTERSTATE_IDLE );
+			pMonster->ChangeSchedule( patrolSchedule );
 		}
 	}
 }
