@@ -769,7 +769,7 @@ void CFlybee::StartTask(Task_t *pTask)
 		break;
 
 	case TASK_FLYBEE_STOP_MOVING:
-		m_flightSpeed = 0;
+		m_flightSpeed = 1;
 
 		if ( m_IdealActivity == m_movementActivity )
 		{
@@ -1080,6 +1080,11 @@ void CFlybee::Swim()
 	{
 		FlyAwayFromGround();
 		return;
+	}
+
+	if (m_hEnemy != 0 && m_IdealActivity == ACT_WALK && m_flightSpeed < m_flMinSpeed)
+	{
+		m_flightSpeed += 40;
 	}
 
 	Vector SteeringVector = GetSteeringVector(pev->origin, PROBE_LENGTH, m_SaveVelocity);

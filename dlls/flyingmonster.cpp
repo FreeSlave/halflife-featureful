@@ -270,6 +270,11 @@ Vector CFlyingMonster::DoProbe(const Vector &Probe, const Vector& myVelocity)
 	float frac;
 	bool bBumpedSomething = ProbeZ(pev->origin, Probe, &frac);
 
+	if (bBumpedSomething && Probe.z < pev->origin.z && !FBitSet(pev->flags, FL_SWIM))
+	{
+		WallNormal = Vector(0, 0, 1);
+	}
+
 	TraceResult tr;
 	TRACE_MONSTER_HULL(edict(), pev->origin, Probe, dont_ignore_monsters, edict(), &tr);
 	if ( tr.fAllSolid || tr.flFraction < 0.99 )
