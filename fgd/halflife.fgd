@@ -2878,7 +2878,7 @@
 
 @SolidClass base(Targetname) = func_monsterclip : "Monster clip brush" []
 
-@SolidClass base(Targetname) = func_mortar_field : "Mortar Field"
+@SolidClass base(Targetname, EntityTemplate) = func_mortar_field : "Mortar Field"
 [
 	m_flSpread(integer) : "Spread Radius" : 64
 	m_iCount(integer) : "Repeat Count" : 1
@@ -2890,6 +2890,11 @@
 	]
 	m_iszXController(target_destination) : "X Controller"
 	m_iszYController(target_destination) : "Y Controller"
+	delay(string) : "Custom delay before first strike"
+	spawnflags(flags) =
+	[
+		1: "Don't set activator as attacker" : 0
+	]
 ]
 
 @SolidClass base(Global,Appearflags, Targetname, RenderFields, Angles, ZHLT) = func_pendulum : "Swings back and forth"

@@ -30,6 +30,9 @@
 #include "decals.h"
 #include "soundent.h"
 #include "skill.h"
+#include "visuals_utils.h"
+
+#define SF_MORTARFIELD_DONT_SET_ACTIVATOR_AS_ATTACKER 1
 
 class CFuncMortarField : public CBaseToggle
 {
@@ -51,11 +54,16 @@ public:
 	string_t m_iszXController;
 	string_t m_iszYController;
 	float m_flSpread;
-	float m_flDelay;
 	int m_iCount;
 	int m_fControl;
 
 	static const NamedSoundScript launchSoundScript;
+
+	EntityOverrides MortarStrikeOverrides() {
+		EntityOverrides entityOverrides;
+		entityOverrides.ownerEntTemplate = m_entTemplate;
+		return entityOverrides;
+	}
 };
 
 LINK_ENTITY_TO_CLASS( func_mortar_field, CFuncMortarField )
@@ -65,7 +73,6 @@ TYPEDESCRIPTION	CFuncMortarField::m_SaveData[] =
 	DEFINE_FIELD( CFuncMortarField, m_iszXController, FIELD_STRING ),
 	DEFINE_FIELD( CFuncMortarField, m_iszYController, FIELD_STRING ),
 	DEFINE_FIELD( CFuncMortarField, m_flSpread, FIELD_FLOAT ),
-	DEFINE_FIELD( CFuncMortarField, m_flDelay, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncMortarField, m_iCount, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncMortarField, m_fControl, FIELD_INTEGER ),
 };
@@ -108,6 +115,11 @@ void CFuncMortarField::KeyValue( KeyValueData *pkvd )
 		m_iCount = atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "delay" ) )
+	{
+		m_flDelay = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 }
 
 // Drop bombs from above
@@ -127,7 +139,7 @@ void CFuncMortarField::Precache( void )
 #if 0
 	PRECACHE_SOUND( "weapons/mortarhit.wav" );
 #endif
-	PRECACHE_MODEL( "sprites/lgtning.spr" );
+	UTIL_PrecacheOther("monster_mortar", GetProjectileOverrides());
 }
 
 // If connected to a table, then use the table controllers, else hit where the trigger is.
@@ -179,7 +191,7 @@ void CFuncMortarField::FieldUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 
 	EmitSoundScript(launchSoundScript);
 
-	float t = 2.5;
+	float t = m_flDelay == 0.0f ? 2.5 : m_flDelay;
 	for( int i = 0; i < m_iCount; i++ )
 	{
 		Vector vecSpot = vecStart;
@@ -190,10 +202,10 @@ void CFuncMortarField::FieldUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 		UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -1 ) * 4096, ignore_monsters, ENT( pev ), &tr );
 
 		edict_t *pentOwner = NULL;
-		if( pActivator )
+		if( pActivator && !FBitSet(pev->spawnflags, SF_MORTARFIELD_DONT_SET_ACTIVATOR_AS_ATTACKER) )
 			pentOwner = pActivator->edict();
 
-		CBaseEntity *pMortar = Create( "monster_mortar", tr.vecEndPos, Vector( 0, 0, 0 ), pentOwner );
+		CBaseEntity *pMortar = Create( "monster_mortar", tr.vecEndPos, Vector( 0, 0, 0 ), pentOwner, GetProjectileOverrides() );
 		pMortar->pev->nextthink = gpGlobals->time + t;
 		t += RANDOM_FLOAT( 0.2, 0.5 );
 
@@ -210,10 +222,26 @@ public:
 
 	void EXPORT MortarExplode( void );
 
-	int m_spriteTexture;
+	static const NamedVisual beamVisual;
+	static const NamedVisual circleVisual;
 };
 
 LINK_ENTITY_TO_CLASS( monster_mortar, CMortar )
+
+const NamedVisual CMortar::beamVisual = BuildVisual("Mortar.Beam")
+	.Model("sprites/lgtning.spr")
+	.RenderColor(255, 160, 100)
+	.Alpha(128)
+	.Framerate(0)
+	.Life(0.1f)
+	.BeamWidth(40);
+
+const NamedVisual CMortar::circleVisual = BuildVisual("Mortar.Circle")
+	.RenderColor(255, 160, 100)
+	.Alpha(255)
+	.Framerate(0)
+	.Life(0.2f)
+	.BeamWidth(12);
 
 void CMortar::Spawn()
 {
@@ -230,34 +258,30 @@ void CMortar::Spawn()
 
 void CMortar::Precache()
 {
-	m_spriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
+	RegisterVisual(beamVisual);
+	RegisterVisual(circleVisual);
 }
 
 void CMortar::MortarExplode( void )
 {
-#if 1
-	// mortar beam
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	const Visual* bVisual = GetVisual(beamVisual);
+
+	if (bVisual->modelIndex)
+	{
+		// mortar beam
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMPOINTS );
 		WRITE_VECTOR( pev->origin );
 		WRITE_VECTOR( pev->origin + Vector(0, 0, 1024) );
-		WRITE_SHORT( m_spriteTexture );
-		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 1 ); // life
-		WRITE_BYTE( 40 );  // width
-		WRITE_BYTE( 0 );   // noise
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 160 );   // r, g, b
-		WRITE_BYTE( 100 );   // r, g, b
-		WRITE_BYTE( 128 );	// brightness
-		WRITE_BYTE( 0 );		// speed
-	MESSAGE_END();
-#endif
+		WriteBeamVisual(bVisual);
+		MESSAGE_END();
+	}
 
-#if 0
-	// blast circle
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	const Visual* cVisual = GetVisual(circleVisual);
+	if (cVisual->modelIndex)
+	{
+		// blast circle
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMTORUS );
 		WRITE_COORD( pev->origin.x );
 		WRITE_COORD( pev->origin.y );
@@ -265,19 +289,9 @@ void CMortar::MortarExplode( void )
 		WRITE_COORD( pev->origin.x );
 		WRITE_COORD( pev->origin.y );
 		WRITE_COORD( pev->origin.z + 32 + pev->dmg * 2 / .2 ); // reach damage radius over .3 seconds
-		WRITE_SHORT( m_spriteTexture );
-		WRITE_BYTE( 0 ); // startframe
-		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 2 ); // life
-		WRITE_BYTE( 12 );  // width
-		WRITE_BYTE( 0 );   // noise
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 160 );   // r, g, b
-		WRITE_BYTE( 100 );   // r, g, b
-		WRITE_BYTE( 255 );	// brightness
-		WRITE_BYTE( 0 );		// speed
-	MESSAGE_END();
-#endif
+		WriteBeamVisual(cVisual);
+		MESSAGE_END();
+	}
 
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + Vector( 0, 0, 1024 ), pev->origin - Vector( 0, 0, 1024 ), dont_ignore_monsters, ENT( pev ), &tr );
