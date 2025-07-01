@@ -82,7 +82,6 @@ public:
 	void MonsterThink( void );
 	void Stop( void );
 	void Swim( void );
-	Vector DoProbe(const Vector &Probe );
 
 	float VectorToPitch( const Vector &vec );
 	float FlPitchDiff( void );
@@ -110,7 +109,6 @@ public:
 	float m_flNextAlert;
 
 	float m_flLastPitchTime;	// Last frame time pitch was changed
-	float m_flLastZYawTime;		// Last frame time Z was changed when yaw was changed
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -941,24 +939,9 @@ void CIchthyosaur::Stop( void )
 
 void CIchthyosaur::Swim()
 {
-	//int retValue = 0;
-
-	Vector start = pev->origin;
-
-	Vector Angles;
-	Vector Forward, Right, Up;
-
 	if( FBitSet( pev->flags, FL_ONGROUND ) )
 	{
-		pev->angles.x = 0.0f;
-		pev->angles.y += RANDOM_FLOAT( -45, 45 );
-		ClearBits( pev->flags, FL_ONGROUND );
-
-		Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
-		UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
-
-		pev->velocity = Forward * 200 + Up * 200;
-
+		FlyAwayFromGround();
 		return;
 	}
 
@@ -993,31 +976,8 @@ void CIchthyosaur::Swim()
 	}
 */
 #define PROBE_LENGTH 150
-	Angles = UTIL_VecToAngles( m_SaveVelocity );
-	Angles.x = -Angles.x;
-	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
-
-	Vector f, u, l, r, d;
-	f = DoProbe( start + PROBE_LENGTH * Forward );
-	r = DoProbe( start + PROBE_LENGTH / 3 * Forward + Right );
-	l = DoProbe( start + PROBE_LENGTH / 3 * Forward - Right );
-	u = DoProbe( start + PROBE_LENGTH / 3 * Forward + Up );
-	d = DoProbe( start + PROBE_LENGTH / 3 * Forward - Up );
-
-	Vector SteeringVector = f + r + l + u + d;
-	m_SaveVelocity = ( m_SaveVelocity + SteeringVector / 2 ).Normalize();
-
-	Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
-	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
-	// ALERT( at_console, "%f : %f\n", Angles.x, Forward.z );
-
-	float flDot = DotProduct( Forward, m_SaveVelocity );
-	if( flDot > 0.5f )
-		pev->velocity = m_SaveVelocity = m_SaveVelocity * m_flightSpeed;
-	else if( flDot > 0 )
-		pev->velocity = m_SaveVelocity = m_SaveVelocity * m_flightSpeed * ( flDot + 0.5f );
-	else
-		pev->velocity = m_SaveVelocity = m_SaveVelocity * 80;
+	Vector SteeringVector = GetSteeringVector(pev->origin, PROBE_LENGTH, m_SaveVelocity);
+	m_SaveVelocity = SetFlyVelocityWithSteer(m_SaveVelocity, SteeringVector);
 
 	// ALERT( at_console, "%.0f %.0f\n", m_flightSpeed, pev->velocity.Length() );
 
@@ -1028,106 +988,9 @@ void CIchthyosaur::Swim()
 */
 	// ALERT( at_console, "speed %f\n", m_flightSpeed );
 
-	Angles = UTIL_VecToAngles( m_SaveVelocity );
+	SmoothAngles(m_SaveVelocity);
 
-	// Smooth Pitch
-	//
-	if( Angles.x > 180 )
-		Angles.x = Angles.x - 360;
-	pev->angles.x = UTIL_Approach( Angles.x, pev->angles.x, 50 * 0.1f );
-	if( pev->angles.x < -80 )
-		pev->angles.x = -80;
-	if( pev->angles.x > 80 )
-		pev->angles.x = 80;
-
-	// Smooth Yaw and generate Roll
-	//
-	float turn = 360;
-	// ALERT( at_console, "Y %.0f %.0f\n", Angles.y, pev->angles.y );
-
-	if( fabs( Angles.y - pev->angles.y ) < fabs( turn ) )
-	{
-		turn = Angles.y - pev->angles.y;
-	}
-	if( fabs( Angles.y - pev->angles.y + 360 ) < fabs( turn ) )
-	{
-		turn = Angles.y - pev->angles.y + 360;
-	}
-	if( fabs( Angles.y - pev->angles.y - 360 ) < fabs( turn ) )
-	{
-		turn = Angles.y - pev->angles.y - 360;
-	}
-
-	float speed = m_flightSpeed * 0.1f;
-
-	// ALERT( at_console, "speed %.0f %f\n", turn, speed );
-	if( fabs( turn ) > speed )
-	{
-		if( turn < 0.0f )
-		{
-			turn = -speed;
-		}
-		else
-		{
-			turn = speed;
-		}
-	}
-	pev->angles.y += turn;
-	pev->angles.z -= turn;
-	pev->angles.y = fmod( ( pev->angles.y + 360.0f ), 360.0f );
-
-	static float yaw_adj;
-
-	yaw_adj = yaw_adj * 0.8f + turn;
-
-	// ALERT( at_console, "yaw %f : %f\n", turn, yaw_adj );
-
-	SetBoneController( 0, -yaw_adj * 0.25f );
-
-	// Roll Smoothing
-	//
-	turn = 360;
-	if( fabs( Angles.z - pev->angles.z ) < fabs( turn ) )
-	{
-		turn = Angles.z - pev->angles.z;
-	}
-	if( fabs( Angles.z - pev->angles.z + 360 ) < fabs( turn ) )
-	{
-		turn = Angles.z - pev->angles.z + 360;
-	}
-	if( fabs( Angles.z - pev->angles.z - 360 ) < fabs( turn ) )
-	{
-		turn = Angles.z - pev->angles.z - 360;
-	}
-	speed = m_flightSpeed / 2 * 0.1f;
-
-	if( fabs( turn ) < speed )
-	{
-		pev->angles.z += turn;
-	}
-	else
-	{
-		if( turn < 0.0f )
-		{
-			pev->angles.z -= speed;
-		}
-		else
-		{
-			pev->angles.z += speed;
-		}
-	}
-
-	if( pev->angles.z < -20 )
-		pev->angles.z = -20;
-	if( pev->angles.z > 20 )
-		pev->angles.z = 20;
-
-	UTIL_MakeVectorsPrivate( Vector( -Angles.x, Angles.y, Angles.z ), Forward, Right, Up );
+	//UTIL_MakeVectorsPrivate( Vector( -Angles.x, Angles.y, Angles.z ), Forward, Right, Up );
 
 	// UTIL_MoveToOrigin ( ENT( pev ), pev->origin + Forward * speed, speed, MOVE_STRAFE );
-}
-
-Vector CIchthyosaur::DoProbe( const Vector &Probe )
-{
-	return CFlyingMonster::DoProbe(Probe, m_SaveVelocity);
 }

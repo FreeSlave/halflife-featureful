@@ -39,6 +39,10 @@ public:
 	float		FloorZ( const Vector &position );
 	bool		ProbeZ( const Vector &position, const Vector &probe, float *pFraction );
 	Vector	DoProbe(const Vector &Probe, const Vector& myVelocity);
+	void	FlyAwayFromGround();
+	Vector	GetSteeringVector(const Vector& start, float probeLength, const Vector& myVelocity);
+	Vector	SetFlyVelocityWithSteer(const Vector& myVelocity, const Vector& SteeringVector);
+	void	SmoothAngles(const Vector& myVelocity);
 
 	// UNDONE:  Save/restore this stuff!!!
 protected:

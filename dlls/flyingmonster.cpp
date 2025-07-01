@@ -305,6 +305,154 @@ Vector CFlyingMonster::DoProbe(const Vector &Probe, const Vector& myVelocity)
 	return Vector(0, 0, 0);
 }
 
+void CFlyingMonster::FlyAwayFromGround()
+{
+	Vector Angles;
+	Vector Forward, Right, Up;
+
+	pev->angles.x = 0.0f;
+	pev->angles.y += RANDOM_FLOAT( -45, 45 );
+	ClearBits( pev->flags, FL_ONGROUND );
+
+	Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+
+	pev->velocity = Forward * 200 + Up * 200;
+}
+
+Vector CFlyingMonster::GetSteeringVector(const Vector &start, float probeLength, const Vector &myVelocity)
+{
+	Vector Forward, Right, Up;
+	Vector Angles = UTIL_VecToAngles( myVelocity );
+	Angles.x = -Angles.x;
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+
+	Vector f, u, l, r, d;
+	f = DoProbe( start + probeLength * Forward, myVelocity );
+	r = DoProbe( start + probeLength / 3 * Forward + Right, myVelocity );
+	l = DoProbe( start + probeLength / 3 * Forward - Right, myVelocity );
+	u = DoProbe( start + probeLength / 3 * Forward + Up, myVelocity );
+	d = DoProbe( start + probeLength / 3 * Forward - Up, myVelocity );
+
+	return f + r + l + u + d;
+}
+
+Vector CFlyingMonster::SetFlyVelocityWithSteer(const Vector& myVelocity, const Vector& SteeringVector)
+{
+	const Vector newVelocity = ( myVelocity + SteeringVector / 2 ).Normalize();
+
+	Vector Forward, Right, Up;
+	Vector Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+	// ALERT( at_console, "%f : %f\n", Angles.x, Forward.z );
+
+	float flDot = DotProduct( Forward, myVelocity );
+	if( flDot > 0.5f )
+		pev->velocity = newVelocity * m_flightSpeed;
+	else if( flDot > 0 )
+		pev->velocity = newVelocity * m_flightSpeed * ( flDot + 0.5f );
+	else
+		pev->velocity = newVelocity * 80;
+	return pev->velocity;
+}
+
+void CFlyingMonster::SmoothAngles(const Vector &myVelocity)
+{
+	Vector Angles = UTIL_VecToAngles( myVelocity );
+
+	// Smooth Pitch
+	//
+	if( Angles.x > 180 )
+		Angles.x = Angles.x - 360;
+	pev->angles.x = UTIL_Approach( Angles.x, pev->angles.x, 50 * 0.1f );
+	if( pev->angles.x < -80 )
+		pev->angles.x = -80;
+	if( pev->angles.x > 80 )
+		pev->angles.x = 80;
+
+	// Smooth Yaw and generate Roll
+	//
+	float turn = 360;
+	// ALERT( at_console, "Y %.0f %.0f\n", Angles.y, pev->angles.y );
+
+	if( fabs( Angles.y - pev->angles.y ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y;
+	}
+	if( fabs( Angles.y - pev->angles.y + 360 ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y + 360;
+	}
+	if( fabs( Angles.y - pev->angles.y - 360 ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y - 360;
+	}
+
+	float speed = m_flightSpeed * 0.1f;
+
+	// ALERT( at_console, "speed %.0f %f\n", turn, speed );
+	if( fabs( turn ) > speed )
+	{
+		if( turn < 0.0f )
+		{
+			turn = -speed;
+		}
+		else
+		{
+			turn = speed;
+		}
+	}
+	pev->angles.y += turn;
+	pev->angles.z -= turn;
+	pev->angles.y = fmod( ( pev->angles.y + 360.0f ), 360.0f );
+
+	static float yaw_adj;
+
+	yaw_adj = yaw_adj * 0.8f + turn;
+
+	// ALERT( at_console, "yaw %f : %f\n", turn, yaw_adj );
+
+	SetBoneController( 0, -yaw_adj * 0.25f );
+
+	// Roll Smoothing
+	//
+	turn = 360;
+	if( fabs( Angles.z - pev->angles.z ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z;
+	}
+	if( fabs( Angles.z - pev->angles.z + 360 ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z + 360;
+	}
+	if( fabs( Angles.z - pev->angles.z - 360 ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z - 360;
+	}
+	speed = m_flightSpeed / 2 * 0.1f;
+
+	if( fabs( turn ) < speed )
+	{
+		pev->angles.z += turn;
+	}
+	else
+	{
+		if( turn < 0.0f )
+		{
+			pev->angles.z -= speed;
+		}
+		else
+		{
+			pev->angles.z += speed;
+		}
+	}
+
+	if( pev->angles.z < -20 )
+		pev->angles.z = -20;
+	if( pev->angles.z > 20 )
+		pev->angles.z = 20;
+}
+
 float CFlyingMonster::FloorZ( const Vector &position )
 {
 	TraceResult tr;
