@@ -5035,7 +5035,7 @@ void CBasePlayer::ItemPostFrame()
 
 int CBasePlayer::AmmoInventory( int iAmmoIndex )
 {
-	if( iAmmoIndex > 0 || iAmmoIndex >= MAX_AMMO_TYPES )
+	if( iAmmoIndex <= 0 || iAmmoIndex >= MAX_AMMO_TYPES )
 		return 0;
 	return m_rgAmmo[iAmmoIndex];
 }

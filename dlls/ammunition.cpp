@@ -138,7 +138,7 @@ bool CBasePlayerAmmo::AddAmmo(CBaseEntity *pOther)
 
 	const int amount = MyAmount();
 
-	if ( pOther->GiveAmmo( amount, ammoName ) != -1 )
+	if ( pOther->GiveAmmo( amount, ammoName ) > 0 )
 	{
 		EmitSoundScript(Items::ammoPickupSoundScript);
 		return true;

@@ -1065,8 +1065,7 @@ bool CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon )
 		iAmmo = m_iClip;
 	}
 
-	// TODO: figure out what to do if GiveAmmo returns -1
-	return pWeapon->m_pPlayer->GiveAmmo( iAmmo, pszAmmo1() ); // , &m_iPrimaryAmmoType
+	return pWeapon->m_pPlayer->GiveAmmo( iAmmo, pszAmmo1() ) > 0; // , &m_iPrimaryAmmoType
 }
 	
 //=========================================================
@@ -1282,8 +1281,8 @@ void CWeaponBox::TouchOrUse( CBaseEntity *pOther )
 	{
 		if( !FStringNull( m_rgiszAmmo[i] ) )
 		{
-			// there's some ammo of this type. 
-			if (pPlayer->GiveAmmo( m_rgAmmo[i], STRING( m_rgiszAmmo[i] ) ) != -1) {
+			// there's some ammo of this type.
+			if (pPlayer->GiveAmmo( m_rgAmmo[i], STRING( m_rgiszAmmo[i] ) ) > 0) {
 				//ALERT( at_console, "Gave %d rounds of %s\n", m_rgAmmo[i], STRING( m_rgiszAmmo[i] ) );
 				shouldRemove = true;
 				// now empty the ammo from the weaponbox since we just gave it to the player
