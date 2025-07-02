@@ -334,10 +334,10 @@ Vector CFlyingMonster::GetSteeringVector(const Vector &start, float probeLength,
 
 	Vector f, u, l, r, d;
 	f = DoProbe( start + probeLength * Forward, myVelocity );
-	r = DoProbe( start + probeLength / 3 * Forward + Right, myVelocity );
-	l = DoProbe( start + probeLength / 3 * Forward - Right, myVelocity );
-	u = DoProbe( start + probeLength / 3 * Forward + Up, myVelocity );
-	d = DoProbe( start + probeLength / 3 * Forward - Up, myVelocity );
+	r = DoProbe( start + probeLength / 3 * (Forward + Right), myVelocity );
+	l = DoProbe( start + probeLength / 3 * (Forward - Right), myVelocity );
+	u = DoProbe( start + probeLength / 3 * (Forward + Up), myVelocity );
+	d = DoProbe( start + probeLength / 3 * (Forward - Up), myVelocity );
 
 	return f + r + l + u + d;
 }
