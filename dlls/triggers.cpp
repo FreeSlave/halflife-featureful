@@ -4405,7 +4405,9 @@ const char* CTriggerCondition::getValueAsString(const CKeyValue& key)
 #define SF_CAMERA_PLAYER_INVULRENABLE 256
 #define SF_CAMERA_IGNORE_HOLD_TIME 512
 #define SF_CAMERA_PLAYER_ALIVE_ONLY 1024
-#define SF_CAMERA_DONT_FIRE_LOOK_TARGET 4096
+#define SF_CAMERA_DONT_FIRE_LOOK_TARGET (1<<12)
+#define SF_CAMERA_DONT_SLOW_DOWN_IF_NOT_FREEZE (1<<13)
+#define SF_CAMERA_DONT_SKIP_FIRST_PATH_CORNER (1<<14)
 
 class CTriggerCamera : public CBaseDelay
 {
@@ -4613,7 +4615,16 @@ void CTriggerCamera::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	SetThink( &CTriggerCamera::FollowTarget );
 	pev->nextthink = gpGlobals->time;
 
-	m_moveDistance = 0;
+	if (m_pentPath && FBitSet(pev->spawnflags, SF_CAMERA_DONT_SKIP_FIRST_PATH_CORNER))
+	{
+		Vector delta = m_pentPath->pev->origin - pev->origin;
+		m_moveDistance = delta.Length();
+		pev->movedir = delta.Normalize();
+	}
+	else
+	{
+		m_moveDistance = 0;
+	}
 	Move();
 }
 
@@ -4675,7 +4686,7 @@ void CTriggerCamera::FollowTarget()
 	pev->avelocity.x = dx * 40 * 0.01f;
 	pev->avelocity.y = dy * 40 * 0.01f;
 
-	if( !( FBitSet( pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL ) ) )
+	if (!FBitSet(pev->spawnflags, SF_CAMERA_PLAYER_TAKECONTROL) && !FBitSet(pev->spawnflags, SF_CAMERA_DONT_SLOW_DOWN_IF_NOT_FREEZE))
 	{
 		pev->velocity = pev->velocity * 0.8f;
 		if( pev->velocity.IsLengthLessThan(10.0f) )
