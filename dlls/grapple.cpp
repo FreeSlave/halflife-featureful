@@ -417,8 +417,6 @@ void CBarnacleGrapple::PrimaryAttack( void )
 					}
 					else
 					{
-						if (!m_bGrappling)
-							EMIT_SOUND_DYN(  ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/bgrapple_pull.wav", 0.98, ATTN_NORM, 0, 125 );
 						m_bGrappling = true;
 						m_pPlayer->m_afPhysicsFlags |= PFLAG_LATCHING;
 						m_pPlayer->SetAnimation(PLAYER_GRAPPLE);
@@ -451,14 +449,10 @@ void CBarnacleGrapple::PrimaryAttack( void )
 		{
 			SendWeaponAnim( BGRAPPLE_FIREWAITING );
 
-			Vector vecPunchAngle = m_pPlayer->pev->punchangle;
-
-			vecPunchAngle.x += 2.0;
-
-			m_pPlayer->pev->punchangle = vecPunchAngle;
+			m_pPlayer->pev->punchangle.x += 2.0;
 
 			Fire( m_pPlayer->GetGunPosition(), gpGlobals->v_forward );
-			EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/bgrapple_pull.wav", 0.98, ATTN_NORM, 0, 125 );
+			EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_STATIC, "weapons/bgrapple_pull.wav", 0.98, ATTN_NORM, 0, 125 );
 			m_flShootTime = 0;
 		}
 	}
@@ -615,7 +609,7 @@ void CBarnacleGrapple::EndAttack( void )
 	m_fireState = OFF;
 	SendWeaponAnim( BGRAPPLE_FIRERELEASE );
 
-	EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/bgrapple_pull.wav", 0.0, ATTN_NONE, SND_STOP, 100 );
+	EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_STATIC, "weapons/bgrapple_pull.wav", 0.0, ATTN_NONE, SND_STOP, 100 );
 
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/bgrapple_release.wav", 1, ATTN_NORM);
 
