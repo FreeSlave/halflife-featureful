@@ -270,7 +270,8 @@ public:
 	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual Vector BodyTarget( const Vector &posSrc ) { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
-	virtual bool IsAlive( void ) override { return IsFullyAlive(); }
+	bool IsAlive() override { return IsFullyAlive(); }
+	bool IsFullyAlive() override { return CBaseMonster::IsFullyAlive() && !IsObserver(); }
 	virtual bool ShouldFadeOnDeath( void ) override { return false; }
 	virtual	bool IsPlayer( void ) override { return true; }			// Spectators should return false for this, they aren't "players" as far as game logic is concerned
 
