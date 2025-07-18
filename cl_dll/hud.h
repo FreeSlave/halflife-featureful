@@ -384,7 +384,6 @@ public:
 private:
 	void InitJournal();
 	void AddNotification(const char* message);
-	bool ShouldDraw();
 
 	std::vector<JournalSection> sections;
 	std::vector<Notification> notifications;
@@ -396,6 +395,7 @@ public:
 	bool HasInventorySection() const {
 		return hasInventorySection;
 	}
+	bool ShouldDraw();
 };
 
 class CHudScoreboard : public CHudBase

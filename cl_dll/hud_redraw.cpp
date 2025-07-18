@@ -255,7 +255,7 @@ int CHud::Redraw( float flTime, int intermission )
 		ResetCrosshair();
 	}
 
-	if (m_pCvarCrosshair->value > 0.0f && !gHUD.m_Scoreboard.m_iShowscoresHeld && !gHUD.m_Journal.m_iShowscoresHeld) {
+	if (m_pCvarCrosshair->value > 0.0f && !gHUD.m_Scoreboard.m_iShowscoresHeld && !(gHUD.m_Journal.m_iShowscoresHeld && gHUD.m_Journal.ShouldDraw())) {
 		CHud::Renderer().DrawCrosshair();
 	}
 
