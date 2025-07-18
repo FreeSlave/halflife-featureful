@@ -5495,6 +5495,9 @@ void CBasePlayer::GatherAndSendObjectHints()
 	if (!g_objectHintCatalog.HasAnyTemplates())
 		return;
 
+	if (!IsAlive())
+		return;
+
 	auto chooseHintVisual = [this](CBaseEntity* pEntity, const ObjectHintVisualSet& visualSet)
 	{
 		// no point in choosing if these are the same
