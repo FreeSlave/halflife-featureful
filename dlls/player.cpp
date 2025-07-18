@@ -1919,6 +1919,9 @@ std::pair<CBaseEntity*, const ObjectHintSpec*> CBasePlayer::GetInteractiveEntity
 
 		while( ( pObject = UTIL_FindEntityInSphere( pObject, pev->origin, searchRadius ) ) != NULL )
 		{
+			if (pObject->pev->modelindex && FBitSet(pObject->pev->effects, EF_NODRAW))
+				continue;
+
 			const ObjectHintSpec* hintSpec = gatherHints ? GetHintSpecForEntity(pObject) : nullptr;
 			if (hintSpec && hintSpec->scanVisualSet.HasAnySpriteDefined())
 			{
