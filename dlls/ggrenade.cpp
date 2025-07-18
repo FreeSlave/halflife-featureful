@@ -94,7 +94,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		{
 			WRITE_SHORT( g_sModelIndexWExplosion );
 		}
-		WRITE_BYTE( ( pev->dmg - 50 ) * 0.6f ); // scale * 10
+		WRITE_BYTE( ExplosionDeciScaleFromDamage( pev->dmg ) ); // scale * 10
 		WRITE_BYTE( 15 ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
@@ -152,7 +152,7 @@ void CGrenade::Smoke( void )
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( (int)( ( pev->dmg - 50 ) * 0.8f ) ); // scale * 10
+			WRITE_BYTE( SmokeDeciScaleFromDamage( pev->dmg ) ); // scale * 10
 			WRITE_BYTE( 12 ); // framerate
 		MESSAGE_END();
 	}
