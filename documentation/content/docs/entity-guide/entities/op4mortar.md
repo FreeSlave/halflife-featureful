@@ -21,3 +21,7 @@ The stationary mortar weapon from Opposing Force. Can act aggressive to the play
 * **Op4Mortar.Rotate** - rotation sound (both vertical and horizontal).
 * **Op4Mortar.Launch** - when mortar projectile is launched.
 * **Op4Mortar.Fly** - the projectile flight sound.
+
+### Visuals
+
+* **Op4Mortar.Trail** - the mortar projectile trail sprite.

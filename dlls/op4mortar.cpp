@@ -10,6 +10,7 @@
 #include "player.h"
 #include "soundent.h"
 #include "decals.h"
+#include "visuals_utils.h"
 
 class CMortarShell : public CGrenade
 {
@@ -19,8 +20,7 @@ public:
 	void EXPORT MortarExplodeTouch(CBaseEntity *pOther);
 	void Spawn();
 	void EXPORT FlyThink();
-	int Save(CSave &save);
-	int Restore(CRestore &restore);
+
 	static CMortarShell *CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity);
 	int FireballDeciScaleFromDamage(float dmg) override {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;
@@ -30,13 +30,16 @@ public:
 		return 10;
 	}
 
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
-	int m_iTrail;
+
 	bool m_iSoundedOff;
 	float m_flIgniteTime;
 	float m_velocity;
 
 	static const NamedSoundScript flySoundScript;
+	static const NamedVisual trailVisual;
 };
 
 LINK_ENTITY_TO_CLASS(mortar_shell, CMortarShell)
@@ -58,11 +61,14 @@ const NamedSoundScript CMortarShell::flySoundScript = {
 	"Op4Mortar.Fly"
 };
 
+const NamedVisual CMortarShell::trailVisual = BuildVisual::Spray("Op4Mortar.Trail")
+	.Model("sprites/wep_smoke_01.spr");
+
 void CMortarShell::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PRECACHE_MODEL("models/mortarshell.mdl");
-	m_iTrail = PRECACHE_MODEL("sprites/wep_smoke_01.spr");
+	PrecacheMyModel("models/mortarshell.mdl");
+	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(flySoundScript);
 }
 
@@ -73,7 +79,7 @@ void CMortarShell::Spawn()
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(edict(), "models/mortarshell.mdl");
+	SetMyModel("models/mortarshell.mdl");
 
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin(pev, pev->origin);
@@ -113,17 +119,7 @@ void CMortarShell::BurnThink()
 
 	pev->angles.x -= 90;
 
-	MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, pev->origin);
-	WRITE_BYTE(TE_SPRITE_SPRAY);
-	WRITE_VECTOR(pev->origin);
-	WRITE_COORD(0);
-	WRITE_COORD(0);
-	WRITE_COORD(1);
-	WRITE_SHORT(m_iTrail);
-	WRITE_BYTE(1);
-	WRITE_BYTE(12);
-	WRITE_BYTE(120);
-	MESSAGE_END();
+	SendSpray(pev->origin, Vector(0,0,1), GetVisual(trailVisual), 1, 12, 120);
 
 	if (gpGlobals->time > m_flIgniteTime + 0.2)
 	{

@@ -9380,7 +9380,7 @@
     ]
 ]
 
-@PointClass base(Targetname) studio("models/mortar.mdl") = op4mortar : "Op4 Mortar"
+@PointClass base(Targetname, EntityTemplate) studio("models/mortar.mdl") = op4mortar : "Op4 Mortar"
 [
 	spawnflags(Flags) =
 	[
