@@ -35,6 +35,8 @@
 #include "error_collector.h"
 #include "weapon_templates.h"
 
+#include <chrono>
+
 ModFeatures g_modFeatures;
 
 struct WeaponNameAndId
@@ -1537,6 +1539,8 @@ void ParseModConfigs()
 {
 	g_errorCollector.Clear();
 
+	auto start = std::chrono::steady_clock::now();
+
 	MaterialRegistry materialRegistry;
 	materialRegistry.FillDefaults();
 	materialRegistry.ReadFromFile("features/materials.json");
@@ -1554,11 +1558,13 @@ void ParseModConfigs()
 	visualSystem.ReadFromFile("templates/visuals.json");
 	g_VisualSystem = std::move(visualSystem);
 
+	auto startEntities = std::chrono::steady_clock::now();
 	EntTemplateSystem entTemplateSystem;
 	entTemplateSystem.SetSoundScriptSystem(&g_SoundScriptSystem);
 	entTemplateSystem.SetVisualSystem(&g_VisualSystem);
-	entTemplateSystem.ReadFromFile("templates/entities.json");
+	const bool entitiesRead = entTemplateSystem.ReadFromFile("templates/entities.json");
 	g_EntTemplateSystem = std::move(entTemplateSystem);
+	auto finishEntities = std::chrono::steady_clock::now();
 
 	InventorySpec inventorySpec;
 	inventorySpec.SetEntTemplateSystem(&g_EntTemplateSystem);
@@ -1576,6 +1582,16 @@ void ParseModConfigs()
 	WeaponTemplateSystem weaponTemplateSystem;
 	weaponTemplateSystem.ReadFromFile("templates/weapons.json");
 	g_WeaponTemplateSystem = std::move(weaponTemplateSystem);
+
+	auto finish = std::chrono::steady_clock::now();
+	unsigned int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();
+
+	ALERT(at_aiconsole, "Parsed mod configuration files in %u milliseconds\n", milliseconds);
+	if (entitiesRead)
+	{
+		unsigned int millisecondsEntities = std::chrono::duration_cast<std::chrono::milliseconds>(finishEntities-startEntities).count();
+		ALERT(at_aiconsole, "%u of them are spent on templates/entities.json\n", millisecondsEntities);
+	}
 }
 
 // Register your console variables here
