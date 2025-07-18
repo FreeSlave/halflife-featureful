@@ -212,6 +212,7 @@ public:
 	int Init( void );
 	int VidInit( void );
 	int Draw( float flTime );
+	void Think() override;
 	int MsgFunc_Geiger( const char *pszName, int iSize, void *pbuf );
 	
 private:
