@@ -37,9 +37,12 @@ public:
 	virtual int	BloodColor( void ) { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual float ExplosionRadius() { return 0.0f; } // if 0 the default radius is used (depending on amount of damage)
-	virtual int ExplosionDeciScaleFromDamage(float dmg) {
+	virtual int FireballDeciScaleFromDamage(float dmg) {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.6f;
 		return clamp(result, 1, 255);
+	}
+	virtual int FireballFramerate() {
+		return 15;
 	}
 	virtual int SmokeDeciScaleFromDamage(float dmg) {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;

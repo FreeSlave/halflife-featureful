@@ -22,6 +22,13 @@ public:
 	int Save(CSave &save);
 	int Restore(CRestore &restore);
 	static CMortarShell *CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity);
+	int FireballDeciScaleFromDamage(float dmg) override {
+		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;
+		return clamp(result, 1, 255);
+	}
+	int FireballFramerate() {
+		return 10;
+	}
 
 	static TYPEDESCRIPTION m_SaveData[];
 	int m_iTrail;
@@ -92,71 +99,13 @@ void CMortarShell::MortarExplodeTouch(CBaseEntity *pOther)
 	pev->enemy = pOther->edict();
 
 	const Vector direction = pev->velocity.Normalize();
-
 	const Vector vecSpot = pev->origin - direction * 32;
 
 	TraceResult tr;
 	UTIL_TraceLine(vecSpot, vecSpot + direction * 64, ignore_monsters, edict(), &tr);
 
-	pev->model = 0;
-
-	pev->solid = SOLID_NOT;
-	pev->takedamage = DAMAGE_NO;
-
-	if (tr.flFraction != 1.0f)
-	{
-		pev->origin = 0.6f * ((pev->dmg - 24.0f) * tr.vecPlaneNormal) + tr.vecEndPos;
-	}
-
-	const int contents = UTIL_PointContents(pev->origin);
-
-	MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pev->origin);
-	WRITE_BYTE(TE_EXPLOSION);
-		WRITE_VECTOR(pev->origin);
-
-		if (contents == CONTENTS_WATER)
-			WRITE_SHORT(g_sModelIndexWExplosion);
-		else
-			WRITE_SHORT(g_sModelIndexFireball);
-
-		WRITE_BYTE(static_cast<int>((pev->dmg - 50.0) * 5.0));
-		WRITE_BYTE(10);
-		WRITE_BYTE(TE_EXPLFLAG_NONE);
-	MESSAGE_END();
-
-	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 1024, 3.0);
-
-	entvars_t* pOwner = VARS(pev->owner);
-	pev->owner = NULL;
-
-	RadiusDamage(pev, pOwner, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE);
-
-	if (RANDOM_FLOAT(0, 1) >= 0.5)
-		UTIL_DecalTrace(&tr, DECAL_SCORCH2);
-	else
-		UTIL_DecalTrace(&tr, DECAL_SCORCH1);
-
-	EmitSoundScript(debrisSoundScript);
-
-	pev->effects |= EF_NODRAW;
-
-	SetThink(&CMortarShell::Smoke);
-
-	pev->velocity = g_vecZero;
-
-	pev->nextthink = gpGlobals->time + 0.3;
-
-	if (contents != CONTENTS_WATER)
-	{
-		const int sparkCount = RANDOM_LONG(0, 3);
-
-		for (int i = 0; i < sparkCount; ++i)
-		{
-			CBaseEntity::Create("spark_shower", pev->origin, tr.vecPlaneNormal);
-		}
-	}
+	Explode(&tr, DMG_BLAST);
 }
-
 
 void CMortarShell::BurnThink()
 {

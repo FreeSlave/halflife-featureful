@@ -94,8 +94,8 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		{
 			WRITE_SHORT( g_sModelIndexWExplosion );
 		}
-		WRITE_BYTE( ExplosionDeciScaleFromDamage( pev->dmg ) ); // scale * 10
-		WRITE_BYTE( 15 ); // framerate
+		WRITE_BYTE( FireballDeciScaleFromDamage( pev->dmg ) ); // scale * 10
+		WRITE_BYTE( FireballFramerate() ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
 
