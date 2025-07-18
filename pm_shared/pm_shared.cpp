@@ -148,7 +148,6 @@ void PM_InitTextureTypes( void )
 {
 	char buffer[512];
 	int i, j;
-	byte *pMemFile;
 	int fileSize, filePos = 0;
 	static qboolean bTextureTypeInit = false;
 
@@ -157,15 +156,22 @@ void PM_InitTextureTypes( void )
 
 	gTextures.clear();
 
-	pMemFile = pmove->COM_LoadFile( "sound/materials.txt", 5, &fileSize );
+	const char* fileName = "sound/materials.txt";
+	byte *pMemFile = pmove->COM_LoadFile( fileName, 5, &fileSize );
 	if( !pMemFile )
 		return;
 
 	memset( buffer, 0, sizeof( buffer ) );
 
 	// for each line in the file...
-	while( pmove->memfgets( pMemFile, fileSize, &filePos, buffer, 511 ) != NULL && (gTextures.size() < CTEXTURESMAX ) )
+	while( pmove->memfgets( pMemFile, fileSize, &filePos, buffer, 511 ) != NULL )
 	{
+		if ((gTextures.size() == CTEXTURESMAX ))
+		{
+			pmove->Con_DPrintf("Warning: %s: can't add more material textures: maximum (%d) has been reached! The last added texture: %s\n", fileName, CTEXTURESMAX, gTextures.back().name.c_str());
+			break;
+		}
+
 		// skip whitespace
 		i = 0;
 		while( buffer[i] && isspace( buffer[i] ) )
@@ -205,7 +211,25 @@ void PM_InitTextureTypes( void )
 	// Must use engine to free since we are in a .dll
 	pmove->COM_FreeFile( pMemFile );
 
-	std::sort(gTextures.begin(), gTextures.end(), MatTextureComparator());
+	pmove->Con_DPrintf("%s: %d material textures read\n", fileName, static_cast<int>(gTextures.size()));
+
+	MatTextureComparator comparator;
+	std::sort(gTextures.begin(), gTextures.end(), comparator);
+
+#if 0
+	for (auto it = gTextures.begin(); it != gTextures.end(); ++it)
+	{
+		auto itNext = it+1;
+		if (itNext != gTextures.end())
+		{
+			if (comparator(*it, *itNext) == 0)
+			{
+				pmove->Con_DPrintf("Warning: Material texture has duplicates: '%c %s' and '%c %s'\n", it->type, it->name.c_str(), itNext->type, itNext->name.c_str());
+				++it;
+			}
+		}
+	}
+#endif
 
 	bTextureTypeInit = true;
 }
