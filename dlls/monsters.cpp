@@ -3529,6 +3529,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	} else {
 		ALERT( level, "%s (%s): ", STRING(pev->classname), STRING(pev->targetname) );
 	}
+	ALERT( level, "Entindex: %d. ", entindex() );
 	if (!FStringNull(m_entTemplate))
 		ALERT( level , "Template: %s. ", STRING(m_entTemplate) );
 	const int classify = Classify();
@@ -3581,7 +3582,9 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 		ALERT( level, "No Schedule, " );
 
 	if( m_hEnemy != 0 )
-		ALERT( level, "Enemy is %s (%s). ", STRING( m_hEnemy->pev->classname ), m_hEnemy->IsAlive() ? "alive" : "dead" );
+		ALERT( level, "Enemy is %s (%s, ent: %d, LKP: (%g, %g, %g)). ",
+			STRING(m_hEnemy->pev->classname), m_hEnemy->IsAlive() ? "alive" : "dead", m_hEnemy->entindex(),
+			m_vecEnemyLKP.x, m_vecEnemyLKP.y, m_vecEnemyLKP.z );
 	else
 		ALERT( level, "No enemy. " );
 
@@ -3589,7 +3592,9 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	{
 		if (m_hOldEnemy[i] != 0)
 		{
-			ALERT( level, "Old enemy is %s (%s). ", STRING( m_hOldEnemy[i]->pev->classname ), m_hOldEnemy[i]->IsAlive() ? "alive" : "dead" );
+			ALERT( level, "Old enemy is %s (%s, ent: %d, LKP: (%g, %g, %g)). ",
+				STRING(m_hOldEnemy[i]->pev->classname), m_hOldEnemy[i]->IsAlive() ? "alive" : "dead", m_hOldEnemy[i]->entindex(),
+				m_vecOldEnemy[i].x, m_vecOldEnemy[i].y, m_vecOldEnemy[i].z );
 		}
 	}
 

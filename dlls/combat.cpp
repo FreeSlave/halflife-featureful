@@ -38,6 +38,7 @@
 #include "common_soundscripts.h"
 #include "visuals_utils.h"
 #include "ent_templates.h"
+#include "ai_debug.h"
 
 #include <algorithm>
 #include <random>
@@ -878,6 +879,7 @@ void CBaseMonster::UpdateOnRemove()
 			pOwner->DeathNotice( pev );
 		}
 	}
+	RemoveScheduleWatcher(entindex());
 	CBaseToggle::UpdateOnRemove();
 }
 

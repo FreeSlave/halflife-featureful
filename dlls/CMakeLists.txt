@@ -47,6 +47,7 @@ endif()
 
 set (SVDLL_SOURCES
 	agrunt.cpp
+	ai_debug.cpp
 	airtank.cpp
 	aflock.cpp
 	ammo_amounts.cpp

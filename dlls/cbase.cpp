@@ -25,6 +25,7 @@
 #include	"ent_templates.h"
 #include	"studio.h"
 #include	"scriptevent.h"
+#include	"ai_debug.h"
 
 bool g_fIsXash3D = false;
 
@@ -105,6 +106,7 @@ void OnFreeEntPrivateData(edict_s* pEdict)
 		ClearStringPool();
 		ClearPrecachedModels();
 		ClearPrecachedSounds();
+		ResetScheduleWatchers();
 	}
 }
 

@@ -28,6 +28,7 @@
 #include "soundent.h"
 #include "gamerules.h"
 #include "game.h"
+#include "ai_debug.h"
 
 extern cvar_t npc_lateral_retreat;
 
@@ -79,7 +80,16 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 		ClearSuggestedSchedule();
 	}
 
+	if (DeveloperModeLevel() >= 2)
+	{
+		if (HasScheduleWatcher(entindex()))
+		{
+			ALERT(at_aiconsole, "%s (%d) changing schedule to %s\n", STRING(pev->classname), entindex(), pNewSchedule->pName);
+		}
+	}
+
 	OnChangeSchedule( pNewSchedule );
+
 	if (m_MonsterState == MONSTERSTATE_HUNT)
 	{
 		m_huntActivitiesCount++;

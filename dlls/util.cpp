@@ -2847,25 +2847,6 @@ int RandomizeNumberFromRange(int minI, int maxI)
 	return RANDOM_LONG(minI, maxI);
 }
 
-void ReportAIStateByClassname(const char* name)
-{
-	if (!name || !*name) {
-		ALERT(at_console, "Must provide a classname!\n");
-		return;
-	}
-	CBaseEntity* pEntity = 0;
-	ALERT(at_console, "Listing all monsters of \"%s\" classname\n", name);
-	while ( ( pEntity = UTIL_FindEntityByClassname(pEntity, name) ) != 0 ) {
-		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
-		if (pMonster) {
-			pMonster->ReportAIState(at_console);
-			const bool clientInPVS = !FNullEnt(FIND_CLIENT_IN_PVS( pMonster->edict() ));
-			ALERT(at_console, "Position in the world: (%3.1f, %3.1f, %3.1f). ", pMonster->pev->origin.x, pMonster->pev->origin.y, pMonster->pev->origin.z);
-			ALERT(at_console, "Client in PVS: %s\n\n", clientInPVS ? "yes" : "no");
-		}
-	}
-}
-
 // LRC- change the origin to the given position, and bring any movewiths along too.
 void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin )
 {

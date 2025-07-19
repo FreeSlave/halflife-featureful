@@ -74,3 +74,4 @@ Commands used for testing and debugging the monster behavior:
 * `make_start_following` - make the monster (or monsters) start following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
 * `make_stop_following` - make the monster (or monsters) stop following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
 * `report_ai_state` - report AI state of all monsters with the provided classname. It's like `impulse 103`, but player doesn't have to look at the monster.
+* `watch_ai_schedules` - print the monster's schedule changes in the console. The monster is specified by a classname or by entity index. E.g. `watch_ai_schedules monster_barney` or `watch_ai_schedules 53`. Note: the watchers get reset on changelevel or save loading.

@@ -619,8 +619,6 @@ inline bool LineOfSightSeparatedByWaterSurface(int lookerWaterlevel, int targetW
 	return (lookerWaterlevel != WL_Eyes && targetWaterlevel == WL_Eyes) || (lookerWaterlevel == WL_Eyes && targetWaterlevel == WL_NotInWater);
 }
 
-void ReportAIStateByClassname(const char* name);
-
 inline Vector VectorFromColor(const Color3& color) {
 	return Vector(color.r, color.g, color.b);
 }

@@ -34,6 +34,7 @@
 #include "tex_materials.h"
 #include "error_collector.h"
 #include "weapon_templates.h"
+#include "ai_debug.h"
 
 #include <chrono>
 
@@ -1256,6 +1257,53 @@ void Cmd_ReportAIState()
 	ReportAIStateByClassname(CMD_ARGV( 1 ));
 }
 
+void Cmd_AddScheduleWatcher()
+{
+	const char* classnameOrEntIndex = CMD_ARGV(1);
+	if (!classnameOrEntIndex || !*classnameOrEntIndex)
+	{
+		ALERT(at_console, "Must provide an argument!\n");
+		return;
+	}
+	int entindex = atoi(classnameOrEntIndex);
+	if (entindex != 0)
+	{
+		if (entindex > 0)
+		{
+			CBaseMonster* pMonster = nullptr;
+			edict_t* edict = INDEXENT(entindex);
+			if (edict)
+			{
+				CBaseEntity* pEntity = CBaseEntity::Instance(edict);
+				if (pEntity)
+				{
+					pMonster = pEntity->MyMonsterPointer();
+				}
+			}
+			if (pMonster)
+			{
+				ALERT(at_aiconsole, "Adding monster \"%s\" with entindex %d to the schedule watcher\n", STRING(pMonster->pev->classname), entindex);
+				AddScheduleWatcher(entindex);
+			}
+			else
+			{
+				ALERT(at_aiconsole, "Entity with entindex %d is not a monster!\n", entindex);
+			}
+		}
+	}
+	else
+	{
+		CBaseEntity* pEntity = 0;
+		ALERT(at_console, "Adding all monsters of \"%s\" classname to the schedule watcher\n", classnameOrEntIndex);
+		while((pEntity = UTIL_FindEntityByClassname(pEntity, classnameOrEntIndex)) != 0) {
+			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+			if (pMonster) {
+				AddScheduleWatcher(pMonster->entindex());
+			}
+		}
+	}
+}
+
 void Cmd_NumberOfEntities()
 {
 	if (CMD_ARGC() > 1)
@@ -2237,6 +2285,7 @@ void GameDLLInit( void )
 
 	// Register server commands
 	g_engfuncs.pfnAddServerCommand("report_ai_state", Cmd_ReportAIState);
+	g_engfuncs.pfnAddServerCommand("watch_ai_schedules", Cmd_AddScheduleWatcher);
 	g_engfuncs.pfnAddServerCommand("entities_count", Cmd_NumberOfEntities);
 	g_engfuncs.pfnAddServerCommand("set_global_state", Cmd_SetGlobalState);
 	g_engfuncs.pfnAddServerCommand("set_global_value", Cmd_SetGlobalValue);
