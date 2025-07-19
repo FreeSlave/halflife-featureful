@@ -1883,7 +1883,7 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		if (pev->message) {
 			pSpotEntity = UTIL_FindEntityByTargetname(NULL, STRING(pev->message));
 			if (!pSpotEntity) {
-				ALERT(at_aiconsole, "%s speficies \"%s\" as spot entity, but couldn't find it!\n", STRING(pev->classname), STRING(pev->message));
+				ALERT(at_aiconsole, "%s specifies \"%s\" as spot entity, but couldn't find it!\n", STRING(pev->classname), STRING(pev->message));
 				return;
 			}
 		} else {
@@ -1926,7 +1926,12 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 				} else {
 					const int knownSchedule = KnownSchedule();
 					if (knownSchedule != SCHED_NONE)
-						pMonster->SuggestSchedule( KnownSchedule(), pSpotEntity, MinDist(), MaxDist(), flags );
+					{
+						int schedFlags = flags;
+						if (pev->weapons == SCRIPTED_SCHEDULE_MOVE_AWAY && (!pSpotEntity || pSpotEntity == pMonster))
+							schedFlags |= SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
+						pMonster->SuggestSchedule( knownSchedule, pSpotEntity, MinDist(), MaxDist(), schedFlags );
+					}
 				}
 			}
 		}

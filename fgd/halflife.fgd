@@ -7610,6 +7610,12 @@
 		0 : "No"
 		1 : "Yes"
 	]
+	make_blocker_move_away(choices) : "Make blocker move away" : : "If some monster is blocking the spawn, advise them to move away" = 
+	[
+		0: "No"
+		1: "Yes, walking"
+		2: "Yes, running"
+	]
 ]
 @PointClass base(MonsterMaker) = monstermaker : "Monster Maker" []
 @PointClass base(MonsterMaker) = squadmaker : "Squad Maker" []

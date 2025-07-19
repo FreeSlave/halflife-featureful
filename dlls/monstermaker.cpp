@@ -137,6 +137,8 @@ public:
 	string_t m_childValues[MAX_CHILD_KEYS];
 	int m_childKeyCount;
 
+	short m_makeBlockerMoveAway;
+
 	bool m_childIsValid;
 };
 
@@ -176,6 +178,7 @@ TYPEDESCRIPTION	CMonsterMaker::m_SaveData[] =
 	DEFINE_ARRAY( CMonsterMaker, m_childKeys, FIELD_STRING, MAX_CHILD_KEYS ),
 	DEFINE_ARRAY( CMonsterMaker, m_childValues, FIELD_STRING, MAX_CHILD_KEYS ),
 	DEFINE_FIELD( CMonsterMaker, m_childKeyCount, FIELD_INTEGER ),
+	DEFINE_FIELD( CMonsterMaker, m_makeBlockerMoveAway, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CMonsterMaker, CBaseMonster )
@@ -295,6 +298,11 @@ void CMonsterMaker::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "delay_after_blocked" ) )
 	{
 		m_delayAfterBlocked = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "make_blocker_move_away" ) )
+	{
+		m_makeBlockerMoveAway = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if ( pkvd->szKeyName[0] == '#' )
@@ -570,6 +578,7 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 	{
 		// Single spot
 		placeAngles = pev->angles;
+		CBaseEntity* tempPosEnt = nullptr;
 
 		if (FStringNull(m_iszPlacePosition))
 		{
@@ -580,7 +589,7 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 		{
 			if (!TryCalcLocus_Position(this, m_hActivator, placeIdentifier, placePosition))
 				return MONSTERMAKER_BADPLACE;
-			CBaseEntity* tempPosEnt = CBaseEntity::Create("info_target", placePosition, pev->angles);
+			tempPosEnt = CBaseEntity::Create("info_target", placePosition, pev->angles);
 			if (tempPosEnt)
 			{
 				tempPosEnt->SetThink(&CBaseEntity::SUB_Remove);
@@ -604,7 +613,7 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 
 		if (!FBitSet(pev->spawnflags, SF_MONSTERMAKER_AUTOSIZEBBOX))
 			maxs.z = placePosition.z;
-		if (!FBitSet(pev->spawnflags, SF_MONSTERMAKER_NO_GROUND_CHECK ))
+		if (!FBitSet(pev->spawnflags, SF_MONSTERMAKER_NO_GROUND_CHECK))
 			mins.z = m_flGround;
 
 		CBaseEntity *pBlocker = MakerBlocker(mins, maxs);
@@ -612,6 +621,21 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 		{
 			const char* blockerName = FStringNull(pBlocker->pev->classname) ? "" : STRING(pBlocker->pev->classname);
 			ALERT( at_aiconsole, "Spawning of %s is blocked by %s\n", STRING(m_iszMonsterClassname), blockerName );
+
+			if (m_makeBlockerMoveAway)
+			{
+				CBaseMonster* pBlockerMonster = pBlocker->MyMonsterPointer();
+				if (pBlockerMonster && pBlockerMonster->IsFreeToManipulate())
+				{
+					int schedFlags = SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
+					if (m_makeBlockerMoveAway == 2)
+					{
+						schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
+					}
+					pBlockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, tempPosEnt ? tempPosEnt : this, testMaxHullSize.x * 1.5f, 256, schedFlags);
+				}
+			}
+
 			return MONSTERMAKER_BLOCKED;
 		}
 	}

@@ -1802,7 +1802,9 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			Vector vecSpot;
 			if (CalcSuggestedSpot(&vecSpot))
 			{
-				const int moveFlag = FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_RUN) ? FINDSPOTAWAY_RUN : FINDSPOTAWAY_WALK;
+				int moveFlag = FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_RUN) ? FINDSPOTAWAY_RUN : FINDSPOTAWAY_WALK;
+				if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE))
+					moveFlag |= FINDSPOTAWAY_DONT_AVOID_THREAT_NODE;
 
 				fixed_vector<CBaseEntity*, 3> pBlockers;
 

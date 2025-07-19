@@ -2850,8 +2850,9 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 
 	const Vector vecLookersSpot = vecThreat + vecViewOffset;// calculate location of enemy's eyes
 	const bool mustTraceLooker = FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER);
+	const bool dontAvoidThreatNode = vecThreat == pev->origin || FBitSet(flags, FINDSPOTAWAY_DONT_AVOID_THREAT_NODE);
 
-	if (!mustTraceLooker && iThreatNode != NO_NODE && iThreatNode == iMyNode)
+	if ((!mustTraceLooker && !dontAvoidThreatNode) && iThreatNode != NO_NODE && iThreatNode == iMyNode)
 	{
 		ALERT( at_aiconsole, "%s - %s: my nearest node and threat nearest node are the same!\n", displayName, STRING( pev->classname ) );
 		return false;
@@ -2880,7 +2881,7 @@ bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 			if( traceOk )
 			{
 				bool distanceOk = iThreatNode == NO_NODE;
-				if (!distanceOk && mustTraceLooker)
+				if (!distanceOk && (mustTraceLooker || dontAvoidThreatNode))
 					distanceOk = iThreatNode == iMyNode;
 				if (!distanceOk)
 				{
