@@ -100,8 +100,8 @@ TEST(Tribool, Test)
 	u = indeterminate;
 	EXPECT_TRUE(indeterminate(u));
 
-	tribool t = true;
-	tribool f = false;
+	tribool t{true};
+	tribool f{false};
 	EXPECT_TRUE(t);
 	EXPECT_FALSE(!t);
 	EXPECT_FALSE(f);

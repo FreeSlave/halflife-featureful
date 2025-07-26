@@ -45,12 +45,25 @@ constexpr inline bool indeterminate(tribool x, detail::indeterminate_t dummy = d
 struct tribool
 {
 	constexpr tribool() noexcept : value(indeterminate_value) {}
-	constexpr tribool(bool initial_value) noexcept : value(initial_value? true_value : false_value) {}
+	explicit constexpr tribool(bool initial_value) noexcept : value(initial_value? true_value : false_value) {}
 	constexpr tribool(indeterminate_keyword_t) noexcept : value(indeterminate_value) {}
 
 	constexpr explicit operator bool () const noexcept
 	{
 		return value == true_value;
+	}
+
+	tribool operator=(tribool b) {
+		value = b.value;
+		return *this;
+	}
+	tribool operator=(bool b) {
+		value = b ? true_value : false_value;
+		return *this;
+	}
+	tribool operator=(indeterminate_keyword_t) {
+		value = indeterminate_value;
+		return *this;
 	}
 
 	enum value_t { false_value, true_value, indeterminate_value } value;
