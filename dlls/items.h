@@ -43,6 +43,8 @@ public:
 	void EXPORT Materialize( void );
 	virtual void OnMaterialize() = 0;
 
+	bool IsLockedByMaster() override;
+
 	int Save(CSave &save);
 	int Restore(CRestore &restore);
 

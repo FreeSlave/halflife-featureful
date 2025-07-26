@@ -398,6 +398,11 @@ void CPickup::Materialize( void )
 	OnMaterialize();
 }
 
+bool CPickup::IsLockedByMaster()
+{
+	return m_sMaster && !UTIL_IsMasterTriggered(m_sMaster, nullptr);
+}
+
 TYPEDESCRIPTION CPickup::m_SaveData[] =
 {
 	DEFINE_FIELD(CPickup, m_sMaster, FIELD_STRING),
