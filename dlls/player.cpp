@@ -5519,6 +5519,9 @@ void CBasePlayer::GatherAndSendObjectHints()
 
 	auto sendObjectHint = [this](const ObjectHintSpec* spec, const ObjectHintVisual* hintVisual, CBaseEntity* pEntity, int flags)
 	{
+		if (!g_PlayerFullyInitialized[ENTINDEX(edict())-1])
+			return;
+
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjectHint, nullptr, pev);
 			WRITE_BYTE(flags);
 			WRITE_SHORT(pEntity->entindex());
