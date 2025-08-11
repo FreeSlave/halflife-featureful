@@ -1,5 +1,5 @@
 ---
-title: "Feauteful SDK Overview"
+title: "Featureful SDK Overview"
 ---
 
 # Half-Life Featureful SDK
