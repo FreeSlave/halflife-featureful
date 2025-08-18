@@ -2790,8 +2790,9 @@
 		32: "Toggle" : 0
 		64: "Sparks" : 0
 		256:"Touch Activates": 0
-		512:"Player Can't Use": 0
+		512:"Deprecated (untick this!)": 0
 		1024:"Check master on return": 0
+		16384:"Player Can't Use": 0
 	]
 	target_on_locked(target_destination) : "Target on locked" : : "Trigger if used when locked"
 	_minlight(string) : "Minimum light level"

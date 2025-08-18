@@ -35,8 +35,9 @@
 #define	SF_BUTTON_TOGGLE		32	// button stays pushed until reactivated
 #define	SF_BUTTON_SPARK_IF_OFF		64	// button sparks in OFF state
 #define SF_BUTTON_TOUCH_ONLY		256	// button only fires as a result of USE key.
-#define SF_BUTTON_PLAYER_CANT_USE	512 // Player can't impulse use this button
+#define SF_BUTTON_PLAYER_CANT_USE_OLD	512
 #define SF_BUTTON_CHECK_MASTER_ON_TOGGLE_RETURN 1024 // Check master and play locked and unlocked sounds on toggle return
+#define SF_BUTTON_PLAYER_CANT_USE	16384 // Player can't impulse use this button
 
 #define SF_GLOBAL_SET			1	// Set global state to initial state on spawn
 #define SF_GLOBAL_ACT_AS_MASTER 4
@@ -861,7 +862,7 @@ public:
 
 	bool IsAllowedToSpeak( void ) override { return true; }
 	bool IsUsefulToDisplayHint(CBaseEntity *pPlayer) {
-		return !FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE);
+		return !FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE|SF_BUTTON_PLAYER_CANT_USE_OLD);
 	}
 
 	bool m_fStayPushed;	// button stays pushed in until touched again?
@@ -900,7 +901,7 @@ static constexpr const char* sparkSoundScript = "DoSpark";
 int CBaseButton::ObjectCaps( void )
 {
 	int objectCaps = (CBaseToggle:: ObjectCaps() & ~FCAP_ACROSS_TRANSITION);
-	if (!pev->takedamage && !FBitSet(pev->spawnflags,SF_BUTTON_PLAYER_CANT_USE))
+	if (!pev->takedamage && !FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE|SF_BUTTON_PLAYER_CANT_USE_OLD))
 		objectCaps |= FCAP_IMPULSE_USE;
 	if (FBitSet(pev->spawnflags, SF_BUTTON_ONLYDIRECT) || m_iDirectUse == PLAYER_USE_POLICY_DIRECT)
 		objectCaps |= FCAP_ONLYDIRECT_USE;
@@ -1205,7 +1206,17 @@ where it can be triggered again.
 LINK_ENTITY_TO_CLASS( func_button, CBaseButton )
 
 void CBaseButton::Spawn()
-{ 
+{
+	if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE_OLD))
+	{
+		ALERT(at_warning, "Deprecated button spawnflag (512) is used! Use spawnflag 16384 instead!\n");
+		if (FStrEq(STRING(gpGlobals->mapname), "ba_teleport2"))
+		{
+			ALERT(at_console, "Blue Shift map detected. Removing the deprecated spawnflag\n");
+			ClearBits(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE_OLD);
+		}
+	}
+
 	const char *pszSound;
 
 	//----------------------------------------------------
@@ -1277,7 +1288,7 @@ void CBaseButton::Spawn()
 	else 
 	{
 		SetTouch( NULL );
-		if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE))
+		if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE|SF_BUTTON_PLAYER_CANT_USE_OLD))
 			SetUse( &CBaseButton::ButtonUse_IgnorePlayer );
 		else
 			SetUse( &CBaseButton::ButtonUse );
@@ -1766,7 +1777,7 @@ void CRotButton::Spawn( void )
 	if( !FBitSet( pev->spawnflags, SF_BUTTON_TOUCH_ONLY ) )
 	{
 		SetTouch( NULL );
-		if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE))
+		if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE|SF_BUTTON_PLAYER_CANT_USE_OLD))
 			SetUse( &CBaseButton::ButtonUse_IgnorePlayer );
 		else
 			SetUse( &CBaseButton::ButtonUse );
