@@ -1919,9 +1919,6 @@ std::pair<CBaseEntity*, const ObjectHintSpec*> CBasePlayer::GetInteractiveEntity
 
 		while( ( pObject = UTIL_FindEntityInSphere( pObject, pev->origin, searchRadius ) ) != NULL )
 		{
-			if (pObject->pev->modelindex && FBitSet(pObject->pev->effects, EF_NODRAW))
-				continue;
-
 			const ObjectHintSpec* hintSpec = gatherHints ? GetHintSpecForEntity(pObject) : nullptr;
 			if (hintSpec && hintSpec->scanVisualSet.HasAnySpriteDefined())
 			{
@@ -5536,6 +5533,8 @@ void CBasePlayer::GatherAndSendObjectHints()
 	std::vector<std::pair<CBaseEntity*, const ObjectHintSpec*>> hintedEntities;
 	auto interaction = GetInteractiveEntity(&hintedEntities);
 	CBaseEntity* pClosest = interaction.first;
+	if (pClosest && pClosest->pev->modelindex && FBitSet(pClosest->pev->effects, EF_NODRAW))
+		pClosest = nullptr;
 	const ObjectHintSpec* closestHintSpec = interaction.second;
 	const ObjectHintVisual* closestHintVisual = nullptr;
 	bool shownInteraction = false;
