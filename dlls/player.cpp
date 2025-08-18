@@ -5538,7 +5538,7 @@ void CBasePlayer::GatherAndSendObjectHints()
 	const ObjectHintSpec* closestHintSpec = interaction.second;
 	const ObjectHintVisual* closestHintVisual = nullptr;
 	bool shownInteraction = false;
-	if (closestHintSpec)
+	if (closestHintSpec && pClosest)
 	{
 		closestHintVisual = chooseHintVisual(pClosest, closestHintSpec->interactionVisualSet);
 	}
