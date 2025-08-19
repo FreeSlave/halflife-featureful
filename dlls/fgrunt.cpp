@@ -3565,8 +3565,7 @@ void CMedic::RunTask(Task_t *pTask)
 	case TASK_MEDIC_HEAL:
 		if ( m_fSequenceFinished )
 		{
-			Heal();
-			if (HasHealTarget() && HasHealCharge())
+			if (Heal())
 			{
 				m_IdealActivity = ACT_MELEE_ATTACK2;
 				ALERT(at_aiconsole, "Medic continuing healing\n");

@@ -760,7 +760,7 @@ float CTalkMonster::TargetDistance()
 	if( m_hTargetEnt == 0 || !m_hTargetEnt->IsFullyAlive() )
 		return 1e6;
 
-	return ( m_hTargetEnt->pev->origin - pev->origin ).Length();
+	return ( m_hTargetEnt->Center() - Center() ).Length();
 }
 
 //=========================================================
