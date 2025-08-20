@@ -1225,20 +1225,6 @@ public:
 LINK_ENTITY_TO_CLASS( func_tank, CFuncTankGun )
 LINK_ENTITY_TO_CLASS( func_tank_of, CFuncTankGun )
 
-static int TankBulletToBulletType(int tankBullet)
-{
-	switch (tankBullet) {
-	case TANK_BULLET_9MM:
-		return BULLET_MONSTER_9MM;
-	case TANK_BULLET_MP5:
-		return BULLET_MONSTER_MP5;
-	case TANK_BULLET_12MM:
-		return BULLET_MONSTER_12MM;
-	default:
-		return BULLET_NONE;
-	}
-}
-
 void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
 	if( m_fireLast != 0 )
@@ -1253,7 +1239,28 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 			{
 				if (m_bulletType != TANK_BULLET_NONE)
 				{
-					FireBullets( 1, barrelEnd, forward, gTankSpread[m_spread], 4096, TankBulletToBulletType(m_bulletType), 1, m_iBulletDamage, pAttacker->pev );
+					float flDamage = 0.0f;
+					if (m_iBulletDamage)
+					{
+						flDamage = m_iBulletDamage;
+					}
+					else
+					{
+						switch (m_bulletType) {
+						case TANK_BULLET_9MM:
+							flDamage = gSkillData.monDmg9MM;
+							break;
+						case TANK_BULLET_MP5:
+							flDamage = gSkillData.monDmgMP5;
+							break;
+						case TANK_BULLET_12MM:
+							flDamage = gSkillData.monDmg12MM;
+							break;
+						default:
+							break;
+						}
+					}
+					FireBullets( 1, barrelEnd, forward, gTankSpread[m_spread], 4096, flDamage, 1, pAttacker->pev );
 					RemoveBullet();
 				}
 				else

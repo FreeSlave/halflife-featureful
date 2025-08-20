@@ -24,7 +24,7 @@
 #include <cstdint>
 
 // this is the max number of items in each bucket
-#define MAX_WEAPON_POSITIONS		8
+#define MAX_WEAPON_POSITIONS		10
 
 struct BucketPreference
 {

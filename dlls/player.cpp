@@ -45,6 +45,7 @@
 #include "error_collector.h"
 #include "spritehint_flags.h"
 #include "clamp.h"
+#include "weapon_templates.h"
 
 #if FEATURE_ROPE
 #include "ropes.h"
@@ -150,6 +151,9 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_camera, FIELD_EHANDLE),
 	DEFINE_FIELD(CBasePlayer, m_cameraFlags, FIELD_INTEGER),
 
+	DEFINE_FIELD(CBasePlayer, m_iLastZoom, FIELD_INTEGER),
+	DEFINE_FIELD(CBasePlayer, m_bResumeZoom, FIELD_BOOLEAN),
+
 	DEFINE_ARRAY(CBasePlayer, m_journalSections, FIELD_STRING, MAX_JOURNAL_RECORDS),
 	DEFINE_ARRAY(CBasePlayer, m_journalRecords, FIELD_STRING, MAX_JOURNAL_RECORDS),
 
@@ -247,6 +251,7 @@ int gmsgNightvision = 0;
 int gmsgMovementState = 0;
 
 int gmsgUseSound = 0;
+int gmsgSetBody = 0;
 
 int gmsgCaption = 0;
 int gmsgMonsterInfo = 0;
@@ -352,6 +357,7 @@ void LinkUserMessages( void )
 #endif
 	gmsgMovementState = REG_USER_MSG( "MoveMode", 2 );
 	gmsgUseSound = REG_USER_MSG( "UseSound", 1 );
+	gmsgSetBody = REG_USER_MSG( "SetBody", 2 );
 
 	gmsgCaption = REG_USER_MSG("Caption", -1);
 	gmsgMonsterInfo = REG_USER_MSG("MonsterInfo", -1);
@@ -1247,6 +1253,7 @@ KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 
 	// reset FOV
 	pev->fov = m_iFOV = m_iClientFOV = 0;
+	m_bResumeZoom = false;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
 		WRITE_BYTE( 0 );
@@ -1796,6 +1803,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	// reset FOV
 	m_iFOV = m_iClientFOV = 0;
 	pev->fov = m_iFOV;
+	m_bResumeZoom = false;
 	MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
@@ -4589,90 +4597,46 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		}
 		break;
 	case 101:
+	{
 		gEvilImpulse101 = true;
 		GiveNamedItem( "item_suit", SF_ITEM_NOFALL );
 		SetDefaultLight();
 		GiveNamedItem( "item_battery", SF_ITEM_NOFALL );
-		GiveNamedItem( "weapon_crowbar" );
-		GiveNamedItem( "weapon_9mmhandgun" );
-		GiveAmmo(AMMO_GLOCKCLIP_GIVE, "9mm"); //GiveNamedItem( "ammo_9mmclip" );
-		GiveNamedItem( "weapon_shotgun" );
-		GiveAmmo(AMMO_BUCKSHOTBOX_GIVE, "buckshot"); //GiveNamedItem( "ammo_buckshot" );
-		GiveNamedItem( "weapon_9mmAR" );
-		GiveAmmo(AMMO_MP5CLIP_GIVE, "9mm"); //GiveNamedItem( "ammo_9mmAR" );
-		GiveAmmo(AMMO_M203BOX_GIVE, "ARgrenades"); //GiveNamedItem( "ammo_ARgrenades" );
-		GiveNamedItem( "weapon_handgrenade" );
-		GiveNamedItem( "weapon_tripmine" );
-		GiveNamedItem( "weapon_357" );
-		GiveAmmo(AMMO_357BOX_GIVE, "357"); //GiveNamedItem( "ammo_357" );
-		GiveNamedItem( "weapon_crossbow" );
-		GiveAmmo(AMMO_CROSSBOWCLIP_GIVE, "bolts"); //GiveNamedItem( "ammo_crossbow" );
-		GiveNamedItem( "weapon_egon" );
-		GiveNamedItem( "weapon_gauss" );
-		GiveAmmo(AMMO_URANIUMBOX_GIVE, "uranium"); //GiveNamedItem( "ammo_gaussclip" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveAmmo(AMMO_RPGCLIP_GIVE, "rockets"); //GiveNamedItem( "ammo_rpgclip" );
-		GiveNamedItem( "weapon_satchel" );
-		GiveNamedItem( "weapon_snark" );
-		GiveNamedItem( "weapon_hornetgun" );
-#if FEATURE_MEDKIT
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT))
-			GiveNamedItem( "weapon_medkit" );
-#endif
-#if FEATURE_DESERT_EAGLE
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_EAGLE))
-			GiveNamedItem( "weapon_eagle" );
-#endif
-#if FEATURE_PIPEWRENCH
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_PIPEWRENCH))
-			GiveNamedItem( "weapon_pipewrench" );
-#endif
-#if FEATURE_GRAPPLE
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_GRAPPLE))
-			GiveNamedItem( "weapon_grapple" );
-#endif
-#if FEATURE_M249
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_M249))
+
+		bool ammoTypesToAdd[MAX_AMMO_TYPES] = {false};
+
+		for (int i=1; i<MAX_WEAPONS; ++i)
 		{
-			GiveNamedItem( "weapon_m249" );
-			GiveAmmo(AMMO_556CLIP_GIVE, "556");
+			WeaponInfo info = AccessWeaponInfo(i);
+			if (info.classname)
+			{
+				if (g_modFeatures.IsWeaponEnabled(info.id))
+				{
+					GiveNamedItem(info.classname);
+
+					int primaryAmmoIndex = g_AmmoRegistry.IndexOf(info.params.ammoName.c_str());
+					if (primaryAmmoIndex)
+						ammoTypesToAdd[primaryAmmoIndex] = true;
+					int secondaryAmmoIndex = g_AmmoRegistry.IndexOf(info.params.secondaryAmmoName.c_str());
+					if (secondaryAmmoIndex)
+						ammoTypesToAdd[secondaryAmmoIndex] = true;
+				}
+			}
 		}
-#endif
-#if FEATURE_SNIPERRIFLE
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
+
+		for (int i=1; i<ARRAYSIZE(ammoTypesToAdd); ++i)
 		{
-			GiveNamedItem( "weapon_sniperrifle" );
-			GiveAmmo( AMMO_762BOX_GIVE, "762");
+			if (ammoTypesToAdd[i])
+			{
+				const AmmoType* ammoType = g_AmmoRegistry.GetByIndex(i);
+				if (ammoType)
+				{
+					GiveAmmo(Q_max(ammoType->maxAmmo/5, 1), ammoType->name);
+				}
+			}
 		}
-#endif
-#if FEATURE_DISPLACER
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_DISPLACER))
-			GiveNamedItem( "weapon_displacer" );
-#endif
-#if FEATURE_SHOCKRIFLE
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_SHOCKRIFLE))
-			GiveNamedItem( "weapon_shockrifle" );
-#endif
-#if FEATURE_SPORELAUNCHER
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_SPORELAUNCHER))
-		{
-			GiveNamedItem( "weapon_sporelauncher" );
-			GiveAmmo(5, "spores");
-		}
-#endif
-#if FEATURE_KNIFE
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_KNIFE))
-			GiveNamedItem( "weapon_knife" );
-#endif
-#if FEATURE_PENGUIN
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_PENGUIN))
-			GiveNamedItem( "weapon_penguin" );
-#endif
-#if FEATURE_UZI
-		if (g_modFeatures.IsWeaponEnabled(WEAPON_UZI))
-			GiveNamedItem( "weapon_uzi" );
-#endif
 		gEvilImpulse101 = false;
+	}
 		break;
 	case 102:
 		// Gibbage!!!
@@ -5075,7 +5039,7 @@ void CBasePlayer::SendAmmoUpdate( void )
 	}
 }
 
-static void SendParseErrorsToClient(edict_t* client, const std::string& str)
+static void SendDataInChunksToClient(edict_t* client, const std::string& str, int messageId)
 {
 	char chunk[121];
 	const char* cstr = str.c_str();
@@ -5086,11 +5050,16 @@ static void SendParseErrorsToClient(edict_t* client, const std::string& str)
 		chunk[sizeof(chunk)-1] = '\0';
 		offset += sizeof(chunk)-1;
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgParseErrors, NULL, client );
+		MESSAGE_BEGIN( MSG_ONE, messageId, NULL, client );
 			WRITE_BYTE( offset >= str.size() ? 1 : 0 );
 			WRITE_STRING( chunk );
 		MESSAGE_END();
 	}
+}
+
+static void SendParseErrorsToClient(edict_t* client, const std::string& str)
+{
+	SendDataInChunksToClient(client, str, gmsgParseErrors);
 }
 
 /*

@@ -3,6 +3,7 @@
 #define UTIL_SHARED_H
 
 #include <type_traits>
+#include "template_property_types.h"
 
 int UTIL_SharedRandomLong( unsigned int seed, int low, int high );
 float UTIL_SharedRandomFloat( unsigned int seed, float low, float high );
@@ -37,5 +38,15 @@ bool FBitSet(T1 bitVector, T2 bit)
 {
 	return (bitVector & bit) != 0;
 }
+
+float RandomizeNumberFromRange(const FloatRange& r);
+float RandomizeNumberFromRange(float minF, float maxF);
+int RandomizeNumberFromRange(const IntRange& r);
+int RandomizeNumberFromRange(int minI, int maxI);
+
+float RandomizeNumberFromRange_Shared(unsigned int seed, const FloatRange& r);
+float RandomizeNumberFromRange_Shared(unsigned int seed, float minF, float maxF);
+int RandomizeNumberFromRange_Shared(unsigned int seed, const IntRange& r);
+int RandomizeNumberFromRange_Shared(unsigned int seed, int minI, int maxI);
 
 #endif

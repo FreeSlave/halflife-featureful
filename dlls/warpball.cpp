@@ -164,28 +164,7 @@ const char warpballCatalogSchema[] = R"(
 						"additionalProperties": false
 					},
 					"shake": {
-						"type": ["object", "null"],
-						"properties": {
-							"radius": {
-								"type": "integer",
-								"minimum": 0
-							},
-							"duration": {
-								"type": "number",
-								"minimum": 0.0
-							},
-							"frequency": {
-								"type": "number",
-								"exclusiveMinimum": 0,
-								"maximum": 255.0
-							},
-							"amplitude": {
-								"type": "number",
-								"minimum": 0,
-								"maximum": 16
-							}
-						},
-						"additionalProperties": false
+						"$ref": "definitions.json#/shake"
 					},
 					"ai_sound": {
 						"type": ["object", "null"],
@@ -395,21 +374,6 @@ static void AssignWarpballLight(WarpballLight& light, const Value& lightJson)
 	}
 }
 
-static void AssignWarpballShake(WarpballShake& shake, const Value& shakeJson)
-{
-	if (shakeJson.IsNull())
-	{
-		shake = WarpballShake();
-	}
-	else
-	{
-		UpdatePropertyFromJson(shake.radius, shakeJson, "radius");
-		UpdatePropertyFromJson(shake.amplitude, shakeJson, "amplitude");
-		UpdatePropertyFromJson(shake.duration, shakeJson, "duration");
-		UpdatePropertyFromJson(shake.frequency, shakeJson, "frequency");
-	}
-}
-
 static void AssignWarpballAiSound(WarpballAiSound& aiSound, const Value& aiSoundJson)
 {
 	if (aiSoundJson.IsNull())
@@ -537,7 +501,7 @@ bool WarpballTemplateCatalog::AddWarpballTemplate(const Value& allTemplatesJsonV
 	});
 
 	HandleJSONMember(templateJsonValue, "shake", [&warpballTemplate](const Value& value) {
-		AssignWarpballShake(warpballTemplate.shake, value);
+		UpdatePlayerShake(warpballTemplate.shake, value);
 	});
 
 	HandleJSONMember(templateJsonValue, "ai_sound", [&warpballTemplate](const Value& value) {

@@ -39,25 +39,9 @@
 
 LINK_WEAPON_TO_CLASS( weapon_egon, CEgon )
 
-void CEgon::Spawn()
+void CEgon::Precache()
 {
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-
-	InitDefaultAmmo(EGON_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-
-	FallInit();// get ready to fall down.
-}
-
-void CEgon::Precache( void )
-{
-	PRECACHE_MODEL( MyWModel() );
-	PRECACHE_MODEL( "models/v_egon.mdl" );
-	PrecachePModel( "models/p_egon.mdl" );
-
-	PRECACHE_MODEL( "models/w_9mmclip.mdl" );
-
+	CConfigurableWeapon::Precache();
 	PRECACHE_SOUND( EGON_SOUND_OFF );
 	PRECACHE_SOUND( EGON_SOUND_RUN );
 	PRECACHE_SOUND( EGON_SOUND_STARTUP );
@@ -72,12 +56,7 @@ void CEgon::Precache( void )
 bool CEgon::Deploy( void )
 {
 	m_fireState = FIRE_OFF;
-	return DefaultDeploy( "models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW, "egon" );
-}
-
-bool CEgon::AddToPlayer( CBasePlayer *pPlayer )
-{
-	return AddToPlayerDefault(pPlayer);
+	return PerformDeploy();
 }
 
 void CEgon::Holster()
@@ -90,13 +69,36 @@ void CEgon::Holster()
 
 bool CEgon::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("uranium");
 	p->iSlot = 3;
 	p->iPosition = 2;
 	p->pszAmmoEntity = "ammo_gaussclip";
 	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 
 	return true;
+}
+
+WeaponParameters CEgon::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 20;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "uranium";
+
+	params.worldModel = "models/w_egon.mdl";
+	params.viewModel = "models/v_egon.mdl";
+	params.playerModel = "models/p_egon.mdl";
+	params.playerAnimExt = "egon";
+	params.priority = 20;
+
+	params.deploy.animIndex = EGON_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{EGON_IDLE1, 0.5f, FloatRange(10.0f, 15.0f)},
+		WeaponParameters::IdleAnim{EGON_FIDGET1, 0.5f, 3.0f},
+	};
+
+	return params;
 }
 
 #define EGON_PULSE_INTERVAL		0.1
@@ -127,7 +129,7 @@ void CEgon::Attack( void )
 		}
 		else
 		{
-			PlayEmptySound();
+			PlayEmptySound(false);
 		}
 		return;
 	}
@@ -150,7 +152,7 @@ void CEgon::Attack( void )
 			if( !HasAmmoToFire() )
 			{
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25f;
-				PlayEmptySound( );
+				PlayEmptySound(false);
 				return;
 			}
 
@@ -435,22 +437,7 @@ void CEgon::WeaponIdle( void )
 	if( m_fireState != FIRE_OFF )
 		 EndAttack();
 
-	int iAnim;
-
-	float flRand = RANDOM_FLOAT( 0.0f, 1.0f );
-
-	if( flRand <= 0.5f )
-	{
-		iAnim = EGON_IDLE1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
-	}
-	else 
-	{
-		iAnim = EGON_FIDGET1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0f;
-	}
-
-	SendWeaponAnim( iAnim );
+	SendIdleAnimation();
 }
 
 bool CEgon::CanHolster( void )

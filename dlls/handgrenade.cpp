@@ -36,43 +36,45 @@ enum handgrenade_e
 
 LINK_WEAPON_TO_CLASS( weapon_handgrenade, CHandGrenade )
 
-void CHandGrenade::Spawn()
-{
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-
-#if !CLIENT_DLL
-	pev->dmg = gSkillData.plrDmgHandGrenade;
-#endif
-	InitDefaultAmmo(HANDGRENADE_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-
-	FallInit();// get ready to fall down.
-}
-
-void CHandGrenade::Precache( void )
-{
-	PRECACHE_MODEL( MyWModel() );
-	PRECACHE_MODEL( "models/v_grenade.mdl" );
-	PrecachePModel( "models/p_grenade.mdl" );
-}
-
 bool CHandGrenade::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("Hand Grenade");
 	p->iSlot = 4;
 	p->iPosition = 0;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = HANDGRENADE_DEFAULT_GIVE;
+	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
+}
+
+WeaponParameters CHandGrenade::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 5;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Hand Grenade";
+
+	params.worldModel = "models/w_grenade.mdl";
+	params.viewModel = "models/v_grenade.mdl";
+	params.playerModel = "models/p_grenade.mdl";
+	params.playerAnimExt = "crowbar";
+	params.priority = 5;
+
+	params.deploy.animIndex = HANDGRENADE_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{HANDGRENADE_IDLE, 0.75f, FloatRange(10.0f, 15.0f)},
+		WeaponParameters::IdleAnim{HANDGRENADE_FIDGET, 0.25f, FloatRange(75.0f / 30.0f)},
+	};
+
+	return params;
 }
 
 bool CHandGrenade::Deploy()
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW, "crowbar" );
+	return PerformDeploy();
 }
 
 bool CHandGrenade::CanHolster()
@@ -227,20 +229,7 @@ void CHandGrenade::WeaponIdle( void )
 
 	if( HasAmmoToFire() )
 	{
-		int iAnim;
-		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0f, 1.0f );
-		if( flRand <= 0.75f )
-		{
-			iAnim = HANDGRENADE_IDLE;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );// how long till we do this again.
-		}
-		else
-		{
-			iAnim = HANDGRENADE_FIDGET;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 75.0f / 30.0f;
-		}
-
-		SendWeaponAnim( iAnim );
+		SendIdleAnimation();
 	}
 }
 

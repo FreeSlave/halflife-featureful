@@ -12,3 +12,15 @@ entityCategory: pickup
 
 * **sk_plr_9mmAR_bullet** - bullet damage.
 * **sk_plr_9mmAR_grenade** - grenade explosion damage.
+
+### Weapon templates
+
+{{% tabs %}}
+
+{{% tab "MP5 from Counter Strike" %}}
+
+See [MP5 Navy]({{< ref "weapon-templates-presets#mp5-navy" >}})
+
+{{% /tab %}}
+
+{{% /tabs %}}

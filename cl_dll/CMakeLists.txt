@@ -142,8 +142,13 @@ set (CLDLL_SOURCES
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/random_utils.cpp
+	../game_shared/schema_definitions.cpp
+	../game_shared/schema_weapons.cpp
+	../game_shared/sound_channel.cpp
 	../game_shared/unicode.cpp
 	../game_shared/util_shared.cpp
+	../game_shared/weapon_parameters.cpp
+	../game_shared/weapon_templates.cpp
 	saytext.cpp
 	scoreboard.cpp
 	status_icons.cpp

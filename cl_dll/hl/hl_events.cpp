@@ -34,57 +34,23 @@ That was what we were going to do, but we ran out of time...oh well.
 */
 void Game_HookEvents( void )
 {
-	gEngfuncs.pfnHookEvent( "events/glock1.sc", EV_FireGlock1 );
-	gEngfuncs.pfnHookEvent( "events/glock2.sc", EV_FireGlock2 );
-	gEngfuncs.pfnHookEvent( "events/shotgun1.sc", EV_FireShotGunSingle );
-	gEngfuncs.pfnHookEvent( "events/shotgun2.sc", EV_FireShotGunDouble );
-	gEngfuncs.pfnHookEvent( "events/mp5.sc", EV_FireMP5 );
-	gEngfuncs.pfnHookEvent( "events/mp52.sc", EV_FireMP52 );
-	gEngfuncs.pfnHookEvent( "events/python.sc", EV_FirePython );
+	gEngfuncs.pfnHookEvent( "events/glock1.sc", EV_FireConfigurableWeapon );
 	gEngfuncs.pfnHookEvent( "events/gauss.sc", EV_FireGauss );
 	gEngfuncs.pfnHookEvent( "events/gaussspin.sc", EV_SpinGauss );
 	gEngfuncs.pfnHookEvent( "events/train.sc", EV_TrainPitchAdjust );
-	gEngfuncs.pfnHookEvent( "events/crowbar.sc", EV_Crowbar );
-	gEngfuncs.pfnHookEvent( "events/crossbow1.sc", EV_FireCrossbow );
 	gEngfuncs.pfnHookEvent( "events/crossbow2.sc", EV_FireCrossbow2 );
-	gEngfuncs.pfnHookEvent( "events/rpg.sc", EV_FireRpg );
 	gEngfuncs.pfnHookEvent( "events/egon_fire.sc", EV_EgonFire );
 	gEngfuncs.pfnHookEvent( "events/egon_stop.sc", EV_EgonStop );
-	gEngfuncs.pfnHookEvent( "events/firehornet.sc", EV_HornetGunFire );
 	gEngfuncs.pfnHookEvent( "events/tripfire.sc", EV_TripmineFire );
 	gEngfuncs.pfnHookEvent( "events/snarkfire.sc", EV_SnarkFire );
-#if FEATURE_DESERT_EAGLE
-	gEngfuncs.pfnHookEvent( "events/eagle.sc", EV_FireEagle );
-#endif
-#if FEATURE_PIPEWRENCH
-	gEngfuncs.pfnHookEvent( "events/pipewrench.sc", EV_PipeWrench );
-#endif
-#if FEATURE_KNIFE
-	gEngfuncs.pfnHookEvent( "events/knife.sc", EV_Knife );
-#endif
 #if FEATURE_PENGUIN
 	gEngfuncs.pfnHookEvent( "events/penguinfire.sc", EV_SnarkFire );
-#endif
-#if FEATURE_M249
-	gEngfuncs.pfnHookEvent( "events/m249.sc", EV_FireM249 );
-#endif
-#if FEATURE_SNIPERRIFLE
-	gEngfuncs.pfnHookEvent( "events/sniper.sc", EV_FireSniper );
 #endif
 #if FEATURE_DISPLACER
 	gEngfuncs.pfnHookEvent( "events/displacer.sc", EV_Displacer );
 #endif
-#if FEATURE_SHOCKRIFLE
-	gEngfuncs.pfnHookEvent( "events/shock.sc", EV_ShockFire );
-#endif
-#if FEATURE_SPORELAUNCHER
-	gEngfuncs.pfnHookEvent( "events/spore.sc", EV_SporeFire );
-#endif
 #if FEATURE_MEDKIT
 	gEngfuncs.pfnHookEvent( "events/medkit.sc", EV_MedkitFire );
-#endif
-#if FEATURE_UZI
-	gEngfuncs.pfnHookEvent( "events/uzi.sc", EV_FireUzi );
 #endif
 	gEngfuncs.pfnHookEvent( "events/vehicle.sc", EV_VehiclePitchAdjust );
 }

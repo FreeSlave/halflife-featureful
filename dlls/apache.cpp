@@ -920,7 +920,7 @@ bool CApache::FireGun()
 	if( DotProduct( vecGun, vecTarget ) > 0.98f )
 	{
 #if 1
-		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, BULLET_MONSTER_12MM, 1 );
+		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, gSkillData.monDmg12MM, 1 );
 		EmitSoundScript(fireGunSoundScript);
 #else
 		static float flNext;

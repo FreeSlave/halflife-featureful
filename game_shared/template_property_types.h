@@ -57,4 +57,20 @@ private:
 typedef NumberRange<float> FloatRange;
 typedef NumberRange<int> IntRange;
 
+struct PlayerShake
+{
+	PlayerShake():
+		radius(192),
+		duration(0.0f),
+		frequency(160.0f),
+		amplitude(6) {}
+	int radius;
+	float duration;
+	float frequency;
+	int amplitude;
+	inline bool IsDefined() const {
+		return duration > 0;
+	}
+};
+
 #endif

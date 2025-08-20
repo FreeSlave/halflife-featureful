@@ -1,0 +1,24 @@
+{{- /* Get arguments. */}}
+{{- $class := or (.Get "class") "" }}
+{{- $name := or (.Get "name") "" }}
+{{- $summary := or (.Get "title") "" }}
+{{- $open := false }}
+{{- if in (slice "false" false 0) (.Get "open") }}
+  {{- $open = false }}
+{{- else if in (slice "true" true 1) (.Get "open") }}
+  {{- $open = true }}
+{{- end }}
+
+{{- /* Render. */}}
+<details
+  {{- with $class }} class="{{ . }}" {{- end }}
+  {{- with $name }} name="{{ . }}" {{- end }}
+  {{- with $open }} open {{- end }}
+>
+  <summary>
+{{/* Do not delete this comment, and do not indent the following line. */}}
+#### {{ $summary | .Page.RenderString }} {class="details-heading"}
+  </summary>
+
+  {{ .InnerDeindent | .Page.RenderString (dict "display" "block") -}}
+</details>

@@ -10,16 +10,34 @@
 #if !defined ( EVENTSCRIPTSH )
 #define EVENTSCRIPTSH
 
+#include "vector.h"
+#include "template_property_types.h"
+
 // defaults for clientinfo messages
 #define	DEFAULT_VIEWHEIGHT	28
 #define VEC_DUCK_VIEW 12
 
 #define FTENT_FADEOUT			0x00000080
 
+struct ShellInfoParams
+{
+	Vector origin;
+	Vector velocity;
+	Vector forward;
+	Vector up;
+	Vector right;
+	float forwardScale;
+	float upScale;
+	float rightScale;
+	FloatRange upFactor;
+	FloatRange sideFactor;
+	FloatRange forwardFactor;
+};
+
 // Some of these are HL/TFC specific?
 void EV_EjectBrass( float *origin, float *velocity, float rotation, int model, int soundtype );
 void EV_GetGunPosition( struct event_args_s *args, float *pos, float *origin );
-void EV_GetDefaultShellInfo( struct event_args_s *args, float *origin, float *velocity, float *ShellVelocity, float *ShellOrigin, float *forward, float *right, float *up, float forwardScale, float upScale, float rightScale );
+void EV_GetDefaultShellInfo( const struct event_args_s *args, const ShellInfoParams& infoParams, float *ShellVelocity, float *ShellOrigin );
 qboolean EV_IsLocal( int idx );
 qboolean EV_IsPlayer( int idx );
 void EV_CreateTracer( float *start, float *end );

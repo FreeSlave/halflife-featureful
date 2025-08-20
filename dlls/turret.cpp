@@ -711,14 +711,14 @@ void CBaseTurret::ActiveThink( void )
 
 void CTurret::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_12MM, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmg12MM, 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
 
 void CMiniTurret::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_9MM, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmg9MM, 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
@@ -1320,7 +1320,7 @@ void CSentry::Spawn()
 
 void CSentry::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_MP5, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmgMP5, 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }

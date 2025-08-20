@@ -506,23 +506,23 @@ LINK_WEAPON_TO_CLASS( weapon_snark, CSqueak )
 void CSqueak::Spawn()
 {
 	Precache();
-	SET_MODEL( ENT( pev ), NestModel() );
+	SET_MODEL(ENT(pev), MyWorldModel());
+
+	SetInitialAmmoAmount();
+	InitMaxClip();
 
 	FallInit();//get ready to fall down.
-
-	InitDefaultAmmo(DefaultGive());
-	InitMaxClip(WEAPON_NOCLIP);
 
 	pev->sequence = 1;
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0f;
 }
 
-void CSqueak::Precache( void )
+void CSqueak::Precache()
 {
-	PRECACHE_MODEL( NestModel() );
-	PRECACHE_MODEL( VModel() );
-	PrecachePModel( PModel() );
+	PrecacheWeaponModels();
+	PrecacheModelSounds();
+
 	PRECACHE_SOUND( "squeek/sqk_hunt2.wav" );
 	PRECACHE_SOUND( "squeek/sqk_hunt3.wav" );
 	UTIL_PrecacheOther( GrenadeName() );
@@ -532,14 +532,30 @@ void CSqueak::Precache( void )
 
 bool CSqueak::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName(DefaultAmmoName());
 	p->iSlot = 4;
 	p->iPosition = PositionInSlot();
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = DefaultGive();
+	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
+}
+
+WeaponParameters CSqueak::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 5;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Snarks";
+
+	params.worldModel = "models/w_sqknest.mdl";
+	params.viewModel = "models/v_squeak.mdl";
+	params.playerModel = "models/p_squeak.mdl";
+	params.playerAnimExt = "squeak";
+	params.priority = 5;
+
+	return params;
 }
 
 bool CSqueak::Deploy()
@@ -554,7 +570,7 @@ bool CSqueak::Deploy()
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-	const bool result = DefaultDeploy( VModel(), PModel(), SQUEAK_UP, "squeak" );
+	const bool result = DefaultDeploy( MyViewModel(), MyPlayerModel(), SQUEAK_UP, "squeak" );
 	if (result)
 	{
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.7f;
@@ -691,34 +707,9 @@ const char* CSqueak::GrenadeName() const
 	return "monster_snark";
 }
 
-const char* CSqueak::NestModel() const
-{
-	return "models/w_sqknest.mdl";
-}
-
-const char* CSqueak::PModel() const
-{
-	return "models/p_squeak.mdl";
-}
-
-const char* CSqueak::VModel() const
-{
-	return "models/v_squeak.mdl";
-}
-
 int CSqueak::PositionInSlot() const
 {
 	return 3;
-}
-
-int CSqueak::DefaultGive() const
-{
-	return SNARK_DEFAULT_GIVE;
-}
-
-const char* CSqueak::DefaultAmmoName() const
-{
-	return "Snarks";
 }
 
 const char* CSqueak::EventsFile() const
@@ -729,39 +720,31 @@ const char* CSqueak::EventsFile() const
 #if FEATURE_PENGUIN
 LINK_WEAPON_TO_CLASS( weapon_penguin, CPenguin )
 
+WeaponParameters CPenguin::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 3;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Penguins";
+
+	params.worldModel = "models/w_penguinnest.mdl";
+	params.viewModel = "models/v_penguin.mdl";
+	params.playerModel = "models/p_penguin.mdl";
+	params.playerAnimExt = "squeak";
+	params.priority = 5;
+
+	return params;
+}
+
 const char* CPenguin::GrenadeName() const
 {
 	return "monster_penguin";
 }
 
-const char* CPenguin::NestModel() const
-{
-	return "models/w_penguinnest.mdl";
-}
-
-const char* CPenguin::PModel() const
-{
-	return "models/p_penguin.mdl";
-}
-
-const char* CPenguin::VModel() const
-{
-	return "models/v_penguin.mdl";
-}
-
 int CPenguin::PositionInSlot() const
 {
 	return 4;
-}
-
-int CPenguin::DefaultGive() const
-{
-	return PENGUIN_DEFAULT_GIVE;
-}
-
-const char* CPenguin::DefaultAmmoName() const
-{
-	return "Penguins";
 }
 
 const char* CPenguin::EventsFile() const

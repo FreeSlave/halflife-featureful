@@ -33,14 +33,10 @@
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 #endif // !defined ( CLIENT_DLL )
 
-#define DISPLACER_SECONDARY_USAGE 60
-#define DISPLACER_PRIMARY_USAGE 20
-
 LINK_WEAPON_TO_CLASS(weapon_displacer, CDisplacer)
 
 bool CDisplacer::GetItemInfo(ItemInfo *p)
 {
-	p->pszAmmo1 = AmmoName("uranium");
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 5;
 	p->iPosition = 1;
@@ -54,38 +50,61 @@ bool CDisplacer::GetItemInfo(ItemInfo *p)
 	return true;
 }
 
-bool CDisplacer::AddToPlayer(CBasePlayer *pPlayer)
+WeaponParameters CDisplacer::GetDefaultParameters() const
 {
-	return AddToPlayerDefault(pPlayer);
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 40;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "uranium";
+
+	params.worldModel = "models/w_displacer.mdl";
+	params.viewModel = "models/v_displacer.mdl";
+	params.playerModel = "models/p_displacer.mdl";
+	params.playerAnimExt = "egon";
+	params.priority = 20;
+
+	params.deploy.animIndex = DISPLACER_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{DISPLACER_IDLE1, 0.5f, 3.0f},
+		WeaponParameters::IdleAnim{DISPLACER_IDLE2, 0.5f, 3.0f}
+	};
+
+	// Primary fire
+	params.fire.ammoPerFire = 20;
+	params.fire.autoAimDegree = AUTOAIM_2DEGREES;
+	params.fire.delayAfterEmpty = 0.5f;
+	params.fire.cycleTime = 1.6f;
+
+	params.fire.emptySound.main = {
+		CHAN_WEAPON,
+		{"buttons/button11.wav"},
+		0.9f,
+		ATTN_NORM,
+		PITCH_NORM
+	};
+	params.fire.useStandardEmptySound.main = false;
+	//
+
+	// Alt fire
+	params.fire.ammoPerFire.alt = 60;
+	params.fire.cycleTime.alt = 4.0f;
+	//
+
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	params.holster.animIndex = DISPLACER_HOLSTER;
+	params.holster.attackDelay = 1.0f;
+	params.holster.idleDelay = 1.0f;
+
+	return params;
 }
 
-bool CDisplacer::PlayEmptySound()
+void CDisplacer::Precache()
 {
-	if (m_iPlayEmptySound)
-	{
-		EMIT_SOUND(m_pPlayer->edict(), CHAN_WEAPON, "buttons/button11.wav", 0.9f, ATTN_NORM);
-		m_iPlayEmptySound = false;
-		return false;
-	}
-	return false;
-}
-
-void CDisplacer::Spawn()
-{
-	Precache();
-	SET_MODEL(ENT(pev), MyWModel());
-
-	InitDefaultAmmo(DISPLACER_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-
-	FallInit();// get ready to fall down.
-}
-
-void CDisplacer::Precache(void)
-{
-	PRECACHE_MODEL("models/v_displacer.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PrecachePModel("models/p_displacer.mdl");
+	PrecacheWeaponModels();
+	PrecacheModelSounds();
 
 	PRECACHE_SOUND("weapons/displacer_fire.wav");
 	PRECACHE_SOUND("weapons/displacer_self.wav");
@@ -99,11 +118,6 @@ void CDisplacer::Precache(void)
 	UTIL_PrecacheOther("displacer_ball");
 
 	m_usDisplacer = PRECACHE_EVENT(1, "events/displacer.sc");
-}
-
-bool CDisplacer::Deploy()
-{
-	return DefaultDeploy("models/v_displacer.mdl", "models/p_displacer.mdl", DISPLACER_DRAW, "egon");
 }
 
 void CDisplacer::Holster()
@@ -120,9 +134,13 @@ void CDisplacer::Holster()
 
 void CDisplacer::SecondaryAttack(void)
 {
-	if (m_fFireOnEmpty || !HasAmmoToFire(DISPLACER_SECONDARY_USAGE))
+	const WeaponParameters& params = MyParameters();
+	if (params.secondaryFireType == SecondaryFireType::DISABLED)
+		return;
+
+	if (m_fFireOnEmpty || !HasAmmoToFire(params.fire.ammoPerFire.Get(true)))
 	{
-		PlayEmptySound();
+		PlayEmptySound(true);
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
 		return;
 	}
@@ -139,9 +157,11 @@ void CDisplacer::SecondaryAttack(void)
 
 void CDisplacer::PrimaryAttack()
 {
-	if ( m_fFireOnEmpty || !HasAmmoToFire(DISPLACER_PRIMARY_USAGE))
+	const WeaponParameters& params = MyParameters();
+
+	if ( m_fFireOnEmpty || !HasAmmoToFire(params.fire.ammoPerFire.Get(false)))
 	{
-		PlayEmptySound();
+		PlayEmptySound(false);
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
 		return;
 	}
@@ -152,34 +172,8 @@ void CDisplacer::PrimaryAttack()
 	pev->nextthink = gpGlobals->time;
 }
 
-void CDisplacer::WeaponIdle(void)
-{
-	ResetEmptySound();
-
-	m_pPlayer->GetAutoaimVector(AUTOAIM_2DEGREES);
-
-	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
-		return;
-
-	int iAnim;
-	float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0, 1);
-	if (flRand <= 0.5)
-	{
-		iAnim = DISPLACER_IDLE1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0f;
-	}
-	else
-	{
-		iAnim = DISPLACER_IDLE2;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0f;
-	}
-
-	SendWeaponAnim(iAnim);
-}
-
 void CDisplacer::ClearSpin( void )
 {
-
 	switch (m_iFireMode)
 	{
 	case FIREMODE_FORWARD:
@@ -213,6 +207,8 @@ void CDisplacer::SpinUp( void )
 
 void CDisplacer::Displace( void )
 {
+	const WeaponParameters& params = MyParameters();
+
 	ClearBeams();
 	ClearSpin();
 
@@ -225,7 +221,7 @@ void CDisplacer::Displace( void )
 	m_pPlayer->pev->punchangle.x -= 2;
 #if !CLIENT_DLL
 	Vector vecSrc;
-	SpendAmmo(DISPLACER_PRIMARY_USAGE);
+	SpendAmmo(params.fire.ammoPerFire.Get(false));
 
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 
@@ -246,6 +242,8 @@ extern CBaseEntity* GetDisplacerEarthTarget(CBaseEntity* pOther);
 
 void CDisplacer::Teleport( void )
 {
+	const WeaponParameters& params = MyParameters();
+
 	ClearBeams();
 	ClearSpin();
 #if !CLIENT_DLL
@@ -285,7 +283,7 @@ void CDisplacer::Teleport( void )
 		// UTIL_ScreenFade( m_pPlayer, Vector( 0, 200, 0 ), 0.5, 0.5, 255, FFADE_IN );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 
-		SpendAmmo(DISPLACER_SECONDARY_USAGE);
+		SpendAmmo(params.fire.ammoPerFire.Get(true));
 
 		UTIL_CleanSpawnPoint( newOrigin, 50 );
 

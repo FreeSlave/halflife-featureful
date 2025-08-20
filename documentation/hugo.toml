@@ -8,6 +8,10 @@ theme = 'hugo-book'
 [params]
    BookTheme = 'dark'
 [markup]
+  [markup.tableOfContents]
+    endLevel = 4
+    ordered = false
+    startLevel = 2
   [markup.goldmark]
     duplicateResourceFiles = false
     [markup.goldmark.extensions]

@@ -28,18 +28,25 @@ add_executable(test
 	soundscripts_test.cpp
 	visuals_test.cpp
 	warpball_test.cpp
+	weapons_test.cpp
 	../game_shared/error_collector.cpp
 	../game_shared/file_utils.cpp
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/parsetext.cpp
 	../game_shared/random_utils.cpp
+	../game_shared/sound_channel.cpp
+	../game_shared/schema_definitions.cpp
+	../game_shared/schema_weapons.cpp
 	../game_shared/tex_materials.cpp
 	../game_shared/util_shared.cpp
+	../game_shared/weapon_parameters.cpp
+	../game_shared/weapon_templates.cpp
 	../public/safe_snprintf.c
 	../cl_dll/inventory_hud.cpp
 	../cl_dll/journal_config.cpp
 	../cl_dll/message_strings.cpp
+	../dlls/ammoregistry.cpp
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp
 	../dlls/followers.cpp

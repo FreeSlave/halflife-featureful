@@ -43,6 +43,12 @@ template< typename T > struct optional
 	{
 		return f ? *get() : static_cast<T>(std::forward<U>(default_value));
 	}
+
+	void reset() noexcept
+	{
+		if (f)
+			cleanup();
+	}
 private:
 	void create(T const& w) {
 		new(v) T(w);

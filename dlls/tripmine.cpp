@@ -405,10 +405,9 @@ LINK_WEAPON_TO_CLASS( weapon_tripmine, CTripmine )
 
 void CTripmine::Spawn()
 {
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-	pev->frame = 0;
+	CConfigurableWeapon::Spawn();
 
+	pev->frame = 0;
 #if CLIENT_DLL
 	pev->body = 0;
 #else
@@ -418,22 +417,16 @@ void CTripmine::Spawn()
 	// ResetSequenceInfo();
 	pev->framerate = 0;
 
-	FallInit();// get ready to fall down
-
-	InitDefaultAmmo(TRIPMINE_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-
 	if( !bIsMultiplayer() )
 	{
 		// TODO: why a different size in singleplayer?
-		UTIL_SetSize( pev, Vector( -16.0f, -16.0f, 0.0f ), Vector( 16.0f, 16.0f, 28.0f ) ); 
+		UTIL_SetSize( pev, Vector( -16.0f, -16.0f, 0.0f ), Vector( 16.0f, 16.0f, 28.0f ) );
 	}
 }
 
-void CTripmine::Precache( void )
+void CTripmine::Precache()
 {
-	PRECACHE_MODEL( MyWModel() );
-	PrecachePModel( "models/p_tripmine.mdl" );
+	CConfigurableWeapon::Precache();
 	UTIL_PrecacheOther( "monster_tripmine" );
 
 	m_usTripFire = PRECACHE_EVENT( 1, "events/tripfire.sc" );
@@ -441,26 +434,51 @@ void CTripmine::Precache( void )
 
 bool CTripmine::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("Trip Mine");
 	p->iSlot = 4;
 	p->iPosition = 2;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = TRIPMINE_DEFAULT_GIVE;
+	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
+}
+
+WeaponParameters CTripmine::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 1;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Trip Mine";
+
+	params.worldModel = "models/v_tripmine.mdl";
+	params.viewModel = "models/v_tripmine.mdl";
+	params.playerModel = "models/p_tripmine.mdl";
+	params.playerAnimExt = "trip";
+	params.priority = -10;
+
+	params.deploy.animIndex = TRIPMINE_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{TRIPMINE_IDLE1, 0.25f, 90.0f / 30.0f},
+		WeaponParameters::IdleAnim{TRIPMINE_IDLE2, 0.5f, 60.0f / 30.0f},
+		WeaponParameters::IdleAnim{TRIPMINE_FIDGET, 0.25f, 100.0f / 30.0f}
+	};
+
+	params.holster.animIndex = TRIPMINE_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+
+	return params;
 }
 
 bool CTripmine::Deploy()
 {
 	pev->body = 0;
-	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_tripmine.mdl", TRIPMINE_DRAW, "trip" );
+	return PerformDeploy();
 }
 
 void CTripmine::Holster()
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
-
 	if( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
 	{
 		// out of mines
@@ -468,7 +486,7 @@ void CTripmine::Holster()
 		DestroyItem();
 	}
 
-	SendWeaponAnim( TRIPMINE_HOLSTER );
+	CConfigurableWeapon::Holster();
 	EMIT_SOUND( ENT( m_pPlayer->pev ), CHAN_WEAPON, "common/null.wav", 1.0f, ATTN_NORM );
 }
 
@@ -540,23 +558,5 @@ void CTripmine::WeaponIdle( void )
 		return;
 	}
 
-	int iAnim;
-	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
-	if( flRand <= 0.25f )
-	{
-		iAnim = TRIPMINE_IDLE1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 90.0f / 30.0f;
-	}
-	else if( flRand <= 0.75f )
-	{
-		iAnim = TRIPMINE_IDLE2;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 60.0f / 30.0f;
-	}
-	else
-	{
-		iAnim = TRIPMINE_FIDGET;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 100.0f / 30.0f;
-	}
-
-	SendWeaponAnim( iAnim );
+	SendIdleAnimation();
 }

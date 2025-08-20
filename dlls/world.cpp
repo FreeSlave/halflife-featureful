@@ -539,13 +539,6 @@ void CWorld::Precache( void )
 #endif
 	CVAR_SET_STRING( "room_type", "0" );// clear DSP
 
-	if (IsDeveloperModeOn() && worldInitAtLeastOnce)
-	{
-		ALERT(at_console, "Re-parsing mod server configs\n");
-		ParseModConfigs();
-	}
-	worldInitAtLeastOnce = true;
-
 	// Set up game rules
 	if( g_pGameRules )
 	{
@@ -554,6 +547,14 @@ void CWorld::Precache( void )
 	}
 
 	g_pGameRules = InstallGameRules();
+
+	if (IsDeveloperModeOn() && worldInitAtLeastOnce)
+	{
+		ALERT(at_console, "Re-parsing mod server configs\n");
+		ParseModConfigs();
+	}
+	SetWeaponParameters();
+	worldInitAtLeastOnce = true;
 
 	//!!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here 
 

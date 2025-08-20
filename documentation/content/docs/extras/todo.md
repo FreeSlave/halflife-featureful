@@ -54,7 +54,6 @@ This is the list of features that would be nice to have in our codebase. You are
 * DMC/Quake lightning gun
 * ![](/images/decay.png) Vortigaunt hands
 * ![](/images/cstrike.png) flash grenade - should also make monsters temporarily blind
-* ![](/images/cstrike.png) Various guns from Counter-Strike (decide what are the most interesting)
 * Plasma gun from Sweet Half-Life
 
 ### New attacks
@@ -70,11 +69,7 @@ This is the list of features that would be nice to have in our codebase. You are
 
 ### Weapon configuration
 
-* Configurable firerates.
-* Configurable reload and deploy delays.
-* Configurable bullet spread.
 * Allow to make player's speed depend on the currently selected weapon (like in Counter-Strike).
-* Bullet spray patterns and kickback like in Counter-Strike.
 * Support for holster animations.
 * Configuration of some visual effects on view models (e.g. beams on shockrifle and displacer).
 
@@ -94,7 +89,7 @@ Status effects like burning, frozen, electrified, stunned, poisoned, "silenced" 
 
 ## Entity features
 
-* Support for Movewith from Spirit of Half-Life.
+* ![](/images/spirit.png) Support for Movewith from Spirit of Half-Life.
 * ![](/images/svencoop.png) Ability for player to repair ally turrets and breakables with a pipe wrench.
 * ![](/images/svencoop.png) Breakable doors
 
@@ -102,7 +97,6 @@ Status effects like burning, frozen, electrified, stunned, poisoned, "silenced" 
 
 ### Visual effects
 
-* Support for fullbright textures on models (like in Xash3D and Sven Co-op).
 * ![](/images/spirit.png) Particle system from Spirit.
 * Hit particles for materials (like in Day of Defeat).
 * ![](/images/cstrike.png) Smoke effect (like smoke grenades from Counter-Strike)

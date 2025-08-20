@@ -3,7 +3,6 @@
 #define COMBAT_H
 
 #include "cbase.h"
-#include "bullet_types.h"
 #include "cone_degrees.h"
 
 #define DEFAULT_EXPLOSION_RADIUS_MULTIPLIER 2.5f
@@ -24,7 +23,8 @@ extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
 extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo);
 
-extern void DecalGunshot( TraceResult *pTrace, int iBulletType );
+extern void DecalGunshot( TraceResult *pTrace );
+extern void DecalSmack( TraceResult *pTrace );
 extern void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage);
 extern int DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
 extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore );

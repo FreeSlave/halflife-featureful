@@ -1,5 +1,6 @@
 ---
 title: "Entity templates"
+toc_start_level: 1
 ---
 
 # {{% param "title" %}}

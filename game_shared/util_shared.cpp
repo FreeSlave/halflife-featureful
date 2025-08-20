@@ -1,4 +1,5 @@
 #include "util_shared.h"
+#include "random_utils.h"
 #include "string_utils.h"
 #include "const_render.h"
 #include <cmath>
@@ -266,4 +267,54 @@ const char* RenderFxToString(int renderfx)
 	case kRenderFxGlowShell:	return "Glow Shell";
 	default: return "Unknown";
 	}
+}
+
+float RandomizeNumberFromRange(const FloatRange& r)
+{
+	return RandomizeNumberFromRange(r.min, r.max);
+}
+
+float RandomizeNumberFromRange(float minF, float maxF)
+{
+	if (minF >= maxF) {
+		return minF;
+	}
+	return RandomFloat(minF, maxF);
+}
+
+int RandomizeNumberFromRange(const IntRange& r)
+{
+	return RandomizeNumberFromRange(r.min, r.max);
+}
+
+int RandomizeNumberFromRange(int minI, int maxI)
+{
+	if (minI >= maxI) {
+		return minI;
+	}
+	return RandomInt(minI, maxI);
+}
+
+float RandomizeNumberFromRange_Shared(unsigned int seed, const FloatRange& r)
+{
+	return RandomizeNumberFromRange_Shared(seed, r.min, r.max);
+}
+
+float RandomizeNumberFromRange_Shared(unsigned int seed, float minF, float maxF)
+{
+	if (minF >= maxF)
+		return minF;
+	return UTIL_SharedRandomFloat(seed, minF, maxF);
+}
+
+int RandomizeNumberFromRange_Shared(unsigned int seed, const IntRange& r)
+{
+	return RandomizeNumberFromRange_Shared(seed, r.min, r.max);
+}
+
+int RandomizeNumberFromRange_Shared(unsigned int seed, int minI, int maxI)
+{
+	if (minI >= maxI)
+		return minI;
+	return UTIL_SharedRandomLong(seed, minI, maxI);
 }

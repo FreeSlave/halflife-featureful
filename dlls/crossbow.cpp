@@ -16,7 +16,7 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "monsters.h"
+#include "skill.h"
 #include "weapons.h"
 #include "player.h"
 
@@ -234,138 +234,147 @@ void CCrossbowBolt::ExplodeThink( void )
 }
 #endif
 
+enum crossbow_e
+{
+	CROSSBOW_IDLE1 = 0,	// full
+	CROSSBOW_IDLE2,		// empty
+	CROSSBOW_FIDGET1,	// full
+	CROSSBOW_FIDGET2,	// empty
+	CROSSBOW_FIRE1,		// full
+	CROSSBOW_FIRE2,		// reload
+	CROSSBOW_FIRE3,		// empty
+	CROSSBOW_RELOAD,	// from empty
+	CROSSBOW_DRAW1,		// full
+	CROSSBOW_DRAW2,		// empty
+	CROSSBOW_HOLSTER1,	// full
+	CROSSBOW_HOLSTER2	// empty
+};
+
 LINK_WEAPON_TO_CLASS( weapon_crossbow, CCrossbow )
 
-void CCrossbow::Spawn()
+void CCrossbow::Precache()
 {
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-
-	InitDefaultAmmo(CROSSBOW_DEFAULT_GIVE);
-	InitMaxClip(CROSSBOW_MAX_CLIP);
-
-	FallInit();// get ready to fall down.
-}
-
-bool CCrossbow::AddToPlayer( CBasePlayer *pPlayer )
-{
-	return AddToPlayerDefault(pPlayer);
-}
-
-void CCrossbow::Precache( void )
-{
-	PRECACHE_MODEL( MyWModel() );
-	PRECACHE_MODEL( "models/v_crossbow.mdl" );
-	PrecachePModel( "models/p_crossbow.mdl" );
-
-	PRECACHE_SOUND( "weapons/xbow_fire1.wav" );
-	PRECACHE_SOUND( "weapons/xbow_reload1.wav" );
+	CConfigurableWeapon::Precache();
 
 	UTIL_PrecacheOther( "crossbow_bolt" );
 
-	m_usCrossbow = PRECACHE_EVENT( 1, "events/crossbow1.sc" );
 	m_usCrossbow2 = PRECACHE_EVENT( 1, "events/crossbow2.sc" );
 }
 
 bool CCrossbow::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("bolts");
 	p->iSlot = 2;
 	p->iPosition = 2;
-	p->iFlags = 0;
 	p->pszAmmoEntity = "ammo_crossbow";
 	p->iDropAmmo = AMMO_CROSSBOWCLIP_GIVE;
 	return true;
 }
 
-bool CCrossbow::Deploy()
+WeaponParameters CCrossbow::GetDefaultParameters() const
 {
-	if( !Emptied() )
-		return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW1, "bow" );
-	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW2, "bow" );
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 5;
+	params.maxClip = 5;
+	params.ammoName = "bolts";
+
+	params.worldModel = "models/w_crossbow.mdl";
+	params.viewModel = "models/v_crossbow.mdl";
+	params.playerModel = "models/p_crossbow.mdl";
+	params.playerAnimExt = "bow";
+	params.priority = 10;
+
+	params.deploy.animIndex = CROSSBOW_DRAW1;
+	params.deploy.animIndex.mainEmptied = CROSSBOW_DRAW2;
+
+	params.idleAnims.main =  WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{CROSSBOW_IDLE1, 0.75f, 91.0f / 30.0f },
+		WeaponParameters::IdleAnim{CROSSBOW_FIDGET1, 0.25f, 81.0f / 30.0f},
+	};
+
+	params.idleAnims.mainEmptied =  WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{CROSSBOW_IDLE2, 0.75f, 91.0f / 30.0f },
+		WeaponParameters::IdleAnim{CROSSBOW_FIDGET2, 0.25f, 81.0f / 30.0f},
+	};
+
+	params.fire.fireType = WeaponParameters::Fire::NATIVE;
+	params.fire.anims = {CROSSBOW_FIRE1};
+	params.fire.anims.mainEmptied = {CROSSBOW_FIRE3};
+	params.fire.sound = {
+		CHAN_WEAPON,
+		{"weapons/xbow_fire1.wav"},
+		1.0f,
+		ATTN_NORM,
+		IntRange(93, 108)
+	};
+	params.fire.soundAdditional = {
+		CHAN_ITEM,
+		{"weapons/xbow_reload1.wav"},
+		FloatRange(0.9f, 1.0f),
+		ATTN_NORM,
+		IntRange(93, 108)
+	};
+	params.fire.cycleTime = 0.75f;
+	params.fire.idleDelay = 5.0f;
+	params.fire.idleDelay.mainEmptied = 0.75f;
+	params.fire.allowUnderwater = true;
+	params.fire.autoAimDegree = AUTOAIM_2DEGREES;
+	params.fire.weaponVolume = QUIET_GUN_VOLUME;
+	params.fire.clientPunchPitch = -2.0f;
+	if (bIsMultiplayer())
+		params.fire.clientPunchPitch.alt = 0.0f;
+
+	params.fire.idleDelay = 5.0f;
+	params.fire.idleDelay.mainEmptied = 0.75f;
+
+	params.altMode.zoomFOV = 20;
+	params.altMode.attackDelay = 1.0f;
+	params.secondaryFireType = SecondaryFireType::SWITCH_MODE;
+
+	params.reload.animIndex = CROSSBOW_RELOAD;
+	params.reload.duration = 4.5f;
+	params.reload.sound = {
+		CHAN_ITEM,
+		{"weapons/xbow_reload1.wav"},
+		FloatRange(0.95f, 1.0f),
+		ATTN_NORM,
+		IntRange(93, 108)
+	};
+
+	params.holster.animIndex = CROSSBOW_HOLSTER1;
+	params.holster.attackDelay = 0.5f;
+
+	params.holster.animIndex.mainEmptied = CROSSBOW_HOLSTER2;
+
+	return params;
 }
 
-void CCrossbow::Holster()
+int CCrossbow::GetPlaybackEvent(bool altModeFire) const
 {
-	m_fInReload = false;// cancel any reload in progress.
-
-	if( InZoom() )
-	{
-		SecondaryAttack();
-	}
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
-	if( !Emptied() )
-		SendWeaponAnim( CROSSBOW_HOLSTER1 );
-	else
-		SendWeaponAnim( CROSSBOW_HOLSTER2 );
+	return (altModeFire && bIsMultiplayer()) ? m_usCrossbow2 : CConfigurableWeapon::GetPlaybackEvent(altModeFire);
 }
 
-void CCrossbow::PrimaryAttack( void )
+void CCrossbow::NativeAttack(bool altMode)
 {
-	if( InZoom() && bIsMultiplayer() )
+	if (altMode && bIsMultiplayer())
 	{
-		FireSniperBolt();
-		return;
-	}
+		TraceResult tr;
 
-	FireBolt();
-}
+		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
+		UTIL_MakeVectors( anglesAim );
+		Vector vecSrc = m_pPlayer->GetGunPosition() - gpGlobals->v_up * 2.0f;
+		Vector vecDir = gpGlobals->v_forward;
 
-// this function only gets called in multiplayer
-void CCrossbow::FireSniperBolt()
-{
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.75f );
-
-	if( !HasAmmoToFire() )
-	{
-		PlayEmptySound();
-		return;
-	}
-
-	TraceResult tr;
-
-	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-	SpendAmmo();
-
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usCrossbow2, 0.0f, g_vecZero, g_vecZero, 0, 0, !Emptied(), 0, 0, 0 );
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-	UTIL_MakeVectors( anglesAim );
-	Vector vecSrc = m_pPlayer->GetGunPosition() - gpGlobals->v_up * 2.0f;
-	Vector vecDir = gpGlobals->v_forward;
-
-	UTIL_TraceLine( vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr );
+		UTIL_TraceLine( vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr );
 
 #if !CLIENT_DLL
-	if( tr.pHit->v.takedamage )
-	{
-		CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
-	}
+		if( tr.pHit->v.takedamage )
+		{
+			CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
+		}
 #endif
-}
-
-void CCrossbow::FireBolt()
-{
-	TraceResult tr;
-
-	if( !HasAmmoToFire() )
-	{
-		PlayEmptySound();
 		return;
 	}
-
-	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-
-	SpendAmmo();
-
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usCrossbow, 0.0f, g_vecZero, g_vecZero, 0, 0, !Emptied(), 0, 0, 0 );
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
 	UTIL_MakeVectors( anglesAim );
@@ -393,84 +402,4 @@ void CCrossbow::FireBolt()
 	}
 	pBolt->pev->avelocity.z = 10.0f;
 #endif
-
-	CheckOutOfAmmo();
-
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.75f );
-
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75f;
-
-	if( !Emptied() )
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
-	else
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75f;
-}
-
-void CCrossbow::SecondaryAttack()
-{
-	if( m_pPlayer->pev->fov != 0 )
-	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0; // 0 means reset to default fov
-	}
-	else if( m_pPlayer->pev->fov != 20 )
-	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 20;
-	}
-
-	pev->nextthink = UTIL_WeaponTimeBase() + 0.1f;
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;
-}
-
-void CCrossbow::Reload( void )
-{
-	if( !CanReload() )
-		return;
-
-	if( InZoom() )
-	{
-		SecondaryAttack();
-	}
-
-	if( DefaultClipReload( CROSSBOW_RELOAD, 4.5f ) )
-	{
-		EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_ITEM, "weapons/xbow_reload1.wav", RANDOM_FLOAT( 0.95f, 1.0f ), ATTN_NORM, 0, 93 + RANDOM_LONG( 0, 0xF ) );
-	}
-}
-
-void CCrossbow::WeaponIdle( void )
-{
-	m_pPlayer->GetAutoaimVector( AUTOAIM_2DEGREES );  // get the autoaim vector but ignore it;  used for autoaim crosshair in DM
-
-	ResetEmptySound();
-	
-	if( m_flTimeWeaponIdle < UTIL_WeaponTimeBase() )
-	{
-		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
-		if( flRand <= 0.75f )
-		{
-			if( !Emptied() )
-			{
-				SendWeaponAnim( CROSSBOW_IDLE1 );
-			}
-			else
-			{
-				SendWeaponAnim( CROSSBOW_IDLE2 );
-			}
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-		}
-		else
-		{
-			if( !Emptied() )
-			{
-				SendWeaponAnim( CROSSBOW_FIDGET1 );
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 90.0f / 30.0f;
-			}
-			else
-			{
-				SendWeaponAnim( CROSSBOW_FIDGET2 );
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 80.0f / 30.0f;
-			}
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-		}
-	}
 }

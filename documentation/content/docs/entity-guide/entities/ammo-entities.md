@@ -22,8 +22,31 @@ Ammo entities share the `ammo_` prefix in their name and same parameters.
 * `ammo_crossbow`
 * `ammo_556`
 * `ammo_762`
+* `ammo_45acp`
+* `ammo_57mm`
 
 There's also the [ammo_spore]({{< ref ammo_spore >}}) but despite sharing the classname prefix, it technically is not a pickup item.
+
+`ammo_45acp` and `ammo_57mm` provide `45acp` and `57mm` ammo types which are not used by any weapon by default. The weapon can be made to use one of these ammo types via [ammo_name]({{< ref "weapon-templates#ammo_name" >}}) property in the weapon template.
+
+The entities use the same model as `ammo_9mmAR`. You can set custom model via [Entity templates]({{< ref entity-templates >}}).
+
+Example:
+
+```json
+{
+    "ammo_45acp": {
+        "own_visual": {
+            "model": "models/w_45acp.mdl"
+        }
+    },
+    "ammo_57mm": {
+        "own_visual": {
+            "model": "models/w_57mm.mdl"
+        }
+    }
+}
+```
 
 ### Parameters
 

@@ -20,6 +20,7 @@
 #include "cdll_dll.h"
 
 void ParseModConfigs();
+void SetWeaponParameters();
 extern void GameDLLInit( void );
 
 #define MAX_NORMAL_HEALTH 100
@@ -75,7 +76,6 @@ struct ModFeatures
 	bool items_instant_drop;
 	bool tripmines_solid;
 	bool satchels_pickable;
-	bool gauss_fidget;
 	bool weapon_p_models;
 
 	int player_maxhealth;
@@ -147,6 +147,9 @@ public:
 	MaxAmmo maxAmmos[MAX_AMMO_TYPES];
 	void SetMaxAmmo(const char* name, int maxAmmo);
 	unsigned int maxAmmoCount;
+
+	bool ammo556IsUsed;
+	bool ammo762IsUsed;
 };
 
 extern ModFeatures g_modFeatures;

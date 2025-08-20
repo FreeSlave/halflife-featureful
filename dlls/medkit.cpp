@@ -76,25 +76,9 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 	return NULL;
 }
 
-void CMedkit::Spawn()
+void CMedkit::Precache()
 {
-	Precache();
-	SET_MODEL(ENT(pev), MyWModel());
-
-	InitDefaultAmmo(MEDKIT_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-	m_secondaryAttack = false;
-	m_flSoundDelay = 0;
-
-	FallInit();// get ready to fall down.
-}
-
-
-void CMedkit::Precache(void)
-{
-	PRECACHE_MODEL("models/v_medkit.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PrecachePModel("models/p_medkit.mdl");
+	CConfigurableWeapon::Precache();
 
 	PRECACHE_SOUND("items/medshot4.wav");
 	PRECACHE_SOUND("items/medshot5.wav");
@@ -105,41 +89,64 @@ void CMedkit::Precache(void)
 
 bool CMedkit::GetItemInfo(ItemInfo *p)
 {
-	p->pszAmmo1 = AmmoName("Medicine");
 	p->iSlot = 0;
 	p->iPosition = 4;
-
-	if (CanRecharge()) {
-		p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	} else {
-		p->iFlags = ITEM_FLAG_NOAUTORELOAD;
-	}
 
 	return true;
 }
 
-bool CMedkit::AddToPlayer(CBasePlayer *pPlayer)
+WeaponParameters CMedkit::GetDefaultParameters() const
 {
-	return AddToPlayerDefault(pPlayer);
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 50;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Medicine";
+
+	params.worldModel = "models/w_medkit.mdl";
+	params.viewModel = "models/v_medkit.mdl";
+	params.playerModel = "models/p_medkit.mdl";
+	params.playerAnimExt = "trip";
+	params.priority = -1;
+
+	params.deploy.animIndex = MEDKIT_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{MEDKIT_LONGIDLE, 0.75f, 72.0f / 30.0f},
+		WeaponParameters::IdleAnim{MEDKIT_IDLE, 0.25f, 36.0f / 30.0f}
+	};
+
+	params.fire.emptySound.main = {
+		CHAN_WEAPON,
+		{"items/medshotno1.wav"},
+		1.0f,
+		ATTN_NORM,
+		PITCH_NORM
+	};
+	params.fire.useStandardEmptySound.main = false;
+
+	params.holster.animIndex = MEDKIT_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+
+	return params;
 }
 
 bool CMedkit::Deploy()
 {
 	m_flSoundDelay = 0;
-	return DefaultDeploy("models/v_medkit.mdl", "models/p_medkit.mdl", MEDKIT_DRAW, "trip");
+	return PerformDeploy();
 }
 
 void CMedkit::Holster()
 {
 	m_flSoundDelay = 0;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 
 	//HACKHACK - can't select medkit if it's empty! no way to get ammo for it, either
 	if( CanRecharge() && !HasAmmoToFire() ) {
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
 	}
 
-	SendWeaponAnim(MEDKIT_HOLSTER);
+	CConfigurableWeapon::Holster();
 }
 
 void CMedkit::PrimaryAttack(void)
@@ -150,7 +157,7 @@ void CMedkit::PrimaryAttack(void)
 	if (HasAmmoToFire() && (healTarget = FindHealTarget()) ) {
 		//
 	} else {
-		PlayEmptySound();
+		PlayEmptySound(false);
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.8;
 		return;
 	}
@@ -170,7 +177,7 @@ void CMedkit::SecondaryAttack()
 	Reload();
 
 	if (!HasAmmoToFire() || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
-		PlayEmptySound();
+		PlayEmptySound(true);
 		m_flNextSecondaryAttack = GetNextAttackDelay(0.8);
 		return;
 	}
@@ -228,32 +235,7 @@ void CMedkit::WeaponIdle(void)
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
 
-	int iAnim;
-	float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0.0, 1.0);
-
-	if (flRand <= 0.75)
-	{
-		iAnim = MEDKIT_LONGIDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 72.0 / 30.0;
-	}
-	else
-	{
-		iAnim = MEDKIT_IDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 36.0 / 30.0;
-	}
-
-	SendWeaponAnim(iAnim);
-}
-
-bool CMedkit::PlayEmptySound()
-{
-	if (m_iPlayEmptySound)
-	{
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "items/medshotno1.wav", 1.0, ATTN_NORM);
-		m_iPlayEmptySound = false;
-		return 0;
-	}
-	return 0;
+	SendIdleAnimation();
 }
 
 bool CMedkit::CanRecharge()

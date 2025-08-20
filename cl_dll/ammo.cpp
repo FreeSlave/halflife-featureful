@@ -1155,8 +1155,11 @@ int CHudAmmo::Draw( float flTime )
 			x = gHUD.DrawHudNumber( x, y, iFlags | drawNumberFlag, gWR.CountAmmo( pw->iAmmo2Type ), r, g, b );
 
 			// Draw the ammo Icon
-			int iOffset = ( m_pWeapon->rcAmmo2.bottom - m_pWeapon->rcAmmo2.top) / 8;
-			CHud::Renderer().SPR_DrawAdditive( m_pWeapon->hAmmo2, r, g, b, x, y - iOffset, &m_pWeapon->rcAmmo2 );
+			if (m_pWeapon->hAmmo2)
+			{
+				int iOffset = ( m_pWeapon->rcAmmo2.bottom - m_pWeapon->rcAmmo2.top) / 8;
+				CHud::Renderer().SPR_DrawAdditive( m_pWeapon->hAmmo2, r, g, b, x, y - iOffset, &m_pWeapon->rcAmmo2 );
+			}
 		}
 	}
 	return 1;

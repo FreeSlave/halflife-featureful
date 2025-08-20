@@ -554,6 +554,11 @@ public:
 	int m_cameraFlags;
 
 	float m_spriteHintTimeCheck;
+
+	float m_flEjectBrass;
+	int m_iLastZoom;
+	bool m_bResumeZoom;
+
 	bool m_needSatchelRecheck;
 
 	bool m_forceCollideWithCorpses;
@@ -562,11 +567,6 @@ public:
 	string_t m_journalSections[MAX_JOURNAL_RECORDS];
 	string_t m_journalRecords[MAX_JOURNAL_RECORDS];
 };
-
-#define AUTOAIM_2DEGREES  0.0348994967025
-#define AUTOAIM_5DEGREES  0.08715574274766
-#define AUTOAIM_8DEGREES  0.1391731009601
-#define AUTOAIM_10DEGREES 0.1736481776669
 
 extern int gmsgHudText;
 extern bool gInitHUD;

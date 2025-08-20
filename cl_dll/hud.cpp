@@ -229,6 +229,7 @@ extern client_sprite_t *GetSpriteList( client_sprite_t *pList, const char *psz, 
 
 extern cvar_t *sensitivity;
 cvar_t *cl_lw = NULL;
+cvar_t *cl_righthand = NULL;
 cvar_t *r_decals = NULL;
 cvar_t *cl_viewbob = NULL;
 cvar_t *cl_rollspeed = NULL;
@@ -334,6 +335,19 @@ int __MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 }
 
 extern int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf);
+
+int __MsgFunc_SetBody(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	int body = READ_SHORT();
+
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+	if (view)
+		view->curstate.body = body;
+
+	return 1;
+}
 
 int __MsgFunc_GameMode( const char *pszName, int iSize, void *pbuf )
 {
@@ -577,6 +591,7 @@ void __CmdFunc_HUDColor()
 }
 
 extern void ReportRegisteredAmmoTypes();
+extern void SetWeaponParameters();
 
 void GetTranslatedMessage()
 {
@@ -597,6 +612,7 @@ void GetTranslatedMessage()
 void CHud::ParseModConfigs()
 {
 	g_errorCollector.Clear();
+
 	MaterialRegistry materialRegistry;
 	materialRegistry.FillDefaults();
 	materialRegistry.ReadFromFile("features/materials.json");
@@ -614,6 +630,8 @@ void CHud::ParseModConfigs()
 	JournalConfig journalConfig;
 	journalConfig.ReadFromFile("journal.json");
 	m_journalConfig = std::move(journalConfig);
+
+	SetWeaponParameters();
 
 	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
 }
@@ -635,6 +653,7 @@ void CHud::Init( void )
 	HOOK_MESSAGE( Concuss );
 	HOOK_MESSAGE( Weapons );
 	HOOK_MESSAGE( MaxClip );
+	HOOK_MESSAGE( SetBody );
 	HOOK_MESSAGE( Items );
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( Rain );
@@ -704,6 +723,7 @@ void CHud::Init( void )
 	m_pAllowHD = CVAR_CREATE ( "hud_allow_hd", "1", FCVAR_ARCHIVE );
 	CreateBooleanCvarConditionally(m_pCvarDrawMoveMode, "hud_draw_movemode", clientFeatures.movemode);
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
+	cl_righthand = CVAR_CREATE( "cl_righthand", "0", 0 );
 	m_pCvarDeveloper = gEngfuncs.pfnGetCvarPointer( "developer" );
 	r_decals = gEngfuncs.pfnGetCvarPointer( "r_decals" );
 	m_pCvarCrosshair = gEngfuncs.pfnGetCvarPointer( "crosshair" );
@@ -1929,6 +1949,21 @@ bool CHud::ShouldUseConsoleFont()
 }
 
 extern WEAPON *gpActiveSel;
+
+int ActiveWeaponId()
+{
+	auto weapon = gHUD.m_Ammo.GetWeapon();
+	if (weapon)
+		return weapon->iId;
+	return -1;
+}
+
+extern bool ShouldMirrorViewModel(int id);
+
+bool ShouldMirrorCurrentViewModel()
+{
+	return ShouldMirrorViewModel(ActiveWeaponId());
+}
 
 bool CHud::CanDrawStatusIcons()
 {

@@ -318,7 +318,7 @@ public:
 
 	void DropMyItems(bool isGibbed);
 
-	void FirePistol(const char* shotSoundScript, Bullet bullet);
+	void FirePistol(const char* shotSoundScript, float damage);
 	bool Heal();
 	void StartFollowingHealTarget(CBaseEntity* pTarget);
 	bool ReadyToHeal();
@@ -1636,7 +1636,7 @@ void CHFGrunt :: Shoot ( void )
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40,90) + gpGlobals->v_up * RANDOM_FLOAT(75,200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_4DEGREES, 2048, BULLET_MONSTER_MP5 ); // shoot +-5 degrees
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_4DEGREES, 2048, gSkillData.monDmgMP5 ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -1658,7 +1658,7 @@ void CHFGrunt :: Shotgun ( void )
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40,90) + gpGlobals->v_up * RANDOM_FLOAT(75,200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL);
-	FireBullets(gSkillData.fgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_9DEGREES, 2048, BULLET_MONSTER_BUCKSHOT, 0 ); // shoot +-7.5 degrees
+	FireBullets(gSkillData.fgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_9DEGREES, 2048, gSkillData.monDmgBuckshot, 0 ); // shoot +-7.5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -1692,7 +1692,7 @@ void CHFGrunt :: M249 ( void )
 		EjectBrass ( vecShootOrigin - vecShootDir * 6, vecShellVelocity, pev->angles.y, m_iM249Link, TE_BOUNCE_SHELL);
 	}
 
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, BULLET_MONSTER_556 ); // shoot +-5 degrees
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, gSkillData.monDmg556 ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -3090,7 +3090,7 @@ void CTorch::HandleAnimEvent(MonsterEvent_t *pEvent)
 		SetBlending( 0, angDir.x );
 		pev->effects |= EF_MUZZLEFLASH;
 
-		FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, BULLET_MONSTER_357 );
+		FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, gSkillData.monDmg357 );
 
 		// Only shift about half the time
 		SoundScriptParamOverride soundParams;
@@ -3849,9 +3849,9 @@ void CMedic::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case HGRUNT_ALLY_AE_BURST1:
 	{
 		if (FBitSet(pev->weapons, MEDIC_EAGLE)) {
-			FirePistol(desertEagleSoundScript, BULLET_MONSTER_357);
+			FirePistol(desertEagleSoundScript, gSkillData.monDmg357);
 		} else if (FBitSet(pev->weapons, MEDIC_HANDGUN)) {
-			FirePistol(handgunSoundScript, BULLET_MONSTER_9MM);
+			FirePistol(handgunSoundScript, gSkillData.monDmg9MM);
 		}
 	}
 		break;
@@ -3917,7 +3917,7 @@ void CMedic::DropMyItems(bool isGibbed)
 	}
 }
 
-void CMedic::FirePistol(const char *shotSoundScript, Bullet bullet)
+void CMedic::FirePistol(const char *shotSoundScript, float damage)
 {
 	UTIL_MakeVectors( pev->angles );
 	Vector vecShootOrigin = GetGunPosition();
@@ -3927,7 +3927,7 @@ void CMedic::FirePistol(const char *shotSoundScript, Bullet bullet)
 	SetBlending( 0, angDir.x );
 	pev->effects |= EF_MUZZLEFLASH;
 
-	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, bullet );
+	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, damage );
 
 	// Only shift about half the time
 	SoundScriptParamOverride soundParams;

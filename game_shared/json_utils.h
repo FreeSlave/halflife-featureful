@@ -75,6 +75,7 @@ bool UpdatePropertyFromJson(fixed_string<N>& str, const rapidjson::Value& jsonVa
 	return false;
 }
 bool UpdatePropertyFromJson(std::string& str, const rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(short& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(int& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(unsigned int& i, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(std::int64_t& i, const rapidjson::Value& jsonValue, const char* key);
@@ -101,5 +102,6 @@ bool UpdatePropertyFromJson(optional<T>& v, const rapidjson::Value& jsonValue, c
 }
 
 bool UpdateAttenuationFromJson(float& attn, const rapidjson::Value& jsonValue);
+void UpdatePlayerShake(PlayerShake& shake, const rapidjson::Value& value);
 
 #endif

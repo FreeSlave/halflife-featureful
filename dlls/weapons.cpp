@@ -132,7 +132,7 @@ int DamageDecal( CBaseEntity *pEntity, int bitsDamageType )
 	return pEntity->DamageDecal( bitsDamageType );
 }
 
-void DecalGunshot( TraceResult *pTrace, int iBulletType )
+void DecalGunshot( TraceResult *pTrace )
 {
 	// Is the entity valid
 	if( !UTIL_IsValidEntity( pTrace->pHit ) )
@@ -145,35 +145,22 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		if( !FNullEnt( pTrace->pHit ) )
 			pEntity = CBaseEntity::Instance( pTrace->pHit );
 
-		switch( iBulletType )
-		{
-		case BULLET_PLAYER_9MM:
-		case BULLET_MONSTER_9MM:
-		case BULLET_PLAYER_MP5:
-		case BULLET_MONSTER_MP5:
-		case BULLET_PLAYER_BUCKSHOT:
-		case BULLET_MONSTER_BUCKSHOT:
-		case BULLET_PLAYER_357:
-		case BULLET_PLAYER_EAGLE:
-		case BULLET_MONSTER_357:
-		case BULLET_PLAYER_556:
-		case BULLET_MONSTER_556:
-		case BULLET_PLAYER_762:
-		case BULLET_MONSTER_762:
-		case BULLET_PLAYER_UZI:
-		default:
-			// smoke and decal
-			UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
-			break;
-		case BULLET_MONSTER_12MM:
-			// smoke and decal
-			UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
-			break;
-		case BULLET_PLAYER_CROWBAR:
-			// wall decal
-			UTIL_DecalTrace( pTrace, DamageDecal( pEntity, DMG_CLUB ) );
-			break;
-		}
+		UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
+	}
+}
+
+void DecalSmack( TraceResult *pTrace )
+{
+	if (!UTIL_IsValidEntity( pTrace->pHit ))
+		return;
+
+	if (VARS( pTrace->pHit )->solid == SOLID_BSP || VARS( pTrace->pHit )->movetype == MOVETYPE_PUSHSTEP)
+	{
+		CBaseEntity *pEntity = nullptr;
+		if( !FNullEnt( pTrace->pHit ) )
+			pEntity = CBaseEntity::Instance( pTrace->pHit );
+
+		UTIL_DecalTrace(pTrace, DamageDecal(pEntity, DMG_CLUB));
 	}
 }
 
@@ -211,7 +198,8 @@ void ExplodeModel( const Vector &vecOrigin, float speed, int model, int count )
 
 bool bIsMultiplayer()
 {
-	return g_pGameRules->IsMultiplayer();
+	return gpGlobals->maxClients > 1;
+	//return g_pGameRules->IsMultiplayer();
 }
 
 void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, CBasePlayer *pPlayer )
@@ -288,8 +276,16 @@ bool UTIL_PrecacheOtherWeapon( const char *szClassname )
 
 				if (pWeapon->GetItemInfo( &II ))
 				{
+					const WeaponParameters& params = pWeapon->MyParameters();
+
 					II.pszName = szClassname;
 					II.iId = pWeapon->WeaponId();
+					II.pszAmmo1 = params.ammoName.empty() ? nullptr : params.ammoName.c_str();
+					II.pszAmmo2 = params.secondaryAmmoName.empty() ? nullptr : params.secondaryAmmoName.c_str();
+
+					if ((params.fire.useSecondaryAmmo.Get(false) || params.fire.useSecondaryAmmo.Get(true)) && params.secondaryAmmoName.empty())
+						II.iFlags |= ITEM_FLAG_SELECTONEMPTY;
+
 					CBasePlayerWeapon::ItemInfoArray[II.iId] = II;
 				}
 			}
@@ -327,12 +323,24 @@ void RegisterAmmoTypes()
 	g_AmmoRegistry.Register("762", _762_MAX_CARRY);
 	g_AmmoRegistry.Register("Shocks", SHOCK_MAX_CARRY);
 	g_AmmoRegistry.Register("spores", SPORE_MAX_CARRY);
+	g_AmmoRegistry.Register("45acp", 200);
+	g_AmmoRegistry.Register("57mm", 200);
 
 	for (unsigned int i = 0; i<g_modFeatures.maxAmmoCount; ++i)
 	{
 		g_AmmoRegistry.SetMaxAmmo(g_modFeatures.maxAmmos[i].name, g_modFeatures.maxAmmos[i].maxAmmo);
 	}
 }
+
+struct AmmoEnabled
+{
+	AmmoEnabled(const char* name, const char* entity): ammoName(name), ammoEntity(entity) {}
+
+	bool enabled{false};
+	const char* ammoName;
+	const char* ammoEntity;
+};
+
 
 // called by worldspawn
 void W_Precache( CBaseEntity* pWorld )
@@ -366,22 +374,51 @@ void W_Precache( CBaseEntity* pWorld )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
 	}
-#if FEATURE_M249
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249))
-		UTIL_PrecacheOther( "ammo_556" );
-#endif
-#if FEATURE_SNIPERRIFLE
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
-		UTIL_PrecacheOther( "ammo_762" );
-#endif
+
+	AmmoEnabled ammoEnabledList[] = {
+		AmmoEnabled("556", "ammo_556"),
+		AmmoEnabled("762", "ammo_762"),
+		AmmoEnabled("45acp", "ammo_45acp"),
+		AmmoEnabled("57mm", "ammo_57mm")
+	};
+
+	ALERT(at_console, "Precaching weapons\n");
 	for (int i=0; i<MAX_WEAPONS; ++i)
 	{
 		WeaponInfo info = AccessWeaponInfo(i);
-		if (info.classname)
+		if (info.classname && info.pWeapon->IsEnabledInMod())
 		{
 			UTIL_PrecacheOtherWeapon(info.classname);
+
+			for (auto& ammo : ammoEnabledList)
+			{
+				if (!ammo.enabled)
+				{
+					const WeaponParameters& params = info.params;
+					if (params.ammoName == ammo.ammoName)
+					{
+						ammo.enabled = true;
+					}
+					if (params.secondaryAmmoName == ammo.ammoName)
+					{
+						ammo.enabled = true;
+					}
+				}
+			}
 		}
 	}
+
+	g_modFeatures.ammo556IsUsed = ammoEnabledList[0].enabled;
+	g_modFeatures.ammo762IsUsed = ammoEnabledList[1].enabled;
+
+	for (auto& ammo : ammoEnabledList)
+	{
+		if (ammo.enabled)
+		{
+			UTIL_PrecacheOther(ammo.ammoEntity);
+		}
+	}
+
 	g_sModelIndexFireball = PRECACHE_MODEL( "sprites/zerogxplode.spr" );// fireball
 	g_sModelIndexWExplosion = PRECACHE_MODEL( "sprites/WXplo1.spr" );// underwater fireball
 	g_sModelIndexSmoke = PRECACHE_MODEL( g_pModelNameSmoke );// smoke
@@ -715,45 +752,6 @@ const AmmoType* CBasePlayerWeapon::GetAmmoType(const char *name)
 	return g_AmmoRegistry.GetByName(name);
 }
 
-void CBasePlayerWeapon::InitDefaultAmmo(int defaultGive)
-{
-	if (m_iDefaultAmmo == 0)
-	{
-		const int amount = g_AmmoAmounts.AmountForAmmoEnt(STRING(pev->classname));
-		if (amount >= 0)
-			m_iDefaultAmmo = amount;
-		else
-			m_iDefaultAmmo = defaultGive;
-	}
-	else if (m_iDefaultAmmo < 0)
-	{
-		m_iDefaultAmmo = 0;
-	}
-	else
-	{
-		// pass, already initialized
-	}
-}
-
-void CBasePlayerWeapon::InitMaxClip(int defaultMaxClip)
-{
-	m_iMaxClip = defaultMaxClip;
-	if (defaultMaxClip == WEAPON_NOCLIP)
-		return;
-	const WeaponTemplate* weaponTemplate = g_WeaponTemplateSystem.GetTemplate(STRING(pev->classname));
-	if (weaponTemplate)
-	{
-		if (weaponTemplate->IsMaxClipDefined())
-		{
-			int maxClip = weaponTemplate->MaxClip();
-			if (!maxClip)
-				m_iMaxClip = WEAPON_NOCLIP;
-			else
-				m_iMaxClip = maxClip;
-		}
-	}
-}
-
 // CALLED THROUGH the newly-touched weapon's instance. The existing player weapon is pOriginal
 int CBasePlayerWeapon::AddDuplicate( CBasePlayerWeapon *pOriginal )
 {
@@ -937,7 +935,7 @@ bool CBasePlayerWeapon::IsUseable( void )
 	}
 
 	// Player has unlimited ammo for this weapon or does not use magazines
-	if( !UsesClip() )
+	if (!UsesAmmo() || !UsesClip())
 	{
 		return true;
 	}
@@ -965,53 +963,86 @@ bool CBasePlayerWeapon::IsUseable( void )
 	return false;
 }
 
-bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body )
+bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body, float attackDelay, float idleDelay )
 {
 	if( !CanDeploy() )
 		return false;
 
 	m_pPlayer->pev->viewmodel = MAKE_STRING( szViewModel );
-	if (g_modFeatures.weapon_p_models)
+	if (g_modFeatures.weapon_p_models && szWeaponModel && *szWeaponModel)
 		m_pPlayer->pev->weaponmodel = MAKE_STRING( szWeaponModel );
+	else
+		m_pPlayer->pev->weaponmodel = iStringNull;
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
 	SendWeaponAnim( iAnim, body );
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + attackDelay;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + idleDelay;
 	m_flLastFireTime = 0.0f;
+
+	m_pPlayer->m_bResumeZoom = false;
 
 	return true;
 }
 
+const char* CBasePlayerWeapon::MyWorldModel()
+{
+	if (!FStringNull(pev->model))
+		return STRING(pev->model);
+
+	const Visual* ownVisual = MyOwnVisual();
+	if (ownVisual && ownVisual->model)
+		return ownVisual->model;
+
+	const WeaponParameters& params = MyParameters();
+	return params.worldModel.c_str();
+}
+
+const char* CBasePlayerWeapon::MyViewModel()
+{
+	const WeaponParameters& params = MyParameters();
+	return params.viewModel.c_str();
+}
+
+const char* CBasePlayerWeapon::MyPlayerModel()
+{
+	const WeaponParameters& params = MyParameters();
+	if (params.playerModel.empty())
+		return nullptr;
+	return params.playerModel.c_str();
+}
+
+void CBasePlayerWeapon::PrecacheWeaponModels()
+{
+	PRECACHE_MODEL(MyWorldModel());
+	PRECACHE_MODEL(MyViewModel());
+	PrecachePModel(MyPlayerModel());
+}
+
 void CBasePlayerWeapon::PrecachePModel(const char *name)
 {
-	if (g_modFeatures.weapon_p_models)
+	if (g_modFeatures.weapon_p_models && name)
 		PRECACHE_MODEL(name);
 }
 
-bool CBasePlayerWeapon::PlayEmptySound( void )
+bool CBasePlayerWeapon::PlayEmptySound(bool altMode)
 {
-	if( m_iPlayEmptySound )
+	if (m_iPlayEmptySound)
 	{
-		m_pPlayer->EmitSoundScript(Items::weaponEmptySoundScript);
-		m_iPlayEmptySound = false;
-		return 0;
-	}
-	return 0;
-}
+		const WeaponParameters& params = MyParameters();
 
-const char* CBasePlayerWeapon::AmmoName(const char* defaultAmmoName)
-{
-	if (!defaultAmmoName)
-		return defaultAmmoName;
-	const WeaponTemplate* weaponTemplate = g_WeaponTemplateSystem.GetTemplate(STRING(pev->classname));
-	if (weaponTemplate)
-	{
-		const char* ammoName = weaponTemplate->AmmoName();
-		if (ammoName)
-			return ammoName;
+		if (params.fire.useStandardEmptySound.Get(altMode))
+		{
+			m_pPlayer->EmitSoundScript(Items::weaponEmptySoundScript);
+		}
+		else
+		{
+			PlayWeaponSoundScript(params.fire.emptySound.Get(altMode));
+		}
+		m_iPlayEmptySound = false;
+		return false;
 	}
-	return defaultAmmoName;
+	return false;
 }
 
 void CBasePlayerWeapon::Holster()
@@ -1019,6 +1050,7 @@ void CBasePlayerWeapon::Holster()
 	m_fInReload = false; // cancel any reload in progress.
 	m_pPlayer->pev->viewmodel = 0; 
 	m_pPlayer->pev->weaponmodel = 0;
+	m_pPlayer->m_bResumeZoom = false;
 }
 
 //=========================================================
@@ -1127,6 +1159,123 @@ float CBasePlayerWeapon::GetNextAttackDelay( float delay )
 	//safe_snprintf( szMsg, sizeof(szMsg), "next attack time: %0.4f\n", gpGlobals->time + flNextAttack );
 	//OutputDebugString( szMsg );
 	return flNextAttack;
+}
+
+TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
+{
+	DEFINE_FIELD( CConfigurableWeapon, m_fInSpecialReload, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_inAltMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_wasEmptyReload, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_switchingBody, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_wasInAltModeBeforeSwitchingBody, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_wasInAltModeBeforeEjectLate, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_switchingMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_playedFirstDeploy, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_shouldRestartReloading, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_kickBackDirectionVertical, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_kickBackDirectionLateral, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_lastShotWasInAltMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_bDelayFire, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_iShotsFired, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_flInaccuracy, FIELD_FLOAT ),
+	DEFINE_FIELD( CConfigurableWeapon, m_flLastFire, FIELD_TIME ),
+	DEFINE_FIELD( CConfigurableWeapon, m_flDecreaseShotsFired, FIELD_TIME ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_bLaserActive, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_burstFireIsAlt, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_burstShotsFired, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_burstTime, FIELD_TIME ),
+	DEFINE_FIELD( CConfigurableWeapon, m_burstSpreadX, FIELD_FLOAT ),
+	DEFINE_FIELD( CConfigurableWeapon, m_burstSpreadY, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_flPumpTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_iSwing, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_iSwingMode, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_flBigSwingStart, FIELD_TIME ),
+	DEFINE_FIELD( CConfigurableWeapon, m_swingIsAltAttack, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_flRechargeTime, FIELD_TIME ),
+};
+
+IMPLEMENT_SAVERESTORE( CConfigurableWeapon, CBasePlayerWeapon )
+
+bool CConfigurableWeapon::IsUseable()
+{
+	return CanRechargeAmmo() || CBasePlayerWeapon::IsUseable();
+}
+
+bool CConfigurableWeapon::AddToPlayer(CBasePlayer *pPlayer)
+{
+	if (iFlags() & ITEM_FLAG_EXHAUSTIBLE)
+	{
+		return CBasePlayerWeapon::AddToPlayer(pPlayer);
+	}
+	else
+	{
+		const WeaponParameters& params = MyParameters();
+		pev->body = params.viewModelBody.Get(m_inAltMode);
+		return AddToPlayerDefault(pPlayer);
+	}
+}
+
+extern int gmsgSetBody;
+
+void CConfigurableWeapon::SetBody(int body)
+{
+	pev->body = body;
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgSetBody, nullptr, m_pPlayer->pev);
+	WRITE_SHORT(body);
+	MESSAGE_END();
+}
+
+void CConfigurableWeapon::KickBack(const WeaponKickBack& kickBack)
+{
+	auto applyKickBack = [this](float currentPunchAngle, float base, float modifier, float maxValue, bool direction, int shotsFired) {
+		if (maxValue == 0.0f)
+		{
+			currentPunchAngle = UTIL_SharedRandomFloat(m_pPlayer->random_seed + 1, -base, base);
+		}
+		else
+		{
+			const float kick = shotsFired == 1 ? base : shotsFired * modifier + base;
+			if (direction)
+			{
+				currentPunchAngle += kick;
+				if (currentPunchAngle > maxValue)
+				{
+					currentPunchAngle = maxValue;
+				}
+			}
+			else
+			{
+				currentPunchAngle -= kick;
+				if (currentPunchAngle < -maxValue)
+				{
+					currentPunchAngle = -maxValue;
+				}
+			}
+		}
+		return currentPunchAngle;
+	};
+
+	m_pPlayer->pev->punchangle.x = applyKickBack(m_pPlayer->pev->punchangle.x, kickBack.verticalBase, kickBack.verticalModifier, kickBack.verticalMax, m_kickBackDirectionVertical, m_iShotsFired);
+	m_pPlayer->pev->punchangle.y = applyKickBack(m_pPlayer->pev->punchangle.y, kickBack.lateralBase, kickBack.lateralModifier, kickBack.lateralMax, m_kickBackDirectionLateral, m_iShotsFired);
+
+	if (kickBack.directionChangeVertical > 0)
+	{
+		if (RANDOM_LONG(0, kickBack.directionChangeVertical) == 0)
+			m_kickBackDirectionVertical = !m_kickBackDirectionVertical;
+	}
+
+	if (kickBack.directionChangeLateral > 0)
+	{
+		if (RANDOM_LONG(0, kickBack.directionChangeLateral) == 0)
+			m_kickBackDirectionLateral = !m_kickBackDirectionLateral;
+	}
 }
 
 //*********************************************************
@@ -1440,12 +1589,13 @@ bool CWeaponBox::IsEmpty( void )
 
 void CWeaponBox::SetWeaponModel(CBasePlayerWeapon *pItem)
 {
-	if (pItem && pItem->MyWModel())
+	if (pItem)
 	{
+		const char* worldModel = pItem->MyWorldModel();
 		Vector weaponAngles = pev->angles;
 		weaponAngles.y += 180 + RANDOM_LONG(-15,15);
 
-		SET_MODEL( ENT( pev ), pItem->MyWModel() );
+		SET_MODEL( ENT( pev ), worldModel );
 		pev->angles = weaponAngles;
 		if (pItem->WeaponId() == WEAPON_TRIPMINE) {
 			pev->body = 3;
@@ -1493,11 +1643,10 @@ void CBasePlayerWeapon::PrintState( void )
 
 TYPEDESCRIPTION	CRpg::m_SaveData[] =
 {
-	DEFINE_FIELD( CRpg, m_fSpotActive, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRpg, m_cActiveRockets, FIELD_INTEGER ),
 };
 
-IMPLEMENT_SAVERESTORE( CRpg, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CRpg, CConfigurableWeapon )
 
 TYPEDESCRIPTION	CRpgRocket::m_SaveData[] =
 {
@@ -1506,16 +1655,6 @@ TYPEDESCRIPTION	CRpgRocket::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CRpgRocket, CGrenade )
-
-TYPEDESCRIPTION	CShotgun::m_SaveData[] =
-{
-	DEFINE_FIELD( CShotgun, m_flNextReload, FIELD_TIME ),
-	DEFINE_FIELD( CShotgun, m_fInSpecialReload, FIELD_INTEGER ),
-	// DEFINE_FIELD( CShotgun, m_iShell, FIELD_INTEGER ),
-	DEFINE_FIELD( CShotgun, m_flPumpTime, FIELD_TIME ),
-};
-
-IMPLEMENT_SAVERESTORE( CShotgun, CBasePlayerWeapon )
 
 TYPEDESCRIPTION	CGauss::m_SaveData[] =
 {
@@ -1526,7 +1665,7 @@ TYPEDESCRIPTION	CGauss::m_SaveData[] =
 	DEFINE_FIELD( CGauss, m_fPrimaryFire, FIELD_BOOLEAN ),
 };
 
-IMPLEMENT_SAVERESTORE( CGauss, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CGauss, CConfigurableWeapon )
 
 TYPEDESCRIPTION	CEgon::m_SaveData[] =
 {
@@ -1540,15 +1679,14 @@ TYPEDESCRIPTION	CEgon::m_SaveData[] =
 	DEFINE_FIELD( CEgon, m_flAmmoUseTime, FIELD_TIME ),
 };
 
-IMPLEMENT_SAVERESTORE( CEgon, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CEgon, CConfigurableWeapon )
 
 TYPEDESCRIPTION CHgun::m_SaveData[] =
 {
-	DEFINE_FIELD( CHgun, m_flRechargeTime, FIELD_TIME ),
 	DEFINE_FIELD( CHgun, m_iFirePhase, FIELD_INTEGER ),
 };
 
-IMPLEMENT_SAVERESTORE( CHgun, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CHgun, CConfigurableWeapon )
 
 TYPEDESCRIPTION	CSatchel::m_SaveData[] = 
 {
@@ -1557,59 +1695,13 @@ TYPEDESCRIPTION	CSatchel::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CSatchel, CBasePlayerWeapon )
 
-#if FEATURE_DESERT_EAGLE
-TYPEDESCRIPTION CEagle::m_SaveData[] =
-{
-	DEFINE_FIELD( CEagle, m_fEagleLaserActive, FIELD_BOOLEAN ),
-};
-
-IMPLEMENT_SAVERESTORE( CEagle, CBasePlayerWeapon )
-#endif
-
-#if FEATURE_PIPEWRENCH
-TYPEDESCRIPTION	CPipeWrench::m_SaveData[] =
-{
-	DEFINE_FIELD( CPipeWrench, m_flBigSwingStart, FIELD_TIME ),
-	DEFINE_FIELD( CPipeWrench, m_iSwing, FIELD_INTEGER ),
-	DEFINE_FIELD( CPipeWrench, m_iSwingMode, FIELD_INTEGER ),
-};
-IMPLEMENT_SAVERESTORE( CPipeWrench, CBasePlayerWeapon )
-#endif
-
-#if FEATURE_KNIFE
-TYPEDESCRIPTION	CKnife::m_SaveData[] =
-{
-	DEFINE_FIELD( CKnife, m_flStabStart, FIELD_TIME ),
-	DEFINE_FIELD( CKnife, m_iSwing, FIELD_INTEGER ),
-	DEFINE_FIELD( CKnife, m_iSwingMode, FIELD_INTEGER ),
-};
-IMPLEMENT_SAVERESTORE( CKnife, CBasePlayerWeapon )
-#endif
-
-#if FEATURE_M249
-TYPEDESCRIPTION	CM249::m_SaveData[] =
-{
-	DEFINE_FIELD( CM249, m_fInSpecialReload, FIELD_INTEGER ),
-};
-IMPLEMENT_SAVERESTORE( CM249, CBasePlayerWeapon )
-#endif
-
-#if FEATURE_SNIPERRIFLE
-TYPEDESCRIPTION	CSniperrifle::m_SaveData[] =
-{
-	DEFINE_FIELD( CSniperrifle, m_fInSpecialReload, FIELD_INTEGER ),
-};
-
-IMPLEMENT_SAVERESTORE( CSniperrifle, CBasePlayerWeapon )
-#endif
-
 #if FEATURE_DISPLACER
 TYPEDESCRIPTION	CDisplacer::m_SaveData[] =
 {
 	DEFINE_FIELD( CDisplacer, m_iFireMode, FIELD_INTEGER ),
 	DEFINE_ARRAY( CDisplacer, m_pBeam, FIELD_CLASSPTR, 3 ),
 };
-IMPLEMENT_SAVERESTORE( CDisplacer, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CDisplacer, CConfigurableWeapon )
 #endif
 
 #if FEATURE_GRAPPLE
@@ -1626,9 +1718,8 @@ IMPLEMENT_SAVERESTORE( CBarnacleGrapple, CBasePlayerWeapon )
 TYPEDESCRIPTION	CMedkit::m_SaveData[] =
 {
 	DEFINE_FIELD( CMedkit, m_flSoundDelay, FIELD_TIME ),
-	DEFINE_FIELD( CMedkit, m_flRechargeTime, FIELD_TIME ),
 	DEFINE_FIELD( CMedkit, m_secondaryAttack, FIELD_BOOLEAN ),
 };
 
-IMPLEMENT_SAVERESTORE( CMedkit, CBasePlayerWeapon )
+IMPLEMENT_SAVERESTORE( CMedkit, CConfigurableWeapon )
 #endif

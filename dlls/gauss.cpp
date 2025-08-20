@@ -46,22 +46,9 @@ float CGauss::GetFullChargeTime( void )
 extern int g_irunninggausspred;
 #endif
 
-void CGauss::Spawn()
+void CGauss::Precache()
 {
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-
-	InitDefaultAmmo(GAUSS_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
-
-	FallInit();// get ready to fall down.
-}
-
-void CGauss::Precache( void )
-{
-	PRECACHE_MODEL( MyWModel() );
-	PRECACHE_MODEL( "models/v_gauss.mdl" );
-	PrecachePModel( "models/p_gauss.mdl" );
+	CConfigurableWeapon::Precache();
 
 	PRECACHE_SOUND( "weapons/gauss2.wav" );
 	PRECACHE_SOUND( "weapons/electro4.wav" );
@@ -77,14 +64,8 @@ void CGauss::Precache( void )
 	m_usGaussSpin = PRECACHE_EVENT( 1, "events/gaussspin.sc" );
 }
 
-bool CGauss::AddToPlayer( CBasePlayer *pPlayer )
-{
-	return AddToPlayerDefault(pPlayer);
-}
-
 bool CGauss::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("uranium");
 	p->iSlot = 3;
 	p->iPosition = 1;
 	p->pszAmmoEntity = "ammo_gaussclip";
@@ -93,10 +74,44 @@ bool CGauss::GetItemInfo( ItemInfo *p )
 	return true;
 }
 
+WeaponParameters CGauss::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 20;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "uranium";
+
+	params.worldModel = "models/w_gauss.mdl";
+	params.viewModel = "models/v_gauss.mdl";
+	params.playerModel = "models/p_gauss.mdl";
+	params.playerAnimExt = "gauss";
+	params.priority = 20;
+
+	params.deploy.animIndex = GAUSS_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{GAUSS_IDLE, 0.66f, FloatRange(10.0f, 15.0f)},
+		WeaponParameters::IdleAnim{GAUSS_IDLE2, 0.34f, FloatRange(10.0f, 15.0f)},
+	};
+
+	params.fire.anims = {GAUSS_FIRE2};
+	params.fire.cycleTime = 0.2f;
+	params.fire.allowUnderwater = false;
+	params.fire.ammoPerFire = 2;
+
+	params.fire.weaponVolume = GAUSS_PRIMARY_FIRE_VOLUME;
+	params.fire.clientPunchPitch = -2;
+
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	return params;
+}
+
 bool CGauss::Deploy()
 {
 	m_pPlayer->m_flPlayAftershock = 0.0;
-	return DefaultDeploy( "models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW, "gauss" );
+	return PerformDeploy();
 }
 
 void CGauss::Holster()
@@ -111,34 +126,41 @@ void CGauss::Holster()
 
 void CGauss::PrimaryAttack()
 {
+	const WeaponParameters& params = MyParameters();
+
 	// don't fire underwater
-	if( m_pPlayer->pev->waterlevel == WL_Eyes )
+	if (!params.fire.allowUnderwater.Get(false) && m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
-		PlayEmptySound();
+		PlayEmptySound(false);
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay( 0.15f );
 		return;
 	}
 
-	if( !HasAmmoToFire(2) )
+	const int ammoPerFire = params.fire.ammoPerFire.Get(false);
+
+	if( !HasAmmoToFire(ammoPerFire) )
 	{
-		PlayEmptySound();
+		PlayEmptySound(false);
 		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
 		return;
 	}
 
-	m_pPlayer->m_iWeaponVolume = GAUSS_PRIMARY_FIRE_VOLUME;
 	m_fPrimaryFire = true;
 
-	SpendAmmo(2);
+	SpendAmmo(ammoPerFire);
 
 	StartFire();
 	m_fInAttack = 0;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.2f;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + params.fire.cycleTime.Get(false);
 }
 
 void CGauss::SecondaryAttack()
 {
+	const WeaponParameters& params = MyParameters();
+	if (params.secondaryFireType == SecondaryFireType::DISABLED)
+		return;
+
 	if( m_pPlayer->m_flStartCharge > gpGlobals->time )
 		m_pPlayer->m_flStartCharge = gpGlobals->time;
 	// don't fire underwater
@@ -153,7 +175,7 @@ void CGauss::SecondaryAttack()
 		}
 		else
 		{
-			PlayEmptySound();
+			PlayEmptySound(true);
 		}
 
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay( 0.5f );
@@ -335,7 +357,9 @@ void CGauss::StartFire( void )
 
 void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 {
-	m_pPlayer->m_iWeaponVolume = GAUSS_PRIMARY_FIRE_VOLUME;
+	const WeaponParameters& params = MyParameters();
+
+	m_pPlayer->m_iWeaponVolume = params.fire.weaponVolume.Get(false);
 	TraceResult tr, beam_tr;
 #if !CLIENT_DLL
 	Vector vecSrc = vecOrigSrc;
@@ -542,32 +566,7 @@ void CGauss::WeaponIdle( void )
 	}
 	else
 	{
-		int iAnim;
-		bool canPlayFidgetAnimation = false;
-#if !CLIENT_DLL
-		canPlayFidgetAnimation = g_modFeatures.gauss_fidget;
-#endif
-		const float idleRand = canPlayFidgetAnimation ? 0.5f : 0.66f;
-
-		float flRand = RANDOM_FLOAT( 0.0f, 1.0f );
-		if( flRand <= idleRand )
-		{
-			iAnim = GAUSS_IDLE;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
-		}
-		else if( flRand <= 0.75f || !canPlayFidgetAnimation )
-		{
-			iAnim = GAUSS_IDLE2;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
-		}
-		else
-		{
-			iAnim = GAUSS_FIDGET;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0f;
-		}
-#if !CLIENT_DLL
-		SendWeaponAnim( iAnim );
-#endif
+		SendIdleAnimation();
 	}
 }
 

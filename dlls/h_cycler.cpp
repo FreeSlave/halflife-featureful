@@ -308,13 +308,16 @@ class CWeaponCycler : public CBasePlayerWeapon
 {
 public:
 	void Spawn( void );
-	bool GetItemInfo(ItemInfo *p) { return false; }
+	int WeaponId() const override { return WEAPON_NONE; }
+	bool GetItemInfo(ItemInfo *p) override { return false; }
+	WeaponParameters GetDefaultParameters() const override { return WeaponParameters(); }
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	bool Deploy() override;
 	void Holster();
 	bool UseDecrement() override { return false; }
+
 	string_t m_iszModel;
 	int m_iModel;
 };

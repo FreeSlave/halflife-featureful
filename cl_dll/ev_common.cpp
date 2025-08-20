@@ -24,6 +24,7 @@
 #include "eventscripts.h"
 #include "event_api.h"
 #include "pm_shared.h"
+#include "util_shared.h"
 
 #define IS_FIRSTPERSON_SPEC ( g_iUser1 == OBS_IN_EYE || ( g_iUser1 && ( gHUD.m_Spectator.m_pip->value == INSET_IN_EYE ) ) )
 /*
@@ -149,15 +150,11 @@ EV_GetDefaultShellInfo
 Determine where to eject shells from
 =================
 */
-void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity, float *ShellVelocity, float *ShellOrigin, float *forward, float *right, float *up, float forwardScale, float upScale, float rightScale )
+void EV_GetDefaultShellInfo( const struct event_args_s *args, const ShellInfoParams& infoParams, float *ShellVelocity, float *ShellOrigin )
 {
-	int i;
 	Vector view_ofs;
-	float fR, fU;
 
-	int idx;
-
-	idx = args->entindex;
+	int idx = args->entindex;
 
 	VectorClear( view_ofs );
 	view_ofs[2] = DEFAULT_VIEWHEIGHT;
@@ -174,13 +171,14 @@ void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity,
 		}
 	}
 
-	fR = gEngfuncs.pfnRandomFloat( 50, 70 );
-	fU = gEngfuncs.pfnRandomFloat( 100, 150 );
+	const float fR = RandomizeNumberFromRange(infoParams.sideFactor);
+	const float fU = RandomizeNumberFromRange(infoParams.upFactor);
+	const float fF = RandomizeNumberFromRange(infoParams.forwardFactor);
 
-	for( i = 0; i < 3; i++ )
+	for( int i = 0; i < 3; i++ )
 	{
-		ShellVelocity[i] = velocity[i] + right[i] * fR + up[i] * fU + forward[i] * 25;
-		ShellOrigin[i] = origin[i] + view_ofs[i] + up[i] * upScale + forward[i] * forwardScale + right[i] * rightScale;
+		ShellVelocity[i] = infoParams.velocity[i] + infoParams.right[i] * fR + infoParams.up[i] * fU + infoParams.forward[i] * fF;
+		ShellOrigin[i] = infoParams.origin[i] + view_ofs[i] + infoParams.up[i] * infoParams.upScale + infoParams.forward[i] * infoParams.forwardScale + infoParams.right[i] * infoParams.rightScale;
 	}
 }
 

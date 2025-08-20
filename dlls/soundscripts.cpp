@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "min_and_max.h"
 #include "random_utils.h"
+#include "sound_channel.h"
 
 #include <map>
 #include <set>
@@ -137,28 +138,6 @@ void SoundScriptParamOverride::ApplyOverride(int& origChannel, FloatRange &origV
 	}
 }
 
-static bool ParseChannel(const char* str, int& channel)
-{
-	constexpr std::pair<const char*, int> channels[] = {
-		{"auto", CHAN_AUTO},
-		{"weapon", CHAN_WEAPON},
-		{"voice", CHAN_VOICE},
-		{"item", CHAN_ITEM},
-		{"body", CHAN_BODY},
-		{"static", CHAN_STATIC},
-	};
-
-	for (auto& p : channels)
-	{
-		if (stricmp(str, p.first) == 0)
-		{
-			channel = p.second;
-			return true;
-		}
-	}
-	return false;
-}
-
 static const char* ChannelToString(int channel)
 {
 	switch (channel) {
@@ -225,7 +204,7 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, const Valu
 		auto it = value.FindMember("channel");
 		if (it != value.MemberEnd())
 		{
-			soundScriptMeta.channelSet = ParseChannel(it->value.GetString(), soundScript.channel);
+			soundScriptMeta.channelSet = ParseSoundChannel(it->value.GetString(), soundScript.channel);
 		}
 		else if (defaultChannel != -1)
 		{

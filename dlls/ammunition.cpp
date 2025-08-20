@@ -346,11 +346,10 @@ LINK_ENTITY_TO_CLASS( ammo_egonclip, CEgonAmmo )
 
 LINK_ENTITY_TO_CLASS( ammo_gaussclip, CGaussAmmo )
 
-#if FEATURE_SNIPERRIFLE
 class CSniperrifleAmmo : public CBasePlayerAmmo
 {
 	bool IsEnabledInMod() {
-		return g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE);
+		return g_modFeatures.ammo762IsUsed;
 	}
 	const char* MyModel() {
 		return "models/w_m40a1clip.mdl";
@@ -363,13 +362,11 @@ class CSniperrifleAmmo : public CBasePlayerAmmo
 	}
 };
 LINK_ENTITY_TO_CLASS( ammo_762, CSniperrifleAmmo )
-#endif
 
-#if FEATURE_M249
 class CM249AmmoClip : public CBasePlayerAmmo
 {
 	bool IsEnabledInMod() {
-		return g_modFeatures.IsWeaponEnabled(WEAPON_M249);
+		return g_modFeatures.ammo556IsUsed;
 	}
 	const char* MyModel() {
 		return "models/w_saw_clip.mdl";
@@ -383,4 +380,33 @@ class CM249AmmoClip : public CBasePlayerAmmo
 };
 
 LINK_ENTITY_TO_CLASS(ammo_556, CM249AmmoClip)
-#endif
+
+class C45ACPAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() {
+		return 30;
+	}
+	const char* AmmoName() {
+		return "45acp";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_45acp, C45ACPAmmoClip )
+
+class C57MMAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() {
+		return 30;
+	}
+	const char* AmmoName() {
+		return "57mm";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_57mm, C57MMAmmoClip )

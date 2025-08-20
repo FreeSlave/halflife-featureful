@@ -816,6 +816,21 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 	}
 }
 
+void UTIL_ScreenShakeToClient( edict_t* entity, float amplitude, float frequency, float duration )
+{
+	ScreenShake	shake;
+
+	shake.amplitude = FixedUnsigned16( amplitude, 1 << 12 );
+	shake.duration = FixedUnsigned16( duration, 1 << 12 );
+	shake.frequency = FixedUnsigned16( frequency, 1 << 8 );
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgShake, NULL, entity );
+	WRITE_SHORT( shake.amplitude );
+	WRITE_SHORT( shake.duration );
+	WRITE_SHORT( shake.frequency );
+	MESSAGE_END();
+}
+
 void UTIL_ScreenShakeAll( const Vector &center, float amplitude, float frequency, float duration )
 {
 	UTIL_ScreenShake( center, amplitude, frequency, duration, 0 );
@@ -2819,32 +2834,6 @@ char *memfgets( byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int b
 
 	// No data read, bail
 	return NULL;
-}
-
-float RandomizeNumberFromRange(const FloatRange& r)
-{
-	return RandomizeNumberFromRange(r.min, r.max);
-}
-
-float RandomizeNumberFromRange(float minF, float maxF)
-{
-	if (minF >= maxF) {
-		return minF;
-	}
-	return RANDOM_FLOAT(minF, maxF);
-}
-
-int RandomizeNumberFromRange(const IntRange& r)
-{
-	return RandomizeNumberFromRange(r.min, r.max);
-}
-
-int RandomizeNumberFromRange(int minI, int maxI)
-{
-	if (minI >= maxI) {
-		return minI;
-	}
-	return RANDOM_LONG(minI, maxI);
 }
 
 // LRC- change the origin to the given position, and bring any movewiths along too.

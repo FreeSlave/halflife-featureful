@@ -233,9 +233,8 @@ LINK_WEAPON_TO_CLASS( weapon_grapple, CBarnacleGrapple )
 
 void CBarnacleGrapple::Precache( void )
 {
-	PRECACHE_MODEL( "models/v_bgrap.mdl" );
-	PRECACHE_MODEL( MyWModel() );
-	PrecachePModel( "models/p_bgrap.mdl" );
+	PrecacheWeaponModels();
+	PrecacheModelSounds();
 
 	PRECACHE_SOUND( "weapons/bgrapple_release.wav" );
 	PRECACHE_SOUND( "weapons/bgrapple_impact.wav" );
@@ -243,7 +242,6 @@ void CBarnacleGrapple::Precache( void )
 	PRECACHE_SOUND( "weapons/bgrapple_cough.wav" );
 	PRECACHE_SOUND( "weapons/bgrapple_pull.wav" );
 	PRECACHE_SOUND( "weapons/bgrapple_wait.wav" );
-	PRECACHE_SOUND( "weapons/alienweap_draw.wav" );
 	PRECACHE_SOUND( "barnacle/bcl_chew1.wav" );
 	PRECACHE_SOUND( "barnacle/bcl_chew2.wav" );
 	PRECACHE_SOUND( "barnacle/bcl_chew3.wav" );
@@ -253,14 +251,19 @@ void CBarnacleGrapple::Precache( void )
 	UTIL_PrecacheOther( "grapple_tip" );
 }
 
+void CBarnacleGrapple::PrecacheDefaultModelSounds()
+{
+	PRECACHE_SOUND( "weapons/alienweap_draw.wav" );
+}
+
 void CBarnacleGrapple::Spawn( void )
 {
 	Precache();
-	SET_MODEL( ENT(pev), MyWModel() );
+	SET_MODEL(ENT(pev), MyWorldModel());
 	m_pTip = NULL;
 	m_bGrappling = false;
-	m_iClip = -1;
-	InitMaxClip(WEAPON_NOCLIP);
+	SetInitialAmmoAmount();
+	InitMaxClip();
 
 	FallInit();
 }
@@ -272,6 +275,21 @@ bool CBarnacleGrapple::GetItemInfo(ItemInfo *p)
 	return true;
 }
 
+WeaponParameters CBarnacleGrapple::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.maxClip = WEAPON_NOCLIP;
+
+	params.worldModel = "models/w_bgrap.mdl";
+	params.viewModel = "models/v_bgrap.mdl";
+	params.playerModel = "models/p_bgrap.mdl";
+	params.playerAnimExt = "gauss";
+	params.priority = 21;
+
+	return params;
+}
+
 bool CBarnacleGrapple::AddToPlayer( CBasePlayer* pPlayer )
 {
 	return AddToPlayerDefault(pPlayer);
@@ -279,7 +297,7 @@ bool CBarnacleGrapple::AddToPlayer( CBasePlayer* pPlayer )
 
 bool CBarnacleGrapple::Deploy()
 {
-	bool r = DefaultDeploy("models/v_bgrap.mdl", "models/p_bgrap.mdl", BGRAPPLE_UP, "gauss" );
+	bool r = DefaultDeploy(MyViewModel(), MyPlayerModel(), BGRAPPLE_UP, "gauss" );
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.1;
 	return r;
 }

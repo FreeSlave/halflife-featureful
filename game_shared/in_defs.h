@@ -9,11 +9,14 @@
 #if !defined( IN_DEFSH )
 #define IN_DEFSH
 
+enum
+{
 // up / down
-#define	PITCH	0
+	PITCH = 0,
 // left / right
-#define	YAW		1
+	YAW	= 1,
 // fall over
-#define	ROLL	2 
+	ROLL = 2
+};
 
 #endif

@@ -352,10 +352,12 @@ and whenever the vid_mode is changed
 so the HUD can reinitialize itself.
 ==========================
 */
+extern void HUD_ResetClientWeaponData();
 
 int DLLEXPORT HUD_VidInit( void )
 {
 	gHUD.m_iHardwareMode = IEngineStudio.IsHardware() != 0;
+	HUD_ResetClientWeaponData();
 	gHUD.VidInit();
 	LoadDefaultSprites();
 #if USE_FAKE_VGUI

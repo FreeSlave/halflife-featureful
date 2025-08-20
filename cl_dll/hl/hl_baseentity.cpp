@@ -132,7 +132,7 @@ int CBaseAnimating::LookupActivity( int activity ) { return 0; }
 void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent ) { }
 Vector CBaseMonster::GetGunPosition( void ) { return g_vecZero; }
 void CBaseEntity::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) { }
-void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t *pevAttacker ) { }
+void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker ) { }
 void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType ) { }
 void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
@@ -247,9 +247,9 @@ int CBasePlayerWeapon::AddDuplicate( CBasePlayerWeapon *pOriginal ) { return 0; 
 bool CBasePlayerWeapon::AddToPlayerDefault( CBasePlayer *pPlayer ) { return false; }
 int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer ) { return 0; }
 bool CBasePlayerWeapon::IsUseable( void ) { return true; }
-const char* CBasePlayerWeapon::AmmoName(const char* defaultAmmoName) { return nullptr; }
 bool CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon ) { return false; }
 bool CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return false; }
 void CBasePlayerWeapon::RetireWeapon( void ) { }
-void CBasePlayerWeapon::InitDefaultAmmo(int defaultGive) { m_iDefaultAmmo = defaultGive; }
-void CBasePlayerWeapon::InitMaxClip(int defaultMaxClip) { if (!m_iMaxClip) m_iMaxClip = defaultMaxClip; }
+
+bool CConfigurableWeapon::IsUseable() { return true; }
+bool CConfigurableWeapon::AddToPlayer(CBasePlayer *pPlayer) { return true; }

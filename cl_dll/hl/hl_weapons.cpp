@@ -33,6 +33,8 @@
 #include "mod_features.h"
 #include "parsemsg.h"
 
+#include "weapon_templates.h"
+
 extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
@@ -77,7 +79,7 @@ void AlertMessage( ALERT_TYPE atype, const char *szFmt, ... )
 //Mostly used by the client side weapons.
 bool bIsMultiplayer( void )
 {
-	return gEngfuncs.GetMaxClients() == 1 ? 0 : 1;
+	return gEngfuncs.GetMaxClients() > 1;
 }
 
 //Just loads a v_ model.
@@ -141,7 +143,7 @@ CBasePlayerWeapon::DefaultDeploy
 
 =====================
 */
-bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body )
+bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body, float attackDelay, float idleDelay )
 {
 	if( !CanDeploy() )
 		return false;
@@ -151,11 +153,19 @@ bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWe
 	SendWeaponAnim( iAnim, body );
 
 	g_irunninggausspred = false;
-	m_pPlayer->m_flNextAttack = 0.5f;
-	m_flTimeWeaponIdle = 1.0f;
+	m_pPlayer->m_flNextAttack = attackDelay;
+	m_flTimeWeaponIdle = idleDelay;
+
+	m_pPlayer->m_bResumeZoom = false;
+
 	return true;
 }
 
+void CBasePlayerWeapon::PrecacheWeaponModels() {}
+
+const char* CBasePlayerWeapon::MyWorldModel() { return ""; }
+const char* CBasePlayerWeapon::MyViewModel() { return ""; }
+const char* CBasePlayerWeapon::MyPlayerModel() { return ""; }
 void CBasePlayerWeapon::PrecachePModel(const char *name) {}
 
 /*
@@ -164,7 +174,7 @@ CBasePlayerWeapon::PlayEmptySound
 
 =====================
 */
-bool CBasePlayerWeapon::PlayEmptySound( void )
+bool CBasePlayerWeapon::PlayEmptySound(bool altMode)
 {
 	if( m_iPlayEmptySound )
 	{
@@ -187,7 +197,8 @@ void CBasePlayerWeapon::Holster()
 { 
 	m_fInReload = false; // cancel any reload in progress.
 	g_irunninggausspred = false;
-	m_pPlayer->pev->viewmodel = 0; 
+	m_pPlayer->pev->viewmodel = 0;
+	m_pPlayer->m_bResumeZoom = false;
 }
 
 /*
@@ -204,6 +215,13 @@ void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int body )
 	HUD_SendWeaponAnim( iAnim, body, 0 );
 }
 
+void CConfigurableWeapon::SetBody(int body)
+{
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+	if (view)
+		view->curstate.body = body;
+}
+
 /*
 =====================
 CBaseEntity::FireBulletsPlayer
@@ -211,7 +229,7 @@ CBaseEntity::FireBulletsPlayer
 Only produces random numbers to match the server ones.
 =====================
 */
-Vector CBaseEntity::FireBulletsPlayer ( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t *pevAttacker, int shared_rand )
+Vector CBaseEntity::FireBulletsPlayer ( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, float flRangeModifier, int iTracerFreq, entvars_t *pevAttacker, int shared_rand )
 {
 	float x = 0.0f, y = 0.0f, z;
 
@@ -447,6 +465,18 @@ void HUD_InitClientWeapons( void )
 	}
 }
 
+void HUD_ResetClientWeaponData()
+{
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo& info = AccessWeaponInfo(i);
+		if (info.pWeapon)
+		{
+			info.pWeapon->ResetWeaponData();
+		}
+	}
+}
+
 /*
 =====================
 HUD_GetLastOrg
@@ -581,6 +611,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.pev->deadflag = from->client.deadflag;
 	player.pev->waterlevel = from->client.waterlevel;
 	player.pev->maxspeed = from->client.maxspeed;
+	player.pev->punchangle = from->client.punchangle; // predict punchangle as well!
 	player.pev->fov = from->client.fov;
 	player.pev->weaponanim = from->client.weaponanim;
 	player.pev->viewmodel = from->client.viewmodel;
@@ -600,10 +631,18 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 	// Don't go firing anything if we have died.
 	// Or if we don't have a weapon model deployed
-	if( ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) ) && 
-		 !CL_IsDead() && player.pev->viewmodel && !g_iUser1 )
+	if( ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) ) &&
+		 !CL_IsDead() && !g_iUser1 )
 	{
-		if( player.m_flNextAttack <= 0 )
+		bool viewModelIsOk = player.pev->viewmodel != 0;
+		if (!viewModelIsOk && player.m_pActiveItem)
+		{
+			const WeaponParameters& params = AccessWeaponInfo(from->client.m_iId).params;
+
+			viewModelIsOk = params.altMode.hideViewModelOnZoom && player.pev->fov != 0;
+		}
+
+		if( viewModelIsOk && player.m_flNextAttack <= 0 )
 		{
 			pWeapon->ItemPostFrame();
 		}
@@ -782,11 +821,8 @@ void _DLLEXPORT HUD_PostRunCmd( struct local_state_s *from, struct local_state_s
 	{
 		HUD_WeaponsPostThink( from, to, cmd, time, random_seed );
 	}
-	else
 #endif
-	{
-		to->client.fov = g_lastFOV;
-	}
+	to->client.fov = g_lastFOV;
 
 	if( g_irunninggausspred == 1 )
 	{

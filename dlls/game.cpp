@@ -33,6 +33,7 @@
 #include "vcs_info.h"
 #include "tex_materials.h"
 #include "error_collector.h"
+#include "weapons.h"
 #include "weapon_templates.h"
 #include "ai_debug.h"
 
@@ -73,7 +74,6 @@ ModFeatures::ModFeatures()
 	items_instant_drop = true;
 	tripmines_solid = FEATURE_OPFOR_SPECIFIC ? false : true;
 	satchels_pickable = true;
-	gauss_fidget = false;
 	weapon_p_models = true;
 
 	alien_teleport_sound = false;
@@ -144,7 +144,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(items_instant_drop),
 		KEY_VALUE_DEF(tripmines_solid),
 		KEY_VALUE_DEF(satchels_pickable),
-		KEY_VALUE_DEF(gauss_fidget),
 		KEY_VALUE_DEF(weapon_p_models),
 		KEY_VALUE_DEF(alien_teleport_sound),
 		KEY_VALUE_DEF(warpball_at_monster_center),
@@ -315,6 +314,14 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("shockrifle", WEAPON_SHOCKRIFLE),
 		WeaponNameAndId("penguin", WEAPON_PENGUIN),
 		WeaponNameAndId("uzi", WEAPON_UZI),
+		WeaponNameAndId("pistol", WEAPON_PISTOL),
+		WeaponNameAndId("pistol2", WEAPON_PISTOL2),
+		WeaponNameAndId("smg", WEAPON_SMG),
+		WeaponNameAndId("smg2", WEAPON_SMG2),
+		WeaponNameAndId("rifle", WEAPON_RIFLE),
+		WeaponNameAndId("rifle2", WEAPON_RIFLE2),
+		WeaponNameAndId("shotgun2", WEAPON_SHOTGUN2),
+		WeaponNameAndId("sniperrifle2", WEAPON_SNIPERRIFLE2),
 	};
 
 	for (unsigned int i=0; i<ARRAYSIZE(knownWeapons); ++i)
@@ -1626,10 +1633,6 @@ void ParseModConfigs()
 	FollowersDescription followersDescription;
 	followersDescription.ReadFromFile("features/followers.json");
 	g_FollowersDescription = std::move(followersDescription);
-
-	WeaponTemplateSystem weaponTemplateSystem;
-	weaponTemplateSystem.ReadFromFile("templates/weapons.json");
-	g_WeaponTemplateSystem = std::move(weaponTemplateSystem);
 
 	auto finish = std::chrono::steady_clock::now();
 	unsigned int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();

@@ -339,20 +339,19 @@ bool CSatchel::AddToPlayer( CBasePlayer *pPlayer )
 void CSatchel::Spawn()
 {
 	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
+	SET_MODEL(ENT(pev), MyWorldModel());
 
-	InitDefaultAmmo(SATCHEL_DEFAULT_GIVE);
-	InitMaxClip(WEAPON_NOCLIP);
+	SetInitialAmmoAmount();
+	InitMaxClip();
 
 	FallInit();// get ready to fall down.
 }
 
 void CSatchel::Precache( void )
 {
-	PRECACHE_MODEL( "models/v_satchel.mdl" );
+	PrecacheWeaponModels();
+	PrecacheModelSounds();
 	PRECACHE_MODEL( "models/v_satchel_radio.mdl" );
-	PRECACHE_MODEL( MyWModel() );
-	PrecachePModel( "models/p_satchel.mdl" );
 	PrecachePModel( "models/p_satchel_radio.mdl" );
 
 	UTIL_PrecacheOther( "monster_satchel" );
@@ -360,14 +359,30 @@ void CSatchel::Precache( void )
 
 bool CSatchel::GetItemInfo( ItemInfo *p )
 {
-	p->pszAmmo1 = AmmoName("Satchel Charge");
 	p->iSlot = 4;
 	p->iPosition = 1;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = SATCHEL_DEFAULT_GIVE;
+	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
+}
+
+WeaponParameters CSatchel::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 1;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Satchel Charge";
+
+	params.worldModel = "models/w_satchel.mdl";
+	params.viewModel = "models/v_satchel.mdl";
+	params.playerModel = "models/p_satchel.mdl";
+	params.playerAnimExt = "trip";
+	params.priority = -10;
+
+	return params;
 }
 
 //=========================================================
@@ -410,7 +425,7 @@ bool CSatchel::Deploy()
 	if( m_chargeReady )
 		result = DefaultDeploy( "models/v_satchel_radio.mdl", "models/p_satchel_radio.mdl", SATCHEL_RADIO_DRAW, "hive" );
 	else
-		result = DefaultDeploy( "models/v_satchel.mdl", "models/p_satchel.mdl", SATCHEL_DRAW, "trip" );
+		result = DefaultDeploy( MyViewModel(), MyPlayerModel(), SATCHEL_DRAW, "trip" );
 
 	if (result)
 	{
@@ -609,9 +624,9 @@ void CSatchel::ItemPreFrame()
 void CSatchel::DrawSatchel()
 {
 #if !CLIENT_DLL
-		m_pPlayer->pev->viewmodel = MAKE_STRING( "models/v_satchel.mdl" );
+		m_pPlayer->pev->viewmodel = MAKE_STRING( MyViewModel() );
 		if (g_modFeatures.weapon_p_models)
-			m_pPlayer->pev->weaponmodel = MAKE_STRING( "models/p_satchel.mdl" );
+			m_pPlayer->pev->weaponmodel = MAKE_STRING( MyPlayerModel() );
 #else
 		LoadVModel( "models/v_satchel.mdl", m_pPlayer );
 #endif

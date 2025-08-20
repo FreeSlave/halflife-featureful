@@ -21,6 +21,7 @@
 #include "const_render.h"
 #include "const_sound.h"
 #include "const_waterlevel.h"
+#include "shell_bounce.h"
 
 //
 // Constants shared by the engine and dlls
@@ -665,11 +666,6 @@
 #define BOUNCE_SHELL		0x20
 #define BOUNCE_CONCRETE		BREAK_CONCRETE
 #define BOUNCE_SHOTSHELL		0x80
-
-// Temp entity bounce sound types
-#define TE_BOUNCE_NULL		0
-#define TE_BOUNCE_SHELL		1
-#define TE_BOUNCE_SHOTSHELL		2
 
 typedef unsigned int		func_t;
 

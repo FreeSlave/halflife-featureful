@@ -1,10 +1,14 @@
 #include "extdll.h"
 #include "util.h"
+#include "random_utils.h"
 #include "cbase.h"
 #include "player.h"
 #include "weapons.h"
+#include "clamp.h"
+#include "weapon_templates.h"
 
 #if !CLIENT_DLL
+#include "ammo_amounts.h"
 #include "gamerules.h"
 #endif
 
@@ -12,6 +16,62 @@ WeaponInfo& AccessWeaponInfo(int id)
 {
 	static WeaponInfo arr[MAX_WEAPONS] = {};
 	return arr[id];
+}
+
+static void SetDefaultWeaponParameters()
+{
+	for(int i=1; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo& info = AccessWeaponInfo(i);
+		if (info.pWeapon)
+			info.params = info.pWeapon->GetDefaultParameters();
+	}
+}
+
+void SetWeaponParameters()
+{
+	SetDefaultWeaponParameters();
+	g_WeaponTemplateSystem.ReadFromFile("templates/weapons.json");
+}
+
+int GetWeaponIdByName(const char* classname)
+{
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		const WeaponInfo& info = AccessWeaponInfo(i);
+		if (info.classname && strcmp(classname, info.classname) == 0)
+		{
+			return info.id;
+		}
+	}
+	return -1;
+}
+
+WeaponParameters* AccessWeaponParameters(const char* name)
+{
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo& info = AccessWeaponInfo(i);
+		if (info.classname && strcmp(name, info.classname) == 0)
+		{
+			return &info.params;
+		}
+	}
+	return nullptr;
+}
+
+const WeaponParameters& GetWeaponParameters(int id)
+{
+	return AccessWeaponInfo(id).params;
+}
+
+bool ShouldMirrorViewModel(int id)
+{
+	if (id > 0 && id < MAX_WEAPONS)
+	{
+		return GetWeaponParameters(id).mirrorViewModel;
+	}
+	return false;
 }
 
 WeaponRegistrator::WeaponRegistrator(const char* classname, CBasePlayerWeapon* pWeapon)
@@ -25,6 +85,53 @@ WeaponRegistrator::WeaponRegistrator(const char* classname, CBasePlayerWeapon* p
 	info.id = id;
 	info.classname = classname;
 	info.pWeapon = pWeapon;
+}
+
+const WeaponParameters& CBasePlayerWeapon::MyParameters() const
+{
+	return AccessWeaponInfo(WeaponId()).params;
+}
+
+const char* WeaponSoundScript::Wave() const
+{
+	if (waves.size() > 1)
+	{
+		return waves[RandomInt(0, waves.size() - 1)];
+	}
+	else if (waves.size() == 1)
+	{
+		return waves[0];
+	}
+	return nullptr;
+}
+
+const char* WeaponSoundScript::Wave(int index) const
+{
+	if (index >= 0 && static_cast<unsigned int>(index) < waves.size())
+		return waves[index];
+	return nullptr;
+}
+
+void CBasePlayerWeapon::PrecacheModelSounds()
+{
+	const WeaponParameters& params = MyParameters();
+
+	if (params.modelSounds.size())
+	{
+		for (const auto& sound : params.modelSounds)
+		{
+			::PRECACHE_SOUND(sound.c_str());
+		}
+	}
+	else
+	{
+		PrecacheDefaultModelSounds();
+	}
+}
+
+void CBasePlayerWeapon::SendWeaponAnim(int iAnim)
+{
+	SendWeaponAnim(iAnim, ViewModelBody());
 }
 
 bool CBasePlayerWeapon::CanDeploy( void )
@@ -51,7 +158,8 @@ bool CBasePlayerWeapon::CanDeploy( void )
 	}
 	if( !bHasAmmo )
 	{
-		return false;
+		const WeaponParameters& params = MyParameters();
+		return (params.fire.useSecondaryAmmo.Get(false) || params.fire.useSecondaryAmmo.Get(true)) && params.secondaryAmmoName.empty();
 	}
 
 	return true;
@@ -70,7 +178,8 @@ bool CBasePlayerWeapon::DefaultReload( int iClipSize, int iAnim, float fDelay, i
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + fDelay;
 
 	//!!UNDONE -- reload sound goes here !!!
-	SendWeaponAnim( iAnim, body );
+	if (iAnim >= 0)
+		SendWeaponAnim( iAnim, body );
 
 	m_fInReload = true;
 
@@ -168,11 +277,13 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		// no fire buttons down
 		m_fFireOnEmpty = false;
 
+		UpdateInaccuracy();
+
 #ifndef CLIENT_DLL
 		if( !IsUseable() && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0f : gpGlobals->time ) )
 		{
 			// weapon isn't useable, switch.
-			if( !( iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY ) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this ) )
+			if( g_pGameRules->GetNextBestWeapon( m_pPlayer, this ) )
 			{
 				m_flNextPrimaryAttack = ( UseDecrement() ? 0.0f : gpGlobals->time ) + 0.3f;
 				return;
@@ -182,7 +293,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 #endif
 		{
 			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
-			if( m_iClip == 0 && !(iFlags() & ITEM_FLAG_NOAUTORELOAD ) &&
+			if( UsesClip() && m_iClip == 0 &&
 #ifdef CLIENT_DLL
 					m_flNextPrimaryAttack <= 0.0f
 #else
@@ -206,9 +317,49 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 }
 
+void CBasePlayerWeapon::SetInitialAmmoAmount()
+{
+	const int initialAmmoAmount = RandomizeNumberFromRange(MyParameters().initialAmmoAmount);
+
+	if (m_iDefaultAmmo == 0)
+	{
+#if !CLIENT_DLL
+		const int amount = g_AmmoAmounts.AmountForAmmoEnt(STRING(pev->classname));
+		if (amount >= 0)
+			m_iDefaultAmmo = amount;
+		else
+#endif
+			m_iDefaultAmmo = initialAmmoAmount;
+	}
+	else if (m_iDefaultAmmo < 0)
+	{
+		m_iDefaultAmmo = 0;
+	}
+	else
+	{
+		// pass, already initialized
+	}
+}
+
+void CBasePlayerWeapon::InitMaxClip()
+{
+	m_iMaxClip = MyParameters().maxClip;
+	if (!m_iMaxClip)
+	{
+		m_iMaxClip = WEAPON_NOCLIP;
+		m_iClip = -1;
+	}
+}
+
 int CBasePlayerWeapon::iMaxClip()
 {
 	return m_iMaxClip;
+}
+
+int CBasePlayerWeapon::iWeight()
+{
+	const WeaponParameters& params = MyParameters();
+	return params.priority;
 }
 
 int CBasePlayerWeapon::PrimaryAmmoIndex() const
@@ -231,14 +382,9 @@ int CBasePlayerWeapon::SecondaryAmmoIndex() const
 	return m_iSecondaryAmmoType;
 }
 
-bool CBasePlayerWeapon::InZoom()
-{
-	return m_pPlayer->pev->fov != 0;
-}
-
 bool CBasePlayerWeapon::CanReload()
 {
-	if (!UsesClip())
+	if (!UsesAmmo() || !UsesClip())
 		return false;
 	return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 && m_iClip < m_iMaxClip;
 }
@@ -262,6 +408,8 @@ bool CBasePlayerWeapon::HasAmmoToFire(int ammo)
 
 bool CBasePlayerWeapon::IsOutOfAmmo()
 {
+	if (!UsesAmmo())
+		return false;
 	if (UsesClip())
 	{
 		return m_iClip <= 0 && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < 1;
@@ -302,6 +450,8 @@ void CBasePlayerWeapon::SpendAmmo(int ammo)
 
 bool CBasePlayerWeapon::Emptied()
 {
+	if (!UsesAmmo())
+		return false;
 	if (UsesClip())
 	{
 		return m_iClip == 0;
@@ -311,3 +461,2171 @@ bool CBasePlayerWeapon::Emptied()
 		return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] == 0;
 	}
 }
+
+void CBasePlayerWeapon::PlayWeaponSoundScript(const WeaponSoundScript& soundScript, float volumeFactor)
+{
+	const char* soundWave = soundScript.Wave();
+	if (soundWave)
+	{
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), soundScript.channel, soundWave, RandomizeNumberFromRange(soundScript.volume) * volumeFactor, soundScript.attenuation, 0, RandomizeNumberFromRange(soundScript.pitch));
+	}
+}
+
+static bool PlayerMatchesConditions(CBasePlayer* pPlayer, const PlayerMovementConditions& conditions)
+{
+	if (!indeterminate(conditions.inAir))
+	{
+		const bool isOnGround = FBitSet(pPlayer->pev->flags, FL_ONGROUND);
+		if (conditions.inAir && isOnGround)
+			return false;
+		if (!conditions.inAir && !isOnGround)
+			return false;
+	}
+	if (!indeterminate(conditions.ducking))
+	{
+		const bool isDucking = FBitSet(pPlayer->pev->flags, FL_DUCKING);
+		if (conditions.ducking && !isDucking)
+			return false;
+		if (!conditions.ducking && isDucking)
+			return false;
+	}
+	if (conditions.moving >= 0.0f)
+	{
+		if (!pPlayer->pev->velocity.IsLength2DGreaterThan(conditions.moving))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void CConfigurableWeapon::Spawn()
+{
+	Precache();
+
+	SET_MODEL(ENT(pev), MyWorldModel());
+
+	SetInitialAmmoAmount();
+	InitMaxClip();
+
+	FallInit();// get ready to fall down.
+
+	ResetInaccuracy();
+	m_bDelayFire = true;
+
+	const WeaponParameters& params = MyParameters();
+	if (params.startLaserSpot)
+		m_bLaserActive = true;
+}
+
+static void PrecacheWeaponSoundScript(const WeaponSoundScript& soundScript)
+{
+	for (auto& wave : soundScript.waves)
+	{
+		::PRECACHE_SOUND(wave);
+	}
+}
+
+static void PrecacheWeaponSoundScript(const optional<WeaponSoundScript> soundScript)
+{
+	if (soundScript.has_value())
+	{
+		PrecacheWeaponSoundScript(*soundScript);
+	}
+}
+
+static void PrecacheWeaponSoundScript(const WeaponModeValue<WeaponSoundScript>& soundScript)
+{
+	PrecacheWeaponSoundScript(soundScript.main);
+	PrecacheWeaponSoundScript(soundScript.alt);
+}
+
+static void PrecacheWeaponSoundScript(const WeaponModeValueEmptyAware<WeaponSoundScript>& soundScript)
+{
+	PrecacheWeaponSoundScript(soundScript.main);
+	PrecacheWeaponSoundScript(soundScript.mainEmptied);
+	PrecacheWeaponSoundScript(soundScript.alt);
+	PrecacheWeaponSoundScript(soundScript.altEmptied);
+}
+
+static int PrecacheWeaponParamModel(const char* model)
+{
+	if (model)
+		return PRECACHE_MODEL(model);
+	return 0;
+}
+
+static int PrecacheWeaponParamModel(optional<const char*> model)
+{
+	if (model.has_value())
+		return PrecacheWeaponParamModel(*model);
+	return 0;
+}
+
+void CConfigurableWeapon::Precache()
+{
+	PrecacheWeaponModels();
+
+	PrecacheCommonEvent();
+
+	const WeaponParameters& params = MyParameters();
+
+	PrecacheWeaponSoundScript(params.fire.sound);
+	PrecacheWeaponSoundScript(params.fire.soundAdditional);
+	PrecacheWeaponSoundScript(params.fire.hitBodySound);
+	PrecacheWeaponSoundScript(params.fire.hitWallSound);
+	PrecacheWeaponSoundScript(params.fire.emptySound);
+	PrecacheWeaponSoundScript(params.fire.pumpSound);
+
+	shellModel = PrecacheWeaponParamModel(params.fire.shellModel.main);
+	shellModel2 = PrecacheWeaponParamModel(params.fire.shellModel.alt);
+	shellModelAlternate = PrecacheWeaponParamModel(params.fire.shellModelAlternating.main);
+	shellModelAlternate2 = PrecacheWeaponParamModel(params.fire.shellModelAlternating.alt);
+
+	PrecacheWeaponSoundScript(params.reload.sound);
+	PrecacheWeaponSoundScript(params.endReload.sound);
+
+	PrecacheWeaponSoundScript(params.altMode.zoomSound);
+	PrecacheWeaponSoundScript(params.altMode.zoomSound2);
+	PrecacheWeaponSoundScript(params.altMode.unzoomSound);
+
+	PrecacheWeaponSoundScript(params.activateLaserSpotSound);
+	PrecacheWeaponSoundScript(params.deactivateLaserSpotSound);
+
+	PrecacheWeaponSoundScript(params.recharge.sound);
+
+	PrecacheModelSounds();
+
+	if (params.startLaserSpot || params.altMode.toggleLaserSpot)
+	{
+		UTIL_PrecacheOther("laser_spot");
+	}
+}
+
+bool CConfigurableWeapon::Deploy()
+{
+	return PerformDeploy();
+}
+
+bool CConfigurableWeapon::PerformDeploy()
+{
+	const WeaponParameters& params = MyParameters();
+
+	const bool altMode = InAltMode();
+	const bool emptied = Emptied();
+
+	if (CanRechargeAmmo())
+	{
+		if (params.recharge.onlyWhenDrawn.Get(altMode))
+			m_flRechargeTime = gpGlobals->time + params.recharge.interval.Get(altMode);
+	}
+
+	const WeaponParameters::Deploy& deploy = params.deploy;
+
+	const float duration = deploy.duration.Get(altMode, emptied);
+	float idleDelay = deploy.idleDelay.Get(altMode, emptied);
+	idleDelay = Q_max(idleDelay, duration);
+
+	if (m_switchingBody && m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase())
+	{
+		m_switchingBody = false;
+		SetBody(params.viewModelBody.Get(!m_wasInAltModeBeforeSwitchingBody));
+	}
+
+	if (m_switchingMode)
+	{
+		const int animIndex = params.altMode.endAnimIndex.Get(m_inAltMode);
+		if (animIndex >= 0)
+		{
+			m_switchingMode = false;
+			m_inAltMode = !m_inAltMode;
+		}
+	}
+
+	const bool result = DefaultDeploy(MyViewModel(), MyPlayerModel(), deploy.animIndex.Get(altMode, emptied), params.playerAnimExt.c_str(), ViewModelBody(), duration, idleDelay);
+	if (result)
+	{
+		m_iSwingMode = 0;
+		ResetBurst();
+
+		if (params.manualReload)
+		{
+			if (params.manualReloadRestartOnDeploy)
+			{
+				if (m_fInSpecialReload)
+					m_shouldRestartReloading = true;
+				m_fInSpecialReload = 0;
+			}
+		}
+		else
+		{
+			m_fInSpecialReload = 0;
+		}
+
+		m_bDelayFire = true;
+		ResetInaccuracy();
+
+		if (!m_playedFirstDeploy && params.startInAltMode && !m_inAltMode)
+		{
+			if (params.altMode.zoomFOV == 0)
+				SwitchMode(SwitchModeReason::FirstDeploy);
+		}
+
+		m_playedFirstDeploy = true;
+	}
+	return result;
+}
+
+extern void EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype );
+
+void CConfigurableWeapon::EjectBrassLate()
+{
+#ifndef CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+	const bool altMode = m_wasInAltModeBeforeEjectLate;
+	const int shellId = altMode ? shellModel2 : shellModel;
+
+	if (!shellId)
+		return;
+
+	const bool shellLeftSide = fire.shellLeftSide.Get(altMode);
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	const Vector vecUp = RandomizeNumberFromRange(fire.shellVelocityUp.Get(altMode)) * gpGlobals->v_up;
+	const Vector vecRight = RandomizeNumberFromRange(fire.shellVelocitySide.Get(altMode)) * gpGlobals->v_right;
+	const Vector vecForward = RandomizeNumberFromRange(fire.shellVelocityForward.Get(altMode)) * gpGlobals->v_forward;
+
+	const Vector vecShellVelocity = m_pPlayer->pev->velocity + (shellLeftSide ? -vecRight : vecRight) + vecUp + vecForward;
+	int soundType = fire.shellSound.Get(altMode);
+
+	EjectBrass(pev->origin + m_pPlayer->pev->view_ofs +
+				gpGlobals->v_up * fire.shellOffsetUp.Get(altMode) +
+				gpGlobals->v_forward * fire.shellOffsetForward.Get(altMode) +
+				gpGlobals->v_right * fire.shellOffsetSide.Get(altMode),
+				vecShellVelocity, pev->angles.y, shellId, soundType);
+#endif
+}
+
+void CConfigurableWeapon::ItemPostFrame()
+{
+	UpdateSpot();
+
+	const WeaponParameters& params = MyParameters();
+
+	if (m_flPumpTime && m_flPumpTime < gpGlobals->time)
+	{
+		PlayWeaponSoundScript(params.fire.pumpSound.Get(m_inAltMode));
+		m_flPumpTime = 0;
+	}
+
+	if (m_pPlayer->m_bResumeZoom && m_flNextPrimaryAttack <= UTIL_WeaponTimeBase())
+	{
+		if (UsesAmmo() && HasAmmoToFire())
+		{
+			// Don't zoom again if has nothing to fire - the reload unzooms anyway
+			// This way we avoid playing the zoom fade if there's any
+			SetZoom(m_pPlayer->m_iLastZoom);
+		}
+		m_pPlayer->m_bResumeZoom = false;
+	}
+
+	if (m_pPlayer->m_flEjectBrass != 0.0f && m_pPlayer->m_flEjectBrass <= gpGlobals->time)
+	{
+		m_pPlayer->m_flEjectBrass = 0.0f;
+		EjectBrassLate();
+	}
+
+	bool shouldSwitchBodyNow = false;
+	bool shouldSwitchModeNow = false;
+
+	if (m_switchingBody)
+	{
+		if (m_switchingMode)
+		{
+			const float bodySwitchDelay = params.altMode.bodyDelay.Get(m_wasInAltModeBeforeSwitchingBody);
+			const float modeSwitchDelay = params.altMode.modeDelay.Get(m_wasInAltModeBeforeSwitchingBody);
+
+			if (bodySwitchDelay <= modeSwitchDelay)
+			{
+				m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + modeSwitchDelay - bodySwitchDelay;
+				shouldSwitchBodyNow = true;
+			}
+		}
+		else
+			shouldSwitchBodyNow = true;
+	}
+
+	if (m_switchingMode)
+	{
+		if (m_switchingBody)
+		{
+			const float bodySwitchDelay = params.altMode.bodyDelay.Get(m_inAltMode);
+			const float modeSwitchDelay = params.altMode.modeDelay.Get(m_inAltMode);
+
+			if (modeSwitchDelay <= bodySwitchDelay)
+			{
+				m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + bodySwitchDelay - modeSwitchDelay;
+				shouldSwitchModeNow = true;
+			}
+		}
+		else
+			shouldSwitchModeNow = true;
+	}
+
+	if (shouldSwitchBodyNow)
+	{
+		m_switchingBody = false;
+		SetBody(params.viewModelBody.Get(!m_wasInAltModeBeforeSwitchingBody));
+	}
+
+	if (shouldSwitchModeNow)
+	{
+		m_switchingMode = false;
+
+		const int animIndex = params.altMode.endAnimIndex.Get(m_inAltMode);
+		if (animIndex >= 0)
+		{
+			SendWeaponAnim(animIndex);
+			const float animDuration = params.altMode.endAnimDuration.Get(m_inAltMode);
+			m_pPlayer->m_flNextAttack = Q_max(UTIL_WeaponTimeBase() + animDuration, m_pPlayer->m_flNextAttack);
+		}
+
+		m_inAltMode = !m_inAltMode;
+	}
+
+	if (m_burstTime != 0.0f)
+	{
+#if CLIENT_DLL
+		// TODO: Sometimes client updates the time slower than the server
+		// use decrementing variable instead?
+		if (gpGlobals->time + 0.01f > m_burstTime)
+#else
+		if (gpGlobals->time > m_burstTime)
+#endif
+		{
+			FireRemaining();
+		}
+	}
+
+	CBasePlayerWeapon::ItemPostFrame();
+}
+
+void CConfigurableWeapon::UpdateInaccuracy()
+{
+	if (m_bDelayFire)
+	{
+		m_bDelayFire = false;
+
+		if (m_iShotsFired > 15)
+		{
+			m_iShotsFired = 15;
+		}
+		m_flDecreaseShotsFired = gpGlobals->time + 0.4f;
+	}
+
+	const bool altMode = m_lastShotWasInAltMode;
+
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	const bool semiAuto = altMode ? (fire.semiAuto.alt.has_value() ? *fire.semiAuto.alt : false) : fire.semiAuto.main;
+	if (semiAuto)
+	{
+		m_iShotsFired = 0;
+	}
+	else
+	{
+		if (m_iShotsFired > 0 && m_flDecreaseShotsFired < gpGlobals->time)
+		{
+			m_flDecreaseShotsFired = gpGlobals->time + 0.0225f;
+			m_iShotsFired--;
+
+			if (m_iShotsFired == 0)
+			{
+				m_flInaccuracy = fire.spread.GetDefaultInaccuracy(altMode);
+			}
+		}
+	}
+}
+
+static int PackIParam1(bool altMode, bool emptied, bool alternatingEject)
+{
+	int iParam1Bits = 0;
+	if (altMode)
+	{
+		iParam1Bits |= (int)WeaponEventFlags::ALTMODE;
+	}
+	if (emptied)
+	{
+		iParam1Bits |= (int)WeaponEventFlags::EMPTIED;
+	}
+	if (alternatingEject)
+	{
+		iParam1Bits |= (int)WeaponEventFlags::ALTERNATING_EJECT;
+	}
+	return iParam1Bits;
+}
+
+void CConfigurableWeapon::SendScreenShake(const PlayerShake& shake)
+{
+#ifndef CLIENT_DLL
+	if (shake.IsDefined())
+	{
+		if (FBitSet(m_pPlayer->pev->flags, FL_ONGROUND))
+			UTIL_ScreenShakeToClient( m_pPlayer->edict(), shake.amplitude, shake.frequency, shake.duration );
+	}
+#endif
+}
+
+void CConfigurableWeapon::ApplyMyKickBack(bool altMode)
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	auto& kickBackRules = fire.kickBack.GetRuleList(altMode);
+	if (kickBackRules.size())
+	{
+		WeaponKickBack kickBack = kickBackRules.back().kickBack;
+		if (kickBackRules.size() > 1)
+		{
+			for (const auto& rule : kickBackRules)
+			{
+				if (PlayerMatchesConditions(m_pPlayer, rule.conditions))
+				{
+					kickBack = rule.kickBack;
+					break;
+				}
+			}
+		}
+		KickBack(kickBack);
+	}
+}
+
+void CConfigurableWeapon::PerformWeaponFire(bool altMode)
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
+
+	if (!params.manualReload && m_fInSpecialReload)
+		return;
+
+	const bool semiAuto = altMode ? (fire.semiAuto.alt.has_value() ? *fire.semiAuto.alt : false) : fire.semiAuto.main;
+	if (semiAuto)
+	{
+		if (m_iShotsFired >= 1)
+			return;
+	}
+
+	const bool allowUnderwater = fire.allowUnderwater.Get(altMode);
+
+	if (m_pPlayer->pev->waterlevel == WL_Eyes && !allowUnderwater)
+	{
+		PlayEmptySound(altMode);
+		m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayUnderwater.Get(altMode));
+		return;
+	}
+
+	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
+	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
+
+	if (useSecondaryAmmo)
+	{
+		if (m_iSecondaryAmmoType > 0)
+		{
+			if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+			{
+				PlayEmptySound(altMode);
+				return;
+			}
+			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
+			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
+		}
+	}
+	else
+	{
+		if (UsesAmmo())
+		{
+			if (!HasAmmoToFire(ammoPerFire))
+			{
+				if (UsesClip() && params.reloadAutostart)
+				{
+					Reload();
+					if (!HasAmmoToFire(ammoPerFire))
+						PlayEmptySound(altMode);
+				}
+				else
+				{
+					if (m_fFireOnEmpty)
+					{
+						PlayEmptySound(altMode);
+						m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayAfterEmpty.Get(altMode));
+					}
+				}
+				return;
+			}
+			SpendAmmo(ammoPerFire);
+			OnSpendAmmo();
+		}
+	}
+
+	if (params.altMode.zoomFOV > 0 && m_pPlayer->m_iFOV != 0 && params.altMode.resetZoomOnFire)
+	{
+		if (params.altMode.resumeZoomAfterReset)
+		{
+			m_pPlayer->m_bResumeZoom = true;
+			m_pPlayer->m_iLastZoom = m_pPlayer->m_iFOV;
+		}
+
+		SetZoom(0);
+	}
+
+	m_bAlternatingEject = !m_bAlternatingEject;
+
+	if (fire.muzzleFlash.Get(altMode))
+		m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
+
+	SendScreenShake(fire.shake.Get(altMode));
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	m_pPlayer->m_iWeaponVolume = fire.weaponVolume.Get(altMode);
+	m_pPlayer->m_iWeaponFlash = fire.weaponFlash.Get(altMode);
+
+	const int extraSoundTypes = fire.extraSoundTypes.Get(altMode);
+	if (extraSoundTypes)
+	{
+		m_pPlayer->m_iExtraSoundTypes = extraSoundTypes;
+		m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + fire.extraSoundTime.Get(altMode);
+	}
+
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecAiming;
+
+	const float autoAimDegree = fire.autoAimDegree.Get(altMode);
+
+	if (autoAimDegree)
+	{
+		vecAiming = m_pPlayer->GetAutoaimVector(autoAimDegree);
+	}
+	else
+	{
+		UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+		vecAiming = gpGlobals->v_forward;
+	}
+
+#if !CLIENT_DLL
+	const float suspendLaserSpotTime = fire.suspendLaserSpotTime.Get(altMode);
+	if (suspendLaserSpotTime)
+	{
+		if (m_pLaser)
+			m_pLaser->Suspend(suspendLaserSpotTime);
+	}
+#endif
+
+	if (CanRechargeAmmo())
+	{
+		const float rechargeInterval = params.recharge.interval.Get(altMode);
+		const float rechargeDelayAfterFire = params.recharge.delayAfterFire.Get(altMode);
+		const float rechargeDelay = Q_max(rechargeInterval, rechargeDelayAfterFire);
+
+		m_flRechargeTime = gpGlobals->time + rechargeDelay;
+	}
+
+	const auto fireType = fire.fireType.Get(altMode);
+	float spreadX = 0.0f;
+	float spreadY = 0.0f;
+	Vector vecSpread;
+	if (fireType == WeaponParameters::Fire::BULLETS)
+	{
+		const auto& ruleList = fire.spread.GetRuleList(altMode);
+		if (fire.spread.UsesDynamicInaccuracy(altMode))
+		{
+			if (ruleList.size())
+			{
+				vecSpread = ruleList.back().GetDynamicSpread(m_flInaccuracy);
+				for (const auto& rule : ruleList)
+				{
+					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
+					{
+						vecSpread = rule.GetDynamicSpread(m_flInaccuracy);
+						break;
+					}
+				}
+			}
+			else
+			{
+				vecSpread.x = vecSpread.y = 0.02 * m_flInaccuracy;
+			}
+			//ALERT(at_console, "Firing with inaccuracy %g. Spread %g, %g\n", m_flInaccuracy, vecSpread.x, vecSpread.y);
+		}
+		else
+		{
+			if (ruleList.size())
+			{
+				vecSpread = ruleList.back().GetStaticSpread(); // pick the last as default option
+				for (const auto& rule : ruleList)
+				{
+					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
+					{
+						vecSpread = rule.GetStaticSpread();
+						break;
+					}
+				}
+			}
+			//ALERT(at_console, "Firing with spread %g, %g. AltMode: %s\n", vecSpread.x, vecSpread.y, altMode ? "yes" : "no");
+		}
+
+		const int bulletCount = fire.bulletCount.Get(altMode);
+		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+		if (bulletCount > 1)
+		{
+			// TODO: properly send spreads for multiple bullet shots to the client?
+			spreadX = vecSpread.x;
+			spreadY = vecSpread.y;
+		}
+		else
+		{
+			spreadX = randomizedSpread.x;
+			spreadY = randomizedSpread.y;
+
+			//ALERT(at_console, "Result spread: %g, %g\n", spreadX, spreadY);
+		}
+	}
+	else if (fireType == WeaponParameters::Fire::NATIVE)
+	{
+		NativeAttack(altMode);
+	}
+	else if (fireType == WeaponParameters::Fire::MELEE)
+	{
+		m_swingIsAltAttack = altMode;
+		if (!m_iSwingMode && !Swing(true))
+		{
+#if !CLIENT_DLL
+			SetThink( &CConfigurableWeapon::SwingAgain );
+			pev->nextthink = gpGlobals->time + 0.1f;
+#endif
+		}
+		return;
+	}
+	else if (fireType == WeaponParameters::Fire::MELEE_WIND)
+	{
+		if (m_iSwingMode != 1)
+		{
+			const WeaponParameters::FireAnimArray& arr = fire.chargeAnims.Get(altMode);
+			if (arr.size())
+			{
+				int anim = -1;
+				if (arr.size() == 1)
+				{
+					anim = arr.front();
+				}
+				else
+				{
+					anim = arr[RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, 0, arr.size()-1)];
+				}
+				if (anim >= 0)
+				{
+					SendWeaponAnim(anim);
+				}
+			}
+			m_flBigSwingStart = gpGlobals->time;
+		}
+		m_swingIsAltAttack = altMode;
+		m_iSwingMode = 1;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+		return;
+	}
+
+	m_lastShotWasInAltMode = altMode;
+	m_bDelayFire = true;
+	m_iShotsFired++;
+	m_flInaccuracy = fire.spread.GetNewInaccuracy(altMode, m_flInaccuracy, m_iShotsFired, m_flLastFire, gpGlobals->time);
+	m_flLastFire = gpGlobals->time;
+
+	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+
+	/* TODO: is this good enough?
+	 * We could send spread values as is, pack flags and body into iparam1 and
+	 * encode punchangle in iparam2 instead
+	 */
+	const float encodedSpread = WeaponSpreadPacker::encode(spreadX, spreadY);
+	const float encodedPunchangle = WeaponSpreadPacker::encode(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y);
+
+	/*ALERT(at_console, "Shared spread: %g, %g. Encoded: %g. Shared punch angles: %g, %g. Encoded: %g\n",
+			spreadX, spreadY, encodedSpread,
+			m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, encodedPunchangle);
+	*/
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
+						encodedSpread, encodedPunchangle,
+						iParam1Bits, PackIParam2(), 0, 0);
+
+	const float flCycleTime = fire.cycleTime.Get(altMode);
+	m_flNextPrimaryAttack = GetNextAttackDelay( flCycleTime );
+	if (params.secondaryFireType == SecondaryFireType::ALTERNATIVE_FIRE)
+	{
+		m_flNextSecondaryAttack = Q_max(m_flNextPrimaryAttack, m_flNextSecondaryAttack);
+	}
+
+	if (useSecondaryAmmo)
+		CheckOutOfSecondaryAmmo();
+	else
+	{
+		if (!CanRechargeAmmo())
+			CheckOutOfAmmo();
+	}
+
+	const float pumpTime = fire.pumpDelay.Get(altMode);
+	if (pumpTime)
+		m_flPumpTime = gpGlobals->time + pumpTime;
+
+	const FloatRange weaponIdleDelayRange = fire.idleDelay.Get(altMode, Emptied());
+	const float weaponIdleDelay = RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, weaponIdleDelayRange);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + weaponIdleDelay;
+
+	m_fInSpecialReload = 0;
+
+	ApplyMyKickBack(altMode);
+
+	const float shellEjectDelay = fire.shellEjectDelay.Get(altMode);
+	if (shellEjectDelay > 0.0f)
+	{
+		m_pPlayer->m_flEjectBrass = gpGlobals->time + shellEjectDelay;
+		m_wasInAltModeBeforeEjectLate = altMode;
+	}
+
+	const float pushbackForce = fire.pushbackForce.Get(altMode);
+	if (pushbackForce)
+	{
+		const float currentZVel = m_pPlayer->pev->velocity.z;
+
+		UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+		const Vector vecPush = gpGlobals->v_forward * pushbackForce;
+
+		m_pPlayer->pev->velocity -= vecPush;
+
+		const bool pushbackVertical = fire.pushbackVertical.Get(altMode);
+		if (!pushbackVertical)
+			m_pPlayer->pev->velocity.z = currentZVel;
+	}
+
+	int burstShots = fire.burstShots.Get(altMode);
+	if (burstShots > 1)
+	{
+		m_burstFireIsAlt = altMode;
+		m_burstShotsFired++;
+		m_burstTime = gpGlobals->time + fire.burstInterval.Get(altMode);
+		m_burstSpreadX = vecSpread.x;
+		m_burstSpreadY = vecSpread.y;
+	}
+}
+
+void CConfigurableWeapon::FireRemaining()
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	const bool altMode = m_burstFireIsAlt;
+
+	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
+	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
+
+	bool canFireMore = true;
+	if (useSecondaryAmmo)
+	{
+		if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+		{
+			canFireMore = false;
+		}
+		else
+		{
+			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
+			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
+		}
+	}
+	else
+	{
+		if (UsesAmmo())
+		{
+			if (!HasAmmoToFire(ammoPerFire))
+			{
+				canFireMore = false;
+			}
+			else
+			{
+				SpendAmmo(ammoPerFire);
+				OnSpendAmmo();
+			}
+		}
+	}
+
+	if (!canFireMore)
+	{
+		ResetBurst();
+		return;
+	}
+
+	m_bAlternatingEject = !m_bAlternatingEject;
+
+	if (fire.muzzleFlash.Get(altMode))
+		m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecSpread{m_burstSpreadX, m_burstSpreadY, 0.0f};
+	float spreadX = 0.0f;
+	float spreadY = 0.0f;
+
+	const int bulletCount = fire.bulletCount.Get(altMode);
+	const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, gpGlobals->v_forward, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+	if (bulletCount > 1)
+	{
+		spreadX = vecSpread.x;
+		spreadY = vecSpread.y;
+	}
+	else
+	{
+		spreadX = randomizedSpread.x;
+		spreadY = randomizedSpread.y;
+	}
+
+	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+
+	const float encodedSpread = WeaponSpreadPacker::encode(spreadX, spreadY);
+	const float encodedPunchangle = WeaponSpreadPacker::encode(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y);
+
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
+						encodedSpread, encodedPunchangle,
+						iParam1Bits, PackIParam2(), 0, 0);
+
+	SendScreenShake(fire.shake.Get(altMode));
+
+	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
+
+	if (++m_burstShotsFired < fire.burstShots.Get(m_burstFireIsAlt))
+	{
+		m_burstTime = gpGlobals->time + fire.burstInterval.Get(altMode);
+	}
+	else
+	{
+		ResetBurst();
+	}
+}
+
+void CConfigurableWeapon::ResetBurst()
+{
+	m_burstShotsFired = 0;
+	m_burstTime = 0.0f;
+}
+
+void CConfigurableWeapon::ResetInaccuracy()
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	const bool altMode = InAltMode();
+	m_iShotsFired = 0;
+	m_flInaccuracy = fire.spread.GetDefaultInaccuracy(altMode);
+}
+
+void CConfigurableWeapon::PrimaryAttack()
+{
+	m_shouldRestartReloading = false;
+	PerformWeaponFire(InAltMode());
+}
+
+void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
+{
+	const WeaponParameters& params = MyParameters();
+
+	if (params.altMode.zoomFOV && !m_pPlayer->m_bResumeZoom)
+	{
+		if (m_pPlayer->m_iFOV != 0)
+		{
+			if (params.altMode.zoomFOV2 > 0 && m_pPlayer->m_iFOV != params.altMode.zoomFOV2 && reason == SwitchModeReason::Regular)
+			{
+				SetZoom(params.altMode.zoomFOV2);
+
+				if (params.altMode.zoomSound2.waves.size())
+					PlayWeaponSoundScript(params.altMode.zoomSound2);
+				else
+					PlayWeaponSoundScript(params.altMode.zoomSound);
+
+				const float attackDelay = params.altMode.attackDelay.Get(false);
+				m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + attackDelay;
+
+				return;
+			}
+			else
+			{
+				SetZoom(0);
+				PlayWeaponSoundScript(params.altMode.unzoomSound);
+			}
+		}
+		else if (m_pPlayer->m_iFOV != params.altMode.zoomFOV && reason == SwitchModeReason::Regular)
+		{
+			PlayWeaponSoundScript(params.altMode.zoomSound);
+			SetZoom(params.altMode.zoomFOV);
+		}
+	}
+	if (params.altMode.toggleLaserSpot)
+	{
+		const bool wasActive = m_bLaserActive;
+		m_bLaserActive = !m_bLaserActive;
+		if (wasActive)
+		{
+#if !CLIENT_DLL
+			if (m_pLaser)
+			{
+				if (reason == SwitchModeReason::Regular)
+					PlayWeaponSoundScript(params.deactivateLaserSpotSound);
+				m_pLaser->Killed(nullptr, nullptr, GIB_NORMAL);
+				m_pLaser = nullptr;
+			}
+#endif
+		}
+	}
+
+	const int animIndex = params.altMode.animIndex.Get(m_inAltMode);
+	if (animIndex >= 0)
+	{
+		SendWeaponAnim(animIndex);
+	}
+
+	const float attackDelay = params.altMode.attackDelay.Get(m_inAltMode);
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + attackDelay;
+	if (animIndex >= 0)
+	{
+		m_flTimeWeaponIdle = Q_max(m_flTimeWeaponIdle, m_flNextSecondaryAttack);
+		m_flNextPrimaryAttack = GetNextAttackDelay(attackDelay);
+	}
+
+	const float bodySwitchDelay = reason == SwitchModeReason::Regular ? params.altMode.bodyDelay.Get(m_inAltMode) : 0.0f;
+	const float modeSwitchDelay = reason == SwitchModeReason::Regular ? params.altMode.modeDelay.Get(m_inAltMode) : 0.0f;
+
+	const bool canSwitchBody = params.viewModelBody.Get(false) != params.viewModelBody.Get(true);
+
+	if (canSwitchBody)
+	{
+		if (!bodySwitchDelay)
+		{
+			SetBody(params.viewModelBody.Get(!m_inAltMode));
+		}
+		else
+		{
+			m_switchingBody = true;
+			m_wasInAltModeBeforeSwitchingBody = m_inAltMode;
+		}
+	}
+
+	if (!modeSwitchDelay)
+		m_inAltMode = !m_inAltMode;
+	else
+		m_switchingMode = true;
+
+	float delay = 0.0f;
+	if (bodySwitchDelay && modeSwitchDelay)
+		delay = Q_min(bodySwitchDelay, modeSwitchDelay);
+	else if (bodySwitchDelay)
+		delay = bodySwitchDelay;
+	else if (modeSwitchDelay)
+		delay = modeSwitchDelay;
+	if (delay > 0.0f)
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + delay;
+
+	if (!m_inAltMode)
+		m_pPlayer->m_bResumeZoom = false;
+
+	//ALERT(at_console, "New mode: %s\n", m_inAltMode ? "alternative" : "primary");
+}
+
+void CConfigurableWeapon::SecondaryAttack()
+{
+	m_shouldRestartReloading = false;
+
+	const WeaponParameters& params = MyParameters();
+
+	switch (params.secondaryFireType) {
+	case SecondaryFireType::DISABLED:
+		return;
+	case SecondaryFireType::ALTERNATIVE_FIRE:
+		PerformWeaponFire(true);
+		break;
+	case SecondaryFireType::SWITCH_MODE:
+		SwitchMode();
+		break;
+	}
+}
+
+bool CConfigurableWeapon::PerformReload()
+{
+	m_shouldRestartReloading = false;
+
+	if (m_burstTime != 0)
+		return false;
+
+	const WeaponParameters& params = MyParameters();
+	const int altMode = InAltMode();
+
+	if (CanRechargeAmmo())
+	{
+		if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()))
+			return false;
+
+		while (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()) && m_flRechargeTime < gpGlobals->time)
+		{
+			PlayWeaponSoundScript(params.recharge.sound.Get(altMode));
+			m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
+			m_flRechargeTime += params.recharge.interval.Get(altMode);
+		}
+		return true;
+	}
+
+	if (!CanReload())
+		return false;
+
+	const WeaponParameters::Reload& reload = params.reload;
+	const bool empty = Emptied();
+
+	// don't reload until recoil is done
+	if (reload.waitForRecoil.Get(altMode, empty) && m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
+		return false;
+
+	m_bDelayFire = false;
+	ResetInaccuracy();
+
+#if !CLIENT_DLL
+	if (m_pLaser)
+	{
+		const float reloadDuration = reload.duration.Get(altMode, empty);
+		const float suspendLaserTime = reload.suspendLaserSpotTime.Get(altMode, empty);
+		const float suspendDuration = Q_max(reloadDuration, suspendLaserTime);
+		if (suspendDuration > 0.0f)
+		{
+			m_pLaser->Suspend(suspendDuration);
+		}
+	}
+#endif
+
+	// check to see if we're ready to reload
+	if (m_fInSpecialReload == 0)
+	{
+		const int startAnimIndex = params.startReload.animIndex.Get(altMode, empty);
+		if (startAnimIndex >= 0)
+		{
+			ResetZoom(SwitchModeReason::Reload);
+
+			const float duration = params.startReload.duration.Get(altMode, empty);
+			SendWeaponAnim(startAnimIndex);
+			m_fInSpecialReload = 1;
+			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + duration;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + duration;
+			m_flNextPrimaryAttack = GetNextAttackDelay(duration);
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + duration;
+			return true;
+		}
+	}
+	if (params.manualReload)
+	{
+		if (m_fInSpecialReload == 0)
+		{
+			m_fInSpecialReload = 1;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
+		}
+
+		if (m_fInSpecialReload == 1)
+		{
+			if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+				return false;
+			// was waiting for gun to move to side
+			m_fInSpecialReload = 2;
+
+			const int animIndex = reload.animIndex.Get(altMode, empty);
+			if (animIndex < 0)
+				return false;
+
+			ResetZoom(SwitchModeReason::Reload);
+
+			PlayWeaponSoundScript(reload.sound.Get(altMode, empty));
+
+			SendWeaponAnim(animIndex);
+
+			const float attackDelay = reload.duration.Get(altMode, empty);
+			if (attackDelay)
+				m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + attackDelay;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RandomizeNumberFromRange(reload.idleDelay.Get(altMode, empty));
+			return true;
+		}
+		else
+		{
+			// Add them to the clip
+			m_iClip += 1;
+			m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= 1;
+			m_fInSpecialReload = 1;
+			return true;
+		}
+	}
+
+	const int animIndex = reload.animIndex.Get(altMode, empty);
+
+	const float reloadDuration = reload.duration.Get(altMode, empty);
+	bool result = DefaultClipReload(animIndex, reloadDuration, ViewModelBody());
+	if (result)
+	{
+		if (m_fInSpecialReload == 0 && params.endReload.animIndex.Get(altMode, empty) >= 0)
+		{
+			m_fInSpecialReload = 1;
+			m_wasEmptyReload = empty;
+		}
+
+		PlayWeaponSoundScript(reload.sound.Get(altMode, empty));
+
+		m_pPlayer->m_bResumeZoom = false;
+		ResetZoom(SwitchModeReason::Reload);
+		const float idleDelay = RandomizeNumberFromRange(reload.idleDelay.Get(altMode, empty));
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + Q_max(idleDelay, reloadDuration);
+		m_iShotsFired = 0;
+		m_bDelayFire = true;
+	}
+	return result;
+}
+
+void CConfigurableWeapon::Reload()
+{
+	PerformReload();
+}
+
+void CConfigurableWeapon::SendIdleAnimation()
+{
+	const WeaponParameters& params = MyParameters();
+
+	const WeaponParameters::IdleAnimArray& idleAnims = params.idleAnims.Get(InAltMode(), Emptied());
+	if (idleAnims.empty())
+		return;
+
+	auto sendIdleAnim = [this](const WeaponParameters::IdleAnim anim) {
+		SendWeaponAnim(anim.animIndex);
+		OnIdleAnimation(anim.animIndex);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, anim.duration);
+	};
+
+	if (idleAnims.size() == 1)
+	{
+		sendIdleAnim(idleAnims.front());
+		return;
+	}
+
+	float chanceSum = 0.0f;
+	for (const WeaponParameters::IdleAnim& anim : idleAnims)
+	{
+		chanceSum += anim.chance;
+	}
+
+	const float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0.0f, chanceSum);
+	float curSum = 0.0f;
+	for (const WeaponParameters::IdleAnim& anim : idleAnims)
+	{
+		curSum += anim.chance;
+		if (flRand <= curSum)
+		{
+			sendIdleAnim(anim);
+			return;
+		}
+	}
+}
+
+void CConfigurableWeapon::WeaponIdle()
+{
+	ResetEmptySound();
+	UpdateAutoAim();
+
+	const WeaponParameters& params = MyParameters();
+	const int altMode = InAltMode();
+
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
+
+	if (m_iSwingMode == 1)
+	{
+		if (gpGlobals->time > m_flBigSwingStart + params.fire.chargeTime.Get(true))
+		{
+			m_iSwingMode = 2;
+		}
+		return;
+	}
+	else if (m_iSwingMode == 2)
+	{
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + params.fire.cycleTime.Get(true);
+		BigSwing();
+		m_iSwingMode = 0;
+		return;
+	}
+
+	if (m_flTimeWeaponIdle >= UTIL_WeaponTimeBase() && params.manualReload)
+		return;
+
+	if (m_shouldRestartReloading && UsesClip() && m_iClip < iMaxClip() && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()])
+	{
+		Reload();
+	}
+	else if (params.reloadAutostart && UsesClip() && m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()])
+	{
+		Reload();
+	}
+	else
+	{
+		if (m_fInSpecialReload != 0)
+		{
+			if (params.manualReload && m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
+			{
+				Reload();
+				return;
+			}
+
+			const bool empty = m_wasEmptyReload;
+			m_wasEmptyReload = false;
+			const int endReloadAnimIndex = params.endReload.animIndex.Get(altMode, empty);
+			if (endReloadAnimIndex >= 0)
+			{
+				// reload debounce has timed out
+				OnEndReload();
+				SendWeaponAnim(endReloadAnimIndex);
+
+				// play cocking sound
+				PlayWeaponSoundScript(params.endReload.sound.Get(altMode, empty));
+				m_fInSpecialReload = 0;
+				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + params.endReload.idleDelay.Get(altMode, empty);
+				const float attackDelay = params.endReload.attackDelay.Get(altMode, empty);
+				if (attackDelay)
+				{
+					m_flNextPrimaryAttack = GetNextAttackDelay(attackDelay);
+					m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + attackDelay;
+				}
+				return;
+			}
+		}
+	}
+
+	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+		return;
+
+	SendIdleAnimation();
+}
+
+void CConfigurableWeapon::Holster()
+{
+	if (m_pPlayer->m_flEjectBrass != 0.0f)
+	{
+		m_pPlayer->m_flEjectBrass = 0.0f;
+		EjectBrassLate();
+	}
+
+	ResetBurst();
+	m_fInReload = false;
+	m_iSwingMode = 0;
+
+	m_pPlayer->pev->viewmodel = 0;
+	m_pPlayer->pev->weaponmodel = 0;
+
+	const WeaponParameters& params = MyParameters();
+
+	if (!params.manualReload || !params.manualReloadContinueOnDeploy)
+		m_fInSpecialReload = 0;
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + params.holster.attackDelay;
+	const float idleDelay = RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, params.holster.idleDelay);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + idleDelay;
+	SendWeaponAnim(params.holster.animIndex.Get(m_inAltMode, Emptied()));
+
+	ResetZoom(SwitchModeReason::Holster);
+	m_pPlayer->m_bResumeZoom = false;
+
+#if !CLIENT_DLL
+	if (m_pLaser)
+	{
+		m_pLaser->Killed(nullptr, nullptr, GIB_NEVER);
+		m_pLaser = nullptr;
+	}
+#endif
+
+	if (CanRechargeAmmo() && !HasAmmoToFire())
+	{
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
+	}
+}
+
+void CConfigurableWeapon::UpdateAutoAim()
+{
+	const WeaponParameters& params = MyParameters();
+	const float autoAimDegree = params.fire.autoAimDegree.Get(InAltMode());
+	if (autoAimDegree)
+		m_pPlayer->GetAutoaimVector(autoAimDegree);
+}
+
+void CConfigurableWeapon::UpdateSpot( void )
+{
+#if !CLIENT_DLL
+	if (m_bLaserActive)
+	{
+		if (m_pPlayer->pev->viewmodel == 0)
+			return;
+
+		const WeaponParameters& params = MyParameters();
+		if (!m_pLaser)
+		{
+			m_pLaser = CLaserSpot::CreateSpot(m_pPlayer->edict());
+			if (!params.laserSpotAttractRockets)
+				m_pLaser->pev->classname = MAKE_STRING("eagle_laser");
+			m_pLaser->pev->scale = params.laserSpotScale;
+
+			PlayWeaponSoundScript(params.activateLaserSpotSound);
+		}
+
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		Vector vecSrc = m_pPlayer->GetGunPosition( );
+		Vector vecAiming = gpGlobals->v_forward;
+
+		TraceResult tr;
+		UTIL_TraceLine ( vecSrc, vecSrc + vecAiming * 8192, dont_ignore_monsters, ENT(m_pPlayer->pev), &tr );
+
+		UTIL_SetOrigin( m_pLaser->pev, tr.vecEndPos );
+	}
+#endif
+}
+
+void CConfigurableWeapon::SetZoom(int fov)
+{
+	const WeaponParameters& params = MyParameters();
+
+#if !CLIENT_DLL
+	if (fov != m_pPlayer->m_iFOV)
+	{
+		const WeaponParameters::Fade& fade = params.altMode.zoomFade;
+		if (fade.fadeTime > 0 || fade.holdTime > 0)
+		{
+			UTIL_ScreenFade(m_pPlayer, VectorFromColor(fade.color), fade.fadeTime, fade.holdTime, fade.alpha, fade.flags);
+		}
+	}
+#endif
+
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = fov;
+
+#if !CLIENT_DLL
+	if (params.altMode.hideViewModelOnZoom)
+	{
+		if (fov)
+		{
+			m_pPlayer->pev->viewmodel = iStringNull;
+		}
+		else
+		{
+			if (FStringNull(m_pPlayer->pev->viewmodel))
+				m_pPlayer->pev->viewmodel = MAKE_STRING(params.viewModel.c_str());
+		}
+	}
+#endif
+}
+
+void CConfigurableWeapon::ResetZoom(SwitchModeReason reason)
+{
+	const WeaponParameters& params = MyParameters();
+	if (params.altMode.zoomFOV && m_inAltMode && params.secondaryFireType == SecondaryFireType::SWITCH_MODE)
+	{
+		SwitchMode(reason);
+	}
+}
+
+#if CLIENT_DLL
+void CConfigurableWeapon::KickBack(const WeaponKickBack&) {}
+#endif
+
+void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
+{
+	data.iuser1 = 0;
+	if (m_inAltMode)
+		data.iuser1 |= WEAPONDATA_ALTMODE;
+	if (m_bLaserActive)
+		data.iuser1 |= WEAPONDATA_LASERSPOT;
+	if (m_burstFireIsAlt)
+		data.iuser1 |= WEAPONDATA_BURST_IS_ALT;
+
+	if (m_switchingBody)
+		data.iuser1 |= WEAPONDATA_SWITCHING_BODY;
+	if (m_wasInAltModeBeforeSwitchingBody)
+		data.iuser1 |= WEAPONDATA_WAS_IN_ALT_MODE_BEFORE_SWITCHING_BODY;
+	if (m_switchingMode)
+		data.iuser1 |= WEAPONDATA_SWITCHING_MODE;
+	if (m_iSwingMode == 2)
+		data.iuser1 |= WEAPONDATA_SWING_MODE2;
+	else if (m_iSwingMode == 1)
+		data.iuser1 |= WEAPONDATA_SWING_MODE;
+
+	data.iuser2 = pev->body;
+	data.iuser3 = m_iShotsFired & 0xFF;
+
+	if (m_burstTime != 0.0f)
+	{
+		data.iuser1 |= WEAPONDATA_BURSTING;
+		data.iuser3 |= (m_burstShotsFired & 0xF) << 8;
+		data.fuser2 = gpGlobals->time - m_burstTime;
+	}
+
+	data.fuser3 = m_flInaccuracy;
+}
+
+void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
+{
+	m_inAltMode = FBitSet(data.iuser1, WEAPONDATA_ALTMODE);
+	m_bLaserActive = FBitSet(data.iuser1, WEAPONDATA_LASERSPOT);
+	m_burstFireIsAlt = FBitSet(data.iuser1, WEAPONDATA_BURST_IS_ALT);
+	m_switchingBody = FBitSet(data.iuser1, WEAPONDATA_SWITCHING_BODY);
+	m_wasInAltModeBeforeSwitchingBody = FBitSet(data.iuser1, WEAPONDATA_WAS_IN_ALT_MODE_BEFORE_SWITCHING_BODY);
+	m_switchingMode = FBitSet(data.iuser1, WEAPONDATA_SWITCHING_MODE);
+
+	if (FBitSet(data.iuser1, WEAPONDATA_SWING_MODE2))
+		m_iSwingMode = 2;
+	else if (FBitSet(data.iuser1, WEAPONDATA_SWING_MODE))
+		m_iSwingMode = 1;
+
+	pev->body = data.iuser2;
+	m_iShotsFired = data.iuser3 & 0xFF;
+
+	if (FBitSet(data.iuser1, WEAPONDATA_BURSTING))
+	{
+		if (m_burstTime == 0.0f)
+		{
+			// in case of save-restore, set these on client
+			m_burstShotsFired = (data.iuser3 >> 8) & 0xF;
+			m_burstTime = gpGlobals->time - data.fuser2;
+		}
+	}
+	else
+	{
+		ResetBurst();
+	}
+
+	m_flInaccuracy = data.fuser3;
+}
+
+void CConfigurableWeapon::ResetWeaponData()
+{
+	// Note: this still has problems on changelevel. One of the shots is getting lost.
+	ResetBurst();
+}
+
+void CConfigurableWeapon::Smack()
+{
+#if !CLIENT_DLL
+	DecalSmack( &m_trHit );
+#endif
+}
+
+void CConfigurableWeapon::SwingAgain()
+{
+	Swing(false);
+}
+
+bool CConfigurableWeapon::Swing(bool fFirst)
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+	const bool altMode = m_swingIsAltAttack;
+	const float cycleTime = fire.cycleTime.Get(altMode);
+	const float hitCycleTime = Q_max(cycleTime * 0.5f, cycleTime - 0.25f);
+	const FloatRange idleDelay = fire.idleDelay.Get(altMode, false);
+
+	bool fDidHit = false;
+
+	TraceResult tr;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecEnd = vecSrc + gpGlobals->v_forward * 32.0f;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+#if !CLIENT_DLL
+	if( tr.flFraction >= 1.0f )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if( tr.flFraction < 1.0f )
+		{
+			// Calculate the point of intersection of the line (or hull) and the object we hit
+			// This is and approximation of the "best" intersection
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if( !pHit || pHit->IsBSPModel() )
+				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
+			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+		}
+	}
+#endif
+	if( fFirst )
+	{
+		const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+
+		PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), GetPlaybackEvent(altMode),
+							0.0f, g_vecZero, g_vecZero, 0, 0, iParam1Bits, PackIParam2(), 0, 0 );
+	}
+
+	if( tr.flFraction >= 1.0f )
+	{
+		if( fFirst )
+		{
+			// miss
+			m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + cycleTime;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RandomizeNumberFromRange_Shared( m_pPlayer->random_seed, idleDelay );
+			// player "shoot" animation
+			m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		}
+	}
+	else
+	{
+		const WeaponParameters::FireAnimArray& arr = fire.hitAnims.Get(altMode);
+		if (arr.size())
+		{
+			const int count = static_cast<int>(arr.size());
+			if (count)
+			{
+				SendWeaponAnim(arr[(m_iSwing++) % count]);
+			}
+		}
+
+		// player "shoot" animation
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+#if !CLIENT_DLL
+		// hit
+		fDidHit = true;
+		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+
+		// play thwack, smack, or dong sound
+		float flVol = 1.0f;
+		bool fHitWorld = true;
+
+		if( pEntity )
+		{
+			// If building with the clientside weapon prediction system,
+			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
+			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
+			DamageInfo damageInfo = MeleeDamageInfo();
+#if CLIENT_WEAPONS
+			if( ( m_flNextPrimaryAttack + 1.0f == UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+#else
+			if( ( m_flNextPrimaryAttack + 1.0f < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+#endif
+			{
+				// first swing does full damage
+			}
+			else
+			{
+				// subsequent swings do half
+				damageInfo.damage *= 0.5f;
+			}
+			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, damageInfo, gpGlobals->v_forward, &tr );
+
+			if( pEntity->HasFlesh() )
+			{
+				// play thwack or smack sound
+				PlayWeaponSoundScript(params.fire.hitBodySound.Get(altMode));
+				m_pPlayer->m_iWeaponVolume = fire.bodyHitVolume.Get(altMode);
+
+				if( !pEntity->IsAlive() )
+				{
+					m_flNextPrimaryAttack = GetNextAttackDelay(hitCycleTime);
+					return true;
+				}
+				else
+					flVol = 0.1f;
+
+				fHitWorld = false;
+			}
+		}
+
+		// play texture hit sound
+		// UNDONE: Calculate the correct point of intersection when we hit with the hull instead of the line
+
+		if( fHitWorld )
+		{
+			float fvolbar = TEXTURETYPE_PlaySound( &tr, vecSrc, vecSrc + ( vecEnd - vecSrc ) * 2.0f, true );
+
+			if( g_pGameRules->IsMultiplayer() )
+			{
+				// override the volume here, cause we don't play texture sounds in multiplayer,
+				// and fvolbar is going to be 0 from the above call.
+
+				fvolbar = 1.0f;
+			}
+
+			// also play crowbar strike
+			PlayWeaponSoundScript(params.fire.hitWallSound.Get(altMode), fvolbar);
+
+			// delay the decal a bit
+			m_trHit = tr;
+		}
+
+		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );
+
+		SetThink( &CConfigurableWeapon::Smack );
+		pev->nextthink = gpGlobals->time + 0.2f;
+#endif
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + hitCycleTime;
+	}
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RandomizeNumberFromRange_Shared( m_pPlayer->random_seed, idleDelay );
+	return fDidHit;
+}
+
+void CConfigurableWeapon::BigSwing(void)
+{
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+	const bool altMode = m_swingIsAltAttack;
+
+	TraceResult tr;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc	= m_pPlayer->GetGunPosition( );
+	Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32.0f;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+#if !CLIENT_DLL
+	if ( tr.flFraction >= 1.0f )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if ( tr.flFraction < 1.0f )
+		{
+			// Calculate the point of intersection of the line (or hull) and the object we hit
+			// This is and approximation of the "best" intersection
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if ( !pHit || pHit->IsBSPModel() )
+				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
+			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+		}
+	}
+#endif
+
+	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+
+	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), GetPlaybackEvent(altMode),
+						0.0f, g_vecZero, g_vecZero, 0, 0, iParam1Bits, PackIParam2(), 0, 0 );
+
+	ApplyMyKickBack(altMode);
+	if ( tr.flFraction >= 1.0 )
+	{
+		// player "shoot" animation
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	}
+	else
+	{
+		const WeaponParameters::FireAnimArray& arr = fire.hitAnims.Get(altMode);
+		if (arr.size())
+		{
+			const int count = static_cast<int>(arr.size());
+			if (count)
+			{
+				SendWeaponAnim(arr[(m_iSwing++) % count]);
+			}
+		}
+
+		// player "shoot" animation
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+#if !CLIENT_DLL
+		// hit
+		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+
+		if( pEntity )
+		{
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, MeleeWindDamageInfo(), gpGlobals->v_forward, &tr);
+		}
+
+		// play thwack, smack, or dong sound
+		float flVol = 1.0;
+		bool fHitWorld = true;
+
+		if (pEntity)
+		{
+			if (pEntity->HasFlesh())
+			{
+				// play thwack or smack sound
+				PlayWeaponSoundScript(params.fire.hitBodySound.Get(altMode));
+				m_pPlayer->m_iWeaponVolume = fire.bodyHitVolume.Get(altMode);
+
+				if ( !pEntity->IsAlive() )
+					return;
+				else
+					flVol = 0.1f;
+
+				fHitWorld = false;
+			}
+		}
+
+		// play texture hit sound
+		if( fHitWorld )
+		{
+			float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, true );
+
+			if ( g_pGameRules->IsMultiplayer() )
+			{
+				// override the volume here, cause we don't play texture sounds in multiplayer,
+				// and fvolbar is going to be 0 from the above call.
+
+				fvolbar = 1.0f;
+			}
+
+			PlayWeaponSoundScript(params.fire.hitWallSound.Get(altMode), fvolbar);
+
+			// delay the decal a bit
+			m_trHit = tr;
+		}
+
+		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );
+#endif
+	}
+}
+
+bool CConfigurableWeapon::CanRechargeAmmo()
+{
+	const WeaponParameters& params = MyParameters();
+	return params.recharge.interval.Get(InAltMode()) && UsesAmmo() && !UsesClip();
+}
+
+int CConfigurableWeapon::PackIParam2()
+{
+	int packed = WeaponId();
+	int body = ViewModelBody();
+	packed |= body << 6;
+	return packed;
+}
+
+void CConfigurableWeapon::PrecacheCommonEvent()
+{
+	m_usFire = PRECACHE_EVENT(1, "events/glock1.sc");
+}
+
+class CGenericConfigurableWeapon : public CConfigurableWeapon {};
+
+enum pistol_e
+{
+	PISTOL_IDLE1 = 0,
+	PISTOL_IDLE2,
+	PISTOL_IDLE3,
+	PISTOL_SHOOT,
+	PISTOL_SHOOT_EMPTY,
+	PISTOL_RELOAD,
+	PISTOL_RELOAD_NOT_EMPTY,
+	PISTOL_DRAW
+};
+
+class CPistol : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_PISTOL;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 1;
+		p->iPosition = 4;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.initialAmmoAmount = 15;
+		params.maxClip = 15;
+		params.ammoName = "9mm";
+
+		params.worldModel = "models/w_9mmhandgun.mdl";
+		params.viewModel = "models/v_9mmhandgun.mdl";
+		params.playerModel = "models/p_9mmhandgun.mdl";
+		params.playerAnimExt = "onehanded";
+		params.priority = 10;
+
+		params.deploy.animIndex = PISTOL_DRAW;
+
+		params.idleAnims.main = WeaponParameters::IdleAnimArray{
+			WeaponParameters::IdleAnim{PISTOL_IDLE3, 0.3f, 49.0f / 16.0f},
+			WeaponParameters::IdleAnim{PISTOL_IDLE1, 0.3f, 60.0f / 16.0f},
+			WeaponParameters::IdleAnim{PISTOL_IDLE2, 0.4f, 40.0f / 16.0f}
+		};
+
+		params.fire.fireType = WeaponParameters::Fire::BULLETS;
+		params.fire.damage = 8;
+		params.fire.anims.main = {PISTOL_SHOOT};
+
+		params.fire.sound = {
+			CHAN_WEAPON,
+			{"weapons/pl_gun3.wav"},
+			FloatRange(0.92f, 1.0f),
+			ATTN_NORM,
+			IntRange(98, 101)
+		};
+
+		params.fire.spread.SetStaticSpread(false, 0.01f);
+		params.fire.cycleTime = 0.3f;
+		params.fire.allowUnderwater = false;
+
+		params.fire.muzzleFlash = true;
+		params.fire.weaponVolume = NORMAL_GUN_VOLUME;
+		params.fire.weaponFlash = NORMAL_GUN_FLASH;
+
+		params.fire.clientPunchPitch = -2.0f;
+		params.fire.shellOffsetForward = 20;
+		params.fire.shellOffsetUp = -12;
+		params.fire.shellOffsetSide = 4;
+		params.fire.shellModel = "models/shell.mdl";
+		params.fire.shellSound = TE_BOUNCE_SHELL;
+
+		params.reload.animIndex = PISTOL_RELOAD_NOT_EMPTY;
+		params.reload.duration = 1.5f;
+		params.reload.idleDelay = FloatRange(10.0f, 15.0f);
+		params.reload.animIndex.mainEmptied = PISTOL_RELOAD;
+
+		return params;
+	}
+};
+
+class CPistol2 : public CPistol
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_PISTOL2;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 1;
+		p->iPosition = 5;
+		return true;
+	}
+};
+
+enum smg_e
+{
+	SMG_LONGIDLE = 0,
+	SMG_IDLE1,
+	SMG_LAUNCH,
+	SMG_RELOAD,
+	SMG_DEPLOY,
+	SMG_FIRE1,
+	SMG_FIRE2,
+	SMG_FIRE3
+};
+
+class CSMG : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_SMG;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 1;
+		p->iPosition = 6;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.initialAmmoAmount = 30;
+		params.maxClip = 30;
+		params.ammoName = "9mm";
+
+		params.worldModel = "models/w_9mmAR.mdl";
+		params.viewModel = "models/v_9mmAR.mdl";
+		params.playerModel = "models/p_9mmAR.mdl";
+		params.playerAnimExt = "mp5";
+		params.priority = 15;
+
+		params.deploy.animIndex = SMG_DEPLOY;
+
+		params.idleAnims.main = WeaponParameters::IdleAnimArray{
+			WeaponParameters::IdleAnim{SMG_LONGIDLE, 0.5f, 41.0f / 8.0f},
+			WeaponParameters::IdleAnim{SMG_IDLE1, 0.5f, 111.0f / 35.0f},
+		};
+
+		params.fire.fireType = WeaponParameters::Fire::BULLETS;
+		params.fire.damage = 8;
+		params.fire.anims.main = {SMG_FIRE1, SMG_FIRE2, SMG_FIRE3};
+
+		params.fire.sound = {
+			CHAN_WEAPON,
+			{"weapons/hks1.wav", "weapons/hks2.wav"},
+			FloatRange(0.92f, 1.0f),
+			ATTN_NORM,
+			IntRange(94, 109)
+		};
+		params.fire.spread.SetStaticSpread(false, VECTOR_CONE_3DEGREES);
+		params.fire.cycleTime = 0.1f;
+		params.fire.allowUnderwater = false;
+
+		params.fire.muzzleFlash = true;
+		params.fire.weaponVolume = NORMAL_GUN_VOLUME;
+		params.fire.weaponFlash = NORMAL_GUN_FLASH;
+
+		params.fire.clientPunchPitch = FloatRange(-2.0f, 2.0f);
+		params.fire.shellOffsetForward = 20;
+		params.fire.shellOffsetUp = -12;
+		params.fire.shellOffsetSide = 4;
+		params.fire.shellModel = "models/shell.mdl";
+		params.fire.shellSound = TE_BOUNCE_SHELL;
+
+		params.reload.animIndex = SMG_RELOAD;
+		params.reload.duration = 1.5f;
+
+		return params;
+	}
+};
+
+class CSMG2 : public CSMG
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_SMG2;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 1;
+		p->iPosition = 7;
+		return true;
+	}
+};
+
+class CRifle : public CSMG
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_RIFLE;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 2;
+		p->iPosition = 5;
+		return true;
+	}
+};
+
+class CRifle2 : public CSMG
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_RIFLE2;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 2;
+		p->iPosition = 6;
+		return true;
+	}
+};
+
+enum shotgun2_e
+{
+	SHOTGUN2_IDLE = 0,
+	SHOTGUN2_FIRE,
+	SHOTGUN2_FIRE2,
+	SHOTGUN2_RELOAD,
+	SHOTGUN2_PUMP,
+	SHOTGUN2_START_RELOAD,
+	SHOTGUN2_DRAW,
+	SHOTGUN2_HOLSTER,
+	SHOTGUN2_IDLE4,
+	SHOTGUN2_IDLE_DEEP
+};
+
+class CShotgun2 : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_SHOTGUN2;
+	}
+	bool GetItemInfo(ItemInfo *p) override {
+		p->iSlot = 2;
+		p->iPosition = 7;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.initialAmmoAmount = 8;
+		params.maxClip = 8;
+		params.ammoName = "buckshot";
+
+		params.worldModel = "models/w_shotgun.mdl";
+		params.viewModel = "models/v_shotgun.mdl";
+		params.playerModel = "models/p_shotgun.mdl";
+		params.playerAnimExt = "shotgun";
+		params.priority = 15;
+
+		params.deploy.animIndex = SHOTGUN2_DRAW;
+
+		params.idleAnims.main = WeaponParameters::IdleAnimArray{
+			WeaponParameters::IdleAnim{SHOTGUN2_IDLE_DEEP, 0.8f, 60.0f/12.0f},
+			WeaponParameters::IdleAnim{SHOTGUN2_IDLE, 0.15f, 20.0f/9.0f},
+			WeaponParameters::IdleAnim{SHOTGUN2_IDLE4, 0.05f, 20.0f/9.0f}
+		};
+
+		// Primary fire
+		params.fire.fireType = WeaponParameters::Fire::BULLETS;
+		params.fire.damage = 5;
+		params.fire.anims.main = {SHOTGUN2_FIRE};
+
+		params.fire.sound = {
+			CHAN_WEAPON,
+			{"weapons/sbarrel1.wav"},
+			FloatRange(0.95f, 1.0f),
+			ATTN_NORM,
+			IntRange(93, 124)
+		};
+
+		params.fire.spread.SetStaticSpread(false, VECTOR_CONE_10DEGREES);
+		params.fire.cycleTime = 0.75f;
+		params.fire.idleDelay.main = 5.0f;
+		params.fire.allowUnderwater = false;
+		params.fire.bulletCount = 6;
+
+		params.fire.muzzleFlash = true;
+		params.fire.weaponVolume = LOUD_GUN_VOLUME;
+		params.fire.weaponFlash = NORMAL_GUN_FLASH;
+
+		params.fire.bulletDistance = 2048;
+
+		params.fire.clientPunchPitch = -5.0f;
+		params.fire.shellOffsetForward = 32;
+		params.fire.shellOffsetUp = -12;
+		params.fire.shellOffsetSide = 6;
+		params.fire.shellModel = "models/shotgunshell.mdl";
+		params.fire.shellSound = TE_BOUNCE_SHOTSHELL;
+		//
+
+		params.startReload.animIndex = SHOTGUN2_START_RELOAD;
+		params.startReload.duration = 0.7f;
+
+		params.reloadAutostart = true;
+		params.manualReload = true;
+
+		params.reload.animIndex = SHOTGUN2_RELOAD;
+		params.reload.idleDelay = 0.5f;
+		params.reload.duration = 0.0f;
+		params.reload.sound = {
+			CHAN_ITEM,
+			{"weapons/reload1.wav", "weapons/reload3.wav"},
+			1.0f,
+			ATTN_NORM,
+			IntRange(85, 114)
+		};
+		params.reload.waitForRecoil = true;
+
+		params.endReload.animIndex = SHOTGUN2_PUMP;
+		params.endReload.idleDelay = 1.5f;
+		params.endReload.attackDelay = 0.0f;
+
+		return params;
+	}
+};
+
+enum sniper2_e
+{
+	SNIPER2_DRAW = 0,
+	SNIPER2_SLOWIDLE1,
+	SNIPER2_FIRE,
+	SNIPER2_FIRELASTROUND,
+	SNIPER2_RELOAD1,
+	SNIPER2_RELOAD2,
+	SNIPER2_RELOAD3,
+	SNIPER2_SLOWIDLE2,
+	SNIPER2_HOLSTER
+};
+
+class CSniperRifle2 : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_SNIPERRIFLE2;
+	}
+	bool GetItemInfo(ItemInfo *p) override {
+		p->iSlot = 2;
+		p->iPosition = 8;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.initialAmmoAmount = 5;
+		params.maxClip = 5;
+		params.ammoName = "762";
+
+		params.worldModel = "models/w_m40a1.mdl";
+		params.viewModel = "models/v_m40a1.mdl";
+		params.playerModel = "models/p_m40a1.mdl";
+		params.playerAnimExt = "bow";
+		params.priority = 10;
+
+		params.deploy.animIndex = SNIPER2_DRAW;
+
+		params.idleAnims.main = WeaponParameters::IdleAnimArray{
+			WeaponParameters::IdleAnim{SNIPER2_SLOWIDLE1, 1.0f, 67.5f / 16.0f}
+		};
+
+		// Primary fire
+		params.fire.fireType = WeaponParameters::Fire::BULLETS;
+		params.fire.damage = 40;
+		params.fire.anims.main = {SNIPER2_FIRE};
+
+		params.fire.sound = {
+			CHAN_WEAPON,
+			{"weapons/sniper_fire.wav"},
+			FloatRange(0.9f, 1.0f),
+			ATTN_NORM,
+			IntRange(98, 101)
+		};
+
+		params.fire.spread.SetStaticSpread(false, 0.001f);
+		params.fire.cycleTime = 1.75f;
+		params.fire.idleDelay = 68.0f / 38.0f;
+		params.fire.allowUnderwater = false;
+
+		params.fire.muzzleFlash = true;
+		params.fire.weaponVolume = LOUD_GUN_VOLUME;
+		params.fire.weaponFlash = BRIGHT_GUN_FLASH;
+
+		params.fire.clientPunchPitch = -5.0f;
+		//
+
+		// Alt fire
+		params.secondaryFireType = SecondaryFireType::SWITCH_MODE;
+		params.altMode.zoomFOV = 18;
+		params.altMode.attackDelay = 0.5f;
+		params.altMode.zoomSound.waves = {"weapons/sniper_zoom.wav"};
+		//
+
+		params.reload.animIndex = SNIPER2_RELOAD3;
+		params.reload.duration = 80.0f / 34.0f;
+
+		return params;
+	}
+};
+
+LINK_WEAPON_TO_CLASS(weapon_pistol, CPistol)
+LINK_WEAPON_TO_CLASS(weapon_pistol2, CPistol2)
+LINK_WEAPON_TO_CLASS(weapon_smg, CSMG)
+LINK_WEAPON_TO_CLASS(weapon_smg2, CSMG2)
+LINK_WEAPON_TO_CLASS(weapon_rifle, CRifle)
+LINK_WEAPON_TO_CLASS(weapon_rifle2, CRifle2)
+LINK_WEAPON_TO_CLASS(weapon_shotgun2, CShotgun2)
+LINK_WEAPON_TO_CLASS(weapon_sniperrifle2, CSniperRifle2)

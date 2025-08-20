@@ -51,7 +51,7 @@ public:
 	void KeyValue(KeyValueData* pkvd);
 	void SetYawSpeed( void );
 	int DefaultISoundMask( void );
-	void BarneyFirePistol( const char* shotSoundScript, Bullet bullet );
+	void BarneyFirePistol( const char* shotSoundScript, float flDamage );
 	void AlertSound( void );
 	const char* DefaultDisplayName() { return "Barney"; }
 	int DefaultClassify( void );
@@ -305,7 +305,7 @@ bool CBarney::CheckRangeAttack1( float flDot, float flDist )
 // BarneyFirePistol - shoots one round from the pistol at
 // the enemy barney is facing.
 //=========================================================
-void CBarney::BarneyFirePistol( const char* shotSoundScript, Bullet bullet )
+void CBarney::BarneyFirePistol( const char* shotSoundScript, float flDamage )
 {
 	Vector vecShootOrigin;
 
@@ -317,7 +317,7 @@ void CBarney::BarneyFirePistol( const char* shotSoundScript, Bullet bullet )
 	SetBlending( 0, angDir.x );
 	pev->effects |= EF_MUZZLEFLASH;
 
-	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, bullet );
+	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, flDamage );
 
 	// Only shift about half the time
 	SoundScriptParamOverride soundParams;
@@ -346,11 +346,11 @@ void CBarney::HandleAnimEvent( MonsterEvent_t *pEvent )
 	case BARNEY_AE_SHOOT:
 		if (pev->frags)
 		{
-			BarneyFirePistol(firePythonSoundScript, BULLET_MONSTER_357);
+			BarneyFirePistol(firePythonSoundScript, gSkillData.monDmg357);
 		}
 		else
 		{
-			BarneyFirePistol(firePistolSoundScript, BULLET_MONSTER_9MM);
+			BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
 		}
 		break;
 	case BARNEY_AE_DRAW:
@@ -807,7 +807,7 @@ void COtis::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 		case BARNEY_AE_SHOOT:
-			BarneyFirePistol(fireDesertEagleSoundScript, BULLET_MONSTER_357);
+			BarneyFirePistol(fireDesertEagleSoundScript, gSkillData.monDmg357);
 			break;
 			
 		case BARNEY_AE_DRAW:
@@ -994,7 +994,7 @@ void CBarniel::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNEY_AE_SHOOT:
-		BarneyFirePistol(firePistolSoundScript, BULLET_MONSTER_9MM);
+		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
 		break;
 	default:
 		CBarney::HandleAnimEvent( pEvent );
@@ -1175,7 +1175,7 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNEY_AE_SHOOT:
-		BarneyFirePistol(firePistolSoundScript, BULLET_MONSTER_9MM);
+		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
 		break;
 	case KATE_AE_KICK:
 	{

@@ -1337,6 +1337,9 @@
 @PointClass base(Ammo) studio("models/w_m40a1clip.mdl") = ammo_762 : "Sniper Ammo" []
 @PointClass base(Targetname, Appearflags, Angles, Global) size(-16 -16 -16, 16 16 16) studio("models/spore_ammo.mdl") = ammo_spore : "Spore" []
 
+@PointClass base(Ammo) studio() = ammo_45acp : ".45 ACP Ammo" []
+@PointClass base(Ammo) studio() = ammo_57mm : "57mm Ammo" []
+
 @SolidClass base(Targetname, Target, ZHLT, RenderFields, EntityTemplate) = button_target : "Target Button"
 [
 	spawnflags(flags) =
@@ -3345,6 +3348,8 @@
 	_762(integer) : "762 bullets"
 	Spores(integer) : "Spores"
 	Penguins(integer) : "Penguins"
+	_45acp(integer) : ".45 ACP"
+	_57mm(integer) : "57 mm"
 	suit(choices): "Suit" =
 	[
 		-1: "Remove suit"
@@ -3616,6 +3621,8 @@
 	ammo_762(string) : "762 bullets chance"
 	ammo_rpgclip(string) : "RPG rocket chance"
 	ammo_gaussclip(string) : "Gauss clip chance"
+	ammo_45acp(string) : ".45 ACP clip chance"
+	ammo_57mm(string) : "57mm clip chance"
 	weapon_handgrenade(string) : "Hand Grenades chance"
 	weapon_tripmine(string) : "Tripmine chance"
 	weapon_satchel(string) : "Satchel chance"
@@ -7868,6 +7875,8 @@
 		"Hornets" : "Hornets"
 		"Shocks" : "Shocks"
 		"Penguins" : "Penguins"
+		"45acp" : ".45 ACP"
+		"57mm" : "57mm"
 	]
 	item_name(string) : "Inventory item name"
 ]
@@ -9308,6 +9317,15 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_spore_launcher.mdl") = weapon_sporelauncher : "Spore Launcher" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_medkit.mdl") = weapon_medkit : "Portable Medkit" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
+
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol : "Generic configurable pistol" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol2 : "Generic configurable pistol" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_smg : "Generic configurable SMG" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_smg2 : "Generic configurable SMG" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_rifle : "Generic configurable rifle" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_rifle2 : "Generic configurable rifle" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_shotgun2 : "Generic configurable shotgun" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_sniperrifle2 : "Generic configurable sniper rifle" []
 
 @PointClass base(Pickup) = world_items : "World Items"
 [

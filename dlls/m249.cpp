@@ -16,13 +16,22 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "monsters.h"
+#include "skill.h"
 #include "weapons.h"
 #include "player.h"
-#if !CLIENT_DLL
-#include "game.h"
-#include "gamerules.h"
-#endif
+
+enum m249_e
+{
+	M249_SLOWIDLE = 0,
+	M249_IDLE2,
+	M249_RELOAD,
+	M249_RELOAD_END,
+	M249_HOLSTER,
+	M249_DEPLOY,
+	M249_SHOOT1,
+	M249_SHOOT2,
+	M249_SHOOT3
+};
 
 #if FEATURE_M249
 
@@ -31,44 +40,14 @@ LINK_WEAPON_TO_CLASS(weapon_m249, CM249)
 //=========================================================
 //=========================================================
 
-void CM249::Spawn()
+void CM249::PrecacheDefaultModelSounds()
 {
-	Precache();
-	SET_MODEL(ENT(pev), MyWModel());
-
-	InitDefaultAmmo(M249_DEFAULT_GIVE);
-	InitMaxClip(M249_MAX_CLIP);
-
-	m_fInSpecialReload = 0;
-	m_bAlternatingEject = false;
-
-	FallInit();// get ready to fall down.
-}
-
-
-void CM249::Precache(void)
-{
-	PRECACHE_MODEL("models/v_saw.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PrecachePModel("models/p_saw.mdl");
-
-	m_iShell = PRECACHE_MODEL("models/saw_shell.mdl");// brass shellTE_MODEL
-	m_iLink = PRECACHE_MODEL("models/saw_link.mdl");
-
-	PRECACHE_MODEL("models/w_saw_clip.mdl");
-	PRECACHE_SOUND("items/9mmclip1.wav");
-
-	PRECACHE_SOUND("weapons/saw_fire1.wav");
-
 	PRECACHE_SOUND("weapons/saw_reload.wav");
 	PRECACHE_SOUND("weapons/saw_reload2.wav");
-
-	m_usM249 = PRECACHE_EVENT(1, "events/m249.sc");
 }
 
 bool CM249::GetItemInfo(ItemInfo *p)
 {
-	p->pszAmmo1 = AmmoName("556");
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 5;
 	p->iPosition = 0;
@@ -77,164 +56,119 @@ bool CM249::GetItemInfo(ItemInfo *p)
 	p->iPosition = 3;
 #endif
 	p->pszAmmoEntity = "ammo_556";
-	p->iDropAmmo = AMMO_762BOX_GIVE;
+	p->iDropAmmo = AMMO_556CLIP_GIVE;
 
 	return true;
 }
 
-bool CM249::AddToPlayer(CBasePlayer *pPlayer)
+WeaponParameters CM249::GetDefaultParameters() const
 {
-	return AddToPlayerDefault(pPlayer);
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 50;
+	params.maxClip = 50;
+	params.ammoName = "556";
+
+	params.worldModel = "models/w_saw.mdl";
+	params.viewModel = "models/v_saw.mdl";
+	params.playerModel = "models/p_saw.mdl";
+	params.playerAnimExt = "mp5";
+	params.priority = 15;
+
+	params.deploy.animIndex = M249_DEPLOY;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{M249_SLOWIDLE, 0.8f, 5.0f},
+		WeaponParameters::IdleAnim{M249_IDLE2, 0.2f, 155.0f / 25.0f},
+	};
+
+	// Primary fire
+	params.fire.fireType = WeaponParameters::Fire::BULLETS;
+	params.fire.damage = gSkillData.plrDmg556;
+	params.fire.anims = {M249_SHOOT1, M249_SHOOT2, M249_SHOOT3};
+
+	params.fire.sound = {
+		CHAN_WEAPON,
+		{"weapons/saw_fire1.wav"},
+		1.0f,
+		ATTN_NORM,
+		IntRange(94, 109)
+	};
+
+	if (bIsMultiplayer())
+	{
+		params.fire.spread.SetStaticSpread(false, {
+			WeaponSpreadRule::Static(VECTOR_CONE_3DEGREES, PlayerMovementConditions::Ducking()),
+			WeaponSpreadRule::Static(VECTOR_CONE_15DEGREES, PlayerMovementConditions::Moving()),
+			WeaponSpreadRule::Static(VECTOR_CONE_6DEGREES, PlayerMovementConditions())
+		});
+	}
+	else
+	{
+		params.fire.spread.SetStaticSpread(false, {
+			WeaponSpreadRule::Static(VECTOR_CONE_2DEGREES, PlayerMovementConditions::Ducking()),
+			WeaponSpreadRule::Static(VECTOR_CONE_10DEGREES, PlayerMovementConditions::Moving()),
+			WeaponSpreadRule::Static(VECTOR_CONE_4DEGREES, PlayerMovementConditions())
+		});
+	}
+
+	params.fire.cycleTime = 0.067f;
+	params.fire.idleDelay = 0.2f;
+	params.fire.allowUnderwater = false;
+	params.fire.tracerFreq = 0;
+
+	params.fire.autoAimDegree = AUTOAIM_5DEGREES;
+	params.fire.muzzleFlash = true;
+	params.fire.weaponVolume = NORMAL_GUN_VOLUME;
+	params.fire.weaponFlash = NORMAL_GUN_FLASH;
+
+	params.fire.clientPunchPitch = FloatRange(-2.0f, 2.0f);
+	params.fire.clientPunchYaw = FloatRange(-1.0f, 1.0f);
+	params.fire.shellOffsetForward = 28;
+	params.fire.shellOffsetUp = -24;
+	params.fire.shellOffsetSide = 4;
+	params.fire.shellModel = "models/saw_shell.mdl";
+	params.fire.shellModelAlternating = "models/saw_link.mdl";
+	params.fire.shellSound = TE_BOUNCE_SHELL;
+	params.fire.pushbackForce = 35.0f;
+	params.fire.pushbackVertical = bIsMultiplayer();
+	//
+
+	// Alt fire
+	params.secondaryFireType = SecondaryFireType::DISABLED;
+	//
+
+	params.reload.animIndex = M249_RELOAD;
+	params.reload.duration = 1.33f;
+	params.reload.idleDelay = 3.78f;
+
+	params.endReload.animIndex = M249_RELOAD_END;
+	params.endReload.attackDelay = 2.4f;
+	params.endReload.idleDelay = 2.4f;
+
+	params.holster.animIndex = M249_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+	params.holster.idleDelay = FloatRange(10.0f, 15.0f);
+
+	return params;
+}
+
+void CM249::OnSpendAmmo()
+{
+	UpdateTape();
+}
+
+void CM249::OnEndReload()
+{
+	int maxClip = iMaxClip();
+	m_iVisibleClip = m_iClip + Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
+	UpdateTape(m_iVisibleClip);
 }
 
 bool CM249::Deploy()
 {
-	m_fInSpecialReload = 0;
 	UpdateTape();
-	return DefaultDeploy("models/v_saw.mdl", "models/p_saw.mdl", M249_DEPLOY, "mp5", pev->body);
-}
-
-void CM249::Holster()
-{
-	m_fInSpecialReload = 0;
-	CBasePlayerWeapon::Holster();
-}
-
-void CM249::PrimaryAttack()
-{
-	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == WL_Eyes)
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
-		return;
-	}
-
-	if (!HasAmmoToFire())
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
-		return;
-	}
-
-	m_pPlayer->pev->punchangle.x = RANDOM_FLOAT( -1.0f, 1.0f );
-	m_pPlayer->pev->punchangle.y = RANDOM_FLOAT( -2.0f, 2.0f );
-
-	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
-
-	SpendAmmo();
-	UpdateTape();
-	m_bAlternatingEject = !m_bAlternatingEject;
-	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
-
-	Vector vecSrc = m_pPlayer->GetGunPosition();
-	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
-
-	Vector vecSpread;
-
-	if (bIsMultiplayer())
-	{
-		if ((m_pPlayer->pev->button & IN_DUCK) != 0)
-		{
-			vecSpread = VECTOR_CONE_3DEGREES;
-		}
-		else if ((m_pPlayer->pev->button & (IN_MOVERIGHT |
-											IN_MOVELEFT |
-											IN_FORWARD |
-											IN_BACK)) != 0)
-		{
-			vecSpread = VECTOR_CONE_15DEGREES;
-		}
-		else
-		{
-			vecSpread = VECTOR_CONE_6DEGREES;
-		}
-	}
-	else
-	{
-		if ((m_pPlayer->pev->button & IN_DUCK) != 0)
-		{
-			vecSpread = VECTOR_CONE_2DEGREES;
-		}
-		else if ((m_pPlayer->pev->button & (IN_MOVERIGHT |
-											IN_MOVELEFT |
-											IN_FORWARD |
-											IN_BACK)) != 0)
-		{
-			vecSpread = VECTOR_CONE_10DEGREES;
-		}
-		else
-		{
-			vecSpread = VECTOR_CONE_4DEGREES;
-		}
-	}
-
-	Vector vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, vecSpread, 8192, BULLET_PLAYER_556, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
-
-	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usM249, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, pev->body, m_bAlternatingEject ? 1 : 0, 0);
-
-#if !CLIENT_DLL
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecVelocity = m_pPlayer->pev->velocity;
-	Vector vecInvPushDir = gpGlobals->v_forward * 35.0;
-
-	float flNewZVel;
-
-	if( vecInvPushDir.z >= 10.0 )
-		flNewZVel = vecInvPushDir.z;
-	else
-		flNewZVel = g_psv_maxspeed->value;
-
-	Vector vecNewVel;
-
-	if( g_pGameRules->IsDeathmatch() )
-	{
-		vecNewVel = vecVelocity - vecInvPushDir;
-	}
-	else
-	{
-		vecNewVel = vecVelocity;
-
-		float flZTreshold = -( flNewZVel + 100.0 );
-
-		if( vecVelocity.x > flZTreshold )
-		{
-			vecNewVel.x -= vecInvPushDir.x;
-		}
-
-		if( vecVelocity.y > flZTreshold )
-		{
-			vecNewVel.y -= vecInvPushDir.y;
-		}
-	}
-	m_pPlayer->pev->velocity = vecNewVel;
-#endif
-
-	CheckOutOfAmmo();
-
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.067f);
-
-	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.067f;
-
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
-}
-
-
-void CM249::Reload(void)
-{
-	if (!CanReload())
-		return;
-
-	if (DefaultClipReload( M249_LAUNCH, 1.33, pev->body)) {
-		m_fInSpecialReload = 1;
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 3.78;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.78;
-	}
+	return PerformDeploy();
 }
 
 void CM249::ItemPostFrame()
@@ -243,51 +177,12 @@ void CM249::ItemPostFrame()
 	{
 		m_iVisibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
 	}
-	if ( m_fInSpecialReload )
-	{
-		if (m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase())
-		{
-			int maxClip = iMaxClip();
-			m_iVisibleClip = m_iClip + Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
-
-			UpdateTape(m_iVisibleClip);
-			m_fInSpecialReload = 0;
-			SendWeaponAnim( M249_RELOAD1, pev->body );
-			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 2.4;
-		}
-	}
-
-	CBasePlayerWeapon::ItemPostFrame();
-}
-
-void CM249::WeaponIdle(void)
-{
-	ResetEmptySound();
-
-	m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
-
-	UpdateTape(m_iVisibleClip);
-
-	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
-		return;
-
-	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0f, 1.0f );
-	int iAnim;
-	if (flRand <= 0.8) {
-		iAnim = M249_SLOWIDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;
-	} else {
-		iAnim = M249_IDLE2;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 155.0/25.0;
-	}
-
-	SendWeaponAnim(iAnim, pev->body);
+	CConfigurableWeapon::ItemPostFrame();
 }
 
 void CM249::UpdateTape()
 {
 	int visibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
-
 	UpdateTape(visibleClip);
 	m_iVisibleClip = visibleClip;
 }
@@ -311,16 +206,6 @@ int CM249::BodyFromClip(int clip)
 	} else {
 		return 0;
 	}
-}
-
-void CM249::GetWeaponData(weapon_data_t &data)
-{
-	data.iuser1 = m_iVisibleClip;
-}
-
-void CM249::SetWeaponData(const weapon_data_t &data)
-{
-	UpdateTape(data.iuser1);
 }
 
 int CM249::ViewModelBody()

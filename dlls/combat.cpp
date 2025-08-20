@@ -28,7 +28,6 @@
 #include "soundent.h"
 #include "decals.h"
 #include "animation.h"
-#include "bullet_types.h"
 #include "combat.h"
 #include "func_break.h"
 #include "player.h"
@@ -1934,96 +1933,21 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	}
 }
 
-static float DamageByBulletType(int bulletType, float defaultDamage)
-{
-	switch (bulletType) {
-	case BULLET_PLAYER_9MM:
-		return gSkillData.plrDmg9MM;
-	case BULLET_PLAYER_MP5:
-		return gSkillData.plrDmgMP5;
-	case BULLET_PLAYER_357:
-		return gSkillData.plrDmg357;
-	case BULLET_PLAYER_BUCKSHOT:
-		return gSkillData.plrDmgBuckshot;
-#if FEATURE_M249
-	case BULLET_PLAYER_556:
-		return gSkillData.plrDmg556;
-#endif
-#if FEATURE_SNIPERRIFLE
-	case BULLET_PLAYER_762:
-		return gSkillData.plrDmg762;
-#endif
-#if FEATURE_DESERT_EAGLE
-	case BULLET_PLAYER_EAGLE:
-		return gSkillData.plrDmgEagle;
-#endif
-#if FEATURE_UZI
-	case BULLET_PLAYER_UZI:
-		return gSkillData.plrDmgUzi;
-#endif
-	case BULLET_MONSTER_9MM:
-		return gSkillData.monDmg9MM;
-	case BULLET_MONSTER_MP5:
-		return gSkillData.monDmgMP5;
-	case BULLET_MONSTER_12MM:
-		return gSkillData.monDmg12MM;
-	case BULLET_MONSTER_357:
-		return gSkillData.monDmg357;
-	case BULLET_MONSTER_556:
-		return gSkillData.monDmg556;
-	case BULLET_MONSTER_762:
-		return gSkillData.monDmg762;
-	case BULLET_MONSTER_BUCKSHOT:
-		return gSkillData.monDmgBuckshot;
-	default:
-		return defaultDamage;
-	}
-}
-
-static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult& tr, const Vector& vecDir, const Vector& vecSrc, const Vector& vecEnd, int iBulletType, const DamageInfo& damageInfo, float defaultDamage, bool decalsPredicted = false)
+static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult& tr, const Vector& vecDir, const Vector& vecSrc, const Vector& vecEnd, const DamageInfo& damageInfo, bool decalsPredicted = false)
 {
 	CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 
-	if( damageInfo.damage )
+	DamageInfo dmgInfo = damageInfo;
+
+	if (FClassnameIs(pevInflictor, "func_tank") && dmgInfo.damage > 16)
+		dmgInfo.SetGibPolicy(GIB_ALWAYS);
+
+	pEntity->TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, &tr );
+
+	if (!decalsPredicted)
 	{
-		DamageInfo dmgInfo = damageInfo;
-		if (dmgInfo.damage > 16)
-			dmgInfo.SetGibPolicy(GIB_ALWAYS);
-		else
-			dmgInfo.SetGibPolicy(GIB_NEVER);
-		pEntity->TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, &tr );
-
-		TEXTURETYPE_PlaySound( &tr, vecSrc, vecEnd, iBulletType );
-		DecalGunshot( &tr, iBulletType );
-	}
-	else
-	{
-		if (iBulletType == BULLET_NONE) // TODO: do we need it?
-		{
-			DamageInfo dmgInfo = damageInfo;
-			dmgInfo.damage = 50;
-			dmgInfo.type = DMG_CLUB;
-
-			pEntity->TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, &tr );
-			TEXTURETYPE_PlaySound( &tr, vecSrc, vecEnd, iBulletType );
-			// only decal glass
-			if( !FNullEnt( tr.pHit ) && VARS( tr.pHit )->rendermode != 0 )
-			{
-				UTIL_DecalTrace( &tr, DECAL_GLASSBREAK1 + RANDOM_LONG( 0, 2 ) );
-			}
-		}
-		else
-		{
-			DamageInfo dmgInfo = damageInfo;
-			dmgInfo.damage = DamageByBulletType(iBulletType, defaultDamage);
-			pEntity->TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, &tr );
-
-			if (!decalsPredicted)
-			{
-				TEXTURETYPE_PlaySound( &tr, vecSrc, vecEnd, iBulletType );
-				DecalGunshot( &tr, iBulletType );
-			}
-		}
+		TEXTURETYPE_PlaySound( &tr, vecSrc, vecEnd );
+		DecalGunshot( &tr );
 	}
 }
 
@@ -2036,7 +1960,7 @@ Go to the trouble of combining multiple pellets into a single damage call.
 This version is used by Monsters.
 ================
 */
-void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t *pevAttacker )
+void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker )
 {
 	static int tracerCount;
 	TraceResult tr;
@@ -2047,7 +1971,7 @@ void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDir
 		pevAttacker = pev;  // the default attacker is ourselves
 
 	ClearMultiDamage();
-	DamageInfo damageInfo{(float)iDamage, DMG_BULLET};
+	DamageInfo damageInfo{flDamage, DMG_BULLET};
 	damageInfo.SetGibPolicy(GIB_NEVER);
 
 	UTIL_MuzzleLight(vecSrc);
@@ -2093,7 +2017,7 @@ void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDir
 		// do damage, paint decals
 		if( tr.flFraction != 1.0f )
 		{
-			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.monDmg9MM);
+			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, damageInfo);
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (int)( ( flDistance * tr.flFraction ) / 64.0f ) );
@@ -2110,7 +2034,7 @@ Go to the trouble of combining multiple pellets into a single damage call.
 This version is used by Players, uses the random seed generator to sync client and server side shots.
 ================
 */
-Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq, int iDamage, entvars_t *pevAttacker, int shared_rand )
+Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, float flRangeModifier, int iTracerFreq, entvars_t *pevAttacker, int shared_rand )
 {
 	TraceResult tr;
 	Vector vecRight = gpGlobals->v_right;
@@ -2122,9 +2046,6 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 		pevAttacker = pev;  // the default attacker is ourselves
 
 	ClearMultiDamage();
-
-	DamageInfo damageInfo{(float)iDamage, DMG_BULLET};
-	damageInfo.SetGibPolicy(GIB_NEVER);
 
 	for( unsigned int iShot = 1; iShot <= cShots; iShot++ )
 	{
@@ -2145,7 +2066,15 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 		// do damage, paint decals
 		if( tr.flFraction != 1.0f )
 		{
-			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, iBulletType, damageInfo, gSkillData.plrDmg9MM, true);
+			const float flCurrentDistance = tr.flFraction * flDistance;
+			const float currentDamage = (flRangeModifier == 1.0f || flRangeModifier == 0.0f) ? flDamage : flDamage * std::pow(flRangeModifier, flCurrentDistance / 500);
+
+			//ALERT(at_console, "Damage is %g\n", currentDamage);
+
+			DamageInfo damageInfo{currentDamage, DMG_BULLET};
+			damageInfo.SetGibPolicy(GIB_NEVER);
+
+			DoBulletTraceAttack(pev, pevAttacker, tr, vecDir.Normalize(), vecSrc, vecEnd, damageInfo, true);
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (int)( ( flDistance * tr.flFraction ) / 64.0f ) );

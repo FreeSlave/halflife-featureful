@@ -34,6 +34,9 @@
 static GLuint g_iBlankTex = 0;
 #endif
 
+extern cvar_t *cl_righthand;
+extern bool ShouldMirrorCurrentViewModel();
+
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
 
@@ -940,7 +943,6 @@ void CStudioModelRenderer::StudioSetupBones( void )
 		}
 	}
 
-
 	for( i = 0; i < m_pStudioHeader->numbones; i++ )
 	{
 		QuaternionMatrix( q[i], bonematrix );
@@ -953,6 +955,14 @@ void CStudioModelRenderer::StudioSetupBones( void )
 		{
 			if( IEngineStudio.IsHardware() )
 			{
+				if (cl_righthand->value > 0.0f && gEngfuncs.GetViewModel() == m_pCurrentEntity)
+				{
+					bonematrix[1][0] = -bonematrix[1][0];
+					bonematrix[1][1] = -bonematrix[1][1];
+					bonematrix[1][2] = -bonematrix[1][2];
+					bonematrix[1][3] = -bonematrix[1][3];
+				}
+
 				ConcatTransforms( (*m_protationmatrix), bonematrix, (*m_pbonetransform)[i] );
 
 				// MatrixCopy should be faster...
@@ -1096,6 +1106,16 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	Vector dir;
 
 	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
+
+	bool bChangedRightHand = false;
+	int iRightHandValue;
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (flags & (STUDIO_RENDER|STUDIO_EVENTS)) && ShouldMirrorCurrentViewModel())
+	{
+		bChangedRightHand = true;
+		iRightHandValue = cl_righthand->value;
+		cl_righthand->value = !cl_righthand->value;
+	}
+
 	IEngineStudio.GetTimes( &m_nFrameCount, &m_clTime, &m_clOldTime );
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );
@@ -1200,6 +1220,11 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			StudioRenderEntity(false);
 			StudioRenderEntity(true);
 		}
+	}
+
+	if (bChangedRightHand)
+	{
+		cl_righthand->value = iRightHandValue;
 	}
 
 	return 1;

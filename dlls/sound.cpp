@@ -26,7 +26,6 @@
 #include "soundent.h"
 #include "pm_shared.h"
 #include "locus.h"
-#include "bullet_types.h"
 #include "common_soundscripts.h"
 
 // ==================== GENERIC AMBIENT SOUND ======================================
@@ -1785,10 +1784,10 @@ char TEXTURETYPE_Find( char *name )
 }
 
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
-// original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
+// original traceline endpoints used by the attacker.
 // returns volume of strike instrument (crowbar) to play
 
-float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, int iBulletType )
+float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bool ignoreFlesh )
 {
 	// hit the world, try to play sound based on texture material type
 	char chTextureType;
@@ -1841,7 +1840,7 @@ float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, in
 	if (!mData || mData->hit.waves.empty())
 		return 0.0f;
 
-	if (chTextureType == g_MaterialRegistry.FleshMaterial() && iBulletType == BULLET_PLAYER_CROWBAR)
+	if (chTextureType == g_MaterialRegistry.FleshMaterial() && ignoreFlesh)
 		return 0.0f;
 
 	fvol = mData->hit.volume;

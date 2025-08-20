@@ -128,6 +128,12 @@ TEST(Optional, Test)
 	oi = oi2;
 	EXPECT_EQ(*oi, 13);
 
+	oi.reset();
+	EXPECT_FALSE(oi.has_value());
+
+	oi2 = optional<int>();
+	EXPECT_FALSE(oi2.has_value());
+
 	optional<std::string> os;
 	EXPECT_FALSE(os);
 	EXPECT_TRUE(!os);
@@ -142,6 +148,8 @@ TEST(Optional, Test)
 	os = os2;
 	EXPECT_EQ(*os, "World");
 	EXPECT_EQ(*os2, "World");
+	os2.reset();
+	EXPECT_FALSE(os2.has_value());
 
 	optional<float> of;
 	EXPECT_FALSE(of.has_value());

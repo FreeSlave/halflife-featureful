@@ -420,7 +420,7 @@ void CHWGrunt::Shoot()
 
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iM249Link, TE_BOUNCE_SHELL);
 
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, BULLET_MONSTER_556 ); // shoot +-5 degrees
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, gSkillData.monDmg556 ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 

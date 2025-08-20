@@ -1867,7 +1867,7 @@ void CISlave::ArmBeam( int side )
 	if( flDist == 1.0f )
 		return;
 
-	DecalGunshot( &tr, BULLET_PLAYER_CROWBAR );
+	DecalSmack( &tr );
 
 	m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(powerupBeamVisual));
 	if( !m_pBeam[m_iBeams] )

@@ -276,6 +276,7 @@ extern void			UTIL_SetOrigin			( entvars_t* pev, const Vector &vecOrigin );
 extern void			UTIL_EmitAmbientSound	( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch );
 extern void			UTIL_ParticleEffect		( const Vector &vecOrigin, const Vector &vecDirection, unsigned int ulColor, unsigned int ulCount );
 extern void			UTIL_ScreenShake		( const Vector &center, float amplitude, float frequency, float duration, float radius );
+extern void			UTIL_ScreenShakeToClient( edict_t* entity, float amplitude, float frequency, float duration );
 extern void			UTIL_ScreenShakeAll		( const Vector &center, float amplitude, float frequency, float duration );
 extern void			UTIL_ShowMessage		( const char *pString, CBaseEntity *pPlayer );
 extern void			UTIL_ShowMessageAll		( const char *pString );
@@ -544,7 +545,7 @@ int SENTENCEG_Lookup(const char *sample, char *sentencenum);
 
 void TEXTURETYPE_Init();
 char TEXTURETYPE_Find(char *name);
-float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd, int iBulletType);
+float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bool ignoreFlesh = false);
 
 // NOTE: use EMIT_SOUND_DYN to set the pitch of a sound. Pitch of 100
 // is no pitch shift.  Pitch > 100 up to 255 is a higher pitch, pitch < 100
@@ -608,11 +609,6 @@ void UTIL_DynamicLight( const Vector& vecSrc, float flRadius, byte r, byte g, by
 void UTIL_MuzzleLight( const Vector& vecSrc );
 
 char *memfgets( byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize );
-
-float RandomizeNumberFromRange(const FloatRange& r);
-float RandomizeNumberFromRange(float minF, float maxF);
-int RandomizeNumberFromRange(const IntRange& r);
-int RandomizeNumberFromRange(int minI, int maxI);
 
 inline bool LineOfSightSeparatedByWaterSurface(int lookerWaterlevel, int targetWaterlevel)
 {
