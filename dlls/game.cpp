@@ -805,6 +805,7 @@ cvar_t npc_combat_fail_schedule = { "npc_combat_fail_schedule", "0", FCVAR_SERVE
 cvar_t npc_lateral_retreat = { "npc_lateral_retreat", "0", FCVAR_SERVER };
 cvar_t npc_follow_out_of_pvs = { "npc_follow_out_of_pvs", "1", FCVAR_SERVER };
 cvar_t npc_patrol = { "npc_patrol", "1", FCVAR_SERVER };
+cvar_t npc_vanilla_kick_behavior = { "npc_vanilla_kick_behavior", "0", FCVAR_SERVER };
 
 cvar_t mp_chattime	= { "mp_chattime","10", FCVAR_SERVER };
 
@@ -1702,6 +1703,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &npc_lateral_retreat );
 	CVAR_REGISTER( &npc_follow_out_of_pvs );
 	CVAR_REGISTER( &npc_patrol );
+	CVAR_REGISTER( &npc_vanilla_kick_behavior );
 
 	CVAR_REGISTER( &teamplay );
 	CVAR_REGISTER( &fraglimit );

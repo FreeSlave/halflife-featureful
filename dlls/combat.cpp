@@ -1561,6 +1561,8 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 	return nullptr;
 }
 
+extern cvar_t npc_vanilla_kick_behavior;
+
 CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& params)
 {
 	CBaseEntity *pHurt = CheckTraceHullAttack(params);
@@ -1573,7 +1575,31 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 		if (params.punchAngle.z)
 			pHurt->pev->punchangle.y = params.punchAngle.z;
 
-		const bool applyKnock = params.knockPlayerOnly ? pHurt->IsPlayer() : FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT);
+		bool applyKnock = false;
+		if (params.knockPlayerOnly)
+		{
+			applyKnock = pHurt->IsPlayer();
+		}
+		else
+		{
+			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
+				applyKnock = true;
+			else if (pHurt->pev->movetype == MOVETYPE_PUSHSTEP)
+				applyKnock = true;
+			else if (npc_vanilla_kick_behavior.value == 0)
+			{
+				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT && FClassnameIs(pHurt->pev, "func_door_rotating");
+			}
+			else if (npc_vanilla_kick_behavior.value >= 2)
+			{
+				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT;
+			}
+			else if (npc_vanilla_kick_behavior.value > 0)
+			{
+				applyKnock = true;
+			}
+		}
+
 		if (applyKnock)
 		{
 			pHurt->pev->velocity = pHurt->pev->velocity +
