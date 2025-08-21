@@ -388,7 +388,6 @@ private:
 	std::vector<JournalSection> sections;
 	std::vector<Notification> notifications;
 
-	bool journalInit;
 	bool hasInventorySection;
 public:
 	bool m_iShowscoresHeld;

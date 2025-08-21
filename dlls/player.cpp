@@ -5391,7 +5391,27 @@ void CBasePlayer::UpdateClientData( void )
 		MESSAGE_END();
 	}
 
-	if ( !m_bSentMessages && g_PlayerFullyInitialized[ENTINDEX(edict())-1] )
+	if (!m_bSentMessages)
+	{
+		if (!g_pGameRules->IsMultiplayer())
+		{
+			for (unsigned int i = 0; i < MAX_JOURNAL_RECORDS; ++i)
+			{
+				if (!FStringNull(m_journalSections[i]) && !FStringNull(m_journalRecords[i]))
+				{
+					MESSAGE_BEGIN( MSG_ONE, gmsgJournal, NULL, pev );
+						WRITE_BYTE(0);
+						WRITE_STRING(STRING(m_journalSections[i]));
+						WRITE_STRING(STRING(m_journalRecords[i]));
+					MESSAGE_END();
+				}
+			}
+		}
+
+		m_bSentMessages = true;
+	}
+
+	if ( !m_bSentVisibilityMessages && g_PlayerFullyInitialized[ENTINDEX(edict())-1] )
 	{
 		if (!FStringNull(m_loopedMp3) && gmsgPlayMP3)
 		{
@@ -5401,7 +5421,7 @@ void CBasePlayer::UpdateClientData( void )
 			MESSAGE_END();
 		}
 
-		m_bSentMessages = true;
+		m_bSentVisibilityMessages = true;
 
 		const int startingIndex = 1;
 		edict_t *pEdict = g_engfuncs.pfnPEntityOfEntOffset( 0 ) + startingIndex;

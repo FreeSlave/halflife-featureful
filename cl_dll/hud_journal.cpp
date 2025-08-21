@@ -13,7 +13,6 @@ DECLARE_MESSAGE( m_Journal, Journal )
 
 int CHudJournal::Init()
 {
-	journalInit = false;
 	gHUD.AddHudElem( this );
 
 	HOOK_MESSAGE( Journal );
@@ -26,15 +25,7 @@ int CHudJournal::Init()
 int CHudJournal::VidInit()
 {
 	notifications.clear();
-	if (gHUD.IsDeveloperModeOn())
-	{
-		journalInit = false;
-	}
-	if (!journalInit)
-	{
-		InitJournal();
-		journalInit = true;
-	}
+	InitJournal();
 
 	for (JournalSection& section : sections)
 	{
