@@ -130,7 +130,7 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu')
       working-directory: ./tests
       run: |
-        cmake -B build -S .
+        cmake -GNinja -B build -S .
         cmake --build build --target all
         ./build/test
 
