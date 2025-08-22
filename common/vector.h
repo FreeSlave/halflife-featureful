@@ -111,7 +111,7 @@ public:
 	//inline Vector( double X, double Y, double Z )		{ x = (float)X; y = (float)Y; z = (float)Z;	}
 	//inline Vector( int X, int Y, int Z )			{ x = (float)X; y = (float)Y; z = (float)Z;	}
 	constexpr Vector( const Vector& v ) = default;
-	constexpr Vector( float rgfl[3] ): x( rgfl[0] ), y( rgfl[1] ), z( rgfl[2] )	{}
+	constexpr Vector( const float rgfl[3] ): x( rgfl[0] ), y( rgfl[1] ), z( rgfl[2] )	{}
 
 	// Operators
 	NODISCARD constexpr Vector operator-( void ) const			{ return Vector( -x, -y, -z );			}
