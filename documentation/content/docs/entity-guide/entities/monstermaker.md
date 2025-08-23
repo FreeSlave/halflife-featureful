@@ -12,6 +12,7 @@ bookToC: false
 * `Delay after blocked` - delay before the next spawn attempt if previous was blocked by another monster. If not specified, the 'Delay between spawns' parameter is used as a delay.
 * `Target's Activator` - activator for `Target On Release`. E.g. can be set to `Spawned monster` to make a monster act as an activator for the trigger.
 * `Spawn position [LP]` - a position to spawn a monster at.
+* `Face to [LP]` - the spawned monster will face to this position. If set to `*player` it faces to the closest alive player.
 * `Warpball` - the name of the warpball template or `env_warpball` entity to play along with the monster spawn. The warpball template search is prioritized over the entity search.
 
 ### New spawnflags
@@ -19,7 +20,6 @@ bookToC: false
 * ![](/images/svencoop.png) `Auto size BBox` enables a more precise calculation of free area when checking if monster fits the area. This flag is ticked by default in fgd. Without this flag the monstermaker will use a rough calculation which often exaggerates the real size of the monster thus not allowing a monster to spawn even if they would have enough space to fit.
 * ![](/images/svencoop.png) `Cyclic backlog` - use together with `Cyclic`. Keep track of the number of monsters who could not spawn at the time of monstermaker's firing (e.g. if the spawn place was blocked). The monsters from backlog will spawn later.
 * `No ground check` removes the check for unoccupied space under the monstermaker. Useful for spawning flying monsters or monsters that should fall. Without this flag the monstermaker will avoid spawning a monster if another monster is currently underneath.
-* `Align to player` makes the spawned monster align towards the player. Use it together with `Max yaw deviation` parameter to randomize the angle a bit.
 
 ### Choosing a spawn point
 

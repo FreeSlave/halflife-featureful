@@ -137,6 +137,8 @@ public:
 	string_t m_childValues[MAX_CHILD_KEYS];
 	int m_childKeyCount;
 
+	string_t m_positionToFaceTo;
+
 	short m_makeBlockerMoveAway;
 
 	bool m_childIsValid;
@@ -178,6 +180,7 @@ TYPEDESCRIPTION	CMonsterMaker::m_SaveData[] =
 	DEFINE_ARRAY( CMonsterMaker, m_childKeys, FIELD_STRING, MAX_CHILD_KEYS ),
 	DEFINE_ARRAY( CMonsterMaker, m_childValues, FIELD_STRING, MAX_CHILD_KEYS ),
 	DEFINE_FIELD( CMonsterMaker, m_childKeyCount, FIELD_INTEGER ),
+	DEFINE_FIELD( CMonsterMaker, m_positionToFaceTo, FIELD_STRING ),
 	DEFINE_FIELD( CMonsterMaker, m_makeBlockerMoveAway, FIELD_SHORT ),
 };
 
@@ -298,6 +301,11 @@ void CMonsterMaker::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "delay_after_blocked" ) )
 	{
 		m_delayAfterBlocked = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "face_position" ) )
+	{
+		m_positionToFaceTo = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "make_blocker_move_away" ) )
@@ -640,22 +648,33 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 		}
 	}
 
-	if (FBitSet(pev->spawnflags, SF_MONSTERMAKER_ALIGN_TO_PLAYER))
+	if (FBitSet(pev->spawnflags, SF_MONSTERMAKER_ALIGN_TO_PLAYER) || !FStringNull(m_positionToFaceTo))
 	{
-		float minDist = 10000.0f;
-		CBaseEntity* foundPlayer = NULL;
-		for (int i = 1; i <= gpGlobals->maxClients; ++i) {
-			CBaseEntity* player = UTIL_PlayerByIndex(i);
-			if (player && player->IsPlayer() && player->IsAlive()) {
-				const float dist = (pev->origin - player->pev->origin).Length();
-				if (dist < minDist) {
-					minDist = dist;
-					foundPlayer = player;
+		if (FStringNull(m_positionToFaceTo) || FStrEq(STRING(m_positionToFaceTo), "*player"))
+		{
+			float minDist = 10000.0f;
+			CBaseEntity* foundPlayer = nullptr;
+			for (int i = 1; i <= gpGlobals->maxClients; ++i) {
+				CBaseEntity* player = UTIL_PlayerByIndex(i);
+				if (player && player->IsPlayer() && player->IsAlive()) {
+					const float dist = (pev->origin - player->pev->origin).Length();
+					if (dist < minDist) {
+						minDist = dist;
+						foundPlayer = player;
+					}
 				}
 			}
+			if (foundPlayer) {
+				placeAngles = Vector(0, UTIL_VecToYaw(foundPlayer->pev->origin - placePosition), 0);
+			}
 		}
-		if (foundPlayer) {
-			placeAngles = Vector(0, UTIL_VecToYaw(foundPlayer->pev->origin - placePosition), 0);
+		else
+		{
+			Vector positionToAngleTo;
+			if (TryCalcLocus_Position(this, m_hActivator, STRING(m_positionToFaceTo), positionToAngleTo))
+			{
+				placeAngles = Vector(0, UTIL_VecToYaw(positionToAngleTo - placePosition), 0);
+			}
 		}
 	}
 

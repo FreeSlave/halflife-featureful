@@ -7519,6 +7519,7 @@
 	m_imaxlivechildren(integer) : "Max live children" : 5 : "Maximum number of live children allowed at one time. (New ones will not be made until one dies, -1 = no limit)"
 
     spawnorigin(string) : "Spawn position [LP]" : : "By default acts as a typical position variable. When it starts with '@' the monstermaker will choose a random spot among ones with the same name (the rest of the string after '@'). It also applies the chosen entity angles."
+	face_position(string) : "Face to [LP]" : : "The spawned monster will face to this position. If set to '*player' it faces to the closest alive player."
 	warpball(string) : "Warpball template" : : "The template name from templates/warpball.json or the name of the env_warpball entity used as effect template for this monstermaker"
 	impulse(choices) : "Warp at monster's..." : : "If using warpball template, spawn warpball at this monster position" =
 	[
@@ -7596,7 +7597,7 @@
 		128 : "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Wait for script' flag"
 		256 : "Pre-Disaster" : 0 : "The spawned talkmonster (e.g. scientist) will use pre-disaster sentences"
 		1024: "Don't Drop Gun" : 0 : "The spawned monster won't drop items upon death."
-		4096 : "Align to player" : 0 : "Spawned monsters will be aligned to the closest player increasing the chance of seeing the player right after the spawn."
+		4096 : "[Deprecated] Face to player" : 0 : "Use 'Face to' with *player value instead. Spawned monsters will be aligned to the closest player increasing the chance of seeing the player right after the spawn."
 		8192 : "Monster Flag 64" : 0 : "Set spawnflag 64 for spawned monster. E.g. used by vortigaunts as 'wait until provoked'"
 		16384: "No ground check" : 0 : "Don't check if something prevents a monster to fall on ground upon spawning. Useful for spawning flying monsters and those who are supposed to fall on whatever underneath them"
 		32768 : "Monster special flag" : 0 : "Set spawnflag 32768 for spawned monster"
