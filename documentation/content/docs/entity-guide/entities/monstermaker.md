@@ -14,6 +14,7 @@ bookToC: false
 * `Spawn position [LP]` - a position to spawn a monster at.
 * `Face to [LP]` - the spawned monster will face to this position. If set to `*player` it faces to the closest alive player.
 * `Warpball` - the name of the warpball template or `env_warpball` entity to play along with the monster spawn. The warpball template search is prioritized over the entity search.
+* `Trigger on death notice` - trigger each time when some child dies. The activator is monstermaker.
 
 ### New spawnflags
 

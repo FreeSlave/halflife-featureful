@@ -138,6 +138,7 @@ public:
 	int m_childKeyCount;
 
 	string_t m_positionToFaceTo;
+	string_t m_triggerOnDeathNotice;
 
 	short m_makeBlockerMoveAway;
 
@@ -181,6 +182,7 @@ TYPEDESCRIPTION	CMonsterMaker::m_SaveData[] =
 	DEFINE_ARRAY( CMonsterMaker, m_childValues, FIELD_STRING, MAX_CHILD_KEYS ),
 	DEFINE_FIELD( CMonsterMaker, m_childKeyCount, FIELD_INTEGER ),
 	DEFINE_FIELD( CMonsterMaker, m_positionToFaceTo, FIELD_STRING ),
+	DEFINE_FIELD( CMonsterMaker, m_triggerOnDeathNotice, FIELD_STRING ),
 	DEFINE_FIELD( CMonsterMaker, m_makeBlockerMoveAway, FIELD_SHORT ),
 };
 
@@ -306,6 +308,11 @@ void CMonsterMaker::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "face_position" ) )
 	{
 		m_positionToFaceTo = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "trigger_on_death_notice" ) )
+	{
+		m_triggerOnDeathNotice = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "make_blocker_move_away" ) )
@@ -1143,6 +1150,9 @@ void CMonsterMaker::DeathNotice( entvars_t *pevChild )
 	{
 		pevChild->owner = NULL;
 	}
+
+	if (!FStringNull(m_triggerOnDeathNotice))
+		FireTargets(STRING(m_triggerOnDeathNotice), this, this);
 
 	if (m_cNumMonsters == 0 && m_cLiveChildren == 0)
 	{

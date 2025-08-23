@@ -7580,6 +7580,7 @@
 		12: "Provoked by player (got mad)"
 		13: "Got healed"
 	]
+	trigger_on_death_notice(target_destination) : "Trigger on death notice" : : "Trigger each time when some child dies."
 	new_model(studio) : "Custom model"
 ]
 
