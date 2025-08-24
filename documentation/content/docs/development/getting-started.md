@@ -53,6 +53,15 @@ sporelauncher
 shockrifle
 penguin
 uzi
+
+pistol
+pistol2
+smg
+smg2
+rifle
+rifle2
+shotgun2
+sniperrifle2
 ```
 {{% /details %}}
 
