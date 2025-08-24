@@ -616,7 +616,7 @@ bool CConfigurableWeapon::PerformDeploy()
 
 	if (CanRechargeAmmo())
 	{
-		if (params.recharge.onlyWhenDrawn.Get(altMode))
+		if (params.recharge.onlyWhenDeployed.Get(altMode))
 			m_flRechargeTime = gpGlobals->time + params.recharge.interval.Get(altMode);
 	}
 
@@ -971,6 +971,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				return;
 			}
 			SpendAmmo(ammoPerFire);
+			UpdateRechargeTime(altMode);
 			OnSpendAmmo();
 		}
 	}
@@ -1029,15 +1030,6 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 			m_pLaser->Suspend(suspendLaserSpotTime);
 	}
 #endif
-
-	if (CanRechargeAmmo())
-	{
-		const float rechargeInterval = params.recharge.interval.Get(altMode);
-		const float rechargeDelayAfterFire = params.recharge.delayAfterFire.Get(altMode);
-		const float rechargeDelay = Q_max(rechargeInterval, rechargeDelayAfterFire);
-
-		m_flRechargeTime = gpGlobals->time + rechargeDelay;
-	}
 
 	const auto fireType = fire.fireType.Get(altMode);
 	float spreadX = 0.0f;
@@ -1270,6 +1262,7 @@ void CConfigurableWeapon::FireRemaining()
 	if (!canFireMore)
 	{
 		ResetBurst();
+		UpdateRechargeTime(altMode);
 		return;
 	}
 
@@ -1318,6 +1311,7 @@ void CConfigurableWeapon::FireRemaining()
 	else
 	{
 		ResetBurst();
+		UpdateRechargeTime(altMode);
 	}
 }
 
@@ -2199,6 +2193,19 @@ bool CConfigurableWeapon::CanRechargeAmmo()
 {
 	const WeaponParameters& params = MyParameters();
 	return params.recharge.interval.Get(InAltMode()) && UsesAmmo() && !UsesClip();
+}
+
+void CConfigurableWeapon::UpdateRechargeTime(bool altMode)
+{
+	if (CanRechargeAmmo())
+	{
+		const WeaponParameters& params = MyParameters();
+		const float rechargeInterval = params.recharge.interval.Get(altMode);
+		const float rechargeDelayAfterFire = params.recharge.delayAfterFire.Get(altMode);
+		const float rechargeDelay = Q_max(rechargeInterval, rechargeDelayAfterFire);
+
+		m_flRechargeTime = gpGlobals->time + rechargeDelay;
+	}
 }
 
 int CConfigurableWeapon::PackIParam2()

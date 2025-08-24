@@ -918,6 +918,24 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	UpdatePropertyFromJson(params.startInAltMode, value, "start_in_alt_mode");
 	UpdatePropertyFromJson(params.mirrorViewModel, value, "mirror_viewmodel");
 
+	auto HandleRecharge = [&](const char* propName, bool altMode) {
+		HandleJSONMember(value, propName, [&](const Value& value) {
+			auto& recharge = params.recharge;
+
+			UpdatePropertyFromJson(recharge.interval, value, "interval", altMode);
+			UpdatePropertyFromJson(recharge.delayAfterFire, value, "delay_after_fire", altMode);
+			UpdatePropertyFromJson(recharge.onlyWhenDeployed, value, "only_when_deployed", altMode);
+
+			HandleJSONMember(value, "sound", [&](const Value& value) {
+				WeaponSoundScript& soundScript = recharge.sound.Materialize(altMode);
+				ParseWeaponSoundScript(soundScript, value);
+			});
+		});
+	};
+
+	HandleRecharge("recharge", false);
+	HandleRecharge("recharge_alt", true);
+
 	HandleJSONMember(value, "laser_spot", [&](const Value& value) {
 		UpdatePropertyFromJson(params.startLaserSpot, value, "start_on");
 		UpdatePropertyFromJson(params.laserSpotAttractRockets, value, "attract_rockets");

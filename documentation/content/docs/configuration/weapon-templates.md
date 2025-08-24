@@ -1129,9 +1129,37 @@ Example:
 
 Whether the weapon view model must be mirrored. This is required for left-handed weapon models from Counter Strike to make them render on the right.
 
+## recharge
+
+An object defining weapon ammo recharge options (like in [weapon_hornetgun]({{< ref weapon_hornetgun >}}) or [weapon_shockrifle]({{< ref weapon_shockrifle >}})).
+
+{{% hint warning %}}
+Currently recharging works only for weapons that don't use clips.
+{{% /hint %}}
+
+### interval
+
+Interval in seconds between recharging.
+
+### delay_after_fire
+
+Delay before the weapon starts recharging after the fire has been performed. This is optional - use this in case you want a delay after fire to be longer than a general interval.
+
+### only_when_deployed
+
+If set to `true` it will recharge ammo only while the weapon is deployed (i.e. it's the current selected weapon). If set to `false` (default), it allows recharging in background.
+
+### sound
+
+[Weapon soundscript](#weapon-soundscript) to play on each ammo recharge. E.g. [weapon_shockrifle]({{< ref weapon_shockrifle >}}) uses it. This is played on the player's weapon channel by default.
+
+## recharge_alt
+
+Same as [recharge](#recharge), but defines options to use when weapon is in the alternative mode.
+
 ## reload
 
-Customize weapon reload options.
+An object defining weapon reload options.
 
 ### anim
 

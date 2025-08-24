@@ -140,7 +140,7 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 
 	params.recharge.interval = bIsMultiplayer() ? 0.25f : 0.5f;
 	params.recharge.delayAfterFire = 1.0f;
-	params.recharge.onlyWhenDrawn = true;
+	params.recharge.onlyWhenDeployed = true;
 	params.recharge.sound = {
 		CHAN_WEAPON,
 		{"weapons/shock_recharge.wav"},

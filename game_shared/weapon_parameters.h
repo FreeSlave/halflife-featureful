@@ -624,7 +624,7 @@ struct WeaponParameters
 	{
 		WeaponModeValueNonNegative<float> interval{0};
 		WeaponModeValueNonNegative<float> delayAfterFire{0};
-		WeaponModeValue<bool> onlyWhenDrawn{false};
+		WeaponModeValue<bool> onlyWhenDeployed{false};
 		WeaponModeValue<WeaponSoundScript> sound{CHAN_WEAPON};
 	};
 

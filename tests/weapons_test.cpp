@@ -381,6 +381,12 @@ const char weaponTemplates[] = R"(
 		},
 		"manual_reload": {
 			"restart_on_deploy": true
+		},
+		"recharge": {
+			"interval": 0.5,
+			"delay_after_fire": 2.0,
+			"only_when_deployed": true,
+			"sound": ["weapons/recharge.wav"]
 		}
 	}
 }
@@ -698,5 +704,11 @@ TEST(Weapons, Parse) {
 
 		EXPECT_TRUE(testParams.manualReload);
 		EXPECT_TRUE(testParams.manualReloadRestartOnDeploy);
+
+		EXPECT_EQ(testParams.recharge.interval.Get(false), 0.5f);
+		EXPECT_EQ(testParams.recharge.delayAfterFire.Get(false), 2.0f);
+		EXPECT_TRUE(testParams.recharge.onlyWhenDeployed.Get(false));
+		ASSERT_EQ(testParams.recharge.sound.Get(false).waves.size(), 1);
+		EXPECT_STREQ(testParams.recharge.sound.Get(false).waves[0], "weapons/recharge.wav");
 	}
 }

@@ -606,6 +606,25 @@ const char* const json_schemas::weapons = R"(
 			}
 		}
 	},
+	"recharge": {
+		"type": "object",
+		"properties": {
+			"interval": {
+				"type": "number",
+				"minimum": 0
+			},
+			"delay_after_fire": {
+				"type": "number",
+				"minimum": 0
+			},
+			"only_when_deployed": {
+				"type": "boolean"
+			},
+			"sound": {
+				"$ref": "#/w_soundscript"
+			}
+		}
+	},
 	"weapon_template": {
 		"type": "object",
 		"properties": {
@@ -813,6 +832,12 @@ const char* const json_schemas::weapons = R"(
 			},
 			"mirror_viewmodel": {
 				"type": "boolean"
+			},
+			"recharge": {
+				"$ref": "#/recharge"
+			},
+			"recharge_alt": {
+				"$ref": "#/recharge"
 			},
 			"laser_spot": {
 				"type": "object",

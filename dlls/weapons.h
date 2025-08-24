@@ -419,6 +419,7 @@ public:
 	}
 
 	bool CanRechargeAmmo();
+	void UpdateRechargeTime(bool altMode);
 
 #ifndef CLIENT_DLL
 	int Save(CSave &save) override;
