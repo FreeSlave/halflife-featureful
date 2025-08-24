@@ -14,9 +14,31 @@ If not stated otherwise, the weapon template can be applied to any fully configu
 
 The templates for CS weapons are stored in the **templates/weapons/cs/** directory. They include almost every CS firearm (except for dual berretas).
 
+{{% details "Example" open %}}
+
+```json
+{
+    "weapon_9mmhandgun": "cs/glock18",
+    "weapon_eagle": "cs/deagle",
+    "weapon_9mmAR": "cs/mp5navy",
+    "weapon_shotgun": "cs/m3",
+    "weapon_sniperrifle": "cs/awp",
+    "weapon_pistol": "cs/usp",
+    "weapon_pistol2": "cs/fiveseven",
+    "weapon_smg": "cs/ump45",
+    "weapon_smg2": "cs/p90",
+    "weapon_rifle": "cs/m4a1",
+    "weapon_rifle2": "cs/famas",
+    "weapon_shotgun2": "cs/xm1014",
+    "weapon_sniperrifle2": "cs/g3sg1"
+}
+```
+
+{{% /details %}}
+
 As a mod developer you need to take into account that CS handles weapons different (comparing to HL) in several aspects and this behavior is replicated in the weapon templates:
 
-* Most CS weapons use different spread and kickback rules.
+* Most CS weapons use different [spread]({{< ref "weapon-templates#spread" >}}) and [kickback]({{< ref "weapon-templates#kickback" >}}) rules.
     - The fire spread gets wider with each fire, making the player to use short burst fire to keep the shots accurate (unlike HL where the spread is randomized in a constant range independent of previous shots).
     - Kickback (recoil) is server-side, i.e. it actually affects the direction of the next shot (unlike HL where the recoil is client-side and purely visual).
     - The kickback (recoil) inscreases with each fire making the player control their pointing devices to compensate for the recoil.
@@ -34,7 +56,7 @@ CS weapons demonstrate some other traits that are not possible (yet) to express 
 
 We advise not mixing HL and CS weapon fire styles in the same mod as it might be confusing to the player, so don't mix HL and CS weapons without making appropriate changes. Follow these recommendations:
 
-* Decide whether you want a dynamic spread and kickback from CS. Set it appropriately for all related firearms.
+* Decide whether you want a dynamic [spread]({{< ref "weapon-templates#spread" >}}) and [kickback]({{< ref "weapon-templates#kickback" >}}) from CS. Set it appropriately for all related firearms.
 * Decide whether you want bullet damage depend on the range and set or remove [range modifier]({{< ref "weapon-templates#range_modifier" >}}) appropriately.
 * Configure [damage]({{< ref "weapon-templates#damage" >}}) values to your liking. Since replicating the CS damage values wouldn't fit the HL singleplayer balance (the damage values in CS are balanced around players having 100 hp and low time-to-kill) as a rule of thumb we took original damage values and divided them by 2.5 (except for Desert Eagle, AWP and Scout).
 * Set [allow_underwater]({{< ref "weapon-templates#allow_underwater" >}}) for each weapon in accordance to your intentions.
@@ -43,7 +65,7 @@ CS also uses some shell models that are not present in HL, so you must provide t
 
 * **pshell.mdl** - used by pistols and some SMGs.
 * **rshell.mdl** - used by rifles and some SMGs.
-* **rshell_big.mdl** - used by sniperrifles.
+* **rshell_big.mdl** - used by Scout and AWP.
 * **shotgunshell.mdl** - used by shotguns, but reuses the model from base Half-Life, so you don't need to worry about it.
 
 {{% hint info %}}
@@ -662,6 +684,21 @@ Required sounds:
 
 ## Delta Particles
 
+The templates for Delta Particles weapons are stored in the **templates/weapons/dp/** directory. Not all weapons are implemented yet. This is work in progress.
+
+{{% details "Example" open %}}
+```json
+{
+    "weapon_9mmhandgun": "dp/glock",
+    "weapon_357": "dp/python",
+    "weapon_eagle": "dp/44desert_eagle",
+    "weapon_smg": "dp/smg",
+    "weapon_shotgun": "dp/shotgun",
+    "weapon_sniperrifle": "dp/barrett_m82a1"
+}
+```
+{{% /details %}}
+
 Delta Particles changes the way some HL weapons behave as well as adds its own weapons. The common distinctive traits:
 
 * Weapon models are more rich on sounds (played via animation events).
@@ -726,7 +763,7 @@ Required sounds:
 {{% details_header title=".44 Desert Eagle" %}}
 ```json
 {
-    "weapon_357": "dp/44desert_eagle"
+    "weapon_eagle": "dp/44desert_eagle"
 }
 ```
 
@@ -815,7 +852,7 @@ Required sounds:
 {{% details_header title="Barrett M82A1" %}}
 ```json
 {
-    "weapon_shotgun": "dp/barrett_m82a1"
+    "weapon_sniperrifle": "dp/barrett_m82a1"
 }
 ```
 
