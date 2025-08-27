@@ -6011,21 +6011,24 @@ void CTriggerMotion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 
 	vecTemp = g_vecZero;
 
-	switch (m_iAVelMode)
+	if (!FStringNull(m_iszAVelocity))
 	{
-	case AVELMODE_SET:
-		UTIL_StringToRandomVector( vecTemp, STRING(m_iszAVelocity) );
-		if (debug)
-			Motion_PrintVectors("DEBUG: Set avelocity", pTarget->pev->avelocity, vecTemp);
-		pTarget->pev->avelocity = vecTemp;
-		break;
-	case AVELMODE_ADD:
-		UTIL_StringToRandomVector( vecTemp, STRING(m_iszAVelocity) );
-		vecOld = pTarget->pev->avelocity;
-		pTarget->pev->avelocity = vecOld + vecTemp;
-		if (debug)
-			Motion_PrintVectors("DEBUG: Set avelocity", vecOld, pTarget->pev->avelocity);
-		break;
+		switch (m_iAVelMode)
+		{
+		case AVELMODE_SET:
+			UTIL_StringToRandomVector( vecTemp, STRING(m_iszAVelocity) );
+			if (debug)
+				Motion_PrintVectors("DEBUG: Set avelocity", pTarget->pev->avelocity, vecTemp);
+			pTarget->pev->avelocity = vecTemp;
+			break;
+		case AVELMODE_ADD:
+			UTIL_StringToRandomVector( vecTemp, STRING(m_iszAVelocity) );
+			vecOld = pTarget->pev->avelocity;
+			pTarget->pev->avelocity = vecOld + vecTemp;
+			if (debug)
+				Motion_PrintVectors("DEBUG: Set avelocity", vecOld, pTarget->pev->avelocity);
+			break;
+		}
 	}
 }
 
