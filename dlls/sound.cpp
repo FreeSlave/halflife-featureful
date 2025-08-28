@@ -2201,6 +2201,7 @@ CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity)
 class CAmbientExtraSpeaker : public CAmbientGeneric
 {
 public:
+	void Precache();
 	CBaseEntity* GetEntityToPlayFrom(CBaseEntity *pActivator);
 	bool EntityToPlayFromIsDefined() { return true; }
 
@@ -2209,6 +2210,12 @@ protected:
 };
 
 LINK_ENTITY_TO_CLASS( ambient_extraspeaker, CAmbientExtraSpeaker )
+
+void CAmbientExtraSpeaker::Precache()
+{
+	PRECACHE_MODEL("sprites/iunknown.spr");
+	CAmbientGeneric::Precache();
+}
 
 CBaseEntity* CAmbientExtraSpeaker::GetEntityToPlayFrom(CBaseEntity *pActivator)
 {
