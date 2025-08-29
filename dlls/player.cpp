@@ -525,6 +525,7 @@ int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamag
 void CBasePlayer::SetHealth(int health, bool allowOverheal)
 {
 	pev->health = health;
+	pev->health = Q_max(pev->health, 1);
 	if (pev->health > pev->max_health && !allowOverheal)
 	{
 		pev->health = pev->max_health;
@@ -534,6 +535,9 @@ void CBasePlayer::SetHealth(int health, bool allowOverheal)
 void CBasePlayer::SetMaxHealth(int maxHealth, bool clampValue)
 {
 	pev->max_health = maxHealth;
+	pev->max_health = Q_max(pev->max_health, 1);
+	ALERT(at_aiconsole, "Setting player's max health to %d\n", (int)pev->max_health);
+
 	if (clampValue && pev->health > pev->max_health)
 	{
 		pev->health = pev->max_health;
@@ -561,16 +565,13 @@ int CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
 
 int CBasePlayer::MaxArmor()
 {
-	if (pev->armortype > 0)
-	{
-		return pev->armortype;
-	}
-	return g_modFeatures.MaxPlayerArmor();
+	return pev->armortype;
 }
 
 void CBasePlayer::SetMaxArmor(int maxArmor, bool clampValue)
 {
 	pev->armortype = maxArmor;
+	pev->armortype = Q_max(0, pev->armortype);
 	if (clampValue && pev->armorvalue > MaxArmor())
 	{
 		pev->armorvalue = MaxArmor();

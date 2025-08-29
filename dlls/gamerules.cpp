@@ -688,9 +688,9 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 			pPlayer->SetMaxHealth(mapConfig.maxhealth);
 			pPlayer->pev->health = pPlayer->pev->max_health;
 		}
-		if (mapConfig.maxarmor > 0)
+		if (mapConfig.maxarmor.has_value())
 		{
-			pPlayer->SetMaxArmor(mapConfig.maxarmor);
+			pPlayer->SetMaxArmor(*mapConfig.maxarmor);
 		}
 		if (mapConfig.startarmor > 0)
 			pPlayer->SetArmor(mapConfig.startarmor);

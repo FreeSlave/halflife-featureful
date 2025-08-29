@@ -8,7 +8,7 @@ PickupEnt::PickupEnt(): entName(0), count(0) {}
 MapConfig::MapConfig() :
 	pickupEntCount(0), ammoCount(0), cvarCount(0),
 	starthealth(0), startarmor(0),
-	maxhealth(0), maxarmor(0),
+	maxhealth(0),
 	nomedkit(false), nosuit(false),
 	suitLogon(SuitNoLogon), suit_light(SUIT_LIGHT_DEFAULT), longjump(false),
 	valid(false)

@@ -1024,6 +1024,8 @@ private:
 
 	short m_healthSetting;
 	short m_armorSetting;
+	short m_maxHealthSetting;
+	short m_maxArmorSetting;
 };
 
 LINK_ENTITY_TO_CLASS( game_player_settings, CGamePlayerSettings )
@@ -1042,6 +1044,8 @@ TYPEDESCRIPTION	CGamePlayerSettings::m_SaveData[] =
 	DEFINE_FIELD( CGamePlayerSettings, m_armorStrength, FIELD_FLOAT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_healthSetting, FIELD_SHORT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_armorSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_healthSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_maxArmorSetting, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CGamePlayerSettings, CRulePointEntity )
@@ -1085,6 +1089,11 @@ void CGamePlayerSettings::PreEntvarsKeyvalue( KeyValueData* pkvd )
 	if (FStrEq(pkvd->szKeyName, "health"))
 	{
 		pev->health = ParseValueAndSetting(pkvd->szValue, m_healthSetting);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "max_health"))
+	{
+		pev->max_health = ParseValueAndSetting(pkvd->szValue, m_maxHealthSetting);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "armorvalue"))
@@ -1132,7 +1141,7 @@ void CGamePlayerSettings::KeyValue(KeyValueData *pkvd)
 	}
 	else if (FStrEq(pkvd->szKeyName, "max_armor"))
 	{
-		pev->armortype = atoi(pkvd->szValue);
+		pev->armortype = (int)ParseValueAndSetting(pkvd->szValue, m_maxArmorSetting);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "allow_overheal"))
@@ -1179,13 +1188,70 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 
 	CBasePlayer* player = (CBasePlayer*)pPlayer;
 
-	if (pev->max_health > 0)
+	const bool clampHealthToMax = !m_allowOverheal;
+
+	switch(m_maxHealthSetting)
 	{
-		player->SetMaxHealth(pev->max_health, !m_allowOverheal);
+	case VALUE_SETTING_SET:
+		player->SetMaxHealth(pev->max_health, clampHealthToMax);
+		break;
+	case VALUE_SETTING_ADD:
+		player->SetMaxHealth(player->pev->max_health + pev->max_health, clampHealthToMax);
+		break;
+	case VALUE_SETTING_SUBSTRUCT:
+		player->SetMaxHealth(player->pev->max_health - pev->max_health, clampHealthToMax);
+		break;
+	case VALUE_SETTING_ATMAX:
+		if (player->pev->max_health > pev->max_health)
+		{
+			player->SetMaxHealth(pev->max_health, clampHealthToMax);
+		}
+		break;
+	case VALUE_SETTING_ATLEAST:
+		if (player->pev->max_health < pev->max_health)
+		{
+			player->SetMaxHealth(pev->max_health, clampHealthToMax);
+		}
+		break;
+	default:
+		if (pev->max_health > 0)
+		{
+			player->SetMaxHealth(pev->max_health, clampHealthToMax);
+		}
+		break;
 	}
-	if (pev->armortype > 0)
+
+	const bool clampArmorToMax = !m_allowOvercharge;
+
+	switch(m_maxArmorSetting)
 	{
-		player->SetMaxArmor(pev->armortype, !m_allowOvercharge);
+	case VALUE_SETTING_SET:
+		player->SetMaxArmor(pev->armortype, clampArmorToMax);
+		break;
+	case VALUE_SETTING_ADD:
+		player->SetMaxArmor(player->MaxArmor() + pev->armortype, clampArmorToMax);
+		break;
+	case VALUE_SETTING_SUBSTRUCT:
+		player->SetMaxArmor(player->MaxArmor() - pev->armortype, clampArmorToMax);
+		break;
+	case VALUE_SETTING_ATMAX:
+		if (player->MaxArmor() > pev->armortype)
+		{
+			player->SetMaxArmor(pev->armortype, clampArmorToMax);
+		}
+		break;
+	case VALUE_SETTING_ATLEAST:
+		if (player->MaxArmor() < pev->armortype)
+		{
+			player->SetMaxArmor(pev->armortype, clampArmorToMax);
+		}
+		break;
+	default:
+		if (pev->armortype > 0)
+		{
+			player->SetMaxArmor(pev->armortype, clampArmorToMax);
+		}
+		break;
 	}
 
 	switch (m_healthSetting) {
@@ -1201,19 +1267,19 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	case VALUE_SETTING_ATMAX:
 		if (player->pev->health > pev->health)
 		{
-			player->SetHealth((int)pev->health, m_allowOverheal);
+			player->SetHealth(pev->health, m_allowOverheal);
 		}
 		break;
 	case VALUE_SETTING_ATLEAST:
 		if (player->pev->health < pev->health)
 		{
-			player->SetHealth((int)pev->health, m_allowOverheal);
+			player->SetHealth(pev->health, m_allowOverheal);
 		}
 		break;
 	default:
 		if (pev->health > 0)
 		{
-			player->SetHealth((int)pev->health, m_allowOverheal);
+			player->SetHealth(pev->health, m_allowOverheal);
 		}
 		break;
 	}
@@ -1253,12 +1319,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 		player->m_armorStrength = m_armorStrength;
 	}
 
-	short giveSuit = m_suit;
-	if (!giveSuit && FBitSet(pev->spawnflags, SF_PLAYER_SETTINGS_SUIT))
-	{
-		giveSuit = 1;
-	}
-	if (giveSuit > 0)
+	if (m_suit > 0)
 	{
 		if (!player->HasSuit())
 		{
@@ -1276,24 +1337,19 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 			player->GiveNamedItem("item_suit", suitSpawnFlags);
 		}
 	}
-	else if (giveSuit < 0)
+	else if (m_suit < 0)
 	{
 		player->m_iItemsBits &= ~(PLAYER_ITEM_SUIT);
 	}
 
-	short giveLongjump = m_longjump;
-	if (!giveLongjump && FBitSet(pev->spawnflags, SF_PLAYER_SETTINGS_LONGJUMP))
-	{
-		giveLongjump = 1;
-	}
-	if (giveLongjump > 0)
+	if (m_longjump > 0)
 	{
 		if (player->HasSuit() && !player->m_fLongJump)
 		{
 			player->GiveNamedItem("item_longjump", SF_ITEM_NOFALL);
 		}
 	}
-	else if (giveLongjump < 0)
+	else if (m_longjump < 0)
 	{
 		player->SetLongjump(false);
 	}

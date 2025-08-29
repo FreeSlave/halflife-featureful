@@ -3366,8 +3366,8 @@
 	[
 		-1: "No light"
 		0: "Default"
-		1: "Flashlight"
-		2: "NVG"
+		1: "Flashlight only"
+		2: "NVG only"
 	]
 	longjump(choices): "Longjump" =
 	[

@@ -224,10 +224,11 @@ int CHudHealth::Draw( float flTime )
 	bool hasSuit = gHUD.HasSuit();
 
 	// Only draw health if we have the suit.
-	if( hasSuit || gHUD.clientFeatures.hud_draw_nosuit )
+	if (hasSuit || gHUD.clientFeatures.hud_draw_nosuit)
 	{
-		const int armorStartX = DrawHealth();
-		if (hasSuit)
+		const bool drawArmor = hasSuit && (m_iMaxBat > 0 || m_iBat > 0);
+		const int armorStartX = DrawHealth(drawArmor);
+		if (drawArmor)
 			DrawArmor(armorStartX);
 	}
 
@@ -235,7 +236,7 @@ int CHudHealth::Draw( float flTime )
 	return DrawPain( flTime );
 }
 
-int CHudHealth::DrawHealth()
+int CHudHealth::DrawHealth(bool drawSeparator)
 {
 	int a = gHUD.MinHUDAlpha();
 
@@ -275,10 +276,13 @@ int CHudHealth::DrawHealth()
 
 	x += HealthWidth / 2;
 
-	int iHeight = gHUD.m_iFontHeight;
-	int iWidth = HealthWidth / 10;
-	UnpackRGB( r, g, b, gHUD.HUDColor() );
-	CHud::Renderer().FillRGBA( x, y + gHUD.m_iHudNumbersYOffset, iWidth, iHeight, r, g, b, a );
+	if (drawSeparator)
+	{
+		int iHeight = gHUD.m_iFontHeight;
+		int iWidth = HealthWidth / 10;
+		UnpackRGB( r, g, b, gHUD.HUDColor() );
+		CHud::Renderer().FillRGBA( x, y + gHUD.m_iHudNumbersYOffset, iWidth, iHeight, r, g, b, a );
+	}
 
 	return x + HealthWidth / 2;
 }

@@ -3,6 +3,7 @@
 #define MAPCONFIG_H
 
 #include "extdll.h"
+#include "optional.h"
 
 enum SuitLogon
 {
@@ -49,7 +50,7 @@ struct MapConfig
 	int starthealth;
 	int startarmor;
 	int maxhealth;
-	int maxarmor;
+	optional<int> maxarmor;
 
 	bool nomedkit; // for co-op
 

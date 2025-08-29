@@ -581,7 +581,7 @@ private:
 	float m_fArmorFade;
 	int m_iHeight;		// width of the battery innards
 
-	int DrawHealth();
+	int DrawHealth(bool drawSeparator);
 	void DrawArmor(int startX);
 	int DrawPain( float fTime );
 	int DrawDamage( float fTime );
