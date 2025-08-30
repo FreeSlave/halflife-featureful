@@ -1771,10 +1771,10 @@ public:
 	static constexpr const char* painSoundScript = "Civilian.Pain";
 	static constexpr const char* dieSoundScript = "Civilian.Die";
 
-	void PlayPainSound() {
+	void PainSound() override {
 		EmitSoundScriptTalk(painSoundScript);
 	}
-	void DeathSound() {
+	void DeathSound() override {
 		EmitSoundScriptTalk(dieSoundScript);
 	}
 };
