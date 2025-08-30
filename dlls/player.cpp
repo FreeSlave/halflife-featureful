@@ -1941,7 +1941,31 @@ std::pair<CBaseEntity*, const ObjectHintSpec*> CBasePlayer::GetInteractiveEntity
 						vecLOS = UTIL_ClampVectorToBox(vecLOS, pObject->pev->size * 0.5f);
 						flDot = DotProduct( vecLOS , gpGlobals->v_forward );
 						if (flDot > 0.5f)
-							hintedEntities->push_back(std::make_pair(pObject, hintSpec));
+						{
+							TraceResult objectTr;
+							UTIL_TraceLine(eyePosition, pObject->Center(), dont_ignore_monsters, edict(), &objectTr);
+
+							bool traceOk = objectTr.flFraction == 1.0f || objectTr.pHit == pObject->edict();
+							if (!traceOk)
+							{
+								if (objectTr.pHit && ENTINDEX(objectTr.pHit) != 0)
+								{
+									entvars_t* objectPev = VARS(objectTr.pHit);
+									const char* model = FStringNull(objectPev->model) ? nullptr : STRING(objectPev->model);
+									if (model && *model == '*' && objectPev->rendermode != kRenderNormal && objectPev->renderamt > 0)
+									{
+										TraceResult reversedTr;
+										UTIL_TraceLine(pObject->Center(), eyePosition, dont_ignore_monsters, pObject->edict(), &reversedTr);
+										traceOk = reversedTr.pHit == objectTr.pHit;
+									}
+								}
+							}
+
+							if (traceOk)
+							{
+								hintedEntities->push_back(std::make_pair(pObject, hintSpec));
+							}
+						}
 					}
 				}
 			}

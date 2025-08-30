@@ -121,6 +121,7 @@ void ObjectHintManager::SetHint(const ObjectHint &objectHint)
 
 	SetParentEntityIndex(te, objectHint.entindex);
 
+	te->flags |= FTENT_PERSIST;
 	te->entity.curstate.rendermode = kRenderGlow;
 	te->entity.curstate.renderfx = kRenderFxNoDissipation;
 	te->entity.curstate.renderamt = 255;
@@ -176,12 +177,10 @@ void ObjectHintManager::Update()
 
 void ObjectHintManager::UpdateHint(TEMPENTITY* te)
 {
-	int entindex = GetParentEntityIndex(te);
-	if (entindex)
+	cl_entity_t* ent = GetParentEntity(te);
+	if (ent)
 	{
-		cl_entity_t* ent = gEngfuncs.GetEntityByIndex(entindex);
-		if (ent)
-			te->entity.origin = ent->origin - te->entity.curstate.vuser2;
+		te->entity.origin = ent->origin - te->entity.curstate.vuser2;
 	}
 	if (te->entity.curstate.iuser2 == 0)
 		te->entity.curstate.rendercolor = UnpackRGB(gHUD.HUDColor());
