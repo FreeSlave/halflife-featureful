@@ -831,6 +831,7 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 
 	virtual void TrainThink() {}
+	virtual void OnStop();
 	Vector DestinationVector(entvars_t* pevTarg)
 	{
 		if (FBitSet(pev->spawnflags, SF_TRAIN_SETORIGIN))
@@ -911,11 +912,7 @@ void CFuncTrain::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 		pev->nextthink = 0;
 		pev->velocity = g_vecZero;
 
-		if ( pev->noiseMovement )
-			STOP_SOUND( edict(), CHAN_STATIC, STRING(pev->noiseMovement) );
-
-		if( pev->noiseStopMoving )
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, STRING( pev->noiseStopMoving ), m_volume, SoundAttenuation() );
+		OnStop();
 	}
 }
 
@@ -940,10 +937,7 @@ void CFuncTrain::Wait( void )
 		pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
 
 		// clear the sound channel.
-		if( pev->noiseMovement )
-			STOP_SOUND( edict(), CHAN_STATIC, STRING( pev->noiseMovement ) );
-		if( pev->noiseStopMoving )
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, STRING( pev->noiseStopMoving ), m_volume, SoundAttenuation() );
+		OnStop();
 		pev->nextthink = 0;
 		return;
 	}
@@ -953,10 +947,7 @@ void CFuncTrain::Wait( void )
 	{
 		// -1 wait will wait forever!		
 		pev->nextthink = pev->ltime + m_flWait;
-		if( pev->noiseMovement )
-			STOP_SOUND( edict(), CHAN_STATIC, STRING( pev->noiseMovement ) );
-		if( pev->noiseStopMoving )
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, STRING( pev->noiseStopMoving ), m_volume, SoundAttenuation() );
+		OnStop();
 		SetThink( &CFuncTrain::ThinkNext );
 	}
 	else
@@ -970,18 +961,12 @@ void CFuncTrain::Wait( void )
 //
 void CFuncTrain::Next( void )
 {
-	CBaseEntity *pTarg;
-
-	// now find our next target
-	pTarg = GetNextTarget();
+	CBaseEntity *pTarg = GetNextTarget();
 
 	if( !pTarg )
 	{
-		if( pev->noiseMovement )
-			STOP_SOUND( edict(), CHAN_STATIC, STRING( pev->noiseMovement ) );
-		// Play stop sound
-		if( pev->noiseStopMoving )
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, STRING( pev->noiseStopMoving ), m_volume, SoundAttenuation() );
+		m_pevCurrentTarget = nullptr; // TODO: original code didn't do it. Can it cause problems?
+		OnStop();
 		return;
 	}
 
@@ -1030,6 +1015,14 @@ void CFuncTrain::Next( void )
 void CFuncTrain::ThinkNext()
 {
 	Next();
+}
+
+void CFuncTrain::OnStop()
+{
+	if( pev->noiseMovement )
+		STOP_SOUND( edict(), CHAN_STATIC, STRING( pev->noiseMovement ) );
+	if( pev->noiseStopMoving )
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, STRING( pev->noiseStopMoving ), m_volume, SoundAttenuation() );
 }
 
 void CFuncTrain::Activate( void )
@@ -2625,16 +2618,38 @@ void CSpriteTrain::TrainThink()
 class CModelTrain : public CFuncTrain
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void AdvanceAnimation(void);
-	void Next( void );
-	void TrainThink();
+	void Spawn() override;
+	void Precache();
+	void KeyValue(KeyValueData *pkvd);
+	void AdvanceAnimation();
+	void Next() override;
+	void TrainThink() override;
+	void OnStop() override;
+	int GetIdleSequence();
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_idleSequence;
+	string_t m_moveSequence;
+	float m_idleFramerate;
+	float m_moveFramerate;
 };
 
 LINK_ENTITY_TO_CLASS(env_modeltrain, CModelTrain)
 
-void CModelTrain::Spawn( void )
+TYPEDESCRIPTION	CModelTrain::m_SaveData[] =
+{
+	DEFINE_FIELD( CModelTrain, m_idleSequence, FIELD_STRING ),
+	DEFINE_FIELD( CModelTrain, m_moveSequence, FIELD_STRING ),
+	DEFINE_FIELD( CModelTrain, m_idleFramerate, FIELD_FLOAT ),
+	DEFINE_FIELD( CModelTrain, m_moveFramerate, FIELD_FLOAT ),
+};
+
+IMPLEMENT_SAVERESTORE( CModelTrain, CFuncTrain )
+
+void CModelTrain::Spawn()
 {
 	Precache();
 
@@ -2655,13 +2670,15 @@ void CModelTrain::Spawn( void )
 	UTIL_SetSize( pev, pev->mins, pev->maxs );
 	UTIL_SetOrigin( pev, pev->origin );
 
-	pev->sequence = 0;
+	pev->sequence = GetIdleSequence();
 	ResetSequenceInfo();
+	if (m_idleFramerate)
+		pev->framerate = m_idleFramerate;
 
 	Create("trainthinker", pev->origin, pev->angles, edict());
 }
 
-void CModelTrain::Precache(void)
+void CModelTrain::Precache()
 {
 	if (!FStringNull(pev->model))
 		PRECACHE_MODEL( STRING( pev->model ) );
@@ -2671,7 +2688,33 @@ void CModelTrain::Precache(void)
 		PRECACHE_SOUND( STRING(pev->noiseStopMoving) );
 }
 
-void CModelTrain::AdvanceAnimation(void)
+void CModelTrain::KeyValue(KeyValueData *pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "idle_sequence"))
+	{
+		m_idleSequence = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "move_sequence"))
+	{
+		m_moveSequence = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "idle_framerate"))
+	{
+		m_idleFramerate = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "move_framerate"))
+	{
+		m_moveFramerate = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CFuncTrain::KeyValue(pkvd);
+}
+
+void CModelTrain::AdvanceAnimation()
 {
 	// Advance frames and dispatch events.
 	StudioFrameAdvance();
@@ -2683,27 +2726,77 @@ void CModelTrain::AdvanceAnimation(void)
 		pev->frame = 0;
 		ResetSequenceInfo();
 
-		if (!m_fSequenceLoops)
+		m_fSequenceFinished = true;
+
+		if (pev->velocity == g_vecZero)
 		{
-			m_fSequenceFinished = true;
-			return;
+			if (m_idleFramerate)
+				pev->framerate = m_idleFramerate;
 		}
 		else
 		{
-			pev->frame = 0;
-			ResetSequenceInfo();
+			if (m_moveFramerate)
+				pev->framerate = m_moveFramerate;
 		}
 	}
 }
 
-void CModelTrain::Next( void )
+void CModelTrain::Next()
 {
 	CFuncTrain::Next();
+
 	if (m_pevCurrentTarget)
-		pev->angles = UTIL_VecToAngles(m_pevCurrentTarget->origin - pev->origin);
+	{
+		const Vector diff = m_pevCurrentTarget->origin - pev->origin;
+		if (diff != g_vecZero)
+		{
+			pev->angles = UTIL_VecToAngles(m_pevCurrentTarget->origin - pev->origin);
+
+			if (!FStringNull(m_moveSequence))
+			{
+				int sequence = LookupSequence(STRING(m_moveSequence));
+				if (pev->sequence != sequence && sequence != -1)
+				{
+					pev->sequence = sequence;
+					ResetSequenceInfo();
+				}
+			}
+			if (m_moveFramerate)
+				pev->framerate = m_moveFramerate;
+		}
+	}
 }
 
 void CModelTrain::TrainThink()
 {
 	AdvanceAnimation();
+}
+
+void CModelTrain::OnStop()
+{
+	CFuncTrain::OnStop();
+
+	int idleSequence = GetIdleSequence();
+	if (pev->sequence != idleSequence)
+	{
+		pev->sequence = idleSequence;
+		ResetSequenceInfo();
+	}
+	if (m_idleFramerate)
+		pev->framerate = m_idleFramerate;
+}
+
+int CModelTrain::GetIdleSequence()
+{
+	int idleSequence = 0;
+	if (!FStringNull(m_idleSequence))
+	{
+		idleSequence = LookupSequence(STRING(m_idleSequence));
+		if (idleSequence < 0)
+		{
+			ALERT(at_error, "%s: unknown sequence \"%s\"\n", STRING(pev->classname), STRING(m_idleSequence));
+			idleSequence = 0;
+		}
+	}
+	return idleSequence;
 }

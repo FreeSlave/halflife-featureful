@@ -8,6 +8,8 @@ entityCategory: solid
 
 [TWHL](https://twhl.info/wiki/page/func_train)
 
+See also: [env_spritetrain]({{< ref env_spritetrain >}}), [env_modeltrain]({{< ref env_modeltrain >}})
+
 ### New parameters
 
 * ![](/images/spirit.png) `Custom move sound`.

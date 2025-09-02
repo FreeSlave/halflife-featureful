@@ -2477,6 +2477,10 @@
 	scale(string) : "Model Scale"
 	noise(sound) : "Move Sound"
 	noise1(sound) : "Stop Sound"
+	idle_sequence(string) : "Idle sequence" : : "The name of the model sequence to play while the train is inactive."
+	idle_framerate(string) : "Custom idle framerate [default=1.0]"
+	move_sequence(string) : "Move sequence" : : "The name of the model sequence to play while the train is active."
+	move_framerate(string) : "Custom move framerate [default=1.0]"
 ]
 
 @PointClass sprite() base(Targetname, RenderFields, BaseTrain, SoundRadius) size(-16 -16 -16, 16 16 16) color(0 128 255) = env_spritetrain : "Sprite Train"
