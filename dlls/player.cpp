@@ -7599,6 +7599,62 @@ public:
 
 LINK_ENTITY_TO_CLASS( player_speed, CPlayerSpeed )
 
+#define SF_PLAYER_HEVSENTENCE_QUEUE (1 << 1)
+
+class CPlayerHevSentence : public CPointEntity
+{
+public:
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (!pPlayer)
+			return;
+
+		if (FStringNull(pev->message))
+		{
+			pPlayer->SetSuitUpdate(nullptr, false, 0);
+			return;
+		}
+
+		const char* message = STRING(pev->message);
+		if (FBitSet(pev->spawnflags, SF_PLAYER_HEVSENTENCE_QUEUE))
+		{
+			int noRepeat = pev->impulse;
+			if (*message == '!')
+			{
+				pPlayer->SetSuitUpdate(message, false, noRepeat);
+			}
+			else
+			{
+				pPlayer->SetSuitUpdate(message, true, noRepeat);
+			}
+		}
+		else
+		{
+			if (*message == '!')
+			{
+				EMIT_SOUND_SUIT(pPlayer->edict(), message);
+			}
+			else
+			{
+				EMIT_GROUPNAME_SUIT(pPlayer->edict(), message);
+			}
+		}
+	}
+	void KeyValue(KeyValueData *pkvd)
+	{
+		if (FStrEq(pkvd->szKeyName, "norepeat"))
+		{
+			pev->impulse = atoi( pkvd->szValue );
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+};
+
+LINK_ENTITY_TO_CLASS( player_hevsentence, CPlayerHevSentence )
+
 static void DisableChangelevels()
 {
 	CBaseEntity* pEntity = 0;

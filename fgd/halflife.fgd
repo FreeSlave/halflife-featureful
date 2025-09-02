@@ -7986,6 +7986,16 @@
 	fail_target(target_destination) : "Fail Target"
 ]
 
+@PointClass base(Targetname) = player_hevsentence : "Play HEV sentence"
+[
+	message(string) : "Sentence"
+	norepeat(integer) : "No repeat time (if queued)" : 60
+	spawnflags(flags) =
+	[
+		2 : "Queue sentence" : 1
+	]
+]
+
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = player_loadsaved : "Load Auto-Saved game"
 [
 	duration(string) : "Fade Duration (seconds)" : "2"
