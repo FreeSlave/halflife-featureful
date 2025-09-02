@@ -133,6 +133,9 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 #if FEATURE_NIGHTVISION
 	DEFINE_FIELD(CBasePlayer, m_fNVGisON, FIELD_BOOLEAN),
 #endif
+	DEFINE_FIELD(CBasePlayer, m_fFlashlightON, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, m_fFlashlightFlicker, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, m_flNextFlashlightFlick, FIELD_TIME),
 #if FEATURE_ROPE
 	DEFINE_FIELD(CBasePlayer, m_hRope, FIELD_EHANDLE),
 #endif
@@ -2607,6 +2610,20 @@ void CBasePlayer::PreThink( void )
 		}
 	}
 
+	if (m_fFlashlightON && m_fFlashlightFlicker && gpGlobals->time >= m_flNextFlashlightFlick)
+	{
+		if (FBitSet(pev->effects, EF_DIMLIGHT))
+		{
+			ClearBits(pev->effects, EF_DIMLIGHT);
+		}
+		else
+		{
+			SetBits(pev->effects, EF_DIMLIGHT);
+		}
+
+		m_flNextFlashlightFlick = gpGlobals->time + RANDOM_FLOAT(0.1f, 0.5f);
+	}
+
 	if( g_fGameOver )
 		return;         // intermission or finale
 
@@ -4428,6 +4445,12 @@ void CBasePlayer::FlashlightTurnOn()
 	{
 		EmitSoundScript(Player::flashlightOnSoundScript);
 		SetBits( pev->effects, EF_DIMLIGHT );
+		m_fFlashlightON = true;
+
+		if (m_fFlashlightFlicker)
+		{
+			m_flNextFlashlightFlick = gpGlobals->time + 0.2f;
+		}
 
 		NVGTurnOff(false);
 		UpdateSuitLightBattery(true);
@@ -4442,6 +4465,7 @@ void CBasePlayer::FlashlightTurnOff( bool playOffSound )
 			EmitSoundScript(Player::flashlightOffSoundScript);
 
 		ClearBits( pev->effects, EF_DIMLIGHT );
+		m_fFlashlightON = false;
 		UpdateSuitLightBattery(false);
 	}
 }
@@ -7654,6 +7678,35 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( player_hevsentence, CPlayerHevSentence )
+
+class CPlayerFlicker : public CPointEntity
+{
+public:
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+};
+
+LINK_ENTITY_TO_CLASS( player_flicker, CPlayerFlicker )
+
+void CPlayerFlicker::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+	if (pPlayer)
+	{
+		if (ShouldToggle(useType, pPlayer->m_fFlashlightFlicker))
+		{
+			pPlayer->m_fFlashlightFlicker = !pPlayer->m_fFlashlightFlicker;
+			if (pPlayer->m_fFlashlightFlicker && pPlayer->FlashlightIsOn())
+			{
+				pPlayer->m_flNextFlashlightFlick = gpGlobals->time + 0.2f;
+			}
+			// Make sure the dimlight flag is set on player if the flashlight is supposed to be turned on
+			if (!pPlayer->m_fFlashlightFlicker && pPlayer->FlashlightIsOn())
+			{
+				SetBits(pPlayer->pev->effects, EF_DIMLIGHT);
+			}
+		}
+	}
+}
 
 static void DisableChangelevels()
 {

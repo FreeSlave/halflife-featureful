@@ -345,7 +345,7 @@ public:
 	virtual int		ObjectCaps( void ) { return CBaseMonster :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	virtual void	Precache( void );
 	bool			IsOnLadder( void );
-	bool FlashlightIsOn() { return FBitSet(pev->effects, EF_DIMLIGHT); }
+	bool FlashlightIsOn() { return FBitSet(pev->effects, EF_DIMLIGHT) || m_fFlashlightON; }
 	bool NVGIsOn() { return m_fNVGisON; }
 	bool SuitLightIsOn( void ) { return FlashlightIsOn() || NVGIsOn(); }
 	void SuitLightTurnOn( void );
@@ -478,6 +478,9 @@ public:
 	int m_DisplacerSndRoomtype;
 #endif
 	bool	m_fNVGisON;
+	bool	m_fFlashlightON;
+	bool	m_fFlashlightFlicker;
+	float	m_flNextFlashlightFlick;
 	friend class CDisplacer;
 	friend class CTriggerXenReturn;
 
