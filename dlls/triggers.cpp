@@ -34,6 +34,7 @@
 #include "locus.h"
 #include "common_soundscripts.h"
 #include "string_utils.h"
+#include "weapons.h" // for trigger_usetool
 
 #define FEATURE_TRIGGER_RANDOM 1
 #define FEATURE_TRIGGER_RESPAWN 1
@@ -7779,3 +7780,79 @@ void CTriggerSkillTest::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		}
 	}
 }
+
+#define SF_TRIGGER_USETOOL_REMOVE_ON_USE 1
+
+class CTriggerUseTool : public CBaseTrigger
+{
+public:
+	void Spawn()
+	{
+		InitTrigger();
+		if (FStringNull(pev->netname))
+		{
+			ALERT(at_warning, "%s without a tool name!\n", STRING(pev->classname));
+		}
+		SetTouch(&CTriggerUseTool::UseToolTouch);
+		SetUse(&CTriggerUseTool::UseTool);
+	}
+	void KeyValue(KeyValueData *pkvd)
+	{
+		if (FStrEq(pkvd->szKeyName, "toolname"))
+		{
+			pev->netname = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "tooltarget"))
+		{
+			pev->message = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CBaseTrigger::KeyValue(pkvd);
+	}
+	void EXPORT UseToolTouch(CBaseEntity* pOther)
+	{
+		if (!pOther->IsPlayer())
+			return;
+		if (!pOther->IsAlive())
+			return;
+		if (FStringNull(pev->netname))
+			return;
+		if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
+			return;
+
+		const char* toolName = STRING(pev->netname);
+
+		WeaponParameters* params = AccessWeaponParameters(toolName);
+		if (!params)
+		{
+			return;
+		}
+		if (params->toolIndex < 0)
+		{
+			return;
+		}
+
+		CBasePlayer* pPlayer = (CBasePlayer*)pOther;
+		pPlayer->m_ToolSignalBits |= (1 << params->toolIndex);
+		pPlayer->m_UseToolTriggers[params->toolIndex] = edict();
+	}
+	void EXPORT UseTool(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		if (!pActivator || !pActivator->IsPlayer())
+			return;
+
+		SUB_UseTargets(pActivator);
+
+		if (FBitSet(pev->spawnflags, SF_TRIGGER_USETOOL_REMOVE_ON_USE))
+		{
+			SetUse(nullptr);
+			SetTouch(nullptr);
+			SetThink(&CBaseEntity::SUB_Remove);
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+	}
+};
+
+LINK_ENTITY_TO_CLASS( trigger_usetool, CTriggerUseTool )

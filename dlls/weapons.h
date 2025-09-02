@@ -480,6 +480,8 @@ public:
 	// recharge
 	float m_flRechargeTime;
 
+	float m_toolTriggerTime;
+
 	// Common event
 	int m_usFire;
 };

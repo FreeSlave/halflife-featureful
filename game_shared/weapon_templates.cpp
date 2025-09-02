@@ -763,6 +763,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			HandleJSONMember(value, "shake", [&](const Value& value) {
 				UpdatePlayerShake(fire.shake.Materialize(altMode), value);
 			});
+
+			UpdatePropertyFromJson(fire.preventMovement, value, "prevent_movement", altMode);
 		});
 	};
 
@@ -955,6 +957,11 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 		{
 			params.modelSounds.push_back(item.GetString());
 		}
+	});
+
+	HandleJSONMember(value, "tool", [&](const Value& value) {
+		UpdatePropertyFromJson(params.toolIcon, value, "icon");
+		UpdatePropertyFromJson(params.toolTriggerDelay, value, "trigger_delay");
 	});
 }
 

@@ -518,6 +518,9 @@ const char* const json_schemas::weapons = R"(
 			},
 			"shake": {
 				"$ref": "definitions.json#/shake"
+			},
+			"prevent_movement": {
+				"type": "boolean"
 			}
 		},
 		"additionalProperties": false
@@ -867,6 +870,19 @@ const char* const json_schemas::weapons = R"(
 					"type": "string",
 					"minLength": 1
 				}
+			},
+			"tool": {
+				"type": "object",
+				"properties": {
+					"icon": {
+						"type": "string"
+					},
+					"trigger_delay": {
+						"type": "number",
+						"minimum": 0
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false

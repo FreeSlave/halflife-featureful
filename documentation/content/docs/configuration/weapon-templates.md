@@ -678,6 +678,10 @@ Hide the laser spot (if there's any) for the specified amount of time (in second
 
 Whether the entity light should be played on the weapon view model for a very short period of time when firing.
 
+### prevent_movement
+
+A boolean defining whether player can't move during firing. This is used by [weapon_camera]({{< ref weapon_camera >}}) and [weapon_radio]({{< ref weapon_radio >}}).
+
 ### pump_delay
 
 Delay before playing the [pump_sound](#pump_sound).
@@ -1349,6 +1353,18 @@ Common properties related to the fire mode switching.
 ### toggle_laser_spot
 
 A boolean defining whether pressing the secondary attack should toggle the laser spot (the `"secondary_attack"` must be `"switch_mode"`).
+
+## tool
+
+An object defining tool-related properties used in [trigger_usetool]({{< ref trigger_usetool >}}).
+
+### icon
+
+The sprite icon to show when player is in the tool zone. This must be defined in **sprites/hud.txt**.
+
+### trigger_delay
+
+When tool is used in the designated area, fire the tool target with this delay. If the weapon gets holstered, the target won't be fired.
 
 ## viewmodel_body
 

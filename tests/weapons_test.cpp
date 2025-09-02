@@ -387,6 +387,10 @@ const char weaponTemplates[] = R"(
 			"delay_after_fire": 2.0,
 			"only_when_deployed": true,
 			"sound": ["weapons/recharge.wav"]
+		},
+		"tool": {
+			"icon": "test",
+			"trigger_delay": 1.2
 		}
 	}
 }
@@ -710,5 +714,8 @@ TEST(Weapons, Parse) {
 		EXPECT_TRUE(testParams.recharge.onlyWhenDeployed.Get(false));
 		ASSERT_EQ(testParams.recharge.sound.Get(false).waves.size(), 1);
 		EXPECT_STREQ(testParams.recharge.sound.Get(false).waves[0], "weapons/recharge.wav");
+
+		EXPECT_EQ(testParams.toolIcon, "test");
+		EXPECT_EQ(testParams.toolTriggerDelay, 1.2f);
 	}
 }

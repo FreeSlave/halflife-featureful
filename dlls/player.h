@@ -535,6 +535,9 @@ public:
 	int m_suppressedCapabilities;
 	float m_maxSpeedFraction;
 
+	bool m_movementPrevented;
+	float m_movementPreventedTime;
+
 	float m_armorStrength;
 
 	void SetLoopedMp3(string_t loopedMp3);
@@ -567,6 +570,14 @@ public:
 	bool AddJournalRecord(string_t section, string_t record);
 	string_t m_journalSections[MAX_JOURNAL_RECORDS];
 	string_t m_journalRecords[MAX_JOURNAL_RECORDS];
+
+	int m_ToolSignalBits;
+	int m_ToolStateBits;
+	int m_ClientToolStateBits;
+	int m_ToolReadyBits;
+	int m_ToolUnalignedBits;
+	int m_ClientToolUnalignedBits;
+	edict_t* m_UseToolTriggers[32];
 };
 
 extern int gmsgHudText;

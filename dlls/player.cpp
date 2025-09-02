@@ -46,6 +46,7 @@
 #include "spritehint_flags.h"
 #include "clamp.h"
 #include "weapon_templates.h"
+#include "locus.h"
 
 #if FEATURE_ROPE
 #include "ropes.h"
@@ -141,6 +142,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_buddha, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_suppressedCapabilities, FIELD_INTEGER),
 	DEFINE_FIELD(CBasePlayer, m_maxSpeedFraction, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_movementPrevented, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, m_movementPreventedTime, FIELD_TIME),
 	DEFINE_FIELD(CBasePlayer, m_armorStrength, FIELD_FLOAT),
 
 	DEFINE_FIELD(CBasePlayer, m_loopedMp3, FIELD_STRING),
@@ -264,6 +267,9 @@ int gmsgSnow = 0;
 
 int gmsgJournal = 0;
 
+int gmsgWeaponTool = 0;
+int gmsgToolState = 0;
+
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
 	if (!pFriend->IsFullyAlive())
@@ -369,6 +375,9 @@ void LinkUserMessages( void )
 	gmsgSnow = REG_USER_MSG("Snow", -1);
 
 	gmsgJournal = REG_USER_MSG("Journal", -1);
+
+	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
+	gmsgToolState = REG_USER_MSG("ToolState", 8);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -2586,6 +2595,17 @@ void CBasePlayer::PreThink( void )
 
 	g_pGameRules->PlayerThink( this );
 	pev->maxspeed = m_maxSpeedFraction * g_psv_maxspeed->value;
+	if (m_movementPrevented)
+	{
+		if (m_movementPreventedTime >= gpGlobals->time)
+		{
+			pev->maxspeed = 1.0f;
+		}
+		else
+		{
+			m_movementPrevented = false;
+		}
+	}
 
 	if( g_fGameOver )
 		return;         // intermission or finale
@@ -5384,6 +5404,18 @@ void CBasePlayer::UpdateClientData( void )
 				WRITE_BYTE( II.iFlags );					// byte		Flags
 			MESSAGE_END();
 		}
+
+		for( i = 0; i < MAX_WEAPONS; i++ )
+		{
+			const int toolIndex = GetWeaponParameters(i).toolIndex;
+			if (toolIndex >= 0)
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgWeaponTool, NULL, pev );
+					WRITE_BYTE(i);
+					WRITE_BYTE(toolIndex);
+				MESSAGE_END();
+			}
+		}
 	}
 
 	SendAmmoUpdate();
@@ -5469,6 +5501,196 @@ void CBasePlayer::UpdateClientData( void )
 	{
 		GatherAndSendObjectHints();
 		m_spriteHintTimeCheck = gpGlobals->time + 0.1f;
+	}
+
+	{
+		int signalState = m_ToolSignalBits;
+		int changed = signalState ^ m_ToolStateBits;
+
+		m_ToolStateBits = m_ToolSignalBits;
+		m_ToolSignalBits = 0;
+
+		auto isToolTargetAligned = [this](const Vector& toolTargetPos)
+		{
+			UTIL_MakeVectors(pev->v_angle);
+			const Vector eyePosition = EyePosition();
+
+			const Vector vecLOS = (toolTargetPos - eyePosition).Normalize();
+			return DotProduct(vecLOS , gpGlobals->v_forward) > 0.866f;
+		};
+
+		auto getToolSpriteColor = [](bool toolDeployed, bool toolAligned)
+		{
+			// TODO: make these colors configurable?
+			if (toolDeployed)
+			{
+				if (toolAligned)
+				{
+					return Color3(0, 200, 0);
+				}
+				else
+				{
+					return Color3(200, 100, 0);
+				}
+			}
+			else
+			{
+				if (toolAligned)
+				{
+					return Color3(200, 100, 0);
+				}
+				else
+				{
+					return Color3(200, 0, 0);
+				}
+			}
+		};
+
+		if (changed)
+		{
+			for (int i=0; i<MAX_WEAPONS; ++i)
+			{
+				const WeaponParameters& params = GetWeaponParameters(i);
+				if (params.toolIndex >= 0)
+				{
+					const int toolBit = (1 << params.toolIndex);
+					if (changed & toolBit)
+					{
+						if (signalState & toolBit)
+						{
+							const bool toolDeployed = m_pActiveItem ? m_pActiveItem->WeaponId() == i : false;
+							bool toolAligned = true;
+
+							CBaseEntity* pToolTrigger = CBaseEntity::OwnInstance(m_UseToolTriggers[params.toolIndex]);
+							if (pToolTrigger && !FStringNull(pToolTrigger->pev->message))
+							{
+								Vector toolTargetPos;
+								if (TryCalcLocus_Position(pToolTrigger, this, STRING(pToolTrigger->pev->message), toolTargetPos))
+								{
+									if (!isToolTargetAligned(toolTargetPos))
+									{
+										SetBits(m_ToolUnalignedBits, toolBit);
+										toolAligned = false;
+									}
+									else
+									{
+										ClearBits(m_ToolUnalignedBits, toolBit);
+									}
+								}
+							}
+
+							Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
+
+							const int toolBit = 1 << params.toolIndex;
+							if (toolDeployed)
+								m_ToolReadyBits = toolBit;
+							else
+								ClearBits(m_ToolReadyBits, toolBit);
+
+							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
+								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
+								WRITE_STRING(params.toolIcon.c_str());
+								WRITE_COLOR(color);
+							MESSAGE_END();
+						}
+						else
+						{
+							ClearBits(m_ToolReadyBits, toolBit);
+							ClearBits(m_ToolUnalignedBits, toolBit);
+
+							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
+								WRITE_BYTE(0);
+								WRITE_STRING(params.toolIcon.c_str());
+							MESSAGE_END();
+						}
+					}
+				}
+			}
+		}
+
+		if (!changed && signalState)
+		{
+			const int readyBits = m_ToolReadyBits;
+			int newReadyBits = 0;
+
+			for (int i=0; i<MAX_WEAPONS; ++i)
+			{
+				const WeaponParameters& params = GetWeaponParameters(i);
+				if (params.toolIndex >= 0)
+				{
+					const int toolBit = 1 << params.toolIndex;
+
+					if (signalState & toolBit)
+					{
+						bool statusChanged = false;
+						const bool toolDeployed = m_pActiveItem ? m_pActiveItem->WeaponId() == i : false;
+						bool toolAligned = true;
+
+						if (toolDeployed)
+						{
+							newReadyBits = toolBit;
+							if (readyBits != toolBit)
+							{
+								statusChanged = true;
+							}
+						}
+						else if (!toolDeployed && readyBits == toolBit)
+						{
+							statusChanged = true;
+						}
+
+						CBaseEntity* pToolTrigger = CBaseEntity::OwnInstance(m_UseToolTriggers[params.toolIndex]);
+						if (pToolTrigger && !FStringNull(pToolTrigger->pev->message))
+						{
+							Vector toolTargetPos;
+							if (TryCalcLocus_Position(pToolTrigger, this, STRING(pToolTrigger->pev->message), toolTargetPos))
+							{
+								if (!isToolTargetAligned(toolTargetPos))
+								{
+									if (!FBitSet(m_ToolUnalignedBits, toolBit))
+									{
+										statusChanged = true;
+									}
+									SetBits(m_ToolUnalignedBits, toolBit);
+									toolAligned = false;
+								}
+								else
+								{
+									if (FBitSet(m_ToolUnalignedBits, toolBit))
+									{
+										statusChanged = true;
+									}
+									ClearBits(m_ToolUnalignedBits, toolBit);
+								}
+							}
+						}
+
+						if (statusChanged)
+						{
+							Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
+
+							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
+								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
+								WRITE_STRING(params.toolIcon.c_str());
+								WRITE_COLOR(color);
+							MESSAGE_END();
+						}
+					}
+				}
+			}
+
+			m_ToolReadyBits = newReadyBits;
+		}
+
+		if (m_ClientToolStateBits != m_ToolStateBits || m_ClientToolUnalignedBits != m_ToolUnalignedBits)
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgToolState, NULL, pev );
+				WRITE_LONG( m_ToolStateBits );
+				WRITE_LONG( m_ToolUnalignedBits );
+			MESSAGE_END();
+			m_ClientToolStateBits = m_ToolStateBits;
+			m_ClientToolUnalignedBits = m_ToolUnalignedBits;
+		}
 	}
 }
 

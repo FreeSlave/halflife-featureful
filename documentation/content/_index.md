@@ -52,6 +52,7 @@ Throughout this wiki we use the following icons to mark if the entity, flag, par
 * ![](/images/svencoop.png) - *Sven Co-op* compatible (or implemented in similar fashion) entity, parameter, cvar or feature.
 * ![](/images/spirit.png) - *Spirit of Half-Life* compatible flag, parameter or entity.
 * ![](/images/cstrike.png) - entity, cvar or feature from *Counter Strike*.
+* ![](/images/czeror.png) - entity or feature from *Condition Zero Deleted Scenes*.
 
 Read [compatibility]({{< ref "compatibility" >}}) for more detailed overwiew.
 

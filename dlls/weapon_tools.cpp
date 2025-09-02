@@ -1,0 +1,118 @@
+#include "extdll.h"
+#include "util.h"
+#include "cbase.h"
+#include "weapons.h"
+#include "player.h"
+
+enum camera_e
+{
+	CAMERA_IDLE = 0,
+	CAMERA_USE,
+	CAMERA_DRAW,
+	CAMERA_HOLSTER
+};
+
+class CCameraRadio : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_CAMERA; }
+	bool GetItemInfo(ItemInfo* p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
+LINK_WEAPON_TO_CLASS( weapon_camera, CCameraRadio )
+
+bool CCameraRadio::GetItemInfo(ItemInfo *p)
+{
+	p->iSlot = 4;
+	p->iPosition = 5;
+	return true;
+}
+
+WeaponParameters CCameraRadio::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.worldModel = "models/w_camera.mdl";
+	params.viewModel = "models/v_camera.mdl";
+	params.playerModel = "models/p_camera.mdl";
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{CAMERA_IDLE, 1.0f, 1.0f}
+	};
+
+	params.deploy.animIndex = CAMERA_DRAW;
+	params.deploy.duration = 1.0f;
+
+	params.fire.anims = {CAMERA_USE};
+	params.fire.cycleTime = 1.82f;
+	params.fire.preventMovement = true;
+
+	params.holster.animIndex = CAMERA_HOLSTER;
+	params.holster.attackDelay = 0.73f;
+
+	params.modelSounds = {"weapons/camera-1.wav", "weapons/camera_sliderelease.wav"};
+
+	params.mirrorViewModel = true;
+
+	params.toolIcon = "icon_camera";
+	params.toolTriggerDelay = 1.8f;
+
+	return params;
+}
+
+enum radio_e
+{
+	RADIO_IDLE = 0,
+	RADIO_DRAW,
+	RADIO_HOLSTER,
+	RADIO_USE
+};
+
+class CToolRadio : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_RADIO; }
+	bool GetItemInfo(ItemInfo* p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
+LINK_WEAPON_TO_CLASS( weapon_radio, CToolRadio )
+
+bool CToolRadio::GetItemInfo(ItemInfo *p)
+{
+	p->iSlot = 4;
+	p->iPosition = 6;
+	return true;
+}
+
+WeaponParameters CToolRadio::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.worldModel = "models/w_radio.mdl";
+	params.viewModel = "models/v_radio.mdl";
+	params.playerModel = "models/p_radio.mdl";
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{RADIO_IDLE, 1.0f, 1.0f}
+	};
+
+	params.deploy.animIndex = RADIO_DRAW;
+	params.deploy.duration = 1.0f;
+
+	params.fire.anims = {RADIO_USE};
+	params.fire.cycleTime = 2.75f;
+	params.fire.preventMovement = true;
+
+	params.holster.animIndex = RADIO_HOLSTER;
+	params.holster.attackDelay = 1.3f;
+
+	params.modelSounds = {"weapons/radio_draw.wav", "weapons/radio_use.wav"};
+
+	params.mirrorViewModel = true;
+
+	params.toolIcon = "icon_radio";
+
+	return params;
+}

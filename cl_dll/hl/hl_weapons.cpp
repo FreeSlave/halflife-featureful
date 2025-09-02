@@ -124,6 +124,23 @@ int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+int __MsgFunc_WeaponTool(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	int id = READ_BYTE();
+	int toolIndex = READ_BYTE();
+	AccessWeaponInfo(id).params.toolIndex = toolIndex;
+	return 1;
+}
+
+int __MsgFunc_ToolState(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	player.m_ToolStateBits = READ_LONG();
+	player.m_ToolUnalignedBits = READ_LONG();
+	return 1;
+}
+
 /*
 =====================
 CBaseEntity::Killed

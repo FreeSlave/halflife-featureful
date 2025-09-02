@@ -585,6 +585,8 @@ struct WeaponParameters
 
 		// TODO: this is temporary, will be replaced with configurable spray
 		WeaponModeValue<bool> spitSpray;
+
+		WeaponModeValue<bool> preventMovement{false};
 	};
 
 	struct Fade
@@ -669,6 +671,10 @@ struct WeaponParameters
 	std::string playerModel;
 	fixed_string<32> playerAnimExt{"onehanded"};
 	int priority{0};
+
+	fixed_string<32> toolIcon;
+	float toolTriggerDelay{0.0f};
+	int toolIndex{-1};
 };
 
 #endif

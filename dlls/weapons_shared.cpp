@@ -14,6 +14,7 @@
 
 WeaponInfo& AccessWeaponInfo(int id)
 {
+	// TODO: protect against out of bounds access?
 	static WeaponInfo arr[MAX_WEAPONS] = {};
 	return arr[id];
 }
@@ -714,6 +715,16 @@ void CConfigurableWeapon::ItemPostFrame()
 
 	const WeaponParameters& params = MyParameters();
 
+#if !CLIENT_DLL
+	if (m_toolTriggerTime != 0.0f && m_toolTriggerTime < gpGlobals->time)
+	{
+		CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
+		if (triggerEnt)
+			triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
+		m_toolTriggerTime = 0.0f;
+	}
+#endif
+
 	if (m_flPumpTime && m_flPumpTime < gpGlobals->time)
 	{
 		PlayWeaponSoundScript(params.fire.pumpSound.Get(m_inAltMode));
@@ -976,6 +987,39 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 	}
 
+	const float flCycleTime = fire.cycleTime.Get(altMode);
+
+	if (params.toolIndex >= 0)
+	{
+		const int toolBit = 1<<params.toolIndex;
+		if (FBitSet(m_pPlayer->m_ToolStateBits, toolBit) && !FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
+		{
+#if !CLIENT_DLL
+			if (params.toolTriggerDelay > 0.0f)
+			{
+				m_toolTriggerTime = gpGlobals->time + params.toolTriggerDelay;
+			}
+			else
+			{
+				CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
+				if (triggerEnt)
+					triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
+			}
+#endif
+		}
+		else
+		{
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+			return;
+		}
+	}
+
+	if (fire.preventMovement.Get(altMode))
+	{
+		m_pPlayer->m_movementPrevented = true;
+		m_pPlayer->m_movementPreventedTime = gpGlobals->time + flCycleTime;
+	}
+
 	if (params.altMode.zoomFOV > 0 && m_pPlayer->m_iFOV != 0 && params.altMode.resetZoomOnFire)
 	{
 		if (params.altMode.resumeZoomAfterReset)
@@ -1160,7 +1204,6 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 						encodedSpread, encodedPunchangle,
 						iParam1Bits, PackIParam2(), 0, 0);
 
-	const float flCycleTime = fire.cycleTime.Get(altMode);
 	m_flNextPrimaryAttack = GetNextAttackDelay( flCycleTime );
 	if (params.secondaryFireType == SecondaryFireType::ALTERNATIVE_FIRE)
 	{

@@ -34,7 +34,6 @@
 #define	WEAPON_PENGUIN			26
 #define WEAPON_UZI				27
 
-
 #define WEAPON_PISTOL			50
 #define WEAPON_PISTOL2			51
 #define WEAPON_SMG				52
@@ -43,5 +42,8 @@
 #define WEAPON_RIFLE2			55
 #define WEAPON_SHOTGUN2			56
 #define WEAPON_SNIPERRIFLE2		57
+
+#define WEAPON_CAMERA			60
+#define WEAPON_RADIO			61
 
 #endif

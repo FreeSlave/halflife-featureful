@@ -335,6 +335,8 @@ int __MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 }
 
 extern int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf);
+extern int __MsgFunc_WeaponTool(const char* pszName, int iSize, void* pbuf);
+extern int __MsgFunc_ToolState(const char* pszName, int iSize, void* pbuf);
 
 int __MsgFunc_SetBody(const char* pszName, int iSize, void* pbuf)
 {
@@ -653,6 +655,8 @@ void CHud::Init( void )
 	HOOK_MESSAGE( Concuss );
 	HOOK_MESSAGE( Weapons );
 	HOOK_MESSAGE( MaxClip );
+	HOOK_MESSAGE( WeaponTool );
+	HOOK_MESSAGE( ToolState );
 	HOOK_MESSAGE( SetBody );
 	HOOK_MESSAGE( Items );
 	HOOK_MESSAGE( SetFog );

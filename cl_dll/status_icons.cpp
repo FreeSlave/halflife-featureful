@@ -81,11 +81,11 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gHUD.m_Journal.m_iShowscoresHeld && gHUD.m_Journal.HasInventorySection())
 		return 1;
 
-	bool drawStatusIcons = gHUD.CanDrawStatusIcons();
+	bool drawStatusIcons = true;//gHUD.CanDrawStatusIcons();
 
 	int i;
 	int xIcons = 5;
-	int yIcons = 5;
+	int yIcons = 135;
 	const int statusIconGap = 5;
 	const int bottomIconGap = 2;
 	const int topRightIconGap = 2;

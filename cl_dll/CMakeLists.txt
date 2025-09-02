@@ -58,6 +58,7 @@ endif()
 set (CLDLL_SOURCES
 	../dlls/ammoregistry.cpp
 	../dlls/weapons_shared.cpp
+	../dlls/weapon_tools.cpp
 	../dlls/crossbow.cpp
 	../dlls/crowbar.cpp
 	../dlls/egon.cpp

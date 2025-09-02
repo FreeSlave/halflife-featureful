@@ -9271,6 +9271,22 @@
 
 @SolidClass base(Targetname) = trigger_transition : "Trigger: Select Transition Area" []
 
+@SolidClass base(Targetname, Targetx) = trigger_usetool : "Allow using special tool in this area"
+[
+	toolname(choices) : "Tool Name" : "" : "Tool to be used in this area. Options are:" = 
+	[
+		"" : "None"
+		weapon_camera : "Camera"
+		weapon_radio : "Radio"
+	]
+	tooltarget(string) : "Tool Target" : : "Where the player needs to be looking to activate the tool, the best way to get this to work is to target an info_target thats in the general area that should be looked in."
+	master(string) : "Master"
+	spawnflags(flags) =
+	[
+		1 : "Remove on use" : 0 : "If enabled, removes this entity from the game after activation."
+	]
+]
+
 @SolidClass base(TriggerTeleport) = trigger_xen_return : "Return To Earth" []
 
 //
@@ -9323,6 +9339,9 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_spore_launcher.mdl") = weapon_sporelauncher : "Spore Launcher" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_medkit.mdl") = weapon_medkit : "Portable Medkit" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
+
+@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
+@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []
 
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol : "Generic configurable pistol" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol2 : "Generic configurable pistol" []

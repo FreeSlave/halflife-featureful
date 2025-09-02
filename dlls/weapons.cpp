@@ -383,18 +383,28 @@ void W_Precache( CBaseEntity* pWorld )
 	};
 
 	ALERT(at_console, "Precaching weapons\n");
+
+	int toolIndex = 0;
+
 	for (int i=0; i<MAX_WEAPONS; ++i)
 	{
-		WeaponInfo info = AccessWeaponInfo(i);
+		WeaponInfo& info = AccessWeaponInfo(i);
 		if (info.classname && info.pWeapon->IsEnabledInMod())
 		{
 			UTIL_PrecacheOtherWeapon(info.classname);
+
+			WeaponParameters& params = info.params;
+
+			if (!params.toolIcon.empty())
+			{
+				params.toolIndex = toolIndex;
+				toolIndex++;
+			}
 
 			for (auto& ammo : ammoEnabledList)
 			{
 				if (!ammo.enabled)
 				{
-					const WeaponParameters& params = info.params;
 					if (params.ammoName == ammo.ammoName)
 					{
 						ammo.enabled = true;
@@ -1198,6 +1208,8 @@ TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 	DEFINE_FIELD( CConfigurableWeapon, m_swingIsAltAttack, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( CConfigurableWeapon, m_flRechargeTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_toolTriggerTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CConfigurableWeapon, CBasePlayerWeapon )
