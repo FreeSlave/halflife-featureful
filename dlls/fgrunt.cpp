@@ -1895,8 +1895,6 @@ void CHFGrunt :: Spawn()
 		else
 			m_iHead = FG_HEAD_MASK;
 	}
-	else if ( m_iHead >= FG_HEAD_COUNT )
-		m_iHead = FG_HEAD_MASK;
 
 	if (FBitSet( pev->weapons, FGRUNT_9MMAR ))
 	{
@@ -2881,7 +2879,7 @@ void CDeadFGrunt::Spawn()
 			m_iHead = FG_HEAD_BERET_BLACK;
 		}
 	}
-	else if ( m_iHead < 0 || m_iHead >= FG_HEAD_COUNT )
+	else if ( m_iHead < 0 )
 		m_iHead = 0;
 
 	SetBodygroup( FG_HEAD_GROUP, m_iHead );

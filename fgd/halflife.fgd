@@ -5330,7 +5330,53 @@
 		2 : "Dark"
 	]
 ]
-@PointClass base(Monster, TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_human_grunt_ally : "Human Grunt Ally (camo)"
+
+@BaseClass = HumanGruntAllyHead
+[
+	head(Choices) : "Heads" : -1 =
+	[
+		-2 : "Random"
+		-1 : "Default"
+		0 : "Gas Mask"
+		1 : "Beret"
+		2 : "Ops Mask"
+		3 : "Bandana White"
+		4 : "Bandana Black"
+		5 : "MP"
+		6 : "Major"
+		7 : "Beret (Black)"
+		8 : "Custom (8)"
+		9 : "Custom (9)"
+		10 : "Custom (10)"
+		11 : "Custom (11)"
+		12 : "Custom (12)"
+		13 : "Custom (13)"
+		14 : "Custom (14)"
+		15 : "Custom (15)"
+		16 : "Custom (16)"
+		17 : "Custom (17)"
+		18 : "Custom (18)"
+		19 : "Custom (19)"
+		20 : "Custom (20)"
+	]
+]
+
+@BaseClass = HumanGruntAllyWeapon
+[
+	weapons(Choices) : "Weapons" : 3 =
+	[
+		0 : "None"
+		1 : "9mmAR"
+		3 : "9mmAR + HG"
+		5 : "9mmAR + GL"
+		8 : "Shotgun"
+		10 : "Shotgun + HG"
+		16 : "Saw"
+		18 : "Saw + HG"
+	]
+]
+
+@PointClass base(Monster, TalkMonster, HumanGruntAllyHead, HumanGruntAllyWeapon) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_human_grunt_ally : "Human Grunt Ally (camo)"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 7 =
 	[
@@ -5415,35 +5461,9 @@
 		32 : "SquadLeader" : 0
 		1024: "Don't Drop Gun" : 0
 	]
-
-	weapons(Choices) : "Weapons" : 3 =
-	[
-		0 : "None"
-		1 : "9mmAR"
-		3 : "9mmAR + HG"
-		5 : "9mmAR + GL"
-		8 : "Shotgun"
-		10 : "Shotgun + HG"
-		16 : "Saw"
-		18 : "Saw + HG"
-	]
-
-	head(Choices) : "Heads" : -1 =
-	[
-		-2 : "Random"
-		-1 : "Default"
-		0 : "Gas Mask"
-		1 : "Beret"
-		2 : "Ops Mask"
-		3 : "Bandana White"
-		4 : "Bandana Black"
-		5 : "MP"
-		6 : "Major"
-		7 : "Beret (Black)"
-	]
 ]
 
-@PointClass base(Repel, Sequence, CustomSentences) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_grunt_ally_repel : "Human Grunt Ally (Repel)"
+@PointClass base(Repel, HumanGruntAllyHead, HumanGruntAllyWeapon, CustomSentences) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_grunt_ally_repel : "Human Grunt Ally (Repel)"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 49 =
 	[
@@ -5526,32 +5546,9 @@
 		1024: "Don't Drop Gun" : 0
 	]
 	netname(string) : "Squad Name"
-	weapons(Choices) : "Weapons" : 3 =
-	[
-		1 : "9mmAR"
-		3 : "9mmAR + HG"
-		5 : "9mmAR + GL"
-		8 : "Shotgun"
-		10 : "Shotgun + HG"
-		16 : "Saw"
-		18 : "Saw + HG"
-	]
-	head(Choices) : "Heads" : -1 =
-	[
-		-2 : "Random"
-		-1 : "Default"
-		0 : "Gas Mask"
-		1 : "Beret"
-		2 : "Ops Mask"
-		3 : "Bandana White"
-		4 : "Bandana Black"
-		5 : "MP"
-		6 : "Major"
-		7 : "Beret (Black)"
-	]
 ]
 
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_human_grunt_ally_dead : "Dead Human Grunt Ally"
+@PointClass base(DeadMonster, HumanGruntAllyHead) size(-16 -16 0, 16 16 72) studio("models/hgrunt_opfor.mdl") = monster_human_grunt_ally_dead : "Dead Human Grunt Ally"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 40 =
 	[
@@ -5580,18 +5577,6 @@
 		1 : "9mmAR"
 		8 : "Shotgun"
 		16 : "Saw"
-	]
-	head(Choices) : "Heads" : 0 =
-	[
-		-2 : "Random"
-		0 : "Gas Mask"
-		1 : "Beret"
-		2 : "Ops Mask"
-		3 : "Bandana White"
-		4 : "Bandana Black"
-		5 : "MP"
-		6 : "Major"
-		7 : "Beret (Black)"
 	]
 ]
 
