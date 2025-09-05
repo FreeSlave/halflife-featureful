@@ -1158,7 +1158,6 @@ public:
 	void Crawl( void );
 	void MakeTraceBeam(const Vector& vecSrc);
 
-	int m_flNextAttack;
 	Vector m_vecIdeal;
 	EHANDLE m_hOwner;
 
@@ -1291,8 +1290,6 @@ void CControllerHeadBall::HuntThink( void )
 
 		MakeTraceBeam(tr.vecEndPos);
 		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
-
-		m_flNextAttack = gpGlobals->time + 3.0f;
 
 		SetThink( &CControllerHeadBall::DieThink );
 		pev->nextthink = gpGlobals->time + 0.3f;

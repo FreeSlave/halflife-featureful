@@ -504,7 +504,6 @@ public:
 	CBeam *m_pBeam[ISLAVE_MAX_BEAMS];
 
 	int m_iBeams;
-	float m_flNextAttack;
 
 	int m_voicePitch;
 
@@ -572,7 +571,6 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 
 	DEFINE_ARRAY( CISlave, m_pBeam, FIELD_CLASSPTR, ISLAVE_MAX_BEAMS ),
 	DEFINE_FIELD( CISlave, m_iBeams, FIELD_INTEGER ),
-	DEFINE_FIELD( CISlave, m_flNextAttack, FIELD_TIME ),
 
 	DEFINE_FIELD( CISlave, m_voicePitch, FIELD_INTEGER ),
 #if FEATURE_ISLAVE_ENERGY

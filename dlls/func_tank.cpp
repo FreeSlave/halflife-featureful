@@ -207,7 +207,7 @@ public:
 
 protected:
 	float		m_flNextAttack;
-	
+
 	float		m_yawCenter;	// "Center" yaw
 	float		m_yawRate;		// Max turn rate to track targets
 	float		m_yawRange;		// Range of turning motion (one-sided: 30 is +/- 30 degress from center)

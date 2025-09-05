@@ -93,7 +93,6 @@ public:
 
 	int		m_iFear;
 	float m_flNextAlert;
-	float m_flNextAttack;
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -131,7 +130,6 @@ TYPEDESCRIPTION	CFlybee::m_SaveData[] =
 	DEFINE_FIELD( CFlybee, m_flMinSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlybee, m_flMaxDist, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlybee, m_flNextAlert, FIELD_TIME ),
-	DEFINE_FIELD( CFlybee, m_flNextAttack, FIELD_TIME ),
 	DEFINE_FIELD( CFlybee, m_iFear, FIELD_INTEGER ),
 	DEFINE_FIELD( CFlybee, m_vecAttack2, FIELD_VECTOR ),
 };
