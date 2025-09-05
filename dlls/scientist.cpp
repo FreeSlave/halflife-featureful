@@ -1123,18 +1123,17 @@ MONSTERSTATE CScientist::GetIdealState( void )
 			CBaseEntity *pEnemy = m_hEnemy;
 			if( pEnemy != NULL )
 			{
-				if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
-				{
-					// Strip enemy when going to alert
-					m_IdealMonsterState = MONSTERSTATE_ALERT;
-					m_hEnemy = 0;
-					return m_IdealMonsterState;
-				}
-
 				if( HasConditions( bits_COND_SEE_ENEMY ) )
 				{
 					m_fearTime = gpGlobals->time;
 					m_IdealMonsterState = MONSTERSTATE_COMBAT;
+					return m_IdealMonsterState;
+				}
+				else if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
+				{
+					// Strip enemy when going to alert
+					m_IdealMonsterState = MONSTERSTATE_ALERT;
+					m_hEnemy = 0;
 					return m_IdealMonsterState;
 				}
 			}
