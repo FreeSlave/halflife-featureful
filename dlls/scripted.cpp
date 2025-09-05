@@ -23,18 +23,9 @@
 #include "util.h"
 #include "cbase.h"
 #include "monsters.h"
-
-#if !defined(ANIMATION_H)
 #include "animation.h"
-#endif
-
-#if !defined(SAVERESTORE_H)
-#include "saverestore.h"
-#endif
-
 #include "schedule.h"
 #include "scripted.h"
-#include "defaultai.h"
 #include "talkmonster.h"
 #include "player.h"
 #include "gamerules.h"
