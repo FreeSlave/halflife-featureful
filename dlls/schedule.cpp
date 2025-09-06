@@ -80,12 +80,9 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 		ClearSuggestedSchedule();
 	}
 
-	if (DeveloperModeLevel() >= 2)
+	if (ShouldReportAIChange(entindex()))
 	{
-		if (HasScheduleWatcher(entindex()))
-		{
-			ALERT(at_aiconsole, "%s (%d) changing schedule to %s\n", STRING(pev->classname), entindex(), pNewSchedule->pName);
-		}
+		ALERT(at_aiconsole, "%s (%d): changing schedule to %s\n", STRING(pev->classname), entindex(), pNewSchedule->pName);
 	}
 
 	OnChangeSchedule( pNewSchedule );
@@ -215,6 +212,12 @@ bool CBaseMonster::FScheduleValid( void )
 	}
 	else if ( HasConditions( m_pSchedule->iInterruptMask ) )
 	{
+		if (ShouldReportAIChange(entindex()))
+		{
+			ALERT(at_console, "%s (%d): schedule %s has been interrupted at task #%d. Conditions: %d\n",
+				STRING(pev->classname), entindex(), m_pSchedule->pName, m_iScheduleIndex, m_afConditions & m_pSchedule->iInterruptMask);
+		}
+
 		// some condition has interrupted the schedule
 		taskFailReason = "interrupted";
 		return false;

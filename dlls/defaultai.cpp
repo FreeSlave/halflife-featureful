@@ -286,7 +286,7 @@ Task_t tlWakeAngry1[] =
 	{ TASK_STOP_MOVING, 0 },
 	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
 	{ TASK_SOUND_WAKE, (float)0 },
-	{ TASK_FACE_IDEAL, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
 };
 
 Schedule_t slWakeAngry[] =

@@ -8,5 +8,6 @@ void AddScheduleWatcher(int entindex);
 void RemoveScheduleWatcher(int entindex);
 bool HasScheduleWatcher(int entindex);
 void ResetScheduleWatchers();
+bool ShouldReportAIChange(int entindex);
 
 #endif

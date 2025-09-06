@@ -5,6 +5,7 @@
 #include "util.h"
 #include "cbase.h"
 #include "basemonster.h"
+#include "game.h"
 
 #include <set>
 
@@ -47,4 +48,9 @@ bool HasScheduleWatcher(int entindex)
 void ResetScheduleWatchers()
 {
 	scheduleWatchers.clear();
+}
+
+bool ShouldReportAIChange(int entindex)
+{
+	return DeveloperModeLevel() >= 2 && HasScheduleWatcher(entindex);
 }

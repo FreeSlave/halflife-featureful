@@ -42,6 +42,7 @@
 #include "classify.h"
 #include "studio.h"
 #include "clamp.h"
+#include "ai_debug.h"
 #include "graphic_debug.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
@@ -1344,7 +1345,11 @@ void CBaseMonster::SetEnemy(CBaseEntity *pNewEnemy)
 	m_hEnemy = pNewEnemy;
 	m_vecEnemyLKP = pNewEnemy->pev->origin;
 	m_flLastTimeObservedEnemy = gpGlobals->time;
-	//ALERT(at_aiconsole, "%s got %s as new enemy\n", STRING(pev->classname), STRING(pNewEnemy->pev->classname));
+
+	if (ShouldReportAIChange(entindex()))
+	{
+		ALERT(at_aiconsole, "%s (%d): got %s as new enemy. Previous enemy: %s\n", STRING(pev->classname), entindex(), STRING(pNewEnemy->pev->classname), pPreviousEnemy ? STRING(pPreviousEnemy->pev->classname) : "none");
+	}
 
 	// Don't keep the new enemy in the list of old enemies
 	for( int i = 0; i < MAX_OLD_ENEMIES; i++ )
