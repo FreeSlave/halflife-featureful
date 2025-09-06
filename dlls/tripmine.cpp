@@ -401,6 +401,28 @@ void CTripmineGrenade::DelayDeathThink( void )
 }
 #endif
 
+class CTripmine : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_TRIPMINE; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	void SetObjectCollisionBox( void )
+	{
+		//!!!BUGBUG - fix the model!
+		SetMyObjectCollisionBox(Vector(-16, -16, -5), Vector(16, 16, 28));
+	}
+
+	void PrimaryAttack( void );
+	bool Deploy() override;
+	void Holster();
+	void WeaponIdle( void );
+private:
+	unsigned short m_usTripFire;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_tripmine, CTripmine )
 
 void CTripmine::Spawn()

@@ -33,7 +33,49 @@
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 #endif // !defined ( CLIENT_DLL )
 
+class CDisplacer : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int Save( CSave &save );
+	int Restore( CRestore &restore );
+	static TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_DISPLACER; }
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Holster();
+
+	enum DISPLACER_FIREMODE { FIREMODE_FORWARD = 1, FIREMODE_BACKWARD };
+
+	void ClearSpin( void );
+	void EXPORT SpinUp( void );
+	void EXPORT Teleport( void );
+	void EXPORT Displace( void );
+	void LightningEffect( void );
+	void ClearBeams( void );
+private:
+#if !CLIENT_DLL
+	CBeam *m_pBeam[3];
+#endif
+	int m_iFireMode;
+	unsigned short m_usDisplacer;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_displacer, CDisplacer)
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CDisplacer::m_SaveData[] =
+{
+	DEFINE_FIELD( CDisplacer, m_iFireMode, FIELD_INTEGER ),
+	DEFINE_ARRAY( CDisplacer, m_pBeam, FIELD_CLASSPTR, 3 ),
+};
+IMPLEMENT_SAVERESTORE( CDisplacer, CConfigurableWeapon )
+#endif
 
 bool CDisplacer::GetItemInfo(ItemInfo *p)
 {

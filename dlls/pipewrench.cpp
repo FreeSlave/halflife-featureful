@@ -41,6 +41,16 @@ enum pwrench_e
 
 #if FEATURE_PIPEWRENCH
 
+class CPipeWrench : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_PIPEWRENCH; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	DamageInfo MeleeDamageInfo() override;
+	DamageInfo MeleeWindDamageInfo() override;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_pipewrench, CPipeWrench)
 
 bool CPipeWrench::GetItemInfo(ItemInfo *p)

@@ -34,6 +34,24 @@ enum handgrenade_e
 	HANDGRENADE_DRAW
 };
 
+class CHandGrenade : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_HANDGRENADE; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	void PrimaryAttack( void );
+	bool Deploy() override;
+	bool CanHolster() override;
+	void Holster();
+	void WeaponIdle( void );
+	bool PreferNewPhysics();
+
+	void GetWeaponData(weapon_data_t& data);
+	void SetWeaponData(const weapon_data_t& data);
+};
+
 LINK_WEAPON_TO_CLASS( weapon_handgrenade, CHandGrenade )
 
 bool CHandGrenade::GetItemInfo( ItemInfo *p )

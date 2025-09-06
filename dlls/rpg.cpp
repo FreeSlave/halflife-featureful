@@ -20,7 +20,31 @@
 #include "weapons.h"
 #include "player.h"
 
-LINK_WEAPON_TO_CLASS( weapon_rpg, CRpg )
+class CRpg : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_RPG; }
+	void Reload( void );
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	bool CanHolster() override;
+
+	void NativeAttack(bool altMode) override;
+
+	bool ShouldWeaponIdle() override { return true; }
+
+	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
+
+	void GetWeaponData(weapon_data_t& data);
+	void SetWeaponData(const weapon_data_t& data);
+};
 
 #if !CLIENT_DLL
 #include "gamerules.h"
@@ -110,6 +134,14 @@ void CLaserSpot::Precache( void )
 }
 
 LINK_ENTITY_TO_CLASS( rpg_rocket, CRpgRocket )
+
+TYPEDESCRIPTION	CRpgRocket::m_SaveData[] =
+{
+	DEFINE_FIELD( CRpgRocket, m_flIgniteTime, FIELD_TIME ),
+	DEFINE_FIELD( CRpgRocket, m_hLauncher, FIELD_EHANDLE ),
+};
+
+IMPLEMENT_SAVERESTORE( CRpgRocket, CGrenade )
 
 const NamedSoundScript CRpgRocket::rocketIgniteSoundScript = {
 	CHAN_VOICE,
@@ -338,6 +370,16 @@ enum rpg_e
 	RPG_IDLE_UL,	// unloaded idle
 	RPG_FIDGET_UL	// unloaded fidget
 };
+
+LINK_WEAPON_TO_CLASS( weapon_rpg, CRpg )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CRpg::m_SaveData[] =
+{
+	DEFINE_FIELD( CRpg, m_cActiveRockets, FIELD_INTEGER ),
+};
+IMPLEMENT_SAVERESTORE( CRpg, CConfigurableWeapon )
+#endif
 
 void CRpg::Reload( void )
 {

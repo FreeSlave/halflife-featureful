@@ -41,7 +41,34 @@ enum firemode_e
 	FIREMODE_FAST
 };
 
+class CHgun : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_HORNETGUN; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	bool AddToPlayer( CBasePlayer *pPlayer ) override;
+
+	void NativeAttack(bool altMode) override;
+
+	int m_iFirePhase;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_hornetgun, CHgun )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION CHgun::m_SaveData[] =
+{
+	DEFINE_FIELD( CHgun, m_iFirePhase, FIELD_INTEGER ),
+};
+IMPLEMENT_SAVERESTORE( CHgun, CConfigurableWeapon )
+#endif
 
 void CHgun::Precache()
 {

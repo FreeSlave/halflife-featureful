@@ -250,6 +250,20 @@ enum crossbow_e
 	CROSSBOW_HOLSTER2	// empty
 };
 
+class CCrossbow : public CConfigurableWeapon
+{
+public:
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_CROSSBOW; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	int GetPlaybackEvent(bool altModeFire) const override;
+
+	void NativeAttack(bool altMode) override;
+private:
+	unsigned short m_usCrossbow2;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_crossbow, CCrossbow )
 
 void CCrossbow::Precache()

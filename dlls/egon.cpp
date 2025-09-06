@@ -37,7 +37,78 @@
 #define EGON_SWITCH_NARROW_TIME			0.75f			// Time it takes to switch fire modes
 #define EGON_SWITCH_WIDE_TIME			1.5f
 
+class CEgon : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_EGON; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	bool Deploy() override;
+	bool CanHolster() override;
+	void Holster();
+
+	void UpdateEffect( const Vector &startPoint, const Vector &endPoint, float timeBlend );
+
+	void CreateEffect ( void );
+	void DestroyEffect ( void );
+	void EndAttack( void );
+	void Attack( void );
+	void PrimaryAttack( void );
+	void WeaponIdle( void );
+
+	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
+
+	float GetPulseInterval( void );
+	float GetDischargeInterval( void );
+
+	void Fire( const Vector &vecOrigSrc, const Vector &vecDir );
+
+	enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE};
+
+#if !CLIENT_DLL
+	CBeam				*m_pBeam;
+	CBeam				*m_pNoise;
+	CSprite				*m_pSprite;
+#endif
+
+	void GetWeaponData(weapon_data_t& data);
+	void SetWeaponData(const weapon_data_t& data);
+
+	unsigned short m_usEgonStop;
+
+private:
+#if !CLIENT_DLL
+	float				m_shootTime;
+#endif
+	EGON_FIREMODE		m_fireMode;
+	float				m_shakeTime;
+
+	unsigned short m_usEgonFire;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_egon, CEgon )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CEgon::m_SaveData[] =
+{
+	//DEFINE_FIELD( CEgon, m_pBeam, FIELD_CLASSPTR ),
+	//DEFINE_FIELD( CEgon, m_pNoise, FIELD_CLASSPTR ),
+	//DEFINE_FIELD( CEgon, m_pSprite, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CEgon, m_shootTime, FIELD_TIME ),
+	DEFINE_FIELD( CEgon, m_fireState, FIELD_INTEGER ),
+	DEFINE_FIELD( CEgon, m_fireMode, FIELD_INTEGER ),
+	DEFINE_FIELD( CEgon, m_shakeTime, FIELD_TIME ),
+	DEFINE_FIELD( CEgon, m_flAmmoUseTime, FIELD_TIME ),
+};
+IMPLEMENT_SAVERESTORE( CEgon, CConfigurableWeapon )
+#endif
 
 void CEgon::Precache()
 {

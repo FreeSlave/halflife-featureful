@@ -5,6 +5,8 @@
 #include "ggrenade.h"
 #include "weapons.h"
 
+class CRpg;
+
 class CRpgRocket : public CGrenade
 {
 public:

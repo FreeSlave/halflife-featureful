@@ -35,6 +35,15 @@ enum crowbar_e
 	CROWBAR_IDLE3,
 };
 
+class CCrowbar : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_CROWBAR; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	DamageInfo MeleeDamageInfo() override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_crowbar, CCrowbar )
 
 bool CCrowbar::GetItemInfo( ItemInfo *p )

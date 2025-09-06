@@ -501,6 +501,29 @@ LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )
 
 #endif
 
+class CSqueak : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_SNARK; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	bool Deploy() override;
+	void Holster();
+	void WeaponIdle( void );
+	int m_fJustThrown;
+
+	virtual const char* GrenadeName() const;
+	virtual int PositionInSlot() const;
+	virtual const char* EventsFile() const;
+private:
+	unsigned short m_usSnarkFire;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_snark, CSqueak )
 
 void CSqueak::Spawn()
@@ -718,6 +741,17 @@ const char* CSqueak::EventsFile() const
 }
 
 #if FEATURE_PENGUIN
+
+class CPenguin : public CSqueak
+{
+public:
+	int WeaponId() const override { return WEAPON_PENGUIN; }
+	WeaponParameters GetDefaultParameters() const override;
+	const char* GrenadeName() const override;
+	int PositionInSlot() const override;
+	const char* EventsFile() const override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_penguin, CPenguin )
 
 WeaponParameters CPenguin::GetDefaultParameters() const

@@ -39,6 +39,17 @@ enum knife_e
 
 #if FEATURE_KNIFE
 
+class CKnife : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_KNIFE; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	DamageInfo MeleeDamageInfo() override;
+	DamageInfo MeleeWindDamageInfo() override;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_knife, CKnife)
 
 bool CKnife::GetItemInfo(ItemInfo *p)

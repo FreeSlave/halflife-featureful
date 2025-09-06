@@ -34,6 +34,16 @@ enum glock_e
 	GLOCK_ADD_SILENCER
 };
 
+class CGlock : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_GLOCK; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock )
 LINK_WEAPON_TO_CLASS( weapon_9mmhandgun, CGlock )
 

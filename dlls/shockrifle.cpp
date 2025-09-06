@@ -36,6 +36,28 @@ enum shockrifle_e
 
 #if FEATURE_SHOCKRIFLE
 
+class CShockrifle : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_SHOCKRIFLE; }
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	bool AddToPlayer(CBasePlayer *pPlayer) override;
+
+	void NativeAttack(bool altMode) override;
+	void Holster();
+	void CreateChargeEffect(void);
+	void EXPORT ClearBeams(void);
+private:
+#if !CLIENT_DLL
+	CBeam* m_pBeam[4];
+#endif
+};
+
 LINK_WEAPON_TO_CLASS(weapon_shockrifle, CShockrifle)
 
 void CShockrifle::Spawn()

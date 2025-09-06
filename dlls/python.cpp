@@ -32,6 +32,19 @@ enum python_e
 	PYTHON_IDLE3
 };
 
+class CPython : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_PYTHON; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	void Reload() override;
+	void WeaponIdle() override;
+	float m_flSoundDelay;
+};
+
 LINK_ENTITY_TO_CLASS( weapon_python, CPython )
 LINK_WEAPON_TO_CLASS( weapon_357, CPython )
 

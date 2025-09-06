@@ -30,7 +30,59 @@
 #define	GAUSS_PRIMARY_CHARGE_VOLUME	256// how loud gauss is while charging
 #define GAUSS_PRIMARY_FIRE_VOLUME	450// how loud gauss is when discharged
 
+class CGauss : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_GAUSS; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	bool Deploy() override;
+	void Holster();
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void WeaponIdle( void );
+
+	void StartFire( void );
+	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
+	float GetFullChargeTime( void );
+	int m_iBalls;
+	int m_iGlow;
+	int m_iBeam;
+	int m_iSoundState; // don't save this
+
+	// was this weapon just fired primary or secondary?
+	// we need to know so we can pick the right set of effects.
+	bool m_fPrimaryFire;
+
+	void GetWeaponData(weapon_data_t& data);
+	void SetWeaponData(const weapon_data_t& data);
+
+private:
+	unsigned short m_usGaussFire;
+	unsigned short m_usGaussSpin;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_gauss, CGauss )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CGauss::m_SaveData[] =
+{
+	DEFINE_FIELD( CGauss, m_fInAttack, FIELD_INTEGER ),
+	//DEFINE_FIELD( CGauss, m_flStartCharge, FIELD_TIME ),
+	//DEFINE_FIELD( CGauss, m_flPlayAftershock, FIELD_TIME ),
+	//DEFINE_FIELD( CGauss, m_flNextAmmoBurn, FIELD_TIME ),
+	DEFINE_FIELD( CGauss, m_fPrimaryFire, FIELD_BOOLEAN ),
+};
+IMPLEMENT_SAVERESTORE( CGauss, CConfigurableWeapon )
+#endif
 
 float CGauss::GetFullChargeTime( void )
 {

@@ -37,6 +37,15 @@ enum eagle_e
 
 #if FEATURE_DESERT_EAGLE
 
+class CEagle : public CConfigurableWeapon
+{
+public:
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_EAGLE; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_eagle, CEagle )
 
 void CEagle::PrecacheDefaultModelSounds()

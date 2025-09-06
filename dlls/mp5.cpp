@@ -33,6 +33,19 @@ enum mp5_e
 	MP5_FIRE3
 };
 
+class CMP5 : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_MP5; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	void NativeAttack(bool altMode) override;
+};
+
 LINK_ENTITY_TO_CLASS( weapon_mp5, CMP5 )
 LINK_WEAPON_TO_CLASS( weapon_9mmAR, CMP5 )
 

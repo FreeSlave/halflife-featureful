@@ -31,6 +31,15 @@ enum uzi_e {
 
 #if FEATURE_UZI
 
+class CUzi : public CConfigurableWeapon
+{
+public:
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_UZI; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_uzi, CUzi )
 LINK_ENTITY_TO_CLASS( weapon_uziakimbo, CUzi ) // Link to single uzi until akimbo is implemented
 

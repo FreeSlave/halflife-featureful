@@ -38,6 +38,14 @@ enum shotgun_e
 #define VECTOR_CONE_DM_SHOTGUN	Vector( 0.08716, 0.04362, 0.00 )// 10 degrees by 5 degrees
 #define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
 
+class CShotgun : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_SHOTGUN; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_shotgun, CShotgun )
 
 bool CShotgun::GetItemInfo( ItemInfo *p )

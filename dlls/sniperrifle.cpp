@@ -35,6 +35,16 @@ enum sniper_e
 
 #if FEATURE_SNIPERRIFLE
 
+class CSniperrifle : public CConfigurableWeapon
+{
+public:
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_SNIPERRIFLE; }
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_sniperrifle, CSniperrifle )
 
 void CSniperrifle::PrecacheDefaultModelSounds()

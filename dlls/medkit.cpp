@@ -26,7 +26,48 @@
 
 #if FEATURE_MEDKIT
 
+class CMedkit : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_MEDKIT; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	void PrimaryAttack(void);
+	void SecondaryAttack(void);
+	bool Deploy() override;
+	void Holster();
+	void Reload( void );
+	void WeaponIdle(void);
+	bool ShouldWeaponIdle() override { return true; }
+	CBaseEntity* FindHealTarget(bool increasedRadius = false);
+
+	float	m_flSoundDelay;
+	bool	m_secondaryAttack;
+
+protected:
+	bool CanRecharge();
+private:
+	unsigned short m_usMedkitFire;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_medkit, CMedkit)
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CMedkit::m_SaveData[] =
+{
+	DEFINE_FIELD( CMedkit, m_flSoundDelay, FIELD_TIME ),
+	DEFINE_FIELD( CMedkit, m_secondaryAttack, FIELD_BOOLEAN ),
+};
+
+IMPLEMENT_SAVERESTORE( CMedkit, CConfigurableWeapon )
+#endif
 
 CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 {

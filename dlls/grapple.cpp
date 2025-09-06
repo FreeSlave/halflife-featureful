@@ -24,6 +24,8 @@
 
 #if FEATURE_GRAPPLE
 
+class CBarnacleGrappleTip;
+
 #if !CLIENT_DLL
 #include "game.h"
 #include "gamerules.h"
@@ -214,6 +216,7 @@ void CBarnacleGrappleTip::SetPosition( Vector vecOrigin, Vector vecAngles, CBase
 	pev->owner = pOwner->edict();
 }
 #endif
+
 enum BarnacleGrappleAnim
 {
 	BGRAPPLE_BREATHE = 0,
@@ -229,7 +232,64 @@ enum BarnacleGrappleAnim
 	BGRAPPLE_FIRERELEASE
 };
 
+class CBarnacleGrapple : public CBasePlayerWeapon
+{
+public:
+#if !CLIENT_DLL
+	virtual int		Save( CSave &save );
+	virtual int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	enum FireState
+	{
+		OFF		= 0,
+		CHARGE	= 1
+	};
+
+	void Precache() override;
+	void PrecacheDefaultModelSounds() override;
+	void Spawn( void );
+	int WeaponId() const override { return WEAPON_GRAPPLE; }
+	void EndAttack( void );
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	bool AddToPlayer( CBasePlayer* pPlayer ) override;
+	bool Deploy() override;
+	void Holster();
+	void WeaponIdle( void );
+	void PrimaryAttack( void );
+
+	void Fire( Vector vecOrigin, Vector vecDir );
+
+	void CreateEffect( void );
+	void UpdateEffect( void );
+	void DestroyEffect( void );
+private:
+	CBarnacleGrappleTip* m_pTip;
+#if !CLIENT_DLL
+	CBeam* m_pBeam;
+#endif
+
+	float m_flShootTime;
+	float m_flDamageTime;
+
+	bool m_bGrappling;
+	bool m_bMissed;
+	bool m_bMomentaryStuck;
+};
+
 LINK_WEAPON_TO_CLASS( weapon_grapple, CBarnacleGrapple )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CBarnacleGrapple::m_SaveData[] =
+{
+	DEFINE_FIELD( CBarnacleGrapple, m_pBeam, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CBarnacleGrapple, m_flShootTime, FIELD_TIME ),
+	DEFINE_FIELD( CBarnacleGrapple, m_fireState, FIELD_INTEGER ),
+};
+IMPLEMENT_SAVERESTORE( CBarnacleGrapple, CBasePlayerWeapon )
+#endif
 
 void CBarnacleGrapple::Precache( void )
 {

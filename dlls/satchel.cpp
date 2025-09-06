@@ -50,6 +50,41 @@ enum satchel_radio_e
 	SATCHEL_RADIO_HOLSTER
 };
 
+class CSatchel : public CBasePlayerWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Spawn( void );
+	void Precache( void );
+	int WeaponId() const override { return WEAPON_SATCHEL; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	bool AddToPlayer( CBasePlayer *pPlayer ) override;
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	int AddDuplicate(CBasePlayerWeapon *pOriginal );
+	bool CanDeploy( void ) override;
+	bool Deploy() override;
+	bool IsUseable( void ) override;
+	bool CanBeDropped();
+
+	void Holster();
+	void ItemPreFrame();
+	void WeaponIdle( void );
+	void Throw( void );
+	void Detonate(bool allowThrow);
+	int ControlBehavior();
+	void DrawSatchel( void );
+	void DrawRadio();
+
+	void GetWeaponData(weapon_data_t& data);
+	void SetWeaponData(const weapon_data_t& data);
+};
+
 #if !CLIENT_DLL
 class CSatchelCharge : public CGrenade
 {
@@ -285,6 +320,14 @@ int CSatchelCharge::ObjectCaps()
 #endif
 
 LINK_WEAPON_TO_CLASS( weapon_satchel, CSatchel )
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CSatchel::m_SaveData[] =
+{
+	DEFINE_FIELD( CSatchel, m_chargeReady, FIELD_INTEGER ),
+};
+IMPLEMENT_SAVERESTORE( CSatchel, CBasePlayerWeapon )
+#endif
 
 //=========================================================
 // CALLED THROUGH the newly-touched weapon's instance. The existing player weapon is pOriginal

@@ -35,6 +35,29 @@ enum m249_e
 
 #if FEATURE_M249
 
+class CM249 : public CConfigurableWeapon
+{
+public:
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_M249; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	void OnSpendAmmo() override;
+	void OnEndReload() override;
+
+	bool Deploy() override;
+	void ItemPostFrame() override;
+
+	int ViewModelBody() override;
+
+	void UpdateTape();
+	void UpdateTape(int clip);
+	int BodyFromClip();
+	int BodyFromClip(int clip);
+
+	int m_iVisibleClip;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_m249, CM249)
 
 //=========================================================

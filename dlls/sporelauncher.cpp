@@ -38,6 +38,22 @@ enum sporelauncher_e
 
 #if FEATURE_SPORELAUNCHER
 
+class CSporelauncher : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_SPORELAUNCHER; }
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	void NativeAttack(bool altMode) override;
+	void OnIdleAnimation(int anim) override;
+
+	int m_iSquidSpitSprite;
+};
+
 LINK_WEAPON_TO_CLASS(weapon_sporelauncher, CSporelauncher)
 
 void CSporelauncher::Spawn()
