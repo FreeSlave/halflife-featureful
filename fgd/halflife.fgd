@@ -4044,8 +4044,6 @@
 	]
 ]
 
-
-
 @PointClass base(Monster, Sequence) size(-80 -80 0, 80 80 90) studio("models/voltigore.mdl") = monster_alien_voltigore : "Voltigore" 
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
@@ -4228,6 +4226,14 @@
         2 : "On Side"
         3 : "On Back"
         4 : "On Stomach (hands backward)"
+	]
+]
+@PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/Tor.mdl") = monster_alien_tor : "Alien Tor"
+[
+	netname(string) : "Squad Name"
+	spawnflags(Flags) =
+	[
+		32 : "SquadLeader" : 0
 	]
 ]
 @PointClass base(Apache) size(-360 -360 -172, 360 360 8) studio("models/apache.mdl") = monster_apache : "Apache" []

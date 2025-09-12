@@ -491,7 +491,7 @@ void CMonsterMakerHull::Think()
 	UTIL_Remove(this);
 }
 
-static CBaseEntity* MakerBlocker(const Vector& mins, const Vector& maxs)
+CBaseEntity* MakerBlocker(const Vector& mins, const Vector& maxs)
 {
 	CBaseEntity *pList[2];
 	int count = UTIL_EntitiesInBox( pList, 2, mins, maxs, FL_CLIENT | FL_MONSTER );

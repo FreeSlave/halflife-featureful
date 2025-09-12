@@ -11,7 +11,6 @@ This is the list of features that would be nice to have in our codebase. You are
 ### New monsters
 
 * ![](/images/decay.png) monster_alienflyer
-* ![](/images/svencoop.png) monster_alien_tor
 * ![](/images/svencoop.png) monster_bodyguard
 * ![](/images/svencoop.png) monster_kingpin
 * ![](/images/svencoop.png) monster_stukabat

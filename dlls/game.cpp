@@ -1112,6 +1112,11 @@ DECLARE_SKILL_VALUE(sk_robocop_dmg_fist, "0")
 DECLARE_SKILL_VALUE(sk_robocop_sw_radius, "0")
 #endif
 
+DECLARE_SKILL_VALUE(sk_tor_health, "0")
+DECLARE_SKILL_VALUE(sk_tor_punch, "0")
+DECLARE_SKILL_VALUE(sk_tor_energybeam, "0")
+DECLARE_SKILL_VALUE(sk_tor_sonicblast, "0")
+
 DECLARE_SKILL_VALUE(sk_zaptrap_sense_radius, "244")
 DECLARE_SKILL_VALUE(sk_zaptrap_respawn_time, "18")
 
@@ -2101,6 +2106,15 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_robocop_sw_radius);
 	}
 #endif
+
+	// Tor
+	if (g_modFeatures.IsMonsterEnabled("tor"))
+	{
+		REGISTER_SKILL_CVARS(sk_tor_health);
+		REGISTER_SKILL_CVARS(sk_tor_punch);
+		REGISTER_SKILL_CVARS(sk_tor_energybeam);
+		REGISTER_SKILL_CVARS(sk_tor_sonicblast);
+	}
 
 	REGISTER_SKILL_CVARS(sk_zaptrap_sense_radius);
 	REGISTER_SKILL_CVARS(sk_zaptrap_respawn_time);

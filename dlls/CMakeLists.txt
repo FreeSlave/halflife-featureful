@@ -183,6 +183,7 @@ set (SVDLL_SOURCES
 	teamplay_gamerules.cpp
 	tempmonster.cpp
 	tentacle.cpp
+	tor.cpp
 	triggers.cpp
 	tripmine.cpp
 	turret.cpp

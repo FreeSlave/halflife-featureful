@@ -87,6 +87,7 @@ barniel
 kate
 
 babygarg
+tor
 
 gonome
 zombie_barney

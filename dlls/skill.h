@@ -231,6 +231,11 @@ struct skilldata_t
 	float robocopDmgFist;
 	float robocopSWRadius;
 
+	float torHealth;
+	float torDmgPunch;
+	float torDmgEnergyBeam;
+	float torDmgSonicBlast;
+
 	float zaptrapSenseRadius;
 	float zaptrapRespawnTime;
 

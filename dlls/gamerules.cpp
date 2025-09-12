@@ -432,6 +432,14 @@ void CGameRules::RefreshSkillData ( void )
 	}
 #endif
 
+	if (g_modFeatures.IsMonsterEnabled("tor"))
+	{
+		gSkillData.torHealth = GetSkillCvar( "sk_tor_health" );
+		gSkillData.torDmgPunch = GetSkillCvar( "sk_tor_punch" );
+		gSkillData.torDmgEnergyBeam = GetSkillCvar( "sk_tor_energybeam" );
+		gSkillData.torDmgSonicBlast = GetSkillCvar( "sk_tor_sonicblast" );
+	}
+
 	// Zap ball trap
 	gSkillData.zaptrapSenseRadius = GetSkillCvar( "sk_zaptrap_sense_radius" );
 	gSkillData.zaptrapRespawnTime = GetSkillCvar( "sk_zaptrap_respawn_time" );
