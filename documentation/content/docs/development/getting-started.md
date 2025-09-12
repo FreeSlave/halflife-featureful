@@ -54,6 +54,9 @@ shockrifle
 penguin
 uzi
 
+camera
+radio
+
 pistol
 pistol2
 smg

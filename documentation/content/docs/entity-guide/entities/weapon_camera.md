@@ -6,7 +6,7 @@ entityCategory: pickup
 
 # ![](/images/czeror.png) weapon_camera
 
-A tool "weapon" designed to be used in [trigger_usetool]({{< ref trigger_usetool >}}) area. This has 1.8 seconds [trigge delay]({{< ref "weapon-templates#trigger_delay" >}}) before the target activation.
+A tool "weapon" designed to be used in [trigger_usetool]({{< ref trigger_usetool >}}) area. This has 1.8 seconds [trigger delay]({{< ref "weapon-templates#trigger_delay" >}}) before the target activation.
 
 This tool expects `icon_camera` entry in the **hud.txt**.
 
