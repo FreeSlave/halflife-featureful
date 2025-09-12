@@ -24,6 +24,7 @@
 #include	"talkmonster.h"
 #include	"schedule.h"
 #include	"scripted.h"
+#include	"animation.h"
 #include	"combat.h"
 #include	"soundent.h"
 #include	"mod_features.h"
@@ -1218,23 +1219,19 @@ int CKate::LookupActivity(int activity)
 	case ACT_RUN:
 		if( pev->health <= LimpHealth() )
 		{
-			// limp!
-			return CBarney::LookupActivity( ACT_RUN_HURT );
+			int seq = CBarney::LookupActivity( ACT_RUN_HURT );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
-		else
-		{
-			return CBarney::LookupActivity( activity );
-		}
+		return CBarney::LookupActivity( activity );
 	case ACT_WALK:
 		if( pev->health <= LimpHealth() )
 		{
-			// limp!
-			return CBarney::LookupActivity( ACT_WALK_HURT );
+			int seq = CBarney::LookupActivity( ACT_WALK_HURT );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
-		else
-		{
-			return CBarney::LookupActivity( activity );
-		}
+		return CBarney::LookupActivity( activity );
 	case ACT_MELEE_ATTACK1:
 		if( RANDOM_LONG( 0, 2 ) )
 		{

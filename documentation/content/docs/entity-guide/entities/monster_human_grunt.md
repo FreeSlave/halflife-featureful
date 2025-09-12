@@ -10,6 +10,7 @@ bookToC: false
 ### Changes
 
 * When human grunt checks for friendly fire he takes into account all allies, not only those who are in the same squad as him.
+* The model no longer requires the `ACT_RUN_HURT` and `ACT_WALK_HURT` activities to be present. If these are missing the regular `ACT_RUN` and `ACT_WALK` are used when grunt is hurt.
 
 ### Skill variables
 

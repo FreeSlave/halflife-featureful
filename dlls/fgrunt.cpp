@@ -2369,23 +2369,19 @@ int CHFGrunt::LookupActivity(int activity)
 	case ACT_RUN:
 		if ( pev->health <= FGRUNT_LIMP_HEALTH )
 		{
-			// limp!
-			return CTalkMonster::LookupActivity ( ACT_RUN_HURT );
+			int seq = CTalkMonster::LookupActivity ( ACT_RUN_HURT );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
-		else
-		{
-			return CTalkMonster::LookupActivity ( activity );
-		}
+		return CTalkMonster::LookupActivity ( activity );
 	case ACT_WALK:
 		if ( pev->health <= FGRUNT_LIMP_HEALTH )
 		{
-			// limp!
-			return CTalkMonster::LookupActivity ( ACT_WALK_HURT );
+			int seq = CTalkMonster::LookupActivity ( ACT_WALK_HURT );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
-		else
-		{
-			return CTalkMonster::LookupActivity ( activity );
-		}
+		return CTalkMonster::LookupActivity ( activity );
 	case ACT_IDLE:
 		if ( m_MonsterState == MONSTERSTATE_COMBAT )
 		{
