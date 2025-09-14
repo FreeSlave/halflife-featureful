@@ -347,8 +347,7 @@ public:
 	void Eat( float flFullDuration );// make the monster 'full' for a while.
 
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
-	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params);
-	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params, float height );
+	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
 	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);
 	bool FacingIdeal( void );
 

@@ -93,7 +93,6 @@ struct skilldata_t gSkillData;
 void UTIL_SetSize( entvars_t *pev, const Vector &vecMin, const Vector &vecMax ){ }
 CBaseEntity *UTIL_FindEntityInSphere( CBaseEntity *pStartEntity, const Vector &vecCenter, float flRadius ){ return 0;}
 
-CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params ) { return NULL; }
 void CBaseMonster::BarnacleVictimBitten( entvars_t *pevBarnacle ) { }
 void CBaseMonster::BarnacleVictimReleased( void ) { }
 bool CBaseMonster::FValidateHintType( short sHint ) { return false; }

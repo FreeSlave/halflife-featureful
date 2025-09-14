@@ -1157,7 +1157,6 @@ bool CBaseMonster::WantsToGetCloseToEnemy()
 //=========================================================
 bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 {
-	float	flDistToEnemy;
 	bool iUpdatedLKP;// set this to true if you update the EnemyLKP in this function.
 
 	iUpdatedLKP = false;
@@ -1216,23 +1215,25 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 		return false;
 	}
 
-	Vector vecEnemyPos = pEnemy->pev->origin;
+	const float myFeetLevel = pev->origin.z + pev->mins.z;
+	const float myHeight = pev->maxs.z - pev->mins.z;
+	const float enemyFeetLevel = pEnemy->pev->origin.z + pEnemy->pev->mins.z;
+	const float enemyHeight = pEnemy->pev->maxs.z - pEnemy->pev->mins.z;
 
-	// distance to enemy's origin
-	flDistToEnemy = ( vecEnemyPos - pev->origin ).Length();
-	vecEnemyPos.z += pEnemy->pev->size.z * 0.5f;
+	float flDistToEnemy = 1000000.0f;
 
-	// distance to enemy's head
-	float flDistToEnemy2 = ( vecEnemyPos - pev->origin ).Length();
-	if( flDistToEnemy2 < flDistToEnemy )
-		flDistToEnemy = flDistToEnemy2;
-	else
+	Vector myPos = pev->origin;
+	myPos.z = myFeetLevel;
+	myPos.z += myHeight * 0.5f;
+
+	for (int j=0; j<4; ++j)
 	{
-		// distance to enemy's feet
-		vecEnemyPos.z -= pEnemy->pev->size.z;
-		flDistToEnemy2 = ( vecEnemyPos - pev->origin ).Length();
-		if( flDistToEnemy2 < flDistToEnemy )
-			flDistToEnemy = flDistToEnemy2;
+		Vector enemyPos = pEnemy->pev->origin;
+		enemyPos.z = enemyFeetLevel;
+		enemyPos.z += enemyHeight * 0.25f * j;
+
+		const float flDistToEnemy2 = (enemyPos - myPos).Length();
+		flDistToEnemy = Q_min(flDistToEnemy, flDistToEnemy2);
 	}
 
 	float maxSideSize;
