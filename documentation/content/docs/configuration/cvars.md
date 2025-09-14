@@ -95,8 +95,13 @@ Changes to the server cvars values are not saved between game launches, unlike f
 * `npc_tridepth_all`. If set to 0, only player's followers and monsters in scripts will use the value specified by `npc_tridepth` as the triangulation depth, and other monsters will use the value 1. If set to 1, all monsters will use the value specified by `npc_tridepth`. Note that this may affect the performance.
 * `npc_forget_enemy_time`. If monster didn't observe its enemy for this amount of time (in seconds), the monster forgets about their enemy. Setting 0 means that monsters never forget their enemies (the standard behavior in Half-Life).
 * `npc_active_after_combat`. If set to 1, monsters will wander around a bit after the combat ends.
-* `npc_get_to_enemy_nearest`. If set to 1, melee-oriented monsters will try to get closer to the enemy even if they can't build the proper route to the enemy. This is especially helpful to fix the exploit that allows player to "hide" from enemy path finding by standing on small elevations (e.g. tables).
-* `npc_trace_hull_attack_retry`. If set to 1, monsters performing the hull trace for melee attacks will retry the failed trace starting from a different point a bit higher than before. This helps to deal damage to the enemy standing on small elevations compared to the attacker.
+* `npc_get_to_enemy_nearest`. If set to 1, melee-oriented monsters will try to get closer to the enemy even if they can't build the proper route to the enemy. This is especially helpful to fix the exploit that allows player to "hide" from enemy path finding by standing on small elevations (e.g. tables) or on lower ground. It's better to use with `npc_trace_hull_attack_retry` enabled.
+* `npc_trace_hull_attack_retry`. If set to 1, monsters performing the hull trace for melee attacks will retry the failed trace starting from a different point a bit higher and a bit lower than before. This helps to deal damage to the enemy standing on small elevations compared to the attacker.
+* `npc_vanilla_kick_behavior`. In original Half-Life some monsters (e.g. human grunts) could apply the velocity to any entity when they kick it (if the entity's physics allow it), either accidentally or via scripted sequence. Generally this is not desirable behavior so it got reworked in Featureful, but it's still configurable via cvar.
+    - -1 - don't allow kicking anything besides monsters, players and pushables.
+    - 0 - allow kicking func_door_rotating in scripted sequences.
+    - 1 - allow kicking anything (vanilla behavior).
+    - 2 - allow kicking anything but only in scripted sequences.
 * `sp_allowmonsterinfo` - show monsters' display names and current health in singleplayer when player looks at the monster.
     - 0 - don't show monster info.
     - 1 - show info for all monsters.
