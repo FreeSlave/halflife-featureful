@@ -50,6 +50,11 @@ struct TraceHullAttackParams
 	const char* missSoundScript = nullptr;
 };
 
+struct TouchAttackParams
+{
+	DamageInfo damageInfo{0.0f, DMG_SLASH};
+};
+
 //
 // generic Monster
 //
@@ -346,6 +351,8 @@ public:
 	bool FShouldEat( void );// see if a monster is 'hungry'
 	void Eat( float flFullDuration );// make the monster 'full' for a while.
 
+	void SetTouchAttackFromTemplate(TouchAttackParams& params);
+	void PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther);
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
 	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
 	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);

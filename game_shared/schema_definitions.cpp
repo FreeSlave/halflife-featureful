@@ -795,6 +795,15 @@ const char* const json_schemas::definitions = R"(
 				},
 				"additionalProperties": false
 			},
+			"touch_attack": {
+				"type": "object",
+				"properties": {
+					"damage_info": {
+						"$ref": "#/damage_info"
+					}
+				},
+				"additionalProperties": false
+			},
 			"take_damage": {
 				"type": "array",
 				"items": {

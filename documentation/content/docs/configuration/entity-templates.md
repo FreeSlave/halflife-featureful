@@ -651,6 +651,29 @@ In this example we also set the trace hull attack on event 3 to have acid and po
 You can create your own trace hull attacks without relying on the ones that are supported in the monster's code. Events with numbers in the `[20-999]` range should be safe to use for any monster. In this case the attack won't have any defined knock punch or damage, so you'll need to provide them. You'll also probably want to provide hit and miss soundscripts to play depending on the hit result. You can add unconditionally played sounds to the animation via events (see [model animation events]({{< ref "model-animation-events" >}})) and precache them via [precached_sounds](#precached_sounds) or [autoprecache_sounds](#autoprecache_sounds).
 {{% /hint %}}
 
+### touch_attack
+
+The object that redefines the parameters for the monster's touch attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}) and [shockroaches]({{< ref monster_shockroach >}}).
+
+{{% details title="Example" %}}
+
+```json
+{
+    "monster_headcrab": {
+        "touch_attack": {
+            "damage_info": {
+                "type": "poison"
+            }
+        }
+    }
+}
+```
+{{% /details %}}
+
+Properties:
+
+* `"damage_info"` - [damage info](#damage_info) type. This allows to change the damage type of the attack and other damage characteristics.
+
 ### take_damage
 
 The rules for how incoming damage is dealt to the entity, depending on the amount of damage, type of damage or even the type of entity who dealt the damage. This allows to make monsters immune, resistant or vulnerable to certain attack types (e.g. think of something like Gargantua being resistant to most types of damage).

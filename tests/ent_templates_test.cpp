@@ -147,6 +147,13 @@ const char entities[] = R"(
 				"chance": 0.2
 			}
 		]
+	},
+	"monster_headcrab": {
+		"touch_attack": {
+			"damage_info": {
+				"type": "poison"
+			}
+		}
 	}
 }
 )";
@@ -393,6 +400,14 @@ TEST(EntityTemplates, Parse)
 		EXPECT_EQ(dropItemSet.items[2].classname, "item_pickup");
 		EXPECT_EQ(dropItemSet.items[2].pickupName, "battery_red");
 		EXPECT_EQ(dropItemSet.items[2].chance, 0.2f);
+	}
+
+	{
+		const EntTemplate* headcrab = es.GetTemplate("monster_headcrab");
+		ASSERT_TRUE(headcrab != nullptr);
+		const EntTemplate::TouchAttack touchAttack = headcrab->GetTouchAttack();
+		EXPECT_TRUE(touchAttack.damageInfo.type.has_value());
+		EXPECT_EQ(*touchAttack.damageInfo.type, DMG_POISON);
 	}
 
 	{

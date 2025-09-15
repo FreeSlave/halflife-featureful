@@ -1234,6 +1234,14 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 	});
 
+	HandleJSONMember(value, "touch_attack", [&entTemplate, this](const Value& value) {
+		HandleJSONMember(value, "damage_info", [&entTemplate](const Value& value) {
+			auto touchAttack = entTemplate.GetTouchAttack();
+			EntTemplate::UpdateDamageInfoFromJSON(value, touchAttack.damageInfo);
+			entTemplate.SetTouchAttack(touchAttack);
+		});
+	});
+
 	HandleJSONMember(value, "take_damage", [&entTemplate](const Value& value) {
 		std::vector<EntTemplate::TakeDamageRule> takeDamageRules;
 		Value::ConstArray arr = value.GetArray();

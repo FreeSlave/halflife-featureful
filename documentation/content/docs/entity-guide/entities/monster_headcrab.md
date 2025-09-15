@@ -64,6 +64,33 @@ bookToC: false
 ```
 {{% /tab %}}
 
+{{% tab "Poisonous headcrab" %}}
+Mimick the HL2 headcrab by providing the custom model and adding the poison damage type to the headcrab's attack.
+```json
+{
+    "headcrab_black": {
+        "own_visual": {
+            "model": "models/headcrab_black.mdl"
+        },
+        "touch_attack": {
+            "damage_info": {
+                "type": "poison"
+            }
+        }
+    }
+}
+```
+
+{{% hint info %}}
+If you go with HL2 poisonous headcrab idea you would also want to redefine the soundscripts.
+{{% /hint %}}
+
+{{% hint warning %}}
+The toxin mechanic from HL2 is not implemented currently, so it won't work the same.
+{{% /hint %}}
+
+{{% /tab %}}
+
 {{% tab "Take Damage rules" %}}
 The [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
 

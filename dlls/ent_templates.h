@@ -205,6 +205,11 @@ public:
 		std::string missSoundScript;
 	};
 
+	struct TouchAttack
+	{
+		DamageInfo damageInfo;
+	};
+
 	struct TraceAttackRule
 	{
 		struct Conditions : public DamageConditions
@@ -431,6 +436,13 @@ public:
 		_traceHullAttacks[eventIndex] = attack;
 	}
 
+	TouchAttack GetTouchAttack() const {
+		return _touchAttack;
+	}
+	void SetTouchAttack(const TouchAttack& touchAttack) {
+		_touchAttack = touchAttack;
+	}
+
 	std::pair<std::vector<TraceAttackRule>::const_iterator, std::vector<TraceAttackRule>::const_iterator> TraceAttackRulesRange() const;
 	void SetTraceAttackRules(std::vector<TraceAttackRule>&& traceAttackRules);
 	bool HasCustomTraceAttackRules() const {
@@ -488,6 +500,7 @@ private:
 	CheckMeleeAttack _checkMeleeAttack1;
 	CheckMeleeAttack _checkMeleeAttack2;
 	std::map<int, TraceHullAttack> _traceHullAttacks;
+	TouchAttack _touchAttack;
 
 	std::vector<TraceAttackRule> _traceAttackRules;
 	bool _traceAttackRulesDefined = false;

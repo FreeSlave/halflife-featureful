@@ -98,7 +98,7 @@ public:
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
-	virtual float GetDamageAmount( void ) { return gSkillData.headcrabDmgBite; }
+	virtual float GetDamageAmount() { return gSkillData.headcrabDmgBite; }
 
 	Schedule_t* GetScheduleOfType ( int Type );
 
@@ -403,7 +403,11 @@ void CHeadCrab::LeapTouch( CBaseEntity *pOther )
 	if( !FBitSet( pev->flags, FL_ONGROUND ) )
 	{
 		BiteSound();
-		pOther->TakeDamage( pev, pev, DamageInfo(GetDamageAmount(), DMG_SLASH) );
+
+		TouchAttackParams params;
+		params.damageInfo = DamageInfo(GetDamageAmount(), DMG_SLASH);
+		SetTouchAttackFromTemplate(params);
+		PerformTouchAttack(params, pOther);
 	}
 
 	SetTouch( NULL );
@@ -556,7 +560,7 @@ public:
 	void Precache( void );
 	const char* DefaultDisplayName() { return "Baby Headcrab"; }
 	void SetYawSpeed( void );
-	float GetDamageAmount( void ) { return gSkillData.headcrabDmgBite * 0.3f; }
+	float GetDamageAmount() override { return gSkillData.headcrabDmgBite * 0.3f; }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	Schedule_t *GetScheduleOfType ( int Type );
 
@@ -677,7 +681,7 @@ public:
 	void Precache(void);
 	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shockroach"); }
 	const char* DefaultDisplayName() { return "Shock Roach"; }
-	virtual float GetDamageAmount( void ) { return gSkillData.sroachDmgBite; }
+	float GetDamageAmount() override { return gSkillData.sroachDmgBite; }
 	void EXPORT LeapTouch(CBaseEntity *pOther);
 	bool TryGiveAsWeapon(CBaseEntity* pOther);
 	void EXPORT RoachUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -860,7 +864,11 @@ void CShockRoach::LeapTouch(CBaseEntity *pOther)
 		if (!FBitSet(pev->flags, FL_ONGROUND))
 		{
 			EmitSoundScript(biteSoundScript);
-			pOther->TakeDamage(pev, pev, DamageInfo(GetDamageAmount(), DMG_SLASH));
+
+			TouchAttackParams params;
+			params.damageInfo = DamageInfo(GetDamageAmount(), DMG_SLASH);
+			SetTouchAttackFromTemplate(params);
+			PerformTouchAttack(params, pOther);
 		}
 	}
 

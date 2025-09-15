@@ -1440,6 +1440,21 @@ void CBaseMonster::RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars
 	::RadiusDamage( vecSrc, pevInflictor, pevAttacker, damageInfo, damageInfo.damage * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, iClassIgnore );
 }
 
+void CBaseMonster::SetTouchAttackFromTemplate(TouchAttackParams& params)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::TouchAttack attack = entTemplate->GetTouchAttack();
+		UpdateDamageInfoFromTemplate(params.damageInfo, attack.damageInfo);
+	}
+}
+
+void CBaseMonster::PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther)
+{
+	pOther->TakeDamage(pev, pev, params.damageInfo);
+}
+
 //=========================================================
 // CheckTraceHullAttack - expects a length to trace, amount 
 // of damage to do, and damage type. Returns a pointer to
