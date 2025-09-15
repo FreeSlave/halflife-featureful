@@ -28,9 +28,21 @@
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
-#define		SF_BRUSH_ACCDCC	16// brush should accelerate and decelerate when toggled
-#define		SF_BRUSH_HURT		32// rotating brush that inflicts pain based on rotation speed
-#define		SF_ROTATING_NOT_SOLID	64	// some special rotating objects are not solid.
+#define SF_BRUSH_ROTATE_Y_AXIS		0
+#define SF_BRUSH_ROTATE_INSTANT		1
+#define SF_BRUSH_ROTATE_BACKWARDS	2
+#define SF_BRUSH_ROTATE_Z_AXIS		4
+#define SF_BRUSH_ROTATE_X_AXIS		8
+#define SF_BRUSH_ACCDCC	16// brush should accelerate and decelerate when toggled
+#define SF_BRUSH_HURT		32// rotating brush that inflicts pain based on rotation speed
+#define SF_ROTATING_NOT_SOLID	64	// some special rotating objects are not solid.
+
+#define SF_PENDULUM_AUTO_RETURN		16
+#define	SF_PENDULUM_PASSABLE		32
+
+#define SF_BRUSH_ROTATE_SMALLRADIUS	128
+#define SF_BRUSH_ROTATE_MEDIUMRADIUS 256
+#define SF_BRUSH_ROTATE_LARGERADIUS 512
 
 // covering cheesy noise1, noise2, & noise3 fields so they make more sense (for rotating fans)
 #define		noiseStart		noise1

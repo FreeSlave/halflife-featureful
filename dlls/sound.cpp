@@ -110,6 +110,18 @@ dynpitchvol_t rgdpvpreset[CDPVPRESETMAX] =
 {27,128,	 90,	10,		10,		10,		1,		20,		40,		1,		5,		10,		20,		0,		0,0,0,0,0,0,0,0,0,0}
 };
 
+#define AMBIENT_SOUND_STATIC			0	// medium radius attenuation
+#define AMBIENT_SOUND_EVERYWHERE		1
+#define AMBIENT_SOUND_SMALLRADIUS		2
+#define AMBIENT_SOUND_MEDIUMRADIUS		4
+#define AMBIENT_SOUND_LARGERADIUS		8
+#define AMBIENT_SOUND_START_SILENT		16
+#define AMBIENT_SOUND_NOT_LOOPING		32
+
+#define	LFO_SQUARE			1
+#define LFO_TRIANGLE		2
+#define LFO_RANDOM			3
+
 enum
 {
 	AMBIENT_SOUND_RADIUS_DEFAULT,
@@ -1875,6 +1887,8 @@ float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bo
 //
 // Speaker class. Used for announcements per level, for door lock/unlock spoken voice. 
 //
+#define SPEAKER_START_SILENT			1	// wait for trigger 'on' to start announcements
+
 class CSpeaker : public CBaseEntity
 {
 public:

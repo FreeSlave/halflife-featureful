@@ -453,42 +453,12 @@ void DBG_AssertFunction(bool fExpr, const char* szExpr, const char* szFile, int 
 
 extern DLL_GLOBAL const Vector g_vecZero;
 
-#define AMBIENT_SOUND_STATIC			0	// medium radius attenuation
-#define AMBIENT_SOUND_EVERYWHERE		1
-#define AMBIENT_SOUND_SMALLRADIUS		2
-#define AMBIENT_SOUND_MEDIUMRADIUS		4
-#define AMBIENT_SOUND_LARGERADIUS		8
-#define AMBIENT_SOUND_START_SILENT		16
-#define AMBIENT_SOUND_NOT_LOOPING		32
-
-#define SPEAKER_START_SILENT			1	// wait for trigger 'on' to start announcements
-
 #define SND_SPAWNING		(1<<8)		// duplicated in protocol.h we're spawing, used in some cases for ambients 
 #define SND_STOP			(1<<5)		// duplicated in protocol.h stop sound
 #define SND_CHANGE_VOL		(1<<6)		// duplicated in protocol.h change sound vol
 #define SND_CHANGE_PITCH	(1<<7)		// duplicated in protocol.h change sound pitch
 
 #define SND_DONT_REPORT_MISSING (1 << 16) // game library level flag, not part of a protocol
-
-#define	LFO_SQUARE			1
-#define LFO_TRIANGLE		2
-#define LFO_RANDOM			3
-
-// func_rotating
-#define SF_BRUSH_ROTATE_Y_AXIS		0
-#define SF_BRUSH_ROTATE_INSTANT		1
-#define SF_BRUSH_ROTATE_BACKWARDS	2
-#define SF_BRUSH_ROTATE_Z_AXIS		4
-#define SF_BRUSH_ROTATE_X_AXIS		8
-#define SF_PENDULUM_AUTO_RETURN		16
-#define	SF_PENDULUM_PASSABLE		32
-
-#define SF_BRUSH_ROTATE_SMALLRADIUS	128
-#define SF_BRUSH_ROTATE_MEDIUMRADIUS 256
-#define SF_BRUSH_ROTATE_LARGERADIUS 512
-
-#define PUSH_BLOCK_ONLY_X	1
-#define PUSH_BLOCK_ONLY_Y	2
 
 #define VEC_VIEW			Vector( 0, 0, 28 )
 
@@ -504,17 +474,6 @@ extern DLL_GLOBAL const Vector g_vecZero;
 #define	SF_TRIGGER_NOCLIENTS		2// players not allowed to fire this trigger
 #define SF_TRIGGER_PUSHABLES		4// only pushables can fire this trigger
 #define SF_TRIGGER_EVERYTHING		8// can be triggered by anything else
-
-#define SF_LIGHT_START_OFF		1
-
-#define SPAWNFLAG_NOMESSAGE	1
-#define SPAWNFLAG_NOTOUCH	1
-#define SPAWNFLAG_DROIDONLY	4
-
-#define SPAWNFLAG_USEONLY	1		// can't be touched, must be used (buttons)
-
-#define TELE_PLAYER_ONLY	1
-#define TELE_SILENT			2
 
 // Sound Utilities
 
