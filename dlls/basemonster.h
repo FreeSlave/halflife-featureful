@@ -512,6 +512,7 @@ public:
 	short m_gibPolicy;
 	bool m_bForceConditionsGather;
 	float m_flNextPainTime;
+	float m_equalDislikeTime;
 	int m_lootRandomSeed;
 
 	const char* taskFailReason;

@@ -1276,6 +1276,19 @@ void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 
 		MakeIdealYaw( m_vecEnemyLKP );
 
+		CBaseEntity* pAttacker = CBaseEntity::OwnInstance(pevAttacker);
+		CBaseEntity* pEnemy = m_hEnemy;
+		if (pAttacker && pEnemy && pEnemy != pAttacker)
+		{
+			const int relToEnemy = IRelationship(m_hEnemy);
+			const int relToAttacker = IRelationship(pAttacker);
+			if (relToEnemy > relToAttacker)
+			{
+				// When hit by less prioritized enemy, dislike all enemies equally for some amount of time
+				m_equalDislikeTime = gpGlobals->time + 5.0f;
+			}
+		}
+
 		// add pain to the conditions
 		if( damageInfo.damage > 0.0f )
 		{

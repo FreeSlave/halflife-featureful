@@ -166,6 +166,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_gibPolicy, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_bForceConditionsGather, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_equalDislikeTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_lootRandomSeed, FIELD_INTEGER ),
 };
 
@@ -3041,7 +3042,17 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 		if( pNextEnt->IsFullyAlive() )
 		{
 			const int relationship = IRelationship( pNextEnt);
-			if( relationship > iBestRelationship )
+			if (relationship >= R_DL && m_equalDislikeTime > gpGlobals->time)
+			{
+				iBestRelationship = relationship;
+				const int iDistSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
+				if( iDistSqr <= iNearestSqr )
+				{
+					iNearestSqr = iDistSqr;
+					pReturn = pNextEnt;
+				}
+			}
+			else if( relationship > iBestRelationship )
 			{
 				// this entity is disliked MORE than the entity that we 
 				// currently think is the best visible enemy. No need to do 
