@@ -341,7 +341,7 @@ const char* const json_schemas::weapons = R"(
 			},
 			"ammo_per_fire": {
 				"type": "integer",
-				"minimum": 1
+				"minimum": 0
 			},
 			"allow_underwater": {
 				"type": "boolean"

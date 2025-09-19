@@ -953,44 +953,47 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
 	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
 
-	if (useSecondaryAmmo)
+	if (ammoPerFire > 0)
 	{
-		if (m_iSecondaryAmmoType > 0)
+		if (useSecondaryAmmo)
 		{
-			if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+			if (m_iSecondaryAmmoType > 0)
 			{
-				PlayEmptySound(altMode);
-				return;
+				if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+				{
+					PlayEmptySound(altMode);
+					return;
+				}
+				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
+				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
 			}
-			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
-			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
 		}
-	}
-	else
-	{
-		if (UsesAmmo())
+		else
 		{
-			if (!HasAmmoToFire(ammoPerFire))
+			if (UsesAmmo())
 			{
-				if (UsesClip() && params.reloadAutostart)
+				if (!HasAmmoToFire(ammoPerFire))
 				{
-					Reload();
-					if (!HasAmmoToFire(ammoPerFire))
-						PlayEmptySound(altMode);
-				}
-				else
-				{
-					if (m_fFireOnEmpty)
+					if (UsesClip() && params.reloadAutostart)
 					{
-						PlayEmptySound(altMode);
-						m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayAfterEmpty.Get(altMode));
+						Reload();
+						if (!HasAmmoToFire(ammoPerFire))
+							PlayEmptySound(altMode);
 					}
+					else
+					{
+						if (m_fFireOnEmpty)
+						{
+							PlayEmptySound(altMode);
+							m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayAfterEmpty.Get(altMode));
+						}
+					}
+					return;
 				}
-				return;
+				SpendAmmo(ammoPerFire);
+				UpdateRechargeTime(altMode);
+				OnSpendAmmo();
 			}
-			SpendAmmo(ammoPerFire);
-			UpdateRechargeTime(altMode);
-			OnSpendAmmo();
 		}
 	}
 
@@ -1217,12 +1220,15 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		m_flNextSecondaryAttack = Q_max(m_flNextPrimaryAttack, m_flNextSecondaryAttack);
 	}
 
-	if (useSecondaryAmmo)
-		CheckOutOfSecondaryAmmo();
-	else
+	if (ammoPerFire > 0)
 	{
-		if (!CanRechargeAmmo())
-			CheckOutOfAmmo();
+		if (useSecondaryAmmo)
+			CheckOutOfSecondaryAmmo();
+		else
+		{
+			if (!CanRechargeAmmo())
+				CheckOutOfAmmo();
+		}
 	}
 
 	const float pumpTime = fire.pumpDelay.Get(altMode);
