@@ -1822,7 +1822,7 @@ void CConfigurableWeapon::UpdateSpot( void )
 #if !CLIENT_DLL
 	if (m_bLaserActive)
 	{
-		if (m_pPlayer->pev->viewmodel == 0)
+		if (m_pPlayer->m_hTankControls != 0)
 			return;
 
 		const WeaponParameters& params = MyParameters();
