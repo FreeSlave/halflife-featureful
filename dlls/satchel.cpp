@@ -425,6 +425,8 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 	params.playerAnimExt = "trip";
 	params.priority = -10;
 
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
 	return params;
 }
 

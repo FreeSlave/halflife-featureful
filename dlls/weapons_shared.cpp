@@ -240,6 +240,13 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 #endif
 
+	const WeaponParameters& params = MyParameters();
+	const bool hasSecondaryFire = params.secondaryFireType != SecondaryFireType::DISABLED;
+	if (!hasSecondaryFire)
+	{
+		m_pPlayer->pev->button &= ~IN_ATTACK2;
+	}
+
 	if( ( m_pPlayer->pev->button & IN_ATTACK2 ) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
 		if( UsesSecondaryAmmo() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )

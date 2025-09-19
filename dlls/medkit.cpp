@@ -166,6 +166,8 @@ WeaponParameters CMedkit::GetDefaultParameters() const
 	};
 	params.fire.useStandardEmptySound.main = false;
 
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
 	params.holster.animIndex = MEDKIT_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
