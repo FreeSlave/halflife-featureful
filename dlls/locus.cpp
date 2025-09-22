@@ -1537,7 +1537,7 @@ bool CCalcEvalNumber::CalcEvalNumber(CBaseEntity* pActivator, float& result)
 
 	int operandCount = 2;
 
-	float thirdValue;
+	float thirdValue = 0.0f;
 	if (!FStringNull(m_third))
 	{
 		if (!TryCalcLocus_Ratio(pActivator, STRING(m_third), thirdValue))
