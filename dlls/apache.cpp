@@ -330,6 +330,7 @@ KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	{
 		m_flNextRocket = gpGlobals->time + 15.0f;
 	}
+	OnDying(false);
 	return KilledResult();
 }
 

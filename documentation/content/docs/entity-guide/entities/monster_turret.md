@@ -10,6 +10,7 @@ bookToC: false
 ### Changes
 
 * `Death` and `50% Health Remaining` trigger conditions now work for turrets.
+* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). If monstermaker doesn't set the children's name, the turret is automatically set to the autostart mode. If the children's name is set the spawned turret can be activated by a trigger using this name. Just like with others monsters, if the monstermaker spawns more than 1 monster the turrets that have been killed fade away. Use a custom `#orientation` keyvalue parameter to spawn a ceiling turret.
 
 ### Skill variables
 

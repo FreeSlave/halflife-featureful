@@ -474,6 +474,13 @@ void CBaseTurret::Initialize( void )
 
 	m_vecGoalAngles.x = 0;
 
+	// Come from monstermaker
+	if (FStringNull(pev->targetname) && pev->owner)
+	{
+		//ALERT(at_console, "%s: set autostart because came from monstermaker\n", STRING(pev->classname));
+		m_iAutoStart = true;
+	}
+
 	if( m_iAutoStart )
 	{
 		m_flLastSight = gpGlobals->time + m_flMaxWait;
@@ -1062,7 +1069,10 @@ void CBaseTurret::TurretDeath( void )
 	if( m_fSequenceFinished && !MoveTurret() && pev->dmgtime + 5 < gpGlobals->time )
 	{
 		pev->framerate = 0;
-		SetThink( NULL );
+		if (FBitSet(pev->spawnflags, SF_MONSTER_FADECORPSE))
+			SUB_StartFadeOut();
+		else
+			SetThink( NULL );
 	}
 }
 
@@ -1138,6 +1148,9 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		pev->nextthink = gpGlobals->time + 0.1f;
 
 		takeDamageResult.SetKilledResult(KilledResult());
+		if (ShouldFadeOnDeath())
+			pev->spawnflags |= SF_MONSTER_FADECORPSE;
+		OnDying(false);
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);
@@ -1365,6 +1378,9 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 		pev->nextthink = gpGlobals->time + 0.1f;
 
 		takeDamageResult.SetKilledResult(KilledResult());
+		if (ShouldFadeOnDeath())
+			pev->spawnflags |= SF_MONSTER_FADECORPSE;
+		OnDying(false);
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);
@@ -1436,7 +1452,10 @@ void CSentry::SentryDeath( void )
 	if( m_fSequenceFinished && pev->dmgtime + 5 < gpGlobals->time )
 	{
 		pev->framerate = 0;
-		SetThink( NULL );
+		if (FBitSet(pev->spawnflags, SF_MONSTER_FADECORPSE))
+			SUB_StartFadeOut();
+		else
+			SetThink( NULL );
 	}
 }
 

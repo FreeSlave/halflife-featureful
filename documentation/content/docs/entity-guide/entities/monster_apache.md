@@ -7,6 +7,11 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_apache)
 
+### Changes
+
+* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned apache has the path to follow.
+* `Death` and `50% Health Remaining` trigger conditions now work for apache.
+
 ### New parameters
 
 * `Rotor volume` - configure rotor volume.
