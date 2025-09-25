@@ -50,21 +50,22 @@ typedef enum
 class CBaseTurret : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	virtual void Precache( void );
-	void UpdateOnRemove();
-	void KeyValue( KeyValueData *pkvd );
+	void Spawn() override;
+	void SetOrientation();
+	void Precache() override;
+	void UpdateOnRemove() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 	void EXPORT TurretUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	virtual int Classify( void );
-	virtual int DefaultClassify();
+	int Classify() override;
+	int DefaultClassify() override;
 	int RealClassify();
 
-	int BloodColor( void ) { return DONT_BLEED; }
-	void GibMonster( void ) {}	// UNDONE: Throw turret gibs?
+	int BloodColor() override { return DONT_BLEED; }
+	void GibMonster() override {}	// UNDONE: Throw turret gibs?
 
 	// Think functions
 	void EXPORT ActiveThink(void);
@@ -357,7 +358,23 @@ void CBaseTurret::Spawn()
 	SetBoneController( 0, 0 );
 	SetBoneController( 1, 0 );
 	SetMyFieldOfView(VIEW_FIELD_FULL);
+
+	SetOrientation();
 	// m_flSightRange = TURRET_RANGE;
+}
+
+void CBaseTurret::SetOrientation()
+{
+	if( m_iOrientation == 1 )
+	{
+		pev->idealpitch = 180;
+		pev->angles.x = 180;
+		pev->view_ofs.z = -pev->view_ofs.z;
+		pev->effects |= EF_INVLIGHT;
+		pev->angles.y = pev->angles.y + 180;
+		if( pev->angles.y > 360 )
+			pev->angles.y = pev->angles.y - 360;
+	}
 }
 
 void CBaseTurret::Precache()
@@ -461,16 +478,6 @@ void CBaseTurret::Initialize( void )
 	if( m_flMaxWait == 0 )
 		m_flMaxWait = TURRET_MAXWAIT;
 	m_flStartYaw = pev->angles.y;
-	if( m_iOrientation == 1 )
-	{
-		pev->idealpitch = 180;
-		pev->angles.x = 180;
-		pev->view_ofs.z = -pev->view_ofs.z;
-		pev->effects |= EF_INVLIGHT;
-		pev->angles.y = pev->angles.y + 180;
-		if( pev->angles.y > 360 )
-			pev->angles.y = pev->angles.y - 360;
-	}
 
 	m_vecGoalAngles.x = 0;
 
