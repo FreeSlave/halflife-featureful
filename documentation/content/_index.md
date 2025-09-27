@@ -58,29 +58,4 @@ Read [compatibility]({{< ref "compatibility" >}}) for more detailed overwiew.
 
 ## FAQ
 
-**Q:** Why is it called Featureful?  
-**A:** In the context of this SDK features are adjustable gameplay aspects. Most of the features are configured via text files and don't require rebuilding of the game libraries. In that sense "customizable" or "featureable" would fit more, but "featureful" just sounds better.
-
-**Q:** You call it featureFUL, but the *SDK X* provides more features to me!  
-**A:** There're different Half-Life SDKs available, and each of them has their own focus. **Featureful** may lack some of the features that exist in other projects, but it also introduces a bunch of its own additions and improvements. More features will be incorporated in future.
-
-**Q:** I want to report an issue/request a feature.  
-**A:** You can do it either on github [Issues](https://github.com/FreeSlave/halflife-featureful/issues) or in the Hazard Team's [Discord server](https://discord.gg/A7ZErQAjfa)
-
-**Q:** Is there a roadmap for future updates of this SDK?  
-**A:** There's no strict roadmap, but you can look at the [TODO]({{< ref TODO >}}) list.
-
-**Q:** Is it well-tested?  
-**A:** The mods [Field Intensity](https://www.moddb.com/mods/field-intensity) and [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) are based on the same code. There're also several mods in development using this SDK. So one can say it's pretty well tested and continuously being tested in the new projects.
-
-**Q:** Can I play the original Half-Life campaign using Featureful SDK?  
-**A:** Very likely yes. It's been a long time since I tested it though, so you're welcome to try and report any discovered issues.
-
-**Q:** Can Featureful SDK be used to create a multiplayer mod?  
-**A:** In theory yes. We didn't break anything multiplayer-related and the multiplayer environment is usually taken into account when making changes and designing new entities. Some of the changes were even introduced purely for multiplayer. But the main focus of this SDK is being a base for singleplayer mods.
-
-**Q:** Why this SDK is built without VGUI by default?  
-**A:** It's to increase the portability of produced binaries among custom Xash3D versions that don't include support for VGUI. Most singleplayer mods don't use VGUI anyway, but it still can be enabled in the build configuration.
-
-**Q:** What are `[LP]`, `[LE]`, etc. in entity parameter names?  
-**A:** See [Locus system]({{< ref locus-system >}}).
+See [FAQ]({{< ref faq >}}).
