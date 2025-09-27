@@ -144,7 +144,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_settingsLoaded, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_buddha, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_suppressedCapabilities, FIELD_INTEGER),
-	DEFINE_FIELD(CBasePlayer, m_maxSpeedFraction, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_maxSpeedOverride, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_maxSpeedOverrideIsAbsolute, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_movementPrevented, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_movementPreventedTime, FIELD_TIME),
 	DEFINE_FIELD(CBasePlayer, m_armorStrength, FIELD_FLOAT),
@@ -2597,7 +2598,10 @@ void CBasePlayer::PreThink( void )
 	m_afButtonReleased = buttonsChanged & ( ~pev->button );	// The ones not down are "released"
 
 	g_pGameRules->PlayerThink( this );
-	pev->maxspeed = m_maxSpeedFraction * g_psv_maxspeed->value;
+	if (m_maxSpeedOverrideIsAbsolute)
+		pev->maxspeed = m_maxSpeedOverride;
+	else
+		pev->maxspeed = m_maxSpeedOverride * g_psv_maxspeed->value;
 	if (m_movementPrevented)
 	{
 		if (m_movementPreventedTime >= gpGlobals->time)
@@ -6948,6 +6952,7 @@ enum
 	PLAYER_CALC_PARAM_AMMO,
 	PLAYER_CALC_PARAM_AMMO_INCLUDE_CLIP,
 	PLAYER_CALC_INVENTORY_ITEM,
+	PLAYER_CALC_MAXSPEED,
 };
 
 enum
@@ -7094,6 +7099,21 @@ private:
 				}
 				else
 					return pPlayer->m_inventoryItemCounts[index];
+			}
+		}
+		case PLAYER_CALC_MAXSPEED:
+		{
+			const float defaultMaxSpeed = g_psv_maxspeed->value;
+			float currentMaxSpeed = pPlayer->m_maxSpeedOverrideIsAbsolute ? pPlayer->m_maxSpeedOverride : pPlayer->m_maxSpeedOverride * g_psv_maxspeed->value;
+			if (currentMaxSpeed == 0.0f)
+				currentMaxSpeed = defaultMaxSpeed;
+			if (isFraction)
+			{
+				return currentMaxSpeed / defaultMaxSpeed;
+			}
+			else
+			{
+				return currentMaxSpeed;
 			}
 		}
 		default:
@@ -7594,26 +7614,32 @@ TYPEDESCRIPTION	CPlayerCapabilities::m_SaveData[] =
 	DEFINE_FIELD( CPlayerCapabilities, m_stepSoundCapability, FIELD_SHORT ),
 };
 
-IMPLEMENT_SAVERESTORE( CPlayerCapabilities, CPointEntity )
+IMPLEMENT_SAVERESTORE( CPlayerCapabilities, CPointEntity );
 
 class CPlayerSpeed : public CPointEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (!pPlayer)
 			return;
 
-		pPlayer->m_maxSpeedFraction = pev->health;
+		pPlayer->m_maxSpeedOverride = pev->health;
+		pPlayer->m_maxSpeedOverrideIsAbsolute = pev->impulse != 0;
 	}
 
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
-		if( FStrEq( pkvd->szKeyName, "maxspeed" ) )
+		if (FStrEq(pkvd->szKeyName, "maxspeed"))
 		{
 			// pev->maxspeed is not saved by default. Use some other float variable
-			pev->health = atof( pkvd->szValue );
+			pev->health = atof(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "value_notion"))
+		{
+			pev->impulse = atoi(pkvd->szValue);
 			pkvd->fHandled = true;
 		}
 		else

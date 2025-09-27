@@ -536,7 +536,8 @@ public:
 	short m_iPreferNewGrenadePhysics;
 
 	int m_suppressedCapabilities;
-	float m_maxSpeedFraction;
+	float m_maxSpeedOverride;
+	bool m_maxSpeedOverrideIsAbsolute;
 
 	bool m_movementPrevented;
 	float m_movementPreventedTime;

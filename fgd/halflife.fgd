@@ -7845,6 +7845,7 @@
 		2 : "Ammo"
 		3 : "Ammo, with clip"
 		4 : "Inventory item count"
+		5 : "Maximum speed"
 	]
 	value_notion(choices) : "Calc value notion" : 0 =
 	[
@@ -8009,7 +8010,12 @@
 
 @PointClass base(Targetname) = player_speed : "Configure player's speed"
 [
-	maxspeed(string) : "Maxspeed multiplier [0=reset]" : 0
+	maxspeed(string) : "Maxspeed value [0=reset]" : 0
+	value_notion(choices) : "Value mode" : 0 =
+	[
+		0 : "Fraction of default"
+		1 : "Set absolute"
+	]
 ]
 
 @PointClass base(Targetname) = player_stash : "Stash player weapons and optionally other items, and return them when it's triggered again"
