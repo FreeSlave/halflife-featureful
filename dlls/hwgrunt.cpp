@@ -741,14 +741,18 @@ void CHWGrunt::DropMyItems(bool isGibbed)
 
 		FixupDropItemPosition(vecGunPos);
 
-		if (!isGibbed) {
-			SetBodygroup(GUN_GROUP, GUN_NONE);
-		}
-
 		CBaseEntity* pGun = DropItem("weapon_minigun", vecGunPos, vecGunAngles);
-		if (pGun && isGibbed) {
-			pGun->pev->velocity = Vector( RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( 200, 300 ) );
-			pGun->pev->avelocity = Vector( 0, RANDOM_FLOAT( 200, 400 ), 0 );
+		if (pGun)
+		{
+			if (isGibbed)
+			{
+				pGun->pev->velocity = Vector( RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( 200, 300 ) );
+				pGun->pev->avelocity = Vector( 0, RANDOM_FLOAT( 200, 400 ), 0 );
+			}
+			else
+			{
+				SetBodygroup(GUN_GROUP, GUN_NONE);
+			}
 		}
 	}
 }
