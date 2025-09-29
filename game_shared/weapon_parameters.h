@@ -301,6 +301,7 @@ struct WeaponSoundScript
 	FloatRange volume{VOL_NORM};
 	float attenuation{ATTN_NORM};
 	IntRange pitch{PITCH_NORM};
+	bool looped{false};
 
 	const char* Wave() const;
 	const char* Wave(int index) const;
@@ -457,6 +458,15 @@ private:
 	WeaponModeValue<RuleList> _rules;
 };
 
+struct PlayerSpeed
+{
+	float value{0.0f};
+	bool isFactor{false};
+	bool IsDefined() const {
+		return value > 0.0f;
+	}
+};
+
 struct WeaponParameters
 {
 	struct IdleAnim
@@ -523,11 +533,15 @@ struct WeaponParameters
 		WeaponModeValue<FireAnimArray> hitAnims;
 		WeaponModeValue<FireAnimArray> chargeAnims;
 		WeaponModeValueNonNegative<float> chargeTime{0.0f};
+		WeaponModeValue<FireAnimArray> cooldownAnims;
+		WeaponModeValueNonNegative<float> cooldownTime{0.5f};
 		WeaponModeValue<WeaponSoundScript> sound{CHAN_WEAPON};
 		WeaponModeValue<WeaponSoundScript> soundAdditional{CHAN_ITEM};
 		WeaponModeValue<WeaponSoundScript> hitBodySound{CHAN_ITEM};
 		WeaponModeValue<WeaponSoundScript> hitWallSound{CHAN_ITEM};
 		WeaponModeValue<WeaponSoundScript> emptySound{CHAN_WEAPON};
+		WeaponModeValue<WeaponSoundScript> chargeSound{CHAN_WEAPON};
+		WeaponModeValue<WeaponSoundScript> cooldownSound{CHAN_WEAPON};
 		WeaponModeValue<bool> useStandardEmptySound{true};
 
 		WeaponSpread spread{};
@@ -587,6 +601,7 @@ struct WeaponParameters
 		WeaponModeValue<bool> spitSpray;
 
 		WeaponModeValue<bool> preventMovement{false};
+		WeaponModeValue<PlayerSpeed> playerMaxSpeed;
 	};
 
 	struct Fade
@@ -640,6 +655,7 @@ struct WeaponParameters
 	bool manualReloadContinueOnDeploy = true;
 	bool manualReloadRestartOnDeploy = false;
 	bool startInAltMode = false;
+	bool primaryFirePrioritized = false;
 
 	Deploy deploy;
 
@@ -675,6 +691,8 @@ struct WeaponParameters
 	fixed_string<32> toolIcon;
 	float toolTriggerDelay{0.0f};
 	int toolIndex{-1};
+
+	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
 };
 
 #endif

@@ -312,6 +312,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("displacer", WEAPON_DISPLACER),
 		WeaponNameAndId("sporelauncher", WEAPON_SPORELAUNCHER),
 		WeaponNameAndId("shockrifle", WEAPON_SHOCKRIFLE),
+		WeaponNameAndId("minigun", WEAPON_MINIGUN),
 		WeaponNameAndId("penguin", WEAPON_PENGUIN),
 		WeaponNameAndId("uzi", WEAPON_UZI),
 		WeaponNameAndId("pistol", WEAPON_PISTOL),

@@ -5,6 +5,8 @@ bookToC: false
 
 # ![](/images/svencoop.png) monster_hwgrunt
 
+Heavy Weapon grunt drops [weapon_minigun]({{< ref weapon_minigun >}}) on death (if the weapon is enabled).
+
 ### Skill variables
 
 * **sk_hwgrunt_health** - monster's health.

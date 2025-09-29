@@ -484,6 +484,30 @@ Example of a weapon using the burst fire: Counter Strike FAMAS in the burst mode
 
 The interval between shots in burst fire. Ideally the [cycle_time](#cycle_time) must be higher than this multiplied by the [burst](#burst) value.
 
+### charge_anims
+
+The array of animation indices. The random animation is picked when weapon is charging its fire. Used by [weapon_minigun]({{< ref weapon_minigun >}}), [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}). This requires [charge_time](#charge_time) to be set.
+
+### charge_sound
+
+[Weapon soundscript](#weapon-soundscript) to play on charging the attack. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
+
+### charge_time
+
+The time in seconds after the weapon starts firing after initial charge. Used by [weapon_minigun]({{< ref weapon_minigun >}}). This is also the minimum time before melee weapons do their swing attack (e.g. [weapon_pipewrench]({{< ref weapon_pipewrench >}})).
+
+### cooldown_anims
+
+The array of animation indices. The random animation is picked when weapon after the weapon has fired. Used by [weapon_minigun]({{< ref weapon_minigun >}}) for spindown animation.
+
+### cooldown_sound
+
+[Weapon soundscript](#weapon-soundscript) to play after firing. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
+
+### cooldown_time
+
+Delay in seconds before weapon can switch to the idle animation after firing. Usually it's a length of the cooldown animation. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
+
 ### client_punch_pitch
 
 The vertical punch angle applied on each shot fired. This can be [range]({{< ref "JSON/#range" >}}) for randomized punch, e.g. `[-2, 2]`. Use negative numbers to punch upwards. Set to 0 to disable.
@@ -678,6 +702,33 @@ Hide the laser spot (if there's any) for the specified amount of time (in second
 
 Whether the entity light should be played on the weapon view model for a very short period of time when firing.
 
+### player_maxspeed {#fire-player_maxspeed}
+
+Set the player's maximum speed for the duration of the attack (currently it's the same as [cycle_time](#cycle_time)). This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the default player's maxspeed (less than 1).
+
+```json
+{
+    "weapon_shotgun": {
+        "fire": {
+            "player_maxspeed": "*0.8"
+        },
+        "alt_fire": {
+            "player_maxspeed": 200
+        }
+    }
+}
+```
+
+See also: [player's maximum speed]({{< ref "player#maximum-speed" >}}).
+
+{{% hint info %}}
+Use upper level [player_maxspeed](#player_maxspeed) parameter to change the player's maximum speed depending on the active equipped weapon. If both upper level `player_maxspeed` and fire-level `player_maxspeed` are defined, the latter is prioritized during the fire (so you can make a weapon that generally slows down the player when equipped but allows to move at higher speed when firing).
+{{% /hint %}}
+
+{{% hint info %}}
+In order to disable player's movement for the attack duration it's better to use [prevent_movement](#prevent_movement).
+{{% /hint %}}
+
 ### prevent_movement
 
 A boolean defining whether player can't move during firing. This is used by [weapon_camera]({{< ref weapon_camera >}}) and [weapon_radio]({{< ref weapon_radio >}}).
@@ -792,11 +843,13 @@ Example:
 {
     "weapon_9mmhandgun": {
         "fire": {
-            "shell_left_side": true,
-            "shell_velocity": {
-                "side": [50, 70],
-                "up": [75, 175],
-                "forward": [25, 100]
+            "shell": {
+                "left_side": true,
+                "velocity": {
+                    "side": [50, 70],
+                    "up": [75, 175],
+                    "forward": [25, 100]
+                }
             }
         }
     }
@@ -1133,6 +1186,39 @@ Example:
 
 Whether the weapon view model must be mirrored. This is required for left-handed weapon models from Counter Strike to make them render on the right.
 
+## player_maxspeed
+
+Set the player's maximum speed when the weapon is deployed. This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the default player's maxspeed (less than 1). This allows to make it feel like moving with a certain weapon equipped is heavier than with others (similar to Counter Strike).
+
+```json
+{
+    "weapon_rpg": {
+        "player_maxspeed": "*0.6"
+    },
+    "weapon_gauss": {
+        "player_maxspeed": 300
+    }
+}
+```
+
+See also: [player's maximum speed]({{< ref "player#maximum-speed" >}}).
+
+## player_maxspeed_alt
+
+Same as [player_maxspeed](#player_maxspeed) but when the weapon is in alternative mode. For example, this can be used to make player slower while using a sniper scope.
+
+```json
+{
+    "weapon_crossbow": {
+        "player_maxspeed_alt": "*0.5"
+    }
+}
+```
+
+## prioritize_primary_attack
+
+Whether the primary attack button is prioritized when both primary and secondary fire are pressed. This is used in [weapon_minigun]({{< ref weapon_minigun >}}) to prioritize the firing over spinning.
+
 ## recharge
 
 An object defining weapon ammo recharge options (like in [weapon_hornetgun]({{< ref weapon_hornetgun >}}) or [weapon_shockrifle]({{< ref weapon_shockrifle >}})).
@@ -1187,11 +1273,11 @@ For [manual_reload](#manual_reload) weapons it becomes a delay between ammo tran
 
 ### wait_for_recoil
 
-Don't allow reloading until the weapon's [cycle_time](#cycle_time) has passed after the last fire. This is used by shotguns to ensure that reloading doesn't interrupt 'pump action' part of the fire animation.
+A boolean. Don't allow reloading until the weapon's [cycle_time](#cycle_time) has passed after the last fire. This is used by shotguns to ensure that reloading doesn't interrupt 'pump action' part of the fire animation.
 
 ### laser_suspend_time
 
-Hide the laser spot (if any) for this amount of time (in seconds).
+A boolean. Hide the laser spot (if any) for this amount of time (in seconds).
 
 ## reload_empty
 
@@ -1430,6 +1516,7 @@ Similar to [Soundscripts]({{< ref soundscripts >}}) the weapon soundscripts allo
 * The channel used by weapon soundscript is usually `"weapon"` or `"item"`. The others are allowed too, but not recommended.
 * Unlike regular soundscripts, weapon soundscripts can define only up to 4 waves.
 * It's possible to define a weapon soundscript using the array of sound paths like `["weapons/pl_gun1.wav", "weapons/pl_gun2.wav"]` instead of providing the object with `"waves"` parameter.
+* Weapon soundscripts have an additional `"looped"` parameter which is a boolean defining whether the sound is looped. Currently this properly works only with [sound](#sound) and [sound_additional](#sound_additional) of [fire](#fire) and [alt_fire](#alt_fire). This is used for [weapon_minigun]({{< ref weapon_minigun >}}) spin sound loop.
 
 # Player movement conditions
 

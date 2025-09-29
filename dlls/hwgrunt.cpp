@@ -8,8 +8,14 @@
 #include	"mod_features.h"
 #include	"game.h"
 #include	"combat.h"
+#include	"gamerules.h"
 
 #if FEATURE_HWGRUNT
+
+#define GUN_GROUP 1
+
+#define GUN_MINIGUN 0
+#define GUN_NONE 1
 
 #define HWGRUNT_AE_DROP_GUN 11
 
@@ -34,17 +40,17 @@ enum
 class CHWGrunt : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("hwgrunt"); }
-	void SetYawSpeed( void );
-	int DefaultClassify( void ) { return CLASS_HUMAN_MILITARY; }
-	const char* DefaultDisplayName() { return "Heavy Weapons Grunt"; }
-	const char* ReverseRelationshipModel() { return "models/hwgruntf.mdl"; }
-	int DefaultISoundMask( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void SetActivity( Activity NewActivity );
-	void CheckAmmo();
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("hwgrunt"); }
+	void SetYawSpeed() override;
+	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
+	const char* DefaultDisplayName() override { return "Heavy Weapons Grunt"; }
+	const char* ReverseRelationshipModel() override { return "models/hwgruntf.mdl"; }
+	int DefaultISoundMask() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void SetActivity( Activity NewActivity ) override;
+	void CheckAmmo() override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override {
 		return false;
 	}
@@ -56,11 +62,11 @@ public:
 		return false;
 	}
 	bool PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder) override;
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
 	void DeathSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
@@ -68,17 +74,20 @@ public:
 	void Shoot();
 	void FinishReload();
 
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
 
-	virtual int SizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	int SizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	void GibMonster( void );
+	void DropMyItems(bool isGibbed);
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CUSTOM_SCHEDULES
@@ -174,7 +183,7 @@ void CHWGrunt::Precache()
 	m_iM249Link = PRECACHE_MODEL ("models/saw_link.mdl");// saw link
 }
 
-void CHWGrunt::SetYawSpeed( void )
+void CHWGrunt::SetYawSpeed()
 {
 	int ys;
 
@@ -221,6 +230,8 @@ void CHWGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch(pEvent->event)
 	{
 	case HWGRUNT_AE_DROP_GUN:
+		if (GetBodygroup(GUN_GROUP) != GUN_NONE)
+			DropMyItems(false);
 		break;
 	default:
 		CFollowingMonster::HandleAnimEvent(pEvent);
@@ -624,7 +635,7 @@ DEFINE_CUSTOM_SCHEDULES( CHWGrunt )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHWGrunt, CFollowingMonster )
 
-Schedule_t *CHWGrunt::GetSchedule( void )
+Schedule_t *CHWGrunt::GetSchedule()
 {
 	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling.
 	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
@@ -709,6 +720,37 @@ void CHWGrunt::OnChangeSchedule(Schedule_t *pNewSchedule)
 {
 	CFollowingMonster::OnChangeSchedule(pNewSchedule);
 	m_firing = pNewSchedule == slHWGruntContinueRangeAttack;
+}
+
+void CHWGrunt::GibMonster( void )
+{
+	if (GetBodygroup(GUN_GROUP) != GUN_NONE)
+	{
+		DropMyItems(true);
+	}
+	CFollowingMonster::GibMonster();
+}
+
+void CHWGrunt::DropMyItems(bool isGibbed)
+{
+	if (g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
+	{
+		Vector vecGunPos;
+		Vector vecGunAngles;
+		GetAttachment(0, vecGunPos, vecGunAngles);
+
+		FixupDropItemPosition(vecGunPos);
+
+		if (!isGibbed) {
+			SetBodygroup(GUN_GROUP, GUN_NONE);
+		}
+
+		CBaseEntity* pGun = DropItem("weapon_minigun", vecGunPos, vecGunAngles);
+		if (pGun && isGibbed) {
+			pGun->pev->velocity = Vector( RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( 200, 300 ) );
+			pGun->pev->avelocity = Vector( 0, RANDOM_FLOAT( 200, 400 ), 0 );
+		}
+	}
 }
 
 class CHWGruntRepel : public CHGruntRepel

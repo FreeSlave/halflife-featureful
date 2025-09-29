@@ -45,13 +45,16 @@ As a mod developer you need to take into account that CS handles weapons differe
     - Both spread and kickback depend on whether the player is in on the ground, moving or ducking. Usually the weapons shoot more accurate when player is ducking and less accurate when player is moving or not on the ground (e.g. in jump or on the ladder).
 * Weapons have [range modifier]({{< ref "weapon-templates#range_modifier" >}}) that decreases the damage on longer distances. In HL the bullet damage is constant independent of the distance.
 * Most CS weapons can shoot underwater, except for FAMAS, Galil and shotguns. While this does little impact in CS as it usually doesn't feature maps with water deep enough for players to swim, this is something to remember when you're making a mod.
-* Most CS weapons eject shells to the left side (when playing in the right-handed setup which is default in modern CS). There're some exceptions like P90, AUG and M249. If you don't want shells to eject to the left side, you may remove `"shell_left_side"` property or set it to `false`.
+* Most CS weapons eject shells to the left side (when playing in the right-handed setup which is default in modern CS). There're some exceptions like P90, AUG and M249. If you don't want shells to eject to the left side, you may remove [left_side]({{< ref "weapon-templates#left_side" >}}) property or set it to `false`.
 * Shell ejection positions and velocity defined in templates might be not true to their original counterparts from CS.
 * CS view weapon models were made as left-handed. We set [mirror_viewmodel]({{< ref "weapon-templates#mirror_viewmodel" >}}) for each CS weapon to make them appear right-handed.
 
+{{% hint info %}}
+In Counter Strike each weapon has an associated max player speed. That's why player moves slower when, for example, a sniper rifle is deployed. The distributed weapon presets don't replicate the CS weapons speed penalties, but it can be configured via [player_maxspeed]({{< ref "weapon-templates#player_maxspeed" >}}).
+{{% /hint %}}
+
 CS weapons demonstrate some other traits that are not possible (yet) to express via weapon templates:
 
-* Each weapon has an associated max player speed. That's why player moves slower when, for example, a sniper rifle is deployed.
 * CS firearms can penetrate walls.
 
 We advise not mixing HL and CS weapon fire styles in the same mod as it might be confusing to the player, so don't mix HL and CS weapons without making appropriate changes. Follow these recommendations:
@@ -861,7 +864,7 @@ Required models:
 * **w_barrett_m82.mdl**
 * **v_barrett_m82.mdl**
 * **p_barrett_m82.mdl**
-* **models/snipershell.mdl**
+* **snipershell.mdl**
 
 Required sounds:
 
@@ -872,4 +875,64 @@ Required sounds:
 * **weapons/sniper_mag_in.wav**
 * **weapons/sniper_bolt2.wav**
 * **weapons/sniper_bolt3.wav**
+{{% /details_header %}}
+
+## Team Fortress Classic
+
+{{% hint warning %}}
+Team Fortress Classic doesn't have world models for weapons. You may need to provide custom world models yourself.
+{{% /hint %}}
+
+{{% details_header title="Assault Cannon" %}}
+```json
+{
+    "weapon_minigun": "tfc/assaultcannon"
+}
+```
+
+A weapon used by the Heavy Weapon Guy class. This uses `buckshot` ammo.
+
+{{% hint warning %}}
+This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.
+{{% /hint %}}
+
+Required models:
+
+* **v_tfac.mdl**
+* **p_mini.mdl**
+
+Required sounds:
+
+* **weapons/asscan1.wav**
+* **weapons/asscan2.wav**
+* **weapons/asscan3.wav**
+
+{{% /details_header %}}
+
+## They Hunger
+
+{{% details_header title="Chaingun" %}}
+```json
+{
+    "weapon_minigun": "hunger/chaingun"
+}
+```
+
+Very similar to Team Fortress Classic assault cannon, but needs reloading. This doesn't impose the speed penalty on the player and uses `9mm` ammo.
+
+{{% hint warning %}}
+This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.
+{{% /hint %}}
+
+Required models:
+
+* **v_tfac.mdl**
+* **p_tfac.mdl**
+
+Required sounds:
+
+* **weapons/asscan1.wav**
+* **weapons/asscan2.wav**
+* **weapons/asscan3.wav**
+
 {{% /details_header %}}

@@ -242,7 +242,7 @@ void CHGrunt::GibMonster( void )
 		DropMyItems(true);
 	}
 
-	CBaseMonster::GibMonster();
+	CFollowingMonster::GibMonster();
 }
 
 CBaseEntity *CHGrunt::DropMyItem(const char* entityName, const Vector& vecGunPos, const Vector& vecGunAngles, bool isGibbed)

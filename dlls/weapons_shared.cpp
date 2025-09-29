@@ -10,6 +10,7 @@
 #if !CLIENT_DLL
 #include "ammo_amounts.h"
 #include "gamerules.h"
+#include "game.h"
 #endif
 
 WeaponInfo& AccessWeaponInfo(int id)
@@ -247,6 +248,16 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 
+	const bool canPrimaryAttackNow = CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() );
+
+	if (params.primaryFirePrioritized)
+	{
+		if (canPrimaryAttackNow && (m_pPlayer->pev->button & IN_ATTACK) && (m_pPlayer->pev->button & IN_ATTACK2))
+		{
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+	}
+
 	if( ( m_pPlayer->pev->button & IN_ATTACK2 ) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
 		if( UsesSecondaryAmmo() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )
@@ -258,7 +269,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			SecondaryAttack();
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
-	else if( ( m_pPlayer->pev->button & IN_ATTACK ) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) )
+	else if( ( m_pPlayer->pev->button & IN_ATTACK ) && canPrimaryAttackNow )
 	{
 		if (UsesAmmo())
 		{
@@ -583,6 +594,8 @@ void CConfigurableWeapon::Precache()
 	PrecacheWeaponSoundScript(params.fire.hitBodySound);
 	PrecacheWeaponSoundScript(params.fire.hitWallSound);
 	PrecacheWeaponSoundScript(params.fire.emptySound);
+	PrecacheWeaponSoundScript(params.fire.chargeSound);
+	PrecacheWeaponSoundScript(params.fire.cooldownSound);
 	PrecacheWeaponSoundScript(params.fire.pumpSound);
 
 	shellModel = PrecacheWeaponParamModel(params.fire.shellModel.main);
@@ -672,6 +685,9 @@ bool CConfigurableWeapon::PerformDeploy()
 
 		m_bDelayFire = true;
 		ResetInaccuracy();
+
+		m_flChargeStart = 0;
+		m_shouldPlayCooldown = false;
 
 		if (!m_playedFirstDeploy && params.startInAltMode && !m_inAltMode)
 		{
@@ -921,6 +937,51 @@ void CConfigurableWeapon::ApplyMyKickBack(bool altMode)
 	}
 }
 
+bool CConfigurableWeapon::SelectAndSendFireAnimation(const WeaponParameters::FireAnimArray &arr)
+{
+	if (arr.empty())
+		return false;
+
+	int anim = -1;
+	if (arr.size() == 1)
+	{
+		anim = arr.front();
+	}
+	else
+	{
+		anim = arr[RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, 0, arr.size()-1)];
+	}
+	SendWeaponAnim(anim);
+	return true;
+}
+
+bool CConfigurableWeapon::PerformCooldown(bool altMode)
+{
+	if (m_shouldPlayCooldown)
+	{
+		m_shouldPlayCooldown = false;
+
+		const WeaponParameters& params = MyParameters();
+
+		const WeaponSoundScript& primarySoundScript = params.fire.sound.Get(false);
+		const WeaponSoundScript& secondarySoundScript = params.fire.sound.Get(true);
+
+		if (primarySoundScript.looped || secondarySoundScript.looped)
+		{
+			PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
+								0.0f, 0.0f, PackIParam1(altMode, Emptied(), m_bAlternatingEject), PackIParam2(), 1, 0);
+		}
+
+		PlayWeaponSoundScript(params.fire.cooldownSound.Get(altMode));
+		if (SelectAndSendFireAnimation(params.fire.cooldownAnims.Get(altMode)))
+		{
+			m_flTimeWeaponIdle = Q_max(UTIL_WeaponTimeBase() + params.fire.cooldownTime.Get(altMode), m_flTimeWeaponIdle);
+			return true;
+		}
+	}
+	return false;
+}
+
 void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 {
 	const WeaponParameters& params = MyParameters();
@@ -938,6 +999,25 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	if (semiAuto)
 	{
 		if (m_iShotsFired >= 1)
+			return;
+	}
+
+	const auto fireType = fire.fireType.Get(altMode);
+
+	const float chargeTime = fire.chargeTime.Get(altMode);
+	if (chargeTime > 0.0f && fireType != WeaponParameters::Fire::MELEE_WIND)
+	{
+		float& chargeStart = m_flChargeStart;
+		if (!chargeStart)
+		{
+			m_shouldPlayCooldown = true;
+			chargeStart = gpGlobals->time;
+			SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
+
+			PlayWeaponSoundScript(fire.chargeSound.Get(altMode));
+		}
+
+		if (gpGlobals->time - chargeStart <= chargeTime)
 			return;
 	}
 
@@ -962,6 +1042,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
 				{
 					PlayEmptySound(altMode);
+					PerformCooldown(altMode);
 					return;
 				}
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
@@ -988,6 +1069,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 							m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayAfterEmpty.Get(altMode));
 						}
 					}
+					PerformCooldown(altMode);
 					return;
 				}
 				SpendAmmo(ammoPerFire);
@@ -996,6 +1078,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 			}
 		}
 	}
+
+	m_shouldPlayCooldown = true;
 
 	const float flCycleTime = fire.cycleTime.Get(altMode);
 
@@ -1085,7 +1169,6 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 #endif
 
-	const auto fireType = fire.fireType.Get(altMode);
 	float spreadX = 0.0f;
 	float spreadY = 0.0f;
 	Vector vecSpread;
@@ -1165,23 +1248,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		if (m_iSwingMode != 1)
 		{
-			const WeaponParameters::FireAnimArray& arr = fire.chargeAnims.Get(altMode);
-			if (arr.size())
-			{
-				int anim = -1;
-				if (arr.size() == 1)
-				{
-					anim = arr.front();
-				}
-				else
-				{
-					anim = arr[RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, 0, arr.size()-1)];
-				}
-				if (anim >= 0)
-				{
-					SendWeaponAnim(anim);
-				}
-			}
+			SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
 			m_flBigSwingStart = gpGlobals->time;
 		}
 		m_swingIsAltAttack = altMode;
@@ -1218,6 +1285,15 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	if (params.secondaryFireType == SecondaryFireType::ALTERNATIVE_FIRE)
 	{
 		m_flNextSecondaryAttack = Q_max(m_flNextPrimaryAttack, m_flNextSecondaryAttack);
+	}
+
+	if (altMode)
+	{
+		m_secondaryFireEndTime = gpGlobals->time + flCycleTime;
+	}
+	else
+	{
+		m_primaryFireEndTime = gpGlobals->time + flCycleTime;
 	}
 
 	if (ammoPerFire > 0)
@@ -1550,6 +1626,9 @@ bool CConfigurableWeapon::PerformReload()
 	if (reload.waitForRecoil.Get(altMode, empty) && m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
 		return false;
 
+	if (PerformCooldown(InAltMode()))
+		return false;
+
 	m_bDelayFire = false;
 	ResetInaccuracy();
 
@@ -1766,6 +1845,20 @@ void CConfigurableWeapon::WeaponIdle()
 			}
 		}
 	}
+
+	if (m_flChargeStart)
+	{
+		const float chargeTime = params.fire.chargeTime.Get(altMode);
+		if (gpGlobals->time - m_flChargeStart <= chargeTime)
+		{
+			return;
+		}
+	}
+
+	m_flChargeStart = 0;
+
+	if (PerformCooldown(altMode))
+		return;
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
@@ -2262,6 +2355,59 @@ void CConfigurableWeapon::UpdateRechargeTime(bool altMode)
 
 		m_flRechargeTime = gpGlobals->time + rechargeDelay;
 	}
+}
+
+float CConfigurableWeapon::GetMaxSpeed()
+{
+	float result = 0.0f;
+#if !CLIENT_DLL
+	auto CalcSpeed = [](const PlayerSpeed& playerSpeed) {
+		if (playerSpeed.isFactor)
+		{
+			return g_psv_maxspeed->value * playerSpeed.value;
+		}
+		else
+		{
+			return playerSpeed.value;
+		}
+	};
+
+	const WeaponParameters& params = MyParameters();
+
+	const bool primaryFiring = m_primaryFireEndTime > gpGlobals->time;
+	const bool secondaryFiring = m_secondaryFireEndTime > gpGlobals->time;
+
+	if (primaryFiring || secondaryFiring)
+	{
+		float weaponPrimaryFireSpeed = 0.0f;
+		float weaponSecondaryFireSpeed = 0.0f;
+
+		if (primaryFiring)
+		{
+			const PlayerSpeed& primaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(false);
+			if (primaryFirePlayerSpeed.IsDefined())
+				result = weaponPrimaryFireSpeed = CalcSpeed(primaryFirePlayerSpeed);
+		}
+		if (secondaryFiring)
+		{
+			const PlayerSpeed& secondaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(true);
+			if (secondaryFirePlayerSpeed.IsDefined())
+				result = weaponSecondaryFireSpeed = CalcSpeed(secondaryFirePlayerSpeed);
+		}
+		if (weaponPrimaryFireSpeed > 0.0f && weaponSecondaryFireSpeed > 0.0f)
+		{
+			result = Q_min(weaponPrimaryFireSpeed, weaponSecondaryFireSpeed);
+		}
+	}
+
+	if (result == 0.0f)
+	{
+		const PlayerSpeed playerSpeed = params.playerMaxSpeed.Get(InAltMode());
+		if (playerSpeed.IsDefined())
+			result = CalcSpeed(playerSpeed);
+	}
+#endif
+	return result;
 }
 
 int CConfigurableWeapon::PackIParam2()

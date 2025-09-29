@@ -44,3 +44,16 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.Undrown** - player gets out of the water while having no air left in lungs.
 * **Player.EmergeInhale** - player get out of the water after spending some amount of air.
 * **SprayCan.Paint** - player paints a spray on the wall. It's actually played on the entity created temporarily, not on the player.
+
+### Maximum speed
+
+The player's default maximum speed depends on the value of the `sv_maxspeed` cvar value. This is 320 by default. Multiplayer configs (listenserver.cfg and server.cfg) usually set it to 270.
+
+There're several factors that may contribute to the change in the player's maximum speed:
+
+* The maximum speed set by a [currently equipped weapon]({{< ref "weapon-templates#player_maxspeed" >}}) or when [weapon is fired]({{< ref "weapon-templates#fire-player_maxspeed" >}}).
+* The effect of the [player_speed]({{< ref player_speed >}}) entity.
+
+{{% hint warning %}}
+The actual maximum speed can't exceed the one set by the `sv_maxspeed` cvar. None of the above factors can change that even if the resulting speed is higher.
+{{% /hint %}}

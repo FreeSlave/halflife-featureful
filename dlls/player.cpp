@@ -2598,10 +2598,7 @@ void CBasePlayer::PreThink( void )
 	m_afButtonReleased = buttonsChanged & ( ~pev->button );	// The ones not down are "released"
 
 	g_pGameRules->PlayerThink( this );
-	if (m_maxSpeedOverrideIsAbsolute)
-		pev->maxspeed = m_maxSpeedOverride;
-	else
-		pev->maxspeed = m_maxSpeedOverride * g_psv_maxspeed->value;
+
 	if (m_movementPrevented)
 	{
 		if (m_movementPreventedTime >= gpGlobals->time)
@@ -2611,6 +2608,30 @@ void CBasePlayer::PreThink( void )
 		else
 		{
 			m_movementPrevented = false;
+		}
+	}
+	if (!m_movementPrevented)
+	{
+		const float defaultMaxSpeed = g_psv_maxspeed->value;
+		const float weaponSpeed = m_pActiveItem ? m_pActiveItem->GetMaxSpeed() : 0.0f;
+		if (weaponSpeed > 0.0f)
+		{
+			if (m_maxSpeedOverride > 0.0f)
+			{
+				if (m_maxSpeedOverrideIsAbsolute)
+					pev->maxspeed = m_maxSpeedOverride / defaultMaxSpeed * weaponSpeed;
+				else
+					pev->maxspeed = m_maxSpeedOverride * weaponSpeed;
+			}
+			else
+				pev->maxspeed = weaponSpeed;
+		}
+		else
+		{
+			if (m_maxSpeedOverrideIsAbsolute)
+				pev->maxspeed = m_maxSpeedOverride;
+			else
+				pev->maxspeed = m_maxSpeedOverride * defaultMaxSpeed;
 		}
 	}
 

@@ -42,7 +42,6 @@ This is the list of features that would be nice to have in our codebase. You are
 
 ### New weapons
 
-* ![](/images/svencoop.png) weapon_minigun
 * ![](/images/svencoop.png) weapon_uziakimbo
 * ![](/images/tfc.png) TFC Flamethrower
 * ![](/images/tfc.png) TFC Grenade launcher

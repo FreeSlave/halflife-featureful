@@ -1210,6 +1210,9 @@ TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 	DEFINE_FIELD( CConfigurableWeapon, m_flRechargeTime, FIELD_TIME ),
 
 	DEFINE_FIELD( CConfigurableWeapon, m_toolTriggerTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_primaryFireEndTime, FIELD_TIME ),
+	DEFINE_FIELD( CConfigurableWeapon, m_secondaryFireEndTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CConfigurableWeapon, CBasePlayerWeapon )

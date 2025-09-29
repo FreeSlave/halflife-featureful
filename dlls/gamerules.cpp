@@ -523,7 +523,7 @@ void CGameRules::RefreshSkillData ( void )
 
 #if FEATURE_M249
 	// M249
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249))
+	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249) || g_modFeatures.IsWeaponEnabled(WEAPON_MINIGUN))
 		gSkillData.plrDmg556 = GetSkillCvar( "sk_plr_556_bullet" );
 #endif
 

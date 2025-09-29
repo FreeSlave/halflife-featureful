@@ -76,6 +76,11 @@ const char* const json_schemas::definitions = R"(
 		"minItems": 2,
 		"maxItems": 2
 	},
+	"absolute_or_factor": {
+		"type": ["number", "string"],
+		"pattern": "^\\*[0-9]+(\\.[0-9]+)?$",
+		"minimum": 0.0
+	},
 	"vector": {
 		"type": ["array"],
 		"items": {
@@ -433,8 +438,7 @@ const char* const json_schemas::definitions = R"(
 				"minimum": 0
 			},
 			"height": {
-				"type": ["number", "string"],
-				"pattern": "^\\*[0-9]+(\\.[0-9]+)?$"
+				"$ref": "#/absolute_or_factor"
 			},
 			"punchangle": {
 				"type": "object",

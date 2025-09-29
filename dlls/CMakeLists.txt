@@ -128,6 +128,7 @@ set (SVDLL_SOURCES
 	maprules.cpp
 	massn.cpp
 	medkit.cpp
+	minigun.cpp
 	monstermaker.cpp
 	monsters.cpp
 	monsterstate.cpp

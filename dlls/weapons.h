@@ -309,6 +309,7 @@ public:
 	virtual CBasePlayerWeapon *MyWeaponPointer( void ) { return this; }
 	virtual bool CanBeDropped() { return true; }
 	virtual int ViewModelBody() { return 0; }
+	virtual float GetMaxSpeed() { return 0.0f; }
 	float GetNextAttackDelay( float delay );
 
 	int		m_fInSpecialReload;									// Are we in the middle of a reload for the shotguns
@@ -370,6 +371,8 @@ public:
 	void ItemPostFrame() override;
 	void UpdateInaccuracy() override;
 	void SendScreenShake(const PlayerShake& shake);
+	bool SelectAndSendFireAnimation(const WeaponParameters::FireAnimArray& arr);
+	bool PerformCooldown(bool altMode);
 	void PerformWeaponFire(bool altMode);
 	void FireRemaining();
 	void ResetBurst();
@@ -420,6 +423,8 @@ public:
 
 	bool CanRechargeAmmo();
 	void UpdateRechargeTime(bool altMode);
+
+	float GetMaxSpeed() override;
 
 #ifndef CLIENT_DLL
 	int Save(CSave &save) override;
@@ -480,7 +485,16 @@ public:
 	// recharge
 	float m_flRechargeTime;
 
+	// charge
+	float m_flChargeStart;
+	bool m_shouldPlayCooldown;
+
+	// tool
 	float m_toolTriggerTime;
+
+	// for max speed
+	float m_primaryFireEndTime;
+	float m_secondaryFireEndTime;
 
 	// Common event
 	int m_usFire;

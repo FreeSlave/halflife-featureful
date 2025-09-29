@@ -53,6 +53,7 @@ sporelauncher
 shockrifle
 penguin
 uzi
+minigun
 
 camera
 radio

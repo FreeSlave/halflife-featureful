@@ -512,7 +512,28 @@ static void EV_PlayWeaponSoundScript(int idx, Vector origin, const WeaponSoundSc
 		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, sound.channel, wave, RandomizeNumberFromRange(sound.volume), sound.attenuation, 0, RandomizeNumberFromRange(sound.pitch));
 }
 
+static void EV_StopWeaponSoundScript(int idx, const WeaponSoundScript& sound)
+{
+	for (auto& wave : sound.waves)
+	{
+		gEngfuncs.pEventAPI->EV_StopSound(idx, sound.channel, wave);
+	}
+}
+
 int g_iSwing;
+bool g_primaryLoopedPlaying = false;
+bool g_secondaryLoopedPlaying = false;
+bool g_primaryAdditionalLoopedPlaying = false;
+bool g_secondaryAdditionalLoopedPlaying = false;
+int g_lastFireWeaponId = 0;
+
+static void ResetLoopedPlayingVars()
+{
+	g_primaryLoopedPlaying = false;
+	g_secondaryLoopedPlaying = false;
+	g_primaryAdditionalLoopedPlaying = false;
+	g_secondaryAdditionalLoopedPlaying = false;
+}
 
 static void EV_PerformWeaponFire(event_args_t *args)
 {
@@ -526,10 +547,38 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	const int weaponId = args->iparam2 & 0x3F;
 	const int body = args->iparam2 >> 6;
 
+	if (g_lastFireWeaponId != weaponId)
+	{
+		ResetLoopedPlayingVars();
+		g_lastFireWeaponId = weaponId;
+	}
+
 	const WeaponParameters& params = GetWeaponParameters(weaponId);
 
 	const WeaponParameters::Fire& fire = params.fire;
 	const WeaponParameters::Fire::Type fireType = fire.fireType.Get(altMode);
+
+	if (args->bparam1)
+	{
+		const WeaponSoundScript* possibleLoopedSoundScripts[] = {
+			&fire.sound.Get(false),
+			&fire.sound.Get(true),
+			&fire.soundAdditional.Get(false),
+			&fire.soundAdditional.Get(true)
+		};
+
+		for (const auto& soundScriptPtr : possibleLoopedSoundScripts)
+		{
+			if (soundScriptPtr->looped)
+			{
+				EV_StopWeaponSoundScript(idx, *soundScriptPtr);
+			}
+		}
+
+		ResetLoopedPlayingVars();
+
+		return;
+	}
 
 	if (fireType == WeaponParameters::Fire::MELEE || fireType == WeaponParameters::Fire::MELEE_WIND)
 	{
@@ -617,8 +666,78 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		}
 	}
 
-	EV_PlayWeaponSoundScript(idx, origin, fire.sound.Get(altMode));
-	EV_PlayWeaponSoundScript(idx, origin, fire.soundAdditional.Get(altMode));
+	auto CheckLoopedSounds = [&fire](int channel, bool fireMode)
+	{
+		auto IsLoopingOnChannel = [](const WeaponSoundScript& sound, int channel)
+		{
+			return sound.looped && sound.channel == channel;
+		};
+
+		if (!fireMode)
+		{
+			if (IsLoopingOnChannel(fire.sound.main, channel))
+			{
+				g_primaryLoopedPlaying = false;
+			}
+			if (IsLoopingOnChannel(fire.soundAdditional.main, channel))
+			{
+				g_primaryAdditionalLoopedPlaying = false;
+			}
+		}
+		else
+		{
+			if (fire.sound.alt.has_value() && IsLoopingOnChannel(*fire.sound.alt, channel))
+			{
+				g_secondaryLoopedPlaying = false;
+			}
+			if (fire.soundAdditional.alt.has_value() && IsLoopingOnChannel(*fire.soundAdditional.alt, channel))
+			{
+				g_secondaryAdditionalLoopedPlaying = false;
+			}
+		}
+	};
+
+	const WeaponSoundScript& fireSound = fire.sound.Get(altMode);
+	bool shouldPlayFireSound = true;
+	if (fireSound.looped)
+	{
+		if (altMode)
+		{
+			shouldPlayFireSound = !g_secondaryLoopedPlaying;
+			g_secondaryLoopedPlaying = true;
+		}
+		else
+		{
+			shouldPlayFireSound = !g_primaryLoopedPlaying;
+			g_primaryLoopedPlaying = true;
+		}
+	}
+	if (shouldPlayFireSound)
+	{
+		EV_PlayWeaponSoundScript(idx, origin, fireSound);
+		CheckLoopedSounds(fireSound.channel, !altMode);
+	}
+
+	const WeaponSoundScript& fireSoundAdditional = fire.soundAdditional.Get(altMode);
+	bool shouldPlayFireAdditionalSound = true;
+	if (fireSoundAdditional.looped)
+	{
+		if (altMode)
+		{
+			shouldPlayFireAdditionalSound = !g_secondaryAdditionalLoopedPlaying;
+			g_secondaryAdditionalLoopedPlaying = true;
+		}
+		else
+		{
+			shouldPlayFireAdditionalSound = !g_primaryAdditionalLoopedPlaying;
+			g_primaryAdditionalLoopedPlaying = true;
+		}
+	}
+	if (shouldPlayFireAdditionalSound)
+	{
+		EV_PlayWeaponSoundScript(idx, origin, fireSoundAdditional);
+		CheckLoopedSounds(fireSoundAdditional.channel, !altMode);
+	}
 
 	if (fireType == WeaponParameters::Fire::BULLETS)
 	{

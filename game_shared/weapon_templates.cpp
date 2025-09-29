@@ -184,6 +184,7 @@ void WeaponTemplateSystem::ParseWeaponSoundScript(WeaponSoundScript& soundScript
 			UpdateAttenuationFromJson(soundScript.attenuation, value);
 		});
 		UpdatePropertyFromJson(soundScript.pitch, value, "pitch");
+		UpdatePropertyFromJson(soundScript.looped, value, "looped");
 	}
 }
 
@@ -323,6 +324,24 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	HandleIdle("alt_idle", true, false);
 	HandleIdle("alt_idle_empty", true, true);
 
+	auto ParsePlayerSpeed = [](const Value& value) {
+		PlayerSpeed playerSpeed;
+		if (value.IsString())
+		{
+			const char* heightStr = value.GetString();
+			if (*heightStr == '*')
+			{
+				playerSpeed.value = atof(heightStr + 1);
+				playerSpeed.isFactor = true;
+			}
+		}
+		else if (value.IsNumber())
+		{
+			playerSpeed.value = value.GetFloat();
+		}
+		return playerSpeed;
+	};
+
 	auto HandleFire = [&](const char* propName, bool altMode) {
 		HandleJSONMember(value, propName, [&](const Value& value) {
 			auto& fire = params.fire;
@@ -352,14 +371,19 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 #endif
 			});
 
-			HandleJSONMember(value, "anims", [&](const Value& value) {
-				Value::ConstArray animArr = value.GetArray();
-				auto& v = fire.anims.Materialize(altMode, false);
+			auto HandleFireAnimArray = [](Value::ConstArray& animArr, WeaponParameters::FireAnimArray& v)
+			{
 				v.clear();
 				for (auto& item : animArr)
 				{
 					v.push_back(item.GetInt());
 				}
+			};
+
+			HandleJSONMember(value, "anims", [&](const Value& value) {
+				Value::ConstArray animArr = value.GetArray();
+				auto& v = fire.anims.Materialize(altMode, false);
+				HandleFireAnimArray(animArr, v);
 			});
 
 			HandleJSONMember(value, "anims_last_shot", [&](const Value& value) {
@@ -371,12 +395,30 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				{
 					Value::ConstArray animArr = value.GetArray();
 					auto& v = fire.anims.Materialize(altMode, true);
-					v.clear();
-					for (auto& item : animArr)
-					{
-						v.push_back(item.GetInt());
-					}
+					HandleFireAnimArray(animArr, v);
 				}
+			});
+
+			HandleJSONMember(value, "charge_anims", [&](const Value& value) {
+				Value::ConstArray animArr = value.GetArray();
+				auto& v = fire.chargeAnims.Materialize(altMode);
+				HandleFireAnimArray(animArr, v);
+			});
+			UpdatePropertyFromJson(fire.chargeTime, value, "charge_time", altMode);
+			HandleJSONMember(value, "charge_sound", [&](const Value& value) {
+				WeaponSoundScript& soundScript = fire.chargeSound.Materialize(altMode);
+				ParseWeaponSoundScript(soundScript, value);
+			});
+
+			HandleJSONMember(value, "cooldown_anims", [&](const Value& value) {
+				Value::ConstArray animArr = value.GetArray();
+				auto& v = fire.cooldownAnims.Materialize(altMode);
+				HandleFireAnimArray(animArr, v);
+			});
+			UpdatePropertyFromJson(fire.cooldownTime, value, "cooldown_time", altMode);
+			HandleJSONMember(value, "cooldown_sound", [&](const Value& value) {
+				WeaponSoundScript& soundScript = fire.cooldownSound.Materialize(altMode);
+				ParseWeaponSoundScript(soundScript, value);
 			});
 
 			HandleJSONMember(value, "sound", [&](const Value& value) {
@@ -765,6 +807,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			});
 
 			UpdatePropertyFromJson(fire.preventMovement, value, "prevent_movement", altMode);
+
+			HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
+				fire.playerMaxSpeed.Materialize(altMode) = ParsePlayerSpeed(value);
+			});
 		});
 	};
 
@@ -832,8 +878,16 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			params.secondaryFireType = SecondaryFireType::SWITCH_MODE;
 	});
 
+	UpdatePropertyFromJson(params.primaryFirePrioritized, value, "prioritize_primary_attack");
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body", false);
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body_alt", true);
+
+	HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
+		params.playerMaxSpeed.Materialize(false) = ParsePlayerSpeed(value);
+	});
+	HandleJSONMember(value, "player_maxspeed_alt", [&](const Value& value) {
+		params.playerMaxSpeed.Materialize(true) = ParsePlayerSpeed(value);
+	});
 
 	auto HandleReload = [&](const char* propName, bool altMode, bool emptied) {
 		HandleJSONMember(value, propName, [&](const Value& value) {

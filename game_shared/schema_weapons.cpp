@@ -14,6 +14,14 @@ const char* const json_schemas::weapons = R"(
 		"type": "integer",
 		"minimum": -1
 	},
+	"anim_array": {
+		"type": "array",
+		"items": {
+			"$ref": "#/anim_index"
+		},
+		"minItems": 1,
+		"maxItems": 4
+	},
 	"waves_array": {
 		"type": "array",
 		"items": {
@@ -40,6 +48,9 @@ const char* const json_schemas::weapons = R"(
 					},
 					"pitch": {
 						"$ref": "definitions.json#/range_int"
+					},
+					"looped": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false
@@ -185,12 +196,7 @@ const char* const json_schemas::weapons = R"(
 				"minLength": 1
 			},
 			"anims": {
-				"type": "array",
-				"items": {
-					"$ref": "#/anim_index"
-				},
-				"minItems": 1,
-				"maxItems": 4
+				"$ref": "#/anim_array"
 			},
 			"anims_last_shot": {
 				"type": ["array", "null"],
@@ -199,6 +205,26 @@ const char* const json_schemas::weapons = R"(
 				},
 				"minItems": 1,
 				"maxItems": 4
+			},
+			"charge_anims": {
+				"$ref": "anim_array"
+			},
+			"charge_time": {
+				"type": "number",
+				"minimum": 0
+			},
+			"charge_sound": {
+				"$ref": "#/w_soundscript"
+			},
+			"cooldown_anims": {
+				"$ref": "anim_array"
+			},
+			"cooldown_time": {
+				"type": "number",
+				"minimum": 0
+			},
+			"cooldown_sound": {
+				"$ref": "#/w_soundscript"
 			},
 			"sound": {
 				"$ref": "#/w_soundscript"
@@ -521,6 +547,9 @@ const char* const json_schemas::weapons = R"(
 			},
 			"prevent_movement": {
 				"type": "boolean"
+			},
+			"player_maxspeed": {
+				"$ref": "definitions.json#/absolute_or_factor"
 			}
 		},
 		"additionalProperties": false
@@ -770,6 +799,15 @@ const char* const json_schemas::weapons = R"(
 			},
 			"secondary_attack": {
 				"enum": ["alt_fire", "switch_mode", "disabled"]
+			},
+			"prioritize_primary_attack": {
+				"type": "boolean"
+			},
+			"player_maxspeed": {
+				"$ref": "definitions.json#/absolute_or_factor"
+			},
+			"player_maxspeed_alt": {
+				"$ref": "definitions.json#/absolute_or_factor"
 			},
 			"viewmodel_body": {
 				"type": "integer",

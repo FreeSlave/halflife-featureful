@@ -12,6 +12,10 @@ Override maximum player speed.
 * `Maxspeed value` - new maximum speed value to set. By default it's a fraction, i.e. value between 0 and 1. Set 0 to restore the default value.
 * `Value mode` - whether the `Maxspeed value` is treated as a fraction of player's default maximum speed or an an absolute number.
 
+### Notes
+
 {{% hint info %}}
-The actual maximum speed can't exceed the one set by `sv_maxspeed` cvar (320 by default). So setting the factor higher than 1 or the absolute value higher than the `sv_maxspeed` value won't do the difference.
+If the current active weapon modifies the [player's maximum speed]({{< ref "weapon-templates#player_maxspeed" >}}), the resulting maximum speed is calculated as *maxspeed set by a weapon* * *player_speed factor*. If the entity uses an absolute value, the factor is this *absolute value* / *default maximum speed*. Therefore the entity contributes the speed change to the same relative degree.
 {{% /hint %}}
+
+See also: [player's maximum speed]({{< ref "player#maximum-speed" >}}).
