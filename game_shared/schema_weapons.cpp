@@ -657,6 +657,8 @@ const char* const json_schemas::weapons = R"(
 			}
 		}
 	},
+)"
+R"(
 	"weapon_template": {
 		"type": "object",
 		"properties": {
