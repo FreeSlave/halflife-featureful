@@ -5,7 +5,7 @@ bookToC: false
 
 # monster_flybee
 
-The fast moving flying creature with range attacks. Ported from Half-Life Invasion.
+A fast moving flying creature with range attacks. Ported from Half-Life Invasion.
 
 ### Skill variables
 
@@ -13,6 +13,7 @@ The fast moving flying creature with range attacks. Ported from Half-Life Invasi
 * **sk_flybee_dmg_kick** - melee damage.
 * **sk_flybee_dmg_beam** - beam damage.
 * **sk_flybee_dmg_flyball** - damage of every flyball projectile.
+* **sk_flybee_maxspeed** - the maximum flight speed a flybee can reach.
 
 ### Default classification
 

@@ -177,6 +177,7 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.flybeeDmgKick = GetSkillCvar("sk_flybee_dmg_kick");
 		gSkillData.flybeeDmgBeam = GetSkillCvar("sk_flybee_dmg_beam");
 		gSkillData.flybeeDmgFlyball = GetSkillCvar("sk_flybee_dmg_flyball");
+		gSkillData.flybeeMaxspeed = GetSkillCvar("sk_flybee_maxspeed");
 	}
 #endif
 

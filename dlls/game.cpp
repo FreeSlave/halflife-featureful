@@ -896,6 +896,7 @@ DECLARE_SKILL_VALUE(sk_flybee_health, "0")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_kick, "20")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_beam, "50")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_flyball, "20")
+DECLARE_SKILL_VALUE(sk_flybee_maxspeed, "400")
 #endif
 
 // Gargantua
@@ -1834,6 +1835,7 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_flybee_dmg_kick);
 		REGISTER_SKILL_CVARS(sk_flybee_dmg_beam);
 		REGISTER_SKILL_CVARS(sk_flybee_dmg_flyball);
+		REGISTER_SKILL_CVARS(sk_flybee_maxspeed);
 	}
 #endif
 

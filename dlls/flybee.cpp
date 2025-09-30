@@ -316,7 +316,7 @@ void CFlybee::Spawn()
 
 	m_idealDist		= 384;
 	m_flMinSpeed	= 80;
-	m_flMaxSpeed	= 300;
+	m_flMaxSpeed	= gSkillData.flybeeMaxspeed * 0.75f;
 	m_flMaxDist		= 384;
 
 	m_iFear			= 0;
@@ -666,7 +666,7 @@ Schedule_t* CFlybee::GetSchedule()
 		return GetScheduleOfType( SCHED_IDLE_WALK );
 
 	case MONSTERSTATE_COMBAT:
-		m_flMaxSpeed = 400;
+		m_flMaxSpeed = gSkillData.flybeeMaxspeed;
 
 		if ( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 		{

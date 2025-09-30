@@ -64,6 +64,7 @@ struct skilldata_t
 	float flybeeDmgKick;
 	float flybeeDmgBeam;
 	float flybeeDmgFlyball;
+	float flybeeMaxspeed;
 
 #if FEATURE_OPFOR_GRUNT
 	float fgruntHealth;
