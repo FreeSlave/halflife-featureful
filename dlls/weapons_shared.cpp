@@ -2799,7 +2799,7 @@ public:
 	bool GetItemInfo(ItemInfo *p) override
 	{
 		p->iSlot = 2;
-		p->iPosition = 5;
+		p->iPosition = 6;
 		return true;
 	}
 };
@@ -2813,7 +2813,7 @@ public:
 	bool GetItemInfo(ItemInfo *p) override
 	{
 		p->iSlot = 2;
-		p->iPosition = 6;
+		p->iPosition = 7;
 		return true;
 	}
 };
@@ -2840,7 +2840,7 @@ public:
 	}
 	bool GetItemInfo(ItemInfo *p) override {
 		p->iSlot = 2;
-		p->iPosition = 7;
+		p->iPosition = 8;
 		return true;
 	}
 	WeaponParameters GetDefaultParameters() const override
@@ -2945,7 +2945,7 @@ public:
 	}
 	bool GetItemInfo(ItemInfo *p) override {
 		p->iSlot = 2;
-		p->iPosition = 8;
+		p->iPosition = 9;
 		return true;
 	}
 	WeaponParameters GetDefaultParameters() const override

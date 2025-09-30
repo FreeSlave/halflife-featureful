@@ -204,6 +204,7 @@ Possible ammo names:
 * `"spores"`
 * `"45acp"`
 * `"57mm"`
+* `"nails"`
 
 {{% hint warning %}}
 You still need to change the ammo sprite in the weapon hud .txt file to match the actual ammo type.

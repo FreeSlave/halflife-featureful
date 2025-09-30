@@ -511,6 +511,9 @@ void CGameRules::RefreshSkillData ()
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_UZI))
 		gSkillData.plrDmgUzi = GetSkillCvar( "sk_plr_uzi" );
 
+	gSkillData.monDmgNail = GetSkillCvar( "sk_nail" );
+	gSkillData.plrDmgNail = GetSkillCvar( "sk_plr_nail" );
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet" );
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

@@ -136,6 +136,7 @@ set (SVDLL_SOURCES
 	mortar.cpp
 	mp5.cpp
 	multiplay_gamerules.cpp
+	nailgun.cpp
 	nihilanth.cpp
 	nodes.cpp
 	nuclearbomb.cpp

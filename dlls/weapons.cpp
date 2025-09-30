@@ -326,6 +326,7 @@ void RegisterAmmoTypes()
 	g_AmmoRegistry.Register("spores", SPORE_MAX_CARRY);
 	g_AmmoRegistry.Register("45acp", 200);
 	g_AmmoRegistry.Register("57mm", 200);
+	g_AmmoRegistry.Register("nails", 200);
 
 	for (unsigned int i = 0; i<g_modFeatures.maxAmmoCount; ++i)
 	{
@@ -380,7 +381,8 @@ void W_Precache( CBaseEntity* pWorld )
 		AmmoEnabled("556", "ammo_556"),
 		AmmoEnabled("762", "ammo_762"),
 		AmmoEnabled("45acp", "ammo_45acp"),
-		AmmoEnabled("57mm", "ammo_57mm")
+		AmmoEnabled("57mm", "ammo_57mm"),
+		AmmoEnabled("nails", "ammo_nails")
 	};
 
 	ALERT(at_console, "Precaching weapons\n");

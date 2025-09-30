@@ -414,3 +414,18 @@ class C57MMAmmoClip : public CBasePlayerAmmo
 };
 
 LINK_ENTITY_TO_CLASS( ammo_57mm, C57MMAmmoClip )
+
+class CNailsAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "nails";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_nails, CNailsAmmoClip )

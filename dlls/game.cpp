@@ -314,6 +314,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("minigun", WEAPON_MINIGUN),
 		WeaponNameAndId("penguin", WEAPON_PENGUIN),
 		WeaponNameAndId("uzi", WEAPON_UZI),
+		WeaponNameAndId("nailgun", WEAPON_NAILGUN),
 		WeaponNameAndId("pistol", WEAPON_PISTOL),
 		WeaponNameAndId("pistol2", WEAPON_PISTOL2),
 		WeaponNameAndId("smg", WEAPON_SMG),
@@ -1154,6 +1155,10 @@ DECLARE_SKILL_VALUE(sk_plr_uzi, "6")
 // HORNET
 DECLARE_SKILL_VALUE(sk_hornet_dmg, "0")
 DECLARE_SKILL_VALUE(sk_plr_hornet_dmg, "7")
+
+// NAIL
+DECLARE_SKILL_VALUE(sk_nail, "8")
+DECLARE_SKILL_VALUE(sk_plr_nail, "8")
 
 // MORTAR
 DECLARE_SKILL_VALUE(sk_mortar, "200")
@@ -2115,6 +2120,10 @@ void GameDLLInit()
 	// HORNET
 	REGISTER_SKILL_CVARS(sk_hornet_dmg);
 	REGISTER_SKILL_CVARS(sk_plr_hornet_dmg);
+
+	// NAIL
+	REGISTER_SKILL_CVARS(sk_nail);
+	REGISTER_SKILL_CVARS(sk_plr_nail);
 
 	// MORTAR
 	REGISTER_SKILL_CVARS(sk_mortar);

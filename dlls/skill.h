@@ -240,6 +240,7 @@ struct skilldata_t
 	float plrDmgMedkit;
 	float plrMedkitTime;
 	float plrDmgUzi;
+	float plrDmgNail;
 
 	// weapons shared by monsters
 	float monDmg9MM;
@@ -250,6 +251,7 @@ struct skilldata_t
 	float monDmg556;
 	float monDmg762;
 	float monDmgBuckshot;
+	float monDmgNail;
 
 	// mortar
 	float mortarDmg;
