@@ -762,13 +762,14 @@ private:
 
 struct inventory_t
 {
-	inventory_t(): itemName(), spr(0), count(0) {}
+	inventory_t(): itemName(), spr(0), count(0), showInJournal(false) {}
 	std::string itemName;
 	HSPRITE spr;
 	wrect_t rc;
 	unsigned char r, g, b, a;
 	int position;
 	int count;
+	bool showInJournal;
 
 	bool CanRender() const {
 		return !itemName.empty() && spr;

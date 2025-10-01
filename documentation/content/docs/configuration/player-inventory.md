@@ -119,10 +119,11 @@ Example:
 
 This example defines the default sprite alpha (opacity), the text alpha (opacity for item counts) render parameters for 4 items.
 
-* `sprite` property should refer to the name from the **sprites/hud.txt**.
-* `color` defines sprite [color]({{< ref "JSON/#color" >}}) in HUD. When omitted it will use the client's main HUD color.
-* `position` can be `"topleft"`, `"topright"`, `"bottom"` and `"hide"`. The `"topleft"` is the default position. The `"topright"` means that the item icon will be displayed on the right side under the flashlight (or under the move mode if it's enabled). The `"bottom"` means that the item icon will be displayed on the bottom center.
-* `show_in_history` allows to configure whether the icon should appear in the pickup history (along with picked up items, ammo and weapons). This is true by default.
+* `"sprite"` property should refer to the name from the **sprites/hud.txt**.
+* `"color"` defines sprite [color]({{< ref "JSON/#color" >}}) in HUD. When omitted it will use the client's main HUD color.
+* `"position"` can be `"topleft"`, `"topright"`, `"bottom"` and `"hide"`. The `"topleft"` is the default position. The `"topright"` means that the item icon will be displayed on the right side under the flashlight (or under the move mode if it's enabled). The `"bottom"` means that the item icon will be displayed on the bottom center. The `"hide"` means to not show the item on the main HUD (but still show in the [journal]({{< ref journal >}}) if it has the inventory section).
+* `"show_in_history"` allows to configure whether the icon should appear in the pickup history (along with picked up items, ammo and weapons). This is true by default.
+* `"show_in_journal"` - whether to show the item in the [journal]({{< ref journal >}}) inventory section. This is true by default.
 
 If the map utilizes some inventory item that is not defined in the **sprites/hud_inventory.json** the game will try to find a HUD sprite by the item name and show it with default parameters (e.g. the item named `item_helmet` will use `item_helmet` as a HUD sprite and will render with a player's HUD color).
 

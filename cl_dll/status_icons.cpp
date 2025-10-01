@@ -323,12 +323,14 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 		item.b = b;
 		item.a = itemSpec->alpha;
 		item.position = itemSpec->position;
+		item.showInJournal = itemSpec->showInJournal;
 	}
 	else
 	{
 		item.r = item.g = item.b = 0;
 		item.a = 0;
 		item.position = INVENTORY_PLACE_DEFAULT;
+		item.showInJournal = true;
 	}
 
 	item.spr = gHUD.GetSprite( spr_index );

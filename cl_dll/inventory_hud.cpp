@@ -33,6 +33,9 @@ const char hudInventorySchema[] = R"(
 					},
 					"show_in_history": {
 						"type": "boolean"
+					},
+					"show_in_journal": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false
@@ -42,7 +45,7 @@ const char hudInventorySchema[] = R"(
 }
 )";
 
-InventoryItemHudSpec::InventoryItemHudSpec(): packedColor(0), alpha(0), position(INVENTORY_PLACE_DEFAULT), colorDefined(false), showInHistory(true)
+InventoryItemHudSpec::InventoryItemHudSpec(): packedColor(0), alpha(0), position(INVENTORY_PLACE_DEFAULT), colorDefined(false), showInHistory(true), showInJournal{true}
 {
 	spriteName[0] = '\0';
 }
@@ -87,6 +90,7 @@ bool InventoryHudSpec::ReadFromDocument(const rapidjson::Document& document, con
 
 			UpdatePropertyFromJson(item.alpha, value, "alpha");
 			UpdatePropertyFromJson(item.showInHistory, value, "show_in_history");
+			UpdatePropertyFromJson(item.showInJournal, value, "show_in_journal");
 
 			HandleJSONMember(value, "position", [&item](const Value& value) {
 				const char* positionStr = value.GetString();

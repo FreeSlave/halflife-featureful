@@ -22,6 +22,7 @@ struct InventoryItemHudSpec
 	int position;
 	bool colorDefined;
 	bool showInHistory;
+	bool showInJournal;
 };
 
 class InventoryHudSpec : public JSONConfig

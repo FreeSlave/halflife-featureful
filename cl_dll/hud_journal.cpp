@@ -242,7 +242,7 @@ int CHudJournal::Draw(float flTime)
 					for (const inventory_t& item : gHUD.m_StatusIcons.m_InventoryList)
 					{
 						// TODO: deduplicate with inventory item rendering in status icons
-						if (item.CanRender())
+						if (item.CanRender() && item.showInJournal)
 						{
 							int r = item.r;
 							int g = item.g;

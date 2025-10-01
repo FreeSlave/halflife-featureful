@@ -72,12 +72,14 @@ const char inventoryHudSpecs[] = R"(
 		"battery_blue": {
 			"sprite": "item_battery",
 			"position": "bottom",
-			"color": [0, 100, 255]
+			"color": [0, 100, 255],
+			"show_in_journal": false
 		},
 		"keycard": {
 			"sprite": "item_keycard",
 			"position": "topleft",
-			"color": "204 204 255"
+			"color": "204 204 255",
+			"show_in_history": false
 		},
 		"armorvest": {
 			"sprite": "item_armorvest",
@@ -103,6 +105,7 @@ TEST(InventoryHudSpec, Parse)
 	EXPECT_TRUE(batterySpec->colorDefined);
 	EXPECT_EQ(batterySpec->packedColor, PackRGB(0, 100, 255));
 	EXPECT_EQ(batterySpec->position, INVENTORY_PLACE_BOTTOM_CENTER);
+	EXPECT_FALSE(batterySpec->showInJournal);
 
 	const InventoryItemHudSpec* keycardSpec = ihs.GetInventoryItemSpec("keycard");
 	ASSERT_TRUE(keycardSpec != nullptr);
@@ -111,6 +114,7 @@ TEST(InventoryHudSpec, Parse)
 	EXPECT_TRUE(keycardSpec->colorDefined);
 	EXPECT_EQ(keycardSpec->packedColor, PackRGB(204, 204, 255));
 	EXPECT_EQ(keycardSpec->position, INVENTORY_PLACE_TOP_LEFT);
+	EXPECT_FALSE(keycardSpec->showInHistory);
 
 	const InventoryItemHudSpec* armorVestSpec = ihs.GetInventoryItemSpec("armorvest");
 	ASSERT_TRUE(armorVestSpec != nullptr);
@@ -118,4 +122,6 @@ TEST(InventoryHudSpec, Parse)
 	EXPECT_STREQ(armorVestSpec->spriteName,  "item_armorvest");
 	EXPECT_FALSE(armorVestSpec->colorDefined);
 	EXPECT_EQ(armorVestSpec->position, INVENTORY_PLACE_TOP_RIGHT);
+	EXPECT_TRUE(armorVestSpec->showInHistory);
+	EXPECT_TRUE(armorVestSpec->showInJournal);
 }
