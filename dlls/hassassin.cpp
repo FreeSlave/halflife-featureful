@@ -363,10 +363,10 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 					// what speed would be best to use, here? Borrowing the hgrunt grenade speed seems silly...
 					vecToss = ((gpGlobals->v_forward*0.5)+(gpGlobals->v_up*0.5)).Normalize()*gSkillData.hgruntGrenadeSpeed;
 				}
-				CGrenade::ShootTimed( pev, vecGunPosition, vecToss, 2.0 );
+				CGrenade::ShootTimed( pev, vecGunPosition, vecToss, 2.0f, GetProjectileOverrides() );
 			}
 			else
-				CGrenade::ShootTimed( pev, vecGunPosition, m_vecTossVelocity, 2.0 );
+				CGrenade::ShootTimed( pev, vecGunPosition, m_vecTossVelocity, 2.0f, GetProjectileOverrides() );
 
 			m_flNextGrenadeCheck = gpGlobals->time + 6.0f;// wait six seconds before even looking again to see if a grenade can be thrown.
 			m_fThrowGrenade = false;
@@ -460,6 +460,8 @@ void CHAssassin::Precache()
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
+
+	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 
 	m_iShell = PRECACHE_MODEL( "models/shell.mdl" );// brass shell
 }	

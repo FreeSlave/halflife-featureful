@@ -376,6 +376,8 @@ void CMassn::Precache()
 	RegisterAndPrecacheSoundScript(grenadeLaunchSoundScript, NPC::grenadeLaunchSoundScript);
 	RegisterAndPrecacheSoundScript(sniperSoundScript, NPC::sniperSoundScript);
 
+	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
+
 	m_voicePitch = 100;
 	m_iBrassShell = PRECACHE_MODEL("models/shell.mdl");// brass shell
 }

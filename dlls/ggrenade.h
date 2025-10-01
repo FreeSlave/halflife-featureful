@@ -9,14 +9,14 @@
 class CGrenade : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 	void PrecacheBaseGrenadeSounds();
 
 	typedef enum { SATCHEL_DETONATE = 0, SATCHEL_RELEASE } SATCHELCODE;
 
-	static CGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
-	static CGrenade *ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
+	static CGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time, EntityOverrides entityOverrides = EntityOverrides() );
+	static CGrenade *ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides() );
 	static CGrenade *ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
 	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 
@@ -50,9 +50,13 @@ public:
 	}
 
 	bool m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.
+	bool m_isTimed;
 
 	static const NamedSoundScript debrisSoundScript;
 	static const NamedSoundScript bounceSoundScript;
+
+	static const NamedVisual handGrenadeVisual;
+	static const NamedVisual arGrenadeVisual;
 };
 
 #endif

@@ -48,6 +48,12 @@ const NamedSoundScript CGrenade::bounceSoundScript = {
 	"HandGrenade.Bounce"
 };
 
+const NamedVisual CGrenade::handGrenadeVisual = BuildVisual("HandGrenade.Model")
+		.Model("models/w_grenade.mdl");
+
+const NamedVisual CGrenade::arGrenadeVisual = BuildVisual("ARGrenade.Model")
+		.Model("models/grenade.mdl");
+
 // Grenades flagged with this will be triggered when the owner calls detonateSatchelCharges
 #define SF_DETONATE		0x0001
 
@@ -350,7 +356,10 @@ void CGrenade::Spawn( void )
 
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL( ENT( pev ), "models/grenade.mdl" );
+	if (m_isTimed)
+		ApplyVisual(GetVisual(handGrenadeVisual));
+	else
+		ApplyVisual(GetVisual(arGrenadeVisual));
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	pev->dmg = gSkillData.plrDmgHandGrenade;
@@ -361,6 +370,9 @@ void CGrenade::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
+
+	RegisterVisual(handGrenadeVisual);
+	RegisterVisual(arGrenadeVisual);
 }
 
 void CGrenade::PrecacheBaseGrenadeSounds()
@@ -368,9 +380,10 @@ void CGrenade::PrecacheBaseGrenadeSounds()
 	RegisterAndPrecacheSoundScript(debrisSoundScript);
 }
 
-CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity )
+CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides )
 {
 	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
+	pGrenade->AssignEntityOverrides(entityOverrides);
 	pGrenade->Spawn();
 	// contact grenades arc lower
 	pGrenade->pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
@@ -394,9 +407,11 @@ CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector v
 	return pGrenade;
 }
 
-CGrenade *CGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time )
+CGrenade *CGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time, EntityOverrides entityOverrides )
 {
 	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
+	pGrenade->m_isTimed = true;
+	pGrenade->AssignEntityOverrides(entityOverrides);
 	pGrenade->Spawn();
 	UTIL_SetOrigin( pGrenade->pev, vecStart );
 	pGrenade->pev->velocity = vecVelocity;
@@ -418,7 +433,6 @@ CGrenade *CGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vec
 		pGrenade->pev->velocity = Vector( 0, 0, 0 );
 	}
 
-	SET_MODEL( ENT( pGrenade->pev ), "models/w_grenade.mdl" );
 	pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
 	pGrenade->ResetSequenceInfo();
 	pGrenade->pev->framerate = 1.0f;
