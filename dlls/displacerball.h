@@ -3,6 +3,8 @@
 
 #include "cbase.h"
 
+#define DISPLACERBALL_SPEED 500.0f
+
 class CBeam;
 //=========================================================
 // Displacement field
@@ -13,9 +15,8 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
-	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles);
-	static float BallSpeed() { return 500.0f; }
 	static void SelfCreate(entvars_t *pevOwner, Vector vecStart);
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void EXPORT BallTouch(CBaseEntity *pOther);
 	void EXPORT ExplodeThink();

@@ -36,6 +36,12 @@
 class CHornet : public CBaseMonster
 {
 public:
+	enum
+	{
+		TRACKING = 0,
+		DART
+	};
+
 	void Spawn() override;
 	void Precache() override;
 	int DefaultClassify() override;
@@ -44,6 +50,8 @@ public:
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
+
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void IgniteTrail();
 	void EXPORT StartTrack();

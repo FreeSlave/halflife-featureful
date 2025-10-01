@@ -21,7 +21,8 @@ TYPEDESCRIPTION	CSpore::m_SaveData[] =
 {
 	DEFINE_FIELD(CSpore, m_SporeType, FIELD_INTEGER),
 	DEFINE_FIELD(CSpore, m_flIgniteTime, FIELD_TIME),
-	DEFINE_FIELD(CSpore, m_bIsAI, FIELD_BOOLEAN),
+	DEFINE_FIELD(CSpore, m_flSoundDelay, FIELD_TIME),
+	DEFINE_FIELD(CSpore, m_flExploDelay, FIELD_FLOAT),
 	DEFINE_FIELD(CSpore, m_hSprite, FIELD_EHANDLE)
 };
 
@@ -75,7 +76,7 @@ const NamedVisual CSpore::lightVisual = BuildVisual("Spore.Light")
 
 void CSpore::Precache()
 {
-	RegisterVisual(modelVisual);
+	RegisterVisualAsMineOwn(modelVisual);
 	RegisterVisual(spriteVisual);
 
 	RegisterVisual(blowVisual);
@@ -92,36 +93,36 @@ void CSpore::Spawn()
 {
 	Precache();
 
-	if (m_SporeType == GRENADE)
-		pev->movetype = MOVETYPE_BOUNCE;
-	else
+	if (m_SporeType == ROCKET)
 		pev->movetype = MOVETYPE_FLY;
+	else
+		pev->movetype = MOVETYPE_BOUNCE;
 
 	pev->solid = SOLID_BBOX;
 	pev->classname = MAKE_STRING("spore");
 
-	ApplyVisual(GetVisual(modelVisual));
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin(pev, pev->origin);
 
 	SetThink(&CSpore::FlyThink);
 
-	if (m_SporeType == GRENADE)
+	if (m_SporeType == ROCKET)
+	{
+		SetTouch(&CSpore::RocketTouch);
+	}
+	else
 	{
 		SetTouch(&CSpore::MyBounceTouch);
 
-		if (!m_bPuked)
+		if (m_SporeType != GRENADE_PUKED)
 		{
 			pev->angles.x -= RANDOM_LONG(-5, 5) + 30;
 		}
 	}
-	else
-	{
-		SetTouch(&CSpore::RocketTouch);
-	}
 
-	if (!m_bIsAI)
+	if (m_SporeType != GRENADE_THROWN)
 	{
 		pev->gravity = 1;
 	}
@@ -166,7 +167,7 @@ void CSpore::IgniteThink()
 	TraceResult tr;
 
 	UTIL_TraceLine(
-		pev->origin, pev->origin + vecDir * (m_SporeType == GRENADE ? 64 : 32),
+		pev->origin, pev->origin + vecDir * (m_SporeType == ROCKET ? 32 : 64),
 		dont_ignore_monsters, edict(), &tr);
 
 	if (gDecals[DECAL_SPR_SPLT1].index >= 0)
@@ -191,9 +192,7 @@ void CSpore::IgniteThink()
 
 void CSpore::FlyThink()
 {
-	const float flDelay = m_bIsAI ? 4.0 : 2.0;
-
-	if (m_SporeType != GRENADE || (gpGlobals->time <= m_flIgniteTime + flDelay))
+	if (m_SporeType == ROCKET || (gpGlobals->time <= m_flIgniteTime + m_flExploDelay))
 	{
 		Vector velocity = pev->velocity.Normalize();
 		SendSpray(pev->origin, velocity, GetVisual(trailVisual), 2, 20, 80);
@@ -247,37 +246,6 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 	}
 }
 
-CSpore* CSpore::CreateSpore(const Vector& vecOrigin, const Vector& vecAngles, const Vector& vecVelocity, CBaseEntity* pOwner, SporeType sporeType, bool bIsAI, bool bPuked, EntityOverrides entityOverrides)
-{
-	CSpore* pSpore = GetClassPtr((CSpore *)NULL);
-	UTIL_SetOrigin(pSpore->pev, vecOrigin);
-	pSpore->AssignEntityOverrides(entityOverrides);
-
-	pSpore->m_SporeType = sporeType;
-
-	pSpore->m_bIsAI = bIsAI;
-	pSpore->m_bPuked = bPuked;
-
-	pSpore->Spawn();
-
-	pSpore->pev->velocity = vecVelocity;
-	pSpore->pev->angles = vecAngles;
-
-	pSpore->pev->owner = pOwner->edict();
-
-	return pSpore;
-}
-
-CSpore* CSpore::ShootContact(CBaseEntity *pOwner, const Vector &vecOrigin, const Vector& vecAngles, const Vector& vecVelocity)
-{
-	return CSpore::CreateSpore(vecOrigin, vecAngles, vecVelocity, pOwner, CSpore::ROCKET);
-}
-
-CSpore* CSpore::ShootTimed(CBaseEntity *pOwner, const Vector &vecOrigin, const Vector &vecAngles, const Vector& vecVelocity, bool bIsAI)
-{
-	return CSpore::CreateSpore(vecOrigin, vecAngles, vecVelocity, pOwner, CSpore::GRENADE, bIsAI, false);
-}
-
 void CSpore::UpdateOnRemove()
 {
 	CGrenade::UpdateOnRemove();
@@ -286,6 +254,30 @@ void CSpore::UpdateOnRemove()
 		UTIL_Remove(m_hSprite);
 		m_hSprite = 0;
 	}
+}
+
+void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
+{
+	m_SporeType = static_cast<SporeType>(params.variant);
+
+	if (!params.time)
+	{
+		switch (m_SporeType) {
+		case GRENADE_THROWN:
+			m_flExploDelay = 4.0f;
+			break;
+		default:
+			m_flExploDelay = 2.0f;
+			break;
+		}
+	}
+	else
+		m_flExploDelay = params.time;
+}
+
+void CSpore::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(m_SporeType == ROCKET ? SPORE_ROCKET_SPEED : SPORE_GRENADE_SPEED, params.direction, params.speedOverride);
 }
 
 //=========================================================
@@ -396,15 +388,16 @@ TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pev
 		angles.x -= 90;
 		angles.y += 180;
 
-		Vector vecLaunchDir = angles;
+		Vector vecLaunchAngle = angles;
 
-		vecLaunchDir.x += RANDOM_FLOAT( -20, 20 );
-		vecLaunchDir.y += RANDOM_FLOAT( -20, 20 );
-		vecLaunchDir.z += RANDOM_FLOAT( -20, 20 );
+		vecLaunchAngle.x += RANDOM_FLOAT( -20, 20 );
+		vecLaunchAngle.y += RANDOM_FLOAT( -20, 20 );
+		vecLaunchAngle.z += RANDOM_FLOAT( -20, 20 );
 
-		UTIL_MakeVectors( vecLaunchDir );
-		Vector vecVelocity = gpGlobals->v_forward * CSpore::SporeGrenadeSpeed();
-		CSpore::CreateSpore(pev->origin, vecLaunchDir, vecVelocity, this, CSpore::GRENADE, false, true);
+		UTIL_MakeVectors( vecLaunchAngle );
+		ProjectileParameters params("spore", pev->origin, vecLaunchAngle, gpGlobals->v_forward, this, GetProjectileOverrides());
+		params.variant = CSpore::GRENADE_PUKED;
+		CBaseEntity::CreateAndLaunchAsProjectile(params);
 
 		pev->frame = 0;
 		pev->animtime		= gpGlobals->time + 0.1;

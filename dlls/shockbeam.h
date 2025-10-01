@@ -6,6 +6,8 @@
 class CBeam;
 class CSprite;
 
+#define SHOCKBEAM_SPEED 2000.0f
+
 //=========================================================
 // Shockrifle projectile
 //=========================================================
@@ -15,8 +17,6 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
-	static void Shoot(entvars_t *pevOwner, const Vector angles, const Vector vecStart, const Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
-	static float ShockSpeed() { return 2000.0f; }
 	void Touch(CBaseEntity *pOther) override;
 	void EXPORT FlyThink();
 
@@ -27,6 +27,7 @@ public:
 	void CreateEffects();
 	void ClearEffects();
 	void UpdateOnRemove() override;
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	CBeam *m_pBeam;
 	CBeam *m_pNoise;

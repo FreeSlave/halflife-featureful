@@ -9,14 +9,22 @@
 class CGrenade : public CBaseMonster
 {
 public:
+	enum GrenadeType
+	{
+		CONTACT,
+		TIMED
+	};
+
 	void Spawn() override;
 	void Precache() override;
 	void PrecacheBaseGrenadeSounds();
 
 	typedef enum { SATCHEL_DETONATE = 0, SATCHEL_RELEASE } SATCHELCODE;
 
-	static CGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time, EntityOverrides entityOverrides = EntityOverrides() );
-	static CGrenade *ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides() );
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	static CGrenade *ShootTimed( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, float time, EntityOverrides entityOverrides = EntityOverrides() );
+	static CGrenade *ShootContact( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, EntityOverrides entityOverrides = EntityOverrides() );
 	static CGrenade *ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
 	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 

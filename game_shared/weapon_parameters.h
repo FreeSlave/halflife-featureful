@@ -517,6 +517,15 @@ struct WeaponParameters
 		FloatRange idleDelay{0.0f};
 	};
 
+	struct FirePhase
+	{
+		FirePhase(float r, float u) : side(r), up(u) {}
+		FirePhase() {}
+		float side{0.0f};
+		float up{0.0f};
+	};
+	typedef std::vector<FirePhase> FirePhaseArray;
+
 	struct Fire
 	{
 		enum Type
@@ -524,7 +533,15 @@ struct WeaponParameters
 			NATIVE,
 			BULLETS,
 			MELEE,
-			MELEE_WIND
+			MELEE_WIND,
+			PROJECTILE
+		};
+
+		enum ADD_VELOCITY
+		{
+			DONT_ADD_VELOCITY,
+			ADD_VELOCITY_ABSOLUTE,
+			ADD_VELOCITY_PROJECTION
 		};
 
 		WeaponModeValue<Type> fireType{NATIVE};
@@ -604,6 +621,18 @@ struct WeaponParameters
 
 		WeaponModeValue<bool> preventMovement{false};
 		WeaponModeValue<PlayerSpeed> playerMaxSpeed;
+
+		WeaponModeValue<std::string> projectileName;
+		WeaponModeValue<std::string> projectileEntTemplate;
+		WeaponModeValue<float> projectileOffsetUp{0.0f};
+		WeaponModeValue<float> projectileOffsetSide{0.0f};
+		WeaponModeValue<float> projectileOffsetForward{0.0f};
+		WeaponModeValue<bool> projectileRespectPunchangle{true};
+		WeaponModeValue<bool> projectileAdjustToCross{true};
+		WeaponModeValue<float> projectileSpeed{0.0f};
+		WeaponModeValue<ADD_VELOCITY> projectileAddCurrentVelocity{DONT_ADD_VELOCITY};
+		WeaponModeValue<float> projectileDetonationTime{0.0f};
+		WeaponModeValue<FirePhaseArray> projectileFirePhases;
 	};
 
 	struct Fade

@@ -77,7 +77,7 @@ void CGonomeGuts::Spawn()
 
 void CGonomeGuts::Precache()
 {
-	RegisterVisual(gutsVisual);
+	RegisterVisualAsMineOwn(gutsVisual);
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 }
@@ -98,7 +98,9 @@ void CGonomeGuts::Touch( CBaseEntity *pOther )
 	}
 	else
 	{
-		pOther->TakeDamage( pev, pev, DamageInfo(gSkillData.gonomeDmgGuts, DMG_GENERIC) );
+		CBaseMonster* owner = GetMonsterPointer( pev->owner );
+		entvars_t* pevAttacker = owner ? owner->pev : pev;
+		pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.gonomeDmgGuts, DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );

@@ -1281,6 +1281,9 @@ TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 
 	DEFINE_FIELD( CConfigurableWeapon, m_primaryFireEndTime, FIELD_TIME ),
 	DEFINE_FIELD( CConfigurableWeapon, m_secondaryFireEndTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CConfigurableWeapon, m_cActiveRockets, FIELD_INTEGER ),
+	DEFINE_FIELD( CConfigurableWeapon, m_iFirePhase, FIELD_INTEGER ),
 };
 
 IMPLEMENT_SAVERESTORE( CConfigurableWeapon, CBasePlayerWeapon )

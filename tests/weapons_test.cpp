@@ -392,6 +392,44 @@ const char weaponTemplates[] = R"(
 			"icon": "test",
 			"trigger_delay": 1.2
 		}
+	},
+	"weapon_projectile": {
+		"fire": {
+			"type": "projectile",
+			"projectile": {
+				"name": "grenade",
+				"ent_template": "template_name",
+				"offset": {
+					"forward": 16,
+					"side": 8,
+					"up": -8
+				},
+				"respect_punchangle": false,
+				"fire_phase_offsets": [
+					{
+						"side": 8,
+						"up": 8
+					},
+					{
+						"side": -8,
+						"up": -8
+					}
+				]
+			}
+		}
+	},
+	"weapon_projectile2": {
+		"fire": {
+			"projectile": {
+				"fire_phase_offsets": {
+					"start_angle": 90,
+					"type": "square",
+					"count": 8,
+					"distance": 10,
+					"orientation": "counter-clockwise"
+				}
+			}
+		}
 	}
 }
 )";
@@ -402,6 +440,8 @@ TEST(Weapons, Parse) {
 	g_weaponParameters["weapon_9mmAR"] = WeaponParameters();
 	g_weaponParameters["weapon_test"] = WeaponParameters();
 	g_weaponParameters["weapon_test2"] = WeaponParameters();
+	g_weaponParameters["weapon_projectile"] = WeaponParameters();
+	g_weaponParameters["weapon_projectile2"] = WeaponParameters();
 
 	WeaponTemplateSystem s;
 
@@ -717,5 +757,53 @@ TEST(Weapons, Parse) {
 
 		EXPECT_EQ(testParams.toolIcon, "test");
 		EXPECT_EQ(testParams.toolTriggerDelay, 1.2f);
+	}
+
+	{
+		const WeaponParameters* pTestParams = AccessWeaponParameters("weapon_projectile");
+		ASSERT_TRUE(pTestParams != nullptr);
+
+		const WeaponParameters& testParams = *pTestParams;
+
+		EXPECT_EQ(testParams.fire.fireType.Get(false), WeaponParameters::Fire::PROJECTLE);
+		EXPECT_EQ(testParams.fire.projectileName.Get(false), "grenade");
+		EXPECT_EQ(testParams.fire.projectileEntTemplate.Get(false), "template_name");
+		EXPECT_EQ(testParams.fire.projectileOffsetForward.Get(false), 16.0f);
+		EXPECT_EQ(testParams.fire.projectileOffsetSide.Get(false), 8.0f);
+		EXPECT_EQ(testParams.fire.projectileOffsetUp.Get(false), -8.0f);
+		EXPECT_FALSE(testParams.fire.projectileRespectPunchangle.Get(false));
+
+		const auto& firePhases = testParams.fire.projectileFirePhases.Get(false);
+		ASSERT_EQ(firePhases.size(), 2);
+		EXPECT_FLOAT_EQ(firePhases[0].side, 8);
+		EXPECT_FLOAT_EQ(firePhases[0].up, 8);
+		EXPECT_FLOAT_EQ(firePhases[1].side, -8);
+		EXPECT_FLOAT_EQ(firePhases[1].up, -8);
+	}
+
+	{
+		const WeaponParameters* pTestParams = AccessWeaponParameters("weapon_projectile2");
+		ASSERT_TRUE(pTestParams != nullptr);
+
+		const WeaponParameters& testParams = *pTestParams;
+		const auto& firePhases = testParams.fire.projectileFirePhases.Get(false);
+		ASSERT_EQ(firePhases.size(), 8);
+		const float absError = 0.00001f;
+		EXPECT_NEAR(firePhases[0].side, 0, absError);
+		EXPECT_NEAR(firePhases[0].up, 10, absError);
+		EXPECT_NEAR(firePhases[1].side, -10, absError);
+		EXPECT_NEAR(firePhases[1].up, 10, absError);
+		EXPECT_NEAR(firePhases[2].side, -10, absError);
+		EXPECT_NEAR(firePhases[2].up, 0, absError);
+		EXPECT_NEAR(firePhases[3].side, -10, absError);
+		EXPECT_NEAR(firePhases[3].up, -10, absError);
+		EXPECT_NEAR(firePhases[4].side, 0, absError);
+		EXPECT_NEAR(firePhases[4].up, -10, absError);
+		EXPECT_NEAR(firePhases[5].side, 10, absError);
+		EXPECT_NEAR(firePhases[5].up, -10, absError);
+		EXPECT_NEAR(firePhases[6].side, 10, absError);
+		EXPECT_NEAR(firePhases[6].up, 0, absError);
+		EXPECT_NEAR(firePhases[7].side, 10, absError);
+		EXPECT_NEAR(firePhases[7].up, 10, absError);
 	}
 }

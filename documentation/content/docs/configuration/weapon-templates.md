@@ -462,7 +462,8 @@ The attack type. Current supported values are:
 
 * `"bullet"` or `"bullets"` (these are synonyms) - used by most firearms.
 * `"melee"` - used by melee weapons.
-* Note: configuration of laser and projectile attacks will come later.
+* `"projectile"` - the weapon fires projectiles. This requires [projectile]({#projectile}) to be defined.
+* Note: configuration of laser attacks will come later.
 
 ### allow_underwater
 
@@ -777,6 +778,212 @@ In order to disable player's movement for the attack duration it's better to use
 ### prevent_movement
 
 A boolean defining whether player can't move during firing. This is used by [weapon_camera]({{< ref weapon_camera >}}) and [weapon_radio]({{< ref weapon_radio >}}).
+
+### projectile
+
+An object defining the properties of the fired projectile if the [fire type](#type) is `"projectile"`.
+
+#### name
+
+The name of the projectile type. Technically is can be any existing entity classname, but only certain entities support proper launching logic:
+
+* [bmortar]({{< ref bmortar >}})
+* [charged_bolt]({{< ref charged_bolt >}})
+* [controller_energy_ball]({{< ref controller_energy_ball >}})
+* [crossbow_bolt]({{< ref crossbow_bolt >}})
+* [displacer_ball]({{< ref displacer_ball >}})
+* [grenade]({{< ref grenade >}}) - AR grenade.
+* [hornet]({{< ref hornet >}}) - tracking hornet.
+* [hvr_rocket]({{< ref hvr_rocket >}})
+* [mortar_shell]({{< ref mortar_shell >}})
+* [pitdronespike]({{< ref pitdronespike >}})
+* [rpg_rocket]({{< ref rpg_rocket >}})
+* [shock_beam]({{< ref shock_beam >}})
+* [spore]({{< ref spore >}}) - throwable spore (as thrown by [shock troopers]({{< ref monster_shocktrooper >}})).
+* [squidspit]({{< ref squidspit >}})
+* [squidtoxicspit]({{< ref squidtoxicspit >}})
+
+There're also some predefined names to support alternative variants of existing projectiles:
+
+* `"crossbow_bolt explosive"` - explosive crossbow bolt (Half-Life deathmatch).
+* `"hornet dart"` - fast non-tracking hornets (hornetgun secondary attack).
+* `"hand grenade"` - timed hand grenade.
+* `"spore rocket"` - contact spore that flies forward (spore launcher primary attack).
+* `"spore bouncy"` - spore that bounces of the surfaces (spore launcher secondary attack).
+
+Example: make hornetgun fire squid spits instead of hornets on primary attack.
+
+```json
+{
+    "weapon_hornetgun": {
+        "fire": {
+            "projectile": {
+                "name": "squidspit"
+            }
+        }
+    }
+}
+```
+
+#### ent_template
+
+The name of the [entity template]({{< ref entity-templates >}}) for the projectile. This allows to configure visuals and soundscripts for the fired projectile.
+
+#### offset {#projectile-offset}
+
+The offset that defines how far from the player's eyes the projectile should spawn. The object can define the following values:
+
+* `"forward"` - forward offset (how far from the player's camera).
+* `"side"` - offset to the right side. Make it negative to offset to the left side.
+* `"up"` - vertical offset. It's usually a negative value since weapons are drawn at the bottom.
+
+Example:
+
+```json
+{
+    "weapon_hornetgun": {
+        "fire": {
+            "projectile": {
+                "offset": {
+                    "forward": 16,
+                    "side": 8,
+                    "up": -12,
+                }
+            }
+        }
+    }
+}
+```
+
+#### adjust_to_cross
+
+A boolean - whether the projectile must be adjusted to the screen's center. Depending on the `offset` the projectile might shoot at the point lower and to the side from the crosshair (this is especially noticeable in Opposing Force with shockrifle and sporelauncher). This is `true` by default, but `false` for the following weapons:
+
+* [weapon_crossbow]({{< ref weapon_crossbow >}})
+* [weapon_hornetgun]({{< ref weapon_hornetgun >}}) primary attack
+* [weapon_9mmAR]({{< ref weapon_9mmAR >}}) secondary attack.
+* [weapon_rpg]({{< ref weapon_rpg >}})
+
+#### respect_punchangle
+
+A boolean - whether the current player's punchangle should be accounted for when setting the projectile angle. This is `true` by default, but `false` for the following weapons:
+
+* [weapon_hornetgun]({{< ref weapon_hornetgun >}})
+* [weapon_rpg]({{< ref weapon_rpg >}})
+* [weapon_sporelauncher]({{< ref weapon_sporelauncher >}})
+
+#### speed
+
+Custom speed for a projectile. This must be a number higher than 0. If not set the speed depends on the projectile.
+
+#### time
+
+Time before detonation, in seconds. This is used by `"hand grenade"`, `"spore"` and `"spore bouncy"`.
+
+```json
+{
+    "weapon_hornetgun": {
+        "fire": {
+            "projectile": {
+                "name": "hand grenade",
+                "time": 1.5
+            }
+        }
+    }
+}
+```
+
+#### add_player_velocity
+
+How (and if) the player's current velocity should be added to the one of the projectile. Possible values:
+
+* `false` - don't add player's velocity (default).
+* `true` - add player's velocity (like in hand grenades or satchels).
+* `"absolute"` - same as `true`
+* `"projection"` - add the player's velocity vector projected on the fire direction vector (via dot product). Used by RPG by default.
+
+#### fire_phase_offsets
+
+An array that defines the additional offsets for the projectile position - these offsets alternate with each shot. By default this is used by the secondary attack of [weapon_hornetgun]({{< ref weapon_hornetgun >}}).
+
+Each item in the array if the object that can have the following properties:
+
+* `"side"` - additional offset to the right side. Use negative values for the offset to the left side.
+* `"up"` - additional vertical offset.
+
+Example: hornetgun's fire phase offsets defined as an array:
+
+```json
+{
+    "weapon_hornetgun": {
+        "fire": {
+            "projectile": {
+                "fire_phase_offsets": [
+                    {
+                        "side": 0,
+                        "up": 8
+                    },
+                    {
+                        "side": 8,
+                        "up": 8
+                    },
+                    {
+                        "side": 8,
+                        "up": 0
+                    },
+                    {
+                        "side": 8,
+                        "up": -8
+                    },
+                    {
+                        "side": 0,
+                        "up": -8
+                    },
+                    {
+                        "side": -8,
+                        "up": -8
+                    },
+                    {
+                        "side": -8,
+                        "up": 0
+                    },
+                    {
+                        "side": -8,
+                        "up": 8
+                    },
+                ]
+            }
+        }
+    }
+}
+```
+
+Alternatively if the offsets form a square or an equilateral polygon and come in the clockwise or counter-clockwise order, the fire phase offsets can be defined via the object with the following properties:
+
+* `"start_angle"` - a starting angle in degrees where the phase starts. E.g. `90` means the first shot will have an offset going up. The value `0` means the direction to the right. This option is required.
+* `"count"` - the number of phases. Used to calculate the angle offset per phase step. E.g. `8` means that each fraction will be 360/8 = 45 degrees. This option is required.
+* `"distance"` - the offset distance.
+* `"type"` - how to interpret the offset. The value `"circle"` means to interpret the offset as a circle radius. The value `"square"` means to interpret the distance as a half of the square side length. E.g. considering the `"distance"` is set to 1, and `"start_angle"` is set to 45 the initial offset would be 1, 1 for `"square"` type and approximately 0.707, 0.707 (cos and sin of 45 degree) for a `"circle"` type. The default value is `"circle"`.
+* `"orientation"` - in which direction the angle fraction should be changed for the next fire phase. Possible values: `"clockwise"` and `"counter-clockwise"`. The default orientation is `"clockwise"`.
+
+Example: hornetgun's fire phase offsets defined as an object:
+
+```json
+{
+    "weapon_hornetgun": {
+        "alt_fire": {
+            "projectile": {
+                "fire_phase_offsets": {
+                    "start_angle": 90,
+                    "count": 8,
+                    "distance": 8,
+                    "type": "square"
+                }
+            }
+        }
+    }
+}
+```
 
 ### pump_delay
 

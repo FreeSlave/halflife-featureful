@@ -110,7 +110,7 @@ const NamedVisual CGeneWormCloud::cloudVisual = BuildVisual("GeneWorm.Cloud")
 
 void CGeneWormCloud::Precache()
 {
-	RegisterVisual(cloudVisual);
+	RegisterVisualAsMineOwn(cloudVisual);
 }
 
 void CGeneWormCloud::Spawn()
@@ -122,7 +122,7 @@ void CGeneWormCloud::Spawn()
 	pev->effects = 0;
 	pev->frame = 0;
 
-	ApplyVisual(GetVisual(cloudVisual));
+	ApplyVisualWithOwn(GetVisual(cloudVisual));
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 

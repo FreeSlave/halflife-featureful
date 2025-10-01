@@ -28,6 +28,8 @@
 #define BOLT_AIR_VELOCITY	2000
 #define BOLT_WATER_VELOCITY	1000
 
+#define SF_CROSSBOW_BOLT_EXPLOSIVE 512
+
 // UNDONE: Save/restore this?  Don't forget to set classname and LINK_ENTITY_TO_CLASS()
 // 
 // OVERLOADS SOME ENTVARS:
@@ -42,8 +44,11 @@ public:
 	void EXPORT BubbleThink();
 	void EXPORT BoltTouch( CBaseEntity *pOther );
 	void EXPORT ExplodeThink();
-
-	static CCrossbowBolt *BoltCreate();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) {
+		if (params.variant)
+			pev->spawnflags |= SF_CROSSBOW_BOLT_EXPLOSIVE;
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	static const NamedSoundScript boltHitBody;
 	static const NamedSoundScript boltHitWorld;
@@ -66,14 +71,23 @@ const NamedSoundScript CCrossbowBolt::boltHitWorld = {
 	"Crossbow.BoltHitWorld"
 };
 
-CCrossbowBolt *CCrossbowBolt::BoltCreate()
+void CCrossbowBolt::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	// Create a new entity with CCrossbowBolt private data
-	CCrossbowBolt *pBolt = GetClassPtr( (CCrossbowBolt *)NULL );
-	pBolt->pev->classname = MAKE_STRING( "crossbow_bolt" );	// g-cont. enable save\restore
-	pBolt->Spawn();
+	bool inWater = false;
+	if (params.pLauncher && params.pOwner && params.pLauncher->MyWeaponPointer() && params.pOwner->IsPlayer())
+	{
+		inWater = params.pOwner->pev->waterlevel == WL_Eyes;
+	}
+	else
+	{
+		inWater = UTIL_PointContents(pev->origin) == CONTENTS_WATER;
+	}
 
-	return pBolt;
+	const float defaultSpeed = inWater ? BOLT_WATER_VELOCITY : BOLT_AIR_VELOCITY;
+
+	LaunchAsProjectileImpl(defaultSpeed, params.direction, params.speedOverride);
+	pev->speed = pev->velocity.Length();
+	pev->avelocity.z = 10.0f;
 }
 
 void CCrossbowBolt::Spawn()
@@ -84,7 +98,7 @@ void CCrossbowBolt::Spawn()
 
 	pev->gravity = 0.5f;
 
-	SET_MODEL( ENT( pev ), "models/crossbow_bolt.mdl" );
+	SetMyModel("models/crossbow_bolt.mdl");
 
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
@@ -96,7 +110,7 @@ void CCrossbowBolt::Spawn()
 
 void CCrossbowBolt::Precache()
 {
-	PRECACHE_MODEL( "models/crossbow_bolt.mdl" );
+	PrecacheMyModel("models/crossbow_bolt.mdl");
 	RegisterAndPrecacheSoundScript(boltHitBody);
 	RegisterAndPrecacheSoundScript(boltHitWorld);
 }
@@ -110,6 +124,8 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 {
 	SetTouch( NULL );
 	SetThink( NULL );
+
+	const bool explosiveBolt = FBitSet(pev->spawnflags, SF_CROSSBOW_BOLT_EXPLOSIVE);
 
 	if( pOther->pev->takedamage )
 	{
@@ -130,7 +146,7 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		// play body "thwack" sound
 		EmitSoundScript(boltHitBody);
 
-		if( !g_pGameRules->IsMultiplayer() )
+		if (!explosiveBolt)
 		{
 			Killed( pev, pev, GIB_NEVER );
 		}
@@ -178,7 +194,7 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		}
 	}
 
-	if( g_pGameRules->IsMultiplayer() )
+	if (explosiveBolt)
 	{
 		SetThink( &CCrossbowBolt::ExplodeThink );
 		pev->nextthink = gpGlobals->time + 0.1f;
@@ -269,9 +285,6 @@ LINK_WEAPON_TO_CLASS( weapon_crossbow, CCrossbow )
 void CCrossbow::Precache()
 {
 	CConfigurableWeapon::Precache();
-
-	UTIL_PrecacheOther( "crossbow_bolt" );
-
 	m_usCrossbow2 = PRECACHE_EVENT( 1, "events/crossbow2.sc" );
 }
 
@@ -311,7 +324,7 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{CROSSBOW_FIDGET2, 0.25f, 81.0f / 30.0f},
 	};
 
-	params.fire.fireType = WeaponParameters::Fire::NATIVE;
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
 	params.fire.anims = {CROSSBOW_FIRE1};
 	params.fire.anims.mainEmptied = {CROSSBOW_FIRE3};
 	params.fire.sound = {
@@ -340,6 +353,17 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 
 	params.fire.idleDelay = 5.0f;
 	params.fire.idleDelay.mainEmptied = 0.75f;
+
+	params.fire.projectileName = "crossbow_bolt";
+	params.fire.projectileOffsetUp = -2.0f;
+	params.fire.projectileRespectPunchangle = true;
+	params.fire.projectileAdjustToCross = false;
+
+	if (bIsMultiplayer())
+	{
+		params.fire.projectileName = "crossbow_bolt explosive";
+		params.fire.fireType.alt = WeaponParameters::Fire::NATIVE;
+	}
 
 	params.altMode.zoomFOV = 20;
 	params.altMode.attackDelay = 1.0f;
@@ -370,50 +394,19 @@ int CCrossbow::GetPlaybackEvent(bool altModeFire) const
 
 void CCrossbow::NativeAttack(bool altMode)
 {
-	if (altMode && bIsMultiplayer())
-	{
-		TraceResult tr;
-
-		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		UTIL_MakeVectors( anglesAim );
-		Vector vecSrc = m_pPlayer->GetGunPosition() - gpGlobals->v_up * 2.0f;
-		Vector vecDir = gpGlobals->v_forward;
-
-		UTIL_TraceLine( vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr );
-
-#if !CLIENT_DLL
-		if( tr.pHit->v.takedamage )
-		{
-			CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
-		}
-#endif
-		return;
-	}
+	TraceResult tr;
 
 	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
 	UTIL_MakeVectors( anglesAim );
+	Vector vecSrc = m_pPlayer->GetGunPosition() - gpGlobals->v_up * 2.0f;
+	Vector vecDir = gpGlobals->v_forward;
 
-	anglesAim.x	= -anglesAim.x;
+	UTIL_TraceLine( vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr );
 
 #if !CLIENT_DLL
-	Vector vecSrc	= m_pPlayer->GetGunPosition() - gpGlobals->v_up * 2.0f;
-	Vector vecDir	= gpGlobals->v_forward;
-
-	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate();
-	pBolt->pev->origin = vecSrc;
-	pBolt->pev->angles = anglesAim;
-	pBolt->pev->owner = m_pPlayer->edict();
-
-	if( m_pPlayer->pev->waterlevel == WL_Eyes )
+	if( tr.pHit->v.takedamage )
 	{
-		pBolt->pev->velocity = vecDir * BOLT_WATER_VELOCITY;
-		pBolt->pev->speed = BOLT_WATER_VELOCITY;
+		CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
 	}
-	else
-	{
-		pBolt->pev->velocity = vecDir * BOLT_AIR_VELOCITY;
-		pBolt->pev->speed = BOLT_AIR_VELOCITY;
-	}
-	pBolt->pev->avelocity.z = 10.0f;
 #endif
 }

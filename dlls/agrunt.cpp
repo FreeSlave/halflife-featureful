@@ -497,9 +497,8 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			SendSprite(vecArmPos, GetVisual(muzzleFlashVisual));
 
-			CBaseEntity *pHornet = CBaseEntity::Create( "hornet", vecArmPos, UTIL_VecToAngles( vecDirToEnemy ), edict(), GetProjectileOverrides() );
-			UTIL_MakeVectors( pHornet->pev->angles );
-			pHornet->pev->velocity = gpGlobals->v_forward * 300.0f;
+			ProjectileParameters projectileParams("hornet", vecArmPos, UTIL_VecToAngles( vecDirToEnemy ), vecDirToEnemy.Normalize(), this, GetProjectileOverrides());
+			CBaseEntity* pHornet = CreateAndLaunchAsProjectile(projectileParams);
 
 			EmitSoundScript(fireSoundScript);
 

@@ -38,13 +38,10 @@ class CMP5 : public CConfigurableWeapon
 {
 public:
 	void Spawn() override;
-	void Precache() override;
 	void PrecacheDefaultModelSounds() override;
 	int WeaponId() const override { return WEAPON_MP5; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-
-	void NativeAttack(bool altMode) override;
 };
 
 LINK_ENTITY_TO_CLASS( weapon_mp5, CMP5 )
@@ -57,12 +54,6 @@ void CMP5::Spawn()
 {
 	pev->classname = MAKE_STRING( "weapon_9mmAR" ); // hack to allow for old names
 	CConfigurableWeapon::Spawn();
-}
-
-void CMP5::Precache()
-{
-	CConfigurableWeapon::Precache();
-	PRECACHE_MODEL( "models/grenade.mdl" );	// grenade
 }
 
 void CMP5::PrecacheDefaultModelSounds()
@@ -135,8 +126,13 @@ WeaponParameters CMP5::GetDefaultParameters() const
 	//
 
 	// Alt fire
-	params.fire.fireType.alt = WeaponParameters::Fire::NATIVE;
+	params.fire.fireType.alt = WeaponParameters::Fire::PROJECTILE;
 	params.fire.anims.alt = {MP5_LAUNCH};
+
+	params.fire.projectileName.alt = "grenade";
+	params.fire.projectileOffsetForward.alt = 16.0f;
+	params.fire.projectileRespectPunchangle.alt = true;
+	params.fire.projectileAdjustToCross = false;
 
 	params.fire.sound.alt = {
 		CHAN_WEAPON,
@@ -171,19 +167,4 @@ WeaponParameters CMP5::GetDefaultParameters() const
 	params.reload.duration = 1.5f;
 
 	return params;
-}
-
-void CMP5::NativeAttack(bool altMode)
-{
-	if (altMode)
-	{
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-
-		// we don't add in player velocity anymore.
-#if !CLIENT_DLL
-		CGrenade::ShootContact( m_pPlayer->pev,
-					m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16.0f,
-					gpGlobals->v_forward * 800.0f );
-#endif
-	}
 }

@@ -79,7 +79,7 @@ void CDisplacerBall::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(spriteVisual));
+	ApplyVisualWithOwn(GetVisual(spriteVisual));
 
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
@@ -95,7 +95,7 @@ void CDisplacerBall::Spawn()
 
 void CDisplacerBall::Precache()
 {
-	RegisterVisual(spriteVisual);
+	RegisterVisualAsMineOwn(spriteVisual);
 	RegisterVisual(armBeamVisual);
 	RegisterVisual(hitBeamVisual);
 	RegisterVisual(ringVisual);
@@ -161,14 +161,9 @@ void CDisplacerBall::ArmBeam( int iSide )
 	m_iBeams++;
 }
 
-void CDisplacerBall::Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles )
+void CDisplacerBall::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	CDisplacerBall *pSpit = GetClassPtr((CDisplacerBall *)NULL);
-	pSpit->Spawn();
-	UTIL_SetOrigin(pSpit->pev, vecStart);
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->angles = vecAngles;
-	pSpit->pev->owner = ENT(pevOwner);
+	LaunchAsProjectileImpl(DISPLACERBALL_SPEED, params.direction, params.speedOverride);
 }
 
 void CDisplacerBall::SelfCreate(entvars_t *pevOwner,Vector vecStart)

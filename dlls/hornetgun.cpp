@@ -35,46 +35,16 @@ enum hgun_e
 	HGUN_SHOOT
 };
 
-enum firemode_e
-{
-	FIREMODE_TRACK = 0,
-	FIREMODE_FAST
-};
-
 class CHgun : public CConfigurableWeapon
 {
 public:
-#if !CLIENT_DLL
-	int		Save( CSave &save ) override;
-	int		Restore( CRestore &restore ) override;
-	static	TYPEDESCRIPTION m_SaveData[];
-#endif
-	void Precache() override;
 	int WeaponId() const override { return WEAPON_HORNETGUN; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 	bool AddToPlayer( CBasePlayer *pPlayer ) override;
-
-	void NativeAttack(bool altMode) override;
-
-	int m_iFirePhase;
 };
 
 LINK_WEAPON_TO_CLASS( weapon_hornetgun, CHgun )
-
-#if !CLIENT_DLL
-TYPEDESCRIPTION CHgun::m_SaveData[] =
-{
-	DEFINE_FIELD( CHgun, m_iFirePhase, FIELD_INTEGER ),
-};
-IMPLEMENT_SAVERESTORE( CHgun, CConfigurableWeapon )
-#endif
-
-void CHgun::Precache()
-{
-	CConfigurableWeapon::Precache();
-	UTIL_PrecacheOther( "hornet" );
-}
 
 bool CHgun::AddToPlayer( CBasePlayer *pPlayer )
 {
@@ -126,6 +96,14 @@ WeaponParameters CHgun::GetDefaultParameters() const
 	};
 
 	// Primary fire
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+	params.fire.projectileName = "hornet";
+	params.fire.projectileRespectPunchangle = false;
+	params.fire.projectileAdjustToCross = false;
+	params.fire.projectileOffsetForward = 16.0f;
+	params.fire.projectileOffsetSide = 8.0f;
+	params.fire.projectileOffsetUp = -12.0f;
+
 	params.fire.anims = {HGUN_SHOOT};
 	params.fire.sound = {
 		CHAN_WEAPON,
@@ -146,6 +124,20 @@ WeaponParameters CHgun::GetDefaultParameters() const
 	//
 
 	// Alt fire
+	params.fire.fireType.alt = WeaponParameters::Fire::PROJECTILE;
+	params.fire.projectileName.alt = "hornet dart";
+	params.fire.projectileAdjustToCross.alt = true;
+	params.fire.projectileFirePhases.alt = WeaponParameters::FirePhaseArray{
+		WeaponParameters::FirePhase{0.0f, 8.0f},
+		WeaponParameters::FirePhase{8.0f, 8.0f},
+		WeaponParameters::FirePhase{8.0f, 0.0f},
+		WeaponParameters::FirePhase{8.0f, -8.0f},
+		WeaponParameters::FirePhase{0.0f, -8.0f},
+		WeaponParameters::FirePhase{-8.0f, -8.0f},
+		WeaponParameters::FirePhase{-8.0f, 0.0f},
+		WeaponParameters::FirePhase{-8.0f, 8.0f},
+	};
+
 	params.fire.cycleTime.alt = 0.1f;
 	params.fire.weaponVolume.alt = NORMAL_GUN_VOLUME;
 	//
@@ -158,69 +150,4 @@ WeaponParameters CHgun::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-void CHgun::NativeAttack(bool altMode)
-{
-	if (altMode)
-	{
-		//Wouldn't be a bad idea to completely predict these, since they fly so fast...
-#if !CLIENT_DLL
-		CBaseEntity *pHornet;
-		Vector vecSrc;
-
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-
-		vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -12.0f;
-
-		m_iFirePhase++;
-		switch( m_iFirePhase )
-		{
-		case 1:
-			vecSrc += gpGlobals->v_up * 8.0f;
-			break;
-		case 2:
-			vecSrc += gpGlobals->v_up * 8.0f;
-			vecSrc += gpGlobals->v_right * 8.0f;
-			break;
-		case 3:
-			vecSrc += gpGlobals->v_right * 8.0f;
-			break;
-		case 4:
-			vecSrc += gpGlobals->v_up * -8.0f;
-			vecSrc += gpGlobals->v_right * 8.0f;
-			break;
-		case 5:
-			vecSrc += gpGlobals->v_up * -8.0f;
-			break;
-		case 6:
-			vecSrc += gpGlobals->v_up * -8.0f;
-			vecSrc += gpGlobals->v_right * -8.0f;
-			break;
-		case 7:
-			vecSrc += gpGlobals->v_right * -8.0f;
-			break;
-		case 8:
-			vecSrc += gpGlobals->v_up * 8.0f;
-			vecSrc += gpGlobals->v_right * -8.0f;
-			m_iFirePhase = 0;
-			break;
-		}
-
-		pHornet = CBaseEntity::Create( "hornet", vecSrc, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
-		pHornet->pev->velocity = gpGlobals->v_forward * 1200.0f;
-		pHornet->pev->angles = UTIL_VecToAngles( pHornet->pev->velocity );
-
-		pHornet->SetThink( &CHornet::StartDart );
-#endif
-	}
-	else
-	{
-#if !CLIENT_DLL
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-
-		CBaseEntity *pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -12.0f, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
-		pHornet->pev->velocity = gpGlobals->v_forward * 300.0f;
-#endif
-	}
 }

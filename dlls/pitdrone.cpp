@@ -37,6 +37,8 @@
  */
 #define FEATURE_PITDRONE_SPAWN_WITH_SPIKES 1
 
+#define PITDRONE_SPIKE_SPEED 900.0f
+
 //=========================================================
 // CPitDrone's spit projectile
 //=========================================================
@@ -47,7 +49,7 @@ public:
 	void Precache() override;
 	void EXPORT SpikeTouch(CBaseEntity *pOther);
 	void EXPORT StartTrail();
-	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles, EntityOverrides entityOverrides);
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	static const NamedSoundScript hitWorldSoundScript;
 	static const NamedSoundScript hitBodySoundScript;
@@ -93,7 +95,7 @@ void CPitdroneSpike::Spawn()
 
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(spikeVisual));
+	ApplyVisualWithOwn(GetVisual(spikeVisual));
 	pev->frame = 0;
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
@@ -101,7 +103,7 @@ void CPitdroneSpike::Spawn()
 
 void CPitdroneSpike::Precache()
 {
-	RegisterVisual(spikeVisual);
+	RegisterVisualAsMineOwn(spikeVisual);
 	RegisterAndPrecacheSoundScript(hitWorldSoundScript);
 	RegisterAndPrecacheSoundScript(hitBodySoundScript);
 	RegisterVisual(trailVisual);
@@ -147,19 +149,12 @@ void CPitdroneSpike::StartTrail()
 	SetTouch(&CPitdroneSpike::SpikeTouch);
 }
 
-void CPitdroneSpike::Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles, EntityOverrides entityOverrides)
+void CPitdroneSpike::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	CPitdroneSpike *pSpit = GetClassPtr( (CPitdroneSpike *)NULL );
-	pSpit->AssignEntityOverrides(entityOverrides);
-	pSpit->Spawn();
+	LaunchAsProjectileImpl(PITDRONE_SPIKE_SPEED, params.direction, params.speedOverride);
 
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->angles = vecAngles;
-	pSpit->pev->owner = ENT( pevOwner );
-
-	pSpit->SetThink(&CPitdroneSpike::StartTrail);
-	pSpit->pev->nextthink = gpGlobals->time;
+	SetThink(&CPitdroneSpike::StartTrail);
+	pev->nextthink = gpGlobals->time;
 }
 
 //
@@ -537,7 +532,8 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 		// SOUND HERE! (in the pitdrone model)
 
-		CPitdroneSpike::Shoot(pev, vecSpitOrigin, vecSpitDir * 900, UTIL_VecToAngles(vecSpitDir), GetProjectileOverrides());
+		ProjectileParameters params("pitdronespike", vecSpitOrigin, UTIL_VecToAngles(vecSpitDir), vecSpitDir, this, GetProjectileOverrides());
+		CreateAndLaunchAsProjectile(params);
 
 		SendSpray(vecSpitOrigin, vecSpitDir, GetVisual(tinySpitVisual), 15, 210, 25);
 	}

@@ -74,8 +74,6 @@ void CShockrifle::Precache()
 	PRECACHE_SOUND("weapons/shock_impact.wav");
 
 	PRECACHE_MODEL("sprites/lgtning.spr");
-
-	UTIL_PrecacheOther("shock_beam");
 }
 
 void CShockrifle::PrecacheDefaultModelSounds()
@@ -148,6 +146,13 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 	};
 	params.fire.useStandardEmptySound = false;
 
+	params.fire.projectileName = "shock_beam";
+	params.fire.projectileOffsetForward = 8.0f;
+	params.fire.projectileOffsetSide = 9.0f;
+	params.fire.projectileOffsetUp = -7.0f;
+	params.fire.projectileRespectPunchangle = true;
+	params.fire.projectileAdjustToCross = true;
+
 	params.fire.cycleTime = bIsMultiplayer() ? 0.1f : 0.2f;
 	params.fire.idleDelay = 0.33f;
 	params.fire.allowUnderwater = true;
@@ -197,20 +202,7 @@ void CShockrifle::NativeAttack(bool altMode)
 
 	CreateChargeEffect();
 
-#if !CLIENT_DLL
-	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-
-	UTIL_MakeVectors(anglesAim);
-	anglesAim.x = -anglesAim.x;
-
-	const Vector vecSrc =
-		m_pPlayer->GetGunPosition() +
-		gpGlobals->v_forward * 8 +
-		gpGlobals->v_right * 9 +
-		gpGlobals->v_up * -7;
-
-	CShock::Shoot(m_pPlayer->pev, anglesAim, vecSrc, gpGlobals->v_forward * CShock::ShockSpeed());
-#endif
+	ProjectileAttack(altMode);
 
 	SetThink( &CShockrifle::ClearBeams );
 	pev->nextthink = gpGlobals->time + 0.08;

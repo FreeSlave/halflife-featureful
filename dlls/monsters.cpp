@@ -167,6 +167,8 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_equalDislikeTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_lootRandomSeed, FIELD_INTEGER ),
+
+	DEFINE_FIELD( CBaseMonster, m_clearOwnerTime, FIELD_TIME ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -624,6 +626,15 @@ CSound *CBaseMonster::PBestScent()
 void CBaseMonster::MonsterThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;// keep monster thinking.
+
+	if (m_clearOwnerTime && m_clearOwnerTime <= gpGlobals->time)
+	{
+		if (pev->owner)
+		{
+			pev->owner = nullptr;
+		}
+		m_clearOwnerTime = 0.0f;
+	}
 
 	RunAI();
 	GlowShellUpdate();
@@ -3888,6 +3899,14 @@ void CBaseMonster::Activate()
 	if (!g_modFeatures.dying_monsters_block_player && pev->deadflag == DEAD_DYING && HasMemory(bits_MEMORY_KILLED)) {
 		pev->iuser3 = -1;
 	}
+}
+
+void CBaseMonster::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(600.0f, params.direction, params.speedOverride);
+	pev->angles.x = pev->angles.z = 0;
+	pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	m_clearOwnerTime = gpGlobals->time + 1.0f;
 }
 
 void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)

@@ -22,6 +22,8 @@
 
 #include "monsters.h"
 
+#define SQUIDSPIT_SPEED 900.0f
+
 //=========================================================
 // Bullsquid's spit projectile
 //=========================================================
@@ -31,14 +33,13 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
-	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
-	static float SpitSpeed() { return 900.0f; }
 	void Touch(CBaseEntity *pOther) override;
 	void EXPORT Animate();
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
-	int		Save(CSave &save) override;
-	int		Restore(CRestore &restore) override;
-	static	TYPEDESCRIPTION m_SaveData[];
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 	int  m_maxFrame;
 
@@ -51,17 +52,18 @@ protected:
 	void SpawnHelper(const char* className, const char* spitVisualName);
 };
 
+#define SQUIDSPIT_TOXIC_SPIT 600.0f
+
 class CSquidToxicSpit : public CBaseEntity
 {
 public:
 	void Spawn() override;
 	void Precache() override;
 
-	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
-	static float SpitSpeed() { return 600.0f; }
 	void Touch( CBaseEntity *pOther ) override;
 	void EXPORT Animate();
 	CBaseMonster* GetSpitOwner();
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;

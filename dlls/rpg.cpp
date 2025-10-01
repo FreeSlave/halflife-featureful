@@ -24,12 +24,6 @@
 class CRpg : public CConfigurableWeapon
 {
 public:
-#if !CLIENT_DLL
-	int		Save( CSave &save ) override;
-	int		Restore( CRestore &restore ) override;
-	static	TYPEDESCRIPTION m_SaveData[];
-#endif
-	void Precache() override;
 	int WeaponId() const override { return WEAPON_RPG; }
 	void Reload() override;
 	bool GetItemInfo(ItemInfo *p) override;
@@ -37,11 +31,7 @@ public:
 
 	bool CanHolster() override;
 
-	void NativeAttack(bool altMode) override;
-
 	bool ShouldWeaponIdle() override { return true; }
-
-	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
 	void GetWeaponData(weapon_data_t& data) override;
 	void SetWeaponData(const weapon_data_t& data) override;
@@ -161,24 +151,9 @@ const NamedVisual CRpgRocket::trailVisual = BuildVisual("RPG.Trail")
 
 //=========================================================
 //=========================================================
-CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher )
-{
-	CRpgRocket *pRocket = GetClassPtr( (CRpgRocket *)NULL );
-
-	UTIL_SetOrigin( pRocket->pev, vecOrigin );
-	pRocket->pev->angles = vecAngles;
-	pRocket->Spawn();
-	pRocket->SetTouch( &CRpgRocket::RocketTouch );
-	pRocket->m_hLauncher = pLauncher;// remember what RPG fired me. 
-	pLauncher->m_cActiveRockets++;// register this missile as active for the launcher
-	pRocket->pev->owner = pOwner->edict();
-
-	return pRocket;
-}
-
 void CRpgRocket::Explode( TraceResult *pTrace, int bitsDamageType )
 {
-	if( CRpg *pLauncher = GetLauncher())
+	if( CConfigurableWeapon *pLauncher = GetLauncher())
 	{
 		// my launcher is still around, tell it I'm dead.
 		pLauncher->m_cActiveRockets--;
@@ -190,9 +165,9 @@ void CRpgRocket::Explode( TraceResult *pTrace, int bitsDamageType )
 	CGrenade::Explode( pTrace, bitsDamageType );
 }
 
-CRpg *CRpgRocket::GetLauncher()
+CConfigurableWeapon *CRpgRocket::GetLauncher()
 {
-	return m_hLauncher.Entity<CRpg>();
+	return m_hLauncher.Entity<CConfigurableWeapon>();
 }
 
 //=========================================================
@@ -204,7 +179,7 @@ void CRpgRocket::Spawn()
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL( ENT( pev ), "models/rpgrocket.mdl" );
+	SetMyModel("models/rpgrocket.mdl");
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -213,9 +188,10 @@ void CRpgRocket::Spawn()
 	SetThink( &CRpgRocket::IgniteThink );
 	SetTouch( &CGrenade::ExplodeTouch );
 
-	pev->angles.x -= 30.0f;
-	UTIL_MakeVectors( pev->angles );
-	pev->angles.x = -( pev->angles.x + 30.0f );
+	Vector angles = pev->angles;
+	angles.x = -angles.x;
+	angles.x -= 30.0f;
+	UTIL_MakeVectors(angles);
 
 	pev->velocity = gpGlobals->v_forward * 250.0f;
 	pev->gravity = 0.5f;
@@ -227,27 +203,39 @@ void CRpgRocket::Spawn()
 
 //=========================================================
 //=========================================================
-void CRpgRocket::RocketTouch( CBaseEntity *pOther )
-{
-	if( CRpg *pLauncher = GetLauncher())
-	{
-		// my launcher is still around, tell it I'm dead.
-		pLauncher->m_cActiveRockets--;
-		m_hLauncher = 0;
-	}
-
-	StopSoundScript(rocketIgniteSoundScript);
-	ExplodeTouch( pOther );
-}
-
-//=========================================================
-//=========================================================
 void CRpgRocket::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PRECACHE_MODEL( "models/rpgrocket.mdl" );
+	PrecacheMyModel("models/rpgrocket.mdl");
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rocketIgniteSoundScript);
+}
+
+void CRpgRocket::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
+{
+	if (params.pLauncher)
+	{
+		CBasePlayerWeapon* pWeapon = params.pLauncher->MyWeaponPointer();
+		if (pWeapon)
+		{
+			CConfigurableWeapon* pConfigurableWeapon = pWeapon->MyConfigurableWeaponPointer();
+			if (pConfigurableWeapon)
+			{
+				m_hLauncher = pConfigurableWeapon;// remember what RPG fired me.
+			}
+		}
+	}
+}
+
+void CRpgRocket::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	if (params.speedOverride)
+		pev->velocity = pev->velocity.Normalize() * params.speedOverride;
+	CConfigurableWeapon* pLauncher = GetLauncher();
+	if (pLauncher)
+	{
+		pLauncher->m_cActiveRockets++;// register this missile as active for the launcher
+	}
 }
 
 void CRpgRocket::IgniteThink()
@@ -341,7 +329,7 @@ void CRpgRocket::FollowThink()
 	}
 	// ALERT( at_console, "%.0f\n", flSpeed );
 
-	if( CRpg *pLauncher = GetLauncher())
+	if( CConfigurableWeapon *pLauncher = GetLauncher())
 	{
 		if( ( pev->origin - pLauncher->pev->origin ).IsLengthGreaterThan(8192) || gpGlobals->time - m_flIgniteTime > 6.0f )
 		{
@@ -374,14 +362,6 @@ enum rpg_e
 
 LINK_WEAPON_TO_CLASS( weapon_rpg, CRpg )
 
-#if !CLIENT_DLL
-TYPEDESCRIPTION	CRpg::m_SaveData[] =
-{
-	DEFINE_FIELD( CRpg, m_cActiveRockets, FIELD_INTEGER ),
-};
-IMPLEMENT_SAVERESTORE( CRpg, CConfigurableWeapon )
-#endif
-
 void CRpg::Reload()
 {
 	if( m_cActiveRockets && m_bLaserActive )
@@ -391,12 +371,6 @@ void CRpg::Reload()
 	}
 
 	PerformReload();
-}
-
-void CRpg::Precache()
-{
-	CConfigurableWeapon::Precache();
-	UTIL_PrecacheOther( "rpg_rocket" );
 }
 
 bool CRpg::GetItemInfo( ItemInfo *p )
@@ -453,6 +427,15 @@ WeaponParameters CRpg::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{RPG_FIDGET_UL, 0.25f, 6.1f}
 	};
 
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+	params.fire.projectileName = "rpg_rocket";
+	params.fire.projectileOffsetForward = 16.0f;
+	params.fire.projectileOffsetSide = 8.0f;
+	params.fire.projectileOffsetUp = -8.0f;
+	params.fire.projectileRespectPunchangle = false;
+	params.fire.projectileAdjustToCross = false;
+	params.fire.projectileAddCurrentVelocity = WeaponParameters::Fire::ADD_VELOCITY_PROJECTION;
+
 	params.fire.weaponVolume = LOUD_GUN_VOLUME;
 	params.fire.weaponFlash = BRIGHT_GUN_FLASH;
 
@@ -505,19 +488,6 @@ bool CRpg::CanHolster()
 		return false;
 	}
 	return true;
-}
-
-void CRpg::NativeAttack(bool altMode)
-{
-#if !CLIENT_DLL
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -8.0f;
-
-	CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this );
-
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-	pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-#endif
 }
 
 void CRpg::GetWeaponData(weapon_data_t& data)

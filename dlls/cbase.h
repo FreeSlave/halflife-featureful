@@ -116,6 +116,8 @@ const char* UseTypeToString(USE_TYPE useType);
 extern void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType = USE_TOGGLE, float value = 0.0f, bool (*FilterEntities)(CBaseEntity*, CBaseEntity *, CBaseEntity *, USE_TYPE, float) = nullptr );
 extern void KillTargets( const char *targetName );
 
+const char* GetRealProjectileClassname(const char* projectileName, int& variant);
+
 typedef void(CBaseEntity::*BASEPTR)();
 typedef void(CBaseEntity::*ENTITYFUNCPTR)( CBaseEntity *pOther );
 typedef void(CBaseEntity::*USEPTR)( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -251,6 +253,31 @@ struct ChildVariantHandle
 {
 	const char* classname;
 	const std::map<std::string, std::string>* parameters = nullptr;
+};
+
+struct ProjectileParameters
+{
+	ProjectileParameters(const char* name, const Vector& pos, const Vector& ang, const Vector& dir, CBaseEntity* owner):
+		classname(name), origin(pos), angles(ang), direction(dir), pOwner(owner) {}
+	// For projectiles that don't need the direction set, just the angle and the speed:
+	ProjectileParameters(const char* name, const Vector& pos, const Vector& ang, float speed, CBaseEntity* owner):
+		classname(name), origin(pos), angles(ang), pOwner(owner), speedOverride(speed) {}
+	ProjectileParameters(const char* name, const Vector& pos, const Vector& ang, const Vector& dir, CBaseEntity* owner, const EntityOverrides& overrides):
+		classname(name), origin(pos), angles(ang), direction(dir), pOwner(owner), entityOverrides(overrides) {}
+	ProjectileParameters(const char* name, const Vector& pos, const Vector& ang, const Vector& dir, float speed, CBaseEntity* owner, const EntityOverrides& overrides):
+		classname(name), origin(pos), angles(ang), direction(dir), pOwner(owner), entityOverrides(overrides), speedOverride(speed) {}
+	ProjectileParameters() {}
+
+	const char* classname{nullptr};
+	Vector origin;
+	Vector angles;
+	Vector direction;
+	CBaseEntity* pOwner = nullptr;
+	int variant{0};
+	EntityOverrides entityOverrides{};
+	float speedOverride{0.0f};
+	CBaseEntity* pLauncher = nullptr;
+	float time{0.0f};
 };
 
 #define SF_ITEM_TOUCH_ONLY 128
@@ -460,6 +487,7 @@ public:
 	const char* GetVisualNameForMyTemplate(const char* name, string_t* usedTemplate = nullptr);
 	const Visual* GetVisual(const char* name);
 	const Visual* RegisterVisual(const NamedVisual& defaultVisual, bool precache = true, string_t* usedTemplate = nullptr);
+	void RegisterVisualAsMineOwn(const NamedVisual& visual);
 	void AssignEntityOverrides(EntityOverrides entityOverrides);
 	EntityOverrides GetProjectileOverrides();
 
@@ -467,6 +495,7 @@ public:
 	virtual void ApplyDefaultRenderProps(int overridenRenderProps) {}
 	void ApplyVisual(const Visual* visual, const char* modelOverride = nullptr);
 	void ApplyVisual(const Visual* visual, const char* modelOverride, int alreadyOverriden);
+	void ApplyVisualWithOwn(const Visual* visual);
 
 	static const EntTemplate* GetCacheableEntTemplate(entvars_t* pev, string_t templateName, const EntTemplate*& entTemplate, bool& templateChecked, bool checkByClassname);
 	const EntTemplate* GetMyEntTemplate();
@@ -598,6 +627,7 @@ public:
 
 	static CBaseEntity *Create( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner = NULL, EntityOverrides entityOverrides = EntityOverrides() );
 	static CBaseEntity *CreateNoSpawn( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner = NULL, EntityOverrides entityOverrides = EntityOverrides() );
+	static CBaseEntity *CreateAndLaunchAsProjectile(const ProjectileParameters& params);
 
 	virtual bool FBecomeProne() {return false;}
 	edict_t *edict() { return ENT( pev ); };
@@ -645,6 +675,13 @@ public:
 	virtual bool IsLockedByMaster() { return false; }
 	virtual bool PlaysItsOwnHitSounds() const { return false; }
 	virtual bool MustAddToFullPack(unsigned char *pSet) { return false; }
+
+	virtual void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) {}
+	void LaunchAsProjectileImpl(float defaultSpeed, const Vector& vecDirection, float speedOverride = 0.0f) {
+		float speed = speedOverride ? speedOverride : defaultSpeed;
+		pev->velocity = vecDirection * speed;
+	}
+	virtual void LaunchAsProjectile(const ProjectileParameters& params) {}
 };
 
 // Ugly technique to override base member functions

@@ -21,7 +21,7 @@ public:
 	void Spawn() override;
 	void EXPORT FlyThink();
 
-	static CMortarShell *CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity);
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	int FireballDeciScaleFromDamage(float dmg) override {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;
 		return clamp(result, 1, 255);
@@ -36,7 +36,6 @@ public:
 
 	bool m_iSoundedOff;
 	float m_flIgniteTime;
-	float m_velocity;
 	float m_dangerSoundTime;
 
 	static const NamedSoundScript flySoundScript;
@@ -47,7 +46,6 @@ LINK_ENTITY_TO_CLASS(mortar_shell, CMortarShell)
 
 TYPEDESCRIPTION CMortarShell::m_SaveData[] =
 {
-	DEFINE_FIELD(CMortarShell, m_velocity, FIELD_FLOAT),
 	DEFINE_FIELD(CMortarShell, m_flIgniteTime, FIELD_TIME),
 	DEFINE_FIELD(CMortarShell, m_iSoundedOff, FIELD_BOOLEAN),
 	DEFINE_FIELD(CMortarShell, m_dangerSoundTime, FIELD_TIME),
@@ -85,14 +83,10 @@ void CMortarShell::Spawn()
 
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin(pev, pev->origin);
-	pev->classname = MAKE_STRING("mortar_shell");
 
 	SetThink(&CMortarShell::BurnThink);
 	SetTouch(&CMortarShell::MortarExplodeTouch);
 
-	UTIL_MakeVectors(pev->angles);
-
-	pev->velocity = -(gpGlobals->v_forward * m_velocity);
 	pev->gravity = 1;
 
 	pev->dmg = gSkillData.op4mortarDmg;
@@ -152,19 +146,21 @@ void CMortarShell::FlyThink()
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-CMortarShell *CMortarShell::CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity)
+void CMortarShell::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	CMortarShell *pShell = GetClassPtr( (CMortarShell *)NULL );
-	UTIL_SetOrigin(pShell->pev, vecOrigin);
+	const float speed = params.speedOverride ? params.speedOverride : 600.0f;
 
-	pShell->pev->angles = vecAngles;
-	pShell->m_velocity = velocity;
-
-	pShell->Spawn();
-
-	pShell->pev->owner = pOwner->edict();
-
-	return pShell;
+	if (params.variant == 1) // spawned by op4mortar
+	{
+		UTIL_MakeVectors(pev->angles);
+		pev->velocity = -(gpGlobals->v_forward * speed);
+	}
+	else
+	{
+		pev->velocity = params.direction * speed;
+		pev->angles = UTIL_VecToAngles(pev->velocity);
+		pev->angles.x -= 90.0f;
+	}
 }
 
 #define SF_MORTAR_ACTIVE (1 << 0)
@@ -186,6 +182,7 @@ public:
 	void EXPORT MortarThink();
 	int ObjectCaps() override { return 0; }
 	void PlaySound();
+	void CreateMortarProjectile(CBaseEntity* pOwner, float speed);
 
 	int Save(CSave &save) override;
 	int Restore(CRestore &restore) override;
@@ -442,23 +439,7 @@ void COp4Mortar::MortarThink()
 				{
 					if (gpGlobals->time - m_fireLast > m_fireDelay)
 					{
-						EmitSoundScript(launchSoundScript);
-						UTIL_ScreenShake(pev->origin, 12.0, 100.0, 2.0, 1000.0);
-
-						Vector vecPos, vecAngle;
-						GetAttachment(0, vecPos, vecAngle);
-
-						vecAngle = m_vGunAngle;
-
-						vecAngle.y = UTIL_AngleMod(pev->angles.y + m_vGunAngle.y);
-
-						if (CMortarShell::CreateMortarShell(vecPos, vecAngle, this, idealDistance))
-						{
-							pev->sequence = LookupSequence("fire");
-							pev->frame = 0;
-							ResetSequenceInfo();
-						}
-
+						CreateMortarProjectile(this, idealDistance);
 						m_fireLast = gpGlobals->time;
 					}
 				}
@@ -609,23 +590,7 @@ void COp4Mortar::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	{
 		if ((pev->spawnflags & SF_MORTAR_ACTIVE) == 0 && (pev->spawnflags & SF_MORTAR_CONTROLLABLE) != 0)
 		{
-			//Player fired a mortar
-			EmitSoundScript(launchSoundScript);
-			UTIL_ScreenShake(pev->origin, 12.0, 100.0, 2.0, 1000.0);
-
-			Vector pos, angle;
-			GetAttachment(0, pos, angle);
-
-			angle = m_vGunAngle;
-
-			angle.y = UTIL_AngleMod(pev->angles.y + m_vGunAngle.y);
-
-			if (CMortarShell::CreateMortarShell(pos, angle, pActivator ? pActivator : this, m_velocity))
-			{
-				pev->sequence = LookupSequence("fire");
-				pev->frame = 0;
-				ResetSequenceInfo();
-			}
+			CreateMortarProjectile(pActivator ? pActivator : this, m_velocity);
 			return;
 		}
 	}
@@ -709,6 +674,28 @@ void COp4Mortar::AIUpdatePosition()
 
 	d_y = 0;
 	d_x = 0;
+}
+
+void COp4Mortar::CreateMortarProjectile(CBaseEntity* pOwner, float speed)
+{
+	EmitSoundScript(launchSoundScript);
+	UTIL_ScreenShake(pev->origin, 12.0, 100.0, 2.0, 1000.0);
+
+	Vector vecPos, vecAngle;
+	GetAttachment(0, vecPos, vecAngle);
+
+	vecAngle = m_vGunAngle;
+	vecAngle.y = UTIL_AngleMod(pev->angles.y + m_vGunAngle.y);
+
+	ProjectileParameters projectileParams("mortar_shell", vecPos, vecAngle, speed, pOwner);
+	projectileParams.variant = 1;
+	CBaseEntity* pMortarShell = CreateAndLaunchAsProjectile(projectileParams);
+	if (pMortarShell)
+	{
+		pev->sequence = LookupSequence("fire");
+		pev->frame = 0;
+		ResetSequenceInfo();
+	}
 }
 
 //========================================================

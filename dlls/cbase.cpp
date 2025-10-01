@@ -1108,6 +1108,20 @@ const Visual* CBaseEntity::RegisterVisual(const NamedVisual &defaultVisual, bool
 		return g_VisualSystem.ProvideDefaultVisual(GetVisualNameForMyTemplate(defaultVisual.name, usedTemplate), defaultVisual, precache);
 }
 
+void CBaseEntity::RegisterVisualAsMineOwn(const NamedVisual &visual)
+{
+	if (!FStringNull(m_entTemplate))
+	{
+		// Precache custom model if it's defined in the own_visual of my entity template
+		const char* myModel = MyOwnModel(nullptr);
+		if (myModel)
+		{
+			PRECACHE_MODEL(myModel);
+		}
+	}
+	RegisterVisual(visual);
+}
+
 void CBaseEntity::AssignEntityOverrides(EntityOverrides entityOverrides)
 {
 	if (entityOverrides.model)
@@ -1184,6 +1198,24 @@ void CBaseEntity::ApplyVisual(const Visual *visual, const char* modelOverride, i
 		pev->scale = RandomizeNumberFromRange(visual->scale);
 	if (CheckVisualDefine(visual, Visual::FRAMERATE_DEFINED, alreadyOverriden))
 		pev->framerate = RandomizeNumberFromRange(visual->framerate);
+}
+
+void CBaseEntity::ApplyVisualWithOwn(const Visual *visual)
+{
+	if (!FStringNull(m_entTemplate))
+	{
+		const Visual* ownVisual = MyOwnVisual();
+		if (ownVisual)
+		{
+			// If own_visual is defined in my entity template, join it with the referenced visual
+			Visual joinedVisual = *ownVisual;
+			if (visual)
+				joinedVisual.CompleteFrom(*visual);
+			ApplyVisual(&joinedVisual, nullptr);
+			return;
+		}
+	}
+	ApplyVisual(visual, nullptr);
 }
 
 const EntTemplate* CBaseEntity::GetCacheableEntTemplate(entvars_t* pev, string_t templateName, const EntTemplate*& entTemplate, bool& templateChecked, bool checkByClassname)
@@ -1794,6 +1826,21 @@ CBaseEntity *CBaseEntity::CreateNoSpawn( const char *szName, const Vector &vecOr
 	pEntity->pev->angles = vecAngles;
 	pEntity->AssignEntityOverrides(entityOverrides);
 	return pEntity;
+}
+
+CBaseEntity* CBaseEntity::CreateAndLaunchAsProjectile(const ProjectileParameters& params)
+{
+	CBaseEntity* pProjectile = CreateNoSpawn(params.classname, params.origin, params.angles, params.pOwner ? params.pOwner->edict() : nullptr, params.entityOverrides);
+	if (pProjectile)
+	{
+		pProjectile->SetProjectileParamsBeforeSpawn(params);
+		pProjectile = DispatchSpawnAutoClean(pProjectile);
+		if (pProjectile)
+		{
+			pProjectile->LaunchAsProjectile(params);
+		}
+	}
+	return pProjectile;
 }
 
 const char* CBaseEntity::DisplayName()

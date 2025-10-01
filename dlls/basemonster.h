@@ -156,6 +156,7 @@ public:
 
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Activate() override;
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
 	void SetMySize();
 	void SetMySquadCapabilities(int defaultCaps = 0);
@@ -524,6 +525,8 @@ public:
 	float m_flNextPainTime;
 	float m_equalDislikeTime;
 	int m_lootRandomSeed;
+
+	float m_clearOwnerTime;
 
 	const char* taskFailReason;
 };

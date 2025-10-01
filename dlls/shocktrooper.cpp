@@ -355,10 +355,18 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 			{
 				vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*gSkillData.strooperGrenadeSpeed;
 			}
-			CSpore::CreateSpore(vecOrigin, pev->angles, vecToss, this, CSpore::GRENADE, true, false, GetProjectileOverrides());
+			ProjectileParameters params("spore", vecOrigin, pev->angles, vecToss.Normalize(), this, GetProjectileOverrides());
+			params.variant = CSpore::GRENADE_THROWN;
+			params.speedOverride = vecToss.Length();
+			CBaseEntity::CreateAndLaunchAsProjectile(params);
 		}
 		else
-			CSpore::CreateSpore(vecOrigin, pev->angles, m_vecTossVelocity, this, CSpore::GRENADE, true, false, GetProjectileOverrides());
+		{
+			ProjectileParameters params("spore", vecOrigin, pev->angles, m_vecTossVelocity.Normalize(), this, GetProjectileOverrides());
+			params.variant = CSpore::GRENADE_THROWN;
+			params.speedOverride = m_vecTossVelocity.Length();
+			CBaseEntity::CreateAndLaunchAsProjectile(params);
+		}
 
 		m_fThrowGrenade = false;
 		m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
@@ -387,7 +395,8 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 			Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
 			vecGunAngles = UTIL_VecToAngles(vecShootDir);
 
-			CShock::Shoot(pev, vecGunAngles, vecShootOrigin, vecShootDir * CShock::ShockSpeed(), GetProjectileOverrides());
+			ProjectileParameters params("shock_beam", vecShootOrigin, vecGunAngles, vecShootDir, this, GetProjectileOverrides());
+			CreateAndLaunchAsProjectile(params);
 			m_cAmmoLoaded--;
 			SetBlending( 0, vecGunAngles.x );
 

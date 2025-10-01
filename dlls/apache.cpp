@@ -863,12 +863,13 @@ void CApache::FireRocket()
 		break;
 	}
 
-	CBaseEntity *pRocket = CBaseEntity::Create( "hvr_rocket", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
+	ProjectileParameters params("hvr_rocket", vecSrc, pev->angles, gpGlobals->v_forward, this, GetProjectileOverrides());
+	CBaseEntity *pRocket = CBaseEntity::CreateAndLaunchAsProjectile(params);
 	if( pRocket )
 	{
 		SendSmoke(vecSrc, GetVisual(rocketSmokeVisual));
 
-		pRocket->pev->velocity = pev->velocity + gpGlobals->v_forward * 100.0f;
+		pRocket->pev->velocity += pev->velocity;
 
 		m_iRockets--;
 
@@ -1073,10 +1074,12 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 
 class CApacheHVR : public CGrenade
 {
+public:
 	void Spawn() override;
 	void Precache() override;
 	void EXPORT IgniteThink();
 	void EXPORT AccelerateThink();
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1125,7 +1128,7 @@ void CApacheHVR::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(modelVisual));
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	UTIL_SetSize( pev, Vector( 0, 0, 0), Vector(0, 0, 0) );
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -1144,7 +1147,7 @@ void CApacheHVR::Spawn()
 void CApacheHVR::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	RegisterVisual(modelVisual);
+	RegisterVisualAsMineOwn(modelVisual);
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rpgSoundScript);
 }
@@ -1187,6 +1190,11 @@ void CApacheHVR::AccelerateThink()
 	pev->angles = UTIL_VecToAngles( pev->velocity );
 
 	pev->nextthink = gpGlobals->time + 0.1f;
+}
+
+void CApacheHVR::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(100.0f, params.direction, params.speedOverride);
 }
 
 class CBlkopApache : public CApache

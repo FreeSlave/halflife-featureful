@@ -124,7 +124,7 @@ void CHornet::Spawn()
 		m_flFlySpeed = HORNET_ORANGE_SPEED;
 	}
 
-	ApplyVisual(GetVisual(modelVisual));
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	UTIL_SetSize( pev, Vector( -4, -4, -4 ), Vector( 4, 4, 4 ) );
 
 	SetTouch( &CHornet::DieTouch );
@@ -150,7 +150,7 @@ void CHornet::Spawn()
 
 void CHornet::Precache()
 {
-	RegisterVisual(modelVisual);
+	RegisterVisualAsMineOwn(modelVisual);
 
 	RegisterAndPrecacheSoundScript(buzzSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
@@ -197,6 +197,14 @@ int CHornet::DefaultClassify()
 int CHornet::Classify()
 {
 	return DefaultClassify();
+}
+
+void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	const float defaultSpeed = params.variant == DART ? 1200.0f : 300.0f;
+	LaunchAsProjectileImpl(defaultSpeed, params.direction, params.speedOverride);
+	if (params.variant == DART)
+		SetThink( &CHornet::StartDart );
 }
 
 //=========================================================

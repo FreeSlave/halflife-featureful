@@ -136,6 +136,7 @@ void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, i
 void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
 void CBaseMonster::Activate() {}
+void CBaseMonster::LaunchAsProjectile(const ProjectileParameters&) {}
 bool CBaseMonster::CanPlaySequence( int interruptFlags ) { return false; }
 bool CBaseMonster::FCanActiveIdle() { return false; }
 bool CBaseToggle::PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle ) { return true; }

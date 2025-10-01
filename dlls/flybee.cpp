@@ -1132,7 +1132,7 @@ void CFlyBall::Spawn()
 	pev->solid = SOLID_BBOX;
 	pev->classname = MAKE_STRING("flyball");
 
-	ApplyVisual(GetVisual(ballVisual));
+	ApplyVisualWithOwn(GetVisual(ballVisual));
 
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1151,7 +1151,7 @@ void CFlyBall::Precache()
 {
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 
-	RegisterVisual(ballVisual);
+	RegisterVisualAsMineOwn(ballVisual);
 	RegisterVisual(ballTrailVisual);
 }
 

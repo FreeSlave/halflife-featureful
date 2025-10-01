@@ -191,7 +191,7 @@ const char* const json_schemas::weapons = R"(
 		"type": "object",
 		"properties": {
 			"type": {
-				"enum": ["bullet", "bullets", "melee"]
+				"enum": ["bullet", "bullets", "melee", "projectile"]
 			},
 			"damage": {
 				"type": ["number", "string"],
@@ -569,6 +569,94 @@ const char* const json_schemas::weapons = R"(
 			},
 			"player_maxspeed": {
 				"$ref": "definitions.json#/absolute_or_factor"
+			},
+			"projectile": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"ent_template": {
+						"type": "string"
+					},
+					"offset": {
+						"type": "object",
+						"properties": {
+							"up": {
+								"type": "number"
+							},
+							"side": {
+								"type": "number"
+							},
+							"forward": {
+								"type": "number"
+							}
+						},
+						"additionalProperties": false
+					},
+					"respect_punchangle": {
+						"type": "boolean"
+					},
+					"adjust_to_cross": {
+						"type": "boolean"
+					},
+					"speed": {
+						"type": "number",
+						"exclusiveMinimum": 0
+					},
+					"add_player_velocity": {
+						"enum": [false, true, "projection", "absolute"]
+					},
+					"time": {
+						"type": "number",
+						"minimum": 0
+					},
+					"fire_phase_offsets": {
+						"oneOf": [
+							{
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"up": {
+											"type": "number"
+										},
+										"side": {
+											"type": "number"
+										}
+									},
+									"additionalProperties": false
+								}
+							},
+							{
+								"type": "object",
+								"properties": {
+									"start_angle": {
+										"type": "number"
+									},
+									"count": {
+										"type": "integer",
+										"minimum": 1
+									},
+									"distance": {
+										"type": "number",
+										"exclusiveMinimum": 0
+									},
+									"type": {
+										"enum": ["circle", "square"]
+									},
+									"orientation": {
+										"enum": ["clockwise", "counter-clockwise"]
+									}
+								},
+								"required": ["start_angle", "count"],
+								"additionalProperties": false
+							}
+						]
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false

@@ -86,6 +86,15 @@ WeaponParameters CHandGrenade::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{HANDGRENADE_FIDGET, 0.25f, FloatRange(75.0f / 30.0f)},
 	};
 
+	// TODO: implement later
+	/*
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+
+	params.fire.projectileName = "hand grenade";
+	params.fire.projectileOffsetForward = 16.0f;
+	params.fire.projectileAddCurrentVelocity = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
+	*/
+
 	return params;
 }
 
@@ -190,7 +199,7 @@ void CHandGrenade::WeaponIdle()
 #if !CLIENT_DLL
 		const Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16.0f;
 		const Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
-		CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+		CGrenade::ShootTimed( m_pPlayer, vecSrc, vecThrow, time );
 #endif
 
 		if( flVel < 500.0f )

@@ -362,6 +362,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				{
 					fire.fireType.Materialize(altMode) = WeaponParameters::Fire::MELEE;
 				}
+				else if (strcmp(str, "projectile") == 0)
+				{
+					fire.fireType.Materialize(altMode) = WeaponParameters::Fire::PROJECTILE;
+				}
 			});
 
 			HandleJSONMember(value, "damage", [&](const Value& value) {
@@ -826,6 +830,130 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
 				fire.playerMaxSpeed.Materialize(altMode) = ParsePlayerSpeed(value);
+			});
+
+			HandleJSONMember(value, "projectile", [&](const Value& value) {
+				UpdatePropertyFromJson(fire.projectileName, value, "name", altMode);
+				UpdatePropertyFromJson(fire.projectileEntTemplate, value, "ent_template", altMode);
+
+				HandleJSONMember(value, "offset", [&](const Value& value) {
+					UpdatePropertyFromJson(fire.projectileOffsetUp, value, "up", altMode);
+					UpdatePropertyFromJson(fire.projectileOffsetSide, value, "side", altMode);
+					UpdatePropertyFromJson(fire.projectileOffsetForward, value, "forward", altMode);
+				});
+
+				UpdatePropertyFromJson(fire.projectileRespectPunchangle, value, "respect_punchangle", altMode);
+				UpdatePropertyFromJson(fire.projectileAdjustToCross, value, "adjust_to_cross", altMode);
+				UpdatePropertyFromJson(fire.projectileSpeed, value, "speed", altMode);
+				UpdatePropertyFromJson(fire.projectileDetonationTime, value, "time", altMode);
+
+				HandleJSONMember(value, "add_player_velocity", [&](const Value& value) {
+					if (value.IsBool())
+					{
+						const bool b = value.GetBool();
+						if (b)
+						{
+							fire.projectileAddCurrentVelocity.Materialize(altMode) = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
+						}
+						else
+						{
+							fire.projectileAddCurrentVelocity.Materialize(altMode) = WeaponParameters::Fire::DONT_ADD_VELOCITY;
+						}
+					}
+					else if (value.IsString())
+					{
+						const char* str = value.GetString();
+						if (stricmp(str, "projection") == 0)
+						{
+							fire.projectileAddCurrentVelocity.Materialize(altMode) = WeaponParameters::Fire::ADD_VELOCITY_PROJECTION;
+						}
+						else if (stricmp(str, "absolute") == 0)
+						{
+							fire.projectileAddCurrentVelocity.Materialize(altMode) = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
+						}
+					}
+				});
+
+				HandleJSONMember(value, "fire_phase_offsets", [&](const Value& value) {
+					if (value.IsArray())
+					{
+						Value::ConstArray arr = value.GetArray();
+						WeaponParameters::FirePhaseArray firePhases;
+						for (auto& item : arr)
+						{
+							WeaponParameters::FirePhase phase;
+							UpdatePropertyFromJson(phase.side, item, "side");
+							UpdatePropertyFromJson(phase.up, item, "up");
+							firePhases.push_back(phase);
+						}
+						fire.projectileFirePhases.Materialize(altMode) = std::move(firePhases);
+					}
+					else
+					{
+						float startAngle = 0.0f;
+						int count = 2;
+						float distance = 8.0f;
+
+						UpdatePropertyFromJson(startAngle, value, "start_angle");
+						UpdatePropertyFromJson(count, value, "count");
+						UpdatePropertyFromJson(distance, value, "distance");
+
+						enum {CIRCLE, SQUARE};
+						int type = CIRCLE;
+
+						HandleJSONMember(value, "type", [&type](const Value& value) {
+							const char* typeStr = value.GetString();
+							if (strcmp(typeStr, "circle") == 0)
+							{
+								type = CIRCLE;
+							}
+							else if (strcmp(typeStr, "square") == 0)
+							{
+								type = SQUARE;
+							}
+						});
+
+						enum {CLOCKWISE, COUNTER_CLOCKWISE};
+						int orientation = CLOCKWISE;
+
+						HandleJSONMember(value, "orientation", [&orientation](const Value& value) {
+							const char* orientationStr = value.GetString();
+							if (strcmp(orientationStr, "clockwise") == 0)
+							{
+								orientation = CLOCKWISE;
+							}
+							else if (strcmp(orientationStr, "counter-clockwise") == 0)
+							{
+								orientation = COUNTER_CLOCKWISE;
+							}
+						});
+
+						WeaponParameters::FirePhaseArray firePhases;
+
+						float currentAngle = startAngle;
+						float angleFraction = 360.0f / count;
+						for (int i=0; i<count; ++i)
+						{
+							const float currentAngleDeg = currentAngle * M_PI / 180.0f;
+							float x = std::cos(currentAngleDeg);
+							float y = std::sin(currentAngleDeg);
+							if (type == SQUARE)
+							{
+								const float denom = Q_max(std::fabs(x), std::fabs(y));
+								x *= distance / denom;
+								y *= distance / denom;
+							}
+							else
+							{
+								x *= distance;
+								y *= distance;
+							}
+							firePhases.push_back({x, y});
+							currentAngle += angleFraction * ((orientation == CLOCKWISE) ? -1.0f : 1.0f);
+						}
+						fire.projectileFirePhases.Materialize(altMode) = std::move(firePhases);
+					}
+				});
 			});
 		});
 	};

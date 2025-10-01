@@ -4015,12 +4015,13 @@ void CEnvXenMaker::PlaySecondSound(edict_t* posEnt)
 
 enum
 {
+	BLOWERCANNON_NOPROJECTILE = -1,
 	BLOWERCANNON_SQUIDSPIT = 0,
 	BLOWERCANNON_SPOREROCKET = 1,
 	BLOWERCANNON_SPOREGRENADE,
 	BLOWERCANNON_SHOCKBEAM,
 	BLOWERCANNON_DISPLACERBALL,
-	BLOWERCANNON_SQUIDTOXICSPIT,
+	BLOWERCANNON_SQUIDTOXICSPIT
 };
 
 enum
@@ -4037,6 +4038,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void KeyValue(KeyValueData* pkvd) override;
+	const char* ProjectileName();
 	void EXPORT BlowerCannonThink();
 	void EXPORT BlowerCannonStart( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT BlowerCannonStop( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -4050,6 +4052,8 @@ public:
 	short m_iFireType;
 	int m_iZOffset;
 	string_t m_iszOwner;
+	string_t m_projectileName;
+	float m_detonationDelay;
 };
 
 LINK_ENTITY_TO_CLASS(env_blowercannon, CBlowerCannon)
@@ -4060,6 +4064,8 @@ TYPEDESCRIPTION	CBlowerCannon::m_SaveData[] =
 	DEFINE_FIELD(CBlowerCannon, m_iWeapType, FIELD_SHORT),
 	DEFINE_FIELD(CBlowerCannon, m_iZOffset, FIELD_INTEGER),
 	DEFINE_FIELD(CBlowerCannon, m_iszOwner, FIELD_STRING),
+	DEFINE_FIELD(CBlowerCannon, m_projectileName, FIELD_STRING),
+	DEFINE_FIELD(CBlowerCannon, m_detonationDelay, FIELD_FLOAT),
 };
 IMPLEMENT_SAVERESTORE( CBlowerCannon, CBaseDelay )
 
@@ -4096,6 +4102,16 @@ void CBlowerCannon::KeyValue(KeyValueData *pkvd)
 		m_iszOwner = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "projectile_name"))
+	{
+		m_projectileName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "detonation_delay"))
+	{
+		m_detonationDelay = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseDelay::KeyValue( pkvd );
 }
@@ -4110,25 +4126,38 @@ void CBlowerCannon::Spawn()
 
 void CBlowerCannon::Precache()
 {
+	const char* projectileName = ProjectileName();
+	if (projectileName)
+	{
+		int variant = 0;
+		projectileName = GetRealProjectileClassname(projectileName, variant);
+
+		EntityOverrides entityOverrides;
+		entityOverrides.entTemplate = m_entTemplate;
+		UTIL_PrecacheOther(projectileName, entityOverrides);
+	}
+}
+
+const char* CBlowerCannon::ProjectileName()
+{
+	if (!FStringNull(m_projectileName))
+		return STRING(m_projectileName);
+
 	switch (m_iWeapType) {
 	case BLOWERCANNON_SQUIDSPIT:
-		UTIL_PrecacheOther("squidspit");
-		break;
+		return "squidspit";
 	case BLOWERCANNON_SHOCKBEAM:
-		UTIL_PrecacheOther( "shock_beam" );
-		break;
+		return "shock_beam";
 	case BLOWERCANNON_DISPLACERBALL:
-		UTIL_PrecacheOther( "displacer_ball" );
-		break;
+		return "displacer_ball";
 	case BLOWERCANNON_SPOREGRENADE:
+		return "spore bouncy";
 	case BLOWERCANNON_SPOREROCKET:
-		UTIL_PrecacheOther( "spore" );
-		break;
+		return "spore";
 	case BLOWERCANNON_SQUIDTOXICSPIT:
-		UTIL_PrecacheOther( "squidtoxicspit" );
-		break;
+		return "squidtoxicspit";
 	default:
-		break;
+		return nullptr;
 	}
 }
 
@@ -4212,29 +4241,26 @@ void CBlowerCannon::BlowerCannonThink()
 			if (!owner)
 				owner = this;
 
-			switch (m_iWeapType)
+			const char* projectileName = ProjectileName();
+			if (projectileName)
 			{
-			case BLOWERCANNON_SQUIDSPIT:
-				CSquidSpit::Shoot(owner->pev, position, direction * CSquidSpit::SpitSpeed());
-				break;
-			case BLOWERCANNON_SPOREROCKET:
-				CSpore::ShootContact(owner, position, angles, direction * CSpore::SporeRocketSpeed());
-				break;
-			case BLOWERCANNON_SPOREGRENADE:
-				CSpore::ShootTimed(owner, position, angles, direction * CSpore::SporeGrenadeSpeed());
-				break;
-			case BLOWERCANNON_SHOCKBEAM:
-				CShock::Shoot(owner->pev, angles, position, direction * CShock::ShockSpeed());
-				break;
-			case BLOWERCANNON_DISPLACERBALL:
-				CDisplacerBall::Shoot(owner->pev, position, direction * CDisplacerBall::BallSpeed(), angles);
-				break;
-			case BLOWERCANNON_SQUIDTOXICSPIT:
-				CSquidToxicSpit::Shoot(owner->pev, position, direction * CSquidToxicSpit::SpitSpeed());
-				break;
-			default:
+				int variant = 0;
+				projectileName = GetRealProjectileClassname(projectileName, variant);
+
+				EntityOverrides entityOverrides;
+				entityOverrides.entTemplate = m_entTemplate;
+
+				ProjectileParameters params(projectileName, position, angles, direction, owner, entityOverrides);
+				params.variant = variant;
+				if (m_detonationDelay > 0)
+					params.time = m_detonationDelay;
+				if (pev->speed > 0)
+					params.speedOverride = pev->speed;
+				CBaseEntity::CreateAndLaunchAsProjectile(params);
+			}
+			else
+			{
 				ALERT(at_console, "Unknown projectile type in blowercannon: %d\n", m_iWeapType);
-				break;
 			}
 		}
 	}

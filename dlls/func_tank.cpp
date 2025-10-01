@@ -1443,16 +1443,81 @@ class CFuncTankRocket : public CFuncTank
 {
 public:
 	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	const char* ProjectileName();
+	EntityOverrides GetProjectileOverrides();
+
+	int	Save( CSave &save ) override;
+	int	Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_projectileName;
+	string_t m_projectileEntTemplate;
+	float m_detonationDelay;
+	float m_projectileSpeed;
 };
 
 LINK_ENTITY_TO_CLASS( func_tankrocket, CFuncTankRocket )
 LINK_ENTITY_TO_CLASS( func_tankrocket_of, CFuncTankRocket )
 
+TYPEDESCRIPTION	CFuncTankRocket::m_SaveData[] =
+{
+	DEFINE_FIELD( CFuncTankRocket, m_projectileName, FIELD_STRING ),
+	DEFINE_FIELD( CFuncTankRocket, m_projectileEntTemplate, FIELD_STRING ),
+	DEFINE_FIELD( CFuncTankRocket, m_detonationDelay, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncTankRocket, m_projectileSpeed, FIELD_FLOAT ),
+};
+IMPLEMENT_SAVERESTORE( CFuncTankRocket, CFuncTank )
+
 void CFuncTankRocket::Precache()
 {
-	UTIL_PrecacheOther( "rpg_rocket" );
+	int variant = 0;
+	const char* projectileClassname = GetRealProjectileClassname(ProjectileName(), variant);
+
+	UTIL_PrecacheOther(projectileClassname, GetProjectileOverrides());
 	CFuncTank::Precache();
+}
+
+void CFuncTankRocket::KeyValue(KeyValueData *pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "projectile_name"))
+	{
+		m_projectileName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "projectile_ent_template"))
+	{
+		m_projectileEntTemplate = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "detonation_delay"))
+	{
+		m_detonationDelay = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "projectile_speed"))
+	{
+		m_projectileSpeed = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CFuncTank::KeyValue( pkvd );
+}
+
+const char* CFuncTankRocket::ProjectileName()
+{
+	if (FStringNull(m_projectileName))
+		return "rpg_rocket";
+	return STRING(m_projectileName);
+}
+
+EntityOverrides CFuncTankRocket::GetProjectileOverrides()
+{
+	EntityOverrides entityOverrides;
+	entityOverrides.entTemplate = m_projectileEntTemplate;
+	entityOverrides.ownerEntTemplate = m_entTemplate;
+	return entityOverrides;
 }
 
 void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
@@ -1462,11 +1527,22 @@ void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBas
 		int bulletCount = (int)( ( gpGlobals->time - m_fireLast ) * m_fireRate );
 		if( bulletCount > 0 )
 		{
+			int variant = 0;
+			const char* projectileClassname = GetRealProjectileClassname(ProjectileName(), variant);
+			EntityOverrides entityOverrides = GetProjectileOverrides();
+
 			for( int i = 0; i < bulletCount && HaveBullets(); i++ )
 			{
-				CBaseEntity::Create( "rpg_rocket", barrelEnd, pev->angles, pAttacker ? pAttacker->edict() : edict() );
+				ProjectileParameters params(projectileClassname, barrelEnd, pev->angles, forward, pAttacker ? pAttacker : this, entityOverrides);
+				params.variant = variant;
+				if (m_detonationDelay > 0)
+					params.time = m_detonationDelay;
+				if (m_projectileSpeed > 0)
+					params.speedOverride = m_projectileSpeed;
+				CBaseEntity::CreateAndLaunchAsProjectile(params);
+
+				RemoveBullet();
 			}
-			RemoveBullet();
 			CFuncTank::Fire( barrelEnd, forward, pAttacker );
 		}
 	}

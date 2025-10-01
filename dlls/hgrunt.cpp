@@ -896,10 +896,10 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				{
 					vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*gSkillData.hgruntGrenadeSpeed;
 				}
-				CGrenade::ShootTimed( pev, GetGunPosition(), vecToss, 3.5f, GetProjectileOverrides() );
+				CGrenade::ShootTimed( this, GetGunPosition(), vecToss, 3.5f, GetProjectileOverrides() );
 			}
 			else
-				CGrenade::ShootTimed( pev, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
+				CGrenade::ShootTimed( this, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
 
 			m_fThrowGrenade = false;
 			m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
@@ -921,10 +921,10 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 					UTIL_MakeVectors(pev->angles);
 					vecToss = (gpGlobals->v_forward*0.5 + gpGlobals->v_up*0.5).Normalize() * gSkillData.hgruntGrenadeSpeed;
 				}
-				CGrenade::ShootContact( pev, GetGunPosition(), vecToss, GetProjectileOverrides() );
+				CGrenade::ShootContact( this, GetGunPosition(), vecToss, GetProjectileOverrides() );
 			}
 			else
-				CGrenade::ShootContact( pev, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
+				CGrenade::ShootContact( this, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
 			m_fThrowGrenade = false;
 			if( g_iSkillLevel == SKILL_HARD )
 				m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2.0f, 5.0f );// wait a random amount of time before shooting again
@@ -935,7 +935,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 		case HGRUNT_AE_GREN_DROP:
 		{
 			UTIL_MakeVectors( pev->angles );
-			CGrenade::ShootTimed( pev, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + gpGlobals->v_up * 6, g_vecZero, 3.0f, GetProjectileOverrides() );
+			CGrenade::ShootTimed( this, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + gpGlobals->v_up * 6, g_vecZero, 3.0f, GetProjectileOverrides() );
 		}
 			break;
 		case HGRUNT_AE_BURST1:

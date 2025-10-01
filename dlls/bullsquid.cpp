@@ -89,7 +89,7 @@ void CSquidSpit::Spawn()
 
 void CSquidSpit::Precache()
 {
-	RegisterVisual(spitVisual);
+	RegisterVisualAsMineOwn(spitVisual);
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 	RegisterVisual(fleckVisual);// client side spittle.
@@ -102,7 +102,7 @@ void CSquidSpit::SpawnHelper(const char *className, const char* spitVisualName)
 	pev->classname = MAKE_STRING( className );
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(spitVisualName));
+	ApplyVisualWithOwn(GetVisual(spitVisualName));
 	pev->frame = 0;
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
@@ -114,21 +114,6 @@ void CSquidSpit::Animate()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
-}
-
-void CSquidSpit::Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides )
-{
-	CSquidSpit *pSpit = GetClassPtr( (CSquidSpit *)NULL );
-	pSpit->AssignEntityOverrides(entityOverrides);
-	pSpit->Spawn();
-
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->angles = UTIL_VecToAngles(vecVelocity);
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->owner = ENT( pevOwner );
-
-	pSpit->SetThink( &CSquidSpit::Animate );
-	pSpit->pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 void CSquidSpit::Touch( CBaseEntity *pOther )
@@ -155,6 +140,13 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 
 	SetThink( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time;
+}
+
+void CSquidSpit::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params.direction, params.speedOverride);
+	SetThink(&CSquidSpit::Animate);
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 // Bullsquid big slow poisonous spit
@@ -202,7 +194,7 @@ void CSquidToxicSpit::Spawn()
 	pev->classname = MAKE_STRING( "squidtoxicspit" );
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(toxicSpitVisual));
+	ApplyVisualWithOwn(GetVisual(toxicSpitVisual));
 	pev->frame = 0;
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
@@ -212,7 +204,7 @@ void CSquidToxicSpit::Spawn()
 
 void CSquidToxicSpit::Precache()
 {
-	RegisterVisual(toxicSpitVisual);
+	RegisterVisualAsMineOwn(toxicSpitVisual);
 
 	RegisterAndPrecacheSoundScript(acidSoundScript);
 	RegisterAndPrecacheSoundScript(spithitSoundScript);
@@ -267,20 +259,6 @@ void CSquidToxicSpit::Animate()
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 }
 
-void CSquidToxicSpit::Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides )
-{
-	CSquidToxicSpit *pSpit = GetClassPtr( (CSquidToxicSpit *)NULL );
-	pSpit->AssignEntityOverrides(entityOverrides);
-	pSpit->Spawn();
-
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->owner = ENT( pevOwner );
-
-	pSpit->SetThink( &CSquidToxicSpit::Animate );
-	pSpit->pev->nextthink = gpGlobals->time + 0.1;
-}
-
 void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 {
 	TraceResult tr;
@@ -319,6 +297,13 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 	if (!FNullEnt(pev->owner))
 		return GetMonsterPointer(pev->owner);
 	return 0;
+}
+
+void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params.direction, params.speedOverride);
+	SetThink(&CSquidSpit::Animate);
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 //=========================================================
@@ -744,11 +729,8 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				// spew the spittle temporary ents.
 				SendSpray(vecSpitOrigin, vecSpitDir, visual, 15, 210, 25);
 
-				if (toxicSpit) {
-					CSquidToxicSpit::Shoot(pev, vecSpitOrigin, vecSpitDir * CSquidToxicSpit::SpitSpeed(), GetProjectileOverrides());
-				} else {
-					CSquidSpit::Shoot( pev, vecSpitOrigin, vecSpitDir * CSquidSpit::SpitSpeed(), GetProjectileOverrides() );
-				}
+				ProjectileParameters params(toxicSpit ? "squidtoxicspit" : "squidspit", vecSpitOrigin, UTIL_VecToAngles(vecSpitDir), vecSpitDir, this, GetProjectileOverrides());
+				CreateAndLaunchAsProjectile(params);
 			}
 			break;
 		case BSQUID_AE_BITE:

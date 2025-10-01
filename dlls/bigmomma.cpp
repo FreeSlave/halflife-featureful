@@ -118,7 +118,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
-	static CBMortar *Shoot( edict_t *pOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides );
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void Touch( CBaseEntity *pOther ) override;
 	void EXPORT Animate();
 
@@ -766,8 +766,12 @@ void CBigMomma::LaunchMortar()
 	}
 
 	EmitSoundScript(launchMortarSoundScript);
-	CBMortar *pBomb = CBMortar::Shoot( edict(), startPos, vecLaunch, GetProjectileOverrides() );
-	pBomb->pev->gravity = 1.0f;
+
+	const float speed = vecLaunch.NormalizeInPlace();
+
+	ProjectileParameters params("bmortar", startPos, pev->angles, vecLaunch, this, GetProjectileOverrides());
+	params.speedOverride = speed;
+	CreateAndLaunchAsProjectile(params);
 	MortarSpray( startPos, Vector( 0.0f, 0.0f, 1.0f ), GetVisual(CBMortar::mortarSprayVisual), 24 );
 }
 
@@ -1332,9 +1336,7 @@ void CBMortar::Spawn()
 	
 	pev->solid = SOLID_BBOX;
 
-	const Visual* visual = GetVisual(mortarVisual);
-
-	ApplyVisual(visual);
+	ApplyVisualWithOwn(GetVisual(mortarVisual));
 
 	pev->frame = 0;
 
@@ -1346,7 +1348,7 @@ void CBMortar::Spawn()
 
 void CBMortar::Precache()
 {
-	RegisterVisual( mortarVisual );// spit projectile.
+	RegisterVisualAsMineOwn(mortarVisual);// spit projectile.
 	RegisterVisual( mortarSprayVisual );// client side spittle.
 
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
@@ -1365,19 +1367,12 @@ void CBMortar::Animate()
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 }
 
-CBMortar *CBMortar::Shoot(edict_t *pOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides)
+void CBMortar::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	CBMortar *pSpit = GetClassPtr( (CBMortar *)NULL );
-	pSpit->AssignEntityOverrides(entityOverrides);
-	pSpit->Spawn();
-	
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->owner = pOwner;
-	pSpit->SetThink( &CBMortar::Animate );
-	pSpit->pev->nextthink = gpGlobals->time + 0.1f;
-
-	return pSpit;
+	LaunchAsProjectileImpl(800.0f, params.direction, params.speedOverride);
+	pev->gravity = 1.0f;
+	SetThink( &CBMortar::Animate );
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 void CBMortar::Touch( CBaseEntity *pOther )

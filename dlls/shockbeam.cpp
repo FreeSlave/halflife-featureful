@@ -113,28 +113,6 @@ void CShock::FlyThink()
 	}
 }
 
-void CShock::Shoot(entvars_t *pevOwner, const Vector angles, const Vector vecStart, const Vector vecVelocity, EntityOverrides entityOverrides)
-{
-	CShock *pShock = GetClassPtr((CShock *)NULL);
-	UTIL_SetOrigin(pShock->pev, vecStart);
-	pShock->AssignEntityOverrides(entityOverrides);
-	pShock->Spawn();
-
-	pShock->pev->velocity = vecVelocity;
-	pShock->pev->owner = ENT(pevOwner);
-	pShock->pev->angles = angles;
-
-	if (!FNullEnt(pShock->pev->owner) && (pShock->pev->owner->v.flags & FL_CLIENT))
-	{
-		if (g_pGameRules->IsMultiplayer())
-			pShock->pev->dmg = gSkillData.plrDmgShockroachM;
-		else
-			pShock->pev->dmg = gSkillData.plrDmgShockroach;
-	}
-
-	pShock->pev->nextthink = gpGlobals->time;
-}
-
 void CShock::Touch(CBaseEntity *pOther)
 {
 	// Do not collide with the owner.
@@ -241,4 +219,17 @@ void CShock::UpdateOnRemove()
 {
 	ClearEffects();
 	CBaseAnimating::UpdateOnRemove();
+}
+
+void CShock::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params.direction, params.speedOverride);
+	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
+	{
+		if (g_pGameRules->IsMultiplayer())
+			pev->dmg = gSkillData.plrDmgShockroachM;
+		else
+			pev->dmg = gSkillData.plrDmgShockroach;
+	}
+	pev->nextthink = gpGlobals->time;
 }

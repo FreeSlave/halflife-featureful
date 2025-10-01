@@ -1726,16 +1726,44 @@
 	]
 ]
 
-@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blowercannon : "Blower Cannon"
+@PointClass base(Targetname, EntityTemplate) size(-16 -16 -16, 16 16 16) = env_blowercannon : "Blower Cannon"
 [
 	position(string) : "Position (blank = here) [LP]"
 	direction(string) : "Direction (blank = shoot at target) [LV]"
-	projectile_owner(target_destination) : "Projectile owner [LE]" : : "Don't collide with this entity"
+	projectile_owner(target_destination) : "Projectile owner [LE]" : : "Don't collide with this entity and fire the projectile on its behalf"
 	delay(string) : "Delay" : "0"
 	zoffset(integer) : "Z Offset"
 	target(target_generic) : "Target to shoot at [LE]"
-	weaptype(choices) :"Weapon Type" : 1 =
+	projectile_name(choices) : "Projectile Name" : "grenade" =
 	[
+		"" : "Nothing"
+		"grenade" : "AR grenade"
+		"crossbow_bolt" : "crossbow_bolt"
+		"crossbow_bolt explosive" : "crossbow_bolt explosive"
+		"rpg_rocket" : "rpg_rocket"
+		"hornet" : "hornet"
+		"hornet dart" : "hornet dart"
+		"hand grenade" : "hand grenade"
+		"shock_beam" : "shock_beam"
+		"spore" : "spore (thrown grenade)"
+		"spore rocket" : "spore rocket"
+		"spore bouncy" : "spore bouncy"
+		"displacer_ball" : "displacer_ball"
+		"squidspit" : "squidspit"
+		"squidtoxicspit" : "squidtoxicspit"
+		"hvr_rocket" : "hvr_rocket (Apache)"
+		"bmortar" : "bmortar (Big Momma)"
+		"controller_energy_ball" : "controller_energy_ball"
+		"gonomeguts" : "gonomeguts"
+		"charged_bolt" : "charged_bolt (Voltigore)"
+		"pitdronespike" : "pitdronespike"
+		"mortar_shell" : "mortar_shell (op4mortar)"
+	]
+	detonation_delay(string) : "Grenade detonation delay"
+	speed(string) : "Custom projectile speed"
+	weaptype(choices) : "[Deprecated] Projectile Type (preset)" : -1 =
+	[
+		-1: "Nothing"
 		0: "Squid spit"
 		1: "Spore (Rocket)"
 		2: "Spore (Grenade)"
@@ -3098,8 +3126,37 @@
 	laserentity(target_source) : "env_laser Entity"
 ]
 
-@SolidClass base(BaseTank, ZHLT) = func_tankrocket : "Brush Rocket Turret" []
-
+@SolidClass base(BaseTank, ZHLT) = func_tankrocket : "Brush Rocket Turret"
+[
+	projectile_name(choices) : "Projectile Name" =
+	[
+		"" : "Default (rpg_rocket)"
+		"grenade" : "AR grenade"
+		"crossbow_bolt" : "crossbow_bolt"
+		"crossbow_bolt explosive" : "crossbow_bolt explosive"
+		"rpg_rocket" : "rpg_rocket"
+		"hornet" : "hornet"
+		"hornet dart" : "hornet dart"
+		"hand grenade" : "hand grenade"
+		"shock_beam" : "shock_beam"
+		"spore" : "spore (thrown grenade)"
+		"spore rocket" : "spore rocket"
+		"spore bouncy" : "spore bouncy"
+		"displacer_ball" : "displacer_ball"
+		"squidspit" : "squidspit"
+		"squidtoxicspit" : "squidtoxicspit"
+		"hvr_rocket" : "hvr_rocket (Apache)"
+		"bmortar" : "bmortar (Big Momma)"
+		"controller_energy_ball" : "controller_energy_ball"
+		"gonomeguts" : "gonomeguts"
+		"charged_bolt" : "charged_bolt (Voltigore)"
+		"pitdronespike" : "pitdronespike"
+		"mortar_shell" : "mortar_shell (op4mortar)"
+	]
+	projectile_ent_template(string) : "Projectile Entity Template"
+	detonation_delay(string) : "Detonation delay"
+	projectile_speed(string) : "Custom projectile speed"
+]
 
 @SolidClass base(BaseTank, ZHLT) = func_tankmortar : "Brush Mortar Turret"
 [

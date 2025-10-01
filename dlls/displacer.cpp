@@ -271,7 +271,9 @@ void CDisplacer::Displace()
 	vecSrc += gpGlobals->v_right	* 8;
 	vecSrc += gpGlobals->v_up		* -12;
 
-	CDisplacerBall::Shoot( m_pPlayer->pev, vecSrc, gpGlobals->v_forward * CDisplacerBall::BallSpeed(), m_pPlayer->pev->v_angle );
+	ProjectileParameters projectileParams("displacer_ball", vecSrc, m_pPlayer->pev->v_angle, gpGlobals->v_forward, m_pPlayer);
+	projectileParams.pLauncher = this;
+	CBaseEntity::CreateAndLaunchAsProjectile(projectileParams);
 
 	SetThink( NULL );
 #endif

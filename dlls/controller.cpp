@@ -673,8 +673,10 @@ void CController::RunTask( Task_t *pTask )
 				vecDir += Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * gSkillData.controllerSpeedBall;
 
 				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
-				CBaseMonster *pBall = (CBaseMonster*)Create( "controller_energy_ball", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
-				pBall->pev->velocity = vecDir;
+
+				ProjectileParameters projectileParams("controller_energy_ball", vecSrc, pev->angles, vecDir.Normalize(), this, GetProjectileOverrides());
+				projectileParams.speedOverride = vecDir.Length();
+				CreateAndLaunchAsProjectile(projectileParams);
 			}
 			m_flShootTime += 0.2f;
 		}
@@ -1223,7 +1225,7 @@ void CControllerHeadBall::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(headBallVisual));
+	ApplyVisualWithOwn(GetVisual(headBallVisual));
 
 	UTIL_SetSize(pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1243,7 +1245,7 @@ void CControllerHeadBall::Spawn()
 
 void CControllerHeadBall::Precache()
 {
-	RegisterVisual(headBallVisual);
+	RegisterVisualAsMineOwn(headBallVisual);
 	RegisterVisual(headBallBeamVisual);
 	RegisterVisual(headBallLightVisual);
 	RegisterAndPrecacheSoundScript(electroSoundScript);
@@ -1360,6 +1362,7 @@ class CControllerZapBall : public CBaseMonster
 {
 	void Spawn() override;
 	void Precache() override;
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void EXPORT AnimateThink();
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
 
@@ -1412,7 +1415,7 @@ void CControllerZapBall::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	ApplyVisual(GetVisual(zapBallVisual));
+	ApplyVisualWithOwn(GetVisual(zapBallVisual));
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1429,9 +1432,14 @@ void CControllerZapBall::Spawn()
 
 void CControllerZapBall::Precache()
 {
-	RegisterVisual(zapBallVisual);
+	RegisterVisualAsMineOwn(zapBallVisual);
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 	SetMaxFrame();
+}
+
+void CControllerZapBall::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(gSkillData.controllerSpeedBall, params.direction, params.speedOverride);
 }
 
 void CControllerZapBall::AnimateThink()

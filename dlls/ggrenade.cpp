@@ -357,9 +357,9 @@ void CGrenade::Spawn()
 	pev->solid = SOLID_BBOX;
 
 	if (m_isTimed)
-		ApplyVisual(GetVisual(handGrenadeVisual));
+		ApplyVisualWithOwn(GetVisual(handGrenadeVisual));
 	else
-		ApplyVisual(GetVisual(arGrenadeVisual));
+		ApplyVisualWithOwn(GetVisual(arGrenadeVisual));
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	pev->dmg = gSkillData.plrDmgHandGrenade;
@@ -371,8 +371,8 @@ void CGrenade::Precache()
 	PrecacheBaseGrenadeSounds();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 
-	RegisterVisual(handGrenadeVisual);
-	RegisterVisual(arGrenadeVisual);
+	RegisterVisualAsMineOwn(handGrenadeVisual);
+	RegisterVisualAsMineOwn(arGrenadeVisual);
 }
 
 void CGrenade::PrecacheBaseGrenadeSounds()
@@ -380,72 +380,79 @@ void CGrenade::PrecacheBaseGrenadeSounds()
 	RegisterAndPrecacheSoundScript(debrisSoundScript);
 }
 
-CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides )
+void CGrenade::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
-	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
-	pGrenade->AssignEntityOverrides(entityOverrides);
-	pGrenade->Spawn();
-	// contact grenades arc lower
-	pGrenade->pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
-	UTIL_SetOrigin( pGrenade->pev, vecStart );
-	pGrenade->pev->velocity = vecVelocity;
-	pGrenade->pev->angles = UTIL_VecToAngles( pGrenade->pev->velocity );
-	pGrenade->pev->owner = ENT( pevOwner );
-
-	// make monsters afaid of it while in the air
-	pGrenade->SetThink( &CGrenade::DangerSoundThink );
-	pGrenade->pev->nextthink = gpGlobals->time;
-
-	// Tumble in air
-	pGrenade->pev->avelocity.x = RANDOM_FLOAT( -100, -500 );
-
-	// Explode on contact
-	pGrenade->SetTouch( &CGrenade::ExplodeTouch );
-
-	pGrenade->pev->dmg = gSkillData.plrDmgM203Grenade;
-
-	return pGrenade;
+	m_isTimed = params.variant == TIMED;
 }
 
-CGrenade *CGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time, EntityOverrides entityOverrides )
+void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
-	pGrenade->m_isTimed = true;
-	pGrenade->AssignEntityOverrides(entityOverrides);
-	pGrenade->Spawn();
-	UTIL_SetOrigin( pGrenade->pev, vecStart );
-	pGrenade->pev->velocity = vecVelocity;
-	pGrenade->pev->angles = UTIL_VecToAngles( pGrenade->pev->velocity );
-	pGrenade->pev->owner = ENT( pevOwner );
-
-	pGrenade->SetTouch( &CGrenade::BounceTouch );	// Bounce if touched
-
-	// Take one second off of the desired detonation time and set the think to PreDetonate. PreDetonate
-	// will insert a DANGER sound into the world sound list and delay detonation for one second so that 
-	// the grenade explodes after the exact amount of time specified in the call to ShootTimed(). 
-
-	pGrenade->pev->dmgtime = gpGlobals->time + time;
-	pGrenade->SetThink( &CGrenade::TumbleThink );
-	pGrenade->pev->nextthink = gpGlobals->time + 0.1f;
-	if( time < 0.1f )
+	if (params.variant == CONTACT)
 	{
-		pGrenade->pev->nextthink = gpGlobals->time;
-		pGrenade->pev->velocity = Vector( 0, 0, 0 );
+		pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
+		LaunchAsProjectileImpl(800.0f, params.direction, params.speedOverride);
+
+		// make monsters afaid of it while in the air
+		SetThink( &CGrenade::DangerSoundThink );
+		pev->nextthink = gpGlobals->time;
+
+		// Tumble in air
+		pev->avelocity.x = RANDOM_FLOAT( -100, -500 );
+
+		// Explode on contact
+		SetTouch( &CGrenade::ExplodeTouch );
+
+		pev->dmg = gSkillData.plrDmgM203Grenade;
 	}
+	else
+	{
+		LaunchAsProjectileImpl(600.0f, params.direction, params.speedOverride);
 
-	pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
-	pGrenade->ResetSequenceInfo();
-	pGrenade->pev->framerate = 1.0f;
+		SetTouch( &CGrenade::BounceTouch );	// Bounce if touched
 
-	// Tumble through the air
-	// pGrenade->pev->avelocity.x = -400;
+		pev->dmgtime = gpGlobals->time + params.time;
+		SetThink( &CGrenade::TumbleThink );
+		pev->nextthink = gpGlobals->time + 0.1f;
+		if( params.time < 0.1f )
+		{
+			pev->nextthink = gpGlobals->time;
+			pev->velocity = Vector( 0, 0, 0 );
+		}
 
-	pGrenade->pev->gravity = 0.5f;
-	pGrenade->pev->friction = 0.8f;
+		pev->sequence = RANDOM_LONG( 3, 6 );
+		ResetSequenceInfo();
+		pev->framerate = 1.0f;
 
-	pGrenade->pev->dmg = gSkillData.plrDmgHandGrenade;
+		// Tumble through the air
+		// pGrenade->pev->avelocity.x = -400;
 
-	return pGrenade;
+		pev->gravity = 0.5f;
+		pev->friction = 0.8f;
+
+		pev->dmg = gSkillData.plrDmgHandGrenade;
+	}
+}
+
+CGrenade *CGrenade::ShootContact(CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, EntityOverrides entityOverrides )
+{
+	Vector vecDir = vecVelocity;
+	const float speed = vecDir.NormalizeInPlace();
+	const Vector vecAng = UTIL_VecToAngles(vecVelocity);
+
+	ProjectileParameters parameters("grenade", vecStart, vecAng, vecDir, speed, pOwner, entityOverrides);
+	return (CGrenade*)CreateAndLaunchAsProjectile(parameters);
+}
+
+CGrenade *CGrenade::ShootTimed( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, float time, EntityOverrides entityOverrides )
+{
+	Vector vecDir = vecVelocity;
+	const float speed = vecDir.NormalizeInPlace();
+	const Vector vecAng = UTIL_VecToAngles(vecVelocity);
+
+	ProjectileParameters parameters("grenade", vecStart, vecAng, vecDir, speed, pOwner, entityOverrides);
+	parameters.variant = TIMED;
+	parameters.time = time;
+	return (CGrenade*)CreateAndLaunchAsProjectile(parameters);
 }
 
 CGrenade *CGrenade::ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity )

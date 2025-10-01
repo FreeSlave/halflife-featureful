@@ -145,6 +145,8 @@ public:
 	static CLaserSpot *CreateSpot( edict_t* pOwner = 0 );
 };
 
+class CConfigurableWeapon;
+
 class CBasePlayerWeapon : public CBaseAnimating
 {
 public:
@@ -308,6 +310,7 @@ public:
 	void PrintState();
 
 	CBasePlayerWeapon *MyWeaponPointer() override { return this; }
+	virtual CConfigurableWeapon *MyConfigurableWeaponPointer() { return nullptr; }
 	virtual bool CanBeDropped() { return true; }
 	virtual int ViewModelBody() { return 0; }
 	virtual float GetMaxSpeed() { return 0.0f; }
@@ -392,6 +395,7 @@ public:
 	int ViewModelBody() override { return pev->body; }
 	void SetBody(int body);
 
+	void ProjectileAttack(bool altMode);
 	virtual void NativeAttack(bool altMode) { return; }
 	virtual void OnSpendAmmo() { return; }
 	virtual void OnEndReload() { return; }
@@ -429,6 +433,7 @@ public:
 
 	float GetMaxSpeed() override;
 	void OnPlayerAttackCapabilityChanged(bool enabled) override;
+	CConfigurableWeapon *MyConfigurableWeaponPointer() override { return this; }
 
 #ifndef CLIENT_DLL
 	int Save(CSave &save) override;
@@ -499,6 +504,10 @@ public:
 	// for max speed
 	float m_primaryFireEndTime;
 	float m_secondaryFireEndTime;
+
+	// projectile
+	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
+	int m_iFirePhase;
 
 	// Common event
 	int m_usFire;

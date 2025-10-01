@@ -12,6 +12,9 @@
 #include "ammo_amounts.h"
 #include "gamerules.h"
 #include "game.h"
+#include "hornet.h"
+#include "ggrenade.h"
+#include "spore.h"
 #endif
 
 WeaponInfo& AccessWeaponInfo(int id)
@@ -588,6 +591,44 @@ static int PrecacheWeaponParamModel(optional<const char*> model)
 	return 0;
 }
 
+const char* GetRealProjectileClassname(const char* projectileName, int& variant)
+{
+#if !CLIENT_DLL
+	if (FStrEq(projectileName, "hornet dart"))
+	{
+		variant = CHornet::DART;
+		return "hornet";
+	}
+	else if (FStrEq(projectileName, "AR grenade"))
+	{
+		variant = CGrenade::CONTACT;
+		return "grenade";
+	}
+	else if (FStrEq(projectileName, "hand grenade"))
+	{
+		variant = CGrenade::TIMED;
+		return "grenade";
+	}
+	else if (FStrEq(projectileName, "spore rocket"))
+	{
+		variant = CSpore::ROCKET;
+		return "spore";
+	}
+	else if (FStrEq(projectileName, "spore bouncy"))
+	{
+		variant = CSpore::GRENADE_LAUNCHED;
+		return "spore";
+	}
+	else if (FStrEq(projectileName, "crossbow_bolt explosive"))
+	{
+		variant = 1;
+		return "crossbow_bolt";
+	}
+#endif
+	variant = 0;
+	return projectileName;
+}
+
 void CConfigurableWeapon::Precache()
 {
 	PrecacheWeaponModels();
@@ -629,6 +670,22 @@ void CConfigurableWeapon::Precache()
 	{
 		UTIL_PrecacheOther("laser_spot");
 	}
+
+	auto precacheProjectile = [&params](bool altMode) {
+		const auto& projectileName = params.fire.projectileName.Get(altMode);
+		if (!projectileName.empty())
+		{
+			int projectileVariant;
+			EntityOverrides entityOverrides;
+			const auto& projectileEntTemplate = params.fire.projectileEntTemplate.Get(altMode);
+			if (!projectileEntTemplate.empty())
+				entityOverrides.entTemplate = MAKE_STRING(projectileEntTemplate.c_str());
+			UTIL_PrecacheOther(GetRealProjectileClassname(projectileName.c_str(), projectileVariant), entityOverrides);
+		}
+	};
+
+	precacheProjectile(false);
+	precacheProjectile(true);
 }
 
 bool CConfigurableWeapon::Deploy()
@@ -1248,6 +1305,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		NativeAttack(altMode);
 	}
+	else if (fireType == WeaponParameters::Fire::PROJECTILE)
+	{
+		ProjectileAttack(altMode);
+	}
 	else if (fireType == WeaponParameters::Fire::MELEE)
 	{
 		m_swingIsAltAttack = altMode;
@@ -1366,6 +1427,90 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		m_burstSpreadX = vecSpread.x;
 		m_burstSpreadY = vecSpread.y;
 	}
+}
+
+void CConfigurableWeapon::ProjectileAttack(bool altMode)
+{
+#if !CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+	const WeaponParameters::Fire& fire = params.fire;
+
+	int projectileVariant = 0;
+	const auto& projectileName = fire.projectileName.Get(altMode);
+	if (!projectileName.empty())
+	{
+		const char* projectileStr = GetRealProjectileClassname(projectileName.c_str(), projectileVariant);
+
+		Vector vecHead = m_pPlayer->GetGunPosition();
+		Vector aimAngles = m_pPlayer->pev->v_angle;
+		if (fire.projectileRespectPunchangle.Get(altMode))
+			aimAngles += m_pPlayer->pev->punchangle;
+		UTIL_MakeVectors(aimAngles);
+		aimAngles.x = -aimAngles.x;
+
+		Vector vecDir = gpGlobals->v_forward;
+		Vector vecSrc = vecHead +
+						gpGlobals->v_forward * fire.projectileOffsetForward.Get(altMode) +
+						gpGlobals->v_right * fire.projectileOffsetSide.Get(altMode) +
+						gpGlobals->v_up * fire.projectileOffsetUp.Get(altMode);
+
+		Vector vecShift{};
+
+		const auto& firePhases = fire.projectileFirePhases.Get(altMode);
+		if (!firePhases.empty())
+		{
+			m_iFirePhase = Q_min(firePhases.size()-1, m_iFirePhase); // just in case
+
+			vecShift += gpGlobals->v_up * firePhases[m_iFirePhase].up;
+			vecShift += gpGlobals->v_right * firePhases[m_iFirePhase].side;
+
+			m_iFirePhase++;
+			if (m_iFirePhase == firePhases.size())
+				m_iFirePhase = 0;
+		}
+
+		vecSrc += vecShift;
+		vecHead += vecShift;
+
+		Vector vecAngles = aimAngles;
+		if (fire.projectileAdjustToCross.Get(altMode))
+		{
+			TraceResult tr;
+			UTIL_TraceLine(vecHead, vecHead + vecDir * 4096, dont_ignore_monsters, edict(), &tr);
+			vecDir = (tr.vecEndPos - vecSrc).Normalize();
+			vecAngles = UTIL_VecToAngles(vecDir);
+			//vecAngles.x = -vecAngles.x;
+		}
+
+		EntityOverrides entityOverrides;
+		if (!fire.projectileEntTemplate.Get(altMode).empty())
+		{
+			entityOverrides.entTemplate = MAKE_STRING(fire.projectileEntTemplate.Get(altMode).c_str());
+		}
+		ProjectileParameters projectileParams(projectileStr, vecSrc, vecAngles, vecDir, m_pPlayer, entityOverrides);
+		projectileParams.speedOverride = fire.projectileSpeed.Get(altMode);
+		projectileParams.variant = projectileVariant;
+		projectileParams.pLauncher = this;
+		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+		CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);
+
+		if (pProjectile)
+		{
+			const auto addVelocity = fire.projectileAddCurrentVelocity.Get(altMode);
+			switch(addVelocity)
+			{
+			case WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE:
+				pProjectile->pev->velocity += m_pPlayer->pev->velocity;
+				break;
+			case WeaponParameters::Fire::ADD_VELOCITY_PROJECTION:
+				pProjectile->pev->velocity += vecDir * DotProduct(m_pPlayer->pev->velocity, vecDir);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+#endif
 }
 
 void CConfigurableWeapon::FireRemaining()

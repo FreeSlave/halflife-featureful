@@ -35,6 +35,8 @@
 #define VOLTIGORE_BEAM_COUNT 8
 #define VOLTIGORE_GIB_COUNT 10
 
+#define CHARGEDBOLT_SPEED 1000.0f
+
 class CChargedBolt : public CBaseEntity
 {
 public:
@@ -48,7 +50,7 @@ public:
 
 	static CChargedBolt* ChargedBoltCreate(EntityOverrides entityOverrides = EntityOverrides());
 
-	void LaunchChargedBolt(const Vector& vecAim, edict_t* pOwner, int nSpeed);
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void SetAttachment(CBaseAnimating* pAttachEnt, int iAttachIdx);
 
@@ -111,7 +113,7 @@ const NamedVisual CChargedBolt::hitBeamVisual = BuildVisual("ChargedBolt.HitBeam
 
 void CChargedBolt::Precache()
 {
-	RegisterVisual(spriteVisual);
+	RegisterVisualAsMineOwn(spriteVisual);
 	RegisterVisual(beamVisual);
 	RegisterVisual(hitBeamVisual);
 }
@@ -125,7 +127,7 @@ void CChargedBolt::Spawn()
 
 	pev->gravity = 0.5f;
 
-	ApplyVisual(GetVisual(spriteVisual));
+	ApplyVisualWithOwn(GetVisual(spriteVisual));
 
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
@@ -174,13 +176,9 @@ CChargedBolt* CChargedBolt::ChargedBoltCreate(EntityOverrides entityOverrides)
 	return pBolt;
 }
 
-void CChargedBolt::LaunchChargedBolt(const Vector& vecAim, edict_t* pOwner, int nSpeed)
+void CChargedBolt::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	pev->angles = vecAim;
-	pev->owner = pOwner;
-	pev->velocity = vecAim * nSpeed;
-
-	pev->speed = nSpeed;
+	LaunchAsProjectileImpl(CHARGEDBOLT_SPEED, params.direction, params.speedOverride);
 
 	SetTouch(&CChargedBolt::ChargedBoltTouch);
 	SetThink(&CChargedBolt::FlyThink);
@@ -313,7 +311,9 @@ void CChargedBolt::DoRadiusDamage(float dmg, float radius)
 	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, DamageInfo{dmg, DMG_SHOCK}, radius, RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
 				   [pOwner](CBaseEntity* pEntity) {
 		if (pOwner)
-			return pOwner->IRelationship(pEntity) != R_AL;
+		{
+			return pOwner != pEntity && pOwner->IRelationship(pEntity) != R_AL;
+		}
 		return true;
 	});
 }
@@ -715,11 +715,14 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 			UTIL_TraceLine(shootPosition, shootPosition + direction * 1024, dont_ignore_monsters, edict(), &tr);
 
 			CChargedBolt* bolt = m_pChargedBolt.Entity<CChargedBolt>();
+			bolt->pev->owner = edict();
 
-			bolt->LaunchChargedBolt(direction, edict(), 1000);
+			ProjectileParameters params;
+			params.direction = direction;
+			bolt->LaunchAsProjectile(params);
 
 			//We no longer have to manage the bolt now
-			m_pChargedBolt = nullptr;
+			m_pChargedBolt = 0;
 
 			ClearBeams();
 		}

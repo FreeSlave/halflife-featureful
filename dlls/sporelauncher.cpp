@@ -47,7 +47,6 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void NativeAttack(bool altMode) override;
 	void OnIdleAnimation(int anim) override;
 
 	int m_iSquidSpitSprite;
@@ -70,7 +69,6 @@ void CSporelauncher::Precache()
 
 	PRECACHE_MODEL("sprites/bigspit.spr");
 	m_iSquidSpitSprite = PRECACHE_MODEL("sprites/tinyspit.spr");
-	UTIL_PrecacheOther("spore");
 }
 
 bool CSporelauncher::GetItemInfo(ItemInfo *p)
@@ -109,8 +107,15 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	};
 
 	// Primary fire
-	params.fire.fireType = WeaponParameters::Fire::NATIVE;
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
 	params.fire.anims = {SPLAUNCHER_FIRE};
+
+	params.fire.projectileName = "spore rocket";
+	params.fire.projectileOffsetForward = 16.0f;
+	params.fire.projectileOffsetSide = 8.0f;
+	params.fire.projectileOffsetUp = -8.0f;
+	params.fire.projectileRespectPunchangle = false;
+	params.fire.projectileAdjustToCross = true;
 
 	params.fire.sound = {
 		CHAN_WEAPON,
@@ -135,6 +140,7 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	//
 
 	// Alt fire
+	params.fire.projectileName.alt = "spore bouncy";
 	params.fire.sound.alt = {
 		CHAN_WEAPON,
 		{"weapons/splauncher_altfire.wav"},
@@ -169,25 +175,6 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	params.endReload.attackDelay = 0.0f;
 
 	return params;
-}
-
-void CSporelauncher::NativeAttack(bool altMode)
-{
-#if !CLIENT_DLL
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
-
-	if (altMode)
-	{
-		Vector vecAngles = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		CSpore::ShootTimed(m_pPlayer, vecSrc, vecAngles, m_pPlayer->pev->velocity + gpGlobals->v_forward * CSpore::SporeGrenadeSpeed());
-	}
-	else
-	{
-		Vector vecAngles = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		CSpore::ShootContact( m_pPlayer, vecSrc, vecAngles, gpGlobals->v_forward * CSpore::SporeRocketSpeed() );
-	}
-#endif
 }
 
 void CSporelauncher::OnIdleAnimation(int anim)
