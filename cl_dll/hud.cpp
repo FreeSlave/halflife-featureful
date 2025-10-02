@@ -232,6 +232,7 @@ cvar_t *cl_lw = NULL;
 cvar_t *cl_righthand = NULL;
 cvar_t *r_decals = NULL;
 cvar_t *cl_viewbob = NULL;
+cvar_t *cl_viewmodel_lag = NULL;
 cvar_t *cl_rollspeed = NULL;
 cvar_t *cl_rollangle = NULL;
 cvar_t *cl_satchelcontrol = NULL;
@@ -733,6 +734,7 @@ void CHud::Init( void )
 	m_pCvarCrosshair = gEngfuncs.pfnGetCvarPointer( "crosshair" );
 
 	CreateBooleanCvarConditionally(cl_viewbob, "cl_viewbob", clientFeatures.view_bob);
+	CreateBooleanCvarConditionally(cl_viewmodel_lag, "cl_viewmodel_lag", clientFeatures.viewmodel_lag);
 	CreateFloatCvarConditionally(cl_rollangle, "cl_rollangle", clientFeatures.rollangle);
 	cl_rollspeed = gEngfuncs.pfnRegisterVariable ( "cl_rollspeed", "200", FCVAR_CLIENTDLL|FCVAR_ARCHIVE );
 
@@ -999,6 +1001,7 @@ void CHud::ParseClientFeatures()
 		{ "hud_armor_near_health.", clientFeatures.hud_armor_near_health},
 		{ "flashlight.custom.", clientFeatures.flashlight.custom},
 		{ "view_bob.", clientFeatures.view_bob},
+		{ "viewmodel_lag.", clientFeatures.viewmodel_lag},
 		{ "weapon_wallpuff.", clientFeatures.weapon_wallpuff},
 		{ "weapon_sparks.", clientFeatures.weapon_sparks},
 		{ "muzzlelight.", clientFeatures.muzzlelight},
@@ -1601,6 +1604,11 @@ bool CHud::ClientFeatureEnabled(cvar_t* cVariable, bool defaultValue)
 bool CHud::ViewBobEnabled()
 {
 	return ClientFeatureEnabled(cl_viewbob, clientFeatures.view_bob.enabled_by_default);
+}
+
+bool CHud::ViewModelLagEnabled()
+{
+	return ClientFeatureEnabled(cl_viewmodel_lag, clientFeatures.viewmodel_lag.enabled_by_default);
 }
 
 int CHud::CalcMinHUDAlpha()

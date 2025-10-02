@@ -942,6 +942,7 @@ struct ClientFeatures
 	FlashlightFeatures flashlight;
 
 	ConfigurableBooleanValue view_bob;
+	ConfigurableBooleanValue viewmodel_lag;
 	ConfigurableFloatValue rollangle;
 	ConfigurableBooleanValue weapon_wallpuff;
 	ConfigurableBooleanValue weapon_sparks;
@@ -1123,6 +1124,7 @@ public:
 		return m_iWeaponBits != 0;
 	}
 	bool ViewBobEnabled();
+	bool ViewModelLagEnabled();
 	int CalcMinHUDAlpha();
 	bool DrawArmorNearHealth();
 	bool WeaponWallpuffEnabled();
