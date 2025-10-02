@@ -693,6 +693,7 @@ struct WeaponParameters
 	int toolIndex{-1};
 
 	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
+	bool preventJump{false};
 };
 
 #endif

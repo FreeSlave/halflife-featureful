@@ -811,6 +811,9 @@ R"(
 			"player_maxspeed_alt": {
 				"$ref": "definitions.json#/absolute_or_factor"
 			},
+			"prevent_jump": {
+				"type": "boolean"
+			},
 			"viewmodel_body": {
 				"type": "integer",
 				"minimum": 0

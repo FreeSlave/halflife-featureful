@@ -1215,6 +1215,18 @@ Same as [player_maxspeed](#player_maxspeed) but when the weapon is in alternativ
 }
 ```
 
+## prevent_jump
+
+Whether the jump is disallowed while the weapon is deployed.
+
+```json
+{
+    "weapon_rpg": {
+        "prevent_jump": true
+    }
+}
+```
+
 ## prioritize_primary_attack
 
 Whether the primary attack button is prioritized when both primary and secondary fire are pressed. This is used in [weapon_minigun]({{< ref weapon_minigun >}}) to prioritize the firing over spinning.

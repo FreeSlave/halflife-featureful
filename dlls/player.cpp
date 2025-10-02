@@ -4137,7 +4137,7 @@ int CBasePlayer::Restore( CRestore &restore )
 
 void CBasePlayer::SetPhysicsKeyValues()
 {
-	if( FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP) )
+	if( FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP|PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON) )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "noj", "1" );
 	}

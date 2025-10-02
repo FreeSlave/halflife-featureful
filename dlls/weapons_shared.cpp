@@ -666,6 +666,14 @@ bool CConfigurableWeapon::PerformDeploy()
 	const bool result = DefaultDeploy(MyViewModel(), MyPlayerModel(), deploy.animIndex.Get(altMode, emptied), params.playerAnimExt.c_str(), ViewModelBody(), duration, idleDelay);
 	if (result)
 	{
+#if !CLIENT_DLL
+		if (params.preventJump)
+		{
+			m_pPlayer->m_suppressedCapabilities |= PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON;
+			m_pPlayer->SetPhysicsKeyValues();
+		}
+#endif
+
 		m_iSwingMode = 0;
 		ResetBurst();
 
@@ -1882,6 +1890,14 @@ void CConfigurableWeapon::Holster()
 	m_pPlayer->pev->weaponmodel = 0;
 
 	const WeaponParameters& params = MyParameters();
+
+#if !CLIENT_DLL
+	if (m_pPlayer && FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON))
+	{
+		ClearBits(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON);
+		m_pPlayer->SetPhysicsKeyValues();
+	}
+#endif
 
 	if (!params.manualReload || !params.manualReloadContinueOnDeploy)
 		m_fInSpecialReload = 0;

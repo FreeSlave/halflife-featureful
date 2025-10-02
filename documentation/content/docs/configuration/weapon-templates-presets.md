@@ -890,7 +890,7 @@ Team Fortress Classic doesn't have world models for weapons. You may need to pro
 }
 ```
 
-A weapon used by the Heavy Weapon Guy class. This uses `buckshot` ammo.
+A weapon used by the Heavy Weapon Guy class. This doesn't prevent jumping and uses `buckshot` ammo.
 
 {{% hint warning %}}
 This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.
@@ -918,7 +918,7 @@ Required sounds:
 }
 ```
 
-Very similar to Team Fortress Classic assault cannon, but needs reloading. This doesn't impose the speed penalty on the player and uses `9mm` ammo.
+Very similar to Team Fortress Classic assault cannon, but needs reloading. This doesn't impose the speed or jump penalty on the player and uses `9mm` ammo.
 
 {{% hint warning %}}
 This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.

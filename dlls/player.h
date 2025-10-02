@@ -120,6 +120,7 @@ enum sbar_data
 #define PLAYER_SUPPRESS_DUCK (1<<2)
 #define PLAYER_SUPPRESS_STEP_SOUND (1<<3)
 #define PLAYER_SUPPRESS_USE (1<<5)
+#define PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON (1<<6)
 
 // trigger_camera related player flags
 #define PLAYER_CAMERA_INVULNERABLE (1 << 0)

@@ -878,6 +878,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			params.secondaryFireType = SecondaryFireType::SWITCH_MODE;
 	});
 
+	UpdatePropertyFromJson(params.preventJump, value, "prevent_jump");
 	UpdatePropertyFromJson(params.primaryFirePrioritized, value, "prioritize_primary_attack");
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body", false);
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body_alt", true);

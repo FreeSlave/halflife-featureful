@@ -160,6 +160,7 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 	params.primaryFirePrioritized = true;
 	params.playerMaxSpeed.main.value = 0.6f;
 	params.playerMaxSpeed.main.isFactor = true;
+	params.preventJump = true;
 
 	params.holster.animIndex = MINIGUN_HOLSTER;
 	params.holster.attackDelay = 0.5f;

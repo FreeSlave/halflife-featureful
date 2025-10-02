@@ -9,7 +9,7 @@ entityCategory: pickup
 Minigun from Sven Co-op.
 
 {{% hint info %}}
-Equipping minigun as a current weapon imposes the speed penalty on the player. The penalty is even stronger while the minigun is spinning (secondary attack) and makes player almost immovable while firing.
+Equipping minigun as a current weapon [prevents jumping]({{< ref "weapon-templates#prevent_jump" >}}) and imposes the [speed penalty]({{< ref "weapon-templates#player_maxspeed" >}}) on the player. The [penalty]({{< ref "weapon-templates#fire-player_maxspeed" >}}) is even stronger while the minigun is spinning (secondary attack) and makes player almost immovable while firing. These penalties can be removed via weapon templates.
 {{% /hint %}}
 
 {{% hint info%}}
