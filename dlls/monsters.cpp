@@ -1324,6 +1324,12 @@ bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 				// UNDONE: Should we allow monsters to override this distance (80?)
 				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).IsLengthGreaterThan(80.0f) )
 				{
+					// I'm already standing almost on enemy LKP. No point in building a path to the same spot.
+					// Set the current route point as enemy LKP instead
+					if ((pev->origin - m_vecEnemyLKP).IsLengthLessThanOrEqual(48.0f) && (pev->origin - m_vecEnemyLKP).IsLength2DLessThanOrEqual(16.0f))
+					{
+						m_vecEnemyLKP = m_Route[m_iRouteIndex].vecLocation;
+					}
 					// Refresh
 					FRefreshRoute();
 					return iUpdatedLKP;
