@@ -1432,6 +1432,8 @@ bool CBaseMonster::PopEnemy()
 //=========================================================
 // SetActivity 
 //=========================================================
+extern cvar_t npc_range_attack_unlooped;
+
 void CBaseMonster::SetActivity( Activity NewActivity )
 {
 	int iSequence = LookupActivity( NewActivity );
@@ -1455,6 +1457,12 @@ void CBaseMonster::SetActivity( Activity NewActivity )
 		pev->sequence = iSequence;	// Set to the reset anim (if it's there)
 		ResetSequenceInfo();
 		SetYawSpeed();
+
+		if (m_fSequenceLoops && m_Activity == ACT_RANGE_ATTACK1 && npc_range_attack_unlooped.value)
+		{
+			//ALERT(at_aiconsole, "%s: forcing attack animation not to loop\n", STRING(pev->classname));
+			m_fSequenceLoops = false;
+		}
 	}
 	else
 	{

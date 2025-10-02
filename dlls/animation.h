@@ -38,7 +38,7 @@ int GetBodygroup( void *pmodel, entvars_t *pev, int iGroup );
 int GetBodyCount( void *pmodel );
 int GetBodygroupNumModels( void *pmodel, int iGroup );
 
-int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame , int minAnimEventFrame);
+int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame, int minAnimEventFrame, bool sequenceLoops);
 int ExtractBbox( void *pmodel, int sequence, float *mins, float *maxs );
 
 // From /engine/studio.h

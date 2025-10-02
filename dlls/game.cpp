@@ -766,6 +766,7 @@ cvar_t animeventfix = {"animeventfix", "0", FCVAR_SERVER };
 cvar_t anim_attack_reset_fix = {"anim_attack_reset_fix", "1", FCVAR_SERVER };
 cvar_t anim_dispatch_fix = {"anim_dispatch_fix", "0", FCVAR_SERVER};
 cvar_t npc_run_task_instant = {"npc_run_task_instant", "1", FCVAR_SERVER};
+cvar_t npc_range_attack_unlooped = {"npc_range_attack_unlooped", "1", FCVAR_SERVER};
 cvar_t corpsephysics = { "corpsephysics", "0", FCVAR_SERVER };
 cvar_t pushablemode = { "pushablemode", "0", FCVAR_SERVER };
 cvar_t forcerespawn	= { "mp_forcerespawn","1", FCVAR_SERVER };
@@ -1740,6 +1741,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &anim_attack_reset_fix );
 	CVAR_REGISTER( &anim_dispatch_fix );
 	CVAR_REGISTER( &npc_run_task_instant );
+	CVAR_REGISTER( &npc_range_attack_unlooped );
 	CVAR_REGISTER( &corpsephysics );
 	CVAR_REGISTER( &pushablemode );
 	CVAR_REGISTER( &forcerespawn );

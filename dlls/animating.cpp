@@ -182,7 +182,7 @@ void CBaseAnimating::DispatchAnimEvents( float flInterval )
 
 	int latestAnimEventFrame = 0;
 	bool handledEvent = false;
-	while( ( index = GetAnimationEvent( pmodel, pev, &event, flStart, flEnd, index, latestAnimEventFrame, m_minAnimEventFrame ) ) != 0 )
+	while( ( index = GetAnimationEvent( pmodel, pev, &event, flStart, flEnd, index, latestAnimEventFrame, m_minAnimEventFrame, m_fSequenceLoops ) ) != 0 )
 	{
 		handledEvent = true;
 		HandleAnimEvent( &event );
