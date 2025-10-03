@@ -393,7 +393,7 @@ void COp4Mortar::MortarThink()
 
 		if (pEnemy)
 		{
-			const float distanceSqr = (pEnemy->pev->origin - pev->origin).Length();
+			const float distanceSqr = (pEnemy->pev->origin - pev->origin).LengthSqr();
 
 			if (pEnemy->IsAlive() && m_minRange*m_minRange <= distanceSqr && distanceSqr <= m_maxRange*m_maxRange)
 			{
