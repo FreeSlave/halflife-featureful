@@ -269,6 +269,7 @@ public:
 	void SetState( MONSTERSTATE State );
 	static const char* MonsterStateDisplayString(MONSTERSTATE monsterState);
 	virtual void ReportAIState( ALERT_TYPE level );
+	void ReportFireAnimEvent(int event);
 
 	void CheckAttacks( CBaseEntity *pTarget, float flDist, float flMeleeDist );
 	virtual bool CheckEnemy( CBaseEntity *pEnemy );

@@ -1792,6 +1792,7 @@ void CHFGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case HGRUNT_ALLY_AE_BURST1:
 		{
+			ReportFireAnimEvent(pEvent->event);
 			if ( FBitSet( pev->weapons, FGRUNT_9MMAR ))
 			{
 				Shoot();
@@ -1814,6 +1815,7 @@ void CHFGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case HGRUNT_ALLY_AE_BURST2:
 		case HGRUNT_ALLY_AE_BURST3:
+			ReportFireAnimEvent(pEvent->event);
 			if ( FBitSet( pev->weapons, FGRUNT_9MMAR ))
 				Shoot();
 			else if ( FBitSet( pev->weapons, FGRUNT_M249 ))
@@ -3078,6 +3080,7 @@ void CTorch::HandleAnimEvent(MonsterEvent_t *pEvent)
 		break;
 	case HGRUNT_ALLY_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		UTIL_MakeVectors( pev->angles );
 		Vector vecShootOrigin = GetGunPosition();
 		Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
@@ -3845,6 +3848,7 @@ void CMedic::HandleAnimEvent(MonsterEvent_t *pEvent)
 		break;
 	case HGRUNT_ALLY_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		if (FBitSet(pev->weapons, MEDIC_EAGLE)) {
 			FirePistol(desertEagleSoundScript, gSkillData.monDmg357);
 		} else if (FBitSet(pev->weapons, MEDIC_HANDGUN)) {

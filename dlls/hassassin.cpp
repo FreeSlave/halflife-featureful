@@ -341,6 +341,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case ASSASSIN_AE_SHOOT1:
+		ReportFireAnimEvent(pEvent->event);
 		Shoot();
 		break;
 	case ASSASSIN_AE_TOSS1:

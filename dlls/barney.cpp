@@ -345,6 +345,7 @@ void CBarney::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNEY_AE_SHOOT:
+		ReportFireAnimEvent(pEvent->event);
 		if (pev->frags)
 		{
 			BarneyFirePistol(firePythonSoundScript, gSkillData.monDmg357);
@@ -808,6 +809,7 @@ void COtis::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 		case BARNEY_AE_SHOOT:
+			ReportFireAnimEvent(pEvent->event);
 			BarneyFirePistol(fireDesertEagleSoundScript, gSkillData.monDmg357);
 			break;
 			
@@ -995,6 +997,7 @@ void CBarniel::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNEY_AE_SHOOT:
+		ReportFireAnimEvent(pEvent->event);
 		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
 		break;
 	default:
@@ -1176,6 +1179,7 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNEY_AE_SHOOT:
+		ReportFireAnimEvent(pEvent->event);
 		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
 		break;
 	case KATE_AE_KICK:

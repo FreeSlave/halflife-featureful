@@ -416,6 +416,7 @@ void CHoundeye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			}
 		case HOUND_AE_THUMP:
 			// emit the shockwaves
+			ReportFireAnimEvent(pEvent->event);
 			SonicAttack();
 			break;
 		case HOUND_AE_ANGERSOUND1:

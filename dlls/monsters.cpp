@@ -3748,6 +3748,14 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	}
 }
 
+extern cvar_t npc_report_fire_animevents;
+
+void CBaseMonster::ReportFireAnimEvent(int event)
+{
+	if (IsDeveloperModeOn() && npc_report_fire_animevents.value)
+		ALERT(at_aiconsole, "%s (%d): event: %d, time: %g, frame: %g\n", STRING(pev->classname), entindex(), event, gpGlobals->time, pev->frame);
+}
+
 //=========================================================
 // KeyValue
 //

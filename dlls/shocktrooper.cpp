@@ -376,6 +376,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case STROOPER_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		if (m_hEnemy != 0 || m_pCine != 0)
 		{
 			Vector	vecGunPos;

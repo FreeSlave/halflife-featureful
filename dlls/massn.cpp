@@ -257,6 +257,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case MASSN_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		if (FBitSet(pev->weapons, MASSN_9MMAR))
 		{
 			Shoot();

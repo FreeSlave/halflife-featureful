@@ -939,6 +939,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case HGRUNT_AE_BURST1:
 		{
+			ReportFireAnimEvent(pEvent->event);
 			if( FBitSet( pev->weapons, HGRUNT_9MMAR ) )
 			{
 				Shoot();
@@ -955,6 +956,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case HGRUNT_AE_BURST2:
 		case HGRUNT_AE_BURST3:
+			ReportFireAnimEvent(pEvent->event);
 			Shoot();
 			break;
 		case HGRUNT_AE_KICK:
