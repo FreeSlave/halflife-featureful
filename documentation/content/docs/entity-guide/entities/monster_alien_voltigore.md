@@ -36,16 +36,11 @@ bookToC: false
 
 * **Voltigore.ChargeBeam** - beams played while preparing the range attack.
 * **Voltigore.DeathBeam** - beams played on death.
+* [charged_bolt visuals]({{< ref "charged_bolt/#visuals" >}})
 
 Shared visuals:
 
 * **Voltigore.Beam** - sprite, color and alpha properties shared by **Voltigore.ChargeBeam** and **Voltigore.DeathBeam**.
-
-Bolt projectile visuals:
-
-* **ChargedBolt.Sprite** - the projectile sprite.
-* **ChargedBolt.Beam** - the beam accompanying the projectile. This should match **Voltigore.ChargeBeam** for consistent looks.
-* **ChargedBolt.HitBeam** - the accompanying beam when it hits something capable of getting damage. This uses a slightly different color. Should be kept in match with **ChargedBolt.Beam** for consistent looks.
 
 ### Attacks
 

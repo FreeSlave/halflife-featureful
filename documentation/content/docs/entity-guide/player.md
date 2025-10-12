@@ -33,10 +33,12 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 
 ### Soundscripts
 
+* **Player.Death** - death sound (unless player is gibbed). This is empty by default.
+* **Player.DeathUnderwater** - death sound to use if player died underwater (unless player is gibbed). This is empty by default.
 * **Player.FlashlightOn** - turn on the flashlight.
 * **Player.FlashlightOff** - turn off the flashlight.
-* **Player.NVGOn** - turn on the NVG.
-* **Player.NVGOff** - turn off the NVG.
+* **Player.NVGOn** - turn on the NVG. This is empty by default.
+* **Player.NVGOff** - turn off the NVG. This is empty by default.
 * **Player.FallBodySplat** - played when player dies from fall damage.
 * **Player.TrainUse** - start using a train.
 * **Player.VehicleUse** - start using a vehicle.

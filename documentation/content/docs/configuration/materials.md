@@ -109,6 +109,6 @@ The `hit` entry has the following properties:
 * `play_sparks` - a boolean value defining whether the spark effect and sound should sometimes play when the material is hit. `false` by default. Out of the predefined materials the computer (**P**) has set it to `true`, so when you hit the computer screen the spark is produced sometimes.
 * `wallpuff_color` - the color of the wallpuff produced. E.g. the wood (**W**) has a custom wallpuff color. The default color is `[40, 40, 40]`, i.e. light grey.
 
-#### ladder_step and wade_step
+### ladder_step and wade_step
 
 Both `ladder_step` and `wade_step` have the same format as `step` entry of the material.

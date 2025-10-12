@@ -5,7 +5,7 @@ bookToC: false
 
 # env_energy_ball_trap
 
-THe energy ball that plays a looped sound and gets alerted when player is nearby. If player stays close to it for a certain amount of time, the ball fires itself at the player, acting as a [controller's]({{< ref monster_alien_controller >}}) head ball projectile. After a while the ball repspawns at its original location.
+The energy ball that plays a looped sound and gets alerted when player is nearby. If player stays close to it for a certain amount of time, the ball fires itself at the player, acting as a [controller's head ball projectile]({{< ref controller_head_ball >}}). After a while the ball respawns at its original location.
 
 The entity was made for Field Intensity and backported to Featureful SDK.
 

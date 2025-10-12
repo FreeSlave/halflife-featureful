@@ -3334,7 +3334,7 @@
 	master(string) : "Master"
 ]
 
-@PointClass base(Targetname) = game_player_settings : "Initial player setting in singleplayer"
+@PointClass base(Targetname) = game_player_settings : "Set player settings. If this doesn't have a name and there's no map config the settings are getting applied on player spawn in the singleplayer game"
 [
 	target(target_destination) : "Fire on equip" : : "Fire after (and if) player got equipped."
 	_9mm(integer) : "9mm bullets"
