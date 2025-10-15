@@ -1026,22 +1026,15 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	});
 
 	HandleJSONMember(value, "blood", [&entTemplate](const Value& value) {
-		const char* bloodType = value.GetString();
-		if (stricmp(bloodType, "red") == 0)
+		const char* bloodTypeName = value.GetString();
+		const int bloodType = BloodTypeFromName(bloodTypeName);
+		if (bloodType == BLOOD_COLOR_INVALID)
 		{
-			entTemplate.SetBloodColor(BLOOD_COLOR_RED);
-		}
-		else if (stricmp(bloodType, "yellow") == 0)
-		{
-			entTemplate.SetBloodColor(BLOOD_COLOR_YELLOW);
-		}
-		else if (stricmp(bloodType, "no") == 0)
-		{
-			entTemplate.SetBloodColor(DONT_BLEED);
+			LOG_WARNING("Unknown blood type '%s'\n", bloodType);
 		}
 		else
 		{
-			LOG_WARNING("Unknown blood type '%s'\n", bloodType);
+			entTemplate.SetBloodColor(bloodType);
 		}
 	});
 

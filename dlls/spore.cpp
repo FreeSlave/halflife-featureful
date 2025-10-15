@@ -10,6 +10,7 @@
 #include	"skill.h"
 #include	"spore.h"
 #include	"game.h"
+#include	"player.h"
 #include	"visuals_utils.h"
 
 #define FEATURE_SPORE_AMMO_CEILING_LIGHT 1
@@ -298,13 +299,13 @@ void CSpore::UpdateOnRemove()
 class CSporeAmmo : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT IdleThink ( void );
-	void EXPORT AmmoTouch ( CBaseEntity *pOther );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT IdleThink();
+	void EXPORT AmmoTouch( CBaseEntity *pOther );
 	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
 
-	virtual int SizeForGrapple() { return GRAPPLE_FIXED; }
+	int SizeForGrapple() override { return GRAPPLE_FIXED; }
 
 	static const NamedSoundScript ammoSoundScript;
 
@@ -417,7 +418,7 @@ TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pev
 	return TakeDamageResult();
 }
 
-void CSporeAmmo::IdleThink ( void )
+void CSporeAmmo::IdleThink()
 {
 	switch (pev->sequence)
 	{
@@ -450,12 +451,16 @@ void CSporeAmmo::IdleThink ( void )
 	}
 }
 
-void CSporeAmmo::AmmoTouch ( CBaseEntity *pOther )
+void CSporeAmmo::AmmoTouch( CBaseEntity *pOther )
 {
 	if ( !pOther->IsPlayer() || pev->body == 0 )
 		return;
 
-	int bResult = (pOther->GiveAmmo( AMMO_SPORE_GIVE, "spores" ) != -1);
+	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
+	if (!pPlayer->CanHaveItem(this))
+		return;
+
+	bool bResult = pOther->GiveAmmo( AMMO_SPORE_GIVE, "spores" ) != -1;
 	if (bResult)
 	{
 		EmitSoundScript(ammoSoundScript);

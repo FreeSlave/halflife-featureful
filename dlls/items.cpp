@@ -373,7 +373,7 @@ void CPickup::FallThink()
 	}
 }
 
-CBaseEntity* CPickup::Respawn( void )
+CBaseEntity* CPickup::Respawn()
 {
 	SetTouch( NULL );
 	pev->effects |= EF_NODRAW;
@@ -403,6 +403,16 @@ bool CPickup::IsLockedByMaster()
 	return m_sMaster && !UTIL_IsMasterTriggered(m_sMaster, nullptr);
 }
 
+bool CPickup::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
+}
+
 TYPEDESCRIPTION CPickup::m_SaveData[] =
 {
 	DEFINE_FIELD(CPickup, m_sMaster, FIELD_STRING),
@@ -411,7 +421,7 @@ IMPLEMENT_SAVERESTORE(CPickup, CBaseDelay)
 
 extern bool gEvilImpulse101;
 
-void CItem::Spawn( void )
+void CItem::Spawn()
 {
 	if (FBitSet(pev->spawnflags, SF_ITEM_NOFALL))
 		pev->movetype = MOVETYPE_NONE;
@@ -486,7 +496,7 @@ void CItem::TouchOrUse(CBaseEntity *pOther)
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
 	// ok, a player is touching this item, but can he have it?
-	if( !g_pGameRules->CanHaveItem( pPlayer, this ) )
+	if (!pPlayer->CanHaveItem(this) || !g_pGameRules->CanHaveItem( pPlayer, this ))
 	{
 		// no? Ignore the touch.
 		return;
@@ -536,13 +546,13 @@ void CItem::OnMaterialize()
 class CItemSuit : public CItem
 {
 public:
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel( "models/w_suit.mdl" );
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		PrecacheMyModel( "models/w_suit.mdl" );
 	}
@@ -639,9 +649,9 @@ LINK_ENTITY_TO_CLASS( item_battery, CItemBattery )
 class CItemArmorVest : public CItemBattery
 {
 protected:
-	const char* DefaultModel() { return "models/barney_vest.mdl"; }
-	bool ShouldSetSuitUpdate() { return false; }
-	int DefaultCapacity() { return 60; }
+	const char* DefaultModel() override { return "models/barney_vest.mdl"; }
+	bool ShouldSetSuitUpdate() override { return false; }
+	int DefaultCapacity() override { return 60; }
 };
 
 LINK_ENTITY_TO_CLASS( item_armorvest, CItemArmorVest )
@@ -649,22 +659,22 @@ LINK_ENTITY_TO_CLASS( item_armorvest, CItemArmorVest )
 class CItemHelmet : public CItemBattery
 {
 protected:
-	const char* DefaultModel() { return "models/barney_helmet.mdl"; }
-	bool ShouldSetSuitUpdate() { return false; }
-	int DefaultCapacity() { return 40; }
+	const char* DefaultModel() override { return "models/barney_helmet.mdl"; }
+	bool ShouldSetSuitUpdate() override { return false; }
+	int DefaultCapacity() override { return 40; }
 };
 
 LINK_ENTITY_TO_CLASS( item_helmet, CItemHelmet )
 
 class CItemAntidote : public CItem
 {
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel( "models/w_antidote.mdl" );
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		PrecacheMyModel( "models/w_antidote.mdl" );
 		if (!FStringNull(pev->noise))
@@ -694,19 +704,19 @@ LINK_ENTITY_TO_CLASS( item_antidote, CItemAntidote )
 
 class CItemSecurity : public CItem
 {
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel( "models/w_security.mdl" );
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		PrecacheMyModel( "models/w_security.mdl" );
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
-	void KeyValue(KeyValueData* pkvd)
+	void KeyValue(KeyValueData* pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "hudname"))
 		{
@@ -745,13 +755,13 @@ LINK_ENTITY_TO_CLASS( item_security, CItemSecurity );
 class CItemPickup : public CItem
 {
 public:
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel("models/w_security.mdl");
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		if (FStringNull(pev->netname))
 		{
@@ -778,7 +788,7 @@ public:
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
-	void KeyValue(KeyValueData* pkvd)
+	void KeyValue(KeyValueData* pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "item_name"))
 		{
@@ -830,8 +840,11 @@ public:
 		return true;
 	}
 
-	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override
 	{
+		if (!CItem::IsUsefulToDisplayHint(pPlayer))
+			return false;
+
 		if (pPlayer->IsPlayer())
 		{
 			CBasePlayer* p = (CBasePlayer*)pPlayer;
@@ -845,13 +858,13 @@ LINK_ENTITY_TO_CLASS( item_pickup, CItemPickup )
 
 class CItemLongJump : public CItem
 {
-	void Spawn( void )
+	void Spawn() override
 	{ 
 		Precache();
 		SetMyModel( "models/w_longjump.mdl" );
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		PrecacheMyModel( "models/w_longjump.mdl" );
 	}
@@ -888,13 +901,13 @@ class CItemFlashlight : public CItem
 public:
 	static constexpr const char* pickupSoundScript = "Flashlight.Pickup";
 
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel(DefaultModel());
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		if (!g_checkedFlashligthModel)
 		{
@@ -943,13 +956,13 @@ bool CItemFlashlight::g_checkedFlashligthModel = false;
 class CItemNVG : public CItem
 {
 public:
-	void Spawn()
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel("sprites/iunknown.spr");
 		CItem::Spawn();
 	}
-	void Precache()
+	void Precache() override
 	{
 		PrecacheMyModel("sprites/iunknown.spr");
 	}
@@ -981,20 +994,20 @@ LINK_ENTITY_TO_CLASS(item_nvgs, CItemNVG)
 class CItemGeneric : public CBaseAnimating
 {
 public:
-	int		Save(CSave &save);
-	int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn(void);
-	void Precache(void);
-	void KeyValue(KeyValueData* pkvd);
-	int	ObjectCaps(void);
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	int	ObjectCaps() override;
 
-	void SetObjectCollisionBox( void );
+	void SetObjectCollisionBox() override;
 
-	void EXPORT StartupThink(void);
-	void EXPORT SequenceThink(void);
+	void EXPORT StartupThink();
+	void EXPORT SequenceThink();
 
 	string_t m_iszSequenceName;
 };
@@ -1007,7 +1020,7 @@ TYPEDESCRIPTION CItemGeneric::m_SaveData[] =
 };
 IMPLEMENT_SAVERESTORE(CItemGeneric, CBaseAnimating)
 
-void CItemGeneric::Spawn(void)
+void CItemGeneric::Spawn()
 {
 	Precache();
 	if (FStringNull(pev->model))
@@ -1053,7 +1066,7 @@ void CItemGeneric::Spawn(void)
 	}
 }
 
-void CItemGeneric::Precache(void)
+void CItemGeneric::Precache()
 {
 	if (!FStringNull(pev->model))
 		PRECACHE_MODEL(STRING(pev->model));
@@ -1091,7 +1104,7 @@ void CItemGeneric::SetObjectCollisionBox()
 	}
 }
 
-void CItemGeneric::StartupThink(void)
+void CItemGeneric::StartupThink()
 {
 	pev->sequence = LookupSequence(STRING(m_iszSequenceName));
 	if (pev->sequence == ACTIVITY_NOT_AVAILABLE)
@@ -1105,7 +1118,7 @@ void CItemGeneric::StartupThink(void)
 	pev->nextthink = gpGlobals->time + 0.01f;
 }
 
-void CItemGeneric::SequenceThink(void)
+void CItemGeneric::SequenceThink()
 {
 	// Set next think time.
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -1130,19 +1143,19 @@ void CItemGeneric::SequenceThink(void)
 class CEyeScanner : public CBaseAnimating
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn();
-	void Precache(void);
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
 	void PlayBeep();
 	void WaitForSequenceEnd();
-	void Think();
-	int ObjectCaps( void ) { return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE; }
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Think() override;
+	int ObjectCaps() override { return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE; }
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void SetActivity(Activity NewActivity);
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	virtual int Save( CSave &save ) override;
+	virtual int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -1156,7 +1169,7 @@ public:
 		return pev->noise2 ? STRING(pev->noise2) : "buttons/blip1.wav";
 	}
 
-	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer);
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
 	string_t m_unlockedTarget;
 	string_t m_lockedTarget;

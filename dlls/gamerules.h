@@ -177,6 +177,8 @@ public:
 	bool EquipPlayerFromMapConfig(CBasePlayer* pPlayer, const MapConfig& mapConfig);
 
 	virtual bool IsBustingGame() { return false; }
+
+	MapConfig mapConfig;
 };
 
 extern CGameRules *InstallGameRules( void );
@@ -385,8 +387,6 @@ protected:
 	float m_flIntermissionEndTime;
 	bool m_iEndIntermissionButtonHit;
 	void SendMOTDToClient( edict_t *client );
-
-	MapConfig mapConfig;
 };
 
 bool IsPlayerBusting( CBaseEntity *pPlayer );

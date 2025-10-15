@@ -20,6 +20,7 @@
 #include "mod_features.h"
 #include "basemonster.h"
 #include "objecthint_spec.h"
+#include "player_templates.h"
 #if FEATURE_ROPE
 class CRope;
 #endif
@@ -249,19 +250,18 @@ public:
 
 	char m_szTeamName[TEAM_NAME_LENGTH];
 
-	virtual void Spawn( void );
-	void Pain( void );
+	void Spawn() override;
 
 	//virtual void Think( void );
 	virtual void Jump( void );
 	virtual void Duck( void );
 	virtual void PreThink( void );
 	virtual void PostThink( void );
-	virtual Vector GetGunPosition( void );
-	virtual int TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType );
+	Vector GetGunPosition() override;
+	int TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType ) override;
 	void SetHealth(int health, bool allowOverheal = false);
 	void SetMaxHealth(int maxHealth, bool clampValue = true);
-	virtual int TakeArmor(CBaseEntity *pCharger, float flArmor, int flags = 0);
+	int TakeArmor(CBaseEntity *pCharger, float flArmor, int flags = 0) override;
 	int MaxArmor();
 	void SetMaxArmor(int maxArmor, bool clampValue = true);
 	void SetArmor(int armor, bool allowOvercharge = false);
@@ -270,18 +270,18 @@ public:
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	virtual Vector BodyTarget( const Vector &posSrc ) { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
+	Vector BodyTarget( const Vector &posSrc ) override { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
 	bool IsAlive() override { return IsFullyAlive(); }
 	bool IsFullyAlive() override { return CBaseMonster::IsFullyAlive() && !IsObserver(); }
-	virtual bool ShouldFadeOnDeath( void ) override { return false; }
-	virtual	bool IsPlayer( void ) override { return true; }			// Spectators should return false for this, they aren't "players" as far as game logic is concerned
+	bool ShouldFadeOnDeath() override { return false; }
+	bool IsPlayer() override { return true; }			// Spectators should return false for this, they aren't "players" as far as game logic is concerned
 
-	virtual bool IsNetClient( void ) override { return true; }		// Bots should return false for this, they can't receive NET messages
+	bool IsNetClient() override { return true; }		// Bots should return false for this, they can't receive NET messages
 															// Spectators should return true for this
-	virtual const char *TeamID( void );
+	const char *TeamID() override;
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	void SetPhysicsKeyValues();
 	void RenewItems(void);
 	void PackDeadPlayerItems( void );
@@ -343,9 +343,9 @@ public:
 	static	TYPEDESCRIPTION m_playerSaveData[];
 
 	// Player is moved across the transition by other means
-	virtual int		ObjectCaps( void ) { return CBaseMonster :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
-	virtual void	Precache( void );
-	bool			IsOnLadder( void );
+	int ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void Precache() override;
+	bool IsOnLadder( void );
 	bool FlashlightIsOn() { return FBitSet(pev->effects, EF_DIMLIGHT) || m_fFlashlightON; }
 	bool NVGIsOn() { return m_fNVGisON; }
 	bool SuitLightIsOn( void ) { return FlashlightIsOn() || NVGIsOn(); }
@@ -360,10 +360,10 @@ public:
 	void NVGTurnOff( bool playOffSound = true );
 
 	void UpdatePlayerSound ( void );
-	void DeathSound ( void );
+	void DeathSound() override;
 
-	int DefaultClassify();
-	int Classify ( void );
+	int DefaultClassify() override;
+	int Classify() override;
 	void SetAnimation( PLAYER_ANIM playerAnim );
 	void SetWeaponAnimType( const char *szExtention );
 	char m_szAnimExtention[32];
@@ -398,7 +398,7 @@ public:
 	void GiveNamedItem( const char *szName, int spawnFlags = 0 );
 	void EnableControl(bool fControl);
 
-	int  GiveAmmo( int iAmount, const char *szName );
+	int  GiveAmmo( int iAmount, const char *szName ) override;
 	void RemoveAmmo( int iAmount, const char *szName );
 	void SendAmmoUpdate(void);
 
@@ -408,18 +408,19 @@ public:
 	void PlayerUse( void );
 	void ReleaseTank();
 
+	bool CanPlaySuitSentences();
 	void CheckSuitUpdate();
 	void SetSuitUpdate( const char *name, bool fgroup, int iNoRepeat );
 	void UpdateGeigerCounter( void );
 	void CheckTimeBasedDamage( void );
 
-	bool FBecomeProne( void ) override;
-	void BarnacleVictimBitten ( entvars_t *pevBarnacle );
-	void BarnacleVictimReleased ( void );
+	bool FBecomeProne() override;
+	void BarnacleVictimBitten( entvars_t *pevBarnacle ) override;
+	void BarnacleVictimReleased() override;
 	static int GetAmmoIndex(const char *psz);
 	int AmmoInventory( int iAmmoIndex );
 	void ClearAmmoByIndex(int iAmmoIndex);
-	int Illumination( void );
+	int Illumination() override;
 
 	void ResetAutoaim( void );
 	Vector GetAutoaimVector( float flDelta  );
@@ -437,6 +438,8 @@ public:
 	bool ShouldCollideWithCorpses();
 
 	void SetMovementMode();
+	float GetBaseMaxSpeed();
+	bool HasCustomBaseMaxSpeed();
 	void RecruitFollowers();
 	void DisbandFollowers();
 	void MakeStartFollowing(CFollowingMonster* pMonster);
@@ -575,6 +578,13 @@ public:
 	bool AddJournalRecord(string_t section, string_t record);
 	string_t m_journalSections[MAX_JOURNAL_RECORDS];
 	string_t m_journalRecords[MAX_JOURNAL_RECORDS];
+
+	bool AssignPlayerTemplate(string_t templateName);
+	bool ApplyPlayerTemplate(string_t templateName);
+	void SendPlayerTemplateData();
+	bool CanHaveItem(CBaseEntity* pEntity);
+	string_t m_playerTemplateName;
+	const PlayerTemplate* m_playerTemplate;
 
 	int m_ToolSignalBits;
 	int m_ToolStateBits;

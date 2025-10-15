@@ -27,6 +27,7 @@
 #include "visuals.h"
 #include "warpball.h"
 #include "ent_templates.h"
+#include "player_templates.h"
 #include "followers.h"
 #include "savetitles.h"
 #include "objecthint_spec.h"
@@ -1632,6 +1633,11 @@ void ParseModConfigs()
 	const bool entitiesRead = entTemplateSystem.ReadFromFile("templates/entities.json");
 	g_EntTemplateSystem = std::move(entTemplateSystem);
 	auto finishEntities = std::chrono::steady_clock::now();
+
+	PlayerTemplateSystem playerTemplateSystem;
+	playerTemplateSystem.SetEntTemplateSystem(&g_EntTemplateSystem);
+	playerTemplateSystem.ReadFromFile("templates/player.json");
+	g_PlayerTemplateSystem = std::move(playerTemplateSystem);
 
 	InventorySpec inventorySpec;
 	inventorySpec.SetEntTemplateSystem(&g_EntTemplateSystem);

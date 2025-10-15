@@ -236,8 +236,8 @@ class CBarnacleGrapple : public CBasePlayerWeapon
 {
 public:
 #if !CLIENT_DLL
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	virtual int		Save( CSave &save ) override;
+	virtual int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	enum FireState
@@ -248,7 +248,7 @@ public:
 
 	void Precache() override;
 	void PrecacheDefaultModelSounds() override;
-	void Spawn( void );
+	void Spawn() override;
 	int WeaponId() const override { return WEAPON_GRAPPLE; }
 	void EndAttack( void );
 
@@ -256,9 +256,9 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 	bool AddToPlayer( CBasePlayer* pPlayer ) override;
 	bool Deploy() override;
-	void Holster();
-	void WeaponIdle( void );
-	void PrimaryAttack( void );
+	void Holster() override;
+	void WeaponIdle() override;
+	void PrimaryAttack() override;
 
 	void Fire( Vector vecOrigin, Vector vecDir );
 
@@ -291,7 +291,7 @@ TYPEDESCRIPTION	CBarnacleGrapple::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CBarnacleGrapple, CBasePlayerWeapon )
 #endif
 
-void CBarnacleGrapple::Precache( void )
+void CBarnacleGrapple::Precache()
 {
 	PrecacheWeaponModels();
 	PrecacheModelSounds();
@@ -316,7 +316,7 @@ void CBarnacleGrapple::PrecacheDefaultModelSounds()
 	PRECACHE_SOUND( "weapons/alienweap_draw.wav" );
 }
 
-void CBarnacleGrapple::Spawn( void )
+void CBarnacleGrapple::Spawn()
 {
 	Precache();
 	SET_MODEL(ENT(pev), MyWorldModel());
@@ -357,7 +357,9 @@ bool CBarnacleGrapple::AddToPlayer( CBasePlayer* pPlayer )
 
 bool CBarnacleGrapple::Deploy()
 {
-	bool r = DefaultDeploy(MyViewModel(), MyPlayerModel(), BGRAPPLE_UP, "gauss" );
+	const WeaponParameters& params = MyParameters();
+
+	bool r = DefaultDeploy(ViewModelToDeploy(params.ViewModel()), params.PlayerModel(), BGRAPPLE_UP, params.PlayerAnimExt() );
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.1;
 	return r;
 }
@@ -372,7 +374,7 @@ void CBarnacleGrapple::Holster()
 	SendWeaponAnim( BGRAPPLE_DOWN );
 }
 
-void CBarnacleGrapple::WeaponIdle( void )
+void CBarnacleGrapple::WeaponIdle()
 {
 	ResetEmptySound();
 
@@ -412,7 +414,7 @@ void CBarnacleGrapple::WeaponIdle( void )
 	SendWeaponAnim( iAnim );
 }
 
-void CBarnacleGrapple::PrimaryAttack( void )
+void CBarnacleGrapple::PrimaryAttack()
 {
 	if( m_bMissed )
 	{

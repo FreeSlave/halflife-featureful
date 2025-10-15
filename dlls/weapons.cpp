@@ -34,6 +34,7 @@
 #include "ammoregistry.h"
 #include "ammo_amounts.h"
 #include "common_soundscripts.h"
+#include "player_templates.h"
 #include "weapon_templates.h"
 
 extern bool gEvilImpulse101;
@@ -450,6 +451,34 @@ void W_Precache( CBaseEntity* pWorld )
 	pWorld->RegisterAndPrecacheSoundScript(Items::weaponEmptySoundScript);
 
 	UTIL_PrecacheOther("grenade");
+
+	for (auto it = g_PlayerTemplateSystem.PlayerTemplatesBegin(); it != g_PlayerTemplateSystem.PlayerTemplatesEnd(); ++it)
+	{
+		const PlayerTemplate& playerTemplate = it->second;
+
+		if (!playerTemplate.HasAnyWeaponReplacaments())
+			continue;
+
+		for (int i=0; i<MAX_WEAPONS; ++i)
+		{
+			WeaponInfo& info = AccessWeaponInfo(i);
+			if (info.classname && info.pWeapon->IsEnabledInMod())
+			{
+				auto wr = playerTemplate.GetWeaponReplacement(info.classname);
+				if (wr)
+				{
+					if (!wr->viewModel.empty())
+					{
+						PRECACHE_MODEL(wr->viewModel.c_str());
+					}
+					if (!wr->viewModelDetonator.empty())
+					{
+						PRECACHE_MODEL(wr->viewModelDetonator.c_str());
+					}
+				}
+			}
+		}
+	}
 }
 
 TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
@@ -479,7 +508,7 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CBasePlayerWeapon, CBaseAnimating )
 
-void CBasePlayerWeapon::SetObjectCollisionBox( void )
+void CBasePlayerWeapon::SetObjectCollisionBox()
 {
 	SetMyObjectCollisionBox(Vector( -24, -24, 0 ), Vector( 24, 24, 16 ));
 }
@@ -622,7 +651,7 @@ void CBasePlayerWeapon::CheckRespawn( void )
 // Respawn- this item is already in the world, but it is
 // invisible and intangible. Make it visible and tangible.
 //=========================================================
-CBaseEntity* CBasePlayerWeapon::Respawn( void )
+CBaseEntity* CBasePlayerWeapon::Respawn()
 {
 	// make a copy of this weapon that is invisible and inaccessible to players (no touch function). The weapon spawn/respawn code
 	// will decide when to make the weapon visible and touchable.
@@ -646,6 +675,21 @@ CBaseEntity* CBasePlayerWeapon::Respawn( void )
 	}
 
 	return pNewWeapon;
+}
+
+bool CBasePlayerWeapon::IsLockedByMaster()
+{
+	return m_sMaster && !UTIL_IsMasterTriggered(m_sMaster, nullptr);
+}
+
+bool CBasePlayerWeapon::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
 }
 
 static bool IsPickableByTouch(CBaseEntity* pEntity)
@@ -692,7 +736,7 @@ void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther )
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
 	// can I have this?
-	if( !g_pGameRules->CanHavePlayerItem( pPlayer, this ) )
+	if (!pPlayer->CanHaveItem(this) || !g_pGameRules->CanHavePlayerItem( pPlayer, this ))
 	{
 		if( gEvilImpulse101 )
 		{
@@ -995,6 +1039,32 @@ bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWe
 	return true;
 }
 
+const char* CBasePlayerWeapon::ViewModelToDeploy(const char *viewModel)
+{
+	if (m_pPlayer && m_pPlayer->m_playerTemplate)
+	{
+		auto wr = m_pPlayer->m_playerTemplate->GetWeaponReplacement(STRING(pev->classname));
+		if (wr && !wr->viewModel.empty())
+		{
+			return wr->viewModel.c_str();
+		}
+	}
+	return viewModel;
+}
+
+const char* CBasePlayerWeapon::DetonatorViewModelToDeploy(const char *viewModel)
+{
+	if (m_pPlayer && m_pPlayer->m_playerTemplate)
+	{
+		auto wr = m_pPlayer->m_playerTemplate->GetWeaponReplacement(STRING(pev->classname));
+		if (wr && !wr->viewModelDetonator.empty())
+		{
+			return wr->viewModelDetonator.c_str();
+		}
+	}
+	return viewModel;
+}
+
 const char* CBasePlayerWeapon::MyWorldModel()
 {
 	if (!FStringNull(pev->model))
@@ -1008,25 +1078,18 @@ const char* CBasePlayerWeapon::MyWorldModel()
 	return params.worldModel.c_str();
 }
 
-const char* CBasePlayerWeapon::MyViewModel()
-{
-	const WeaponParameters& params = MyParameters();
-	return params.viewModel.c_str();
-}
-
-const char* CBasePlayerWeapon::MyPlayerModel()
-{
-	const WeaponParameters& params = MyParameters();
-	if (params.playerModel.empty())
-		return nullptr;
-	return params.playerModel.c_str();
-}
-
 void CBasePlayerWeapon::PrecacheWeaponModels()
 {
+	const WeaponParameters& params = MyParameters();
+
 	PRECACHE_MODEL(MyWorldModel());
-	PRECACHE_MODEL(MyViewModel());
-	PrecachePModel(MyPlayerModel());
+	PRECACHE_MODEL(params.ViewModel());
+	PrecachePModel(params.PlayerModel());
+
+	const char* viewModelDetonator = params.DetonatorViewModel();
+	if (viewModelDetonator)
+		PRECACHE_MODEL(viewModelDetonator);
+	PrecachePModel(params.DetonatorPlayerModel());
 }
 
 void CBasePlayerWeapon::PrecachePModel(const char *name)

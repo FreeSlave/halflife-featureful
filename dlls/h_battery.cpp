@@ -35,9 +35,9 @@
 class CRecharge : public CWallCharger
 {
 public:
-	int RechargeTime() { return (int)g_pGameRules->FlHEVChargerRechargeTime(); }
-	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.suitchargerCapacity); }
-	bool GiveCharge(CBaseEntity* pActivator)
+	int RechargeTime() override { return (int)g_pGameRules->FlHEVChargerRechargeTime(); }
+	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : gSkillData.suitchargerCapacity); }
+	bool GiveCharge(CBaseEntity* pActivator) override
 	{
 		return pActivator->TakeArmor(this, 1);
 	}
@@ -100,8 +100,8 @@ const NamedSoundScript CRecharge::rechargeSoundScript = {
 class CRechargeGlassDecay : public CBaseAnimating
 {
 public:
-	void Spawn();
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static const NamedVisual rechargeGlass;
 };
@@ -133,19 +133,19 @@ LINK_ENTITY_TO_CLASS(item_recharge_glass, CRechargeGlassDecay)
 class CRechargeDecay : public CBaseAnimating
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn();
-	void Precache(void);
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
 	void Off( void );
 	void EXPORT Recharge( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual int ObjectCaps( void ) { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int ObjectCaps() override { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
 	void TurnChargeToPlayer(const Vector &player);
 	void SetChargeState(int state);
 	void SetChargeController(float yaw);
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 	void TurnBeamOn()
 	{
 		if (m_beam)
@@ -159,10 +159,10 @@ public:
 
 	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.suitchargerCapacity); }
 
-	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer);
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -270,7 +270,7 @@ void CRechargeDecay::Spawn()
 
 LINK_ENTITY_TO_CLASS(item_recharge, CRechargeDecay)
 
-void CRechargeDecay::Precache(void)
+void CRechargeDecay::Precache()
 {
 	PrecacheMyModel("models/hev.mdl");
 
@@ -320,37 +320,44 @@ void CRechargeDecay::SearchForPlayer()
 {
 	CBaseEntity* pEntity = 0;
 	UTIL_MakeVectors( pev->angles );
-	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) { // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
-		if (pEntity->IsPlayer() && pEntity->IsAlive() && (static_cast<CBasePlayer*>(pEntity))->HasSuit()) {
-			if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
-				continue;
-			}
-			TurnChargeToPlayer(pEntity->pev->origin);
-			switch (m_iState) {
-			case RetractShot:
-				if( m_fSequenceFinished )
-					SetChargeState(Idle);
-				break;
-			case RetractArm:
-				SetChargeState(Deploy);
-				break;
-			case Still:
-				SetChargeState(Deploy);
-				break;
-			case Deploy:
-				if (m_fSequenceFinished)
-				{
-					TurnBeamOn();
-					SetChargeState(Idle);
+	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
+	{
+		if (pEntity->IsPlayer() && pEntity->IsAlive())
+		{
+			CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pEntity);
+			if (pPlayer->HasSuit() && pPlayer->CanHaveItem(this))
+			{
+				if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
+					continue;
 				}
-				break;
-			case Idle:
-				break;
-			default:
+				TurnChargeToPlayer(pEntity->pev->origin);
+				switch (m_iState) {
+				case RetractShot:
+					if( m_fSequenceFinished )
+						SetChargeState(Idle);
+					break;
+				case RetractArm:
+					SetChargeState(Deploy);
+					break;
+				case Still:
+					SetChargeState(Deploy);
+					break;
+				case Deploy:
+					if (m_fSequenceFinished)
+					{
+						TurnBeamOn();
+						SetChargeState(Idle);
+					}
+					break;
+				case Idle:
+					break;
+				default:
+					break;
+				}
+
 				break;
 			}
 		}
-		break;
 	}
 	if (!pEntity || !pEntity->IsPlayer()) {
 		switch (m_iState) {
@@ -626,5 +633,12 @@ void CRechargeDecay::UpdateOnRemove()
 
 bool CRechargeDecay::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 {
-	return m_iJuice > 0;
+	if(m_iJuice <= 0)
+		return false;
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
 }

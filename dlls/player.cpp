@@ -164,6 +164,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_ARRAY(CBasePlayer, m_journalSections, FIELD_STRING, MAX_JOURNAL_RECORDS),
 	DEFINE_ARRAY(CBasePlayer, m_journalRecords, FIELD_STRING, MAX_JOURNAL_RECORDS),
 
+	DEFINE_FIELD(CBasePlayer, m_playerTemplateName, FIELD_STRING),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -270,6 +272,7 @@ int gmsgRain = 0;
 int gmsgSnow = 0;
 
 int gmsgJournal = 0;
+int gmsgPlTemplate = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -379,17 +382,13 @@ void LinkUserMessages( void )
 	gmsgSnow = REG_USER_MSG("Snow", -1);
 
 	gmsgJournal = REG_USER_MSG("Journal", -1);
+	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 3);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
-
-void CBasePlayer::Pain( void )
-{
-	// not used
-}
 
 Vector VecVelocityForDamage( float flDamage )
 {
@@ -469,7 +468,7 @@ int TrainSpeed( int iSpeed, int iMax )
 	return iRet;
 }
 
-void CBasePlayer::DeathSound( void )
+void CBasePlayer::DeathSound()
 {
 	const SoundScript* deathSoundScript = GetSoundScript(Player::deathSoundScript);
 	if (pev->waterlevel == WL_Eyes)
@@ -2249,12 +2248,12 @@ void CBasePlayer::Duck()
 // ID's player as such.
 //
 
-int CBasePlayer::DefaultClassify( void )
+int CBasePlayer::DefaultClassify()
 {
 	return CLASS_PLAYER;
 }
 
-int CBasePlayer::Classify( void )
+int CBasePlayer::Classify()
 {
 	return CLASS_PLAYER;
 }
@@ -2586,6 +2585,16 @@ void CBasePlayer::SetMovementMode()
 	}
 }
 
+float CBasePlayer::GetBaseMaxSpeed()
+{
+	return (m_playerTemplate && m_playerTemplate->maxSpeed) ? m_playerTemplate->maxSpeed : g_psv_maxspeed->value;
+}
+
+bool CBasePlayer::HasCustomBaseMaxSpeed()
+{
+	return m_playerTemplate && m_playerTemplate->maxSpeed;
+}
+
 void CBasePlayer::PreThink( void )
 {
 	SetMovementMode();
@@ -2612,7 +2621,7 @@ void CBasePlayer::PreThink( void )
 	}
 	if (!m_movementPrevented)
 	{
-		const float defaultMaxSpeed = g_psv_maxspeed->value;
+		const float defaultMaxSpeed = GetBaseMaxSpeed();
 		const float weaponSpeed = m_pActiveItem ? m_pActiveItem->GetMaxSpeed() : 0.0f;
 		if (weaponSpeed > 0.0f)
 		{
@@ -2631,7 +2640,12 @@ void CBasePlayer::PreThink( void )
 			if (m_maxSpeedOverrideIsAbsolute)
 				pev->maxspeed = m_maxSpeedOverride;
 			else
-				pev->maxspeed = m_maxSpeedOverride * defaultMaxSpeed;
+			{
+				if (!m_maxSpeedOverride && HasCustomBaseMaxSpeed())
+					pev->maxspeed = defaultMaxSpeed;
+				else
+					pev->maxspeed = m_maxSpeedOverride * defaultMaxSpeed;
+			}
 		}
 	}
 
@@ -3291,6 +3305,15 @@ Play suit update if it's time
 #define SUITUPDATETIME		3.5f
 #define SUITFIRSTUPDATETIME	0.1f
 
+bool CBasePlayer::CanPlaySuitSentences()
+{
+	if (m_playerTemplate && !indeterminate(m_playerTemplate->suitSentences))
+	{
+		return (bool)m_playerTemplate->suitSentences;
+	}
+	return g_modFeatures.suit_sentences;
+}
+
 void CBasePlayer::CheckSuitUpdate()
 {
 	int i;
@@ -3304,7 +3327,7 @@ void CBasePlayer::CheckSuitUpdate()
 	// if in range of radiation source, ping geiger counter
 	UpdateGeigerCounter();
 
-	if (!g_modFeatures.suit_sentences)
+	if (!CanPlaySuitSentences())
 		return;
 
 	if( g_pGameRules->IsMultiplayer() )
@@ -3365,7 +3388,7 @@ void CBasePlayer::SetSuitUpdate(const char *name, bool fgroup, int iNoRepeatTime
 	if( !HasSuit() )
 		return;
 
-	if (!g_modFeatures.suit_sentences)
+	if (!CanPlaySuitSentences())
 		return;
 
 	if( g_pGameRules->IsMultiplayer() )
@@ -3917,7 +3940,7 @@ ReturnSpot:
 	return pSpot->edict();
 }
 
-void CBasePlayer::Spawn( void )
+void CBasePlayer::Spawn()
 {
 	m_flStartCharge = gpGlobals->time;
 	pev->classname = MAKE_STRING( "player" );
@@ -4014,6 +4037,17 @@ void CBasePlayer::Spawn( void )
 	m_fInXen = false;
 #endif
 
+	m_playerTemplateName = iStringNull;
+	m_playerTemplate = nullptr;
+	if (g_pGameRules->mapConfig.valid && !FStringNull(g_pGameRules->mapConfig.playerTemplate))
+	{
+		AssignPlayerTemplate(g_pGameRules->mapConfig.playerTemplate);
+	}
+	else
+	{
+		AssignPlayerTemplate(iStringNull);
+	}
+
 	g_pGameRules->PlayerSpawn( this );
 }
 
@@ -4088,9 +4122,6 @@ int CBasePlayer::Restore( CRestore &restore )
 
 	m_ClientSndRoomtype = -1;
 
-	// Copied from spawn() for now
-	m_bloodColor = BLOOD_COLOR_RED;
-
 	g_ulModelIndexPlayer = pev->modelindex;
 
 	if( FBitSet( pev->flags, FL_DUCKING ) )
@@ -4118,6 +4149,8 @@ int CBasePlayer::Restore( CRestore &restore )
 
 	SetPhysicsKeyValues();
 	RenewItems();
+
+	m_playerTemplate = FStringNull(m_playerTemplateName) ? g_PlayerTemplateSystem.GetDefaultTemplate() : g_PlayerTemplateSystem.GetTemplate(STRING(m_playerTemplateName));
 
 #if CLIENT_WEAPONS
 	// HACK:	This variable is saved/restored in CBaseMonster as a time variable, but we're using it
@@ -4270,7 +4303,7 @@ void CBasePlayer::SelectPrevItem( int iItem )
 {
 }
 
-const char *CBasePlayer::TeamID( void )
+const char *CBasePlayer::TeamID()
 {
 	if( pev == NULL )		// Not fully connected yet
 		return "";
@@ -5514,6 +5547,8 @@ void CBasePlayer::UpdateClientData( void )
 			}
 		}
 
+		SendPlayerTemplateData();
+
 		m_bSentMessages = true;
 	}
 
@@ -5860,7 +5895,7 @@ void CBasePlayer::GatherAndSendObjectHints()
 // FBecomeProne - Overridden for the player to set the proper
 // physics flags when a barnacle grabs player.
 //=========================================================
-bool CBasePlayer::FBecomeProne( void )
+bool CBasePlayer::FBecomeProne()
 {
 	m_afPhysicsFlags |= PFLAG_ONBARNACLE;
 
@@ -5888,7 +5923,7 @@ void CBasePlayer::BarnacleVictimBitten( entvars_t *pevBarnacle )
 // BarnacleVictimReleased - overridden for player who has
 // physics flags concerns. 
 //=========================================================
-void CBasePlayer::BarnacleVictimReleased( void )
+void CBasePlayer::BarnacleVictimReleased()
 {
 	m_afPhysicsFlags &= ~PFLAG_ONBARNACLE;
 }
@@ -5897,7 +5932,7 @@ void CBasePlayer::BarnacleVictimReleased( void )
 // Illumination 
 // return player light level plus virtual muzzle flash
 //=========================================================
-int CBasePlayer::Illumination( void )
+int CBasePlayer::Illumination()
 {
 	int iIllum = CBaseEntity::Illumination();
 
@@ -6757,6 +6792,88 @@ bool CBasePlayer::AddJournalRecord(string_t section, string_t record)
 	return false;
 }
 
+bool CBasePlayer::AssignPlayerTemplate(string_t templateName)
+{
+	const PlayerTemplate* playerTemplate = FStringNull(templateName) ? g_PlayerTemplateSystem.GetDefaultTemplate() : g_PlayerTemplateSystem.GetTemplate(STRING(templateName));
+
+	if (m_playerTemplate == playerTemplate)
+		return false;
+
+	m_playerTemplateName = templateName;
+	m_playerTemplate = playerTemplate;
+
+	SetEntTemplate(iStringNull);
+
+	if (m_playerTemplate)
+	{
+		if (!m_playerTemplate->entTemplateName.empty())
+		{
+			SetEntTemplate(MAKE_STRING(m_playerTemplate->entTemplateName.c_str()));
+		}
+	}
+
+	m_bloodColor = 0;
+	SetMyBloodColor(BLOOD_COLOR_RED);
+
+	return true;
+}
+
+bool CBasePlayer::ApplyPlayerTemplate(string_t templateName)
+{
+	const PlayerTemplate* prevPlayerTemplate = m_playerTemplate;
+
+	if (!AssignPlayerTemplate(templateName))
+		return false;
+
+	if (m_playerTemplate)
+	{
+		if (!indeterminate(m_playerTemplate->suitSentences) && !m_playerTemplate->suitSentences)
+		{
+			for (int i = 0; i < CSUITPLAYLIST; i++)
+				m_rgSuitPlayList[i] = 0;
+			m_flSuitUpdate = 0;
+		}
+	}
+
+	if (m_pActiveItem && pev->viewmodel)
+	{
+		const char* weaponClassname = STRING(m_pActiveItem->pev->classname);
+
+		auto prevWeaponReplacement = prevPlayerTemplate ? prevPlayerTemplate->GetWeaponReplacement(weaponClassname) : nullptr;
+		auto newWeaponReplacement = m_playerTemplate ? m_playerTemplate->GetWeaponReplacement(weaponClassname) : nullptr;
+
+		const bool sameModels = (!prevWeaponReplacement && !newWeaponReplacement) || (prevWeaponReplacement && newWeaponReplacement && prevWeaponReplacement->viewModel == newWeaponReplacement->viewModel);
+		if (!sameModels)
+		{
+			m_pActiveItem->m_ForceSendAnimations = true;
+			m_pActiveItem->Deploy();
+			m_pActiveItem->m_ForceSendAnimations = false;
+		}
+	}
+
+	SendPlayerTemplateData();
+
+	return true;
+}
+
+void CBasePlayer::SendPlayerTemplateData()
+{
+	const Color3 hudColor = m_playerTemplate ? m_playerTemplate->hudColor : Color3{};
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgPlTemplate, NULL, pev);
+		WRITE_BYTE(hudColor.r);
+		WRITE_BYTE(hudColor.g);
+		WRITE_BYTE(hudColor.b);
+	MESSAGE_END();
+}
+
+bool CBasePlayer::CanHaveItem(CBaseEntity *pEntity)
+{
+	if (!m_playerTemplate)
+		return true;
+	return m_playerTemplate->IsItemAllowed(STRING(pEntity->pev->classname));
+}
+
 void CBasePlayer::RecruitFollowers()
 {
 	const float maxRange = g_FollowersDescription.FastRecruitRange();
@@ -7124,8 +7241,8 @@ private:
 		}
 		case PLAYER_CALC_MAXSPEED:
 		{
-			const float defaultMaxSpeed = g_psv_maxspeed->value;
-			float currentMaxSpeed = pPlayer->m_maxSpeedOverrideIsAbsolute ? pPlayer->m_maxSpeedOverride : pPlayer->m_maxSpeedOverride * g_psv_maxspeed->value;
+			const float defaultMaxSpeed = pPlayer->GetBaseMaxSpeed();
+			float currentMaxSpeed = pPlayer->m_maxSpeedOverrideIsAbsolute ? pPlayer->m_maxSpeedOverride : pPlayer->m_maxSpeedOverride * defaultMaxSpeed;
 			if (currentMaxSpeed == 0.0f)
 				currentMaxSpeed = defaultMaxSpeed;
 			if (isFraction)
@@ -8207,6 +8324,34 @@ TYPEDESCRIPTION	CPlayerStash::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CPlayerStash, CWeaponBox );
+
+class CPlayerTemplate : public CPointEntity
+{
+public:
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
+	{
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (!pPlayer)
+			return;
+		pPlayer->ApplyPlayerTemplate(pev->netname);
+	}
+	int ObjectCaps() override { return CPointEntity::ObjectCaps() | FCAP_MASTER; }
+	bool IsTriggered(CBaseEntity *pActivator) override
+	{
+		if (pActivator->IsPlayer())
+		{
+			CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
+			string_t templateName = pev->netname;
+
+			const char* templateNameStr = FStringNull(templateName) ? "default" : STRING(templateName);
+			const char* playerTemplateNameStr = FStringNull(pPlayer->m_playerTemplateName) ? "default" : STRING(pPlayer->m_playerTemplateName);
+			return stricmp(templateNameStr, playerTemplateNameStr) == 0;
+		}
+		return false;
+	}
+};
+
+LINK_ENTITY_TO_CLASS( player_template, CPlayerTemplate )
 
 enum
 {

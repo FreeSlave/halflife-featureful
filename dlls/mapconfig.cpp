@@ -7,6 +7,7 @@ PickupEnt::PickupEnt(): entName(0), count(0) {}
 
 MapConfig::MapConfig() :
 	pickupEntCount(0), ammoCount(0), cvarCount(0),
+	playerTemplate(iStringNull),
 	starthealth(0), startarmor(0),
 	maxhealth(0),
 	nomedkit(false), nosuit(false),
@@ -127,6 +128,10 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		else if (strcmp(key, "item_longjump") == 0)
 		{
 			mapConfig.longjump = true;
+		}
+		else if (strcmp(key, "player_template") == 0)
+		{
+			mapConfig.playerTemplate = ALLOC_STRING(value);
 		}
 		else if (strcmp(key, "startarmor") == 0)
 		{

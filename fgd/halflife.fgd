@@ -8059,6 +8059,11 @@
 	trigger_on_unstash(target_destination) : "Fire on Unstash"
 ]
 
+@PointClass base(Targetname) = player_template : "Set a player template (from templates/player.json)"
+[
+	netname(string) : "Template name" : : "The entry name from templates/player.json. Empty means default template"
+]
+
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = player_weaponstrip : "Strips player's weapons and items"
 [
 	spawnflags(Flags) =

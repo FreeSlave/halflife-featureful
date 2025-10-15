@@ -663,7 +663,7 @@ bool CConfigurableWeapon::PerformDeploy()
 		}
 	}
 
-	const bool result = DefaultDeploy(MyViewModel(), MyPlayerModel(), deploy.animIndex.Get(altMode, emptied), params.playerAnimExt.c_str(), ViewModelBody(), duration, idleDelay);
+	const bool result = DefaultDeploy(ViewModelToDeploy(params.ViewModel()), params.PlayerModel(), deploy.animIndex.Get(altMode, emptied), params.PlayerAnimExt(), ViewModelBody(), duration, idleDelay);
 	if (result)
 	{
 #if !CLIENT_DLL
@@ -2377,10 +2377,10 @@ float CConfigurableWeapon::GetMaxSpeed()
 {
 	float result = 0.0f;
 #if !CLIENT_DLL
-	auto CalcSpeed = [](const PlayerSpeed& playerSpeed) {
+	auto CalcSpeed = [this](const PlayerSpeed& playerSpeed) {
 		if (playerSpeed.isFactor)
 		{
-			return g_psv_maxspeed->value * playerSpeed.value;
+			return m_pPlayer->GetBaseMaxSpeed() * playerSpeed.value;
 		}
 		else
 		{

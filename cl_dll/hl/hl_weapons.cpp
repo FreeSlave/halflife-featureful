@@ -178,11 +178,12 @@ bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWe
 	return true;
 }
 
+const char* CBasePlayerWeapon::ViewModelToDeploy(const char *viewModel) { return viewModel; }
+const char* CBasePlayerWeapon::DetonatorViewModelToDeploy(const char *viewModel) { return viewModel; }
+
 void CBasePlayerWeapon::PrecacheWeaponModels() {}
 
 const char* CBasePlayerWeapon::MyWorldModel() { return ""; }
-const char* CBasePlayerWeapon::MyViewModel() { return ""; }
-const char* CBasePlayerWeapon::MyPlayerModel() { return ""; }
 void CBasePlayerWeapon::PrecachePModel(const char *name) {}
 
 /*

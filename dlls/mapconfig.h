@@ -47,6 +47,7 @@ struct MapConfig
 	OverrideCvar overrideCvars[MAPCONFIG_MAX_OVERRIDE_CVARS];
 	int cvarCount;
 
+	string_t playerTemplate;
 	int starthealth;
 	int startarmor;
 	int maxhealth;

@@ -229,10 +229,12 @@ bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor) { return false; }
 bool CBasePlayer::ShouldCollideWithCorpses() { return false; }
 
 float CBasePlayerWeapon::GetNextAttackDelay( float flTime ) { return flTime; }
-void CBasePlayerWeapon::SetObjectCollisionBox( void ) { }
+void CBasePlayerWeapon::SetObjectCollisionBox() { }
 void CBasePlayerWeapon::KeyValue( KeyValueData *pkvd ) {}
 void CBasePlayerWeapon::FallInit( void ) { }
-CBaseEntity *CBasePlayerWeapon::Respawn( void ) { return NULL; }
+CBaseEntity *CBasePlayerWeapon::Respawn() { return nullptr; }
+bool CBasePlayerWeapon::IsLockedByMaster() { return false; }
+bool CBasePlayerWeapon::IsUsefulToDisplayHint(CBaseEntity* pPlayer) { return false; }
 void CBasePlayerWeapon::DefaultTouch( CBaseEntity *pOther ) { }
 void CBasePlayerWeapon::DestroyItem( void ) { }
 bool CBasePlayerWeapon::IsEnabledInMod() { return true; }

@@ -1018,6 +1018,7 @@ private:
 	int m_cachedMinAlpha; // cache per frame
 	int m_cachedHudColor;
 	int m_cachedTextColor;
+	int m_forcedHudColor;
 
 	// this is solely to track whether we need to reset the crosshair
 	bool m_colorableCrosshair;
@@ -1228,6 +1229,7 @@ public:
 	int _cdecl MsgFunc_SetFog( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_KeyedDLight( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_ObjectHint( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

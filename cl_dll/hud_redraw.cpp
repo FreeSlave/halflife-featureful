@@ -693,16 +693,23 @@ int CHud::MinHUDAlpha() const
 void CHud::RecacheValues()
 {
 	m_cachedMinAlpha = CalcMinHUDAlpha();
-	if (clientFeatures.hud_color_configurable)
+	if (m_forcedHudColor)
 	{
-		int hudR = m_pCvarHudRed->value;
-		int hudG = m_pCvarHudGreen->value;
-		int hudB = m_pCvarHudBlue->value;
-		m_cachedHudColor = PackRGB(hudR, hudG, hudB);
+		m_cachedHudColor = m_forcedHudColor;
 	}
 	else
 	{
-		m_cachedHudColor = clientFeatures.hud_color;
+		if (clientFeatures.hud_color_configurable)
+		{
+			int hudR = m_pCvarHudRed->value;
+			int hudG = m_pCvarHudGreen->value;
+			int hudB = m_pCvarHudBlue->value;
+			m_cachedHudColor = PackRGB(hudR, hudG, hudB);
+		}
+		else
+		{
+			m_cachedHudColor = clientFeatures.hud_color;
+		}
 	}
 
 	m_cachedTextColor = m_cachedHudColor;

@@ -7,8 +7,8 @@
 class CWallCharger : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	void EXPORT Off( void );
 	void EXPORT Recharge( void );
 
@@ -31,11 +31,11 @@ public:
 	void PlayChargerSound(const NamedSoundScript& soundScript, const char* customSample);
 	void StopChargerSound(const NamedSoundScript& soundScript, const char* customSample);
 
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual int ObjectCaps( void );
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int ObjectCaps() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -51,7 +51,7 @@ public:
 	int OnStateFrame();
 	int OffStateFrame();
 
-	bool CalcRatio( CBaseEntity *pLocus, float* outResult );
-	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) { return m_iJuice > 0; }
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 };
 #endif

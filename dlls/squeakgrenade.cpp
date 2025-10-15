@@ -510,11 +510,11 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
 	bool Deploy() override;
-	void Holster();
-	void WeaponIdle( void );
+	void Holster() override;
+	void WeaponIdle() override;
 	int m_fJustThrown;
 
 	virtual const char* GrenadeName() const;
@@ -583,6 +583,8 @@ WeaponParameters CSqueak::GetDefaultParameters() const
 
 bool CSqueak::Deploy()
 {
+	const WeaponParameters& params = MyParameters();
+
 	// play hunt sound
 	float flRndSound = RANDOM_FLOAT( 0.0f, 1.0f );
 
@@ -593,7 +595,7 @@ bool CSqueak::Deploy()
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-	const bool result = DefaultDeploy( MyViewModel(), MyPlayerModel(), SQUEAK_UP, "squeak" );
+	const bool result = DefaultDeploy( ViewModelToDeploy(params.ViewModel()), params.PlayerModel(), SQUEAK_UP, params.PlayerAnimExt() );
 	if (result)
 	{
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.7f;
@@ -680,12 +682,12 @@ void CSqueak::PrimaryAttack()
 	}
 }
 
-void CSqueak::SecondaryAttack( void )
+void CSqueak::SecondaryAttack()
 {
 
 }
 
-void CSqueak::WeaponIdle( void )
+void CSqueak::WeaponIdle()
 {
 	if( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;

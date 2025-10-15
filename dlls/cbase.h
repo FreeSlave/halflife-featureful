@@ -406,6 +406,13 @@ public:
 	bool m_entTemplateChecked;
 	bool m_ownerEntTemplateChecked;
 
+	void SetEntTemplate(string_t templateName)
+	{
+		m_entTemplate = templateName;
+		m_cachedEntTemplate = nullptr;
+		m_entTemplateChecked = false;
+	}
+
 	int PRECACHE_SOUND(const char* soundName);
 	static int PRECACHE_SOUND(const char* soundName, const EntTemplate* entTemplate);
 

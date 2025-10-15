@@ -704,7 +704,7 @@ Whether the entity light should be played on the weapon view model for a very sh
 
 ### player_maxspeed {#fire-player_maxspeed}
 
-Set the player's maximum speed for the duration of the attack (currently it's the same as [cycle_time](#cycle_time)). This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the default player's maxspeed (less than 1).
+Set the player's maximum speed for the duration of the attack (currently it's the same as [cycle_time](#cycle_time)). This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the base player's maxspeed (less than 1).
 
 ```json
 {
@@ -1188,7 +1188,7 @@ Whether the weapon view model must be mirrored. This is required for left-handed
 
 ## player_maxspeed
 
-Set the player's maximum speed when the weapon is deployed. This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the default player's maxspeed (less than 1). This allows to make it feel like moving with a certain weapon equipped is heavier than with others (similar to Counter Strike).
+Set the player's maximum speed when the weapon is deployed. This can be a positive numeric value or a string starting with `*` followed by the factor value which works as a multiplier for the base player's maxspeed (less than 1). This allows to make it feel like moving with a certain weapon equipped is heavier than with others (similar to Counter Strike).
 
 ```json
 {

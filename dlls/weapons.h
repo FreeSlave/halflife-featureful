@@ -149,16 +149,16 @@ public:
 class CBasePlayerWeapon : public CBaseAnimating
 {
 public:
-	virtual void SetObjectCollisionBox( void );
-	virtual void KeyValue( KeyValueData *pkvd );
+	void SetObjectCollisionBox() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 
 #ifndef CLIENT_DLL
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	virtual int WeaponId() const = 0;
-	bool IsEnabledInMod();
+	bool IsEnabledInMod() override;
 	virtual void PrecacheDefaultModelSounds() {}
 	void PrecacheModelSounds();
 	virtual bool AddToPlayer( CBasePlayer *pPlayer );	// return true if the item you want the item added to the player inventory
@@ -167,7 +167,9 @@ public:
 	void EXPORT FallThink ( void );// when an item is first spawned, this think is run to determine when the object has hit the ground.
 	void EXPORT Materialize( void );// make a weapon visible and tangible
 	void EXPORT AttemptToMaterialize( void );  // the weapon desires to become visible and tangible, if the game rules allow for it
-	CBaseEntity* Respawn ( void );// copy a weapon
+	CBaseEntity* Respawn() override;// copy a weapon
+	bool IsLockedByMaster() override;
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 	void FallInit( void );
 	void CheckRespawn( void );
 	virtual bool GetItemInfo(ItemInfo *p) = 0;	// returns false if struct not filled out
@@ -224,8 +226,6 @@ public:
 	int			iDropAmmo( void )	{ return ItemInfoArray[ WeaponId() ].iDropAmmo; }
 
 	const char* MyWorldModel();
-	const char* MyViewModel();
-	const char* MyPlayerModel();
 	void PrecacheWeaponModels();
 
 	bool AddToPlayerDefault( CBasePlayer *pPlayer );
@@ -262,6 +262,8 @@ public:
 
 	virtual bool IsUseable( void );
 	bool DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body = 0, float attackDelay = 0.5f, float idleDelay = 1.0f );
+	const char* ViewModelToDeploy(const char* viewModel);
+	const char* DetonatorViewModelToDeploy(const char* viewModel);
 	bool DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
 	bool DefaultClipReload(int iAnim, float fDelay, int body = 0);
 	void PrecachePModel(const char* name);

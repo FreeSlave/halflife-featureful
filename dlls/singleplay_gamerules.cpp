@@ -38,6 +38,7 @@ CHalfLifeRules::CHalfLifeRules( void )
 {
 	SERVER_COMMAND( "exec spserver.cfg\n" );
 	RefreshSkillData();
+	ReadMapConfigByMapName(mapConfig, STRING(gpGlobals->mapname));
 }
 
 //=========================================================
@@ -221,12 +222,9 @@ bool CHalfLifeRules::AllowAutoTargetCrosshair( void )
 //=========================================================
 void CHalfLifeRules::PlayerThink( CBasePlayer *pPlayer )
 {
-	if ( !pPlayer->m_fInitHUD && !pPlayer->m_settingsLoaded)
+	if (!pPlayer->m_fInitHUD && !pPlayer->m_settingsLoaded)
 	{
-		MapConfig mapConfig;
-		bool readConfig = ReadMapConfigByMapName(mapConfig, STRING(gpGlobals->mapname));
-
-		if (readConfig)
+		if (mapConfig.valid)
 		{
 			EquipPlayerFromMapConfig(pPlayer, mapConfig);
 		}
@@ -237,7 +235,7 @@ void CHalfLifeRules::PlayerThink( CBasePlayer *pPlayer )
 			if (FStringNull(pSettingEntity->pev->targetname))
 			{
 				// If equiped from the config, just fire the game_player_settings target
-				if (readConfig)
+				if (mapConfig.valid)
 					pSettingEntity->SUB_UseTargets(pPlayer);
 				else
 					pSettingEntity->Touch( pPlayer );

@@ -54,35 +54,35 @@ class CSatchel : public CBasePlayerWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	int WeaponId() const override { return WEAPON_SATCHEL; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 	bool AddToPlayer( CBasePlayer *pPlayer ) override;
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-	int AddDuplicate(CBasePlayerWeapon *pOriginal );
-	bool CanDeploy( void ) override;
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	int AddDuplicate(CBasePlayerWeapon *pOriginal) override;
+	bool CanDeploy() override;
 	bool Deploy() override;
-	bool IsUseable( void ) override;
-	bool CanBeDropped();
+	bool IsUseable() override;
+	bool CanBeDropped() override;
 
-	void Holster();
-	void ItemPreFrame();
-	void WeaponIdle( void );
+	void Holster() override;
+	void ItemPreFrame() override;
+	void WeaponIdle() override;
 	void Throw( void );
 	void Detonate(bool allowThrow);
 	int ControlBehavior();
 	void DrawSatchel( void );
 	void DrawRadio();
 
-	void GetWeaponData(weapon_data_t& data);
-	void SetWeaponData(const weapon_data_t& data);
+	void GetWeaponData(weapon_data_t& data) override;
+	void SetWeaponData(const weapon_data_t& data) override;
 };
 
 #if !CLIENT_DLL
@@ -390,12 +390,10 @@ void CSatchel::Spawn()
 	FallInit();// get ready to fall down.
 }
 
-void CSatchel::Precache( void )
+void CSatchel::Precache()
 {
 	PrecacheWeaponModels();
 	PrecacheModelSounds();
-	PRECACHE_MODEL( "models/v_satchel_radio.mdl" );
-	PrecachePModel( "models/p_satchel_radio.mdl" );
 
 	UTIL_PrecacheOther( "monster_satchel" );
 }
@@ -421,8 +419,11 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 
 	params.worldModel = "models/w_satchel.mdl";
 	params.viewModel = "models/v_satchel.mdl";
+	params.viewModelDetonator = "models/v_satchel_radio.mdl";
 	params.playerModel = "models/p_satchel.mdl";
+	params.playerModelDetonator = "models/p_satchel_radio.mdl";
 	params.playerAnimExt = "trip";
+	params.playerAnimExtDetonator = "hive";
 	params.priority = -10;
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
@@ -432,7 +433,7 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 
 //=========================================================
 //=========================================================
-bool CSatchel::IsUseable( void )
+bool CSatchel::IsUseable()
 {
 	return CanDeploy();
 }
@@ -443,7 +444,7 @@ bool CSatchel::CanBeDropped()
 	return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0;
 }
 
-bool CSatchel::CanDeploy( void )
+bool CSatchel::CanDeploy()
 {
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 ) 
 	{
@@ -461,6 +462,8 @@ bool CSatchel::CanDeploy( void )
 
 bool CSatchel::Deploy()
 {
+	const WeaponParameters& params = MyParameters();
+
 	if (m_chargeReady == SATCHEL_RELOAD)
 		m_chargeReady = SATCHEL_IDLE;
 
@@ -468,9 +471,9 @@ bool CSatchel::Deploy()
 
 	bool result;
 	if( m_chargeReady )
-		result = DefaultDeploy( "models/v_satchel_radio.mdl", "models/p_satchel_radio.mdl", SATCHEL_RADIO_DRAW, "hive" );
+		result = DefaultDeploy( DetonatorViewModelToDeploy(params.DetonatorViewModel()), params.DetonatorPlayerModel(), SATCHEL_RADIO_DRAW, params.playerAnimExtDetonator.c_str() );
 	else
-		result = DefaultDeploy( MyViewModel(), MyPlayerModel(), SATCHEL_DRAW, "trip" );
+		result = DefaultDeploy( ViewModelToDeploy(params.ViewModel()), params.PlayerModel(), SATCHEL_DRAW, params.playerAnimExt.c_str() );
 
 	if (result)
 	{
@@ -500,7 +503,7 @@ void CSatchel::Holster()
 	}
 }
 
-void CSatchel::PrimaryAttack( void )
+void CSatchel::PrimaryAttack()
 {
 	if (ControlBehavior() == 0)
 		Detonate(true);
@@ -510,7 +513,7 @@ void CSatchel::PrimaryAttack( void )
 	}
 }
 
-void CSatchel::SecondaryAttack( void )
+void CSatchel::SecondaryAttack()
 {
 	if (ControlBehavior() == 0)
 	{
@@ -527,6 +530,7 @@ void CSatchel::Throw( void )
 {
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 	{
+		const WeaponParameters& params = MyParameters();
 #if !CLIENT_DLL
 		Vector vecSrc = m_pPlayer->pev->origin;
 
@@ -536,11 +540,11 @@ void CSatchel::Throw( void )
 		pSatchel->pev->velocity = vecThrow;
 		pSatchel->pev->avelocity.y = 400;
 
-		m_pPlayer->pev->viewmodel = MAKE_STRING( "models/v_satchel_radio.mdl" );
+		m_pPlayer->pev->viewmodel = MAKE_STRING(params.viewModelDetonator.c_str());
 		if (g_modFeatures.weapon_p_models)
-			m_pPlayer->pev->weaponmodel = MAKE_STRING( "models/p_satchel_radio.mdl" );
+			m_pPlayer->pev->weaponmodel = MAKE_STRING(params.playerModelDetonator.c_str());
 #else
-		LoadVModel( "models/v_satchel_radio.mdl", m_pPlayer );
+		LoadVModel( params.viewModelDetonator.c_str(), m_pPlayer );
 #endif
 
 		SendWeaponAnim( SATCHEL_RADIO_DRAW );
@@ -612,7 +616,7 @@ int CSatchel::ControlBehavior()
 #endif
 }
 
-void CSatchel::WeaponIdle( void )
+void CSatchel::WeaponIdle()
 {
 	if( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
@@ -668,40 +672,42 @@ void CSatchel::ItemPreFrame()
 
 void CSatchel::DrawSatchel()
 {
+	const WeaponParameters& params = MyParameters();
 #if !CLIENT_DLL
-		m_pPlayer->pev->viewmodel = MAKE_STRING( MyViewModel() );
-		if (g_modFeatures.weapon_p_models)
-			m_pPlayer->pev->weaponmodel = MAKE_STRING( MyPlayerModel() );
+	m_pPlayer->pev->viewmodel = MAKE_STRING(ViewModelToDeploy(params.ViewModel()));
+	if (g_modFeatures.weapon_p_models)
+		m_pPlayer->pev->weaponmodel = MAKE_STRING(params.PlayerModel());
 #else
-		LoadVModel( "models/v_satchel.mdl", m_pPlayer );
+	LoadVModel( params.ViewModel(), m_pPlayer );
 #endif
-		SendWeaponAnim( SATCHEL_DRAW );
+	SendWeaponAnim( SATCHEL_DRAW );
 
-		// use tripmine animations
-		strcpy( m_pPlayer->m_szAnimExtention, "trip" );
+	// use tripmine animations
+	strcpy( m_pPlayer->m_szAnimExtention, params.PlayerAnimExt() );
 
-		m_flNextPrimaryAttack = GetNextAttackDelay( 0.5f );
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
-		m_chargeReady = SATCHEL_IDLE;
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.5f );
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
+	m_chargeReady = SATCHEL_IDLE;
 }
 
 void CSatchel::DrawRadio()
 {
+	const WeaponParameters& params = MyParameters();
 #if !CLIENT_DLL
-		m_pPlayer->pev->viewmodel = MAKE_STRING( "models/v_satchel_radio.mdl" );
-		if (g_modFeatures.weapon_p_models)
-			m_pPlayer->pev->weaponmodel = MAKE_STRING( "models/p_satchel_radio.mdl" );
+	m_pPlayer->pev->viewmodel = MAKE_STRING(DetonatorViewModelToDeploy(params.DetonatorViewModel()));
+	if (g_modFeatures.weapon_p_models)
+		m_pPlayer->pev->weaponmodel = MAKE_STRING(params.DetonatorPlayerModel());
 #else
-		LoadVModel( "models/v_satchel_radio.mdl", m_pPlayer );
+	LoadVModel( params.DetonatorViewModel(), m_pPlayer );
 #endif
 
-		SendWeaponAnim( SATCHEL_RADIO_DRAW );
+	SendWeaponAnim( SATCHEL_RADIO_DRAW );
 
-		strcpy( m_pPlayer->m_szAnimExtention, "hive" );
+	strcpy( m_pPlayer->m_szAnimExtention, params.DetonatorPlayerAnimExt() );
 
-		m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
-		m_chargeReady = SATCHEL_READY;
+	m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
+	m_chargeReady = SATCHEL_READY;
 }
 
 void CSatchel::GetWeaponData(weapon_data_t& data)

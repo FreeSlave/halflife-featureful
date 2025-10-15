@@ -27,9 +27,9 @@
 class CPickup : public CBaseDelay
 {
 public:
-	void KeyValue( KeyValueData* pkvd );
-	int ObjectCaps();
-	void SetObjectCollisionBox();
+	void KeyValue( KeyValueData* pkvd ) override;
+	int ObjectCaps() override;
+	void SetObjectCollisionBox() override;
 
 	bool IsPickableByTouch();
 	bool IsPickableByUse();
@@ -39,15 +39,15 @@ public:
 	virtual Vector MyRespawnSpot() = 0;
 	virtual float MyRespawnTime() = 0;
 
-	CBaseEntity *Respawn( void );
+	CBaseEntity *Respawn() override;
 	void EXPORT Materialize( void );
 	virtual void OnMaterialize() = 0;
 
 	bool IsLockedByMaster() override;
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
 	int Save(CSave &save);
 	int Restore(CRestore &restore);
-
 	static  TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_sMaster;
@@ -56,17 +56,17 @@ public:
 class CItem : public CPickup
 {
 public:
-	void Spawn( void );
+	void Spawn() override;
 	void EXPORT ItemTouch( CBaseEntity *pOther );
 	virtual bool MyTouch( CBasePlayer *pPlayer )
 	{
 		return false;
 	}
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void TouchOrUse( CBaseEntity* pOther );
 
-	Vector MyRespawnSpot();
-	virtual float MyRespawnTime();
-	void OnMaterialize();
+	Vector MyRespawnSpot() override;
+	float MyRespawnTime() override;
+	void OnMaterialize() override;
 };
 #endif // ITEMS_H

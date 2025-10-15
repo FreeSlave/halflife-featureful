@@ -28,14 +28,10 @@ extern int gmsgItemPickup;
 class CHealthKit : public CItem
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	bool MyTouch( CBasePlayer *pPlayer ) override;
-/*
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	static TYPEDESCRIPTION m_SaveData[];
-*/
+
 	static const NamedSoundScript pickupSoundScript;
 protected:
 	virtual int DefaultCapacity() { return gSkillData.healthkitCapacity; }
@@ -43,22 +39,13 @@ protected:
 
 LINK_ENTITY_TO_CLASS( item_healthkit, CHealthKit )
 
-/*
-TYPEDESCRIPTION	CHealthKit::m_SaveData[] =
-{
-
-};
-
-IMPLEMENT_SAVERESTORE( CHealthKit, CItem )
-*/
-
 const NamedSoundScript CHealthKit::pickupSoundScript = {
 	CHAN_ITEM,
 	{"items/smallmedkit1.wav"},
 	"HealthKit.Pickup"
 };
 
-void CHealthKit::Spawn( void )
+void CHealthKit::Spawn()
 {
 	Precache();
 	SetMyModel( "models/w_medkit.mdl" );
@@ -66,7 +53,7 @@ void CHealthKit::Spawn( void )
 	CItem::Spawn();
 }
 
-void CHealthKit::Precache( void )
+void CHealthKit::Precache()
 {
 	PrecacheMyModel( "models/w_medkit.mdl" );
 	RegisterAndPrecacheSoundScript(pickupSoundScript);
@@ -148,7 +135,7 @@ void CWallCharger::Precache()
 		PRECACHE_SOUND(rechargeSound);
 }
 
-int CWallCharger::ObjectCaps( void )
+int CWallCharger::ObjectCaps()
 {
 	return ( CBaseEntity::ObjectCaps() | FCAP_CONTINUOUS_USE
 			| (FBitSet(pev->spawnflags, SF_WALLCHARGER_ONLYDIRECT)?FCAP_ONLYDIRECT_USE:0) )
@@ -332,8 +319,9 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		Off();
 	}
 
+	CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
 	// if the player doesn't have the suit, or there is no juice left, make the deny noise
-	if( ( m_iJuice <= 0 ) || !((static_cast<CBasePlayer*>(pActivator))->HasSuit() || AllowNoSuit()) )
+	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit()) || !pPlayer->CanHaveItem(this) )
 	{
 		if( m_flSoundTime <= gpGlobals->time )
 		{
@@ -410,6 +398,17 @@ bool CWallCharger::CalcRatio( CBaseEntity *pLocus, float* outResult )
 	return true;
 }
 
+bool CWallCharger::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if(m_iJuice <= 0)
+		return false;
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
+}
 
 //-------------------------------------------------------------
 // Wall mounted health kit
@@ -417,13 +416,13 @@ bool CWallCharger::CalcRatio( CBaseEntity *pLocus, float* outResult )
 class CWallHealth : public CWallCharger
 {
 public:
-	int RechargeTime() { return (int)g_pGameRules->FlHealthChargerRechargeTime(); }
-	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
-	bool GiveCharge(CBaseEntity* pActivator)
+	int RechargeTime() override { return (int)g_pGameRules->FlHealthChargerRechargeTime(); }
+	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
+	bool GiveCharge(CBaseEntity* pActivator) override
 	{
 		return pActivator->TakeHealth( this, 1, HEAL_CHARGE ) > 0;
 	}
-	bool AllowNoSuit() {
+	bool AllowNoSuit() override {
 		return g_modFeatures.nosuit_allow_healthcharger;
 	}
 
@@ -487,9 +486,9 @@ const NamedSoundScript CWallHealth::rechargeSoundScript = {
 class CWallHealthJarDecay : public CBaseAnimating
 {
 public:
-	void Spawn();
-	void Precache();
-	void Think();
+	void Spawn() override;
+	void Precache() override;
+	void Think() override;
 	void Update(bool slosh, float value);
 	void ToRest();
 
@@ -561,25 +560,25 @@ LINK_ENTITY_TO_CLASS(item_healthcharger_jar, CWallHealthJarDecay)
 class CWallHealthDecay : public CBaseAnimating
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn();
-	void Precache(void);
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
 	void Off( void );
 	void EXPORT Recharge( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual int ObjectCaps( void ) { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int ObjectCaps() override { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
 	void TurnNeedleToPlayer(const Vector &player);
 	void SetNeedleState(int state);
 	void SetNeedleController(float yaw);
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 	void UpdateJar();
 	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
-	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer);
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -676,7 +675,7 @@ void CWallHealthDecay::Spawn()
 
 LINK_ENTITY_TO_CLASS(item_healthcharger, CWallHealthDecay)
 
-void CWallHealthDecay::Precache(void)
+void CWallHealthDecay::Precache()
 {
 	PrecacheMyModel("models/health_charger_body.mdl");
 
@@ -722,36 +721,43 @@ void CWallHealthDecay::SearchForPlayer()
 {
 	CBaseEntity* pEntity = 0;
 	UTIL_MakeVectors( pev->angles );
-	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) { // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
-		if (pEntity->IsPlayer() && pEntity->IsAlive() && ((static_cast<CBasePlayer*>(pEntity))->HasSuit() || g_modFeatures.nosuit_allow_healthcharger)) {
-			if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
-				continue;
-			}
-			TurnNeedleToPlayer(pEntity->pev->origin);
-			switch (m_iState) {
-			case RetractShot:
-				if( m_fSequenceFinished )
-					SetNeedleState(Idle);
-				break;
-			case RetractArm:
-				SetNeedleState(Deploy);
-				break;
-			case Still:
-				SetNeedleState(Deploy);
-				break;
-			case Deploy:
-				if (m_fSequenceFinished)
-				{
-					SetNeedleState(Idle);
+	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
+	{
+		if (pEntity->IsPlayer() && pEntity->IsAlive())
+		{
+			CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pEntity);
+			if ((pPlayer->HasSuit() || g_modFeatures.nosuit_allow_healthcharger) && pPlayer->CanHaveItem(this))
+			{
+				if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
+					continue;
 				}
-				break;
-			case Idle:
-				break;
-			default:
+				TurnNeedleToPlayer(pEntity->pev->origin);
+				switch (m_iState) {
+				case RetractShot:
+					if( m_fSequenceFinished )
+						SetNeedleState(Idle);
+					break;
+				case RetractArm:
+					SetNeedleState(Deploy);
+					break;
+				case Still:
+					SetNeedleState(Deploy);
+					break;
+				case Deploy:
+					if (m_fSequenceFinished)
+					{
+						SetNeedleState(Idle);
+					}
+					break;
+				case Idle:
+					break;
+				default:
+					break;
+				}
+
 				break;
 			}
 		}
-		break;
 	}
 	if (!pEntity || !pEntity->IsPlayer()) {
 		switch (m_iState) {
@@ -1040,5 +1046,12 @@ void CWallHealthDecay::UpdateJar()
 
 bool CWallHealthDecay::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 {
-	return m_iJuice > 0;
+	if(m_iJuice <= 0)
+		return false;
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
 }

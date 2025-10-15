@@ -683,9 +683,12 @@ struct WeaponParameters
 
 	std::vector<std::string> modelSounds;
 	std::string viewModel;
+	std::string viewModelDetonator;
 	std::string worldModel;
 	std::string playerModel;
+	std::string playerModelDetonator;
 	fixed_string<32> playerAnimExt{"onehanded"};
+	fixed_string<32> playerAnimExtDetonator{};
 	int priority{0};
 
 	fixed_string<32> toolIcon;
@@ -694,6 +697,31 @@ struct WeaponParameters
 
 	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
 	bool preventJump{false};
+
+	const char* ViewModel() const {
+		return viewModel.c_str();
+	}
+	const char* PlayerModel() const {
+		if (playerModel.empty())
+			return nullptr;
+		return playerModel.c_str();
+	}
+	const char* DetonatorViewModel() const {
+		if (viewModelDetonator.empty())
+			return nullptr;
+		return viewModelDetonator.c_str();
+	}
+	const char* DetonatorPlayerModel() const {
+		if (playerModelDetonator.empty())
+			return nullptr;
+		return playerModelDetonator.c_str();
+	}
+	const char* PlayerAnimExt() const {
+		return playerAnimExt.c_str();
+	}
+	const char* DetonatorPlayerAnimExt() const {
+		return playerAnimExtDetonator.c_str();
+	}
 };
 
 #endif

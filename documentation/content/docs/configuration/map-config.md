@@ -23,6 +23,7 @@ Each piece of equipment is defined by one line in the file.
 
 ### Player parameters
 
+* `player_template` - the name of the starting [player template]({{< ref player-templates >}}).
 * `startarmor` - specify the starting armor.
 * `starthealth` - specify the starting health.
 * `maxhealth` - maximum player's health.

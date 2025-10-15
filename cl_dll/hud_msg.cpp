@@ -221,6 +221,18 @@ int CHud::MsgFunc_ObjectHint(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+int CHud::MsgFunc_PlTemplate(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	int r = READ_BYTE();
+	int g = READ_BYTE();
+	int b = READ_BYTE();
+	m_forcedHudColor = PackRGB(r, g, b);
+
+	return 1;
+}
+
 int CHud::MsgFunc_Weapons( const char* pszName, int iSize, void* pbuf )
 {
 	BEGIN_READ(pbuf, iSize);

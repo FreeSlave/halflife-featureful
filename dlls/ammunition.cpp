@@ -10,7 +10,7 @@
 #include "ammo_amounts.h"
 #include "common_soundscripts.h"
 
-void CBasePlayerAmmo::Spawn( void )
+void CBasePlayerAmmo::Spawn()
 {
 	Precache();
 	SetMyModel(MyModel());
@@ -104,6 +104,10 @@ void CBasePlayerAmmo::TouchOrUse( CBaseEntity *pOther )
 	{
 		return;
 	}
+
+	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
+	if (!pPlayer->CanHaveItem(this))
+		return;
 
 	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
 		return;

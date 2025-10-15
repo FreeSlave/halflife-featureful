@@ -1128,27 +1128,47 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_wade3.wav");
 	PRECACHE_SOUND("player/pl_wade4.wav");
 
-	pWorld->RegisterAndPrecacheSoundScript(Player::underwaterExhaleSoundScript); // breathe bubbles
-	pWorld->RegisterAndPrecacheSoundScript(Player::undrownSoundScript);
-	pWorld->RegisterAndPrecacheSoundScript(Player::emergeInhaleSoundScript);
-
-	pWorld->RegisterAndPrecacheSoundScript(Player::trainUseSoundScript);		// use a train
-
 	pWorld->RegisterAndPrecacheSoundScript(materialSparkSoundScript); // hit computer texture
 
-	pWorld->RegisterAndPrecacheSoundScript(Player::flashlightOnSoundScript);
-	pWorld->RegisterAndPrecacheSoundScript(Player::flashlightOffSoundScript);
-	pWorld->RegisterAndPrecacheSoundScript(Player::nvgOnSoundScript);
-	pWorld->RegisterAndPrecacheSoundScript(Player::nvgOffSoundScript);
+	auto PrecachePlayerSoundScripts = [](CBaseEntity* pWorld)
+	{
+		pWorld->RegisterAndPrecacheSoundScript(Player::underwaterExhaleSoundScript); // breathe bubbles
+		pWorld->RegisterAndPrecacheSoundScript(Player::undrownSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::emergeInhaleSoundScript);
 
-	// player gib sounds
-	pWorld->RegisterAndPrecacheSoundScript(Player::fallBodySplatSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::trainUseSoundScript);		// use a train
 
-	// player pain sounds
-	//PRECACHE_SOUND( "player/pl_pain2.wav" );
-	//PRECACHE_SOUND( "player/pl_pain4.wav" );
-	pWorld->RegisterAndPrecacheSoundScript(Player::deathSoundScript);
-	pWorld->RegisterAndPrecacheSoundScript(Player::deathUnderwaterSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::flashlightOnSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::flashlightOffSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::nvgOnSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::nvgOffSoundScript);
+
+		// player gib sounds
+		pWorld->RegisterAndPrecacheSoundScript(Player::fallBodySplatSoundScript);
+
+		// player pain sounds
+		//PRECACHE_SOUND( "player/pl_pain2.wav" );
+		//PRECACHE_SOUND( "player/pl_pain4.wav" );
+		pWorld->RegisterAndPrecacheSoundScript(Player::deathSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::deathUnderwaterSoundScript);
+	};
+
+	PrecachePlayerSoundScripts(pWorld);
+
+	for (auto it = g_PlayerTemplateSystem.PlayerTemplatesBegin(); it != g_PlayerTemplateSystem.PlayerTemplatesEnd(); ++it)
+	{
+		const PlayerTemplate& playerTemplate = it->second;
+		if (!playerTemplate.entTemplateName.empty())
+		{
+			const EntTemplate* entTemplate = g_EntTemplateSystem.GetTemplate(playerTemplate.entTemplateName.c_str());
+			if (entTemplate)
+			{
+				pWorld->SetEntTemplate(MAKE_STRING(playerTemplate.entTemplateName.c_str()));
+				PrecachePlayerSoundScripts(pWorld);
+				pWorld->SetEntTemplate(iStringNull);
+			}
+		}
+	}
 
 	PRECACHE_MODEL( "models/player.mdl" );
 

@@ -60,6 +60,7 @@ set (SVDLL_SOURCES
 	barney.cpp
 	bigmomma.cpp
 	bloater.cpp
+	blood.cpp
 	bmodels.cpp
 	bullsquid.cpp
 	buttons.cpp
@@ -149,6 +150,7 @@ set (SVDLL_SOURCES
 	pitworm.cpp
 	plane.cpp
 	plats.cpp
+	player_templates.cpp
 	player.cpp
 	playermonster.cpp
 	python.cpp
