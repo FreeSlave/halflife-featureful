@@ -32,7 +32,7 @@ SpectatorConnect
 called when a spectator connects to a server
 ============
 */
-void CBaseSpectator::SpectatorConnect( void )
+void CBaseSpectator::SpectatorConnect()
 {
 	pev->flags = FL_SPECTATOR;
 	pev->solid = SOLID_NOT;
@@ -48,7 +48,7 @@ SpectatorDisconnect
 called when a spectator disconnects from a server
 ============
 */
-void CBaseSpectator::SpectatorDisconnect( void )
+void CBaseSpectator::SpectatorDisconnect()
 {
 }
 
@@ -59,7 +59,7 @@ SpectatorImpulseCommand
 Called by SpectatorThink if the spectator entered an impulse
 ================
 */
-void CBaseSpectator::SpectatorImpulseCommand( void )
+void CBaseSpectator::SpectatorImpulseCommand()
 {
 	static edict_t *pGoal = NULL;
 	edict_t *pPreviousGoal;
@@ -118,7 +118,7 @@ SpectatorThink
 Called every frame after physics are run
 ================
 */
-void CBaseSpectator::SpectatorThink( void )
+void CBaseSpectator::SpectatorThink()
 {
 	if( !( pev->flags & FL_SPECTATOR ) )
 	{

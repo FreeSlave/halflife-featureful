@@ -75,12 +75,12 @@ public:
 	virtual void	StartFollowingHealTarget(CBaseEntity* pTarget) {}
 
 	bool CheckEnemy( CBaseEntity *pEnemy ) override;
-	void StartMonster( void );
-	void VacateSlot( void );
-	void ScheduleChange( void );
+	void StartMonster() override;
+	void VacateSlot();
+	void ScheduleChange() override;
 	void OnDying(bool gibbed) override;
 	bool OccupySlot( int iDesiredSlot );
-	bool NoFriendlyFire( void );
+	bool NoFriendlyFire();
 
 	// squad functions still left in base class
 	CSquadMonster *MySquadLeader()
@@ -97,36 +97,35 @@ public:
 		else
 			return m_hSquadMember[i].Entity<CSquadMonster>();
 	}
-	bool InSquad( void ) { return m_hSquadLeader != 0; }
-	bool IsLeader( void ) { return m_hSquadLeader == this; }
+	bool InSquad() { return m_hSquadLeader != 0; }
+	bool IsLeader() { return m_hSquadLeader == this; }
 	int SquadJoin( int searchRadius );
 	int SquadRecruit( int searchRadius, int maxMembers );
-	int SquadCount( void );
+	int SquadCount();
 	void SquadRemove( CSquadMonster *pRemove );
-	void SquadUnlink( void );
+	void SquadUnlink();
 	bool SquadAdd( CSquadMonster *pAdd );
-	void SquadDisband( void );
+	void SquadDisband();
 	void SquadAddConditions( int iConditions );
 	void SquadMakeEnemy( CBaseEntity *pEnemy );
-	void SquadPasteEnemyInfo( void );
-	void SquadCopyEnemyInfo( void );
-	bool SquadEnemySplit( void );
+	void SquadPasteEnemyInfo();
+	void SquadCopyEnemyInfo();
+	bool SquadEnemySplit();
 	bool AllyMonsterInRange( const Vector &vecLocation, float flDist );
 
-	virtual CSquadMonster *MySquadMonsterPointer( void ) { return this; }
+	CSquadMonster *MySquadMonsterPointer() override { return this; }
 
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
-
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
 
 	bool FValidateCover( const Vector &vecCoverLocation ) override;
 
-	MONSTERSTATE GetIdealState( void );
-	Schedule_t *GetScheduleOfType( int iType );
-	void StartTask( Task_t *pTask );
+	MONSTERSTATE GetIdealState() override;
+	Schedule_t *GetScheduleOfType( int iType ) override;
+	void StartTask( Task_t *pTask ) override;
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
 protected:
 	virtual void OnBecomingLeader() {}

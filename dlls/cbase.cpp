@@ -507,7 +507,7 @@ void SaveReadFields( SAVERESTOREDATA *pSaveData, const char *pname, void *pBaseD
 	restoreHelper.ReadFields( pname, pBaseData, pFields, fieldCount );
 }
 
-edict_t *EHANDLE::Get( void ) 
+edict_t *EHANDLE::Get() 
 { 
 	if( m_pent )
 	{
@@ -712,7 +712,7 @@ KilledResult CBaseEntity::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 	return KilledResult();
 }
 
-CBaseEntity *CBaseEntity::GetNextTarget( void )
+CBaseEntity *CBaseEntity::GetNextTarget()
 {
 	if( FStringNull( pev->target ) )
 		return NULL;
@@ -1452,7 +1452,7 @@ void SetObjectCollisionBox(entvars_t *pev, CBaseEntity* pEntity)
 	pev->absmax.z += 1;
 }
 
-void CBaseEntity::SetObjectCollisionBox( void )
+void CBaseEntity::SetObjectCollisionBox()
 {
 	::SetObjectCollisionBox( pev, this );
 }
@@ -1483,7 +1483,7 @@ int CBaseEntity::Intersects( CBaseEntity *pOther )
 	return 1;
 }
 
-void CBaseEntity::MakeDormant( void )
+void CBaseEntity::MakeDormant()
 {
 	SetBits( pev->flags, FL_DORMANT );
 	
@@ -1499,12 +1499,12 @@ void CBaseEntity::MakeDormant( void )
 	UTIL_SetOrigin( pev, pev->origin );
 }
 
-int CBaseEntity::IsDormant( void )
+int CBaseEntity::IsDormant()
 {
 	return FBitSet( pev->flags, FL_DORMANT );
 }
 
-bool CBaseEntity::IsInWorld( void )
+bool CBaseEntity::IsInWorld()
 {
 	// position 
 	if( pev->origin.x >= 4096.0f )

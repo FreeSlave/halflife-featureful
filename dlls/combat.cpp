@@ -51,7 +51,7 @@ extern DLL_GLOBAL int			g_iSkillLevel;
 
 
 // HACKHACK -- The gib velocity equations don't work
-void CGib::LimitVelocity( void )
+void CGib::LimitVelocity()
 {
 	// ceiling at 1500.  The gib velocity equation is not bounded properly.  Rather than tune it
 	// in 3 separate places again, I'll just limit it here.
@@ -356,12 +356,12 @@ int GibType(CBaseMonster* monster)
 	}
 }
 
-bool CBaseMonster::HasHumanGibs( void )
+bool CBaseMonster::HasHumanGibs()
 {
 	return GibType(this) == GIBTYPE_HUMAN;
 }
 
-bool CBaseMonster::HasAlienGibs( void )
+bool CBaseMonster::HasAlienGibs()
 {
 	return GibType(this) == GIBTYPE_ALIEN;
 }
@@ -412,7 +412,7 @@ bool CBaseMonster::IsAlienMonster()
 	}
 }
 
-void CBaseMonster::FadeMonster( void )
+void CBaseMonster::FadeMonster()
 {
 	StopAnimation();
 	pev->velocity = g_vecZero;
@@ -427,7 +427,7 @@ void CBaseMonster::FadeMonster( void )
 // GibMonster - create some gore and get rid of a monster's
 // model.
 //=========================================================
-void CBaseMonster::GibMonster( void )
+void CBaseMonster::GibMonster()
 {
 	bool gibbed = false;
 
@@ -487,7 +487,7 @@ void CBaseMonster::GibMonster( void )
 // GetDeathActivity - determines the best type of death
 // anim to play.
 //=========================================================
-Activity CBaseMonster::GetDeathActivity( void )
+Activity CBaseMonster::GetDeathActivity()
 {
 	Activity	deathActivity;
 	bool		fTriedDirection;
@@ -603,7 +603,7 @@ Activity CBaseMonster::GetDeathActivity( void )
 // GetSmallFlinchActivity - determines the best type of flinch
 // anim to play.
 //=========================================================
-Activity CBaseMonster::GetSmallFlinchActivity( void )
+Activity CBaseMonster::GetSmallFlinchActivity()
 {
 	Activity	flinchActivity;
 	// BOOL		fTriedDirection;
@@ -651,7 +651,7 @@ Activity CBaseMonster::GetSmallFlinchActivity( void )
 }
 
 
-void CBaseMonster::BecomeDead( void )
+void CBaseMonster::BecomeDead()
 {
 	pev->takedamage = DAMAGE_YES;// don't let autoaim aim at corpses.
 
@@ -686,7 +686,7 @@ bool CBaseMonster::ShouldGibMonster( int iGib )
 	return false;
 }
 
-void CBaseMonster::CallGibMonster( void )
+void CBaseMonster::CallGibMonster()
 {
 	bool fade = false;
 
@@ -887,7 +887,7 @@ void CBaseMonster::UpdateOnRemove()
 //
 // DON'T USE ME FOR GIBS AND STUFF IN MULTIPLAYER! 
 // SET A FUTURE THINK AND A RENDERMODE!!
-void CBaseEntity::SUB_StartFadeOut( void )
+void CBaseEntity::SUB_StartFadeOut()
 {
 	if( pev->rendermode == kRenderNormal )
 	{
@@ -902,7 +902,7 @@ void CBaseEntity::SUB_StartFadeOut( void )
 	SetThink( &CBaseEntity::SUB_FadeOut );
 }
 
-void CBaseEntity::SUB_FadeOut( void )
+void CBaseEntity::SUB_FadeOut()
 {
 	if( pev->renderamt > 7 )
 	{
@@ -923,7 +923,7 @@ void CBaseEntity::SUB_FadeOut( void )
 // bouncing to emit their scent. That's what this function
 // does.
 //=========================================================
-void CGib::WaitTillLand( void )
+void CGib::WaitTillLand()
 {
 	if( !IsInWorld() )
 	{

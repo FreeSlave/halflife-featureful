@@ -30,12 +30,12 @@
 #include <SDL2/SDL_gamecontroller.h>
 int (*pfnSDL_SetRelativeMouseMode)(SDL_bool);
 Uint32 (*pfnSDL_GetRelativeMouseState)(int* x, int* y);
-int (*pfnSDL_NumJoysticks)(void);
+int (*pfnSDL_NumJoysticks)();
 SDL_bool (*pfnSDL_IsGameController)(int);
 SDL_GameController* (*pfnSDL_GameControllerOpen)(int);
 Sint16 (*pfnSDL_GameControllerGetAxis)(SDL_GameController*, SDL_GameControllerAxis);
 Uint8 (*pfnSDL_GameControllerGetButton)(SDL_GameController*, SDL_GameControllerButton);
-void (*pfnSDL_JoystickUpdate)(void);
+void (*pfnSDL_JoystickUpdate)();
 const char* (*pfnSDL_GameControllerName)(SDL_GameController*);
 
 extern float IN_GetMouseSensitivity();
@@ -166,10 +166,10 @@ static void IN_SetMouseRelative(bool enable)
 #include "progdefs.h"
 #endif
 
-int CL_IsDead( void );
+int CL_IsDead();
 extern Vector dead_viewangles;
 
-void V_StopPitchDrift( void )
+void V_StopPitchDrift()
 {
 
 }
@@ -293,7 +293,7 @@ HANDLE s_hMouseThreadActiveLock = 0;
 Force_CenterView_f
 ===========
 */
-void Force_CenterView_f (void)
+void Force_CenterView_f ()
 {
 	Vector viewangles;
 
@@ -314,7 +314,7 @@ LONG mouseThreadDeltaX = 0;
 LONG mouseThreadDeltaY = 0;
 LONG mouseThreadSleep = 0;
 
-bool MouseThread_ActiveLock_Enter( void )
+bool MouseThread_ActiveLock_Enter()
 {
 	if(!m_bMouseThread)
 		return true;
@@ -322,7 +322,7 @@ bool MouseThread_ActiveLock_Enter( void )
 	return WAIT_OBJECT_0 == WaitForSingleObject( s_hMouseThreadActiveLock,  INFINITE);
 }
 
-void MouseThread_ActiveLock_Exit( void )
+void MouseThread_ActiveLock_Exit()
 {
 	if(!m_bMouseThread)
 		return;
@@ -371,7 +371,7 @@ unsigned __stdcall MouseThread_Function( void * pArg )
 
 /// <summary>Updates mouseThreadActive using the global variables mouseactive, iVisibleMouse and m_bRawInput. Should be called after any of these is changed.</summary>
 /// <remarks>Has to be interlocked manually by programmer! Use MouseThread_ActiveLock_Enter and MouseThread_ActiveLock_Exit.</remarks>
-void UpdateMouseThreadActive(void)
+void UpdateMouseThreadActive()
 {
 	InterlockedExchange(&mouseThreadActive, mouseactive && !iVisibleMouse && !m_bRawInput);
 }
@@ -441,7 +441,7 @@ void IN_SetVisibleMouse(bool visible)
 IN_ActivateMouse
 ===========
 */
-void GoldSourceInput::IN_ActivateMouse (void)
+void GoldSourceInput::IN_ActivateMouse ()
 {
 	if (mouseinitialized)
 	{
@@ -469,7 +469,7 @@ void GoldSourceInput::IN_ActivateMouse (void)
 IN_DeactivateMouse
 ===========
 */
-void GoldSourceInput::IN_DeactivateMouse (void)
+void GoldSourceInput::IN_DeactivateMouse ()
 {
 	if (mouseinitialized)
 	{
@@ -493,7 +493,7 @@ void GoldSourceInput::IN_DeactivateMouse (void)
 IN_StartupMouse
 ===========
 */
-void GoldSourceInput::IN_StartupMouse (void)
+void GoldSourceInput::IN_StartupMouse ()
 {
 	if ( gEngfuncs.CheckParm ("-nomouse", NULL ) )
 		return;
@@ -530,7 +530,7 @@ void GoldSourceInput::IN_StartupMouse (void)
 IN_Shutdown
 ===========
 */
-void GoldSourceInput::IN_Shutdown (void)
+void GoldSourceInput::IN_Shutdown ()
 {
 	IN_DeactivateMouse ();
 
@@ -593,7 +593,7 @@ IN_ResetMouse
 FIXME: Call through to engine?
 ===========
 */
-void GoldSourceInput::IN_ResetMouse( void )
+void GoldSourceInput::IN_ResetMouse()
 {
 	// no work to do in SDL
 #if XASH_WIN32
@@ -929,7 +929,7 @@ void GoldSourceInput::IN_MouseMove ( float frametime, usercmd_t *cmd)
 IN_Accumulate
 ===========
 */
-void GoldSourceInput::IN_Accumulate (void)
+void GoldSourceInput::IN_Accumulate ()
 {
 	//only accumulate mouse if we are not moving the camera with the mouse
 	if ( !iMouseInUse && !iVisibleMouse)
@@ -985,7 +985,7 @@ void GoldSourceInput::IN_Accumulate (void)
 IN_ClearStates
 ===================
 */
-void GoldSourceInput::IN_ClearStates (void)
+void GoldSourceInput::IN_ClearStates ()
 {
 	if ( !mouseactive )
 		return;
@@ -1000,7 +1000,7 @@ void GoldSourceInput::IN_ClearStates (void)
 IN_StartupJoystick
 ===============
 */
-void GoldSourceInput::IN_StartupJoystick (void)
+void GoldSourceInput::IN_StartupJoystick ()
 {
 	// abort startup if user requests no joystick
 	if ( gEngfuncs.CheckParm ("-nojoy", NULL ) )
@@ -1142,12 +1142,12 @@ PDWORD RawValuePointer_windows(int axis)
 Joy_AdvancedUpdate_f
 ===========
 */
-void Joy_AdvancedUpdate_f(void)
+void Joy_AdvancedUpdate_f()
 {
     CurrentMouseInput()->Joy_AdvancedUpdate();
 }
 
-void GoldSourceInput::Joy_AdvancedUpdate(void)
+void GoldSourceInput::Joy_AdvancedUpdate()
 {
 
 	// called once by IN_ReadJoystick and by user whenever an update is needed
@@ -1237,7 +1237,7 @@ bool GoldSourceInput::UseSDL2Joystick()
 IN_Commands
 ===========
 */
-void GoldSourceInput::IN_Commands (void)
+void GoldSourceInput::IN_Commands ()
 {
 	int	 i, key_index;
 
@@ -1334,7 +1334,7 @@ void GoldSourceInput::IN_Commands (void)
 IN_ReadJoystick
 ===============
 */
-int GoldSourceInput::IN_ReadJoystick (void)
+int GoldSourceInput::IN_ReadJoystick ()
 {
     if (UseSDL2Joystick())
     {
@@ -1589,7 +1589,7 @@ void GoldSourceInput::IN_Move ( float frametime, usercmd_t *cmd)
 IN_Init
 ===========
 */
-void GoldSourceInput::IN_Init (void)
+void GoldSourceInput::IN_Init ()
 {
 	ignoreNextDelta = false;
 	m_filter				= gEngfuncs.pfnRegisterVariable ( "m_filter","0", FCVAR_ARCHIVE );

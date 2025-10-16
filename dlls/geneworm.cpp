@@ -29,8 +29,6 @@
 #include	"clamp.h"
 #include	"visuals_utils.h"
 
-#if FEATURE_GENEWORM
-
 #define GENEWORM_ATTN 0.1f
 
 #define GENEWORM_SKIN_EYE_OPEN			0
@@ -64,16 +62,16 @@
 class CGeneWormCloud : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 	void TurnOn();
 	void RunGeneWormCloud(float frames);
 
 	static CGeneWormCloud* GeneWormCloudCreate(const Vector& origin, EntityOverrides entityOverrides);
 	void LaunchCloud(const Vector& origin, const Vector& aim, int nSpeed, edict_t* pOwner, float fadeTime);
 
-	virtual int Save(CSave &save);
-	virtual int Restore(CRestore &restore);
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	void EXPORT GeneWormCloudThink();
@@ -618,36 +616,35 @@ void CGeneWormSpawn::CreateWarpBeams(int side)
 class CGeneWorm : public CBaseMonster
 {
 public:
-	int		Save(CSave &save);
-	int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("geneworm"); }
-	int  DefaultClassify(void) { return CLASS_RACEX_SHOCK; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("geneworm"); }
+	int  DefaultClassify() override { return CLASS_RACEX_SHOCK; }
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	static bool FilterHurtTargets(CBaseEntity *pTarget, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void FireHurtTargets(const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType);
 
-	void SetObjectCollisionBox(void)
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -437, -720, -332 ), Vector( 425, 164, 355 ));
 	}
 
 	Vector LookerEyeOrigin() override;
 
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 
-	void EXPORT StartThink(void);
-	void EXPORT HuntThink(void);
+	void EXPORT StartThink();
+	void EXPORT HuntThink();
 	void EXPORT CrashTouch(CBaseEntity *pOther);
-	void EXPORT DyingThink(void);
-	void EXPORT NullThink(void);
+	void EXPORT DyingThink();
 	void EXPORT CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void EXPORT HitTouch( CBaseEntity *pOther );
 
-	void NextActivity(void);
+	void NextActivity();
 
 	void TrackHead();
 
@@ -938,7 +935,7 @@ void CGeneWorm::Precache()
 	UTIL_PrecacheOther("env_genewormspawn", GetProjectileOverrides());
 }
 
-void CGeneWorm::StartThink(void)
+void CGeneWorm::StartThink()
 {
 	Vector vecEyePos, vecEyeAng;
 
@@ -1086,7 +1083,7 @@ void CGeneWorm::FireHurtTargets(const char *targetName, CBaseEntity *pActivator,
 	FireTargets(targetName, pActivator, pCaller, useType, 0.0f, FilterHurtTargets);
 }
 
-void CGeneWorm::NextActivity(void)
+void CGeneWorm::NextActivity()
 {
 	UTIL_MakeAimVectors(pev->angles);
 
@@ -1659,5 +1656,3 @@ TakeDamageResult CGeneWorm::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAt
 
 	return TakeDamageResult().SetTookDamageToHealth();
 }
-
-#endif

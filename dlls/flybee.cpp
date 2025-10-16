@@ -17,9 +17,6 @@
 #include	"game.h"
 #include	"decals.h"
 #include	"visuals_utils.h"
-#include	"mod_features.h"
-
-#if FEATURE_FLYBEE
 
 #define FLYBEE_SPEED		150
 #define PROBE_LENGTH		150
@@ -43,43 +40,43 @@ enum
 class CFlybee : public CFlyingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("flybee"); }
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Flybee"; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("flybee"); }
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Flybee"; }
 
-	int		Save( CSave &save ); 
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
+	CUSTOM_SCHEDULES
 
-	CUSTOM_SCHEDULES;
-	void	HandleAnimEvent( MonsterEvent_t *pEvent );
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	void	HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 
-	void	StartTask( Task_t *pTask );
-	void	RunTask( Task_t *pTask );
+	void	StartTask( Task_t *pTask ) override;
+	void	RunTask( Task_t *pTask ) override;
 
 	bool	CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool	CheckRangeAttack1( float flDot, float flDist ) override;
 	bool	CheckRangeAttack2( float flDot, float flDist ) override;
 
-	Activity GetStoppedActivity( void );
+	Activity GetStoppedActivity() override;
 
-	void	MonsterThink( void );
+	void	MonsterThink() override;
 
-	void	Move( float flInterval );
-	void	MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
+	void	Move( float flInterval ) override;
+	void	MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
 
-	void	Stop( void );
-	void	Swim( void );
+	void	Stop() override;
+	void	Swim();
 
-	void	SetYawSpeed( void );
-	float	ChangeYaw( int speed );
+	void	SetYawSpeed() override;
+	float	ChangeYaw( int speed ) override;
 
 	float	VectorToPitch( const Vector &vec);
-	float	FlPitchDiff( void );
+	float	FlPitchDiff();
 	float	ChangePitch( int speed );
 
 	Vector	m_SaveVelocity;
@@ -109,10 +106,10 @@ public:
 	void DeathSound() override;
 	void PainSound() override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 24.0f ); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 24.0f ); }
 
 	static const NamedVisual zapBeamVisual;
 	static const NamedVisual zapBeamAltVisual;
@@ -139,9 +136,9 @@ IMPLEMENT_SAVERESTORE( CFlybee, CFlyingMonster );
 class CFlyBall : public CBaseEntity
 {
 public :
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT AnimateThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT AnimateThink();
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
 
 	static CFlyBall *CreateFlyBall(Vector vecOrigin, Vector vecAngles, entvars_s *pevOwner , EntityOverrides entityOverrides);
@@ -348,10 +345,10 @@ void CFlybee::Precache()
 	RegisterVisual(zapVisual);
 	RegisterVisual(zapWaveVisual);
 
-	UTIL_PrecacheOther ( "flyball", GetProjectileOverrides() );
+	UTIL_PrecacheOther( "flyball", GetProjectileOverrides() );
 }
 
-int	CFlybee::DefaultClassify ( void )
+int	CFlybee::DefaultClassify()
 {
 	return	CLASS_ALIEN_MONSTER;
 }
@@ -383,7 +380,7 @@ bool CFlybee::CheckRangeAttack2 ( float flDot, float flDist )
 	return false;
 }
 
-void CFlybee::SetYawSpeed ( void )
+void CFlybee::SetYawSpeed()
 {
 	pev->yaw_speed = 100;
 }
@@ -810,14 +807,14 @@ void CFlybee::RunTask ( Task_t *pTask )
 	case TASK_FLYBEE_CIRCLE_ENEMY:
 		if (m_hEnemy == 0)
 		{
-			TaskComplete( );
+			TaskComplete();
 		}
 		else if (FVisible( m_hEnemy ))
 		{
-			Vector vecFrom = m_hEnemy->EyePosition( );
+			Vector vecFrom = m_hEnemy->EyePosition();
 
-			Vector vecDelta = (pev->origin - vecFrom).Normalize( );
-			Vector vecSwim = CrossProduct( vecDelta, Vector( 0, 0, 1 ) ).Normalize( );
+			Vector vecDelta = (pev->origin - vecFrom).Normalize();
+			Vector vecSwim = CrossProduct( vecDelta, Vector( 0, 0, 1 ) ).Normalize();
 			
 			if (DotProduct( vecSwim, m_SaveVelocity ) < 0)
 				vecSwim *= -1.0f;
@@ -888,7 +885,7 @@ void CFlybee::RunTask ( Task_t *pTask )
 
 		if (m_flNextAlert < gpGlobals->time)
 		{
-			AlertSound( );
+			AlertSound();
 			m_flNextAlert = gpGlobals->time + RANDOM_FLOAT( 3, 5 );
 		}
 		break;
@@ -900,7 +897,7 @@ void CFlybee::RunTask ( Task_t *pTask )
 				m_IdealActivity = ACT_RUN;
 			}
 			else if (m_fSequenceFinished )
-				TaskComplete( );
+				TaskComplete();
 
 			TraceResult tr;
 			UTIL_TraceHull( pev->origin, m_hEnemy->Center(), ignore_monsters, large_hull, m_hEnemy->edict(), &tr );
@@ -932,7 +929,7 @@ void CFlybee::RunTask ( Task_t *pTask )
 	case TASK_FLYBEE_SWIM:
 		if (m_fSequenceFinished )
 		{
-			TaskComplete( );
+			TaskComplete();
 		}
 		break;
 
@@ -951,13 +948,13 @@ void CFlybee::RunTask ( Task_t *pTask )
 		}
 		else if ( m_fSequenceFinished && m_IdealActivity == ACT_LAND )
 		{
-			CFlyingMonster :: RunTask ( pTask );
+			CFlyingMonster::RunTask ( pTask );
 			pev->deadflag = DEAD_DEAD;
 		}
 		break;
 
 	default: 
-		CFlyingMonster :: RunTask ( pTask );
+		CFlyingMonster::RunTask ( pTask );
 		break;
 	}
 }
@@ -981,7 +978,7 @@ void CFlybee::Move(float flInterval)
 	CFlyingMonster::Move( flInterval );
 }
 
-float CFlybee::FlPitchDiff( void )
+float CFlybee::FlPitchDiff()
 {
 	float	flPitchDiff;
 	float	flCurrentPitch;
@@ -1045,7 +1042,7 @@ float CFlybee::ChangeYaw( int speed )
 	return CFlyingMonster::ChangeYaw( speed );
 }
 
-Activity CFlybee::GetStoppedActivity( void )
+Activity CFlybee::GetStoppedActivity()
 { 
 	if ( pev->movetype != MOVETYPE_FLY )		// UNDONE: Ground idle here, IDLE may be something else
 		return ACT_IDLE;
@@ -1057,17 +1054,17 @@ void CFlybee::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float 
 	m_SaveVelocity = vecDir * m_flightSpeed;
 }
 
-void CFlybee::MonsterThink ( void )
+void CFlybee::MonsterThink()
 {
-	CFlyingMonster::MonsterThink( );
+	CFlyingMonster::MonsterThink();
 
 	if ( pev->deadflag == DEAD_NO && m_MonsterState != MONSTERSTATE_SCRIPT )
 	{
-		Swim( );
+		Swim();
 	}
 }
 
-void CFlybee::Stop( void )
+void CFlybee::Stop()
 {
 	m_flightSpeed = 80.0;
 }
@@ -1127,7 +1124,7 @@ CFlyBall *CFlyBall::CreateFlyBall( Vector vecOrigin, Vector vecAngles, entvars_s
 	return pBall;
 }
 
-void CFlyBall::Spawn( void )
+void CFlyBall::Spawn()
 {
 	Precache();
 
@@ -1150,7 +1147,7 @@ void CFlyBall::Spawn( void )
 	pev->velocity = gpGlobals->v_forward * 1000;
 }
 
-void CFlyBall::Precache( void )
+void CFlyBall::Precache()
 {
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 
@@ -1158,7 +1155,7 @@ void CFlyBall::Precache( void )
 	RegisterVisual(ballTrailVisual);
 }
 
-void CFlyBall::AnimateThink( void )
+void CFlyBall::AnimateThink()
 {
 	pev->nextthink = gpGlobals->time + 0.05;
 
@@ -1217,4 +1214,3 @@ void CFlyBall::ExplodeTouch( CBaseEntity *pOther )
 	SetThink( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time + 0.01f; // let the sound play
 }
-#endif

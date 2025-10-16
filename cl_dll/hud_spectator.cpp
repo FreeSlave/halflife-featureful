@@ -78,7 +78,7 @@ const char *GetSpectatorLabel( int iMode )
 
 #endif
 
-void SpectatorMode( void )
+void SpectatorMode()
 {
 	if( gEngfuncs.Cmd_Argc() <= 1 )
 	{
@@ -93,7 +93,7 @@ void SpectatorMode( void )
 		gHUD.m_Spectator.SetModes( atoi( gEngfuncs.Cmd_Argv( 1 ) ), atoi( gEngfuncs.Cmd_Argv( 2 ) )  );
 }
 
-void SpectatorSpray( void )
+void SpectatorSpray()
 {
 	Vector forward;
 	char string[128];
@@ -113,7 +113,7 @@ void SpectatorSpray( void )
 	}
 }
 
-void SpectatorHelp( void )
+void SpectatorHelp()
 {
 #if USE_VGUI
 	if( gViewPort )
@@ -137,7 +137,7 @@ void SpectatorHelp( void )
 	}
 }
 
-void SpectatorMenu( void )
+void SpectatorMenu()
 {
 	if( gEngfuncs.Cmd_Argc() <= 1 )
 	{
@@ -150,7 +150,7 @@ void SpectatorMenu( void )
 #endif
 }
 
-void ToggleScores( void )
+void ToggleScores()
 {
 #if USE_VGUI
 	if( gHUD.UseVguiScoreBoard() && gViewPort )
@@ -573,7 +573,7 @@ int CHudSpectator::VidInit()
 	return 1;
 }
 
-float CHudSpectator::GetFOV( void )
+float CHudSpectator::GetFOV()
 {
 	return m_FOV;
 }

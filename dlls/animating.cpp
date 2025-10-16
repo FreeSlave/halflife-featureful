@@ -204,7 +204,7 @@ float CBaseAnimating::SetBoneController( int iController, float flValue )
 
 //=========================================================
 //=========================================================
-void CBaseAnimating::InitBoneControllers( void )
+void CBaseAnimating::InitBoneControllers()
 {
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
 
@@ -281,7 +281,7 @@ int CBaseAnimating::ExtractBbox( int sequence, float *mins, float *maxs )
 //=========================================================
 //=========================================================
 
-void CBaseAnimating::SetSequenceBox( void )
+void CBaseAnimating::SetSequenceBox()
 {
 	Vector mins, maxs;
 

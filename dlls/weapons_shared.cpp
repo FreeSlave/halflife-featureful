@@ -136,7 +136,7 @@ void CBasePlayerWeapon::SendWeaponAnim(int iAnim)
 	SendWeaponAnim(iAnim, ViewModelBody());
 }
 
-bool CBasePlayerWeapon::CanDeploy( void )
+bool CBasePlayerWeapon::CanDeploy()
 {
 	bool bHasAmmo = false;
 
@@ -194,7 +194,7 @@ bool CBasePlayerWeapon::DefaultClipReload(int iAnim, float fDelay, int body)
 	return DefaultReload(m_iMaxClip, iAnim, fDelay, body);
 }
 
-void CBasePlayerWeapon::ResetEmptySound( void )
+void CBasePlayerWeapon::ResetEmptySound()
 {
 	m_iPlayEmptySound = true;
 }
@@ -219,7 +219,7 @@ bool CanAttack( float attack_time, float curtime, bool isPredicted )
 #endif
 }
 
-void CBasePlayerWeapon::ItemPostFrame( void )
+void CBasePlayerWeapon::ItemPostFrame()
 {
 	if( ( m_fInReload ) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
 	{
@@ -1932,7 +1932,7 @@ void CConfigurableWeapon::UpdateAutoAim()
 		m_pPlayer->GetAutoaimVector(autoAimDegree);
 }
 
-void CConfigurableWeapon::UpdateSpot( void )
+void CConfigurableWeapon::UpdateSpot()
 {
 #if !CLIENT_DLL
 	if (m_bLaserActive)
@@ -1952,7 +1952,7 @@ void CConfigurableWeapon::UpdateSpot( void )
 		}
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( );
+		Vector vecSrc = m_pPlayer->GetGunPosition();
 		Vector vecAiming = gpGlobals->v_forward;
 
 		TraceResult tr;
@@ -2244,7 +2244,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 	return fDidHit;
 }
 
-void CConfigurableWeapon::BigSwing(void)
+void CConfigurableWeapon::BigSwing()
 {
 	const WeaponParameters& params = MyParameters();
 	const WeaponParameters::Fire& fire = params.fire;
@@ -2253,7 +2253,7 @@ void CConfigurableWeapon::BigSwing(void)
 	TraceResult tr;
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc	= m_pPlayer->GetGunPosition( );
+	Vector vecSrc	= m_pPlayer->GetGunPosition();
 	Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32.0f;
 
 	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );

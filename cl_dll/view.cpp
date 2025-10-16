@@ -37,7 +37,7 @@ extern "C"
 
 extern "C" 
 {
-	int CL_IsThirdPerson( void );
+	int CL_IsThirdPerson();
 	void CL_CameraOffset( float *ofs );
 
 	void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams );
@@ -1699,7 +1699,7 @@ void V_PunchAxis( int axis, float punch )
 V_Init
 =============
 */
-void V_Init( void )
+void V_Init()
 {
 	scr_ofsx = gEngfuncs.pfnRegisterVariable( "scr_ofsx","0", 0 );
 	scr_ofsy = gEngfuncs.pfnRegisterVariable( "scr_ofsy","0", 0 );

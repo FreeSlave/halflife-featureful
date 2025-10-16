@@ -34,21 +34,21 @@
 class CBarnacle : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	CBaseEntity *TongueTouchEnt( float *pflLength );
-	int DefaultClassify( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void EXPORT BarnacleThink( void );
-	void EXPORT WaitTillDead( void );
+	int DefaultClassify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void EXPORT BarnacleThink();
+	void EXPORT WaitTillDead();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	void PainSound() override;
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_FIXED; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 
 	float m_flAltitude;
 	float m_flCachedLength;	// tongue cached length
@@ -61,7 +61,7 @@ public:
 	// FIXME: need a custom barnacle model with non-generic hitgroup
 	// otherwise we can apply to damage to tongue instead of body
 #if BARNACLE_FIX_VISIBILITY
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox()
 	{
 		pev->absmin = pev->origin + Vector( -16.0f, -16.0f, -m_flCachedLength );
 		pev->absmax = pev->origin + Vector( 16.0f, 16.0f, 0.0f );
@@ -124,7 +124,7 @@ const NamedSoundScript CBarnacle::painSoundScript = {
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBarnacle::DefaultClassify( void )
+int CBarnacle::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -200,7 +200,7 @@ void CBarnacle::PainSound()
 
 //=========================================================
 //=========================================================
-void CBarnacle::BarnacleThink( void )
+void CBarnacle::BarnacleThink()
 {
 	CBaseEntity *pTouchEnt;
 	CBaseMonster *pVictim;
@@ -401,7 +401,7 @@ KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, 
 
 //=========================================================
 //=========================================================
-void CBarnacle::WaitTillDead( void )
+void CBarnacle::WaitTillDead()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();

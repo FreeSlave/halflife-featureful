@@ -4,8 +4,6 @@
 #include "mod_features.h"
 #include "cbase.h"
 
-#if FEATURE_SHOCKBEAM
-
 class CBeam;
 class CSprite;
 
@@ -15,21 +13,21 @@ class CSprite;
 class CShock : public CBaseAnimating
 {
 public:
-	void Spawn(void);
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static void Shoot(entvars_t *pevOwner, const Vector angles, const Vector vecStart, const Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
 	static float ShockSpeed() { return 2000.0f; }
-	void Touch(CBaseEntity *pOther);
+	void Touch(CBaseEntity *pOther) override;
 	void EXPORT FlyThink();
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void CreateEffects();
 	void ClearEffects();
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 
 	CBeam *m_pBeam;
 	CBeam *m_pNoise;
@@ -43,5 +41,4 @@ public:
 	static const NamedVisual lightVisual;
 	static const NamedVisual shellVisual;
 };
-#endif
 #endif

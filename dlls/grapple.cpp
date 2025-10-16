@@ -22,8 +22,6 @@
 #include "effects.h"
 #include "customentity.h"
 
-#if FEATURE_GRAPPLE
-
 class CBarnacleGrappleTip;
 
 #if !CLIENT_DLL
@@ -105,6 +103,8 @@ void CBarnacleGrappleTip::OffsetThink()
 
 void CBarnacleGrappleTip::TongueTouch( CBaseEntity* pOther )
 {
+	int targetClass;
+
 	if( !pOther )
 	{
 		targetClass = GRAPPLE_NOT_A_TARGET;
@@ -236,8 +236,8 @@ class CBarnacleGrapple : public CBasePlayerWeapon
 {
 public:
 #if !CLIENT_DLL
-	virtual int		Save( CSave &save ) override;
-	virtual int		Restore( CRestore &restore ) override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	enum FireState
@@ -250,7 +250,7 @@ public:
 	void PrecacheDefaultModelSounds() override;
 	void Spawn() override;
 	int WeaponId() const override { return WEAPON_GRAPPLE; }
-	void EndAttack( void );
+	void EndAttack();
 
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
@@ -262,9 +262,9 @@ public:
 
 	void Fire( Vector vecOrigin, Vector vecDir );
 
-	void CreateEffect( void );
-	void UpdateEffect( void );
-	void DestroyEffect( void );
+	void CreateEffect();
+	void UpdateEffect();
+	void DestroyEffect();
 private:
 	CBarnacleGrappleTip* m_pTip;
 #if !CLIENT_DLL
@@ -684,7 +684,7 @@ void CBarnacleGrapple::Fire( Vector vecOrigin, Vector vecDir )
 #endif
 }
 
-void CBarnacleGrapple::EndAttack( void )
+void CBarnacleGrapple::EndAttack()
 {
 	m_fireState = OFF;
 	SendWeaponAnim( BGRAPPLE_FIRERELEASE );
@@ -709,7 +709,7 @@ void CBarnacleGrapple::EndAttack( void )
 	m_pPlayer->m_afPhysicsFlags &= ~PFLAG_LATCHING;
 }
 
-void CBarnacleGrapple::CreateEffect( void )
+void CBarnacleGrapple::CreateEffect()
 {
 #if !CLIENT_DLL
 	DestroyEffect();
@@ -748,7 +748,7 @@ void CBarnacleGrapple::CreateEffect( void )
 #endif
 }
 
-void CBarnacleGrapple::UpdateEffect( void )
+void CBarnacleGrapple::UpdateEffect()
 {
 #if !CLIENT_DLL
 	if( !m_pBeam || !m_pTip )
@@ -756,7 +756,7 @@ void CBarnacleGrapple::UpdateEffect( void )
 #endif
 }
 
-void CBarnacleGrapple::DestroyEffect( void )
+void CBarnacleGrapple::DestroyEffect()
 {
 #if !CLIENT_DLL
 	if( m_pBeam )
@@ -772,5 +772,3 @@ void CBarnacleGrapple::DestroyEffect( void )
 	}
 #endif
 }
-
-#endif

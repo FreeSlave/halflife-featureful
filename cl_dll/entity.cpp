@@ -20,7 +20,7 @@
 
 #include "particleman.h"
 
-void Game_AddObjects( void );
+void Game_AddObjects();
 
 extern Vector v_origin;
 
@@ -30,7 +30,7 @@ int g_iLaserDot = 0;
 extern "C"
 {
 	int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *modelname );
-	void DLLEXPORT HUD_CreateEntities( void );
+	void DLLEXPORT HUD_CreateEntities();
 	void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct cl_entity_s *entity );
 	void DLLEXPORT HUD_TxferLocalOverrides( struct entity_state_s *state, const struct clientdata_s *client );
 	void DLLEXPORT HUD_ProcessPlayerState( struct entity_state_s *dst, const struct entity_state_s *src );
@@ -308,7 +308,7 @@ void DLLEXPORT HUD_TxferPredictionData( struct entity_state_s *ps, const struct 
 
 cl_entity_t mymodel[9];
 
-void MoveModel( void )
+void MoveModel()
 {
 	cl_entity_t *player;
 	int i, j;
@@ -353,7 +353,7 @@ extern int hitent;
 
 cl_entity_t hit;
 
-void TraceModel( void )
+void TraceModel()
 {
 	cl_entity_t *ent;
 
@@ -389,7 +389,7 @@ void ParticleCallback( struct particle_s *particle, float frametime )
 }
 
 cvar_t *color = NULL;
-void Particles( void )
+void Particles()
 {
 	static float lasttime;
 	float curtime;
@@ -454,7 +454,7 @@ void TempEntCallback( struct tempent_s *ent, float frametime, float currenttime 
 	}
 }
 
-void TempEnts( void )
+void TempEnts()
 {
 	static float lasttime;
 	float curtime;
@@ -508,7 +508,7 @@ void TempEnts( void )
 // Room for 1 beam ( 0 can't be used )
 static cl_entity_t beams[2];
 
-void BeamEndModel( void )
+void BeamEndModel()
 {
 	cl_entity_t *player, *model;
 	int modelindex;
@@ -543,7 +543,7 @@ void BeamEndModel( void )
 	gEngfuncs.CL_CreateVisibleEntity( ET_NORMAL, model );
 }
 
-void Beams( void )
+void Beams()
 {
 	static float lasttime;
 	float curtime;
@@ -578,7 +578,7 @@ extern cvar_t *cl_lw;
 
 TEMPENTITY *g_pLaserSpot = NULL;
 
-void CL_UpdateLaserSpot( void )
+void CL_UpdateLaserSpot()
 {
 	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
 
@@ -640,7 +640,7 @@ HUD_CreateEntities
 Gives us a chance to add additional entities to the render this frame
 =========================
 */
-void DLLEXPORT HUD_CreateEntities( void )
+void DLLEXPORT HUD_CreateEntities()
 {
 	// e.g., create a persistent cl_entity_t somewhere.
 	// Load an appropriate model into it ( gEngfuncs.CL_LoadModel )

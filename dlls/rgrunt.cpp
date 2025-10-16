@@ -7,11 +7,8 @@
 #include	"soundent.h"
 #include	"decals.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
-
-#if FEATURE_ROBOGRUNT
 
 #define	GRUNT_CLIP_SIZE					36
 
@@ -28,37 +25,37 @@
 class CRGrunt : public CHGrunt
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("robogrunt"); }
-	int DefaultClassify() { return CLASS_MACHINE; }
-	const char* DefaultDisplayName() { return "Robo Grunt"; }
-	const char* ReverseRelationshipModel() { return "models/rgruntf.mdl"; }
-	void RunAI();
-	void StartTask( Task_t* pTask );
-	void RunTask( Task_t* pTask );
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("robogrunt"); }
+	int DefaultClassify() override { return CLASS_MACHINE; }
+	const char* DefaultDisplayName() override { return "Robo Grunt"; }
+	const char* ReverseRelationshipModel() override { return "models/rgruntf.mdl"; }
+	void RunAI() override;
+	void StartTask( Task_t* pTask ) override;
+	void RunTask( Task_t* pTask ) override;
 	void EXPORT Spark();
 	void EXPORT Explode();
 
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
 	void DeathSound() override;
 	void PainSound() override;
 
-	const char* DefaultGibModel() {
+	const char* DefaultGibModel() override {
 		return "models/computergibs.mdl";
 	}
 
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void BecomeDead();
+	void BecomeDead() override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	float m_flSparkTime;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript dieSoundScript;
@@ -75,23 +72,23 @@ public:
 
 protected:
 	static const char *pRoboSentences[HGRUNT_SENT_COUNT];
-	virtual const char* SentenceByNumber(int sentence);
-	bool AlertSentenceIsForPlayerOnly() {
+	virtual const char* SentenceByNumber(int sentence) override;
+	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}
 
 	void DoSpark(const Vector& sparkLocation, float flVolume);
 
-	virtual void PlayFirstBurstSounds() {
+	void PlayFirstBurstSounds() override {
 		EmitSoundScript(burst9mmSoundScript);
 	}
-	virtual void PlayReloadSound() {
+	void PlayReloadSound() override {
 		EmitSoundScript(reloadSoundScript);
 	}
-	virtual void PlayGrenadeLaunchSound() {
+	void PlayGrenadeLaunchSound() override {
 		EmitSoundScript(grenadeLaunchSoundScript);
 	}
-	virtual void PlayShogtunSound() {
+	void PlayShogtunSound() override {
 		EmitSoundScript(shotgunSoundScript);
 	}
 };
@@ -406,11 +403,9 @@ void CRGrunt::DoSpark(const Vector &sparkLocation, float flVolume)
 class CRGruntRepel : public CHGruntRepel
 {
 public:
-	const char* TrooperName() {
+	const char* TrooperName() override {
 		return "monster_robogrunt";
 	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_robogrunt_repel, CRGruntRepel)
-
-#endif

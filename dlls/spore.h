@@ -1,9 +1,6 @@
 #ifndef SPORE_H
 #define SPORE_H
 
-#include "mod_features.h"
-
-#if FEATURE_SPOREGRENADE
 #include "ggrenade.h"
 
 // Contact/Timed spore grenade
@@ -17,14 +14,14 @@ public:
 	};
 
 public:
-	int Save(CSave& save);
-	int Restore(CRestore& restore);
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Precache();
-	void Spawn();
-	void UpdateOnRemove();
+	void Precache() override;
+	void Spawn() override;
+	void UpdateOnRemove() override;
 
 	void EXPORT IgniteThink();
 	void EXPORT FlyThink();
@@ -59,5 +56,4 @@ private:
 	EHANDLE m_hSprite;
 	bool m_bPuked;
 };
-#endif
 #endif

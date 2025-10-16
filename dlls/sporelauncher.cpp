@@ -36,8 +36,6 @@ enum sporelauncher_e
 	SPLAUNCHER_IDLE2
 };
 
-#if FEATURE_SPORELAUNCHER
-
 class CSporelauncher : public CConfigurableWeapon
 {
 public:
@@ -176,7 +174,7 @@ void CSporelauncher::NativeAttack(bool altMode)
 {
 #if !CLIENT_DLL
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
 	if (altMode)
 	{
@@ -198,4 +196,3 @@ void CSporelauncher::OnIdleAnimation(int anim)
 		EMIT_SOUND(m_pPlayer->edict(), CHAN_ITEM, "weapons/splauncher_pet.wav", 0.7f, ATTN_NORM);
 	}
 }
-#endif

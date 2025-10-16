@@ -300,7 +300,7 @@ LINK_ENTITY_TO_CLASS( scripted_action, CCineMonster ) //LRC
 
 LINK_ENTITY_TO_CLASS( aiscripted_sequence, CCineAI )
 
-void CCineMonster::Spawn( void )
+void CCineMonster::Spawn()
 {
 	// pev->solid = SOLID_TRIGGER;
 	// UTIL_SetSize( pev, Vector( -8, -8, -8 ), Vector( 8, 8, 8 ) );
@@ -325,7 +325,7 @@ void CCineMonster::Spawn( void )
 // FCanOverrideState - returns false, scripted sequences
 // cannot possess entities regardless of state.
 //=========================================================
-bool CCineMonster::FCanOverrideState( void )
+bool CCineMonster::FCanOverrideState()
 {
 	if( pev->spawnflags & SF_SCRIPT_OVERRIDESTATE )
 		return true;
@@ -336,7 +336,7 @@ bool CCineMonster::FCanOverrideState( void )
 // FCanOverrideState - returns true because scripted AI can
 // possess entities regardless of their state.
 //=========================================================
-bool CCineAI::FCanOverrideState( void )
+bool CCineAI::FCanOverrideState()
 {
 	return true;
 }
@@ -437,7 +437,7 @@ void CCineMonster::Touch( CBaseEntity *pOther )
 //
 // ********** Cinematic DIE **********
 //
-void CCineMonster::Die( void )
+void CCineMonster::Die()
 {
 	SetThink( &CBaseEntity::SUB_Remove );
 }
@@ -445,7 +445,7 @@ void CCineMonster::Die( void )
 //
 // ********** Cinematic PAIN **********
 //
-void CCineMonster::Pain( void )
+void CCineMonster::Pain()
 {
 
 }
@@ -455,7 +455,7 @@ void CCineMonster::Pain( void )
 //
 
 // find a viable entity
-CBaseMonster *CCineMonster::FindEntity( void )
+CBaseMonster *CCineMonster::FindEntity()
 {
 	CBaseMonster *pTarget = NULL;
 	int checkFail;
@@ -539,7 +539,7 @@ bool CCineMonster::AcceptedFollowingState(CBaseMonster *pMonster)
 }
 
 // make the entity enter a scripted sequence
-void CCineMonster::PossessEntity( void )
+void CCineMonster::PossessEntity()
 {
 	CBaseEntity *pEntity = m_hTargetEnt;
 	CBaseMonster *pTarget = NULL;
@@ -654,7 +654,7 @@ void CCineMonster::PossessEntity( void )
 	}
 }
 
-void CCineMonster::CineThink( void )
+void CCineMonster::CineThink()
 {
 	if (IsLockedByMaster() || !TryFindAndPossessEntity())
 	{
@@ -771,7 +771,7 @@ bool CCineMonster::StartSequence(CBaseMonster *pTarget, string_t iszSeq, bool co
 	ALERT( at_console, "%s (%s): started \"%s\":INT:%s\n", STRING( pTarget->pev->targetname ), STRING( pTarget->pev->classname ), STRING( iszSeq ), s );
 #endif
 	pTarget->pev->frame = 0;
-	pTarget->ResetSequenceInfo( );
+	pTarget->ResetSequenceInfo();
 	return true;
 }
 
@@ -869,7 +869,7 @@ void CCineMonster::AllowInterrupt( bool fAllow )
 	m_interruptable = fAllow;
 }
 
-bool CCineMonster::CanInterrupt( void )
+bool CCineMonster::CanInterrupt()
 {
 	if( !m_interruptable )
 		return false;
@@ -894,7 +894,7 @@ bool CCineMonster::CanInterruptByBarnacle()
 	return m_interruptionPolicy != SCRIPT_INTERRUPTION_POLICY_ONLY_DEATH && CanInterrupt();
 }
 
-int CCineMonster::IgnoreConditions( void )
+int CCineMonster::IgnoreConditions()
 {
 	if( CanInterrupt() )
 		return 0;
@@ -998,7 +998,7 @@ void CCineMonster::DelayStart( int state )
 }
 
 // Find an entity that I'm interested in and precache the sounds he'll need in the sequence.
-void CCineMonster::Activate( void )
+void CCineMonster::Activate()
 {
 	edict_t *pentTarget;
 	CBaseMonster *pTarget;
@@ -1241,19 +1241,18 @@ CBaseEntity* CCineMonster::GetActivator(CBaseEntity* pMonster)
 class CScriptedSentence : public CBaseDelay
 {
 public:
-	void Spawn( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT FindThink( void );
-	void EXPORT DelayThink( void );
-	int ObjectCaps( void ) { return ( CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void EXPORT FindThink();
+	void EXPORT DelayThink();
+	int ObjectCaps() override { return ( CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	CBaseToggle *FindEntity( void );
+	CBaseToggle *FindEntity();
 	bool AcceptableSpeaker( CBaseToggle *pTarget );
 	bool InterlocutorIsInRange(CBaseEntity* pTarget, float flRadius, const Vector& searchOrigin);
 	bool StartSentence( CBaseToggle *pTarget );
@@ -1424,7 +1423,7 @@ void CScriptedSentence::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	pev->nextthink = gpGlobals->time;
 }
 
-void CScriptedSentence::Spawn( void )
+void CScriptedSentence::Spawn()
 {
 	pev->solid = SOLID_NOT;
 
@@ -1469,7 +1468,7 @@ void CScriptedSentence::Spawn( void )
 		m_flVolume = 1.0f;
 }
 
-void CScriptedSentence::FindThink( void )
+void CScriptedSentence::FindThink()
 {
 	CBaseToggle *pTarget = FindEntity();
 	if( pTarget && StartSentence( pTarget ) )
@@ -1489,7 +1488,7 @@ void CScriptedSentence::FindThink( void )
 	}
 }
 
-void CScriptedSentence::DelayThink( void )
+void CScriptedSentence::DelayThink()
 {
 	m_active = true;
 	if( !pev->targetname )
@@ -1534,7 +1533,7 @@ bool CScriptedSentence::InterlocutorIsInRange(CBaseEntity *pTarget, float flRadi
 	return (searchOrigin - pTarget->pev->origin).IsLengthLessThanOrEqual(flRadius);
 }
 
-CBaseToggle *CScriptedSentence::FindEntity( void )
+CBaseToggle *CScriptedSentence::FindEntity()
 {
 	CBaseToggle *pTarget = NULL;
 	Vector searchOrigin = pev->origin;
@@ -1721,9 +1720,9 @@ bool CScriptedSentence::StartSentence( CBaseToggle *pTarget )
 class CFurniture : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	int DefaultClassify( void );
-	virtual int ObjectCaps( void ) { return (CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	void Spawn() override;
+	int DefaultClassify() override;
+	int ObjectCaps() override { return (CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_furniture, CFurniture )
@@ -1757,7 +1756,7 @@ void CFurniture::Spawn()
 //=========================================================
 // ID's Furniture as neutral (noone will attack it)
 //=========================================================
-int CFurniture::DefaultClassify( void )
+int CFurniture::DefaultClassify()
 {
 	return CLASS_NONE;
 }
@@ -1789,8 +1788,8 @@ enum
 class CScriptedSchedule : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
 	int KnownSchedule() const;
 	int ScheduleType() const;
@@ -1945,14 +1944,14 @@ enum
 class CScriptedFollowing : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void EXPORT FindThink();
 
 	int MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType);
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 

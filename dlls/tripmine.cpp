@@ -30,25 +30,24 @@
 
 class CTripmineGrenade : public CGrenade
 {
-	void Spawn( void );
-	void Precache( void );
-	void UpdateOnRemove();
+	void Spawn() override;
+	void Precache() override;
+	void UpdateOnRemove() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	void EXPORT WarningThink( void );
-	void EXPORT PowerupThink( void );
-	void EXPORT BeamBreakThink( void );
-	void EXPORT DelayDeathThink( void );
+	void EXPORT WarningThink();
+	void EXPORT PowerupThink();
+	void EXPORT BeamBreakThink();
+	void EXPORT DelayDeathThink();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	void MakeBeam( void );
-	void KillBeam( void );
+	void MakeBeam();
+	void KillBeam();
 
 	float m_flPowerUp;
 	Vector m_vecDir;
@@ -116,7 +115,7 @@ const NamedVisual CTripmineGrenade::beamVisual = BuildVisual("Tripmine.Beam")
 		.BeamWidth(10)
 		.BeamScrollRate(255);
 
-void CTripmineGrenade::Spawn( void )
+void CTripmineGrenade::Spawn()
 {
 	Precache();
 
@@ -176,7 +175,7 @@ void CTripmineGrenade::Spawn( void )
 	m_vecEnd = pev->origin + m_vecDir * 2048.0f;
 }
 
-void CTripmineGrenade::Precache( void )
+void CTripmineGrenade::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	PRECACHE_MODEL( "models/v_tripmine.mdl" );
@@ -193,7 +192,7 @@ void CTripmineGrenade::UpdateOnRemove()
 	KillBeam();
 }
 
-void CTripmineGrenade::WarningThink( void )
+void CTripmineGrenade::WarningThink()
 {
 	// play warning sound
 	// EMIT_SOUND( ENT( pev ), CHAN_VOICE, "buttons/Blip2.wav", 1.0, ATTN_NORM );
@@ -203,7 +202,7 @@ void CTripmineGrenade::WarningThink( void )
 	pev->nextthink = gpGlobals->time + 1.0f;
 }
 
-void CTripmineGrenade::PowerupThink( void )
+void CTripmineGrenade::PowerupThink()
 {
 	TraceResult tr;
 
@@ -267,7 +266,7 @@ void CTripmineGrenade::PowerupThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CTripmineGrenade::KillBeam( void )
+void CTripmineGrenade::KillBeam()
 {
 	if( m_pBeam )
 	{
@@ -276,7 +275,7 @@ void CTripmineGrenade::KillBeam( void )
 	}
 }
 
-void CTripmineGrenade::MakeBeam( void )
+void CTripmineGrenade::MakeBeam()
 {
 	TraceResult tr;
 
@@ -300,7 +299,7 @@ void CTripmineGrenade::MakeBeam( void )
 	m_pBeam->PointEntInit( vecTmpEnd, entindex() );
 }
 
-void CTripmineGrenade::BeamBreakThink( void )
+void CTripmineGrenade::BeamBreakThink()
 {
 	bool bBlowup = false;
 
@@ -391,7 +390,7 @@ KilledResult CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAt
 	return KilledResult();
 }
 
-void CTripmineGrenade::DelayDeathThink( void )
+void CTripmineGrenade::DelayDeathThink()
 {
 	KillBeam();
 	TraceResult tr;
@@ -409,16 +408,16 @@ public:
 	int WeaponId() const override { return WEAPON_TRIPMINE; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		//!!!BUGBUG - fix the model!
 		SetMyObjectCollisionBox(Vector(-16, -16, -5), Vector(16, 16, 28));
 	}
 
-	void PrimaryAttack( void );
+	void PrimaryAttack() override;
 	bool Deploy() override;
-	void Holster();
-	void WeaponIdle( void );
+	void Holster() override;
+	void WeaponIdle() override;
 private:
 	unsigned short m_usTripFire;
 };
@@ -512,7 +511,7 @@ void CTripmine::Holster()
 	EMIT_SOUND( ENT( m_pPlayer->pev ), CHAN_WEAPON, "common/null.wav", 1.0f, ATTN_NORM );
 }
 
-void CTripmine::PrimaryAttack( void )
+void CTripmine::PrimaryAttack()
 {
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] <= 0 )
 		return;
@@ -563,7 +562,7 @@ void CTripmine::PrimaryAttack( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
-void CTripmine::WeaponIdle( void )
+void CTripmine::WeaponIdle()
 {
 	pev->body = 0;
 

@@ -34,7 +34,7 @@ extern int gmsgMOTD;
 
 //=========================================================
 //=========================================================
-CHalfLifeRules::CHalfLifeRules( void )
+CHalfLifeRules::CHalfLifeRules()
 {
 	SERVER_COMMAND( "exec spserver.cfg\n" );
 	RefreshSkillData();
@@ -43,27 +43,27 @@ CHalfLifeRules::CHalfLifeRules( void )
 
 //=========================================================
 //=========================================================
-void CHalfLifeRules::Think( void )
+void CHalfLifeRules::Think()
 {
 }
 
 //=========================================================
 //=========================================================
-bool CHalfLifeRules::IsMultiplayer( void )
-{
-	return false;
-}
-
-//=========================================================
-//=========================================================
-bool CHalfLifeRules::IsDeathmatch( void )
+bool CHalfLifeRules::IsMultiplayer()
 {
 	return false;
 }
 
 //=========================================================
 //=========================================================
-bool CHalfLifeRules::IsCoOp( void )
+bool CHalfLifeRules::IsDeathmatch()
+{
+	return false;
+}
+
+//=========================================================
+//=========================================================
+bool CHalfLifeRules::IsCoOp()
 {
 	return false;
 }
@@ -213,7 +213,7 @@ void CHalfLifeRules::PlayerSpawn( CBasePlayer *pPlayer )
 
 //=========================================================
 //=========================================================
-bool CHalfLifeRules::AllowAutoTargetCrosshair( void )
+bool CHalfLifeRules::AllowAutoTargetCrosshair()
 {
 	return ( g_iSkillLevel == SKILL_EASY );
 }
@@ -410,7 +410,7 @@ Vector CHalfLifeRules::VecAmmoRespawnSpot( CBasePlayerAmmo *pAmmo )
 
 //=========================================================
 //=========================================================
-float CHalfLifeRules::FlHealthChargerRechargeTime( void )
+float CHalfLifeRules::FlHealthChargerRechargeTime()
 {
 	return 0;// don't recharge
 }
@@ -439,7 +439,7 @@ int CHalfLifeRules::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarg
 
 //=========================================================
 //=========================================================
-bool CHalfLifeRules::FAllowMonsters( void )
+bool CHalfLifeRules::FAllowMonsters()
 {
 	return true;
 }

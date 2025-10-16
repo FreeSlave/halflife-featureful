@@ -276,16 +276,16 @@ public:
 
 	ScorePanel(int x,int y,int wide,int tall);
 
-	void Update( void );
+	void Update();
 
-	void SortTeams( void );
+	void SortTeams();
 	void SortPlayers( int iTeam, char *team );
 
 	void FillGrid();
 
-	void Initialize( void );
+	void Initialize();
 
-	void Open( void );
+	void Open();
 
 	void MouseOverCell(int row, int col);
 

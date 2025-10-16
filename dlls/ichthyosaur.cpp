@@ -47,50 +47,50 @@
 class CIchthyosaur : public CFlyingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Ichthyosaur"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Ichthyosaur"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	CUSTOM_SCHEDULES
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType ( int Type );
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType ( int Type ) override;
 
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void BecomeDead( void );
+	void BecomeDead() override;
 
 	void EXPORT CombatUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT BiteTouch( CBaseEntity *pOther );
 
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 
-	float ChangeYaw( int yawSpeed );
-	Activity GetStoppedActivity( void );
+	float ChangeYaw( int yawSpeed ) override;
+	Activity GetStoppedActivity() override;
 
-	void Move( float flInterval );
-	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void MonsterThink( void );
-	void Stop( void );
-	void Swim( void );
+	void Move( float flInterval ) override;
+	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void MonsterThink() override;
+	void Stop() override;
+	void Swim();
 
 	float VectorToPitch( const Vector &vec );
-	float FlPitchDiff( void );
+	float FlPitchDiff();
 	float ChangePitch( int pitchSpeed );
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, -32.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 32.0f ); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, -32.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 32.0f ); }
 
 	Vector m_SaveVelocity;
 	float m_idealDist;
@@ -337,7 +337,7 @@ IMPLEMENT_CUSTOM_SCHEDULES( CIchthyosaur, CFlyingMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CIchthyosaur::DefaultClassify( void )
+int CIchthyosaur::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -396,7 +396,7 @@ bool CIchthyosaur::CheckRangeAttack1( float flDot, float flDist )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CIchthyosaur::SetYawSpeed( void )
+void CIchthyosaur::SetYawSpeed()
 {
 	pev->yaw_speed = 100;
 }
@@ -411,7 +411,7 @@ KilledResult CIchthyosaur::Killed(entvars_t *pevInflictor, entvars_t *pevAttacke
 	return killedResult;
 }
 
-void CIchthyosaur::BecomeDead( void )
+void CIchthyosaur::BecomeDead()
 {
 	pev->takedamage = DAMAGE_YES;// don't let autoaim aim at corpses.
 
@@ -561,7 +561,7 @@ void CIchthyosaur::Precache()
 //=========================================================
 Schedule_t* CIchthyosaur::GetSchedule()
 {
-	// ALERT( at_console, "GetSchedule( )\n" );
+	// ALERT( at_console, "GetSchedule()\n" );
 	switch( m_MonsterState )
 	{
 	case MONSTERSTATE_IDLE:
@@ -796,7 +796,7 @@ void CIchthyosaur::Move( float flInterval )
 	CFlyingMonster::Move( flInterval );
 }
 
-float CIchthyosaur::FlPitchDiff( void )
+float CIchthyosaur::FlPitchDiff()
 {
 	float flPitchDiff;
 	float flCurrentPitch;
@@ -892,7 +892,7 @@ float CIchthyosaur::ChangeYaw( int yawSpeed )
 	return CFlyingMonster::ChangeYaw( yawSpeed );
 }
 
-Activity CIchthyosaur::GetStoppedActivity( void )
+Activity CIchthyosaur::GetStoppedActivity()
 { 
 	if( pev->movetype != MOVETYPE_FLY )		// UNDONE: Ground idle here, IDLE may be something else
 		return ACT_IDLE;
@@ -904,7 +904,7 @@ void CIchthyosaur::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, f
 	m_SaveVelocity = vecDir * m_flightSpeed;
 }
 
-void CIchthyosaur::MonsterThink( void )
+void CIchthyosaur::MonsterThink()
 {
 	CFlyingMonster::MonsterThink();
 
@@ -931,7 +931,7 @@ void CIchthyosaur::MonsterThink( void )
 	}
 }
 
-void CIchthyosaur::Stop( void ) 
+void CIchthyosaur::Stop() 
 {
 	if( !m_bOnAttack )
 		m_flightSpeed = 80.0;

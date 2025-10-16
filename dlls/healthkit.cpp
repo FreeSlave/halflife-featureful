@@ -161,7 +161,7 @@ void CWallCharger::Off()
 	}
 }
 
-void CWallCharger::Recharge( void )
+void CWallCharger::Recharge()
 {
 	if (m_triggerOnRecharged)
 	{
@@ -565,8 +565,8 @@ public:
 	void Precache() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
-	void Off( void );
-	void EXPORT Recharge( void );
+	void Off();
+	void EXPORT Recharge();
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	int ObjectCaps() override { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
 	void TurnNeedleToPlayer(const Vector &player);
@@ -902,7 +902,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	m_flNextCharge = gpGlobals->time + 0.1f;
 }
 
-void CWallHealthDecay::Recharge( void )
+void CWallHealthDecay::Recharge()
 {
 	EmitSoundScript(CWallHealth::rechargeSoundScript);
 	m_iJuice = ChargerCapacity();
@@ -913,7 +913,7 @@ void CWallHealthDecay::Recharge( void )
 	pev->nextthink = gpGlobals->time;
 }
 
-void CWallHealthDecay::Off( void )
+void CWallHealthDecay::Off()
 {
 	switch (m_iState) {
 	case GiveShot:
@@ -976,7 +976,7 @@ void CWallHealthDecay::SetMySequence(const char *sequence)
 		pev->sequence = 0;
 	}
 	pev->frame = 0;
-	ResetSequenceInfo( );
+	ResetSequenceInfo();
 }
 
 void CWallHealthDecay::SetNeedleState(int state)

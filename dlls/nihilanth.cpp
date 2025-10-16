@@ -29,44 +29,44 @@
 class CNihilanth : public CBaseMonster
 {
 public:
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 
-	int DefaultClassify( void ) { return CLASS_ALIEN_MILITARY; }
-	void UpdateOnRemove();
-	int BloodColor( void ) { return BLOOD_COLOR_YELLOW; }
+	int DefaultClassify() override { return CLASS_ALIEN_MILITARY; }
+	void UpdateOnRemove() override;
+	int BloodColor() override { return BLOOD_COLOR_YELLOW; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void GibMonster( void );
+	void GibMonster() override;
 
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -16 * N_SCALE, -16 * N_SCALE, -48 * N_SCALE ), Vector( 16 * N_SCALE, 16 * N_SCALE, 28 * N_SCALE ));
 	}
 
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
-	void EXPORT StartupThink( void );
-	void EXPORT HuntThink( void );
+	void EXPORT StartupThink();
+	void EXPORT HuntThink();
 	void EXPORT CrashTouch( CBaseEntity *pOther );
-	void EXPORT DyingThink( void );
+	void EXPORT DyingThink();
 	void EXPORT StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT NullThink( void );
+	void EXPORT NullThink();
 	void EXPORT CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	void FloatSequence( void );
-	void NextActivity( void );
+	void FloatSequence();
+	void NextActivity();
 
-	void Flight( void );
+	void Flight();
 
-	bool AbsorbSphere( void );
-	bool EmitSphere( void );
+	bool AbsorbSphere();
+	bool EmitSphere();
 	void TargetSphere( USE_TYPE useType, float value );
 	CBaseEntity *RandomTargetname( const char *szName );
-	void ShootBalls( void );
+	void ShootBalls();
 	void MakeFriend( Vector vecPos );
 
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
@@ -76,7 +76,7 @@ public:
 	void PainSound() override;
 	void DeathSound() override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 
 	static const NamedSoundScript painSoundScript; // vocalization: play sometimes when hit and has much less health and no more chargers
 	static const NamedSoundScript dieSoundScript; // vocalization: play as he dies
@@ -181,25 +181,25 @@ IMPLEMENT_SAVERESTORE( CNihilanth, CBaseMonster )
 class CNihilanthHVR : public CBaseMonster
 {
 public:
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 
 	void CircleInit( CBaseEntity *pTarget );
-	void AbsorbInit( void );
+	void AbsorbInit();
 	void TeleportInit( CNihilanth *pOwner, CBaseEntity *pEnemy, CBaseEntity *pTarget, CBaseEntity *pTouch );
-	void GreenBallInit( void );
+	void GreenBallInit();
 	void ZapInit( CBaseEntity *pEnemy );
 
-	void EXPORT HoverThink( void );
+	void EXPORT HoverThink();
 	bool CircleTarget( Vector vecTarget );
-	void EXPORT DissipateThink( void );
+	void EXPORT DissipateThink();
 
-	void EXPORT ZapThink( void );
-	void EXPORT TeleportThink( void );
+	void EXPORT ZapThink();
+	void EXPORT TeleportThink();
 	void EXPORT TeleportTouch( CBaseEntity *pOther );
 
 	void EXPORT RemoveTouch( CBaseEntity *pOther );
@@ -211,10 +211,10 @@ public:
 	// void EXPORT SphereUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	void MovetoTarget( Vector vecTarget );
-	virtual void Crawl( void );
+	virtual void Crawl();
 
-	void Zap( void );
-	void Teleport( void );
+	void Zap();
+	void Teleport();
 
 	float m_flIdealVel;
 	Vector m_vecIdeal;
@@ -424,7 +424,7 @@ const NamedVisual CNihilanth::dyingBeamVisual = BuildVisual("Nihilanth.DyingBeam
 		.RenderColor(64, 128, 255)
 		.Alpha(255);
 
-void CNihilanth::Spawn( void )
+void CNihilanth::Spawn()
 {
 	Precache();
 	// motor
@@ -479,7 +479,7 @@ void CNihilanth::Spawn( void )
 	*/
 }
 
-void CNihilanth::Precache( void )
+void CNihilanth::Precache()
 {
 	PrecacheMyModel( "models/nihilanth.mdl" );
 
@@ -547,7 +547,7 @@ void CNihilanth::DeathSound()
 	EmitSoundScript(dieSoundScript);
 }
 
-void CNihilanth::NullThink( void )
+void CNihilanth::NullThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.5f;
@@ -560,7 +560,7 @@ void CNihilanth::StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	SetUse( &CNihilanth::CommandUse );
 }
 
-void CNihilanth::StartupThink( void )
+void CNihilanth::StartupThink()
 {
 	m_irritation = 0;
 	m_flAdj = 512;
@@ -596,7 +596,7 @@ KilledResult CNihilanth::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker
 	return CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
-void CNihilanth::DyingThink( void )
+void CNihilanth::DyingThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	DispatchAnimEvents();
@@ -719,12 +719,12 @@ void CNihilanth::CrashTouch( CBaseEntity *pOther )
 	}
 }
 
-void CNihilanth::GibMonster( void )
+void CNihilanth::GibMonster()
 {
 	// EMIT_SOUND_DYN( edict(), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_NORM, 0, 200 );
 }
 
-void CNihilanth::FloatSequence( void )
+void CNihilanth::FloatSequence()
 {
 	if( m_irritation >= 2 )
 	{
@@ -752,7 +752,7 @@ void CNihilanth::FloatSequence( void )
 	}
 }
 
-void CNihilanth::ShootBalls( void )
+void CNihilanth::ShootBalls()
 {
 	if( m_flShootEnd > gpGlobals->time )
 	{
@@ -983,7 +983,7 @@ void CNihilanth::NextActivity()
 	FloatSequence();	
 }
 
-void CNihilanth::HuntThink( void )
+void CNihilanth::HuntThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	DispatchAnimEvents();
@@ -1048,7 +1048,7 @@ void CNihilanth::HuntThink( void )
 	Flight();
 }
 
-void CNihilanth::Flight( void )
+void CNihilanth::Flight()
 {
 	// estimate where I'll be facing in one seconds
 	UTIL_MakeAimVectors( pev->angles + m_avelocity );
@@ -1114,7 +1114,7 @@ void CNihilanth::Flight( void )
 	// ALERT( at_console, "%5.0f %5.0f : %4.0f : %3.0f : %2.0f\n", m_posDesired.z, pev->origin.z, m_velocity.z, m_avelocity.y, m_flForce ); 
 }
 
-bool CNihilanth::AbsorbSphere( void )
+bool CNihilanth::AbsorbSphere()
 {
 	for( int i = 0; i < N_SPHERES; i++ )
 	{
@@ -1130,7 +1130,7 @@ bool CNihilanth::AbsorbSphere( void )
 	return false;
 }
 
-bool CNihilanth::EmitSphere( void )
+bool CNihilanth::EmitSphere()
 {
 	m_iActiveSpheres = 0;
 	int empty = 0;
@@ -1383,7 +1383,7 @@ CBaseEntity *CNihilanth::RandomTargetname( const char *szName )
 // Controller bouncy ball attack
 //=========================================================
 
-void CNihilanthHVR::Spawn( void )
+void CNihilanthHVR::Spawn()
 {
 	Precache();
 
@@ -1392,7 +1392,7 @@ void CNihilanthHVR::Spawn( void )
 	pev->scale = 3.0f;
 }
 
-void CNihilanthHVR::Precache( void )
+void CNihilanthHVR::Precache()
 {
 	RegisterVisual(zapVisual);
 	RegisterVisual(zapBeamVisual);
@@ -1443,7 +1443,7 @@ CBaseEntity *CNihilanthHVR::RandomClassname( const char *szName )
 	return pEntity;
 }
 
-void CNihilanthHVR::HoverThink( void )
+void CNihilanthHVR::HoverThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -1521,7 +1521,7 @@ void CNihilanthHVR::ZapInit( CBaseEntity *pEnemy )
 	EmitSoundScript(zapSoundScript);
 }
 
-void CNihilanthHVR::ZapThink( void )
+void CNihilanthHVR::ZapThink()
 {
 	pev->nextthink = gpGlobals->time + 0.05f;
 
@@ -1628,7 +1628,7 @@ void CNihilanthHVR::GreenBallInit()
 	SetTouch( &CNihilanthHVR::RemoveTouch );
 }
 
-void CNihilanthHVR::TeleportThink( void )
+void CNihilanthHVR::TeleportThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -1661,7 +1661,7 @@ void CNihilanthHVR::TeleportThink( void )
 	pev->frame = (int)( pev->frame + 1 ) % 20;
 }
 
-void CNihilanthHVR::AbsorbInit( void )
+void CNihilanthHVR::AbsorbInit()
 {
 	SetThink( &CNihilanthHVR::DissipateThink );
 	pev->renderamt = 255;
@@ -1700,7 +1700,7 @@ void CNihilanthHVR::TeleportTouch( CBaseEntity *pOther )
 	UTIL_Remove( this );
 }
 
-void CNihilanthHVR::DissipateThink( void )
+void CNihilanthHVR::DissipateThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -1799,7 +1799,7 @@ void CNihilanthHVR::MovetoTarget( Vector vecTarget )
 	pev->velocity = m_vecIdeal;
 }
 
-void CNihilanthHVR::Crawl( void )
+void CNihilanthHVR::Crawl()
 {
 	Vector vecAim = Vector( RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ), RANDOM_FLOAT( -1, 1 ) ).Normalize();
 	Vector vecPnt = pev->origin + pev->velocity * 0.2 + vecAim * 128;

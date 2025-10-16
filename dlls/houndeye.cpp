@@ -103,49 +103,49 @@ enum
 class CHoundeye : public CSquadMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Houndeye"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void SetYawSpeed( void );
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Houndeye"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void SetYawSpeed() override;
 	void WarmUpSound();
 	void AlertSound() override;
 	void DeathSound() override;
 	void WarnSound();
 	void PainSound() override;
 	void IdleSound() override;
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void SonicAttack( void );
-	void PrescheduleThink( void );
-	void Activate();
-	int LookupActivity(int activity);
-	void SetActivity( Activity NewActivity );
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void SonicAttack();
+	void PrescheduleThink() override;
+	void Activate() override;
+	int LookupActivity(int activity) override;
+	void SetActivity( Activity NewActivity ) override;
 	const Visual* GetWaveVisual();
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool WantsToGetCloseToEnemy() override;
 	bool FValidateHintType( short sHint ) override;
-	bool FCanActiveIdle( void ) override;
-	Schedule_t *GetScheduleOfType( int Type );
-	Schedule_t *GetSchedule( void );
-	int IgnoreConditions();
-	int DefaultISoundMask();
-	float HearingSensitivity();
+	bool FCanActiveIdle() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	Schedule_t *GetSchedule() override;
+	int IgnoreConditions() override;
+	int DefaultISoundMask() override;
+	float HearingSensitivity() override;
 	bool FInViewCone( CBaseEntity *pEntity ) override;
 	void EXPORT TouchSleeping( CBaseEntity* pToucher );
 	void EXPORT UseSleeping( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -16.0f, -16.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 16.0f, 16.0f, 36.0f ); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 36.0f ); }
 
 	short m_iAsleep;// some houndeyes sleep in idle mode if this is set, the houndeye is lying down
 	short m_iBlink;
@@ -263,7 +263,7 @@ const NamedVisual CHoundeye::wave4Visual = BuildVisual("Houndeye.Wave4")
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CHoundeye::DefaultClassify( void )
+int CHoundeye::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -298,7 +298,7 @@ bool CHoundeye::FValidateHintType( short sHint )
 //=========================================================
 // FCanActiveIdle
 //=========================================================
-bool CHoundeye::FCanActiveIdle( void )
+bool CHoundeye::FCanActiveIdle()
 {
 	if( InSquad() )
 	{
@@ -344,7 +344,7 @@ bool CHoundeye::WantsToGetCloseToEnemy()
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CHoundeye::SetYawSpeed( void )
+void CHoundeye::SetYawSpeed()
 {
 	int ys = 90;
 
@@ -570,7 +570,7 @@ const Visual* CHoundeye::GetWaveVisual()
 //=========================================================
 // SonicAttack
 //=========================================================
-void CHoundeye::SonicAttack( void )
+void CHoundeye::SonicAttack()
 {
 	EmitSoundScript(blastSoundScript);
 
@@ -799,7 +799,7 @@ void CHoundeye::RunTask( Task_t *pTask )
 //=========================================================
 // PrescheduleThink
 //=========================================================
-void CHoundeye::PrescheduleThink( void )
+void CHoundeye::PrescheduleThink()
 {
 	// if the hound is mad and is running, make hunt noises.
 	if( m_MonsterState == MONSTERSTATE_COMBAT && m_Activity == ACT_RUN && RANDOM_FLOAT( 0, 1 ) < 0.2f )
@@ -1347,7 +1347,7 @@ Schedule_t *CHoundeye::GetScheduleOfType( int Type )
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CHoundeye::GetSchedule( void )
+Schedule_t *CHoundeye::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -1424,7 +1424,7 @@ int CHoundeye::IgnoreConditions()
 	return iIgnore;
 }
 
-int CHoundeye::DefaultISoundMask( void )
+int CHoundeye::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -1473,15 +1473,14 @@ void CHoundeye::UseSleeping(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 	SetUse( &CBaseMonster::MonsterUse );
 }
 
-#if FEATURE_HOUNDEYE_DEAD
 class CDeadHoundeye : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/houndeye_dead.mdl"; }
-	int	DefaultClassify() { return CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/houndeye_dead.mdl"; }
+	int	DefaultClassify() override { return CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CDeadHoundeye::getPos(int pos) const
@@ -1496,4 +1495,3 @@ void CDeadHoundeye::Spawn()
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 }
-#endif

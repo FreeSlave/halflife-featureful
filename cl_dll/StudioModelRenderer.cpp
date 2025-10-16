@@ -63,7 +63,7 @@ Init
 
 ====================
 */
-void CStudioModelRenderer::Init( void )
+void CStudioModelRenderer::Init()
 {
 	StudioCacheFullbrightNames();
 
@@ -89,7 +89,7 @@ CStudioModelRenderer
 
 ====================
 */
-CStudioModelRenderer::CStudioModelRenderer( void )
+CStudioModelRenderer::CStudioModelRenderer()
 {
 	m_fDoInterp		= 1;
 	m_fGaitEstimation	= 1;
@@ -117,7 +117,7 @@ CStudioModelRenderer::CStudioModelRenderer( void )
 
 ====================
 */
-CStudioModelRenderer::~CStudioModelRenderer( void )
+CStudioModelRenderer::~CStudioModelRenderer()
 {
 }
 
@@ -604,7 +604,7 @@ StudioEstimateInterpolant
 
 ====================
 */
-float CStudioModelRenderer::StudioEstimateInterpolant( void )
+float CStudioModelRenderer::StudioEstimateInterpolant()
 {
 	float dadt = 1.0f;
 
@@ -813,7 +813,7 @@ StudioSetupBones
 
 ====================
 */
-void CStudioModelRenderer::StudioSetupBones( void )
+void CStudioModelRenderer::StudioSetupBones()
 {
 	int i, j;
 	double f;
@@ -1006,7 +1006,7 @@ StudioSaveBones
 
 ====================
 */
-void CStudioModelRenderer::StudioSaveBones( void )
+void CStudioModelRenderer::StudioSaveBones()
 {
 	int i;
 
@@ -1583,7 +1583,7 @@ StudioCalcAttachments
 
 ====================
 */
-void CStudioModelRenderer::StudioCalcAttachments( void )
+void CStudioModelRenderer::StudioCalcAttachments()
 {
 	int i;
 	mstudioattachment_t *pattachment;
@@ -1608,7 +1608,7 @@ StudioRenderModel
 
 ====================
 */
-void CStudioModelRenderer::StudioRenderModel( void )
+void CStudioModelRenderer::StudioRenderModel()
 {
 	IEngineStudio.SetChromeOrigin();
 	IEngineStudio.SetForceFaceFlags( 0 );
@@ -1646,7 +1646,7 @@ StudioRenderFinal_Software
 
 ====================
 */
-void CStudioModelRenderer::StudioRenderFinal_Software( void )
+void CStudioModelRenderer::StudioRenderFinal_Software()
 {
 	int i;
 
@@ -1691,7 +1691,7 @@ StudioRenderFinal_Hardware
 
 ====================
 */
-void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
+void CStudioModelRenderer::StudioRenderFinal_Hardware()
 {
 	int i;
 	int rendermode;
@@ -1746,7 +1746,7 @@ StudioRenderFinal
 
 ====================
 */
-void CStudioModelRenderer::StudioRenderFinal( void )
+void CStudioModelRenderer::StudioRenderFinal()
 {
 	if( IEngineStudio.IsHardware() )
 	{

@@ -22,11 +22,8 @@
 #include	"monsters.h"
 #include	"schedule.h"
 #include	"game.h"
-#include	"mod_features.h"
-#if FEATURE_SHOCKRIFLE
-#include "player.h"
-#include "weapon_ids.h"
-#endif
+#include	"player.h"
+#include	"weapon_ids.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -78,36 +75,36 @@ Schedule_t slHCRangeAttack1Fast[] =
 class CHeadCrab : public CBaseMonster
 {
 public:
-	void Spawn( void );
+	void Spawn() override;
 	void SpawnHelper(const char* modelName, float health);
-	void Precache( void );
-	void RunTask ( Task_t *pTask );
-	void StartTask ( Task_t *pTask );
-	void SetYawSpeed ( void );
+	void Precache() override;
+	void RunTask ( Task_t *pTask ) override;
+	void StartTask ( Task_t *pTask ) override;
+	void SetYawSpeed () override;
 	void EXPORT LeapTouch ( CBaseEntity *pOther );
-	Vector Center( void );
-	Vector BodyTarget( const Vector &posSrc );
+	Vector Center() override;
+	Vector BodyTarget( const Vector &posSrc ) override;
 	void PainSound() override;
 	void DeathSound() override;
 	void IdleSound() override;
 	void AlertSound() override;
-	void PrescheduleThink( void );
-	int  DefaultClassify ( void );
-	const char* DefaultDisplayName() { return "Headcrab"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void PrescheduleThink() override;
+	int  DefaultClassify () override;
+	const char* DefaultDisplayName() override { return "Headcrab"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	virtual float GetDamageAmount() { return gSkillData.headcrabDmgBite; }
 
-	Schedule_t* GetScheduleOfType ( int Type );
+	Schedule_t* GetScheduleOfType ( int Type ) override;
 
 	CUSTOM_SCHEDULES
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 12.0f, 12.0f, 24.0f ); }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -12.0f, -12.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 12.0f, 12.0f, 24.0f ); }
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -200,7 +197,7 @@ const NamedSoundScript CHeadCrab::biteSoundScript = {
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CHeadCrab::DefaultClassify( void )
+int CHeadCrab::DefaultClassify()
 {
 	return CLASS_ALIEN_PREY;
 }
@@ -210,7 +207,7 @@ int CHeadCrab::DefaultClassify( void )
 // bounding box is much larger than the actual creature so 
 // this is needed for targeting
 //=========================================================
-Vector CHeadCrab::Center( void )
+Vector CHeadCrab::Center()
 {
 	return Vector( pev->origin.x, pev->origin.y, pev->origin.z + 6.0f );
 }
@@ -224,7 +221,7 @@ Vector CHeadCrab::BodyTarget( const Vector &posSrc )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CHeadCrab::SetYawSpeed( void )
+void CHeadCrab::SetYawSpeed()
 {
 	int ys;
 
@@ -416,7 +413,7 @@ void CHeadCrab::LeapTouch( CBaseEntity *pOther )
 //=========================================================
 // PrescheduleThink
 //=========================================================
-void CHeadCrab::PrescheduleThink( void )
+void CHeadCrab::PrescheduleThink()
 {
 	// make the crab coo a little bit in combat state
 	if( m_MonsterState == MONSTERSTATE_COMBAT && RANDOM_FLOAT( 0, 5 ) < 0.1f )
@@ -534,18 +531,18 @@ Schedule_t *CHeadCrab::GetScheduleOfType( int Type )
 class CDeadHeadCrab : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/headcrab.mdl"; }
-	int	DefaultClassify() { return	CLASS_ALIEN_PREY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/headcrab.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_PREY; }
 
-	const char* getPos(int pos) const {
+	const char* getPos(int pos) const override {
 		return "dieback";
 	}
 };
 
 LINK_ENTITY_TO_CLASS( monster_headcrab_dead, CDeadHeadCrab )
 
-void CDeadHeadCrab::Spawn( )
+void CDeadHeadCrab::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
@@ -555,14 +552,14 @@ void CDeadHeadCrab::Spawn( )
 class CBabyCrab : public CHeadCrab
 {
 public:
-	void ApplyDefaultRenderProps(int overridenRenderProps);
-	void Spawn( void );
-	void Precache( void );
-	const char* DefaultDisplayName() { return "Baby Headcrab"; }
-	void SetYawSpeed( void );
+	void ApplyDefaultRenderProps(int overridenRenderProps) override;
+	void Spawn() override;
+	void Precache() override;
+	const char* DefaultDisplayName() override { return "Baby Headcrab"; }
+	void SetYawSpeed() override;
 	float GetDamageAmount() override { return gSkillData.headcrabDmgBite * 0.3f; }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
-	Schedule_t *GetScheduleOfType ( int Type );
+	Schedule_t *GetScheduleOfType ( int Type ) override;
 
 	static constexpr const char* idleSoundScript = "Babycrab.Idle";
 	static constexpr const char* alertSoundScript = "Babycrab.Alert";
@@ -572,10 +569,10 @@ public:
 	static constexpr const char* dieSoundScript = "Babycrab.Die";
 	static constexpr const char* biteSoundScript  ="Babycrab.Bite";
 
-	void IdleSound() {
+	void IdleSound() override {
 		EmitSoundScript(idleSoundScript);
 	}
-	void AlertSound() {
+	void AlertSound() override {
 		EmitSoundScript(alertSoundScript);
 	}
 	void PainSound() override {
@@ -585,15 +582,15 @@ public:
 		EmitSoundScript(dieSoundScript);
 	}
 protected:
-	void AttackSound()
+	void AttackSound() override
 	{
 		if( RANDOM_LONG(0,2) != 0 )
 			EmitSoundScript(attackSoundScript);
 	}
-	void LeapSound() {
+	void LeapSound() override {
 		EmitSoundScript(leapSoundScript);
 	}
-	void BiteSound() {
+	void BiteSound() override {
 		EmitSoundScript(biteSoundScript);
 	}
 };
@@ -608,14 +605,14 @@ void CBabyCrab::ApplyDefaultRenderProps(int overridenRenderProps)
 		pev->renderamt = 192;
 }
 
-void CBabyCrab::Spawn( void )
+void CBabyCrab::Spawn()
 {
 	Precache();
 	SpawnHelper("models/baby_headcrab.mdl", gSkillData.headcrabHealth * 0.25f); // less health than full grown
 	MonsterInit();
 }
 
-void CBabyCrab::Precache( void )
+void CBabyCrab::Precache()
 {
 	PrecacheMyModel( "models/baby_headcrab.mdl" );
 	PrecacheMyGibModel();
@@ -633,7 +630,7 @@ void CBabyCrab::Precache( void )
 	RegisterAndPrecacheSoundScript(biteSoundScript, CHeadCrab::biteSoundScript, paramOverride);
 }
 
-void CBabyCrab::SetYawSpeed( void )
+void CBabyCrab::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
@@ -671,21 +668,20 @@ Schedule_t *CBabyCrab::GetScheduleOfType( int Type )
 	return CHeadCrab::GetScheduleOfType( Type );
 }
 
-#if FEATURE_SHOCKTROOPER
 #define bits_MEMORY_SHOCKTROOPER_IS_OWNER bits_MEMORY_CUSTOM1
 
 class CShockRoach : public CHeadCrab
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shockroach"); }
-	const char* DefaultDisplayName() { return "Shock Roach"; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shockroach"); }
+	const char* DefaultDisplayName() override { return "Shock Roach"; }
 	float GetDamageAmount() override { return gSkillData.sroachDmgBite; }
 	void EXPORT LeapTouch(CBaseEntity *pOther);
 	bool TryGiveAsWeapon(CBaseEntity* pOther);
 	void EXPORT RoachUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int ObjectCaps() {
+	int ObjectCaps() override {
 		if (IsFullyAlive())
 			return CBaseMonster::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 		else
@@ -695,18 +691,17 @@ public:
 	void DeathSound() override;
 	void IdleSound() override;
 	void AlertSound() override;
-	void MonsterThink(void);
-	void StartTask(Task_t* pTask);
+	void MonsterThink() override;
+	void StartTask(Task_t* pTask) override;
 	bool ShouldFadeOnDeath() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying(bool gibbed) override;
 
-	Vector DefaultMinHullSize() { return Vector( -12.0f, -12.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 12.0f, 12.0f, 4.0f ); }
+	Vector DefaultMinHullSize() override { return Vector( -12.0f, -12.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 12.0f, 12.0f, 4.0f ); }
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
-
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript idleSoundScript;
@@ -721,7 +716,7 @@ public:
 	bool m_fRoachSolid;
 
 protected:
-	void AttackSound();
+	void AttackSound() override;
 };
 
 LINK_ENTITY_TO_CLASS(monster_shockroach, CShockRoach)
@@ -877,7 +872,6 @@ void CShockRoach::LeapTouch(CBaseEntity *pOther)
 
 bool CShockRoach::TryGiveAsWeapon(CBaseEntity *pOther)
 {
-#if FEATURE_SHOCKRIFLE
 	// Give the shockrifle weapon to the player, if not already in possession.
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_SHOCKRIFLE) && pOther->IsPlayer() && pOther->IsAlive()) {
 		CBasePlayer* pPlayer = (CBasePlayer*)(pOther);
@@ -887,7 +881,6 @@ bool CShockRoach::TryGiveAsWeapon(CBaseEntity *pOther)
 			return true;
 		}
 	}
-#endif
 	return false;
 }
 
@@ -901,7 +894,7 @@ void CShockRoach::RoachUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 //=========================================================
 // PrescheduleThink
 //=========================================================
-void CShockRoach::MonsterThink(void)
+void CShockRoach::MonsterThink()
 {
 	float lifeTime = (gpGlobals->time - m_flBirthTime);
 	if (lifeTime >= 0.2)
@@ -924,7 +917,7 @@ void CShockRoach::MonsterThink(void)
 //=========================================================
 // IdleSound
 //=========================================================
-void CShockRoach::IdleSound(void)
+void CShockRoach::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -932,7 +925,7 @@ void CShockRoach::IdleSound(void)
 //=========================================================
 // AlertSound
 //=========================================================
-void CShockRoach::AlertSound(void)
+void CShockRoach::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -940,7 +933,7 @@ void CShockRoach::AlertSound(void)
 //=========================================================
 // AlertSound
 //=========================================================
-void CShockRoach::PainSound(void)
+void CShockRoach::PainSound()
 {
 	EmitSoundScript(painSoundScript);
 }
@@ -948,7 +941,7 @@ void CShockRoach::PainSound(void)
 //=========================================================
 // DeathSound
 //=========================================================
-void CShockRoach::DeathSound(void)
+void CShockRoach::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -1000,11 +993,11 @@ void CShockRoach::OnDying(bool gibbed)
 class CDeadShockRoach : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/w_shock_rifle.mdl"; }
-	int	DefaultClassify () { return	CLASS_ALIEN_PREY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/w_shock_rifle.mdl"; }
+	int	DefaultClassify () override { return	CLASS_ALIEN_PREY; }
 
-	const char* getPos(int pos) const {
+	const char* getPos(int pos) const override {
 		return "dieback";
 	}
 };
@@ -1017,5 +1010,3 @@ void CDeadShockRoach::Spawn()
 	MonsterInitDead();
 	pev->frame = 255;
 }
-
-#endif

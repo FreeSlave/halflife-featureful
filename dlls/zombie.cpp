@@ -23,7 +23,6 @@
 #include	"cbase.h"
 #include	"monsters.h"
 #include	"schedule.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 
@@ -39,14 +38,14 @@
 class CZombie : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Zombie"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int IgnoreConditions( void );
-	Schedule_t* GetScheduleOfType(int Type);
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Zombie"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int IgnoreConditions() override;
+	Schedule_t* GetScheduleOfType(int Type) override;
 
 	float m_flNextFlinch;
 
@@ -68,10 +67,10 @@ public:
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 	virtual float OneSlashDamage() { return gSkillData.zombieDmgOneSlash; }
 	virtual float BothSlashDamage() { return gSkillData.zombieDmgBothSlash; }
 protected:
@@ -114,7 +113,7 @@ const NamedSoundScript CZombie::attackSoundScript = {
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CZombie::DefaultClassify( void )
+int CZombie::DefaultClassify()
 {
 	return	CLASS_ALIEN_MONSTER;
 }
@@ -123,7 +122,7 @@ int CZombie::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CZombie::SetYawSpeed( void )
+void CZombie::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
@@ -284,7 +283,7 @@ void CZombie::PrecacheSounds()
 // AI Schedules Specific to this monster
 //=========================================================
 
-int CZombie::IgnoreConditions( void )
+int CZombie::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
@@ -320,11 +319,11 @@ Schedule_t* CZombie::GetScheduleOfType(int Type)
 class CDeadZombie : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/zombie.mdl"; }
-	int	DefaultClassify() { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -337,29 +336,28 @@ const char* CDeadZombie::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_zombie_dead, CDeadZombie )
 
-void CDeadZombie::Spawn( )
+void CDeadZombie::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 	pev->frame = 255;
 }
 
-#if FEATURE_ZOMBIE_BARNEY
 class CZombieBarney : public CZombie
 {
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
-	const char* DefaultDisplayName() { return "Zombie Barney"; }
-	float OneSlashDamage() { return gSkillData.zombieBarneyDmgOneSlash; }
-	float BothSlashDamage() { return gSkillData.zombieBarneyDmgBothSlash; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
+	const char* DefaultDisplayName() override { return "Zombie Barney"; }
+	float OneSlashDamage() override { return gSkillData.zombieBarneyDmgOneSlash; }
+	float BothSlashDamage() override { return gSkillData.zombieBarneyDmgBothSlash; }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_barney, CZombieBarney )
 
 void CZombieBarney::Spawn()
 {
-	Precache( );
+	Precache();
 	ZombieSpawnHelper("models/zombie_barney.mdl", gSkillData.zombieBarneyHealth);
 }
 
@@ -373,37 +371,35 @@ void CZombieBarney::Precache()
 class CDeadZombieBarney : public CDeadZombie
 {
 public:
-	void Spawn( void );
-	const char* DefaultModel() { return "models/zombie_barney.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie_barney.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_barney_dead, CDeadZombieBarney )
 
-void CDeadZombieBarney::Spawn( )
+void CDeadZombieBarney::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 	pev->frame = 255;
 }
-#endif
 
-#if FEATURE_ZOMBIE_SOLDIER
 class CZombieSoldier : public CZombie
 {
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
-	const char* DefaultDisplayName() { return "Zombie Soldier"; }
-	float OneSlashDamage() { return gSkillData.zombieSoldierDmgOneSlash; }
-	float BothSlashDamage() { return gSkillData.zombieSoldierDmgBothSlash; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
+	const char* DefaultDisplayName() override { return "Zombie Soldier"; }
+	float OneSlashDamage() override { return gSkillData.zombieSoldierDmgOneSlash; }
+	float BothSlashDamage() override { return gSkillData.zombieSoldierDmgBothSlash; }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_soldier, CZombieSoldier )
 
 void CZombieSoldier::Spawn()
 {
-	Precache( );
+	Precache();
 	ZombieSpawnHelper("models/zombie_soldier.mdl", gSkillData.zombieSoldierHealth);
 }
 
@@ -417,12 +413,12 @@ void CZombieSoldier::Precache()
 class CDeadZombieSoldier : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	const char* DefaultModel() { return "models/zombie_soldier.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie_soldier.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
+	int	DefaultClassify () override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -435,9 +431,8 @@ const char* CDeadZombieSoldier::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_zombie_soldier_dead, CDeadZombieSoldier )
 
-void CDeadZombieSoldier::Spawn( )
+void CDeadZombieSoldier::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 }
-#endif

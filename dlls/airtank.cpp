@@ -21,15 +21,15 @@
 
 class CAirtank : public CGrenade
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT TankThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT TankThink();
 	void EXPORT TankTouch( CBaseEntity *pOther );
-	int  BloodColor( void ) { return DONT_BLEED; }
+	int  BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	virtual int Save( CSave &save ); 
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static	TYPEDESCRIPTION m_SaveData[];
 
@@ -61,7 +61,7 @@ const NamedSoundScript CAirtank::denySoundScript = {
 	"AirTank.Deny"
 };
 
-void CAirtank::Spawn( void )
+void CAirtank::Spawn()
 {
 	Precache();
 	// motor
@@ -82,7 +82,7 @@ void CAirtank::Spawn( void )
 	m_state = 1;
 }
 
-void CAirtank::Precache( void )
+void CAirtank::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	PrecacheMyModel("models/w_oxygen.mdl");
@@ -100,7 +100,7 @@ KilledResult CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	return KilledResult();
 }
 
-void CAirtank::TankThink( void )
+void CAirtank::TankThink()
 {
 	// Fire trigger
 	m_state = 1;

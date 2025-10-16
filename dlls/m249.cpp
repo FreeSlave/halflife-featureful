@@ -33,8 +33,6 @@ enum m249_e
 	M249_SHOOT3
 };
 
-#if FEATURE_M249
-
 class CM249 : public CConfigurableWeapon
 {
 public:
@@ -235,5 +233,3 @@ int CM249::ViewModelBody()
 {
 	return BodyFromClip();
 }
-
-#endif

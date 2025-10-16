@@ -35,8 +35,6 @@ enum eagle_e
 	EAGLE_HOLSTER
 };
 
-#if FEATURE_DESERT_EAGLE
-
 class CEagle : public CConfigurableWeapon
 {
 public:
@@ -154,5 +152,3 @@ WeaponParameters CEagle::GetDefaultParameters() const
 
 	return params;
 }
-
-#endif

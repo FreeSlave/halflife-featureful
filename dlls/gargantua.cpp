@@ -32,7 +32,6 @@
 #include	"followingmonster.h"
 #include	"gamerules.h"
 #include	"game.h"
-#include	"mod_features.h"
 #include	"fx_flags.h"
 #include	"locus.h"
 #include	"common_soundscripts.h"
@@ -75,9 +74,9 @@ class CSmoker;
 class CSpiral : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Think( void );
-	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+	void Spawn() override;
+	void Think() override;
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 	static CSpiral *Create( const Vector &origin, float height, float radius, float duration );
 };
 
@@ -96,9 +95,9 @@ struct StompParams
 class CStomp : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache();
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void Think() override;
 	static CStomp *StompCreate(const StompParams& stompParams, EntityOverrides entityOverrides = EntityOverrides());
 
 	static const NamedSoundScript stompSoundScript;
@@ -142,15 +141,15 @@ const NamedVisual CStomp::stompVisual = BuildVisual("Garg.Stomp")
 class CBabyStomp : public CStomp
 {
 public:
-	void Precache();
+	void Precache() override;
 	static CBabyStomp *StompCreate(const StompParams& stompParams, EntityOverrides entityOverrides = EntityOverrides());
 
 	static constexpr const char* stompSoundScript = "BabyGarg.Stomp";
 protected:
-	const char* StompSoundScript() {
+	const char* StompSoundScript() override {
 		return stompSoundScript;
 	}
-	virtual string_t MyClassname() {
+	virtual string_t MyClassname() override {
 		return MAKE_STRING("babygarg_stomp");
 	}
 
@@ -172,10 +171,10 @@ const NamedVisual CBabyStomp::stompVisual = BuildVisual("BabyGarg.Stomp")
 class CStompShooter : public CPointEntity
 {
 public:
-	void Spawn();
-	void Precache();
-	void KeyValue(KeyValueData* pkvd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 };
 
 LINK_ENTITY_TO_CLASS( env_stompshooter, CStompShooter )
@@ -272,7 +271,7 @@ void CStomp::SetStompParams(CStomp* pStomp, const StompParams &stompParams)
 	pStomp->pev->armortype = stompParams.soundAttenuation;
 }
 
-void CStomp::Spawn( void )
+void CStomp::Spawn()
 {
 	Precache();
 	pev->nextthink = gpGlobals->time;
@@ -300,7 +299,7 @@ void CStomp::Precache()
 
 #define	STOMP_INTERVAL		0.025f
 
-void CStomp::Think( void )
+void CStomp::Think()
 {
 	TraceResult tr;
 
@@ -425,16 +424,16 @@ void StreakSplash( const Vector &origin, const Vector &direction, int color, int
 class CGargantua : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void UpdateOnRemove();
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultGibModel() { return GARG_GIB_MODEL; }
-	const char* DefaultDisplayName() { return "Gargantua"; }
+	void Spawn() override;
+	void Precache() override;
+	void UpdateOnRemove() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultGibModel() override { return GARG_GIB_MODEL; }
+	const char* DefaultDisplayName() override { return "Gargantua"; }
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
 	bool FVisible(CBaseEntity *pEntity, CBaseEntity** ppSightBlocker = nullptr) override;
 	bool FCanCheckAttacks() override;
@@ -444,51 +443,50 @@ public:
 	bool WantsToGetCloseToEnemy() override {
 		return true;
 	}
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -80, -80, 0 ), Vector( 80, 80, 214 ));
 	}
 
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	void PrescheduleThink( void );
+	void PrescheduleThink() override;
 
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void OnDying(bool gibbed) override;
-	void DeathEffect( void );
+	void DeathEffect();
 
-	void EyeOff( void );
+	void EyeOff();
 	void EyeOn( int level );
-	void EyeUpdate( void );
-	void Leap( void );
-	void StompAttack( void );
-	void FlameCreate( void );
-	void FlameUpdate( void );
+	void EyeUpdate();
+	void StompAttack();
+	void FlameCreate();
+	void FlameUpdate();
 	void FlameControls( float angleX, float angleY );
-	void FlameDestroy( void );
-	inline bool FlameIsOn( void ) { return m_pFlame[0] != NULL; }
+	void FlameDestroy();
+	inline bool FlameIsOn() { return m_pFlame[0] != NULL; }
 
 	void FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CUSTOM_SCHEDULES
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	Vector DefaultMinHullSize() {
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	Vector DefaultMinHullSize() override {
 		return Vector( -32.0f, -32.0f, 0.0f );
 	}
-	Vector DefaultMaxHullSize() {
+	Vector DefaultMaxHullSize() override {
 		return Vector( 32.0f, 32.0f, 64.0f );
 	}
 
@@ -779,12 +777,12 @@ void CGargantua::EyeOn( int level )
 	m_eyeBrightness = level;
 }
 
-void CGargantua::EyeOff( void )
+void CGargantua::EyeOff()
 {
 	m_eyeBrightness = 0;
 }
 
-void CGargantua::EyeUpdate( void )
+void CGargantua::EyeUpdate()
 {
 	if( m_pEyeGlow )
 	{
@@ -797,7 +795,7 @@ void CGargantua::EyeUpdate( void )
 	}
 }
 
-void CGargantua::StompAttack( void )
+void CGargantua::StompAttack()
 {
 	TraceResult trace;
 
@@ -823,7 +821,7 @@ void CGargantua::StompAttack( void )
 		UTIL_DecalTrace( &trace, DECAL_GARGSTOMP1 );
 }
 
-void CGargantua::FlameCreate( void )
+void CGargantua::FlameCreate()
 {
 	int i;
 	Vector posGun, angleGun;
@@ -877,7 +875,7 @@ void CGargantua::FlameControls( float angleX, float angleY )
 	SetBoneController( 1, m_flameX );
 }
 
-void CGargantua::FlameUpdate( void )
+void CGargantua::FlameUpdate()
 {
 	int		i;
 	TraceResult	trace;
@@ -983,7 +981,7 @@ void CGargantua::FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInfl
 	}
 }
 
-void CGargantua::FlameDestroy( void )
+void CGargantua::FlameDestroy()
 {
 	for( int i = 0; i < 4; i++ )
 	{
@@ -995,7 +993,7 @@ void CGargantua::FlameDestroy( void )
 	}
 }
 
-void CGargantua::PrescheduleThink( void )
+void CGargantua::PrescheduleThink()
 {
 	if( !HasConditions( bits_COND_SEE_ENEMY ) )
 	{
@@ -1016,7 +1014,7 @@ void CGargantua::PrescheduleThink( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CGargantua::DefaultClassify( void )
+int CGargantua::DefaultClassify()
 {
 	return CLASS_GARGANTUA;
 }
@@ -1025,7 +1023,7 @@ int CGargantua::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGargantua::SetYawSpeed( void )
+void CGargantua::SetYawSpeed()
 {
 	int ys;
 
@@ -1177,7 +1175,7 @@ void CGargantua::PainSound()
 	EmitSoundScript(painSoundScript);
 }
 
-void CGargantua::DeathEffect( void )
+void CGargantua::DeathEffect()
 {
 	int i;
 	UTIL_MakeVectors( pev->angles );
@@ -1707,11 +1705,11 @@ enum
 class CSmoker : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn( void );
-	void KeyValue(KeyValueData* pkvd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	void Think( void );
+	void Precache() override;
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	void Think() override;
 
 	bool IsActive() {
 		return FBitSet(pev->spawnflags, SF_SMOKER_ACTIVE);
@@ -1730,8 +1728,8 @@ public:
 
 	int smokeIndex;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 };
 
@@ -1752,7 +1750,7 @@ void CSmoker::Precache()
 		smokeIndex = PRECACHE_MODEL(STRING(pev->model));
 }
 
-void CSmoker::Spawn( void )
+void CSmoker::Spawn()
 {
 	Precache();
 
@@ -1827,7 +1825,7 @@ void CSmoker::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 	}
 }
 
-void CSmoker::Think( void )
+void CSmoker::Think()
 {
 	extern int gmsgSmoke;
 
@@ -1928,7 +1926,7 @@ void CSmoker::Think( void )
 	}
 }
 
-void CSpiral::Spawn( void )
+void CSpiral::Spawn()
 {
 	pev->movetype = MOVETYPE_NONE;
 	pev->nextthink = gpGlobals->time;
@@ -1958,7 +1956,7 @@ CSpiral *CSpiral::Create( const Vector &origin, float height, float radius, floa
 
 #define SPIRAL_INTERVAL		0.1f //025
 
-void CSpiral::Think( void )
+void CSpiral::Think()
 {
 	float time = gpGlobals->time - pev->dmgtime;
 
@@ -2012,51 +2010,50 @@ void SpawnExplosion( Vector center, float randomRange, float time, int magnitude
 	pExplosion->pev->nextthink = gpGlobals->time + time;
 }
 
-#if FEATURE_BABYGARG
 class CBabyGargantua : public CGargantua
 {
 public:
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("babygarg"); }
-	void SetYawSpeed( void );
-	const char* ReverseRelationshipModel() { return "models/babygargf.mdl"; }
-	const char* DefaultDisplayName() { return "Baby Gargantua"; }
-	const char* DefaultGibModel() { return CFollowingMonster::DefaultGibModel(); }
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void PlayUseSentence();
-	void PlayUnUseSentence();
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("babygarg"); }
+	void SetYawSpeed() override;
+	const char* ReverseRelationshipModel() override { return "models/babygargf.mdl"; }
+	const char* DefaultDisplayName() override { return "Baby Gargantua"; }
+	const char* DefaultGibModel() override { return CFollowingMonster::DefaultGibModel(); }
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void PainSound() override;
-	void DeathSound();
+	void DeathSound() override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override {
 		return inputDamageInfo;
 	}
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
 		return inputDamageInfo;
 	}
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -32, -32, 0 ), Vector( 32, 32, 100 ));
 	}
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 protected:
-	float DefaultHealth();
-	float FireAttackDamage();
-	float StompAttackDamage();
-	const char* DefaultModel();
-	void FootEffect();
-	void MakeStomp(const StompParams& stompParams);
-	void StompEffect();
-	float FlameLength();
-	const Visual* GetWideFlameVisual();
-	const Visual* GetNarrowFlameVisual();
-	void BreatheSound();
-	void AttackSound();
-	float FlameTimeDivider();
-	Vector StompAttackStartVec();
+	float DefaultHealth() override;
+	float FireAttackDamage() override;
+	float StompAttackDamage() override;
+	const char* DefaultModel() override;
+	void FootEffect() override;
+	void MakeStomp(const StompParams& stompParams) override;
+	void StompEffect() override;
+	float FlameLength() override;
+	const Visual* GetWideFlameVisual() override;
+	const Visual* GetNarrowFlameVisual() override;
+	void BreatheSound() override;
+	void AttackSound() override;
+	float FlameTimeDivider() override;
+	Vector StompAttackStartVec() override;
 
 	static constexpr const char* attackHitSoundScript = "BabyGarg.AttackHit";
 	static constexpr const char* attackMissSoundScript = "BabyGarg.AttackMiss";
@@ -2083,13 +2080,13 @@ protected:
 	virtual const char* AttackMissSound() override {
 		return attackMissSoundScript;
 	}
-	virtual void FlameOnSound() {
+	virtual void FlameOnSound() override {
 		EmitSoundScript(flameOnSoundScript);
 	}
-	virtual void FlameRunSound() {
+	virtual void FlameRunSound() override {
 		EmitSoundScript(flameRunSoundScript);
 	}
-	virtual void FlameOffSound() {
+	virtual void FlameOffSound() override {
 		EmitSoundScript(flameOffSoundScript);
 	}
 };
@@ -2375,7 +2372,7 @@ Vector CBabyGargantua::StompAttackStartVec()
 	return pev->origin + Vector(0,0,30) + 35 * gpGlobals->v_forward;
 }
 
-void CBabyGargantua::SetYawSpeed( void )
+void CBabyGargantua::SetYawSpeed()
 {
 	int ys;
 
@@ -2404,4 +2401,3 @@ void CBabyGargantua::PlayUnUseSentence()
 	m_breatheTime = gpGlobals->time + 1.5;
 	EmitSoundScript(alertSoundScript);
 }
-#endif

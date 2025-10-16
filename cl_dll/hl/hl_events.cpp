@@ -32,7 +32,7 @@ Associate script file name with callback functions.  Callback's must be extern "
 That was what we were going to do, but we ran out of time...oh well.
 ======================
 */
-void Game_HookEvents( void )
+void Game_HookEvents()
 {
 	gEngfuncs.pfnHookEvent( "events/glock1.sc", EV_FireConfigurableWeapon );
 	gEngfuncs.pfnHookEvent( "events/gauss.sc", EV_FireGauss );
@@ -43,14 +43,8 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/egon_stop.sc", EV_EgonStop );
 	gEngfuncs.pfnHookEvent( "events/tripfire.sc", EV_TripmineFire );
 	gEngfuncs.pfnHookEvent( "events/snarkfire.sc", EV_SnarkFire );
-#if FEATURE_PENGUIN
 	gEngfuncs.pfnHookEvent( "events/penguinfire.sc", EV_SnarkFire );
-#endif
-#if FEATURE_DISPLACER
 	gEngfuncs.pfnHookEvent( "events/displacer.sc", EV_Displacer );
-#endif
-#if FEATURE_MEDKIT
 	gEngfuncs.pfnHookEvent( "events/medkit.sc", EV_MedkitFire );
-#endif
 	gEngfuncs.pfnHookEvent( "events/vehicle.sc", EV_VehiclePitchAdjust );
 }

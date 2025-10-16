@@ -374,19 +374,15 @@ bool ModFeatures::IsWeaponEnabled(int weaponId) const
 
 const char* ModFeatures::DesertEagleDropName() const
 {
-#if FEATURE_DESERT_EAGLE
 	if (IsWeaponEnabled(WEAPON_EAGLE))
 		return "weapon_eagle";
-#endif
 	return "ammo_357";
 }
 
 const char* ModFeatures::M249DropName() const
 {
-#if FEATURE_M249
 	if (IsWeaponEnabled(WEAPON_M249))
 		return "weapon_m249";
-#endif
 	return "ammo_9mmAR";
 }
 
@@ -400,33 +396,21 @@ const char* ModFeatures::DeadHazModel() const
 
 bool ModFeatures::DisplacerBallEnabled() const
 {
-#if FEATURE_DISPLACER
 	return IsWeaponEnabled(WEAPON_DISPLACER);
-#else
-	return false;
-#endif
 }
 
 bool ModFeatures::ShockBeamEnabled() const
 {
 	if (IsMonsterEnabled("shocktrooper"))
 		return true;
-#if FEATURE_SHOCKRIFLE
 	return IsWeaponEnabled(WEAPON_SHOCKRIFLE);
-#else
-	return false;
-#endif
 }
 
 bool ModFeatures::SporesEnabled() const
 {
 	if (IsMonsterEnabled("shocktrooper"))
 		return true;
-#if FEATURE_SPORELAUNCHER
 	return IsWeaponEnabled(WEAPON_SPORELAUNCHER);
-#else
-	return false;
-#endif
 }
 
 void ModFeatures::EnableMonster(const char *name)
@@ -859,13 +843,11 @@ DECLARE_SKILL_VALUE(sk_agrunt_dmg_punch, "0")
 // Apache
 DECLARE_SKILL_VALUE(sk_apache_health, "0")
 
-#if FEATURE_BABYGARG
 // Baby Gargantua
 DECLARE_SKILL_VALUE(sk_babygargantua_health, "0")
 DECLARE_SKILL_VALUE(sk_babygargantua_dmg_slash, "0")
 DECLARE_SKILL_VALUE(sk_babygargantua_dmg_fire, "0")
 DECLARE_SKILL_VALUE(sk_babygargantua_dmg_stomp, "0")
-#endif
 
 // Barnacle
 DECLARE_SKILL_VALUE(sk_barnacle_health, "25")
@@ -888,19 +870,15 @@ DECLARE_SKILL_VALUE(sk_bigmomma_dmg_slash, "50")
 DECLARE_SKILL_VALUE(sk_bigmomma_dmg_blast, "100")
 DECLARE_SKILL_VALUE(sk_bigmomma_radius_blast, "250")
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 // Cleansuit Scientist
 DECLARE_SKILL_VALUE(sk_cleansuit_scientist_health, "0")
-#endif
 
-#if FEATURE_FLYBEE
 // Flybee
 DECLARE_SKILL_VALUE(sk_flybee_health, "0")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_kick, "20")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_beam, "50")
 DECLARE_SKILL_VALUE(sk_flybee_dmg_flyball, "20")
 DECLARE_SKILL_VALUE(sk_flybee_maxspeed, "400")
-#endif
 
 // Gargantua
 DECLARE_SKILL_VALUE(sk_gargantua_health, "0")
@@ -916,7 +894,6 @@ DECLARE_SKILL_VALUE3(sk_hassassin_cloaking, "0", "0", "1")
 DECLARE_SKILL_VALUE(sk_headcrab_health, "0")
 DECLARE_SKILL_VALUE(sk_headcrab_dmg_bite, "0")
 
-#if FEATURE_OPFOR_GRUNT
 // Opposing Force Hgrunt
 DECLARE_SKILL_VALUE(sk_hgrunt_ally_health, "0")
 DECLARE_SKILL_VALUE(sk_hgrunt_ally_kick, "0")
@@ -933,7 +910,6 @@ DECLARE_SKILL_VALUE(sk_medic_ally_heal, "0")
 DECLARE_SKILL_VALUE(sk_torch_ally_health, "0")
 DECLARE_SKILL_VALUE(sk_torch_ally_kick, "0")
 DECLARE_SKILL_VALUE(sk_torch_ally_gspeed, "0")
-#endif
 
 // Hgrunt 
 DECLARE_SKILL_VALUE(sk_hgrunt_health, "0")
@@ -941,9 +917,7 @@ DECLARE_SKILL_VALUE(sk_hgrunt_kick, "0")
 DECLARE_SKILL_VALUE(sk_hgrunt_pellets, "0")
 DECLARE_SKILL_VALUE(sk_hgrunt_gspeed, "0")
 
-#if FEATURE_HWGRUNT
 DECLARE_SKILL_VALUE(sk_hwgrunt_health, "0")
-#endif
 
 // Houndeye
 DECLARE_SKILL_VALUE(sk_houndeye_health, "0")
@@ -972,12 +946,10 @@ DECLARE_SKILL_VALUE(sk_controller_dmgzap, "0")
 DECLARE_SKILL_VALUE(sk_controller_speedball, "0")
 DECLARE_SKILL_VALUE(sk_controller_dmgball, "0")
 
-#if FEATURE_MASSN
 // Massassin
 DECLARE_SKILL_VALUE(sk_massassin_health, "0")
 DECLARE_SKILL_VALUE(sk_massassin_kick, "0")
 DECLARE_SKILL_VALUE(sk_massassin_gspeed, "0")
-#endif
 
 // Nihilanth
 DECLARE_SKILL_VALUE(sk_nihilanth_health, "0")
@@ -986,57 +958,40 @@ DECLARE_SKILL_VALUE(sk_nihilanth_zap, "0")
 // Osprey
 DECLARE_SKILL_VALUE(sk_osprey, "400")
 
-#if FEATURE_BLACK_OSPREY
 // Blackops Osprey
 DECLARE_SKILL_VALUE(sk_blkopsosprey, "0")
-#endif
 
-#if FEATURE_OTIS
 // Otis
 DECLARE_SKILL_VALUE(sk_otis_health, "0")
-#endif
 
-#if FEATURE_KATE
 // Kate
 DECLARE_SKILL_VALUE(sk_kate_health, "0")
-#endif
 
-#if FEATURE_PANTHEREYE
 // Panthereye
 DECLARE_SKILL_VALUE(sk_panthereye_health, "150")
 DECLARE_SKILL_VALUE(sk_panthereye_dmg_claw, "20")
-#endif
 
-#if FEATURE_PITDRONE
 // Pitdrone
 DECLARE_SKILL_VALUE(sk_pitdrone_health, "0")
 DECLARE_SKILL_VALUE(sk_pitdrone_dmg_bite, "0")
 DECLARE_SKILL_VALUE(sk_pitdrone_dmg_whip, "0")
 DECLARE_SKILL_VALUE(sk_pitdrone_dmg_spit, "0")
-#endif
 
-#if FEATURE_PITWORM
 // Pitworm
 DECLARE_SKILL_VALUE(sk_pitworm_health, "0")
 DECLARE_SKILL_VALUE(sk_pitworm_dmg_swipe, "0")
 DECLARE_SKILL_VALUE(sk_pitworm_dmg_beam, "0")
-#endif
 
-#if FEATURE_GENEWORM
 // Geneworm
 DECLARE_SKILL_VALUE(sk_geneworm_health, "0")
 DECLARE_SKILL_VALUE(sk_geneworm_dmg_spit, "0")
 DECLARE_SKILL_VALUE(sk_geneworm_dmg_hit, "0")
-#endif
 
 // Scientist
 DECLARE_SKILL_VALUE(sk_scientist_health, "0")
 
-#if FEATURE_ROBOGRUNT
 DECLARE_SKILL_VALUE(sk_rgrunt_explode, "0")
-#endif
 
-#if FEATURE_SHOCKTROOPER
 // Shock Roach
 DECLARE_SKILL_VALUE(sk_shockroach_health, "0")
 DECLARE_SKILL_VALUE(sk_shockroach_dmg_bite, "0")
@@ -1048,14 +1003,12 @@ DECLARE_SKILL_VALUE(sk_shocktrooper_kick, "0")
 DECLARE_SKILL_VALUE(sk_shocktrooper_gspeed, "0")
 DECLARE_SKILL_VALUE(sk_shocktrooper_maxcharge, "0")
 DECLARE_SKILL_VALUE(sk_shocktrooper_rchgspeed, "0")
-#endif
 
 // Snark
 DECLARE_SKILL_VALUE(sk_snark_health, "0")
 DECLARE_SKILL_VALUE(sk_snark_dmg_bite, "0")
 DECLARE_SKILL_VALUE(sk_snark_dmg_pop, "0")
 
-#if FEATURE_VOLTIFORE
 // Voltigore
 DECLARE_SKILL_VALUE(sk_voltigore_health, "0")
 DECLARE_SKILL_VALUE(sk_voltigore_dmg_punch, "0")
@@ -1065,40 +1018,31 @@ DECLARE_SKILL_VALUE(sk_voltigore_dmg_explode, "0")
 // Baby Voltigore
 DECLARE_SKILL_VALUE(sk_babyvoltigore_health, "0")
 DECLARE_SKILL_VALUE(sk_babyvoltigore_dmg_punch, "0")
-#endif
 
 // Zombie
 DECLARE_SKILL_VALUE(sk_zombie_health, "0")
 DECLARE_SKILL_VALUE(sk_zombie_dmg_one_slash, "0")
 DECLARE_SKILL_VALUE(sk_zombie_dmg_both_slash, "0")
 
-#if FEATURE_ZOMBIE_BARNEY
 // Zombie Barney
 DECLARE_SKILL_VALUE(sk_zombie_barney_health, "0")
 DECLARE_SKILL_VALUE(sk_zombie_barney_dmg_one_slash, "0")
 DECLARE_SKILL_VALUE(sk_zombie_barney_dmg_both_slash, "0")
-#endif
 
-#if FEATURE_ZOMBIE_SOLDIER
 // Zombie Soldier
 DECLARE_SKILL_VALUE(sk_zombie_soldier_health, "0")
 DECLARE_SKILL_VALUE(sk_zombie_soldier_dmg_one_slash, "0")
 DECLARE_SKILL_VALUE(sk_zombie_soldier_dmg_both_slash, "0")
-#endif
 
-#if FEATURE_GONOME
 // Gonome
 DECLARE_SKILL_VALUE(sk_gonome_health, "0")
 DECLARE_SKILL_VALUE(sk_gonome_dmg_one_slash, "0")
 DECLARE_SKILL_VALUE(sk_gonome_dmg_guts, "0")
 DECLARE_SKILL_VALUE(sk_gonome_dmg_one_bite, "0")
-#endif
 
-#if FEATURE_FLOATER
 // Floater
 DECLARE_SKILL_VALUE(sk_floater_health, "0")
 DECLARE_SKILL_VALUE(sk_floater_explode, "0")
-#endif
 
 //Turret
 DECLARE_SKILL_VALUE(sk_turret_health, "0")
@@ -1109,13 +1053,11 @@ DECLARE_SKILL_VALUE(sk_miniturret_health, "0")
 // Sentry Turret
 DECLARE_SKILL_VALUE(sk_sentry_health, "0")
 
-#if FEATURE_ROBOCOP
 // Robocop
 DECLARE_SKILL_VALUE(sk_robocop_health, "0")
 DECLARE_SKILL_VALUE(sk_robocop_dmg_mortar, "0")
 DECLARE_SKILL_VALUE(sk_robocop_dmg_fist, "0")
 DECLARE_SKILL_VALUE(sk_robocop_sw_radius, "0")
-#endif
 
 DECLARE_SKILL_VALUE(sk_tor_health, "0")
 DECLARE_SKILL_VALUE(sk_tor_punch, "0")
@@ -1169,42 +1111,28 @@ DECLARE_SKILL_VALUE(sk_plr_satchel, "0")
 // Tripmine
 DECLARE_SKILL_VALUE(sk_plr_tripmine, "0")
 
-#if FEATURE_DESERT_EAGLE
 // Desert Eagle
 DECLARE_SKILL_VALUE(sk_plr_eagle, "0")
-#endif
 
-#if FEATURE_PIPEWRENCH
 // Pipe wrench
 DECLARE_SKILL_VALUE(sk_plr_pipewrench, "0")
-#endif
 
-#if FEATURE_KNIFE
 // Knife
 DECLARE_SKILL_VALUE(sk_plr_knife, "0")
-#endif
 
-#if FEATURE_GRAPPLE
 // Grapple
 DECLARE_SKILL_VALUE(sk_plr_grapple, "0")
-#endif
 
-#if FEATURE_M249
 // M249
 DECLARE_SKILL_VALUE(sk_plr_556_bullet, "0")
-#endif
 
-#if FEATURE_SNIPERRIFLE
 // Sniper rifle
 DECLARE_SKILL_VALUE(sk_plr_762_bullet, "0")
-#endif
 
-#if FEATURE_MEDKIT
 // Medkit
 DECLARE_SKILL_VALUE(sk_plr_medkitshot, "10")
 
 DECLARE_SKILL_VALUE3(sk_plr_medkittime, "3", "5", "0")
-#endif
 
 // WORLD WEAPONS
 DECLARE_SKILL_VALUE(sk_12mm_bullet, "0")
@@ -1214,24 +1142,16 @@ DECLARE_SKILL_VALUE(sk_357_bullet, "34")
 DECLARE_SKILL_VALUE(sk_556_bullet, "15")
 DECLARE_SKILL_VALUE3(sk_762_bullet, "35", "40", "40")
 
-#if FEATURE_SHOCKBEAM
 DECLARE_SKILL_VALUE(sk_plr_shockroachs, "0")
 DECLARE_SKILL_VALUE(sk_plr_shockroachm, "0")
 DECLARE_SKILL_VALUE(sk_shockroach, "0")
-#endif
 
-#if FEATURE_SPOREGRENADE
 DECLARE_SKILL_VALUE(sk_plr_spore, "0")
-#endif
 
-#if FEATURE_DISPLACER
 DECLARE_SKILL_VALUE(sk_plr_displacer_other, "0")
 DECLARE_SKILL_VALUE(sk_plr_displacer_radius, "0")
-#endif
 
-#if FEATURE_UZI
 DECLARE_SKILL_VALUE(sk_plr_uzi, "6")
-#endif
 
 // HORNET
 DECLARE_SKILL_VALUE(sk_hornet_dmg, "0")
@@ -1665,7 +1585,7 @@ void ParseModConfigs()
 
 // Register your console variables here
 // This gets called one time when the game is initialied
-void GameDLLInit( void )
+void GameDLLInit()
 {
 	ReadServerFeatures();
 	ReadEnabledMonsters();
@@ -1802,7 +1722,6 @@ void GameDLLInit( void )
 	// Barnacle
 	REGISTER_SKILL_CVARS(sk_barnacle_health);
 
-#if FEATURE_BABYGARG
 	// Baby Gargantua
 	if (g_modFeatures.IsMonsterEnabled("babygarg"))
 	{
@@ -1811,7 +1730,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_babygargantua_dmg_fire);
 		REGISTER_SKILL_CVARS(sk_babygargantua_dmg_stomp);
 	}
-#endif
 
 	// Barney
 	REGISTER_SKILL_CVARS(sk_barney_health);
@@ -1831,13 +1749,10 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_bigmomma_dmg_blast);
 	REGISTER_SKILL_CVARS(sk_bigmomma_radius_blast);
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 	// Cleansuit Scientist
 	if (g_modFeatures.IsMonsterEnabled("cleansuit_scientist"))
 		REGISTER_SKILL_CVARS(sk_cleansuit_scientist_health);
-#endif
 
-#if FEATURE_FLYBEE
 	// Flybee
 	if (g_modFeatures.IsMonsterEnabled("flybee"))
 	{
@@ -1847,7 +1762,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_flybee_dmg_flyball);
 		REGISTER_SKILL_CVARS(sk_flybee_maxspeed);
 	}
-#endif
 
 	// Gargantua
 	REGISTER_SKILL_CVARS(sk_gargantua_health);
@@ -1863,7 +1777,6 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_headcrab_health);
 	REGISTER_SKILL_CVARS(sk_headcrab_dmg_bite);
 
-#if FEATURE_OPFOR_GRUNT
 	// Opposing Hgrunt
 	if (g_modFeatures.IsMonsterEnabled("human_grunt_ally"))
 	{
@@ -1889,7 +1802,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_torch_ally_kick);
 		REGISTER_SKILL_CVARS(sk_torch_ally_gspeed);
 	}
-#endif
 
 	// Hgrunt
 	REGISTER_SKILL_CVARS(sk_hgrunt_health);
@@ -1897,11 +1809,9 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_hgrunt_pellets);
 	REGISTER_SKILL_CVARS(sk_hgrunt_gspeed);
 
-#if FEATURE_HWGRUNT
 	// HWgrunt
 	if (g_modFeatures.IsMonsterEnabled("hwgrunt"))
 		REGISTER_SKILL_CVARS(sk_hwgrunt_health);
-#endif
 
 	// Houndeye
 	REGISTER_SKILL_CVARS(sk_houndeye_health);
@@ -1929,7 +1839,6 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_controller_speedball);
 	REGISTER_SKILL_CVARS(sk_controller_dmgball);
 
-#if FEATURE_MASSN
 	// Massassin
 	if (g_modFeatures.IsMonsterEnabled("male_assassin"))
 	{
@@ -1937,7 +1846,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_massassin_kick);
 		REGISTER_SKILL_CVARS(sk_massassin_gspeed);
 	}
-#endif
 
 	// Nihilanth
 	REGISTER_SKILL_CVARS(sk_nihilanth_health);
@@ -1946,34 +1854,25 @@ void GameDLLInit( void )
 	// Osprey
 	REGISTER_SKILL_CVARS(sk_osprey);
 
-#if FEATURE_BLACK_OSPREY
 	// Blackops Osprey
 	if (g_modFeatures.IsMonsterEnabled("blkop_osprey"))
 		REGISTER_SKILL_CVARS(sk_blkopsosprey);
-#endif
 
-#if FEATURE_OTIS
 	// Otis
 	if (g_modFeatures.IsMonsterEnabled("otis"))
 		REGISTER_SKILL_CVARS(sk_otis_health);
-#endif
 
-#if FEATURE_KATE
 	// Kate
 	if (g_modFeatures.IsMonsterEnabled("kate"))
 		REGISTER_SKILL_CVARS(sk_kate_health);
-#endif
 
-#if FEATURE_PANTHEREYE
 	// Panthereye
 	if (g_modFeatures.IsMonsterEnabled("panthereye"))
 	{
 		REGISTER_SKILL_CVARS(sk_panthereye_health);
 		REGISTER_SKILL_CVARS(sk_panthereye_dmg_claw);
 	}
-#endif
 
-#if FEATURE_PITDRONE
 	// Pitdrone
 	if (g_modFeatures.IsMonsterEnabled("pitdrone"))
 	{
@@ -1982,9 +1881,7 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_pitdrone_dmg_whip);
 		REGISTER_SKILL_CVARS(sk_pitdrone_dmg_spit);
 	}
-#endif
 
-#if FEATURE_PITWORM
 	// Pitworm
 	if (g_modFeatures.IsMonsterEnabled("pitworm"))
 	{
@@ -1992,9 +1889,7 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_pitworm_dmg_swipe);
 		REGISTER_SKILL_CVARS(sk_pitworm_dmg_beam);
 	}
-#endif
 
-#if FEATURE_GENEWORM
 	// Geneworm
 	if (g_modFeatures.IsMonsterEnabled("geneworm"))
 	{
@@ -2002,15 +1897,10 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_geneworm_dmg_spit);
 		REGISTER_SKILL_CVARS(sk_geneworm_dmg_hit);
 	}
-#endif
 
-#if FEATURE_ROBOGRUNT
 	if (g_modFeatures.IsMonsterEnabled("robogrunt"))
 		REGISTER_SKILL_CVARS(sk_rgrunt_explode);
-#endif
 
-
-#if FEATURE_SHOCKTROOPER
 	// ShockTrooper
 	if (g_modFeatures.IsMonsterEnabled("shocktrooper"))
 	{
@@ -2028,7 +1918,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_shockroach_dmg_bite);
 		REGISTER_SKILL_CVARS(sk_shockroach_lifespan);
 	}
-#endif
 
 	// Scientist
 	REGISTER_SKILL_CVARS(sk_scientist_health);
@@ -2038,7 +1927,6 @@ void GameDLLInit( void )
 	REGISTER_SKILL_CVARS(sk_snark_dmg_bite);
 	REGISTER_SKILL_CVARS(sk_snark_dmg_pop);
 
-#if FEATURE_VOLTIFORE
 	// Voltigore
 	if (g_modFeatures.IsMonsterEnabled("voltigore"))
 	{
@@ -2054,14 +1942,12 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_babyvoltigore_health);
 		REGISTER_SKILL_CVARS(sk_babyvoltigore_dmg_punch);
 	}
-#endif
 
 	// Zombie
 	REGISTER_SKILL_CVARS(sk_zombie_health);
 	REGISTER_SKILL_CVARS(sk_zombie_dmg_one_slash);
 	REGISTER_SKILL_CVARS(sk_zombie_dmg_both_slash);
 
-#if FEATURE_ZOMBIE_BARNEY
 	// Zombie Barney
 	if (g_modFeatures.IsMonsterEnabled("zombie_barney"))
 	{
@@ -2069,9 +1955,7 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_zombie_barney_dmg_one_slash);
 		REGISTER_SKILL_CVARS(sk_zombie_barney_dmg_both_slash);
 	}
-#endif
 
-#if FEATURE_ZOMBIE_SOLDIER
 	// Zombie Soldier
 	if (g_modFeatures.IsMonsterEnabled("zombie_soldier"))
 	{
@@ -2079,9 +1963,7 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_zombie_soldier_dmg_one_slash);
 		REGISTER_SKILL_CVARS(sk_zombie_soldier_dmg_both_slash);
 	}
-#endif
 
-#if FEATURE_GONOME
 	// Gonome
 	if (g_modFeatures.IsMonsterEnabled("gonome"))
 	{
@@ -2090,15 +1972,12 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_gonome_dmg_guts);
 		REGISTER_SKILL_CVARS(sk_gonome_dmg_one_bite);
 	}
-#endif
 
-#if FEATURE_FLOATER
 	if (g_modFeatures.IsMonsterEnabled("floater"))
 	{
 		REGISTER_SKILL_CVARS(sk_floater_health);
 		REGISTER_SKILL_CVARS(sk_floater_explode);
 	}
-#endif
 
 	//Turret
 	REGISTER_SKILL_CVARS(sk_turret_health);
@@ -2109,7 +1988,6 @@ void GameDLLInit( void )
 	// Sentry Turret
 	REGISTER_SKILL_CVARS(sk_sentry_health);
 
-#if FEATURE_ROBOCOP
 	// Robocop
 	if (g_modFeatures.IsMonsterEnabled("robocop"))
 	{
@@ -2118,7 +1996,6 @@ void GameDLLInit( void )
 		REGISTER_SKILL_CVARS(sk_robocop_dmg_fist);
 		REGISTER_SKILL_CVARS(sk_robocop_sw_radius);
 	}
-#endif
 
 	// Tor
 	if (g_modFeatures.IsMonsterEnabled("tor"))
@@ -2176,78 +2053,56 @@ void GameDLLInit( void )
 	// Tripmine
 	REGISTER_SKILL_CVARS(sk_plr_tripmine);
 
-#if FEATURE_MEDKIT
 	// Medkit
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT))
 	{
 		REGISTER_SKILL_CVARS(sk_plr_medkitshot);
 		REGISTER_SKILL_CVARS(sk_plr_medkittime);
 	}
-#endif
 
-#if FEATURE_DESERT_EAGLE
 	// Desert Eagle
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_EAGLE))
 		REGISTER_SKILL_CVARS(sk_plr_eagle);
-#endif
 
-#if FEATURE_PIPEWRENCH
 	// Pipe wrench
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_PIPEWRENCH))
 		REGISTER_SKILL_CVARS(sk_plr_pipewrench);
-#endif
 
-#if FEATURE_KNIFE
 	// Knife
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_KNIFE))
 		REGISTER_SKILL_CVARS(sk_plr_knife);
-#endif
 
-#if FEATURE_GRAPPLE
 	// Grapple
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_GRAPPLE))
 		REGISTER_SKILL_CVARS(sk_plr_grapple);
-#endif
 
-#if FEATURE_M249
 	// M249
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249))
+	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249) || g_modFeatures.IsWeaponEnabled(WEAPON_MINIGUN))
 		REGISTER_SKILL_CVARS(sk_plr_556_bullet);
-#endif
 
-#if FEATURE_SNIPERRIFLE
 	// Sniper rifle
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
 		REGISTER_SKILL_CVARS(sk_plr_762_bullet);
-#endif
 
 	// Shock rifle
-#if FEATURE_SHOCKBEAM
 	if (g_modFeatures.ShockBeamEnabled())
 	{
 		REGISTER_SKILL_CVARS(sk_plr_shockroachs);
 		REGISTER_SKILL_CVARS(sk_plr_shockroachm);
 		REGISTER_SKILL_CVARS(sk_shockroach);
 	}
-#endif
 
-#if FEATURE_SPOREGRENADE
 	if (g_modFeatures.SporesEnabled())
 		REGISTER_SKILL_CVARS(sk_plr_spore);
-#endif
 
-#if FEATURE_DISPLACER
 	if (g_modFeatures.DisplacerBallEnabled())
 	{
 		REGISTER_SKILL_CVARS(sk_plr_displacer_other);
 		REGISTER_SKILL_CVARS(sk_plr_displacer_radius);
 	}
-#endif
 
-#if FEATURE_UZI
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_UZI))
 		REGISTER_SKILL_CVARS(sk_plr_uzi);
-#endif
 
 	// WORLD WEAPONS
 	REGISTER_SKILL_CVARS(sk_12mm_bullet);

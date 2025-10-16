@@ -196,7 +196,7 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CBreakable, CBaseDelay )
 
-void CBreakable::Spawn( void )
+void CBreakable::Spawn()
 {
 	Precache();
 
@@ -409,7 +409,7 @@ static const char* DefaultMaterialGibModel( Materials material )
 	return NULL;
 }
 
-void CBreakable::Precache( void )
+void CBreakable::Precache()
 {
 	PrecacheMaterialBustSounds(m_Material);
 	MaterialSoundPrecache( m_Material );
@@ -429,7 +429,7 @@ void CBreakable::Precache( void )
 
 // play shard sound when func_breakable takes damage.
 // the more damage, the louder the shard sound.
-void CBreakable::DamageSound( void )
+void CBreakable::DamageSound()
 {
 	int pitch;
 	float fvol;
@@ -980,7 +980,7 @@ void CBreakable::UpdateOnRemove()
 	}
 }
 
-bool CBreakable::IsBreakable( void )
+bool CBreakable::IsBreakable()
 { 
 	return m_Material != matUnbreakableGlass;
 }
@@ -1004,30 +1004,30 @@ bool CBreakable::IsDestroyableObstacle()
 class CPushable : public CBreakable
 {
 public:
-	void Spawn ( void );
-	void Precache( void );
-	void Touch ( CBaseEntity *pOther );
+	void Spawn() override;
+	void Precache() override;
+	void Touch( CBaseEntity *pOther ) override;
 	void Move( CBaseEntity *pMover, int push );
-	void PreEntvarsKeyvalue( KeyValueData* pkvd );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic);
-	void EXPORT StopSound( void );
+	void PreEntvarsKeyvalue( KeyValueData* pkvd ) override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) override;
+	void EXPORT StopSound();
 	//virtual void	SetActivator( CBaseEntity *pActivator ) { m_pPusher = pActivator; }
 
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_CONTINUOUS_USE; }
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_CONTINUOUS_USE; }
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
-	inline float MaxSpeed( void ) { return m_maxSpeed; }
+	inline float MaxSpeed() { return m_maxSpeed; }
 
 	// breakables use an overridden takedamage
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	int DamageDecal(int bitsDamageType);
+	int DamageDecal(int bitsDamageType) override;
 	const char* DefaultDisplayName() override { return "Pushable"; }
-	bool IsDestroyableObstacle();
-	bool ShouldCollideWithCorpses() { return !m_ignoreCorpses; }
+	bool IsDestroyableObstacle() override;
+	bool ShouldCollideWithCorpses() override { return !m_ignoreCorpses; }
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -1057,7 +1057,7 @@ const NamedSoundScript CPushable::moveSoundScript = {
 	"Pushable.Move"
 };
 
-void CPushable::Spawn( void )
+void CPushable::Spawn()
 {
 	if( pev->spawnflags & SF_PUSH_BREAKABLE )
 		CBreakable::Spawn();
@@ -1083,7 +1083,7 @@ void CPushable::Spawn( void )
 	m_soundTime = 0;
 }
 
-void CPushable::Precache( void )
+void CPushable::Precache()
 {
 	RegisterAndPrecacheSoundScript(moveSoundScript);
 
@@ -1268,7 +1268,7 @@ void CPushable::Move( CBaseEntity *pOther, int push )
 }
 
 #if 0
-void CPushable::StopSound( void )
+void CPushable::StopSound()
 {
 	Vector dist = pev->oldorigin - pev->origin;
 	if( dist.IsLengthLessThanOrEqual(0) )
@@ -1302,15 +1302,15 @@ bool CPushable::IsDestroyableObstacle()
 class CFuncBreakableEffect : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
-	void KeyValue( KeyValueData* pkvd);
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData* pkvd) override;
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 

@@ -82,7 +82,7 @@ const NamedVisual CSquidSpit::spitVisual = BuildVisual::Animated("Bullsquid.Spit
 
 const NamedVisual CSquidSpit::fleckVisual = BuildVisual::Spray("Bullsquid.Fleck").Mixin(&sharedTinySpitVisual);
 
-void CSquidSpit::Spawn( void )
+void CSquidSpit::Spawn()
 {
 	SpawnHelper("squidspit", spitVisual);
 }
@@ -110,7 +110,7 @@ void CSquidSpit::SpawnHelper(const char *className, const char* spitVisualName)
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 }
 
-void CSquidSpit::Animate( void )
+void CSquidSpit::Animate()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
@@ -195,7 +195,7 @@ const NamedVisual CSquidToxicSpit::particleVisual = BuildVisual("Bullsquid.Toxic
 		.Scale(0.3f)
 		.Life(0.1f);
 
-void CSquidToxicSpit::Spawn( void )
+void CSquidToxicSpit::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
@@ -223,7 +223,7 @@ void CSquidToxicSpit::Precache()
 
 extern int gmsgSpriteTrail;
 
-void CSquidToxicSpit::Animate( void )
+void CSquidToxicSpit::Animate()
 {
 	CBaseEntity* pEntity = NULL;
 	CBaseMonster* spitOwner = GetSpitOwner();
@@ -337,42 +337,42 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 class CBullsquid : public CBaseMonster
 {
 public:
-	virtual void Spawn(void);
-	virtual void Precache(void);
-	void SetYawSpeed(void);
-	int  DefaultISoundMask(void);
-	virtual int  DefaultClassify(void);
-	const char* DefaultDisplayName() { return "Bullsquid"; }
-	virtual void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int  DefaultISoundMask() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Bullsquid"; }
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	void IdleSound() override;
 	void PainSound() override;
 	void DeathSound() override;
 	void AlertSound() override;
 	virtual void AttackSound(bool bigSpit);
-	virtual void StartTask(Task_t *pTask);
-	void RunTask(Task_t *pTask);
+	void StartTask(Task_t *pTask) override;
+	void RunTask(Task_t *pTask) override;
 	virtual bool CheckMeleeAttack1(float flDot, float flDist) override;
 	virtual bool CheckMeleeAttack2(float flDot, float flDist) override;
 	virtual bool CheckRangeAttack1(float flDot, float flDist) override;
-	virtual void RunAI(void);
+	void RunAI() override;
 	bool FValidateHintType(short sHint) override;
-	Schedule_t *GetSchedule(void);
-	Schedule_t *GetScheduleOfType(int Type);
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType(int Type) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	int IRelationship(CBaseEntity *pTarget) override;
-	virtual int IgnoreConditions(void);
-	MONSTERSTATE GetIdealState(void);
+	int IgnoreConditions() override;
+	MONSTERSTATE GetIdealState() override;
 
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 	bool m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time.
 
@@ -467,7 +467,7 @@ const NamedVisual CBullsquid::toxicTinySpitVisual = BuildVisual::Spray("Bullsqui
 //=========================================================
 // IgnoreConditions 
 //=========================================================
-int CBullsquid::IgnoreConditions( void )
+int CBullsquid::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
@@ -627,7 +627,7 @@ bool CBullsquid::FValidateHintType( short sHint )
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CBullsquid::DefaultISoundMask( void )
+int CBullsquid::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -641,7 +641,7 @@ int CBullsquid::DefaultISoundMask( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBullsquid::DefaultClassify( void )
+int CBullsquid::DefaultClassify()
 {
 	return CLASS_ALIEN_PREDATOR;
 }
@@ -675,7 +675,7 @@ void CBullsquid::AlertSound()
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CBullsquid::SetYawSpeed( void )
+void CBullsquid::SetYawSpeed()
 {
 	int ys = 0;
 
@@ -905,7 +905,7 @@ void CBullsquid::AttackSound( bool bigSpit )
 // RunAI - overridden for bullsquid because there are things
 // that need to be checked every think.
 //========================================================
-void CBullsquid::RunAI( void )
+void CBullsquid::RunAI()
 {
 	// first, do base class stuff
 	CBaseMonster::RunAI();
@@ -1193,7 +1193,7 @@ IMPLEMENT_CUSTOM_SCHEDULES( CBullsquid, CBaseMonster )
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CBullsquid::GetSchedule( void )
+Schedule_t *CBullsquid::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -1419,7 +1419,7 @@ void CBullsquid::RunTask( Task_t *pTask )
 // the feature that makes it lose interest in headcrabs for 
 // a while if something injures it. 
 //=========================================================
-MONSTERSTATE CBullsquid::GetIdealState( void )
+MONSTERSTATE CBullsquid::GetIdealState()
 {
 	int iConditions;
 
@@ -1453,11 +1453,11 @@ MONSTERSTATE CBullsquid::GetIdealState( void )
 class CDeadBullsquid : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	const char* DefaultModel() { return "models/bullsquid.mdl"; }
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/bullsquid.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CDeadBullsquid::getPos(int pos) const
@@ -1467,7 +1467,7 @@ const char* CDeadBullsquid::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_bullchicken_dead, CDeadBullsquid )
 
-void CDeadBullsquid :: Spawn( )
+void CDeadBullsquid::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.bullsquidHealth/2);
 	MonsterInitDead();

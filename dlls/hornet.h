@@ -36,19 +36,19 @@
 class CHornet : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify( void );
-	int Classify( void );
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override;
+	int Classify() override;
 	int IRelationship( CBaseEntity *pTarget ) override;
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void IgniteTrail( void );
-	void EXPORT StartTrack( void );
-	void EXPORT StartDart( void );
-	void EXPORT TrackTarget( void );
+	void IgniteTrail();
+	void EXPORT StartTrack();
+	void EXPORT StartDart();
+	void EXPORT TrackTarget();
 	void EXPORT TrackTouch( CBaseEntity *pOther );
 	void EXPORT DartTouch( CBaseEntity *pOther );
 	void EXPORT DieTouch( CBaseEntity *pOther );

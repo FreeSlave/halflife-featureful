@@ -37,7 +37,7 @@ DECLARE_MESSAGE( m_Nightvision, Nightvision )
 
 #define NIGHTVISION_SPRITE_NAME "sprites/of_nv_b.spr"
 
-int CHudNightvision::Init(void)
+int CHudNightvision::Init()
 {
 	m_fOn = false;
 
@@ -58,12 +58,12 @@ int CHudNightvision::Init(void)
 	return 1;
 }
 
-void CHudNightvision::Reset(void)
+void CHudNightvision::Reset()
 {
 	m_fOn = false;
 }
 
-int CHudNightvision::VidInit(void)
+int CHudNightvision::VidInit()
 {
 #if FEATURE_OPFOR_NIGHTVISION
 	if (gHUD.clientFeatures.nvgstyle.configurable || gHUD.clientFeatures.nvgstyle.defaultValue == 0)

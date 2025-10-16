@@ -25,12 +25,12 @@
 class CPlayerMonster : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int Classify( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int DefaultISoundMask( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int Classify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int DefaultISoundMask() override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_player, CPlayerMonster )
@@ -39,7 +39,7 @@ LINK_ENTITY_TO_CLASS( monster_player, CPlayerMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CPlayerMonster::Classify( void )
+int CPlayerMonster::Classify()
 {
 	return CLASS_PLAYER_ALLY;
 }
@@ -48,7 +48,7 @@ int CPlayerMonster::Classify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CPlayerMonster::SetYawSpeed( void )
+void CPlayerMonster::SetYawSpeed()
 {
 	int ys;
 
@@ -80,7 +80,7 @@ void CPlayerMonster :: HandleAnimEvent( MonsterEvent_t *pEvent )
 //=========================================================
 // ISoundMask - player monster can't hear.
 //=========================================================
-int CPlayerMonster::DefaultISoundMask( void )
+int CPlayerMonster::DefaultISoundMask()
 {
 	return 0;
 }

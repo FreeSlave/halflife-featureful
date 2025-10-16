@@ -36,37 +36,37 @@ extern "C" void DLLEXPORT IN_MouseEvent( int mstate )
 	currentInput->IN_MouseEvent(mstate);
 }
 
-extern "C" void DLLEXPORT IN_ClearStates( void )
+extern "C" void DLLEXPORT IN_ClearStates()
 {
 	currentInput->IN_ClearStates();
 }
 
-extern "C" void DLLEXPORT IN_ActivateMouse( void )
+extern "C" void DLLEXPORT IN_ActivateMouse()
 {
 	currentInput->IN_ActivateMouse();
 }
 
-extern "C" void DLLEXPORT IN_DeactivateMouse( void )
+extern "C" void DLLEXPORT IN_DeactivateMouse()
 {
 	currentInput->IN_DeactivateMouse();
 }
 
-extern "C" void DLLEXPORT IN_Accumulate( void )
+extern "C" void DLLEXPORT IN_Accumulate()
 {
 	currentInput->IN_Accumulate();
 }
 
-void IN_Commands( void )
+void IN_Commands()
 {
 	currentInput->IN_Commands();
 }
 
-void IN_Shutdown( void )
+void IN_Shutdown()
 {
 	currentInput->IN_Shutdown();
 }
 
-void IN_Init( void )
+void IN_Init()
 {
 #if SUPPORT_GOLDSOURCE_INPUT
 	if (IsXashFWGS()) {

@@ -91,7 +91,7 @@ TakeDamageResult CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 
 //=========================================================
 //=========================================================
-void CHornet::Spawn( void )
+void CHornet::Spawn()
 {
 	Precache();
 
@@ -183,7 +183,7 @@ int CHornet::IRelationship( CBaseEntity *pTarget )
 //=========================================================
 // ID's Hornet as their owner
 //=========================================================
-int CHornet::DefaultClassify( void )
+int CHornet::DefaultClassify()
 {
 	if( pev->owner && pev->owner->v.flags & FL_CLIENT )
 	{
@@ -202,7 +202,7 @@ int CHornet::Classify()
 //=========================================================
 // StartTrack - starts a hornet out tracking its target
 //=========================================================
-void CHornet::StartTrack( void )
+void CHornet::StartTrack()
 {
 	IgniteTrail();
 
@@ -215,7 +215,7 @@ void CHornet::StartTrack( void )
 //=========================================================
 // StartDart - starts a hornet out just flying straight.
 //=========================================================
-void CHornet::StartDart( void )
+void CHornet::StartDart()
 {
 	IgniteTrail();
 
@@ -225,7 +225,7 @@ void CHornet::StartDart( void )
 	pev->nextthink = gpGlobals->time + 4.0f;
 }
 
-void CHornet::IgniteTrail( void )
+void CHornet::IgniteTrail()
 {
 /*
 
@@ -268,7 +268,7 @@ old colors
 //=========================================================
 // Hornet is flying, gently tracking target
 //=========================================================
-void CHornet::TrackTarget( void )
+void CHornet::TrackTarget()
 {
 	Vector	vecFlightDir;
 	Vector	vecDirToEnemy;

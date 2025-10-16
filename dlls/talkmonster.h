@@ -130,71 +130,71 @@ enum
 class CTalkMonster : public CFollowingMonster
 {
 public:
-	void			TalkInit( void );				
+	void			TalkInit();
 	CBaseEntity		*FindNearestFriend(bool fPlayer);
-	float			TargetDistance( void );
-	void			StopTalking( void ) { SentenceStop(); }
+	float			TargetDistance();
+	void			StopTalking() { SentenceStop(); }
 	
 	// Base Monster functions
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType);
+	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType) override;
 	bool			CanBeMadeMoveAway(CBaseEntity *pPusher) override;
 	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void			OnDying(bool gibbed) override;
-	void			StartMonster( void );
+	void			StartMonster() override;
 	int				IRelationship ( CBaseEntity *pTarget ) override;
 	bool			IsFriendWithPlayerBeforeProvoked();
 	virtual bool	CanPlaySentence( bool fDisregardState ) override;
-	virtual bool PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle = false );
+	virtual bool PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle = false ) override;
 	void			PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 	PainSoundRule DefaultPainSoundRule() override;
-	void			KeyValue( KeyValueData *pkvd );
+	void			KeyValue( KeyValueData *pkvd ) override;
 
 	// AI functions
-	void			SetActivity ( Activity newActivity );
-	Schedule_t		*GetScheduleOfType ( int Type );
-	void			StartTask( Task_t *pTask );
-	void			RunTask( Task_t *pTask );
-	void			HandleAnimEvent( MonsterEvent_t *pEvent );
-	void			PrescheduleThink( void );
+	void			SetActivity ( Activity newActivity ) override;
+	Schedule_t		*GetScheduleOfType ( int Type ) override;
+	void			StartTask( Task_t *pTask ) override;
+	void			RunTask( Task_t *pTask ) override;
+	void			HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void			PrescheduleThink() override;
 	void			ReactToPlayerHit(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo);
 	void			TalkMonsterInit();
 
 	// Conversations / communication
-	int				GetVoicePitch( void );
+	int				GetVoicePitch();
 	virtual int GetDefaultVoicePitch() { return 100; }
 	void PrepareVoicePitch();
-	virtual void	IdleRespond( void );
+	virtual void	IdleRespond();
 	virtual bool	AskQuestion( float duration );
 	virtual bool	SetAnswerQuestion( CTalkMonster *pSpeaker );
-	virtual void	MakeIdleStatement( void );
-	float			RandomSentenceDuraion( void );
+	virtual void	MakeIdleStatement();
+	float			RandomSentenceDuraion();
 	bool			GotIdleSpeakChance();
-	bool			FIdleSpeak( void );
-	bool			FIdleStare( void );
-	bool			FIdleHello( void );
+	bool			FIdleSpeak();
+	bool			FIdleStare();
+	bool			FIdleHello();
 	bool			FOkToSpeak( int speakFlags = SPEAK_NORMAL_CHECK );
-	void			TrySmellTalk( void );
+	void			TrySmellTalk();
 	CBaseEntity		*EnumFriends( CBaseEntity *pentPrevious, int listNumber, bool bTrace );
 	CBaseEntity		*EnumFriends(CBaseEntity *pentPrevious, const char* pszFriend, bool bTrace );
-	void			AlertFriends( void );
-	void			ShutUpFriends( void );
-	bool			IsTalking( void );
+	void			AlertFriends();
+	void			ShutUpFriends();
+	bool			IsTalking();
 	void			Talk( float flDuration );
-	virtual const char* DefaultSentenceGroup(int group) { return NULL; }
+	virtual const char* DefaultSentenceGroup(int group) { return nullptr; }
 	virtual const char* SentenceGroup(int group);
 	bool EmitSoundScriptTalk(const char* name);
 
 	// Following related
-	virtual void	StartFollowing( CBaseEntity *pLeader, bool saySentence = true );
-	void			LimitFollowers( CBaseEntity *pPlayer, int maxFollowers );
+	void			StartFollowing( CBaseEntity *pLeader, bool saySentence = true ) override;
+	void			LimitFollowers( CBaseEntity *pPlayer, int maxFollowers ) override;
 	virtual int		TalkFriendCategory() { return TALK_FRIEND_PERSONNEL; }
-	bool	InScriptedSentence();
+	bool	InScriptedSentence() override;
 	bool AllowUseDuringScriptedSentence() override;
-	virtual void PlayUseSentence();
-	virtual void PlayUnUseSentence();
-	virtual void DeclineFollowing(CBaseEntity* pCaller);
-	CTalkMonster* MyTalkMonsterPointer() { return this; }
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
+	void DeclineFollowing(CBaseEntity* pCaller) override;
+	CTalkMonster* MyTalkMonsterPointer() override { return this; }
 
 	// Medic related
 	bool			WantsToCallMedic();
@@ -209,14 +209,14 @@ public:
 		return m_flNextFlinch < gpGlobals->time;
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
 	virtual int DefaultToleranceLevel() { return TOLERANCE_LOW; }
 	int MyToleranceLevel() { return m_iTolerance ? m_iTolerance : DefaultToleranceLevel(); }
@@ -230,7 +230,7 @@ public:
 
 	static const char* GetRedefinedSentence(string_t sentence);
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
 	struct TalkFriend
 	{

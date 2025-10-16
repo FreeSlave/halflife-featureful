@@ -27,8 +27,6 @@
 #include "displacerball.h"
 #endif
 
-#if FEATURE_DISPLACER
-
 #if !CLIENT_DLL
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 #endif // !defined ( CLIENT_DLL )
@@ -37,8 +35,8 @@ class CDisplacer : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;
@@ -46,18 +44,18 @@ public:
 
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-	void Holster();
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	void Holster() override;
 
 	enum DISPLACER_FIREMODE { FIREMODE_FORWARD = 1, FIREMODE_BACKWARD };
 
-	void ClearSpin( void );
-	void EXPORT SpinUp( void );
-	void EXPORT Teleport( void );
-	void EXPORT Displace( void );
-	void LightningEffect( void );
-	void ClearBeams( void );
+	void ClearSpin();
+	void EXPORT SpinUp();
+	void EXPORT Teleport();
+	void EXPORT Displace();
+	void LightningEffect();
+	void ClearBeams();
 private:
 #if !CLIENT_DLL
 	CBeam *m_pBeam[3];
@@ -174,7 +172,7 @@ void CDisplacer::Holster()
 	SendWeaponAnim(DISPLACER_HOLSTER);
 }
 
-void CDisplacer::SecondaryAttack(void)
+void CDisplacer::SecondaryAttack()
 {
 	const WeaponParameters& params = MyParameters();
 	if (params.secondaryFireType == SecondaryFireType::DISABLED)
@@ -214,7 +212,7 @@ void CDisplacer::PrimaryAttack()
 	pev->nextthink = gpGlobals->time;
 }
 
-void CDisplacer::ClearSpin( void )
+void CDisplacer::ClearSpin()
 {
 	switch (m_iFireMode)
 	{
@@ -227,7 +225,7 @@ void CDisplacer::ClearSpin( void )
 	}
 }
 
-void CDisplacer::SpinUp( void )
+void CDisplacer::SpinUp()
 {
 	SendWeaponAnim( DISPLACER_SPINUP );
 
@@ -247,7 +245,7 @@ void CDisplacer::SpinUp( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.3;
 }
 
-void CDisplacer::Displace( void )
+void CDisplacer::Displace()
 {
 	const WeaponParameters& params = MyParameters();
 
@@ -282,7 +280,7 @@ void CDisplacer::Displace( void )
 extern CBaseEntity* GetDisplacerEarthTarget(CBaseEntity* pOther);
 #endif
 
-void CDisplacer::Teleport( void )
+void CDisplacer::Teleport()
 {
 	const WeaponParameters& params = MyParameters();
 
@@ -317,10 +315,8 @@ void CDisplacer::Teleport( void )
 	{
 		Vector newOrigin = pDestination->pev->origin;
 
-#if FEATURE_ROPE
 		if( (m_pPlayer->m_afPhysicsFlags & PFLAG_ONROPE) )
 			m_pPlayer->LetGoRope();
-#endif
 
 		// UTIL_ScreenFade( m_pPlayer, Vector( 0, 200, 0 ), 0.5, 0.5, 255, FFADE_IN );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
@@ -366,7 +362,7 @@ void CDisplacer::Teleport( void )
 #endif
 }
 
-void CDisplacer::LightningEffect( void )
+void CDisplacer::LightningEffect()
 {
 #if !CLIENT_DLL
 	int m_iBeams = 0;
@@ -391,7 +387,7 @@ void CDisplacer::LightningEffect( void )
 #endif
 }
 
-void CDisplacer::ClearBeams( void )
+void CDisplacer::ClearBeams()
 {
 #if !CLIENT_DLL
 	if( g_pGameRules->IsMultiplayer())
@@ -407,5 +403,3 @@ void CDisplacer::ClearBeams( void )
 	}
 #endif
 }
-
-#endif

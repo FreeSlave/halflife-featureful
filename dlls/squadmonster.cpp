@@ -112,7 +112,7 @@ void CSquadMonster::VacateSlot()
 //=========================================================
 // ScheduleChange
 //=========================================================
-void CSquadMonster::ScheduleChange ( void )
+void CSquadMonster::ScheduleChange ()
 {
 	VacateSlot();
 }
@@ -264,7 +264,7 @@ bool CSquadMonster::SquadAdd( CSquadMonster *pAdd )
 // members who don't have current info.
 //
 //=========================================================
-void CSquadMonster::SquadPasteEnemyInfo( void )
+void CSquadMonster::SquadPasteEnemyInfo()
 {
 	CSquadMonster *pSquadLeader = MySquadLeader();
 	if( pSquadLeader )
@@ -282,7 +282,7 @@ void CSquadMonster::SquadPasteEnemyInfo( void )
 // so the most recent data is always available here.
 //
 //=========================================================
-void CSquadMonster::SquadCopyEnemyInfo( void )
+void CSquadMonster::SquadCopyEnemyInfo()
 {
 	CSquadMonster *pSquadLeader = MySquadLeader();
 	if( pSquadLeader )
@@ -341,7 +341,7 @@ void CSquadMonster::SquadMakeEnemy( CBaseEntity *pEnemy )
 // callable from leaders & followers
 //
 //=========================================================
-int CSquadMonster::SquadCount( void )
+int CSquadMonster::SquadCount()
 {
 	if( !InSquad() )
 		return 0;
@@ -470,7 +470,7 @@ bool CSquadMonster::CheckEnemy( CBaseEntity *pEnemy )
 //=========================================================
 // StartMonster
 //=========================================================
-void CSquadMonster::StartMonster( void )
+void CSquadMonster::StartMonster()
 {
 	CBaseMonster::StartMonster();
 
@@ -511,7 +511,7 @@ void CSquadMonster::StartMonster( void )
 // Builds a large box in front of the grunt and checks to see 
 // if any squad members are in that box. 
 //=========================================================
-bool CSquadMonster::NoFriendlyFire( void )
+bool CSquadMonster::NoFriendlyFire()
 {
 	//!!!BUGBUG - to fix this, the planes must be aligned to where the monster will be firing its gun, not the direction it is facing!!!
 	if( m_hEnemy != 0 )
@@ -625,7 +625,7 @@ bool CSquadMonster::NoFriendlyFire( void )
 // GetIdealState - surveys the Conditions information available
 // and finds the best new state for a monster.
 //=========================================================
-MONSTERSTATE CSquadMonster::GetIdealState ( void )
+MONSTERSTATE CSquadMonster::GetIdealState ()
 {
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )
@@ -670,7 +670,7 @@ bool CSquadMonster::FValidateCover( const Vector &vecCoverLocation )
 // SquadEnemySplit- returns true if not all squad members
 // are fighting the same enemy. 
 //=========================================================
-bool CSquadMonster::SquadEnemySplit( void )
+bool CSquadMonster::SquadEnemySplit()
 {
 	if( !InSquad() )
 		return false;

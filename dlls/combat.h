@@ -19,7 +19,7 @@ typedef struct
 
 extern MULTIDAMAGE gMultiDamage;
 
-extern void ClearMultiDamage(void);
+extern void ClearMultiDamage();
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
 extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo);
 

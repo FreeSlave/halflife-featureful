@@ -34,7 +34,7 @@ cvar_t *cl_showpacketloss;
 DECLARE_COMMAND( m_Scoreboard, ShowScores )
 DECLARE_COMMAND( m_Scoreboard, HideScores )
 
-int CHudScoreboard::Init( void )
+int CHudScoreboard::Init()
 {
 	gHUD.AddHudElem( this );
 
@@ -50,13 +50,13 @@ int CHudScoreboard::Init( void )
 	return 1;
 }
 
-int CHudScoreboard::VidInit( void )
+int CHudScoreboard::VidInit()
 {
 	// Load sprites here
 	return 1;
 }
 
-void CHudScoreboard::InitHUDData( void )
+void CHudScoreboard::InitHUDData()
 {
 	memset( g_PlayerExtraInfo, 0, sizeof g_PlayerExtraInfo );
 	m_iLastKilledBy = 0;
@@ -487,12 +487,12 @@ void CHudScoreboard::DeathMsg( int killer, int victim )
 	}
 }
 
-void CHudScoreboard::UserCmd_ShowScores( void )
+void CHudScoreboard::UserCmd_ShowScores()
 {
 	m_iShowscoresHeld = true;
 }
 
-void CHudScoreboard::UserCmd_HideScores( void )
+void CHudScoreboard::UserCmd_HideScores()
 {
 	m_iShowscoresHeld = false;
 }

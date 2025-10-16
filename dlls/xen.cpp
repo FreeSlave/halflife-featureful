@@ -32,12 +32,12 @@ class CActAnimating : public CBaseAnimating
 {
 public:
 	void SetActivity( Activity act );
-	inline Activity	GetActivity( void ) { return m_Activity; }
+	inline Activity	GetActivity() { return m_Activity; }
 
-	virtual int ObjectCaps( void ) { return CBaseAnimating::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseAnimating::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 protected:
@@ -77,16 +77,16 @@ void CActAnimating::DropToFloor()
 class CXenPLight : public CActAnimating
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void Touch( CBaseEntity *pOther );
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void Touch( CBaseEntity *pOther ) override;
+	void Think() override;
 
-	void LightOn( void );
-	void LightOff( void );
+	void LightOn();
+	void LightOff();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedVisual glowVisual;
@@ -107,7 +107,7 @@ const NamedVisual CXenPLight::glowVisual = BuildVisual("XenLight.Glow")
 		.Model(XEN_PLANT_GLOW_SPRITE)
 		.RenderMode(kRenderGlow);
 
-void CXenPLight::Spawn( void )
+void CXenPLight::Spawn()
 {
 	Precache();
 
@@ -151,13 +151,13 @@ void CXenPLight::Spawn( void )
 	}
 }
 
-void CXenPLight::Precache( void )
+void CXenPLight::Precache()
 {
 	PrecacheMyModel("models/light.mdl");
 	RegisterVisual(glowVisual);
 }
 
-void CXenPLight::Think( void )
+void CXenPLight::Think()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -200,14 +200,14 @@ void CXenPLight::Touch( CBaseEntity *pOther )
 	}
 }
 
-void CXenPLight::LightOn( void )
+void CXenPLight::LightOn()
 {
 	SUB_UseTargets( this, USE_ON );
 	if( m_pGlow )
 		m_pGlow->pev->effects &= ~EF_NODRAW;
 }
 
-void CXenPLight::LightOff( void )
+void CXenPLight::LightOff()
 {
 	SUB_UseTargets( this, USE_OFF );
 	if( m_pGlow )
@@ -217,16 +217,16 @@ void CXenPLight::LightOff( void )
 class CXenHair : public CActAnimating
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void Think() override;
 };
 
 LINK_ENTITY_TO_CLASS( xen_hair, CXenHair )
 
 #define SF_HAIR_SYNC		0x0001
 
-void CXenHair::Spawn( void )
+void CXenHair::Spawn()
 {
 	Precache();
 	SetMyModel("models/hair.mdl");
@@ -250,13 +250,13 @@ void CXenHair::Spawn( void )
 	}
 }
 
-void CXenHair::Think( void )
+void CXenHair::Think()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.5f;
 }
 
-void CXenHair::Precache( void )
+void CXenHair::Precache()
 {
 	PrecacheMyModel( "models/hair.mdl" );
 }
@@ -264,7 +264,7 @@ void CXenHair::Precache( void )
 class CXenTreeTrigger : public CBaseEntity
 {
 public:
-	void Touch( CBaseEntity *pOther );
+	void Touch( CBaseEntity *pOther ) override;
 	static CXenTreeTrigger *TriggerCreate( edict_t *pOwner, const Vector &position );
 };
 
@@ -297,17 +297,17 @@ void CXenTreeTrigger::Touch( CBaseEntity *pOther )
 class CXenTree : public CActAnimating
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void Touch( CBaseEntity *pOther );
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void Touch( CBaseEntity *pOther ) override;
+	void Think() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void Attack( void );	
-	int Classify( void ) { return CLASS_BARNACLE; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void Attack();	
+	int Classify() override { return CLASS_BARNACLE; }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static constexpr const char* attackHitSoundScript = "XenTree.AttackHit";
@@ -326,7 +326,7 @@ TYPEDESCRIPTION	CXenTree::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CXenTree, CActAnimating )
 
-void CXenTree::Spawn( void )
+void CXenTree::Spawn()
 {
 	Precache();
 
@@ -358,7 +358,7 @@ void CXenTree::Spawn( void )
 	UTIL_SetSize( m_pTrigger->pev, Vector( -24, -24, 0 ), Vector( 24, 24, 128 ) );
 }
 
-void CXenTree::Precache( void )
+void CXenTree::Precache()
 {
 	PrecacheMyModel( "models/tree.mdl" );
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
@@ -373,7 +373,7 @@ void CXenTree::Touch( CBaseEntity *pOther )
 	Attack();
 }
 
-void CXenTree::Attack( void )
+void CXenTree::Attack()
 {
 	if( GetActivity() == ACT_IDLE )
 	{
@@ -421,7 +421,7 @@ void CXenTree::HandleAnimEvent( MonsterEvent_t *pEvent )
 	CActAnimating::HandleAnimEvent( pEvent );
 }
 
-void CXenTree::Think( void )
+void CXenTree::Think()
 {
 	float flInterval = StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -452,13 +452,13 @@ void CXenTree::Think( void )
 class CXenSpore : public CActAnimating
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void Touch( CBaseEntity *pOther );
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void Touch( CBaseEntity *pOther ) override;
+	void Think() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
 	//void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void Attack( void ) {}
+	void Attack() {}
 
 	virtual const char* DefaultModel() const = 0;
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
@@ -466,7 +466,7 @@ public:
 
 class CXenSporeSmall : public CXenSpore
 {
-	void Spawn( void );
+	void Spawn() override;
 	const char* DefaultModel() const override {
 		return "models/fungus(small).mdl";
 	}
@@ -474,7 +474,7 @@ class CXenSporeSmall : public CXenSpore
 
 class CXenSporeMed : public CXenSpore
 {
-	void Spawn( void );
+	void Spawn() override;
 	const char* DefaultModel() const override {
 		return "models/fungus.mdl";
 	}
@@ -482,7 +482,7 @@ class CXenSporeMed : public CXenSpore
 
 class CXenSporeLarge : public CXenSpore
 {
-	void Spawn( void );
+	void Spawn() override;
 	const char* DefaultModel() const override {
 		return "models/fungus(large).mdl";
 	}
@@ -495,7 +495,7 @@ class CXenHull : public CPointEntity
 {
 public:
 	static CXenHull	*CreateHull( CBaseEntity *source, const Vector &mins, const Vector &maxs, const Vector &offset );
-	int Classify( void ) { return CLASS_BARNACLE; }
+	int Classify() override { return CLASS_BARNACLE; }
 };
 
 CXenHull *CXenHull::CreateHull( CBaseEntity *source, const Vector &mins, const Vector &maxs, const Vector &offset )
@@ -521,13 +521,13 @@ LINK_ENTITY_TO_CLASS( xen_spore_medium, CXenSporeMed )
 LINK_ENTITY_TO_CLASS( xen_spore_large, CXenSporeLarge )
 LINK_ENTITY_TO_CLASS( xen_hull, CXenHull )
 
-void CXenSporeSmall::Spawn( void )
+void CXenSporeSmall::Spawn()
 {
 	CXenSpore::Spawn();
 	SetMySize( Vector( -16, -16, 0 ), Vector( 16, 16, 64) );
 }
 
-void CXenSporeMed::Spawn( void )
+void CXenSporeMed::Spawn()
 {
 	CXenSpore::Spawn();
 	SetMySize( Vector( -40, -40, 0 ), Vector( 40, 40, 120 ) );
@@ -543,7 +543,7 @@ const Vector CXenSporeLarge::m_hullSizes[] =
 	Vector( -90, 60, 0 ),
 };
 
-void CXenSporeLarge::Spawn( void )
+void CXenSporeLarge::Spawn()
 {
 	CXenSpore::Spawn();
 	SetMySize( Vector( -48, -48, 110 ), Vector( 48, 48, 240 ) );
@@ -563,7 +563,7 @@ void CXenSporeLarge::Spawn( void )
 		CXenHull::CreateHull( this, Vector( -12, -12, 0 ), Vector( 12, 12, 120 ), ( m_hullSizes[i].x * forward ) + ( m_hullSizes[i].y * right ) );
 }
 
-void CXenSpore :: Spawn( void )
+void CXenSpore :: Spawn()
 {
 	Precache();
 
@@ -585,7 +585,7 @@ void CXenSpore :: Spawn( void )
 	}
 }
 
-void CXenSpore::Precache( void )
+void CXenSpore::Precache()
 {
 	PrecacheMyModel(DefaultModel());
 }
@@ -594,7 +594,7 @@ void CXenSpore::Touch( CBaseEntity *pOther )
 {
 }
 
-void CXenSpore::Think( void )
+void CXenSpore::Think()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;

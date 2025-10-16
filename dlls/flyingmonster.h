@@ -22,14 +22,14 @@
 class CFlyingMonster : public CBaseMonster
 {
 public:
-	int 		CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );// check validity of a straight move through space
-	Activity	GetStoppedActivity( void );
+	int 		CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist ) override;// check validity of a straight move through space
+	Activity	GetStoppedActivity() override;
 	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void		Stop( void );
-	float		ChangeYaw( int yawSpeed );
-	void		HandleAnimEvent( MonsterEvent_t *pEvent );
-	void		MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void		Move( float flInterval = 0.1 );
+	void		Stop() override;
+	float		ChangeYaw( int yawSpeed ) override;
+	void		HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void		MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void		Move( float flInterval = 0.1 ) override;
 	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 
 	inline void	SetFlyingMomentum( float momentum ) { m_momentum = momentum; }

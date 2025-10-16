@@ -10,20 +10,17 @@
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
-#include	"mod_features.h"
-
-#if FEATURE_ROBOCOP
 
 class CFireTrail : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Think( void );
-	void Touch( CBaseEntity *pOther );
-	int ObjectCaps(void) { return FCAP_DONT_SAVE; }
+	void Spawn() override;
+	void Think() override;
+	void Touch( CBaseEntity *pOther ) override;
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 private:
 	int m_spriteScale; // what's the exact fireball sprite scale?
@@ -38,7 +35,7 @@ TYPEDESCRIPTION CFireTrail::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CFireTrail, CBaseEntity )
 
-void CFireTrail::Spawn( void )
+void CFireTrail::Spawn()
 {
 	pev->velocity = RANDOM_FLOAT( 100.0f, 150.0f ) * pev->angles;
 	if( RANDOM_LONG( 0, 1 ) )
@@ -70,7 +67,7 @@ void CFireTrail::Spawn( void )
 	pev->angles = g_vecZero;
 }
 
-void CFireTrail::Think( void )
+void CFireTrail::Think()
 {
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_EXPLOSION);
@@ -122,57 +119,57 @@ void SpawnExplosion( Vector center, float randomRange, float time, int magnitude
 class CRoboCop : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("robocop"); }
-	void UpdateOnRemove();
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("robocop"); }
+	void UpdateOnRemove() override;
 	void RemoveSpriteEffects();
-	void SetYawSpeed( void );
-	int  DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Robocop"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void SetActivity( Activity NewActivity );
+	void SetYawSpeed() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Robocop"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void SetActivity( Activity NewActivity ) override;
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckMeleeAttack2( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
 
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -80, -80, 0 ), Vector( 80, 80, 214 ));
 	}
 
-	void PrescheduleThink( void );
-	void OnChangeSchedule( Schedule_t* pNewSchedule );
+	void PrescheduleThink() override;
+	void OnChangeSchedule( Schedule_t* pNewSchedule ) override;
 
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 
-	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	Schedule_t *GetScheduleOfType( int Type );
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 
-	void FistAttack( void );
-	void CreateLaser( void );
-	void ChangeLaserState( void );
+	void FistAttack();
+	void CreateLaser();
+	void ChangeLaserState();
 	void HeadControls( float angleX, float angleY, bool zeropoint );
 
-	int DefaultSizeForGrapple() { return GRAPPLE_NOT_A_TARGET; }
-	bool IsDisplaceable() { return false; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_NOT_A_TARGET; }
+	bool IsDisplaceable() override { return false; }
 
-	Vector DefaultMinHullSize() { return Vector( -40.0f, -40.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 40.0f, 40.0f, 200.0f ); }
+	Vector DefaultMinHullSize() override { return Vector( -40.0f, -40.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 40.0f, 40.0f, 200.0f ); }
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
-	CUSTOM_SCHEDULES;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
+	CUSTOM_SCHEDULES
 
 	CSprite	*m_pLaserPointer;
 	CBeam	*m_pBeam;
@@ -382,7 +379,7 @@ DEFINE_CUSTOM_SCHEDULES( CRoboCop )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CRoboCop, CBaseMonster )
 
-void CRoboCop::FistAttack( void )
+void CRoboCop::FistAttack()
 {
 	Vector vecDist;
 	float flDist, flAdjustedDamage;
@@ -465,7 +462,7 @@ void CRoboCop::FistAttack( void )
 	EmitSoundScript(fistSoundScript);
 }
 
-void CRoboCop::CreateLaser( void )
+void CRoboCop::CreateLaser()
 {
 	m_pLaserPointer = CreateSpriteFromVisual(m_eyeVisual, pev->origin);
 	if (m_pLaserPointer)
@@ -491,7 +488,7 @@ void CRoboCop::CreateLaser( void )
 	ChangeLaserState();
 }
 
-void CRoboCop::ChangeLaserState( void )
+void CRoboCop::ChangeLaserState()
 {
 	float time;
 	float brightnessFraction;
@@ -580,7 +577,7 @@ void CRoboCop::HeadControls( float angleX, float angleY, bool zeropoint )
 	SetBoneController( 1, m_flHeadX );
 }
 
-void CRoboCop::PrescheduleThink( void )
+void CRoboCop::PrescheduleThink()
 {
 	if( m_flLaserTime <= gpGlobals->time && m_iLaserFlags != ( LF_ROBOCOP_LASER | LF_ROBOCOP_LOWBRIGHTNESS ) )
 	{
@@ -603,12 +600,12 @@ void CRoboCop::OnChangeSchedule(Schedule_t *pNewSchedule)
 	CBaseMonster::OnChangeSchedule(pNewSchedule);
 }
 
-int CRoboCop::DefaultClassify( void )
+int CRoboCop::DefaultClassify()
 {
 	return	CLASS_MACHINE;
 }
 
-void CRoboCop::SetYawSpeed( void )
+void CRoboCop::SetYawSpeed()
 {
 	int ys;
 
@@ -1056,4 +1053,3 @@ void CRoboCop::SetActivity( Activity NewActivity )
 		break;
 	}
 }
-#endif

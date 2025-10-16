@@ -72,7 +72,7 @@ Collects multiple small damages into a single damage
 //
 // ClearMultiDamage - resets the global multi damage accumulator
 //
-void ClearMultiDamage( void )
+void ClearMultiDamage()
 {
 	gMultiDamage.pEntity = NULL;
 	gMultiDamage.damageInfo = DamageInfo{};
@@ -532,7 +532,7 @@ void CBasePlayerWeapon::KeyValue(KeyValueData *pkvd)
 //=========================================================
 // Sets up movetype, size, solidtype for a new weapon. 
 //=========================================================
-void CBasePlayerWeapon::FallInit( void )
+void CBasePlayerWeapon::FallInit()
 {
 	if (pev->movetype < 0)
 		pev->movetype = MOVETYPE_NONE;
@@ -556,7 +556,7 @@ void CBasePlayerWeapon::FallInit( void )
 // to trigger and set it in a large box that helps the
 // player get it.
 //=========================================================
-void CBasePlayerWeapon::FallThink( void )
+void CBasePlayerWeapon::FallThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -593,7 +593,7 @@ void CBasePlayerWeapon::FallThink( void )
 //=========================================================
 // Materialize - make a CBasePlayerItem visible and tangible
 //=========================================================
-void CBasePlayerWeapon::Materialize( void )
+void CBasePlayerWeapon::Materialize()
 {
 	if( pev->effects & EF_NODRAW )
 	{
@@ -616,7 +616,7 @@ void CBasePlayerWeapon::Materialize( void )
 // AttemptToMaterialize - the item is trying to rematerialize,
 // should it do so now or wait longer?
 //=========================================================
-void CBasePlayerWeapon::AttemptToMaterialize( void )
+void CBasePlayerWeapon::AttemptToMaterialize()
 {
 	float time = g_pGameRules->FlWeaponTryRespawn( this );
 
@@ -634,7 +634,7 @@ void CBasePlayerWeapon::AttemptToMaterialize( void )
 // CheckRespawn - a player is taking this weapon, should 
 // it respawn?
 //=========================================================
-void CBasePlayerWeapon::CheckRespawn( void )
+void CBasePlayerWeapon::CheckRespawn()
 {
 	switch( g_pGameRules->WeaponShouldRespawn( this ) )
 	{
@@ -756,7 +756,7 @@ void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther )
 	SUB_UseTargets( pOther );
 }
 
-void CBasePlayerWeapon::DestroyItem( void )
+void CBasePlayerWeapon::DestroyItem()
 {
 	if( m_pPlayer )
 	{
@@ -769,7 +769,7 @@ void CBasePlayerWeapon::DestroyItem( void )
 	Kill();
 }
 
-void CBasePlayerWeapon::Drop( void )
+void CBasePlayerWeapon::Drop()
 {
 	SetTouch( NULL );
 	SetUse( NULL );
@@ -777,7 +777,7 @@ void CBasePlayerWeapon::Drop( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CBasePlayerWeapon::Kill( void )
+void CBasePlayerWeapon::Kill()
 {
 	SetTouch( NULL );
 	SetUse( NULL );
@@ -981,7 +981,7 @@ bool CBasePlayerWeapon::AddSecondaryAmmo(int iCount)
 // (does it have ammo loaded? do I have any ammo for the 
 // weapon?, etc)
 //=========================================================
-bool CBasePlayerWeapon::IsUseable( void )
+bool CBasePlayerWeapon::IsUseable()
 {
 	if( m_iClip > 0 )
 	{
@@ -1176,7 +1176,7 @@ bool CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon )
 //=========================================================
 // RetireWeapon - no more ammo for this gun, put it away.
 //=========================================================
-void CBasePlayerWeapon::RetireWeapon( void )
+void CBasePlayerWeapon::RetireWeapon()
 {
 	// first, no viewmodel at all.
 	if (m_pPlayer->m_pActiveItem == this)
@@ -1375,7 +1375,7 @@ IMPLEMENT_SAVERESTORE( CWeaponBox, CBaseDelay )
 //=========================================================
 //
 //=========================================================
-void CWeaponBox::Precache( void )
+void CWeaponBox::Precache()
 {
 	PRECACHE_MODEL( "models/w_weaponbox.mdl" );
 }
@@ -1404,7 +1404,7 @@ void CWeaponBox::KeyValue( KeyValueData *pkvd )
 //=========================================================
 // CWeaponBox - Spawn 
 //=========================================================
-void CWeaponBox::Spawn( void )
+void CWeaponBox::Spawn()
 {
 	Precache();
 
@@ -1426,7 +1426,7 @@ void CWeaponBox::Spawn( void )
 // CWeaponBox - Kill - the think function that removes the
 // box from the world.
 //=========================================================
-void CWeaponBox::Kill( void )
+void CWeaponBox::Kill()
 {
 	CBasePlayerWeapon *pWeapon;
 	int i;
@@ -1641,7 +1641,7 @@ bool CWeaponBox::HasWeapon( CBasePlayerWeapon *pCheckItem )
 //=========================================================
 // CWeaponBox::IsEmpty - is there anything in this box?
 //=========================================================
-bool CWeaponBox::IsEmpty( void )
+bool CWeaponBox::IsEmpty()
 {
 	int i;
 
@@ -1684,7 +1684,7 @@ void CWeaponBox::SetWeaponModel(CBasePlayerWeapon *pItem)
 
 //=========================================================
 //=========================================================
-void CWeaponBox::SetObjectCollisionBox( void )
+void CWeaponBox::SetObjectCollisionBox()
 {
 	SetMyObjectCollisionBox(Vector( -16, -16, 0 ), Vector( 16, 16, 16 ));
 }
@@ -1704,7 +1704,7 @@ CBasePlayerWeapon* CWeaponBox::WeaponById(int id)
 	return NULL;
 }
 
-void CBasePlayerWeapon::PrintState( void )
+void CBasePlayerWeapon::PrintState()
 {
 	ALERT( at_console, "primary:  %f\n", (double)m_flNextPrimaryAttack );
 	ALERT( at_console, "idle   :  %f\n", (double)m_flTimeWeaponIdle );

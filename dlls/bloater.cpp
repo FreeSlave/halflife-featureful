@@ -38,18 +38,18 @@
 class CBloater : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
 	// No range attacks
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
-	bool IsDisplaceable() { return true; }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	bool IsDisplaceable() override { return true; }
 };
 
 LINK_ENTITY_TO_CLASS( monster_bloater, CBloater )
@@ -58,7 +58,7 @@ LINK_ENTITY_TO_CLASS( monster_bloater, CBloater )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBloater::DefaultClassify( void )
+int CBloater::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -67,7 +67,7 @@ int CBloater::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CBloater::SetYawSpeed( void )
+void CBloater::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
@@ -131,8 +131,6 @@ void CBloater::Precache()
 // AI Schedules Specific to this monster
 //=========================================================
 
-#if FEATURE_FLOATER
-
 #define BLOATING_TIME 2.1
 #define BASE_FLOATER_SPEED 100
 #define FLOATER_GLOW_SPRITE "sprites/glow02.spr"
@@ -142,55 +140,55 @@ void CBloater::Precache()
 class CFloater : public CBaseMonster
 {
 public:
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("floater"); }
-	void SetYawSpeed( void );
-	int DefaultISoundMask();
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Floater"; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("floater"); }
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Floater"; }
 	int IRelationship(CBaseEntity *pTarget) override;
-	int SizeForGrapple() { return GRAPPLE_SMALL; }
-	Vector DefaultMinHullSize() { return Vector( -16.0f, -16.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 16.0f, 16.0f, 36.0f ); }
+	int SizeForGrapple() override { return GRAPPLE_SMALL; }
+	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 36.0f ); }
 
 	void EXPORT FloaterTouch(CBaseEntity* pOther);
 	void EXPORT FloaterBloatUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
-//	void SetObjectCollisionBox( void )
+//	void SetObjectCollisionBox()
 //	{
 //		pev->absmin = pev->origin + Vector( -24, -24, 0 );
 //		pev->absmax = pev->origin + Vector( 24, 24, 48 );
 //	}
 
-	void IdleSound();
-	void AlertSound();
+	void IdleSound() override;
+	void AlertSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
-	float HearingSensitivity( void );
+	float HearingSensitivity() override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib) override;
-	void GibMonster();
-	void UpdateOnRemove();
+	void GibMonster() override;
+	void UpdateOnRemove() override;
 
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	void RunTask( Task_t *pTask );
-	void PrescheduleThink();
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void RunTask( Task_t *pTask ) override;
+	void PrescheduleThink() override;
 	CUSTOM_SCHEDULES
 
-	void Move( float flInterval );
-	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );
-	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void SetActivity( Activity NewActivity );
-	int LookupActivity(int activity);
+	void Move( float flInterval ) override;
+	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist ) override;
+	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void SetActivity( Activity NewActivity ) override;
+	int LookupActivity(int activity) override;
 	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 
 	void StartBloating();
@@ -372,7 +370,7 @@ int CFloater::DefaultISoundMask()
 	return bits;
 }
 
-int CFloater::DefaultClassify( void )
+int CFloater::DefaultClassify()
 {
 	return	CLASS_ALIEN_MONSTER;
 }
@@ -384,7 +382,7 @@ int CFloater::IRelationship( CBaseEntity *pTarget )
 	return CBaseMonster::IRelationship( pTarget );
 }
 
-void CFloater::SetYawSpeed( void )
+void CFloater::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
@@ -593,7 +591,7 @@ void CFloater::PrescheduleThink()
 	CBaseMonster::PrescheduleThink();
 }
 
-Schedule_t *CFloater::GetSchedule( void )
+Schedule_t *CFloater::GetSchedule()
 {
 	if( HasConditions( bits_COND_HEAR_SOUND ) && !IsProvoked() )
 	{
@@ -1074,4 +1072,3 @@ void CFloater::AlertOthers()
 		}
 	}
 }
-#endif

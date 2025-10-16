@@ -47,34 +47,34 @@ const NamedVisual sharedEnergyBallVisual = BuildVisual("Controller.EnergyBallBas
 class CController : public CSquadMonster
 {
 public:
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	void ClearBalls();
-	void UpdateOnRemove();
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Alien Controller"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void UpdateOnRemove() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Alien Controller"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
-	void RunAI( void );
+	void RunAI() override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;	// balls
 	bool CheckRangeAttack2( float flDot, float flDist ) override;	// head
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;	// block, throw
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 	CUSTOM_SCHEDULES
 
-	void Stop( void );
-	void Move( float flInterval );
-	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );
-	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void SetActivity( Activity NewActivity );
+	void Stop() override;
+	void Move( float flInterval ) override;
+	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist ) override;
+	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void SetActivity( Activity NewActivity ) override;
 	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 	int LookupFloat();
 
@@ -104,11 +104,11 @@ public:
 	static const NamedVisual energyBallLightVisual;
 
 	void OnDying(bool gibbed) override;
-	void GibMonster( void );
+	void GibMonster() override;
 
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 	CSprite *m_pBall[2];	// hand balls
 	int m_iBall[2];		// how bright it should be
@@ -204,7 +204,7 @@ const NamedVisual CController::energyBallLightVisual = BuildVisual("Controller.E
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CController::DefaultClassify( void )
+int CController::DefaultClassify()
 {
 	return	CLASS_ALIEN_MILITARY;
 }
@@ -213,7 +213,7 @@ int CController::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CController::SetYawSpeed( void )
+void CController::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
@@ -242,7 +242,7 @@ void CController::OnDying(bool gibbed)
 	CSquadMonster::OnDying(gibbed);
 }
 
-void CController::GibMonster( void )
+void CController::GibMonster()
 {
 	ClearBalls();
 	CSquadMonster::GibMonster();
@@ -748,7 +748,7 @@ void CController::RunTask( Task_t *pTask )
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CController::GetSchedule( void )
+Schedule_t *CController::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -845,7 +845,7 @@ void CController::SetActivity( Activity NewActivity )
 //=========================================================
 // RunAI
 //=========================================================
-void CController::RunAI( void )
+void CController::RunAI()
 {
 	CBaseMonster::RunAI();
 	Vector vecStart, angleGun;
@@ -889,7 +889,7 @@ void CController::RunAI( void )
 	}
 }
 
-void CController::Stop( void )
+void CController::Stop()
 { 
 	m_IdealActivity = GetStoppedActivity(); 
 }
@@ -1122,11 +1122,11 @@ void CController::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, fl
 class CControllerDead : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	const char* DefaultModel() { return "models/controller.mdl"; }
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/controller.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CControllerDead::getPos(int pos) const
@@ -1149,20 +1149,20 @@ void CControllerDead::Spawn()
 class CControllerHeadBall : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT HuntThink( void );
-	void EXPORT DieThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT HuntThink();
+	void EXPORT DieThink();
 	void EXPORT BounceTouch( CBaseEntity *pOther );
 	void MovetoTarget( Vector vecTarget );
-	void Crawl( void );
+	void Crawl();
 	void MakeTraceBeam(const Vector& vecSrc);
 
 	Vector m_vecIdeal;
 	EHANDLE m_hOwner;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript electroSoundScript;
@@ -1216,7 +1216,7 @@ const NamedVisual CControllerHeadBall::headBallLightVisual = BuildVisual("Contro
 		.Radius(16)
 		.Life(0.2f);
 
-void CControllerHeadBall::Spawn( void )
+void CControllerHeadBall::Spawn()
 {
 	Precache();
 	// motor
@@ -1241,7 +1241,7 @@ void CControllerHeadBall::Spawn( void )
 	SetMaxFrame();
 }
 
-void CControllerHeadBall::Precache( void )
+void CControllerHeadBall::Precache()
 {
 	RegisterVisual(headBallVisual);
 	RegisterVisual(headBallBeamVisual);
@@ -1250,7 +1250,7 @@ void CControllerHeadBall::Precache( void )
 	SetMaxFrame();
 }
 
-void CControllerHeadBall::HuntThink( void )
+void CControllerHeadBall::HuntThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -1298,7 +1298,7 @@ void CControllerHeadBall::HuntThink( void )
 	//Crawl();
 }
 
-void CControllerHeadBall::DieThink( void )
+void CControllerHeadBall::DieThink()
 {
 	UTIL_Remove( this );
 }
@@ -1321,7 +1321,7 @@ void CControllerHeadBall::MovetoTarget( Vector vecTarget )
 	pev->velocity = m_vecIdeal;
 }
 
-void CControllerHeadBall::Crawl( void )
+void CControllerHeadBall::Crawl()
 {
 	Vector vecAim = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ) ).Normalize();
 	Vector vecPnt = pev->origin + pev->velocity * 0.3f + vecAim * 64.0f;
@@ -1358,15 +1358,15 @@ void CControllerHeadBall::BounceTouch( CBaseEntity *pOther )
 
 class CControllerZapBall : public CBaseMonster
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT AnimateThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT AnimateThink();
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
 
 	EHANDLE m_hOwner;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript electroSoundScript;
@@ -1405,7 +1405,7 @@ const NamedVisual CControllerZapBall::zapBallVisual = BuildVisual::Animated("Con
 		.Scale(0.5f)
 		.Mixin(&sharedEnergyBallVisual);
 
-void CControllerZapBall::Spawn( void )
+void CControllerZapBall::Spawn()
 {
 	Precache();
 	// motor
@@ -1427,14 +1427,14 @@ void CControllerZapBall::Spawn( void )
 	SetMaxFrame();
 }
 
-void CControllerZapBall::Precache( void )
+void CControllerZapBall::Precache()
 {
 	RegisterVisual(zapBallVisual);
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 	SetMaxFrame();
 }
 
-void CControllerZapBall::AnimateThink( void )
+void CControllerZapBall::AnimateThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -1475,9 +1475,9 @@ void CControllerZapBall::ExplodeTouch( CBaseEntity *pOther )
 class CZapBallTrap : public CBaseEntity
 {
 public:
-	void KeyValue( KeyValueData* pkvd );
-	void Spawn();
-	void Precache();
+	void KeyValue( KeyValueData* pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
 	void Animate();
 	void EXPORT DetectThink();
 	void EXPORT Materialize();
@@ -1532,8 +1532,8 @@ public:
 		return pev->dmg_take > 0 ? pev->dmg_take : gSkillData.zaptrapRespawnTime;
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript detectSoundScript;

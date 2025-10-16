@@ -141,9 +141,9 @@ static bool CanSpawnAtPosition(const Vector& position, int hullType, edict_t* pe
 class CChargeToken : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
-	void UpdateOnRemove();
+	void Spawn() override;
+	void Precache() override;
+	void UpdateOnRemove() override;
 	void EXPORT ArmorPieceTouch(CBaseEntity* pOther);
 	void EXPORT AnimateThink();
 	void EXPORT HuntThink();
@@ -163,8 +163,8 @@ public:
 		}
 	}
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	float m_flLastThink;
@@ -361,17 +361,17 @@ void CChargeToken::MakeEntLight(int timeDs)
 class CISlave : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
-	void UpdateOnRemove();
-	void SetYawSpeed( void );
-	int DefaultISoundMask( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Alien Slave"; }
-	const char* ReverseRelationshipModel() { return "models/islavef.mdl"; }
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void UpdateOnRemove() override;
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Alien Slave"; }
+	const char* ReverseRelationshipModel() override { return "models/islavef.mdl"; }
 	int IRelationship( CBaseEntity *pTarget ) override;
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
 	bool CheckHealOrReviveTargets( float flDist = 784, bool mustSee = false );
@@ -386,43 +386,43 @@ public:
 	void PainSound() override;
 	void AlertSound() override;
 	void IdleSound() override;
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 	bool EmitSoundScriptTalk(const char* name);
 
 	void OnDying(bool gibbed) override;
-	void DeathNotice( entvars_t* pevChild )
+	void DeathNotice( entvars_t* pevChild ) override
 	{
 		Forget(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE);
 	}
 
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void PrescheduleThink();
-	int LookupActivity(int activity);
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void PrescheduleThink() override;
+	int LookupActivity(int activity) override;
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
 	void SpawnFamiliar(const char *entityName, const Vector& origin, int hullType);
-	void OnChangeSchedule( Schedule_t* pNewSchedule );
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	void OnChangeSchedule( Schedule_t* pNewSchedule ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 	CUSTOM_SCHEDULES
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void ReportAIState( ALERT_TYPE level );
+	void ReportAIState( ALERT_TYPE level ) override;
 
 	void ClearBeams();
 	void ArmBeam(int side );
 	void ArmBeamMessage(int side );
 	void WackBeam( int side, CBaseEntity *pEntity );
 	CBaseEntity* ZapBeam( int side );
-	void BeamGlow( void );
+	void BeamGlow();
 	void HandsGlowOn(int brightness = 224);
 	void HandGlowOn(CSprite* handGlow, int brightness = 224);
 	void StartMeleeAttackGlow(int side);
@@ -762,7 +762,7 @@ const NamedVisual CISlave::summonLightVisual = BuildVisual("Vortigaunt.SummonLig
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CISlave::DefaultClassify( void )
+int CISlave::DefaultClassify()
 {
 	return CLASS_ALIEN_MILITARY;
 }
@@ -866,7 +866,7 @@ void CISlave::DeathSound()
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. 
 //=========================================================
-int CISlave::DefaultISoundMask( void )
+int CISlave::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -886,7 +886,7 @@ void CISlave::OnDying(bool gibbed)
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CISlave::SetYawSpeed( void )
+void CISlave::SetYawSpeed()
 {
 	int ys;
 
@@ -1372,7 +1372,7 @@ void CISlave::SpawnFamiliar(const char *entityName, const Vector &origin, int hu
 		CBaseEntity *pNew = Create( entityName, origin, pev->angles, edict() );
 
 		if(pNew) {
-			CBaseMonster *pNewMonster = pNew->MyMonsterPointer( );
+			CBaseMonster *pNewMonster = pNew->MyMonsterPointer();
 
 			Remember(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE);
 			CreateSpriteFromVisual(GetVisual(summonSpriteVisual), origin, SF_SPRITE_ONCE_AND_REMOVE);
@@ -1697,7 +1697,7 @@ void CISlave::OnChangeSchedule(Schedule_t *pNewSchedule)
 	CFollowingMonster::OnChangeSchedule(pNewSchedule);
 }
 
-Schedule_t *CISlave::GetSchedule( void )
+Schedule_t *CISlave::GetSchedule()
 {
 /*
 	if( pev->spawnflags )
@@ -2248,11 +2248,11 @@ void CISlave::ReportAIState(ALERT_TYPE level )
 class CDeadISlave : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/islave.mdl"; }
-	int	DefaultClassify() { return	CLASS_ALIEN_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/islave.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[5];
 };
 

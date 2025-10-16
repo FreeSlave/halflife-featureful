@@ -15,7 +15,6 @@
 
 #define FEATURE_SPORE_AMMO_CEILING_LIGHT 1
 
-#if FEATURE_SPOREGRENADE
 LINK_ENTITY_TO_CLASS(spore, CSpore)
 
 TYPEDESCRIPTION	CSpore::m_SaveData[] =
@@ -74,7 +73,7 @@ const NamedVisual CSpore::lightVisual = BuildVisual("Spore.Light")
 		.Life(0.5f)
 		.Decay(100.0f);
 
-void CSpore::Precache(void)
+void CSpore::Precache()
 {
 	RegisterVisual(modelVisual);
 	RegisterVisual(spriteVisual);
@@ -332,7 +331,7 @@ const NamedSoundScript CSporeAmmo::ammoSoundScript = {
 	"Spore.Ammo"
 };
 
-void CSporeAmmo::Precache( void )
+void CSporeAmmo::Precache()
 {
 	PRECACHE_MODEL("models/spore_ammo.mdl");
 	m_iExplode = PRECACHE_MODEL ("sprites/spore_exp_c_01.spr");
@@ -342,9 +341,9 @@ void CSporeAmmo::Precache( void )
 //=========================================================
 // Spawn
 //=========================================================
-void CSporeAmmo::Spawn( void )
+void CSporeAmmo::Spawn()
 {
-	Precache( );
+	Precache();
 	SET_MODEL(ENT(pev), "models/spore_ammo.mdl");
 	UTIL_SetSize(pev, Vector( -16, -16, -16 ), Vector( 16, 16, 16 ));
 	pev->takedamage = DAMAGE_YES;
@@ -472,5 +471,3 @@ void CSporeAmmo::AmmoTouch( CBaseEntity *pOther )
 		pev->nextthink = gpGlobals->time + 0.66f;
 	}
 }
-
-#endif

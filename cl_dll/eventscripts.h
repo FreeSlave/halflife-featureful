@@ -43,7 +43,7 @@ qboolean EV_IsPlayer( int idx );
 void EV_CreateTracer( float *start, float *end );
 
 struct cl_entity_s *GetEntity( int idx );
-struct cl_entity_s *GetViewEntity( void );
-void EV_MuzzleFlash( void );
+struct cl_entity_s *GetViewEntity();
+void EV_MuzzleFlash();
 void EV_MuzzleLight(const Vector &vecForward);
 #endif // EVENTSCRIPTSH

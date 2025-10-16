@@ -28,12 +28,9 @@
 #include	"game.h"
 #include	"squadmonster.h"
 #include	"combat.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
-
-#if FEATURE_VOLTIFORE
 
 #define VOLTIGORE_BEAM_COUNT 8
 #define VOLTIGORE_GIB_COUNT 10
@@ -41,8 +38,8 @@
 class CChargedBolt : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 
 	void InitBeams();
 	void ClearBeams();
@@ -65,8 +62,8 @@ public:
 
 	void EXPORT ChargedBoltTouch(CBaseEntity* pOther);
 
-	int Save(CSave& save);
-	int Restore(CRestore& restore);
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	EHANDLE m_pBeam[VOLTIGORE_BEAM_COUNT];
@@ -364,48 +361,48 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 class CVoltigore : public CSquadMonster
 {
 public:
-	virtual void Spawn(void);
-	virtual void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("voltigore"); }
-	void SetYawSpeed(void);
-	virtual int  DefaultClassify(void);
-	const char* DefaultDisplayName() { return "Voltigore"; }
-	virtual void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("voltigore"); }
+	void SetYawSpeed() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Voltigore"; }
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	void IdleSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	void DeathSound() override;
 	void AlertSound() override;
-	virtual void StartTask(Task_t *pTask);
-	virtual bool CheckMeleeAttack1(float flDot, float flDist) override;
-	virtual bool CheckRangeAttack1(float flDot, float flDist) override;
-	virtual void RunAI(void);
-	virtual void GibMonster();
+	void StartTask(Task_t *pTask) override;
+	bool CheckMeleeAttack1(float flDot, float flDist) override;
+	bool CheckRangeAttack1(float flDot, float flDist) override;
+	void RunAI() override;
+	void GibMonster() override;
 	void EXPORT CallDeathGibThink();
 	virtual void DeathGibThink();
-	Schedule_t *GetSchedule(void);
-	Schedule_t *GetScheduleOfType(int Type);
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType(int Type) override;
 	void OnDying(bool gibbed) override;
-	void UpdateOnRemove();
-	const char* DefaultGibModel() {
+	void UpdateOnRemove() override;
+	const char* DefaultGibModel() override {
 		return "models/vgibs.mdl";
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return VOLTIGORE_GIB_COUNT;
 	}
 	
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() {
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override {
 		return Vector( -80.0f, -80.0f, 0.0f );
 	}
-	Vector DefaultMaxHullSize() {
+	Vector DefaultMaxHullSize() override {
 		return Vector( 80.0f, 80.0f, 90.0f );
 	}
 
@@ -432,7 +429,6 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS(monster_alien_voltigore, CVoltigore)
-
 
 TYPEDESCRIPTION	CVoltigore::m_SaveData[] =
 {
@@ -526,7 +522,7 @@ bool CVoltigore::CheckRangeAttack1(float flDot, float flDist)
 	return false;
 }
 
-void CVoltigore::RunAI(void)
+void CVoltigore::RunAI()
 {
 	UpdateBeamAndBoltPositions();
 	CSquadMonster::RunAI();
@@ -639,7 +635,7 @@ bool CVoltigore::CheckMeleeAttack1(float flDot, float flDist)
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int	CVoltigore::DefaultClassify(void)
+int	CVoltigore::DefaultClassify()
 {
 	return	CLASS_RACEX_SHOCK;
 }
@@ -679,7 +675,7 @@ void CVoltigore::AlertSound()
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CVoltigore::SetYawSpeed(void)
+void CVoltigore::SetYawSpeed()
 {
 	int ys;
 
@@ -943,7 +939,7 @@ DEFINE_CUSTOM_SCHEDULES(CVoltigore)
 
 IMPLEMENT_CUSTOM_SCHEDULES(CVoltigore, CSquadMonster)
 
-Schedule_t *CVoltigore::GetSchedule(void)
+Schedule_t *CVoltigore::GetSchedule()
 {
 	switch (m_MonsterState)
 	{
@@ -1113,32 +1109,32 @@ Vector CVoltigore::BoltPosition()
 class CBabyVoltigore : public CVoltigore
 {
 public:
-	void	Spawn(void);
-	void	Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("babyvoltigore"); }
-	const char* DefaultDisplayName() { return "Baby Voltigore"; }
-	void	HandleAnimEvent(MonsterEvent_t* pEvent);
+	void	Spawn() override;
+	void	Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("babyvoltigore"); }
+	const char* DefaultDisplayName() override { return "Baby Voltigore"; }
+	void	HandleAnimEvent(MonsterEvent_t* pEvent) override;
 	bool	CheckMeleeAttack1(float flDot, float flDist) override;
 	bool	CheckRangeAttack1(float flDot, float flDist) override;
-	void	StartTask(Task_t *pTask);
-	void	GibMonster();
-	const char* DefaultGibModel() {
+	void	StartTask(Task_t *pTask) override;
+	void	GibMonster() override;
+	const char* DefaultGibModel() override {
 		return CSquadMonster::DefaultGibModel();
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return CSquadMonster::DefaultGibCount();
 	}
-	Schedule_t* GetSchedule();
-	Schedule_t* GetScheduleOfType(int Type);
+	Schedule_t* GetSchedule() override;
+	Schedule_t* GetScheduleOfType(int Type) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
-	Vector DefaultMinHullSize() { return Vector( -16.0f, -16.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 16.0f, 16.0f, 32.0f ); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 32.0f ); }
 
-	void IdleSound();
-	void AlertSound();
-	void PainSound();
-	void DeathSound();
+	void IdleSound() override;
+	void AlertSound() override;
+	void PainSound() override;
+	void DeathSound() override;
 	void AttackSound();
 
 	static constexpr const char* idleSoundScript = "BabyVoltigore.Idle";
@@ -1189,7 +1185,7 @@ void CBabyVoltigore::Spawn()
 
 //=========================================================
 //=========================================================
-void CBabyVoltigore::Precache(void)
+void CBabyVoltigore::Precache()
 {
 	PrecacheMyModel("models/baby_voltigore.mdl");
 
@@ -1312,7 +1308,7 @@ bool CBabyVoltigore::CheckRangeAttack1(float flDot, float flDist)
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CBabyVoltigore::GetSchedule(void)
+Schedule_t *CBabyVoltigore::GetSchedule()
 {
 	switch (m_MonsterState)
 	{
@@ -1386,5 +1382,3 @@ void CBabyVoltigore::AttackSound()
 {
 	EmitSoundScript(attackSoundScript);
 }
-
-#endif

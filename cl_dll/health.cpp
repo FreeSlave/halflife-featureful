@@ -45,7 +45,7 @@ int giDmgFlags[NUM_DMG_TYPES] =
 	DMG_SHOCK,
 };
 
-int CHudHealth::Init( void )
+int CHudHealth::Init()
 {
 	HOOK_MESSAGE( Health );
 	HOOK_MESSAGE( Damage );
@@ -70,7 +70,7 @@ int CHudHealth::Init( void )
 	return 1;
 }
 
-void CHudHealth::Reset( void )
+void CHudHealth::Reset()
 {
 	// make sure the pain compass is cleared when the player respawns
 	m_fAttackFront = m_fAttackRear = m_fAttackRight = m_fAttackLeft = 0;
@@ -83,7 +83,7 @@ void CHudHealth::Reset( void )
 	}
 }
 
-int CHudHealth::VidInit( void )
+int CHudHealth::VidInit()
 {
 	m_hSprite = 0;
 

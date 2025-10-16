@@ -19,12 +19,8 @@ void EV_SnarkFire( struct event_args_s *args );
 void EV_TrainPitchAdjust( struct event_args_s *args );
 void EV_VehiclePitchAdjust( struct event_args_s *args );
 
-#if FEATURE_DISPLACER
 void EV_Displacer( struct event_args_s *args );
-#endif
-#if FEATURE_MEDKIT
 void EV_MedkitFire( struct event_args_s *args );
-#endif
 }
 
 #endif

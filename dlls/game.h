@@ -21,7 +21,7 @@
 
 void ParseModConfigs();
 void SetWeaponParameters();
-extern void GameDLLInit( void );
+extern void GameDLLInit();
 
 #define MAX_NORMAL_HEALTH 100
 #define MAX_NORMAL_BATTERY 100

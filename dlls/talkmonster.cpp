@@ -640,7 +640,7 @@ CBaseEntity *CTalkMonster::EnumFriends(CBaseEntity *pPrevious, const char* pszFr
 	return NULL;
 }
 
-void CTalkMonster::AlertFriends( void )
+void CTalkMonster::AlertFriends()
 {
 	int i;
 
@@ -662,7 +662,7 @@ void CTalkMonster::AlertFriends( void )
 	}
 }
 
-void CTalkMonster::ShutUpFriends( void )
+void CTalkMonster::ShutUpFriends()
 {
 	CBaseEntity *pFriend = NULL;
 	int i;
@@ -756,7 +756,7 @@ void CTalkMonster::DeclineFollowing(CBaseEntity *pCaller)
 		m_hTalkTarget = pCaller;
 }
 
-float CTalkMonster::TargetDistance( void )
+float CTalkMonster::TargetDistance()
 {
 	// If we lose the player, or he dies, return a really large distance
 	if( m_hTargetEnt == 0 || !m_hTargetEnt->IsFullyAlive() )
@@ -789,7 +789,7 @@ void CTalkMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 }
 
 // monsters derived from ctalkmonster should call this in precache()
-void CTalkMonster::TalkInit( void )
+void CTalkMonster::TalkInit()
 {
 	// every new talking monster must reset this global, otherwise
 	// when a level is loaded, nobody will talk (time is reset to 0)
@@ -879,7 +879,7 @@ CBaseEntity *CTalkMonster::FindNearestFriend(bool fPlayer )
 	return pNearest;
 }
 
-int CTalkMonster::GetVoicePitch( void )
+int CTalkMonster::GetVoicePitch()
 {
 	return (m_voicePitch ? m_voicePitch : GetDefaultVoicePitch()) + RANDOM_LONG( 0, 3 );
 }
@@ -900,10 +900,8 @@ bool CTalkMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
 // IdleRespond
 // Respond to a previous question
 //=========================================================
-void CTalkMonster::IdleRespond( void )
+void CTalkMonster::IdleRespond()
 {
-	//int pitch = GetVoicePitch();
-
 	// play response
 	PlaySentence( SentenceGroup(TLK_ANSWER), RANDOM_FLOAT( 2.8f, 3.2f ), VOL_NORM, ATTN_IDLE );
 }
@@ -995,7 +993,7 @@ PainSoundRule CTalkMonster::DefaultPainSoundRule()
 //=========================================================
 // FIdleStare
 //=========================================================
-bool CTalkMonster::FIdleStare( void )
+bool CTalkMonster::FIdleStare()
 {
 	if( !FOkToSpeak() )
 		return false;
@@ -1013,7 +1011,7 @@ bool CTalkMonster::FIdleStare( void )
 // IdleHello
 // Try to greet player first time he's seen
 //=========================================================
-bool CTalkMonster::FIdleHello( void )
+bool CTalkMonster::FIdleHello()
 {
 	if( !FOkToSpeak() )
 		return false;
@@ -1053,7 +1051,7 @@ bool CTalkMonster::GotIdleSpeakChance()
 	return RANDOM_LONG( 0, m_nSpeak * 2 ) == 0;
 }
 
-bool CTalkMonster::FIdleSpeak( void )
+bool CTalkMonster::FIdleSpeak()
 { 
 	// try to start a conversation, or make statement
 
@@ -1158,7 +1156,7 @@ void CTalkMonster::PlayScriptedSentence( const char *pszSentence, float duration
 	m_hTalkTarget = pListener;
 }
 
-bool CTalkMonster::PlaySentence(const char *pszSentence, float duration, float volume, float attenuation , bool subtitle)
+bool CTalkMonster::PlaySentence(const char *pszSentence, float duration, float volume, float attenuation, bool subtitle)
 {
 	if( !pszSentence )
 		return false;
@@ -1521,7 +1519,7 @@ Schedule_t *CTalkMonster::GetScheduleOfType( int Type )
 //=========================================================
 // IsTalking - am I saying a sentence right now?
 //=========================================================
-bool CTalkMonster::IsTalking( void )
+bool CTalkMonster::IsTalking()
 {
 	return m_flStopTalkTime > gpGlobals->time;
 }
@@ -1529,7 +1527,7 @@ bool CTalkMonster::IsTalking( void )
 //=========================================================
 // If there's a player around, watch him.
 //=========================================================
-void CTalkMonster::PrescheduleThink( void )
+void CTalkMonster::PrescheduleThink()
 {
 	if( !HasConditions( bits_COND_SEE_CLIENT ) )
 	{
@@ -1553,7 +1551,7 @@ bool CTalkMonster::FindAndCallMedic()
 	// First try looking for a medic in my squad
 	if ( InSquad() )
 	{
-		CSquadMonster *pSquadLeader = MySquadLeader( );
+		CSquadMonster *pSquadLeader = MySquadLeader();
 		if ( pSquadLeader )
 		{
 			for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)
@@ -1610,7 +1608,7 @@ bool CTalkMonster::FindAndCallMedic()
 }
 
 // try to smell something
-void CTalkMonster::TrySmellTalk( void )
+void CTalkMonster::TrySmellTalk()
 {
 	if( !FOkToSpeak() )
 		return;

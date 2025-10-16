@@ -8,24 +8,22 @@
 #include	"mod_features.h"
 #include	"game.h"
 
-#if FEATURE_DRILLSERGEANT
-
 class CDrillSergeant : public CTalkMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
-	const char* DefaultDisplayName() { return "Drill Sergeant"; }
-	void SetYawSpeed(void);
-	int DefaultISoundMask(void);
-	int DefaultClassify(void);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
+	const char* DefaultDisplayName() override { return "Drill Sergeant"; }
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	int DefaultClassify() override;
 	void DeathSound() override;
 	void PainSound() override;
 
-	Schedule_t *GetSchedule( void );
+	Schedule_t *GetSchedule() override;
 
-	const char* DefaultSentenceGroup(int group);
+	const char* DefaultSentenceGroup(int group) override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -77,7 +75,7 @@ void CDrillSergeant::Spawn()
 	TalkMonsterInit();
 }
 
-void CDrillSergeant::SetYawSpeed( void )
+void CDrillSergeant::SetYawSpeed()
 {
 	int ys = 0;
 	switch ( m_Activity )
@@ -99,7 +97,7 @@ void CDrillSergeant::SetYawSpeed( void )
 	pev->yaw_speed = ys;
 }
 
-int CDrillSergeant::DefaultISoundMask( void)
+int CDrillSergeant::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -110,7 +108,7 @@ int CDrillSergeant::DefaultISoundMask( void)
 			bits_SOUND_PLAYER;
 }
 
-int CDrillSergeant::DefaultClassify(void)
+int CDrillSergeant::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
@@ -190,12 +188,12 @@ Schedule_t* CDrillSergeant::GetSchedule()
 class CDeadDrillSergeant : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/drill.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
-	int	DefaultClassify ( void ) { return	CLASS_PLAYER_ALLY_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/drill.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
+	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -213,5 +211,3 @@ void CDeadDrillSergeant::Spawn()
 	SpawnHelper();
 	MonsterInitDead();
 }
-
-#endif

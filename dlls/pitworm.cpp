@@ -23,12 +23,9 @@
 #include	"effects.h"
 #include	"player.h"
 #include	"decals.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
-
-#if FEATURE_PITWORM
 
 #define PITWORM_ATTN 0.1f
 #define NUM_PITWORM_LEVELS		4
@@ -36,12 +33,12 @@
 class CPitWorm : public CBaseMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitworm"); }
-	int  DefaultClassify(void);
-	virtual int	ObjectCaps(void) { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
-	void SetObjectCollisionBox()
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
+	int  DefaultClassify() override;
+	int	ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -400, -400, 0 ), Vector( 400, 400, 850 ));
 	}
@@ -54,20 +51,20 @@ public:
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 
-	int		Save(CSave &save);
-	int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
-	void EXPORT StartupThink(void);
-	void EXPORT DyingThink(void);
+	void EXPORT StartupThink();
+	void EXPORT DyingThink();
 	void EXPORT StartupUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	void EXPORT NullThink(void);
+	void EXPORT NullThink();
 	void EXPORT CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	void EXPORT	HuntThink(void);
+	void EXPORT	HuntThink();
 	void EXPORT HitTouch(CBaseEntity* pOther);
 
 	void LockTopLevel();
@@ -77,12 +74,12 @@ public:
 	void ChangeLevel();
 	void TrackEnemy();
 
-	void NextActivity(void);
+	void NextActivity();
 
 	void EyeLight(const Vector& vecEyePos);
 	void BeamEffect(TraceResult& tr);
 
-	int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 
 	Vector m_vecTarget;
 	Vector m_posTarget;
@@ -439,7 +436,7 @@ bool CPitWorm::FVisible(const Vector& vecOrigin, CBaseEntity** ppSightBlocker)
 //=========================================================
 // Classify
 //=========================================================
-int CPitWorm::DefaultClassify(void)
+int CPitWorm::DefaultClassify()
 {
 	return CLASS_RACEX_SHOCK;
 }
@@ -447,7 +444,7 @@ int CPitWorm::DefaultClassify(void)
 //=========================================================
 // IdleSound
 //=========================================================
-void CPitWorm::IdleSound(void)
+void CPitWorm::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -455,7 +452,7 @@ void CPitWorm::IdleSound(void)
 //=========================================================
 // AlertSound
 //=========================================================
-void CPitWorm::AlertSound(void)
+void CPitWorm::AlertSound()
 {
 	EmitSoundScript(alertSoundScript);
 }
@@ -463,7 +460,7 @@ void CPitWorm::AlertSound(void)
 //=========================================================
 // DeathSound
 //=========================================================
-void CPitWorm::DeathSound(void)
+void CPitWorm::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -605,7 +602,7 @@ TakeDamageResult CPitWorm::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAt
 //=========================================================
 // StartupThink
 //=========================================================
-void CPitWorm::StartupThink(void)
+void CPitWorm::StartupThink()
 {
 	CBaseEntity *pEntity = NULL;
 
@@ -678,7 +675,7 @@ void CPitWorm::StartupUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 //=========================================================
 // NullThink
 //=========================================================
-void CPitWorm::NullThink(void)
+void CPitWorm::NullThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.5;
@@ -687,7 +684,7 @@ void CPitWorm::NullThink(void)
 //=========================================================
 // DyingThink
 //=========================================================
-void CPitWorm::DyingThink(void)
+void CPitWorm::DyingThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1;
 	GlowShellUpdate();
@@ -746,7 +743,7 @@ void CPitWorm::DyingThink(void)
 //=========================================================
 // HuntThink
 //=========================================================
-void CPitWorm::HuntThink(void)
+void CPitWorm::HuntThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1;
 	GlowShellUpdate();
@@ -1376,9 +1373,9 @@ void CPitWorm::TrackEnemy()
 class CPitwormGib : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitworm"); }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	void EXPORT GibFloat();
 };
 
@@ -1432,17 +1429,17 @@ void CPitwormGib::GibFloat()
 class CPitwormGibShooter : public CBaseDelay
 {
 public:
-	void Spawn();
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitworm"); }
-	void KeyValue( KeyValueData *pkvd );
-	void EXPORT ShootThink( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
+	void KeyValue( KeyValueData *pkvd ) override;
+	void EXPORT ShootThink();
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
-	CPitwormGib *CreateGib(void);
+	CPitwormGib *CreateGib();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_iGibModelIndex;
@@ -1458,7 +1455,7 @@ IMPLEMENT_SAVERESTORE( CPitwormGibShooter, CBaseDelay )
 
 LINK_ENTITY_TO_CLASS(pitworm_gibshooter, CPitwormGibShooter)
 
-void CPitwormGibShooter::Precache(void)
+void CPitwormGibShooter::Precache()
 {
 	m_iGibModelIndex = PRECACHE_MODEL("models/pit_worm_gibs.mdl");
 	UTIL_PrecacheOther("pitworm_gib");
@@ -1498,7 +1495,7 @@ void CPitwormGibShooter::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE
 	pev->nextthink = gpGlobals->time;
 }
 
-CPitwormGib *CPitwormGibShooter::CreateGib(void)
+CPitwormGib *CPitwormGibShooter::CreateGib()
 {
 	if (violence_hgibs->value == 0)
 		return NULL;
@@ -1532,9 +1529,9 @@ void CPitwormGibShooter::ShootThink()
 class CPitWormSteamTrigger : public CBaseEntity
 {
 public:
-	void Spawn();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitworm"); }
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Spawn() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 
 LINK_ENTITY_TO_CLASS(info_pitworm_steam_lock, CPitWormSteamTrigger)
@@ -1555,5 +1552,3 @@ void CPitWormSteamTrigger::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, US
 		pWorm->LockTopLevel();
 	}
 }
-
-#endif

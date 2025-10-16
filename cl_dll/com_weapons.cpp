@@ -97,7 +97,7 @@ HUD_GetWeaponAnim
 Retrieve current predicted weapon animation
 =====================
 */
-int HUD_GetWeaponAnim( void )
+int HUD_GetWeaponAnim()
 {
 	return g_currentanim;
 }
@@ -157,7 +157,7 @@ Always 0.0 on client, even if not predicting weapons ( won't get called
  in that case )
 =====================
 */
-float UTIL_WeaponTimeBase( void )
+float UTIL_WeaponTimeBase()
 {
 	return 0.0f;
 }

@@ -29,14 +29,12 @@
 #include	"scripted.h"
 #include	"decals.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"gamerules.h"
 #include	"studio.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 
-#if FEATURE_OPFOR_GRUNT
 //=========================================================
 //
 //=========================================================
@@ -148,35 +146,35 @@ enum
 class CHFGrunt : public CTalkMonster
 {
 public:
-	void Spawn( void );
-	int GetDefaultVoicePitch();
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
-	void SetYawSpeed( void );
-	int  DefaultISoundMask( void );
-	int  DefaultClassify ( void );
-	const char* DefaultDisplayName() { return "Human Grunt"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void CheckAmmo ( void );
-	int LookupActivity(int activity);
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	void KeyValue( KeyValueData *pkvd );
-	bool FCanCheckAttacks ( void ) override;
-	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
-	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
-	bool CheckMeleeAttack1 ( float flDot, float flDist ) override;
-	int MaxFollowers() { return -1; }
-	int TalkFriendCategory() { return TALK_FRIEND_SOLDIER; }
-	void PlayCallForMedic();
-	void PrescheduleThink ( void );
-	Vector GetGunPosition( void );
-	void Shoot ( void );
-	void Shotgun ( void );
-	void M249 ( void );
+	void Spawn() override;
+	int GetDefaultVoicePitch() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
+	void SetYawSpeed() override;
+	int  DefaultISoundMask() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Human Grunt"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void CheckAmmo() override;
+	int LookupActivity(int activity) override;
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	bool FCanCheckAttacks() override;
+	bool CheckRangeAttack1( float flDot, float flDist ) override;
+	bool CheckRangeAttack2( float flDot, float flDist ) override;
+	bool CheckMeleeAttack1( float flDot, float flDist ) override;
+	int MaxFollowers() override { return -1; }
+	int TalkFriendCategory() override { return TALK_FRIEND_SOLDIER; }
+	void PlayCallForMedic() override;
+	void PrescheduleThink() override;
+	Vector GetGunPosition() override;
+	void Shoot();
+	void Shotgun();
+	void M249();
 	// Override these to set behavior
-	Schedule_t *GetScheduleOfType ( int Type );
-	Schedule_t *GetSchedule ( void );
+	Schedule_t *GetScheduleOfType ( int Type ) override;
+	Schedule_t *GetSchedule() override;
 	Schedule_t *PrioritizedSchedule();
 	Schedule_t *GetReloadSchedule();
 
@@ -198,28 +196,28 @@ public:
 
 	static const NamedSoundScript m249ReloadSoundScript;
 
-	void GibMonster( void );
-	void SpeakSentence( void );
-	const char* DefaultSentenceGroup(int group);
+	void GibMonster() override;
+	void SpeakSentence();
+	const char* DefaultSentenceGroup(int group) override;
 
-	bool FOkToSpeak( void );
-	void JustSpoke( void );
+	bool FOkToSpeak();
+	void JustSpoke();
 
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	int DefaultToleranceLevel() { return TOLERANCE_HIGH; }
-	int IRelationship ( CBaseEntity *pTarget ) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_HIGH; }
+	int IRelationship( CBaseEntity *pTarget ) override;
 
-	void SetHead(int head);
+	void SetHead(int head) override;
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
 	// checking the feasibility of a grenade toss is kind of costly, so we do it every couple of seconds,
 	// not every server frame.
@@ -294,34 +292,34 @@ const NamedSoundScript CHFGrunt::m249ReloadSoundScript = {
 class CMedic : public CHFGrunt
 {
 public:
-	void Spawn( void );
-	int GetDefaultVoicePitch();
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
-	const char* DefaultDisplayName() { return "Human Medic"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Spawn() override;
+	int GetDefaultVoicePitch() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
+	const char* DefaultDisplayName() override { return "Human Medic"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
-	void GibMonster();
-	const char* DefaultSentenceGroup(int group);
+	void GibMonster() override;
+	const char* DefaultSentenceGroup(int group) override;
 
-	int LookupActivity(int activity);
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	Schedule_t *GetSchedule ( void );
-	Schedule_t *GetScheduleOfType(int Type);
-	void OnChangeSchedule( Schedule_t *pNewSchedule );
-	CBaseEntity* FollowedPlayer();
+	int LookupActivity(int activity) override;
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType(int Type) override;
+	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
+	CBaseEntity* FollowedPlayer() override;
 	void StopFollowing( bool clearSchedule, bool saySentence = true ) override;
-	void ClearFollowedPlayer();
-	bool SetAnswerQuestion(CTalkMonster *pSpeaker);
+	void ClearFollowedPlayer() override;
+	bool SetAnswerQuestion(CTalkMonster *pSpeaker) override;
 
 	void DropMyItems(bool isGibbed);
 
 	void FirePistol(const char* shotSoundScript, float damage);
 	bool Heal();
-	void StartFollowingHealTarget(CBaseEntity* pTarget);
-	bool ReadyToHeal();
+	void StartFollowingHealTarget(CBaseEntity* pTarget) override;
+	bool ReadyToHeal() override;
 	void RestoreTargetEnt();
 	void StopHealing(bool clearTargetEnt = true);
 	CBaseEntity* HealTarget();
@@ -331,11 +329,11 @@ public:
 	bool CheckHealCharge();
 	bool ShouldDrawGun();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
 	CUSTOM_SCHEDULES
 	float m_flHealCharge;
@@ -353,14 +351,14 @@ public:
 	static constexpr const char* desertEagleSoundScript = "MedicGrunt.DesertEagle";
 	static constexpr const char* desertEagleReloadSoundScript = "MedicGrunt.ReloadDesertEagle";
 
-	void PainSound() { EmitSoundScriptTalk(painSoundScript); }
-	void DeathSound() { EmitSoundScriptTalk(dieSoundScript); }
-	void PlayCallForMedic() { EmitSoundScriptTalk(callMedicSoundScript); }
+	void PainSound() override { EmitSoundScriptTalk(painSoundScript); }
+	void DeathSound() override { EmitSoundScriptTalk(dieSoundScript); }
+	void PlayCallForMedic() override { EmitSoundScriptTalk(callMedicSoundScript); }
 
 	static const NamedSoundScript healSoundScript;
 
 protected:
-	bool HasWeaponEquiped();
+	bool HasWeaponEquiped() override;
 
 	void SetBodyGroupNumbers();
 	int headGroup;
@@ -385,7 +383,7 @@ IMPLEMENT_SAVERESTORE( CHFGrunt, CTalkMonster )
 //
 // !!! netname entvar field is used in squadmonster for groupname!!!
 //=========================================================
-void CHFGrunt :: KeyValue( KeyValueData *pkvd )
+void CHFGrunt::KeyValue( KeyValueData *pkvd )
 {
 	if (FStrEq(pkvd->szKeyName, "head"))
 	{
@@ -400,7 +398,7 @@ void CHFGrunt :: KeyValue( KeyValueData *pkvd )
 //=========================================================
 // someone else is talking - don't speak
 //=========================================================
-bool CHFGrunt :: FOkToSpeak( void )
+bool CHFGrunt::FOkToSpeak()
 {
 // if someone else is talking, don't speak
 	if ( CTalkMonster::SomeoneIsTalking() )
@@ -431,7 +429,7 @@ bool CHFGrunt :: FOkToSpeak( void )
 }
 //=========================================================
 //=========================================================
-void CHFGrunt :: JustSpoke( void )
+void CHFGrunt::JustSpoke()
 {
 	CTalkMonster::g_talkWaitTime = gpGlobals->time + RANDOM_FLOAT(1.5, 2.0);
 	m_iSentence = -1;
@@ -1135,7 +1133,7 @@ DEFINE_CUSTOM_SCHEDULES( CHFGrunt )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHFGrunt, CTalkMonster )
 
-void CHFGrunt :: StartTask( Task_t *pTask )
+void CHFGrunt::StartTask( Task_t *pTask )
 {
 	switch ( pTask->iTask )
 	{
@@ -1148,7 +1146,7 @@ void CHFGrunt :: StartTask( Task_t *pTask )
 	case TASK_RUN_PATH:
 		// grunt no longer assumes he is covered if he moves
 		Forget( bits_MEMORY_INCOVER );
-		CTalkMonster ::StartTask( pTask );
+		CTalkMonster::StartTask( pTask );
 		break;
 
 	case TASK_RELOAD:
@@ -1160,7 +1158,7 @@ void CHFGrunt :: StartTask( Task_t *pTask )
 
 	case TASK_FACE_IDEAL:
 	case TASK_FACE_ENEMY:
-		CTalkMonster :: StartTask( pTask );
+		CTalkMonster::StartTask( pTask );
 		if (pev->movetype == MOVETYPE_FLY)
 		{
 			m_IdealActivity = ACT_GLIDE;
@@ -1168,12 +1166,12 @@ void CHFGrunt :: StartTask( Task_t *pTask )
 		break;
 
 	default:
-		CTalkMonster :: StartTask( pTask );
+		CTalkMonster::StartTask( pTask );
 		break;
 	}
 }
 
-void CHFGrunt :: RunTask( Task_t *pTask )
+void CHFGrunt::RunTask( Task_t *pTask )
 {
 	switch ( pTask->iTask )
 	{
@@ -1192,7 +1190,7 @@ void CHFGrunt :: RunTask( Task_t *pTask )
 		}
 	default:
 		{
-			CTalkMonster :: RunTask( pTask );
+			CTalkMonster::RunTask( pTask );
 			break;
 		}
 	}
@@ -1200,7 +1198,7 @@ void CHFGrunt :: RunTask( Task_t *pTask )
 //=========================================================
 // GibMonster - make gun fly through the air.
 //=========================================================
-void CHFGrunt :: GibMonster ( void )
+void CHFGrunt::GibMonster()
 {
 	if ( GetBodygroup( FG_GUN_GROUP ) != FG_GUN_NONE )
 	{// throw a gun if the grunt has one
@@ -1265,7 +1263,7 @@ void CHFGrunt::DropMyItems(bool isGibbed)
 	pev->weapons = 0;
 }
 
-void CHFGrunt::SpeakSentence( void )
+void CHFGrunt::SpeakSentence()
 {
 	if( m_iSentence < 0 )
 	{
@@ -1283,7 +1281,7 @@ void CHFGrunt::SpeakSentence( void )
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards.
 //=========================================================
-int CHFGrunt :: DefaultISoundMask ( void)
+int CHFGrunt::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD	|
 			bits_SOUND_COMBAT	|
@@ -1297,7 +1295,7 @@ int CHFGrunt :: DefaultISoundMask ( void)
 // CheckAmmo - overridden for the grunt because he actually
 // uses ammo! (base class doesn't)
 //=========================================================
-void CHFGrunt :: CheckAmmo ( void )
+void CHFGrunt::CheckAmmo()
 {
 	if ( m_cClipSize > 0 && m_cAmmoLoaded <= 0 )
 	{
@@ -1308,7 +1306,7 @@ void CHFGrunt :: CheckAmmo ( void )
 // Classify - indicates this monster's place in the
 // relationship table.
 //=========================================================
-int	CHFGrunt :: DefaultClassify ( void )
+int	CHFGrunt::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
@@ -1316,7 +1314,7 @@ int	CHFGrunt :: DefaultClassify ( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CHFGrunt :: SetYawSpeed ( void )
+void CHFGrunt::SetYawSpeed()
 {
 	int ys;
 
@@ -1364,7 +1362,7 @@ void CHFGrunt :: SetYawSpeed ( void )
 // PrescheduleThink - this function runs after conditions
 // are collected and before scheduling code is run.
 //=========================================================
-void CHFGrunt :: PrescheduleThink ( void )
+void CHFGrunt::PrescheduleThink()
 {
 	if ( InSquad() && m_hEnemy != 0 )
 	{
@@ -1402,7 +1400,7 @@ void CHFGrunt::PlayCallForMedic()
 // this is a bad bug. Friendly machine gun fire avoidance
 // will unecessarily prevent the throwing of a grenade as well.
 //=========================================================
-bool CHFGrunt :: FCanCheckAttacks ( void )
+bool CHFGrunt::FCanCheckAttacks()
 {
 	if ( !HasConditions( bits_COND_ENEMY_TOOFAR ) )
 	{
@@ -1418,7 +1416,7 @@ bool CHFGrunt :: FCanCheckAttacks ( void )
 //=========================================================
 // CheckMeleeAttack1
 //=========================================================
-bool CHFGrunt :: CheckMeleeAttack1 ( float flDot, float flDist )
+bool CHFGrunt::CheckMeleeAttack1 ( float flDot, float flDist )
 {
 	return CTalkMonster::CheckMeleeAttack1(flDot, flDist);
 }
@@ -1436,7 +1434,7 @@ bool CHFGrunt::HasWeaponEquiped()
 	return GetBodygroup( FG_GUN_GROUP ) != FG_GUN_NONE;
 }
 
-bool CHFGrunt :: CheckRangeAttack1 ( float flDot, float flDist )
+bool CHFGrunt::CheckRangeAttack1 ( float flDot, float flDist )
 {
 	if ( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist <= 2048 && flDot >= 0.5 && HasWeaponEquiped() && NoFriendlyFire() )
 	{
@@ -1612,7 +1610,7 @@ void CHFGrunt::PerformKick(int eventIndex, float kickDamage)
 // GetGunPosition	return the end of the barrel
 //=========================================================
 
-Vector CHFGrunt :: GetGunPosition( )
+Vector CHFGrunt::GetGunPosition()
 {
 	if (m_fStanding )
 	{
@@ -1627,7 +1625,7 @@ Vector CHFGrunt :: GetGunPosition( )
 //=========================================================
 // Shoot
 //=========================================================
-void CHFGrunt :: Shoot ( void )
+void CHFGrunt::Shoot()
 {
 	Vector vecShootOrigin = GetGunPosition();
 	Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
@@ -1649,7 +1647,7 @@ void CHFGrunt :: Shoot ( void )
 //=========================================================
 // Shoot
 //=========================================================
-void CHFGrunt :: Shotgun ( void )
+void CHFGrunt::Shotgun()
 {
 	Vector vecShootOrigin = GetGunPosition();
 	Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
@@ -1670,7 +1668,7 @@ void CHFGrunt :: Shotgun ( void )
 //=========================================================
 // Shoot
 //=========================================================
-void CHFGrunt :: M249 ( void )
+void CHFGrunt::M249()
 {
 	EmitSoundScript(m249SoundScript);
 
@@ -1705,7 +1703,7 @@ void CHFGrunt :: M249 ( void )
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //=========================================================
-void CHFGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
+void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 {
 	switch( pEvent->event )
 	{
@@ -1858,9 +1856,9 @@ int CHFGrunt::GetDefaultVoicePitch()
 	}
 }
 
-void CHFGrunt :: Spawn()
+void CHFGrunt::Spawn()
 {
-	Precache( );
+	Precache();
 
 	SpawnHelper("models/hgrunt_opfor.mdl", gSkillData.fgruntHealth);
 
@@ -1956,7 +1954,7 @@ void CHFGrunt::SpawnHelper(const char *defaultModel, float defaultHealth)
 //=========================================================
 // Precache - precaches all resources this monster needs
 //=========================================================
-void CHFGrunt :: Precache()
+void CHFGrunt::Precache()
 {
 	PrecacheMyModel("models/hgrunt_opfor.mdl");
 	PrecacheMyGibModel();
@@ -2155,7 +2153,7 @@ DamageInfo CHFGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t
 // needs to forget that he is in cover if he's hurt. (Obviously
 // not in a safe place anymore).
 //=========================================================
-TakeDamageResult CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CHFGrunt::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	Forget( bits_MEMORY_INCOVER );
 
@@ -2166,7 +2164,7 @@ TakeDamageResult CHFGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 // AI Schedules Specific to this monster
 //=========================================================
 
-Schedule_t* CHFGrunt :: GetScheduleOfType ( int Type )
+Schedule_t* CHFGrunt::GetScheduleOfType ( int Type )
 {
 	switch( Type )
 	{
@@ -2305,7 +2303,7 @@ Schedule_t* CHFGrunt :: GetScheduleOfType ( int Type )
 		}
 	default:
 		{
-			return CTalkMonster :: GetScheduleOfType ( Type );
+			return CTalkMonster::GetScheduleOfType ( Type );
 		}
 	}
 }
@@ -2466,7 +2464,7 @@ Schedule_t *CHFGrunt::GetReloadSchedule()
 	return NULL;
 }
 
-Schedule_t *CHFGrunt :: GetSchedule ( void )
+Schedule_t *CHFGrunt::GetSchedule()
 {
 	Schedule_t* prioritizedSchedule = PrioritizedSchedule();
 	if (prioritizedSchedule)
@@ -2671,7 +2669,7 @@ Schedule_t *CHFGrunt :: GetSchedule ( void )
 		break;
 	}
 
-	return CTalkMonster :: GetSchedule();
+	return CTalkMonster::GetSchedule();
 }
 
 //=========================================================
@@ -2682,11 +2680,11 @@ Schedule_t *CHFGrunt :: GetSchedule ( void )
 class CTalkMonsterRepel : public CHGruntRepel
 {
 public:
-	void KeyValue(KeyValueData* pkvd);
-	void PrepareBeforeSpawn(CBaseEntity* pEntity);
+	void KeyValue(KeyValueData* pkvd) override;
+	void PrepareBeforeSpawn(CBaseEntity* pEntity) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszUse;
@@ -2742,15 +2740,15 @@ void CTalkMonsterRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CHFGruntRepel : public CTalkMonsterRepel
 {
 public:
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
-	void KeyValue(KeyValueData* pkvd);
-	const char* TrooperName() {
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
+	void KeyValue(KeyValueData* pkvd) override;
+	const char* TrooperName() override {
 		return "monster_human_grunt_ally";
 	}
-	void PrepareBeforeSpawn(CBaseEntity* pEntity);
+	void PrepareBeforeSpawn(CBaseEntity* pEntity) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_iGruntHead;
@@ -2786,8 +2784,8 @@ void CHFGruntRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CMedicRepel : public CHFGruntRepel
 {
 public:
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
-	const char* TrooperName() {
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
+	const char* TrooperName() override {
 		return "monster_human_medic_ally";
 	}
 };
@@ -2797,8 +2795,8 @@ LINK_ENTITY_TO_CLASS( monster_medic_ally_repel, CMedicRepel )
 class CTorchRepel : public CTalkMonsterRepel
 {
 public:
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
-	const char* TrooperName() {
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
+	const char* TrooperName() override {
 		return "monster_human_torch_ally";
 	}
 };
@@ -2812,13 +2810,13 @@ LINK_ENTITY_TO_CLASS( monster_torch_ally_repel, CTorchRepel )
 class CDeadFGrunt : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/hgrunt_opfor.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
-	int	DefaultClassify ( void ) { return	CLASS_PLAYER_ALLY_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/hgrunt_opfor.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
+	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
-	void KeyValue( KeyValueData *pkvd );
-	const char* getPos(int pos) const;
+	void KeyValue( KeyValueData *pkvd ) override;
+	const char* getPos(int pos) const override;
 
 	int	m_iHead;
 	static const char *m_szPoses[7];
@@ -2908,30 +2906,30 @@ void CDeadFGrunt::Spawn()
 class CTorch : public CHFGrunt
 {
 public:
-	void Spawn( void );
-	int GetDefaultVoicePitch() { return 95; }
-	void Precache( void );
-	void Activate();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
-	const char* DefaultDisplayName() { return "Human Torch"; }
-	void HandleAnimEvent( MonsterEvent_t* pEvent );
-	int LookupActivity(int activity);
+	void Spawn() override;
+	int GetDefaultVoicePitch() override { return 95; }
+	void Precache() override;
+	void Activate() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
+	const char* DefaultDisplayName() override { return "Human Torch"; }
+	void HandleAnimEvent( MonsterEvent_t* pEvent ) override;
+	int LookupActivity(int activity) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack2(float flDot, float flDist) override;
-	void GibMonster();
+	void GibMonster() override;
 	void OnDying(bool gibbed) override;
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
-	void PrescheduleThink();
+	void PrescheduleThink() override;
 
 	void DropMyItems(bool isGibbed);
 
 	void MakeGas( bool doSpark );
-	void UpdateGas( void );
-	void KillGas( void );
+	void UpdateGas();
+	void KillGas();
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	CBeam *m_pBeam;
@@ -2945,15 +2943,15 @@ public:
 	static constexpr const char* desertEagleSoundScript = "TorchGrunt.DesertEagle";
 	static constexpr const char* desertEagleReloadSoundScript = "TorchGrunt.ReloadDesertEagle";
 
-	void PainSound() { EmitSoundScriptTalk(painSoundScript); }
-	void DeathSound() { EmitSoundScriptTalk(dieSoundScript); }
-	void PlayCallForMedic() { EmitSoundScriptTalk(callMedicSoundScript); }
+	void PainSound() override { EmitSoundScriptTalk(painSoundScript); }
+	void DeathSound() override { EmitSoundScriptTalk(dieSoundScript); }
+	void PlayCallForMedic() override { EmitSoundScriptTalk(callMedicSoundScript); }
 
 	static const NamedVisual beamVisual;
 	static const NamedVisual dynLightVisual;
 	static const NamedVisual entLightVisual;
 protected:
-	bool HasWeaponEquiped();
+	bool HasWeaponEquiped() override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_torch_ally, CTorch )
@@ -2986,7 +2984,7 @@ const NamedVisual CTorch::entLightVisual = BuildVisual("TorchGrunt.EntLight")
 
 void CTorch::Spawn()
 {
-	Precache( );
+	Precache();
 
 	SpawnHelper("models/hgrunt_torch.mdl", gSkillData.torchHealth);
 
@@ -3235,7 +3233,7 @@ void CTorch::PrescheduleThink()
 //=========================================================
 // AUTOGENE
 //=========================================================
-void CTorch::UpdateGas( void )
+void CTorch::UpdateGas()
 {
 	if ( m_pBeam )
 	{
@@ -3295,7 +3293,7 @@ void CTorch::MakeGas( bool doSpark )
 	}
 }
 
-void CTorch::KillGas( void )
+void CTorch::KillGas()
 {
 	m_torchActive = false;
 	if ( m_pBeam )
@@ -3312,12 +3310,12 @@ void CTorch::KillGas( void )
 class CDeadTorch : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/hgrunt_torch.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
-	int	DefaultClassify ( void ) { return	CLASS_PLAYER_ALLY_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/hgrunt_torch.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
+	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -3330,7 +3328,7 @@ const char* CDeadTorch::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_human_torch_ally_dead, CDeadTorch )
 
-void CDeadTorch::Spawn( )
+void CDeadTorch::Spawn()
 {
 	SpawnHelper();
 
@@ -3483,7 +3481,7 @@ const NamedSoundScript CMedic::healSoundScript = {
 	"MedicGrunt.Heal"
 };
 
-bool CMedic::Heal( void )
+bool CMedic::Heal()
 {
 	if ( !HasHealTarget() || !CheckHealCharge() )
 		return false;
@@ -4076,11 +4074,11 @@ void CMedic::SetBodyGroupNumbers()
 class CDeadMedic : public CDeadFGrunt
 {
 public:
-	void Spawn();
-	void Precache();
-	const char* DefaultModel() { return "models/hgrunt_medic.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
-	const char* getPos(int pos) const;
+	void Spawn() override;
+	void Precache() override;
+	const char* DefaultModel() override { return "models/hgrunt_medic.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 
 	void SetBodyGroupNumbers() {
@@ -4099,7 +4097,7 @@ const char* CDeadMedic::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_human_medic_ally_dead, CDeadMedic )
 
-void CDeadMedic::Spawn( )
+void CDeadMedic::Spawn()
 {
 	SpawnHelper();
 	SetBodyGroupNumbers();
@@ -4135,5 +4133,3 @@ void CDeadMedic::Precache()
 	CDeadFGrunt::Precache();
 	SetBodyGroupNumbers();
 }
-
-#endif

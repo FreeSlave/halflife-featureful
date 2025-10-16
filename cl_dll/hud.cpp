@@ -267,7 +267,7 @@ cvar_t *cl_subtitles = NULL;
 cvar_t *hud_scale = NULL;
 cvar_t *hud_sprite_offset = NULL;
 
-void ShutdownInput( void );
+void ShutdownInput();
 
 //DECLARE_MESSAGE( m_Logo, Logo )
 int __MsgFunc_Logo( const char *pszName, int iSize, void *pbuf )
@@ -406,7 +406,7 @@ int __MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf )
 }
 
 // TFFree Command Menu
-void __CmdFunc_OpenCommandMenu( void )
+void __CmdFunc_OpenCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -417,7 +417,7 @@ void __CmdFunc_OpenCommandMenu( void )
 }
 
 // TFC "special" command
-void __CmdFunc_InputPlayerSpecial( void )
+void __CmdFunc_InputPlayerSpecial()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -427,7 +427,7 @@ void __CmdFunc_InputPlayerSpecial( void )
 #endif
 }
 
-void __CmdFunc_CloseCommandMenu( void )
+void __CmdFunc_CloseCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -437,7 +437,7 @@ void __CmdFunc_CloseCommandMenu( void )
 #endif
 }
 
-void __CmdFunc_ForceCloseCommandMenu( void )
+void __CmdFunc_ForceCloseCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -650,7 +650,7 @@ bool CHud::IsDeveloperModeOn()
 }
 
 // This is called every time the DLL is loaded
-void CHud::Init( void )
+void CHud::Init()
 {
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );
@@ -1223,7 +1223,7 @@ void CHud::LoadWallPuffSprites()
 	wallPuffCount = i;
 }
 
-void CHud::VidInit( void )
+void CHud::VidInit()
 {
 	static bool vidInitAtLeastOnce = false;
 	if (vidInitAtLeastOnce)
@@ -1495,7 +1495,7 @@ HUD_GetFOV
 Returns last FOV
 =====================
 */
-float HUD_GetFOV( void )
+float HUD_GetFOV()
 {
 	if( gEngfuncs.pDemoAPI->IsRecording() )
 	{
@@ -1582,7 +1582,7 @@ void CHud::AddHudElem( CHudBase *phudelem )
 	ptemp->pNext = pdl;
 }
 
-float CHud::GetSensitivity( void )
+float CHud::GetSensitivity()
 {
 	return m_flMouseSensitivity;
 }

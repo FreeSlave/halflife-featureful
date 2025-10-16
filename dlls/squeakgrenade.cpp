@@ -38,27 +38,27 @@ enum w_squeak_e
 class CSqueakGrenade : public CGrenade
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify( void );
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override;
 	void EXPORT SuperBounceTouch( CBaseEntity *pOther );
-	void EXPORT HuntThink( void );
-	int	BloodColor( void ) { return CBaseMonster::BloodColor(); }
+	void EXPORT HuntThink();
+	int	BloodColor() override { return CBaseMonster::BloodColor(); }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void GibMonster( void );
+	void GibMonster() override;
 
-	virtual int Save( CSave &save ); 
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
 	virtual float AdditionalExplosionDamage();
 	virtual float MaximumExplosionDamage();
 
-	virtual int SizeForGrapple() { return GRAPPLE_SMALL; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -4.0f, -4.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 4.0f, 4.0f, 8.0f ); }
+	int SizeForGrapple() override { return GRAPPLE_SMALL; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -4.0f, -4.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 4.0f, 4.0f, 8.0f ); }
 
 	static float m_flNextBounceSoundTime;
 
@@ -136,7 +136,7 @@ const NamedSoundScript CSqueakGrenade::bounceSoundScript = {
 
 #define SQUEEK_DETONATE_DELAY	15.0f
 
-int CSqueakGrenade::DefaultClassify( void )
+int CSqueakGrenade::DefaultClassify()
 {
 	return CLASS_SNARK;
 }
@@ -228,7 +228,7 @@ KilledResult CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAtta
 	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
 }
 
-void CSqueakGrenade::GibMonster( void )
+void CSqueakGrenade::GibMonster()
 {
 	EmitSoundScript(gibbedSoundScript);
 }
@@ -243,7 +243,7 @@ float CSqueakGrenade::MaximumExplosionDamage()
 	return 0;
 }
 
-void CSqueakGrenade::HuntThink( void )
+void CSqueakGrenade::HuntThink()
 {
 	// ALERT( at_console, "think\n" );
 
@@ -449,15 +449,14 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 	m_flNextBounceSoundTime = gpGlobals->time + 0.5f;// half second.
 }
 
-#if FEATURE_PENGUIN
 class CPenguinGrenade : public CSqueakGrenade
 {
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	KilledResult Killed(entvars_t *pevInflictor,entvars_t *pevAttacker, int iGib) override;
-	float AdditionalExplosionDamage();
-	float MaximumExplosionDamage();
-	float ExplosionRadius()
+	float AdditionalExplosionDamage() override;
+	float MaximumExplosionDamage() override;
+	float ExplosionRadius() override
 	{
 		return Q_min(gSkillData.plrDmgHandGrenade*5, pev->dmg * 2.5);
 	}
@@ -497,7 +496,6 @@ float CPenguinGrenade::MaximumExplosionDamage()
 }
 
 LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )
-#endif
 
 #endif
 
@@ -742,8 +740,6 @@ const char* CSqueak::EventsFile() const
 	return "events/snarkfire.sc";
 }
 
-#if FEATURE_PENGUIN
-
 class CPenguin : public CSqueak
 {
 public:
@@ -787,4 +783,3 @@ const char* CPenguin::EventsFile() const
 {
 	return "events/penguinfire.sc";
 }
-#endif

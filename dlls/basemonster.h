@@ -150,12 +150,12 @@ public:
 
 	float m_flLastYawTime;
 
-	virtual int Save( CSave &save ); 
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void KeyValue( KeyValueData *pkvd );
-	void Activate();
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Activate() override;
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
 	void SetMySquadCapabilities(int defaultCaps = 0);
 	void SetMyCanOpenDoors(bool enable);
@@ -165,61 +165,61 @@ public:
 	void EXPORT CorpseUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	// overrideable Monster member functions
-	virtual int BloodColor( void ) { return m_bloodColor; }
+	int BloodColor() override { return m_bloodColor; }
 
-	virtual CBaseMonster *MyMonsterPointer( void ) { return this; }
+	CBaseMonster *MyMonsterPointer() override { return this; }
 	virtual CFollowingMonster* MyFollowingMonsterPointer() { return NULL; }
 	virtual CTalkMonster* MyTalkMonsterPointer() { return NULL; }
 
 	virtual void Look( int iDistance );// basic sight function for monsters
-	virtual void RunAI( void );// core ai function!	
-	void Listen( void );
+	virtual void RunAI();// core ai function!
+	void Listen();
 
-	virtual bool IsAlive( void ) override { return ( pev->deadflag != DEAD_DEAD ); }
-	virtual bool IsFullyAlive( void );
-	virtual bool ShouldFadeOnDeath( void );
+	bool IsAlive() override { return ( pev->deadflag != DEAD_DEAD ); }
+	bool IsFullyAlive() override;
+	virtual bool ShouldFadeOnDeath();
 	bool ShouldCollide(CBaseEntity *pOther) override;
 	bool ShouldCollideWithCorpses() override;
 
 	// Basic Monster AI functions
 	virtual float ChangeYaw( int yawSpeed );
 	float VecToYaw( Vector vecDir );
-	float FlYawDiff( void ); 
+	float FlYawDiff();
 
 	float DamageForce( float damage );
 
 	// stuff written for new state machine
-	virtual void MonsterThink( void );
-	void EXPORT CallMonsterThink( void ) { this->MonsterThink(); }
+	virtual void MonsterThink();
+	void EXPORT CallMonsterThink() { this->MonsterThink(); }
 	int IRelationship( CBaseEntity *pTarget ) override;
 	int IDefaultRelationship(CBaseEntity *pTarget );
 	int IDefaultRelationship( int classify );
 	
 	static int IDefaultRelationship(int classify1, int classify2);
 	
-	virtual void MonsterInit( void );
-	virtual void MonsterInitDead( void );	// Call after animation/pose is set up
+	virtual void MonsterInit();
+	virtual void MonsterInitDead();	// Call after animation/pose is set up
 	void InitRandomSeeds();
-	virtual void BecomeDead( void );
-	void EXPORT CorpseFallThink( void );
+	virtual void BecomeDead();
+	void EXPORT CorpseFallThink();
 
-	void EXPORT MonsterInitThink( void );
-	virtual void StartMonster( void );
-	virtual CBaseEntity *BestVisibleEnemy( void );// finds best visible enemy for attack
+	void EXPORT MonsterInitThink();
+	virtual void StartMonster();
+	virtual CBaseEntity *BestVisibleEnemy();// finds best visible enemy for attack
 	virtual bool FInViewCone( CBaseEntity *pEntity );// see if pEntity is in monster's view cone
 	virtual bool FInViewCone( Vector *pOrigin );// see if given location is in monster's view cone
-	virtual void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
 	virtual int CheckLocalMove ( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );// check validity of a straight move through space
 	virtual void Move( float flInterval = 0.1 );
 	virtual void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
 	virtual bool ShouldAdvanceRoute( float flWaypointDist );
 
-	virtual Activity GetStoppedActivity( void ) { return ACT_IDLE; }
-	virtual void Stop( void ) { m_IdealActivity = GetStoppedActivity(); }
+	virtual Activity GetStoppedActivity() { return ACT_IDLE; }
+	virtual void Stop() { m_IdealActivity = GetStoppedActivity(); }
 
 	// This will stop animation until you call ResetSequenceInfo() at some point in the future
-	inline void StopAnimation( void ) { pev->framerate = 0; }
+	inline void StopAnimation() { pev->framerate = 0; }
 
 	// these functions will survey conditions and set appropriate conditions bits for attack types.
 	virtual bool CheckRangeAttack1( float flDot, float flDist );
@@ -229,24 +229,24 @@ public:
 	virtual bool CheckMeleeAttack2( float flDot, float flDist );
 	virtual bool WantsToGetCloseToEnemy();
 
-	bool FHaveSchedule( void );
-	bool FScheduleValid( void );
-	void ClearSchedule( void );
-	bool FScheduleDone( void );
+	bool FHaveSchedule();
+	bool FScheduleValid();
+	void ClearSchedule();
+	bool FScheduleDone();
 	void ChangeSchedule(Schedule_t *pNewSchedule , bool isSuggested = false);
 	virtual void OnChangeSchedule( Schedule_t *pNewSchedule ) {}
-	void NextScheduledTask( void );
+	void NextScheduledTask();
 	Schedule_t *ScheduleInList( const char *pName, Schedule_t **pList, int listCount );
 
 	virtual Schedule_t *ScheduleFromName( const char *pName );
 	static Schedule_t *m_scheduleList[];
 
 	bool ShouldGetIdealState();
-	void MaintainSchedule( void );
+	void MaintainSchedule();
 	virtual void StartTask( Task_t *pTask );
 	virtual void RunTask( Task_t *pTask );
 	virtual Schedule_t *GetScheduleOfType( int Type );
-	virtual Schedule_t *GetSchedule( void );
+	virtual Schedule_t *GetSchedule();
 	Schedule_t* GetFreeroamSchedule();
 	Schedule_t* GetSuggestedSchedule();
 	bool SuggestSchedule(int schedule, CBaseEntity *spotEntity = 0, float minDist = 0.0f, float maxDist = 0.0f, int flags = 0);
@@ -256,14 +256,14 @@ public:
 	Activity GetSuggestedMovementActivity(Activity defaultActivity);
 	void ClearSuggestedSchedule();
 
-	virtual void ScheduleChange( void ) {}
-	// virtual int CanPlaySequence( void ) { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
+	virtual void ScheduleChange() {}
+	// virtual int CanPlaySequence() { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
 	virtual bool CanPlaySequence( int interruptFlags );
 	virtual bool CanPlaySentence( bool fDisregardState ) { return m_MonsterState == MONSTERSTATE_SCRIPT ? IsAlive() : IsFullyAlive(); }
-	virtual bool IsAllowedToSpeak( void ) override { return IsAlive(); }
+	virtual bool IsAllowedToSpeak() override { return IsAlive(); }
 
-	Task_t *GetTask( void );
-	virtual MONSTERSTATE GetIdealState( void );
+	Task_t *GetTask();
+	virtual MONSTERSTATE GetIdealState();
 	virtual void SetActivity( Activity NewActivity );
 	void SetSequenceByName( const char *szSequence );
 	void SetState( MONSTERSTATE State );
@@ -276,27 +276,27 @@ public:
 	virtual bool PerceiveEnemyAsOccluded(CBaseEntity* pEnemy, CBaseEntity* pOccluder) { return true; }
 	void SetEnemy( CBaseEntity* pEnemy );
 	void PushEnemy(CBaseEntity *pEnemy, const Vector &vecLastKnownPos );
-	bool PopEnemy( void );
+	bool PopEnemy();
 
 	bool FGetNodeRoute( Vector vecDest, int goalMoveFlag = 0 );
 	
-	inline void TaskComplete( void ) { if ( !HasConditions( bits_COND_TASK_FAILED ) ) m_iTaskStatus = TASKSTATUS_COMPLETE; }
-	void MovementComplete( void );
+	inline void TaskComplete() { if ( !HasConditions( bits_COND_TASK_FAILED ) ) m_iTaskStatus = TASKSTATUS_COMPLETE; }
+	void MovementComplete();
 	inline void TaskFail( const char* reason = NULL ) { SetConditions( bits_COND_TASK_FAILED ); taskFailReason = reason; }
-	inline void TaskBegin( void ) { m_iTaskStatus = TASKSTATUS_RUNNING; }
-	bool TaskIsRunning( void );
-	inline bool TaskIsComplete( void ) { return ( m_iTaskStatus == TASKSTATUS_COMPLETE ); }
-	inline bool MovementIsComplete( void ) { return ( m_movementGoal == MOVEGOAL_NONE ); }
+	inline void TaskBegin() { m_iTaskStatus = TASKSTATUS_RUNNING; }
+	bool TaskIsRunning();
+	inline bool TaskIsComplete() { return ( m_iTaskStatus == TASKSTATUS_COMPLETE ); }
+	inline bool MovementIsComplete() { return ( m_movementGoal == MOVEGOAL_NONE ); }
 
-	int IScheduleFlags( void );
+	int IScheduleFlags();
 	bool FRefreshRoute( int buildRouteFlags = 0 );
-	bool FRouteClear( void );
+	bool FRouteClear();
 	void RouteSimplify( CBaseEntity *pTargetEnt );
 	void AdvanceRoute( float distance );
 	int FTriangulate(const Vector &vecStart , const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector *pApexes, int n = 1, int tries = 8, bool recursive = false);
 	Vector FTriangulateToNearest(const Vector &vecStart , const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector& apex);
 	void MakeIdealYaw( Vector vecTarget );
-	virtual void SetYawSpeed( void ) { return; };// allows different yaw_speeds for each activity
+	virtual void SetYawSpeed() { return; };// allows different yaw_speeds for each activity
 	bool BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity *pTarget, int buildRouteFlags = 0 );
 	virtual bool BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist );
 	int RouteClassify( int iMoveFlag );
@@ -311,11 +311,11 @@ public:
 	bool FindCover(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist);
 	bool FindSpotAway(Vector vecThreat, float flMinDist, float flMaxDist, int flags);
 	virtual bool FValidateCover( const Vector &vecCoverLocation ) { return true; }
-	virtual float CoverRadius( void ) { return 784; } // Default cover radius
+	virtual float CoverRadius() { return 784; } // Default cover radius
 
-	virtual bool FCanCheckAttacks( void );
-	virtual void CheckAmmo( void ) { return; };
-	virtual int IgnoreConditions( void );
+	virtual bool FCanCheckAttacks();
+	virtual void CheckAmmo() { return; };
+	virtual int IgnoreConditions();
 
 	inline void SetConditions( int iConditions ) { m_afConditions |= iConditions; }
 	inline void ClearConditions( int iConditions ) { m_afConditions &= ~iConditions; }
@@ -323,9 +323,9 @@ public:
 	inline bool HasAllConditions( int iConditions ) { if ( (m_afConditions & iConditions) == iConditions ) return true; return false; }
 
 	virtual bool FValidateHintType( short sHint );
-	int FindHintNode( void );
-	virtual bool FCanActiveIdle( void );
-	void SetTurnActivity( void );
+	int FindHintNode();
+	virtual bool FCanActiveIdle();
+	void SetTurnActivity();
 	float FLSoundVolume( CSound *pSound );
 
 	bool MoveToNode( Activity movementAct, float waitTime, const Vector &goal );
@@ -338,18 +338,18 @@ public:
 	float OpenDoorAndWait( entvars_t *pevDoor );
 
 	int ISoundMask();
-	virtual int DefaultISoundMask( void );
-	virtual CSound* PBestSound( void );
-	virtual CSound* PBestScent( void );
-	virtual float HearingSensitivity( void ) { return 1.0; }
+	virtual int DefaultISoundMask();
+	virtual CSound* PBestSound();
+	virtual CSound* PBestScent();
+	virtual float HearingSensitivity() { return 1.0; }
 
-	bool FBecomeProne( void ) override;
+	bool FBecomeProne() override;
 	virtual void BarnacleVictimBitten( entvars_t *pevBarnacle );
-	virtual void BarnacleVictimReleased( void );
+	virtual void BarnacleVictimReleased();
 
-	void SetEyePosition( void );
+	void SetEyePosition();
 
-	bool FShouldEat( void );// see if a monster is 'hungry'
+	bool FShouldEat();// see if a monster is 'hungry'
 	void Eat( float flFullDuration );// make the monster 'full' for a while.
 
 	void SetTouchAttackFromTemplate(TouchAttackParams& params);
@@ -357,15 +357,15 @@ public:
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
 	CBaseEntity *CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
 	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);
-	bool FacingIdeal( void );
+	bool FacingIdeal();
 
-	bool FCheckAITrigger( void );// checks and, if necessary, fires the monster's trigger target.
+	bool FCheckAITrigger();// checks and, if necessary, fires the monster's trigger target.
 	bool FCheckAITrigger( short condition );// checks and, if necessary, fires the monster's trigger target.
 
-	bool BBoxFlat( void );
+	bool BBoxFlat();
 
 	// PrescheduleThink 
-	virtual void PrescheduleThink( void ) { return; }
+	virtual void PrescheduleThink() { return; }
 
 	bool GetEnemy( bool forcePopping );
 	void MakeDamageBloodDecal( int cCount, float flNoise, TraceResult *ptr, const Vector &vecDir );
@@ -374,25 +374,25 @@ public:
 
 	// combat functions
 	float UpdateTarget( entvars_t *pevTarget );
-	virtual Activity GetDeathActivity( void );
-	Activity GetSmallFlinchActivity( void );
+	virtual Activity GetDeathActivity();
+	Activity GetSmallFlinchActivity();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual void OnDying(bool gibbed);
-	virtual void GibMonster( void );
-	virtual void UpdateOnRemove( void );
+	virtual void GibMonster();
+	void UpdateOnRemove() override;
 	bool ShouldGibMonster( int iGib );
-	void CallGibMonster( void );
-	virtual bool HasHumanGibs( void );
-	virtual bool HasAlienGibs( void );
-	virtual void FadeMonster( void );	// Called instead of GibMonster() when gibs are disabled
+	void CallGibMonster();
+	virtual bool HasHumanGibs();
+	virtual bool HasAlienGibs();
+	virtual void FadeMonster();	// Called instead of GibMonster() when gibs are disabled
 
 	Vector ShootAtEnemy( const Vector &shootOrigin );
 	Vector SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDeviation = 0.05f, float* distance = 0 );
-	virtual Vector BodyTarget( const Vector &posSrc ) { return Center() * 0.75 + EyePosition() * 0.25; };		// position to shoot at
+	Vector BodyTarget( const Vector &posSrc ) override { return Center() * 0.75 + EyePosition() * 0.25; }		// position to shoot at
 
-	virtual	Vector GetGunPosition( void );
+	virtual	Vector GetGunPosition();
 
-	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType );
+	int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void ReactToDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, TakeDamageResult& takeDamageResult);
 	void PainReaction(const DamageInfo& damageInfo);
@@ -400,16 +400,16 @@ public:
 
 	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
-	virtual bool IsMoving( void ) override { return m_movementGoal != MOVEGOAL_NONE; }
+	virtual bool IsMoving() override { return m_movementGoal != MOVEGOAL_NONE; }
 
-	void RouteClear( void );
-	void RouteNew( void );
+	void RouteClear();
+	void RouteNew();
 
-	virtual void DeathSound( void ) { return; }
-	virtual void AlertSound( void ) { return; }
-	virtual void IdleSound( void ) { return; }
+	virtual void DeathSound() { return; }
+	virtual void AlertSound() { return; }
+	virtual void IdleSound() { return; }
 	virtual PainSoundRule DefaultPainSoundRule() { return PainSoundRule{}; }
-	virtual void PainSound( void ) { return; }
+	virtual void PainSound() { return; }
 
 	virtual void StopFollowing( bool clearSchedule, bool saySentence = true ) {}
 
@@ -427,7 +427,7 @@ public:
 	CBaseEntity* DropItem ( const char *pszItemName, const Vector &vecPos, const Vector &vecAng );// drop an item.
 	void FixupDropItemPosition(Vector& pos);
 
-	bool CalcRatio(CBaseEntity* pLocus, float* outResult)
+	bool CalcRatio(CBaseEntity* pLocus, float* outResult) override
 	{
 		if (IsFullyAlive())
 			*outResult = pev->health / pev->max_health;
@@ -442,23 +442,23 @@ public:
 	void SetMyBloodColor( int defaultBloodColor );
 	void SetMyFieldOfView(const float defaultFieldOfView );
 
-	int Classify();
-	virtual int DefaultClassify();
-	virtual const char* ReverseRelationshipModel() { return NULL; }
+	int Classify() override;
+	int DefaultClassify() override;
+	virtual const char* ReverseRelationshipModel() { return nullptr; }
 
-	virtual CDeadMonster* MyDeadMonsterPointer() {return NULL;}
+	virtual CDeadMonster* MyDeadMonsterPointer() {return nullptr;}
 
 	virtual const char* DefaultGibModel();
 	const char* GibModel();
 	virtual int DefaultGibCount();
 	int GibCount();
 
-	virtual bool IsAlienMonster();
+	bool IsAlienMonster() override;
 
 	virtual Vector DefaultMinHullSize();
 	virtual Vector DefaultMaxHullSize();
 
-	virtual int SizeForGrapple();
+	int SizeForGrapple() override;
 
 	// Allows to set a head via monstermaker before spawn
 	virtual void SetHead(int head) {}
@@ -471,7 +471,7 @@ public:
 
 	virtual bool CanRoamAfterCombat() { return true; }
 
-	bool HandleDoorBlockage(CBaseEntity* pDoor);
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
 
 	int SharedRandomLong(int low, int high);
 	float SharedRandomFloat(float low, float high);
@@ -481,8 +481,8 @@ public:
 	//
 	void GlowShellOn( const Visual* visual );
 
-	void GlowShellOff( void );
-	void GlowShellUpdate( void );
+	void GlowShellOff();
+	void GlowShellUpdate();
 
 	float m_glowShellTime;
 	bool m_glowShellUpdate;
@@ -539,15 +539,15 @@ public:
 class CDeadMonster : public CBaseMonster
 {
 public:
-	void Precache();
+	void Precache() override;
 	void SpawnHelper(int bloodColor = BLOOD_COLOR_RED, int health = 8);
-	void KeyValue( KeyValueData *pkvd );
+	void KeyValue( KeyValueData *pkvd ) override;
 	virtual const char* DefaultModel() {
 		return nullptr;
 	}
 	bool ShouldCollide(CBaseEntity* pOther) override;
 
-	CDeadMonster* MyDeadMonsterPointer() {return this;}
+	CDeadMonster* MyDeadMonsterPointer() override {return this;}
 	virtual const char* getPos(int pose) const = 0;
 	int	m_iPose;// which sequence to display	-- temporary, don't need to save
 

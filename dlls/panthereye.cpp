@@ -5,9 +5,6 @@
 #include	"squadmonster.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
-#include	"mod_features.h"
-
-#if FEATURE_PANTHEREYE
 
 #define PANTHEREYE_AE_STRIKE_LEFT			( 1 )
 #define PANTHEREYE_AE_STRIKE_RIGHT_LOW				( 2 )
@@ -18,15 +15,15 @@
 class CPantherEye : public CSquadMonster
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("panthereye"); }
-	void SetYawSpeed();
-	int  DefaultClassify();
-	const char* DefaultDisplayName() { return "Panther Eye"; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("panthereye"); }
+	void SetYawSpeed() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Panther Eye"; }
 
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	Schedule_t* GetScheduleOfType(int Type);
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	Schedule_t* GetScheduleOfType(int Type) override;
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckMeleeAttack2( float flDot, float flDist ) override {return false;}
@@ -35,11 +32,11 @@ public:
 
 	void PerformStrike(const TraceHullAttackParams& params);
 
-	int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
 
-	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 64.0f ); }
+	Vector DefaultMinHullSize() override { return Vector( -24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 64.0f ); }
 
 	static constexpr const char* attackHitSoundScript = "PantherEye.AttackHit";
 	static constexpr const char* attackMissSoundScript = "PantherEye.AttackMiss";
@@ -108,7 +105,7 @@ int CPantherEye::DefaultClassify()
 	return CLASS_ALIEN_MONSTER;
 }
 
-void CPantherEye::SetYawSpeed ( void )
+void CPantherEye::SetYawSpeed()
 {
 	pev->yaw_speed = 90;
 }
@@ -232,4 +229,3 @@ Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 	}
 	return CSquadMonster::GetScheduleOfType(Type);
 }
-#endif

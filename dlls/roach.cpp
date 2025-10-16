@@ -37,25 +37,25 @@
 class CRoach : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	void EXPORT MonsterThink ( void );
-	void Move( float flInterval );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	void EXPORT MonsterThink() override;
+	void Move( float flInterval ) override;
 	void PickNewDest( int iCondition );
-	void EXPORT Touch( CBaseEntity *pOther );
+	void EXPORT Touch( CBaseEntity *pOther ) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	float m_flLastLightLevel;
 	float m_flNextSmellTime;
-	int DefaultClassify( void );
-	void Look( int iDistance );
-	int DefaultISoundMask( void );
-	Vector DefaultMinHullSize() { return Vector( -1, -1, 0 ); }
-	Vector DefaultMaxHullSize() { return  Vector( 1, 1, 2 ); }
+	int DefaultClassify() override;
+	void Look( int iDistance ) override;
+	int DefaultISoundMask() override;
+	Vector DefaultMinHullSize() override { return Vector( -1, -1, 0 ); }
+	Vector DefaultMaxHullSize() override { return  Vector( 1, 1, 2 ); }
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
-	bool IsDisplaceable() { return true; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	bool IsDisplaceable() override { return true; }
 
 	// UNDONE: These don't necessarily need to be save/restored, but if we add more data, it may
 	bool m_fLightHacked;
@@ -99,7 +99,7 @@ const NamedSoundScript CRoach::smashSoundScript = {
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CRoach::DefaultISoundMask( void )
+int CRoach::DefaultISoundMask()
 {
 	return bits_SOUND_CARCASS | bits_SOUND_MEAT;
 }
@@ -108,7 +108,7 @@ int CRoach::DefaultISoundMask( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CRoach::DefaultClassify( void )
+int CRoach::DefaultClassify()
 {
 	return CLASS_INSECT;
 }
@@ -139,7 +139,7 @@ void CRoach::Touch( CBaseEntity *pOther )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CRoach::SetYawSpeed( void )
+void CRoach::SetYawSpeed()
 {
 	int ys;
 
@@ -217,7 +217,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 //=========================================================
 // MonsterThink, overridden for roaches.
 //=========================================================
-void CRoach::MonsterThink( void )
+void CRoach::MonsterThink()
 {
 	if( FNullEnt( FIND_CLIENT_IN_PVS( edict() ) ) )
 		pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1, 1.5 );

@@ -169,11 +169,11 @@ public:
 	void FinalizeGibSpawn();
 	void EXPORT BounceGibTouch( CBaseEntity *pOther );
 	void EXPORT StickyGibTouch( CBaseEntity *pOther );
-	void EXPORT WaitTillLand( void );
-	void EXPORT StartFadeOut ( void );
-	void LimitVelocity( void );
+	void EXPORT WaitTillLand();
+	void EXPORT StartFadeOut ();
+	void LimitVelocity();
 
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_DONT_SAVE; }
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_DONT_SAVE; }
 	static void SpawnHeadGib( entvars_t *pevVictim, const Visual* visual = nullptr );
 	static void SpawnHumanGibs(entvars_t *pevVictim, int cGibs = 4, const Visual* visual = nullptr );
 	static void SpawnRandomGibs( entvars_t *pevVictim, int cGibs, const char* gibModel, int gibBodiesNum = 0, int startGibIndex = 0, const Visual* visual = nullptr );
@@ -191,7 +191,7 @@ public:
 void AddScoreForDamage(entvars_t *pevAttacker, CBaseEntity* victim, const float damage);
 
 #define CUSTOM_SCHEDULES\
-		virtual Schedule_t *ScheduleFromName( const char *pName );\
+		virtual Schedule_t *ScheduleFromName( const char *pName ) override;\
 		static Schedule_t *m_scheduleList[];
 
 #define DEFINE_CUSTOM_SCHEDULES(derivedClass)\

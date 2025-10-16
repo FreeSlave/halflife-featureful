@@ -8,23 +8,21 @@
 #include	"mod_features.h"
 #include	"game.h"
 
-#if FEATURE_RECRUIT
-
 class CRecruit : public CTalkMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("recruit"); }
-	void SetYawSpeed(void);
-	int DefaultISoundMask(void);
-	int DefaultClassify(void);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("recruit"); }
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	int DefaultClassify() override;
 	void DeathSound() override;
 	void PainSound() override;
 
-	Schedule_t *GetSchedule( void );
+	Schedule_t *GetSchedule() override;
 
-	const char* DefaultSentenceGroup(int group);
+	const char* DefaultSentenceGroup(int group) override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -76,7 +74,7 @@ void CRecruit::Spawn()
 	TalkMonsterInit();
 }
 
-void CRecruit::SetYawSpeed( void )
+void CRecruit::SetYawSpeed()
 {
 	int ys = 0;
 	switch ( m_Activity )
@@ -98,7 +96,7 @@ void CRecruit::SetYawSpeed( void )
 	pev->yaw_speed = ys;
 }
 
-int CRecruit::DefaultISoundMask( void)
+int CRecruit::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -109,7 +107,7 @@ int CRecruit::DefaultISoundMask( void)
 			bits_SOUND_PLAYER;
 }
 
-int CRecruit::DefaultClassify(void)
+int CRecruit::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
@@ -180,5 +178,3 @@ Schedule_t* CRecruit::GetSchedule()
 	}
 	return CTalkMonster::GetSchedule();
 }
-
-#endif

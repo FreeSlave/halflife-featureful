@@ -41,8 +41,8 @@ class CEgon : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;
@@ -52,21 +52,21 @@ public:
 
 	bool Deploy() override;
 	bool CanHolster() override;
-	void Holster();
+	void Holster() override;
 
 	void UpdateEffect( const Vector &startPoint, const Vector &endPoint, float timeBlend );
 
-	void CreateEffect ( void );
-	void DestroyEffect ( void );
-	void EndAttack( void );
-	void Attack( void );
-	void PrimaryAttack( void );
-	void WeaponIdle( void );
+	void CreateEffect ();
+	void DestroyEffect ();
+	void EndAttack();
+	void Attack();
+	void PrimaryAttack() override;
+	void WeaponIdle() override;
 
 	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
 
-	float GetPulseInterval( void );
-	float GetDischargeInterval( void );
+	float GetPulseInterval();
+	float GetDischargeInterval();
 
 	void Fire( const Vector &vecOrigSrc, const Vector &vecDir );
 
@@ -78,8 +78,8 @@ public:
 	CSprite				*m_pSprite;
 #endif
 
-	void GetWeaponData(weapon_data_t& data);
-	void SetWeaponData(const weapon_data_t& data);
+	void GetWeaponData(weapon_data_t& data) override;
+	void SetWeaponData(const weapon_data_t& data) override;
 
 	unsigned short m_usEgonStop;
 
@@ -124,7 +124,7 @@ void CEgon::Precache()
 	m_usEgonStop = PRECACHE_EVENT( 1, "events/egon_stop.sc" );
 }
 
-bool CEgon::Deploy( void )
+bool CEgon::Deploy()
 {
 	m_fireState = FIRE_OFF;
 	return PerformDeploy();
@@ -175,17 +175,17 @@ WeaponParameters CEgon::GetDefaultParameters() const
 #define EGON_PULSE_INTERVAL		0.1
 #define EGON_DISCHARGE_INTERVAL		0.1
 
-float CEgon::GetPulseInterval( void )
+float CEgon::GetPulseInterval()
 {
 	return EGON_PULSE_INTERVAL;
 }
 
-float CEgon::GetDischargeInterval( void )
+float CEgon::GetDischargeInterval()
 {
 	return EGON_DISCHARGE_INTERVAL;
 }
 
-void CEgon::Attack( void )
+void CEgon::Attack()
 {
 	// don't fire underwater
 	if( m_pPlayer->pev->waterlevel == WL_Eyes )
@@ -262,7 +262,7 @@ void CEgon::Attack( void )
 	}
 }
 
-void CEgon::PrimaryAttack( void )
+void CEgon::PrimaryAttack()
 {
 	m_fireMode = FIRE_WIDE;
 	Attack();
@@ -427,7 +427,7 @@ void CEgon::UpdateEffect( const Vector &startPoint, const Vector &endPoint, floa
 #endif
 }
 
-void CEgon::CreateEffect( void )
+void CEgon::CreateEffect()
 {
 #if !CLIENT_DLL
 	DestroyEffect();
@@ -473,7 +473,7 @@ void CEgon::CreateEffect( void )
 #endif
 }
 
-void CEgon::DestroyEffect( void )
+void CEgon::DestroyEffect()
 {
 #if !CLIENT_DLL
 	if( m_pBeam )
@@ -498,7 +498,7 @@ void CEgon::DestroyEffect( void )
 #endif
 }
 
-void CEgon::WeaponIdle( void )
+void CEgon::WeaponIdle()
 {
 	ResetEmptySound();
 
@@ -511,7 +511,7 @@ void CEgon::WeaponIdle( void )
 	SendIdleAnimation();
 }
 
-bool CEgon::CanHolster( void )
+bool CEgon::CanHolster()
 {
 #if CLIENT_DLL
 	return true;
@@ -520,7 +520,7 @@ bool CEgon::CanHolster( void )
 #endif
 }
 
-void CEgon::EndAttack( void )
+void CEgon::EndAttack()
 {
 	bool bMakeNoise = false;
 

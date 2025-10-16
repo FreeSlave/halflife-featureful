@@ -28,16 +28,16 @@
 class CSquidSpit : public CBaseEntity
 {
 public:
-	void Spawn(void);
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
 	static float SpitSpeed() { return 900.0f; }
-	void Touch(CBaseEntity *pOther);
-	void EXPORT Animate(void);
+	void Touch(CBaseEntity *pOther) override;
+	void EXPORT Animate();
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	int  m_maxFrame;
@@ -54,17 +54,17 @@ protected:
 class CSquidToxicSpit : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides = EntityOverrides());
 	static float SpitSpeed() { return 600.0f; }
-	void Touch( CBaseEntity *pOther );
-	void EXPORT Animate( void );
+	void Touch( CBaseEntity *pOther ) override;
+	void EXPORT Animate();
 	CBaseMonster* GetSpitOwner();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_maxFrame;

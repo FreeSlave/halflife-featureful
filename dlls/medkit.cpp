@@ -24,14 +24,12 @@
 #include "gamerules.h"
 #endif
 
-#if FEATURE_MEDKIT
-
 class CMedkit : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;
@@ -39,12 +37,12 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void PrimaryAttack(void);
-	void SecondaryAttack(void);
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
 	bool Deploy() override;
-	void Holster();
-	void Reload( void );
-	void WeaponIdle(void);
+	void Holster() override;
+	void Reload() override;
+	void WeaponIdle() override;
 	bool ShouldWeaponIdle() override { return true; }
 	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 
@@ -192,7 +190,7 @@ void CMedkit::Holster()
 	CConfigurableWeapon::Holster();
 }
 
-void CMedkit::PrimaryAttack(void)
+void CMedkit::PrimaryAttack()
 {
 	Reload();
 
@@ -236,7 +234,7 @@ void CMedkit::SecondaryAttack()
 	m_flSoundDelay = gpGlobals->time + 1;
 }
 
-void CMedkit::Reload( void )
+void CMedkit::Reload()
 {
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= MEDKIT_MAX_CARRY )
 		return;
@@ -247,7 +245,7 @@ void CMedkit::Reload( void )
 	}
 }
 
-void CMedkit::WeaponIdle(void)
+void CMedkit::WeaponIdle()
 {
 	Reload();
 	ResetEmptySound();
@@ -292,4 +290,3 @@ bool CMedkit::CanRecharge()
 		return false;
 	}
 }
-#endif

@@ -41,15 +41,15 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void PrimaryAttack( void );
+	void PrimaryAttack() override;
 	bool Deploy() override;
 	bool CanHolster() override;
-	void Holster();
-	void WeaponIdle( void );
+	void Holster() override;
+	void WeaponIdle() override;
 	bool PreferNewPhysics();
 
-	void GetWeaponData(weapon_data_t& data);
-	void SetWeaponData(const weapon_data_t& data);
+	void GetWeaponData(weapon_data_t& data) override;
+	void SetWeaponData(const weapon_data_t& data) override;
 };
 
 LINK_WEAPON_TO_CLASS( weapon_handgrenade, CHandGrenade )
@@ -151,7 +151,7 @@ bool CHandGrenade::PreferNewPhysics()
 #endif
 }
 
-void CHandGrenade::WeaponIdle( void )
+void CHandGrenade::WeaponIdle()
 {
 	if( m_flReleaseThrow == 0.0f && m_flStartThrow )
 		 m_flReleaseThrow = gpGlobals->time;

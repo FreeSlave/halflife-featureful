@@ -9,8 +9,8 @@ class CWallCharger : public CBaseEntity
 public:
 	void Spawn() override;
 	void Precache() override;
-	void EXPORT Off( void );
-	void EXPORT Recharge( void );
+	void EXPORT Off();
+	void EXPORT Recharge();
 
 	virtual int RechargeTime() = 0;
 	virtual int ChargerCapacity() = 0;

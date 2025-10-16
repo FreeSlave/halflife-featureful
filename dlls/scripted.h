@@ -123,40 +123,39 @@ enum
 class CCineMonster : public CBaseDelay
 {
 public:
-	void Spawn( void );
-	virtual void KeyValue( KeyValueData *pkvd );
-	virtual void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual void Blocked( CBaseEntity *pOther );
-	virtual void Touch( CBaseEntity *pOther );
-	virtual int	 ObjectCaps( void ) { return (CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
-	virtual void Activate( void );
-	virtual void UpdateOnRemove();
-	bool IsLockedByMaster() {
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void Blocked( CBaseEntity *pOther ) override;
+	void Touch( CBaseEntity *pOther ) override;
+	int	 ObjectCaps() override { return (CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	void Activate() override;
+	void UpdateOnRemove() override;
+	bool IsLockedByMaster() override {
 		return m_sMaster && !UTIL_IsMasterTriggered( m_sMaster, m_hActivator );
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-	
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	// void EXPORT CineSpawnThink( void );
-	void EXPORT CineThink( void );
-	void Pain( void );
-	void Die( void );
+	// void EXPORT CineSpawnThink();
+	void EXPORT CineThink();
+	void Pain();
+	void Die();
 	void DelayStart( int state );
-	CBaseMonster *FindEntity( void );
+	CBaseMonster *FindEntity();
 	bool TryFindAndPossessEntity();
 	bool MayReportInappropriateTarget(int checkFail);
 	bool IsAppropriateTarget(CBaseMonster* pTarget, int interruptFlags, bool shouldCheckRadius, int* pCheckFail = 0);
 	bool AcceptedFollowingState(CBaseMonster* pMonster);
-	virtual void PossessEntity( void );
+	virtual void PossessEntity();
 
-	inline bool IsAction( void ) { return FClassnameIs(pev, "scripted_action"); } //LRC
+	inline bool IsAction() { return FClassnameIs(pev, "scripted_action"); } //LRC
 
 	//LRC: Should the monster do a precise attack for this scripted_action?
 	// (Do a precise attack if we'll be turning to face the target, but we haven't just walked to the target.)
-	bool PreciseAttack( void )
+	bool PreciseAttack()
 	{
 	//	if (m_fTurnType != 1) { ALERT(at_console,"preciseattack fails check 1\n"); return false; }
 	//	if (m_fMoveTo == 0) { ALERT(at_console,"preciseattack fails check 2\n"); return false; }
@@ -170,15 +169,15 @@ public:
 	void ReleaseEntity( CBaseMonster *pEntity );
 	void CancelScript( int cancellationReason = SCRIPT_CANCELLATION_REASON_GENERIC );
 	virtual bool StartSequence( CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty );
-	virtual bool FCanOverrideState ( void );
+	virtual bool FCanOverrideState ();
 	void SequenceDone ( CBaseMonster *pMonster );
 	virtual void FixScriptMonsterSchedule( CBaseMonster *pMonster );
 	bool ForcedNoInterruptions();
-	bool	CanInterrupt( void );
+	bool	CanInterrupt();
 	bool	CanInterruptByPlayerCall();
 	bool	CanInterruptByBarnacle();
 	void	AllowInterrupt( bool fAllow );
-	int		IgnoreConditions( void );
+	int		IgnoreConditions();
 	virtual bool	ShouldResetOnGroundFlag();
 	void OnMoveFail();
 	bool MoveFailAttemptsExceeded() const;
@@ -235,7 +234,7 @@ public:
 
 class CCineAI : public CCineMonster
 {
-	bool FCanOverrideState ( void ) override;
-	bool ShouldResetOnGroundFlag();
+	bool FCanOverrideState () override;
+	bool ShouldResetOnGroundFlag() override;
 };
 #endif //SCRIPTED_H

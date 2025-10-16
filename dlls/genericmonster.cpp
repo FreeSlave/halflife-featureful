@@ -32,23 +32,23 @@
 class CGenericMonster : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int DefaultISoundMask( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int DefaultISoundMask() override;
 	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 	void IdleHeadTurn( Vector &vecFriend );
-	void MonsterThink();
+	void MonsterThink() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 private:
 	float m_talkTime;
 	EHANDLE m_hTalkTarget;
@@ -73,7 +73,7 @@ IMPLEMENT_SAVERESTORE( CGenericMonster, CBaseMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CGenericMonster::DefaultClassify( void )
+int CGenericMonster::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY;
 }
@@ -82,7 +82,7 @@ int CGenericMonster::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGenericMonster::SetYawSpeed( void )
+void CGenericMonster::SetYawSpeed()
 {
 	int ys;
 
@@ -114,7 +114,7 @@ void CGenericMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 //=========================================================
 // ISoundMask - generic monster can't hear.
 //=========================================================
-int CGenericMonster::DefaultISoundMask( void )
+int CGenericMonster::DefaultISoundMask()
 {
 	return 0;
 }
@@ -242,10 +242,10 @@ KilledResult CGenericMonster::Killed(entvars_t *pevInflictor, entvars_t *pevAtta
 class CDeadGenericMonster : public CBaseMonster
 {
 public:
-	void Precache();
-	void Spawn();
-	void KeyValue( KeyValueData *pkvd );
-	int DefaultClassify() { return CLASS_HUMAN_PASSIVE; }
+	void Precache() override;
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	int DefaultClassify() override { return CLASS_HUMAN_PASSIVE; }
 	bool ShouldCollide(CBaseEntity* pOther) override;
 };
 
@@ -334,9 +334,9 @@ bool CDeadGenericMonster::ShouldCollide(CBaseEntity* pOther)
 class CLoader : public CGenericMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify() {return CLASS_NONE;}
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override {return CLASS_NONE;}
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 };
 

@@ -37,8 +37,6 @@ enum knife_e
 	KNIFE_STAB
 };
 
-#if FEATURE_KNIFE
-
 class CKnife : public CConfigurableWeapon
 {
 public:
@@ -139,5 +137,3 @@ DamageInfo CKnife::MeleeWindDamageInfo()
 	}
 	return DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER);
 }
-
-#endif

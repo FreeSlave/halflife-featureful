@@ -22,7 +22,6 @@
 #include "ggrenade.h"
 #include "nodes.h"
 #include "effects.h"
-#include "mod_features.h"
 #include "game.h"
 #include "common_soundscripts.h"
 #include "visuals_utils.h"
@@ -35,37 +34,37 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 class CApache : public CBaseMonster
 {
 public:
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
-	int DefaultClassify( void ) { return CLASS_HUMAN_MILITARY; }
-	bool HasFlesh() { return false; }
-	const char* DefaultDisplayName() { return "Apache"; }
-	const char* ReverseRelationshipModel() { return "models/apachef.mdl"; }
-	int BloodColor( void ) { return DONT_BLEED; }
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
+	bool HasFlesh() override { return false; }
+	const char* DefaultDisplayName() override { return "Apache"; }
+	const char* ReverseRelationshipModel() override { return "models/apachef.mdl"; }
+	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void GibMonster( void );
+	void GibMonster() override;
 
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
 	}
 
-	void EXPORT HuntThink( void );
+	void EXPORT HuntThink();
 	void EXPORT FlyTouch( CBaseEntity *pOther );
 	void EXPORT CrashTouch( CBaseEntity *pOther );
-	void EXPORT DyingThink( void );
+	void EXPORT DyingThink();
 	void EXPORT StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT NullThink( void );
+	void EXPORT NullThink();
 
-	void ShowDamage( void );
-	void Flight( void );
-	void FireRocket( void );
-	bool FireGun( void );
+	void ShowDamage();
+	void Flight();
+	void FireRocket();
+	bool FireGun();
 
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	TakeDamageResult  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
@@ -202,7 +201,7 @@ const NamedVisual CApache::blastCircleVisual = BuildVisual("Apache.BlastCircle")
 		.RenderColor(255, 255, 192)
 		.Alpha(128);
 
-void CApache::Spawn( void )
+void CApache::Spawn()
 {
 	SpawnImpl("models/apache.mdl");
 }
@@ -246,7 +245,7 @@ void CApache::SpawnImpl(const char *modelName)
 	m_iRockets = 10;
 }
 
-void CApache::Precache( void )
+void CApache::Precache()
 {
 	PrecacheImpl("models/apache.mdl", "models/metalplategibs_green.mdl");
 }
@@ -291,7 +290,7 @@ void CApache::KeyValue(KeyValueData *pkvd)
 		CBaseMonster::KeyValue( pkvd );
 }
 
-void CApache::NullThink( void )
+void CApache::NullThink()
 {
 	StudioFrameAdvance();
 	FCheckAITrigger();
@@ -334,7 +333,7 @@ KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	return KilledResult();
 }
 
-void CApache::DyingThink( void )
+void CApache::DyingThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -509,12 +508,12 @@ void CApache::CrashTouch( CBaseEntity *pOther )
 	}
 }
 
-void CApache::GibMonster( void )
+void CApache::GibMonster()
 {
 	// EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "common/bodysplat.wav", 0.75f, ATTN_NORM, 0, 200 );
 }
 
-void CApache::HuntThink( void )
+void CApache::HuntThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -676,7 +675,7 @@ void CApache::HuntThink( void )
 	FCheckAITrigger();
 }
 
-void CApache::Flight( void )
+void CApache::Flight()
 {
 	// tilt model 5 degrees
 	Vector vecAdj = Vector( 5.0f, 0.0f, 0.0f );
@@ -834,7 +833,7 @@ void CApache::Flight( void )
 	}
 }
 
-void CApache::FireRocket( void )
+void CApache::FireRocket()
 {
 	static float side = 1.0f;
 
@@ -956,7 +955,7 @@ bool CApache::FireGun()
 	return false;
 }
 
-void CApache::ShowDamage( void )
+void CApache::ShowDamage()
 {
 	if( m_iDoSmokePuff > 0 || RANDOM_LONG( 0, 99 ) > pev->health )
 	{
@@ -1072,13 +1071,13 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 
 class CApacheHVR : public CGrenade
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT IgniteThink( void );
-	void EXPORT AccelerateThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT IgniteThink();
+	void EXPORT AccelerateThink();
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	Vector m_vecForward;
@@ -1117,7 +1116,7 @@ const NamedVisual CApacheHVR::trailVisual = BuildVisual("Apache.RocketTrail")
 		.RenderColor(224, 224, 255)
 		.Alpha(255);
 
-void CApacheHVR::Spawn( void )
+void CApacheHVR::Spawn()
 {
 	Precache();
 	// motor
@@ -1140,7 +1139,7 @@ void CApacheHVR::Spawn( void )
 	pev->dmg = 150;
 }
 
-void CApacheHVR::Precache( void )
+void CApacheHVR::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	RegisterVisual(modelVisual);
@@ -1148,7 +1147,7 @@ void CApacheHVR::Precache( void )
 	RegisterAndPrecacheSoundScript(rpgSoundScript);
 }
 
-void CApacheHVR::IgniteThink( void )
+void CApacheHVR::IgniteThink()
 {
 	// pev->movetype = MOVETYPE_TOSS;
 
@@ -1166,7 +1165,7 @@ void CApacheHVR::IgniteThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CApacheHVR::AccelerateThink( void )
+void CApacheHVR::AccelerateThink()
 {
 	// check world boundaries
 	if( !IsInWorld() )
@@ -1188,14 +1187,13 @@ void CApacheHVR::AccelerateThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-#if FEATURE_BLACK_APACHE
 class CBlkopApache : public CApache
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("blkop_apache"); }
-	int	DefaultClassify ( void )
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("blkop_apache"); }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
@@ -1205,13 +1203,12 @@ public:
 
 LINK_ENTITY_TO_CLASS( monster_blkop_apache, CBlkopApache )
 
-void CBlkopApache::Spawn( void )
+void CBlkopApache::Spawn()
 {
 	SpawnImpl("models/blkop_apache.mdl");
 }
 
-void CBlkopApache::Precache( void )
+void CBlkopApache::Precache()
 {
 	PrecacheImpl("models/blkop_apache.mdl", "models/metalplategibs_dark.mdl");
 }
-#endif

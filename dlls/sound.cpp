@@ -136,20 +136,20 @@ enum
 class CAmbientGeneric : public CBaseEntity
 {
 public:
-	void KeyValue( KeyValueData* pkvd );
-	void Spawn( void );
-	void Precache( void );
-	void Activate();
+	void KeyValue( KeyValueData* pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
+	void Activate() override;
 	void EXPORT ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT StartPlayFrom( void );
-	void EXPORT RampThink( void );
-	void InitModulationParms( void );
+	void EXPORT StartPlayFrom();
+	void EXPORT RampThink();
+	void InitModulationParms();
 	virtual const char* GetNextSound() { return STRING(pev->message); }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 
 	float m_flAttenuation;		// attenuation value
 	dynpitchvol_t m_dpv;
@@ -190,7 +190,7 @@ IMPLEMENT_SAVERESTORE( CAmbientGeneric, CBaseEntity )
 //
 // ambient_generic - general-purpose user-defined static sound
 //
-void CAmbientGeneric::Spawn( void )
+void CAmbientGeneric::Spawn()
 {
 /*
 		-1 : "Default"
@@ -281,7 +281,7 @@ void CAmbientGeneric::Spawn( void )
 	Precache();
 }
 
-void CAmbientGeneric::Precache( void )
+void CAmbientGeneric::Precache()
 {
 	const char *szSoundFile = STRING( pev->message );
 
@@ -338,7 +338,7 @@ void CAmbientGeneric::Activate()
 	}
 }
 
-void CAmbientGeneric::StartPlayFrom( void )
+void CAmbientGeneric::StartPlayFrom()
 {
 	const char* szSoundFile = STRING(pev->message);
 
@@ -356,7 +356,7 @@ void CAmbientGeneric::StartPlayFrom( void )
 // pitch or volume of the playing sound.  This function will
 // ramp pitch and/or volume up or down, modify pitch/volume
 // with lfo if active.
-void CAmbientGeneric::RampThink( void )
+void CAmbientGeneric::RampThink()
 {
 	const char *szSoundFile = STRING( pev->message );
 	int pitch = m_dpv.pitch; 
@@ -576,7 +576,7 @@ void CAmbientGeneric::RampThink( void )
 // Init all ramp params in preparation to 
 // play a new sound
 
-void CAmbientGeneric::InitModulationParms( void )
+void CAmbientGeneric::InitModulationParms()
 {
 	int pitchinc;
 
@@ -981,8 +981,8 @@ void CAmbientGeneric::KeyValue( KeyValueData *pkvd )
 class CAmbientRandom : public CAmbientGeneric
 {
 public:
-	void Precache();
-	const char* GetNextSound();
+	void Precache() override;
+	const char* GetNextSound() override;
 };
 
 LINK_ENTITY_TO_CLASS( ambient_random, CAmbientRandom )
@@ -1027,13 +1027,13 @@ const char* CAmbientRandom::GetNextSound()
 class CEnvSound : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData* pkvd);
-	void Spawn( void );
+	void KeyValue( KeyValueData* pkvd) override;
+	void Spawn() override;
 
-	void Think( void );
+	void Think() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	float m_flRadius;
@@ -1106,7 +1106,7 @@ bool FEnvSoundInRange( entvars_t *pev, entvars_t *pevTarget, float *pflRange )
 
 // CONSIDER: if player in water state, autoset roomtype to 14,15 or 16. 
 
-void CEnvSound::Think( void )
+void CEnvSound::Think()
 {
 	// get pointer to client if visible; FIND_CLIENT_IN_PVS will
 	// cycle through visible clients on consecutive calls.
@@ -1201,14 +1201,14 @@ void CEnvSound::Spawn()
 class CTriggerSound : public CBaseDelay
 {
 public:
-	void KeyValue( KeyValueData* pkvd);
-	void Spawn( void );
-	void Touch( CBaseEntity *pOther );
+	void KeyValue( KeyValueData* pkvd) override;
+	void Spawn() override;
+	void Touch( CBaseEntity *pOther ) override;
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
-	virtual int	ObjectCaps( void ) { return CBaseDelay :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int	ObjectCaps() override { return CBaseDelay :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
 	int m_Roomtype;
 	string_t m_iszMaster;
@@ -1262,7 +1262,7 @@ void CTriggerSound::Touch( CBaseEntity *pOther )
 	}
 }
 
-void CTriggerSound::Spawn( )
+void CTriggerSound::Spawn()
 {
 	pev->solid = SOLID_TRIGGER;
 	pev->movetype = MOVETYPE_NONE;
@@ -1892,17 +1892,17 @@ float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bo
 class CSpeaker : public CBaseEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn( void );
-	void Precache( void );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
 	void EXPORT ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT SpeakerThink( void );
+	void EXPORT SpeakerThink();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 
 	int m_preset;			// preset number
 };
@@ -1919,7 +1919,7 @@ IMPLEMENT_SAVERESTORE( CSpeaker, CBaseEntity )
 //
 // ambient_generic - general-purpose user-defined static sound
 //
-void CSpeaker::Spawn( void )
+void CSpeaker::Spawn()
 {
 	const char *szSoundFile = STRING( pev->message );
 
@@ -1945,13 +1945,13 @@ void CSpeaker::Spawn( void )
 #define ANNOUNCE_MINUTES_MIN	0.25f
 #define ANNOUNCE_MINUTES_MAX	2.25f
 
-void CSpeaker::Precache( void )
+void CSpeaker::Precache()
 {
 	if( !FBitSet( pev->spawnflags, SPEAKER_START_SILENT ) )
 		// set first announcement time for random n second
 		pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 5.0f, 15.0f );
 }
-void CSpeaker::SpeakerThink( void )
+void CSpeaker::SpeakerThink()
 {
 	const char* szSoundFile = "";
 	float flvolume = pev->health * 0.1f;
@@ -2100,9 +2100,9 @@ void CSpeaker::KeyValue( KeyValueData *pkvd )
 class CEnvSoundMark : public CBaseEntity
 {
 public:
-	void Spawn();
-	void KeyValue(KeyValueData *pkvd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void Spawn() override;
+	void KeyValue(KeyValueData *pkvd) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 
 	int GetType() const { return pev->impulse ? pev->impulse : bits_SOUND_DANGER; }
 	int GetRadius() const { return pev->button > 0 ? pev->button : 384; }
@@ -2161,7 +2161,7 @@ void CEnvSoundMark::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 class CExtraSpeaker : public CPointEntity
 {
 public:
-	void Think()
+	void Think() override
 	{
 		// Gargbage collection
 		CBaseEntity* pOwner = nullptr;
@@ -2215,9 +2215,9 @@ CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity)
 class CAmbientExtraSpeaker : public CAmbientGeneric
 {
 public:
-	void Precache();
-	CBaseEntity* GetEntityToPlayFrom(CBaseEntity *pActivator);
-	bool EntityToPlayFromIsDefined() { return true; }
+	void Precache() override;
+	CBaseEntity* GetEntityToPlayFrom(CBaseEntity *pActivator) override;
+	bool EntityToPlayFromIsDefined() override { return true; }
 
 protected:
 	CBaseEntity* GetTargetEntity(CBaseEntity* pActivator);

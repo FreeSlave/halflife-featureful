@@ -73,17 +73,17 @@ typedef enum
 class CMonsterMaker : public CBaseMonster
 {
 public:
-	void Spawn( void );
+	void Spawn() override;
 	bool CheckMonsterClassname();
-	void Precache( void );
-	void KeyValue( KeyValueData* pkvd);
+	void Precache() override;
+	void KeyValue( KeyValueData* pkvd) override;
 	void EXPORT ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT CyclicUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT MakerThink( void );
-	void EXPORT CyclicBacklogThink( void );
+	void EXPORT MakerThink();
+	void EXPORT CyclicBacklogThink();
 	void ReportNullEntity();
-	void DeathNotice( entvars_t *pevChild );// monster maker children use this to tell the monster maker that they have died.
-	int MakeMonster( void );
+	void DeathNotice( entvars_t *pevChild ) override;// monster maker children use this to tell the monster maker that they have died.
+	int MakeMonster();
 
 	void GetRealHullSizes(Vector& minHullSize, Vector& maxHullSize);
 	int CalculateSpot(const Vector& testMinHullSize, const Vector& testMaxHullSize, Vector& placePosition, Vector& placeAngles, edict_t*& warpballSoundEnt, float spawnDelay);
@@ -93,8 +93,8 @@ public:
 		return pev->message;
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -411,7 +411,7 @@ bool CMonsterMaker::CheckMonsterClassname()
 	return true;
 }
 
-void CMonsterMaker::Precache( void )
+void CMonsterMaker::Precache()
 {
 	CBaseMonster::Precache();
 
@@ -436,10 +436,10 @@ void CMonsterMaker::Precache( void )
 class CMonsterMakerHull : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 	static CMonsterMakerHull* SelfCreate(CMonsterMaker* pMonsterMaker, const Vector& position, const Vector& angles, const Vector& minHullSize, const Vector& maxHullSize, float delay);
-	void Think();
+	void Think() override;
 };
 
 LINK_ENTITY_TO_CLASS( monstermaker_hull, CMonsterMakerHull )
@@ -929,7 +929,7 @@ void CMonsterMaker::StartWarpballEffect(const Vector &vecPosition, edict_t* warp
 //=========================================================
 // MakeMonster-  this is the code that drops the monster
 //=========================================================
-int CMonsterMaker::MakeMonster( void )
+int CMonsterMaker::MakeMonster()
 {
 	if( m_iMaxLiveChildren > 0 && m_cLiveChildren + m_delayedCount >= m_iMaxLiveChildren )
 	{
@@ -1094,7 +1094,7 @@ void CMonsterMaker::ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 //=========================================================
 // MakerThink - creates a new monster every so often
 //=========================================================
-void CMonsterMaker::MakerThink( void )
+void CMonsterMaker::MakerThink()
 {
 	pev->nextthink = gpGlobals->time + m_flDelay;
 

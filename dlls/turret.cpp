@@ -68,38 +68,37 @@ public:
 	void GibMonster() override {}	// UNDONE: Throw turret gibs?
 
 	// Think functions
-	void EXPORT ActiveThink(void);
-	void EXPORT SearchThink(void);
-	void EXPORT AutoSearchThink(void);
-	void EXPORT TurretDeath(void);
+	void EXPORT ActiveThink();
+	void EXPORT SearchThink();
+	void EXPORT AutoSearchThink();
+	void EXPORT TurretDeath();
 
-	virtual void EXPORT SpinDownCall(void) { m_iSpin = false; }
-	virtual void EXPORT SpinUpCall(void) { m_iSpin = true; }
+	virtual void EXPORT SpinDownCall() { m_iSpin = false; }
+	virtual void EXPORT SpinUpCall() { m_iSpin = true; }
 
-	// void SpinDown( void );
-	// float EXPORT SpinDownCall( void ) { return SpinDown(); }
+	// void SpinDown();
+	// float EXPORT SpinDownCall() { return SpinDown(); }
 
-	// virtual float SpinDown( void ) { return 0;}
-	// virtual float Retire( void ) { return 0;}
+	// virtual float SpinDown() { return 0;}
+	// virtual float Retire() { return 0;}
 
-	void EXPORT Deploy( void );
-	void EXPORT Retire( void );
+	void EXPORT Deploy();
+	void EXPORT Retire();
 
-	void EXPORT Initialize( void );
+	void EXPORT Initialize();
 
-	virtual void Ping( void );
-	virtual void EyeOn( void );
-	virtual void EyeOff( void );
+	virtual void Ping();
+	virtual void EyeOn();
+	virtual void EyeOff();
 	virtual int MaxEyeBrightness() { return 255; }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	// other functions
 	void SetTurretAnim( TURRET_ANIM anim );
-	int MoveTurret( void );
+	int MoveTurret();
 	virtual void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) { }
 
 	void SetEnemy(CBaseEntity* enemy);
@@ -224,21 +223,20 @@ const NamedSoundScript CBaseTurret::spinupSoundScript = {
 class CTurret : public CBaseTurret
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	// Think functions
-	const char* DefaultDisplayName() { return "Turret"; }
-	void SpinUpCall( void );
-	void SpinDownCall( void );
-	virtual int MaxEyeBrightness();
+	const char* DefaultDisplayName() override { return "Turret"; }
+	void SpinUpCall() override;
+	void SpinDownCall() override;
+	int MaxEyeBrightness() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	// other functions
-	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy );
+	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
 
 	static const NamedSoundScript shootSoundScript;
 	static const NamedSoundScript spinupCallSoundScript;
@@ -290,11 +288,11 @@ IMPLEMENT_SAVERESTORE( CTurret, CBaseTurret )
 class CMiniTurret : public CBaseTurret
 {
 public:
-	void Spawn();
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	// other functions
-	const char* DefaultDisplayName() { return "Miniturret"; }
-	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy );
+	const char* DefaultDisplayName() override { return "Miniturret"; }
+	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
 
 	static constexpr const char* shootSoundScript = "MiniTurret.Shoot";
 };
@@ -464,7 +462,7 @@ void CMiniTurret::Precache()
 	RegisterAndPrecacheSoundScript(shootSoundScript, NPC::single9mmSoundScript);
 }
 
-void CBaseTurret::Initialize( void )
+void CBaseTurret::Initialize()
 {
 	m_iOn = false;
 	m_fBeserk = false;
@@ -526,7 +524,7 @@ void CBaseTurret::TurretUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	}
 }
 
-void CBaseTurret::Ping( void )
+void CBaseTurret::Ping()
 {
 	// make the pinging noise every second while searching
 	if( m_flPingTime == 0 )
@@ -568,7 +566,7 @@ void CBaseTurret::EyeOff()
 	}
 }
 
-void CBaseTurret::ActiveThink( void )
+void CBaseTurret::ActiveThink()
 {
 	bool fAttack = false;
 	Vector vecDirToEnemy;
@@ -737,7 +735,7 @@ void CMiniTurret::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
 
-void CBaseTurret::Deploy( void )
+void CBaseTurret::Deploy()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	StudioFrameAdvance();
@@ -776,7 +774,7 @@ void CBaseTurret::Deploy( void )
 	m_flLastSight = gpGlobals->time + m_flMaxWait;
 }
 
-void CBaseTurret::Retire( void )
+void CBaseTurret::Retire()
 {
 	// make the turret level
 	m_vecGoalAngles.x = 0;
@@ -824,7 +822,7 @@ void CBaseTurret::Retire( void )
 	}
 }
 
-void CTurret::SpinUpCall( void )
+void CTurret::SpinUpCall()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -863,7 +861,7 @@ void CTurret::SpinUpCall( void )
 	}
 }
 
-void CTurret::SpinDownCall( void )
+void CTurret::SpinDownCall()
 {
 	if( m_iSpin )
 	{
@@ -930,7 +928,7 @@ void CBaseTurret::SetTurretAnim( TURRET_ANIM anim )
 // After a set amount of time, the barrel will spin down. After m_flMaxWait, the turret will
 // retact.
 //
-void CBaseTurret::SearchThink( void )
+void CBaseTurret::SearchThink()
 {
 	// ensure rethink
 	SetTurretAnim( TURRET_ANIM_SPIN );
@@ -992,7 +990,7 @@ void CBaseTurret::SearchThink( void )
 // This think function will deploy the turret when something comes into range. This is for
 // automatically activated turrets.
 //
-void CBaseTurret::AutoSearchThink( void )
+void CBaseTurret::AutoSearchThink()
 {
 	// ensure rethink
 	StudioFrameAdvance();
@@ -1021,7 +1019,7 @@ void CBaseTurret::AutoSearchThink( void )
 	}
 }
 
-void CBaseTurret::TurretDeath( void )
+void CBaseTurret::TurretDeath()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -1177,7 +1175,7 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	return takeDamageResult;
 }
 
-int CBaseTurret::MoveTurret( void )
+int CBaseTurret::MoveTurret()
 {
 	int state = 0;
 	// any x movement?
@@ -1262,7 +1260,7 @@ int CBaseTurret::MoveTurret( void )
 //
 // ID as a machine
 //
-int CBaseTurret::Classify( void )
+int CBaseTurret::Classify()
 {
 	if( m_iOn || m_iAutoStart )
 		return	CBaseMonster::Classify();
@@ -1295,14 +1293,14 @@ int CBaseTurret::DefaultClassify()
 class CSentry : public CBaseTurret
 {
 public:
-	void Spawn();
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 	// other functions
-	const char* DefaultDisplayName() { return "Sentry Turret"; }
-	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy );
+	const char* DefaultDisplayName() override { return "Sentry Turret"; }
+	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void EXPORT SentryTouch( CBaseEntity *pOther );
-	void EXPORT SentryDeath( void );
+	void EXPORT SentryDeath();
 
 	static constexpr const char* shootSoundScript = "Sentry.Shoot";
 };
@@ -1406,7 +1404,7 @@ void CSentry::SentryTouch( CBaseEntity *pOther )
 	}
 }
 
-void CSentry::SentryDeath( void )
+void CSentry::SentryDeath()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -1469,9 +1467,9 @@ void CSentry::SentryDeath( void )
 class CBaseDeadTurret : public CBaseAnimating
 {
 public:
-	void Spawn();
-	void Precache();
-	void KeyValue( KeyValueData *pkvd );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
@@ -1566,9 +1564,9 @@ void CBaseDeadTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttack
 class CDeadTurret : public CBaseDeadTurret
 {
 public:
-	void Spawn();
+	void Spawn() override;
 protected:
-	const char* DefaultModel() {
+	const char* DefaultModel() override {
 		return "models/turret.mdl";
 	}
 };
@@ -1584,9 +1582,9 @@ void CDeadTurret::Spawn()
 class CDeadMiniTurret : public CBaseDeadTurret
 {
 public:
-	void Spawn();
+	void Spawn() override;
 protected:
-	const char* DefaultModel() {
+	const char* DefaultModel() override {
 		return "models/miniturret.mdl";
 	}
 };
@@ -1602,9 +1600,9 @@ void CDeadMiniTurret::Spawn()
 class CDeadSentry : public CBaseDeadTurret
 {
 public:
-	void Spawn();
+	void Spawn() override;
 protected:
-	const char* DefaultModel() {
+	const char* DefaultModel() override {
 		return "models/sentry.mdl";
 	}
 };

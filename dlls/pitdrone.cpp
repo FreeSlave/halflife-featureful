@@ -25,11 +25,8 @@
 #include	"game.h"
 #include	"combat.h"
 #include	"followingmonster.h"
-#include	"mod_features.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
-
-#if FEATURE_PITDRONE
 
 /*
  * In Opposing Force pitdrone spawned via monstermaker did not have spikes
@@ -46,8 +43,8 @@
 class CPitdroneSpike : public CBaseEntity
 {
 public:
-	void Spawn(void);
-	void Precache(void);
+	void Spawn() override;
+	void Precache() override;
 	void EXPORT SpikeTouch(CBaseEntity *pOther);
 	void EXPORT StartTrail();
 	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles, EntityOverrides entityOverrides);
@@ -89,7 +86,7 @@ const NamedSoundScript CPitdroneSpike::hitBodySoundScript = {
 	"PitDrone.SpikeHitBody"
 };
 
-void CPitdroneSpike::Spawn(void)
+void CPitdroneSpike::Spawn()
 {
 	pev->movetype = MOVETYPE_FLY;
 	pev->classname = MAKE_STRING("pitdronespike");
@@ -102,7 +99,7 @@ void CPitdroneSpike::Spawn(void)
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 }
 
-void CPitdroneSpike::Precache(void)
+void CPitdroneSpike::Precache()
 {
 	RegisterVisual(spikeVisual);
 	RegisterAndPrecacheSoundScript(hitWorldSoundScript);
@@ -213,16 +210,16 @@ enum
 class CPitdrone : public CFollowingMonster
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
-	void SetYawSpeed(void);
-	int DefaultISoundMask();
-	void KeyValue(KeyValueData *pkvd);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	void KeyValue(KeyValueData *pkvd) override;
 
-	int DefaultClassify(void);
-	const char* DefaultDisplayName() { return "Pit Drone"; }
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Pit Drone"; }
 
 	bool CheckMeleeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
@@ -230,30 +227,30 @@ public:
 	void PainSound() override;
 	void AlertSound() override;
 	void DeathSound() override;
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 	void BodyChange(int horns);
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& info) override;
-	int IgnoreConditions(void);
-	Schedule_t* GetSchedule(void);
-	Schedule_t* GetScheduleOfType(int Type);
-	void StartTask(Task_t *pTask);
-	void RunTask(Task_t *pTask);
-	void RunAI(void);
-	void CheckAmmo();
-	const char* DefaultGibModel() {
+	int IgnoreConditions() override;
+	Schedule_t* GetSchedule() override;
+	Schedule_t* GetScheduleOfType(int Type) override;
+	void StartTask(Task_t *pTask) override;
+	void RunTask(Task_t *pTask) override;
+	void RunAI() override;
+	void CheckAmmo() override;
+	const char* DefaultGibModel() override {
 		return "models/pit_drone_gibs.mdl";
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return PITDRONE_GIB_COUNT;
 	}
 
 	CUSTOM_SCHEDULES
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -16.0f, -16.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 16.0f, 16.0f, 48.0f ); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 48.0f ); }
 
 	float	m_flLastHurtTime;
 	float	m_flNextSpitTime;// last time the PitDrone used the spit attack.
@@ -270,8 +267,8 @@ public:
 
 	static const NamedVisual tinySpitVisual;
 
-	virtual int	Save(CSave &save);
-	virtual int	Restore(CRestore &restore);
+	int	Save(CSave &save) override;
+	int	Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 };
 
@@ -302,7 +299,7 @@ void CPitdrone::KeyValue(KeyValueData *pkvd)
 //=========================================================
 // IgnoreConditions 
 //=========================================================
-int CPitdrone::IgnoreConditions(void)
+int CPitdrone::IgnoreConditions()
 {
 	int iIgnore = CFollowingMonster::IgnoreConditions();
 
@@ -435,7 +432,7 @@ bool CPitdrone::CheckRangeAttack1(float flDot, float flDist)
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CPitdrone::SetYawSpeed(void)
+void CPitdrone::SetYawSpeed()
 {
 	int ys = 90;
 	pev->yaw_speed = ys;
@@ -446,7 +443,7 @@ void CPitdrone::SetYawSpeed(void)
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CPitdrone::DefaultISoundMask( void )
+int CPitdrone::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -568,7 +565,7 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 	}
 }
 
-int	CPitdrone::DefaultClassify(void)
+int	CPitdrone::DefaultClassify()
 {
 	return	CLASS_RACEX_PREDATOR;
 }
@@ -709,7 +706,7 @@ void CPitdrone::DeathSound()
 	EmitSoundScript(dieSoundScript);
 }
 
-void CPitdrone::RunAI(void)
+void CPitdrone::RunAI()
 {
 	// first, do base class stuff
 	CFollowingMonster::RunAI();
@@ -724,7 +721,7 @@ void CPitdrone::RunAI(void)
 	}
 }
 
-void CPitdrone::CheckAmmo( void )
+void CPitdrone::CheckAmmo()
 {
 	if( m_cAmmoLoaded <= 0 && m_iInitialAmmo >= 0 )
 	{
@@ -967,7 +964,7 @@ IMPLEMENT_CUSTOM_SCHEDULES(CPitdrone, CFollowingMonster)
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CPitdrone::GetSchedule(void)
+Schedule_t *CPitdrone::GetSchedule()
 {
 	switch (m_MonsterState)
 	{
@@ -1154,19 +1151,19 @@ void CPitdrone::PlayUnUseSentence()
 class CDeadPitdrone : public CDeadMonster
 {
 public:
-	void Spawn();
-	void Precache();
-	const char* DefaultModel() { return "models/pit_drone.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
-	int	DefaultClassify ( void ) { return	CLASS_RACEX_PREDATOR; }
-	const char* DefaultGibModel() {
+	void Spawn() override;
+	void Precache() override;
+	const char* DefaultModel() override { return "models/pit_drone.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
+	int	DefaultClassify() override { return	CLASS_RACEX_PREDATOR; }
+	const char* DefaultGibModel() override {
 		return "models/pit_drone_gibs.mdl";
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return PITDRONE_GIB_COUNT;
 	}
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CDeadPitdrone::getPos(int pos) const
@@ -1188,4 +1185,3 @@ void CDeadPitdrone::Spawn()
 	MonsterInitDead();
 	pev->frame = 255;
 }
-#endif

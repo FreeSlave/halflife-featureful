@@ -11,6 +11,6 @@
 
 #include "pi_constant.h"
 
-void V_StartPitchDrift( void );
-void V_StopPitchDrift( void );
+void V_StartPitchDrift();
+void V_StopPitchDrift();
 #endif // !VIEWH

@@ -36,14 +36,14 @@
 class CCrossbowBolt : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int Classify( void );
-	void EXPORT BubbleThink( void );
+	void Spawn() override;
+	void Precache() override;
+	int Classify() override;
+	void EXPORT BubbleThink();
 	void EXPORT BoltTouch( CBaseEntity *pOther );
-	void EXPORT ExplodeThink( void );
+	void EXPORT ExplodeThink();
 
-	static CCrossbowBolt *BoltCreate( void );
+	static CCrossbowBolt *BoltCreate();
 
 	static const NamedSoundScript boltHitBody;
 	static const NamedSoundScript boltHitWorld;
@@ -66,7 +66,7 @@ const NamedSoundScript CCrossbowBolt::boltHitWorld = {
 	"Crossbow.BoltHitWorld"
 };
 
-CCrossbowBolt *CCrossbowBolt::BoltCreate( void )
+CCrossbowBolt *CCrossbowBolt::BoltCreate()
 {
 	// Create a new entity with CCrossbowBolt private data
 	CCrossbowBolt *pBolt = GetClassPtr( (CCrossbowBolt *)NULL );
@@ -101,7 +101,7 @@ void CCrossbowBolt::Precache()
 	RegisterAndPrecacheSoundScript(boltHitWorld);
 }
 
-int CCrossbowBolt::Classify( void )
+int CCrossbowBolt::Classify()
 {
 	return CLASS_NONE;
 }
@@ -185,7 +185,7 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 	}
 }
 
-void CCrossbowBolt::BubbleThink( void )
+void CCrossbowBolt::BubbleThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
@@ -195,7 +195,7 @@ void CCrossbowBolt::BubbleThink( void )
 	UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1f, pev->origin, 1 );
 }
 
-void CCrossbowBolt::ExplodeThink( void )
+void CCrossbowBolt::ExplodeThink()
 {
 	int iContents = UTIL_PointContents( pev->origin );
 	int iScale;

@@ -58,7 +58,7 @@ void CMP5::Spawn()
 	CConfigurableWeapon::Spawn();
 }
 
-void CMP5::Precache( void )
+void CMP5::Precache()
 {
 	CConfigurableWeapon::Precache();
 	PRECACHE_MODEL( "models/grenade.mdl" );	// grenade

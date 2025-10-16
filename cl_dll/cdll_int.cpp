@@ -52,8 +52,8 @@
 
 IParticleMan *g_pParticleMan = NULL;
 
-void CL_LoadParticleMan( void );
-void CL_UnloadParticleMan( void );
+void CL_LoadParticleMan();
+void CL_UnloadParticleMan();
 
 #if GOLDSOURCE_SUPPORT && (XASH_WIN32 || XASH_LINUX || XASH_APPLE) && XASH_X86
 #define USE_FAKE_VGUI	!USE_VGUI
@@ -138,9 +138,9 @@ TeamFortressViewport *gViewPort = NULL;
 #endif
 mobile_engfuncs_t *gMobileEngfuncs = NULL;
 
-void InitInput( void );
-void EV_HookEvents( void );
-void IN_Commands( void );
+void InitInput();
+void EV_HookEvents();
+void IN_Commands();
 
 int __MsgFunc_UseSound( const char *pszName, int iSize, void *pbuf )
 {
@@ -166,12 +166,12 @@ Called when the DLL is first loaded.
 extern "C" 
 {
 int		DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion );
-int		DLLEXPORT HUD_VidInit( void );
-void	DLLEXPORT HUD_Init( void );
+int		DLLEXPORT HUD_VidInit();
+void	DLLEXPORT HUD_Init();
 int		DLLEXPORT HUD_Redraw( float flTime, int intermission );
 int		DLLEXPORT HUD_UpdateClientData( client_data_t *cdata, float flTime );
-void	DLLEXPORT HUD_Reset ( void );
-void	DLLEXPORT HUD_Shutdown( void );
+void	DLLEXPORT HUD_Reset ();
+void	DLLEXPORT HUD_Shutdown();
 void	DLLEXPORT HUD_PlayerMove( struct playermove_s *ppmove, int server );
 void	DLLEXPORT HUD_PlayerMoveInit( struct playermove_s *ppmove );
 char	DLLEXPORT HUD_PlayerMoveTexture( char *name );
@@ -289,7 +289,7 @@ HUD_GetRect
 VGui stub
 =================
 */
-int *HUD_GetRect( void )
+int *HUD_GetRect()
 {
 	static int extent[4];
 
@@ -306,9 +306,9 @@ class TeamFortressViewport : public vgui::Panel
 {
 public:
 	TeamFortressViewport(int x,int y,int wide,int tall);
-	void Initialize( void );
+	void Initialize();
 
-	virtual void paintBackground();
+	void paintBackground() override;
 	void *operator new( size_t stAllocateBlock );
 };
 
@@ -354,7 +354,7 @@ so the HUD can reinitialize itself.
 */
 extern void HUD_ResetClientWeaponData();
 
-int DLLEXPORT HUD_VidInit( void )
+int DLLEXPORT HUD_VidInit()
 {
 	gHUD.m_iHardwareMode = IEngineStudio.IsHardware() != 0;
 	HUD_ResetClientWeaponData();
@@ -440,7 +440,7 @@ the hud variables.
 ==========================
 */
 
-void DLLEXPORT HUD_Init( void )
+void DLLEXPORT HUD_Init()
 {
 	InitInput();
 	gHUD.Init();
@@ -501,7 +501,7 @@ Called at start and end of demos to restore to "non"HUD state.
 ==========================
 */
 
-void DLLEXPORT HUD_Reset( void )
+void DLLEXPORT HUD_Reset()
 {
 	gHUD.VidInit();
 }
@@ -599,7 +599,7 @@ void TestParticlesCmd()
 	}
 }
 
-void CL_UnloadParticleMan( void )
+void CL_UnloadParticleMan()
 {
 	if (g_pParticleMan)
 	{
@@ -608,7 +608,7 @@ void CL_UnloadParticleMan( void )
 	}
 }
 
-void CL_LoadParticleMan( void )
+void CL_LoadParticleMan()
 {
 	//Now implemented in the client library.
 	g_pParticleMan = new IParticleMan_Active();
@@ -644,7 +644,7 @@ bool HUD_MessageBox( const char *msg )
 	return false;
 }
 
-void DLLEXPORT HUD_Shutdown( void )
+void DLLEXPORT HUD_Shutdown()
 {
 	ShutdownInput();
 #if OPENGL_AVAILABLE

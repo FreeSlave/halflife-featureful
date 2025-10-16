@@ -24,13 +24,13 @@ class CRpg : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;
 	int WeaponId() const override { return WEAPON_RPG; }
-	void Reload( void );
+	void Reload() override;
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
@@ -42,8 +42,8 @@ public:
 
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
-	void GetWeaponData(weapon_data_t& data);
-	void SetWeaponData(const weapon_data_t& data);
+	void GetWeaponData(weapon_data_t& data) override;
+	void SetWeaponData(const weapon_data_t& data) override;
 };
 
 #if !CLIENT_DLL
@@ -78,7 +78,7 @@ CLaserSpot *CLaserSpot::CreateSpot( edict_t* pOwner )
 
 //=========================================================
 //=========================================================
-void CLaserSpot::Spawn( void )
+void CLaserSpot::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_NONE;
@@ -109,7 +109,7 @@ void CLaserSpot::Suspend( float flSuspendTime )
 //=========================================================
 // Revive - bring a suspended laser sight back.
 //=========================================================
-void CLaserSpot::Revive( void )
+void CLaserSpot::Revive()
 {
 	pev->effects &= ~EF_NODRAW;
 #if FEATURE_PREDICTABLE_LASER_SPOT
@@ -128,7 +128,7 @@ KilledResult CLaserSpot::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker,
 	return CBaseEntity::Killed( pevInflictor, pevAttacker, iGib );
 }
 
-void CLaserSpot::Precache( void )
+void CLaserSpot::Precache()
 {
 	PRECACHE_MODEL( "sprites/laserdot.spr" );
 }
@@ -189,14 +189,14 @@ void CRpgRocket::Explode( TraceResult *pTrace, int bitsDamageType )
 	CGrenade::Explode( pTrace, bitsDamageType );
 }
 
-CRpg *CRpgRocket::GetLauncher( void )
+CRpg *CRpgRocket::GetLauncher()
 {
 	return m_hLauncher.Entity<CRpg>();
 }
 
 //=========================================================
 //=========================================================
-void CRpgRocket::Spawn( void )
+void CRpgRocket::Spawn()
 {
 	Precache();
 	// motor
@@ -241,7 +241,7 @@ void CRpgRocket::RocketTouch( CBaseEntity *pOther )
 
 //=========================================================
 //=========================================================
-void CRpgRocket::Precache( void )
+void CRpgRocket::Precache()
 {
 	PrecacheBaseGrenadeSounds();
 	PRECACHE_MODEL( "models/rpgrocket.mdl" );
@@ -249,7 +249,7 @@ void CRpgRocket::Precache( void )
 	RegisterAndPrecacheSoundScript(rocketIgniteSoundScript);
 }
 
-void CRpgRocket::IgniteThink( void )
+void CRpgRocket::IgniteThink()
 {
 	// pev->movetype = MOVETYPE_TOSS;
 
@@ -277,7 +277,7 @@ void CRpgRocket::IgniteThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CRpgRocket::FollowThink( void )
+void CRpgRocket::FollowThink()
 {
 	CBaseEntity *pOther = NULL;
 	Vector vecTarget;
@@ -381,7 +381,7 @@ TYPEDESCRIPTION	CRpg::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CRpg, CConfigurableWeapon )
 #endif
 
-void CRpg::Reload( void )
+void CRpg::Reload()
 {
 	if( m_cActiveRockets && m_bLaserActive )
 	{
@@ -392,7 +392,7 @@ void CRpg::Reload( void )
 	PerformReload();
 }
 
-void CRpg::Precache( void )
+void CRpg::Precache()
 {
 	CConfigurableWeapon::Precache();
 	UTIL_PrecacheOther( "rpg_rocket" );
@@ -496,7 +496,7 @@ WeaponParameters CRpg::GetDefaultParameters() const
 	return params;
 }
 
-bool CRpg::CanHolster( void )
+bool CRpg::CanHolster()
 {
 	if( m_bLaserActive && m_cActiveRockets )
 	{

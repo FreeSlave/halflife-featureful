@@ -34,8 +34,6 @@ enum shockrifle_e
 	SHOCK_IDLE3
 };
 
-#if FEATURE_SHOCKRIFLE
-
 class CShockrifle : public CConfigurableWeapon
 {
 public:
@@ -49,9 +47,9 @@ public:
 	bool AddToPlayer(CBasePlayer *pPlayer) override;
 
 	void NativeAttack(bool altMode) override;
-	void Holster();
-	void CreateChargeEffect(void);
-	void EXPORT ClearBeams(void);
+	void Holster() override;
+	void CreateChargeEffect();
+	void EXPORT ClearBeams();
 private:
 #if !CLIENT_DLL
 	CBeam* m_pBeam[4];
@@ -68,7 +66,7 @@ void CShockrifle::Spawn()
 	pev->framerate = 1.0f;
 }
 
-void CShockrifle::Precache(void)
+void CShockrifle::Precache()
 {
 	CConfigurableWeapon::Precache();
 
@@ -218,7 +216,7 @@ void CShockrifle::NativeAttack(bool altMode)
 	pev->nextthink = gpGlobals->time + 0.08;
 }
 
-void CShockrifle::CreateChargeEffect( void )
+void CShockrifle::CreateChargeEffect()
 {
 #if !CLIENT_DLL
 	if( g_pGameRules->IsMultiplayer())
@@ -242,7 +240,7 @@ void CShockrifle::CreateChargeEffect( void )
 #endif
 }
 
-void CShockrifle::ClearBeams( void )
+void CShockrifle::ClearBeams()
 {
 #if !CLIENT_DLL
 	if( g_pGameRules->IsMultiplayer())
@@ -259,4 +257,3 @@ void CShockrifle::ClearBeams( void )
 	SetThink( NULL );
 #endif
 }
-#endif

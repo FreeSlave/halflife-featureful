@@ -140,7 +140,7 @@ public:
 	int	ObjectCaps() override { return FCAP_DONT_SAVE; }
 
 	void Suspend( float flSuspendTime );
-	void EXPORT Revive( void );
+	void EXPORT Revive();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	static CLaserSpot *CreateSpot( edict_t* pOwner = 0 );
@@ -162,34 +162,34 @@ public:
 	virtual void PrecacheDefaultModelSounds() {}
 	void PrecacheModelSounds();
 	virtual bool AddToPlayer( CBasePlayer *pPlayer );	// return true if the item you want the item added to the player inventory
-	void EXPORT DestroyItem( void );
+	void EXPORT DestroyItem();
 	void EXPORT DefaultTouch( CBaseEntity *pOther );	// default weapon touch
-	void EXPORT FallThink ( void );// when an item is first spawned, this think is run to determine when the object has hit the ground.
-	void EXPORT Materialize( void );// make a weapon visible and tangible
-	void EXPORT AttemptToMaterialize( void );  // the weapon desires to become visible and tangible, if the game rules allow for it
+	void EXPORT FallThink ();// when an item is first spawned, this think is run to determine when the object has hit the ground.
+	void EXPORT Materialize();// make a weapon visible and tangible
+	void EXPORT AttemptToMaterialize();  // the weapon desires to become visible and tangible, if the game rules allow for it
 	CBaseEntity* Respawn() override;// copy a weapon
 	bool IsLockedByMaster() override;
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
-	void FallInit( void );
-	void CheckRespawn( void );
+	void FallInit();
+	void CheckRespawn();
 	virtual bool GetItemInfo(ItemInfo *p) = 0;	// returns false if struct not filled out
 
 	virtual WeaponParameters GetDefaultParameters() const = 0;
 	const WeaponParameters& MyParameters() const;
-	virtual bool CanDeploy( void );
+	virtual bool CanDeploy();
 	virtual bool Deploy()								// returns is deploy was successful
 		 { return true; }
 
 	virtual bool CanHolster() { return true; }// can this weapon be put away right now?
 
-	virtual void ItemPreFrame( void )	{ return; }		// called each frame by the player PreThink
+	virtual void ItemPreFrame()	{ return; }		// called each frame by the player PreThink
 
-	virtual void Drop( void );
-	virtual void Kill( void );
+	virtual void Drop();
+	virtual void Kill();
 	virtual void AttachToPlayer ( CBasePlayer *pPlayer );
 
-	int ObjectCaps();
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	int ObjectCaps() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void TouchOrUse( CBaseEntity* other );
 
 	static const AmmoType* GetAmmoType( const char* name );
@@ -198,9 +198,9 @@ public:
 
 	CBasePlayer	*m_pPlayer;
 
-	int			iItemPosition( void ) { return ItemInfoArray[ WeaponId() ].iPosition; }
-	const char	*pszAmmo1( void ) const { return ItemInfoArray[ WeaponId() ].pszAmmo1; }
-	int			iMaxAmmo1( void )	{
+	int			iItemPosition() { return ItemInfoArray[ WeaponId() ].iPosition; }
+	const char	*pszAmmo1() const { return ItemInfoArray[ WeaponId() ].pszAmmo1; }
+	int			iMaxAmmo1()	{
 		if (m_iPrimaryAmmoType > 0)
 			return g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType);
 		return g_AmmoRegistry.GetMaxAmmo(pszAmmo1());
@@ -208,8 +208,8 @@ public:
 	bool UsesAmmo() const {
 		return m_iPrimaryAmmoType > 0 || pszAmmo1() != NULL;
 	}
-	const char	*pszAmmo2( void ) const { return ItemInfoArray[ WeaponId() ].pszAmmo2; }
-	int			iMaxAmmo2( void )	{
+	const char	*pszAmmo2() const { return ItemInfoArray[ WeaponId() ].pszAmmo2; }
+	int			iMaxAmmo2()	{
 		if (m_iSecondaryAmmoType > 0)
 			return g_AmmoRegistry.GetMaxAmmo(m_iSecondaryAmmoType);
 		return g_AmmoRegistry.GetMaxAmmo(pszAmmo2());
@@ -218,12 +218,12 @@ public:
 		return m_iSecondaryAmmoType > 0 || pszAmmo2() != NULL;
 	}
 
-	const char	*pszName( void )	{ return ItemInfoArray[ WeaponId() ].pszName; }
-	int			iMaxClip( void );
-	int			iWeight( void );
-	int			iFlags( void )		{ return ItemInfoArray[ WeaponId() ].iFlags; }
-	const char* pszAmmoEntity( void ) { return ItemInfoArray[ WeaponId() ].pszAmmoEntity; }
-	int			iDropAmmo( void )	{ return ItemInfoArray[ WeaponId() ].iDropAmmo; }
+	const char	*pszName()	{ return ItemInfoArray[ WeaponId() ].pszName; }
+	int			iMaxClip();
+	int			iWeight();
+	int			iFlags()		{ return ItemInfoArray[ WeaponId() ].iFlags; }
+	const char* pszAmmoEntity() { return ItemInfoArray[ WeaponId() ].pszAmmoEntity; }
+	int			iDropAmmo()	{ return ItemInfoArray[ WeaponId() ].iDropAmmo; }
 
 	const char* MyWorldModel();
 	void PrecacheWeaponModels();
@@ -234,13 +234,13 @@ public:
 	virtual bool ExtractAmmo( CBasePlayerWeapon *pWeapon );	// TODO: check the return type usage. Return true if you can add ammo to yourself when picked up
 	virtual bool ExtractClipAmmo( CBasePlayerWeapon *pWeapon );	// TODO: check the return type usage. Return true if you can add ammo to yourself when picked up
 
-	virtual bool AddWeapon( void ) { ExtractAmmo( this ); return true; }	// Return true if you want to add yourself to the player
+	virtual bool AddWeapon() { ExtractAmmo( this ); return true; }	// Return true if you want to add yourself to the player
 
 	// generic "shared" ammo handlers
 	bool AddPrimaryAmmo(int iCount);
 	bool AddSecondaryAmmo(int iCount);
 
-	virtual void UpdateItemInfo( void ) {}	// updates HUD state
+	virtual void UpdateItemInfo() {}	// updates HUD state
 
 	//Special stuff for grenades and satchels.
 	float m_flStartThrow;
@@ -255,12 +255,12 @@ public:
 	bool m_fFireOnEmpty;		// True when the gun is empty and the player is still holding down the
 							// attack key(s)
 	virtual bool PlayEmptySound(bool altMode);
-	virtual void ResetEmptySound( void );
+	virtual void ResetEmptySound();
 
 	void SendWeaponAnim( int iAnim);
 	void SendWeaponAnim( int iAnim, int body );
 
-	virtual bool IsUseable( void );
+	virtual bool IsUseable();
 	bool DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body = 0, float attackDelay = 0.5f, float idleDelay = 1.0f );
 	const char* ViewModelToDeploy(const char* viewModel);
 	const char* DetonatorViewModelToDeploy(const char* viewModel);
@@ -268,21 +268,21 @@ public:
 	bool DefaultClipReload(int iAnim, float fDelay, int body = 0);
 	void PrecachePModel(const char* name);
 
-	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
+	virtual void ItemPostFrame();	// called each frame by the player PostThink
 	virtual void UpdateInaccuracy() {}
 	// called by CBasePlayerWeapons ItemPostFrame()
-	virtual void PrimaryAttack( void ) { return; }				// do "+ATTACK"
-	virtual void SecondaryAttack( void ) { return; }			// do "+ATTACK2"
+	virtual void PrimaryAttack() { return; }				// do "+ATTACK"
+	virtual void SecondaryAttack() { return; }			// do "+ATTACK2"
 	bool CanReload();
-	virtual void Reload( void ) { return; }						// do "+RELOAD"
-	virtual void WeaponIdle( void ) { return; }					// called when no buttons pressed
+	virtual void Reload() { return; }						// do "+RELOAD"
+	virtual void WeaponIdle() { return; }					// called when no buttons pressed
 	virtual int UpdateClientData( CBasePlayer *pPlayer );		// sends hud info to client dll, if things have changed
 	virtual void GetWeaponData(weapon_data_t& data) {}
 	virtual void SetWeaponData(const weapon_data_t& data) {}
 	virtual void ResetWeaponData() {}
 
-	virtual void RetireWeapon( void );
-	virtual bool ShouldWeaponIdle( void ) { return false; }
+	virtual void RetireWeapon();
+	virtual bool ShouldWeaponIdle() { return false; }
 	virtual void Holster();
 	virtual bool UseDecrement()
 	{
@@ -306,9 +306,9 @@ public:
 	const char* AmmoName(const char* defaultAmmoName);
 	const char* SecondaryAmmoName(const char* defaultAmmoName);
 
-	void PrintState( void );
+	void PrintState();
 
-	virtual CBasePlayerWeapon *MyWeaponPointer( void ) { return this; }
+	CBasePlayerWeapon *MyWeaponPointer() override { return this; }
 	virtual bool CanBeDropped() { return true; }
 	virtual int ViewModelBody() { return 0; }
 	virtual float GetMaxSpeed() { return 0.0f; }
@@ -509,20 +509,20 @@ public:
 class CWeaponBox : public CBaseDelay
 {
 public:
-	void Precache( void );
-	void Spawn( void );
-	void Touch( CBaseEntity *pOther );
-	void KeyValue( KeyValueData *pkvd );
-	bool IsEmpty( void );
-	void SetObjectCollisionBox( void );
+	void Precache() override;
+	void Spawn() override;
+	void Touch( CBaseEntity *pOther ) override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	bool IsEmpty();
+	void SetObjectCollisionBox() override;
 
-	int ObjectCaps();
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	int ObjectCaps() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void TouchOrUse( CBaseEntity* other );
 
-	void EXPORT Kill ( void );
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	void EXPORT Kill ();
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	bool HasWeapon( CBasePlayerWeapon *pCheckItem );
@@ -542,7 +542,7 @@ public:
 	int m_cAmmoTypes;// how many ammo types packed into this box (if packed by a level designer)
 };
 
-bool bIsMultiplayer ( void );
+bool bIsMultiplayer ();
 
 #if CLIENT_DLL
 void LoadVModel ( const char *szViewModel, CBasePlayer *m_pPlayer );

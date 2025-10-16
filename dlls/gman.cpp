@@ -29,26 +29,26 @@
 class CGMan : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify ( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int DefaultISoundMask ( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int DefaultISoundMask() override;
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
 	EHANDLE m_hPlayer;
 	EHANDLE m_hTalkTarget;
@@ -69,7 +69,7 @@ IMPLEMENT_SAVERESTORE( CGMan, CBaseMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CGMan::DefaultClassify( void )
+int CGMan::DefaultClassify()
 {
 	return CLASS_NONE;
 }
@@ -78,7 +78,7 @@ int CGMan::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGMan::SetYawSpeed( void )
+void CGMan::SetYawSpeed()
 {
 	int ys;
 
@@ -110,7 +110,7 @@ void CGMan::HandleAnimEvent( MonsterEvent_t *pEvent )
 //=========================================================
 // ISoundMask - generic monster can't hear.
 //=========================================================
-int CGMan::DefaultISoundMask( void )
+int CGMan::DefaultISoundMask()
 {
 	return 0;
 }

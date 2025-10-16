@@ -30,15 +30,15 @@
 // Spark Shower
 class CShower : public CBaseEntity
 {
-	void Spawn( void );
-	void Think( void );
-	void Touch( CBaseEntity *pOther );
-	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+	void Spawn() override;
+	void Think() override;
+	void Touch( CBaseEntity *pOther ) override;
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 };
 
 LINK_ENTITY_TO_CLASS( spark_shower, CShower )
 
-void CShower::Spawn( void )
+void CShower::Spawn()
 {
 	pev->velocity = RANDOM_FLOAT( 200.0f, 300.0f ) * pev->angles;
 	pev->velocity.x += RANDOM_FLOAT( -100.0f, 100.0f );
@@ -59,7 +59,7 @@ void CShower::Spawn( void )
 	pev->angles = g_vecZero;
 }
 
-void CShower::Think( void )
+void CShower::Think()
 {
 	UTIL_Sparks( pev->origin );
 
@@ -85,14 +85,14 @@ void CShower::Touch( CBaseEntity *pOther )
 class CEnvExplosion : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
-	void EXPORT Smoke( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Precache() override;
+	void Spawn() override;
+	void EXPORT Smoke();
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_iMagnitude;// how large is the fireball? how much damage?
@@ -143,7 +143,7 @@ void CEnvExplosion::Precache()
 		m_iSmoke = PRECACHE_MODEL(STRING(m_smokeSprite));
 }
 
-void CEnvExplosion::Spawn( void )
+void CEnvExplosion::Spawn()
 {
 	Precache();
 
@@ -286,7 +286,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	}
 }
 
-void CEnvExplosion::Smoke( void )
+void CEnvExplosion::Smoke()
 {
 	if( !( pev->spawnflags & SF_ENVEXPLOSION_NOSMOKE ) )
 	{

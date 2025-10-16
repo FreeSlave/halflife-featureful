@@ -10,17 +10,17 @@ class CRpg;
 class CRpgRocket : public CGrenade
 {
 public:
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT FollowThink( void );
-	void EXPORT IgniteThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT FollowThink();
+	void EXPORT IgniteThink();
 	void EXPORT RocketTouch( CBaseEntity *pOther );
 	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher );
-	void Explode( TraceResult *pTrace, int bitsDamageType );
-	inline CRpg *GetLauncher( void );
+	void Explode( TraceResult *pTrace, int bitsDamageType ) override;
+	inline CRpg *GetLauncher();
 
 	float m_flIgniteTime;
 	EHANDLE m_hLauncher; // handle back to the launcher that fired me.

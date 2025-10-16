@@ -34,8 +34,8 @@ class CGauss : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;
@@ -44,15 +44,15 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 
 	bool Deploy() override;
-	void Holster();
+	void Holster() override;
 
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-	void WeaponIdle( void );
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	void WeaponIdle() override;
 
-	void StartFire( void );
+	void StartFire();
 	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
-	float GetFullChargeTime( void );
+	float GetFullChargeTime();
 	int m_iBalls;
 	int m_iGlow;
 	int m_iBeam;
@@ -62,8 +62,8 @@ public:
 	// we need to know so we can pick the right set of effects.
 	bool m_fPrimaryFire;
 
-	void GetWeaponData(weapon_data_t& data);
-	void SetWeaponData(const weapon_data_t& data);
+	void GetWeaponData(weapon_data_t& data) override;
+	void SetWeaponData(const weapon_data_t& data) override;
 
 private:
 	unsigned short m_usGaussFire;
@@ -84,7 +84,7 @@ TYPEDESCRIPTION	CGauss::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CGauss, CConfigurableWeapon )
 #endif
 
-float CGauss::GetFullChargeTime( void )
+float CGauss::GetFullChargeTime()
 {
 	if( bIsMultiplayer() )
 	{
@@ -351,7 +351,7 @@ void CGauss::SecondaryAttack()
 // of weaponidle() and make its own function then to try to
 // merge this into Fire(), which has some identical variable names 
 //=========================================================
-void CGauss::StartFire( void )
+void CGauss::StartFire()
 {
 	float flDamage;
 
@@ -583,7 +583,7 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	// ALERT( at_console, "%d bytes\n", nTotal );
 }
 
-void CGauss::WeaponIdle( void )
+void CGauss::WeaponIdle()
 {
 	ResetEmptySound();
 

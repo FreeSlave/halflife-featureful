@@ -152,13 +152,13 @@ bool TryCalcLocus_Color(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *s
 class CLocusAlias : public CBaseAlias
 {
 public:
-	void	PostSpawn( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void	PostSpawn();
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	CBaseEntity		*FollowAlias( CBaseEntity *pFrom );
-	void	FlushChanges( void );
+	void	FlushChanges();
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	EHANDLE	m_hValue;
@@ -174,7 +174,7 @@ TYPEDESCRIPTION	CLocusAlias::m_SaveData[] =
 LINK_ENTITY_TO_CLASS( locus_alias, CLocusAlias );
 IMPLEMENT_SAVERESTORE( CLocusAlias, CBaseAlias );
 
-void CLocusAlias::PostSpawn( void )
+void CLocusAlias::PostSpawn()
 {
 	m_hValue = UTIL_FindEntityByTargetname( NULL, STRING(pev->netname) );
 }
@@ -185,7 +185,7 @@ void CLocusAlias::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 	UTIL_AddToAliasList( this );
 }
 
-void CLocusAlias::FlushChanges( void )
+void CLocusAlias::FlushChanges()
 {
 	m_hValue = m_hChangeTo;
 	m_hChangeTo = NULL;
@@ -221,14 +221,12 @@ CBaseEntity *CLocusAlias::FollowAlias( CBaseEntity *pFrom )
 class CLocusBeam : public CPointEntity
 {
 public:
-	void	Spawn( void );
-	void	Precache( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-
-	void KeyValue( KeyValueData *pkvd );
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-
+	void	Spawn() override;
+	void	Precache() override;
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void	KeyValue( KeyValueData *pkvd ) override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszSprite;
@@ -343,7 +341,7 @@ void CLocusBeam::KeyValue( KeyValueData *pkvd )
 		CBaseEntity::KeyValue( pkvd );
 }
 
-void CLocusBeam::Precache ( void )
+void CLocusBeam::Precache ()
 {
 	PRECACHE_MODEL ( STRING(m_iszSprite) );
 }
@@ -421,7 +419,7 @@ void CLocusBeam::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 	}
 }
 
-void CLocusBeam::Spawn( void )
+void CLocusBeam::Spawn()
 {
 	Precache();
 	m_iFlags = 0;
@@ -442,7 +440,7 @@ void CLocusBeam::Spawn( void )
 class CCalcPosition : public CPointEntity
 {
 public:
-	bool CalcPosition( CBaseEntity *pLocus, Vector* outVector );
+	bool CalcPosition( CBaseEntity *pLocus, Vector* outVector ) override;
 };
 
 LINK_ENTITY_TO_CLASS( calc_position, CCalcPosition )
@@ -653,12 +651,12 @@ static float ApplyCastMode(float f, byte castMode)
 class CCalcRatio : public CPointEntity
 {
 public:
-	bool CalcRatio( CBaseEntity *pLocus, float* outResult );
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
 
-	void Spawn();
-	void KeyValue( KeyValueData *pkvd );
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszMin;
@@ -772,7 +770,7 @@ static bool TryCalcLocus_Vector(CBaseEntity* pEntity, CBaseEntity* pLocus, const
 class CCalcNumFromVec : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "vector_type"))
 		{
@@ -782,7 +780,7 @@ public:
 		else
 			CPointEntity::KeyValue(pkvd);
 	}
-	bool CalcRatio( CBaseEntity *pLocus, float* outResult );
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
 };
 
 LINK_ENTITY_TO_CLASS( calc_numfromvec, CCalcNumFromVec )
@@ -833,7 +831,7 @@ bool CCalcNumFromVec::CalcRatio( CBaseEntity *pLocus, float* outResult )
 class CCalcVectorFromNums : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "x_value"))
 		{
@@ -864,11 +862,11 @@ public:
 			CPointEntity::KeyValue(pkvd);
 	}
 
-	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult)
+	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult) override
 	{
 		return CalcVector(pLocus, outResult);
 	}
-	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult)
+	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult) override
 	{
 		return CalcVector(pLocus, outResult);
 	}
@@ -898,8 +896,8 @@ public:
 		return true;
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_xValue;
@@ -928,11 +926,11 @@ class CCalcSubVelocity : public CPointEntity
 	bool Convert( CBaseEntity *pLocus, Vector vecVel, Vector* outVector );
 	bool ConvertAngles( CBaseEntity *pLocus, Vector vecAngles, Vector* outVector );
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -1056,11 +1054,11 @@ bool CCalcSubVelocity::ConvertAngles( CBaseEntity *pLocus, Vector vecAngles, Vec
 class CCalcVelocityPath : public CPointEntity
 {
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outVector );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outVector ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -1170,11 +1168,11 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 class CCalcVelocityPolar : public CPointEntity
 {
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -1226,23 +1224,22 @@ bool CCalcVelocityPolar::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 class CMark : public CPointEntity
 {
 public:
-	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) { *outVector = pev->movedir; return true; }
-	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) { *outResult = pev->frags; return true; }
-	void	Think( void ) { SUB_Remove(); }
+	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) override { *outVector = pev->movedir; return true; }
+	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) override { *outResult = pev->frags; return true; }
+	void	Think() override { SUB_Remove(); }
 };
 
 class CLocusVariable : public CPointEntity
 {
 public:
-	void	Spawn( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) { *outVector = pev->movedir; return true; }
-	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) { *outResult = pev->frags; return true; }
+	void	Spawn() override;
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) override { *outVector = pev->movedir; return true; }
+	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) override { *outResult = pev->frags; return true; }
 
-	void KeyValue( KeyValueData *pkvd );
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-
+	void KeyValue( KeyValueData *pkvd ) override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszPosition;
@@ -1302,7 +1299,7 @@ void CLocusVariable :: KeyValue( KeyValueData *pkvd )
 		CPointEntity::KeyValue( pkvd );
 }
 
-void CLocusVariable::Spawn( void )
+void CLocusVariable::Spawn()
 {
 	SetMovedir(pev);
 }
@@ -1361,23 +1358,23 @@ public:
 		REPORTED_VECTOR_00Z = 3,
 	};
 
-	void KeyValue( KeyValueData *pkvd );
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	bool CalcRatio(CBaseEntity *pLocus, float *outResult)
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	bool CalcRatio(CBaseEntity *pLocus, float *outResult) override
 	{
 		return CalcEvalNumber(pLocus, *outResult);
 	}
-	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult)
+	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult) override
 	{
 		return ReportVector(pLocus, *outResult);
 	}
-	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult)
+	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult) override
 	{
 		return ReportVector(pLocus, *outResult);
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 protected:

@@ -37,8 +37,8 @@ extern int gmsgItemPickup;
 class CWorldItem : public CBaseEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd ); 
-	void Spawn( void );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
 	int m_iType;
 };
 
@@ -55,7 +55,7 @@ void CWorldItem::KeyValue( KeyValueData *pkvd )
 		CBaseEntity::KeyValue( pkvd );
 }
 
-void CWorldItem::Spawn( void )
+void CWorldItem::Spawn()
 {
 	CBaseEntity *pEntity = NULL;
 
@@ -92,9 +92,9 @@ void CWorldItem::Spawn( void )
 class CItemRandomProxy : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn( void );
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 	void EXPORT SpawnItemThink();
 	void SpawnItem();
 };
@@ -112,7 +112,7 @@ void CItemRandomProxy::KeyValue( KeyValueData *pkvd )
 		CBaseEntity::KeyValue( pkvd );
 }
 
-void CItemRandomProxy::Spawn( void )
+void CItemRandomProxy::Spawn()
 {
 	pev->solid = SOLID_NOT;
 	pev->effects = EF_NODRAW;
@@ -161,12 +161,12 @@ void CItemRandomProxy::SpawnItem()
 class CItemRandom : public CPointEntity
 {
 public:
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn();
-	void Precache();
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 	void SpawnItem(const Vector& origin, const Vector& angles, string_t target);
 
 	string_t m_itemNames[ITEM_RANDOM_MAX_COUNT];
@@ -288,8 +288,8 @@ void CItemRandom::SpawnItem(const Vector &origin, const Vector &angles, string_t
 class CInfoItemRandom : public CItemRandom
 {
 public:
-	void Spawn();
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void Spawn() override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 };
 
 LINK_ENTITY_TO_CLASS( info_item_random, CInfoItemRandom )
@@ -385,7 +385,7 @@ CBaseEntity* CPickup::Respawn()
 	return this;
 }
 
-void CPickup::Materialize( void )
+void CPickup::Materialize()
 {
 	if( pev->effects & EF_NODRAW )
 	{
@@ -589,13 +589,13 @@ class CItemBattery : public CItem
 public:
 	static constexpr const char* pickupSoundScript = "Battery.Pickup";
 
-	void Spawn( void )
+	void Spawn() override
 	{
 		Precache();
 		SetMyModel( DefaultModel() );
 		CItem::Spawn();
 	}
-	void Precache( void )
+	void Precache() override
 	{
 		PrecacheMyModel( DefaultModel() );
 		RegisterAndPrecacheSoundScript(pickupSoundScript, Items::pickupSoundScript);
@@ -1154,8 +1154,8 @@ public:
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void SetActivity(Activity NewActivity);
 
-	virtual int Save( CSave &save ) override;
-	virtual int Restore( CRestore &restore ) override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 

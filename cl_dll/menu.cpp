@@ -35,7 +35,7 @@ int KB_ConvertString( char *in, char **ppout );
 
 DECLARE_MESSAGE( m_Menu, ShowMenu )
 
-int CHudMenu::Init( void )
+int CHudMenu::Init()
 {
 	gHUD.AddHudElem( this );
 
@@ -46,7 +46,7 @@ int CHudMenu::Init( void )
 	return 1;
 }
 
-void CHudMenu::InitHUDData( void )
+void CHudMenu::InitHUDData()
 {
 	m_fMenuDisplayed = 0;
 	m_bitsValidSlots = 0;
@@ -54,13 +54,13 @@ void CHudMenu::InitHUDData( void )
 	Reset();
 }
 
-void CHudMenu::Reset( void )
+void CHudMenu::Reset()
 {
 	g_szPrelocalisedMenuString[0] = 0;
 	m_fWaitingForMore = false;
 }
 
-int CHudMenu::VidInit( void )
+int CHudMenu::VidInit()
 {
 	return 1;
 }

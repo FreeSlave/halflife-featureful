@@ -31,7 +31,7 @@
 
 DECLARE_MESSAGE( m_TextMessage, TextMsg )
 
-int CHudTextMessage::Init( void )
+int CHudTextMessage::Init()
 {
 	HOOK_MESSAGE( TextMsg );
 

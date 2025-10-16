@@ -33,8 +33,6 @@ enum sniper_e
 	SNIPER_HOLSTER
 };
 
-#if FEATURE_SNIPERRIFLE
-
 class CSniperrifle : public CConfigurableWeapon
 {
 public:
@@ -146,5 +144,3 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 
 	return params;
 }
-
-#endif

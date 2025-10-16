@@ -64,26 +64,26 @@ enum
 class CHAssassin : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed ( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Female Assassin"; }
-	const char* ReverseRelationshipModel() { return "models/hassassinf.mdl"; }
-	int DefaultISoundMask( void);
-	void Shoot( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Female Assassin"; }
+	const char* ReverseRelationshipModel() override { return "models/hassassinf.mdl"; }
+	int DefaultISoundMask() override;
+	void Shoot();
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;	// jump
 	// BOOL CheckMeleeAttack2( float flDot, float flDist );
 	bool CheckRangeAttack1( float flDot, float flDist ) override;	// shoot
 	bool CheckRangeAttack2( float flDot, float flDist ) override;	// throw grenade
-	void StartTask( Task_t *pTask );
-	void RunAI( void );
-	void RunTask( Task_t *pTask );
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void StartTask( Task_t *pTask ) override;
+	void RunAI() override;
+	void RunTask( Task_t *pTask ) override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 	void DeathSound() override;
 	void IdleSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
@@ -91,13 +91,13 @@ public:
 	void OnDying(bool gibbed) override;
 	CUSTOM_SCHEDULES
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
 	float m_flLastShot;
 	float m_flDiviation;
@@ -248,7 +248,7 @@ void CHAssassin::OnDying(bool gibbed)
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. 
 //=========================================================
-int CHAssassin::DefaultISoundMask( void ) 
+int CHAssassin::DefaultISoundMask() 
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -260,7 +260,7 @@ int CHAssassin::DefaultISoundMask( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CHAssassin::DefaultClassify( void )
+int CHAssassin::DefaultClassify()
 {
 	if (g_modFeatures.blackops_classify)
 		return CLASS_HUMAN_BLACKOPS;
@@ -271,7 +271,7 @@ int CHAssassin::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CHAssassin::SetYawSpeed( void )
+void CHAssassin::SetYawSpeed()
 {
 	int ys;
 
@@ -292,7 +292,7 @@ void CHAssassin::SetYawSpeed( void )
 //=========================================================
 // Shoot
 //=========================================================
-void CHAssassin::Shoot( void )
+void CHAssassin::Shoot()
 {
 	if( m_hEnemy == 0 && !m_pCine )
 	{
@@ -850,7 +850,7 @@ bool CHAssassin::CheckRangeAttack2( float flDot, float flDist )
 //=========================================================
 // RunAI
 //=========================================================
-void CHAssassin::RunAI( void )
+void CHAssassin::RunAI()
 {
 	CFollowingMonster::RunAI();
 
@@ -971,7 +971,7 @@ void CHAssassin::RunTask( Task_t *pTask )
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CHAssassin::GetSchedule( void )
+Schedule_t *CHAssassin::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -1162,15 +1162,15 @@ Schedule_t *CHAssassin::GetScheduleOfType( int Type )
 class CDeadHAssassin : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/hassassin.mdl"; }
-	int	DefaultClassify()
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/hassassin.mdl"; }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CLASS_HUMAN_MILITARY;
 	}
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 

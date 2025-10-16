@@ -32,7 +32,7 @@ void BEGIN_READ( void *buf, int size )
 	gpBuf = (byte*)buf;
 }
 
-int READ_CHAR( void )
+int READ_CHAR()
 {
 	int c;
 
@@ -48,7 +48,7 @@ int READ_CHAR( void )
 	return c;
 }
 
-int READ_BYTE( void )
+int READ_BYTE()
 {
 	int c;
 
@@ -64,7 +64,7 @@ int READ_BYTE( void )
 	return c;
 }
 
-int READ_SHORT( void )
+int READ_SHORT()
 {
 	int c;
 
@@ -81,12 +81,12 @@ int READ_SHORT( void )
 	return c;
 }
 
-int READ_WORD( void )
+int READ_WORD()
 {
 	return READ_SHORT();
 }
 
-int READ_LONG( void )
+int READ_LONG()
 {
 	int c;
 
@@ -103,7 +103,7 @@ int READ_LONG( void )
 	return c;
 }
 
-float READ_FLOAT( void )
+float READ_FLOAT()
 {
 	union
 	{
@@ -123,7 +123,7 @@ float READ_FLOAT( void )
 	return dat.f;
 }
 
-char* READ_STRING( void )
+char* READ_STRING()
 {
 	static char	string[2048];
 	int		c;
@@ -148,7 +148,7 @@ char* READ_STRING( void )
 	return string;
 }
 
-float READ_COORD( void )
+float READ_COORD()
 {
 	return (float)( READ_SHORT() * ( 1.0 / 8 ) );
 }
@@ -162,17 +162,17 @@ Vector READ_VECTOR()
 	return vec;
 }
 
-float READ_ANGLE( void )
+float READ_ANGLE()
 {
 	return (float)( READ_CHAR() * ( 360.0 / 256 ) );
 }
 
-float READ_HIRESANGLE( void )
+float READ_HIRESANGLE()
 {
 	return (float)( READ_SHORT() * ( 360.0 / 65536 ) );
 }
 
-color24 READ_COLOR( void )
+color24 READ_COLOR()
 {
 	color24 color;
 	color.r = READ_BYTE();

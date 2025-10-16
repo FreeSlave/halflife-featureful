@@ -99,7 +99,7 @@ inline edict_t *FIND_ENTITY_BY_TARGET(edict_t *entStart, const char *pszName)
 typedef int EOFFSET;
 
 // Keeps clutter down a bit, when declaring external entity/global method prototypes
-#define DECLARE_GLOBAL_METHOD(MethodName)  extern void DLLEXPORT MethodName( void )
+#define DECLARE_GLOBAL_METHOD(MethodName)  extern void DLLEXPORT MethodName()
 #define GLOBAL_METHOD(funcname)					void DLLEXPORT funcname(void)
 
 // This is the glue that hooks .MAP entity class names to our CPP classes
@@ -302,7 +302,7 @@ extern void			UTIL_TraceLine			(const Vector &vecStart, const Vector &vecEnd, IG
 extern void			UTIL_TraceLine			(const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, IGNORE_GLASS ignoreGlass, edict_t *pentIgnore, TraceResult *ptr);
 
 extern void			UTIL_TraceHull			(const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, int hullNumber, edict_t *pentIgnore, TraceResult *ptr);
-extern TraceResult	UTIL_GetGlobalTrace		(void);
+extern TraceResult	UTIL_GetGlobalTrace		();
 extern void			UTIL_TraceModel			(const Vector &vecStart, const Vector &vecEnd, int hullNumber, edict_t *pentModel, TraceResult *ptr);
 extern Vector		UTIL_GetAimVector		(edict_t* pent, float flSpeed);
 extern int			UTIL_PointContents		(const Vector &vec);
@@ -313,7 +313,7 @@ extern bool			UTIL_TargetnameIsActivator( const char* targetName );
 extern bool			UTIL_TargetnameIsActivator( string_t targetName );
 extern void			UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount );
 extern void			UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount );
-extern Vector		UTIL_RandomBloodVector( void );
+extern Vector		UTIL_RandomBloodVector();
 extern bool			UTIL_ShouldShowBlood( int bloodColor );
 extern void			UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor );
 extern void			UTIL_DecalTrace( TraceResult *pTrace, int decalNumber );
@@ -553,16 +553,16 @@ class UTIL_GroupTrace
 {
 public:
 	UTIL_GroupTrace( int groupmask, int op );
-	~UTIL_GroupTrace( void );
+	~UTIL_GroupTrace();
 
 private:
 	int m_oldgroupmask, m_oldgroupop;
 };
 
 void UTIL_SetGroupTrace( int groupmask, int op );
-void UTIL_UnsetGroupTrace( void );
+void UTIL_UnsetGroupTrace();
 
-float UTIL_WeaponTimeBase( void );
+float UTIL_WeaponTimeBase();
 void UTIL_CleanSpawnPoint( Vector origin, float dist );
 void UTIL_DynamicLight( const Vector& vecSrc, float flRadius, byte r, byte g, byte b, float flTime, float flDecay );
 void UTIL_MuzzleLight( const Vector& vecSrc );

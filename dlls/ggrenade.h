@@ -22,19 +22,19 @@ public:
 
 	void Explode( Vector vecSrc, Vector vecAim );
 	virtual void Explode( TraceResult *pTrace, int bitsDamageType );
-	void EXPORT Smoke( void );
+	void EXPORT Smoke();
 
 	void EXPORT BounceTouch( CBaseEntity *pOther );
 	void EXPORT SlideTouch( CBaseEntity *pOther );
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
-	void EXPORT DangerSoundThink( void );
-	void EXPORT PreDetonate( void );
-	void EXPORT Detonate( void );
+	void EXPORT DangerSoundThink();
+	void EXPORT PreDetonate();
+	void EXPORT Detonate();
 	void EXPORT DetonateUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT TumbleThink( void );
+	void EXPORT TumbleThink();
 
-	virtual void BounceSound( void );
-	virtual int	BloodColor( void ) { return DONT_BLEED; }
+	virtual void BounceSound();
+	int	BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	virtual float ExplosionRadius() { return 0.0f; } // if 0 the default radius is used (depending on amount of damage)
 	virtual int FireballDeciScaleFromDamage(float dmg) {

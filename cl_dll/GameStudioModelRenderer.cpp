@@ -36,7 +36,7 @@ CGameStudioModelRenderer
 
 ====================
 */
-CGameStudioModelRenderer::CGameStudioModelRenderer( void )
+CGameStudioModelRenderer::CGameStudioModelRenderer()
 {
 }
 
@@ -72,7 +72,7 @@ R_StudioInit
 
 ====================
 */
-void R_StudioInit( void )
+void R_StudioInit()
 {
 	g_StudioRenderer.Init();
 }

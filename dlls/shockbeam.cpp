@@ -12,8 +12,6 @@
 #include	"game.h"
 #include	"visuals_utils.h"
 
-#if FEATURE_SHOCKBEAM
-
 #define SHOCK_BEAM_LENGTH		64
 #define SHOCK_BEAM_LENGTH_HALF	SHOCK_BEAM_LENGTH * 0.5f
 
@@ -69,7 +67,7 @@ const NamedVisual CShock::shellVisual = BuildVisual("ShockBeam.Shell")
 		.Alpha(5)
 		.RenderFx(kRenderFxGlowShell);
 
-void CShock::Spawn(void)
+void CShock::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
@@ -143,7 +141,7 @@ void CShock::Touch(CBaseEntity *pOther)
 	if (ENT(pOther->pev) == pev->owner)
 		return;
 
-	TraceResult tr = UTIL_GetGlobalTrace( );
+	TraceResult tr = UTIL_GetGlobalTrace();
 
 	SendDynLight(pev->origin, GetVisual(lightVisual));
 
@@ -244,5 +242,3 @@ void CShock::UpdateOnRemove()
 	ClearEffects();
 	CBaseAnimating::UpdateOnRemove();
 }
-
-#endif

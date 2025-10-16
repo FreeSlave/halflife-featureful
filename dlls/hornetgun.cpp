@@ -45,8 +45,8 @@ class CHgun : public CConfigurableWeapon
 {
 public:
 #if !CLIENT_DLL
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 #endif
 	void Precache() override;

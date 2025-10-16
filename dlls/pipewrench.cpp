@@ -39,8 +39,6 @@ enum pwrench_e
 	PIPEWRENCH_ATTACKBIGLOOP
 };
 
-#if FEATURE_PIPEWRENCH
-
 class CPipeWrench : public CConfigurableWeapon
 {
 public:
@@ -157,5 +155,3 @@ DamageInfo CPipeWrench::MeleeWindDamageInfo()
 	}
 	return DamageInfo{flDamage, DMG_CLUB};
 }
-
-#endif

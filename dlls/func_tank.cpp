@@ -53,12 +53,12 @@ class CFuncTankControls : public CBaseEntity
 {
 public:
 	int ObjectCaps() override;
-	void Spawn( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void UpdateOnRemove();
+	void Spawn() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void UpdateOnRemove() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool OnControls(entvars_t* pevTest) override;
@@ -96,16 +96,16 @@ public:
 class CTankSequence : public CBaseEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT EndThink( void );
-	void EXPORT TimeOutThink( void );
-	void KeyValue( KeyValueData *pkvd );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void EXPORT EndThink();
+	void EXPORT TimeOutThink();
+	void KeyValue( KeyValueData *pkvd ) override;
 	CFuncTank* GetTank() { return m_hTank.Entity<CFuncTank>(); }
-	virtual int	ObjectCaps( void );
+	int	ObjectCaps() override;
 
-	void StopSequence( void );
-	void FacingNotify( void );
-	void DeadEnemyNotify( void );
+	void StopSequence();
+	void FacingNotify();
+	void DeadEnemyNotify();
 
 	int	Save( CSave &save ) override;
 	int	Restore( CRestore &restore ) override;
@@ -131,17 +131,17 @@ public:
 class CFuncTank : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void Think( void );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void Think() override;
 	virtual void TankSpecialThink() {}
 	void UpdateFireLast();
 	void UpdateNextAttack();
-	void TrackTarget( void );
+	void TrackTarget();
 
-	CBaseEntity* BestVisibleEnemy( void );
+	CBaseEntity* BestVisibleEnemy();
 	int IRelationship( CBaseEntity* pTarget ) override;
 	int DefaultClassify() override { return m_iTankClass; }
 
@@ -153,21 +153,21 @@ public:
 		return pTarget->BodyTarget( pev->origin );
 	}
 
-	void StartRotSound( void );
-	void StopRotSound( void );
+	void StartRotSound();
+	void StopRotSound();
 
 	// Bmodels don't go across transitions
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	inline bool IsActive( void ) { return (pev->spawnflags & SF_TANK_ACTIVE); }
-	inline void TankActivate( void ) { pev->spawnflags |= SF_TANK_ACTIVE; pev->nextthink = pev->ltime + 0.1f; m_fireLast = 0; }
-	inline void TankDeactivate( void ) { pev->spawnflags &= ~SF_TANK_ACTIVE; m_fireLast = 0; StopRotSound(); }
-	inline bool CanFire( void ) { return (gpGlobals->time - m_lastSightTime) < m_persist; }
+	inline bool IsActive() { return (pev->spawnflags & SF_TANK_ACTIVE); }
+	inline void TankActivate() { pev->spawnflags |= SF_TANK_ACTIVE; pev->nextthink = pev->ltime + 0.1f; m_fireLast = 0; }
+	inline void TankDeactivate() { pev->spawnflags &= ~SF_TANK_ACTIVE; m_fireLast = 0; StopRotSound(); }
+	inline bool CanFire() { return (gpGlobals->time - m_lastSightTime) < m_persist; }
 	bool InRange( float range );
 
 	void		TankTrace( const Vector &vecStart, const Vector &vecForward, const Vector &vecSpread, TraceResult &tr );
 
-	Vector		BarrelPosition( void )
+	Vector		BarrelPosition()
 	{
 		Vector forward, right, up;
 		UTIL_MakeVectorsPrivate( pev->angles, forward, right, up );
@@ -176,8 +176,8 @@ public:
 
 	void		AdjustAnglesForBarrel( Vector &angles, float distance );
 
-	virtual int	Save( CSave &save );
-	virtual int	Restore( CRestore &restore );
+	int	Save( CSave &save ) override;
+	int	Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	bool StartControl(CBasePlayer* pController, CFuncTankControls* pControls);
@@ -241,7 +241,7 @@ protected:
 	int			m_iTankClass;	// Behave As
 	int			m_iPlayerWeaponVolume;
 
-	void UpdateSpot( void );
+	void UpdateSpot();
 
 	CPointEntity* m_pFireProxy; //LRC - locus position for custom shots
 	string_t m_iszLocusFire;
@@ -321,7 +321,7 @@ static CFuncTank* GetFuncTankPointer(CBaseEntity* pEntity)
 	return nullptr;
 }
 
-void CFuncTank::Spawn( void )
+void CFuncTank::Spawn()
 {
 	Precache();
 
@@ -349,7 +349,7 @@ void CFuncTank::Spawn( void )
 	}
 }
 
-void CFuncTank::Precache( void )
+void CFuncTank::Precache()
 {
 	if( m_iszSpriteSmoke )
 		PRECACHE_MODEL( STRING( m_iszSpriteSmoke ) );
@@ -554,7 +554,7 @@ void CFuncTank::StopControl(CFuncTankControls* pControls)
 		pev->nextthink = pev->ltime + 1.0f;
 }
 
-void CFuncTank::UpdateSpot( void )
+void CFuncTank::UpdateSpot()
 {
 	if ( pev->spawnflags & SF_TANK_LASERSPOT )
 	{
@@ -568,7 +568,7 @@ void CFuncTank::UpdateSpot( void )
 
 		Vector vecAiming;
 		UTIL_MakeVectorsPrivate( pev->angles, vecAiming, NULL, NULL );
-		Vector vecSrc = BarrelPosition( );
+		Vector vecSrc = BarrelPosition();
 
 		TraceResult tr;
 		UTIL_TraceLine ( vecSrc, vecSrc + vecAiming * 8192, dont_ignore_monsters, ENT(pev), &tr );
@@ -686,7 +686,7 @@ void CFuncTank::UpdateOriginCheck()
 	}
 }
 
-CBaseEntity *CFuncTank:: BestVisibleEnemy ( void )
+CBaseEntity *CFuncTank:: BestVisibleEnemy ()
 {
 	// PVS check won't work if origin is in world
 	if (m_iTankClass == 0)
@@ -784,7 +784,7 @@ void CFuncTank::StartSequence(CTankSequence *pSequence)
 }
 
 //LRC
-void CFuncTank::StopSequence( )
+void CFuncTank::StopSequence()
 {
 	StopRotSound();
 	pev->nextthink = 0;
@@ -793,7 +793,7 @@ void CFuncTank::StopSequence( )
 	m_hSequenceEnemy = 0;
 }
 
-void CFuncTank::Think( void )
+void CFuncTank::Think()
 {
 	TankSpecialThink();
 	pev->avelocity = g_vecZero;
@@ -816,7 +816,7 @@ void CFuncTank::UpdateNextAttack()
 	m_flNextAttack = gpGlobals->time + (1.0f / m_fireRate);
 }
 
-void CFuncTank::TrackTarget( void )
+void CFuncTank::TrackTarget()
 {
 	TraceResult tr;
 	bool updateTime = false;
@@ -1201,7 +1201,7 @@ void CFuncTank::TankTrace( const Vector &vecStart, const Vector &vecForward, con
 	UTIL_TraceLine( vecStart, vecEnd, dont_ignore_monsters, edict(), &tr );
 }
 	
-void CFuncTank::StartRotSound( void )
+void CFuncTank::StartRotSound()
 {
 	if( !pev->noise || ( pev->spawnflags & SF_TANK_SOUNDON ) )
 		return;
@@ -1209,7 +1209,7 @@ void CFuncTank::StartRotSound( void )
 	EMIT_SOUND( edict(), CHAN_STATIC, STRING( pev->noise ), 0.85, ATTN_NORM );
 }
 
-void CFuncTank::StopRotSound( void )
+void CFuncTank::StopRotSound()
 {
 	if( pev->spawnflags & SF_TANK_SOUNDON )
 		STOP_SOUND( edict(), CHAN_STATIC, STRING( pev->noise ) );
@@ -1276,18 +1276,18 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 class CFuncTankLaser : public CFuncTank
 {
 public:
-	void Activate( void );
-	void KeyValue( KeyValueData *pkvd );
+	void Activate() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 	void TankSpecialThink() override;
-	CLaser *GetLaser( void );
+	CLaser *GetLaser();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 	void StopFire() override;
 
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 
 private:
 	CLaser *m_pLaser;
@@ -1305,7 +1305,7 @@ TYPEDESCRIPTION	CFuncTankLaser::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CFuncTankLaser, CFuncTank )
 
-void CFuncTankLaser::Activate( void )
+void CFuncTankLaser::Activate()
 {
 	CFuncTank::Activate();
 
@@ -1332,7 +1332,7 @@ void CFuncTankLaser::KeyValue( KeyValueData *pkvd )
 		CFuncTank::KeyValue( pkvd );
 }
 
-CLaser *CFuncTankLaser::GetLaser( void )
+CLaser *CFuncTankLaser::GetLaser()
 {
 	if (FBitSet(pev->flags, FL_KILLME))
 		return NULL;
@@ -1401,7 +1401,7 @@ void CFuncTankLaser::Fire( const Vector &barrelEnd, const Vector &forward, CBase
 	}
 }
 
-void CFuncTankLaser::StopFire( void )
+void CFuncTankLaser::StopFire()
 {
 	if( m_pLaser )
 		m_pLaser->TurnOff();
@@ -1416,14 +1416,14 @@ void CFuncTankLaser::UpdateOnRemove()
 class CFuncTankRocket : public CFuncTank
 {
 public:
-	void Precache( void );
+	void Precache() override;
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 };
 
 LINK_ENTITY_TO_CLASS( func_tankrocket, CFuncTankRocket )
 LINK_ENTITY_TO_CLASS( func_tankrocket_of, CFuncTankRocket )
 
-void CFuncTankRocket::Precache( void )
+void CFuncTankRocket::Precache()
 {
 	UTIL_PrecacheOther( "rpg_rocket" );
 	CFuncTank::Precache();
@@ -1451,7 +1451,7 @@ void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, CBas
 class CFuncTankMortar : public CFuncTank
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
+	void KeyValue( KeyValueData *pkvd ) override;
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
 };
 
@@ -1510,7 +1510,7 @@ TYPEDESCRIPTION	CFuncTankControls::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CFuncTankControls, CBaseEntity )
 
-int CFuncTankControls::ObjectCaps( void ) 
+int CFuncTankControls::ObjectCaps() 
 { 
 	return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_IMPULSE_USE; 
 }
@@ -1628,7 +1628,7 @@ void CFuncTankControls::UpdateOnRemove()
 	}
 }
 
-void CFuncTankControls::Spawn( void )
+void CFuncTankControls::Spawn()
 {
 	pev->solid = SOLID_TRIGGER;
 	pev->movetype = MOVETYPE_NONE;
@@ -1650,22 +1650,22 @@ void CFuncTankControls::Spawn( void )
 LINK_ENTITY_TO_CLASS( scripted_tanksequence, CTankSequence )
 
 TYPEDESCRIPTION	CTankSequence::m_SaveData[] =
-	{
-		DEFINE_FIELD( CTankSequence, m_iszEntity, FIELD_STRING ),
-		DEFINE_FIELD( CTankSequence, m_iszEnemy, FIELD_STRING ),
-		DEFINE_FIELD( CTankSequence, m_iUntil, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_fDuration, FIELD_FLOAT ),
-		DEFINE_FIELD( CTankSequence, m_iTurn, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_iShoot, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_iActive, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_iControllable, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_iLaserSpot, FIELD_INTEGER ),
-		DEFINE_FIELD( CTankSequence, m_hTank, FIELD_EHANDLE ),
+{
+	DEFINE_FIELD( CTankSequence, m_iszEntity, FIELD_STRING ),
+	DEFINE_FIELD( CTankSequence, m_iszEnemy, FIELD_STRING ),
+	DEFINE_FIELD( CTankSequence, m_iUntil, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_fDuration, FIELD_FLOAT ),
+	DEFINE_FIELD( CTankSequence, m_iTurn, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_iShoot, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_iActive, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_iControllable, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_iLaserSpot, FIELD_INTEGER ),
+	DEFINE_FIELD( CTankSequence, m_hTank, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CTankSequence, CBaseEntity )
 
-int	CTankSequence::ObjectCaps( void )
+int	CTankSequence::ObjectCaps()
 {
 	return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION);
 }

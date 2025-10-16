@@ -12,35 +12,35 @@ public:
 	virtual void IN_ClientLookEvent( float relyaw, float relpitch ) = 0;
 	virtual void IN_Move( float frametime, usercmd_t *cmd ) = 0;
 	virtual void IN_MouseEvent( int mstate ) = 0;
-	virtual void IN_ClearStates( void ) = 0;
-	virtual void IN_ActivateMouse( void ) = 0;
-	virtual void IN_DeactivateMouse( void ) = 0;
-	virtual void IN_Accumulate( void ) = 0;
-	virtual void IN_Commands( void ) = 0;
-	virtual void IN_Shutdown( void ) = 0;
-	virtual void IN_Init( void ) = 0;
-	virtual void IN_ResetMouse( void ) = 0;
-	virtual void Joy_AdvancedUpdate( void ) = 0;
+	virtual void IN_ClearStates() = 0;
+	virtual void IN_ActivateMouse() = 0;
+	virtual void IN_DeactivateMouse() = 0;
+	virtual void IN_Accumulate() = 0;
+	virtual void IN_Commands() = 0;
+	virtual void IN_Shutdown() = 0;
+	virtual void IN_Init() = 0;
+	virtual void IN_ResetMouse() = 0;
+	virtual void Joy_AdvancedUpdate() = 0;
 	virtual void IgnoreNextMouseDelta() = 0;
 };
 
 class FWGSInput : public AbstractInput
 {
 public:
-	virtual void IN_ClientMoveEvent( float forwardmove, float sidemove );
-	virtual void IN_ClientLookEvent( float relyaw, float relpitch );
-	virtual void IN_Move( float frametime, usercmd_t *cmd );
-	virtual void IN_MouseEvent( int mstate );
-	virtual void IN_ClearStates( void );
-	virtual void IN_ActivateMouse( void );
-	virtual void IN_DeactivateMouse( void );
-	virtual void IN_Accumulate( void );
-	virtual void IN_Commands( void );
-	virtual void IN_Shutdown( void );
-	virtual void IN_Init( void );
-	virtual void IN_ResetMouse( void ) {}
-	virtual void Joy_AdvancedUpdate( void ) {}
-	virtual void IgnoreNextMouseDelta() {}
+	void IN_ClientMoveEvent( float forwardmove, float sidemove ) override;
+	void IN_ClientLookEvent( float relyaw, float relpitch ) override;
+	void IN_Move( float frametime, usercmd_t *cmd ) override;
+	void IN_MouseEvent( int mstate ) override;
+	void IN_ClearStates() override;
+	void IN_ActivateMouse() override;
+	void IN_DeactivateMouse() override;
+	void IN_Accumulate() override;
+	void IN_Commands() override;
+	void IN_Shutdown() override;
+	void IN_Init() override;
+	void IN_ResetMouse() override {}
+	void Joy_AdvancedUpdate() override {}
+	void IgnoreNextMouseDelta() override {}
 
 protected:
 	float ac_forwardmove;
@@ -72,27 +72,27 @@ typedef struct point_s
 class GoldSourceInput : public AbstractInput
 {
 public:
-	virtual void IN_ClientMoveEvent( float forwardmove, float sidemove ) {}
-	virtual void IN_ClientLookEvent( float relyaw, float relpitch ) {}
-	virtual void IN_Move( float frametime, usercmd_t *cmd );
-	virtual void IN_MouseEvent( int mstate );
-	virtual void IN_ClearStates( void );
-	virtual void IN_ActivateMouse( void );
-	virtual void IN_DeactivateMouse( void );
-	virtual void IN_Accumulate( void );
-	virtual void IN_Commands( void );
-	virtual void IN_Shutdown( void );
-	virtual void IN_Init( void );
-	virtual void IN_ResetMouse( void );
-	virtual void Joy_AdvancedUpdate( void );
-	virtual void IgnoreNextMouseDelta();
+	void IN_ClientMoveEvent( float forwardmove, float sidemove ) override {}
+	void IN_ClientLookEvent( float relyaw, float relpitch ) override {}
+	void IN_Move( float frametime, usercmd_t *cmd ) override;
+	void IN_MouseEvent( int mstate ) override;
+	void IN_ClearStates() override;
+	void IN_ActivateMouse() override;
+	void IN_DeactivateMouse() override;
+	void IN_Accumulate() override;
+	void IN_Commands() override;
+	void IN_Shutdown() override;
+	void IN_Init() override;
+	void IN_ResetMouse() override;
+	void Joy_AdvancedUpdate() override;
+	void IgnoreNextMouseDelta() override;
 
 protected:
 	void IN_GetMouseDelta( int *pOutX, int *pOutY);
 	void IN_MouseMove ( float frametime, usercmd_t *cmd);
-	void IN_StartupMouse (void);
-	void IN_StartupJoystick (void);
-	int IN_ReadJoystick (void);
+	void IN_StartupMouse ();
+	void IN_StartupJoystick ();
+	int IN_ReadJoystick ();
 	void IN_JoyMove ( float frametime, usercmd_t *cmd );
 	bool UseSDL2Joystick();
 

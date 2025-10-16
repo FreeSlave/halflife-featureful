@@ -34,9 +34,9 @@
 						}
 
 #define HOOK_COMMAND(x, y) gEngfuncs.pfnAddCommand( x, __CmdFunc_##y );
-#define DECLARE_COMMAND(y, x) void __CmdFunc_##x( void ) \
+#define DECLARE_COMMAND(y, x) void __CmdFunc_##x() \
 							{ \
-								gHUD.y.UserCmd_##x( ); \
+								gHUD.y.UserCmd_##x(); \
 							}
 
 inline float CVAR_GET_FLOAT( const char *x ) {	return gEngfuncs.pfnGetCvarFloat( (char*)x ); }
@@ -178,5 +178,5 @@ bool HUD_MessageBox( const char *msg );
 bool IsAnyXash();
 bool IsXashFWGS();
 bool LibrarySideFullbrightSupportIsOn();
-void ShutdownInput( void );
+void ShutdownInput();
 #endif

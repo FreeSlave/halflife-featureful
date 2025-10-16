@@ -23,8 +23,8 @@ int g_iWaterLevel;
 
 extern "C"
 {
-	void DLLEXPORT HUD_DrawNormalTriangles( void );
-	void DLLEXPORT HUD_DrawTransparentTriangles( void );
+	void DLLEXPORT HUD_DrawNormalTriangles();
+	void DLLEXPORT HUD_DrawTransparentTriangles();
 }
 
 void CacheFullbrightModels();
@@ -44,7 +44,7 @@ Draw_Triangles
 Example routine.  Draws a sprite offset from the player origin.
 =================
 */
-void Draw_Triangles( void )
+void Draw_Triangles()
 {
 	cl_entity_t *player;
 	vec3_t org;
@@ -141,7 +141,7 @@ static void RenderFogImpl(short r, short g, short b, float startDist, float endD
 #endif
 }
 
-void RenderFog ( void )
+void RenderFog ()
 {
 	const FogProperties& fog = gHUD.fog;
 	bool bFog = g_iWaterLevel < WL_Eyes && (fog.endDist > 0 || fog.density > 0);
@@ -163,7 +163,7 @@ HUD_DrawNormalTriangles
 Non-transparent triangles-- add them here
 =================
 */
-void DLLEXPORT HUD_DrawNormalTriangles( void )
+void DLLEXPORT HUD_DrawNormalTriangles()
 {
 	gHUD.m_Spectator.DrawOverview();
 #if TEST_IT
@@ -178,7 +178,7 @@ HUD_DrawTransparentTriangles
 Render any triangles with transparent rendermode needs here
 =================
 */
-void DLLEXPORT HUD_DrawTransparentTriangles( void )
+void DLLEXPORT HUD_DrawTransparentTriangles()
 {
 #if TEST_IT
 //	Draw_Triangles();

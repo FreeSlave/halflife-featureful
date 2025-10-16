@@ -27,7 +27,7 @@ unsigned int seed_table[256] =
 	25678, 18555, 13256, 23316, 22407, 16727, 991, 9236, 5373, 29402, 6117, 15241, 27715, 19291, 19888, 19847
 };
 
-unsigned int U_Random( void )
+unsigned int U_Random()
 {
 	glSeed *= 69069;
 	glSeed += seed_table[glSeed & 0xff];

@@ -229,7 +229,7 @@ ScorePanel::ScorePanel( int x, int y, int wide, int tall ) : Panel( x, y, wide, 
 //-----------------------------------------------------------------------------
 // Purpose: Called each time a new level is started.
 //-----------------------------------------------------------------------------
-void ScorePanel::Initialize( void )
+void ScorePanel::Initialize()
 {
 	// Clear out scoreboard data
 	memset( g_PlayerExtraInfo, 0, sizeof g_PlayerExtraInfo );
@@ -702,7 +702,7 @@ void ScorePanel::FillGrid()
 }
 
 
-void ScorePanel::Open( void )
+void ScorePanel::Open()
 {
 	gHUD.m_Scoreboard.RebuildTeams();
 	setVisible(true);

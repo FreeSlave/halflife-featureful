@@ -138,8 +138,8 @@ public:
 	void Precache() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
-	void Off( void );
-	void EXPORT Recharge( void );
+	void Off();
+	void EXPORT Recharge();
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	int ObjectCaps() override { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
 	void TurnChargeToPlayer(const Vector &player);
@@ -481,7 +481,7 @@ void CRechargeDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	m_flNextCharge = gpGlobals->time + 0.1f;
 }
 
-void CRechargeDecay::Recharge( void )
+void CRechargeDecay::Recharge()
 {
 	EmitSoundScript(CRecharge::rechargeSoundScript);
 	m_iJuice = ChargerCapacity();
@@ -493,7 +493,7 @@ void CRechargeDecay::Recharge( void )
 	pev->nextthink = gpGlobals->time;
 }
 
-void CRechargeDecay::Off( void )
+void CRechargeDecay::Off()
 {
 	switch (m_iState) {
 	case GiveShot:
@@ -551,7 +551,7 @@ void CRechargeDecay::SetMySequence(const char *sequence)
 		pev->sequence = 0;
 	}
 	pev->frame = 0;
-	ResetSequenceInfo( );
+	ResetSequenceInfo();
 }
 
 void CRechargeDecay::SetChargeState(int state)

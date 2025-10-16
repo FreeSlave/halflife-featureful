@@ -32,7 +32,7 @@ extern bool FEntIsVisible( entvars_t *pev, entvars_t *pevTarget );
 extern DLL_GLOBAL int g_iSkillLevel;
 
 // Landmark class
-void CPointEntity::Spawn( void )
+void CPointEntity::Spawn()
 {
 	Precache();
 	pev->solid = SOLID_NOT;
@@ -42,11 +42,11 @@ void CPointEntity::Spawn( void )
 class CNullEntity : public CBaseEntity
 {
 public:
-	void Spawn( void );
+	void Spawn() override;
 };
 
 // Null Entity, remove on startup
-void CNullEntity::Spawn( void )
+void CNullEntity::Spawn()
 {
 	REMOVE_ENTITY( ENT( pev ) );
 }
@@ -56,7 +56,7 @@ LINK_ENTITY_TO_CLASS( info_null, CNullEntity )
 class CSpawnPoint : public CPointEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 
 #define SF_SPAWNPOINT_OFF 2
@@ -75,8 +75,8 @@ void CSpawnPoint::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 class CBaseDMStart : public CSpawnPoint
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	bool IsTriggered( CBaseEntity *pEntity );
+	void KeyValue( KeyValueData *pkvd ) override;
+	bool IsTriggered( CBaseEntity *pEntity ) override;
 
 private:
 };
@@ -106,7 +106,7 @@ bool CBaseDMStart::IsTriggered( CBaseEntity *pEntity )
 }
 
 // This updates global tables that need to know about entities being removed
-void CBaseEntity::UpdateOnRemove( void )
+void CBaseEntity::UpdateOnRemove()
 {
 	int i;
 
@@ -129,7 +129,7 @@ void CBaseEntity::UpdateOnRemove( void )
 }
 
 // Convenient way to delay removing oneself
-void CBaseEntity::SUB_Remove( void )
+void CBaseEntity::SUB_Remove()
 {
 	UpdateOnRemove();
 	if( pev->health > 0 )
@@ -144,7 +144,7 @@ void CBaseEntity::SUB_Remove( void )
 }
 
 // Convenient way to explicitly do nothing (passed to functions that require a method)
-void CBaseEntity::SUB_DoNothing( void )
+void CBaseEntity::SUB_DoNothing()
 {
 }
 
@@ -326,7 +326,7 @@ void CBaseDelay::SUB_UseTargets( CBaseEntity *pActivator, USE_TYPE useType, floa
 }
 
 /*
-void CBaseDelay::SUB_UseTargetsEntMethod( void )
+void CBaseDelay::SUB_UseTargetsEntMethod()
 {
 	SUB_UseTargets( pev );
 }
@@ -355,7 +355,7 @@ void SetMovedir( entvars_t *pev )
 	pev->angles = g_vecZero;
 }
 
-void CBaseDelay::DelayThink( void )
+void CBaseDelay::DelayThink()
 {
 	// The use type is cached (and stashed) in pev->button
 	SUB_UseTargets( m_hActivator, (USE_TYPE)pev->button );
@@ -454,7 +454,7 @@ void CBaseToggle::LinearMove( Vector vecDest, float flSpeed )
 After moving, set origin to exact final destination, call "move done" function
 ============
 */
-void CBaseToggle::LinearMoveDone( void )
+void CBaseToggle::LinearMoveDone()
 {
 	Vector delta = m_vecFinalDest - pev->origin;
 	float error = delta.Length();
@@ -518,7 +518,7 @@ void CBaseToggle::AngularMove( Vector vecDestAngle, float flSpeed )
 After rotating, set angle to exact final angle, call "move done" function
 ============
 */
-void CBaseToggle::AngularMoveDone( void )
+void CBaseToggle::AngularMoveDone()
 {
 	pev->angles = m_vecFinalAngle;
 	pev->avelocity = g_vecZero;
@@ -585,7 +585,7 @@ void CBaseToggle::PlayScriptedSentence( const char *pszSentence, float duration,
 	PlaySentence( pszSentence, duration, volume, attenuation, true );
 }
 
-void CBaseToggle::SentenceStop( void )
+void CBaseToggle::SentenceStop()
 {
 	EMIT_SOUND( edict(), CHAN_VOICE, "common/null.wav", 1.0, ATTN_IDLE );
 }

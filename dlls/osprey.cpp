@@ -22,7 +22,6 @@
 #include "soundent.h"
 #include "effects.h"
 #include "customentity.h"
-#include "mod_features.h"
 #include "game.h"
 #include "common_soundscripts.h"
 
@@ -38,36 +37,36 @@
 class COsprey : public CBaseMonster
 {
 public:
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
-	int ObjectCaps( void ) { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
-	const char* DefaultDisplayName() { return "Osprey"; }
-	int DefaultClassify( void ) { return CLASS_MACHINE; }
-	int BloodColor( void ) { return DONT_BLEED; }
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	const char* DefaultDisplayName() override { return "Osprey"; }
+	int DefaultClassify() override { return CLASS_MACHINE; }
+	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	void UpdateGoal( void );
-	bool HasDead( void );
-	void EXPORT FlyThink( void );
-	void EXPORT DeployThink( void );
-	void Flight( void );
+	void UpdateGoal();
+	bool HasDead();
+	void EXPORT FlyThink();
+	void EXPORT DeployThink();
+	void Flight();
 	void EXPORT HitTouch( CBaseEntity *pOther );
-	void EXPORT FindAllThink( void );
-	void EXPORT HoverThink( void );
+	void EXPORT FindAllThink();
+	void EXPORT HoverThink();
 	CBaseMonster *MakeGrunt( Vector vecSrc );
 	virtual void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt);
 	void EXPORT CrashTouch( CBaseEntity *pOther );
-	void EXPORT DyingThink( void );
+	void EXPORT DyingThink();
 	void EXPORT CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
-	void ShowDamage( void );
+	void ShowDamage();
 	void Update();
 
 	CBaseEntity *m_pGoalEnt;
@@ -240,7 +239,7 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	m_vel2 = pev->velocity;
 }
 
-void COsprey::Precache( void )
+void COsprey::Precache()
 {
 	PrecacheImpl("models/osprey.mdl", "models/osprey_tailgibs.mdl", "models/osprey_bodygibs.mdl", "models/osprey_enginegibs.mdl");
 }
@@ -294,7 +293,7 @@ void COsprey::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void COsprey::FindAllThink( void )
+void COsprey::FindAllThink()
 {
 	CBaseEntity *pEntity = NULL;
 
@@ -324,7 +323,7 @@ void COsprey::FindAllThink( void )
 	m_startTime = gpGlobals->time;
 }
 
-void COsprey::DeployThink( void )
+void COsprey::DeployThink()
 {
 	UTIL_MakeAimVectors( pev->angles );
 
@@ -381,11 +380,9 @@ bool COsprey::HasDead()
 
 const char* COsprey::TrooperName()
 {
-#if FEATURE_OPFOR_GRUNT
 	if (m_gruntType == OSPREY_GRUNT_TYPE_OPFOR)
 		return "monster_human_grunt_ally";
 	else
-#endif
 		return "monster_human_grunt";
 }
 
@@ -458,7 +455,7 @@ void COsprey::PrepareGruntBeforeSpawn(CBaseEntity *pGrunt)
 	}
 }
 
-void COsprey::HoverThink( void )
+void COsprey::HoverThink()
 {
 	int i;
 	for( i = 0; i < 4; i++ )
@@ -515,7 +512,7 @@ void COsprey::UpdateGoal()
 	}
 }
 
-void COsprey::FlyThink( void )
+void COsprey::FlyThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -686,7 +683,7 @@ void COsprey::CrashTouch( CBaseEntity *pOther )
 	}
 }
 
-void COsprey::DyingThink( void )
+void COsprey::DyingThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -856,7 +853,7 @@ void COsprey::DyingThink( void )
 	}
 }
 
-void COsprey::ShowDamage( void )
+void COsprey::ShowDamage()
 {
 	if( m_iDoLeftSmokePuff > 0 || RANDOM_LONG( 0, 99 ) > m_flLeftHealth )
 	{
@@ -946,22 +943,21 @@ TakeDamageResult COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAtta
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
-#if FEATURE_BLACK_OSPREY
 class CBlkopOsprey : public COsprey
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("blkop_osprey"); }
-	void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt);
-	int	DefaultClassify ( void )
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("blkop_osprey"); }
+	void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt) override;
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return COsprey::DefaultClassify();
 	}
 protected:
-	const char* TrooperName();
+	const char* TrooperName() override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_blkop_osprey, CBlkopOsprey )
@@ -989,4 +985,3 @@ const char* CBlkopOsprey::TrooperName()
 {
 	return "monster_male_assassin";
 }
-#endif

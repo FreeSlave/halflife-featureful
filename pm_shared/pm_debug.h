@@ -16,8 +16,8 @@
 #if !defined(PM_DEBUG_H)
 #define PM_DEBUG_H
 
-void PM_ViewEntity( void );
+void PM_ViewEntity();
 void PM_DrawBBox(Vector mins, Vector maxs, Vector origin, int pcolor, float life );
 void PM_ParticleLine(Vector start, Vector end, int pcolor, float life, float vert );
-void PM_ShowClipBox( void );
+void PM_ShowClipBox();
 #endif//PM_DEBUG_H

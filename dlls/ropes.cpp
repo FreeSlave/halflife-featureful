@@ -25,7 +25,6 @@
 #include "mod_features.h"
 #include "visuals_utils.h"
 
-#if FEATURE_ROPE
 #include "ropes.h"
 
 #define SF_ROPE_NO_TRANSITION 2
@@ -62,12 +61,12 @@ class CRopeSample : public CBaseEntity
 {
 public:
 
-	void Spawn();
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	void Spawn() override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	int ObjectCaps() {
+	int ObjectCaps() override {
 		if (FBitSet(pev->spawnflags, SF_ROPE_NO_TRANSITION))
 			return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION;
 		else
@@ -115,18 +114,17 @@ class CRopeSegment : public CBaseAnimating
 {
 public:
 
-	void Precache();
+	void Precache() override;
+	void Spawn() override;
 
-	void Spawn();
-
-	int ObjectCaps() {
+	int ObjectCaps() override {
 		if (FBitSet(pev->spawnflags, SF_ROPE_NO_TRANSITION))
 			return CBaseAnimating::ObjectCaps() & ~FCAP_ACROSS_TRANSITION;
 		else
 			return CBaseAnimating::ObjectCaps();
 	}
 
-	void Touch( CBaseEntity* pOther );
+	void Touch( CBaseEntity* pOther ) override;
 
 	void SetAbsOrigin(const Vector& pos)
 	{
@@ -149,8 +147,8 @@ public:
 			pev->spawnflags |= SF_ROPE_NO_TRANSITION;
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 
@@ -1410,40 +1408,23 @@ class CElectrifiedWire : public CRope
 public:
 	CElectrifiedWire();
 	void InitElectrifiedRope();
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void KeyValue( KeyValueData* pkvd );
+	void KeyValue( KeyValueData* pkvd ) override;
 
-	void Precache();
-
-	void Spawn();
-	void Activate();
+	void Precache() override;
+	void Spawn() override;
+	void Activate() override;
 
 	void EXPORT ElectrifiedRopeThink();
 
-	void Use( CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float flValue );
+	void Use( CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float flValue ) override;
 
-	/**
-	*	@return Whether the wire is active.
-	*/
 	bool IsActive() const { return m_bIsActive; }
-
-	/**
-	*	@param iFrequency Frequency.
-	*	@return Whether the spark effect should be performed.
-	*/
 	bool ShouldDoEffect( const int iFrequency );
-
-	/**
-	*	Do spark effects.
-	*/
 	void DoSpark( const int uiSegment, const bool bExertForce );
-
-	/**
-	*	Do lightning effects.
-	*/
 	void DoLightning();
 
 	static NamedVisual lightningVisual;
@@ -1741,4 +1722,3 @@ void CElectrifiedWire::DoLightning()
 		MESSAGE_END();
 	}
 }
-#endif

@@ -76,7 +76,7 @@ void HistoryResource::AddToHistory( int iType, const char *szName, int iCount, i
 	freeslot->DisplayTime = gHUD.m_flTime + gHUD.m_Ammo.DrawHistoryTime();
 }
 
-void HistoryResource::CheckClearHistory( void )
+void HistoryResource::CheckClearHistory()
 {
 	for( int i = 0; i < MAX_HISTORY; i++ )
 	{

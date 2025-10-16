@@ -136,7 +136,7 @@ void CPython::PrecacheDefaultModelSounds()
 	PRECACHE_SOUND( "weapons/357_reload1.wav" );
 }
 
-void CPython::Reload( void )
+void CPython::Reload()
 {
 	bool result = PerformReload();
 	if (result)
@@ -145,7 +145,7 @@ void CPython::Reload( void )
 	}
 }
 
-void CPython::WeaponIdle( void )
+void CPython::WeaponIdle()
 {
 	if( m_flSoundDelay != 0 && m_flSoundDelay <= UTIL_WeaponTimeBase() )
 	{

@@ -75,10 +75,10 @@ public:
 	void Holster() override;
 	void ItemPreFrame() override;
 	void WeaponIdle() override;
-	void Throw( void );
+	void Throw();
 	void Detonate(bool allowThrow);
 	int ControlBehavior();
-	void DrawSatchel( void );
+	void DrawSatchel();
 	void DrawRadio();
 
 	void GetWeaponData(weapon_data_t& data) override;
@@ -90,18 +90,18 @@ class CSatchelCharge : public CGrenade
 {
 public:
 	Vector m_lastBounceOrigin;	// Used to fix a bug in engine: when object isn't moving, but its speed isn't 0 and on ground isn't set
-	void Spawn( void );
-	void Precache( void );
-	void BounceSound( void );
-	void Explode( TraceResult *pTrace, int bitsDamageType );
+	void Spawn() override;
+	void Precache() override;
+	void BounceSound() override;
+	void Explode( TraceResult *pTrace, int bitsDamageType ) override;
 
 	void EXPORT SatchelSlide( CBaseEntity *pOther );
-	void EXPORT SatchelThink( void );
+	void EXPORT SatchelThink();
 
-	bool HandleDoorBlockage(CBaseEntity* pDoor);
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
 
-	void Deactivate( void );
-	int ObjectCaps( void );
+	void Deactivate();
+	int ObjectCaps() override;
 	void EXPORT SatchelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	static const NamedSoundScript bounceSoundScript;
@@ -119,13 +119,13 @@ const NamedSoundScript CSatchelCharge::bounceSoundScript = {
 // Deactivate - do whatever it is we do to an orphaned 
 // satchel when we don't want it in the world anymore.
 //=========================================================
-void CSatchelCharge::Deactivate( void )
+void CSatchelCharge::Deactivate()
 {
 	pev->solid = SOLID_NOT;
 	UTIL_Remove( this );
 }
 
-void CSatchelCharge::Spawn( void )
+void CSatchelCharge::Spawn()
 {
 	Precache();
 	// motor
@@ -183,7 +183,7 @@ void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 	// StudioFrameAdvance();
 }
 
-void CSatchelCharge::SatchelThink( void )
+void CSatchelCharge::SatchelThink()
 {
 	// There is no model animation so commented this out to prevent net traffic
 	// StudioFrameAdvance();
@@ -212,7 +212,7 @@ void CSatchelCharge::SatchelThink( void )
 	}	
 }
 
-void CSatchelCharge::Precache( void )
+void CSatchelCharge::Precache()
 {
 	PRECACHE_MODEL( "models/w_satchel.mdl" );
 
@@ -220,7 +220,7 @@ void CSatchelCharge::Precache( void )
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 }
 
-void CSatchelCharge::BounceSound( void )
+void CSatchelCharge::BounceSound()
 {
 	EmitSoundScript(bounceSoundScript);
 }
@@ -526,7 +526,7 @@ void CSatchel::SecondaryAttack()
 		Detonate(false);
 }
 
-void CSatchel::Throw( void )
+void CSatchel::Throw()
 {
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 	{

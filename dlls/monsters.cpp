@@ -213,7 +213,7 @@ void CBaseMonster::Eat( float flFullDuration )
 //=========================================================
 // FShouldEat - returns true if a monster is hungry.
 //=========================================================
-bool CBaseMonster::FShouldEat( void )
+bool CBaseMonster::FShouldEat()
 {
 	if( m_flHungryTime > gpGlobals->time )
 	{
@@ -243,7 +243,7 @@ void CBaseMonster::BarnacleVictimBitten( entvars_t *pevBarnacle )
 // BarnacleVictimReleased - called by barnacle victims when
 // the host barnacle is killed.
 //=========================================================
-void CBaseMonster::BarnacleVictimReleased( void )
+void CBaseMonster::BarnacleVictimReleased()
 {
 	m_IdealMonsterState = MONSTERSTATE_IDLE;
 
@@ -255,7 +255,7 @@ void CBaseMonster::BarnacleVictimReleased( void )
 // Listen - monsters dig through the active sound list for
 // any sounds that may interest them. (smells, too!)
 //=========================================================
-void CBaseMonster::Listen( void )
+void CBaseMonster::Listen()
 {
 	int	iSound;
 	int	iMySounds;
@@ -472,7 +472,7 @@ void CBaseMonster::Look( int iDistance )
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CBaseMonster::DefaultISoundMask( void )
+int CBaseMonster::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -497,7 +497,7 @@ int CBaseMonster::ISoundMask()
 // PBestSound - returns a pointer to the sound the monster 
 // should react to. Right now responds only to nearest sound.
 //=========================================================
-CSound *CBaseMonster::PBestSound( void )
+CSound *CBaseMonster::PBestSound()
 {	
 	int iThisSound; 
 	int iBestSound = -1;
@@ -551,7 +551,7 @@ CSound *CBaseMonster::PBestSound( void )
 // PBestScent - returns a pointer to the scent the monster 
 // should react to. Right now responds only to nearest scent
 //=========================================================
-CSound *CBaseMonster::PBestScent( void )
+CSound *CBaseMonster::PBestScent()
 {
 	int iThisScent; 
 	int iBestScent = -1;
@@ -603,14 +603,14 @@ CSound *CBaseMonster::PBestScent( void )
 // Monster Think - calls out to core AI functions and handles this
 // monster's specific animation events
 //=========================================================
-void CBaseMonster::MonsterThink( void )
+void CBaseMonster::MonsterThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;// keep monster thinking.
 
 	RunAI();
 	GlowShellUpdate();
 
-	float flInterval = StudioFrameAdvance( ); // animate
+	float flInterval = StudioFrameAdvance(); // animate
 
 	// start or end a fidget
 	// This needs a better home -- switching animations over time should be encapsulated on a per-activity basis
@@ -670,7 +670,7 @@ void CBaseMonster::MonsterUse( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 // schedule, but may not want to interrupt the schedule every
 // time. (Pain, for instance)
 //=========================================================
-int CBaseMonster::IgnoreConditions( void )
+int CBaseMonster::IgnoreConditions()
 {
 	int iIgnoreConditions = 0;
 
@@ -689,7 +689,7 @@ int CBaseMonster::IgnoreConditions( void )
 //=========================================================
 // 	RouteClear - zeroes out the monster's route array and goal
 //=========================================================
-void CBaseMonster::RouteClear( void )
+void CBaseMonster::RouteClear()
 {
 	RouteNew();
 	m_movementGoal = MOVEGOAL_NONE;
@@ -701,7 +701,7 @@ void CBaseMonster::RouteClear( void )
 // Route New - clears out a route to be changed, but keeps
 //				goal intact.
 //=========================================================
-void CBaseMonster::RouteNew( void )
+void CBaseMonster::RouteNew()
 {
 	for (auto& route : m_Route)
 	{
@@ -714,7 +714,7 @@ void CBaseMonster::RouteNew( void )
 // FRouteClear - returns true is the Route is cleared out
 // ( invalid )
 //=========================================================
-bool CBaseMonster::FRouteClear( void )
+bool CBaseMonster::FRouteClear()
 {
 	if( m_Route[m_iRouteIndex].iType == 0 || m_movementGoal == MOVEGOAL_NONE )
 		return true;
@@ -1006,7 +1006,7 @@ void CBaseMonster::RouteSimplify( CBaseEntity *pTargetEnt )
 // right now only used when a barnacle snatches someone, so 
 // may have some special case stuff for that.
 //=========================================================
-bool CBaseMonster::FBecomeProne( void )
+bool CBaseMonster::FBecomeProne()
 {
 	if (m_pCine && !m_pCine->CanInterruptByBarnacle())
 	{
@@ -1137,7 +1137,7 @@ void CBaseMonster::CheckAttacks(CBaseEntity *pTarget, float flDist, float flMele
 // CanCheckAttacks - prequalifies a monster to do more fine
 // checking of potential attacks. 
 //=========================================================
-bool CBaseMonster::FCanCheckAttacks( void )
+bool CBaseMonster::FCanCheckAttacks()
 {
 	if( HasConditions( bits_COND_SEE_ENEMY ) && !HasConditions( bits_COND_ENEMY_TOOFAR ) )
 	{
@@ -2533,7 +2533,7 @@ void CBaseMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, f
 // initialization that should take place for all monsters
 // goes here.
 //=========================================================
-void CBaseMonster::MonsterInit( void )
+void CBaseMonster::MonsterInit()
 {
 	if( !g_pGameRules->FAllowMonsters() )
 	{
@@ -2558,7 +2558,7 @@ void CBaseMonster::MonsterInit( void )
 
 	ClearSchedule();
 	RouteClear();
-	InitBoneControllers( ); // FIX: should be done in Spawn
+	InitBoneControllers(); // FIX: should be done in Spawn
 
 	m_iHintNode = NO_NODE;
 
@@ -2590,7 +2590,7 @@ void CBaseMonster::InitRandomSeeds()
 // MonsterInitThink - Calls StartMonster. Startmonster is 
 // virtual, but this function cannot be 
 //=========================================================
-void CBaseMonster::MonsterInitThink( void )
+void CBaseMonster::MonsterInitThink()
 {
 	StartMonster();
 }
@@ -2647,7 +2647,7 @@ Schedule_t* CBaseMonster::StartPatrol(CBaseEntity *path)
 // StartMonster - final bit of initization before a monster 
 // is turned over to the AI. 
 //=========================================================
-void CBaseMonster::StartMonster( void )
+void CBaseMonster::StartMonster()
 {
 	// update capabilities
 	if( LookupActivity( ACT_RANGE_ATTACK1 ) != ACTIVITY_NOT_AVAILABLE )
@@ -2723,7 +2723,7 @@ void CBaseMonster::StartMonster( void )
 	}
 }
 
-void CBaseMonster::MovementComplete( void ) 
+void CBaseMonster::MovementComplete() 
 { 
 	switch( m_iTaskStatus )
 	{
@@ -2743,7 +2743,7 @@ void CBaseMonster::MovementComplete( void )
 	m_movementGoal = MOVEGOAL_NONE;
 }
 
-bool CBaseMonster::TaskIsRunning( void )
+bool CBaseMonster::TaskIsRunning()
 {
 	return ( m_iTaskStatus != TASKSTATUS_COMPLETE && m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT );
 }
@@ -3044,7 +3044,7 @@ bool CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, fl
 // !!!UNDONE - currently, this only returns the closest enemy.
 // we'll want to consider distance, relationship, attack types, back turned, etc.
 //=========================================================
-CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
+CBaseEntity *CBaseMonster::BestVisibleEnemy()
 {
 	CBaseEntity	*pReturn = NULL;
 	CBaseEntity	*pNextEnt = m_pLink;
@@ -3132,7 +3132,7 @@ void CBaseMonster::MakeIdealYaw( Vector vecTarget )
 //
 // Positive result is left turn, negative is right turn
 //=========================================================
-float CBaseMonster::FlYawDiff( void )
+float CBaseMonster::FlYawDiff()
 {
 	float flCurrentYaw;
 
@@ -3236,7 +3236,7 @@ float CBaseMonster::VecToYaw( Vector vecDir )
 // that vector to the monster's view_ofs
 //
 //=========================================================
-void CBaseMonster::SetEyePosition( void )
+void CBaseMonster::SetEyePosition()
 {
 	Vector  vecEyePosition;
 	void	*pmodel = GET_MODEL_PTR( ENT(pev) );
@@ -3474,7 +3474,7 @@ bool CBaseMonster::FGetNodeRoute( Vector vecDest, int goalMoveFlag )
 //=========================================================
 // FindHintNode
 //=========================================================
-int CBaseMonster::FindHintNode( void )
+int CBaseMonster::FindHintNode()
 {
 	int i;
 	TraceResult tr;
@@ -4044,7 +4044,7 @@ bool CBaseMonster::FCheckAITrigger( short condition )
 	return false;
 }
 
-bool CBaseMonster::FCheckAITrigger( void )
+bool CBaseMonster::FCheckAITrigger()
 {
 	bool ret = FCheckAITrigger( m_iTriggerCondition );
 	if (!ret)
@@ -4314,7 +4314,7 @@ Vector CBaseMonster::SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDev
 // number. Nicer to have it in one place if we're gonna
 // be stuck with it.
 //=========================================================
-bool CBaseMonster::FacingIdeal( void )
+bool CBaseMonster::FacingIdeal()
 {
 	return fabs( FlYawDiff() ) <= 0.006f;//!!!BUGBUG - no magic numbers!!!
 }
@@ -4322,7 +4322,7 @@ bool CBaseMonster::FacingIdeal( void )
 //=========================================================
 // FCanActiveIdle
 //=========================================================
-bool CBaseMonster::FCanActiveIdle( void )
+bool CBaseMonster::FCanActiveIdle()
 {
 	/*
 	if( m_MonsterState == MONSTERSTATE_IDLE && m_IdealMonsterState == MONSTERSTATE_IDLE && !IsMoving() )
@@ -4333,13 +4333,13 @@ bool CBaseMonster::FCanActiveIdle( void )
 	return false;
 }
 
-void CBaseMonster::CorpseFallThink( void )
+void CBaseMonster::CorpseFallThink()
 {
 	if( pev->flags & FL_ONGROUND )
 	{
 		SetThink( NULL );
 
-		SetSequenceBox( );
+		SetSequenceBox();
 		UTIL_SetOrigin( pev, pev->origin );// link into world.
 	}
 	else
@@ -4347,7 +4347,7 @@ void CBaseMonster::CorpseFallThink( void )
 }
 
 // Call after animation/pose is set up
-void CBaseMonster::MonsterInitDead( void )
+void CBaseMonster::MonsterInitDead()
 {
 	InitBoneControllers();
 
@@ -4393,7 +4393,7 @@ void CBaseMonster::MonsterInitDead( void )
 // is lying flat on a surface (traces from all four corners
 // are same length.)
 //=========================================================
-bool CBaseMonster::BBoxFlat( void )
+bool CBaseMonster::BBoxFlat()
 {
 	TraceResult	tr;
 	Vector		vecPoint;
@@ -4537,7 +4537,7 @@ bool CBaseMonster::IsFullyAlive()
 	return !HasMemory(bits_MEMORY_KILLED) && CBaseToggle::IsFullyAlive();
 }
 
-bool CBaseMonster::ShouldFadeOnDeath( void )
+bool CBaseMonster::ShouldFadeOnDeath()
 {
 	// if flagged to fade out or I have an owner (I came from a monster spawner)
 	if( ( pev->spawnflags & SF_MONSTER_FADECORPSE ) || !FNullEnt( pev->owner ) )
@@ -4783,7 +4783,7 @@ void CBaseMonster::GlowShellOn(const Visual* visual)
 	m_glowShellTime = gpGlobals->time + RandomizeNumberFromRange(visual->life);
 }
 
-void CBaseMonster::GlowShellOff( void )
+void CBaseMonster::GlowShellOff()
 {
 	if (m_glowShellUpdate)
 	{
@@ -4797,7 +4797,7 @@ void CBaseMonster::GlowShellOff( void )
 		m_glowShellUpdate = false;
 	}
 }
-void CBaseMonster::GlowShellUpdate( void )
+void CBaseMonster::GlowShellUpdate()
 {
 	if( m_glowShellUpdate )
 	{
@@ -4852,16 +4852,15 @@ bool CDeadMonster::ShouldCollide(CBaseEntity* pOther)
 	return pOther->ShouldCollideWithCorpses();
 }
 
-#if FEATURE_SKELETON
 class CSkeleton : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/skeleton.mdl"; }
-	int	DefaultClassify() { return	CLASS_NONE; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/skeleton.mdl"; }
+	int	DefaultClassify() override { return	CLASS_NONE; }
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[4];
 };
 
@@ -4874,7 +4873,7 @@ const char* CSkeleton::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS(monster_skeleton_dead, CSkeleton)
 
-void CSkeleton::Spawn(void)
+void CSkeleton::Spawn()
 {
 	SpawnHelper(DONT_BLEED);
 	MonsterInitDead();
@@ -4884,21 +4883,20 @@ TakeDamageResult CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAt
 {
 	return TakeDamageResult();
 }
-#endif
 
 //LRC - an entity for monsters to shoot at.
 #define SF_MONSTERTARGET_OFF 1
 class CMonsterTarget : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int Classify( void ) { return pev->frags; };
+	void Spawn() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int Classify() override { return pev->frags; }
 };
 LINK_ENTITY_TO_CLASS( monster_target, CMonsterTarget );
 LINK_ENTITY_TO_CLASS( monster_bullseye, CMonsterTarget ); // for parity with npc_bullseye from Source games
 
-void CMonsterTarget :: Spawn ( void )
+void CMonsterTarget::Spawn()
 {
 	if (pev->spawnflags & SF_MONSTERTARGET_OFF)
 		pev->health = 0;

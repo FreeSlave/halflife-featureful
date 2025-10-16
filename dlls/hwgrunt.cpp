@@ -5,12 +5,9 @@
 #include	"soundent.h"
 #include	"hgrunt.h"
 #include	"animation.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"combat.h"
 #include	"gamerules.h"
-
-#if FEATURE_HWGRUNT
 
 #define GUN_GROUP 1
 
@@ -83,7 +80,7 @@ public:
 	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
 	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
-	void GibMonster( void );
+	void GibMonster() override;
 	void DropMyItems(bool isGibbed);
 
 	int Save( CSave &save ) override;
@@ -217,7 +214,7 @@ void CHWGrunt::SetYawSpeed()
 	pev->yaw_speed = ys;
 }
 
-int CHWGrunt::DefaultISoundMask( void )
+int CHWGrunt::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -722,7 +719,7 @@ void CHWGrunt::OnChangeSchedule(Schedule_t *pNewSchedule)
 	m_firing = pNewSchedule == slHWGruntContinueRangeAttack;
 }
 
-void CHWGrunt::GibMonster( void )
+void CHWGrunt::GibMonster()
 {
 	if (GetBodygroup(GUN_GROUP) != GUN_NONE)
 	{
@@ -760,11 +757,9 @@ void CHWGrunt::DropMyItems(bool isGibbed)
 class CHWGruntRepel : public CHGruntRepel
 {
 public:
-	const char* TrooperName() {
+	const char* TrooperName() override {
 		return "monster_hwgrunt";
 	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_hwgrunt_repel, CHWGruntRepel)
-
-#endif

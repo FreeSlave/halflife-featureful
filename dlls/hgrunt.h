@@ -55,66 +55,66 @@ typedef enum
 class CHGrunt : public CFollowingMonster
 {
 public:
-	void KeyValue(KeyValueData* pkvd);
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Human Grunt"; }
-	const char* ReverseRelationshipModel();
-	int DefaultISoundMask( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	bool FCanCheckAttacks( void ) override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Human Grunt"; }
+	const char* ReverseRelationshipModel() override;
+	int DefaultISoundMask() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	bool FCanCheckAttacks() override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
-	void CheckAmmo( void );
-	int LookupActivity(int activity);
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void DeathSound();
+	void CheckAmmo() override;
+	int LookupActivity(int activity) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void DeathSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	void IdleSound() override;
-	Vector GetGunPosition( void );
-	void Shoot( void );
-	void Shotgun( void );
-	void PrescheduleThink( void );
-	void GibMonster( void );
-	virtual void SpeakSentence( void );
+	Vector GetGunPosition() override;
+	void Shoot();
+	void Shotgun();
+	void PrescheduleThink() override;
+	void GibMonster() override;
+	virtual void SpeakSentence();
 	bool PlayGruntSentence(int sentence, int flags = 0);
 	bool PlaySentenceGroup(const char* group, int flags = 0);
 	void PlaySentenceSoundScript(const char* soundScript);
 	bool EmitSoundScriptTalk(const char* soundScript);
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 	void PerformKick(int eventIndex, float damage, float zpunch = 0);
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	int IRelationship( CBaseEntity *pTarget ) override;
 
-	virtual bool FOkToSpeak( void );
+	virtual bool FOkToSpeak();
 	virtual bool CanDropGrenade() const;
-	void JustSpoke( void );
+	void JustSpoke();
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
 
 	CUSTOM_SCHEDULES
-	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
 	// checking the feasibility of a grenade toss is kind of costly, so we do it every couple of seconds,
 	// not every server frame.
@@ -137,7 +137,7 @@ public:
 
 	short m_desiredSkin;
 protected:
-	virtual void OnBecomingLeader();
+	virtual void OnBecomingLeader() override;
 
 	static const char *pGruntSentences[HGRUNT_SENT_COUNT];
 
@@ -177,9 +177,9 @@ public:
 class CHGruntRepel : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
 	void EXPORT RepelUse ( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	int m_iSpriteTexture;	// Don't save, precache
 	virtual const char* TrooperName();

@@ -21,13 +21,11 @@
 #include "basemonster.h"
 #include "objecthint_spec.h"
 #include "player_templates.h"
-#if FEATURE_ROPE
-class CRope;
-#endif
 #include "com_model.h"
 #include <cstdint>
-
 #include <vector>
+
+class CRope;
 
 #define PLAYER_FATAL_FALL_SPEED		1024// approx 60 feet
 #define PLAYER_MAX_SAFE_FALL_SPEED	580// approx 20 feet
@@ -252,11 +250,11 @@ public:
 
 	void Spawn() override;
 
-	//virtual void Think( void );
-	virtual void Jump( void );
-	virtual void Duck( void );
-	virtual void PreThink( void );
-	virtual void PostThink( void );
+	//virtual void Think();
+	virtual void Jump();
+	virtual void Duck();
+	virtual void PreThink();
+	virtual void PostThink();
 	Vector GetGunPosition() override;
 	int TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType ) override;
 	void SetHealth(int health, bool allowOverheal = false);
@@ -270,7 +268,7 @@ public:
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	Vector BodyTarget( const Vector &posSrc ) override { return Center( ) + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
+	Vector BodyTarget( const Vector &posSrc ) override { return Center() + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
 	bool IsAlive() override { return IsFullyAlive(); }
 	bool IsFullyAlive() override { return CBaseMonster::IsFullyAlive() && !IsObserver(); }
 	bool ShouldFadeOnDeath() override { return false; }
@@ -283,8 +281,8 @@ public:
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	void SetPhysicsKeyValues();
-	void RenewItems(void);
-	void PackDeadPlayerItems( void );
+	void RenewItems();
+	void PackDeadPlayerItems();
 	void RemoveAllItems( int stripFlags );
 	void RemoveAllWeapons();
 	void RemoveAllAmmo();
@@ -337,7 +335,7 @@ public:
 	void SetLongjump(bool enabled);
 
 	// JOHN:  sends custom messages if player HUD data has changed  (eg health, ammo)
-	virtual void UpdateClientData( void );
+	virtual void UpdateClientData();
 	void GatherAndSendObjectHints();
 	
 	static	TYPEDESCRIPTION m_playerSaveData[];
@@ -345,11 +343,11 @@ public:
 	// Player is moved across the transition by other means
 	int ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	void Precache() override;
-	bool IsOnLadder( void );
+	bool IsOnLadder();
 	bool FlashlightIsOn() { return FBitSet(pev->effects, EF_DIMLIGHT) || m_fFlashlightON; }
 	bool NVGIsOn() { return m_fNVGisON; }
-	bool SuitLightIsOn( void ) { return FlashlightIsOn() || NVGIsOn(); }
-	void SuitLightTurnOn( void );
+	bool SuitLightIsOn() { return FlashlightIsOn() || NVGIsOn(); }
+	void SuitLightTurnOn();
 	void SuitLightTurnOff( bool playOffSound = true );
 	void UpdateSuitLightBattery( bool on );
 	void FlashlightToggle();
@@ -359,7 +357,7 @@ public:
 	void NVGTurnOn();
 	void NVGTurnOff( bool playOffSound = true );
 
-	void UpdatePlayerSound ( void );
+	void UpdatePlayerSound ();
 	void DeathSound() override;
 
 	int DefaultClassify() override;
@@ -369,10 +367,10 @@ public:
 	char m_szAnimExtention[32];
 
 	// custom player functions
-	virtual void ImpulseCommands( void );
+	virtual void ImpulseCommands();
 	void CheatImpulseCommands( int iImpulse );
 
-	void StartDeathCam( void );
+	void StartDeathCam();
 	void StartObserver( Vector vecPosition, Vector vecViewAngle );
 	void StopObserver();
 
@@ -387,32 +385,32 @@ public:
 	bool HasPlayerItem( CBasePlayerWeapon *pCheckItem );
 	bool HasNamedPlayerItem( const char *pszItemName );
 	CBasePlayerWeapon* GetWeaponByName( const char *pszItemName );
-	bool HasWeapons( void );// do I have ANY weapons?
+	bool HasWeapons();// do I have ANY weapons?
 	void SendCurWeaponClear();
 	void SendCurWeaponDead();
 	void SelectPrevItem( int iItem );
-	void SelectLastItem(void);
+	void SelectLastItem();
 	void SelectItem(const char *pstr);
-	void ItemPreFrame( void );
-	void ItemPostFrame( void );
+	void ItemPreFrame();
+	void ItemPostFrame();
 	void GiveNamedItem( const char *szName, int spawnFlags = 0 );
 	void EnableControl(bool fControl);
 
 	int  GiveAmmo( int iAmount, const char *szName ) override;
 	void RemoveAmmo( int iAmount, const char *szName );
-	void SendAmmoUpdate(void);
+	void SendAmmoUpdate();
 
-	void WaterMove( void );
-	void EXPORT PlayerDeathThink( void );
+	void WaterMove();
+	void EXPORT PlayerDeathThink();
 	std::pair<CBaseEntity*, const ObjectHintSpec*> GetInteractiveEntity(std::vector<std::pair<CBaseEntity*, const ObjectHintSpec*>>* hintedEntities = nullptr);
-	void PlayerUse( void );
+	void PlayerUse();
 	void ReleaseTank();
 
 	bool CanPlaySuitSentences();
 	void CheckSuitUpdate();
 	void SetSuitUpdate( const char *name, bool fgroup, int iNoRepeat );
-	void UpdateGeigerCounter( void );
-	void CheckTimeBasedDamage( void );
+	void UpdateGeigerCounter();
+	void CheckTimeBasedDamage();
 
 	bool FBecomeProne() override;
 	void BarnacleVictimBitten( entvars_t *pevBarnacle ) override;
@@ -422,20 +420,20 @@ public:
 	void ClearAmmoByIndex(int iAmmoIndex);
 	int Illumination() override;
 
-	void ResetAutoaim( void );
+	void ResetAutoaim();
 	Vector GetAutoaimVector( float flDelta  );
 	Vector GetAutoaimVectorFromPoint( const Vector& vecSrc,float flDelta  );
 	Vector AutoaimDeflection( const Vector &vecSrc, float flDist, float flDelta  );
 
-	void ForceClientDllUpdate( void );  // Forces all client .dll specific data to be resent to client.
+	void ForceClientDllUpdate();  // Forces all client .dll specific data to be resent to client.
 
 	void DeathMessage( entvars_t *pevKiller );
 
 	void SetCustomDecalFrames( int nFrames );
-	int GetCustomDecalFrames( void );
+	int GetCustomDecalFrames();
 
-	bool HandleDoorBlockage(CBaseEntity* pDoor);
-	bool ShouldCollideWithCorpses();
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
+	bool ShouldCollideWithCorpses() override;
 
 	void SetMovementMode();
 	float GetBaseMaxSpeed();
@@ -451,8 +449,8 @@ public:
 	float m_flNextAmmoBurn;// while charging, when to absorb another unit of player's ammo?
 
 	// Player ID
-	void InitStatusBar( void );
-	void UpdateStatusBar( void );
+	void InitStatusBar();
+	void UpdateStatusBar();
 
 	void InsertWeaponById( CBasePlayerWeapon* pItem );
 	CBasePlayerWeapon* WeaponById( int id );
@@ -476,11 +474,9 @@ public:
 
 	Vector m_vecLastViewAngles;
 	float m_flNextRespawnMessageTime;
-#if FEATURE_DISPLACER
-	bool	m_fInXen;
 	Vector m_DisplacerReturn;
 	int m_DisplacerSndRoomtype;
-#endif
+	bool	m_fInXen;
 	bool	m_fNVGisON;
 	bool	m_fFlashlightON;
 	bool	m_fFlashlightFlicker;
@@ -503,7 +499,6 @@ public:
 	bool m_bSentMessages;
 	bool m_bSentVisibilityMessages;
 
-#if FEATURE_ROPE
 	bool m_bIsClimbing;
 	float m_flLastClimbTime;
 	EHANDLE m_hRope;
@@ -511,7 +506,6 @@ public:
 	{
 		return ( m_afPhysicsFlags & PFLAG_ONROPE ) != 0;
 	}
-
 	void SetRope( CBaseEntity *pRope )
 	{
 		m_hRope = pRope;
@@ -528,7 +522,7 @@ public:
 	void LetGoRope(float delay = 2.0f);
 	bool SetClosestOriginOnRope(const Vector& vecPos);
 	void HandleRopePhysics(CRope* pRope);
-#endif
+
 	int m_iItemsBits;
 	int m_iClientItemsBits;
 

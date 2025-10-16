@@ -15,10 +15,10 @@
 class CMortarShell : public CGrenade
 {
 public:
-	void Precache();
+	void Precache() override;
 	void EXPORT BurnThink();
 	void EXPORT MortarExplodeTouch(CBaseEntity *pOther);
-	void Spawn();
+	void Spawn() override;
 	void EXPORT FlyThink();
 
 	static CMortarShell *CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity);
@@ -26,7 +26,7 @@ public:
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;
 		return clamp(result, 1, 255);
 	}
-	int FireballFramerate() {
+	int FireballFramerate() override {
 		return 10;
 	}
 
@@ -165,19 +165,19 @@ CMortarShell *CMortarShell::CreateMortarShell(Vector vecOrigin, Vector vecAngles
 class COp4Mortar : public CBaseMonster
 {
 public:
-	void Spawn();
+	void Spawn() override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	virtual void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	void Precache();
-	void KeyValue(KeyValueData *pvkd);
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	void Precache() override;
+	void KeyValue(KeyValueData *pvkd) override;
 	void UpdatePosition(float direction, int controller);
 	void AIUpdatePosition();
-	virtual int Save(CSave &save);
-	virtual int Restore(CRestore &restore);
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	CBaseEntity *FindTarget();
 	void EXPORT MortarThink();
 	static TYPEDESCRIPTION m_SaveData[];
-	int ObjectCaps() { return 0; }
+	int ObjectCaps() override { return 0; }
 	void PlaySound();
 
 	int d_x;
@@ -717,14 +717,15 @@ void COp4Mortar::AIUpdatePosition()
 class COp4MortarController : public CBaseToggle
 {
 public:
-	void Spawn();
-	int Restore(CRestore &restore);
-	int Save(CSave &save);
-	void KeyValue(KeyValueData *pvkd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	int ObjectCaps() { return FCAP_CONTINUOUS_USE; }
+	void Spawn() override;
+	int Restore(CRestore &restore) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	int ObjectCaps() override { return FCAP_CONTINUOUS_USE; }
 
+	int Save(CSave &save) override;
+	void KeyValue(KeyValueData *pvkd) override;
 	static TYPEDESCRIPTION m_SaveData[];
+
 	int m_direction;
 	int m_controller;
 	float m_lastpush;

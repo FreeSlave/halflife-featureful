@@ -32,12 +32,10 @@ struct skilldata_t
 
 	float apacheHealth;
 
-#if FEATURE_BABYGARG
 	float babygargantuaHealth;
 	float babygargantuaDmgSlash;
 	float babygargantuaDmgFire;
 	float babygargantuaDmgStomp;
-#endif
 
 	float barnacleHealth;
 
@@ -56,9 +54,7 @@ struct skilldata_t
 	float bullsquidDmgToxicPoison;
 	float bullsquidDmgToxicImpact;
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 	float cleansuitScientistHealth;
-#endif
 
 	float flybeeHealth;
 	float flybeeDmgKick;
@@ -66,7 +62,6 @@ struct skilldata_t
 	float flybeeDmgFlyball;
 	float flybeeMaxspeed;
 
-#if FEATURE_OPFOR_GRUNT
 	float fgruntHealth;
 	float fgruntDmgKick;
 	float fgruntShotgunPellets;
@@ -80,7 +75,7 @@ struct skilldata_t
 	float torchHealth;
 	float torchDmgKick;
 	float torchGrenadeSpeed;
-#endif
+
 	float gargantuaHealth;
 	float gargantuaDmgSlash;
 	float gargantuaDmgFire;
@@ -97,9 +92,7 @@ struct skilldata_t
 	float hgruntShotgunPellets;
 	float hgruntGrenadeSpeed;
 
-#if FEATURE_HWGRUNT
 	float hwgruntHealth;
-#endif
 
 	float houndeyeHealth;
 	float houndeyeDmgBlast;
@@ -122,11 +115,9 @@ struct skilldata_t
 	float controllerSpeedBall;
 	float controllerDmgBall;
 
-#if FEATURE_MASSN
 	float massnHealth;
 	float massnDmgKick;
 	float massnGrenadeSpeed;
-#endif
 
 	float nihilanthHealth;
 	float nihilanthZap;
@@ -134,46 +125,31 @@ struct skilldata_t
 	float panthereyeHealth;
 	float panthereyeDmgClaw;
 
-#if FEATURE_PITDRONE
 	float pitdroneHealth;
 	float pitdroneDmgBite;
 	float pitdroneDmgWhip;
 	float pitdroneDmgSpit;
-#endif
 
-#if FEATURE_PITWORM
 	float pwormHealth;
 	float pwormDmgSwipe;
 	float pwormDmgBeam;
-#endif
 
-#if FEATURE_GENEWORM
 	float gwormHealth;
 	float gwormDmgSpit;
 	float gwormDmgHit;
-#endif
 
 	float ospreyHealth;
 
-#if FEATURE_BLACK_OSPREY
 	float blackopsOspreyHealth;
-#endif
 
-#if FEATURE_OTIS
 	float otisHealth;
-#endif
 
-#if FEATURE_KATE
 	float kateHealth;
-#endif
 
-#if FEATURE_ROBOGRUNT
 	float rgruntExplode;
-#endif
 
 	float scientistHealth;
 
-#if FEATURE_SHOCKTROOPER
 	float sroachHealth;
 	float sroachDmgBite;
 	float sroachLifespan;
@@ -183,13 +159,11 @@ struct skilldata_t
 	float strooperGrenadeSpeed;
 	float strooperMaxCharge;
 	float strooperRchgSpeed;
-#endif
 
 	float snarkHealth;
 	float snarkDmgBite;
 	float snarkDmgPop;
 
-#if FEATURE_VOLTIFORE
 	float voltigoreHealth;
 	float voltigoreDmgPunch;
 	float voltigoreDmgBeam;
@@ -197,28 +171,23 @@ struct skilldata_t
 
 	float babyVoltigoreHealth;
 	float babyVoltigoreDmgPunch;
-#endif
 
 	float zombieHealth;
 	float zombieDmgOneSlash;
 	float zombieDmgBothSlash;
 
-#if FEATURE_ZOMBIE_BARNEY
 	float zombieBarneyHealth;
 	float zombieBarneyDmgOneSlash;
 	float zombieBarneyDmgBothSlash;
-#endif
-#if FEATURE_ZOMBIE_SOLDIER
+
 	float zombieSoldierHealth;
 	float zombieSoldierDmgOneSlash;
 	float zombieSoldierDmgBothSlash;
-#endif
-#if FEATURE_GONOME
+
 	float gonomeHealth;
 	float gonomeDmgOneSlash;
 	float gonomeDmgGuts;
 	float gonomeDmgOneBite;
-#endif
 
 	float floaterHealth;
 	float floaterExplode;
@@ -257,43 +226,21 @@ struct skilldata_t
 	float plrDmgHandGrenade;
 	float plrDmgSatchel;
 	float plrDmgTripmine;
-#if FEATURE_DESERT_EAGLE
 	float plrDmgEagle;
-#endif
-#if FEATURE_PIPEWRENCH
 	float plrDmgPWrench;
-#endif
-#if FEATURE_KNIFE
 	float plrDmgKnife;
-#endif
-#if FEATURE_GRAPPLE
 	float plrDmgGrapple;
-#endif
-#if FEATURE_M249
 	float plrDmg556;
-#endif
-#if FEATURE_SNIPERRIFLE
 	float plrDmg762;
-#endif
-#if FEATURE_SHOCKBEAM
 	float plrDmgShockroach;
 	float plrDmgShockroachM;
 	float monDmgShockroach;
-#endif
-#if FEATURE_SPOREGRENADE
 	float plrDmgSpore;
-#endif
-#if FEATURE_DISPLACER
 	float plrDisplacerRadius;
 	float plrDmgDisplacer;
-#endif
-#if FEATURE_MEDKIT
 	float plrDmgMedkit;
 	float plrMedkitTime;
-#endif
-#if FEATURE_UZI
 	float plrDmgUzi;
-#endif
 
 	// weapons shared by monsters
 	float monDmg9MM;

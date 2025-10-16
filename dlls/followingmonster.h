@@ -66,25 +66,25 @@ class CFollowingMonster : public CSquadMonster
 {
 public:
 	// Base Monster functions
-	void Touch(	CBaseEntity *pOther );
+	void Touch(	CBaseEntity *pOther ) override;
 	void OnDying(bool gibbed) override;
-	int ObjectCaps( void );
-	void KeyValue( KeyValueData *pkvd );
+	int ObjectCaps() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 
 	// AI functions
-	Schedule_t *GetScheduleOfType ( int Type );
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void PrescheduleThink( void );
+	Schedule_t *GetScheduleOfType ( int Type ) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void PrescheduleThink() override;
 
 	void FollowingMonsterInit();
 	void IdleHeadTurn( Vector &vecFriend );
 
 	// Following related
-	bool	CanFollow( void );
+	bool	CanFollow();
 	bool	AbleToFollow();
 	bool	IsFollowingPlayer( CBaseEntity* pLeader );
-	bool	IsFollowingPlayer( void );
+	bool	IsFollowingPlayer();
 	virtual	CBaseEntity* FollowedPlayer();
 	virtual void ClearFollowedPlayer();
 	virtual void StopFollowing(bool clearSchedule, bool saySentence = true ) override;
@@ -93,7 +93,7 @@ public:
 	virtual void LimitFollowers( CBaseEntity *pPlayer, int maxFollowers );
 	virtual int MaxFollowers() { return 3; }
 
-	CFollowingMonster* MyFollowingMonsterPointer() { return this; }
+	CFollowingMonster* MyFollowingMonsterPointer() override { return this; }
 	virtual bool InScriptedSentence();
 	virtual bool AllowUseDuringScriptedSentence();
 	Schedule_t* GetFollowingSchedule(bool ignoreEnemy = false);
@@ -119,13 +119,13 @@ public:
 	CBaseEntity* PlayerToFace();
 	void StopScript();
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
-	virtual bool CanRoamAfterCombat();
-	virtual bool IsUsefulToDisplayHint(CBaseEntity* pPlayer);
+	bool CanRoamAfterCombat() override;
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	short m_followFailPolicy;

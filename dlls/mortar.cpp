@@ -37,16 +37,15 @@
 class CFuncMortarField : public CBaseToggle
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue( KeyValueData *pkvd );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 
 	// Bmodels don't go across transitions
-	virtual int ObjectCaps( void ) { return CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	void EXPORT FieldUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -123,7 +122,7 @@ void CFuncMortarField::KeyValue( KeyValueData *pkvd )
 }
 
 // Drop bombs from above
-void CFuncMortarField::Spawn( void )
+void CFuncMortarField::Spawn()
 {
 	pev->solid = SOLID_NOT;
 	SET_MODEL( ENT( pev ), STRING( pev->model ) );    // set size and link into world
@@ -133,7 +132,7 @@ void CFuncMortarField::Spawn( void )
 	Precache();
 }
 
-void CFuncMortarField::Precache( void )
+void CFuncMortarField::Precache()
 {
 	RegisterAndPrecacheSoundScript(launchSoundScript);
 #if 0
@@ -217,10 +216,10 @@ void CFuncMortarField::FieldUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 class CMortar : public CGrenade
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 
-	void EXPORT MortarExplode( void );
+	void EXPORT MortarExplode();
 
 	static const NamedVisual beamVisual;
 	static const NamedVisual circleVisual;
@@ -262,7 +261,7 @@ void CMortar::Precache()
 	RegisterVisual(circleVisual);
 }
 
-void CMortar::MortarExplode( void )
+void CMortar::MortarExplode()
 {
 	const Visual* bVisual = GetVisual(beamVisual);
 

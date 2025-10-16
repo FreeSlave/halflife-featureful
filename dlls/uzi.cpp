@@ -29,8 +29,6 @@ enum uzi_e {
 	UZI_SHOOT,
 };
 
-#if FEATURE_UZI
-
 class CUzi : public CConfigurableWeapon
 {
 public:
@@ -130,5 +128,3 @@ WeaponParameters CUzi::GetDefaultParameters() const
 
 	return params;
 }
-
-#endif

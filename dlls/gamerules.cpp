@@ -104,7 +104,7 @@ bool CGameRules::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerWeapon *pWe
 //=========================================================
 // load the SkillData struct with the proper values based on the skill level.
 //=========================================================
-void CGameRules::RefreshSkillData ( void )
+void CGameRules::RefreshSkillData ()
 {
 	int iSkill;
 
@@ -134,7 +134,6 @@ void CGameRules::RefreshSkillData ( void )
 	//Barnacle
 	gSkillData.barnacleHealth = GetSkillCvar( "sk_barnacle_health");
 
-#if FEATURE_BABYGARG
 	// Baby Gargantua
 	if (g_modFeatures.IsMonsterEnabled("babygarg"))
 	{
@@ -143,7 +142,6 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.babygargantuaDmgFire = GetSkillCvar( "sk_babygargantua_dmg_fire" );
 		gSkillData.babygargantuaDmgStomp = GetSkillCvar( "sk_babygargantua_dmg_stomp" );
 	}
-#endif
 
 	// Barney
 	gSkillData.barneyHealth = GetSkillCvar( "sk_barney_health" );
@@ -163,13 +161,10 @@ void CGameRules::RefreshSkillData ( void )
 	gSkillData.bullsquidDmgToxicPoison = GetSkillCvar( "sk_bullsquid_dmg_toxic_poison", gSkillData.bullsquidDmgSpit/4.0f );
 	gSkillData.bullsquidDmgToxicImpact = GetSkillCvar( "sk_bullsquid_dmg_toxic_impact", gSkillData.bullsquidDmgSpit * 1.5f );
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 	// Cleansuit Scientist
 	if (g_modFeatures.IsMonsterEnabled("cleansuit_scientist"))
 		gSkillData.cleansuitScientistHealth = GetSkillCvar( "sk_cleansuit_scientist_health", "sk_scientist_health" );
-#endif
 
-#if FEATURE_FLYBEE
 	// Flybee
 	if (g_modFeatures.IsMonsterEnabled("flybee"))
 	{
@@ -179,7 +174,6 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.flybeeDmgFlyball = GetSkillCvar("sk_flybee_dmg_flyball");
 		gSkillData.flybeeMaxspeed = GetSkillCvar("sk_flybee_maxspeed");
 	}
-#endif
 
 	// Gargantua
 	gSkillData.gargantuaHealth = GetSkillCvar( "sk_gargantua_health" );
@@ -194,7 +188,7 @@ void CGameRules::RefreshSkillData ( void )
 	// Headcrab
 	gSkillData.headcrabHealth = GetSkillCvar( "sk_headcrab_health" );
 	gSkillData.headcrabDmgBite = GetSkillCvar( "sk_headcrab_dmg_bite" );
-#if FEATURE_OPFOR_GRUNT
+
 	// Hgrunt
 	if (g_modFeatures.IsMonsterEnabled("human_grunt_ally"))
 	{
@@ -220,18 +214,16 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.torchDmgKick = GetSkillCvar( "sk_torch_ally_kick", "sk_hgrunt_kick" );
 		gSkillData.torchGrenadeSpeed = GetSkillCvar( "sk_torch_ally_gspeed", gSkillData.fgruntGrenadeSpeed );
 	}
-#endif
+
 	// Hgrunt 
 	gSkillData.hgruntHealth = GetSkillCvar( "sk_hgrunt_health" );
 	gSkillData.hgruntDmgKick = GetSkillCvar( "sk_hgrunt_kick" );
 	gSkillData.hgruntShotgunPellets = GetSkillCvar( "sk_hgrunt_pellets" );
 	gSkillData.hgruntGrenadeSpeed = GetSkillCvar( "sk_hgrunt_gspeed" );
 
-#if FEATURE_HWGRUNT
 	// HWgrunt
 	if (g_modFeatures.IsMonsterEnabled("hwgrunt"))
 		gSkillData.hwgruntHealth = GetSkillCvar( "sk_hwgrunt_health" );
-#endif
 
 	// Houndeye
 	gSkillData.houndeyeHealth = GetSkillCvar( "sk_houndeye_health" );
@@ -259,7 +251,7 @@ void CGameRules::RefreshSkillData ( void )
 	gSkillData.controllerDmgZap = GetSkillCvar( "sk_controller_dmgzap" );
 	gSkillData.controllerSpeedBall = GetSkillCvar( "sk_controller_speedball" );
 	gSkillData.controllerDmgBall = GetSkillCvar( "sk_controller_dmgball" );
-#if FEATURE_MASSN
+
 	// Massn
 	if (g_modFeatures.IsMonsterEnabled("male_assassin"))
 	{
@@ -267,20 +259,18 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.massnDmgKick = GetSkillCvar( "sk_massassin_kick", "sk_hgrunt_kick" );
 		gSkillData.massnGrenadeSpeed = GetSkillCvar( "sk_massassin_gspeed", "sk_hgrunt_gspeed" );
 	}
-#endif
+
 	// Nihilanth
 	gSkillData.nihilanthHealth = GetSkillCvar( "sk_nihilanth_health" );
 	gSkillData.nihilanthZap = GetSkillCvar( "sk_nihilanth_zap" );
-#if FEATURE_PANTHEREYE
+
 	// Panthereye
 	if (g_modFeatures.IsMonsterEnabled("panthereye"))
 	{
 		gSkillData.panthereyeHealth = GetSkillCvar( "sk_panthereye_health" );
 		gSkillData.panthereyeDmgClaw = GetSkillCvar( "sk_panthereye_dmg_claw" );
 	}
-#endif
 
-#if FEATURE_PITDRONE
 	// Pitdrone
 	if (g_modFeatures.IsMonsterEnabled("pitdrone"))
 	{
@@ -289,8 +279,7 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.pitdroneDmgWhip = GetSkillCvar( "sk_pitdrone_dmg_whip" );
 		gSkillData.pitdroneDmgSpit = GetSkillCvar( "sk_pitdrone_dmg_spit" );
 	}
-#endif
-#if FEATURE_PITWORM
+
 	// Pitworm
 	if (g_modFeatures.IsMonsterEnabled("pitworm"))
 	{
@@ -298,8 +287,7 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.pwormDmgSwipe = GetSkillCvar( "sk_pitworm_dmg_swipe" );
 		gSkillData.pwormDmgBeam = GetSkillCvar( "sk_pitworm_dmg_beam" );
 	}
-#endif
-#if FEATURE_GENEWORM
+
 	// Geneworm
 	if (g_modFeatures.IsMonsterEnabled("geneworm"))
 	{
@@ -307,32 +295,26 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.gwormDmgSpit = GetSkillCvar( "sk_geneworm_dmg_spit" );
 		gSkillData.gwormDmgHit = GetSkillCvar( "sk_geneworm_dmg_hit" );
 	}
-#endif
 
 	gSkillData.ospreyHealth = GetSkillCvar( "sk_osprey" );
-#if FEATURE_BLACK_OSPREY
+
 	if (g_modFeatures.IsMonsterEnabled("blkop_osprey"))
 		gSkillData.blackopsOspreyHealth = GetSkillCvar( "sk_blkopsosprey", "sk_osprey" );
-#endif
 
-#if FEATURE_OTIS
 	// Otis
 	if (g_modFeatures.IsMonsterEnabled("otis"))
 		gSkillData.otisHealth = GetSkillCvar( "sk_otis_health", "sk_barney_health" );
-#endif
-#if FEATURE_KATE
+
 	// Kate
 	if (g_modFeatures.IsMonsterEnabled("kate"))
 		gSkillData.kateHealth = GetSkillCvar( "sk_kate_health", "sk_barney_health" );
-#endif
-#if FEATURE_ROBOGRUNT
+
 	// Robogrunt
 	if (g_modFeatures.IsMonsterEnabled("robogrunt"))
 		gSkillData.rgruntExplode = GetSkillCvar( "sk_rgrunt_explode", "sk_plr_hand_grenade" );
-#endif
 	// Scientist
 	gSkillData.scientistHealth = GetSkillCvar( "sk_scientist_health" );
-#if FEATURE_SHOCKTROOPER
+
 	// Shock Roach
 	if (g_modFeatures.IsMonsterEnabled("shockroach"))
 	{
@@ -350,12 +332,12 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.strooperMaxCharge = GetSkillCvar( "sk_shocktrooper_maxcharge" );
 		gSkillData.strooperRchgSpeed = GetSkillCvar( "sk_shocktrooper_rchgspeed" );
 	}
-#endif
+
 	// Snark
 	gSkillData.snarkHealth = GetSkillCvar( "sk_snark_health" );
 	gSkillData.snarkDmgBite = GetSkillCvar( "sk_snark_dmg_bite" );
 	gSkillData.snarkDmgPop = GetSkillCvar( "sk_snark_dmg_pop" );
-#if FEATURE_VOLTIFORE
+
 	// Voltigore
 	if (g_modFeatures.IsMonsterEnabled("voltigore"))
 	{
@@ -371,12 +353,11 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.babyVoltigoreHealth = GetSkillCvar( "sk_babyvoltigore_health" );
 		gSkillData.babyVoltigoreDmgPunch = GetSkillCvar( "sk_babyvoltigore_dmg_punch" );
 	}
-#endif
+
 	// Zombie
 	gSkillData.zombieHealth = GetSkillCvar( "sk_zombie_health" );
 	gSkillData.zombieDmgOneSlash = GetSkillCvar( "sk_zombie_dmg_one_slash" );
 	gSkillData.zombieDmgBothSlash = GetSkillCvar( "sk_zombie_dmg_both_slash" );
-#if FEATURE_ZOMBIE_BARNEY
 	// Zombie Barney
 	if (g_modFeatures.IsMonsterEnabled("zombie_barney"))
 	{
@@ -384,8 +365,6 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.zombieBarneyDmgOneSlash = GetSkillCvar( "sk_zombie_barney_dmg_one_slash", "sk_zombie_dmg_one_slash" );
 		gSkillData.zombieBarneyDmgBothSlash = GetSkillCvar( "sk_zombie_barney_dmg_both_slash", "sk_zombie_dmg_both_slash" );
 	}
-#endif
-#if FEATURE_ZOMBIE_SOLDIER
 	// Zombie Soldier
 	if (g_modFeatures.IsMonsterEnabled("zombie_soldier"))
 	{
@@ -393,8 +372,6 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.zombieSoldierDmgOneSlash = GetSkillCvar( "sk_zombie_soldier_dmg_one_slash");
 		gSkillData.zombieSoldierDmgBothSlash = GetSkillCvar( "sk_zombie_soldier_dmg_both_slash");
 	}
-#endif
-#if FEATURE_GONOME
 	// Gonome
 	if (g_modFeatures.IsMonsterEnabled("gonome"))
 	{
@@ -403,15 +380,12 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.gonomeDmgGuts = GetSkillCvar( "sk_gonome_dmg_guts" );
 		gSkillData.gonomeDmgOneBite = GetSkillCvar( "sk_gonome_dmg_one_bite" );
 	}
-#endif
-#if FEATURE_FLOATER
 	// Floater
 	if (g_modFeatures.IsMonsterEnabled("floater"))
 	{
 		gSkillData.floaterHealth = GetSkillCvar( "sk_floater_health" );
 		gSkillData.floaterExplode = GetSkillCvar( "sk_floater_explode" );
 	}
-#endif
 
 	//Turret
 	gSkillData.turretHealth = GetSkillCvar( "sk_turret_health" );
@@ -422,7 +396,6 @@ void CGameRules::RefreshSkillData ( void )
 	// Sentry Turret
 	gSkillData.sentryHealth = GetSkillCvar( "sk_sentry_health" );
 
-#if FEATURE_ROBOCOP
 	// Robocop
 	if (g_modFeatures.IsMonsterEnabled("robocop"))
 	{
@@ -431,7 +404,6 @@ void CGameRules::RefreshSkillData ( void )
 		gSkillData.robocopDmgFist = GetSkillCvar( "sk_robocop_dmg_fist" );
 		gSkillData.robocopSWRadius = GetSkillCvar( "sk_robocop_sw_radius" );
 	}
-#endif
 
 	if (g_modFeatures.IsMonsterEnabled("tor"))
 	{
@@ -489,77 +461,55 @@ void CGameRules::RefreshSkillData ( void )
 	// Tripmine
 	gSkillData.plrDmgTripmine = GetSkillCvar( "sk_plr_tripmine" );
 
-#if FEATURE_MEDKIT
 	// Medkit 
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT))
 	{
 		gSkillData.plrDmgMedkit = GetSkillCvar( "sk_plr_medkitshot" );
 		gSkillData.plrMedkitTime = GetSkillCvarZeroable( "sk_plr_medkittime" );
 	}
-#endif
 
-#if FEATURE_DESERT_EAGLE
 	// Desert Eagle
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_EAGLE))
 		gSkillData.plrDmgEagle = GetSkillCvar( "sk_plr_eagle" );
-#endif
 
-#if FEATURE_PIPEWRENCH
 	// Pipe wrench
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_PIPEWRENCH))
 		gSkillData.plrDmgPWrench = GetSkillCvar( "sk_plr_pipewrench" );
-#endif
 
-#if FEATURE_KNIFE
 	// Knife
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_KNIFE))
 		gSkillData.plrDmgKnife = GetSkillCvar( "sk_plr_knife" );
-#endif
 
-#if FEATURE_GRAPPLE
 	// Grapple
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_GRAPPLE))
 		gSkillData.plrDmgGrapple = GetSkillCvar( "sk_plr_grapple" );
-#endif
 
-#if FEATURE_M249
 	// M249
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249) || g_modFeatures.IsWeaponEnabled(WEAPON_MINIGUN))
 		gSkillData.plrDmg556 = GetSkillCvar( "sk_plr_556_bullet" );
-#endif
 
-#if FEATURE_SNIPERRIFLE
 	// 762 Round
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
 		gSkillData.plrDmg762 = GetSkillCvar( "sk_plr_762_bullet" );
-#endif
 
-#if FEATURE_SHOCKBEAM
 	if (g_modFeatures.ShockBeamEnabled())
 	{
 		gSkillData.plrDmgShockroach = GetSkillCvar( "sk_plr_shockroachs" );
 		gSkillData.plrDmgShockroachM = GetSkillCvar( "sk_plr_shockroachm" );
 		gSkillData.monDmgShockroach = GetSkillCvar( "sk_shockroach", IsMultiplayer() ? gSkillData.plrDmgShockroachM : gSkillData.plrDmgShockroach );
 	}
-#endif
 
-#if FEATURE_SPOREGRENADE
 	if (g_modFeatures.SporesEnabled())
 		gSkillData.plrDmgSpore = GetSkillCvar( "sk_plr_spore" );
-#endif
 
-#if FEATURE_DISPLACER
 	if (g_modFeatures.DisplacerBallEnabled())
 	{
 		gSkillData.plrDmgDisplacer = GetSkillCvar( "sk_plr_displacer_other" );
 		gSkillData.plrDisplacerRadius = GetSkillCvar( "sk_plr_displacer_radius" );
 	}
-#endif
 
-#if FEATURE_UZI
 	if (g_modFeatures.IsWeaponEnabled(WEAPON_UZI))
 		gSkillData.plrDmgUzi = GetSkillCvar( "sk_plr_uzi" );
-#endif
 
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet" );
@@ -686,12 +636,10 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 			}
 		}
 
-#if FEATURE_MEDKIT
 		if (IsCoOp() && g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT) && !mapConfig.nomedkit && !pPlayer->WeaponById(WEAPON_MEDKIT))
 		{
 			pPlayer->GiveNamedItem("weapon_medkit");
 		}
-#endif
 		if (mapConfig.maxhealth > 0)
 		{
 			pPlayer->SetMaxHealth(mapConfig.maxhealth);
@@ -722,7 +670,7 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 // instantiate the proper game rules object
 //=========================================================
 
-CGameRules *InstallGameRules( void )
+CGameRules *InstallGameRules()
 {
 	SERVER_COMMAND( "exec game.cfg\n" );
 	SERVER_EXECUTE();

@@ -34,20 +34,20 @@ public:
 	bool IsPickableByTouch();
 	bool IsPickableByUse();
 
-	void EXPORT FallThink( void );
+	void EXPORT FallThink();
 
 	virtual Vector MyRespawnSpot() = 0;
 	virtual float MyRespawnTime() = 0;
 
 	CBaseEntity *Respawn() override;
-	void EXPORT Materialize( void );
+	void EXPORT Materialize();
 	virtual void OnMaterialize() = 0;
 
 	bool IsLockedByMaster() override;
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
-	int Save(CSave &save);
-	int Restore(CRestore &restore);
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	static  TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_sMaster;

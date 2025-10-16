@@ -33,21 +33,21 @@ class CRope : public CBaseDelay
 {
 public:
 	CRope();
-	void KeyValue( KeyValueData* pkvd );
+	void KeyValue( KeyValueData* pkvd ) override;
 
-	void Precache();
+	void Precache() override;
 
-	void Spawn();
-	void Activate();
-	void UpdateOnRemove();
+	void Spawn() override;
+	void Activate() override;
+	void UpdateOnRemove() override;
 
-	int ObjectCaps();
+	int ObjectCaps() override;
 
 	void InitRope();
 	void EXPORT RopeThink();
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void InitializeRopeSim();

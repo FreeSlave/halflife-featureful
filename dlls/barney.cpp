@@ -27,7 +27,6 @@
 #include	"animation.h"
 #include	"combat.h"
 #include	"soundent.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"gamerules.h"
 #include	"common_soundscripts.h"
@@ -47,26 +46,26 @@
 class CBarney : public CTalkMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
-	void SetYawSpeed( void );
-	int DefaultISoundMask( void );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
 	void BarneyFirePistol( const char* shotSoundScript, float flDamage );
-	void AlertSound( void );
-	const char* DefaultDisplayName() { return "Barney"; }
-	int DefaultClassify( void );
-	const char* ReverseRelationshipModel() { return "models/barnabus.mdl"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void AlertSound() override;
+	const char* DefaultDisplayName() override { return "Barney"; }
+	int DefaultClassify() override;
+	const char* ReverseRelationshipModel() override { return "models/barnabus.mdl"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	int DefaultToleranceLevel() { return TOLERANCE_LOW; }
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_LOW; }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 
 	// Override these to set behavior
-	Schedule_t *GetScheduleOfType( int Type );
-	Schedule_t *GetSchedule( void );
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	Schedule_t *GetSchedule() override;
 
 	void DeathSound() override;
 	void PainSound() override;
@@ -76,13 +75,13 @@ public:
 	static const NamedSoundScript firePistolSoundScript;
 	static constexpr const char* firePythonSoundScript = "Barney.FirePython";
 
-	const char* DefaultSentenceGroup(int group);
+	const char* DefaultSentenceGroup(int group) override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying(bool gibbed) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool m_fGunDrawn;
@@ -215,7 +214,7 @@ void CBarney::RunTask( Task_t *pTask )
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. 
 //=========================================================
-int CBarney::DefaultISoundMask( void) 
+int CBarney::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -230,7 +229,7 @@ int CBarney::DefaultISoundMask( void)
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBarney::DefaultClassify( void )
+int CBarney::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY;
 }
@@ -238,7 +237,7 @@ int CBarney::DefaultClassify( void )
 //=========================================================
 // ALertSound - barney says "Freeze!"
 //=========================================================
-void CBarney::AlertSound( void )
+void CBarney::AlertSound()
 {
 	if( m_hEnemy != 0 )
 	{
@@ -253,7 +252,7 @@ void CBarney::AlertSound( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CBarney::SetYawSpeed( void )
+void CBarney::SetYawSpeed()
 {
 	int ys = 0;
 
@@ -652,11 +651,11 @@ Schedule_t *CBarney::GetSchedule()
 class CDeadBarney : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/barney.mdl"; }
-	int	DefaultClassify ( void ) { return	CLASS_PLAYER_ALLY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/barney.mdl"; }
+	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -678,8 +677,6 @@ void CDeadBarney::Spawn()
 	MonsterInitDead();
 }
 
-#if FEATURE_OTIS
-
 #define OTIS_GUN_GROUP 1
 #define OTIS_HEAD_GROUP 2
 
@@ -692,23 +689,23 @@ void CDeadBarney::Spawn()
 class COtis : public CBarney
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("otis"); }
-	const char* DefaultSentenceGroup(int group);
-	const char* DefaultDisplayName() { return "Otis"; }
-	const char* ReverseRelationshipModel() { return "models/otisf.mdl"; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("otis"); }
+	const char* DefaultSentenceGroup(int group) override;
+	const char* DefaultDisplayName() override { return "Otis"; }
+	const char* ReverseRelationshipModel() override { return "models/otisf.mdl"; }
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void OnDying(bool gibbed) override;
 	
-	void KeyValue( KeyValueData *pkvd );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
-	void SetHead(int head);
+	void SetHead(int head) override;
 	
 	int m_iHead;
-	void SetGunState(int gunState);
+	void SetGunState(int gunState) override;
 
 	static constexpr const char* fireDesertEagleSoundScript = "Otis.FireDesertEagle";
 	static constexpr const char* painSoundScript = "Otis.Pain";
@@ -853,11 +850,11 @@ void COtis::SetHead(int head)
 class CDeadOtis : public CDeadBarney
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/otis.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("otis"); }
-	void KeyValue( KeyValueData *pkvd );
-	const char* getPos(int pos) const;
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/otis.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("otis"); }
+	void KeyValue( KeyValueData *pkvd ) override;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[5];
 
 	int head;
@@ -892,19 +889,17 @@ void CDeadOtis::KeyValue( KeyValueData *pkvd )
 	else 
 		CDeadBarney::KeyValue( pkvd );
 }
-#endif
 
-#if FEATURE_BARNIEL
 class CBarniel : public CBarney
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("barniel"); }
-	const char* DefaultSentenceGroup(int group);
-	const char* DefaultDisplayName() { return "Barniel"; }
-	const char* ReverseRelationshipModel() { return NULL; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("barniel"); }
+	const char* DefaultSentenceGroup(int group) override;
+	const char* DefaultDisplayName() override { return "Barniel"; }
+	const char* ReverseRelationshipModel() override { return NULL; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void DeathSound() override;
 	void PainSound() override;
 
@@ -1033,10 +1028,10 @@ void CBarniel::OnDying(bool gibbed)
 class CDeadBarniel : public CDeadBarney
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/barniel.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("barniel"); }
-	const char* getPos(int pos) const;
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/barniel.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("barniel"); }
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -1054,24 +1049,22 @@ void CDeadBarniel::Spawn()
 	SpawnHelper();
 	MonsterInitDead();
 }
-#endif
 
-#if FEATURE_KATE
 #define		KATE_AE_KICK		( 6 )
 #define KATE_LIMP_HEALTH 40
 
 class CKate : public CBarney
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("kate"); }
-	const char* DefaultSentenceGroup(int group);
-	const char* DefaultDisplayName() { return "Kate"; }
-	const char* ReverseRelationshipModel() { return NULL; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int LookupActivity(int activity);
-	int DefaultToleranceLevel() { return TOLERANCE_AVERAGE; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kate"); }
+	const char* DefaultSentenceGroup(int group) override;
+	const char* DefaultDisplayName() override { return "Kate"; }
+	const char* ReverseRelationshipModel() override { return nullptr; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int LookupActivity(int activity) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_AVERAGE; }
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	void DeathSound() override;
 	void PainSound() override;
@@ -1084,7 +1077,7 @@ public:
 	static const NamedSoundScript firePistolSoundScript;
 
 protected:
-	bool PrioritizeMeleeAttack() { return true; }
+	bool PrioritizeMeleeAttack() override { return true; }
 	float LimpHealth();
 
 	int m_iCombatState;
@@ -1258,7 +1251,7 @@ bool CKate::CheckMeleeAttack1(float flDot, float flDist)
 	return CTalkMonster::CheckMeleeAttack1(flDot, flDist);
 }
 
-void CKate::DeathSound( void )
+void CKate::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
@@ -1296,10 +1289,10 @@ float CKate::LimpHealth()
 class CDeadKate : public CDeadBarney
 {
 public:
-	void Spawn( void );
-	const char* DefaultModel() { return "models/kate.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("kate"); }
-	const char* getPos(int pos) const;
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/kate.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kate"); }
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -1312,9 +1305,8 @@ const char* CDeadKate::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_kate_dead, CDeadKate )
 
-void CDeadKate::Spawn( )
+void CDeadKate::Spawn()
 {
 	SpawnHelper();
 	MonsterInitDead();
 }
-#endif

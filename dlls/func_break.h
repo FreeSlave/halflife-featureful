@@ -59,17 +59,17 @@ class CBreakable : public CBaseDelay
 {
 public:
 	// basic functions
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue( KeyValueData* pkvd);
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData* pkvd) override;
 	void EXPORT BreakTouch( CBaseEntity *pOther );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic);
-	void DamageSound( void );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) override;
+	void DamageSound();
 
 	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag);
 
-	bool CalcRatio(CBaseEntity* pLocus, float* outResult)
+	bool CalcRatio(CBaseEntity* pLocus, float* outResult) override
 	{
 		if (pev->health > 0 && pev->max_health > 0)
 			*outResult = pev->health / pev->max_health;
@@ -84,22 +84,22 @@ public:
 	// To spark when hit
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
-	bool IsBreakable( void );
+	bool IsBreakable();
 
-	int DamageDecal( int bitsDamageType );
+	int DamageDecal( int bitsDamageType ) override;
 	const char* DefaultDisplayName() override { return "Breakable"; }
 	bool MustDisplayHUDInfo() const override { return (pev->spawnflags & SF_BREAK_SHOW_HUD_INFO) != 0; }
 	bool IsDestroyableObstacle() override;
 
-	void EXPORT Die( void );
+	void EXPORT Die();
 	void DieToActivator(CBaseEntity* pActivator);
 	void UpdateOnRemove() override;
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
-	inline bool Explodable( void ) { return ExplosionMagnitude() > 0; }
-	inline int ExplosionMagnitude( void ) { return pev->impulse; }
+	inline bool Explodable() { return ExplosionMagnitude() > 0; }
+	inline int ExplosionMagnitude() { return pev->impulse; }
 	inline void ExplosionSetMagnitude( int magnitude ) { pev->impulse = magnitude; }
 
 	static void MaterialSoundPrecache( Materials precacheMaterial );

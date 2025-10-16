@@ -58,7 +58,7 @@ extern cvar_t allow_spectators;
 
 extern int g_teamplay;
 
-void LinkUserMessages( void );
+void LinkUserMessages();
 
 /*
  * used by kill command and disconnect command
@@ -911,7 +911,7 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 bool g_PlayerFullyInitialized[MAX_CLIENTS];
 static int g_serveractive = 0;
 
-void ServerDeactivate( void )
+void ServerDeactivate()
 {
 	//ALERT( at_console, "ServerDeactivate()\n" );
 
@@ -1012,11 +1012,11 @@ void PlayerPostThink( edict_t *pEntity )
 		pPlayer->PostThink();
 }
 
-void ParmsNewLevel( void )
+void ParmsNewLevel()
 {
 }
 
-void ParmsChangeLevel( void )
+void ParmsChangeLevel()
 {
 	// retrieve the pointer to the save data
 	SAVERESTOREDATA *pSaveData = (SAVERESTOREDATA *)gpGlobals->pSaveData;
@@ -1028,7 +1028,7 @@ void ParmsChangeLevel( void )
 //
 // GLOBALS ASSUMED SET:  g_ulFrameCount
 //
-void StartFrame( void )
+void StartFrame()
 {
 	//ALERT( at_console, "SV_Physics( %g, frametime %g )\n", gpGlobals->time, gpGlobals->frametime );
 
@@ -1065,7 +1065,7 @@ void PrecacheMaterialData(const MaterialData& data)
 	PrecacheMaterialStepData(data.step);
 }
 
-void ClientPrecache( void )
+void ClientPrecache()
 {
 	entvars_t *pevWorld = VARS(INDEXENT(0));
 	CBaseEntity* pWorld = CBaseEntity::Instance(pevWorld);
@@ -1894,7 +1894,7 @@ RegisterEncoders
 Allows game .dll to override network encoding of certain types of entities and tweak values, etc.
 =================
 */
-void RegisterEncoders( void )
+void RegisterEncoders()
 {
 	DELTA_ADDENCODER( "Entity_Encode", Entity_Encode );
 	DELTA_ADDENCODER( "Custom_Encode", Custom_Encode );
@@ -2154,7 +2154,7 @@ Create pseudo-baselines for items that aren't placed in the map at spawn time, b
 to be created during play ( e.g., grenades, ammo packs, projectiles, corpses, etc. )
 ================================
 */
-void CreateInstancedBaselines( void )
+void CreateInstancedBaselines()
 {
 	/*int iret = 0;
 	entity_state_t state;
@@ -2200,7 +2200,7 @@ AllowLagCompensation
   if you want.
 ================================
 */
-int AllowLagCompensation( void )
+int AllowLagCompensation()
 {
 	return 1;
 }

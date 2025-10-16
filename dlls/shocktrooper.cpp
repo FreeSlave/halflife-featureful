@@ -29,11 +29,8 @@
 #include	"gamerules.h"
 #include	"game.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
-
-#if FEATURE_SHOCKTROOPER
 
 #include "shockbeam.h"
 #include "spore.h"
@@ -78,44 +75,43 @@
 class CShockTrooper : public CHGrunt
 {
 public:
-	void Spawn(void);
-	void MonsterThink();
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
-	int  DefaultClassify(void);
-	const char* ReverseRelationshipModel() { return NULL; }
-	const char* DefaultDisplayName() { return "Shock Trooper"; }
+	void Spawn() override;
+	void MonsterThink() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
+	int  DefaultClassify() override;
+	const char* ReverseRelationshipModel() override { return nullptr; }
+	const char* DefaultDisplayName() override { return "Shock Trooper"; }
 	bool CheckRangeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack2(float flDot, float flDist) override;
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 
 	void DeathSound() override;
 	void PainSound() override;
-	void GibMonster(void);
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void GibMonster() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
 		return inputDamageInfo;
 	}
 
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
-
-	const char* DefaultGibModel() {
-		return "models/strooper_gibs.mdl";
-	}
-	int DefaultGibCount() {
-		return STRIIPER_GIB_COUNT;
-	}
-	virtual bool CanDropGrenade() const;
-	void DropShockRoach(bool gibbed);
-
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int SizeForGrapple() { return GRAPPLE_LARGE; }
-	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 72.0f ); }
+	const char* DefaultGibModel() override {
+		return "models/strooper_gibs.mdl";
+	}
+	int DefaultGibCount() override {
+		return STRIIPER_GIB_COUNT;
+	}
+	bool CanDropGrenade() const override;
+	void DropShockRoach(bool gibbed);
+
+	int SizeForGrapple() override { return GRAPPLE_LARGE; }
+	Vector DefaultMinHullSize() override { return Vector( -24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 72.0f ); }
 
 	bool m_bRightClaw;
 	float m_rechargeTime;
@@ -124,15 +120,15 @@ public:
 protected:
 	static const char *pTrooperSentences[HGRUNT_SENT_COUNT];
 
-	int GetRangeAttack1Sequence();
-	int GetRangeAttack2Sequence();
-	Schedule_t* ScheduleOnRangeAttack1();
+	int GetRangeAttack1Sequence() override;
+	int GetRangeAttack2Sequence() override;
+	Schedule_t* ScheduleOnRangeAttack1() override;
 
-	float SentenceVolume();
-	float SentenceAttn();
-	const char* SentenceByNumber(int sentence);
-	virtual int* GruntQuestionVar();
-	bool AlertSentenceIsForPlayerOnly() {
+	float SentenceVolume() override;
+	float SentenceAttn() override;
+	const char* SentenceByNumber(int sentence) override;
+	virtual int* GruntQuestionVar() override;
+	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}
 public:
@@ -290,7 +286,7 @@ float CShockTrooper::SentenceAttn()
 //=========================================================
 // GibMonster - make gun fly through the air.
 //=========================================================
-void CShockTrooper::GibMonster(void)
+void CShockTrooper::GibMonster()
 {
 	if (GetBodygroup(STROOPER_GUN_GROUP) != STROOPER_GUN_NONE)
 	{
@@ -304,7 +300,7 @@ void CShockTrooper::GibMonster(void)
 // Classify - indicates this monster's place in the
 // relationship table.
 //=========================================================
-int	CShockTrooper::DefaultClassify(void)
+int	CShockTrooper::DefaultClassify()
 {
 	return CLASS_RACEX_SHOCK;
 }
@@ -590,19 +586,19 @@ void CShockTrooper::PlayUnUseSentence()
 class CDeadStrooper : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	void Precache();
-	const char* DefaultModel() { return "models/strooper.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
-	int	DefaultClassify ( void ) { return	CLASS_RACEX_SHOCK; }
-	const char* DefaultGibModel() {
+	void Spawn() override;
+	void Precache() override;
+	const char* DefaultModel() override { return "models/strooper.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
+	int	DefaultClassify() override { return	CLASS_RACEX_SHOCK; }
+	const char* DefaultGibModel() override {
 		return "models/strooper_gibs.mdl";
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return STRIIPER_GIB_COUNT;
 	}
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -621,11 +617,9 @@ void CDeadStrooper::Precache()
 	PrecacheMyGibModel(DefaultGibModel());
 }
 
-void CDeadStrooper::Spawn( )
+void CDeadStrooper::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.strooperHealth/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }
-
-#endif

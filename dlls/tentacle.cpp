@@ -34,51 +34,51 @@
 class CTentacle : public CBaseMonster
 {
 public:
-	CTentacle( void );
+	CTentacle();
 
-	void Spawn();
-	void Precache();
-	void KeyValue( KeyValueData *pkvd );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	// Don't allow the tentacle to go across transitions!!!
-	virtual int ObjectCaps( void ) { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -400, -400, 0 ), Vector( 400, 400, 850 ));
 	}
 
-	void EXPORT Cycle( void );
+	void EXPORT Cycle();
 	void EXPORT CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT Start( void );
-	void EXPORT DieThink( void );
+	void EXPORT Start();
+	void EXPORT DieThink();
 
-	void EXPORT Test( void );
+	void EXPORT Test();
 
 	void EXPORT HitTouch( CBaseEntity *pOther );
 
-	float HearingSensitivity( void ) { return 2.0; };
+	float HearingSensitivity() override { return 2.0; }
 
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	MONSTERSTATE GetIdealState( void ) { return MONSTERSTATE_IDLE; };
-	bool CanPlaySequence( int interruptFlags ) { return true; }
+	MONSTERSTATE GetIdealState() override { return MONSTERSTATE_IDLE; }
+	bool CanPlaySequence( int interruptFlags ) override { return true; }
 
-	int DefaultClassify( void );
-	PainSoundRule DefaultPainSoundRule();
-	void PainSound();
+	int DefaultClassify() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_FIXED; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 
 	int Level( float dz );
-	int MyLevel( void );
-	float MyHeight( void );
+	int MyLevel();
+	float MyHeight();
 
 	float m_flInitialYaw;
 	int m_iGoalAnim;
@@ -285,7 +285,7 @@ typedef enum
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CTentacle::DefaultClassify( void )
+int CTentacle::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -493,7 +493,7 @@ int CTentacle::MyLevel()
 	return -1;
 }
 
-void CTentacle::Test( void )
+void CTentacle::Test()
 {
 	pev->sequence = TENTACLE_ANIM_Floor_Strike;
 	pev->framerate = 0;
@@ -504,7 +504,7 @@ void CTentacle::Test( void )
 //
 // TentacleThink
 //
-void CTentacle::Cycle( void )
+void CTentacle::Cycle()
 {
 	// ALERT( at_console, "%s %.2f %d %d\n", STRING( pev->targetname ), pev->origin.z, m_MonsterState, m_IdealMonsterState );
 	pev->nextthink = gpGlobals-> time + 0.1f;
@@ -764,7 +764,7 @@ void CTentacle::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 	}
 }
 
-void CTentacle::DieThink( void )
+void CTentacle::DieThink()
 {
 	pev->nextthink = gpGlobals-> time + 0.1f;
 	GlowShellUpdate();
@@ -931,7 +931,7 @@ void CTentacle::HandleAnimEvent( MonsterEvent_t *pEvent )
 // TentacleStart
 //
 // void CTentacle::Start( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
-void CTentacle::Start( void )
+void CTentacle::Start()
 {
 	SetThink( &CTentacle::Cycle );
 
@@ -1026,8 +1026,8 @@ KilledResult CTentacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, 
 class CTentacleMaw : public CBaseMonster
 {
 public:
-	void Spawn();
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_tentaclemaw, CTentacleMaw )
@@ -1049,7 +1049,7 @@ void CTentacleMaw::Spawn()
 	pev->sequence = 0;
 
 	pev->angles.x = 90;
-	// ResetSequenceInfo( );
+	// ResetSequenceInfo();
 }
 
 void CTentacleMaw::Precache()

@@ -32,8 +32,6 @@
 #include	"game.h"
 #include	"common_soundscripts.h"
 
-#if FEATURE_GONOME
-
 #define		GONOME_MELEE_ATTACK_RADIUS		70
 
 //=========================================================
@@ -56,9 +54,9 @@
 class CGonomeGuts : public CSquidSpit
 {
 public:
-	void Spawn();
-	void Precache();
-	void Touch(CBaseEntity *pOther);
+	void Spawn() override;
+	void Precache() override;
+	void Touch(CBaseEntity *pOther) override;
 
 	static constexpr const char* spitTouchSoundScript = "Gonome.SpitTouch";
 	static constexpr const char* spitHitSoundScript = "Gonome.SpitHit";
@@ -114,15 +112,15 @@ void CGonomeGuts::Touch( CBaseEntity *pOther )
 class CGonome : public CBaseMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("gonome"); }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("gonome"); }
 
-	int  DefaultClassify(void);
-	const char* DefaultDisplayName() { return "Gonome"; }
-	void SetYawSpeed();
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
-	int IgnoreConditions();
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Gonome"; }
+	void SetYawSpeed() override;
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
+	int IgnoreConditions() override;
 	void IdleSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
@@ -131,23 +129,23 @@ public:
 
 	bool CheckMeleeAttack2(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
-	int LookupActivity(int activity);
-	void SetActivity( Activity NewActivity );
+	int LookupActivity(int activity) override;
+	void SetActivity( Activity NewActivity ) override;
 
-	Schedule_t *GetSchedule();
-	Schedule_t *GetScheduleOfType( int Type );
-	void RunTask(Task_t* pTask);
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void RunTask(Task_t* pTask) override;
 
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void OnDying(bool gibbed) override;
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 
 	void UnlockPlayer();
 	CGonomeGuts* GetGonomeGuts(const Vector& pos);
 	void ClearGuts();
 
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
@@ -162,10 +160,10 @@ public:
 	static const NamedSoundScript melee1SoundScript;
 	static const NamedSoundScript melee2SoundScript;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 protected:
 	float m_flNextFlinch;
 	float m_flNextThrowTime;// last time the gonome used the guts attack.
@@ -347,7 +345,7 @@ void CGonome::SetActivity( Activity NewActivity )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int	CGonome::DefaultClassify(void)
+int	CGonome::DefaultClassify()
 {
 	return	CLASS_ALIEN_MONSTER;
 }
@@ -427,7 +425,7 @@ bool CGonome::CheckMeleeAttack2(float flDot, float flDist)
 //=========================================================
 // IdleSound 
 //=========================================================
-void CGonome::IdleSound(void)
+void CGonome::IdleSound()
 {
 	EmitSoundScript(idleSoundScript);
 }
@@ -597,7 +595,7 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 #define GONOME_FLINCH_DELAY 2
 
-int CGonome::IgnoreConditions( void )
+int CGonome::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
@@ -684,7 +682,7 @@ void CGonome::Precache()
 //=========================================================
 // DeathSound
 //=========================================================
-void CGonome::DeathSound(void)
+void CGonome::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
 }
@@ -692,7 +690,7 @@ void CGonome::DeathSound(void)
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CGonome::GetSchedule( void )
+Schedule_t *CGonome::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -877,11 +875,11 @@ void CGonome::RunTask(Task_t *pTask)
 class CDeadGonome : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/gonome.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("gonome"); }
-	int	DefaultClassify() { return	CLASS_ALIEN_MONSTER; }
-	const char* getPos(int pos) const;
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/gonome.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("gonome"); }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -897,9 +895,8 @@ LINK_ENTITY_TO_CLASS(monster_gonome_dead, CDeadGonome)
 //=========================================================
 // ********** DeadGonome SPAWN **********
 //=========================================================
-void CDeadGonome::Spawn(void)
+void CDeadGonome::Spawn()
 {
 	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 }
-#endif

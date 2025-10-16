@@ -65,7 +65,7 @@ int CHud::MsgFunc_ResetHUD( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
-void CAM_ToFirstPerson( void );
+void CAM_ToFirstPerson();
 
 void CHud::MsgFunc_ViewMode( const char *pszName, int iSize, void *pbuf )
 {

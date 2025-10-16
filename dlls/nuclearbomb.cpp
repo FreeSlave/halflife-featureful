@@ -24,11 +24,11 @@
 class CNuclearBombTimer : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 	void EXPORT NuclearBombTimerThink();
 	void SetNuclearBombTimer(bool on);
-	int ObjectCaps() {return FCAP_DONT_SAVE;}
+	int ObjectCaps() override {return FCAP_DONT_SAVE;}
 
 	bool bPlayBombSound;
 	bool bBombSoundPlaying;
@@ -99,10 +99,10 @@ void CNuclearBombTimer::SetNuclearBombTimer(bool on)
 class CNuclearBombButton : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 	void SetNuclearBombButton(bool on);
-	int ObjectCaps() {return FCAP_DONT_SAVE;}
+	int ObjectCaps() override {return FCAP_DONT_SAVE;}
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbombbutton, CNuclearBombButton)
@@ -137,15 +137,15 @@ void CNuclearBombButton::SetNuclearBombButton(bool on)
 class CNuclearBomb : public CBaseToggle
 {
 public:
-	void Precache();
-	void Spawn();
-	void KeyValue(KeyValueData* pkvd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	int ObjectCaps() {return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;}
-	void UpdateOnRemove();
+	void Precache() override;
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	int ObjectCaps() override {return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;}
+	void UpdateOnRemove() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool m_fOn;

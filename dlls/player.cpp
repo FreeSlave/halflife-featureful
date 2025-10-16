@@ -47,10 +47,7 @@
 #include "clamp.h"
 #include "weapon_templates.h"
 #include "locus.h"
-
-#if FEATURE_ROPE
 #include "ropes.h"
-#endif
 
 // #define DUCKFIX
 
@@ -125,20 +122,18 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_hViewEntity, FIELD_EHANDLE ),
 	DEFINE_FIELD( CBasePlayer, m_iHideHUD, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_iFOV, FIELD_INTEGER ),
-#if FEATURE_DISPLACER
 	DEFINE_FIELD(CBasePlayer, m_fInXen, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_DisplacerReturn, FIELD_VECTOR),
 	DEFINE_FIELD(CBasePlayer, m_DisplacerSndRoomtype, FIELD_INTEGER),
-#endif
 #if FEATURE_NIGHTVISION
 	DEFINE_FIELD(CBasePlayer, m_fNVGisON, FIELD_BOOLEAN),
 #endif
 	DEFINE_FIELD(CBasePlayer, m_fFlashlightON, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_fFlashlightFlicker, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_flNextFlashlightFlick, FIELD_TIME),
-#if FEATURE_ROPE
+
 	DEFINE_FIELD(CBasePlayer, m_hRope, FIELD_EHANDLE),
-#endif
+
 	DEFINE_FIELD(CBasePlayer, m_iItemsBits, FIELD_INTEGER),
 	DEFINE_ARRAY(CBasePlayer, m_timeBasedDmgModifiers, FIELD_CHARACTER, CDMG_TIMEBASED),
 	DEFINE_FIELD(CBasePlayer, m_settingsLoaded, FIELD_BOOLEAN),
@@ -297,7 +292,7 @@ static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 	return pFollowingMonster;
 }
 
-void LinkUserMessages( void )
+void LinkUserMessages()
 {
 	// Already taken care of?
 	if( gmsgSelAmmo )
@@ -503,7 +498,7 @@ void CBasePlayer::DeathSound()
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType )
 {
 	const int healed = CBaseMonster::TakeHealth(pHealer, (int)flHealth, bitsDamageType);
-#if FEATURE_MEDKIT
+#if !CLIENT_DLL
 	CBasePlayerWeapon* pPlayerMedkit = WeaponById(WEAPON_MEDKIT);
 	if ((bitsDamageType & HEAL_CHARGE) != 0 && pPlayerMedkit) {
 		const int rest = (int)flHealth - healed;
@@ -993,7 +988,7 @@ struct AmmoCountInfo
 //
 // This is pretty brute force :(
 //=========================================================
-void CBasePlayer::PackDeadPlayerItems( void )
+void CBasePlayer::PackDeadPlayerItems()
 {
 	int iWeaponRules;
 	int iAmmoRules;
@@ -1609,12 +1604,12 @@ void CBasePlayer::WaterMove()
 }
 
 // true if the player is attached to a ladder
-bool CBasePlayer::IsOnLadder( void )
+bool CBasePlayer::IsOnLadder()
 { 
 	return ( pev->movetype == MOVETYPE_FLY );
 }
 
-void CBasePlayer::PlayerDeathThink( void )
+void CBasePlayer::PlayerDeathThink()
 {
 	float flForward;
 
@@ -1737,7 +1732,7 @@ void CBasePlayer::PlayerDeathThink( void )
 // StartDeathCam - find an intermission spot and send the
 // player off into observer mode
 //=========================================================
-void CBasePlayer::StartDeathCam( void )
+void CBasePlayer::StartDeathCam()
 {
 	edict_t *pSpot, *pNewSpot;
 	int iRand;
@@ -2031,7 +2026,7 @@ std::pair<CBaseEntity*, const ObjectHintSpec*> CBasePlayer::GetInteractiveEntity
 	return std::make_pair(pInteractiveObject, interactiveHintSpec);
 }
 
-void CBasePlayer::PlayerUse( void )
+void CBasePlayer::PlayerUse()
 {
 	if( IsObserver() )
 		return;
@@ -2554,12 +2549,10 @@ void CBasePlayer::SetMovementMode()
 		{
 			currentMovementState = MovementStand;
 		}
-#if FEATURE_ROPE
 		if (IsOnRope())
 		{
 			currentMovementState = MovementStand;
 		}
-#endif
 	}
 	else if (FBitSet( pev->flags, FL_DUCKING ))
 	{
@@ -2595,7 +2588,7 @@ bool CBasePlayer::HasCustomBaseMaxSpeed()
 	return m_playerTemplate && m_playerTemplate->maxSpeed;
 }
 
-void CBasePlayer::PreThink( void )
+void CBasePlayer::PreThink()
 {
 	SetMovementMode();
 
@@ -2720,7 +2713,6 @@ void CBasePlayer::PreThink( void )
 	else 
 		pev->flags &= ~FL_ONTRAIN;
 
-#if FEATURE_ROPE
 	//We're on a rope. - Solokiller
 	if( (m_afPhysicsFlags & PFLAG_ONROPE) )
 	{
@@ -2735,7 +2727,6 @@ void CBasePlayer::PreThink( void )
 			ClearBits(m_afPhysicsFlags, PFLAG_ONROPE);
 		}
 	}
-#endif
 
 	// Train speed control
 	if( m_afPhysicsFlags & PFLAG_ONTRAIN )
@@ -2853,7 +2844,6 @@ void CBasePlayer::PreThink( void )
 	}
 }
 
-#if FEATURE_ROPE
 CRope* CBasePlayer::GetRope()
 {
 	return m_hRope.Entity<CRope>();
@@ -3019,8 +3009,6 @@ void CBasePlayer::HandleRopePhysics(CRope *pRope)
 		pev->velocity = vecVelocity + vecDir;
 	}
 }
-
-#endif
 
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
@@ -3267,7 +3255,7 @@ Things powered by the battery
 #define GEIGERDELAY 0.25f
 #endif
 
-void CBasePlayer::UpdateGeigerCounter( void )
+void CBasePlayer::UpdateGeigerCounter()
 {
 	BYTE range;
 
@@ -3489,7 +3477,7 @@ static void CheckPowerups( entvars_t *pev )
 // UpdatePlayerSound - updates the position of the player's
 // reserved sound slot in the sound list.
 //=========================================================
-void CBasePlayer::UpdatePlayerSound( void )
+void CBasePlayer::UpdatePlayerSound()
 {
 	int iBodyVolume;
 	int iVolume;
@@ -4033,9 +4021,7 @@ void CBasePlayer::Spawn()
 	m_lastx = m_lasty = 0;
 
 	m_flNextChatTime = gpGlobals->time;
-#if FEATURE_DISPLACER
 	m_fInXen = false;
-#endif
 
 	m_playerTemplateName = iStringNull;
 	m_playerTemplate = nullptr;
@@ -4051,7 +4037,7 @@ void CBasePlayer::Spawn()
 	g_pGameRules->PlayerSpawn( this );
 }
 
-void CBasePlayer::Precache( void )
+void CBasePlayer::Precache()
 {
 	// SOUNDS / MODELS ARE PRECACHED in ClientPrecache() (game specific)
 	// because they need to precache before any clients have connected
@@ -4092,7 +4078,7 @@ int CBasePlayer::Save( CSave &save )
 //
 // Marks everything as new so the player will resend this to the hud.
 //
-void CBasePlayer::RenewItems( void )
+void CBasePlayer::RenewItems()
 {
 
 }
@@ -4235,7 +4221,7 @@ void CBasePlayer::SelectItem( const char *pstr )
 	}
 }
 
-void CBasePlayer::SelectLastItem( void )
+void CBasePlayer::SelectLastItem()
 {
 	if( !m_pLastItem || !m_pLastItem->CanDeploy() )
 	{
@@ -4266,7 +4252,7 @@ void CBasePlayer::SelectLastItem( void )
 //==============================================
 // HasWeapons - do I have any weapons at all?
 //==============================================
-bool CBasePlayer::HasWeapons( void )
+bool CBasePlayer::HasWeapons()
 {
 	int i;
 
@@ -4320,9 +4306,9 @@ class CSprayCan : public CBaseEntity
 {
 public:
 	void Spawn( entvars_t *pevOwner );
-	void Think( void );
+	void Think() override;
 
-	virtual int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 };
 
 void CSprayCan::Spawn( entvars_t *pevOwner )
@@ -4336,7 +4322,7 @@ void CSprayCan::Spawn( entvars_t *pevOwner )
 	EmitSoundScript(Player::sprayPaintSoundScript);
 }
 
-void CSprayCan::Think( void )
+void CSprayCan::Think()
 {
 	TraceResult tr;
 	int playernum;
@@ -4378,7 +4364,7 @@ class CBloodSplat : public CBaseEntity
 {
 public:
 	void Spawn( entvars_t *pevOwner );
-	void Spray( void );
+	void Spray();
 };
 
 void CBloodSplat::Spawn( entvars_t *pevOwner )
@@ -4391,7 +4377,7 @@ void CBloodSplat::Spawn( entvars_t *pevOwner )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CBloodSplat::Spray( void )
+void CBloodSplat::Spray()
 {
 	TraceResult tr;	
 
@@ -4452,7 +4438,7 @@ CBaseEntity *FindEntityForward( CBaseEntity *pMe )
 	return NULL;
 }
 
-void CBasePlayer::SuitLightTurnOn( void )
+void CBasePlayer::SuitLightTurnOn()
 {
 	if (HasFlashlight())
 	{
@@ -4592,7 +4578,7 @@ so that the client side .dll can behave correctly.
 Reset stuff so that the state is transmitted.
 ===============
 */
-void CBasePlayer::ForceClientDllUpdate( void )
+void CBasePlayer::ForceClientDllUpdate()
 {
 	m_iClientHealth = -1;
 	m_iClientMaxHealth = -1;
@@ -5145,7 +5131,7 @@ int CBasePlayer::GetAmmoIndex( const char *psz )
 
 // Called from UpdateClientData
 // makes sure the client has all the necessary ammo info,  if values have changed
-void CBasePlayer::SendAmmoUpdate( void )
+void CBasePlayer::SendAmmoUpdate()
 {
 	for( int i = 0; i < MAX_AMMO_TYPES; i++ )
 	{
@@ -5200,7 +5186,7 @@ ForceClientDllUpdate to ensure the demo gets messages
 reflecting all of the HUD state info.
 =========================================================
 */
-void CBasePlayer::UpdateClientData( void )
+void CBasePlayer::UpdateClientData()
 {
 	if( m_fInitHUD )
 	{
@@ -5899,12 +5885,10 @@ bool CBasePlayer::FBecomeProne()
 {
 	m_afPhysicsFlags |= PFLAG_ONBARNACLE;
 
-#if FEATURE_ROPE
 	if( (m_afPhysicsFlags & PFLAG_ONROPE) )
 	{
 		LetGoRope();
 	}
-#endif
 
 	return true;
 }
@@ -6213,7 +6197,7 @@ GetCustomDecalFrames
   Returns the # of custom frames this player's custom clan logo contains.
 =============
 */
-int CBasePlayer::GetCustomDecalFrames( void )
+int CBasePlayer::GetCustomDecalFrames()
 {
 	return m_nCustomSprayFrames;
 }
@@ -7026,11 +7010,11 @@ bool CBasePlayer::ShouldCollideWithCorpses()
 class CDeadHEV : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return g_modFeatures.DeadHazModel(); }
-	int	DefaultClassify() { return	CLASS_HUMAN_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return g_modFeatures.DeadHazModel(); }
+	int	DefaultClassify() override { return	CLASS_HUMAN_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[4];
 };
 
@@ -7056,15 +7040,12 @@ void CDeadHEV::Spawn()
 class CStripWeapons : public CPointEntity
 {
 public:
-	void Precache()
+	void Precache() override
 	{
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
-
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-
-private:
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 
 LINK_ENTITY_TO_CLASS( player_weaponstrip, CStripWeapons )
@@ -7102,7 +7083,7 @@ enum
 class CPlayerCalcRatio : public CPointEntity
 {
 public:
-	void KeyValue(KeyValueData *pkvd)
+	void KeyValue(KeyValueData *pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "calc_param"))
 		{
@@ -7127,7 +7108,7 @@ public:
 		else
 			CPointEntity::KeyValue(pkvd);
 	}
-	bool CalcRatio(CBaseEntity *pLocus, float *outResult)
+	bool CalcRatio(CBaseEntity *pLocus, float *outResult) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pLocus);
 		if (!pPlayer) {
@@ -7267,7 +7248,7 @@ LINK_ENTITY_TO_CLASS( player_calc_ratio, CPlayerCalcRatio )
 class CPlayerHasThing : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "pass_target"))
 		{
@@ -7283,7 +7264,7 @@ public:
 			CPointEntity::KeyValue(pkvd);
 	}
 
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (!pPlayer) {
@@ -7298,9 +7279,9 @@ public:
 		}
 	}
 
-	int	ObjectCaps() { return CPointEntity::ObjectCaps() | FCAP_MASTER; }
+	int	ObjectCaps() override { return CPointEntity::ObjectCaps() | FCAP_MASTER; }
 
-	bool IsTriggered(CBaseEntity *pActivator) {
+	bool IsTriggered(CBaseEntity *pActivator) override {
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (!pPlayer) {
 			return false;
@@ -7310,8 +7291,8 @@ public:
 
 	virtual bool HasThing(CBasePlayer* pPlayer) = 0;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 protected:
 	string_t m_PassTarget;
@@ -7338,7 +7319,7 @@ enum
 class CPlayerHasItem : public CPlayerHasThing
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "item_type"))
 		{
@@ -7349,7 +7330,7 @@ public:
 			CPlayerHasThing::KeyValue(pkvd);
 	}
 
-	bool HasThing(CBasePlayer* pPlayer)
+	bool HasThing(CBasePlayer* pPlayer) override
 	{
 		return HasItem(pPlayer, ItemType());
 	}
@@ -7378,7 +7359,7 @@ LINK_ENTITY_TO_CLASS( player_hasitem, CPlayerHasItem )
 class CPlayerHasWeapon : public CPlayerHasThing
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "weapon_name"))
 		{
@@ -7389,12 +7370,12 @@ public:
 			CPlayerHasThing::KeyValue(pkvd);
 	}
 
-	bool HasThing(CBasePlayer* pPlayer) {
+	bool HasThing(CBasePlayer* pPlayer) override {
 		return HasWeapon(pPlayer, m_WeaponName);
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 private:
 	bool HasWeapon(CBasePlayer* pPlayer, string_t weaponName) {
@@ -7428,7 +7409,7 @@ LINK_ENTITY_TO_CLASS( player_hasweapon, CPlayerHasWeapon )
 class CPlayerInventory : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "item_name"))
 		{
@@ -7468,7 +7449,7 @@ public:
 		else
 			CPointEntity::KeyValue(pkvd);
 	}
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(pActivator);
 		if (!pPlayer)
@@ -7573,8 +7554,8 @@ public:
 		return FBitSet(pev->spawnflags, SF_PLAYER_INVENTORY_ALLOW_MAXCOUNT_OVERFLOW);
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_fireOnCountChange;
@@ -7598,7 +7579,7 @@ IMPLEMENT_SAVERESTORE( CPlayerInventory, CPointEntity )
 class CPlayerHasInventory : public CPlayerHasThing
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "item_name"))
 		{
@@ -7608,7 +7589,7 @@ public:
 		else
 			CPlayerHasThing::KeyValue(pkvd);
 	}
-	bool HasThing(CBasePlayer* pPlayer) {
+	bool HasThing(CBasePlayer* pPlayer) override {
 		string_t item = pev->message;
 		if (FStringNull(item))
 			return false;
@@ -7621,7 +7602,7 @@ LINK_ENTITY_TO_CLASS( player_hasinventory, CPlayerHasInventory )
 class CPlayerDeployWeapon : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "weapon_name"))
 		{
@@ -7631,7 +7612,7 @@ public:
 		else
 			CPointEntity::KeyValue(pkvd);
 	}
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(pActivator);
 		if (pPlayer && !FStringNull(pev->netname))
@@ -7655,7 +7636,7 @@ enum
 class CPlayerCapabilities : public CPointEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(pActivator);
 		if (!pPlayer)
@@ -7669,7 +7650,7 @@ public:
 		pPlayer->SetPhysicsKeyValues();
 	}
 
-	void KeyValue( KeyValueData *pkvd )
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if( FStrEq( pkvd->szKeyName, "attack_capability" ) )
 		{
@@ -7700,8 +7681,8 @@ public:
 			CPointEntity::KeyValue(pkvd);
 	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 private:
@@ -7792,7 +7773,7 @@ LINK_ENTITY_TO_CLASS( player_speed, CPlayerSpeed )
 class CPlayerHevSentence : public CPointEntity
 {
 public:
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (!pPlayer)
@@ -7829,7 +7810,7 @@ public:
 			}
 		}
 	}
-	void KeyValue(KeyValueData *pkvd)
+	void KeyValue(KeyValueData *pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "norepeat"))
 		{
@@ -7846,7 +7827,7 @@ LINK_ENTITY_TO_CLASS( player_hevsentence, CPlayerHevSentence )
 class CPlayerFlicker : public CPointEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 
 LINK_ENTITY_TO_CLASS( player_flicker, CPlayerFlicker )
@@ -7906,20 +7887,20 @@ static void DisableAutosaves()
 class CRevertSaved : public CPointEntity
 {
 public:
-	void Spawn();
+	void Spawn() override;
 	void EXPORT LoadSavedUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT MessageThink( void );
-	void EXPORT LoadThink( void );
-	void KeyValue( KeyValueData *pkvd );
+	void EXPORT MessageThink();
+	void EXPORT LoadThink();
+	void KeyValue( KeyValueData *pkvd ) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	inline float Duration( void ) { return pev->dmg_take; }
-	inline float HoldTime( void ) { return pev->dmg_save; }
-	inline float MessageTime( void ) { return m_messageTime; }
-	inline float LoadTime( void ) { return m_loadTime; }
+	inline float Duration() { return pev->dmg_take; }
+	inline float HoldTime() { return pev->dmg_save; }
+	inline float MessageTime() { return m_messageTime; }
+	inline float LoadTime() { return m_loadTime; }
 
 	inline void SetDuration( float duration ) { pev->dmg_take = duration; }
 	inline void SetHoldTime( float hold ) { pev->dmg_save = hold; }
@@ -8001,7 +7982,7 @@ void CRevertSaved::LoadSavedUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 	SetThink( &CRevertSaved::MessageThink );
 }
 
-void CRevertSaved::MessageThink( void )
+void CRevertSaved::MessageThink()
 {
 	UTIL_ShowMessageAll( STRING( pev->message ) );
 	float nextThink = LoadTime() - MessageTime();
@@ -8014,7 +7995,7 @@ void CRevertSaved::MessageThink( void )
 		LoadThink();
 }
 
-void CRevertSaved::LoadThink( void )
+void CRevertSaved::LoadThink()
 {
 	if( !g_pGameRules->IsMultiplayer() )
 	{
@@ -8037,15 +8018,15 @@ enum
 class CPlayerStash : public CWeaponBox
 {
 public:
-	void Precache() {}
-	void Spawn()
+	void Precache() override {}
+	void Spawn() override
 	{
 		Precache();
 		pev->solid = SOLID_NOT;
 		pev->effects = EF_NODRAW;
 	}
-	void Touch( CBaseEntity *pOther ) {}
-	void KeyValue( KeyValueData *pkvd )
+	void Touch( CBaseEntity *pOther ) override {}
+	void KeyValue( KeyValueData *pkvd ) override
 	{
 		if (FStrEq(pkvd->szKeyName, "weapons_policy"))
 		{
@@ -8090,8 +8071,8 @@ public:
 		else
 			CBaseDelay::KeyValue(pkvd);
 	}
-	int ObjectCaps() { return CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+	int ObjectCaps() override { return CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override
 	{
 		if (!ShouldToggle(useType, m_stashed))
 			return;
@@ -8277,8 +8258,8 @@ public:
 			FireTargets(STRING(m_triggerOnUnstash), pPlayer, this);
 	}
 
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 private:
@@ -8370,7 +8351,7 @@ enum
 class CTriggerChangeMaxClip : public CPointEntity
 {
 public:
-	void KeyValue(KeyValueData *pkvd)
+	void KeyValue(KeyValueData *pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "m_iMaxClip"))
 		{
@@ -8390,7 +8371,7 @@ public:
 		else
 			CPointEntity::KeyValue(pkvd);
 	}
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
 	{
 		if (FStringNull(pev->message))
 		{
@@ -8447,8 +8428,8 @@ public:
 		}
 	}
 
-	int		Save( CSave &save );
-	int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 private:
 	short m_iMaxClip;
@@ -8472,11 +8453,11 @@ IMPLEMENT_SAVERESTORE( CTriggerChangeMaxClip, CPointEntity )
 //=========================================================
 class CInfoIntermission:public CPointEntity
 {
-	void Spawn( void );
-	void Think( void );
+	void Spawn() override;
+	void Think() override;
 };
 
-void CInfoIntermission::Spawn( void )
+void CInfoIntermission::Spawn()
 {
 	UTIL_SetOrigin( pev, pev->origin );
 	pev->solid = SOLID_NOT;
@@ -8486,7 +8467,7 @@ void CInfoIntermission::Spawn( void )
 	pev->nextthink = gpGlobals->time + 2.0f;// let targets spawn!
 }
 
-void CInfoIntermission::Think( void )
+void CInfoIntermission::Think()
 {
 	edict_t *pTarget;
 

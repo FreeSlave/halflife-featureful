@@ -4,8 +4,6 @@
 #include "mod_features.h"
 #include "cbase.h"
 
-#if FEATURE_DISPLACER
-
 class CBeam;
 //=========================================================
 // Displacement field
@@ -13,26 +11,26 @@ class CBeam;
 class CDisplacerBall : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles);
 	static float BallSpeed() { return 500.0f; }
 	static void SelfCreate(entvars_t *pevOwner, Vector vecStart);
 
 	void EXPORT BallTouch(CBaseEntity *pOther);
-	void EXPORT ExplodeThink( void );
-	void EXPORT KillThink( void );
-	void Circle( void );
+	void EXPORT ExplodeThink();
+	void EXPORT KillThink();
+	void Circle();
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
+	int		Save(CSave &save) override;
+	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	CBeam* m_pBeam[8];
 
-	void EXPORT FlyThink( void );
-	void ClearBeams( void );
+	void EXPORT FlyThink();
+	void ClearBeams();
 	void ArmBeam( int iSide );
 
 	int m_iBeams;
@@ -48,5 +46,4 @@ public:
 	static const NamedSoundScript impactSoundScript;
 	static const NamedSoundScript explodeSoundScript;
 };
-#endif
 #endif

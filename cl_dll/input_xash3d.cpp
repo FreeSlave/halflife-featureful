@@ -43,7 +43,7 @@ cvar_t	*cl_laddermode;
 #define IMPULSE_DOWN	2
 #define IMPULSE_UP		4
 
-int CL_IsDead( void );
+int CL_IsDead();
 extern Vector dead_viewangles;
 
 /*
@@ -259,37 +259,37 @@ void FWGSInput::IN_MouseEvent( int mstate )
 
 // Stubs
 
-void FWGSInput::IN_ClearStates( void )
+void FWGSInput::IN_ClearStates()
 {
 	//gEngfuncs.Con_Printf( "IN_ClearStates\n" );
 }
 
-void FWGSInput::IN_ActivateMouse( void )
+void FWGSInput::IN_ActivateMouse()
 {
 	//gEngfuncs.Con_Printf( "IN_ActivateMouse\n" );
 }
 
-void FWGSInput::IN_DeactivateMouse( void )
+void FWGSInput::IN_DeactivateMouse()
 {
 	//gEngfuncs.Con_Printf( "IN_DeactivateMouse\n" );
 }
 
-void FWGSInput::IN_Accumulate( void )
+void FWGSInput::IN_Accumulate()
 {
 	//gEngfuncs.Con_Printf( "IN_Accumulate\n" );
 }
 
-void FWGSInput::IN_Commands( void )
+void FWGSInput::IN_Commands()
 {
 	//gEngfuncs.Con_Printf( "IN_Commands\n" );
 }
 
-void FWGSInput::IN_Shutdown( void )
+void FWGSInput::IN_Shutdown()
 {
 }
 
 // Register cvars and reset data
-void FWGSInput::IN_Init( void )
+void FWGSInput::IN_Init()
 {
 	sensitivity = gEngfuncs.pfnRegisterVariable( "sensitivity", "3", FCVAR_ARCHIVE | FCVAR_FILTERSTUFFTEXT );
 	in_joystick = gEngfuncs.pfnRegisterVariable( "joystick", "0", FCVAR_ARCHIVE );

@@ -608,7 +608,7 @@ void CFollowingMonster::LimitFollowers( CBaseEntity *pPlayer, int maxFollowers )
 	return;
 }
 
-bool CFollowingMonster::CanFollow( void )
+bool CFollowingMonster::CanFollow()
 {
 	return AbleToFollow() && !IsFollowingPlayer();
 }

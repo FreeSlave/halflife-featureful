@@ -47,7 +47,7 @@ enum
 class CInfoBM : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData* pkvd );
+	void KeyValue( KeyValueData* pkvd ) override;
 
 	// name in pev->targetname
 	// next in pev->target
@@ -57,8 +57,8 @@ public:
 	// Reach delay in pev->speed
 	// Reach sequence in pev->netname
 	
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_preSequence;
@@ -115,15 +115,15 @@ void CInfoBM::KeyValue( KeyValueData* pkvd )
 class CBMortar : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
 	static CBMortar *Shoot( edict_t *pOwner, Vector vecStart, Vector vecVelocity, EntityOverrides entityOverrides );
-	void Touch( CBaseEntity *pOther );
-	void EXPORT Animate( void );
+	void Touch( CBaseEntity *pOther ) override;
+	void EXPORT Animate();
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_maxFrame;
@@ -199,29 +199,29 @@ void MortarSpray( const Vector &position, const Vector &direction, const Visual*
 class CBigMomma : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Activate( void );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Activate() override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	void BeforeApplyDamageToHealth(float flDamage) override;
 
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void NodeStart(string_t iszNextNode );
-	void NodeReach( void );
-	bool ShouldGoToNode( void );
+	void NodeReach();
+	bool ShouldGoToNode();
 
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Big Momma"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void LayHeadcrab( void );
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Big Momma"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void LayHeadcrab();
 
 	CInfoBM* GetTargetInfoBM()
 	{
@@ -232,7 +232,7 @@ public:
 		return nullptr;
 	}
 
-	string_t GetNodeSequence( void )
+	string_t GetNodeSequence()
 	{
 		CInfoBM *pTarget = GetTargetInfoBM();
 		if( pTarget )
@@ -242,7 +242,7 @@ public:
 		return iStringNull;
 	}
 
-	string_t GetNodePresequence( void )
+	string_t GetNodePresequence()
 	{
 		CInfoBM *pTarget = GetTargetInfoBM();
 		if( pTarget )
@@ -252,7 +252,7 @@ public:
 		return iStringNull;
 	}
 
-	float GetNodeDelay( void )
+	float GetNodeDelay()
 	{
 		CInfoBM *pTarget = GetTargetInfoBM();
 		if( pTarget )
@@ -262,7 +262,7 @@ public:
 		return 0;
 	}
 
-	float GetNodeRange( void )
+	float GetNodeRange()
 	{
 		CInfoBM *pTarget = GetTargetInfoBM();
 		if( pTarget )
@@ -272,7 +272,7 @@ public:
 		return 1e6;
 	}
 
-	float GetNodeYaw( void )
+	float GetNodeYaw()
 	{
 		CBaseEntity *pTarget = m_hTargetEnt;
 		if( pTarget )
@@ -283,7 +283,7 @@ public:
 		return pev->angles.y;
 	}
 
-	int GetNodeLayCrabs( void )
+	int GetNodeLayCrabs()
 	{
 		CInfoBM *pTarget = GetTargetInfoBM();
 		if( pTarget )
@@ -294,14 +294,14 @@ public:
 	}
 
 	// Restart the crab count on each new level
-	void OverrideReset( void )
+	void OverrideReset() override
 	{
 		m_crabCount = 0;
 	}
 
-	void DeathNotice( entvars_t *pevChild );
+	void DeathNotice( entvars_t *pevChild ) override;
 
-	bool CanLayCrab( void )
+	bool CanLayCrab()
 	{ 
 		if (FBitSet(pev->spawnflags, SF_BIGMOM_NOBABYCRABS))
 			return false;
@@ -325,9 +325,9 @@ public:
 		return false;
 	}
 
-	void LaunchMortar( void );
+	void LaunchMortar();
 
-	void SetObjectCollisionBox( void )
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -95.0f, -95.0f, 0.0f ), Vector( 95.0f, 95.0f, 190.0f ));
 	}
@@ -336,15 +336,15 @@ public:
 	bool CheckMeleeAttack2( float flDot, float flDist ) override;	// Lay a crab
 	bool CheckRangeAttack1( float flDot, float flDist ) override;	// Mortar launch
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 	static const NamedSoundScript alertSoundScript;
 	static const NamedSoundScript painSoundScript;
@@ -477,7 +477,7 @@ void CBigMomma::KeyValue( KeyValueData *pkvd )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBigMomma::DefaultClassify( void )
+int CBigMomma::DefaultClassify()
 {
 	return CLASS_ALIEN_MONSTER;
 }
@@ -486,7 +486,7 @@ int CBigMomma::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CBigMomma::SetYawSpeed( void )
+void CBigMomma::SetYawSpeed()
 {
 	int ys;
 
@@ -682,7 +682,7 @@ void CBigMomma::BeforeApplyDamageToHealth(float flDamage)
 	}
 }
 
-void CBigMomma::LayHeadcrab( void )
+void CBigMomma::LayHeadcrab()
 {
 	CBaseEntity *pChild = CBaseEntity::Create( BIG_CHILDCLASS, pev->origin, pev->angles, edict() );
 	CBaseMonster *pNewMonster = pChild->MyMonsterPointer();
@@ -727,7 +727,7 @@ void CBigMomma::DeathNotice( entvars_t *pevChild )
 	}
 }
 
-void CBigMomma::LaunchMortar( void )
+void CBigMomma::LaunchMortar()
 {
 	m_mortarTime = gpGlobals->time + RANDOM_FLOAT( 2.0f, 15.0f );
 
@@ -807,7 +807,7 @@ void CBigMomma::Precache()
 	RegisterVisual(CBMortar::mortarSprayVisual);// client side spittle.
 }
 
-void CBigMomma::Activate( void )
+void CBigMomma::Activate()
 {
 	if( m_hTargetEnt == 0 )
 		Remember( bits_MEMORY_ADVANCE_NODE );	// Start 'er up
@@ -838,7 +838,7 @@ void CBigMomma::NodeStart( string_t iszNextNode )
 	m_hTargetEnt = pTarget;
 }
 
-void CBigMomma::NodeReach( void )
+void CBigMomma::NodeReach()
 {
 	CBaseEntity *pTarget = m_hTargetEnt;
 
@@ -991,7 +991,7 @@ Schedule_t *CBigMomma::GetScheduleOfType( int Type )
 	return CBaseMonster::GetScheduleOfType( Type );
 }
 
-bool CBigMomma::ShouldGoToNode( void )
+bool CBigMomma::ShouldGoToNode()
 {
 	bool shouldAdvance = HasMemory( bits_MEMORY_ADVANCE_NODE );
 	if (g_modFeatures.bigmomma_lastnode_fix)
@@ -1004,7 +1004,7 @@ bool CBigMomma::ShouldGoToNode( void )
 	return false;
 }
 
-Schedule_t *CBigMomma::GetSchedule( void )
+Schedule_t *CBigMomma::GetSchedule()
 {
 	if( ShouldGoToNode() )
 	{
@@ -1301,7 +1301,7 @@ void MortarSpray( const Vector &position, const Vector &direction, const Visual*
 }
 
 // UNDONE: right now this is pretty much a copy of the squid spit with minor changes to the way it does damage
-void CBMortar::Spawn( void )
+void CBMortar::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_TOSS;
@@ -1330,7 +1330,7 @@ void CBMortar::Precache()
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 }
 
-void CBMortar::Animate( void )
+void CBMortar::Animate()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 

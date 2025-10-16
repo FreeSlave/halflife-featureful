@@ -309,7 +309,7 @@ bool CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
 
 //=========================================================
 //=========================================================
-void CHalfLifeMultiplay::RefreshSkillData( void )
+void CHalfLifeMultiplay::RefreshSkillData()
 {
 	// load all default values
 	CGameRules::RefreshSkillData();
@@ -362,20 +362,14 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// hornet
 	gSkillData.plrDmgHornet = 10;
 
-#if FEATURE_DESERT_EAGLE
 	// Desert Eagle
 	gSkillData.plrDmgEagle = 34;
-#endif
 
-#if FEATURE_PIPEWRENCH
 	// Pipe wrench
 	gSkillData.plrDmgPWrench = 20;
-#endif
 
-#if FEATURE_SNIPERRIFLE
 	// 762 Round
 	gSkillData.plrDmg762 = 100;
-#endif
 }
 
 // longest the intermission can last, in seconds
@@ -387,7 +381,7 @@ extern cvar_t mp_chattime;
 
 //=========================================================
 //=========================================================
-void CHalfLifeMultiplay::Think( void )
+void CHalfLifeMultiplay::Think()
 {
 #if !NO_VOICEGAMEMGR
 	g_VoiceGameMgr.Update( gpGlobals->frametime );
@@ -479,21 +473,21 @@ void CHalfLifeMultiplay::Think( void )
 
 //=========================================================
 //=========================================================
-bool CHalfLifeMultiplay::IsMultiplayer( void )
+bool CHalfLifeMultiplay::IsMultiplayer()
 {
 	return true;
 }
 
 //=========================================================
 //=========================================================
-bool CHalfLifeMultiplay::IsDeathmatch( void )
+bool CHalfLifeMultiplay::IsDeathmatch()
 {
 	return true;
 }
 
 //=========================================================
 //=========================================================
-bool CHalfLifeMultiplay::IsCoOp( void )
+bool CHalfLifeMultiplay::IsCoOp()
 {
 	return gpGlobals->coop ? true : false;
 }
@@ -753,12 +747,10 @@ void CHalfLifeMultiplay::PlayerSpawn( CBasePlayer *pPlayer )
 
 	if( addDefault )
 	{
-#if FEATURE_MEDKIT
-		if (IsCoOp())
+		if (g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT) && IsCoOp())
 		{
 			pPlayer->GiveNamedItem( "weapon_medkit" );
 		}
-#endif
 		pPlayer->GiveNamedItem( "weapon_crowbar" );
 		pPlayer->GiveNamedItem( "weapon_9mmhandgun" );
 		pPlayer->GiveAmmo( 68, "9mm" );// 4 full reloads
@@ -781,7 +773,7 @@ float CHalfLifeMultiplay::FlPlayerSpawnTime( CBasePlayer *pPlayer )
 	return gpGlobals->time;//now!
 }
 
-bool CHalfLifeMultiplay::AllowAutoTargetCrosshair( void )
+bool CHalfLifeMultiplay::AllowAutoTargetCrosshair()
 {
 	return ( aimcrosshair.value != 0 );
 }
@@ -1265,12 +1257,12 @@ Vector CHalfLifeMultiplay::VecAmmoRespawnSpot( CBasePlayerAmmo *pAmmo )
 
 //=========================================================
 //=========================================================
-float CHalfLifeMultiplay::FlHealthChargerRechargeTime( void )
+float CHalfLifeMultiplay::FlHealthChargerRechargeTime()
 {
 	return healthcharger_rechargetime.value == -2 ? HEALTHCHARGER_RESPAWN_TIME : healthcharger_rechargetime.value;
 }
 
-float CHalfLifeMultiplay::FlHEVChargerRechargeTime( void )
+float CHalfLifeMultiplay::FlHEVChargerRechargeTime()
 {
 	return hevcharger_rechargetime.value == -2 ? HEVCHARGER_RESPAWN_TIME : hevcharger_rechargetime.value;
 }
@@ -1321,14 +1313,14 @@ bool CHalfLifeMultiplay::PlayFootstepSounds( CBasePlayer *pl, float fvol )
 	return false;
 }
 
-bool CHalfLifeMultiplay::FAllowFlashlight( void )
+bool CHalfLifeMultiplay::FAllowFlashlight()
 {
 	return flashlight.value != 0; 
 }
 
 //=========================================================
 //=========================================================
-bool CHalfLifeMultiplay::FAllowMonsters( void )
+bool CHalfLifeMultiplay::FAllowMonsters()
 {
 	return IsCoOp() || ( allowmonsters.value != 0 );
 }
@@ -1375,7 +1367,7 @@ void CHalfLifeMultiplay::BeforeChangeLevel(const char *nextMap)
 //======== CHalfLifeMultiplay private functions ===========
 #define INTERMISSION_TIME		6
 
-void CHalfLifeMultiplay::GoToIntermission( void )
+void CHalfLifeMultiplay::GoToIntermission()
 {
 	if( g_fGameOver )
 		return;  // intermission has already been triggered, so ignore.
@@ -1676,7 +1668,7 @@ CountPlayers
 Determine the current # of active players on the server for map cycling logic
 ==============
 */
-int CountPlayers( void )
+int CountPlayers()
 {
 	int num = 0;
 
@@ -1756,7 +1748,7 @@ ChangeLevel
 Server is changing to a new level, check mapcycle.txt for map name and setup info
 ==============
 */
-void CHalfLifeMultiplay::ChangeLevel( void )
+void CHalfLifeMultiplay::ChangeLevel()
 {
 	static char szPreviousMapCycleFile[256];
 	static mapcycle_t mapcycle;
@@ -2034,7 +2026,7 @@ CMultiplayBusters::CMultiplayBusters()
 	m_flEgonBustingCheckTime = -1.0;
 }
 
-void CMultiplayBusters::CheckForEgons( void )
+void CMultiplayBusters::CheckForEgons()
 {
 	CBaseEntity *pPlayer;
 	CWeaponBox *pWeaponBox = NULL;
@@ -2086,7 +2078,7 @@ void CMultiplayBusters::CheckForEgons( void )
 	}
 }
 
-void CMultiplayBusters::Think( void )
+void CMultiplayBusters::Think()
 {
 	CheckForEgons();
 	CHalfLifeMultiplay::Think();

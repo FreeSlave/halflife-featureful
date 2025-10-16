@@ -88,24 +88,24 @@ enum
 class CScientist : public CTalkMonster
 {
 public:
-	int GetDefaultVoicePitch();
-	void Spawn( void );
-	void Precache( void );
+	int GetDefaultVoicePitch() override;
+	void Spawn() override;
+	void Precache() override;
 	void CalcTotalHeadCount();
 
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Scientist"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	int DefaultToleranceLevel() { return TOLERANCE_ZERO; }
-	void SetActivity( Activity newActivity );
-	Activity GetStoppedActivity( void );
-	int DefaultISoundMask( void );
-	void DeclineFollowing( CBaseEntity* pCaller );
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Scientist"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ZERO; }
+	void SetActivity( Activity newActivity ) override;
+	Activity GetStoppedActivity() override;
+	int DefaultISoundMask() override;
+	void DeclineFollowing( CBaseEntity* pCaller ) override;
 
-	float CoverRadius( void ) {
+	float CoverRadius() override {
 		if (!IsFollowingPlayer())
 			return 1200; // Need more room for cover because scientists want to get far away!
 		return CTalkMonster::CoverRadius(); // Don't run too far when following the player
@@ -114,33 +114,33 @@ public:
 	bool CanTolerateWhileFollowing( CBaseEntity* pEnemy );
 
 	virtual bool AbleToHeal() { return true; }
-	bool CanHeal( void );
-	void StartFollowingHealTarget(CBaseEntity* pTarget);
-	bool ReadyToHeal();
-	void Heal( void );
-	void Scream( void );
+	bool CanHeal();
+	void StartFollowingHealTarget(CBaseEntity* pTarget) override;
+	bool ReadyToHeal() override;
+	void Heal();
+	void Scream();
 
 	// Override these to set behavior
-	Schedule_t *GetScheduleOfType( int Type );
-	Schedule_t *GetSchedule( void );
-	MONSTERSTATE GetIdealState( void );
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	Schedule_t *GetSchedule() override;
+	MONSTERSTATE GetIdealState() override;
 
-	virtual FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() {
+	FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() override {
 		return FOLLOW_FAIL_STOP;
 	}
 
 	void DeathSound() override;
 	void PainSound() override;
 
-	const char* DefaultSentenceGroup(int group);
+	const char* DefaultSentenceGroup(int group) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CUSTOM_SCHEDULES
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 	virtual int RandomHeadCount() {
 		return g_modFeatures.scientist_random_heads;
 	}
@@ -469,7 +469,7 @@ void CScientist::DeclineFollowing(CBaseEntity *pCaller )
 	CTalkMonster::DeclineFollowing(pCaller);
 }
 
-void CScientist::Scream( void )
+void CScientist::Scream()
 {
 	if( FOkToSpeak(SPEAK_DISREGARD_ENEMY|SPEAK_DISREGARD_OTHER_SPEAKING) )
 	{
@@ -478,7 +478,7 @@ void CScientist::Scream( void )
 	}
 }
 
-Activity CScientist::GetStoppedActivity( void )
+Activity CScientist::GetStoppedActivity()
 { 
 	if( m_hEnemy != 0 ) 
 		return ACT_EXCITED;
@@ -672,7 +672,7 @@ void CScientist::RunTask( Task_t *pTask )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CScientist::DefaultClassify( void )
+int CScientist::DefaultClassify()
 {
 	return CLASS_HUMAN_PASSIVE;
 }
@@ -681,7 +681,7 @@ int CScientist::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CScientist::SetYawSpeed( void )
+void CScientist::SetYawSpeed()
 {
 	int ys;
 
@@ -808,7 +808,7 @@ void CScientist::Spawn()
 //=========================================================
 // Precache - precaches all resources this monster needs
 //=========================================================
-void CScientist::Precache( void )
+void CScientist::Precache()
 {
 	PrecacheMyModel( "models/scientist.mdl" );
 	PrecacheMyGibModel();
@@ -878,7 +878,7 @@ const char* CScientist::DefaultSentenceGroup(int group)
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CScientist::DefaultISoundMask( void )
+int CScientist::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -947,7 +947,7 @@ Schedule_t *CScientist::GetScheduleOfType( int Type )
 	return CTalkMonster::GetScheduleOfType( Type );
 }
 
-Schedule_t *CScientist::GetSchedule( void )
+Schedule_t *CScientist::GetSchedule()
 {
 	// so we don't keep calling through the EHANDLE stuff
 	CBaseEntity *pEnemy = m_hEnemy;
@@ -1092,7 +1092,7 @@ bool CScientist::CanTolerateWhileFollowing(CBaseEntity *pEnemy)
 	return false;
 }
 
-MONSTERSTATE CScientist::GetIdealState( void )
+MONSTERSTATE CScientist::GetIdealState()
 {
 	switch( m_MonsterState )
 	{
@@ -1146,7 +1146,7 @@ MONSTERSTATE CScientist::GetIdealState( void )
 	return CTalkMonster::GetIdealState();
 }
 
-bool CScientist::CanHeal( void )
+bool CScientist::CanHeal()
 {
 	if (!AbleToHeal())
 		return false;
@@ -1173,7 +1173,7 @@ bool CScientist::ReadyToHeal()
 	return AbleToHeal() && AbleToFollow() && ( m_healTime <= gpGlobals->time ) && m_pSchedule != slHeal;
 }
 
-void CScientist::Heal( void )
+void CScientist::Heal()
 {
 	if( !CanHeal() )
 		return;
@@ -1216,11 +1216,11 @@ void CScientist::ReportAIState(ALERT_TYPE level)
 class CDeadScientist : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/scientist.mdl"; }
-	int	DefaultClassify() { return	CLASS_HUMAN_PASSIVE; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/scientist.mdl"; }
+	int	DefaultClassify() override { return	CLASS_HUMAN_PASSIVE; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[7];
 };
 const char *CDeadScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3" };
@@ -1235,7 +1235,7 @@ LINK_ENTITY_TO_CLASS( monster_scientist_dead, CDeadScientist )
 //
 // ********** DeadScientist SPAWN **********
 //
-void CDeadScientist :: Spawn( )
+void CDeadScientist::Spawn()
 {
 	SpawnHelper();
 
@@ -1259,22 +1259,22 @@ void CDeadScientist :: Spawn( )
 class CSittingScientist : public CScientist // kdb: changed from public CBaseMonster so he can speak
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 
-	void EXPORT SittingThink( void );
-	int DefaultClassify( void );
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void EXPORT SittingThink();
+	int DefaultClassify() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual bool SetAnswerQuestion( CTalkMonster *pSpeaker );
+	bool SetAnswerQuestion( CTalkMonster *pSpeaker ) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_FIXED; }
-	Vector DefaultMinHullSize() { return Vector(-14.0f, -14.0f, 0.0f); }
-	Vector DefaultMaxHullSize() { return Vector(14.0f, 14.0f, 36.0f); }
+	virtual int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
+	Vector DefaultMinHullSize() override { return Vector(-14.0f, -14.0f, 0.0f); }
+	Vector DefaultMaxHullSize() override { return Vector(14.0f, 14.0f, 36.0f); }
 
-	bool FIdleSpeak( void );
+	bool FIdleSpeak();
 	int m_baseSequence;	
 	int m_headTurn;
 	float m_flResponseDelay;
@@ -1352,7 +1352,7 @@ void CSittingScientist::SciSpawnHelper(const char* modelName)
 		DROP_TO_FLOOR( ENT( pev ) );
 }
 
-void CSittingScientist::Spawn( )
+void CSittingScientist::Spawn()
 {
 	SciSpawnHelper("models/scientist.mdl");
 	CalcTotalHeadCount();
@@ -1361,7 +1361,7 @@ void CSittingScientist::Spawn( )
 		pev->skin = 1;
 }
 
-void CSittingScientist::Precache( void )
+void CSittingScientist::Precache()
 {
 	m_baseSequence = LookupSequence( "sitlookleft" );
 	TalkInit();
@@ -1372,7 +1372,7 @@ void CSittingScientist::Precache( void )
 //=========================================================
 // ID as a passive human
 //=========================================================
-int CSittingScientist::DefaultClassify( void )
+int CSittingScientist::DefaultClassify()
 {
 	return CLASS_HUMAN_PASSIVE;
 }
@@ -1380,7 +1380,7 @@ int CSittingScientist::DefaultClassify( void )
 //=========================================================
 // sit, do stuff
 //=========================================================
-void CSittingScientist::SittingThink( void )
+void CSittingScientist::SittingThink()
 {
 	CBaseEntity *pent;
 
@@ -1474,7 +1474,7 @@ void CSittingScientist::SittingThink( void )
 			pev->sequence = m_baseSequence + SITTING_ANIM_sitscared;
 		}
 
-		ResetSequenceInfo( );
+		ResetSequenceInfo();
 		pev->frame = 0;
 		SetBoneController( 0, m_headTurn );
 	}
@@ -1493,7 +1493,7 @@ bool CSittingScientist::SetAnswerQuestion( CTalkMonster *pSpeaker )
 // FIdleSpeak
 // ask question of nearby friend, or make statement
 //=========================================================
-bool CSittingScientist::FIdleSpeak( void )
+bool CSittingScientist::FIdleSpeak()
 { 
 	// try to start a conversation, or make statement
 	if( !FOkToSpeak() )
@@ -1531,11 +1531,10 @@ bool CSittingScientist::FIdleSpeak( void )
 	return false;
 }
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 class CCleansuitScientist : public CScientist
 {
 public:
-	int GetDefaultVoicePitch()
+	int GetDefaultVoicePitch() override
 	{
 		switch( pev->body )
 		{
@@ -1550,12 +1549,12 @@ public:
 			return 100;
 		}
 	}
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
-	const char* DefaultDisplayName() { return "Cleansuit Scientist"; }
-	bool AbleToHeal() { return false; }
-	void ReportAIState(ALERT_TYPE level);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	const char* DefaultDisplayName() override { return "Cleansuit Scientist"; }
+	bool AbleToHeal() override { return false; }
+	void ReportAIState(ALERT_TYPE level) override;
 
 	static constexpr const char* painSoundScript = "CleansuitScientist.Pain";
 	static constexpr const char* dieSoundScript = "CleansuitScientist.Die";
@@ -1597,12 +1596,12 @@ void CCleansuitScientist::ReportAIState(ALERT_TYPE level)
 class CDeadCleansuitScientist : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/cleansuit_scientist.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
-	int	DefaultClassify ( void ) { return	CLASS_HUMAN_PASSIVE; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/cleansuit_scientist.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	int	DefaultClassify() override { return	CLASS_HUMAN_PASSIVE; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[9];
 };
 const char *CDeadCleansuitScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3", "scientist_deadpose1", "dead_against_wall" };
@@ -1614,7 +1613,7 @@ const char* CDeadCleansuitScientist::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_cleansuit_scientist_dead, CDeadCleansuitScientist )
 
-void CDeadCleansuitScientist::Spawn( )
+void CDeadCleansuitScientist::Spawn()
 {
 	SpawnHelper();
 	if ( pev->body == -1 ) {
@@ -1626,8 +1625,8 @@ void CDeadCleansuitScientist::Spawn( )
 class CSittingCleansuitScientist : public CSittingScientist
 {
 public:
-	void Spawn();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	void Spawn() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
 };
 
 void CSittingCleansuitScientist::Spawn()
@@ -1636,27 +1635,24 @@ void CSittingCleansuitScientist::Spawn()
 }
 
 LINK_ENTITY_TO_CLASS( monster_sitting_cleansuit_scientist, CSittingCleansuitScientist )
-#endif
-
-#if FEATURE_ROSENBERG
 
 #define FEATURE_ROSENBERG_DECAY 0
 
 class CRosenberg : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() { return 100; }
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("rosenberg"); }
-	const char* DefaultDisplayName() { return "Dr. Rosenberg"; }
-	const char* DefaultSentenceGroup(int group);
-	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("rosenberg"); }
+	const char* DefaultDisplayName() override { return "Dr. Rosenberg"; }
+	const char* DefaultSentenceGroup(int group) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }
 	void PainSound() override;
 	void DeathSound() override;
 
 #if FEATURE_ROSENBERG_DECAY
-	bool AbleToHeal() { return false; }
+	bool AbleToHeal() override { return false; }
 #endif
 
 	static const NamedSoundScript painSoundScript;
@@ -1752,20 +1748,18 @@ void CRosenberg::DeathSound()
 	EmitSoundScriptTalk(dieSoundScript);
 }
 
-#endif
-
 class CCivilian : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() { return 100; }
-	void Spawn()
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override
 	{
 		SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth);
 		TalkMonsterInit();
 	}
-	void Precache();
-	const char* DefaultDisplayName() { return "Civilian"; }
-	bool AbleToHeal() { return false; }
+	void Precache() override;
+	const char* DefaultDisplayName() override { return "Civilian"; }
+	bool AbleToHeal() override { return false; }
 
 	static constexpr const char* painSoundScript = "Civilian.Pain";
 	static constexpr const char* dieSoundScript = "Civilian.Die";
@@ -1792,6 +1786,8 @@ void CCivilian::Precache()
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
 }
+
+#define FEATURE_GUS 0
 
 #if FEATURE_GUS
 class CGus : public CScientist
@@ -1862,7 +1858,7 @@ const char* CDeadWorker::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_worker_dead, CDeadWorker )
 
-void CDeadWorker::Spawn( )
+void CDeadWorker::Spawn()
 {
 	SpawnHelper();
 	MonsterInitDead();
@@ -1887,21 +1883,20 @@ void CDeadGus::Spawn()
 }
 #endif
 
-#if FEATURE_KELLER
 class CKeller : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() { return 100; }
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("keller"); }
-	const char* DefaultDisplayName() { return "Richard Keller"; }
-	const char* DefaultSentenceGroup(int group);
-	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("keller"); }
+	const char* DefaultDisplayName() override { return "Richard Keller"; }
+	const char* DefaultSentenceGroup(int group) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }
 	void PainSound() override;
 	void DeathSound() override;
 
-	bool AbleToHeal() { return false; }
+	bool AbleToHeal() override { return false; }
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -1995,4 +1990,3 @@ void CKeller::DeathSound()
 {
 	EmitSoundScriptTalk(dieSoundScript);
 }
-#endif

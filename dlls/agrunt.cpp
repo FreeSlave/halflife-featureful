@@ -69,49 +69,49 @@ enum
 class CAGrunt : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Alien Grunt"; }
-	const char* ReverseRelationshipModel() { return "models/agruntf.mdl"; }
-	int DefaultISoundMask( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void SetObjectCollisionBox( void )
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Alien Grunt"; }
+	const char* ReverseRelationshipModel() override { return "models/agruntf.mdl"; }
+	int DefaultISoundMask() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -32.0f, -32.0f, 0.0f ), Vector( 32.0f, 32.0f, 85.0f ));
 	}
 
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	bool FCanCheckAttacks( void ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	bool FCanCheckAttacks() override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
-	void StartTask( Task_t *pTask );
+	void StartTask( Task_t *pTask ) override;
 	void AlertSound() override;
 	void DeathSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	void AttackSound();
-	void PrescheduleThink( void );
-	float HeadHitGroupDamageMultiplier();
+	void PrescheduleThink() override;
+	float HeadHitGroupDamageMultiplier() override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	int IRelationship( CBaseEntity *pTarget ) override;
-	void StopTalking( void );
-	bool ShouldSpeak( void );
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void StopTalking();
+	bool ShouldSpeak();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 	CUSTOM_SCHEDULES
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_LARGE; }
-	bool IsDisplaceable() { return true; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	bool IsDisplaceable() override { return true; }
 
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 	static constexpr const char* attackHitSoundScript = "AlienGrunt.AttackHit";
 	static constexpr const char* attackMissSoundScript = "AlienGrunt.AttackMiss";
@@ -223,7 +223,7 @@ int CAGrunt::IRelationship( CBaseEntity *pTarget )
 //=========================================================
 // ISoundMask
 //=========================================================
-int CAGrunt::DefaultISoundMask( void )
+int CAGrunt::DefaultISoundMask()
 {
 	return ( bits_SOUND_WORLD | bits_SOUND_COMBAT | bits_SOUND_PLAYER | bits_SOUND_DANGER );
 }
@@ -287,7 +287,7 @@ DamageInfo CAGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t 
 //=========================================================
 // StopTalking - won't speak again for 10-20 seconds.
 //=========================================================
-void CAGrunt::StopTalking( void )
+void CAGrunt::StopTalking()
 {
 	m_flNextWordTime = m_flNextSpeakTime = gpGlobals->time + 10.0f + RANDOM_LONG( 0, 10 );
 }
@@ -295,7 +295,7 @@ void CAGrunt::StopTalking( void )
 //=========================================================
 // ShouldSpeak - Should this agrunt be talking?
 //=========================================================
-bool CAGrunt::ShouldSpeak( void )
+bool CAGrunt::ShouldSpeak()
 {
 	if( m_flNextSpeakTime > gpGlobals->time )
 	{
@@ -322,7 +322,7 @@ bool CAGrunt::ShouldSpeak( void )
 //=========================================================
 // PrescheduleThink
 //=========================================================
-void CAGrunt::PrescheduleThink( void )
+void CAGrunt::PrescheduleThink()
 {
 	if( ShouldSpeak() )
 	{
@@ -421,7 +421,7 @@ void CAGrunt::PainSound()
 // Classify - indicates this monster's place in the
 // relationship table.
 //=========================================================
-int CAGrunt::DefaultClassify( void )
+int CAGrunt::DefaultClassify()
 {
 	return CLASS_ALIEN_MILITARY;
 }
@@ -430,7 +430,7 @@ int CAGrunt::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CAGrunt::SetYawSpeed( void )
+void CAGrunt::SetYawSpeed()
 {
 	int ys;
 
@@ -890,7 +890,7 @@ IMPLEMENT_CUSTOM_SCHEDULES( CAGrunt, CFollowingMonster )
 // because they can use their smart weapons against unseen
 // enemies. Base class doesn't attack anyone it can't see.
 //=========================================================
-bool CAGrunt::FCanCheckAttacks( void )
+bool CAGrunt::FCanCheckAttacks()
 {
 	if( !HasConditions( bits_COND_ENEMY_TOOFAR ) )
 	{
@@ -1040,7 +1040,7 @@ void CAGrunt::StartTask( Task_t *pTask )
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CAGrunt::GetSchedule( void )
+Schedule_t *CAGrunt::GetSchedule()
 {
 	if( HasConditions( bits_COND_HEAR_SOUND ) )
 	{
@@ -1182,12 +1182,12 @@ void CAGrunt::PlayUnUseSentence()
 class CDeadAgrunt : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/agrunt.mdl"; }
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/agrunt.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MILITARY; }
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 

@@ -259,7 +259,7 @@ void UTIL_MuzzleLight( const Vector& vecSrc )
 	MESSAGE_END();
 }
 
-float UTIL_WeaponTimeBase( void )
+float UTIL_WeaponTimeBase()
 {
 #if CLIENT_WEAPONS
 	return 0.0f;
@@ -300,7 +300,7 @@ void UTIL_SetGroupTrace( int groupmask, int op )
 	ENGINE_SETGROUPMASK( g_groupmask, g_groupop );
 }
 
-void UTIL_UnsetGroupTrace( void )
+void UTIL_UnsetGroupTrace()
 {
 	g_groupmask = 0;
 	g_groupop = 0;
@@ -320,7 +320,7 @@ UTIL_GroupTrace::UTIL_GroupTrace( int groupmask, int op )
 	ENGINE_SETGROUPMASK( g_groupmask, g_groupop );
 }
 
-UTIL_GroupTrace::~UTIL_GroupTrace( void )
+UTIL_GroupTrace::~UTIL_GroupTrace()
 {
 	g_groupmask = m_oldgroupmask;
 	g_groupop = m_oldgroupop;
@@ -1120,7 +1120,7 @@ void UTIL_TraceModel( const Vector &vecStart, const Vector &vecEnd, int hullNumb
 	g_engfuncs.pfnTraceModel( vecStart, vecEnd, hullNumber, pentModel, ptr );
 }
 
-TraceResult UTIL_GetGlobalTrace( )
+TraceResult UTIL_GetGlobalTrace()
 {
 	TraceResult tr;
 
@@ -1303,7 +1303,7 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 	MESSAGE_END();
 }				
 
-Vector UTIL_RandomBloodVector( void )
+Vector UTIL_RandomBloodVector()
 {
 	Vector direction;
 
@@ -1858,7 +1858,7 @@ static int gInputSizes[FIELD_TYPECOUNT] =
 };
 
 // Base class includes common SAVERESTOREDATA pointer, and manages the entity table
-CSaveRestoreBuffer::CSaveRestoreBuffer( void )
+CSaveRestoreBuffer::CSaveRestoreBuffer()
 {
 	m_pdata = NULL;
 }
@@ -1868,7 +1868,7 @@ CSaveRestoreBuffer::CSaveRestoreBuffer( SAVERESTOREDATA *pdata )
 	m_pdata = pdata;
 }
 
-CSaveRestoreBuffer::~CSaveRestoreBuffer( void )
+CSaveRestoreBuffer::~CSaveRestoreBuffer()
 {
 }
 
@@ -2654,7 +2654,7 @@ void CRestore::BufferReadHeader( HEADER *pheader )
 }
 
 
-short CRestore::ReadShort( void )
+short CRestore::ReadShort()
 {
 	short tmp = 0;
 
@@ -2663,7 +2663,7 @@ short CRestore::ReadShort( void )
 	return tmp;
 }
 
-int CRestore::ReadInt( void )
+int CRestore::ReadInt()
 {
 	int tmp = 0;
 
@@ -2692,7 +2692,7 @@ char *CRestore::ReadNamedString( const char *pName )
 #endif
 }
 
-char *CRestore::BufferPointer( void )
+char *CRestore::BufferPointer()
 {
 	if( !m_pdata )
 		return NULL;
@@ -2725,7 +2725,7 @@ void CRestore::BufferSkipBytes( int bytes )
 	BufferReadBytes( NULL, bytes );
 }
 
-int CRestore::BufferSkipZString( void )
+int CRestore::BufferSkipZString()
 {
 	char *pszSearch;
 	int len;

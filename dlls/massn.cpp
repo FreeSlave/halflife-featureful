@@ -6,12 +6,9 @@
 #include	"talkmonster.h"
 #include	"soundent.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"gamerules.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
-
-#if FEATURE_MASSN
 
 //=========================================================
 // monster-specific DEFINE's
@@ -53,28 +50,28 @@ enum
 class CMassn : public CHGrunt
 {
 public:
-	const char* DefaultDisplayName() { return "Male Assassin"; }
-	const char* ReverseRelationshipModel() { return "models/massnf.mdl"; }
-	void KeyValue(KeyValueData* pkvd);
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	const char* DefaultDisplayName() override { return "Male Assassin"; }
+	const char* ReverseRelationshipModel() override { return "models/massnf.mdl"; }
+	void KeyValue(KeyValueData* pkvd) override;
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	bool CheckRangeAttack2(float flDot, float flDist) override;
-	void Sniperrifle(void);
-	void GibMonster();
-	void PlayUseSentence();
-	void PlayUnUseSentence();
-	int	DefaultClassify ( void )
+	void Sniperrifle();
+	void GibMonster() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CHGrunt::DefaultClassify();
 	}
 
-	bool FOkToSpeak(void);
+	bool FOkToSpeak() override;
 
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	void MonsterInit();
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	void MonsterInit() override;
 
 	void DeathSound() override;
 	void PainSound() override;
@@ -84,7 +81,7 @@ public:
 		return inputDamageInfo;
 	}
 
-	void SetHead(int head);
+	void SetHead(int head) override;
 
 	void DropMyItems(bool isGibbed);
 
@@ -101,16 +98,16 @@ public:
 	static constexpr const char* sniperSoundScript = "Massn.Sniper";
 
 protected:
-	virtual void PlayFirstBurstSounds() {
+	virtual void PlayFirstBurstSounds() override {
 		EmitSoundScript(burst9mmSoundScript);
 	}
-	virtual void PlayReloadSound() {
+	virtual void PlayReloadSound() override {
 		EmitSoundScript(reloadSoundScript);
 	}
-	virtual void PlayGrenadeLaunchSound() {
+	virtual void PlayGrenadeLaunchSound() override {
 		EmitSoundScript(grenadeLaunchSoundScript);
 	}
-	virtual void PlayShogtunSound() {
+	virtual void PlayShogtunSound() override {
 		EmitSoundScript(shotgunSoundScript);
 	}
 };
@@ -151,16 +148,16 @@ void CMassn::PlayUnUseSentence()
 	PlaySentenceSoundScript(unuseSoundScript);
 }
 
-bool CMassn::FOkToSpeak(void)
+bool CMassn::FOkToSpeak()
 {
 	return false;
 }
 
-void CMassn::IdleSound(void)
+void CMassn::IdleSound()
 {
 }
 
-void CMassn::Sniperrifle(void)
+void CMassn::Sniperrifle()
 {
 	Vector vecShootOrigin = GetGunPosition();
 	Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
@@ -182,7 +179,7 @@ void CMassn::Sniperrifle(void)
 //=========================================================
 // GibMonster - make gun fly through the air.
 //=========================================================
-void CMassn::GibMonster( void )
+void CMassn::GibMonster()
 {
 	if( GetBodygroup( MASSN_GUN_GROUP ) != MASSN_GUN_NONE )
 	{
@@ -253,7 +250,6 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 			DropMyItems(false);
 	}
 	break;
-
 
 	case MASSN_AE_BURST1:
 	{
@@ -412,15 +408,15 @@ void CMassn::SetHead(int head)
 class CAssassinRepel : public CHGruntRepel
 {
 public:
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	void KeyValue(KeyValueData* pkvd);
-	const char* TrooperName() {
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	void KeyValue(KeyValueData* pkvd) override;
+	const char* TrooperName() override {
 		return "monster_male_assassin";
 	}
-	void PrepareBeforeSpawn(CBaseEntity* pEntity);
+	void PrepareBeforeSpawn(CBaseEntity* pEntity) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int head;
@@ -455,18 +451,18 @@ void CAssassinRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CDeadMassn : public CDeadMonster
 {
 public:
-	void Spawn();
-	const char* DefaultModel() { return "models/massn.mdl"; }
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	int	DefaultClassify()
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/massn.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CLASS_HUMAN_MILITARY;
 	}
 
-	void KeyValue( KeyValueData *pkvd );
-	const char* getPos(int pos) const;
+	void KeyValue( KeyValueData *pkvd ) override;
+	const char* getPos(int pos) const override;
 
 	int	m_iHead;
 	static const char *m_szPoses[3];
@@ -493,7 +489,7 @@ void CDeadMassn::KeyValue( KeyValueData *pkvd )
 LINK_ENTITY_TO_CLASS( monster_male_assassin_dead, CDeadMassn )
 LINK_ENTITY_TO_CLASS( monster_massassin_dead, CDeadMassn )
 
-void CDeadMassn::Spawn( )
+void CDeadMassn::Spawn()
 {
 	SpawnHelper();
 
@@ -518,5 +514,3 @@ void CDeadMassn::Spawn( )
 
 	MonsterInitDead();
 }
-
-#endif

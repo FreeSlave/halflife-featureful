@@ -24,7 +24,7 @@
 #include "kbutton.h"
 #include "string_utils.h"
 
-int CHudMOTD::Init( void )
+int CHudMOTD::Init()
 {
 	gHUD.AddHudElem( this );
 
@@ -36,13 +36,13 @@ int CHudMOTD::Init( void )
 	return 1;
 }
 
-int CHudMOTD::VidInit( void )
+int CHudMOTD::VidInit()
 {
 	// Load sprites here
 	return 1;
 }
 
-void CHudMOTD::Reset( void )
+void CHudMOTD::Reset()
 {
 	m_iFlags &= ~HUD_ACTIVE;  // start out inactive
 	m_szMOTD[0] = 0;

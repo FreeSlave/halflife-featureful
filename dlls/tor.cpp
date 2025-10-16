@@ -396,7 +396,7 @@ DEFINE_CUSTOM_SCHEDULES(CTor)
 
 IMPLEMENT_CUSTOM_SCHEDULES(CTor, CFollowingMonster)
 
-void CTor::SetYawSpeed(void)
+void CTor::SetYawSpeed()
 {
 	pev->yaw_speed = 180;
 }

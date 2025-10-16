@@ -11,7 +11,6 @@
 #include "scripted.h"
 #include "visuals_utils.h"
 
-#if FEATURE_DISPLACER
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
 LINK_ENTITY_TO_CLASS(displacer_ball, CDisplacerBall)
@@ -72,7 +71,7 @@ const NamedSoundScript CDisplacerBall::explodeSoundScript = {
 	"DisplacerBall.Explode"
 };
 
-void CDisplacerBall::Spawn(void)
+void CDisplacerBall::Spawn()
 {
 	Precache();
 	pev->classname = MAKE_STRING("displacer_ball");
@@ -261,7 +260,7 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 	pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.2f : 0.5f );
 }
 
-void CDisplacerBall::Circle( void )
+void CDisplacerBall::Circle()
 {
 	const Visual* visual = GetVisual(ringVisual);
 	if (visual->modelIndex)
@@ -276,7 +275,7 @@ void CDisplacerBall::Circle( void )
 	SendDynLight(pev->origin, GetVisual(lightVisual));
 }
 
-void CDisplacerBall::KillThink( void )
+void CDisplacerBall::KillThink()
 {
 	CBaseEntity* pTarget = m_hDisplacedTarget;
 	if (pTarget)
@@ -291,7 +290,7 @@ void CDisplacerBall::KillThink( void )
 	pev->nextthink = gpGlobals->time + 0.2f;
 }
 
-void CDisplacerBall::ExplodeThink( void )
+void CDisplacerBall::ExplodeThink()
 {
 	ClearBeams();
 
@@ -307,7 +306,7 @@ void CDisplacerBall::ExplodeThink( void )
 	UTIL_Remove( this );
 }
 
-void CDisplacerBall::ClearBeams( void )
+void CDisplacerBall::ClearBeams()
 {
 	for( int i = 0;i < 8; i++ )
 	{
@@ -318,4 +317,3 @@ void CDisplacerBall::ClearBeams( void )
 		}
 	}
 }
-#endif
