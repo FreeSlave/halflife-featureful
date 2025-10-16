@@ -4773,7 +4773,7 @@ void CEnvDecal::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 		case 8: iTexture = DECAL_SMALLSCORCH1 +	RANDOM_LONG(0,2); break;
 		case 9:
 		{
-			if (g_modFeatures.opfor_decals)
+			if (gDecals[DECAL_SPR_SPLT1].index >= 0)
 				iTexture = DECAL_SPR_SPLT1 + RANDOM_LONG(0,2);
 			else
 				iTexture = DECAL_YBLOOD5 + RANDOM_LONG(0,1);
@@ -4781,7 +4781,7 @@ void CEnvDecal::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 		break;
 		case 10:
 		{
-			if (g_modFeatures.opfor_decals)
+			if (gDecals[DECAL_OPFOR_SCORCH1].index >= 0)
 				iTexture = DECAL_OPFOR_SCORCH1 + RANDOM_LONG(0,2);
 			else
 				iTexture = DECAL_SCORCH1 + RANDOM_LONG(0,1);
@@ -4789,7 +4789,7 @@ void CEnvDecal::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 		break;
 		case 11:
 		{
-			if (g_modFeatures.opfor_decals)
+			if (gDecals[DECAL_OPFOR_SMALLSCORCH1].index >= 0)
 				iTexture = DECAL_OPFOR_SMALLSCORCH1 + RANDOM_LONG(0,2);
 			else
 				iTexture = DECAL_SMALLSCORCH1 + RANDOM_LONG(0,2);

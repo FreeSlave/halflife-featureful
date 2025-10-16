@@ -656,7 +656,7 @@ void CWorld::Precache()
 	// 63 testing
 	LIGHT_STYLE( 63, "a" );
 
-	const int decalCount = g_modFeatures.opfor_decals ? (int)ARRAYSIZE( gDecals ) : DECAL_BASE_COUNT;
+	const int decalCount = (int)ARRAYSIZE( gDecals );
 
 	for( int i = 0; i < decalCount; i++ )
 		gDecals[i].index = DECAL_INDEX( gDecals[i].name );

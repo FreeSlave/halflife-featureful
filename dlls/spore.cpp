@@ -169,7 +169,7 @@ void CSpore::IgniteThink()
 		pev->origin, pev->origin + vecDir * (m_SporeType == GRENADE ? 64 : 32),
 		dont_ignore_monsters, edict(), &tr);
 
-	if (g_modFeatures.opfor_decals)
+	if (gDecals[DECAL_SPR_SPLT1].index >= 0)
 		UTIL_DecalTrace(&tr, DECAL_SPR_SPLT1 + RANDOM_LONG(0, 2));
 	else
 		UTIL_DecalTrace(&tr, DECAL_YBLOOD5 + RANDOM_LONG(0, 1));

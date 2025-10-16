@@ -121,7 +121,6 @@ ModFeatures::ModFeatures()
 	env_spark_transit = false;
 
 	skill_opfor = FEATURE_OPFOR_SPECIFIC ? true : false;
-	opfor_decals = FEATURE_OPFOR_SPECIFIC ? true : false;
 	opfor_deadhaz = FEATURE_OPFOR_SPECIFIC ? true : false;
 	tentacle_opfor_height = FEATURE_OPFOR_SPECIFIC ? true : false;
 }
@@ -178,7 +177,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(door_rotating_starts_open_fix),
 		KEY_VALUE_DEF(env_spark_transit),
 		KEY_VALUE_DEF(skill_opfor),
-		KEY_VALUE_DEF(opfor_decals),
 		KEY_VALUE_DEF(opfor_deadhaz),
 		KEY_VALUE_DEF(tentacle_opfor_height),
 	};

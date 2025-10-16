@@ -155,7 +155,7 @@ void CShock::Touch(CBaseEntity *pOther)
 	if (!pOther->pev->takedamage)
 	{
 		// make a splat on the wall
-		const int baseDecal = g_modFeatures.opfor_decals ? DECAL_OPFOR_SCORCH1 : DECAL_SMALLSCORCH1;
+		const int baseDecal = gDecals[DECAL_OPFOR_SCORCH1].index >= 0 ? DECAL_OPFOR_SCORCH1 : DECAL_SMALLSCORCH1;
 		UTIL_DecalTrace(&tr, baseDecal + RANDOM_LONG(0, 2));
 
 		int iContents = UTIL_PointContents(pev->origin);
