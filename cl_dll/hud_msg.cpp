@@ -225,10 +225,10 @@ int CHud::MsgFunc_PlTemplate(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
 
-	int r = READ_BYTE();
-	int g = READ_BYTE();
-	int b = READ_BYTE();
-	m_forcedHudColor = PackRGB(r, g, b);
+	m_forcedHudColor = PackRGB(READ_COLOR());
+	m_forcedHudColorNoSuit = PackRGB(READ_COLOR());
+	m_forcedHudColorCritical = PackRGB(READ_COLOR());
+	m_forcedHudDrawNoSuit = READ_BYTE();
 
 	return 1;
 }

@@ -220,9 +220,9 @@ int CHudHealth::Draw( float flTime )
 	bool hasSuit = gHUD.HasSuit();
 
 	// Only draw health if we have the suit.
-	if (hasSuit || gHUD.clientFeatures.hud_draw_nosuit)
+	if (hasSuit || gHUD.DrawHUDNoSuit())
 	{
-		const bool drawArmor = hasSuit && (m_iMaxBat > 0 || m_iBat > 0);
+		const bool drawArmor = m_iBat > 0 || hasSuit;
 		const int armorStartX = DrawHealth(drawArmor);
 		if (drawArmor)
 			DrawArmor(armorStartX);

@@ -321,7 +321,7 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 
 	CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
 	// if the player doesn't have the suit, or there is no juice left, make the deny noise
-	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit()) || !pPlayer->CanHaveItem(this) )
+	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit(pPlayer)) || !pPlayer->CanHaveItem(this) )
 	{
 		if( m_flSoundTime <= gpGlobals->time )
 		{
@@ -422,7 +422,11 @@ public:
 	{
 		return pActivator->TakeHealth( this, 1, HEAL_CHARGE ) > 0;
 	}
-	bool AllowNoSuit() override {
+	bool AllowNoSuit(CBasePlayer* pPlayer) override {
+		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))
+		{
+			return (bool)pPlayer->m_playerTemplate->nosuitAllowHealthCharger;
+		}
 		return g_modFeatures.nosuit_allow_healthcharger;
 	}
 
@@ -577,9 +581,16 @@ public:
 	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 
+	bool AllowNoSuit(CBasePlayer* pPlayer) {
+		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))
+		{
+			return (bool)pPlayer->m_playerTemplate->nosuitAllowHealthCharger;
+		}
+		return g_modFeatures.nosuit_allow_healthcharger;
+	}
+
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
-
 	static TYPEDESCRIPTION m_SaveData[];
 
 	enum {
@@ -726,7 +737,8 @@ void CWallHealthDecay::SearchForPlayer()
 		if (pEntity->IsPlayer() && pEntity->IsAlive())
 		{
 			CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pEntity);
-			if ((pPlayer->HasSuit() || g_modFeatures.nosuit_allow_healthcharger) && pPlayer->CanHaveItem(this))
+
+			if ((pPlayer->HasSuit() || AllowNoSuit(pPlayer)) && pPlayer->CanHaveItem(this))
 			{
 				if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
 					continue;
@@ -797,7 +809,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pCaller);
 
 	// if the player doesn't have the suit, or there is no juice left, make the deny noise
-	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || g_modFeatures.nosuit_allow_healthcharger) )
+	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit(pPlayer)) )
 	{
 		if( m_flSoundTime <= gpGlobals->time )
 		{

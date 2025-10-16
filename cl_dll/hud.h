@@ -1019,6 +1019,9 @@ private:
 	int m_cachedHudColor;
 	int m_cachedTextColor;
 	int m_forcedHudColor;
+	int m_forcedHudColorNoSuit;
+	int m_forcedHudColorCritical;
+	byte m_forcedHudDrawNoSuit;
 
 	// this is solely to track whether we need to reset the crosshair
 	bool m_colorableCrosshair;
@@ -1107,6 +1110,11 @@ public:
 	bool HasSuit() const
 	{
 		return (m_iItemBits & PLAYER_ITEM_SUIT) != 0;
+	}
+	bool DrawHUDNoSuit() const {
+		if (m_forcedHudDrawNoSuit)
+			return m_forcedHudDrawNoSuit == 1;
+		return clientFeatures.hud_draw_nosuit;
 	}
 	bool HasFlashlight() const
 	{

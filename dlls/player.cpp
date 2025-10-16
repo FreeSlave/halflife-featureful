@@ -377,7 +377,7 @@ void LinkUserMessages()
 	gmsgSnow = REG_USER_MSG("Snow", -1);
 
 	gmsgJournal = REG_USER_MSG("Journal", -1);
-	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 3);
+	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 10);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -474,7 +474,26 @@ void CBasePlayer::DeathSound()
 			deathSoundScript = deathUnderwaterSoundScript;
 		}
 	}
-	const bool canPlayHevDead = !g_modFeatures.hev_dead_requires_suit || HasSuit();
+
+	bool canPlayHevDead = !g_modFeatures.hev_dead_requires_suit || HasSuit();
+	if (m_playerTemplate)
+	{
+		switch(m_playerTemplate->playHevDead)
+		{
+		case PlayerTemplate::HEV_DEAD_ALWAYS:
+			canPlayHevDead = true;
+			break;
+		case PlayerTemplate::HEV_DEAD_NEVER:
+			canPlayHevDead = false;
+			break;
+		case PlayerTemplate::HEV_DEAD_SUIT:
+			canPlayHevDead = HasSuit();
+			break;
+		default:
+			break;
+		}
+	}
+
 	if (deathSoundScript && !deathSoundScript->waves.empty())
 	{
 		EmitSoundScript(deathSoundScript);
@@ -6843,11 +6862,23 @@ bool CBasePlayer::ApplyPlayerTemplate(string_t templateName)
 void CBasePlayer::SendPlayerTemplateData()
 {
 	const Color3 hudColor = m_playerTemplate ? m_playerTemplate->hudColor : Color3{};
+	const Color3 hudColorNoSuit = m_playerTemplate ? m_playerTemplate->hudColorNoSuit : Color3{};
+	const Color3 hudColorCritical = m_playerTemplate ? m_playerTemplate->hudColorCritical : Color3{};
+
+	int hudDrawNoSuit = 0;
+	if (m_playerTemplate && !indeterminate(m_playerTemplate->hudDrawNoSuit))
+	{
+		if (m_playerTemplate->hudDrawNoSuit)
+			hudDrawNoSuit = 1;
+		else
+			hudDrawNoSuit = 2;
+	}
 
 	MESSAGE_BEGIN(MSG_ONE, gmsgPlTemplate, NULL, pev);
-		WRITE_BYTE(hudColor.r);
-		WRITE_BYTE(hudColor.g);
-		WRITE_BYTE(hudColor.b);
+		WRITE_COLOR(hudColor);
+		WRITE_COLOR(hudColorNoSuit);
+		WRITE_COLOR(hudColorCritical);
+		WRITE_BYTE(hudDrawNoSuit);
 	MESSAGE_END();
 }
 

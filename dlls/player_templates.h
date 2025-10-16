@@ -16,6 +16,14 @@ class PlayerTemplateSystem;
 
 struct PlayerTemplate
 {
+	enum
+	{
+		HEV_DEAD_DEFAULT = 0,
+		HEV_DEAD_ALWAYS,
+		HEV_DEAD_SUIT,
+		HEV_DEAD_NEVER
+	};
+
 	struct WeaponReplacement
 	{
 		std::string viewModel;
@@ -29,8 +37,13 @@ struct PlayerTemplate
 	bool IsItemAllowed(const char* name) const;
 
 	Color3 hudColor{};
+	Color3 hudColorNoSuit{};
+	Color3 hudColorCritical{};
 	float maxSpeed{0.0f};
 	tribool suitSentences;
+	tribool hudDrawNoSuit;
+	int playHevDead;
+	tribool nosuitAllowHealthCharger;
 	std::string entTemplateName;
 
 	friend class PlayerTemplateSystem;

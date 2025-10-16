@@ -4,6 +4,8 @@
 
 #include "cbase.h"
 
+class CBasePlayer;
+
 class CWallCharger : public CBaseEntity
 {
 public:
@@ -16,7 +18,7 @@ public:
 	virtual int ChargerCapacity() = 0;
 
 	virtual bool GiveCharge(CBaseEntity* pActivator) = 0;
-	virtual bool AllowNoSuit() { return false; }
+	virtual bool AllowNoSuit(CBasePlayer* pPlayer) { return false; }
 
 	virtual const NamedSoundScript& LoopingSoundScript() = 0;
 	virtual const NamedSoundScript& DenySoundScript() = 0;

@@ -17,9 +17,24 @@ const char* playerTemplatesSchema = R"(
 			"hud_color": {
 				"$ref": "definitions.json#/color"
 			},
+			"hud_color_nosuit": {
+				"$ref": "definitions.json#/color"
+			},
+			"hud_color_critical": {
+				"$ref": "definitions.json#/color"
+			},
+			"hud_draw_nosuit": {
+				"type": "boolean"
+			},
 			"maxspeed": {
 				"type": "number",
 				"minimum": 0
+			},
+			"nosuit_allow_healthcharger": {
+				"type": "boolean"
+			},
+			"play_hev_dead": {
+				"enum": ["always", "suit", "never"]
 			},
 			"allowed_items": {
 				"type": "array",
@@ -121,8 +136,28 @@ bool PlayerTemplateSystem::ReadFromDocument(const rapidjson::Document& document,
 		});
 
 		UpdatePropertyFromJson(playerTemplate.hudColor, templateValue, "hud_color");
+		UpdatePropertyFromJson(playerTemplate.hudColorNoSuit, templateValue, "hud_color_nosuit");
+		UpdatePropertyFromJson(playerTemplate.hudColorCritical, templateValue, "hud_color_critical");
+		UpdatePropertyFromJson(playerTemplate.hudDrawNoSuit, templateValue, "hud_draw_nosuit");
 		UpdatePropertyFromJson(playerTemplate.maxSpeed, templateValue, "maxspeed");
+		UpdatePropertyFromJson(playerTemplate.nosuitAllowHealthCharger, templateValue, "nosuit_allow_healthcharger");
 		UpdatePropertyFromJson(playerTemplate.suitSentences, templateValue, "suit_sentences");
+
+		HandleJSONMember(templateValue, "play_hev_dead", [&playerTemplate](const Value& value) {
+			const char* str = value.GetString();
+			if (strcmp(str, "always") == 0)
+			{
+				playerTemplate.playHevDead = PlayerTemplate::HEV_DEAD_ALWAYS;
+			}
+			else if (strcmp(str, "suit") == 0)
+			{
+				playerTemplate.playHevDead = PlayerTemplate::HEV_DEAD_SUIT;
+			}
+			else if (strcmp(str, "never") == 0)
+			{
+				playerTemplate.playHevDead = PlayerTemplate::HEV_DEAD_NEVER;
+			}
+		});
 
 		HandleJSONMember(templateValue, "weapons", [&playerTemplate](const Value& value) {
 			for (auto weaponIt = value.MemberBegin(); weaponIt != value.MemberEnd(); ++weaponIt)

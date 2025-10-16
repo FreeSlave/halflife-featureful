@@ -46,7 +46,10 @@ Example:
     },
     "alien": {
         "hud_color": "0x00AF00",
+        "hud_color_nosuit": "0x00AF00",
+        "hud_draw_nosuit": true,
         "maxspeed": 260,
+        "play_hev_dead": "never",
         "suit_sentences": false,
         "allowed_items": ["weapon_hornetgun", "weapon_snark", "weapon_grapple", "weapon_shockrifle", "weapon_sporelauncher", "ammo_spore"],
         "ent_template": {
@@ -84,11 +87,45 @@ An [entity template]({{< ref "entity-templates" >}}) for the player. Note that o
 
 ### hud_color
 
-Custom HUD [color]({{< ref "json/#color" >}}) for the player. Non-zero value forces the color even if `hud_color.configurable` is enabled in **features/featureful_client.cfg**.
+Custom HUD [color]({{< ref "json/#color" >}}) for the player (when they have a suit). Non-zero value forces the color even if `hud_color.configurable` is enabled in **features/featureful_client.cfg**.
+
+### hud_color_critical
+
+Custom HUD [color]({{< ref "json/#color" >}}) for the player when they're at critical health.
+
+If not set, the `hud_color_critical` from **features/featureful_client.cfg** is used.
+
+### hud_color_nosuit
+
+Custom HUD [color]({{< ref "json/#color" >}}) for the player without a suit.
+
+If not set, the `hud_color_nosuit` from **features/featureful_client.cfg** is used.
+
+### hud_draw_nosuit
+
+A boolean - whether the HUD should be drawn without a suit.
+
+If not set, the behavior depends on `hud_draw_nosuit` option in **features/featureful_client.cfg**.
 
 ### maxspeed
 
 Custom [base maximum speed]({{< ref "player/#maximum-speed" >}}) for the player.
+
+### nosuit_allow_healthcharger
+
+A boolean - whether the player is allowed to use [health charger]({< ref func_healthcharger >}) without a suit.
+
+If not set, the behavior depends on `nosuit_allow_healthcharger` option in **features/featureful_server.cfg**.
+
+### play_hev_dead
+
+Rules for playing the `HEV_DEAD` sentence on player's death. Possible values:
+
+* `"always"` - play `HEV_DEAD` even if player doesn't have a suit. This is a default behavior in Half-Life.
+* `"suit"` - play `HEV_DEAD` only if player has a suit.
+* `"never"` - never play `HEV_DEAD`.
+
+If not set, the behavior depends on `hev_dead_requires_suit` option in **features/featureful_server.cfg**.
 
 ### prohibited_items
 
@@ -104,7 +141,9 @@ This list is ignored if [allowed_items](#allowed_items) is specified.
 
 ### suit_sentences
 
-Whether HEV sentences should be playing for this player template. If not defined, the `suit_sentences` option from **features/featureful_server.cfg** is used.
+A boolean - whether HEV sentences should be playing for this player template.
+
+If not set, the behavior dependson `suit_sentences` option in **features/featureful_server.cfg**.
 
 ### weapons
 
