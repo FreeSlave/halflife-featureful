@@ -96,8 +96,6 @@ ClientFeatures::ClientFeatures()
 	hud_color_nvg = 0x00FFFFFF;
 	hud_min_alpha_nvg = 192;
 
-	opfor_title = FEATURE_OPFOR_SPECIFIC ? true : false;
-
 	movemode.configurable = false;
 	crosshair_colorable.configurable = false;
 
@@ -1032,7 +1030,6 @@ void CHud::ParseClientFeatures()
 	KeyValueDefinition<bool> booleans[] = {
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
-		{ "opfor_title", clientFeatures.opfor_title },
 		{ "fullbright_textures", clientFeatures.fullbright_textures },
 	};
 

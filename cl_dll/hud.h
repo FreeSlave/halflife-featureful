@@ -937,7 +937,6 @@ struct ClientFeatures
 
 	int hud_color_nvg;
 	int hud_min_alpha_nvg;
-	bool opfor_title;
 
 	FlashlightFeatures flashlight;
 
