@@ -1030,7 +1030,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		const int bloodType = BloodTypeFromName(bloodTypeName);
 		if (bloodType == BLOOD_COLOR_INVALID)
 		{
-			LOG_WARNING("Unknown blood type '%s'\n", bloodType);
+			LOG_WARNING("Unknown blood type '%s'\n", bloodTypeName);
 		}
 		else
 		{

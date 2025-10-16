@@ -36,6 +36,7 @@ add_executable(test
 	../game_shared/parsetext.cpp
 	../game_shared/random_utils.cpp
 	../game_shared/sound_channel.cpp
+	../game_shared/soundscripts.cpp
 	../game_shared/schema_definitions.cpp
 	../game_shared/schema_weapons.cpp
 	../game_shared/tex_materials.cpp
@@ -47,12 +48,12 @@ add_executable(test
 	../cl_dll/journal_config.cpp
 	../cl_dll/message_strings.cpp
 	../dlls/ammoregistry.cpp
+	../dlls/blood.cpp
 	../dlls/classify.cpp
 	../dlls/ent_templates.cpp
 	../dlls/followers.cpp
 	../dlls/inventory.cpp
 	../dlls/objecthint_spec.cpp
-	../dlls/soundscripts.cpp
 	../dlls/visuals.cpp
 	../dlls/warpball.cpp
 	main.cpp
