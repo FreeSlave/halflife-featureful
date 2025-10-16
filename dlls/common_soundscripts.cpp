@@ -216,6 +216,20 @@ const NamedSoundScript fallBodySplatSoundScript = {
 	"Player.FallBodySplat"
 };
 
+const NamedSoundScript fallPainSoundScript = {
+	CHAN_VOICE,
+	{"player/pl_fallpain3.wav"},
+	"Player.FallPain"
+};
+
+const NamedSoundScript jumpSoundScript = {
+	CHAN_BODY,
+	{},
+	0.5f,
+	ATTN_NORM,
+	"Player.Jump"
+};
+
 const NamedSoundScript trainUseSoundScript = {
 	CHAN_ITEM,
 	{"plats/train_use1.wav"},

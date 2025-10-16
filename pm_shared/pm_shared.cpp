@@ -26,7 +26,9 @@
 #include "pm_movevars.h"
 #include "pm_debug.h"
 #include "pm_materials.h"
+#include "soundscripts.h"
 #include "tex_materials.h"
+#include "util_shared.h"
 
 #if CLIENT_DLL
 // Spectator Mode
@@ -88,6 +90,23 @@ playermove_t *pmove = NULL;
 #define	CONTENTS_CURRENT_DOWN		-14
 
 #define CONTENTS_TRANSLUCENT		-15
+
+extern const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name);
+
+void PM_PlaySoundScript(const SoundScript* soundScript)
+{
+	if (soundScript)
+	{
+		const char* sample = soundScript->Wave();
+		if (sample)
+		{
+			pmove->PM_PlaySound(soundScript->channel, sample,
+								RandomizeNumberFromRange(soundScript->volume),
+								soundScript->attenuation, 0,
+								RandomizeNumberFromRange(soundScript->pitch));
+		}
+	}
+}
 
 static Vector rgv3tStuckTable[54];
 static int rgStuckLast[MAX_CLIENTS][2];
@@ -2334,9 +2353,10 @@ void PM_Jump()
 	// Don't play jump sounds while frozen.
 	if( !( pmove->flags & FL_FROZEN ))
 	{
-		if( tfc )
+		const SoundScript* jumpSoundScript = PM_GetPlayerSoundScript(pmove->player_index, "Player.Jump");
+		if (jumpSoundScript && !jumpSoundScript->waves.empty())
 		{
-			pmove->PM_PlaySound( CHAN_BODY, "player/plyrjmp8.wav", 0.5, ATTN_NORM, 0, PITCH_NORM );
+			PM_PlaySoundScript(jumpSoundScript);
 		}
 		else
 		{
@@ -2463,17 +2483,7 @@ void PM_CheckFalling()
 		}
 		else if( pmove->flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED )
 		{
-			// NOTE:  In the original game dll, there were no breaks after these cases, causing the first one to 
-			// cascade into the second
-			//switch( RandomLong( 0, 1 ) )
-			//{
-			//case 0:
-				//pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain2.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				//break;
-			//case 1:
-				pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			//	break;
-			//}
+			PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.FallPain"));
 			fvol = 1.0f;
 		}
 		else if( pmove->flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED / 2 )
@@ -2483,7 +2493,7 @@ void PM_CheckFalling()
 
 			if( tfc )
 			{
-				pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+				PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.FallPain"));
 			}
 
 			fvol = 0.85;

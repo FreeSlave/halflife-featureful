@@ -1143,8 +1143,9 @@ void ClientPrecache()
 		pWorld->RegisterAndPrecacheSoundScript(Player::nvgOnSoundScript);
 		pWorld->RegisterAndPrecacheSoundScript(Player::nvgOffSoundScript);
 
-		// player gib sounds
 		pWorld->RegisterAndPrecacheSoundScript(Player::fallBodySplatSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::fallPainSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::jumpSoundScript);
 
 		// player pain sounds
 		//PRECACHE_SOUND( "player/pl_pain2.wav" );

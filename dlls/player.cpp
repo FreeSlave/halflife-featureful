@@ -268,6 +268,7 @@ int gmsgSnow = 0;
 
 int gmsgJournal = 0;
 int gmsgPlTemplate = 0;
+int gmsgSoundScript = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -378,6 +379,7 @@ void LinkUserMessages()
 
 	gmsgJournal = REG_USER_MSG("Journal", -1);
 	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 10);
+	gmsgSoundScript = REG_USER_MSG("SoundScript", -1);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -6880,6 +6882,35 @@ void CBasePlayer::SendPlayerTemplateData()
 		WRITE_COLOR(hudColorCritical);
 		WRITE_BYTE(hudDrawNoSuit);
 	MESSAGE_END();
+
+	const char* sharedSoundScripts[] = {Player::fallPainSoundScript.name, Player::jumpSoundScript.name};
+
+	for (size_t i=0; i<ARRAYSIZE(sharedSoundScripts); ++i)
+	{
+		const char* name = sharedSoundScripts[i];
+		const SoundScript* soundScript = GetSoundScript(name);
+		if (soundScript)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgSoundScript, NULL, pev);
+
+			WRITE_STRING(name);
+			WRITE_BYTE((int)soundScript->waves.size());
+
+			for (auto wave : soundScript->waves)
+			{
+				WRITE_STRING(wave);
+			}
+
+			WRITE_BYTE(soundScript->channel);
+			WRITE_BYTE(soundScript->volume.min * 100);
+			WRITE_BYTE(soundScript->volume.max * 100);
+			WRITE_BYTE(soundScript->attenuation * 50);
+			WRITE_BYTE(soundScript->pitch.min);
+			WRITE_BYTE(soundScript->pitch.max);
+
+			MESSAGE_END();
+		}
+	}
 }
 
 bool CBasePlayer::CanHaveItem(CBaseEntity *pEntity)
@@ -7033,6 +7064,17 @@ bool CBasePlayer::ShouldCollideWithCorpses()
 		return m_forceCollideWithCorpses;
 	}
 	return true;
+}
+
+const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name)
+{
+	CBaseEntity* pEntity = UTIL_PlayerByIndex(playerIndex + 1);
+	if (pEntity && pEntity->IsPlayer())
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)pEntity;
+		return pPlayer->GetSoundScript(name);
+	}
+	return nullptr;
 }
 
 //=========================================================

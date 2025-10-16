@@ -23,6 +23,7 @@
 #include "arraysize.h"
 #include "string_utils.h"
 #include "spritehint_flags.h"
+#include "soundscripts.h"
 
 #include "environment.h"
 
@@ -230,6 +231,36 @@ int CHud::MsgFunc_PlTemplate(const char *pszName, int iSize, void *pbuf)
 	m_forcedHudColorCritical = PackRGB(READ_COLOR());
 	m_forcedHudDrawNoSuit = READ_BYTE();
 
+	return 1;
+}
+
+const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name)
+{
+	return g_SoundScriptSystem.GetSoundScript(name);
+}
+
+int CHud::MsgFunc_SoundScript(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	std::string name = READ_STRING();
+
+	SoundScript soundScript;
+
+	int waveCount = READ_BYTE();
+	for (int i=0; i<waveCount; ++i)
+	{
+		const char* wave = READ_STRING();
+		soundScript.waves.push_back(g_SoundScriptSystem.RegisterWaveString(wave));
+	}
+	soundScript.channel = READ_BYTE();
+	soundScript.volume.min = READ_BYTE() / 100.0f;
+	soundScript.volume.max = READ_BYTE() / 100.0f;
+	soundScript.attenuation = READ_BYTE() / 50.0f;
+	soundScript.pitch.min = READ_BYTE();
+	soundScript.pitch.max = READ_BYTE();
+
+	g_SoundScriptSystem.ReplaceSoundScript(name.c_str(), soundScript);
 	return 1;
 }
 

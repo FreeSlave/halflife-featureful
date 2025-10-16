@@ -40,6 +40,8 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.NVGOn** - turn on the NVG. This is empty by default.
 * **Player.NVGOff** - turn off the NVG. This is empty by default.
 * **Player.FallBodySplat** - played when player dies from fall damage.
+* **Player.FallPain** - played when player lands from the height enough to get a fall damage.
+* **Player.Jump** - played when player jumps (like in Team Fortress Classic or Deathmatch Classic). This is empty by default. If it's empty the material step sound is played on jump (Half-Life behavior).
 * **Player.TrainUse** - start using a train.
 * **Player.VehicleUse** - start using a vehicle.
 * **Player.UnderwaterExhale** - player is underwater and losing air. In Half-Life it's the sound of exhaling bubbles.

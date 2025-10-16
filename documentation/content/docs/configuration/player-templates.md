@@ -63,6 +63,12 @@ Example:
                 },
                 "Player.Death": {
                     "waves": ["aslave/slv_die1.wav", "aslave/slv_die2.wav"]
+                },
+                "Player.FallPain": {
+                    "waves": ["aslave/slv_pain1.wav", "aslave/slv_pain2.wav"]
+                },
+                "Player.Jump": {
+                    "waves": ["aslave/slv_word8.wav"]
                 }
             }
         }

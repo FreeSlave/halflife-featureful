@@ -55,6 +55,8 @@ namespace Player
 {
 extern const NamedSoundScript sprayPaintSoundScript;
 extern const NamedSoundScript fallBodySplatSoundScript;
+extern const NamedSoundScript fallPainSoundScript;
+extern const NamedSoundScript jumpSoundScript;
 extern const NamedSoundScript trainUseSoundScript;
 extern const NamedSoundScript vehicleIgnitionSoundScript;
 extern const NamedSoundScript underwaterExhaleSoundScript;

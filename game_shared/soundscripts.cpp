@@ -189,13 +189,7 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, const Valu
 		for (auto& item : arr)
 		{
 			std::string str = item.GetString();
-			auto strIt = _waveStringSet.find(str);
-			if (strIt == _waveStringSet.end())
-			{
-				auto p = _waveStringSet.insert(str);
-				strIt = p.first;
-			}
-			soundScript.waves.push_back(strIt->c_str());
+			soundScript.waves.push_back(RegisterWaveString(str));
 		}
 		soundScriptMeta.wavesSet = true;
 	});
@@ -347,6 +341,28 @@ const SoundScript* SoundScriptSystem::ProvideDefaultSoundScript(const char *deri
 		}
 	}
 	return nullptr;
+}
+
+void SoundScriptSystem::ReplaceSoundScript(const char *name, const SoundScript &soundScript)
+{
+	_soundScripts.erase(name);
+	ProvideDefaultSoundScript(name, soundScript);
+}
+
+const char* SoundScriptSystem::RegisterWaveString(const char *str)
+{
+	return RegisterWaveString(std::string(str));
+}
+
+const char* SoundScriptSystem::RegisterWaveString(const std::string& str)
+{
+	auto strIt = _waveStringSet.find(str);
+	if (strIt == _waveStringSet.end())
+	{
+		auto p = _waveStringSet.insert(str);
+		strIt = p.first;
+	}
+	return strIt->c_str();
 }
 
 void SoundScriptSystem::DumpSoundScriptImpl(const char *name, const SoundScript &soundScript, const SoundScriptMeta &meta) const

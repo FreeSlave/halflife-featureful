@@ -1238,6 +1238,7 @@ public:
 	int _cdecl MsgFunc_KeyedDLight( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_ObjectHint( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

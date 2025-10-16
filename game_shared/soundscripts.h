@@ -102,6 +102,9 @@ public:
 	const SoundScript* GetSoundScript(const char* name);
 	const SoundScript* ProvideDefaultSoundScript(const char* name, const SoundScript& soundScript);
 	const SoundScript* ProvideDefaultSoundScript(const char* derivative, const char* base, const SoundScript& soundScript, const SoundScriptParamOverride paramOverride = SoundScriptParamOverride());
+	void ReplaceSoundScript(const char* name, const SoundScript& soundScript);
+	const char* RegisterWaveString(const char* str);
+	const char* RegisterWaveString(const std::string& str);
 	void DumpSoundScripts() const;
 	void DumpSoundScript(const char* name) const;
 protected:
