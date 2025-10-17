@@ -47,6 +47,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
     - 1 - show **eye position** and angles. E.g. if [trigger_camera]({{< ref trigger_camera >}}) is active the position and angles of the camera will be displayed.
     - 2 - show **player's origin** and angles.
     - If cvar exists in the engine (e.g. on Xash3D FWGS), the engine implementation is used.
+* `hud_soundlevelmeter` - show the radius of the sound produced by the player actions. Monsters may react to player sounds. The server must run in developer mode to send the sound level updates.
 
 ### Weapon behavior (HL Anniversary compatibility)
 

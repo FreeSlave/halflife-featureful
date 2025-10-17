@@ -111,11 +111,11 @@ set (CLDLL_SOURCES
 	hud_caption.cpp
 	hud_error_collection.cpp
 	hud_journal.cpp
+	hud_meter.cpp
 	hud_monsterinfo.cpp
 	hud_msg.cpp
 	hud_redraw.cpp
 	hud_spectator.cpp
-	hud_speedometer.cpp
 	hud_renderer.cpp
 	hud_update.cpp
 	in_camera.cpp

@@ -265,6 +265,7 @@ int gmsgSnow = 0;
 int gmsgJournal = 0;
 int gmsgPlTemplate = 0;
 int gmsgSoundScript = 0;
+int gmsgSoundVolume = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -374,6 +375,7 @@ void LinkUserMessages()
 	gmsgJournal = REG_USER_MSG("Journal", -1);
 	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 10);
 	gmsgSoundScript = REG_USER_MSG("SoundScript", -1);
+	gmsgSoundVolume = REG_USER_MSG("SoundVolume", 2);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -3496,9 +3498,7 @@ void CBasePlayer::UpdatePlayerSound()
 {
 	int iBodyVolume;
 	int iVolume;
-	CSound *pSound;
-
-	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
+	CSound *pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
 
 	if( !pSound )
 	{
@@ -3589,6 +3589,16 @@ void CBasePlayer::UpdatePlayerSound()
 		pSound->m_vecOrigin = pev->origin;
 		pSound->m_iType |= ( bits_SOUND_PLAYER | m_iExtraSoundTypes );
 		pSound->m_iVolume = iVolume;
+
+		if (IsDeveloperModeOn() && m_NextClientVolumeUpdate <= gpGlobals->time && iVolume != m_ClientVolume)
+		{
+			m_ClientVolume = iVolume;
+			m_NextClientVolumeUpdate = gpGlobals->time + 0.1f;
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgSoundVolume, NULL, pev);
+				WRITE_SHORT(m_ClientVolume);
+			MESSAGE_END();
+		}
 	}
 
 	// keep track of virtual muzzle flash

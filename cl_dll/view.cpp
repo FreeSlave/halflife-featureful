@@ -1631,7 +1631,7 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	g_iWaterLevel = pparams->waterlevel;
 
 	gHUD.m_velocity = pparams->simvel;
-	gHUD.m_Speedometer.UpdateSpeed(pparams->simvel);
+	gHUD.m_Meter.UpdateSpeed(pparams->simvel);
 
 	// intermission / finale rendering
 	if( pparams->intermission )

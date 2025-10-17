@@ -580,6 +580,9 @@ public:
 	string_t m_playerTemplateName;
 	const PlayerTemplate* m_playerTemplate;
 
+	int m_ClientVolume;
+	float m_NextClientVolumeUpdate;
+
 	int m_ToolSignalBits;
 	int m_ToolStateBits;
 	int m_ClientToolStateBits;

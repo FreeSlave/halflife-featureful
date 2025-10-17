@@ -479,12 +479,14 @@ int CHud::DrawHudNumber(int x, int y, int number, int r, int g, int b)
 	return x;
 }
 
-int CHud::DrawHudNumberCentered(int x, int y, int number, int r, int g, int b)
+std::pair<int, int> CHud::DrawHudNumberCentered(int x, int y, int number, int r, int g, int b)
 {
 	auto digit_width = GetSpriteRect(m_HUD_number_0).right - GetSpriteRect(m_HUD_number_0).left;
 	auto digit_count = count_digits(number);
 
-	return DrawHudNumber(x - (digit_width * digit_count) / 2, y, number, r, g, b);
+	const int numStartX = x - (digit_width * digit_count) / 2;
+	const int numEndX = DrawHudNumber(numStartX, y, number, r, g, b);
+	return std::make_pair(numStartX, numEndX);
 }
 
 int CHud::ConsoleText::DrawString(int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length)

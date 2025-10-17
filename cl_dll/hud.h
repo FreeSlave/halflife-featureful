@@ -826,18 +826,22 @@ private:
 	short m_movementState;
 };
 
-class CHudSpeedometer : public CHudBase
+class CHudMeter : public CHudBase
 {
 	uint16_t speed;
+	short soundVolume;
 
 	cvar_t* hud_speedometer;
 	cvar_t* hud_speedometer_below_cross;
 	cvar_t* hud_speedometer_height;
+	cvar_t* hud_soundlevelmeter;
 
 public:
 	int Init() override;
 	int VidInit() override;
 	int Draw(float time) override;
+
+	int MsgFunc_SoundVolume( const char *pszName,  int iSize, void *pbuf );
 
 	void UpdateSpeed(const float velocity[2]);
 };
@@ -1054,7 +1058,7 @@ public:
 	int m_iFontHeight;
 	int DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int DrawHudNumber(int x, int y, int number, int r, int g, int b);
-	int DrawHudNumberCentered(int x, int y, int number, int r, int g, int b);
+	std::pair<int, int> DrawHudNumberCentered(int x, int y, int number, int r, int g, int b);
 	int DrawHudString( int x, int y, int iMaxX, const char *szString, int r, int g, int b, int length = -1 );
 	int DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b );
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
@@ -1197,7 +1201,7 @@ public:
 	CHudNightvision m_Nightvision;
 	CHudCaption		m_Caption;
 	CHudMonsterInfo		m_MonsterInfo;
-	CHudSpeedometer	m_Speedometer;
+	CHudMeter	m_Meter;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();
