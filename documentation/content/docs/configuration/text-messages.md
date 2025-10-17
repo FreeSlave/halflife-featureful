@@ -16,7 +16,7 @@ In WON versions of Half-Life the fonts for other 8-bit encodings could be provid
 
 In Featureful SDK **titles.txt** can contain UTF-8 text. This, however, makes the text to render with a console engine font which can't be rendered in additive mode. Non-UTF texts are still rendered as usual.
 
-While **titles.txt** is a decent way to handle texts in Half-Life, it suffers from some flaws like mixing of presentation and data (render properties and the text itself are defined in the same file which makes translations harder to sync with the original if it changes the presentation) and being "to close" to the engine.
+While **titles.txt** is a decent way to handle texts in Half-Life, it suffers from some flaws like mixing of presentation and data (render properties and the text itself are defined in the same file which makes translations harder to sync with the original if it changes the presentation) and being "too close" to the engine.
 
 ## Translatable messages
 

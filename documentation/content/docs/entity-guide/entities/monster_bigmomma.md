@@ -29,13 +29,12 @@ bookToC: false
 * **BigMomma.ChildDie** - played when child dies.
 * **BigMomma.Sack** - plays occasionally when idle.
 * **BigMomma.LaunchMortar** - launching a projectile.
-* **BigMomma.SpitTouch** - one of the sounds played when the Big Momma projectile hits something. Emitted from the projectile. Derived from **NPC.SpitTouch**
-* **BigMomma.SpitHit** - one of the sounds played when the Big Momma projectile hits something. Emitted from the projectile. Derived from **NPC.SpitHit**
 * **BigMomma.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
+* [bmortar soundscripts]({{< ref "bmortar#soundscripts" >}})
 
 ### Visuals
 
-* **BigMomma.Mortar** - the spit projectile.
+* [bmortar visuals]({{< ref "bmortar#visuals" >}})
 * **BigMomma.MortarSpray** - sprite spray that comes from Big Momma when launching the spit projectile and when this projectile touches the wall.
 
 ### Entity template examples

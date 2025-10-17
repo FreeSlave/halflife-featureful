@@ -5,12 +5,12 @@ title: "Map config"
 
 # {{% param "title" %}}
 
-Featureful SDK allows maps to have the config file listing the starting given to the player when the map is started via `map` console command or via the *New game* menu dialog. The equipment won't be given if player entered the map via the `trigger_changelevel`.
+Featureful SDK allows maps to have the config file listing the starting equipment given to the player and some other player settings when the map is started via `map` console command or via the *New game* menu dialog. The equipment won't be given if player entered the map via the `trigger_changelevel`.
 
-Create a file with a name like **mapname.cfg** where the `mapname` is a name of the map file (without **.bsp** extension).
+In the **maps** directory create a file with a name like **mapname.cfg** where the `mapname` is a name of the map file (without **.bsp** extension).
 
 {{% hint info %}}
-The sole presence of map config file makes the game to give player a suit.
+The sole presence of map config file makes the game to give player a suit. Set `nosuit` option to avoid it.
 {{% /hint %}}
 
 {{% hint info %}}
