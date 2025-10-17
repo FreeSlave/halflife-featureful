@@ -638,25 +638,15 @@ public:
 	void RemoveOFdlight();
 	void UserCmd_NVGAdjustDown();
 	void UserCmd_NVGAdjustUp();
-#if FEATURE_CS_NIGHTVISION
 	float CSNvgRadius();
-#endif
-#if FEATURE_OPFOR_NIGHTVISION
 	float OpforNvgRadius();
-#endif
 	bool IsOn();
 private:
 	bool m_fOn;
-#if FEATURE_CS_NIGHTVISION
 	dlight_t* m_pLightCS;
-#endif
-#if FEATURE_OPFOR_NIGHTVISION
 	dlight_t* m_pLightOF;
-#endif
-#if FEATURE_OPFOR_NIGHTVISION
 	HSPRITE m_hSprite;
 	int m_iFrame, m_nFrameCount;
-#endif
 };
 //
 //-----------------------------------------------------

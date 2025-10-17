@@ -244,17 +244,9 @@ cvar_t* cl_weather = NULL;
 cvar_t* cl_muzzlelight = NULL;
 cvar_t* cl_muzzlelight_monsters = NULL;
 
-#if FEATURE_NIGHTVISION_STYLES
 cvar_t *cl_nvgstyle = NULL;
-#endif
-
-#if FEATURE_CS_NIGHTVISION
 cvar_t *cl_nvgradius_cs = NULL;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 cvar_t *cl_nvgradius_of = NULL;
-#endif
 
 cvar_t* cl_flashlight_custom = NULL;
 cvar_t* cl_flashlight_radius = NULL;
@@ -770,17 +762,9 @@ void CHud::Init()
 	CreateBooleanCvarConditionally(cl_muzzlelight, "cl_muzzlelight", clientFeatures.muzzlelight);
 	cl_muzzlelight_monsters = CVAR_CREATE( "cl_muzzlelight_monsters", "0", FCVAR_ARCHIVE );
 
-#if FEATURE_NIGHTVISION_STYLES
 	CreateIntegerCvarConditionally(cl_nvgstyle, "cl_nvgstyle", clientFeatures.nvgstyle);
-#endif
-
-#if FEATURE_CS_NIGHTVISION
 	CreateIntegerCvarConditionally(cl_nvgradius_cs, "cl_nvgradius_cs", clientFeatures.nvg_cs.radius );
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 	CreateIntegerCvarConditionally(cl_nvgradius_of, "cl_nvgradius_of", clientFeatures.nvg_opfor.radius );
-#endif
 
 	CreateBooleanCvarConditionally(cl_flashlight_custom, "cl_flashlight_custom", clientFeatures.flashlight.custom);
 	CreateIntegerCvarConditionally(cl_flashlight_radius, "cl_flashlight_radius", clientFeatures.flashlight.radius);
@@ -1622,11 +1606,9 @@ bool CHud::ViewModelLagEnabled()
 
 int CHud::CalcMinHUDAlpha()
 {
-#if FEATURE_NIGHTVISION
 	if (m_Nightvision.IsOn()) {
 		return clientFeatures.hud_min_alpha_nvg;
 	}
-#endif
 
 	const ConfigurableBoundedValue& min_alpha = clientFeatures.hud_min_alpha;
 	const int value = m_pCvarMinAlpha ? m_pCvarMinAlpha->value : min_alpha.defaultValue;
@@ -1691,10 +1673,8 @@ color24 CHud::FlashlightColor()
 
 int CHud::NVGStyle()
 {
-#if FEATURE_NIGHTVISION_STYLES
 	if (cl_nvgstyle)
 		return (int)cl_nvgstyle->value;
-#endif
 	return clientFeatures.nvgstyle.defaultValue;
 }
 

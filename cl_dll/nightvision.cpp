@@ -25,13 +25,8 @@
 #include "r_efx.h"
 #include "mod_features.h"
 
-#if FEATURE_CS_NIGHTVISION
 extern cvar_t *cl_nvgradius_cs;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 extern cvar_t *cl_nvgradius_of;
-#endif
 
 DECLARE_MESSAGE( m_Nightvision, Nightvision )
 
@@ -45,13 +40,8 @@ int CHudNightvision::Init()
 
 	m_iFlags |= HUD_ACTIVE;
 
-#if FEATURE_CS_NIGHTVISION
-	m_pLightCS = 0;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
-	m_pLightOF = 0;
-#endif
+	m_pLightCS = nullptr;
+	m_pLightOF = nullptr;
 
 	//gHUD.AddHudElem(this);
 
@@ -65,18 +55,13 @@ void CHudNightvision::Reset()
 
 int CHudNightvision::VidInit()
 {
-#if FEATURE_OPFOR_NIGHTVISION
 	if (gHUD.clientFeatures.nvgstyle.configurable || gHUD.clientFeatures.nvgstyle.defaultValue == 0)
 	{
-		m_hSprite = LoadSprite(NIGHTVISION_SPRITE_NAME);
-
-		// Get the number of frames available in this sprite.
+		m_hSprite = SPR_Load(NIGHTVISION_SPRITE_NAME);
 		m_nFrameCount = SPR_Frames(m_hSprite);
 	}
 
-	// current frame.
 	m_iFrame = 0;
-#endif
 	return 1;
 }
 
@@ -125,7 +110,6 @@ int CHudNightvision::Draw(float flTime)
 
 void CHudNightvision::DrawCSNVG(float flTime)
 {
-#if FEATURE_CS_NIGHTVISION
 	const NVGFeatures& nvg_cs = gHUD.clientFeatures.nvg_cs;
 	int r, g, b;
 	UnpackRGB(r, g, b, nvg_cs.layer_color);
@@ -137,12 +121,10 @@ void CHudNightvision::DrawCSNVG(float flTime)
 		m_pLightCS = MakeDynLight(flTime, r, g, b);
 	}
 	UpdateDynLight( m_pLightCS, CSNvgRadius(), gHUD.m_vecOrigin );
-#endif
 }
 
 void CHudNightvision::DrawOpforNVG(float flTime)
 {
-#if FEATURE_OPFOR_NIGHTVISION
 	int r, g, b, x, y;
 
 	const NVGFeatures& nvg_opfor = gHUD.clientFeatures.nvg_opfor;
@@ -187,7 +169,6 @@ void CHudNightvision::DrawOpforNVG(float flTime)
 		m_pLightOF = MakeDynLight(flTime, r, g, b);
 	}
 	UpdateDynLight( m_pLightOF, OpforNvgRadius(), gHUD.m_vecOrigin + Vector(0.0f, 0.0f, 32.0f ) );
-#endif
 }
 
 dlight_t* CHudNightvision::MakeDynLight(float flTime, int r, int g, int b)
@@ -214,27 +195,22 @@ void CHudNightvision::UpdateDynLight(dlight_t *dynLight, float radius, const Vec
 
 void CHudNightvision::RemoveCSdlight()
 {
-#if FEATURE_CS_NIGHTVISION
 	if( m_pLightCS )
 	{
 		m_pLightCS->die = 0;
 		m_pLightCS = NULL;
 	}
-#endif
 }
 
 void CHudNightvision::RemoveOFdlight()
 {
-#if FEATURE_OPFOR_NIGHTVISION
 	if( m_pLightOF )
 	{
 		m_pLightOF->die = 0;
 		m_pLightOF = NULL;
 	}
-#endif
 }
 
-#if FEATURE_CS_NIGHTVISION
 float CHudNightvision::CSNvgRadius()
 {
 	const NVGFeatures& nvg = gHUD.clientFeatures.nvg_cs;
@@ -245,9 +221,7 @@ float CHudNightvision::CSNvgRadius()
 		return nvg.radius.minValue;
 	return radius;
 }
-#endif
 
-#if FEATURE_OPFOR_NIGHTVISION
 float CHudNightvision::OpforNvgRadius()
 {
 	const NVGFeatures& nvg = gHUD.clientFeatures.nvg_opfor;
@@ -258,7 +232,6 @@ float CHudNightvision::OpforNvgRadius()
 		return nvg.radius.minValue;
 	return radius;
 }
-#endif
 
 bool CHudNightvision::IsOn()
 {

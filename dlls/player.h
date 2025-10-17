@@ -309,7 +309,7 @@ public:
 	}
 	bool HasNVG() const
 	{
-		return FEATURE_NIGHTVISION && (m_iItemsBits & PLAYER_ITEM_NIGHTVISION) != 0;
+		return (m_iItemsBits & PLAYER_ITEM_NIGHTVISION) != 0;
 	}
 	bool HasSuitLight() const {
 		return HasFlashlight() || HasNVG();

@@ -125,9 +125,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_fInXen, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_DisplacerReturn, FIELD_VECTOR),
 	DEFINE_FIELD(CBasePlayer, m_DisplacerSndRoomtype, FIELD_INTEGER),
-#if FEATURE_NIGHTVISION
 	DEFINE_FIELD(CBasePlayer, m_fNVGisON, FIELD_BOOLEAN),
-#endif
 	DEFINE_FIELD(CBasePlayer, m_fFlashlightON, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_fFlashlightFlicker, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, m_flNextFlashlightFlick, FIELD_TIME),
@@ -248,9 +246,7 @@ int gmsgSmoke = 0;
 int gmsgSparkShower = 0;
 int gmsgParticleShooter = 0;
 
-#if FEATURE_NIGHTVISION
 int gmsgNightvision = 0;
-#endif
 
 int gmsgMovementState = 0;
 
@@ -361,9 +357,7 @@ void LinkUserMessages()
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
 
-#if FEATURE_NIGHTVISION
 	gmsgNightvision = REG_USER_MSG( "Nightvision", 1 );
-#endif
 	gmsgMovementState = REG_USER_MSG( "MoveMode", 2 );
 	gmsgUseSound = REG_USER_MSG( "UseSound", 1 );
 	gmsgSetBody = REG_USER_MSG( "SetBody", 2 );
