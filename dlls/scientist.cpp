@@ -1270,7 +1270,7 @@ public:
 
 	bool SetAnswerQuestion( CTalkMonster *pSpeaker ) override;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 	Vector DefaultMinHullSize() override { return Vector(-14.0f, -14.0f, 0.0f); }
 	Vector DefaultMaxHullSize() override { return Vector(14.0f, 14.0f, 36.0f); }
 

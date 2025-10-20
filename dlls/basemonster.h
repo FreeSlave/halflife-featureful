@@ -260,7 +260,7 @@ public:
 	// virtual int CanPlaySequence() { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
 	virtual bool CanPlaySequence( int interruptFlags );
 	virtual bool CanPlaySentence( bool fDisregardState ) { return m_MonsterState == MONSTERSTATE_SCRIPT ? IsAlive() : IsFullyAlive(); }
-	virtual bool IsAllowedToSpeak() override { return IsAlive(); }
+	bool IsAllowedToSpeak() override { return IsAlive(); }
 
 	Task_t *GetTask();
 	virtual MONSTERSTATE GetIdealState();
@@ -400,7 +400,7 @@ public:
 
 	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
-	virtual bool IsMoving() override { return m_movementGoal != MOVEGOAL_NONE; }
+	bool IsMoving() override { return m_movementGoal != MOVEGOAL_NONE; }
 
 	void RouteClear();
 	void RouteNew();

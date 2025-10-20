@@ -87,7 +87,7 @@ public:
 	float FlPitchDiff();
 	float ChangePitch( int pitchSpeed );
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, -32.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 32.0f ); }

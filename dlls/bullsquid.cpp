@@ -351,9 +351,9 @@ public:
 	virtual void AttackSound(bool bigSpit);
 	void StartTask(Task_t *pTask) override;
 	void RunTask(Task_t *pTask) override;
-	virtual bool CheckMeleeAttack1(float flDot, float flDist) override;
-	virtual bool CheckMeleeAttack2(float flDot, float flDist) override;
-	virtual bool CheckRangeAttack1(float flDot, float flDist) override;
+	bool CheckMeleeAttack1(float flDot, float flDist) override;
+	bool CheckMeleeAttack2(float flDot, float flDist) override;
+	bool CheckRangeAttack1(float flDot, float flDist) override;
 	void RunAI() override;
 	bool FValidateHintType(short sHint) override;
 	Schedule_t *GetSchedule() override;

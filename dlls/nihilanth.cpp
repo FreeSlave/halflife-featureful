@@ -76,7 +76,7 @@ public:
 	void PainSound() override;
 	void DeathSound() override;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 
 	static const NamedSoundScript painSoundScript; // vocalization: play sometimes when hit and has much less health and no more chargers
 	static const NamedSoundScript dieSoundScript; // vocalization: play as he dies

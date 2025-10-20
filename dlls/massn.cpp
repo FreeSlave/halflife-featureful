@@ -98,16 +98,16 @@ public:
 	static constexpr const char* sniperSoundScript = "Massn.Sniper";
 
 protected:
-	virtual void PlayFirstBurstSounds() override {
+	void PlayFirstBurstSounds() override {
 		EmitSoundScript(burst9mmSoundScript);
 	}
-	virtual void PlayReloadSound() override {
+	void PlayReloadSound() override {
 		EmitSoundScript(reloadSoundScript);
 	}
-	virtual void PlayGrenadeLaunchSound() override {
+	void PlayGrenadeLaunchSound() override {
 		EmitSoundScript(grenadeLaunchSoundScript);
 	}
-	virtual void PlayShogtunSound() override {
+	void PlayShogtunSound() override {
 		EmitSoundScript(shotgunSoundScript);
 	}
 };

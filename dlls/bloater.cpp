@@ -48,7 +48,7 @@ public:
 	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
 };
 

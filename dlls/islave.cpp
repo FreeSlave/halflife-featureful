@@ -400,7 +400,7 @@ public:
 	void RunTask( Task_t *pTask ) override;
 	void PrescheduleThink() override;
 	int LookupActivity(int activity) override;
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
 	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }

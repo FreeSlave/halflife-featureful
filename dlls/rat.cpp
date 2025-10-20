@@ -33,7 +33,7 @@ public:
 	void Precache() override;
 	void SetYawSpeed() override;
 	int DefaultClassify() override;
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
 };
 

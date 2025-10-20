@@ -397,7 +397,7 @@ public:
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override {
 		return Vector( -80.0f, -80.0f, 0.0f );
@@ -1127,7 +1127,7 @@ public:
 	Schedule_t* GetSchedule() override;
 	Schedule_t* GetScheduleOfType(int Type) override;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 32.0f ); }
 

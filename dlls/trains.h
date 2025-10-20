@@ -140,7 +140,7 @@ public:
 	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_DIRECTIONAL_USE; }
 	int Classify() override;
 	void OverrideReset() override;
-	virtual bool OnControls( entvars_t *pev ) override;
+	bool OnControls( entvars_t *pev ) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void Blocked( CBaseEntity *pOther ) override;
 

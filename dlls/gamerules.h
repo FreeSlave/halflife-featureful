@@ -220,7 +220,7 @@ public:
 	bool FPlayerCanRespawn( CBasePlayer *pPlayer ) override;
 	float FlPlayerSpawnTime( CBasePlayer *pPlayer ) override;
 
-	virtual bool AllowAutoTargetCrosshair() override;
+	bool AllowAutoTargetCrosshair() override;
 
 	// Client kills/scoring
 	int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled ) override;

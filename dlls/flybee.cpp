@@ -106,7 +106,7 @@ public:
 	void DeathSound() override;
 	void PainSound() override;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return Vector( -24.0f, -24.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 24.0f ); }

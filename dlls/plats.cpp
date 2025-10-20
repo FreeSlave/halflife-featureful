@@ -1869,7 +1869,7 @@ public:
 	void HitTop() override;
 	void Touch( CBaseEntity *pOther ) override;
 	virtual void UpdateAutoTargets( int toggleState );
-	virtual	bool IsTogglePlat() override { return true; }
+	bool IsTogglePlat() override { return true; }
 
 	void DisableUse() { m_use = 0; }
 	void EnableUse() { m_use = 1; }

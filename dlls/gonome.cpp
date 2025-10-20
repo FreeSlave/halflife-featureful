@@ -160,7 +160,7 @@ public:
 	static const NamedSoundScript melee1SoundScript;
 	static const NamedSoundScript melee2SoundScript;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
 	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }

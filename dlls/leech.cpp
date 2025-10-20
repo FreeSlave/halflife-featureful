@@ -117,7 +117,7 @@ public:
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return Vector( -1.0f, -1.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 1.0f, 1.0f, 2.0f ); }

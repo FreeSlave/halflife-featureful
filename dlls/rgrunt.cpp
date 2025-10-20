@@ -72,7 +72,7 @@ public:
 
 protected:
 	static const char *pRoboSentences[HGRUNT_SENT_COUNT];
-	virtual const char* SentenceByNumber(int sentence) override;
+	const char* SentenceByNumber(int sentence) override;
 	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}

@@ -149,7 +149,7 @@ protected:
 	const char* StompSoundScript() override {
 		return stompSoundScript;
 	}
-	virtual string_t MyClassname() override {
+	string_t MyClassname() override {
 		return MAKE_STRING("babygarg_stomp");
 	}
 
@@ -482,7 +482,7 @@ public:
 
 	CUSTOM_SCHEDULES
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_LARGE; }
 	Vector DefaultMinHullSize() override {
 		return Vector( -32.0f, -32.0f, 0.0f );
 	}
@@ -2074,19 +2074,19 @@ protected:
 	static const NamedVisual smallFlameVisual;
 	static const NamedVisual flameLightVisual;
 
-	virtual const char* AttackHitSound() override {
+	const char* AttackHitSound() override {
 		return attackHitSoundScript;
 	}
-	virtual const char* AttackMissSound() override {
+	const char* AttackMissSound() override {
 		return attackMissSoundScript;
 	}
-	virtual void FlameOnSound() override {
+	void FlameOnSound() override {
 		EmitSoundScript(flameOnSoundScript);
 	}
-	virtual void FlameRunSound() override {
+	void FlameRunSound() override {
 		EmitSoundScript(flameRunSoundScript);
 	}
-	virtual void FlameOffSound() override {
+	void FlameOffSound() override {
 		EmitSoundScript(flameOffSoundScript);
 	}
 };

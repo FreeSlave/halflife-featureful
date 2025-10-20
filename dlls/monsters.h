@@ -191,7 +191,7 @@ public:
 void AddScoreForDamage(entvars_t *pevAttacker, CBaseEntity* victim, const float damage);
 
 #define CUSTOM_SCHEDULES\
-		virtual Schedule_t *ScheduleFromName( const char *pName ) override;\
+		Schedule_t *ScheduleFromName( const char *pName ) override;\
 		static Schedule_t *m_scheduleList[];
 
 #define DEFINE_CUSTOM_SCHEDULES(derivedClass)\

@@ -137,7 +137,7 @@ public:
 
 	short m_desiredSkin;
 protected:
-	virtual void OnBecomingLeader() override;
+	void OnBecomingLeader() override;
 
 	static const char *pGruntSentences[HGRUNT_SENT_COUNT];
 

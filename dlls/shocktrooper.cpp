@@ -127,7 +127,7 @@ protected:
 	float SentenceVolume() override;
 	float SentenceAttn() override;
 	const char* SentenceByNumber(int sentence) override;
-	virtual int* GruntQuestionVar() override;
+	int* GruntQuestionVar() override;
 	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}

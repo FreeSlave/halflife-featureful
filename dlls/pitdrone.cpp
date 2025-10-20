@@ -247,7 +247,7 @@ public:
 
 	CUSTOM_SCHEDULES
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
 	bool IsDisplaceable() override { return true; }
 	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 48.0f ); }

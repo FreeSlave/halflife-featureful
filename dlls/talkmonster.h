@@ -144,8 +144,8 @@ public:
 	void			StartMonster() override;
 	int				IRelationship ( CBaseEntity *pTarget ) override;
 	bool			IsFriendWithPlayerBeforeProvoked();
-	virtual bool	CanPlaySentence( bool fDisregardState ) override;
-	virtual bool PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle = false ) override;
+	bool	CanPlaySentence( bool fDisregardState ) override;
+	bool PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle = false ) override;
 	void			PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void			KeyValue( KeyValueData *pkvd ) override;

@@ -95,7 +95,7 @@ public:
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
 	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
 	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
