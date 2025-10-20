@@ -12,6 +12,6 @@
 #define bits_SOUND_GARBAGE	( 1 << 6 )// trash cans, banana peels, old fast food bags.
 
 #define bits_SOUND_REMOVE_FROM_DEFAULT ( 1 << 10 )
-#define bits_ALL_SOUNDS 0xFFFFFFFF
+#define bits_SOUND_PLAYER_IF_NOT_ALLY ( bits_SOUND_PLAYER | (1 << 11) )
 
 #endif

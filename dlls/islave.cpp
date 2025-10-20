@@ -1708,8 +1708,7 @@ Schedule_t *CISlave::GetSchedule()
 */
 	if( HasConditions( bits_COND_HEAR_SOUND ) )
 	{
-		CSound *pSound;
-		pSound = PBestSound();
+		CSound *pSound = PBestSound();
 
 		ASSERT( pSound != NULL );
 

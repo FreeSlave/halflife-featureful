@@ -886,7 +886,7 @@ Schedule_t	slHoundGuardPack[] =
 		bits_SOUND_COMBAT		|// sound flags
 		bits_SOUND_WORLD		|
 		bits_SOUND_MEAT			|
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"GuardPack"
 	},
 };
@@ -953,7 +953,7 @@ Schedule_t	slHoundSleep[] =
 		bits_COND_NEW_ENEMY,
 
 		bits_SOUND_COMBAT		|
-		bits_SOUND_PLAYER		|
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_WORLD,
 		"Hound Sleep"
 	},
@@ -1043,7 +1043,7 @@ Schedule_t	slHoundDeepSleep[] =
 		bits_COND_NEW_ENEMY,
 
 		bits_SOUND_COMBAT		|
-		bits_SOUND_PLAYER		|
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER,
 		"Hound Deep Sleep"
 	},
@@ -1229,9 +1229,7 @@ Schedule_t *CHoundeye::GetScheduleOfType( int Type )
 		// if the hound is sleeping, must wake and stand!
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
 		{
-			CSound *pWakeSound;
-
-			pWakeSound = PBestSound();
+			CSound *pWakeSound = PBestSound();
 			ASSERT( pWakeSound != NULL );
 			if( pWakeSound )
 			{

@@ -586,7 +586,7 @@ Schedule_t	slHWGruntRepel[] =
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER |
 		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Repel"
 	},
 };
@@ -616,7 +616,7 @@ Schedule_t slHWGruntRepelLand[] =
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER |
 		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Repel Land"
 	},
 };

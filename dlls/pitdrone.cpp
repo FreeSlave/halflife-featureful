@@ -990,9 +990,7 @@ Schedule_t *CPitdrone::GetSchedule()
 
 		if (HasConditions(bits_COND_SMELL_FOOD))
 		{
-			CSound		*pSound;
-
-			pSound = PBestScent();
+			CSound *pSound = PBestScent();
 
 			if (pSound && (!FInViewCone(&pSound->m_vecOrigin) || !FVisible(pSound->m_vecOrigin)))
 			{

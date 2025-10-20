@@ -259,7 +259,7 @@ static Schedule_t	slSwimAround[] =
 		bits_COND_SEE_ENEMY		|
 		bits_COND_NEW_ENEMY		|
 		bits_COND_HEAR_SOUND,
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_COMBAT,
 		"SwimAround"
 	},

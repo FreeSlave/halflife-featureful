@@ -912,7 +912,7 @@ Schedule_t	slFGruntSweep[] =
 
 		bits_SOUND_WORLD		|// sound flags
 		bits_SOUND_DANGER		|
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 
 		"FGrunt Sweep"
 	},
@@ -1046,7 +1046,7 @@ Schedule_t	slFGruntRepel[] =
 
 		bits_SOUND_DANGER			|
 		bits_SOUND_COMBAT			|
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Repel"
 	},
 };
@@ -1099,7 +1099,7 @@ Schedule_t	slFGruntRepelLand[] =
 
 		bits_SOUND_DANGER			|
 		bits_SOUND_COMBAT			|
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Repel Land"
 	},
 };
@@ -2424,8 +2424,7 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 	// grunts place HIGH priority on running away from danger sounds.
 	if ( HasConditions(bits_COND_HEAR_SOUND) )
 	{
-		CSound *pSound;
-		pSound = PBestSound();
+		CSound *pSound = PBestSound();
 
 		ASSERT( pSound != NULL );
 		if ( pSound)

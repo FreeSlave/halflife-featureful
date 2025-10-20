@@ -863,7 +863,7 @@ Schedule_t slAGruntThreatDisplay[] =
 		bits_COND_SCHEDULE_SUGGESTED |
 		bits_COND_LIGHT_DAMAGE |
 		bits_COND_HEAVY_DAMAGE,
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_COMBAT |
 		bits_SOUND_WORLD,
 		"AGruntThreatDisplay"
@@ -1044,8 +1044,7 @@ Schedule_t *CAGrunt::GetSchedule()
 {
 	if( HasConditions( bits_COND_HEAR_SOUND ) )
 	{
-		CSound *pSound;
-		pSound = PBestSound();
+		CSound *pSound = PBestSound();
 
 		ASSERT( pSound != NULL );
 		if( pSound && ( pSound->m_iType & bits_SOUND_DANGER ) )

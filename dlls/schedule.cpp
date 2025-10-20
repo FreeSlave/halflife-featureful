@@ -181,6 +181,49 @@ int CBaseMonster::IScheduleFlags()
 	return m_afConditions & m_pSchedule->iInterruptMask;
 }
 
+static std::pair<int, const char*> g_ConditionsNames[] = {
+	{bits_COND_NO_AMMO_LOADED, "No ammo loaded"},
+	{bits_COND_SEE_HATE, "Sees someone who they hate"},
+	{bits_COND_SEE_FEAR, "Sees someone who they fear"},
+	{bits_COND_SEE_DISLIKE, "Sees someone who they dislike"},
+	{bits_COND_SEE_ENEMY, "Sees enemy"},
+	{bits_COND_ENEMY_OCCLUDED, "Enemy is occluded"},
+	{bits_COND_SMELL_FOOD, "Smells food"},
+	{bits_COND_ENEMY_TOOFAR, "Enemy is too far"},
+	{bits_COND_LIGHT_DAMAGE, "Got light damage"},
+	{bits_COND_HEAVY_DAMAGE, "Got heavy damage"},
+	{bits_COND_CAN_RANGE_ATTACK1, "Can Range Attack 1"},
+	{bits_COND_CAN_MELEE_ATTACK1, "Can Melee Attack 1"},
+	{bits_COND_CAN_RANGE_ATTACK2, "Can Range Attack 2"},
+	{bits_COND_CAN_MELEE_ATTACK2, "Can Melee Attack 2"},
+	{bits_COND_PROVOKED, "Provoked"},
+	{bits_COND_NEW_ENEMY, "New enemy"},
+	{bits_COND_HEAR_SOUND, "Hears sound"},
+	{bits_COND_SMELL, "Smells something"},
+	{bits_COND_ENEMY_FACING_ME, "Enemy is facing me"},
+	{bits_COND_ENEMY_DEAD, "Enemy is dead"},
+	{bits_COND_SEE_CLIENT, "Sees a player"},
+	{bits_COND_SEE_NEMESIS, "Sees nemesis"},
+	{bits_COND_ENEMY_LOST, "Enemy is lost"},
+	{bits_COND_SCHEDULE_SUGGESTED, "Schedule is suggested"},
+	{bits_COND_CLIENT_PUSH, "Player is trying to push me"},
+	{bits_COND_NOFIRE, "Stop possible friendly fire"},
+	{bits_COND_SPECIAL1, "Special condition 1"},
+	{bits_COND_SPECIAL2, "Special conditlion 2"},
+	{bits_COND_TASK_FAILED, "Task failed"},
+	{bits_COND_SCHEDULE_DONE, "Schedule done"},
+};
+
+static std::pair<int, const char*> g_SoundNames[] = {
+	{bits_SOUND_COMBAT, "Combat"},
+	{bits_SOUND_WORLD, "World"},
+	{bits_SOUND_PLAYER, "Player"},
+	{bits_SOUND_CARCASS, "Carcass"},
+	{bits_SOUND_MEAT, "Meat"},
+	{bits_SOUND_DANGER, "Danger"},
+	{bits_SOUND_GARBAGE, "Garbage"},
+};
+
 //=========================================================
 // FScheduleValid - returns true as long as the current
 // schedule is still the proper schedule to be executing,
@@ -214,8 +257,36 @@ bool CBaseMonster::FScheduleValid()
 	{
 		if (ShouldReportAIChange(entindex()))
 		{
-			ALERT(at_console, "%s (%d): schedule %s has been interrupted at task #%d. Conditions: %d\n",
-				STRING(pev->classname), entindex(), m_pSchedule->pName, m_iScheduleIndex, m_afConditions & m_pSchedule->iInterruptMask);
+			ALERT(at_console, "%s (%d): schedule %s has been interrupted at task #%d. Conditions: ",
+				STRING(pev->classname), entindex(), m_pSchedule->pName, m_iScheduleIndex);
+			const int conditions = m_afConditions & m_pSchedule->iInterruptMask;
+			for (const auto& condition : g_ConditionsNames)
+			{
+				if (FBitSet(conditions, condition.first))
+				{
+					ALERT(at_console, "%s; ", condition.second);
+				}
+			}
+			if (FBitSet(conditions, bits_COND_HEAR_SOUND|bits_COND_SMELL|bits_COND_SMELL_FOOD))
+			{
+				CSound *pSound = PBestSound();
+				if (pSound)
+				{
+					const int soundMask = pSound->m_iType & m_pSchedule->iSoundMask;
+					if (soundMask)
+					{
+						ALERT(at_console, "Sounds/smells: ");
+						for (const auto& sound : g_SoundNames)
+						{
+							if (FBitSet(soundMask, sound.first))
+							{
+								ALERT(at_console, "%s; ", sound.second);
+							}
+						}
+					}
+				}
+				ALERT(at_console, "\n");
+			}
 		}
 
 		// some condition has interrupted the schedule
@@ -1440,9 +1511,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		}
 	case TASK_GET_PATH_TO_BESTSCENT:
 		{
-			CSound *pScent;
-
-			pScent = PBestScent();
+			CSound *pScent = PBestScent();
 
 			if( pScent && MoveToLocation( m_movementActivity, 2, pScent->m_vecOrigin ) )
 			{

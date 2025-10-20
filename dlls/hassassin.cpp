@@ -496,7 +496,7 @@ Schedule_t slAssassinFail[] =
 		bits_COND_CAN_MELEE_ATTACK1 |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER |
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"AssassinFail"
 	},
 };
@@ -1033,8 +1033,7 @@ Schedule_t *CHAssassin::GetSchedule()
 
 			if( HasConditions( bits_COND_HEAR_SOUND ) )
 			{
-				CSound *pSound;
-				pSound = PBestSound();
+				CSound *pSound = PBestSound();
 
 				ASSERT( pSound != NULL );
 				if( pSound && ( pSound->m_iType & bits_SOUND_DANGER ) )

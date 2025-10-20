@@ -1236,6 +1236,7 @@ void Cmd_AddScheduleWatcher()
 		while((pEntity = UTIL_FindEntityByClassname(pEntity, classnameOrEntIndex)) != 0) {
 			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
 			if (pMonster) {
+				ALERT(at_console, "Adding the monster \"%s\" (%d)\n", FStringNull(pMonster->pev->targetname) ? "" : STRING(pMonster->pev->targetname), pMonster->entindex());
 				AddScheduleWatcher(pMonster->entindex());
 			}
 		}

@@ -176,7 +176,8 @@ Schedule_t slIdleHello[] =
 		bits_COND_HEAR_SOUND |
 		bits_COND_PROVOKED,
 		bits_SOUND_COMBAT |
-		bits_SOUND_DANGER,
+		bits_SOUND_DANGER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Idle Hello"
 	},
 };
@@ -222,12 +223,11 @@ Schedule_t slIdleTlkStand[] =
 		bits_COND_SMELL |
 		bits_COND_PROVOKED,
 		bits_SOUND_COMBAT |// sound flags - change these, and you'll break the talking code.
-		//bits_SOUND_PLAYER |
-		//bits_SOUND_WORLD |
 		bits_SOUND_DANGER |
 		bits_SOUND_MEAT |// scents
 		bits_SOUND_CARCASS |
-		bits_SOUND_GARBAGE,
+		bits_SOUND_GARBAGE |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"IdleTlkStand"
 	},
 };
@@ -266,8 +266,7 @@ Schedule_t slTlkIdleWatchClient[] =
 		bits_COND_CLIENT_UNSEEN |
 		bits_COND_PROVOKED,
 		bits_SOUND_COMBAT |// sound flags - change these, and you'll break the talking code.
-		//bits_SOUND_PLAYER |
-		//bits_SOUND_WORLD |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER |
 		bits_SOUND_MEAT |// scents
 		bits_SOUND_CARCASS |
@@ -288,8 +287,7 @@ Schedule_t slTlkIdleWatchClient[] =
 		bits_COND_CLIENT_UNSEEN |
 		bits_COND_PROVOKED,
 		bits_SOUND_COMBAT |// sound flags - change these, and you'll break the talking code.
-		//bits_SOUND_PLAYER |
-		//bits_SOUND_WORLD |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER |
 		bits_SOUND_MEAT |// scents
 		bits_SOUND_CARCASS |

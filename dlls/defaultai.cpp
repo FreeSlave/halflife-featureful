@@ -94,7 +94,7 @@ Schedule_t slIdleStand[] =
 
 		bits_SOUND_COMBAT |// sound flags
 		bits_SOUND_WORLD |
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER |
 
 		bits_SOUND_MEAT	|// scents
@@ -128,7 +128,7 @@ Schedule_t slIdlePatrolTurning[] =
 
 		bits_SOUND_COMBAT |// sound flags
 		bits_SOUND_WORLD |
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER |
 
 		bits_SOUND_MEAT	|// scents
@@ -172,7 +172,8 @@ Schedule_t slIdleWalk[] =
 		bits_COND_PROVOKED,
 
 		bits_SOUND_COMBAT |// sound flags
-
+		bits_SOUND_DANGER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_MEAT |// scents
 		bits_SOUND_CARCASS |
 		bits_SOUND_GARBAGE,
@@ -201,7 +202,8 @@ Schedule_t slIdleRun[] =
 		bits_COND_PROVOKED,
 
 		bits_SOUND_COMBAT |// sound flags
-
+		bits_SOUND_DANGER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_MEAT |// scents
 		bits_SOUND_CARCASS |
 		bits_SOUND_GARBAGE,
@@ -272,7 +274,7 @@ Schedule_t slActiveIdle[] =
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_COMBAT |
 		bits_SOUND_WORLD |
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER,
 		"Active Idle"
 	}
@@ -377,7 +379,7 @@ Schedule_t slAlertStand[] =
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_COMBAT |// sound flags
 		bits_SOUND_WORLD |
-		bits_SOUND_PLAYER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY |
 		bits_SOUND_DANGER |
 		bits_SOUND_MEAT |// scent flags
 		bits_SOUND_CARCASS |
@@ -1298,7 +1300,8 @@ Schedule_t slFreeroam[] =
 		bits_COND_LIGHT_DAMAGE |
 		bits_COND_HEAVY_DAMAGE |
 		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER,
+		bits_SOUND_DANGER |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Free Roaming"
 	},
 };
@@ -1313,7 +1316,8 @@ Schedule_t slFreeroamAlert[] =
 		bits_COND_LIGHT_DAMAGE |
 		bits_COND_HEAVY_DAMAGE |
 		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER | bits_SOUND_COMBAT,
+		bits_SOUND_DANGER | bits_SOUND_COMBAT |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Free Roaming (alert)"
 	},
 };

@@ -140,9 +140,7 @@ void CBaseMonster::RunAI()
 //=========================================================
 MONSTERSTATE CBaseMonster::GetIdealState()
 {
-	int iConditions;
-
-	iConditions = IScheduleFlags();
+	int iConditions = IScheduleFlags();
 
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )
@@ -174,9 +172,7 @@ MONSTERSTATE CBaseMonster::GetIdealState()
 			}
 			else if( iConditions & bits_COND_HEAR_SOUND )
 			{
-				CSound *pSound;
-
-				pSound = PBestSound();
+				CSound *pSound = PBestSound();
 				ASSERT( pSound != NULL );
 				if( pSound )
 				{

@@ -1211,9 +1211,7 @@ Schedule_t *CBullsquid::GetSchedule()
 
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 				
 				if( pSound && ( !FInViewCone( &pSound->m_vecOrigin ) || !FVisible( pSound->m_vecOrigin ) ) )
 				{
@@ -1228,9 +1226,7 @@ Schedule_t *CBullsquid::GetSchedule()
 			if( HasConditions( bits_COND_SMELL ) )
 			{
 				// there's something stinky. 
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 				if( pSound )
 					return GetScheduleOfType( SCHED_SQUID_WALLOW );
 			}
@@ -1261,9 +1257,7 @@ Schedule_t *CBullsquid::GetSchedule()
 
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 
 				if( pSound && ( !FInViewCone( &pSound->m_vecOrigin ) || !FVisible( pSound->m_vecOrigin ) ) )
 				{
@@ -1421,9 +1415,7 @@ void CBullsquid::RunTask( Task_t *pTask )
 //=========================================================
 MONSTERSTATE CBullsquid::GetIdealState()
 {
-	int iConditions;
-
-	iConditions = IScheduleFlags();
+	int iConditions = IScheduleFlags();
 
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )

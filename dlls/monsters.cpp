@@ -297,8 +297,27 @@ void CBaseMonster::Listen()
 
 			if( pCurrentSound->FIsSound() )
 			{
-				// this is an audible sound.
-				SetConditions( bits_COND_HEAR_SOUND );
+				if ((pCurrentSound->m_iType & iMySounds) == bits_SOUND_PLAYER)
+				{
+					if (m_pSchedule && (m_pSchedule->iSoundMask & bits_SOUND_PLAYER_IF_NOT_ALLY) == bits_SOUND_PLAYER_IF_NOT_ALLY)
+					{
+						// TODO: check against the player who produced the sound, not the player class
+						const int relToPlayer = IDefaultRelationship(CLASS_PLAYER);
+						if (relToPlayer != R_AL)
+						{
+							SetConditions( bits_COND_HEAR_SOUND );
+						}
+					}
+					else
+					{
+						SetConditions( bits_COND_HEAR_SOUND );
+					}
+				}
+				else
+				{
+					// this is an audible sound.
+					SetConditions( bits_COND_HEAR_SOUND );
+				}
 			}
 			else
 			{
