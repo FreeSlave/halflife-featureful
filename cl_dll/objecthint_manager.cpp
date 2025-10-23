@@ -153,6 +153,19 @@ void ObjectHintManager::RemoveInteractable()
 void ObjectHintManager::Update()
 {
 	const float clientTime = gEngfuncs.GetClientTime();
+	if (gHUD.m_pCvarDraw->value == 0.0f)
+	{
+		if (_independentHints.size())
+		{
+			for (auto it = _independentHints.begin(); it != _independentHints.end(); ++it)
+			{
+				it->second->die = clientTime;
+			}
+		}
+		Clear();
+		return;
+	}
+
 	if (_interactableHint)
 	{
 		if (GetExpirationTime(_interactableHint) <= clientTime)

@@ -207,7 +207,7 @@ int CHud::MsgFunc_ObjectHint(const char *pszName, int iSize, void *pbuf)
 		const char* spriteName = READ_STRING();
 		strncpyEnsureTermination(objectHint.sprite, spriteName);
 
-		if (m_pCvarObjectHint->value)
+		if (m_pCvarObjectHint->value && m_pCvarDraw->value)
 		{
 			const bool shouldSet = m_pCvarObjectHint->value == 2 ? objectHint.interactable : true;
 			if (shouldSet)
