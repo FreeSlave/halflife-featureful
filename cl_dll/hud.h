@@ -1239,6 +1239,7 @@ public:
 	std::uint64_t m_iWeaponBits;
 	int m_iItemBits;
 	bool m_fPlayerDead;
+	bool m_manualSaveIsDisabled;
 	int m_iIntermission;
 
 	// sprite indexes

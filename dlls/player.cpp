@@ -266,6 +266,7 @@ int gmsgJournal = 0;
 int gmsgPlTemplate = 0;
 int gmsgSoundScript = 0;
 int gmsgSoundVolume = 0;
+int gmsgSaveDisable = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -376,6 +377,7 @@ void LinkUserMessages()
 	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 10);
 	gmsgSoundScript = REG_USER_MSG("SoundScript", -1);
 	gmsgSoundVolume = REG_USER_MSG("SoundVolume", 2);
+	gmsgSaveDisable = REG_USER_MSG("SaveDisable", 1);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -5556,6 +5558,10 @@ void CBasePlayer::UpdateClientData()
 					MESSAGE_END();
 				}
 			}
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgSaveDisable, NULL, pev);
+				WRITE_BYTE(FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_SAVE) ? 1 : 0);
+			MESSAGE_END();
 		}
 
 		SendPlayerTemplateData();
@@ -7729,8 +7735,15 @@ public:
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_DUCK, m_duckCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_USE, m_useCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_STEP_SOUND, m_stepSoundCapability, useType);
+		if (ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_SAVE, m_saveCapability, useType))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgSaveDisable, NULL, pPlayer->pev);
+				WRITE_BYTE(FBitSet(pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_SAVE) ? 1 : 0);
+			MESSAGE_END();
+		}
 
-		pPlayer->SetPhysicsKeyValues();
+		if (m_jumpCapability || m_duckCapability || m_stepSoundCapability)
+			pPlayer->SetPhysicsKeyValues();
 	}
 
 	void KeyValue( KeyValueData *pkvd ) override
@@ -7758,6 +7771,11 @@ public:
 		else if( FStrEq( pkvd->szKeyName, "stepsound_capability" ) )
 		{
 			m_stepSoundCapability = atoi( pkvd->szValue );
+			pkvd->fHandled = true;
+		}
+		else if( FStrEq( pkvd->szKeyName, "save_capability" ) )
+		{
+			m_saveCapability = atoi( pkvd->szValue );
 			pkvd->fHandled = true;
 		}
 		else
@@ -7807,6 +7825,7 @@ private:
 	short m_duckCapability;
 	short m_useCapability;
 	short m_stepSoundCapability;
+	short m_saveCapability;
 };
 
 LINK_ENTITY_TO_CLASS( player_capabilities, CPlayerCapabilities )
@@ -7818,6 +7837,7 @@ TYPEDESCRIPTION	CPlayerCapabilities::m_SaveData[] =
 	DEFINE_FIELD( CPlayerCapabilities, m_duckCapability, FIELD_SHORT ),
 	DEFINE_FIELD( CPlayerCapabilities, m_useCapability, FIELD_SHORT ),
 	DEFINE_FIELD( CPlayerCapabilities, m_stepSoundCapability, FIELD_SHORT ),
+	DEFINE_FIELD( CPlayerCapabilities, m_saveCapability, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CPlayerCapabilities, CPointEntity );

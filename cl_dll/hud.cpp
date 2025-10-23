@@ -48,6 +48,45 @@ int g_iUser1 = 0;
 int g_iUser2 = 0;
 int g_iUser3 = 0;
 
+typedef void (*xcommand_t)(void);
+typedef struct cmd_function_s
+{
+	struct cmd_function_s* next;
+	const char* name;
+	xcommand_t function;
+	int flags;
+} cmd_function_t;
+
+xcommand_t originalSaveFunction = nullptr;
+
+static void CallSaveCommand()
+{
+	if (gHUD.m_manualSaveIsDisabled)
+	{
+		gEngfuncs.Con_DPrintf("Refusing to save: manual saved are disabled\n");
+		gHUD.m_Message.MessageAdd("SAVE_DISABLED", gHUD.m_flTime, true);
+	}
+	else
+	{
+		if (originalSaveFunction)
+			originalSaveFunction();
+	}
+}
+
+static cmd_function_t* GetSaveCommand()
+{
+	auto pCmd = reinterpret_cast<cmd_function_t*>(gEngfuncs.pfnGetFirstCmdFunctionHandle());
+	while(pCmd)
+	{
+		if (stricmp(pCmd->name, "save") == 0)
+		{
+			return pCmd;
+		}
+		pCmd = pCmd->next;
+	}
+	return nullptr;
+}
+
 ConfigurableBooleanValue::ConfigurableBooleanValue() : enabled_by_default(false), configurable(true) {}
 
 ConfigurableBoundedValue::ConfigurableBoundedValue() :
@@ -400,6 +439,23 @@ int __MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf )
 	return gHUD.MsgFunc_SoundScript( pszName, iSize, pbuf );
 }
 
+int __MsgFunc_SaveDisable( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ(pbuf, iSize);
+	gHUD.m_manualSaveIsDisabled = READ_BYTE() == 0 ? false : true;
+
+	if (gHUD.m_manualSaveIsDisabled)
+	{
+		gEngfuncs.Con_DPrintf("Saves have been disabled\n");
+	}
+	else
+	{
+		gEngfuncs.Con_DPrintf("Saves have been enabled\n");
+	}
+
+	return 1;
+}
+
 // TFFree Command Menu
 void __CmdFunc_OpenCommandMenu()
 {
@@ -647,6 +703,14 @@ bool CHud::IsDeveloperModeOn()
 // This is called every time the DLL is loaded
 void CHud::Init()
 {
+	m_manualSaveIsDisabled = false;
+	cmd_function_t* saveCmd = GetSaveCommand();
+	if (saveCmd)
+	{
+		originalSaveFunction = saveCmd->function;
+		saveCmd->function = &CallSaveCommand;
+	}
+
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );
 	HOOK_MESSAGE( GameMode );
@@ -699,6 +763,7 @@ void CHud::Init()
 	HOOK_MESSAGE( ObjectHint );
 	HOOK_MESSAGE( PlTemplate );
 	HOOK_MESSAGE( SoundScript );
+	HOOK_MESSAGE( SaveDisable );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
@@ -1222,6 +1287,8 @@ void CHud::VidInit()
 		}
 	}
 	vidInitAtLeastOnce = true;
+
+	m_manualSaveIsDisabled = false;
 
 	keyedDlightManager.Reset();
 

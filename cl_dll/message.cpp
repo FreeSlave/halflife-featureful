@@ -574,6 +574,14 @@ void CHudMessage::MessageAdd( const char *pName, float time, bool skipMissing )
 
 			m_pMessages[i] = tempMessage;
 			m_startTime[i] = time;
+
+			// Remember the time -- to fix up level transitions
+			m_parms.time = gHUD.m_flTime;
+
+			// Turn on drawing
+			if (!(m_iFlags & HUD_ACTIVE))
+				m_iFlags |= HUD_ACTIVE;
+
 			return;
 		}
 	}
@@ -587,13 +595,6 @@ int CHudMessage::MsgFunc_HudText( const char *pszName,  int iSize, void *pbuf )
 	const bool skipMissing = READ_BYTE() != 0;
 
 	MessageAdd( pString, gHUD.m_flTime, skipMissing );
-
-	// Remember the time -- to fix up level transitions
-	m_parms.time = gHUD.m_flTime;
-
-	// Turn on drawing
-	if( !( m_iFlags & HUD_ACTIVE ) )
-		m_iFlags |= HUD_ACTIVE;
 
 	return 1;
 }
