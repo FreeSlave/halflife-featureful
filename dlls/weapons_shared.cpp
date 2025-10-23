@@ -248,6 +248,12 @@ void CBasePlayerWeapon::ItemPostFrame()
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 
+	// Wait for end reload finish
+	if (!params.manualReload && m_fInSpecialReload == 1)
+	{
+		m_pPlayer->pev->button &= ~(IN_ATTACK|IN_ATTACK2);
+	}
+
 	const bool canPrimaryAttackNow = CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() );
 
 	if (params.primaryFirePrioritized)
