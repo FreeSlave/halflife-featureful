@@ -153,10 +153,12 @@ typedef struct cmd_function_s
 
 xcommand_t originalSaveFunction = nullptr;
 xcommand_t originalAusoSaveFunction = nullptr;
+xcommand_t originalSetVideoModeFunction = nullptr;
+bool manualSaveIsDisabled = false;
 
 static void CallSaveCommand()
 {
-	if (gHUD.m_manualSaveIsDisabled)
+	if (manualSaveIsDisabled)
 	{
 		gEngfuncs.Con_DPrintf("Refusing to save: manual saves are disabled\n");
 		gHUD.m_Message.MessageAdd("SAVE_DISABLED", gHUD.m_flTime, true);
@@ -177,6 +179,13 @@ static void CallAutoSaveCommand()
 	}
 }
 
+static void SetVideoModeCommand()
+{
+	manualSaveIsDisabled = false;
+	if (originalSetVideoModeFunction)
+		originalSetVideoModeFunction();
+}
+
 static cmd_function_t* GetClientCommand(const char* name)
 {
 	auto pCmd = reinterpret_cast<cmd_function_t*>(gEngfuncs.pfnGetFirstCmdFunctionHandle());
@@ -191,21 +200,22 @@ static cmd_function_t* GetClientCommand(const char* name)
 	return nullptr;
 }
 
-void HookSaveCommands()
+void HookClientCommands()
 {
-	cmd_function_t* saveCmd = GetClientCommand("save");
-	if (saveCmd)
-	{
-		originalSaveFunction = saveCmd->function;
-		saveCmd->function = &CallSaveCommand;
-	}
+	auto hookCommand = [](const char* name, xcommand_t replacementFunc){
+		cmd_function_t* cmd = GetClientCommand(name);
+		if (cmd)
+		{
+			auto ret = cmd->function;
+			cmd->function = replacementFunc;
+			return ret;
+		}
+		return xcommand_t{};
+	};
 
-	cmd_function_t* autosaveCmd = GetClientCommand("autosave");
-	if (autosaveCmd)
-	{
-		originalAusoSaveFunction = autosaveCmd->function;
-		autosaveCmd->function = &CallAutoSaveCommand;
-	}
+	originalSaveFunction = hookCommand("save", &CallSaveCommand);
+	originalAusoSaveFunction = hookCommand("autosave", &CallAutoSaveCommand);
+	originalSetVideoModeFunction = hookCommand("_setvideomode", &SetVideoModeCommand);
 }
 
 int __MsgFunc_UseSound( const char *pszName, int iSize, void *pbuf )
@@ -219,6 +229,26 @@ int __MsgFunc_UseSound( const char *pszName, int iSize, void *pbuf )
 	else
 		PlaySound( "common/wpn_denyselect.wav", 0.4f );
 
+	return 1;
+}
+
+int __MsgFunc_SaveDisable( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ(pbuf, iSize);
+	const bool prevManualSaveIsDisabled = manualSaveIsDisabled;
+	manualSaveIsDisabled = READ_BYTE() == 0 ? false : true;
+
+	if (prevManualSaveIsDisabled != manualSaveIsDisabled)
+	{
+		if (manualSaveIsDisabled)
+		{
+			gEngfuncs.Con_DPrintf("Saves have been disabled\n");
+		}
+		else
+		{
+			gEngfuncs.Con_DPrintf("Saves have been enabled\n");
+		}
+	}
 	return 1;
 }
 
@@ -422,6 +452,7 @@ extern void HUD_ResetClientWeaponData();
 
 int DLLEXPORT HUD_VidInit()
 {
+	manualSaveIsDisabled = false;
 	gHUD.m_iHardwareMode = IEngineStudio.IsHardware() != 0;
 	HUD_ResetClientWeaponData();
 	gHUD.VidInit();
@@ -508,7 +539,7 @@ the hud variables.
 
 void DLLEXPORT HUD_Init()
 {
-	HookSaveCommands();
+	HookClientCommands();
 	InitInput();
 	gHUD.Init();
 #if USE_VGUI
@@ -516,6 +547,7 @@ void DLLEXPORT HUD_Init()
 #endif
 
 	HOOK_MESSAGE( UseSound );
+	HOOK_MESSAGE( SaveDisable );
 
 	HookFXMessages();
 }
