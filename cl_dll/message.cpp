@@ -511,7 +511,7 @@ int CHudMessage::Draw( float fTime )
 	return 1;
 }
 
-void CHudMessage::MessageAdd( const char *pName, float time )
+void CHudMessage::MessageAdd( const char *pName, float time, bool skipMissing )
 {
 	int i, j;
 	client_textmessage_t *tempMessage;
@@ -525,6 +525,10 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 				tempMessage = TextMessageGet( pName + 1 );
 			else
 				tempMessage = TextMessageGet( pName );
+
+			if (skipMissing && !tempMessage)
+				return;
+
 			// If we couldnt find it in the titles.txt, just create it
 			if( !tempMessage )
 			{
@@ -541,7 +545,7 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 				g_pCustomMessage.fxtime = 0.25f;
 				g_pCustomMessage.holdtime = 5;
 				g_pCustomMessage.pName = g_pCustomName;
-				strcpy( g_pCustomText, pName );
+				strncpyEnsureTermination( g_pCustomText, pName );
 				g_pCustomMessage.pMessage = g_pCustomText;
 
 				tempMessage = &g_pCustomMessage;
@@ -579,9 +583,10 @@ int CHudMessage::MsgFunc_HudText( const char *pszName,  int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 
-	char *pString = READ_STRING();
+	const char *pString = READ_STRING();
+	const bool skipMissing = READ_BYTE() != 0;
 
-	MessageAdd( pString, gHUD.m_flTime );
+	MessageAdd( pString, gHUD.m_flTime, skipMissing );
 
 	// Remember the time -- to fix up level transitions
 	m_parms.time = gHUD.m_flTime;

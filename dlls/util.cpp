@@ -1076,13 +1076,14 @@ char *UTIL_dtos4( int d )
 	return buf;
 }
 
-void UTIL_ShowMessage( const char *pString, CBaseEntity *pEntity )
+void UTIL_ShowMessage( const char *pString, CBaseEntity *pEntity, bool skipMissing )
 {
 	if( !pEntity || !pEntity->IsNetClient() )
 		return;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgHudText, NULL, pEntity->edict() );
 	WRITE_STRING( pString );
+	WRITE_BYTE(skipMissing ? 1 : 0);
 	MESSAGE_END();
 }
 

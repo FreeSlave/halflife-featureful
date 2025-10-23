@@ -278,7 +278,7 @@ extern void			UTIL_ParticleEffect		( const Vector &vecOrigin, const Vector &vecD
 extern void			UTIL_ScreenShake		( const Vector &center, float amplitude, float frequency, float duration, float radius );
 extern void			UTIL_ScreenShakeToClient( edict_t* entity, float amplitude, float frequency, float duration );
 extern void			UTIL_ScreenShakeAll		( const Vector &center, float amplitude, float frequency, float duration );
-extern void			UTIL_ShowMessage		( const char *pString, CBaseEntity *pPlayer );
+extern void			UTIL_ShowMessage		( const char *pString, CBaseEntity *pPlayer, bool skipMissing = false );
 extern void			UTIL_ShowMessageAll		( const char *pString );
 extern void			UTIL_ScreenFadeAll		( const Vector &color, float fadeTime, float holdTime, int alpha, int flags );
 extern void			UTIL_ScreenFadeAll		( const Vector& fadeSource, const Vector &color, float fadeTime, float holdTime, int alpha, int flags );

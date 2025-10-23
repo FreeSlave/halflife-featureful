@@ -18,6 +18,12 @@ In Featureful SDK **titles.txt** can contain UTF-8 text. This, however, makes th
 
 While **titles.txt** is a decent way to handle texts in Half-Life, it suffers from some flaws like mixing of presentation and data (render properties and the text itself are defined in the same file which makes translations harder to sync with the original if it changes the presentation) and being "too close" to the engine.
 
+### Autosave
+
+In Half-Life the game automatically shows `GAMESAVED` title when the player saves the game manually or via quick-save.
+
+In Featureful the game also shows `AUTOSAVE` title when player touches the [trigger_autosave]({{< ref trigger_autosave >}}) or activates the [game_autosave]({{< ref game_autosave >}}). If `AUTOSAVE` title is not defined in the **titles.txt** it won't show anything.
+
 ## Translatable messages
 
 Featureful SDK implements an additional way to handle texts, used by some subsystems (currently only by [journal]({{< ref journal >}})).

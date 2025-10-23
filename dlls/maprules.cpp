@@ -1440,13 +1440,15 @@ void CGameAutosave::Spawn()
 
 void CGameAutosave::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 {
+	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 	if (pev->health > 0) {
-		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (pPlayer && pev->health > pPlayer->pev->health)
 			return;
 	}
 
 	SERVER_COMMAND( "autosave\n" );
+	if (pPlayer)
+		UTIL_ShowMessage("AUTOSAVE", pPlayer, true);
 }
 
 LINK_ENTITY_TO_CLASS( game_autosave, CGameAutosave )
