@@ -7718,7 +7718,13 @@ public:
 		CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(pActivator);
 		if (!pPlayer)
 			return;
-		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_ATTACK, m_attackCapability, useType);
+		if (ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_ATTACK, m_attackCapability, useType))
+		{
+			if (pPlayer->m_pActiveItem)
+			{
+				pPlayer->m_pActiveItem->OnPlayerAttackCapabilityChanged(!FBitSet(pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK));
+			}
+		}
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_JUMP, m_jumpCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_DUCK, m_duckCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_USE, m_useCapability, useType);
@@ -7763,7 +7769,7 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 
 private:
-	void ConfigurePlayerCapability(CBasePlayer* pPlayer, int suppressCapability, short setting, USE_TYPE useType)
+	bool ConfigurePlayerCapability(CBasePlayer* pPlayer, int suppressCapability, short setting, USE_TYPE useType)
 	{
 		if (setting == PLAYER_ABILITY_COPYINPUT)
 		{
@@ -7774,6 +7780,8 @@ private:
 			else
 				setting = PLAYER_ABILITY_TOGGLE;
 		}
+
+		const int suppressedCapabilities = pPlayer->m_suppressedCapabilities;
 
 		if (setting == PLAYER_ABILITY_DISABLE)
 		{
@@ -7790,6 +7798,8 @@ private:
 			else
 				SetBits(pPlayer->m_suppressedCapabilities, suppressCapability);
 		}
+
+		return suppressedCapabilities != pPlayer->m_suppressedCapabilities;
 	}
 
 	short m_attackCapability;

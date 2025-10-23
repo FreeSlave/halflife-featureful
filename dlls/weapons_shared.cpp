@@ -2426,6 +2426,15 @@ float CConfigurableWeapon::GetMaxSpeed()
 	return result;
 }
 
+void CConfigurableWeapon::OnPlayerAttackCapabilityChanged(bool enabled)
+{
+	if (!enabled)
+	{
+		if (m_pPlayer->m_iFOV != 0)
+			ResetZoom(SwitchModeReason::Forced);
+	}
+}
+
 int CConfigurableWeapon::PackIParam2()
 {
 	int packed = WeaponId();

@@ -312,6 +312,7 @@ public:
 	virtual bool CanBeDropped() { return true; }
 	virtual int ViewModelBody() { return 0; }
 	virtual float GetMaxSpeed() { return 0.0f; }
+	virtual void OnPlayerAttackCapabilityChanged(bool enabled) {}
 	float GetNextAttackDelay( float delay );
 
 	int		m_fInSpecialReload;									// Are we in the middle of a reload for the shotguns
@@ -357,7 +358,8 @@ enum class SwitchModeReason
 	Regular = 0,
 	Reload,
 	Holster,
-	FirstDeploy
+	FirstDeploy,
+	Forced
 };
 
 class CConfigurableWeapon : public CBasePlayerWeapon
@@ -427,6 +429,7 @@ public:
 	void UpdateRechargeTime(bool altMode);
 
 	float GetMaxSpeed() override;
+	void OnPlayerAttackCapabilityChanged(bool enabled) override;
 
 #ifndef CLIENT_DLL
 	int Save(CSave &save) override;
