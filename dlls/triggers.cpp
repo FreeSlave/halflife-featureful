@@ -3228,7 +3228,6 @@ void CTriggerSave::SaveTouch( CBaseEntity *pOther )
 	}
 
 	SERVER_COMMAND( "autosave\n" );
-	UTIL_ShowMessage("AUTOSAVE", pOther, true);
 }
 
 #define SF_ENDSECTION_USEONLY		0x0001

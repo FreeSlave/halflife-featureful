@@ -48,45 +48,6 @@ int g_iUser1 = 0;
 int g_iUser2 = 0;
 int g_iUser3 = 0;
 
-typedef void (*xcommand_t)(void);
-typedef struct cmd_function_s
-{
-	struct cmd_function_s* next;
-	const char* name;
-	xcommand_t function;
-	int flags;
-} cmd_function_t;
-
-xcommand_t originalSaveFunction = nullptr;
-
-static void CallSaveCommand()
-{
-	if (gHUD.m_manualSaveIsDisabled)
-	{
-		gEngfuncs.Con_DPrintf("Refusing to save: manual saved are disabled\n");
-		gHUD.m_Message.MessageAdd("SAVE_DISABLED", gHUD.m_flTime, true);
-	}
-	else
-	{
-		if (originalSaveFunction)
-			originalSaveFunction();
-	}
-}
-
-static cmd_function_t* GetSaveCommand()
-{
-	auto pCmd = reinterpret_cast<cmd_function_t*>(gEngfuncs.pfnGetFirstCmdFunctionHandle());
-	while(pCmd)
-	{
-		if (stricmp(pCmd->name, "save") == 0)
-		{
-			return pCmd;
-		}
-		pCmd = pCmd->next;
-	}
-	return nullptr;
-}
-
 ConfigurableBooleanValue::ConfigurableBooleanValue() : enabled_by_default(false), configurable(true) {}
 
 ConfigurableBoundedValue::ConfigurableBoundedValue() :
@@ -704,12 +665,6 @@ bool CHud::IsDeveloperModeOn()
 void CHud::Init()
 {
 	m_manualSaveIsDisabled = false;
-	cmd_function_t* saveCmd = GetSaveCommand();
-	if (saveCmd)
-	{
-		originalSaveFunction = saveCmd->function;
-		saveCmd->function = &CallSaveCommand;
-	}
 
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );

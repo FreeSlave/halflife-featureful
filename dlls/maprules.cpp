@@ -1447,8 +1447,6 @@ void CGameAutosave::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	}
 
 	SERVER_COMMAND( "autosave\n" );
-	if (pPlayer)
-		UTIL_ShowMessage("AUTOSAVE", pPlayer, true);
 }
 
 LINK_ENTITY_TO_CLASS( game_autosave, CGameAutosave )

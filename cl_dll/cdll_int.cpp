@@ -142,6 +142,72 @@ void InitInput();
 void EV_HookEvents();
 void IN_Commands();
 
+typedef void (*xcommand_t)(void);
+typedef struct cmd_function_s
+{
+	struct cmd_function_s* next;
+	const char* name;
+	xcommand_t function;
+	int flags;
+} cmd_function_t;
+
+xcommand_t originalSaveFunction = nullptr;
+xcommand_t originalAusoSaveFunction = nullptr;
+
+static void CallSaveCommand()
+{
+	if (gHUD.m_manualSaveIsDisabled)
+	{
+		gEngfuncs.Con_DPrintf("Refusing to save: manual saves are disabled\n");
+		gHUD.m_Message.MessageAdd("SAVE_DISABLED", gHUD.m_flTime, true);
+	}
+	else
+	{
+		if (originalSaveFunction)
+			originalSaveFunction();
+	}
+}
+
+static void CallAutoSaveCommand()
+{
+	if (originalAusoSaveFunction)
+	{
+		gHUD.m_Message.MessageAdd("AUTOSAVE", gHUD.m_flTime, true);
+		originalAusoSaveFunction();
+	}
+}
+
+static cmd_function_t* GetClientCommand(const char* name)
+{
+	auto pCmd = reinterpret_cast<cmd_function_t*>(gEngfuncs.pfnGetFirstCmdFunctionHandle());
+	while(pCmd)
+	{
+		if (stricmp(pCmd->name, name) == 0)
+		{
+			return pCmd;
+		}
+		pCmd = pCmd->next;
+	}
+	return nullptr;
+}
+
+void HookSaveCommands()
+{
+	cmd_function_t* saveCmd = GetClientCommand("save");
+	if (saveCmd)
+	{
+		originalSaveFunction = saveCmd->function;
+		saveCmd->function = &CallSaveCommand;
+	}
+
+	cmd_function_t* autosaveCmd = GetClientCommand("autosave");
+	if (autosaveCmd)
+	{
+		originalAusoSaveFunction = autosaveCmd->function;
+		autosaveCmd->function = &CallAutoSaveCommand;
+	}
+}
+
 int __MsgFunc_UseSound( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
@@ -442,6 +508,7 @@ the hud variables.
 
 void DLLEXPORT HUD_Init()
 {
+	HookSaveCommands();
 	InitInput();
 	gHUD.Init();
 #if USE_VGUI
