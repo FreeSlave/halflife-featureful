@@ -26,7 +26,7 @@ The full compatibility is not planned. We mainly aim at support of Spirit 1.2, b
 
 Things that are **NOT** yet implemented:
 
-* Move-with is missing (it's being worked in the [separate branch](https://github.com/FreeSlave/hlsdk-xash3d/tree/movewith)). You still can use motion_manager.
+* Move-with is missing (it's being worked in the [separate branch](https://github.com/FreeSlave/hlsdk-xash3d/tree/movewith)). You still can use [motion_manager]({{< ref motion_manager >}}).
 * Aurora particle system is not implemented (you're free to contribute!).
 * In Spirit almost any entity had a state and could be a master entity for something else. We still stick to only certain entities like `multisource`, `env_state` and some others having a master capability. See [Master-entities]({{< ref "master-entities" >}}).
 
@@ -34,15 +34,14 @@ Things that are **NOT** yet implemented:
 
 This SDK implements a decent layer of compatibility with Sven Co-op 3.0, specifically:
 
-* Most (but not all) of [entities](Other-entities) are implemented, including [monsters](Monsters) and [weapons](Weapons). Many flags and parameters are implemented too (including those from more recent versions of SC).
-* Some [cvars](Cvars) are added.
-* Reading map .cfg files is implemented, but some things must be adjusted for Sven Co-op, e.g. resetting the config between map changes.
+* Most (but not all) of [entities]({{< ref entity-guide >}}) are implemented, including monsters and weapons. Many flags and parameters are implemented too (including those from more recent versions of SC).
+* Reading [map .cfg]({{< ref map-config >}}) files is implemented, but some things must be adjusted for Sven Co-op, e.g. resetting the cvar values between map changes.
 
 Sven Co-op 3.0 features that are missing:
 
 * Model replacements for weapons.
 * Support for map-specific skill configs.
-* `weapon_uzi_akimbo` and `weapon_minigun`.
+* `weapon_uzi_akimbo`
 
 ## Conflicts
 

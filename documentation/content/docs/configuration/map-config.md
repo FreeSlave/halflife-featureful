@@ -1,5 +1,4 @@
 ---
-weight: 3
 title: "Map config"
 ---
 

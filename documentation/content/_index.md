@@ -12,14 +12,16 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 
 * All Opposing Force monsters and weapons are implemented, as well as other opfor-specific entities (excluding CTF-related). Some Sven Co-op monsters are included as well.
 * Some of Spirit of Half-Life features merged into the codebase, e.g. the [locus system]({{< ref locus-system >}}).
-* Modeled health and HEV chargers and eye scanner from PS2 version of Half-Life are implemented.
+* Model-based health and HEV chargers and eye scanner from PS2 version of Half-Life are implemented.
 * Introduced many new entities and additional parameters for standard Half-Life entities. Timers, trigger randomizers. Alternatives to `multisource` that can be used as [master entities]({{< ref master-entities >}}). Useful properties for [monstermaker]({{< ref monstermaker >}}), [scripted_sequence]({{< ref scripted_sequence >}}) and [scripted_sentence]({{< ref scripted_sentence >}}).
 * Precise configuration of some [behavior aspects and properties of monsters]({{< ref "monsters#new-common-features" >}}).
 * Improvements to [monsters]({{< ref monsters >}}) AI and new abilities for standard monsters.
+* A lot of features and behavior aspects can be adjusted specifically for your mod via the [Feature configuration]({{< ref configuration >}}) files without rebuilding the game libraries.
 * The concept of [Soundscripts]({{< ref soundscripts >}}) similar to one from Source, which allows to configure sounds used by monsters and some other entities without changing the source code.
 * The concept of [Visuals]({{< ref visuals >}}) that allows to configure models/sprites and render properties of some visual effects without changing the source code.
 * The concept of [Entity templates]({{< ref entity-templates >}}).
-* A lot of features and behavior aspects can be adjusted specifically for your mod via the [Feature configuration]({{< ref configuration >}}) files without rebuilding the game libraries. E.g. the unused custom weapons can be disabled and their assets won't need to be distributed with the mod.
+* The concept of [Player templates]({{< ref player-templates >}}).
+* The concept of [Weapon templates]({{< ref weapon-templates >}}).
 * Configurable [warpball effects]({{< ref warpball-templates >}}) for monstermakers.
 * [Subtitles]({{< ref subtitles >}}) system.
 * [Journal]({{< ref journal >}}) system (for objectives information, etc.)
@@ -30,7 +32,7 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 
 ## SDK usage in real projects
 
-Half-Life Featureful is not just SDK in vacuum. It's a result of working on the real mods:
+Half-Life Featureful is not just SDK in vacuum. It's a result of working on the real mods.
 
 * [Half-Life: Field Intensity](https://www.moddb.com/mods/field-intensity) uses the same codebase but versions before 1.6 were released before the feature configuration concept was introduced. Practically Field Intensity is the reason why this SDK exists.
 * [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) uses this codebase since version 1.3. The Induction source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/induction) of this repository along with the release of version 1.4.
@@ -41,6 +43,7 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - in development, demo available (the mod, however, branched off to utilize its own gamecode).
 * [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - in development, demo available.
 * [Retrograde](https://www.moddb.com/mods/retrograde) - in development.
+* [Specific impulse](https://www.moddb.com/mods/specific-impulse) - in development.
 
 ## Compatibility with other mods and addons
 
