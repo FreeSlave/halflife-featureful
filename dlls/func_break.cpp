@@ -699,6 +699,11 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 			takeDamageResult.SetTookDamageToHealth();
 	}
 
+	if ( ( m_Material == matGlass ) && pev->health < ( pev->max_health / 2 ) )
+	{
+		pev->frame = 1; // cracked texture
+	}
+
 	if( pev->health <= 0 )
 	{
 		KilledResult killedResult = Killed( pevInflictor, pevAttacker, GIB_NORMAL );
