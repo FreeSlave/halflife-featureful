@@ -119,6 +119,12 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 	params.fire.delayAfterEmpty = 0.2f;
 
 	params.fire.clientPunchPitch = -5.0f;
+	params.fire.shellOffsetForward = 20;
+	params.fire.shellOffsetUp = -14;
+	params.fire.shellOffsetSide = 5;
+	params.fire.shellEjectDelay = 1.0f;
+	params.fire.shellModel = "models/shell.mdl";
+	params.fire.shellSound = TE_BOUNCE_SHELL;
 	//
 
 	// Alt fire
