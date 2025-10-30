@@ -13,8 +13,8 @@ Original internal name:
 */
 
 $modelname "otis.mdl"
-$cd ".\"
-$cdtexture ".\"
+$cd "./"
+$cdtexture "./"
 $scale 1.0
 $cliptotextures
 
