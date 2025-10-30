@@ -166,6 +166,11 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 		m_iszWhenHit = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "switch_texture_when_damaged" ) )
+	{
+		m_switchTextureWhenDamaged = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseDelay::KeyValue( pkvd );
 }
@@ -190,6 +195,7 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_iGibs, FIELD_INTEGER ),
 	DEFINE_FIELD( CBreakable, m_iszWhenHit, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_pHitProxy, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CBreakable, m_switchTextureWhenDamaged, FIELD_BOOLEAN ),
 
 	// Explosion magnitude is stored in pev->impulse
 };
@@ -691,17 +697,14 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 	// this global is still used for glass and other non-monster killables, along with decals.
 	g_vecAttackDir = vecTemp.Normalize();
 
+	const float healthBeforeDamage = pev->health;
+
 	if (pev->takedamage != DAMAGE_NO)
 	{
 		if (damageInfo.nonLethal)
 			SetNonLethalHealthThreshold();
 		if (ApplyDamageToHealth(damageInfo.damage))
 			takeDamageResult.SetTookDamageToHealth();
-	}
-
-	if ( ( m_Material == matGlass ) && pev->health < ( pev->max_health / 2 ) )
-	{
-		pev->frame = 1; // cracked texture
 	}
 
 	if( pev->health <= 0 )
@@ -711,12 +714,28 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 		takeDamageResult.SetKilledResult(killedResult);
 		return takeDamageResult;
 	}
+	else if ( m_switchTextureWhenDamaged && healthBeforeDamage > DamagedHealth() && pev->health <= DamagedHealth() )
+	{
+		pev->frame = 1;
+	}
 
 	// Make a shard noise each time func breakable is hit.
 	// Don't play shard noise if cbreakable actually died.
 	DamageSound();
 
 	return takeDamageResult;
+}
+
+int CBreakable::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType)
+{
+	const float healthBeforeHealed = pev->health;
+	const float result = CBaseDelay::TakeHealth(pHealer, flHealth, bitsDamageType);
+	if (m_switchTextureWhenDamaged)
+	{
+		if (healthBeforeHealed <= DamagedHealth() && pev->health > DamagedHealth())
+			pev->frame = 0;
+	}
+	return result;
 }
 
 static char PlayBreakableBustSound( entvars_t* pev, Materials material, float fvol, int pitch )

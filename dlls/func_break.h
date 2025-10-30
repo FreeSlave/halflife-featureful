@@ -80,7 +80,9 @@ public:
 
 	// breakables use an overridden takedamage
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	float DamagedHealth() const { return pev->max_health * 0.5f; }
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) override;
 	// To spark when hit
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
@@ -127,6 +129,8 @@ public:
 
 	string_t m_iszWhenHit; // locus trigger
 	CPointEntity* m_pHitProxy;
+
+	bool m_switchTextureWhenDamaged;
 
 	CBaseEntity* GetHitProxy();
 };

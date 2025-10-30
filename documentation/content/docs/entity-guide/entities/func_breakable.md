@@ -13,6 +13,7 @@ entityCategory: solid
 * ![](/images/svencoop.png) Most of spawnobject values are compatible with those in Sven Co-op.
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
 * ![](/images/svencoop.png) `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
+* `Switch to alternate texture` - switch the textures (from `+0` to `+A` variant or vice-versa) on the brush model when half or less health has left. This allows to simulate the half-broken materials (e.g. cracked glass).
 
 ### New spawnflags
 

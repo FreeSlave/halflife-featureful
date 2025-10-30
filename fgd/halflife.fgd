@@ -2692,7 +2692,16 @@
 	]
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate) = func_breakable : "Breakable Object"
+@BaseClass = VisibleBreakable
+[
+	switch_texture_when_damaged(choices) : "Switch Texture When Damaged" : : "Switch the textures on the brush model when half or less health has left" =
+	[
+		0 : "No"
+		1 : "Switch to alternate texture"
+	]
+]
+
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable) = func_breakable : "Breakable Object"
 [
 	spawnflags(flags) =
 	[
@@ -2948,7 +2957,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate) = func_pushable : "Pushable object"
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable) = func_pushable : "Pushable object"
 [
 	spawnflags(flags) =
 	[
