@@ -32,6 +32,7 @@ $bodygroup "gun"
 studio "otis_reference_wgunnholster"
 studio "otis_reference_wgun"
 studio "otis_donut_reference"
+blank
 }
 
 $bodygroup "heads"
