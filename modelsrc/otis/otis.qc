@@ -16,7 +16,7 @@ $modelname "otis.mdl"
 $cd "./"
 $cdtexture "./"
 $scale 1.0
-$cliptotextures
+//$cliptotextures
 
 
 $bbox 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
