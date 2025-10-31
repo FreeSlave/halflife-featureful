@@ -682,6 +682,7 @@ void CDeadBarney::Spawn()
 #define	OTIS_BODY_GUNHOLSTERED	0
 #define	OTIS_BODY_GUNDRAWN		1
 #define OTIS_BODY_DONUT			2
+#define OTIS_BODY_GUNGONE		3 // custom model
 
 #define bits_OTIS_DROPPED_GUN (bits_MEMORY_CUSTOM5)
 
@@ -702,8 +703,6 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
 	void SetHead(int head) override;
-	
-	int m_iHead;
 	void SetGunState(int gunState) override;
 
 	static constexpr const char* fireDesertEagleSoundScript = "Otis.FireDesertEagle";
@@ -716,6 +715,11 @@ public:
 	void PainSound() override {
 		EmitSoundScriptTalk(painSoundScript);
 	}
+
+protected:
+	void SetNonGunBody();
+	int m_iHead;
+	int m_gunGroupModels;
 };
 
 LINK_ENTITY_TO_CLASS( monster_otis, COtis )
@@ -724,6 +728,7 @@ void COtis::Spawn()
 {
 	Precache();
 	SpawnImpl("models/otis.mdl", gSkillData.otisHealth);
+	SetNonGunBody();
 	if ( m_iHead == -1 )
 		SetBodygroup(OTIS_HEAD_GROUP, RANDOM_LONG(0, 1));
 	else
@@ -752,6 +757,9 @@ void COtis::Precache()
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
+
+	if (pev->modelindex)
+		SetNonGunBody();
 }
 
 const char* COtis::DefaultSentenceGroup(int group)
@@ -831,7 +839,10 @@ void COtis::OnDying(bool gibbed)
 		Vector vecGunPos;
 		Vector vecGunAngles;
 
-		SetBodygroup(OTIS_GUN_GROUP, OTIS_BODY_GUNHOLSTERED);
+		if (m_gunGroupModels >= 4)
+			SetBodygroup(OTIS_GUN_GROUP, OTIS_BODY_GUNGONE);
+		else
+			SetBodygroup(OTIS_GUN_GROUP, OTIS_BODY_GUNHOLSTERED);
 		Remember(bits_OTIS_DROPPED_GUN);
 
 		GetAttachment( 0, vecGunPos, vecGunAngles );
@@ -844,6 +855,16 @@ void COtis::OnDying(bool gibbed)
 void COtis::SetHead(int head)
 {
 	m_iHead = head;
+}
+
+void COtis::SetNonGunBody()
+{
+	void *pmodel = GET_MODEL_PTR(ENT(pev));
+	if (pmodel)
+	{
+		m_gunGroupModels = GetBodygroupNumModels(pmodel, OTIS_GUN_GROUP);
+		ALERT(at_console, "Num models: %d\n", m_gunGroupModels);
+	}
 }
 
 class CDeadOtis : public CDeadBarney

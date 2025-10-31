@@ -501,7 +501,7 @@ int GetBodyCount( void *pmodel )
 	return bodiesNum;
 }
 
-int GetBodygroupNumModels(void *pmodel , int iGroup)
+int GetBodygroupNumModels(void *pmodel, int iGroup)
 {
 	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
 	if( !pstudiohdr )

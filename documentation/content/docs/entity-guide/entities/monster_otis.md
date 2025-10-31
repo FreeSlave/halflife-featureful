@@ -20,6 +20,14 @@ bookToC: false
 * **Otis.Die** - death sound. Derived from **Barney.Die**
 * **Otis.FireDesertEagle** - firing Desert Eagle. Derived from **NPC.DesertEagle**
 
+### Notes
+
+{{% hint info %}}
+The Otis model from Opposing Force doesn't have a submodel with gun gone, unlike Barney. It means that when Otis drops the gun on his death the 'gun holstered' submodel is set on the model, i.e. the gun is still visible holstered on the dead body.
+
+To address this issue Featureful SDK implements a check for the presence of submodel 4 on the gun bodygroup. While submodel 1 is 'gun holstered', submodel 2 is 'gun drawn' and submodel 3 is 'donut', the submodel 4 is supposed to be 'no gun'. If the submodel 4 exists it's getting set on the Otis model when he drops the gun. If there're less than 4 submodels on the gun bodygroup it still uses the old behavior (setting 'gun holstered' submodel) to maintain backward compatibility with the default model.
+{{% /hint %}}
+
 ### Entity template examples
 
 {{% tabs %}}
