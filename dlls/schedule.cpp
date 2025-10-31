@@ -2188,9 +2188,9 @@ Schedule_t *CBaseMonster::GetSchedule()
 						if (pSound)
 						{
 							const int type = pSound->m_iType;
-							const bool isCombat = (type & bits_SOUND_COMBAT);
-							const bool isDanger = (type & bits_SOUND_DANGER);
-							const bool isPlayer = (type & bits_SOUND_PLAYER);
+							const bool isCombat = FBitSet(type, bits_SOUND_COMBAT);
+							const bool isDanger = FBitSet(type, bits_SOUND_DANGER);
+							const bool isPlayer = FBitSet(type, bits_SOUND_PLAYER);
 							if (isCombat && // it's combat sound
 									!isDanger && // but not danger
 									( !isPlayer || IDefaultRelationship(CLASS_PLAYER) != R_AL )) // and it's not combat sound produced by ally player
@@ -2343,9 +2343,9 @@ Schedule_t *CBaseMonster::GetSchedule()
 				if (pSound)
 				{
 					const int type = pSound->m_iType;
-					const bool isCombat = (type & bits_SOUND_COMBAT);
-					const bool isDanger = (type & bits_SOUND_DANGER);
-					const bool isPlayer = (type & bits_SOUND_PLAYER);
+					const bool isCombat = FBitSet(type, bits_SOUND_COMBAT);
+					const bool isDanger = FBitSet(type, bits_SOUND_DANGER);
+					const bool isPlayer = FBitSet(type, bits_SOUND_PLAYER);
 					if (isCombat && // it's combat sound
 							!isDanger && // but not danger
 							( !isPlayer || IDefaultRelationship(CLASS_PLAYER) != R_AL )) // and it's not combat sound produced by ally player

@@ -571,7 +571,7 @@ void CBasePlayer::SetMaxHealth(int maxHealth, bool clampValue)
 	}
 }
 
-int CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
+bool CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
 {
 	if (!flArmor)
 		return false;
@@ -1680,7 +1680,7 @@ void CBasePlayer::PlayerDeathThink()
 	pev->effects |= EF_NOINTERP;
 	pev->framerate = 0.0;
 
-	bool fAnyButtonDown = ( pev->button & ~IN_SCORE );
+	bool fAnyButtonDown = ( pev->button & ~IN_SCORE ) != 0;
 
 	// wait for all buttons released
 	if( pev->deadflag == DEAD_DEAD )

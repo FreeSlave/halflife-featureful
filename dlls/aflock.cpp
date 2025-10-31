@@ -90,8 +90,8 @@ public:
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	int IsLeader() { return m_pSquadLeader == this; }
-	int InSquad() { return m_pSquadLeader != NULL; }
+	bool IsLeader() { return m_pSquadLeader == this; }
+	bool InSquad() { return m_pSquadLeader != NULL; }
 	int SquadCount();
 	void SquadRemove( CFlockingFlyer *pRemove );
 	void SquadUnlink();

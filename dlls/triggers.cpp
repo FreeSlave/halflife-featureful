@@ -4152,8 +4152,8 @@ void CTriggerCondition::Evaluate()
 	}
 
 	bool result = Compare(monitorKey, compareKey);
-	bool isCyclic = pev->spawnflags & SF_TRIGGER_CONDITION_CYCLIC;
-	bool ignoreFirstResult = pev->spawnflags & SF_TRIGGER_CONDITION_IGNORE_FIRST_RESULT;
+	bool isCyclic = FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_CYCLIC);
+	bool ignoreFirstResult = FBitSet(pev->spawnflags, SF_TRIGGER_CONDITION_IGNORE_FIRST_RESULT);
 	bool shouldFireResultTarget = !ignoreFirstResult || m_checkedFirstResult || isCyclic;
 
 	if (!isCyclic && shouldFireResultTarget)
@@ -4248,7 +4248,7 @@ bool CTriggerCondition::CompareInts(const CKeyValue& monitorKey, const CKeyValue
 	case COMPARE_GREATER: return monitorKey.iVal > getValueAsInt(compareKey);
 	case COMPARE_LEQUAL: return monitorKey.iVal <= getValueAsInt(compareKey);
 	case COMPARE_GEQUAL: return monitorKey.iVal >= getValueAsInt(compareKey);
-	case COMPARE_BITSET: return monitorKey.iVal & getValueAsInt(compareKey);
+	case COMPARE_BITSET: return FBitSet(monitorKey.iVal, getValueAsInt(compareKey));
 	default:
 		ALERT(at_console, "'%s' (%s): invalid compare type %d used on int key %s\n",
 			  GetTargetname(), STRING(pev->classname), m_iCheckType, monitorKey.keyName);
@@ -4442,7 +4442,7 @@ public:
 	float m_initialSpeed;
 	float m_acceleration;
 	float m_deceleration;
-	int m_state;
+	bool m_state;
 	string_t m_iszTurnedOffTarget;
 	int m_stopByPlayerInput; // don't save, this is going to spawnflags
 };
@@ -4464,7 +4464,7 @@ TYPEDESCRIPTION	CTriggerCamera::m_SaveData[] =
 	DEFINE_FIELD( CTriggerCamera, m_initialSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CTriggerCamera, m_acceleration, FIELD_FLOAT ),
 	DEFINE_FIELD( CTriggerCamera, m_deceleration, FIELD_FLOAT ),
-	DEFINE_FIELD( CTriggerCamera, m_state, FIELD_INTEGER ),
+	DEFINE_FIELD( CTriggerCamera, m_state, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CTriggerCamera, m_iszTurnedOffTarget, FIELD_STRING ),
 };
 
@@ -4532,7 +4532,7 @@ void CTriggerCamera::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 
 	// Toggle state
 	m_state = !m_state;
-	if( m_state == 0 )
+	if( !m_state )
 	{
 		m_flReturnTime = gpGlobals->time;
 		return;
@@ -4641,7 +4641,7 @@ void CTriggerCamera::FollowTarget()
 	CBasePlayer* player = static_cast<CBasePlayer*>(static_cast<CBaseEntity*>(m_hPlayer));
 	const bool playerIsAlive = player->IsAlive();
 	const bool shouldTurnOff = !playerIsAlive && FBitSet(pev->spawnflags, SF_CAMERA_PLAYER_ALIVE_ONLY);
-	const bool shouldGoOff = FBitSet(pev->spawnflags, SF_CAMERA_IGNORE_HOLD_TIME) ? m_state == 0 : m_flReturnTime < gpGlobals->time;
+	const bool shouldGoOff = FBitSet(pev->spawnflags, SF_CAMERA_IGNORE_HOLD_TIME) ? !m_state : m_flReturnTime < gpGlobals->time;
 
 	if( m_hTarget == 0 || shouldGoOff || shouldTurnOff )
 	{
@@ -4662,7 +4662,7 @@ void CTriggerCamera::FollowTarget()
 		if (!FStringNull(m_iszTurnedOffTarget))
 			FireTargets(STRING(m_iszTurnedOffTarget), player, this);
 		pev->avelocity = Vector( 0, 0, 0 );
-		m_state = 0;
+		m_state = false;
 		return;
 	}
 
@@ -4757,7 +4757,7 @@ void CTriggerCamera::UpdateOnRemove()
 	if (m_state)
 	{
 		ReleasePlayer();
-		m_state = 0;
+		m_state = false;
 	}
 	CBaseDelay::UpdateOnRemove();
 }

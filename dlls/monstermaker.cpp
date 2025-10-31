@@ -222,12 +222,12 @@ void CMonsterMaker::KeyValue( KeyValueData *pkvd )
 	}
 	else if( FStrEq( pkvd->szKeyName, "notsolid" ) )
 	{
-		m_notSolid = atoi( pkvd->szValue );
+		m_notSolid = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "gag" ) )
 	{
-		m_gag = atoi( pkvd->szValue );
+		m_gag = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "head" ) )

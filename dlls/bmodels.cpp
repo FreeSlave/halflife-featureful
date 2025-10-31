@@ -92,7 +92,7 @@ void CFuncWall::Spawn()
 
 void CFuncWall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if( ShouldToggle( useType, (int)( pev->frame ) ) )
+	if( ShouldToggle( useType, (int)pev->frame != 0 ) )
 		pev->frame = 1 - pev->frame;
 }
 

@@ -68,7 +68,7 @@ public:
 	int m_density;
 	int m_frequency;
 	int m_bubbleModel;
-	int m_state;
+	bool m_state;
 	string_t m_bubbleModelStr;
 };
 
@@ -78,7 +78,7 @@ TYPEDESCRIPTION	CBubbling::m_SaveData[] =
 {
 	DEFINE_FIELD( CBubbling, m_density, FIELD_INTEGER ),
 	DEFINE_FIELD( CBubbling, m_frequency, FIELD_INTEGER ),
-	DEFINE_FIELD( CBubbling, m_state, FIELD_INTEGER ),
+	DEFINE_FIELD( CBubbling, m_state, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBubbling, m_bubbleModelStr, FIELD_STRING ),
 	// Let spawn restore this!
 	//DEFINE_FIELD( CBubbling, m_bubbleModel, FIELD_INTEGER ),
@@ -112,10 +112,10 @@ void CBubbling::Spawn()
 	{
 		SetThink( &CBubbling::FizzThink );
 		pev->nextthink = gpGlobals->time + 2.0f;
-		m_state = 1;
+		m_state = true;
 	}
 	else 
-		m_state = 0;
+		m_state = false;
 }
 
 void CBubbling::Precache()

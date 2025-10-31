@@ -369,8 +369,8 @@ public:
 
 	bool		IsTriggered( CBaseEntity *pActivator ) override;
 	const char	*TeamID() override;
-	inline bool RemoveOnFire() { return (pev->spawnflags & SF_TEAMMASTER_FIREONCE); }
-	inline bool AnyTeam() { return (pev->spawnflags & SF_TEAMMASTER_ANYTEAM); }
+	inline bool RemoveOnFire() { return FBitSet(pev->spawnflags, SF_TEAMMASTER_FIREONCE); }
+	inline bool AnyTeam() { return FBitSet(pev->spawnflags, SF_TEAMMASTER_ANYTEAM); }
 
 private:
 	bool		TeamMatch( CBaseEntity *pActivator );

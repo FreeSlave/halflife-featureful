@@ -259,7 +259,7 @@ public:
 	int TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType ) override;
 	void SetHealth(int health, bool allowOverheal = false);
 	void SetMaxHealth(int maxHealth, bool clampValue = true);
-	int TakeArmor(CBaseEntity *pCharger, float flArmor, int flags = 0) override;
+	bool TakeArmor(CBaseEntity *pCharger, float flArmor, int flags = 0) override;
 	int MaxArmor();
 	void SetMaxArmor(int maxArmor, bool clampValue = true);
 	void SetArmor(int armor, bool allowOvercharge = false);

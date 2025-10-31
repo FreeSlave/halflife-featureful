@@ -1614,7 +1614,7 @@ bool CConfigurableWeapon::PerformReload()
 		return false;
 
 	const WeaponParameters& params = MyParameters();
-	const int altMode = InAltMode();
+	const bool altMode = InAltMode();
 
 	if (CanRechargeAmmo())
 	{
@@ -1792,7 +1792,7 @@ void CConfigurableWeapon::WeaponIdle()
 	UpdateAutoAim();
 
 	const WeaponParameters& params = MyParameters();
-	const int altMode = InAltMode();
+	const bool altMode = InAltMode();
 
 	if (CanRechargeAmmo())
 	{
