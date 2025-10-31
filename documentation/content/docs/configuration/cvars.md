@@ -13,6 +13,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 
 * `cl_viewbob` - disable (0) or enable (1) weapon bobbing. The latter is the same as in HL Anniversary version.
 * `cl_rollangle` - angle of view rolling when player goes sideways. Set to 0 to disable viewroll.
+* `cl_viewmodel_lag` - disable (0) or enable (1) the view model lag (also known as weapon lag). When enabled, it makes the weapon 'lag' behind the player's camera rotation simulating the fact that the head and body turn faster than the hands. You could have noticed this effect in Half-Life 2.
 
 ### HUD
 
