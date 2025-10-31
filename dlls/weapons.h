@@ -18,7 +18,6 @@
 
 #include "cbase.h"
 #include "weapon_ids.h"
-#include "mod_features.h"
 #include "weapon_animations.h"
 #include "weaponinfo.h"
 #include "player_items.h"

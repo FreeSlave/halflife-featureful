@@ -25,7 +25,6 @@
 #include	"scripted.h"
 #include	"animation.h"
 #include	"soundent.h"
-#include	"mod_features.h"
 #include	"game.h"
 
 #define FEATURE_SCIENTIST_PLFEAR 0

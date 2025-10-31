@@ -32,7 +32,6 @@
 
 #include "r_studioint.h"
 #include "com_model.h"
-#include "mod_features.h"
 #include "tex_materials.h"
 
 #include "weapon_ids.h"

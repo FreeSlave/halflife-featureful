@@ -19,6 +19,7 @@
 #include "skill.h"
 #include "weapons.h"
 #include "player.h"
+#include "mod_features.h"
 
 enum m249_e
 {

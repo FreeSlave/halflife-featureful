@@ -19,7 +19,6 @@
 #if !defined(SKILL_H)
 #define SKILL_H
 
-#include "mod_features.h"
 #include "util.h"
 
 struct skilldata_t

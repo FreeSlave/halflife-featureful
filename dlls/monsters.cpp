@@ -34,7 +34,6 @@
 #include "decals.h"
 #include "soundent.h"
 #include "gamerules.h"
-#include "mod_features.h"
 #include "game.h"
 #include "common_soundscripts.h"
 #include "visuals_utils.h"

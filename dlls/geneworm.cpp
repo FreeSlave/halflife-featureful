@@ -23,7 +23,6 @@
 #include	"schedule.h"
 #include	"player.h"
 #include	"effects.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"combat.h"
 #include	"clamp.h"

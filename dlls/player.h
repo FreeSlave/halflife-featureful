@@ -17,7 +17,6 @@
 #define PLAYER_H
 
 #include "pm_materials.h"
-#include "mod_features.h"
 #include "basemonster.h"
 #include "objecthint_spec.h"
 #include "player_templates.h"

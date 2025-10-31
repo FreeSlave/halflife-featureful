@@ -28,7 +28,6 @@
 #include	"scripted.h"
 #include	"animation.h"
 #include	"studio.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 

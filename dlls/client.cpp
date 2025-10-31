@@ -44,6 +44,7 @@
 #include "common_soundscripts.h"
 #include "tex_materials.h"
 #include "unicode.h"
+#include "mod_features.h"
 
 extern DLL_GLOBAL unsigned int		g_ulModelIndexPlayer;
 extern DLL_GLOBAL bool		g_fGameOver;

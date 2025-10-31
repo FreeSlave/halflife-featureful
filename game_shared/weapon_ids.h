@@ -2,8 +2,6 @@
 #if !defined(WEAPON_IDS_H)
 #define WEAPON_IDS_H
 
-#include "mod_features.h"
-
 #define WEAPON_NONE				0
 #define WEAPON_CROWBAR			1
 #define	WEAPON_GLOCK			2

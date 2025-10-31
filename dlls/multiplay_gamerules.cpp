@@ -24,7 +24,6 @@
 #include	"ammunition.h"
 #include	"monsters.h"
 #include	"gamerules.h"
-#include	"mod_features.h"
  
 #include	"skill.h"
 #include	"game.h"

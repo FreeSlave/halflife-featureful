@@ -26,7 +26,6 @@
 #include	"combat.h"
 #include	"player.h"
 #include	"soundent.h"
-#include	"mod_features.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"

@@ -1,7 +1,6 @@
 #ifndef SHOCKBEAM_H
 #define SHOCKBEAM_H
 
-#include "mod_features.h"
 #include "cbase.h"
 
 class CBeam;

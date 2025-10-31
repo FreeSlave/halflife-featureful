@@ -19,6 +19,7 @@
 #include "skill.h"
 #include "weapons.h"
 #include "player.h"
+#include "mod_features.h"
 #ifndef CLIENT_DLL
 #include "spore.h"
 #endif

@@ -15,7 +15,6 @@
 #pragma once
 #if !defined(DECALS_H)
 #define DECALS_H
-#include "mod_features.h"
 //
 // Dynamic Decals
 //

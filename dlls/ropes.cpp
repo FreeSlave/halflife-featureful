@@ -22,7 +22,6 @@
 #include "decals.h"
 #include "effects.h"
 #include "saverestore.h"
-#include "mod_features.h"
 #include "visuals_utils.h"
 
 #include "ropes.h"

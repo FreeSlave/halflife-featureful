@@ -19,6 +19,7 @@
 #include "weapons.h"
 #include "monsters.h"
 #include "player.h"
+#include "mod_features.h"
 #include "shake.h"
 
 #if !CLIENT_DLL

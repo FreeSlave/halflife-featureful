@@ -23,7 +23,6 @@
 #include "parsemsg.h"
 #include "dlight.h"
 #include "r_efx.h"
-#include "mod_features.h"
 
 extern cvar_t *cl_nvgradius_cs;
 extern cvar_t *cl_nvgradius_of;

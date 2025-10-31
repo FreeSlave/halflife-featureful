@@ -26,7 +26,6 @@
 #include	"scripted.h"
 #include	"studio.h"
 #include	"game.h"
-#include	"mod_features.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 

@@ -19,6 +19,7 @@
 #include "skill.h"
 #include "weapons.h"
 #include "player.h"
+#include "mod_features.h"
 #include "soundent_bits.h"
 
 enum mp5_e

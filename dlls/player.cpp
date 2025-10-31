@@ -48,6 +48,7 @@
 #include "weapon_templates.h"
 #include "locus.h"
 #include "ropes.h"
+#include "mod_features.h"
 
 // #define DUCKFIX
 

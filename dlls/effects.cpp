@@ -28,7 +28,6 @@
 #include "gamerules.h"
 #include "player.h"
 #include "locus.h"
-#include "mod_features.h"
 #include "game.h"
 #include "particledef.h"
 #include "soundent.h"

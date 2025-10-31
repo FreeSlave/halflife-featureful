@@ -1,7 +1,6 @@
 #ifndef DISPLACERBALL_H
 #define DISPLACERBALL_H
 
-#include "mod_features.h"
 #include "cbase.h"
 
 class CBeam;

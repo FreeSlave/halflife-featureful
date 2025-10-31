@@ -26,6 +26,7 @@
 #include	"studio.h"
 #include	"scriptevent.h"
 #include	"ai_debug.h"
+#include	"mod_features.h"
 
 bool g_fIsXash3D = false;
 

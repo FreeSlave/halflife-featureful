@@ -2,8 +2,6 @@
 #ifndef HL_EVENTS_H
 #define HL_EVENTS_H
 
-#include "mod_features.h"
-
 extern "C"
 {
 // HLDM
