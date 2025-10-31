@@ -4,11 +4,13 @@ on:
   push:
     paths-ignore:
       - 'documentation/**'
+      - 'modelsrc/**'
       - 'appveyor.yml'
       - 'README.md'
   pull_request:
     paths-ignore:
       - 'documentation/**'
+      - 'modelsrc/**'
       - 'appveyor.yml'
       - 'README.md'
 

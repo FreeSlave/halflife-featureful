@@ -863,7 +863,6 @@ void COtis::SetNonGunBody()
 	if (pmodel)
 	{
 		m_gunGroupModels = GetBodygroupNumModels(pmodel, OTIS_GUN_GROUP);
-		ALERT(at_console, "Num models: %d\n", m_gunGroupModels);
 	}
 }
 
