@@ -2309,21 +2309,7 @@ void PM_Jump()
 		{
 			// Don't play sound again for 1 second
 			pmove->flSwimTime = 1000;
-			switch( pmove->RandomLong( 0, 3 ) )
-			{
-			case 0:
-				pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade1.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				break;
-			case 1:
-				pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade2.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				break;
-			case 2:
-				pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				break;
-			case 3:
-				pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade4.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				break;
-			}
+			PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.Wade"));
 		}
 
 		return;
@@ -2540,21 +2526,7 @@ void PM_PlayWaterSounds()
 	// Did we enter or leave water?
 	if( ( pmove->oldwaterlevel == WL_NotInWater && pmove->waterlevel != WL_NotInWater ) || ( pmove->oldwaterlevel != WL_NotInWater && pmove->waterlevel == WL_NotInWater ) )
 	{
-		switch( pmove->RandomLong( 0, 3 ) )
-		{
-		case 0:
-			pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade1.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			break;
-		case 1:
-			pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade2.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			break;
-		case 2:
-			pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			break;
-		case 3:
-			pmove->PM_PlaySound( CHAN_BODY, "player/pl_wade4.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			break;
-		}
+		PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.Wade"));
 	}
 }
 

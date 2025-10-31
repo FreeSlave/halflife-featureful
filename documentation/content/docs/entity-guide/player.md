@@ -44,6 +44,7 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.Jump** - played when player jumps (like in Team Fortress Classic or Deathmatch Classic). This is empty by default. If it's empty the material step sound is played on jump (Half-Life behavior).
 * **Player.TrainUse** - start using a train.
 * **Player.VehicleUse** - start using a vehicle.
+* **Player.Wade** - player enters or leaves the water. Also played sometimes while player is in water.
 * **Player.UnderwaterExhale** - player is underwater and losing air. In Half-Life it's the sound of exhaling bubbles.
 * **Player.Undrown** - player gets out of the water while having no air left in lungs.
 * **Player.EmergeInhale** - player get out of the water after spending some amount of air.

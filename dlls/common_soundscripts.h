@@ -59,6 +59,7 @@ extern const NamedSoundScript fallPainSoundScript;
 extern const NamedSoundScript jumpSoundScript;
 extern const NamedSoundScript trainUseSoundScript;
 extern const NamedSoundScript vehicleIgnitionSoundScript;
+extern const NamedSoundScript wadeSoundScript;
 extern const NamedSoundScript underwaterExhaleSoundScript;
 extern const NamedSoundScript undrownSoundScript;
 extern const NamedSoundScript emergeInhaleSoundScript;

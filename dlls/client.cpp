@@ -1077,7 +1077,6 @@ void ClientPrecache()
 	// PRECACHE_SOUND( "player/pl_jumpland2.wav" );		// UNDONE: play 2x step sound
 
 	// PRECACHE_SOUND( "player/pl_fallpain2.wav" ); // not used
-	PRECACHE_SOUND( "player/pl_fallpain3.wav" );
 
 	PRECACHE_SOUND( "common/npc_step1.wav" );		// NPC walk on concrete
 	PRECACHE_SOUND( "common/npc_step2.wav" );
@@ -1122,17 +1121,11 @@ void ClientPrecache()
 		PrecacheMaterialStepData(*wadeStepData);
 	}
 
-	// Need for water sounds in pm_shared
-	// TODO: make into soundscript? But soundscripts are server-only currently
-	PRECACHE_SOUND("player/pl_wade1.wav");
-	PRECACHE_SOUND("player/pl_wade2.wav");
-	PRECACHE_SOUND("player/pl_wade3.wav");
-	PRECACHE_SOUND("player/pl_wade4.wav");
-
 	pWorld->RegisterAndPrecacheSoundScript(materialSparkSoundScript); // hit computer texture
 
 	auto PrecachePlayerSoundScripts = [](CBaseEntity* pWorld)
 	{
+		pWorld->RegisterAndPrecacheSoundScript(Player::wadeSoundScript);
 		pWorld->RegisterAndPrecacheSoundScript(Player::underwaterExhaleSoundScript); // breathe bubbles
 		pWorld->RegisterAndPrecacheSoundScript(Player::undrownSoundScript);
 		pWorld->RegisterAndPrecacheSoundScript(Player::emergeInhaleSoundScript);
