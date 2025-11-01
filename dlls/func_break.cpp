@@ -1040,6 +1040,9 @@ public:
 	//virtual void	SetActivator( CBaseEntity *pActivator ) { m_pPusher = pActivator; }
 
 	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_CONTINUOUS_USE; }
+	bool PlaysItsOwnHitSounds() const override {
+		return FBitSet(pev->spawnflags, SF_PUSH_BREAKABLE);
+	}
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 

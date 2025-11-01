@@ -97,6 +97,7 @@ public:
 	void DieToActivator(CBaseEntity* pActivator);
 	void UpdateOnRemove() override;
 	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	bool PlaysItsOwnHitSounds() const override { return true; }
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 

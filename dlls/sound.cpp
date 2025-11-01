@@ -1859,7 +1859,7 @@ float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bo
 	fvolbar = mData->hit.volumebar;
 
 	// did we hit a breakable?
-	if( pEntity && FClassnameIs( pEntity->pev, "func_breakable" ) )
+	if( pEntity && pEntity->PlaysItsOwnHitSounds() )
 	{
 		// drop volumes, the object will already play a damaged sound
 		fvol /= 1.5f;

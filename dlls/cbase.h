@@ -631,6 +631,7 @@ public:
 
 	virtual bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) { return true; }
 	virtual bool IsLockedByMaster() { return false; }
+	virtual bool PlaysItsOwnHitSounds() const { return false; }
 };
 
 // Ugly technique to override base member functions
