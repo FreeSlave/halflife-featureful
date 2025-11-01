@@ -800,8 +800,8 @@ Same as [shell_model](#shell_model) but it alternates with the base shell mode. 
 An object defining an offset relative to the player's view origin. The shell ejection position is calculated based on this offset.
 
 * `"up"` - vertical offset. It's usually a negative value since weapons are drawn at the bottom.
-* `"side"` - side velocity. The default value is `[100, 150]`.
-* `"forward"` - forward velocity. The default value is `25` (just a number, not a range).
+* `"side"` - side offset (to the right side, unless [left_side](#left_side) is set).
+* `"forward"` - forward offset (how far from the player's camera it should be).
 
 Example:
 
