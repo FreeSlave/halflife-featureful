@@ -28,6 +28,7 @@
 #include "explode.h"
 #include "game.h"
 #include "locus.h"
+#include "common_soundscripts.h"
 
 extern DLL_GLOBAL Vector	g_vecAttackDir;
 
@@ -171,6 +172,11 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 		m_switchTextureWhenDamaged = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "spark_when_hit" ) )
+	{
+		m_sparkWhenHit = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseDelay::KeyValue( pkvd );
 }
@@ -196,6 +202,7 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_iszWhenHit, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_pHitProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CBreakable, m_switchTextureWhenDamaged, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBreakable, m_sparkWhenHit, FIELD_BOOLEAN ),
 
 	// Explosion magnitude is stored in pev->impulse
 };
@@ -324,6 +331,8 @@ const NamedSoundScript CBreakable::bustCeilingSoundScript = {
 	"Breakable.BustCeiling"
 };
 
+const char* CBreakable::sparkSoundScript = "Breakable.Spark";
+
 static const NamedSoundScript* HitSoundScriptForMaterial(Materials material)
 {
 	switch(material)
@@ -385,12 +394,6 @@ static void PrecacheMaterialBustSounds(CBaseEntity* pEntity, Materials material)
 	const NamedSoundScript* soundScript = BustSoundScriptForMateral(material);
 	if (soundScript)
 		pEntity->RegisterAndPrecacheSoundScript(*soundScript);
-
-	if (material == matComputer)
-	{
-		PRECACHE_SOUND( "buttons/spark5.wav" );
-		PRECACHE_SOUND( "buttons/spark6.wav" );
-	}
 }
 
 static char SoundFlagForMaterial(Materials material)
@@ -450,6 +453,13 @@ void CBreakable::Precache()
 {
 	PrecacheMaterialBustSounds(this, m_Material);
 	PrecacheMaterialSound(this, m_Material);
+
+	if (ShouldSparkOnHit())
+	{
+		SoundScriptParamOverride paramOverride;
+		paramOverride.OverrideChannel(CHAN_VOICE);
+		RegisterAndPrecacheSoundScript(sparkSoundScript, ::materialSparkSoundScript);
+	}
 
 	const char *pGibName = NULL;
 	if( m_iszGibModel )
@@ -573,30 +583,13 @@ void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	// random spark if this is a 'computer' object
 	if( RANDOM_LONG( 0, 1 ) )
 	{
-		switch( m_Material )
+		if (ShouldSparkOnHit())
 		{
-			case matComputer:
-			{
-				UTIL_Sparks( ptr->vecEndPos );
-
-				float flVolume = RANDOM_FLOAT( 0.7f, 1.0f );//random volume range
-				switch( RANDOM_LONG( 0, 1 ) )
-				{
-					case 0:
-						EMIT_SOUND( ENT( pev ), CHAN_VOICE, "buttons/spark5.wav", flVolume, ATTN_NORM );
-						break;
-					case 1:
-						EMIT_SOUND( ENT( pev ), CHAN_VOICE, "buttons/spark6.wav", flVolume, ATTN_NORM );
-						break;
-				}
-			}
-				break;			
-			case matUnbreakableGlass:
-				UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT( 0.5f, 1.5f ) );
-				break;
-			default:
-				break;
+			UTIL_Sparks( ptr->vecEndPos );
+			EmitSoundScript(sparkSoundScript);
 		}
+		if (m_Material == matUnbreakableGlass)
+			UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT( 0.5f, 1.5f ) );
 	}
 
 	//LRC
@@ -619,6 +612,11 @@ void CBreakable::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	}
 
 	CBaseDelay::TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, ptr );
+}
+
+bool CBreakable::ShouldSparkOnHit()
+{
+	return m_sparkWhenHit || m_Material == matComputer;
 }
 
 //=========================================================

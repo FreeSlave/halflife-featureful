@@ -2699,6 +2699,11 @@
 		0 : "No"
 		1 : "Switch to alternate texture"
 	]
+	spark_when_hit(choices) : "Spark When Hit" =
+	[
+		0 : "Default (only computer material)"
+		1 : "Yes"
+	]
 ]
 
 @SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable) = func_breakable : "Breakable Object"

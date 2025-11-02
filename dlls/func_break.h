@@ -85,6 +85,7 @@ public:
 	int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) override;
 	// To spark when hit
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	bool ShouldSparkOnHit();
 
 	bool IsBreakable();
 
@@ -100,6 +101,7 @@ public:
 	bool PlaysItsOwnHitSounds() const override { return true; }
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 	inline bool Explodable() { return ExplosionMagnitude() > 0; }
 	inline int ExplosionMagnitude() { return pev->impulse; }
@@ -123,7 +125,7 @@ public:
 	static const NamedSoundScript bustRocksSoundScript;
 	static const NamedSoundScript bustCeilingSoundScript;
 
-	static TYPEDESCRIPTION m_SaveData[];
+	static const char* sparkSoundScript;
 
 	Materials m_Material;
 	Explosions m_Explosion;
@@ -139,6 +141,7 @@ public:
 	CPointEntity* m_pHitProxy;
 
 	bool m_switchTextureWhenDamaged;
+	bool m_sparkWhenHit;
 
 	CBaseEntity* GetHitProxy();
 };

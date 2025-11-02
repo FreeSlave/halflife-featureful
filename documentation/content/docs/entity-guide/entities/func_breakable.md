@@ -14,6 +14,7 @@ entityCategory: solid
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
 * ![](/images/svencoop.png) `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
 * `Switch to alternate texture` - switch the textures (from `+0` to `+A` variant or vice-versa) on the brush model when half or less health has left. This allows to simulate the half-broken materials (e.g. cracked glass).
+* `Spark When Hit` - allow spark effect when the breakable is hit, even if material is not a `Computer`.
 
 ### New spawnflags
 
@@ -57,6 +58,10 @@ When the breakable gets destroyed (depending on the material):
 * **Breakable.BustMetal** - metal.
 * **Breakable.BustRocks** - rocks. By default it's the same as **Breakable.BustConcrete**.
 * **Breakable.BustWood** - wood.
+
+Other soundscripts:
+
+* **Breakable.Spark** - the spark sound to play along with the spark sprite effect. Derived from [Material.Spark]({{< ref "soundscripts/#effect-soundscripts" >}}).
 
 ### Bugfixes
 
