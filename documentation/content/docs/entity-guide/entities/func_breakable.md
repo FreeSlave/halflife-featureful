@@ -28,6 +28,17 @@ entityCategory: solid
 
 Reports the *health* / *max health* fraction.
 
+### Soundscripts
+
+* **Breakable.BustCeiling** - the breakable of ceiling tile material gets destroyed.
+* **Breakable.BustConcrete** - the breakable of concrete (cinder block) material gets destroyed.
+* **Breakable.BustComputer** - the breakable of computer material gets destroyed. By default it's the same as **Breakable.BustMetal**.
+* **Breakable.BustFlesh** - the breakable of flesh material gets destroyed.
+* **Breakable.BustGlass** - the breakable of glass material gets destroyed.
+* **Breakable.BustMetal** - the breakable of metal material gets destroyed.
+* **Breakable.BustRocks** - the breakable of rocks material gets destroyed. By default it's the same as **Breakable.BustConcrete**.
+* **Breakable.BustWood** - the breakable of wood material gets destroyed.
+
 ### Bugfixes
 
 * Fixed `func_breakable` taking damage from some attacks even if `Only Trigger` spawnflag is set (original Half-Life bug).

@@ -116,6 +116,15 @@ public:
 	static const char *pSoundsConcrete[];
 	static const char *pSpawnObjects[];
 
+	static const NamedSoundScript bustWoodSoundScript;
+	static const NamedSoundScript bustFleshSoundScript;
+	static const NamedSoundScript bustComputerSoundScript;
+	static const NamedSoundScript bustGlassSoundScript;
+	static const NamedSoundScript bustMetalSoundScript;
+	static const NamedSoundScript bustConcreteSoundScript;
+	static const NamedSoundScript bustRocksSoundScript;
+	static const NamedSoundScript bustCeilingSoundScript;
+
 	static TYPEDESCRIPTION m_SaveData[];
 
 	Materials m_Material;
