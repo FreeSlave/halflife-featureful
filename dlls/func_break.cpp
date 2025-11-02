@@ -237,42 +237,43 @@ void CBreakable::Spawn()
 		pev->flags |= FL_WORLDBRUSH;
 }
 
-const char *CBreakable::pSoundsWood[] =
-{
-	"debris/wood1.wav",
-	"debris/wood2.wav",
-	"debris/wood3.wav",
+const NamedSoundScript CBreakable::woodSoundScript = {
+	CHAN_VOICE,
+	{"debris/wood1.wav", "debris/wood2.wav", "debris/wood3.wav"},
+	"Breakable.Wood"
 };
 
-const char *CBreakable::pSoundsFlesh[] =
-{
-	"debris/flesh1.wav",
-	"debris/flesh2.wav",
-	"debris/flesh3.wav",
-	"debris/flesh5.wav",
-	"debris/flesh6.wav",
-	"debris/flesh7.wav",
+const NamedSoundScript CBreakable::fleshSoundScript = {
+	CHAN_VOICE,
+	{
+		"debris/flesh1.wav", "debris/flesh2.wav", "debris/flesh3.wav",
+		"debris/flesh5.wav", "debris/flesh6.wav", "debris/flesh7.wav",
+	},
+	"Breakable.Flesh"
 };
 
-const char *CBreakable::pSoundsMetal[] =
-{
-	"debris/metal1.wav",
-	"debris/metal2.wav",
-	"debris/metal3.wav",
+const NamedSoundScript CBreakable::metalSoundScript = {
+	CHAN_VOICE,
+	{"debris/metal1.wav", "debris/metal3.wav"},
+	"Breakable.Metal"
 };
 
-const char *CBreakable::pSoundsConcrete[] =
-{
-	"debris/concrete1.wav",
-	"debris/concrete2.wav",
-	"debris/concrete3.wav",
+const NamedSoundScript CBreakable::concreteSoundScript = {
+	CHAN_VOICE,
+	{"debris/concrete1.wav", "debris/concrete2.wav", "debris/concrete3.wav"},
+	"Breakable.Concrete"
 };
 
-const char *CBreakable::pSoundsGlass[] =
-{
-	"debris/glass1.wav",
-	"debris/glass2.wav",
-	"debris/glass3.wav",
+const NamedSoundScript CBreakable::glassSoundScript = {
+	CHAN_VOICE,
+	{"debris/glass1.wav", "debris/glass2.wav", "debris/glass3.wav"},
+	"Breakable.Glass"
+};
+
+const NamedSoundScript CBreakable::computerSoundScript = {
+	CHAN_VOICE,
+	{"debris/glass1.wav", "debris/glass2.wav", "debris/glass3.wav", "debris/metal1.wav", "debris/metal3.wav"},
+	"Breakable.Computer"
 };
 
 const NamedSoundScript CBreakable::bustWoodSoundScript = {
@@ -323,67 +324,34 @@ const NamedSoundScript CBreakable::bustCeilingSoundScript = {
 	"Breakable.BustCeiling"
 };
 
-const char **CBreakable::MaterialSoundList( Materials precacheMaterial, int &soundCount )
+static const NamedSoundScript* HitSoundScriptForMaterial(Materials material)
 {
-	const char	**pSoundList = NULL;
-
-	switch( precacheMaterial )
+	switch(material)
 	{
 	case matWood:
-		pSoundList = pSoundsWood;
-		soundCount = ARRAYSIZE( pSoundsWood );
-		break;
+		return &CBreakable::woodSoundScript;
 	case matFlesh:
-		pSoundList = pSoundsFlesh;
-		soundCount = ARRAYSIZE( pSoundsFlesh );
-		break;
-	case matComputer:
+		return &CBreakable::fleshSoundScript;
 	case matUnbreakableGlass:
 	case matGlass:
-		pSoundList = pSoundsGlass;
-		soundCount = ARRAYSIZE( pSoundsGlass );
-		break;
+		return &CBreakable::glassSoundScript;
 	case matMetal:
-		pSoundList = pSoundsMetal;
-		soundCount = ARRAYSIZE( pSoundsMetal );
-		break;
+		return &CBreakable::metalSoundScript;
 	case matCinderBlock:
 	case matRocks:
-		pSoundList = pSoundsConcrete;
-		soundCount = ARRAYSIZE( pSoundsConcrete );
-		break;
-	case matCeilingTile:
-	case matNone:
+		return &CBreakable::concreteSoundScript;
+	case matComputer:
+		return &CBreakable::computerSoundScript;
 	default:
-		soundCount = 0;
-		break;
-	}
-
-	return pSoundList;
-}
-
-void CBreakable::MaterialSoundPrecache( Materials precacheMaterial )
-{
-	const char **pSoundList;
-	int i, soundCount = 0;
-
-	pSoundList = MaterialSoundList( precacheMaterial, soundCount );
-
-	for( i = 0; i < soundCount; i++ )
-	{
-		::PRECACHE_SOUND( pSoundList[i] );
+		return nullptr;
 	}
 }
 
-void CBreakable::MaterialSoundRandom( edict_t *pEdict, Materials soundMaterial, float volume )
+static void PrecacheMaterialSound(CBaseEntity* pEntity, Materials material)
 {
-	const char **pSoundList;
-	int soundCount = 0;
-
-	pSoundList = MaterialSoundList( soundMaterial, soundCount );
-
-	if( soundCount )
-		EMIT_SOUND( pEdict, CHAN_BODY, pSoundList[RANDOM_LONG( 0, soundCount - 1 )], volume, 1.0f );
+	const NamedSoundScript* soundScript = HitSoundScriptForMaterial(material);
+	if (soundScript)
+		pEntity->RegisterAndPrecacheSoundScript(*soundScript);
 }
 
 static const NamedSoundScript* BustSoundScriptForMateral(Materials material)
@@ -481,7 +449,7 @@ static const char* DefaultMaterialGibModel( Materials material )
 void CBreakable::Precache()
 {
 	PrecacheMaterialBustSounds(this, m_Material);
-	MaterialSoundPrecache( m_Material );
+	PrecacheMaterialSound(this, m_Material);
 
 	const char *pGibName = NULL;
 	if( m_iszGibModel )
@@ -501,70 +469,20 @@ void CBreakable::Precache()
 void CBreakable::DamageSound()
 {
 	int pitch;
-	float fvol;
-	const char *rgpsz[6];
-	int i = 0;
-	int material = m_Material;
-
-	//if( RANDOM_LONG( 0, 1 ) )
-	//	return;
-
 	if( RANDOM_LONG( 0, 2 ) )
 		pitch = PITCH_NORM;
 	else
 		pitch = 95 + RANDOM_LONG( 0, 34 );
 
-	fvol = RANDOM_FLOAT( 0.75, 1.0 );
+	float fvol = RANDOM_FLOAT( 0.75f, 1.0f );
 
-	if( material == matComputer && RANDOM_LONG( 0, 1 ) )
-		material = matMetal;
+	SoundScriptParamOverride paramOverride;
+	paramOverride.OverridePitchRelative(pitch);
+	paramOverride.OverrideVolumeRelative(fvol);
 
-	switch( material )
-	{
-	case matComputer:
-	case matGlass:
-	case matUnbreakableGlass:
-		rgpsz[0] = "debris/glass1.wav";
-		rgpsz[1] = "debris/glass2.wav";
-		rgpsz[2] = "debris/glass3.wav";
-		i = 3;
-		break;
-	case matWood:
-		rgpsz[0] = "debris/wood1.wav";
-		rgpsz[1] = "debris/wood2.wav";
-		rgpsz[2] = "debris/wood3.wav";
-		i = 3;
-		break;
-	case matMetal:
-		rgpsz[0] = "debris/metal1.wav";
-		rgpsz[1] = "debris/metal3.wav";
-		rgpsz[2] = "debris/metal2.wav";
-		i = 2;
-		break;
-	case matFlesh:
-		rgpsz[0] = "debris/flesh1.wav";
-		rgpsz[1] = "debris/flesh2.wav";
-		rgpsz[2] = "debris/flesh3.wav";
-		rgpsz[3] = "debris/flesh5.wav";
-		rgpsz[4] = "debris/flesh6.wav";
-		rgpsz[5] = "debris/flesh7.wav";
-		i = 6;
-		break;
-	case matRocks:
-	case matCinderBlock:
-		rgpsz[0] = "debris/concrete1.wav";
-		rgpsz[1] = "debris/concrete2.wav";
-		rgpsz[2] = "debris/concrete3.wav";
-		i = 3;
-		break;
-	case matCeilingTile:
-		// UNDONE: no ceiling tile shard sound yet
-		i = 0;
-		break;
-	}
-
-	if( i )
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, rgpsz[ RANDOM_LONG( 0, i - 1 )], fvol, ATTN_NORM, 0, pitch );
+	const NamedSoundScript* soundScript = HitSoundScriptForMaterial(m_Material);
+	if (soundScript)
+		EmitSoundScript(soundScript->name, paramOverride);
 }
 
 void CBreakable::BreakTouch( CBaseEntity *pOther )
@@ -1402,7 +1320,6 @@ void CFuncBreakableEffect::Spawn()
 void CFuncBreakableEffect::Precache()
 {
 	PrecacheMaterialBustSounds(this, m_Material);
-	CBreakable::MaterialSoundPrecache( m_Material );
 
 	const char *pGibName = NULL;
 	if( m_iszGibModel )

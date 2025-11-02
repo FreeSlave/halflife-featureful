@@ -105,16 +105,14 @@ public:
 	inline int ExplosionMagnitude() { return pev->impulse; }
 	inline void ExplosionSetMagnitude( int magnitude ) { pev->impulse = magnitude; }
 
-	static void MaterialSoundPrecache( Materials precacheMaterial );
-	static void MaterialSoundRandom( edict_t *pEdict, Materials soundMaterial, float volume );
-	static const char **MaterialSoundList( Materials precacheMaterial, int &soundCount );
-
-	static const char *pSoundsWood[];
-	static const char *pSoundsFlesh[];
-	static const char *pSoundsGlass[];
-	static const char *pSoundsMetal[];
-	static const char *pSoundsConcrete[];
 	static const char *pSpawnObjects[];
+
+	static const NamedSoundScript woodSoundScript;
+	static const NamedSoundScript fleshSoundScript;
+	static const NamedSoundScript glassSoundScript;
+	static const NamedSoundScript metalSoundScript;
+	static const NamedSoundScript concreteSoundScript;
+	static const NamedSoundScript computerSoundScript;
 
 	static const NamedSoundScript bustWoodSoundScript;
 	static const NamedSoundScript bustFleshSoundScript;

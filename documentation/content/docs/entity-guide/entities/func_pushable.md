@@ -21,6 +21,7 @@ Reports the *health* / *max health* fraction.
 ### Soundscripts
 
 * **Pushable.Move** - played when pushed.
+* [func_breakable]({{< ref func_breakable >}}) soundscripts (if `Breakable` spawnflag is enabled).
 
 ### Cvars
 

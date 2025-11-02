@@ -32,3 +32,17 @@ To set a sprite you may need to specify the path manually instead of relying on 
 * `Scale models` - whether scaling is applied to the models. The reason why this behavior is not enabled by default is that some env_shooters in Half-Life set big scales, but model scaling is not implemented in Half-Life.
 * `Don't wait till land`. By default gibs won't start their lifetime countdown until they land on the ground. Tick this flag to start countdown right away, without waiting for landing.
 * `Start instantly` - start producing projectile on the same frame it was called. By default in Half-Life it starts producing gibs/shots only on the next frame which may cause some problems.
+
+### Soundscripts
+
+When the spawned gib touches something (depending on the material):
+
+* **Gib.Concrete** - concrete. Derived from **Breakable.Concrete**
+* **Gib.Flesh** - flesh. Derived from **Breakable.Flesh**
+* **Gib.Glass** - glass. Derived from **Breakable.Glass**
+* **Gib.Metal** - metal. Unlike others this is not derived from the **Breakable** soundscript because in Half-Life gibs and breakables use slightly different sets of sounds for the metal material.
+* **Gib.Wood** - wood. Derived from **Breakable.Wood**
+
+{{% hint info %}}
+**Breakable** soundscripts are described on [func_breakable]({{< ref func_breakable >}}).
+{{% /hint %}}

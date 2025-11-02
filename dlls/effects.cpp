@@ -1846,6 +1846,7 @@ CBaseEntity *CGibShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 
 	pGib->pev->origin = vecPos;
 	pGib->pev->velocity = vecVel;
+	pGib->m_ownerEntTemplate = m_entTemplate;
 
 	pGib->Spawn( "models/hgibs.mdl" );
 	pGib->m_lifeTime = lifeTime;
@@ -2072,7 +2073,7 @@ void CEnvShooter::KeyValue( KeyValueData *pkvd )
 void CEnvShooter::Precache()
 {
 	m_iGibModelIndex = PRECACHE_MODEL( STRING( pev->model ) );
-	CBreakable::MaterialSoundPrecache( (Materials)m_iGibMaterial );
+	CGib::PrecacheMaterialSounds(this, m_iGibMaterial);
 }
 
 CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, float lifeTime)
@@ -2089,6 +2090,7 @@ CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 
 		pGib->pev->origin = vecPos;
 		pGib->pev->velocity = vecVel;
+		pGib->m_ownerEntTemplate = m_entTemplate;
 
 		pGib->Spawn( STRING( pev->model ) );
 		if (m_iPhysics) // sticky gib

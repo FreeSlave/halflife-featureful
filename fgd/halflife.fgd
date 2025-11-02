@@ -2271,7 +2271,7 @@
 	]
 ]
 
-@PointClass base(gibshooterbase, RenderFields) color(184 90 164) = env_shooter : "Model Shooter"
+@PointClass base(gibshooterbase, RenderFields, EntityTemplate) color(184 90 164) = env_shooter : "Model Shooter"
 [
 	shootmodel(studio) : "Model or Sprite name"
 	shootsounds(choices) :"Material Sound" : -1 =

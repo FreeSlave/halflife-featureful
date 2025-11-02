@@ -181,6 +181,15 @@ public:
 	static void SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs );
 	static void SpawnRandomClientGibs(entvars_t *pevVictim, int cGibs, const char* gibModel, int gibBodiesNum = 0, int startGibIndex = 0 );
 
+	static const char* woodSoundScript;
+	static const char* fleshSoundScript;
+	static const char* glassSoundScript;
+	static const NamedSoundScript metalSoundScript;
+	static const char* concreteSoundScript;
+
+	static void PrecacheMaterialSounds(CBaseEntity* pEntity, int material);
+	static void EmitMaterialSound(CBaseEntity* pEntity, int material, float volume);
+
 	int m_bloodColor;
 	int m_cBloodDecals;
 	int m_material;

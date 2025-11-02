@@ -320,6 +320,81 @@ void CGib::SpawnRandomClientGibs(entvars_t *pevVictim, int cGibs, const char *gi
 	}
 }
 
+const char* CGib::woodSoundScript = "Gib.Wood";
+const char* CGib::fleshSoundScript = "Gib.Flesh";
+const char* CGib::glassSoundScript = "Gib.Glass";
+
+const NamedSoundScript CGib::metalSoundScript = {
+	CHAN_BODY,
+	{"debris/metal1.wav", "debris/metal2.wav", "debris/metal3.wav"},
+	1.0f,
+	1.0f,
+	"Gib.Metal"
+};
+
+const char* CGib::concreteSoundScript = "Gib.Concrete";
+
+void CGib::PrecacheMaterialSounds(CBaseEntity *pEntity, int material)
+{
+	SoundScriptParamOverride paramOverride;
+	paramOverride.OverrideChannel(CHAN_BODY);
+	paramOverride.OverrideAttenuationAbsolute(1.0f);
+
+	switch(material)
+	{
+	case matWood:
+		pEntity->RegisterAndPrecacheSoundScript(CGib::woodSoundScript, CBreakable::woodSoundScript, paramOverride);
+		break;
+	case matFlesh:
+		pEntity->RegisterAndPrecacheSoundScript(CGib::fleshSoundScript, CBreakable::fleshSoundScript, paramOverride);
+		break;
+	case matComputer:
+	case matUnbreakableGlass:
+	case matGlass:
+		pEntity->RegisterAndPrecacheSoundScript(CGib::glassSoundScript, CBreakable::glassSoundScript, paramOverride);
+		break;
+	case matMetal:
+		pEntity->RegisterAndPrecacheSoundScript(CGib::metalSoundScript);
+		break;
+	case matCinderBlock:
+	case matRocks:
+		pEntity->RegisterAndPrecacheSoundScript(CGib::concreteSoundScript, CBreakable::concreteSoundScript, paramOverride);
+		break;
+	default:
+		break;
+	}
+}
+
+void CGib::EmitMaterialSound(CBaseEntity *pEntity, int material, float volume)
+{
+	SoundScriptParamOverride paramOverride;
+	paramOverride.OverrideVolumeRelative(volume);
+
+	switch(material)
+	{
+	case matWood:
+		pEntity->EmitSoundScript(CGib::woodSoundScript, paramOverride);
+		break;
+	case matFlesh:
+		pEntity->EmitSoundScript(CGib::fleshSoundScript, paramOverride);
+		break;
+	case matComputer:
+	case matUnbreakableGlass:
+	case matGlass:
+		pEntity->EmitSoundScript(CGib::glassSoundScript, paramOverride);
+		break;
+	case matMetal:
+		pEntity->EmitSoundScript(CGib::metalSoundScript, paramOverride);
+		break;
+	case matCinderBlock:
+	case matRocks:
+		pEntity->EmitSoundScript(CGib::concreteSoundScript, paramOverride);
+		break;
+	default:
+		break;
+	}
+}
+
 enum
 {
 	GIBTYPE_UNKNOWN,
@@ -987,12 +1062,10 @@ void CGib::BounceGibTouch( CBaseEntity *pOther )
 
 		if( m_material != matNone && RANDOM_LONG( 0, 2 ) == 0 )
 		{
-			float volume;
 			float zvel = fabs( pev->velocity.z );
+			float volume = 0.8f * Q_min( 1.0f, zvel / 450.0f );
 
-			volume = 0.8f * Q_min( 1.0f, zvel / 450.0f );
-
-			CBreakable::MaterialSoundRandom( edict(), (Materials)m_material, volume );
+			CGib::EmitMaterialSound(this, m_material, volume);
 		}
 	}
 }

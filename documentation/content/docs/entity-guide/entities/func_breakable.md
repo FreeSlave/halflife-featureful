@@ -30,14 +30,33 @@ Reports the *health* / *max health* fraction.
 
 ### Soundscripts
 
-* **Breakable.BustCeiling** - the breakable of ceiling tile material gets destroyed.
-* **Breakable.BustConcrete** - the breakable of concrete (cinder block) material gets destroyed.
-* **Breakable.BustComputer** - the breakable of computer material gets destroyed. By default it's the same as **Breakable.BustMetal**.
-* **Breakable.BustFlesh** - the breakable of flesh material gets destroyed.
-* **Breakable.BustGlass** - the breakable of glass material gets destroyed.
-* **Breakable.BustMetal** - the breakable of metal material gets destroyed.
-* **Breakable.BustRocks** - the breakable of rocks material gets destroyed. By default it's the same as **Breakable.BustConcrete**.
-* **Breakable.BustWood** - the breakable of wood material gets destroyed.
+When the breakable gets hit (depending on the material):
+
+* **Breakable.Computer** - computer.
+* **Breakable.Concrete** - concrete or rocks.
+* **Breakable.Flesh** - flesh.
+* **Breakable.Glass** - glass.
+* **Breakable.Metal** - metal.
+* **Breakable.Wood** - wood.
+
+{{% hint info %}}
+In addition to the breakable sound the material sound of the texture is also playing (with decreased volume).
+{{% /hint %}}
+
+{{% hint warning %}}
+Changing the breakable hit soundscripts globally also affects the sounds produced by gibs spawned via [env_shooter]({{< ref "env_shooter#soundscripts" >}}).
+{{% /hint %}}
+
+When the breakable gets destroyed (depending on the material):
+
+* **Breakable.BustCeiling** - ceiling tile.
+* **Breakable.BustConcrete** - concrete (cinder block).
+* **Breakable.BustComputer** - computer. By default it's the same as **Breakable.BustMetal**.
+* **Breakable.BustFlesh** - flesh.
+* **Breakable.BustGlass** - glass.
+* **Breakable.BustMetal** - metal.
+* **Breakable.BustRocks** - rocks. By default it's the same as **Breakable.BustConcrete**.
+* **Breakable.BustWood** - wood.
 
 ### Bugfixes
 
