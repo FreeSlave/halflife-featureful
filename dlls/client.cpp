@@ -1146,6 +1146,8 @@ void ClientPrecache()
 		//PRECACHE_SOUND( "player/pl_pain4.wav" );
 		pWorld->RegisterAndPrecacheSoundScript(Player::deathSoundScript);
 		pWorld->RegisterAndPrecacheSoundScript(Player::deathUnderwaterSoundScript);
+
+		pWorld->RegisterAndPrecacheSoundScript(Player::geigerSoundScript);
 	};
 
 	PrecachePlayerSoundScripts(pWorld);

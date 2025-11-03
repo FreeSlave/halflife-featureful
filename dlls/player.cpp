@@ -6894,7 +6894,12 @@ void CBasePlayer::SendPlayerTemplateData()
 		WRITE_BYTE(hudDrawNoSuit);
 	MESSAGE_END();
 
-	const char* sharedSoundScripts[] = {Player::fallPainSoundScript.name, Player::jumpSoundScript.name, Player::wadeSoundScript.name};
+	const char* sharedSoundScripts[] = {
+		Player::fallPainSoundScript.name,
+		Player::jumpSoundScript.name,
+		Player::wadeSoundScript.name,
+		Player::geigerSoundScript.name
+	};
 
 	for (size_t i=0; i<ARRAYSIZE(sharedSoundScripts); ++i)
 	{

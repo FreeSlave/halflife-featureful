@@ -310,4 +310,12 @@ const NamedSoundScript deathUnderwaterSoundScript = {
 	"Player.DeathUnderwater"
 };
 
+const NamedSoundScript geigerSoundScript = {
+	CHAN_STATIC,
+	{"player/geiger1.wav", "player/geiger2.wav", "player/geiger3.wav"},
+	FloatRange(0.25f, 0.5f),
+	ATTN_NORM,
+	"Player.Geiger"
+};
+
 }
