@@ -653,6 +653,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 			shellInfoParams.forwardScale = fire.shellOffsetForward.Get(altMode);
 			shellInfoParams.upScale = fire.shellOffsetUp.Get(altMode);
 			shellInfoParams.rightScale = shellLeftSide ? -fire.shellOffsetSide.Get(altMode) : fire.shellOffsetSide.Get(altMode);
+			shellInfoParams.attachment = fire.shellAttachment.Get(altMode);
 			shellInfoParams.upFactor = fire.shellVelocityUp.Get(altMode);
 			shellInfoParams.sideFactor = fire.shellVelocitySide.Get(altMode);
 			shellInfoParams.forwardFactor = fire.shellVelocityForward.Get(altMode);

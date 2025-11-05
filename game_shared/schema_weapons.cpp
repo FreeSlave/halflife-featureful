@@ -460,19 +460,35 @@ const char* const json_schemas::weapons = R"(
 						"minimum": 0
 					},
 					"offset": {
-						"type": "object",
-						"properties": {
-							"up": {
-								"$ref": "definitions.json#/range"
+						"oneOf": [
+							{
+								"type": "object",
+								"properties": {
+									"up": {
+										"$ref": "definitions.json#/range"
+									},
+									"side": {
+										"$ref": "definitions.json#/range"
+									},
+									"forward": {
+										"$ref": "definitions.json#/range"
+									}
+								},
+								"additionalProperties": false
 							},
-							"side": {
-								"$ref": "definitions.json#/range"
-							},
-							"forward": {
-								"$ref": "definitions.json#/range"
+							{
+								"type": "object",
+								"properties": {
+									"attachment": {
+										"type": "integer",
+										"minimum": "1",
+										"maximum": "4"
+									}
+								},
+								"required": ["attachment"],
+								"additionalProperties": false
 							}
-						},
-						"additionalProperties": false
+						]
 					},
 					"sound_type": {
 						"enum": [null, "null", "shell", "shotgun_shell"]

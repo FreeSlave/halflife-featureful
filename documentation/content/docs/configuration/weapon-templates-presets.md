@@ -45,8 +45,8 @@ As a mod developer you need to take into account that CS handles weapons differe
     - Both spread and kickback depend on whether the player is in on the ground, moving or ducking. Usually the weapons shoot more accurate when player is ducking and less accurate when player is moving or not on the ground (e.g. in jump or on the ladder).
 * Weapons have [range modifier]({{< ref "weapon-templates#range_modifier" >}}) that decreases the damage on longer distances. In HL the bullet damage is constant independent of the distance.
 * Most CS weapons can shoot underwater, except for FAMAS, Galil and shotguns. While this does little impact in CS as it usually doesn't feature maps with water deep enough for players to swim, this is something to remember when you're making a mod.
-* Most CS weapons eject shells to the left side (when playing in the right-handed setup which is default in modern CS). There're some exceptions like P90, AUG and M249. If you don't want shells to eject to the left side, you may remove [left_side]({{< ref "weapon-templates#left_side" >}}) property or set it to `false`.
-* Shell ejection positions and velocity defined in templates might be not true to their original counterparts from CS.
+* Most CS weapons eject shells to the left side (when playing in the right-handed setup which is default in modern CS). There're some exceptions like P90, AUG, FAMAS and M249. If you don't want shells to eject to the left side, you may remove [left_side]({{< ref "weapon-templates#left_side" >}}) property or set it to `false`.
+* Shell ejection positions for most weapons depend on the attachment 2 on the weapon view model. The exceptions are M3, Scout and AWP.
 * CS view weapon models were made as left-handed. We set [mirror_viewmodel]({{< ref "weapon-templates#mirror_viewmodel" >}}) for each CS weapon to make them appear right-handed.
 
 {{% hint info %}}

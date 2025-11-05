@@ -699,9 +699,19 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				UpdatePropertyFromJson(fire.shellCount, value, "count", altMode);
 
 				HandleJSONMember(value, "offset", [&](const Value& value) {
-					UpdatePropertyFromJson(fire.shellOffsetUp, value, "up", altMode);
-					UpdatePropertyFromJson(fire.shellOffsetSide, value, "side", altMode);
-					UpdatePropertyFromJson(fire.shellOffsetForward, value, "forward", altMode);
+					bool attachmentBased = UpdatePropertyFromJson(fire.shellAttachment, value, "attachment", altMode);
+					bool anyOffset = false;
+					if (UpdatePropertyFromJson(fire.shellOffsetUp, value, "up", altMode))
+						anyOffset = true;
+					if (UpdatePropertyFromJson(fire.shellOffsetSide, value, "side", altMode))
+						anyOffset = true;
+					if (UpdatePropertyFromJson(fire.shellOffsetForward, value, "forward", altMode))
+						anyOffset = true;
+
+					if (!attachmentBased && anyOffset)
+					{
+						fire.shellAttachment.Materialize(altMode) = 0;
+					}
 				});
 
 				HandleJSONMember(value, "sound_type", [&](const Value& value) {

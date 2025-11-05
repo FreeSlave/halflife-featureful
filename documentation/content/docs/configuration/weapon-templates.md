@@ -783,6 +783,14 @@ The number of shells dropped from a weapon per shot.
 
 E.g. [weapon_shotgun]({{< ref weapon_shotgun >}}) ejects 2 shells on the secondary attack.
 
+#### eject_delay
+
+Delay between fire and shell ejection, in seconds. By default there's no delay.
+
+{{% hint warning %}}
+Currently this doesn't work propely if the shell position is determined by the weapon view model attachment.
+{{% /hint %}}
+
 #### left_side
 
 Whether shells should be ejected to left side (by default they eject to the right side).
@@ -808,11 +816,31 @@ Example:
 ```json
 {
     "weapon_9mmhandgun": {
-        "shell": {
-            "offset": {
-                "forward": 20,
-                "up": -12,
-                "side": 4
+        "fire": {
+            "shell": {
+                "offset": {
+                    "forward": 20,
+                    "up": -12,
+                    "side": 4
+                }
+            }
+        }
+    }
+}
+```
+
+This also can specify the `"attachment"` property - in this case the specified attachment on the view model will be used to position the shell. This must be the value in `[1, 4]` range. The `"attachment"` can't be used together with other offset options.
+
+Example:
+
+```json
+{
+    "weapon_9mmhandgun": {
+        "fire": {
+            "shell": {
+                "offset": {
+                    "attachment": 2
+                }
             }
         }
     }

@@ -178,7 +178,17 @@ void EV_GetDefaultShellInfo( const struct event_args_s *args, const ShellInfoPar
 	for( int i = 0; i < 3; i++ )
 	{
 		ShellVelocity[i] = infoParams.velocity[i] + infoParams.right[i] * fR + infoParams.up[i] * fU + infoParams.forward[i] * fF;
-		ShellOrigin[i] = infoParams.origin[i] + view_ofs[i] + infoParams.up[i] * infoParams.upScale + infoParams.forward[i] * infoParams.forwardScale + infoParams.right[i] * infoParams.rightScale;
+
+		if (infoParams.attachment > 0 && infoParams.attachment <= 4)
+		{
+			cl_entity_t *ent = GetViewEntity();
+			if (ent)
+				ShellOrigin[i] = ent->attachment[infoParams.attachment - 1][i];
+		}
+		else
+		{
+			ShellOrigin[i] = infoParams.origin[i] + view_ofs[i] + infoParams.up[i] * infoParams.upScale + infoParams.forward[i] * infoParams.forwardScale + infoParams.right[i] * infoParams.rightScale;
+		}
 	}
 }
 

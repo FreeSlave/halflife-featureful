@@ -576,9 +576,10 @@ struct WeaponParameters
 		WeaponModeValue<FloatRange> clientPunchPitch;
 		WeaponModeValue<FloatRange> clientPunchYaw;
 		WeaponModeValueNonNegative<short> shellCount{1};
-		WeaponModeValue<float> shellOffsetUp;
-		WeaponModeValue<float> shellOffsetSide;
-		WeaponModeValue<float> shellOffsetForward;
+		WeaponModeValue<float> shellOffsetUp{0.0f};
+		WeaponModeValue<float> shellOffsetSide{0.0f};
+		WeaponModeValue<float> shellOffsetForward{0.0f};
+		WeaponModeValue<short> shellAttachment{0};
 		WeaponModeValue<const char*> shellModel{nullptr};
 		WeaponModeValue<const char*> shellModelAlternating{nullptr};
 		WeaponModeValueNonNegative<short> shellSound{TE_BOUNCE_SHELL};

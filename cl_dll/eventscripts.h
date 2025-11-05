@@ -29,6 +29,7 @@ struct ShellInfoParams
 	float forwardScale;
 	float upScale;
 	float rightScale;
+	short attachment;
 	FloatRange upFactor;
 	FloatRange sideFactor;
 	FloatRange forwardFactor;
