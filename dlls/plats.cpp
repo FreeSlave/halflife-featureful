@@ -69,6 +69,7 @@ public:
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	void KeyValue( KeyValueData* pkvd) override;
 	void Precache() override;
+	bool ShouldCollide(CBaseEntity *pOther) override;
 
 	// This is done to fix spawn flag collisions between this class and a derived class
 	virtual bool IsTogglePlat() { return ( pev->spawnflags & SF_PLAT_TOGGLE ) != 0; }
@@ -86,6 +87,7 @@ public:
 	string_t m_fireOnStop;
 	BYTE m_fireOnStartState;
 	BYTE m_fireOnStopState;
+	bool m_ignoreCorpses;
 
 	float SoundAttenuation() const
 	{
@@ -106,6 +108,7 @@ TYPEDESCRIPTION	CBasePlatTrain::m_SaveData[] =
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStop, FIELD_STRING ),
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStartState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStopState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CBasePlatTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlatTrain, CBaseToggle )
@@ -180,6 +183,11 @@ void CBasePlatTrain::KeyValue( KeyValueData *pkvd )
 	else if (FStrEq(pkvd->szKeyName, "fireonstop_triggerstate"))
 	{
 		m_fireOnStopState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
+	{
+		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
 	else
@@ -311,6 +319,13 @@ void CBasePlatTrain::OnStopMoving()
 {
 	if (m_fireOnStop)
 		FireTargets(STRING(m_fireOnStop), m_hActivator, this, PlatTriggerStateToUseType(m_fireOnStopState));
+}
+
+bool CBasePlatTrain::ShouldCollide(CBaseEntity *pOther)
+{
+	if (m_ignoreCorpses && pOther->pev->deadflag == DEAD_DEAD)
+		return false;
+	return true;
 }
 
 //
@@ -1145,6 +1160,7 @@ TYPEDESCRIPTION	CFuncTrackTrain::m_SaveData[] =
 	DEFINE_FIELD( CFuncTrackTrain, m_flBank, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_oldSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_customMoveSound, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CFuncTrackTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_soundRadius, FIELD_SHORT ),
 };
 
@@ -1189,6 +1205,11 @@ void CFuncTrackTrain::KeyValue( KeyValueData *pkvd )
 		m_soundRadius = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
+	{
+		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
@@ -1225,6 +1246,13 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 		return;
 	// we can't hurt this thing, so we're not concerned with it
 	pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+}
+
+bool CFuncTrackTrain::ShouldCollide(CBaseEntity *pOther)
+{
+	if (m_ignoreCorpses && pOther->pev->deadflag == DEAD_DEAD)
+		return false;
+	return true;
 }
 
 void CFuncTrackTrain::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )

@@ -17,6 +17,7 @@ See also: [env_spritetrain]({{< ref env_spritetrain >}}), [env_modeltrain]({{< r
 * `Sound radius` - configure platform sounds attenuation.
 * ![](/images/svencoop.png) `Obey Trigger Mode` - make train interpret the use-type when triggered (`On` is to start, `Off` is to stop).
 * Move sound pitch can be configured.
+* `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this train and won't get crushed.
 
 ### New spawnflags
 

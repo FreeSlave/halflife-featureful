@@ -12,3 +12,4 @@ entityCategory: solid
 
 * ![](/images/svencoop.png) Custom move, start and brake sounds.
 * `Sound radius` - configure platform sounds attenuation.
+* `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this train and won't get crushed.

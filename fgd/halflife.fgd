@@ -847,7 +847,16 @@
 	]
 ]
 
-@BaseClass base(Appearflags, Targetname, RenderFields, Global, Angles, SoundRadius, BaseLockable, StartStopable, OpenClosable, CustomObjectHint) = Door
+@BaseClass = CollisionWithCorpses
+[
+	ignore_corpses(choices) : "Collision with corpses" =
+	[
+		0 : "Collide with corpses"
+		1 : "Don't collide with corpses"
+	]
+]
+
+@BaseClass base(Appearflags, Targetname, RenderFields, Global, Angles, SoundRadius, BaseLockable, StartStopable, OpenClosable, CustomObjectHint, CollisionWithCorpses) = Door
 [
 	killtarget(target_destination) : "KillTarget"
 	speed(integer) : "Speed" : 100
@@ -910,11 +919,6 @@
 	noise1(sound) : "Move Sound Override"
 	noise2(sound) : "Stop Sound Override"
 	return_speed(integer) : "Return speed"
-	ignore_corpses(choices) : "Collision with corpses" =
-	[
-		0 : "Collide with corpses"
-		1 : "Don't collide with corpses"
-	]
 	locked_play_on_use(choices) : "If locked, play locked sound on use" : : "By default if door is locked by a master and is set to 'Use only' or triggered by something it won't play the locked sound. Set this option to change the behavior" =
 	[
 		0 : "No"
@@ -2937,7 +2941,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname,Global,RenderFields, PlatSounds, ZHLT, StartStopable, OpenClosable) = func_plat : "Elevator"
+@SolidClass base(Targetname,Global,RenderFields, PlatSounds, ZHLT, StartStopable, OpenClosable, CollisionWithCorpses) = func_plat : "Elevator"
 [
 	spawnflags(Flags) =
 	[
@@ -2948,7 +2952,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname, Global, RenderFields, PlatSounds, Angles, ZHLT, StartStopable, OpenClosable) = func_platrot : "Moving Rotating platform"
+@SolidClass base(Targetname, Global, RenderFields, PlatSounds, Angles, ZHLT, StartStopable, OpenClosable, CollisionWithCorpses) = func_platrot : "Moving Rotating platform"
 [
 	spawnflags(Flags) =
 	[
@@ -3100,7 +3104,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname, Global, RenderFields, ZHLT, SoundRadius) = func_tracktrain : "Track Train"
+@SolidClass base(Targetname, Global, RenderFields, ZHLT, SoundRadius, CollisionWithCorpses) = func_tracktrain : "Track Train"
 [
 	spawnflags(flags) =
 	[
@@ -3137,7 +3141,7 @@
 	target(target_destination) : "Train Name"
 ]
 
-@SolidClass base(Targetname, Global, RenderFields, ZHLT, BaseTrain, SoundRadius) = func_train : "Moving platform"
+@SolidClass base(Targetname, Global, RenderFields, ZHLT, BaseTrain, SoundRadius, CollisionWithCorpses) = func_train : "Moving platform"
 [
 	movesnd(choices) : "Move Sound" : 0 =
 	[

@@ -80,6 +80,7 @@ public:
 	void Precache() override;
 
 	void Blocked( CBaseEntity *pOther ) override;
+	bool ShouldCollide(CBaseEntity *pOther) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void KeyValue( KeyValueData* pkvd ) override;
 
@@ -122,6 +123,7 @@ public:
 	float m_flBank;
 	float m_oldSpeed;
 	bool m_customMoveSound;
+	bool m_ignoreCorpses;
 	short m_soundRadius;
 
 private:
