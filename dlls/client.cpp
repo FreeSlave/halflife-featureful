@@ -1071,10 +1071,8 @@ void ClientPrecache()
 	CBaseEntity* pWorld = CBaseEntity::Instance(pevWorld);
 
 	// setup precaches always needed
-	pWorld->RegisterAndPrecacheSoundScript(Player::sprayPaintSoundScript);
 
 	// PRECACHE_SOUND( "player/pl_jumpland2.wav" );		// UNDONE: play 2x step sound
-
 	// PRECACHE_SOUND( "player/pl_fallpain2.wav" ); // not used
 
 	PRECACHE_SOUND( "common/npc_step1.wav" );		// NPC walk on concrete
@@ -1124,6 +1122,8 @@ void ClientPrecache()
 
 	auto PrecachePlayerSoundScripts = [](CBaseEntity* pWorld)
 	{
+		pWorld->RegisterAndPrecacheSoundScript(Player::sprayPaintSoundScript);
+
 		pWorld->RegisterAndPrecacheSoundScript(Player::wadeSoundScript);
 		pWorld->RegisterAndPrecacheSoundScript(Player::underwaterExhaleSoundScript); // breathe bubbles
 		pWorld->RegisterAndPrecacheSoundScript(Player::undrownSoundScript);

@@ -4690,6 +4690,7 @@ void CBasePlayer::ImpulseCommands()
 			// line hit something, so paint a decal
 			m_flNextDecalTime = gpGlobals->time + decalfrequency.value;
 			CSprayCan *pCan = GetClassPtr( (CSprayCan *)NULL );
+			pCan->m_ownerEntTemplate = m_entTemplate;
 			pCan->Spawn( pev );
 		}
 		break;
