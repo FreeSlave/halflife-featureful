@@ -29,7 +29,6 @@
 
 DLL_GLOBAL unsigned int		g_ulFrameCount;
 DLL_GLOBAL unsigned int		g_ulModelIndexEyes;
-DLL_GLOBAL unsigned int		g_ulModelIndexPlayer;
 DLL_GLOBAL Vector		g_vecAttackDir;
 DLL_GLOBAL int			g_iSkillLevel;
 DLL_GLOBAL bool			gDisplayTitle;

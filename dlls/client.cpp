@@ -46,7 +46,6 @@
 #include "unicode.h"
 #include "mod_features.h"
 
-extern DLL_GLOBAL unsigned int		g_ulModelIndexPlayer;
 extern DLL_GLOBAL bool		g_fGameOver;
 extern DLL_GLOBAL int		g_iSkillLevel;
 extern DLL_GLOBAL unsigned int		g_ulFrameCount;
@@ -1163,6 +1162,14 @@ void ClientPrecache()
 				pWorld->SetEntTemplate(MAKE_STRING(playerTemplate.entTemplateName.c_str()));
 				PrecachePlayerSoundScripts(pWorld);
 				pWorld->SetEntTemplate(iStringNull);
+
+				const char* ownVisualName = entTemplate->OwnVisualName();
+				if (ownVisualName)
+				{
+					const Visual* visual = g_VisualSystem.GetVisual(ownVisualName);
+					if (visual && visual->HasDefined(Visual::MODEL_DEFINED))
+						PRECACHE_MODEL(visual->model);
+				}
 			}
 		}
 	}

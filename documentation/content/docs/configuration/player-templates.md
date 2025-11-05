@@ -42,6 +42,11 @@ Example:
                 "viewmodel": "models/bshift/v_satchel.mdl",
                 "viewmodel_detonator": "models/bshift/v_satchel_radio.mdl"
             }
+        },
+        "ent_template": {
+            "own_visual": {
+                "model": "models/player/barney/barney.mdl"
+            }
         }
     },
     "alien": {
@@ -89,6 +94,7 @@ Any item that is not in the list can't be picked up by a player.
 An [entity template]({{< ref "entity-templates" >}}) for the player. Note that only a portion of entity template parameters is applicable to the player:
 
 * `"blood"` - allows to set a blood color.
+* `"own_visual"` - allows to set the player model. Makes sense only if you want to show the player on camera. Note that in developer mode the client's multiplayer model is always used instead.
 * `"soundscripts"` - allows to redefine [player soundscripts]({{< ref "player/#soundscripts" >}}).
 
 ### hud_color

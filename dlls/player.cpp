@@ -52,7 +52,6 @@
 
 // #define DUCKFIX
 
-extern DLL_GLOBAL unsigned int g_ulModelIndexPlayer;
 extern DLL_GLOBAL bool g_fGameOver;
 bool gEvilImpulse101;
 extern DLL_GLOBAL int g_iSkillLevel;
@@ -1256,8 +1255,6 @@ KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 	SetAnimation( PLAYER_DIE );
 
 	m_flRespawnTimer = 0;
-
-	pev->modelindex = g_ulModelIndexPlayer;    // don't use eyes
 
 	pev->deadflag = DEAD_DYING;
 	pev->movetype = MOVETYPE_TOSS;
@@ -3489,8 +3486,6 @@ static void CheckPowerups( entvars_t *pev )
 {
 	if( pev->health <= 0 )
 		return;
-
-	pev->modelindex = g_ulModelIndexPlayer;    // don't use eyes
 }
 
 //=========================================================
@@ -4011,8 +4006,17 @@ void CBasePlayer::Spawn()
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );
 
-	SET_MODEL( ENT( pev ), "models/player.mdl" );
-	g_ulModelIndexPlayer = pev->modelindex;
+	m_playerTemplateName = iStringNull;
+	m_playerTemplate = nullptr;
+	if (g_pGameRules->mapConfig.valid && !FStringNull(g_pGameRules->mapConfig.playerTemplate))
+	{
+		AssignPlayerTemplate(g_pGameRules->mapConfig.playerTemplate);
+	}
+	else
+	{
+		AssignPlayerTemplate(iStringNull);
+	}
+
 	pev->sequence = LookupActivity( ACT_IDLE );
 
 	if( FBitSet( pev->flags, FL_DUCKING ) ) 
@@ -4050,17 +4054,6 @@ void CBasePlayer::Spawn()
 
 	m_flNextChatTime = gpGlobals->time;
 	m_fInXen = false;
-
-	m_playerTemplateName = iStringNull;
-	m_playerTemplate = nullptr;
-	if (g_pGameRules->mapConfig.valid && !FStringNull(g_pGameRules->mapConfig.playerTemplate))
-	{
-		AssignPlayerTemplate(g_pGameRules->mapConfig.playerTemplate);
-	}
-	else
-	{
-		AssignPlayerTemplate(iStringNull);
-	}
 
 	g_pGameRules->PlayerSpawn( this );
 }
@@ -4135,8 +4128,6 @@ int CBasePlayer::Restore( CRestore &restore )
 	pev->fixangle = 1;           // turn this way immediately
 
 	m_ClientSndRoomtype = -1;
-
-	g_ulModelIndexPlayer = pev->modelindex;
 
 	if( FBitSet( pev->flags, FL_DUCKING ) )
 	{
@@ -6830,6 +6821,8 @@ bool CBasePlayer::AssignPlayerTemplate(string_t templateName)
 
 	m_bloodColor = 0;
 	SetMyBloodColor(BLOOD_COLOR_RED);
+	pev->model = iStringNull;
+	SetMyModel("models/player.mdl");
 
 	return true;
 }
