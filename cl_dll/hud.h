@@ -1232,12 +1232,14 @@ public:
 	int _cdecl MsgFunc_ObjectHint( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_Capability( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;
 
 	std::uint64_t m_iWeaponBits;
 	int m_iItemBits;
+	int m_suppressedCapabilities;
 	bool m_fPlayerDead;
 	int m_iIntermission;
 

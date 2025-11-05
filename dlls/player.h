@@ -112,15 +112,6 @@ enum sbar_data
 
 #define ARMOR_RATIO	0.2	// Armor Takes 80% of the damage
 
-// suppress capabilities flags
-#define PLAYER_SUPPRESS_ATTACK (1<<0)
-#define PLAYER_SUPPRESS_JUMP (1<<1)
-#define PLAYER_SUPPRESS_DUCK (1<<2)
-#define PLAYER_SUPPRESS_STEP_SOUND (1<<3)
-#define PLAYER_SUPPRESS_USE (1<<5)
-#define PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON (1<<6)
-#define PLAYER_SUPPRESS_SAVE (1<<7)
-
 // trigger_camera related player flags
 #define PLAYER_CAMERA_INVULNERABLE (1 << 0)
 
@@ -280,7 +271,6 @@ public:
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
-	void SetPhysicsKeyValues();
 	void RenewItems();
 	void PackDeadPlayerItems();
 	void RemoveAllItems( int stripFlags );
@@ -534,6 +524,7 @@ public:
 	short m_iPreferNewGrenadePhysics;
 
 	int m_suppressedCapabilities;
+	int m_suppressedCapabilitiesClient;
 	float m_maxSpeedOverride;
 	bool m_maxSpeedOverrideIsAbsolute;
 

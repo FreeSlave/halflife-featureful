@@ -3,6 +3,7 @@
 #include "random_utils.h"
 #include "cbase.h"
 #include "player.h"
+#include "player_capabilities.h"
 #include "weapons.h"
 #include "clamp.h"
 #include "weapon_templates.h"
@@ -676,7 +677,6 @@ bool CConfigurableWeapon::PerformDeploy()
 		if (params.preventJump)
 		{
 			m_pPlayer->m_suppressedCapabilities |= PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON;
-			m_pPlayer->SetPhysicsKeyValues();
 		}
 #endif
 
@@ -1901,7 +1901,6 @@ void CConfigurableWeapon::Holster()
 	if (m_pPlayer && FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON))
 	{
 		ClearBits(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON);
-		m_pPlayer->SetPhysicsKeyValues();
 	}
 #endif
 

@@ -25,6 +25,7 @@ extern "C"
 #include "in_defs.h"
 //#include "view.h"
 #include <cctype>
+#include "player_capabilities.h"
 
 #if USE_VGUI
 #include "vgui_TeamFortressViewport.h"
@@ -859,22 +860,27 @@ void DLLEXPORT CL_CreateMove( float frametime, struct usercmd_s *cmd, int active
 
 		gEngfuncs.SetViewAngles( (float *)viewangles );
 
-		if( in_strafe.state & 1 )
+		const bool movementIsSuppressed = (gHUD.m_suppressedCapabilities & PLAYER_SUPPRESS_MOVEMENT) != 0;
+
+		if (!movementIsSuppressed)
 		{
-			cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_right );
-			cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_left );
-		}
+			if( in_strafe.state & 1 )
+			{
+				cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_right );
+				cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_left );
+			}
 
-		cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_moveright );
-		cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_moveleft );
+			cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_moveright );
+			cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_moveleft );
 
-		cmd->upmove += cl_upspeed->value * CL_KeyState( &in_up );
-		cmd->upmove -= cl_upspeed->value * CL_KeyState( &in_down );
+			cmd->upmove += cl_upspeed->value * CL_KeyState( &in_up );
+			cmd->upmove -= cl_upspeed->value * CL_KeyState( &in_down );
 
-		if( !(in_klook.state & 1 ) )
-		{	
-			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState( &in_forward );
-			cmd->forwardmove -= cl_backspeed->value * CL_KeyState( &in_back );
+			if( !(in_klook.state & 1 ) )
+			{
+				cmd->forwardmove += cl_forwardspeed->value * CL_KeyState( &in_forward );
+				cmd->forwardmove -= cl_backspeed->value * CL_KeyState( &in_back );
+			}
 		}
 
 		// adjust for speed key

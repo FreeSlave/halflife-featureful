@@ -400,6 +400,11 @@ int __MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf )
 	return gHUD.MsgFunc_SoundScript( pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Capability( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_Capability( pszName, iSize, pbuf );
+}
+
 // TFFree Command Menu
 void __CmdFunc_OpenCommandMenu()
 {
@@ -699,6 +704,7 @@ void CHud::Init()
 	HOOK_MESSAGE( ObjectHint );
 	HOOK_MESSAGE( PlTemplate );
 	HOOK_MESSAGE( SoundScript );
+	HOOK_MESSAGE( Capability );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round

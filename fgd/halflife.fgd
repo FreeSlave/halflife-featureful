@@ -7939,6 +7939,14 @@
 		2 : "Toggle"
 		3 : "Copy use input"
 	]
+	movement_capability(choices) : "Movement capability" =
+	[
+		-1 : "Off"
+		0 : "No change"
+		1 : "On"
+		2 : "Toggle"
+		3 : "Copy use input"
+	]
 	save_capability(choices) : "Save game capability" =
 	[
 		-1 : "Off"

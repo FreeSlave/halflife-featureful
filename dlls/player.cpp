@@ -49,6 +49,7 @@
 #include "locus.h"
 #include "ropes.h"
 #include "mod_features.h"
+#include "player_capabilities.h"
 
 // #define DUCKFIX
 
@@ -267,6 +268,7 @@ int gmsgPlTemplate = 0;
 int gmsgSoundScript = 0;
 int gmsgSoundVolume = 0;
 int gmsgSaveDisable = 0;
+int gmsgCapability = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -378,6 +380,7 @@ void LinkUserMessages()
 	gmsgSoundScript = REG_USER_MSG("SoundScript", -1);
 	gmsgSoundVolume = REG_USER_MSG("SoundVolume", 2);
 	gmsgSaveDisable = REG_USER_MSG("SaveDisable", 1);
+	gmsgCapability = REG_USER_MSG("Capability", 4);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -4152,7 +4155,6 @@ int CBasePlayer::Restore( CRestore &restore )
 		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	}
 
-	SetPhysicsKeyValues();
 	RenewItems();
 
 	m_playerTemplate = FStringNull(m_playerTemplateName) ? g_PlayerTemplateSystem.GetDefaultTemplate() : g_PlayerTemplateSystem.GetTemplate(STRING(m_playerTemplateName));
@@ -4171,34 +4173,6 @@ int CBasePlayer::Restore( CRestore &restore )
 	m_nCustomSprayFrames = -1;
 
 	return status;
-}
-
-void CBasePlayer::SetPhysicsKeyValues()
-{
-	if( FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_JUMP|PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON) )
-	{
-		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "noj", "1" );
-	}
-	else
-	{
-		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "noj", "0" );
-	}
-	if( FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_DUCK) )
-	{
-		pev->iuser3 = 1;
-	}
-	else
-	{
-		pev->iuser3 = 0;
-	}
-	if( FBitSet(m_suppressedCapabilities, PLAYER_SUPPRESS_STEP_SOUND) )
-	{
-		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "nos", "1" );
-	}
-	else
-	{
-		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "nos", "0" );
-	}
 }
 
 void CBasePlayer::SelectItem( const char *pstr )
@@ -5356,6 +5330,14 @@ void CBasePlayer::UpdateClientData()
 		m_iClientItemsBits = m_iItemsBits;
 		MESSAGE_BEGIN( MSG_ONE, gmsgItems, NULL, pev );
 		WRITE_LONG( m_iItemsBits );
+		MESSAGE_END();
+	}
+
+	if (m_suppressedCapabilities != m_suppressedCapabilitiesClient)
+	{
+		m_suppressedCapabilitiesClient = m_suppressedCapabilities;
+		MESSAGE_BEGIN( MSG_ONE, gmsgCapability, NULL, pev );
+		WRITE_LONG( m_suppressedCapabilities );
 		MESSAGE_END();
 	}
 
@@ -7087,6 +7069,17 @@ const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name)
 	return nullptr;
 }
 
+int PM_GetSuppressedCapabilities(int playerIndex)
+{
+	CBaseEntity* pEntity = UTIL_PlayerByIndex(playerIndex + 1);
+	if (pEntity && pEntity->IsPlayer())
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)pEntity;
+		return pPlayer->m_suppressedCapabilities;
+	}
+	return 0;
+}
+
 //=========================================================
 // Dead HEV suit prop
 //=========================================================
@@ -7735,15 +7728,13 @@ public:
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_DUCK, m_duckCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_USE, m_useCapability, useType);
 		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_STEP_SOUND, m_stepSoundCapability, useType);
+		ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_MOVEMENT, m_movementCapability, useType);
 		if (ConfigurePlayerCapability(pPlayer, PLAYER_SUPPRESS_SAVE, m_saveCapability, useType))
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgSaveDisable, NULL, pPlayer->pev);
 				WRITE_BYTE(FBitSet(pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_SAVE) ? 1 : 0);
 			MESSAGE_END();
 		}
-
-		if (m_jumpCapability || m_duckCapability || m_stepSoundCapability)
-			pPlayer->SetPhysicsKeyValues();
 	}
 
 	void KeyValue( KeyValueData *pkvd ) override
@@ -7771,6 +7762,11 @@ public:
 		else if( FStrEq( pkvd->szKeyName, "stepsound_capability" ) )
 		{
 			m_stepSoundCapability = atoi( pkvd->szValue );
+			pkvd->fHandled = true;
+		}
+		else if( FStrEq( pkvd->szKeyName, "movement_capability" ) )
+		{
+			m_movementCapability = atoi( pkvd->szValue );
 			pkvd->fHandled = true;
 		}
 		else if( FStrEq( pkvd->szKeyName, "save_capability" ) )
@@ -7825,6 +7821,7 @@ private:
 	short m_duckCapability;
 	short m_useCapability;
 	short m_stepSoundCapability;
+	short m_movementCapability;
 	short m_saveCapability;
 };
 

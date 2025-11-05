@@ -14,6 +14,7 @@ Enables/disables certain player's capabilities.
 * `Duck capability` - configure the duck (crouch) capability. Note: disabling the duck capability also prevents duck-jumping technique and longjump usage.
 * `Use capability` - configure the use capability. When this is disabled the player won't be able to interact with buttons.
 * `Step sounds` - configure whether the player's steps make sounds (this doesn't affect the step sounds as perceived by monsters' AI).
+* `Movement capability` - configure whether the player's input allows player to move forward, back, sideways and up and down (in the water). This doesn't affect the jump capability or player being pushed by other entities. This also doesn't immediately stops the player if he had velocity some velocity prior to disabling the movement capability.
 * `Save game capability` - configure whether the player can save the game (manually or through the quicksave). This doesn't affect autosaves. While the saves are disabled the attempt to save the game will show the `SAVE_DISABLED` message from **titles.txt** (if such message exists).
 
 ### Reaction to use-type

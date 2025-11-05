@@ -26,6 +26,7 @@
 #include "pm_movevars.h"
 #include "pm_debug.h"
 #include "pm_materials.h"
+#include "player_capabilities.h"
 #include "soundscripts.h"
 #include "tex_materials.h"
 #include "util_shared.h"
@@ -92,6 +93,7 @@ playermove_t *pmove = NULL;
 #define CONTENTS_TRANSLUCENT		-15
 
 extern const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name);
+extern int PM_GetSuppressedCapabilities(int playerIndex);
 
 void PM_PlaySoundScript(const SoundScript* soundScript)
 {
@@ -290,7 +292,9 @@ void PM_PlayStepSound( const MaterialStepData* stepData, float fvol )
 	if( pmove->multiplayer && ( !g_onladder && Length( hvel ) <= 220 ) )
 		return;
 
-	if (atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "nos" ) ) == 1)
+	const int suppressedCapabilities = PM_GetSuppressedCapabilities(pmove->player_index);
+
+	if (FBitSet(suppressedCapabilities, PLAYER_SUPPRESS_STEP_SOUND))
 		return;
 
 	// irand - 0,1 for right foot, 2,3 for left foot
@@ -1793,8 +1797,10 @@ void PM_Duck()
 		pmove->oldbuttons &= ~IN_DUCK;
 	}
 
+	const int suppressedCapabilities = PM_GetSuppressedCapabilities(pmove->player_index);
+
 	// Prevent ducking if the iuser3 variable is set
-	if( pmove->iuser3 || pmove->dead )
+	if( pmove->iuser3 || pmove->dead || FBitSet(suppressedCapabilities, PLAYER_SUPPRESS_DUCK) )
 	{
 		// Try to unduck
 		if( pmove->flags & FL_DUCKING )
@@ -2265,8 +2271,10 @@ void PM_Jump()
 		return;
 	}
 
+	const int suppressedCapabilities = PM_GetSuppressedCapabilities(pmove->player_index);
+
 	// check if jump is disabled
-	if (atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "noj" ) ) == 1)
+	if (FBitSet(suppressedCapabilities, PLAYER_SUPPRESS_JUMP|PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON))
 		return;
 
 	if( pmove->flags & FL_FROZEN )

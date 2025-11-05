@@ -52,6 +52,7 @@ int CHud::MsgFunc_ResetHUD( const char *pszName, int iSize, void *pbuf )
 
 	m_iWeaponBits = 0ULL;
 	m_iItemBits = 0;
+	m_suppressedCapabilities = 0;
 
 	// reset sensitivity
 	m_flMouseSensitivity = 0;
@@ -261,6 +262,18 @@ int CHud::MsgFunc_SoundScript(const char *pszName, int iSize, void *pbuf)
 	soundScript.pitch.max = READ_BYTE();
 
 	g_SoundScriptSystem.ReplaceSoundScript(name.c_str(), soundScript);
+	return 1;
+}
+
+int PM_GetSuppressedCapabilities(int playerIndex)
+{
+	return gHUD.m_suppressedCapabilities;
+}
+
+int CHud::MsgFunc_Capability(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	m_suppressedCapabilities = READ_LONG();
 	return 1;
 }
 
