@@ -25,6 +25,8 @@
 #include "hltv.h"
 #include "view.h"
 
+bool g_Paused = false;
+
 // Spectator Mode
 extern "C" 
 {
@@ -1628,6 +1630,8 @@ extern int g_iWaterLevel;
 void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 {
 	RenderFog();
+
+	g_Paused = pparams->paused != 0;
 	g_iWaterLevel = pparams->waterlevel;
 
 	gHUD.m_velocity = pparams->simvel;

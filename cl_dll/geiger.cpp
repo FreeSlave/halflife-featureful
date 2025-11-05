@@ -26,6 +26,7 @@
 #include "event_api.h"
 #include "mod_features.h"
 #include "soundscripts.h"
+#include "view.h"
 #include "util_shared.h"
 
 DECLARE_MESSAGE( m_Geiger, Geiger )
@@ -70,6 +71,9 @@ int CHudGeiger::Draw( float flTime )
 
 void CHudGeiger::Think()
 {
+	if (g_Paused)
+		return;
+
 	int pct;
 	float flvol = 0.0f;
 	bool partialSounds = false;

@@ -9,6 +9,8 @@
 #define VIEWH 
 #pragma once
 
+extern bool g_Paused;
+
 #include "pi_constant.h"
 
 void V_StartPitchDrift();
