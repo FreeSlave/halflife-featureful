@@ -230,6 +230,17 @@ void CBarnacle::BarnacleThink()
 			return;
 		}
 
+		if (FBitSet(m_hEnemy->pev->flags, FL_CLIENT) && m_hEnemy->pev->movetype == MOVETYPE_NOCLIP)
+		{
+			m_fLiftingPrey = false;
+
+			CBaseMonster* pVictim = m_hEnemy->MyMonsterPointer();
+			if (pVictim)
+				pVictim->BarnacleVictimReleased();
+			m_hEnemy = 0;
+			return;
+		}
+
 		if( m_fLiftingPrey )
 		{
 			if( m_hEnemy != 0 && m_hEnemy->pev->deadflag != DEAD_NO )

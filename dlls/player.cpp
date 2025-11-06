@@ -2889,7 +2889,8 @@ CRope* CBasePlayer::GetRope()
 void CBasePlayer::LetGoRope(float delay)
 {
 	//Let go of the rope, detach. - Solokiller
-	pev->movetype = MOVETYPE_WALK;
+	if (pev->movetype != MOVETYPE_NOCLIP)
+		pev->movetype = MOVETYPE_WALK;
 	pev->solid = SOLID_SLIDEBOX;
 	SetOnRopeState(false);
 	CRope* pRope = GetRope();
@@ -2940,6 +2941,12 @@ bool CBasePlayer::SetClosestOriginOnRope(const Vector &vecPos)
 
 void CBasePlayer::HandleRopePhysics(CRope *pRope)
 {
+	if (pev->movetype == MOVETYPE_NOCLIP)
+	{
+		LetGoRope();
+		return;
+	}
+
 	pev->velocity = g_vecZero;
 
 	Vector vecAttachPos = pRope->GetAttachedObjectsPosition();
@@ -5906,6 +5913,9 @@ void CBasePlayer::GatherAndSendObjectHints()
 //=========================================================
 bool CBasePlayer::FBecomeProne()
 {
+	if (pev->movetype == MOVETYPE_NOCLIP)
+		return false;
+
 	m_afPhysicsFlags |= PFLAG_ONBARNACLE;
 
 	if (IsOnRope())
