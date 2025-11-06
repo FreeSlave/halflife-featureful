@@ -1233,6 +1233,7 @@ public:
 	int _cdecl MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_Capability( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_OnRope( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;
@@ -1241,6 +1242,7 @@ public:
 	int m_iItemBits;
 	int m_suppressedCapabilities;
 	bool m_fPlayerDead;
+	bool m_onRope;
 	int m_iIntermission;
 
 	// sprite indexes

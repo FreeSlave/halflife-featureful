@@ -269,6 +269,7 @@ int gmsgSoundScript = 0;
 int gmsgSoundVolume = 0;
 int gmsgSaveDisable = 0;
 int gmsgCapability = 0;
+int gmsgOnRope = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
@@ -381,6 +382,7 @@ void LinkUserMessages()
 	gmsgSoundVolume = REG_USER_MSG("SoundVolume", 2);
 	gmsgSaveDisable = REG_USER_MSG("SaveDisable", 1);
 	gmsgCapability = REG_USER_MSG("Capability", 4);
+	gmsgOnRope = REG_USER_MSG("OnRope", 1);
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
@@ -2734,7 +2736,7 @@ void CBasePlayer::PreThink()
 		pev->flags &= ~FL_ONTRAIN;
 
 	//We're on a rope. - Solokiller
-	if( (m_afPhysicsFlags & PFLAG_ONROPE) )
+	if (IsOnRope())
 	{
 		CRope* pRope = GetRope();
 		if (pRope)
@@ -2744,7 +2746,7 @@ void CBasePlayer::PreThink()
 		}
 		else
 		{
-			ClearBits(m_afPhysicsFlags, PFLAG_ONROPE);
+			SetOnRopeState(false);
 		}
 	}
 
@@ -2864,6 +2866,21 @@ void CBasePlayer::PreThink()
 	}
 }
 
+void CBasePlayer::SetOnRopeState(bool onRope)
+{
+	if (FBitSet(m_afPhysicsFlags, PFLAG_ONROPE) != onRope)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgOnRope, NULL, pev);
+		WRITE_BYTE(onRope);
+		MESSAGE_END();
+	}
+
+	if (onRope)
+		SetBits(m_afPhysicsFlags, PFLAG_ONROPE);
+	else
+		ClearBits(m_afPhysicsFlags, PFLAG_ONROPE);
+}
+
 CRope* CBasePlayer::GetRope()
 {
 	return m_hRope.Entity<CRope>();
@@ -2874,7 +2891,7 @@ void CBasePlayer::LetGoRope(float delay)
 	//Let go of the rope, detach. - Solokiller
 	pev->movetype = MOVETYPE_WALK;
 	pev->solid = SOLID_SLIDEBOX;
-	m_afPhysicsFlags &= ~PFLAG_ONROPE;
+	SetOnRopeState(false);
 	CRope* pRope = GetRope();
 	if (pRope)
 		pRope->DetachObject(delay);
@@ -5891,7 +5908,7 @@ bool CBasePlayer::FBecomeProne()
 {
 	m_afPhysicsFlags |= PFLAG_ONBARNACLE;
 
-	if( (m_afPhysicsFlags & PFLAG_ONROPE) )
+	if (IsOnRope())
 	{
 		LetGoRope();
 	}

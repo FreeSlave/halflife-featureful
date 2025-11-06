@@ -1314,7 +1314,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 		if (pPlayer->m_afPhysicsFlags & PFLAG_ONBARNACLE)
 			return;
 
-		if( GetMasterRope()->IsAcceptingAttachment() && !(pPlayer->m_afPhysicsFlags & PFLAG_ONROPE) && pPlayer->pev->movetype != MOVETYPE_NOCLIP )
+		if( GetMasterRope()->IsAcceptingAttachment() && !pPlayer->IsOnRope() && pPlayer->pev->movetype != MOVETYPE_NOCLIP )
 		{
 			if( mCanBeGrabbed )
 			{

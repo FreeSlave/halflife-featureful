@@ -494,20 +494,13 @@ public:
 	EHANDLE m_hRope;
 	bool IsOnRope()
 	{
-		return ( m_afPhysicsFlags & PFLAG_ONROPE ) != 0;
+		return FBitSet(m_afPhysicsFlags, PFLAG_ONROPE);
 	}
 	void SetRope( CBaseEntity *pRope )
 	{
 		m_hRope = pRope;
 	}
-	void SetOnRopeState( bool onRope )
-	{
-	  if( onRope )
-		m_afPhysicsFlags |= PFLAG_ONROPE;
-	  else
-		m_afPhysicsFlags &= ~PFLAG_ONROPE;
-
-	}
+	void SetOnRopeState(bool onRope);
 	CRope* GetRope();
 	void LetGoRope(float delay = 2.0f);
 	bool SetClosestOriginOnRope(const Vector& vecPos);

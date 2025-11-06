@@ -53,6 +53,7 @@ int CHud::MsgFunc_ResetHUD( const char *pszName, int iSize, void *pbuf )
 	m_iWeaponBits = 0ULL;
 	m_iItemBits = 0;
 	m_suppressedCapabilities = 0;
+	m_onRope = false;
 
 	// reset sensitivity
 	m_flMouseSensitivity = 0;
@@ -274,6 +275,13 @@ int CHud::MsgFunc_Capability(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
 	m_suppressedCapabilities = READ_LONG();
+	return 1;
+}
+
+int CHud::MsgFunc_OnRope(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	m_onRope = READ_BYTE() != 0;
 	return 1;
 }
 

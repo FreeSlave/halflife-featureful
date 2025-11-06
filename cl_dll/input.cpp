@@ -161,7 +161,7 @@ static void handle_autojump(usercmd_t* cmd)
 		if (s_jump_was_down_last_frame && player.onground && !player.inwater && player.walking)
 			should_release_jump = true;
 
-		if (should_release_jump)
+		if (should_release_jump && !gHUD.m_onRope)
 			cmd->buttons &= ~IN_JUMP;
 	}
 

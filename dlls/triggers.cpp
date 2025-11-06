@@ -3118,7 +3118,7 @@ void CTriggerTeleport::LetGoRope(CBaseEntity *pOther)
 	if( pOther->IsPlayer() )
 	{
 		CBasePlayer* pPlayer = (CBasePlayer*)pOther;
-		if( (pPlayer->m_afPhysicsFlags & PFLAG_ONROPE) )
+		if (pPlayer->IsOnRope())
 			pPlayer->LetGoRope();
 	}
 }
