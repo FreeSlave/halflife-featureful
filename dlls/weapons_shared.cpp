@@ -610,6 +610,7 @@ void CConfigurableWeapon::Precache()
 	shellModelAlternate = PrecacheWeaponParamModel(params.fire.shellModelAlternating.main);
 	shellModelAlternate2 = PrecacheWeaponParamModel(params.fire.shellModelAlternating.alt);
 
+	PrecacheWeaponSoundScript(params.deploy.sound);
 	PrecacheWeaponSoundScript(params.reload.sound);
 	PrecacheWeaponSoundScript(params.endReload.sound);
 
@@ -679,6 +680,7 @@ bool CConfigurableWeapon::PerformDeploy()
 			m_pPlayer->m_suppressedCapabilities |= PLAYER_SUPPRESS_JUMP_DUE_TO_WEAPON;
 		}
 #endif
+		PlayWeaponSoundScript(deploy.sound.Get(altMode, emptied));
 
 		m_iSwingMode = 0;
 		ResetBurst();

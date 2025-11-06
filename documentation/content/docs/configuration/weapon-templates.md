@@ -300,6 +300,10 @@ Delay before the weapon is usable (i.e. can fire). This is 0.5 by default for mo
 
 Delay before playing the idle animation. This is 1.0 by default. If this is less than `"duration"`, the latter will be used instead.
 
+### sound
+
+[Weapon soundscript](#weapon-soundscript) to play along the deploy animation. This is not needed if the sound is played by the event in the model.
+
 ## deploy_empty
 
 Same as [deploy](#deploy), but when weapon clip is empty.
@@ -1309,7 +1313,7 @@ For [manual_reload](#manual_reload) weapons it becomes a delay between ammo tran
 
 ### sound
 
-[Weapon soundscript](#weapon-soundscript) to play along the reload animation. E.g. [weapon_crossbow]({{< ref weapon_crossbow >}}) defines it by default.
+[Weapon soundscript](#weapon-soundscript) to play along the reload animation. E.g. [weapon_crossbow]({{< ref weapon_crossbow >}}) defines it by default. This is not needed if the sound is played by the event in the model.
 
 ### wait_for_recoil
 

@@ -76,6 +76,9 @@ const char* const json_schemas::weapons = R"(
 			"idle_delay": {
 				"type": "number",
 				"minimum": 0.0
+			},
+			"sound": {
+				"$ref": "#/w_soundscript"
 			}
 		},
 		"additionalProperties": false

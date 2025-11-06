@@ -83,9 +83,9 @@ WeaponParameters CUzi::GetDefaultParameters() const
 	params.deploy.duration = 1.28f;
 
 	params.idleAnims.main = WeaponParameters::IdleAnimArray{
-		WeaponParameters::IdleAnim{UZI_IDLE1, 0.6f, 5},
-		WeaponParameters::IdleAnim{UZI_IDLE2, 0.1f, 7},
-		WeaponParameters::IdleAnim{UZI_IDLE2, 0.3f, 6},
+		WeaponParameters::IdleAnim{UZI_IDLE1, 0.6f, 2.8f},
+		WeaponParameters::IdleAnim{UZI_IDLE2, 0.1f, 6.73f},
+		WeaponParameters::IdleAnim{UZI_IDLE3, 0.3f, 5.0f},
 	};
 
 	// Primary fire

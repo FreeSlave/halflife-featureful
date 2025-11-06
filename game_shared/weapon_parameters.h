@@ -483,6 +483,7 @@ struct WeaponParameters
 		WeaponModeValueEmptyAwareNonNegative<short> animIndex;
 		WeaponModeValueEmptyAwareNonNegative<float> duration{0.5f};
 		WeaponModeValueEmptyAwareNonNegative<float> idleDelay{1.0f};
+		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_AUTO};
 	};
 
 	struct Reload

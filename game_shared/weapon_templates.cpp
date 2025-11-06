@@ -269,12 +269,18 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				params.deploy.animIndex.Reset(altMode, emptied);
 				params.deploy.duration.Reset(altMode, emptied);
 				params.deploy.idleDelay.Reset(altMode, emptied);
+				params.deploy.sound.Reset(altMode, emptied);
 			}
 			else
 			{
 				UpdatePropertyFromJson(params.deploy.animIndex, value, "anim", altMode, emptied);
 				UpdatePropertyFromJson(params.deploy.duration, value, "duration", altMode, emptied);
 				UpdatePropertyFromJson(params.deploy.idleDelay, value, "idle_delay", altMode, emptied);
+
+				HandleJSONMember(value, "sound", [&](const Value& value) {
+					WeaponSoundScript& soundScript = params.deploy.sound.Materialize(altMode, emptied);
+					ParseWeaponSoundScript(soundScript, value);
+				});
 			}
 		});
 	};
