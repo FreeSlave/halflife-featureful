@@ -36,6 +36,8 @@ class CBarnacle : public CBaseMonster
 public:
 	void Spawn() override;
 	void Precache() override;
+	void UpdateOnRemove() override;
+	bool MustAddToFullPack(unsigned char *pSet) override;
 	CBaseEntity *TongueTouchEnt( float *pflLength );
 	int DefaultClassify() override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
@@ -57,6 +59,7 @@ public:
 	bool m_fTongueExtended;
 	bool m_fLiftingPrey;
 	float m_flTongueAdj;
+	CPointEntity* pTip;
 
 	// FIXME: need a custom barnacle model with non-generic hitgroup
 	// otherwise we can apply to damage to tongue instead of body
@@ -363,6 +366,9 @@ void CBarnacle::BarnacleThink()
 	// ALERT( at_console, "tounge %f\n", m_flAltitude + m_flTongueAdj );
 	SetBoneController( 0, -( m_flAltitude + m_flTongueAdj ) );
 	StudioFrameAdvance( 0.1f );
+
+	if (pTip)
+		UTIL_SetOrigin(pTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
 }
 
 //=========================================================
@@ -430,6 +436,29 @@ void CBarnacle::Precache()
 	RegisterAndPrecacheSoundScript(chewSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
+
+	pTip = GetClassPtr((CPointEntity*)nullptr);
+	pTip->pev->classname = MAKE_STRING("barnacle_tip");
+	SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
+	pTip->pev->rendermode = kRenderTransAlpha;
+	pTip->pev->renderamt = 0;
+	UTIL_SetOrigin(pTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+}
+
+void CBarnacle::UpdateOnRemove()
+{
+	if (pTip)
+	{
+		UTIL_Remove(pTip);
+		pTip = nullptr;
+	}
+}
+
+bool CBarnacle::MustAddToFullPack(unsigned char *pSet)
+{
+	if (pTip)
+		return ENGINE_CHECK_VISIBILITY(pTip->edict(), pSet) != 0;
+	return CBaseMonster::MustAddToFullPack(pSet);
 }
 
 //=========================================================

@@ -1411,7 +1411,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		if( !ENGINE_CHECK_VISIBILITY( (const struct edict_s *)ent, pSet ) )
 		{
 			// env_sky is visible always
-			if( !(pEntity->m_EFlags & EFLAG_ALWAYS_SEND) )
+			if (!(pEntity->m_EFlags & EFLAG_ALWAYS_SEND) && !pEntity->MustAddToFullPack(pSet))
 			{
 				return 0;
 			}

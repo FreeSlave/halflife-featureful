@@ -632,6 +632,7 @@ public:
 	virtual bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) { return true; }
 	virtual bool IsLockedByMaster() { return false; }
 	virtual bool PlaysItsOwnHitSounds() const { return false; }
+	virtual bool MustAddToFullPack(unsigned char *pSet) { return false; }
 };
 
 // Ugly technique to override base member functions
