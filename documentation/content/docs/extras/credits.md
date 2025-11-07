@@ -23,9 +23,9 @@ In its turn some parts of **Half-Life Featureful SDK** are also based on other p
 * ParticleMan re-implementation is based on code by [SamVanheer](https://github.com/SamVanheer).
 * Rain and snow implementations are based on code by [SamVanheer](https://github.com/SamVanheer) from now discontinued HLEnhanced project.
 * The RoboCop implementation is reverse-engineered from Poke646 by [malortie](https://github.com/malortie) and [nekonomicon](https://github.com/nekonomicon).
-* The Flybee impmenetation is taken from Half-Life: Invasion code.
+* The Flybee implementation is taken from Half-Life: Invasion code.
 * Fullbright textures support on models is based on [halflife_fullbright](https://github.com/BlueNightHawk/halflife_fullbright) by [BlueNightHawk](https://github.com/BlueNightHawk).
 * Some changes were taken from [SevenKewp](https://github.com/wootguy/SevenKewp) project made by [wootguy](https://github.com/wootguy).
 * Some features were taken from [OpenAG](https://github.com/YaLTeR/OpenAG) project made by [YaLTeR](https://github.com/YaLTeR).
 
-If you decide to use the hwgrunt or babygarg models and sounds in your mod then don't forget to credit the Sven Co-op team and ask them for permission to use the resources.
+If you decide to use the hwgrunt, babygarg, tor, minigun or uzi models and sounds in your mod then don't forget to credit the Sven Co-op team and ask them for permission to use the resources.

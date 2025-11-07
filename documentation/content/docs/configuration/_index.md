@@ -27,6 +27,8 @@ The list of featureful configuration files:
 * **templates/warpball.json** - configuring [warpball templates]({{< ref warpball-templates >}}).
 * **templates/objecthint.json** - configuring [object hints]({{< ref object-hints >}}).
 * **templates/inventory.json** - configuring [player inventory]({{< ref player-inventory >}}) related properties.
+* **templates/weapons.json** - configuring [weapon templates]({{< ref weapon-templates >}}).
+* **templates/player.json** - configuring [player templates]({{< ref player-templates >}}).
 * **save_titles.txt** - configuring [save titles]({{< ref save-titles >}}).
 
 {{% hint info %}}
