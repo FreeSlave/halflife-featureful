@@ -41,6 +41,8 @@ public:
 	void ReleaseVictim();
 	CBaseEntity *TongueTouchEnt( float *pflLength );
 	int DefaultClassify() override;
+	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, -32.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 0.0f ); }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void EXPORT BarnacleThink();
 	void EXPORT WaitTillDead();
@@ -144,7 +146,22 @@ void CBarnacle::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case BARNACLE_AE_PUKEGIB:
-		CGib::SpawnHumanGibs( pev, 1 );
+	{
+		const char* gibModel = GibModel();
+		const Visual* gibVisual = MyGibVisual();
+
+		if (gibModel)
+		{
+			if (FStrEq(gibModel, "models/hgibs.mdl"))
+			{
+				CGib::SpawnHumanGibs(pev, 1, gibVisual);
+			}
+			else
+			{
+				CGib::SpawnRandomGibs(pev, 1, gibModel, gibVisual);
+			}
+		}
+	}
 		break;
 	default:
 		CBaseMonster::HandleAnimEvent( pEvent );
@@ -160,7 +177,7 @@ void CBarnacle::Spawn()
 	Precache();
 
 	SetMyModel( "models/barnacle.mdl" );
-	SetMySize( Vector( -16.0f, -16.0f, -32.0f ), Vector( 16.0f, 16.0f, 0.0f ) );
+	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_NONE;

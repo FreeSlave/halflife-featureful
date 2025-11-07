@@ -4275,9 +4275,8 @@
 	]
 ]
 @PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/babygarg.mdl") = monster_babygarg : "Baby Gargantua" []
-@PointClass base(Targetname, RenderFields, Sequence, EntityTemplate, BloodColor, SizeForGrapple) size(-16 -16 -36, 16 16 0) studio("models/barnacle.mdl") = monster_barnacle : "Barnacle Monster"
+@PointClass base(Targetname, RenderFields, Sequence, EntityTemplate, BloodColor, SizeForGrapple, MonsterExtraBase) size(-16 -16 -36, 16 16 0) studio("models/barnacle.mdl") = monster_barnacle : "Barnacle Monster"
 [
-	health(string) : "Custom Health"
 	model(studio) : "Custom Model"
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
