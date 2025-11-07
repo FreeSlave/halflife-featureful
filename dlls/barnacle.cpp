@@ -38,6 +38,7 @@ public:
 	void Precache() override;
 	void UpdateOnRemove() override;
 	bool MustAddToFullPack(unsigned char *pSet) override;
+	void ReleaseVictim();
 	CBaseEntity *TongueTouchEnt( float *pflLength );
 	int DefaultClassify() override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
@@ -233,11 +234,7 @@ void CBarnacle::BarnacleThink()
 		if (FBitSet(m_hEnemy->pev->flags, FL_CLIENT) && m_hEnemy->pev->movetype == MOVETYPE_NOCLIP)
 		{
 			m_fLiftingPrey = false;
-
-			CBaseMonster* pVictim = m_hEnemy->MyMonsterPointer();
-			if (pVictim)
-				pVictim->BarnacleVictimReleased();
-			m_hEnemy = 0;
+			ReleaseVictim();
 			return;
 		}
 
@@ -387,22 +384,10 @@ void CBarnacle::BarnacleThink()
 //=========================================================
 KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CBaseMonster *pVictim;
-
 	pev->solid = SOLID_NOT;
 	pev->takedamage = DAMAGE_NO;
 
-	if( m_hEnemy != 0 )
-	{
-		pVictim = m_hEnemy->MyMonsterPointer();
-
-		if( pVictim )
-		{
-			pVictim->BarnacleVictimReleased();
-		}
-	}
-
-	//CGib::SpawnRandomGibs( pev, 4, 1 );
+	ReleaseVictim();
 
 	EmitSoundScript(dieSoundScript);
 
@@ -458,6 +443,8 @@ void CBarnacle::Precache()
 
 void CBarnacle::UpdateOnRemove()
 {
+	ReleaseVictim();
+
 	if (pTip)
 	{
 		UTIL_Remove(pTip);
@@ -470,6 +457,16 @@ bool CBarnacle::MustAddToFullPack(unsigned char *pSet)
 	if (pTip)
 		return ENGINE_CHECK_VISIBILITY(pTip->edict(), pSet) != 0;
 	return CBaseMonster::MustAddToFullPack(pSet);
+}
+
+void CBarnacle::ReleaseVictim()
+{
+	if (m_hEnemy != 0)
+	{
+		CBaseMonster* pVictim = m_hEnemy->MyMonsterPointer();
+		if( pVictim )
+			pVictim->BarnacleVictimReleased();
+	}
 }
 
 //=========================================================

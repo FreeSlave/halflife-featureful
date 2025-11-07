@@ -32,6 +32,10 @@ To change that you can create an [entity template]({{< ref "entity-templates/#ta
 * **Barnacle.Die** - death sound.
 * **Barnacle.Pain** - pain sound.
 
+### Bugfixes
+
+* The prey is propely getting released if barnacle is getting removed from a map while it has the prey.
+
 ### Entity template examples
 
 {{% tabs %}}
