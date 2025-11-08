@@ -4033,6 +4033,7 @@ void CBasePlayer::Spawn()
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );
 
+	SET_MODEL( ENT( pev ), "models/player.mdl" );
 	m_playerTemplateName = iStringNull;
 	m_playerTemplate = nullptr;
 	if (g_pGameRules->mapConfig.valid && !FStringNull(g_pGameRules->mapConfig.playerTemplate))
