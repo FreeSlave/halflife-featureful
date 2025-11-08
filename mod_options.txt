@@ -1,4 +1,3 @@
-BARNACLE_FIX_VISIBILITY=OFF # Barnacle tongue length fix
 CLIENT_WEAPONS=ON # Client local weapons prediction
 
 GAMEDIR=featureful # Gamedir path

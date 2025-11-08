@@ -64,16 +64,6 @@ public:
 	float m_flTongueAdj;
 	CPointEntity* pTip;
 
-	// FIXME: need a custom barnacle model with non-generic hitgroup
-	// otherwise we can apply to damage to tongue instead of body
-#if BARNACLE_FIX_VISIBILITY
-	void SetObjectCollisionBox()
-	{
-		pev->absmin = pev->origin + Vector( -16.0f, -16.0f, -m_flCachedLength );
-		pev->absmax = pev->origin + Vector( 16.0f, 16.0f, 0.0f );
-	}
-#endif
-
 	static const NamedSoundScript biteSoundScript;
 	static const NamedSoundScript chewSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -226,14 +216,6 @@ void CBarnacle::BarnacleThink()
 	CBaseEntity *pTouchEnt;
 	CBaseMonster *pVictim;
 	float flLength;
-#if BARNACLE_FIX_VISIBILITY
-	if( m_flCachedLength != ( m_flAltitude + m_flTongueAdj ) || ( pev->absmin.z != pev->origin.z + -m_flCachedLength ) )
-	{
-		// recalc collision box here to avoid barnacle disappears bug
-		m_flCachedLength = m_flAltitude + m_flTongueAdj;
-		UTIL_SetOrigin( pev, pev->origin );
-	}
-#endif
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
 
