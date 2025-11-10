@@ -35,9 +35,10 @@ int CHudErrorCollection::Draw(float flTime)
 		return 1;
 
 	const int LineHeight = CHud::UtfText::LineHeight();
+	const int CharacterWidth = CHud::UtfText::WidestCharacterWidth();
 	int ypos = LineHeight * 2;
-	int xpos = 30;
-	int xmax = ScreenWidth;
+	int xpos = CharacterWidth;
+	int xmax = ScreenWidth - CharacterWidth;
 
 	int r = 255;
 	int g = 140;
@@ -112,7 +113,13 @@ int CHudErrorCollection::DrawMultiLineString(const char *str, int xpos, int ypos
 				int renderLineLength = i == 0 ? (lineLength - lineLength/numberOfLines * (numberOfLines-1)) : Q_min(lineLength/numberOfLines, lineLengthRest);
 				if (renderLineLength > 0)
 				{
-					while(isalpha(*(ch + renderLineLength)))
+					while(isalpha(ch[renderLineLength]) || ch[renderLineLength] == '_' || isdigit(ch[renderLineLength]))
+						renderLineLength++;
+					if (ch[renderLineLength] == '\'' && isalpha(ch[renderLineLength+1]))
+						renderLineLength += 2;
+					if (ch[renderLineLength] == '"')
+						renderLineLength++;
+					if (ch[renderLineLength] == ':')
 						renderLineLength++;
 					CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, renderLineLength );
 					ypos += LineHeight;

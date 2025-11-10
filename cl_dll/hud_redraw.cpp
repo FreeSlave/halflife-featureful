@@ -528,7 +528,7 @@ int CHud::ConsoleText::DrawStringReverse(int x, int ypos, int iMinX, const char 
 
 int CHud::ConsoleText::LineWidth(const char *szString, int length)
 {
-	char buf[512] = {0};
+	char buf[1024] = {0};
 	const char* str = buf;
 
 	if (length < 0) {
