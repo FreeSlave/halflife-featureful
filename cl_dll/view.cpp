@@ -61,6 +61,7 @@ void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
 #include "com_model.h"
+#include <util.h>
 
 extern engine_studio_api_t IEngineStudio;
 
@@ -497,6 +498,8 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	static float oldz = 0;
 	static float lasttime;
 
+	static Vector viewheight = VEC_VIEW;
+
 	Vector camAngles, camForward, camRight, camUp;
 	cl_entity_t *pwater;
 
@@ -517,10 +520,23 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	// model origin for the view
 	bob = V_CalcBob( pparams );
 
+
+	// interpolate
+	if ( pparams->viewheight[ 2 ] == 28.0f && viewheight[ 2 ] < 28.0f )
+	{
+		viewheight[ 2 ] += pparams->frametime * 250.0f;
+		if ( viewheight[ 2 ] > 28.0f )
+			viewheight[ 2 ] = 28.0f;
+	}
+	else
+	{
+		viewheight[ 2 ] = pparams->viewheight[ 2 ];
+	}
+
 	// refresh position
 	VectorCopy( pparams->simorg, pparams->vieworg );
 	pparams->vieworg[2] += bob ;
-	VectorAdd( pparams->vieworg, pparams->viewheight, pparams->vieworg );
+	VectorAdd( pparams->vieworg, viewheight, pparams->vieworg );
 
 	if( pparams->health <= 0 )
 	{
@@ -663,7 +679,7 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	// Use predicted origin as view origin.
 	VectorCopy( pparams->simorg, view->origin );      
 	view->origin[2] += waterOffset;
-	VectorAdd( view->origin, pparams->viewheight, view->origin );
+	VectorAdd( view->origin, viewheight, view->origin );
 
 	// Let the viewmodel shake at about 10% of the amplitude
 	gEngfuncs.V_ApplyShake( view->origin, view->angles, 0.9f );
