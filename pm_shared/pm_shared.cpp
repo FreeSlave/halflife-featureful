@@ -1740,7 +1740,7 @@ void PM_UnDuck()
 
 	VectorCopy( pmove->origin, newOrigin );
 
-	if( pmove->onground != -1 )
+	if ( pmove->onground != -1 && pmove->flags & FL_DUCKING && pmove->bInDuck == false ) 
 	{
 		for( i = 0; i < 3; i++ )
 		{
