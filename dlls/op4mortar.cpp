@@ -397,23 +397,27 @@ void COp4Mortar::MortarThink()
 
 			if (pEnemy->IsAlive() && m_minRange*m_minRange <= distanceSqr && distanceSqr <= m_maxRange*m_maxRange)
 			{
-				if (gpGlobals->time - m_trackDelay > 0.5)
+				bool properVec = m_vIdealGunVector != g_vecZero;
+
+				if (gpGlobals->time - m_trackDelay > 0.5f)
 				{
 					Vector vecPos, vecAngle;
 					GetAttachment(0, vecPos, vecAngle);
 
 					m_vIdealGunVector = VecCheckThrow(pev, vecPos, pEnemy->pev->origin, m_velocity / 2);
+					properVec = m_vIdealGunVector != g_vecZero;
 
 					m_vIdealGunAngle = UTIL_VecToAngles(m_vIdealGunVector);
 
 					m_trackDelay = gpGlobals->time;
 				}
 
-				AIUpdatePosition();
+				if (properVec)
+					AIUpdatePosition();
 
 				const float idealDistance = m_vIdealGunVector.Length();
 
-				if (idealDistance > 1.0)
+				if (properVec && idealDistance > 1.0)
 				{
 					if (gpGlobals->time - m_fireLast > m_fireDelay)
 					{
