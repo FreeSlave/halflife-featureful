@@ -61,7 +61,7 @@ void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
 #include "com_model.h"
-#include <util.h>
+#include "util.h"
 
 extern engine_studio_api_t IEngineStudio;
 
@@ -103,6 +103,8 @@ cvar_t	*cl_bob;
 cvar_t	*cl_bobup;
 cvar_t	*cl_waterdist;
 cvar_t	*cl_chasedist;
+
+cvar_t	*cl_steady_uncrouch;
 
 // These cvars are not registered (so users can't cheat), so set the ->value field directly
 // Register these cvars in V_Init() if needed for easy tweaking
@@ -522,11 +524,11 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 
 
 	// interpolate
-	if ( pparams->viewheight[ 2 ] == 28.0f && viewheight[ 2 ] < 28.0f )
+	const float defaultViewHeight = 28.0f;
+	if ( cl_steady_uncrouch->value && pparams->viewheight[ 2 ] == defaultViewHeight && viewheight[ 2 ] < defaultViewHeight )
 	{
-		viewheight[ 2 ] += pparams->frametime * 250.0f;
-		if ( viewheight[ 2 ] > 28.0f )
-			viewheight[ 2 ] = 28.0f;
+		viewheight[ 2 ] = viewheight[ 2 ] + pparams->frametime * 17.0f * (defaultViewHeight - viewheight[ 2 ]);
+		viewheight[ 2 ] = Q_min(viewheight[ 2 ], defaultViewHeight);
 	}
 	else
 	{
@@ -1733,6 +1735,7 @@ void V_Init()
 	cl_bobup = gEngfuncs.pfnRegisterVariable( "cl_bobup","0.5", 0 );
 	cl_waterdist = gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );
 	cl_chasedist = gEngfuncs.pfnRegisterVariable( "cl_chasedist","112", 0 );
+	cl_steady_uncrouch = gEngfuncs.pfnRegisterVariable( "cl_steady_uncrouch","1", 0 );
 }
 
 //#define TRACE_TEST	1
