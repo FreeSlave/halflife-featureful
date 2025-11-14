@@ -326,6 +326,7 @@ public:
 	}
 
 	void LaunchMortar();
+	Vector SplatStartPos();
 
 	void SetObjectCollisionBox() override
 	{
@@ -731,8 +732,7 @@ void CBigMomma::LaunchMortar()
 {
 	m_mortarTime = gpGlobals->time + RANDOM_FLOAT( 2.0f, 15.0f );
 
-	Vector startPos = pev->origin;
-	startPos.z += 180.0f;
+	const Vector startPos = SplatStartPos();
 
 	Vector vecLaunch = g_vecZero;
 
@@ -756,6 +756,13 @@ void CBigMomma::LaunchMortar()
 	CBMortar *pBomb = CBMortar::Shoot( edict(), startPos, vecLaunch, GetProjectileOverrides() );
 	pBomb->pev->gravity = 1.0f;
 	MortarSpray( startPos, Vector( 0.0f, 0.0f, 1.0f ), GetVisual(CBMortar::mortarSprayVisual), 24 );
+}
+
+Vector CBigMomma::SplatStartPos()
+{
+	Vector startPos = pev->origin;
+	startPos.z += 180.0f;
+	return startPos;
 }
 
 //=========================================================
@@ -893,8 +900,7 @@ bool CBigMomma::CheckRangeAttack1( float flDot, float flDist )
 
 		if( pEnemy )
 		{
-			Vector startPos = pev->origin;
-			startPos.z += 180.0f;
+			const Vector startPos = SplatStartPos();
 			pev->movedir = VecCheckSplatToss( pev, startPos, pEnemy->BodyTarget( pev->origin ), RANDOM_FLOAT( 150.0f, 500.0f ) );
 			if( pev->movedir != g_vecZero )
 				return true;
@@ -1237,9 +1243,7 @@ Vector VecCheckSplatToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot
 	TraceResult tr;
 	Vector vecMidPoint;// halfway point between Spot1 and Spot2
 	Vector vecApex;// highest point 
-	Vector vecScale;
 	Vector vecGrenadeVel;
-	Vector vecTemp;
 	const float flGravity = Q_max( g_psv_gravity->value, 0.1f );
 
 	// calculate the midpoint and apex of the 'triangle'
@@ -1268,15 +1272,21 @@ Vector VecCheckSplatToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot
 	const float height = vecApex.z - vecSpot1.z - 15.0f;
 	if (height < 0)
 	{
-		ALERT(at_console, "Got negative height %f on big momma splat\n", height);
+		ALERT(at_console, "Got negative height %g on big momma splat\n", height);
 		return g_vecZero;
 	}
 	// How fast does the grenade need to travel to reach that height given gravity?
 	const float speed = sqrt( 2.0f * flGravity * height );
 	
 	// How much time does it take to get to enemy position
-	const float deltaY = vecSpot2.y - vecSpot1.y;
-	const float d = speed*speed - 2*flGravity*deltaY; // discriminant, a = -flGravity/2, b = speed, c = -deltaY
+	const float deltaZ = vecSpot2.z - vecSpot1.z;
+	const float d = speed*speed - 2*flGravity*deltaZ; // discriminant, a = -flGravity/2, b = speed, c = -deltaY
+	if (d < 0)
+	{
+		ALERT(at_console, "Got negative discriminant %g on big momma splat\n", d);
+		return g_vecZero;
+	}
+
 	const float time = (-speed - sqrt(d)) / (-flGravity); // quadratic equation
 	//ALERT(at_console, "speed is %f, d is %f, sqrt(d) is %f, time is %f, gravity is %f\n", speed, d, sqrt(d), time, flGravity);
 	vecGrenadeVel = vecSpot2 - vecSpot1;
