@@ -147,6 +147,7 @@ public:
 
 	void TryFire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker = nullptr );
 	void FireBarrels(bool controlledOrScripted, const Vector &forward, CBaseEntity *pAttacker = nullptr);
+	void ResetBarrelsTimers();
 	virtual void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker );
 	virtual Vector UpdateTargetPosition( CBaseEntity *pTarget )
 	{
@@ -1082,10 +1083,16 @@ void CFuncTank::TrackTarget()
 			FireBarrels(false, forward);
 		}
 		else
+		{
 			m_fireLast = 0;
+			ResetBarrelsTimers();
+		}
 	}
 	else
+	{
 		m_fireLast = 0;
+		ResetBarrelsTimers();
+	}
 }
 
 // If barrel is offset, add in additional rotation
@@ -1142,6 +1149,22 @@ void CFuncTank::FireBarrels(bool controlledOrScripted, const Vector &forward, CB
 					if (controlledOrScripted)
 						pBarrel->UpdateNextAttack();
 				}
+			}
+		}
+	}
+}
+
+void CFuncTank::ResetBarrelsTimers()
+{
+	if (!FStringNull(m_extraBarrelsName))
+	{
+		CBaseEntity* pTryBarrel = nullptr;
+		while((pTryBarrel = UTIL_FindEntityByTargetname(pTryBarrel, STRING(m_extraBarrelsName))) != nullptr)
+		{
+			CFuncTank* pBarrel = GetFuncTankPointer(pTryBarrel);
+			if (pBarrel && pBarrel != this)
+			{
+				pBarrel->m_fireLast = 0;
 			}
 		}
 	}
