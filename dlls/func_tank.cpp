@@ -294,6 +294,7 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_iPlayerWeaponVolume, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncTank, m_pFireProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CFuncTank, m_iszLocusFire, FIELD_STRING ),
+	DEFINE_FIELD( CFuncTank, m_extraBarrelsName, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTank, CBaseEntity )
