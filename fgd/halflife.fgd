@@ -9485,7 +9485,7 @@
 		16 : "Line of Sight" : 1
 		32 : "Can Control" : 1
 	]
-	mortar_velocity(integer) : "Velocity" : 800
+	mortar_velocity(integer) : "Mortar Shell Velocity" : 1400
 	h_min(integer) : "Horiz MIN" : -90
 	h_max(integer) : "Horiz MAX" : 90
 	mindist(integer) : "Min Target Dist" : 256
@@ -9496,5 +9496,5 @@
 		1 : "Ally"
 		2 : "Random"
 	]
-	firedelay(integer) : "Fire Rate" : 5
+	firedelay(integer) : "Fire Delay" : 4
 ]
