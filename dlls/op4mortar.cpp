@@ -37,6 +37,7 @@ public:
 	bool m_iSoundedOff;
 	float m_flIgniteTime;
 	float m_velocity;
+	float m_dangerSoundTime;
 
 	static const NamedSoundScript flySoundScript;
 	static const NamedVisual trailVisual;
@@ -47,8 +48,9 @@ LINK_ENTITY_TO_CLASS(mortar_shell, CMortarShell)
 TYPEDESCRIPTION CMortarShell::m_SaveData[] =
 {
 	DEFINE_FIELD(CMortarShell, m_velocity, FIELD_FLOAT),
-	DEFINE_FIELD(CMortarShell, m_flIgniteTime, FIELD_FLOAT),
+	DEFINE_FIELD(CMortarShell, m_flIgniteTime, FIELD_TIME),
 	DEFINE_FIELD(CMortarShell, m_iSoundedOff, FIELD_BOOLEAN),
+	DEFINE_FIELD(CMortarShell, m_dangerSoundTime, FIELD_TIME),
 };
 
 IMPLEMENT_SAVERESTORE(CMortarShell, CGrenade)
@@ -95,7 +97,7 @@ void CMortarShell::Spawn()
 
 	pev->dmg = gSkillData.op4mortarDmg;
 
-	pev->nextthink = gpGlobals->time + 0.01;
+	pev->nextthink = gpGlobals->time + 0.01f;
 	m_flIgniteTime = gpGlobals->time;
 	m_iSoundedOff = false;
 }
@@ -121,12 +123,13 @@ void CMortarShell::BurnThink()
 
 	SendSpray(pev->origin, Vector(0,0,1), GetVisual(trailVisual), 1, 12, 120);
 
-	if (gpGlobals->time > m_flIgniteTime + 0.2)
+	if (gpGlobals->time > m_flIgniteTime + 0.2f)
 	{
 		SetThink(&CMortarShell::FlyThink);
+		m_dangerSoundTime = gpGlobals->time + 0.5f;
 	}
 
-	pev->nextthink = gpGlobals->time + 0.01;
+	pev->nextthink = gpGlobals->time + 0.01f;
 }
 
 void CMortarShell::FlyThink()
@@ -140,7 +143,13 @@ void CMortarShell::FlyThink()
 		EmitSoundScript(flySoundScript);
 	}
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	if (m_dangerSoundTime <= gpGlobals->time)
+	{
+		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, pev->dmg * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
+		m_dangerSoundTime = gpGlobals->time + 0.2f;
+	}
+
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 CMortarShell *CMortarShell::CreateMortarShell(Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, int velocity)
@@ -236,7 +245,7 @@ TYPEDESCRIPTION	COp4Mortar::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( COp4Mortar, CBaseMonster )
 
 const NamedSoundScript COp4Mortar::rotateSoundScript = {
-	CHAN_VOICE,
+	CHAN_ITEM,
 	{"player/pl_grate1.wav"},
 	"Op4Mortar.Rotate"
 };
