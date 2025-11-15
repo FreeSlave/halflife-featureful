@@ -179,7 +179,7 @@ public:
 	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 	void Precache() override;
 	void KeyValue(KeyValueData *pvkd) override;
-	void UpdatePosition(float direction, int controller);
+	void UpdatePosition(int direction, int controller);
 	void AIUpdatePosition();
 	int IRelationship( CBaseEntity* pTarget ) override;
 	CBaseEntity *FindTarget();
@@ -317,7 +317,7 @@ void COp4Mortar::PlaySound()
 	}
 }
 
-void COp4Mortar::UpdatePosition(float direction, int controller)
+void COp4Mortar::UpdatePosition(int direction, int controller)
 {
 	if (gpGlobals->time - m_lastupdate >= 0.06)
 	{
@@ -755,8 +755,21 @@ void COp4MortarController::Spawn()
 
 void COp4MortarController::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 {
-	if(gpGlobals->time - m_lastpush > 0.5)
+	CBasePlayer* pPlayer = nullptr;
+	if (pCaller && pCaller->IsPlayer())
+	{
+		pPlayer = (CBasePlayer*)pCaller;
+	}
+
+	if (pPlayer)
+	{
+		if (FBitSet(pPlayer->m_afButtonPressed, IN_USE))
+			m_direction = -m_direction;
+	}
+	else if (gpGlobals->time - m_lastpush > 0.5f)
+	{
 		m_direction = -m_direction;
+	}
 
 	CBaseEntity* ent = UTIL_FindEntityByTargetname(NULL, STRING(pev->target));
 	if (ent) {
