@@ -526,6 +526,7 @@ void CGameRules::RefreshSkillData ()
 
 	// MORTAR
 	gSkillData.mortarDmg = GetSkillCvar( "sk_mortar" );
+	gSkillData.op4mortarDmg = GetSkillCvar( "sk_op4mortar", gSkillData.plrDmgRPG * 2 );
 
 	// HEALTH/CHARGE
 	gSkillData.suitchargerCapacity = GetSkillCvar( "sk_suitcharger" );

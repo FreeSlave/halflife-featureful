@@ -253,6 +253,7 @@ struct skilldata_t
 
 	// mortar
 	float mortarDmg;
+	float op4mortarDmg;
 
 	// health/suit charge
 	float suitchargerCapacity;

@@ -1157,6 +1157,7 @@ DECLARE_SKILL_VALUE(sk_plr_hornet_dmg, "7")
 
 // MORTAR
 DECLARE_SKILL_VALUE(sk_mortar, "200")
+DECLARE_SKILL_VALUE(sk_op4mortar, "0")
 
 // HEALTH/CHARGE
 DECLARE_SKILL_VALUE(sk_suitcharger, "0")
@@ -2117,6 +2118,7 @@ void GameDLLInit()
 
 	// MORTAR
 	REGISTER_SKILL_CVARS(sk_mortar);
+	REGISTER_SKILL_CVARS(sk_op4mortar);
 
 	// HEALTH/SUIT CHARGE DISTRIBUTION
 	REGISTER_SKILL_CVARS(sk_suitcharger);

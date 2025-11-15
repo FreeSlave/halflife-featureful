@@ -9477,7 +9477,7 @@
     ]
 ]
 
-@PointClass base(Targetname, EntityTemplate) studio("models/mortar.mdl") = op4mortar : "Op4 Mortar"
+@PointClass base(Targetname, Classification, EntityTemplate) studio("models/mortar.mdl") = op4mortar : "Op4 Mortar"
 [
 	spawnflags(Flags) =
 	[
@@ -9490,11 +9490,5 @@
 	h_max(integer) : "Horiz MAX" : 90
 	mindist(integer) : "Min Target Dist" : 256
 	maxdist(integer) : "Max Target Dist" : 2048
-	enemytype(Choices) : "Enemy Type" : 0 =
-	[
-		0 : "Player"
-		1 : "Ally"
-		2 : "Random"
-	]
 	firedelay(integer) : "Fire Delay" : 4
 ]

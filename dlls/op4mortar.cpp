@@ -93,7 +93,7 @@ void CMortarShell::Spawn()
 	pev->velocity = -(gpGlobals->v_forward * m_velocity);
 	pev->gravity = 1;
 
-	pev->dmg = gSkillData.plrDmgRPG * 2;
+	pev->dmg = gSkillData.op4mortarDmg;
 
 	pev->nextthink = gpGlobals->time + 0.01;
 	m_flIgniteTime = gpGlobals->time;
@@ -172,13 +172,15 @@ public:
 	void KeyValue(KeyValueData *pvkd) override;
 	void UpdatePosition(float direction, int controller);
 	void AIUpdatePosition();
-	int Save(CSave &save) override;
-	int Restore(CRestore &restore) override;
+	int IRelationship( CBaseEntity* pTarget ) override;
 	CBaseEntity *FindTarget();
 	void EXPORT MortarThink();
-	static TYPEDESCRIPTION m_SaveData[];
 	int ObjectCaps() override { return 0; }
 	void PlaySound();
+
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 	int d_x;
 	int d_y;
@@ -192,7 +194,6 @@ public:
 	float m_fireLast;
 	float m_maxRange;
 	float m_minRange;
-	int m_iEnemyType;
 	float m_fireDelay;
 	float m_trackDelay;
 	float m_zeroYaw;
@@ -200,6 +201,7 @@ public:
 	Vector m_vIdealGunVector;
 	Vector m_vIdealGunAngle;
 
+	float m_enemyRecheckTime;
 	float m_lastTimePlayedSound;
 
 	static const NamedSoundScript rotateSoundScript;
@@ -222,13 +224,13 @@ TYPEDESCRIPTION	COp4Mortar::m_SaveData[] =
 	DEFINE_FIELD(COp4Mortar, m_fireLast, FIELD_FLOAT),
 	DEFINE_FIELD(COp4Mortar, m_maxRange, FIELD_FLOAT),
 	DEFINE_FIELD(COp4Mortar, m_minRange, FIELD_FLOAT),
-	DEFINE_FIELD(COp4Mortar, m_iEnemyType, FIELD_INTEGER),
 	DEFINE_FIELD(COp4Mortar, m_fireDelay, FIELD_FLOAT),
 	DEFINE_FIELD(COp4Mortar, m_trackDelay, FIELD_FLOAT),
 	DEFINE_FIELD(COp4Mortar, m_zeroYaw, FIELD_FLOAT),
 	DEFINE_FIELD(COp4Mortar, m_vGunAngle, FIELD_VECTOR),
 	DEFINE_FIELD(COp4Mortar, m_vIdealGunVector, FIELD_VECTOR),
 	DEFINE_FIELD(COp4Mortar, m_vIdealGunAngle, FIELD_VECTOR),
+	DEFINE_FIELD(COp4Mortar, m_enemyRecheckTime, FIELD_FLOAT),
 };
 
 IMPLEMENT_SAVERESTORE( COp4Mortar, CBaseMonster )
@@ -388,6 +390,16 @@ void COp4Mortar::MortarThink()
 		{
 			m_hEnemy = FindTarget();
 		}
+		else
+		{
+			if (m_enemyRecheckTime <= gpGlobals->time)
+			{
+				CBaseEntity* pOtherEnemy = FindTarget();
+				if (pOtherEnemy && pOtherEnemy != m_hEnemy)
+					m_hEnemy = pOtherEnemy; // better enemy
+				m_enemyRecheckTime = gpGlobals->time + 1.0f;
+			}
+		}
 
 		CBaseEntity* pEnemy = m_hEnemy;
 
@@ -454,109 +466,89 @@ void COp4Mortar::MortarThink()
 	}
 }
 
+int	COp4Mortar::IRelationship( CBaseEntity* pTarget )
+{
+	if (m_iClass == 0)
+	{
+		if (pTarget->IsPlayer())
+			return R_HT;
+		else
+			return R_NO;
+	}
+	return CBaseMonster::IRelationship(pTarget);
+}
+
 CBaseEntity *COp4Mortar::FindTarget()
 {
-	CBaseEntity* pPlayerTarget = UTIL_FindEntityByClassname(NULL, "player");
-
-	if (!pPlayerTarget)
-		return pPlayerTarget;
-
-	m_pLink = NULL;
-
-	CBaseEntity* pIdealTarget = NULL;
-	float flIdealDist = m_maxRange;
-
 	Vector barrelEnd, barrelAngle;
 	GetAttachment(0, barrelEnd, barrelAngle);
 
-	if (pPlayerTarget->IsAlive())
+	auto isValidSight = [this, &barrelEnd](CBaseEntity* pEntity)
 	{
-		const float distance = (pPlayerTarget->pev->origin - pev->origin).Length();
-
-		if (distance >= m_minRange && m_maxRange >= distance)
-		{
-			TraceResult tr;
-			UTIL_TraceLine(barrelEnd, pPlayerTarget->pev->origin + pPlayerTarget->pev->view_ofs, dont_ignore_monsters, edict(), &tr);
-
-			if ((pev->spawnflags & SF_MORTAR_LINE_OF_SIGHT) == 0 || tr.pHit == pPlayerTarget->pev->pContainingEntity)
-			{
-				if (0 == m_iEnemyType)
-					return pPlayerTarget;
-
-				flIdealDist = distance;
-				pIdealTarget = pPlayerTarget;
-			}
-		}
-	}
-
-	const Vector maxRange(m_maxRange, m_maxRange, m_maxRange);
-
-	CBaseEntity* pList[100];
-	const int count = UTIL_EntitiesInBox(pList, ARRAYSIZE(pList), pev->origin - maxRange, pev->origin + maxRange, FL_MONSTER | FL_CLIENT);
-
-	for (int i = 0; i < count; ++i)
-	{
-		CBaseEntity* pEntity = pList[i];
-
-		if (this == pEntity)
-			continue;
-
-		if ((pEntity->pev->spawnflags & SF_MONSTER_PRISONER) != 0)
-			continue;
-
-		if (pEntity->pev->health <= 0)
-			continue;
-
-		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
-
-		if (!pMonster)
-			continue;
-
-		if (pMonster->IRelationship(pPlayerTarget) != R_AL)
-			continue;
-
-		if ((pEntity->pev->flags & FL_NOTARGET) != 0)
-			continue;
-
-		if (!FVisible(pEntity))
-			continue;
-
-		if (pEntity->IsPlayer() && (pev->spawnflags & SF_MORTAR_ACTIVE) != 0)
-		{
-			if (pMonster->FInViewCone(this))
-			{
-				pev->spawnflags &= ~SF_MORTAR_ACTIVE;
-			}
-		}
-	}
-
-	for (CBaseEntity* pEntity = m_pLink; pEntity; pEntity = pEntity->m_pLink)
-	{
-		const float distance = (pEntity->pev->origin - pev->origin).Length();
-
-		if (distance >= m_minRange && m_maxRange >= distance && (!pIdealTarget || flIdealDist > distance))
+		if (FBitSet(pev->spawnflags, SF_MORTAR_LINE_OF_SIGHT))
 		{
 			TraceResult tr;
 			UTIL_TraceLine(barrelEnd, pEntity->pev->origin + pEntity->pev->view_ofs, dont_ignore_monsters, edict(), &tr);
+			return tr.pHit == pEntity->edict();
+		}
+		return true;
+	};
 
-			if ((pev->spawnflags & SF_MORTAR_LINE_OF_SIGHT) != 0)
+	CBaseEntity	*pReturn = nullptr;
+	int			iBestRelationship = R_DL;
+	float		lookDistance = m_maxRange?m_maxRange:512;
+	float		nearestDistance = lookDistance + 1;
+
+	CBaseEntity *pList[100];
+
+	Vector delta = Vector( lookDistance, lookDistance, lookDistance );
+
+	int count = 0;
+
+	if (m_iClass == 0)
+	{
+		for(int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex(i);
+			if (pPlayer && pPlayer->IsFullyAlive())
 			{
-				if (tr.pHit == pEntity->edict())
-				{
-					flIdealDist = distance;
-				}
-				if (tr.pHit == pEntity->edict())
-					pIdealTarget = pEntity;
-			}
-			else
-			{
-				flIdealDist = distance;
-				pIdealTarget = pEntity;
+				pList[count] = pPlayer;
+				count++;
 			}
 		}
 	}
+	else
+	{
+		count = UTIL_EntitiesInBox( pList, 100, pev->origin - delta, pev->origin + delta, FL_CLIENT|FL_MONSTER );
+	}
 
-	return pIdealTarget;
+	for (int i = 0; i < count; i++ )
+	{
+		CBaseEntity* pEntity = pList[i];
+		const int iRelationship = IRelationship(pEntity);
+		if (iRelationship >= iBestRelationship && pEntity->IsFullyAlive())
+		{
+			const float distance = (pEntity->pev->origin - pev->origin).Length();
+			if (distance >= m_minRange && lookDistance >= distance)
+			{
+				if (iRelationship > iBestRelationship && isValidSight(pEntity))
+				{
+					iBestRelationship = iRelationship;
+					nearestDistance = distance;
+					pReturn = pEntity;
+				}
+				else if (iRelationship == iBestRelationship)
+				{
+					if (distance <= nearestDistance && isValidSight(pEntity))
+					{
+						nearestDistance = distance;
+						pReturn = pEntity;
+					}
+				}
+			}
+		}
+	}
+	return pReturn;
 }
 
 TakeDamageResult COp4Mortar::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
@@ -591,11 +583,6 @@ void COp4Mortar::KeyValue(KeyValueData *pvkd)
 		m_maxRange = atoi(pvkd->szValue);
 		pvkd->fHandled = true;
 	}
-	else if(FStrEq(pvkd->szKeyName, "enemytype"))
-	{
-		m_iEnemyType = atoi(pvkd->szValue);
-		pvkd->fHandled = true;
-	}
 	else if(FStrEq(pvkd->szKeyName, "firedelay"))
 	{
 		m_fireDelay = atoi(pvkd->szValue);
@@ -603,7 +590,7 @@ void COp4Mortar::KeyValue(KeyValueData *pvkd)
 	}
 	else
 	{
-		CBaseToggle::KeyValue(pvkd);
+		CBaseMonster::KeyValue(pvkd);
 	}
 }
 
@@ -641,6 +628,7 @@ void COp4Mortar::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 
 		m_fireLast = 0;
 		m_hEnemy = NULL;
+		m_trackDelay = gpGlobals->time;
 	}
 }
 
