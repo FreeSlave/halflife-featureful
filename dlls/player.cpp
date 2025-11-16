@@ -8281,7 +8281,8 @@ public:
 				CBasePlayerWeapon *pPlayerItem = pPlayer->WeaponById(i);
 				if (pPlayerItem)
 				{
-					PackWeapon(pPlayerItem);
+					if (PackWeapon(pPlayerItem))
+						pPlayerItem->pev->spawnflags |= SF_ITEM_DONT_TRANSIT_ACROSS_LEVELS;
 				}
 			}
 
@@ -8381,6 +8382,10 @@ public:
 					if (addResult == DID_NOT_GET_ITEM)
 					{
 						pItem->Kill();
+					}
+					else if (addResult == GOT_NEW_ITEM)
+					{
+						ClearBits(pItem->pev->spawnflags, SF_ITEM_DONT_TRANSIT_ACROSS_LEVELS);
 					}
 				}
 			}

@@ -713,10 +713,15 @@ void CBasePlayerWeapon::DefaultTouch( CBaseEntity *pOther )
 
 int CBasePlayerWeapon::ObjectCaps()
 {
+	int caps = CBaseAnimating::ObjectCaps();
+	if (FBitSet(pev->spawnflags, SF_ITEM_DONT_TRANSIT_ACROSS_LEVELS))
+	{
+		ClearBits(caps, FCAP_ACROSS_TRANSITION);
+	}
 	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW)) {
-		return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
+		return caps | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 	} else {
-		return CBaseAnimating::ObjectCaps();
+		return caps;
 	}
 }
 
@@ -1569,6 +1574,7 @@ bool CWeaponBox::PackWeapon( CBasePlayerWeapon *pWeapon )
 
 	pWeapon->pev->spawnflags |= SF_NORESPAWN;// never respawn
 	pWeapon->pev->movetype = MOVETYPE_NONE;
+	pWeapon->pev->aiment = nullptr;
 	pWeapon->pev->solid = SOLID_NOT;
 	pWeapon->pev->effects = EF_NODRAW;
 	pWeapon->pev->modelindex = 0;
@@ -1577,6 +1583,7 @@ bool CWeaponBox::PackWeapon( CBasePlayerWeapon *pWeapon )
 	pWeapon->SetThink( NULL );// crowbar may be trying to swing again, etc.
 	pWeapon->SetTouch( NULL );
 	pWeapon->m_pPlayer = NULL;
+	UTIL_SetOrigin(pWeapon->pev, pev->origin);
 
 	//ALERT( at_console, "packed %s\n", STRING( pWeapon->pev->classname ) );
 
