@@ -4562,7 +4562,7 @@ int CBasePlayer::GetCustomDecalFrames( void )
 //=========================================================
 void CBasePlayer::DropPlayerItem( char *pszItemName )
 {
-	if( !g_pGameRules->IsMultiplayer() || ( weaponstay.value > 0 ) )
+	if( weaponstay.value > 0 )
 	{
 		// no dropping in single player.
 		return;
@@ -4612,7 +4612,10 @@ void CBasePlayer::DropPlayerItem( char *pszItemName )
 		if( pWeapon )
 		{
 			if( !g_pGameRules->GetNextBestWeapon( this, pWeapon ) )
+			{
+				ALERT(at_console, "Can't drop!\n");
 				return; // can't drop the item they asked for, may be our last item or something we can't holster
+			}
 
 			UTIL_MakeVectors( pev->angles ); 
 

@@ -355,10 +355,8 @@ void W_Precache( void )
 	// hornetgun
 	UTIL_PrecacheOtherWeapon( "weapon_hornetgun" );
 
-	if( g_pGameRules->IsDeathmatch() )
-	{
-		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
-	}
+
+	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
 #endif
 	g_sModelIndexFireball = PRECACHE_MODEL( "sprites/zerogxplode.spr" );// fireball
 	g_sModelIndexWExplosion = PRECACHE_MODEL( "sprites/WXplo1.spr" );// underwater fireball
@@ -1238,6 +1236,15 @@ IMPLEMENT_SAVERESTORE( CWeaponBox, CBaseEntity )
 void CWeaponBox::Precache( void )
 {
 	PRECACHE_MODEL( "models/w_weaponbox.mdl" );
+
+	ALERT(at_console, "CWeaponBox::Precache\n");
+	for (int i=0; i<ARRAYSIZE(m_rgpPlayerItems); ++i)
+	{
+		if (m_rgpPlayerItems[i])
+		{
+			ALERT(at_console, "Weaponbox has %s\n", STRING(m_rgpPlayerItems[i]->pev->classname));
+		}
+	}
 }
 
 //=========================================================
@@ -1453,6 +1460,7 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	pWeapon->pev->modelindex = 0;
 	pWeapon->pev->model = iStringNull;
 	pWeapon->pev->owner = edict();
+	pWeapon->pev->aiment = NULL;
 	pWeapon->SetThink( NULL );// crowbar may be trying to swing again, etc.
 	pWeapon->SetTouch( NULL );
 	pWeapon->m_pPlayer = NULL;

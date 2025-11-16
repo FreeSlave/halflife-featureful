@@ -2009,7 +2009,12 @@ int CSave::WriteFields( const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 						entityArray[j] = EntityIndex( ( (entvars_t **)pOutputData )[j] );
 						break;
 					case FIELD_CLASSPTR:
-						entityArray[j] = EntityIndex( ( (CBaseEntity **)pOutputData )[j] );
+					{
+						int entityIndex = EntityIndex( ( (CBaseEntity **)pOutputData )[j] );
+						if (entityIndex > 0)
+							ALERT(at_console, "Writing entity index %d to %s\n", entityIndex, pTest->fieldName);
+						entityArray[j] = entityIndex;
+					}
 						break;
 					case FIELD_EDICT:
 						entityArray[j] = EntityIndex( ( (edict_t **)pOutputData )[j] );
@@ -2204,6 +2209,8 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 					case FIELD_CLASSPTR:
 						entityIndex = *( int *)pInputData;
 						pent = EntityFromIndex( entityIndex );
+						if (entityIndex > 0)
+							ALERT(at_console, "Reading entity index %d from %s. Has entity: %s\n", entityIndex, pTest->fieldName, pent ? "yes" : "no");
 						if( pent )
 							*( (CBaseEntity **)pOutputData ) = CBaseEntity::Instance( pent );
 						else
