@@ -1645,49 +1645,46 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 			}
 		}
 
-		if (pEntity->pev->takedamage)
+		CBaseEntity* pHurt = pEntity;
+		if (params.punchAngle.x)
+			pHurt->pev->punchangle.x = params.punchAngle.x;
+		if (params.punchAngle.y)
+			pHurt->pev->punchangle.y = params.punchAngle.y;
+		if (params.punchAngle.z)
+			pHurt->pev->punchangle.y = params.punchAngle.z;
+
+		bool applyKnock = false;
+		if (params.knockPlayerOnly)
 		{
-			CBaseEntity* pHurt = pEntity;
-			if (params.punchAngle.x)
-				pHurt->pev->punchangle.x = params.punchAngle.x;
-			if (params.punchAngle.y)
-				pHurt->pev->punchangle.y = params.punchAngle.y;
-			if (params.punchAngle.z)
-				pHurt->pev->punchangle.y = params.punchAngle.z;
+			applyKnock = pHurt->IsPlayer();
+		}
+		else
+		{
+			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
+				applyKnock = true;
+			else if (pHurt->pev->movetype == MOVETYPE_PUSHSTEP)
+				applyKnock = true;
+			else if (npc_vanilla_kick_behavior.value == 0)
+			{
+				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT && FClassnameIs(pHurt->pev, "func_door_rotating");
+			}
+			else if (npc_vanilla_kick_behavior.value >= 2)
+			{
+				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT;
+			}
+			else if (npc_vanilla_kick_behavior.value > 0)
+			{
+				applyKnock = true;
+			}
+		}
 
-			bool applyKnock = false;
-			if (params.knockPlayerOnly)
-			{
-				applyKnock = pHurt->IsPlayer();
-			}
-			else
-			{
-				if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-					applyKnock = true;
-				else if (pHurt->pev->movetype == MOVETYPE_PUSHSTEP)
-					applyKnock = true;
-				else if (npc_vanilla_kick_behavior.value == 0)
-				{
-					applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT && FClassnameIs(pHurt->pev, "func_door_rotating");
-				}
-				else if (npc_vanilla_kick_behavior.value >= 2)
-				{
-					applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT;
-				}
-				else if (npc_vanilla_kick_behavior.value > 0)
-				{
-					applyKnock = true;
-				}
-			}
-
-			if (applyKnock)
-			{
-				pHurt->pev->velocity = pHurt->pev->velocity +
-									   gpGlobals->v_forward * params.knockForward +
-									   gpGlobals->v_right * params.knockRight +
-									   gpGlobals->v_up * params.knockUp;
-				//ALERT(at_console, "New velocity after knock: %g, %g, %g\n", pHurt->pev->velocity.x, pHurt->pev->velocity.y, pHurt->pev->velocity.z);
-			}
+		if (applyKnock)
+		{
+			pHurt->pev->velocity = pHurt->pev->velocity +
+								   gpGlobals->v_forward * params.knockForward +
+								   gpGlobals->v_right * params.knockRight +
+								   gpGlobals->v_up * params.knockUp;
+			//ALERT(at_console, "New velocity after knock: %g, %g, %g\n", pHurt->pev->velocity.x, pHurt->pev->velocity.y, pHurt->pev->velocity.z);
 		}
 	}
 	return pEntity;
