@@ -55,6 +55,23 @@ This enables fidget animation on gauss.
 
 {{% /tab %}}
 
+{{% tab "Reloadable clip" %}}
+This makes gauss require reloading.
+
+```json
+{
+    "weapon_gauss": {
+        "max_clip": 20,
+        "reload": {
+            "anim": 2,
+            "sound": ["weapons/shock_recharge.wav"]
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
 {{% /tabs %}}
 
 

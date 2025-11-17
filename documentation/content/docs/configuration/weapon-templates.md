@@ -29,13 +29,17 @@ Example:
 ```
 
 This defines custom configuration for `"weapon_9mmhandgun"` right in the **templates/weapons.json** file.
-Custom configurations for `"weapon_eagle"` and `"weapon_shotgun"` are stored in **templates/weapons/cs/deagle.json** and **templates/weapons/cs/m3.json**.
+Custom configurations for `"weapon_eagle"` and `"weapon_shotgun"` reside in **templates/weapons/cs/deagle.json** and **templates/weapons/cs/m3.json**.
 
 {{% hint info %}}
 See [Premade weapon templates]({{< ref "weapon-templates-presets" >}}) for ready-to-use weapon presets.
 {{% /hint %}}
 
-Currently not all weapons are fully configurable. Properties available for all weapons:
+Currently not all weapons are fully configurable. Some may support only certain properties.
+
+## Common configurable properties
+
+These properties are available for all weapons:
 
 * [world_model](#world_model)
 * [view_model](#view_model)
@@ -48,6 +52,8 @@ Currently not all weapons are fully configurable. Properties available for all w
 * [secondary_ammo_name](#secondary_ammo_name)
 * [empty_sound](#empty_sound)
 * [use_standard_empty_sound](#use_standard_empty_sound)
+
+## Fully configurable weapons
 
 The following weapons can utilize the weapon configuration to the full potential:
 
@@ -67,7 +73,9 @@ The following weapons can utilize the weapon configuration to the full potential
 * [weapon_sporelauncher]({{< ref weapon_sporelauncher >}})
 * [weapon_uzi]({{< ref weapon_uzi >}})
 
-There're also weapons added specifically to be configured (so the developer can configure their own guns):
+### Additional weapons
+
+Some weapon classnames have been added specifically to be configured (so the developer can configure their own guns). These weapons are as well fully configurable:
 
 * [weapon_pistol]({{< ref weapon_pistol >}})
 * [weapon_pistol2]({{< ref weapon_pistol2 >}})
@@ -77,6 +85,14 @@ There're also weapons added specifically to be configured (so the developer can 
 * [weapon_rifle2]({{< ref weapon_rifle2 >}})
 * [weapon_shotgun2]({{< ref weapon_shotgun2 >}})
 * [weapon_sniperrifle2]({{< ref weapon_sniperrifle2 >}})
+
+{{% hint info %}}
+A technical limitation in GoldSource engine prevents creation of new classnames dynamically (i.e. without code modifications). So we have to resort to this trick of providing the predefined classnames that can be utilized by the SDK user.
+
+The names themselves don't limit the weapon configuration in any way. E.g. `weapon_pistol` could be configured to act as a shotgun or a sniper rifle. The names are provided solely for the user convenience.
+{{% /hint %}}
+
+## Partially configurable weapons
 
 The following weapons have only partial support for configuration:
 
@@ -111,14 +127,16 @@ The following weapons have only partial support for configuration:
     * idle animations
     * deploy animation
 
+# Weapon template properties
+
 Each weapon template can define following properties:
 
 ## max_clip
 
 Allows to change the weapon default max clip.
 
-{{% hint warning %}}
-Currently it's not possible to set a max clip for a weapon that doesn't uses clips by default (e.g. [weapon_egon]({{< ref weapon_egon >}})).
+{{% hint info %}}
+When setting a max clip for a weapon that doesn't usually use clips (e.g. [weapon_egon]({{< ref weapon_gauss >}})) one also should provide the [reload](#reload) parameters.
 {{% /hint %}}
 
 Set `max_clip` to 0 to disable weapon clip. This means the weapon won't need to be reloaded and will use ammo right from the player's ammo pool.
@@ -142,6 +160,9 @@ Allows to change the ammo amount the weapon comes with by default. This might be
 {
     "weapon_357": {
         "ammo_amount": [3,6]
+    },
+    "weapon_shotgun": {
+        "ammo_amount": 8
     }
 }
 ```
@@ -186,6 +207,10 @@ Possible ammo names:
 
 {{% hint warning %}}
 You still need to change the ammo sprite in the weapon hud .txt file to match the actual ammo type.
+{{% /hint %}}
+
+{{% hint info %}}
+The max ammo carried by the player can be configured via **features/maxammo.cfg**.
 {{% /hint %}}
 
 ## secondary_ammo_name
@@ -237,6 +262,19 @@ The weapon deploy priority. The weapon with the highest priority will be deploye
 ## model_sounds
 
 An array of sounds used in the view model animation events (event 5004). These sounds will be precached by the server.
+
+```json
+{
+    "weapon_smg": {
+        "model_sounds": [
+            "weapons/ap9_clipout.wav",
+            "weapons/ap9_clipin.wav",
+            "weapons/ap9_bolt.wav",
+            "items/cliprelease1.wav"
+        ]
+    }
+}
+```
 
 ## from_scratch
 
