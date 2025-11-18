@@ -23,3 +23,11 @@ The incomplete list of shared events:
 * `2010` - play the `NPC.SwishSound` soundscript.
 
 See also [event list on the303](https://www.the303.org/tutorials/gold_qc.htm#A1)
+
+## Clientside events
+
+The events 5000 and above are considered to be clientside events - they're playing on client. These are used by weapon viewmodels for playing muzzle flashes and sounds.
+
+New client animation events introduced in Featureful SDK:
+
+* `5005` - muzzleflash on the first attachment. This is practically the same as event 5001 with the event options set to `31`. This is currently a stub for Sven Co-op weapon models. In Sven Co-op the options for event `5005` refer to the txt file that defines the muzzleflash properties. The support for such files might be implemented later.
