@@ -639,8 +639,8 @@ TEST(Weapons, Parse) {
 		EXPECT_STREQ(fire.soundAdditional.Get(true).waves[0], "weapons/test.wav");
 		EXPECT_EQ(fire.soundAdditional.Get(true).channel, CHAN_ITEM);
 		ASSERT_EQ(fire.spread.GetRuleList(true).size(), 1);
-		EXPECT_EQ(fire.spread.GetRuleList(true).front().GetStaticSpread().x, 0.04f);
-		EXPECT_EQ(fire.spread.GetRuleList(true).front().GetStaticSpread().y, 0.03f);
+		EXPECT_EQ(fire.spread.GetRuleList(true).front().GetStaticSpread().x, 0.03f);
+		EXPECT_EQ(fire.spread.GetRuleList(true).front().GetStaticSpread().y, 0.04f);
 		EXPECT_TRUE(fire.allowUnderwater.Get(true));
 		EXPECT_TRUE(fire.useSecondaryAmmo.Get(true));
 		EXPECT_EQ(fire.weaponVolume.Get(true), LOUD_GUN_VOLUME);
@@ -686,18 +686,18 @@ TEST(Weapons, Parse) {
 		ASSERT_EQ(fire.hitWallSound.Get(true).waves.size(), 1);
 		EXPECT_STREQ(fire.hitWallSound.Get(false).waves[0], "hitwall.wav");
 		ASSERT_EQ(fire.spread.GetRuleList(false).size(), 1);
-		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().x, VECTOR_CONE_4DEGREES.x);
-		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().y, VECTOR_CONE_3DEGREES.x);
+		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().x, VECTOR_CONE_3DEGREES.x);
+		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().y, VECTOR_CONE_4DEGREES.x);
 		ASSERT_EQ(fire.kickBack.GetRuleList(false).size(), 1);
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.verticalBase, 2.0f);
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.lateralBase, 2.0f);
 
 		EXPECT_EQ(fire.fireType.Get(true), WeaponParameters::Fire::BULLETS);
 		ASSERT_EQ(fire.spread.GetRuleList(true).size(), 4);
-		EXPECT_EQ(fire.spread.GetRuleList(true)[0].GetStaticSpread().x, VECTOR_CONE_6DEGREES.x);
-		EXPECT_EQ(fire.spread.GetRuleList(true)[0].GetStaticSpread().y, VECTOR_CONE_5DEGREES.x);
-		EXPECT_EQ(fire.spread.GetRuleList(true)[1].GetStaticSpread().x, 0.04f);
-		EXPECT_EQ(fire.spread.GetRuleList(true)[1].GetStaticSpread().y, 0.03f);
+		EXPECT_EQ(fire.spread.GetRuleList(true)[0].GetStaticSpread().x, VECTOR_CONE_5DEGREES.x);
+		EXPECT_EQ(fire.spread.GetRuleList(true)[0].GetStaticSpread().y, VECTOR_CONE_6DEGREES.x);
+		EXPECT_EQ(fire.spread.GetRuleList(true)[1].GetStaticSpread().x, 0.03f);
+		EXPECT_EQ(fire.spread.GetRuleList(true)[1].GetStaticSpread().y, 0.04f);
 		EXPECT_EQ(fire.spread.GetRuleList(true)[2].GetStaticSpread().x, VECTOR_CONE_1DEGREES.x);
 		EXPECT_EQ(fire.spread.GetRuleList(true)[2].GetStaticSpread().y, VECTOR_CONE_1DEGREES.x);
 		EXPECT_EQ(fire.spread.GetRuleList(true)[3].GetStaticSpread().x, VECTOR_CONE_2DEGREES.x);

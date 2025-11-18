@@ -572,10 +572,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						float spreadX{};
 						float spreadY{};
 						HandleJSONMember(value, "vertical", [&](const Value& value) {
-							spreadX = ParseSpreadValue(value);
+							spreadY = ParseSpreadValue(value);
 						});
 						HandleJSONMember(value, "lateral", [&](const Value& value) {
-							spreadY = ParseSpreadValue(value);
+							spreadX = ParseSpreadValue(value);
 						});
 						fire.spread.SetStaticSpread(altMode, spreadX, spreadY);
 					}
@@ -602,10 +602,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 								float spreadX{};
 								float spreadY{};
 								HandleJSONMember(value, "vertical", [&](const Value& value) {
-									spreadX = ParseSpreadValue(value);
+									spreadY = ParseSpreadValue(value);
 								});
 								HandleJSONMember(value, "lateral", [&](const Value& value) {
-									spreadY = ParseSpreadValue(value);
+									spreadX = ParseSpreadValue(value);
 								});
 
 								ruleList.push_back(WeaponSpreadRule::Static(spreadX, spreadY, conditions));
