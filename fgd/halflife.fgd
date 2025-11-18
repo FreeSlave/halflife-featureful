@@ -9318,6 +9318,8 @@
 
 @SolidClass base(Targetname) = trigger_transition : "Trigger: Select Transition Area" []
 
+@PointClass base(Targetname, Target) = trigger_vehiclecontrols : "Disable or enable controls for func_tracktrain or func_vehicle" []
+
 @SolidClass base(Targetname, Targetx) = trigger_usetool : "Allow using special tool in this area"
 [
 	toolname(choices) : "Tool Name" : "" : "Tool to be used in this area. Options are:" = 

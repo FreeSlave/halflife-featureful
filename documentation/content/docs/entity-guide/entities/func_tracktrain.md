@@ -8,6 +8,10 @@ entityCategory: solid
 
 [TWHL](https://twhl.info/wiki/page/func_tracktrain)
 
+### Changes
+
+The train controls can be toggled via [trigger_vehiclecontrols]({{< ref trigger_vehiclecontrols >}}).
+
 ### New parameters
 
 * ![](/images/svencoop.png) Custom move, start and brake sounds.

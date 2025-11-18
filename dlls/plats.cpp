@@ -1855,6 +1855,40 @@ void CFuncTrainControls::Spawn()
 	pev->nextthink = gpGlobals->time;
 }
 
+class CTriggerVehicleControl : public CPointEntity
+{
+public:
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		if (FStringNull(pev->target))
+		{
+			ALERT(at_console, "%s has no target!\n", STRING(pev->classname));
+			return;
+		}
+
+		CBaseEntity* pEntity = nullptr;
+		while ((pEntity = UTIL_FindEntityByTargetname(pEntity, STRING(pev->target))) != nullptr)
+		{
+			if (FClassnameIs(pEntity->pev, "func_vehicle") || FClassnameIs(pEntity->pev, "func_tracktrain"))
+			{
+				if (ShouldToggle(useType, !FBitSet(pEntity->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL)))
+				{
+					if (FBitSet(pEntity->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL))
+					{
+						ClearBits(pEntity->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL);
+					}
+					else
+					{
+						SetBits(pEntity->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL);
+					}
+				}
+			}
+		}
+	}
+};
+
+LINK_ENTITY_TO_CLASS( trigger_vehiclecontrols, CTriggerVehicleControl )
+
 // ----------------------------------------------------------------------------
 //
 // Track changer / Train elevator
