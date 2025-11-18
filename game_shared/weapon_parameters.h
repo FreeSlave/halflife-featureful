@@ -491,7 +491,7 @@ struct WeaponParameters
 		WeaponModeValueEmptyAwareNonNegative<short> animIndex{-1};
 		WeaponModeValueEmptyAwareNonNegative<float> duration{1.5f};
 		WeaponModeValueEmptyAwareNonNegative<FloatRange> idleDelay{3.0f};
-		WeaponModeValueEmptyAware<WeaponSoundScript> sound;
+		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_ITEM};
 		WeaponModeValueEmptyAware<bool> waitForRecoil{false};
 		WeaponModeValueEmptyAwareNonNegative<float> suspendLaserSpotTime{0.0f};
 	};
@@ -507,7 +507,7 @@ struct WeaponParameters
 		WeaponModeValueEmptyAwareNonNegative<short> animIndex{-1};
 		WeaponModeValueEmptyAwareNonNegative<float> attackDelay{0.0f};
 		WeaponModeValueEmptyAwareNonNegative<float> idleDelay{1.5f};
-		WeaponModeValueEmptyAware<WeaponSoundScript> sound;
+		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_ITEM};
 	};
 
 	struct Holster
