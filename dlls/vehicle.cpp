@@ -24,6 +24,8 @@
 #define VEHICLE_MAXPITCH		200
 #define VEHICLE_MAXSPEED		1500
 
+#define VEHICLE_DEFAULT_BRAKE_SOUND "plats/vehicle_brake1.wav"
+
 TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 {
 	DEFINE_FIELD( CFuncVehicle, m_ppath, FIELD_CLASSPTR ),
@@ -38,6 +40,9 @@ TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 	DEFINE_FIELD( CFuncVehicle, m_flVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_flBank, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_oldSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncVehicle, m_reverseSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncVehicle, m_deceleration, FIELD_INTEGER ),
+	DEFINE_FIELD( CFuncVehicle, m_stopSoundWhenAtHalt, FIELD_BOOLEAN ),
 };
 
 static float Fix2( float angle )
@@ -111,6 +116,26 @@ void CFuncVehicle::KeyValue( KeyValueData *pkvd )
 		else if( m_acceleration > 10 )
 			m_acceleration = 10;
 
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "reverse_speed" ))
+	{
+		m_reverseSpeed = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "deceleration" ))
+	{
+		m_deceleration = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "stop_sound_at_halt" ))
+	{
+		m_stopSoundWhenAtHalt = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "brake_sound" ))
+	{
+		pev->noise1 = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -208,10 +233,12 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		}
 
 		float flSpeedRatio = delta;
+		const bool hasCustomReverseSpeed = m_reverseSpeed > 0;
+		const float reverseSpeed = hasCustomReverseSpeed ? m_reverseSpeed : m_speed;
 
 		if( delta > 0 )
 		{
-			flSpeedRatio = (float)( pev->speed / m_speed );
+			flSpeedRatio = pev->speed / m_speed;
 
 			if( pev->speed < 0 )		flSpeedRatio = m_acceleration * 0.0005 + flSpeedRatio + VEHICLE_SPEED0_ACCELERATION;
 			else if( pev->speed < 10 )	flSpeedRatio = m_acceleration * 0.0006 + flSpeedRatio + VEHICLE_SPEED1_ACCELERATION;
@@ -230,7 +257,7 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		}
 		else if( delta < 0 )
 		{
-			flSpeedRatio = pev->speed / m_speed;
+			flSpeedRatio = pev->speed / reverseSpeed;
 
 										// TODO: fix float for test demo
 			if( flSpeedRatio > 0 )						flSpeedRatio = (float)flSpeedRatio - 0.0125f;
@@ -246,12 +273,33 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		{
 			flSpeedRatio = 1;
 		}
-		else if( flSpeedRatio < -0.35f )
+		else
 		{
-			flSpeedRatio = -0.35f;
+			if (hasCustomReverseSpeed)
+			{
+				if( flSpeedRatio < -1.0f )
+				{
+					flSpeedRatio = -1.0f;
+				}
+			}
+			else
+			{
+				if( flSpeedRatio < -0.35f )
+				{
+					flSpeedRatio = -0.35f;
+				}
+			}
 		}
 
-		pev->speed = flSpeedRatio * m_speed;
+		if (delta < 0.0f && hasCustomReverseSpeed)
+		{
+			pev->speed = flSpeedRatio * reverseSpeed;
+		}
+		else
+		{
+			pev->speed = flSpeedRatio * m_speed;
+		}
+
 		Next();
 		m_flAcceleratorDecay = gpGlobals->time + 0.25f;
 	}
@@ -307,9 +355,12 @@ void CFuncVehicle::UpdateSound()
 
 	if( !m_soundPlaying )
 	{
-		if( m_sounds < 5 )
+		bool shouldPlayBrakeSound = m_sounds < 5 || !FStringNull(pev->noise1);
+
+		if (shouldPlayBrakeSound)
 		{
-			EMIT_SOUND_DYN( ENT(pev), CHAN_ITEM, "plats/vehicle_brake1.wav", m_flVolume, ATTN_NORM, 0, PITCH_NORM );
+			const char* brakeSound = FStringNull(pev->noise1) ? VEHICLE_DEFAULT_BRAKE_SOUND : STRING(pev->noise1);
+			EMIT_SOUND_DYN( ENT(pev), CHAN_ITEM, brakeSound, m_flVolume, ATTN_NORM, 0, PITCH_NORM );
 		}
 
 		EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, STRING( pev->noise ), m_flVolume, ATTN_NORM, 0, (int)flpitch );
@@ -561,16 +612,18 @@ void CFuncVehicle::Next()
 	{
 		m_flAcceleratorDecay = gpGlobals->time + 0.1f;
 
+		const int deceleration = m_deceleration > 0 ? m_deceleration : 20;
+
 		if( pev->speed < 0 )
 		{
-			pev->speed += 20;
+			pev->speed += deceleration;
 
 			if( pev->speed > 0 )
 				pev->speed = 0;
 		}
 		else if( pev->speed > 0 )
 		{
-			pev->speed -= 20;
+			pev->speed -= deceleration;
 
 			if( pev->speed < 0 )
 				pev->speed = 0;
@@ -585,6 +638,11 @@ void CFuncVehicle::Next()
 
 		SetThink( &CFuncVehicle::Next );
 		NextThink( pev->ltime + time, true );
+
+		if (m_stopSoundWhenAtHalt && !m_pDriver)
+		{
+			StopSound();
+		}
 		return;
 	}
 
@@ -945,16 +1003,25 @@ void CFuncVehicle::Precache()
 
 	switch( m_sounds )
 	{
-	case 1: PRECACHE_SOUND( "plats/vehicle1.wav" );pev->noise = MAKE_STRING( "plats/vehicle1.wav" ); break;
-	case 2: PRECACHE_SOUND( "plats/vehicle2.wav" );pev->noise = MAKE_STRING( "plats/vehicle2.wav" ); break;
-	case 3: PRECACHE_SOUND( "plats/vehicle3.wav" );pev->noise = MAKE_STRING( "plats/vehicle3.wav" ); break;
-	case 4: PRECACHE_SOUND( "plats/vehicle4.wav" );pev->noise = MAKE_STRING( "plats/vehicle4.wav" ); break;
-	case 5: PRECACHE_SOUND( "plats/vehicle6.wav" );pev->noise = MAKE_STRING( "plats/vehicle6.wav" ); break;
-	case 6: PRECACHE_SOUND( "plats/vehicle7.wav" );pev->noise = MAKE_STRING( "plats/vehicle7.wav" ); break;
+	case 1: pev->noise = MAKE_STRING( "plats/vehicle1.wav" ); break;
+	case 2: pev->noise = MAKE_STRING( "plats/vehicle2.wav" ); break;
+	case 3: pev->noise = MAKE_STRING( "plats/vehicle3.wav" ); break;
+	case 4: pev->noise = MAKE_STRING( "plats/vehicle4.wav" ); break;
+	case 5: pev->noise = MAKE_STRING( "plats/vehicle6.wav" ); break;
+	case 6: pev->noise = MAKE_STRING( "plats/vehicle7.wav" ); break;
+	default: break;
 	}
 
-	PRECACHE_SOUND( "plats/vehicle_brake1.wav" );
-	PRECACHE_SOUND( "plats/vehicle_start1.wav" );
+	if (!FStringNull(pev->noise))
+	{
+		PRECACHE_SOUND(STRING(pev->noise));
+	}
+
+	if (FStringNull(pev->noise1))
+		PRECACHE_SOUND(VEHICLE_DEFAULT_BRAKE_SOUND);
+	else
+		PRECACHE_SOUND(STRING(pev->noise1));
+	//PRECACHE_SOUND( "plats/vehicle_start1.wav" );
 	RegisterAndPrecacheSoundScript(Player::vehicleIgnitionSoundScript);
 
 	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/vehicle.sc" );

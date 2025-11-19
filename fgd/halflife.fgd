@@ -3186,7 +3186,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Targetname, Angles, RenderFields, ZHLT) = func_vehicle : "Drivable Vehicles" 
+@SolidClass base(Targetname, Angles, RenderFields, ZHLT, Global) = func_vehicle : "Drivable Vehicles" 
 [
 	spawnflags(flags) =
 	[
@@ -3216,6 +3216,14 @@
 	dmg(integer) : "Damage on crush" : 0	
 	volume(integer) : "Volume (10 = loudest)" : 10
 	bank(string) : "Bank angle on turns" : "0"
+	reverse_speed(string) : "Custom reverse speed" : : "By default the maximum reverse speed is 0.35 of the base Speed"
+	deceleration(integer) : "Custom deceleration per 0.1 seconds" : : "By default when the vehicle doesn't get input from its controls it decelerates by 20 units per 0.1 seconds. This parameter allows to change this"
+	stop_sound_at_halt(choices) : "Stop sound at halt" =
+	[
+		0 : "No (default)"
+		1 : "When stopped and no driver"
+	]
+	brake_sound(sound): "Custom brake sound"
 	_minlight(string) : "Minimum light level"
 ]
 

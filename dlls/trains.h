@@ -165,7 +165,7 @@ public:
 
 public:
 	static CFuncVehicle *Instance( edict_t *pent );
-	static TYPEDESCRIPTION m_SaveData[12];
+	static TYPEDESCRIPTION m_SaveData[15];
 
 	CPathTrack *m_ppath;
 	float m_length;
@@ -199,6 +199,9 @@ public:
 	Vector m_vSurfaceNormal;
 	Vector m_vVehicleDirection;
 	CBaseEntity *m_pDriver;
+	float m_reverseSpeed;
+	int m_deceleration;
+	bool m_stopSoundWhenAtHalt;
 
 private:
 	unsigned short m_usAdjustPitch;
