@@ -20,6 +20,7 @@ The vehicle controls can be toggled via [trigger_vehiclecontrols]({{< ref trigge
 * `Custom deceleration per 0.1 seconds` - custom deceleration. By default when the vehicle doesn't get input from its controls it decelerates by 20 units per 0.1 seconds. This parameter allows to change this behavior.
 * `Stop sound at halt` - stop the engine sound when vehicle has stopped and isn't controlled by a player. By default the sound keeps running after player leaves the vehicle.
 * `Custom brake sound` - custom brake sound to play instead of **plats/vehicle_brake1.wav**.
+* `Touch proxy targetname` - create an invisible proxy entity that can touch triggers and give it this name. The entity will move with a vehicle at its origin. The [trigger_multiple]({{< ref trigger_multiple >}}) or [trigger_once]({{< ref trigger_once >}}) can check against this targetname or the `func_vehicle_proxy` classname. This hack is needed because the trains and vehicles have such physics that don't touch triggers.
 
 ### Notes
 

@@ -145,6 +145,7 @@ public:
 	bool OnControls( entvars_t *pev ) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void Blocked( CBaseEntity *pOther ) override;
+	void UpdateOnRemove() override;
 
 public:
 	void EXPORT Next();
@@ -165,7 +166,7 @@ public:
 
 public:
 	static CFuncVehicle *Instance( edict_t *pent );
-	static TYPEDESCRIPTION m_SaveData[15];
+	static TYPEDESCRIPTION m_SaveData[16];
 
 	CPathTrack *m_ppath;
 	float m_length;
@@ -199,6 +200,8 @@ public:
 	Vector m_vSurfaceNormal;
 	Vector m_vVehicleDirection;
 	CBaseEntity *m_pDriver;
+	string_t m_touchProxyName;
+	CBaseEntity *m_vehicleProxy;
 	float m_reverseSpeed;
 	int m_deceleration;
 	bool m_stopSoundWhenAtHalt;

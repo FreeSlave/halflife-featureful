@@ -3224,6 +3224,7 @@
 		1 : "When stopped and no driver"
 	]
 	brake_sound(sound): "Custom brake sound"
+	touch_proxy_name(string) : "Touch proxy targetname" : : "The name of the proxy entity at the vehicle's origin to touch triggers"
 	_minlight(string) : "Minimum light level"
 ]
 

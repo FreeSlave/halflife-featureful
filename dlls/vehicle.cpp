@@ -26,6 +26,50 @@
 
 #define VEHICLE_DEFAULT_BRAKE_SOUND "plats/vehicle_brake1.wav"
 
+class CFuncVehicleProxy : public CPointEntity
+{
+public:
+	void Spawn() override
+	{
+		pev->movetype = MOVETYPE_FLY;
+		pev->solid = SOLID_BBOX;
+		UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+		UTIL_SetOrigin(pev, pev->origin);
+
+		if (FNullEnt(pev->owner))
+		{
+			REMOVE_ENTITY(edict());
+		}
+		else
+		{
+			SetThink(&CFuncVehicleProxy::ProxyThink);
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+	}
+	int ObjectCaps() override
+	{
+		return CPointEntity::ObjectCaps() | FCAP_DONT_SAVE;
+	}
+	void EXPORT ProxyThink()
+	{
+		if (FNullEnt(pev->owner))
+		{
+			SetThink(&CBaseEntity::SUB_Remove);
+			pev->nextthink = gpGlobals->time + 0.1f;
+			return;
+		}
+		CBaseEntity* pVehicle = CBaseEntity::Instance(pev->owner);
+		if (pVehicle)
+		{
+			pev->velocity = pVehicle->pev->velocity;
+			UTIL_SetOrigin(pev, pVehicle->pev->origin);
+			pev->nextthink = gpGlobals->time + 0.05f;
+		}
+	}
+};
+
+LINK_ENTITY_TO_CLASS(func_vehicle_proxy, CFuncVehicleProxy)
+
 TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 {
 	DEFINE_FIELD( CFuncVehicle, m_ppath, FIELD_CLASSPTR ),
@@ -40,6 +84,7 @@ TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 	DEFINE_FIELD( CFuncVehicle, m_flVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_flBank, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_oldSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncVehicle, m_touchProxyName, FIELD_STRING ),
 	DEFINE_FIELD( CFuncVehicle, m_reverseSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_deceleration, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncVehicle, m_stopSoundWhenAtHalt, FIELD_BOOLEAN ),
@@ -136,6 +181,11 @@ void CFuncVehicle::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "brake_sound" ))
 	{
 		pev->noise1 = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
+	{
+		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -1024,7 +1074,19 @@ void CFuncVehicle::Precache()
 	//PRECACHE_SOUND( "plats/vehicle_start1.wav" );
 	RegisterAndPrecacheSoundScript(Player::vehicleIgnitionSoundScript);
 
+	if (!FStringNull(m_touchProxyName))
+	{
+		m_vehicleProxy = Create("func_vehicle_proxy", pev->origin, pev->angles, edict());
+		m_vehicleProxy->pev->targetname = m_touchProxyName;
+	}
+
 	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/vehicle.sc" );
+}
+
+void CFuncVehicle::UpdateOnRemove()
+{
+	UTIL_Remove(m_vehicleProxy);
+	m_vehicleProxy = nullptr;
 }
 
 LINK_ENTITY_TO_CLASS( func_vehiclecontrols, CFuncVehicleControls );
