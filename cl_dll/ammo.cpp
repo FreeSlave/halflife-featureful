@@ -537,8 +537,10 @@ void CHudAmmo::Think()
 	if( !gpActiveSel )
 		return;
 
+	bool specialfastSwitch = CVAR_GET_FLOAT("hud_fastswitch") == 2;
+
 	// has the player selected one?
-	if( gHUD.m_iKeyBits & IN_ATTACK )
+	if( gHUD.m_iKeyBits & IN_ATTACK || specialfastSwitch )
 	{
 		if( gpActiveSel != (WEAPON *) 1 )
 		{
@@ -550,7 +552,10 @@ void CHudAmmo::Think()
 		gpActiveSel = NULL;
 		gHUD.m_iKeyBits &= ~IN_ATTACK;
 
-		PlaySound( "common/wpn_select.wav", 1 );
+		//if(!specialfastSwitch)
+		//{
+			PlaySound("common/wpn_select.wav", 1); // could sound spammy due to instant switches all the time
+		//}
 	}
 
 }
@@ -602,24 +607,42 @@ void WeaponsResource::SelectSlot( int iSlot, int fAdvance, int iDirection )
 	WEAPON *p = NULL;
 	bool fastSwitch = gHUD.m_Ammo.FastSwitchEnabled();
 
+	// fast weapon switch block (inserted)
+	if(fastSwitch)
+	{
+		// Switching between menus restarts count
+		if(gpLastSel && iSlot != gpLastSel->iSlot)
+			gpLastSel = NULL;
+
+		// No selection, start at top
+		if(!gpLastSel)
+			p = GetFirstPos(iSlot);
+		else
+		{
+			// Try next
+			p = GetNextActivePos(iSlot, gpLastSel->iSlotPos);
+
+			// End of list, start at top
+			if(!p)
+				p = GetFirstPos(iSlot);
+		}
+
+		// Found a weapon, store and switch
+		if(p)
+		{
+			PlaySound("common/wpn_select.wav", 1);
+			gpLastSel = p;
+			ServerCmd(p->szName);
+			g_weaponselect = p->iId;
+		}
+
+		return;
+	}
+
 	if ( ( gpActiveSel == NULL ) || ( gpActiveSel == (WEAPON *) 1 ) || ( iSlot != gpActiveSel->iSlot ) )
 	{
-		PlaySound( "common/wpn_hudon.wav", 1 );
-		p = GetFirstPos( iSlot );
-
-		if ( p && fastSwitch ) // check for fast weapon switch mode
-		{
-			// if fast weapon switch is on, then weapons can be selected in a single keypress
-			// but only if there is only one item in the bucket
-			WEAPON *p2 = GetNextActivePos( p->iSlot, p->iSlotPos );
-			if ( !p2 )
-			{
-				// only one active item in bucket, so change directly to weapon
-				ServerCmd( p->szName );
-				g_weaponselect = p->iId;
-				return;
-			}
-		}
+		PlaySound("common/wpn_hudon.wav", 1);
+		p = GetFirstPos(iSlot);
 	}
 	else
 	{
@@ -633,11 +656,7 @@ void WeaponsResource::SelectSlot( int iSlot, int fAdvance, int iDirection )
 	
 	if ( !p )  // no selection found
 	{
-		// just display the weapon list, unless fastswitch is on just ignore it
-		if ( !fastSwitch )
-			gpActiveSel = (WEAPON *)1;
-		else
-			gpActiveSel = NULL;
+		gpActiveSel = (WEAPON *)1;
 	}
 	else 
 		gpActiveSel = p;
