@@ -2100,13 +2100,32 @@ void CBasePlayer::PlayerUse()
 					m_iTrain = TrainSpeed( (int)pTrain->pev->speed, pTrain->pev->impulse );
 					m_iTrain |= TRAIN_NEW;
 
+					const SoundScript* ignitionSoundScript = nullptr;
+
 					if( pTrain->Classify() == CLASS_VEHICLE )
 					{
-						EmitSoundScript(Player::vehicleIgnitionSoundScript);
+						ignitionSoundScript = GetSoundScript(Player::vehicleIgnitionSoundScript);
 						( (CFuncVehicle *)pTrain )->m_pDriver = this;
 					}
 					else
-						EmitSoundScript(Player::trainUseSoundScript);
+						ignitionSoundScript = GetSoundScript(Player::trainUseSoundScript);
+
+					if (ignitionSoundScript)
+					{
+						if (FStringNull(pTrain->pev->noise3))
+						{
+							EmitSoundScript(ignitionSoundScript);
+						}
+						else
+						{
+							SoundScript customIgnitionSoundScript = *ignitionSoundScript;
+							customIgnitionSoundScript.waves.clear();
+							customIgnitionSoundScript.waves.push_back(STRING(pTrain->pev->noise3));
+							EmitSoundScript(&customIgnitionSoundScript);
+						}
+					}
+
+
 					return;
 				}
 			}

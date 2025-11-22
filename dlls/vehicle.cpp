@@ -183,6 +183,11 @@ void CFuncVehicle::KeyValue( KeyValueData *pkvd )
 		pev->noise1 = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "ignition_sound" ))
+	{
+		pev->noise3 = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
 	{
 		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
@@ -1071,8 +1076,9 @@ void CFuncVehicle::Precache()
 		PRECACHE_SOUND(VEHICLE_DEFAULT_BRAKE_SOUND);
 	else
 		PRECACHE_SOUND(STRING(pev->noise1));
-	//PRECACHE_SOUND( "plats/vehicle_start1.wav" );
 	RegisterAndPrecacheSoundScript(Player::vehicleIgnitionSoundScript);
+	if (!FStringNull(pev->noise3))
+		PRECACHE_SOUND(STRING(pev->noise3));
 
 	if (!FStringNull(m_touchProxyName))
 	{

@@ -3130,6 +3130,7 @@
 	noise(sound) : "Move Sound Override"
 	noise1(sound) : "Brake Sound Override"
 	noise2(sound) : "Start Sound Override"
+	noise3(sound) : "Use Sound Override"
 	wheels(integer) : "Distance between the wheels" : 50
 	height(integer) : "Height above track" : 4
 	startspeed(integer) : "Initial speed" : 0
@@ -3228,6 +3229,7 @@
 		1 : "When stopped and no driver"
 	]
 	brake_sound(sound): "Custom brake sound"
+	ignition_sound(sound): "Custom ignition sound"
 	touch_proxy_name(string) : "Touch proxy targetname" : : "The name of the proxy entity at the vehicle's origin to touch triggers"
 	_minlight(string) : "Minimum light level"
 ]

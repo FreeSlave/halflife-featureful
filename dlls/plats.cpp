@@ -1809,6 +1809,9 @@ void CFuncTrackTrain::Precache()
 		pev->noise2 = MAKE_STRING("plats/ttrain_start1.wav");
 	PRECACHE_SOUND( STRING(pev->noise2) );
 
+	if (!FStringNull(pev->noise3))
+		PRECACHE_SOUND(STRING(pev->noise3));
+
 	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/train.sc" );
 }
 
