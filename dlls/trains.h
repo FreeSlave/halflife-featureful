@@ -83,6 +83,7 @@ public:
 	bool ShouldCollide(CBaseEntity *pOther) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void KeyValue( KeyValueData* pkvd ) override;
+	void UpdateOnRemove() override;
 
 	void EXPORT Next();
 	void EXPORT Find();
@@ -125,6 +126,8 @@ public:
 	bool m_customMoveSound;
 	bool m_ignoreCorpses;
 	short m_soundRadius;
+	string_t m_touchProxyName;
+	CBaseEntity *m_vehicleProxy;
 
 private:
 	unsigned short m_usAdjustPitch;
@@ -218,6 +221,14 @@ public:
 
 public:
 	void EXPORT Find();
+};
+
+class CFuncVehicleProxy : public CPointEntity
+{
+public:
+	void Spawn() override;
+	int ObjectCaps() override;
+	void EXPORT ProxyThink();
 };
 
 #endif

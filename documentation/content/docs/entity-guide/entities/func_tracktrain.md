@@ -18,3 +18,4 @@ The train controls can be toggled via [trigger_vehiclecontrols]({{< ref trigger_
 * `Use Sound Override` - custom use sound to play instead of **plats/train_use1.wav**.
 * `Sound radius` - configure platform sounds attenuation.
 * `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this train and won't get crushed.
+* `Touch proxy targetname` - create an invisible proxy entity that can touch triggers and give it this name. The entity will move with a train at its origin. The [trigger_multiple]({{< ref trigger_multiple >}}) or [trigger_once]({{< ref trigger_once >}}) can check against this targetname or the `func_tracktrain_proxy` classname. This hack is needed because the trains and vehicles have such physics that don't touch triggers.

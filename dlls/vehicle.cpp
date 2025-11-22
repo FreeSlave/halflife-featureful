@@ -26,49 +26,46 @@
 
 #define VEHICLE_DEFAULT_BRAKE_SOUND "plats/vehicle_brake1.wav"
 
-class CFuncVehicleProxy : public CPointEntity
+void CFuncVehicleProxy::Spawn()
 {
-public:
-	void Spawn() override
-	{
-		pev->movetype = MOVETYPE_FLY;
-		pev->solid = SOLID_BBOX;
-		UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
-		UTIL_SetOrigin(pev, pev->origin);
+	pev->movetype = MOVETYPE_FLY;
+	pev->solid = SOLID_BBOX;
+	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+	UTIL_SetOrigin(pev, pev->origin);
 
-		if (FNullEnt(pev->owner))
-		{
-			REMOVE_ENTITY(edict());
-		}
-		else
-		{
-			SetThink(&CFuncVehicleProxy::ProxyThink);
-			pev->nextthink = gpGlobals->time + 0.1f;
-		}
-	}
-	int ObjectCaps() override
+	if (FNullEnt(pev->owner))
 	{
-		return CPointEntity::ObjectCaps() | FCAP_DONT_SAVE;
+		REMOVE_ENTITY(edict());
 	}
-	void EXPORT ProxyThink()
+	else
 	{
-		if (FNullEnt(pev->owner))
-		{
-			SetThink(&CBaseEntity::SUB_Remove);
-			pev->nextthink = gpGlobals->time + 0.1f;
-			return;
-		}
-		CBaseEntity* pVehicle = CBaseEntity::Instance(pev->owner);
-		if (pVehicle)
-		{
-			pev->velocity = pVehicle->pev->velocity;
-			UTIL_SetOrigin(pev, pVehicle->pev->origin);
-			pev->nextthink = gpGlobals->time + 0.05f;
-		}
+		SetThink(&CFuncVehicleProxy::ProxyThink);
+		pev->nextthink = gpGlobals->time + 0.1f;
 	}
-};
+}
+int CFuncVehicleProxy::ObjectCaps()
+{
+	return CPointEntity::ObjectCaps() | FCAP_DONT_SAVE;
+}
+void CFuncVehicleProxy::ProxyThink()
+{
+	if (FNullEnt(pev->owner))
+	{
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		return;
+	}
+	CBaseEntity* pVehicle = CBaseEntity::Instance(pev->owner);
+	if (pVehicle)
+	{
+		pev->velocity = pVehicle->pev->velocity;
+		UTIL_SetOrigin(pev, pVehicle->pev->origin);
+		pev->nextthink = gpGlobals->time + 0.05f;
+	}
+}
 
 LINK_ENTITY_TO_CLASS(func_vehicle_proxy, CFuncVehicleProxy)
+LINK_ENTITY_TO_CLASS(func_tracktrain_proxy, CFuncVehicleProxy)
 
 TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 {

@@ -3138,6 +3138,7 @@
 	dmg(integer) : "Damage on crush" : 0
 	volume(integer) : "Volume (10 = loudest)" : 10
 	bank(string) : "Bank angle on turns" : "0"
+	touch_proxy_name(string) : "Touch proxy targetname" : : "The name of the proxy entity at the train's origin to touch triggers"
 	_minlight(string) : "Minimum light level"
 ]
 

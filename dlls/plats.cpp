@@ -1163,6 +1163,7 @@ TYPEDESCRIPTION	CFuncTrackTrain::m_SaveData[] =
 	DEFINE_FIELD( CFuncTrackTrain, m_customMoveSound, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_soundRadius, FIELD_SHORT ),
+	DEFINE_FIELD( CFuncTrackTrain, m_touchProxyName, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTrackTrain, CBaseEntity )
@@ -1209,6 +1210,11 @@ void CFuncTrackTrain::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
 	{
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
+	{
+		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -1812,7 +1818,19 @@ void CFuncTrackTrain::Precache()
 	if (!FStringNull(pev->noise3))
 		PRECACHE_SOUND(STRING(pev->noise3));
 
+	if (!FStringNull(m_touchProxyName))
+	{
+		m_vehicleProxy = Create("func_tracktrain_proxy", pev->origin, pev->angles, edict());
+		m_vehicleProxy->pev->targetname = m_touchProxyName;
+	}
+
 	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/train.sc" );
+}
+
+void CFuncTrackTrain::UpdateOnRemove()
+{
+	UTIL_Remove(m_vehicleProxy);
+	m_vehicleProxy = nullptr;
 }
 
 // This class defines the volume of space that the player must stand in to control the train
