@@ -1057,6 +1057,7 @@ void CFuncTrain::Activate()
 		{	// not triggered, so start immediately
 			pev->nextthink = pev->ltime + 0.1f;
 			SetThink( &CFuncTrain::ThinkNext );
+			ALERT(at_console, "CFuncTrain::Activate start\n");
 		}
 		else
 			pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;

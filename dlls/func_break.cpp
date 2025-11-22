@@ -973,6 +973,7 @@ public:
 	float m_maxSpeed;
 	float m_soundTime;
 	bool m_ignoreCorpses;
+	bool m_instantGibCorpses;
 
 	static const NamedSoundScript moveSoundScript;
 };
@@ -982,6 +983,7 @@ TYPEDESCRIPTION	CPushable::m_SaveData[] =
 	DEFINE_FIELD( CPushable, m_maxSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CPushable, m_soundTime, FIELD_TIME ),
 	DEFINE_FIELD( CPushable, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CPushable, m_instantGibCorpses, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CPushable, CBreakable )
@@ -1052,6 +1054,11 @@ void CPushable::KeyValue( KeyValueData *pkvd )
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
+	{
+		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBreakable::KeyValue( pkvd );
 }
@@ -1100,6 +1107,11 @@ void CPushable::Move( CBaseEntity *pOther, int push )
 			pev->velocity.z += pevToucher->velocity.z * 0.1f;
 
 		return;
+	}
+
+	if (m_instantGibCorpses && pOther->pev->deadflag == DEAD_DEAD)
+	{
+		pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health + 1, DMG_CRUSH).SetGibPolicy(GIB_ALWAYS));
 	}
 
 	if( pOther->IsPlayer() )

@@ -13,6 +13,7 @@ Has same changes as [func_breakable]({{< ref func_breakable >}}) (for breakable 
 ### New parameters
 
 * `Collision with corpses` - allows to ignore collision with dead monsters. This will ensure that the dead body won't block the pushable.
+* `Instantly gib corpses` - instantly gib corpses on touch. Of course this won't do anything if `Collision with corpses` is set to not collide with corpses.
 
 ### Calc Ratio
 

@@ -856,6 +856,15 @@
 	]
 ]
 
+@BaseClass = InstantGibCorpses
+[
+	instant_gib_corpses(choices) : "Instantly gib corpses" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
 @BaseClass base(Appearflags, Targetname, RenderFields, Global, Angles, SoundRadius, BaseLockable, StartStopable, OpenClosable, CustomObjectHint, CollisionWithCorpses) = Door
 [
 	killtarget(target_destination) : "KillTarget"
@@ -2966,7 +2975,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable) = func_pushable : "Pushable object"
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable, CollisionWithCorpses, InstantGibCorpses) = func_pushable : "Pushable object"
 [
 	spawnflags(flags) =
 	[
@@ -2978,11 +2987,6 @@
 	]
 	friction(integer) : "Friction (0-400)" : 50
 	buoyancy(integer) : "Buoyancy" : 20
-	ignore_corpses(choices) : "Collision with corpses" =
-	[
-		0 : "Collide with corpses"
-		1 : "Don't collide with corpses"
-	]
 	_minlight(string) : "Minimum light level"
 	displayname(string) : "HUD Info name" : : "Name to display when player is looking at this pushable. Requires 'Show HUD Info' spawnflag."
 ]
