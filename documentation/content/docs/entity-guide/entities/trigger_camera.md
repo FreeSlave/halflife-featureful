@@ -20,6 +20,7 @@ bookToC: false
 * `Don't fire look target` - prevent firing the entity the camera looks at (we keep this weird behavior from Half-Life by default in order to maintain compatibility).
 * `Don't slow down if not Freeze Player` - in Half-Life `trigger_camera` slows down its movement if `Freeze Player` spawnflag is not set. It's unknown why it's coded this way. Tick this flag to prevent such behavior.
 * `Don't skip the first path corner` - in Half-Life `trigger_camera` actually skips moving to the first path corner path. Tick this flag to fix this behavior.
+* `Instant Turn` - instantly turn to the target on activation. By default camera starts at its angle (as it's set in the editor) and then gradually turns to the target. Set this spawnflag when such behavior is not desired.
 
 ### Bugfixes
 

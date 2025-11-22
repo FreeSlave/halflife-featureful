@@ -4412,6 +4412,7 @@ const char* CTriggerCondition::getValueAsString(const CKeyValue& key)
 #define SF_CAMERA_DONT_FIRE_LOOK_TARGET (1<<12)
 #define SF_CAMERA_DONT_SLOW_DOWN_IF_NOT_FREEZE (1<<13)
 #define SF_CAMERA_DONT_SKIP_FIRST_PATH_CORNER (1<<14)
+#define SF_CAMERA_INSTANT_TURN (1<<15)
 
 class CTriggerCamera : public CBaseDelay
 {
@@ -4608,6 +4609,13 @@ void CTriggerCamera::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	else
 	{
 		pev->velocity = Vector( 0, 0, 0 );
+
+		if (FBitSet(pev->spawnflags, SF_CAMERA_INSTANT_TURN))
+		{
+			Vector vecAnglesGoal = UTIL_VecToAngles( m_hTarget->pev->origin - pev->origin );
+			vecAnglesGoal.x = -vecAnglesGoal.x;
+			pev->angles = vecAnglesGoal;
+		}
 	}
 
 	SET_VIEW( pActivator->edict(), edict() );

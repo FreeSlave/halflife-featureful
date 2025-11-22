@@ -8445,6 +8445,7 @@
 		4096: "Don't fire look target" : 0 : "By default trigger_camera triggers the Target it uses to look at when it releases the player's view. Tick this flag to prevent this weird behavior."
 		8192: "Don't slow down if not Freeze Player" : 0 : "In Half-Life trigger_camera slows down its movement if 'Freeze Player' spawnflag is not set. It's unknown why it's coded this way. Tick this flag to prevent such behavior."
 		16384: "Don't skip the first path corner": 0 : "In Half-Life trigger_camera actually skips moving to the first path corner path. Tick this flag to fix this behavior."
+		32768: "Instant turn" : 0
 	]
 	speed(string) : "Initial Speed" : "0"
 	acceleration(string) : "Acceleration units/sec^2" : "500"
