@@ -23,6 +23,10 @@ The vehicle controls can be toggled via [trigger_vehiclecontrols]({{< ref trigge
 * `Custom ignition sound` - custom ignition sound to play instead of **plats/vehicle_ignition.wav**.
 * `Touch proxy targetname` - create an invisible proxy entity that can touch triggers and give it this name. The entity will move with a vehicle at its origin. The [trigger_multiple]({{< ref trigger_multiple >}}) or [trigger_once]({{< ref trigger_once >}}) can check against this targetname or the `func_vehicle_proxy` classname. This hack is needed because the trains and vehicles have such physics that don't touch triggers.
 
+### Bugfixes
+
+* Fixed the movement sound not always playing when it should (the HL 25th Anniversary update bug).
+
 ### Notes
 
 The *steam_legacy* version of Half-Life doesn't provide the **events/vehicle.sc** file which is required for proper vehicle sound handling. If you want to use the `func_vehicle` in your mod and support the *steam_legacy* branch ensure that the file exists in your mod directory.

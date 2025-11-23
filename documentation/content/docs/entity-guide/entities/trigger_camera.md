@@ -26,3 +26,7 @@ bookToC: false
 
 * The camera view is getting restored when the saved game is loaded.
 * When `trigger_camera` is removed from the map, the player gets their view reset and gains the control back (if `Freeze Player` was set).
+
+### Notes
+
+* If player gets across the level transition while the camera with `Freeze Player` spawnflag is active (e.g. if `trigger_changelevel` gets triggered) the player will stay frozen in the next level. To make sure the player doesn't stay frozen use [trigger_playerfreeze]({{< ref trigger_playerfreeze >}}) with 'Unfreeze' use type.

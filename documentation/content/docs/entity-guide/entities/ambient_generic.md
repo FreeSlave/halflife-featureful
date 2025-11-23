@@ -18,3 +18,12 @@ The specified `Entity to play from` can override the played sound through its ow
 {{% hint warning %}}
 If `ambient_generic` plays a looped sound on another entity, the channel *must* be Static.
 {{% /hint %}}
+
+{{% hint info %}}
+If you want to play a sound on the another entity consider using [ambient_extraspeaker]({{< ref ambient_extraspeaker >}}) instead.
+{{% /hint %}}
+
+{{% hint info %}}
+You can play the sentence through the `ambient_generic` if you specify the sentence name with leading `!` character instead of the wav file.
+The [subtitles]({{< ref subtitles >}}) for the sentence are also shown in this case.
+{{% /hint %}}

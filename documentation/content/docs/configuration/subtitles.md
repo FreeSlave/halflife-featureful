@@ -30,7 +30,7 @@ It defines two captions profiles intended to use with Barney's and Scientist's s
 
 ## Defining captions
 
-Captions for subtitles are defined in **sound/captions.txt**. Each caption has an identifier that corresponds to the entry from **sound/sentences.txt**. When a monster or `ambient_generic` starts playing a scripted sentence it automatically sends an identifier to the client. If there's a caption corresponding to this identifier it renders on the client.
+Captions for subtitles are defined in **sound/captions.txt**. Each caption has an identifier that corresponds to the entry from **sound/sentences.txt**. When a monster or [ambient_generic]({{< ref ambient_generic >}}) starts playing a scripted sentence it automatically sends an identifier to the client. If there's a caption corresponding to this identifier it renders on the client.
 
 Example:
 
