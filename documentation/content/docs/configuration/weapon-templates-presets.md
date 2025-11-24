@@ -877,6 +877,44 @@ Required sounds:
 * **weapons/sniper_bolt3.wav**
 {{% /details_header %}}
 
+## Sven Co-op
+
+Starting with Sven Co-op 4.0 the mod uses custom behaviors and models for some Half-Life weapons. These templates are written for Sven Co-op 5.x weapons.
+
+The common distinctive traits:
+
+* Sven Co-op models use the `5005` animation event to play muzzleflashes. The mod has its own muzzleflash definition system which isn't implemented in Featureful SDK yet. Instead it has a simple stub of playing the same muzzleflash as default HL shotgun or python on the first attachment.
+
+{{% details_header title="MP5" %}}
+MP5 with a zoom for secondary attack instead of grenade launcher.
+
+```json
+{
+    "weapon_9mmAR": "sc/mp5"
+}
+```
+
+{{% hint info %}}
+This weapon template uses the same model and sound paths as a Half-Life 9mmAR but the resources themselves are different in Sven Co-op.
+{{% /hint %}}
+
+{{% /details_header %}}
+
+{{% details_header title="Shotgun" %}}
+Shotgun with a faster secondary attack instead of doubleshot.
+
+```json
+{
+    "weapon_shotung": "sc/shotgun"
+}
+```
+
+{{% hint info %}}
+This weapon template uses the same model and sound paths as a Half-Life shotgu but the resources themselves are different in Sven Co-op.
+{{% /hint %}}
+
+{{% /details_header %}}
+
 ## Team Fortress Classic
 
 {{% hint warning %}}
@@ -911,6 +949,32 @@ Required sounds:
 
 ## They Hunger
 
+{{% details_header title="AP9" %}}
+```json
+{
+    "weapon_smg": "hunger/ap9"
+}
+```
+
+{{% hint info %}}
+AP9 in They Hunger uses its own ammo type which is not defined in Featureful SDK. This template uses `45acp` ammo type. You can change [ammo_name]({{< ref "weapon-templates#ammo_name" >}}) to your liking.
+{{% /hint %}}
+
+Required models:
+
+* **w_ap9.mdl**
+* **v_ap9.mdl**
+* **p_ap9.mdl**
+
+Required sounds:
+
+* **weapons/ap9_fire.wav**
+* **weapons/ap9_clipout.wav**
+* **weapons/ap9_clipin.wav**
+* **weapons/ap9_bolt.wav**
+
+{{% /details_header %}}
+
 {{% details_header title="Chaingun" %}}
 ```json
 {
@@ -934,5 +998,32 @@ Required sounds:
 * **weapons/asscan1.wav**
 * **weapons/asscan2.wav**
 * **weapons/asscan3.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Taurus" %}}
+```json
+{
+    "weapon_pistol": "hunger/taurus"
+}
+```
+
+{{% hint info %}}
+Taurus in They Hunger uses its own ammo type which is not defined in Featureful SDK. This template uses `45acp` ammo type. You can change [ammo_name]({{< ref "weapon-templates#ammo_name" >}}) to your liking.
+{{% /hint %}}
+
+Required models:
+
+* **w_taurus.mdl**
+* **v_taurus.mdl**
+* **p_taurus.mdl**
+
+Required sounds:
+
+* **weapons/tau_fire.wav**
+* **weapons/tau_back.wav**
+* **weapons/tau_clipout.wav**
+* **weapons/tau_clipin.wav**
+* **weapons/tau_release.wav**
 
 {{% /details_header %}}
