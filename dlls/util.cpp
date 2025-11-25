@@ -1735,18 +1735,34 @@ bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vec
 	if( pEntity )
 	{
 		CBaseMonster *pMonster = pEntity->MyMonsterPointer();
-		if (pMonster)
-		{
-			pMonster->m_reverseRelationship = reverseRelationship;
-			if (vecMin)
-				*vecMin = pMonster->DefaultMinHullSize();
-			if (vecMax)
-				*vecMax = pMonster->DefaultMaxHullSize();
-		}
 		enabled = pEntity->IsEnabledInMod();
 		if (enabled)
 		{
+			if (pMonster)
+			{
+				pMonster->m_reverseRelationship = reverseRelationship;
+			}
+
 			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+
+			if (pMonster)
+			{
+				const EntTemplate* entTemplate = pMonster->GetMyEntTemplate();
+				if (entTemplate && entTemplate->IsSizeDefined())
+				{
+					if (vecMin)
+						*vecMin = entTemplate->MinSize();
+					if (vecMax)
+						*vecMax = entTemplate->MaxSize();
+				}
+				else
+				{
+					if (vecMin)
+						*vecMin = pMonster->DefaultMinHullSize();
+					if (vecMax)
+						*vecMax = pMonster->DefaultMaxHullSize();
+				}
+			}
 		}
 	}
 	REMOVE_ENTITY( pent );
