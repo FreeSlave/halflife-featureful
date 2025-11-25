@@ -509,7 +509,7 @@ void CIchthyosaur::Spawn()
 	Precache();
 
 	SetMyModel( "models/icky.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_BBOX;
 	pev->movetype		= MOVETYPE_FLY;

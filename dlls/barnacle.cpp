@@ -167,7 +167,7 @@ void CBarnacle::Spawn()
 	Precache();
 
 	SetMyModel( "models/barnacle.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_NONE;

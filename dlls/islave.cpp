@@ -1408,7 +1408,7 @@ void CISlave::Spawn()
 	Precache();
 
 	SetMyModel( "models/islave.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

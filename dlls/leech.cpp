@@ -193,11 +193,7 @@ void CLeech::Spawn()
 {
 	Precache();
 	SetMyModel( "models/leech.mdl" );
-	// Just for fun
-	//	SET_MODEL( ENT( pev ), "models/icky.mdl" );
-	
-	//UTIL_SetSize( pev, g_vecZero, g_vecZero );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 	// Don't push the minz down too much or the water check will fail because this entity is really point-sized
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;

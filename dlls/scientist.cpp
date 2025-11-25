@@ -753,7 +753,7 @@ void CScientist::SciSpawnHelper(const char* modelName, float health)
 	Precache();
 
 	SetMyModel( modelName );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
@@ -1313,7 +1313,7 @@ void CSittingScientist::SciSpawnHelper(const char* modelName)
 	Precache();
 	InitBoneControllers();
 
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	if (FBitSet(pev->spawnflags, SF_SCI_SITTING_DONT_DROP))

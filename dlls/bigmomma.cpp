@@ -773,7 +773,7 @@ void CBigMomma::Spawn()
 	Precache();
 
 	SetMyModel( "models/big_mom.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

@@ -424,7 +424,7 @@ void CHAssassin::Spawn()
 	Precache();
 
 	SetMyModel( "models/hassassin.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

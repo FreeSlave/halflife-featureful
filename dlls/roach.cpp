@@ -156,7 +156,7 @@ void CRoach::Spawn()
 	Precache();
 
 	SetMyModel( "models/roach.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

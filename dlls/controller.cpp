@@ -362,7 +362,7 @@ void CController::Spawn()
 	Precache();
 
 	SetMyModel( "models/controller.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_FLY;

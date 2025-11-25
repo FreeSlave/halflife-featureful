@@ -324,7 +324,7 @@ void CHeadCrab::Spawn()
 void CHeadCrab::SpawnHelper(const char *modelName, float health)
 {
 	SetMyModel( modelName );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
@@ -794,7 +794,7 @@ void CShockRoach::Spawn()
 	Precache();
 
 	SetMyModel("models/w_shock_rifle.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
@@ -903,7 +903,7 @@ void CShockRoach::MonsterThink()
 	}
 	if (!m_fRoachSolid && lifeTime >= 2.0) {
 		m_fRoachSolid = true;
-		SetMySize(DefaultMinHullSize(), DefaultMaxHullSize());
+		SetMySize();
 	}
 	// die when ready
 	if (lifeTime >= gSkillData.sroachLifespan)

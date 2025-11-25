@@ -582,7 +582,7 @@ void CAGrunt::Spawn()
 	Precache();
 
 	SetMyModel( "models/agrunt.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

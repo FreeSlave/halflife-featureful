@@ -1056,7 +1056,7 @@ void CGargantua::Spawn()
 	Precache();
 
 	SetMyModel( DefaultModel() );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

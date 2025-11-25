@@ -835,7 +835,7 @@ void CBullsquid::Spawn()
 	Precache();
 
 	SetMyModel( "models/bullsquid.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

@@ -140,7 +140,7 @@ void CGenericMonster::Spawn()
 	if( FStrEq( STRING( pev->model ), "models/player.mdl" ) || FStrEq( STRING( pev->model ), "models/holo.mdl" ) )
 		SetMySize( VEC_HULL_MIN, VEC_HULL_MAX );
 	else
-		SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+		SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

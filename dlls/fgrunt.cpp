@@ -1929,7 +1929,7 @@ void CHFGrunt::Spawn()
 void CHFGrunt::SpawnHelper(const char *defaultModel, float defaultHealth)
 {
 	SetMyModel(defaultModel);
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

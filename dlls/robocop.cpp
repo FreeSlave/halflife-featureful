@@ -628,7 +628,7 @@ void CRoboCop::Spawn()
 	Precache();
 
 	SetMyModel( "models/robocop.mdl" );
-	SetMySize(DefaultMinHullSize(), DefaultMaxHullSize());
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

@@ -3903,6 +3903,11 @@ void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)
 	UTIL_SetSize(pev, m_minHullSize == g_vecZero ? vecMins : m_minHullSize, m_maxHullSize == g_vecZero ? vecMaxs : m_maxHullSize);
 }
 
+void CBaseMonster::SetMySize()
+{
+	SetMySize(DefaultMinHullSize(), DefaultMaxHullSize());
+}
+
 static void SetCapFromTriBool(int& ret, tribool b, int cap)
 {
 	if (!indeterminate(b))

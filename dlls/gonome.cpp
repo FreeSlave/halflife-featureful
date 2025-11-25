@@ -625,7 +625,7 @@ void CGonome::Spawn()
 	Precache();
 
 	SetMyModel("models/gonome.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

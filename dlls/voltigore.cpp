@@ -796,7 +796,7 @@ void CVoltigore::Spawn()
 	Precache();
 
 	SetMyModel("models/voltigore.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
@@ -1164,7 +1164,7 @@ void CBabyVoltigore::Spawn()
 	Precache();
 
 	SetMyModel("models/baby_voltigore.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

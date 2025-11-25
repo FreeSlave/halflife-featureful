@@ -138,7 +138,7 @@ void CHWGrunt::Spawn()
 	Precache();
 
 	SetMyModel( "models/hwgrunt.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;

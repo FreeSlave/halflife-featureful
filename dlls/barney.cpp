@@ -373,7 +373,7 @@ void CBarney::HandleAnimEvent( MonsterEvent_t *pEvent )
 void CBarney::SpawnImpl(const char* modelName, float health)
 {
 	SetMyModel( modelName );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

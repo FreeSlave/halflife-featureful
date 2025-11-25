@@ -295,7 +295,7 @@ void CFlybee::Spawn()
 	Precache();
 
 	SetMyModel("models/flybee.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid			= SOLID_BBOX;
 	pev->movetype		= MOVETYPE_FLY;

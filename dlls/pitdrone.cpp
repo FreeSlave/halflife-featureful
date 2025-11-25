@@ -603,7 +603,7 @@ void CPitdrone::Spawn()
 	Precache();
 
 	SetMyModel("models/pit_drone.mdl");
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;

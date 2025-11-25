@@ -433,7 +433,7 @@ void CShockTrooper::Spawn()
 	Precache();
 
 	SpawnHelper("models/strooper.mdl", gSkillData.strooperHealth * 2.5, BLOOD_COLOR_GREEN);
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	if (pev->weapons == 0)
 	{
