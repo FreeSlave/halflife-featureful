@@ -2,9 +2,10 @@ version: 1.0.{build}
 
 skip_commits:
   files:
-    - documentation/*
-    - modelsrc/*
-    - .github/workflows/*
+    - documentation/**/
+    - modelsrc/**/
+    - .github/workflows/**/
+    - fgd/*
     - README.md
 
 environment:
