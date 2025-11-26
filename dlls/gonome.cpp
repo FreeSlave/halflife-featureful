@@ -293,7 +293,7 @@ int CGonome::LookupActivity(int activity)
 	if (activity == ACT_MELEE_ATTACK1 && m_hEnemy != 0)
 	{
 		// special melee animations
-		int sequence = -1;
+		int sequence = ACTIVITY_NOT_AVAILABLE;
 		if ((pev->origin - m_hEnemy->pev->origin).IsLength2DGreaterThanOrEqual(48) )
 		{
 			m_meleeAttack2 = false;
@@ -304,27 +304,29 @@ int CGonome::LookupActivity(int activity)
 			m_meleeAttack2 = true;
 			sequence = LookupSequence("attack2");
 		}
-		return (sequence == -1) ? CBaseMonster::LookupActivity(activity) : sequence;
-	}
-	else
-	{
-		if (activity == ACT_RUN && m_hEnemy != 0)
+		if (sequence != ACTIVITY_NOT_AVAILABLE)
 		{
-			// special run animations
-			if ((pev->origin - m_hEnemy->pev->origin).IsLengthLessThanOrEqual(512) )
-			{
-				return LookupSequence("runshort");
-			}
-			else
-			{
-				return LookupSequence("runlong");
-			}
+			return sequence;
+		}
+	}
+	else if (activity == ACT_RUN && m_hEnemy != 0)
+	{
+		int sequence = ACTIVITY_NOT_AVAILABLE;
+		// special run animations
+		if ((pev->origin - m_hEnemy->pev->origin).IsLengthLessThanOrEqual(512) )
+		{
+			sequence = LookupSequence("runshort");
 		}
 		else
 		{
-			return CBaseMonster::LookupActivity(activity);
+			sequence = LookupSequence("runlong");
+		}
+		if (sequence != ACTIVITY_NOT_AVAILABLE)
+		{
+			return sequence;
 		}
 	}
+	return CBaseMonster::LookupActivity(activity);
 }
 
 void CGonome::SetActivity( Activity NewActivity )
