@@ -50,7 +50,8 @@ typedef enum
 class CBaseTurret : public CBaseMonster
 {
 public:
-	void Spawn() override;
+	void Spawn() override = 0;
+	void SpawnHelper();
 	void SetOrientation();
 	void Precache() override;
 	void UpdateOnRemove() override;
@@ -332,9 +333,8 @@ void CBaseTurret::KeyValue( KeyValueData *pkvd )
 		CBaseMonster::KeyValue( pkvd );
 }
 
-void CBaseTurret::Spawn()
-{ 
-	Precache();
+void CBaseTurret::SpawnHelper()
+{
 	pev->max_health = pev->health;
 	pev->nextthink		= gpGlobals->time + 1;
 	pev->movetype		= MOVETYPE_FLY;
@@ -359,6 +359,8 @@ void CBaseTurret::Spawn()
 
 	SetOrientation();
 	// m_flSightRange = TURRET_RANGE;
+
+	InitRandomSeeds();
 }
 
 void CBaseTurret::SetOrientation()
@@ -405,7 +407,7 @@ void CTurret::Spawn()
 	m_flMaxSpin		= TURRET_MAXSPIN;
 	pev->view_ofs.z		= 12.75;
 
-	CBaseTurret::Spawn();
+	CBaseTurret::SpawnHelper();
 
 	m_iRetractHeight = 16;
 	m_iDeployHeight = 32;
@@ -445,7 +447,7 @@ void CMiniTurret::Spawn()
 	m_flMaxSpin = 0;
 	pev->view_ofs.z = 12.75f;
 
-	CBaseTurret::Spawn();
+	CBaseTurret::SpawnHelper();
 	m_iRetractHeight = 16;
 	m_iDeployHeight = 32;
 	m_iMinPitch = -15;
@@ -1325,14 +1327,14 @@ void CSentry::Spawn()
 		m_flMaxWait = 1E6;
 	m_flMaxSpin = 1E6;
 
-	CBaseTurret::Spawn();
+	CBaseTurret::SpawnHelper();
 	m_iRetractHeight = 64;
 	m_iDeployHeight = 64;
 	m_iMinPitch = -60;
 	UTIL_SetSize( pev, Vector( -16, -16, -m_iRetractHeight ), Vector( 16, 16, m_iRetractHeight ) );
 
 	SetTouch( &CSentry::SentryTouch );
-	SetThink( &CBaseTurret::Initialize );	
+	SetThink( &CBaseTurret::Initialize );
 	pev->nextthink = gpGlobals->time + 0.3f;
 }
 

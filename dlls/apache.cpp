@@ -243,6 +243,8 @@ void CApache::SpawnImpl(const char *modelName)
 	pev->nextthink = gpGlobals->time + 1.0f;
 
 	m_iRockets = 10;
+
+	InitRandomSeeds();
 }
 
 void CApache::Precache()
