@@ -376,7 +376,9 @@ int CHoundeye::LookupActivity(int activity)
 	if( m_MonsterState == MONSTERSTATE_COMBAT && activity == ACT_IDLE && RANDOM_LONG( 0, 1 ) )
 	{
 		// play pissed idle.
-		return LookupSequence( "madidle" );
+		int sequence = LookupSequence( "madidle" );
+		if (sequence != ACTIVITY_NOT_AVAILABLE)
+			return sequence;
 	}
 	return CSquadMonster::LookupActivity(activity);
 }
