@@ -16,7 +16,7 @@ bookToC: false
 
 ### New spawnflags
 
-* `No deploy, just fly` - make osprey not care about grunt deploying and just fly on specified path. Such osprey does not skip path corners with low speed like the default one does to find the deploy point.
+* `No deploy, just fly` - make osprey not care about grunt deploying and just fly on specified path. Such Osprey does not skip path corners with low speed like the default one does to find the deploy point.
 
 ### Skill variables
 
@@ -30,3 +30,11 @@ bookToC: false
 
 * **Osprey.Rotor** - rotor sound during the flight. Must be looped.
 * **Osprey.Crash** - death sound. Derived from **NPC.Crash**
+
+### Visuals
+
+* **Osprey.FallingSmoke** - smokes produced while Osprey is falling.
+* **Osprey.DamageSmoke** - smoke indication of being damaged.
+* **Osprey.Fireball** - big fireball played when Osprey crashes.
+* **Osprey.BlastCircle** - wave played when Osprey crashes.
+* **NPC.Rope** - the rope sprite for the rappelling grunts.

@@ -2,6 +2,7 @@
 #ifndef VISUALS_UTILS_H
 #define VISUALS_UTILS_H
 
+#include "customentity.h"
 #include "effects.h"
 #include "visuals.h"
 
@@ -22,4 +23,8 @@ void SendBeamFollow(int entIndex, const Visual* visual);
 
 float AnimateWithFramerate(float frame, float maxFrame, float framerate, float* pLastTime = nullptr);
 
+namespace NPC
+{
+extern const NamedVisual ropeVisual;
+}
 #endif

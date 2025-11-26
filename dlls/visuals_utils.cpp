@@ -30,7 +30,8 @@ CBeam* CreateBeamFromVisual(const Visual* visual)
 	if (beam)
 	{
 		beam->SetColor(visual->rendercolor.r, visual->rendercolor.g, visual->rendercolor.b);
-		beam->SetBrightness(visual->renderamt);
+		if (visual->HasDefined(Visual::ALPHA_DEFINED))
+			beam->SetBrightness(visual->renderamt);
 		beam->SetWidth(visual->beamWidth);
 		beam->SetNoise(visual->beamNoise);
 		if (visual->beamScrollRate)
@@ -196,4 +197,14 @@ float AnimateWithFramerate(float frame, float maxFrame, float framerate, float* 
 		*pLastTime = gpGlobals->time;
 
 	return frame;
+}
+
+namespace NPC {
+
+const NamedVisual ropeVisual = BuildVisual("NPC.Rope")
+	.Model("sprites/rope.spr")
+	.BeamWidth(10)
+	.RenderColor(255, 255, 255)
+	.BeamFlags(BEAM_FSOLID);
+
 }

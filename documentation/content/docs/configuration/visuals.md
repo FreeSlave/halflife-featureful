@@ -73,3 +73,7 @@ All names are case-insensitive. For example **Houndeye.WaveBase** and **houndeye
 {{% /hint %}}
 
 Visuals used by a certain entity are listed on the page for the entity. See [entities]({{< ref "entity-guide" >}}).
+
+### Common NPC visuals
+
+* **NPC.Rope** - the rope sprite used by *repel* entities and [Osprey]({{< ref monster_osprey >}}) when deploying new troopers.

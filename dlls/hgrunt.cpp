@@ -45,6 +45,7 @@
 #include	"hgrunt.h"
 #include	"mod_features.h"
 #include	"common_soundscripts.h"
+#include	"visuals_utils.h"
 
 extern DLL_GLOBAL int		g_iSkillLevel;
 
@@ -2379,7 +2380,7 @@ void CHGruntRepel::Precache()
 	entityOverrides.model = pev->model;
 
 	UTIL_PrecacheOther( TrooperName(), entityOverrides );
-	m_iSpriteTexture = PRECACHE_MODEL( "sprites/rope.spr" );
+	RegisterVisual(NPC::ropeVisual);
 	if (!FStringNull(m_gibModel))
 		PRECACHE_MODEL(STRING(m_gibModel));
 }
@@ -2464,13 +2465,13 @@ void CHGruntRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	// UNDONE: position?
 	pGrunt->m_vecLastPosition = tr.vecEndPos;
 
-	CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
-	pBeam->PointEntInit( pev->origin + Vector( 0, 0, 112 ), pGrunt->entindex() );
-	pBeam->SetFlags( BEAM_FSOLID );
-	pBeam->SetColor( 255, 255, 255 );
-	pBeam->SetThink( &CBaseEntity::SUB_Remove );
-	pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
-
+	CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
+	if (pBeam)
+	{
+		pBeam->PointEntInit( pev->origin + Vector(0, 0, 112), pGrunt->entindex() );
+		pBeam->SetThink( &CBaseEntity::SUB_Remove );
+		pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+	}
 	UTIL_Remove( this );
 }
 

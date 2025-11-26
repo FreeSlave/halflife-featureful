@@ -24,6 +24,7 @@
 #include "customentity.h"
 #include "game.h"
 #include "common_soundscripts.h"
+#include "visuals_utils.h"
 
 #define SF_OSPREY_DONT_DEPLOY SF_MONSTER_SPECIAL_FLAG
 
@@ -58,7 +59,7 @@ public:
 	void EXPORT HitTouch( CBaseEntity *pOther );
 	void EXPORT FindAllThink();
 	void EXPORT HoverThink();
-	CBaseMonster *MakeGrunt( Vector vecSrc );
+	CBaseMonster *MakeGrunt( const Vector& vecSrc );
 	virtual void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt);
 	void EXPORT CrashTouch( CBaseEntity *pOther );
 	void EXPORT DyingThink();
@@ -93,11 +94,9 @@ public:
 	EHANDLE m_hRepel[4];
 
 	int m_iSoundState;
-	int m_iSpriteTexture;
 
 	int m_iPitch;
 
-	int m_iExplode;
 	int m_iTailGibs;
 	int m_iBodyGibs;
 	int m_iEngineGibs;
@@ -112,6 +111,12 @@ public:
 
 	static const NamedSoundScript rotorSoundScript;
 	static constexpr const char* crashSoundScript = "Osprey.Crash";
+
+	static const NamedVisual sharedSmokeVisual;
+	static const NamedVisual fallingSmokeVisual;
+	static const NamedVisual damageSmokeVisual;
+	static const NamedVisual fireBallVisual;
+	static const NamedVisual blastCircleVisual;
 
 protected:
 	void SpawnImpl(const char* modelName, const float defaultHealth);
@@ -195,6 +200,34 @@ const NamedSoundScript COsprey::rotorSoundScript = {
 	"Osprey.Rotor"
 };
 
+const NamedVisual COsprey::sharedSmokeVisual = BuildVisual("Osprey.SmokeBase")
+		.Model(g_pModelNameSmoke)
+		.Alpha(255)
+		.RenderMode(kRenderTransAlpha);
+
+const NamedVisual COsprey::fallingSmokeVisual = BuildVisual("Osprey.FallingSmoke")
+		.Scale(10.0f)
+		.Framerate(10.0f)
+		.Mixin(&COsprey::sharedSmokeVisual);
+
+const NamedVisual COsprey::damageSmokeVisual = BuildVisual("Osprey.DamageSmoke")
+		.Scale(FloatRange(0.9f, 2.9f))
+		.Framerate(12)
+		.Mixin(&COsprey::sharedSmokeVisual);
+
+const NamedVisual COsprey::fireBallVisual = BuildVisual::Animated("Osprey.Fireball")
+		.Model("sprites/fexplo.spr")
+		.RenderMode(kRenderTransAdd)
+		.Scale(25.0f)
+		.Alpha(255);
+
+const NamedVisual COsprey::blastCircleVisual = BuildVisual("Osprey.BlastCircle")
+		.Model("sprites/rope.spr")
+		.Life(0.4f)
+		.BeamParams(32, 0)
+		.RenderColor(255, 255, 192)
+		.Alpha(128);
+
 void COsprey::Spawn()
 {
 	SpawnImpl("models/osprey.mdl", gSkillData.ospreyHealth);
@@ -249,14 +282,16 @@ void COsprey::PrecacheImpl(const char* modelName, const char* tailGibs, const ch
 	UTIL_PrecacheMonster( TrooperName(), m_reverseRelationship );
 
 	PrecacheMyModel( modelName );
-	PRECACHE_MODEL( "models/HVR.mdl" );
 
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
 	RegisterAndPrecacheSoundScript(crashSoundScript, NPC::crashSoundScript);
 
-	m_iSpriteTexture = PRECACHE_MODEL( "sprites/rope.spr" );
+	RegisterVisual(fallingSmokeVisual);
+	RegisterVisual(damageSmokeVisual);
+	RegisterVisual(fireBallVisual);
+	RegisterVisual(blastCircleVisual);
+	RegisterVisual(NPC::ropeVisual);
 
-	m_iExplode = PRECACHE_MODEL( "sprites/fexplo.spr" );
 	m_iTailGibs = PRECACHE_MODEL( tailGibs );
 	m_iBodyGibs = PRECACHE_MODEL( bodyGibs );
 	m_iEngineGibs = PRECACHE_MODEL( engineGibs );
@@ -386,7 +421,7 @@ const char* COsprey::TrooperName()
 		return "monster_human_grunt";
 }
 
-CBaseMonster *COsprey::MakeGrunt( Vector vecSrc )
+CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 {
 	CBaseEntity *pEntity;
 	CBaseMonster *pGrunt;
@@ -424,12 +459,13 @@ CBaseMonster *COsprey::MakeGrunt( Vector vecSrc )
 			pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
 			pGrunt->SetActivity( ACT_GLIDE );
 
-			CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
-			pBeam->PointEntInit( vecSrc + Vector(0,0,112), pGrunt->entindex() );
-			pBeam->SetFlags( BEAM_FSOLID );
-			pBeam->SetColor( 255, 255, 255 );
-			pBeam->SetThink( &CBaseEntity::SUB_Remove );
-			pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+			CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
+			if (pBeam)
+			{
+				pBeam->PointEntInit( vecSrc + Vector(0, 0, 112), pGrunt->entindex() );
+				pBeam->SetThink( &CBaseEntity::SUB_Remove );
+				pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+			}
 
 			// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );  
 			pGrunt->m_vecLastPosition = m_vecOrigin[i];
@@ -711,15 +747,12 @@ void COsprey::DyingThink()
 		MESSAGE_END();
 
 		// lots of smoke
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( vecSpot.x + RANDOM_FLOAT( -150.0f, 150.0f ) );
-			WRITE_COORD( vecSpot.y + RANDOM_FLOAT( -150.0f, 150.0f ) );
-			WRITE_COORD( vecSpot.z + RANDOM_FLOAT( -150.0f, -50.0f ) );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( 100 ); // scale * 10
-			WRITE_BYTE( 10 ); // framerate
-		MESSAGE_END();
+		const Vector smokePosition(
+			pev->origin.x + RANDOM_FLOAT(-150.0f, 150.0f),
+			pev->origin.y + RANDOM_FLOAT(-150.0f, 150.0f),
+			pev->origin.z + RANDOM_FLOAT(-150.0f, -50.0f)
+		);
+		SendSmoke(smokePosition, GetVisual(fallingSmokeVisual));
 
 		vecSpot = pev->origin + ( pev->mins + pev->maxs ) * 0.5f;
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
@@ -774,13 +807,7 @@ void COsprey::DyingThink()
 		*/
 
 		// gibs
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-			WRITE_BYTE( TE_SPRITE );
-			WRITE_VECTOR( vecSpot + Vector(0, 0, 512) );
-			WRITE_SHORT( m_iExplode );
-			WRITE_BYTE( 250 ); // scale * 10
-			WRITE_BYTE( 255 ); // brightness
-		MESSAGE_END();
+		SendSprite(vecSpot + Vector(0, 0, 512.0f), GetVisual(fireBallVisual));
 
 		/*
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
@@ -795,20 +822,10 @@ void COsprey::DyingThink()
 		*/
 
 		// blast circle
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_BEAMCYLINDER );
 			WRITE_CIRCLE( pev->origin, 2000 );
-			WRITE_SHORT( m_iSpriteTexture );
-			WRITE_BYTE( 0 ); // startframe
-			WRITE_BYTE( 0 ); // framerate
-			WRITE_BYTE( 4 ); // life
-			WRITE_BYTE( 32 );  // width
-			WRITE_BYTE( 0 );   // noise
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 192 );   // r, g, b
-			WRITE_BYTE( 128 ); // brightness
-			WRITE_BYTE( 0 );		// speed
+			WriteBeamVisual(GetVisual(blastCircleVisual));
 		MESSAGE_END();
 
 		EmitSoundScript(crashSoundScript);
@@ -857,27 +874,15 @@ void COsprey::ShowDamage()
 {
 	if( m_iDoLeftSmokePuff > 0 || RANDOM_LONG( 0, 99 ) > m_flLeftHealth )
 	{
-		Vector vecSrc = pev->origin + gpGlobals->v_right * -340;
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrc );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_VECTOR( vecSrc );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( RANDOM_LONG( 0, 9 ) + 20 ); // scale * 10
-			WRITE_BYTE( 12 ); // framerate
-		MESSAGE_END();
+		const Vector vecSrc = pev->origin + gpGlobals->v_right * -340;
+		SendSmoke(vecSrc, GetVisual(damageSmokeVisual));
 		if( m_iDoLeftSmokePuff > 0 )
 			m_iDoLeftSmokePuff--;
 	}
 	if( m_iDoRightSmokePuff > 0 || RANDOM_LONG( 0, 99 ) > m_flRightHealth )
 	{
-		Vector vecSrc = pev->origin + gpGlobals->v_right * 340;
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrc );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_VECTOR( vecSrc );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( RANDOM_LONG( 0, 9 ) + 20 ); // scale * 10
-			WRITE_BYTE( 12 ); // framerate
-		MESSAGE_END();
+		const Vector vecSrc = pev->origin + gpGlobals->v_right * 340;
+		SendSmoke(vecSrc, GetVisual(damageSmokeVisual));
 		if( m_iDoRightSmokePuff > 0 )
 			m_iDoRightSmokePuff--;
 	}
