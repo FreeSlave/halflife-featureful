@@ -4673,6 +4673,19 @@ int CBaseMonster::DefaultClassify()
 	return CLASS_NONE;
 }
 
+void CBaseMonster::FixChildClassify(CBaseMonster *pChild)
+{
+	if (m_iClass)
+		pChild->m_iClass = m_iClass;
+	if (m_reverseRelationship)
+		pChild->m_reverseRelationship = m_reverseRelationship;
+
+	if (IDefaultRelationship(pChild->Classify()) >= R_DL)
+	{
+		pChild->m_iClass = Classify();
+	}
+}
+
 Vector CBaseMonster::DefaultMinHullSize()
 {
 	return g_vecZero;

@@ -756,7 +756,7 @@ void CTor::Precache()
 	RegisterVisual(summonBeamVisual);
 	RegisterVisual(summonSpriteVisual);
 
-	UTIL_PrecacheMonster(SUMMON_CLASSNAME, m_reverseRelationship, &m_summonMinSize, &m_summonMaxSize);
+	PrecacheChild(SUMMON_CLASSNAME, m_reverseRelationship, &m_summonMinSize, &m_summonMaxSize);
 
 	m_shotsFired = m_burstShotsFired = 0;
 }
@@ -919,6 +919,17 @@ void CTor::StartSummon()
 
 void CTorSummonPoint::SummonThink()
 {
+	auto removeSelf = [&]() {
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1f;
+
+		CSprite* pSprite = m_sprite.Entity<CSprite>();
+		if (pSprite)
+		{
+			pSprite->AnimateAndDie(Q_max(pSprite->pev->framerate, 10.0f));
+		}
+	};
+
 	CBaseEntity* pOwner = m_torHandle;
 
 	const char* removalReason = nullptr;
@@ -938,14 +949,7 @@ void CTorSummonPoint::SummonThink()
 	if (removalReason)
 	{
 		ALERT(at_aiconsole, "%s is going to be removed. Reason: %s\n", STRING(pev->classname), removalReason);
-		SetThink(&CBaseEntity::SUB_Remove);
-		pev->nextthink = gpGlobals->time + 0.1f;
-
-		CSprite* pSprite = m_sprite.Entity<CSprite>();
-		if (pSprite)
-		{
-			pSprite->AnimateAndDie(Q_max(pSprite->pev->framerate, 10.0f));
-		}
+		removeSelf();
 		return;
 	}
 
@@ -959,18 +963,26 @@ void CTorSummonPoint::SummonThink()
 		return;
 	}
 
-	CBaseEntity* ent = CreateNoSpawn(SUMMON_CLASSNAME, pev->origin, pTor->pev->angles, pOwner->edict());
+	ChildVariantHandle childVariant = pTor->SelectChildVariant(SUMMON_CLASSNAME);
+
+	CBaseEntity* ent = CreateNoSpawn(childVariant.classname, pev->origin, pTor->pev->angles, pOwner->edict());
 	if (!ent)
 	{
+		ALERT(at_console, "%s is going to be removed. Reason: can't spawn a child '%s'\n", childVariant.classname);
+		removeSelf();
 		return;
 	}
 
+	ent->FillKeyValues(childVariant.parameters);
 	CBaseMonster* mon = ent->MyMonsterPointer();
-	if (mon) {
+	if (mon)
+	{
 		SetBits(ent->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND);
 
-		mon->m_iClass = pTor->m_iClass;
-		mon->m_reverseRelationship = pTor->m_reverseRelationship;
+		if (pTor->m_iClass)
+			mon->m_iClass = pTor->m_iClass;
+		if (pTor->m_reverseRelationship)
+			mon->m_reverseRelationship = pTor->m_reverseRelationship;
 
 		if (pTor->IDefaultRelationship(mon->Classify()) >= R_DL)
 		{

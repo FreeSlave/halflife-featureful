@@ -100,6 +100,20 @@ struct DropItemSet
 	static DropItemSet FromJSON(const rapidjson::Value& value);
 };
 
+struct ChildVariant
+{
+	std::string classname;
+	std::map<std::string, std::string> parameters;
+	float chance{1.0f};
+
+	static ChildVariant FromJSON(const rapidjson::Value& value);
+};
+
+struct ChildrenInfo
+{
+	std::vector<ChildVariant> variants;
+};
+
 struct EntTemplate
 {
 public:
@@ -455,6 +469,13 @@ public:
 		return _takeDamageRulesDefined;
 	}
 
+	const ChildrenInfo& GetChildrenInfo() const {
+		return _childrenInfo;
+	}
+	void SetChildrenInfo(ChildrenInfo&& childrenInfo) {
+		_childrenInfo = childrenInfo;
+	}
+
 	const DropItemSet& GetLootDrop() const {
 		return _lootDrop;
 	}
@@ -507,6 +528,8 @@ private:
 
 	std::vector<TakeDamageRule> _takeDamageRules;
 	bool _takeDamageRulesDefined = false;
+
+	ChildrenInfo _childrenInfo;
 
 	DropItemSet _lootDrop;
 

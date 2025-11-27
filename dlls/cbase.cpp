@@ -1401,6 +1401,95 @@ void CBaseEntity::PrecacheEntTemplateResources()
 	}
 }
 
+void CBaseEntity::PrecacheChild(const char *childDefaultClassname, bool reverseRelationship, Vector *vecMin, Vector *vecMax)
+{
+	auto PrecacheChildImpl = [&](const char* childClassname, const decltype(ChildVariant::parameters)& parameters)
+	{
+		CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(childClassname, "PrecacheChild");
+		if (pEntity)
+		{
+			const bool enabled = pEntity->IsEnabledInMod();
+			if (enabled)
+			{
+				pEntity->FillKeyValues(&parameters);
+				CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+				if (pMonster && reverseRelationship)
+				{
+					pMonster->m_reverseRelationship = reverseRelationship;
+				}
+				pEntity->Precache();
+				pEntity->PrecacheEntTemplateResources();
+				UTIL_GetSizeFromEntityPrecache(pEntity, vecMin, vecMax);
+			}
+			REMOVE_ENTITY(pEntity->edict());
+		}
+	};
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	bool customChildren = false;
+	if (entTemplate)
+	{
+		const ChildrenInfo& childrenInfo = entTemplate->GetChildrenInfo();
+		customChildren = !childrenInfo.variants.empty();
+		for (const ChildVariant& childVariant : childrenInfo.variants)
+		{
+			const char* childClassname = childDefaultClassname;
+			if (!childVariant.classname.empty())
+				childClassname = childVariant.classname.c_str();
+			PrecacheChildImpl(childClassname, childVariant.parameters);
+		}
+	}
+	if (!customChildren)
+		PrecacheChildImpl(childDefaultClassname, decltype(ChildVariant::parameters)());
+}
+
+static ChildVariantHandle ChildVariantToHandle(const char* childDefaultClassname, const ChildVariant& child)
+{
+	ChildVariantHandle handle;
+	handle.classname = childDefaultClassname;
+	if (!child.classname.empty())
+		handle.classname = child.classname.c_str();
+	handle.parameters = &child.parameters;
+	return handle;
+}
+
+ChildVariantHandle CBaseEntity::SelectChildVariant(const char* childDefaultClassname)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const ChildrenInfo& childrenInfo = entTemplate->GetChildrenInfo();
+
+		if (childrenInfo.variants.size() > 1)
+		{
+			float chanceSum = 0.0f;
+			for (const auto& child : childrenInfo.variants)
+			{
+				chanceSum += child.chance;
+			}
+
+			const float flRand = RANDOM_FLOAT(0.0f, chanceSum);
+			float curSum = 0.0f;
+
+			for (const auto& child : childrenInfo.variants)
+			{
+				curSum += child.chance;
+				if (flRand <= curSum)
+				{
+					return ChildVariantToHandle(childDefaultClassname, child);
+				}
+			}
+		}
+		else if (childrenInfo.variants.size() > 0)
+		{
+			return ChildVariantToHandle(childDefaultClassname, childrenInfo.variants.front());
+		}
+	}
+	ChildVariantHandle handle;
+	handle.classname = childDefaultClassname;
+	return handle;
+}
+
 void CBaseEntity::FillKeyValues(const string_t *keys, const string_t *values, int keyValueCount)
 {
 	KeyValueData kvd;
@@ -1412,6 +1501,29 @@ void CBaseEntity::FillKeyValues(const string_t *keys, const string_t *values, in
 		kvd.fHandled = false;
 
 		// don't change classname
+		if (FStrEq(kvd.szKeyName, "classname"))
+		{
+			continue;
+		}
+
+		DispatchKeyValue(edict(), &kvd);
+	}
+}
+
+void CBaseEntity::FillKeyValues(const std::map<std::string, std::string>* parameters)
+{
+	if (!parameters)
+		return;
+
+	KeyValueData kvd;
+	kvd.szClassName = STRING(pev->classname);
+
+	for (auto it = parameters->begin(); it != parameters->end(); ++it)
+	{
+		kvd.szKeyName = it->first.c_str();
+		kvd.szValue = it->second.c_str();
+		kvd.fHandled = false;
+
 		if (FStrEq(kvd.szKeyName, "classname"))
 		{
 			continue;

@@ -246,6 +246,12 @@ public:
 	}
 };
 
+struct ChildVariantHandle
+{
+	const char* classname;
+	const std::map<std::string, std::string>* parameters = nullptr;
+};
+
 #define SF_ITEM_TOUCH_ONLY 128
 #define SF_ITEM_USE_ONLY 256 //  ITEM_USE_ONLY = BUTTON_USE_ONLY = DOOR_USE_ONLY!!!
 
@@ -311,7 +317,10 @@ public:
 	virtual void Spawn() { return; }
 	virtual void Precache() { return; }
 	void PrecacheEntTemplateResources();
+	void PrecacheChild(const char* childDefaultClassname, bool reverseRelationship, Vector *vecMin = nullptr, Vector *vecMax = nullptr);
+	ChildVariantHandle SelectChildVariant(const char* childDefaultClassname);
 	void FillKeyValues(const string_t* keys, const string_t* values, int keyValueCount);
+	void FillKeyValues(const std::map<std::string, std::string>* parameters);
 	virtual bool IsEnabledInMod() { return true; }
 	virtual void PreEntvarsKeyvalue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 	virtual void KeyValue( KeyValueData* pkvd );

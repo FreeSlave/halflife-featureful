@@ -33,7 +33,6 @@
 #include "gamerules.h"
 #include "string_utils.h"
 
-#include <map>
 #include <set>
 #include <string>
 
@@ -1704,37 +1703,62 @@ static void UTIL_PrecacheOtherWithOverride(CBaseEntity* pEntity, EntityOverrides
 	pEntity->PrecacheEntTemplateResources();
 }
 
-void UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides )
+CBaseEntity* UTIL_CreateInstanceForPrecache(const char* szClassname, const char* contextStr)
 {
 	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
-	if( FNullEnt( pent ) )
+	if (FNullEnt(pent))
 	{
-		ALERT( at_console, "NULL Ent in UTIL_PrecacheOther\n" );
-		return;
+		ALERT(at_console, "NULL Ent in %s (%s)\n", contextStr, szClassname);
+		return nullptr;
 	}
-	
-	CBaseEntity *pEntity = CBaseEntity::Instance( VARS( pent ) );
-	if( pEntity && pEntity->IsEnabledInMod() )
+	return CBaseEntity::Instance(VARS(pent));
+}
+
+void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector* vecMax)
+{
+	CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+	if (pMonster)
 	{
-		UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+		const EntTemplate* entTemplate = pMonster->GetMyEntTemplate();
+		if (entTemplate && entTemplate->IsSizeDefined())
+		{
+			if (vecMin)
+				*vecMin = entTemplate->MinSize();
+			if (vecMax)
+				*vecMax = entTemplate->MaxSize();
+		}
+		else
+		{
+			if (vecMin)
+				*vecMin = pMonster->DefaultMinHullSize();
+			if (vecMax)
+				*vecMax = pMonster->DefaultMaxHullSize();
+		}
 	}
-	REMOVE_ENTITY( pent );
+}
+
+bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides )
+{
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheOther");
+	if (pEntity)
+	{
+		const bool enabled = pEntity->IsEnabledInMod();
+		if (enabled)
+		{
+			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
+	}
+	return false;
 }
 
 bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vector* vecMin, Vector* vecMax, EntityOverrides entityOverrides, string_t* keys, string_t* values, int keyValueCount)
 {
-	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
-	if( FNullEnt( pent ) )
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheMonster");
+	if (pEntity)
 	{
-		ALERT( at_console, "NULL Ent in UTIL_PrecacheMonster (%s)\n", szClassname );
-		return false;
-	}
-
-	bool enabled = true;
-	CBaseEntity *pEntity = CBaseEntity::Instance( VARS( pent ) );
-	if( pEntity )
-	{
-		enabled = pEntity->IsEnabledInMod();
+		const bool enabled = pEntity->IsEnabledInMod();
 		if (enabled)
 		{
 			pEntity->AssignEntityOverrides(entityOverrides);
@@ -1749,28 +1773,12 @@ bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vec
 			pEntity->Precache();
 			pEntity->PrecacheEntTemplateResources();
 
-			if (pMonster)
-			{
-				const EntTemplate* entTemplate = pMonster->GetMyEntTemplate();
-				if (entTemplate && entTemplate->IsSizeDefined())
-				{
-					if (vecMin)
-						*vecMin = entTemplate->MinSize();
-					if (vecMax)
-						*vecMax = entTemplate->MaxSize();
-				}
-				else
-				{
-					if (vecMin)
-						*vecMin = pMonster->DefaultMinHullSize();
-					if (vecMax)
-						*vecMax = pMonster->DefaultMaxHullSize();
-				}
-			}
+			UTIL_GetSizeFromEntityPrecache(pEntity, vecMin, vecMax);
 		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
 	}
-	REMOVE_ENTITY( pent );
-	return enabled;
+	return false;
 }
 
 //=========================================================

@@ -100,6 +100,24 @@ DropItemSet DropItemSet::FromJSON(const Value &value)
 	return result;
 }
 
+ChildVariant ChildVariant::FromJSON(const rapidjson::Value& value)
+{
+	ChildVariant result;
+	UpdatePropertyFromJson(result.classname, value, "classname");
+	UpdatePropertyFromJson(result.chance, value, "chance");
+
+	HandleJSONMember(value, "parameters", [&result](const Value& value) {
+		for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+		{
+			const char* name = it->name.GetString();
+			const char* val = it->value.GetString();
+			result.parameters[name] = val;
+		}
+	});
+
+	return result;
+}
+
 const char* EntTemplate::OwnVisualName() const
 {
 	return _ownVisual.empty() ? nullptr : _ownVisual.c_str();
@@ -1263,6 +1281,27 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 
 	HandleJSONMember(value, "loot_drop", [&entTemplate](const Value& value) {
 		entTemplate.SetLootDrop(DropItemSet::FromJSON(value));
+	});
+
+	HandleJSONMember(value, "children", [&entTemplate](const Value& value) {
+		if (value.IsArray())
+		{
+			ChildrenInfo childrenInfo;
+			Value::ConstArray arr = value.GetArray();
+			childrenInfo.variants.reserve(arr.Size());
+
+			for (auto& item : arr)
+			{
+				childrenInfo.variants.push_back(ChildVariant::FromJSON(item));
+			}
+			entTemplate.SetChildrenInfo(std::move(childrenInfo));
+		}
+		else if (value.IsObject())
+		{
+			ChildrenInfo childrenInfo;
+			childrenInfo.variants.push_back(ChildVariant::FromJSON(value));
+			entTemplate.SetChildrenInfo(std::move(childrenInfo));
+		}
 	});
 
 	HandleJSONMember(value, "pain", [&entTemplate](const Value& value) {

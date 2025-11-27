@@ -445,6 +445,7 @@ public:
 
 	int Classify() override;
 	int DefaultClassify() override;
+	void FixChildClassify(CBaseMonster* pChild);
 	virtual const char* ReverseRelationshipModel() { return nullptr; }
 
 	virtual CDeadMonster* MyDeadMonsterPointer() {return nullptr;}

@@ -32,6 +32,8 @@
 
 #include <cstring>
 #include <cctype>
+#include <map>
+
 inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin, entvars_t *ent );  // implementation later in this file
 
 extern globalvars_t				*gpGlobals;
@@ -349,8 +351,11 @@ struct EntityOverrides
 	string_t netname = iStringNull;
 };
 
+CBaseEntity* UTIL_CreateInstanceForPrecache(const char* szClassname, const char* contextStr);
+void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector* vecMax);
+
 // allows precacheing of other entities
-extern void			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides = EntityOverrides());
+extern bool			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides = EntityOverrides());
 extern bool			UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship , Vector *vecMin = NULL, Vector *vecMax = NULL, EntityOverrides entityOverrides = EntityOverrides(), string_t* keys = nullptr, string_t* values = nullptr, int keyValueCount = 0);
 
 // prints a message to each client

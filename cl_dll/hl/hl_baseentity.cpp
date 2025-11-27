@@ -73,7 +73,7 @@ edict_t *DBG_EntOfVars( const entvars_t *pev ) { return NULL; }
 //void DBG_AssertFunction( bool fExpr, const char *szExpr, const char *szFile, int szLine, const char *szMessage) { }
 
 // UTIL_* Stubs
-void UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides ) { }
+bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides ) { return false; }
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount ) { }
 void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber ) { }
 void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber ) { }

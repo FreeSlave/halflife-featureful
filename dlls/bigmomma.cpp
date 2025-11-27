@@ -685,17 +685,30 @@ void CBigMomma::BeforeApplyDamageToHealth(float flDamage)
 
 void CBigMomma::LayHeadcrab()
 {
-	CBaseEntity *pChild = CBaseEntity::Create( BIG_CHILDCLASS, pev->origin, pev->angles, edict() );
-	CBaseMonster *pNewMonster = pChild->MyMonsterPointer();
-	if (pNewMonster) {
-		pNewMonster->m_iClass = m_iClass;
-		pNewMonster->m_reverseRelationship = m_reverseRelationship;
+	ChildVariantHandle childVariant = SelectChildVariant(BIG_CHILDCLASS);
+
+	CBaseEntity* pChild = CreateNoSpawn(childVariant.classname, pev->origin, pev->angles, edict());
+	if (!pChild)
+	{
+		ALERT(at_console, "%s: can't spawn a child '%s'\n", STRING(pev->classname), childVariant.classname);
+		return;
 	}
 
-	pChild->pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	pChild->FillKeyValues(childVariant.parameters);
 
-	if (FBitSet(pev->spawnflags, SF_MONSTERCLIP_BABYCRABS))
-		pChild->pev->spawnflags |= SF_MONSTER_HITMONSTERCLIP;
+	CBaseMonster *pNewMonster = pChild->MyMonsterPointer();
+	if (pNewMonster)
+	{
+		SetBits(pChild->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND);
+		FixChildClassify(pNewMonster);
+		if (FBitSet(pev->spawnflags, SF_MONSTERCLIP_BABYCRABS))
+			pChild->pev->spawnflags |= SF_MONSTER_HITMONSTERCLIP;
+	}
+
+	if (DispatchSpawn(pChild->edict()) == -1)
+	{
+		REMOVE_ENTITY(pChild->edict());
+	}
 
 	// Is this the second crab in a pair?
 	if( HasMemory( bits_MEMORY_CHILDPAIR ) )
@@ -808,7 +821,7 @@ void CBigMomma::Precache()
 	RegisterAndPrecacheSoundScript(childDieSoundScript);
 	RegisterAndPrecacheSoundScript(launchMortarSoundScript);
 
-	UTIL_PrecacheOther(BIG_CHILDCLASS);
+	PrecacheChild(BIG_CHILDCLASS, m_reverseRelationship);
 	UTIL_PrecacheOther("bmortar", GetProjectileOverrides());
 
 	RegisterVisual(CBMortar::mortarSprayVisual);// client side spittle.

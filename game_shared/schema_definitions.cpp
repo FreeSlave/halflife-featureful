@@ -687,6 +687,35 @@ const char* const json_schemas::definitions = R"(
 			"$ref": "#/drop_item"
 		}
 	},
+	"child_variant": {
+		"type": "object",
+		"properties": {
+			"classname": {
+				"type": "string",
+				"minLength": 1
+			},
+			"parameters": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "string",
+					"minLength": 1
+				}
+			},
+			"chance": {
+				"type": "number",
+				"exclusiveMinimum": 0.0
+			}
+		},
+		"additionalProperties": false
+	},
+	"child_variant_list": {
+		"type": "array",
+		"items": {
+			"$ref": "#/child_variant"
+		}
+	},
+)"
+R"(
 	"entity_template": {
 		"type": ["object", "string"],
 		"properties": {
@@ -838,6 +867,16 @@ const char* const json_schemas::definitions = R"(
 						},
 						"required": ["items"],
 						"additionalProperties": false
+					}
+				]
+			},
+			"children": {
+				"oneOf": [
+					{
+						"$ref": "#/child_variant"
+					},
+					{
+						"$ref": "#/child_variant_list"
 					}
 				]
 			},
