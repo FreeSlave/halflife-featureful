@@ -106,6 +106,7 @@ public:
 
 	short m_gruntType;
 	short m_gruntNumber;
+	short m_gruntMaxChildren;
 
 	float m_soundAttenuation;
 
@@ -187,6 +188,7 @@ TYPEDESCRIPTION	COsprey::m_SaveData[] =
 
 	DEFINE_FIELD( COsprey, m_gruntType, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_gruntNumber, FIELD_SHORT ),
+	DEFINE_FIELD( COsprey, m_gruntMaxChildren, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_soundAttenuation, FIELD_FLOAT ),
 };
 
@@ -314,6 +316,11 @@ void COsprey::KeyValue(KeyValueData *pkvd)
 		m_gruntNumber = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq(pkvd->szKeyName, "maxlivechildren" ) )
+	{
+		m_gruntMaxChildren = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else if( FStrEq(pkvd->szKeyName, "attenuation" ) )
 	{
 		m_soundAttenuation = atof( pkvd->szValue );
@@ -335,13 +342,21 @@ void COsprey::FindAllThink()
 	if (!FBitSet(pev->spawnflags, SF_OSPREY_DONT_DEPLOY))
 	{
 		m_iUnits = 0;
-		while( m_iUnits < MAX_CARRY && ( pEntity = UTIL_FindEntityByClassname( pEntity, TrooperName() ) ) != NULL )
+
+		if (m_gruntMaxChildren > 0)
 		{
-			if( pEntity->IsAlive() && IRelationship(pEntity) < R_DL )
+			m_iUnits = Q_min(m_gruntMaxChildren, MAX_CARRY);
+		}
+		else
+		{
+			while( m_iUnits < MAX_CARRY && ( pEntity = UTIL_FindEntityByClassname( pEntity, TrooperName() ) ) != NULL )
 			{
-				m_hGrunt[m_iUnits] = pEntity;
-				m_vecOrigin[m_iUnits] = pEntity->pev->origin;
-				m_iUnits++;
+				if( pEntity->IsAlive() && IRelationship(pEntity) < R_DL )
+				{
+					m_hGrunt[m_iUnits] = pEntity;
+					m_vecOrigin[m_iUnits] = pEntity->pev->origin;
+					m_iUnits++;
+				}
 			}
 		}
 
@@ -704,6 +719,7 @@ KilledResult COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	pev->deadflag = DEAD_DYING;
 
 	m_startTime = gpGlobals->time + 4.0f;
+	OnDying(false);
 	return KilledResult();
 }
 

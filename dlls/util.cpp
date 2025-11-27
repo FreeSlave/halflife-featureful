@@ -1721,7 +1721,7 @@ void UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverride
 	REMOVE_ENTITY( pent );
 }
 
-bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vector* vecMin, Vector* vecMax, EntityOverrides entityOverrides)
+bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vector* vecMin, Vector* vecMax, EntityOverrides entityOverrides, string_t* keys, string_t* values, int keyValueCount)
 {
 	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
 	if( FNullEnt( pent ) )
@@ -1734,16 +1734,20 @@ bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vec
 	CBaseEntity *pEntity = CBaseEntity::Instance( VARS( pent ) );
 	if( pEntity )
 	{
-		CBaseMonster *pMonster = pEntity->MyMonsterPointer();
 		enabled = pEntity->IsEnabledInMod();
 		if (enabled)
 		{
-			if (pMonster)
+			pEntity->AssignEntityOverrides(entityOverrides);
+			pEntity->FillKeyValues(keys, values, keyValueCount);
+
+			CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+			if (pMonster && reverseRelationship)
 			{
 				pMonster->m_reverseRelationship = reverseRelationship;
 			}
 
-			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+			pEntity->Precache();
+			pEntity->PrecacheEntTemplateResources();
 
 			if (pMonster)
 			{

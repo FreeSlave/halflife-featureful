@@ -415,8 +415,6 @@ void CMonsterMaker::Precache()
 {
 	CBaseMonster::Precache();
 
-	if (!FStringNull(m_customModel))
-		PRECACHE_MODEL(STRING(m_customModel));
 	if (!FStringNull(m_gibModel))
 		PRECACHE_MODEL(STRING(m_gibModel));
 
@@ -425,7 +423,7 @@ void CMonsterMaker::Precache()
 	entityOverrides.entTemplate = m_entTemplate;
 
 	if (CheckMonsterClassname())
-		m_childIsValid = UTIL_PrecacheMonster( STRING(m_iszMonsterClassname), m_reverseRelationship, &m_defaultMinHullSize, &m_defaultMaxHullSize, entityOverrides );
+		m_childIsValid = UTIL_PrecacheMonster( STRING(m_iszMonsterClassname), m_reverseRelationship, &m_defaultMinHullSize, &m_defaultMaxHullSize, entityOverrides, m_childKeys, m_childValues, m_childKeyCount );
 
 	if (!FStringNull(WarpballName()))
 		g_WarpballCatalog.PrecacheWarpballTemplate(STRING(WarpballName()), STRING(m_iszMonsterClassname));
@@ -715,26 +713,7 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 	pevCreate->angles = placeAngles;
 	SetBits( pevCreate->spawnflags, SF_MONSTER_FALL_TO_GROUND );
 
-	if (m_childKeyCount > 0)
-	{
-		const char* classname = STRING(pevCreate->classname);
-		KeyValueData kvd;
-		kvd.szClassName = classname;
-		for (int i=0; i<m_childKeyCount; ++i)
-		{
-			kvd.szKeyName = STRING(m_childKeys[i]);
-			kvd.szValue = STRING(m_childValues[i]);
-			kvd.fHandled = false;
-
-			// don't change classname
-			if (FStrEq(kvd.szKeyName, "classname"))
-			{
-				continue;
-			}
-
-			DispatchKeyValue(pent, &kvd);
-		}
-	}
+	CBaseEntity* pEntity = CBaseEntity::Instance(pent);
 
 	pevCreate->body = pev->body;
 	pevCreate->skin = pev->skin;
@@ -743,11 +722,7 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 	if (!FStringNull(m_customModel))
 		pevCreate->model = m_customModel;
 
-	CBaseEntity* pEntity = CBaseEntity::Instance(pent);
-	if (pEntity)
-	{
-		pEntity->m_entTemplate = m_entTemplate;
-	}
+	pEntity->m_entTemplate = m_entTemplate;
 	CBaseMonster* createdMonster = pEntity ? pEntity->MyMonsterPointer() : NULL;
 	if (createdMonster)
 	{
@@ -777,7 +752,6 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 
 		if (m_iClass)
 			createdMonster->m_iClass = m_iClass;
-		createdMonster->m_reverseRelationship = m_reverseRelationship;
 		createdMonster->m_displayName = m_displayName;
 		createdMonster->SetMyBloodColor(m_bloodColor);
 		createdMonster->SetMyFieldOfView(m_flFieldOfView);
@@ -835,6 +809,13 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 				pTalkMonster->m_iszDecline = m_iszDecline;
 			}
 		}
+	}
+
+	pEntity->FillKeyValues(m_childKeys, m_childValues, m_childKeyCount);
+
+	if (createdMonster && m_reverseRelationship)
+	{
+		createdMonster->m_reverseRelationship = m_reverseRelationship;
 	}
 
 	if (DispatchSpawn( ENT( pevCreate ) ) == -1)

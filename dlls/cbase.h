@@ -311,6 +311,7 @@ public:
 	virtual void Spawn() { return; }
 	virtual void Precache() { return; }
 	void PrecacheEntTemplateResources();
+	void FillKeyValues(const string_t* keys, const string_t* values, int keyValueCount);
 	virtual bool IsEnabledInMod() { return true; }
 	virtual void PreEntvarsKeyvalue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 	virtual void KeyValue( KeyValueData* pkvd );

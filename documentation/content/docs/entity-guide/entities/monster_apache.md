@@ -9,12 +9,12 @@ bookToC: false
 
 ### Changes
 
-* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned apache has the path to follow.
-* `Death` and `50% Health Remaining` trigger conditions now work for apache.
+* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned Apache has the path to follow. See [Configuring the spawned monster]({{< ref "monstermaker/#configuring-the-spawned-monster" >}}) and the **flyers_demo** map in the sample mod.
+* `Death` and `50% Health Remaining` trigger conditions now work for Apache.
 
 ### New parameters
 
-* `Rotor volume` - configure rotor volume.
+* `Rotor volume` - configure rotor volume. This can also be configured via **Apache.Rotor** soundscript.
 
 ### Skill variables
 
@@ -33,15 +33,15 @@ bookToC: false
 
 ### Visuals
 
-* **Apache.RocketModel** - apacke rocket model.
-* **Apache.RocketTrail** - apache rocket trailing beam.
-* **Apache.FallingSmoke** - smokes produced while apache is falling.
+* **Apache.RocketModel** - Apache rocket model.
+* **Apache.RocketTrail** - Apache rocket trailing beam.
+* **Apache.FallingSmoke** - smokes produced while Apache is falling.
 * **Apache.CrashSmoke** - big smoke on crash.
 * **Apache.RocketSmoke** - smoke when launching rocket.
 * **Apache.DamageSmoke** - smoke indication of being damaged.
-* **Apache.Fireball** - big fireball played when apache crashes.
-* **Apache.BlastCircle** - wave played when apache crashes.
-* **Wreckage.Smoke** - smokes played after the apache crashed.
+* **Apache.Fireball** - big fireball played when Apache crashes.
+* **Apache.BlastCircle** - wave played when Apache crashes.
+* **Wreckage.Smoke** - smokes played after the Apache crashed.
 
 ### Entity template examples
 

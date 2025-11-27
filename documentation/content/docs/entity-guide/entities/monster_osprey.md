@@ -7,12 +7,18 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_osprey)
 
+### Changes
+
+* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned Osprey has the path to follow. Set the `#maxlivechildren` keyvalue parameter to ensure the resupply won't depend on the number of grunts alive on the map at the moment when the Osprey spawns. See [Configuring the spawned monster]({{< ref "monstermaker/#configuring-the-spawned-monster" >}}) and the **flyers_demo** map in the sample mod.
+* `Death` and `50% Health Remaining` trigger conditions now work for Osprey.
+
 ### New parameters
 
-* `Rotor volume` - configure rotor volume.
-* `Sound attenuation` parameter to configure rotor sound radius.
-* ![](/images/svencoop.png) New parameter `Grunt Type` to allow deploying Opposing Force grunts instead of Half-Life ones.
-* ![](/images/svencoop.png) `Number of grunts` parameter to override the maximum number of grunts deployed at once.
+* `Rotor volume` - configure rotor volume. This can also be configured via **Osprey.Rotor** soundscript.
+* `Rotor sound attenuation` - configure rotor sound attenuation. The less the value the larger the sound radius. The default attenuation is 0.15. This can also be configured via **Osprey.Rotor** soundscript.
+* ![](/images/svencoop.png) `Grunt Type` - deploy Opposing Force grunts instead of Half-Life ones.
+* ![](/images/svencoop.png) `Number of grunts per deploy` - override the maximum number of grunts deployed at once. If defined this must be a number from 1 to 4.
+* `Custom number of grunts to resupply` - override the maximum number of alive grunts the Osprey can resupply. After spawning this number of grunts the Osprey will stop deploying new ones until someone has died or been removed from the map.
 
 ### New spawnflags
 

@@ -34,15 +34,19 @@ You can also randomize the spawn position:
 
 This is useful if monstermaker can spawn multiple monsters and you want them to appear in different places on each spawn.
 
-### Configuring the spawning monster
+### Configuring the spawned monster
 
 Unlike original Half-Life, the `monstermaker` now can define custom health, body, skin, blood color, relationship class, gibs, model and other properties for the spawned monsters.
 
-Even if `monstermaker` lacks some property specific for the monster, one can define it via custom keyvalues. In the editor toggle SmartEdit (like you do with `multi_manager`) and add keyvalues you want to forward to the monster prepending the key names with # symbol. This allows to set some parameters that can't be set via monstermaker otherwise (e.g. bodystate of `monster_barney`). Example:
+Even if `monstermaker` lacks some property specific for the monster, one can define it via custom keyvalues. In the editor toggle *SmartEdit* (like you do with `multi_manager`) and add keyvalues you want to forward to the monster prepending the key names with `#` symbol. This allows to set some parameters that can't be set via monstermaker otherwise (e.g. bodystate of `monster_barney`). Example:
 
 ```
 #bodystate 1
 ```
+
+{{% hint warning %}}
+Don't set the custom keyvalue for something that can be set via `monstermaker` parameters. Otherwise you risk getting confused from the results. E.g. if you set custom model both via `monstermaker` parameters and via `#model` custom keyvalue, the latter will be used.
+{{% /hint %}}
 
 ### Bugfixes
 

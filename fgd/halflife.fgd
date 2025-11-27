@@ -590,7 +590,8 @@
 		64 : "Start Inactive" : 0
 		32768 : "No deploy, just fly" : 0
 	]
-	num(integer) : "(Override) Number of Grunts"
+	num(integer) : "Number of grunts per deploy [1-4]" : : "By default the number of grunts Osprey can bring at once depends on the number of alive grunts at the moment the Osprey starts flying."
+	maxlivechildren(integer) : "Custom number of grunts to resupply [1-24]" : : "By default the number of grunts Osprey can resupply depends on the number of alive grunts at the moment the Osprey starts flying."
 	rotorvolume(string) : "Rotor sound volume (0.1 - 1.0)"
 	attenuation(string) : "Rotor sound attenuation" : : "The higher the value the stronger the volume fading with distance. The default attenuation for osprey is 0.15"
 ]

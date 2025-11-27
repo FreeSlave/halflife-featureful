@@ -1401,6 +1401,26 @@ void CBaseEntity::PrecacheEntTemplateResources()
 	}
 }
 
+void CBaseEntity::FillKeyValues(const string_t *keys, const string_t *values, int keyValueCount)
+{
+	KeyValueData kvd;
+	kvd.szClassName = STRING(pev->classname);
+	for (int i=0; i<keyValueCount; ++i)
+	{
+		kvd.szKeyName = STRING(keys[i]);
+		kvd.szValue = STRING(values[i]);
+		kvd.fHandled = false;
+
+		// don't change classname
+		if (FStrEq(kvd.szKeyName, "classname"))
+		{
+			continue;
+		}
+
+		DispatchKeyValue(edict(), &kvd);
+	}
+}
+
 void CBaseEntity::Activate()
 {
 	PrecacheEntTemplateResources();
