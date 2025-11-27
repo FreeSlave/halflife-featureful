@@ -4687,7 +4687,7 @@
 		8 : "Sniper Rifle"
 		10 : "Sniper Rifle + HG"
 	]
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+	sequence(Choices) : "Animation Sequence (editor)" : 47 =
 	[
 		0 : "walk1"
 		1 : "run"
@@ -6785,7 +6785,7 @@
 	]
 ]
 
-@PointClass base(Repel) size(-16 -16 0, 16 16 72) = monster_robogrunt_repel : "Robot Grunt"
+@PointClass base(Repel) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = monster_robogrunt_repel : "Robot Grunt (Repel)"
 [
 	weapons(Choices) : "Weapons" : 1 =
 	[
