@@ -131,7 +131,7 @@ const char* const json_schemas::definitions = R"(
 		]
 	},
 	"attenuation": {
-		"oneof": [
+		"oneOf": [
 			{
 				"enum": [
 					"Norm",
@@ -231,7 +231,7 @@ const char* const json_schemas::definitions = R"(
 				"$ref": "#/alpha"
 			},
 			"renderfx": {
-				"oneof": [
+				"oneOf": [
 					{
 						"enum": [
 							"Normal",
@@ -332,7 +332,7 @@ const char* const json_schemas::definitions = R"(
 				"type": "boolean"
 			},
 			"life_state": {
-				"oneof": [
+				"oneOf": [
 					{
 						"type": "array",
 						"items": {
@@ -346,7 +346,7 @@ const char* const json_schemas::definitions = R"(
 				]
 			},
 			"body": {
-				"oneof": [
+				"oneOf": [
 					{
 						"$ref": "#/body_filter"
 					},
@@ -402,7 +402,7 @@ const char* const json_schemas::definitions = R"(
 		"uniqueItems": true
 	},
 	"attack_affinity": {
-		"oneof": [
+		"oneOf": [
 			{
 				"type": "array",
 				"items": {
@@ -821,7 +821,7 @@ const char* const json_schemas::definitions = R"(
 				}
 			},
 			"loot_drop": {
-				"oneof": [
+				"oneOf": [
 					{
 						"$ref": "#/drop_item_list"
 					},
