@@ -461,7 +461,7 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 									}
 								}
 							}
-							DispatchSpawn(pEntity->edict());
+							DispatchSpawnAutoClean(pEntity);
 						}
 					}
 					else

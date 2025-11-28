@@ -2458,19 +2458,21 @@ void CHGruntRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 		pFollowingMonster->m_followagePolicy = m_followagePolicy;
 	}
 	PrepareBeforeSpawn(pEntity);
-	DispatchSpawn(pEntity->edict());
-	pGrunt->pev->movetype = MOVETYPE_FLY;
-	pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
-	pGrunt->SetActivity( ACT_GLIDE );
-	// UNDONE: position?
-	pGrunt->m_vecLastPosition = tr.vecEndPos;
-
-	CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
-	if (pBeam)
+	if (DispatchSpawnAutoClean(pEntity))
 	{
-		pBeam->PointEntInit( pev->origin + Vector(0, 0, 112), pGrunt->entindex() );
-		pBeam->SetThink( &CBaseEntity::SUB_Remove );
-		pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+		pGrunt->pev->movetype = MOVETYPE_FLY;
+		pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
+		pGrunt->SetActivity( ACT_GLIDE );
+		// UNDONE: position?
+		pGrunt->m_vecLastPosition = tr.vecEndPos;
+
+		CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
+		if (pBeam)
+		{
+			pBeam->PointEntInit( pev->origin + Vector(0, 0, 112), pGrunt->entindex() );
+			pBeam->SetThink( &CBaseEntity::SUB_Remove );
+			pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+		}
 	}
 	UTIL_Remove( this );
 }

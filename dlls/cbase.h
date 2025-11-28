@@ -89,6 +89,7 @@ extern "C" EXPORT int Server_GetPhysicsInterface( int version, server_physics_ap
 extern bool g_fIsXash3D;
 
 extern int DispatchSpawn( edict_t *pent );
+CBaseEntity* DispatchSpawnAutoClean(CBaseEntity* pEntity);
 extern void DispatchKeyValue( edict_t *pentKeyvalue, KeyValueData *pkvd );
 extern void DispatchTouch( edict_t *pentTouched, edict_t *pentOther );
 extern void DispatchUse( edict_t *pentUsed, edict_t *pentOther );
@@ -317,7 +318,7 @@ public:
 	virtual void Spawn() { return; }
 	virtual void Precache() { return; }
 	void PrecacheEntTemplateResources();
-	void PrecacheChild(const char* childDefaultClassname, bool reverseRelationship, Vector *vecMin = nullptr, Vector *vecMax = nullptr);
+	void PrecacheChildren(const char* childDefaultClassname, bool reverseRelationship, Vector *vecMin = nullptr, Vector *vecMax = nullptr);
 	ChildVariantHandle SelectChildVariant(const char* childDefaultClassname);
 	void FillKeyValues(const string_t* keys, const string_t* values, int keyValueCount);
 	void FillKeyValues(const std::map<std::string, std::string>* parameters);

@@ -756,7 +756,7 @@ void CTor::Precache()
 	RegisterVisual(summonBeamVisual);
 	RegisterVisual(summonSpriteVisual);
 
-	PrecacheChild(SUMMON_CLASSNAME, m_reverseRelationship, &m_summonMinSize, &m_summonMaxSize);
+	PrecacheChildren(SUMMON_CLASSNAME, m_reverseRelationship, &m_summonMinSize, &m_summonMaxSize);
 
 	m_shotsFired = m_burstShotsFired = 0;
 }
@@ -990,11 +990,7 @@ void CTorSummonPoint::SummonThink()
 		}
 	}
 
-	if (DispatchSpawn(ent->edict()) == -1)
-	{
-		REMOVE_ENTITY(ent->edict());
-	}
-	else
+	if (DispatchSpawnAutoClean(ent))
 	{
 		if (mon)
 		{

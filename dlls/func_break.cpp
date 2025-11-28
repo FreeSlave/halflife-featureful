@@ -892,10 +892,7 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 		{
 			if (shouldApplyPhysicsFix)
 				pEntity->pev->spawnflags |= SF_ITEM_FIX_PHYSICS;
-			if (DispatchSpawn( pEntity->edict() ) == -1 )
-			{
-				REMOVE_ENTITY(pEntity->edict());
-			}
+			DispatchSpawnAutoClean(pEntity);
 		}
 	}
 

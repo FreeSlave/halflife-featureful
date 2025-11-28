@@ -705,29 +705,29 @@ void CBigMomma::LayHeadcrab()
 			pChild->pev->spawnflags |= SF_MONSTER_HITMONSTERCLIP;
 	}
 
-	if (DispatchSpawn(pChild->edict()) == -1)
+	if (DispatchSpawnAutoClean(pChild))
 	{
-		REMOVE_ENTITY(pChild->edict());
-	}
+		// Is this the second crab in a pair?
+		if( HasMemory( bits_MEMORY_CHILDPAIR ) )
+		{
+			m_crabTime = gpGlobals->time + RANDOM_FLOAT( 5.0f, 10.0f );
+			Forget( bits_MEMORY_CHILDPAIR );
+		}
+		else
+		{
+			m_crabTime = gpGlobals->time + RANDOM_FLOAT( 0.5f, 2.5f );
+			Remember( bits_MEMORY_CHILDPAIR );
+		}
 
-	// Is this the second crab in a pair?
-	if( HasMemory( bits_MEMORY_CHILDPAIR ) )
-	{
-		m_crabTime = gpGlobals->time + RANDOM_FLOAT( 5.0f, 10.0f );
-		Forget( bits_MEMORY_CHILDPAIR );
+		TraceResult tr;
+		UTIL_TraceLine( pev->origin, pev->origin - Vector( 0.0f, 0.0f, 100.0f ), ignore_monsters, edict(), &tr );
+		UTIL_DecalTrace( &tr, DECAL_MOMMABIRTH );
+
+		EmitSoundScript(layHeadcrabSoundScript);
+		m_crabCount++;
 	}
 	else
-	{
-		m_crabTime = gpGlobals->time + RANDOM_FLOAT( 0.5f, 2.5f );
-		Remember( bits_MEMORY_CHILDPAIR );
-	}
-
-	TraceResult tr;
-	UTIL_TraceLine( pev->origin, pev->origin - Vector( 0.0f, 0.0f, 100.0f ), ignore_monsters, edict(), &tr );
-	UTIL_DecalTrace( &tr, DECAL_MOMMABIRTH );
-
-	EmitSoundScript(layHeadcrabSoundScript);
-	m_crabCount++;
+		m_crabTime = gpGlobals->time + 10.0f;
 }
 
 void CBigMomma::DeathNotice( entvars_t *pevChild )
@@ -821,7 +821,7 @@ void CBigMomma::Precache()
 	RegisterAndPrecacheSoundScript(childDieSoundScript);
 	RegisterAndPrecacheSoundScript(launchMortarSoundScript);
 
-	PrecacheChild(BIG_CHILDCLASS, m_reverseRelationship);
+	PrecacheChildren(BIG_CHILDCLASS, m_reverseRelationship);
 	UTIL_PrecacheOther("bmortar", GetProjectileOverrides());
 
 	RegisterVisual(CBMortar::mortarSprayVisual);// client side spittle.

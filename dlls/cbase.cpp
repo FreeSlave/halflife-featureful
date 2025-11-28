@@ -252,6 +252,18 @@ int DispatchSpawn( edict_t *pent )
 	return 0;
 }
 
+CBaseEntity* DispatchSpawnAutoClean(CBaseEntity *pEntity)
+{
+	if (!pEntity)
+		return nullptr;
+	if (DispatchSpawn(pEntity->edict()) == -1)
+	{
+		REMOVE_ENTITY(pEntity->edict());
+		return nullptr;
+	}
+	return pEntity;
+}
+
 void DispatchKeyValue( edict_t *pentKeyvalue, KeyValueData *pkvd )
 {
 	if( !pkvd || !pentKeyvalue )
@@ -1401,7 +1413,7 @@ void CBaseEntity::PrecacheEntTemplateResources()
 	}
 }
 
-void CBaseEntity::PrecacheChild(const char *childDefaultClassname, bool reverseRelationship, Vector *vecMin, Vector *vecMax)
+void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool reverseRelationship, Vector *vecMin, Vector *vecMax)
 {
 	auto PrecacheChildImpl = [&](const char* childClassname, const decltype(ChildVariant::parameters)& parameters)
 	{
@@ -1695,15 +1707,7 @@ int CBaseEntity::DamageDecal( int bitsDamageType )
 CBaseEntity *CBaseEntity::Create( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner, EntityOverrides entityOverrides )
 {
 	CBaseEntity *pEntity = CreateNoSpawn(szName, vecOrigin, vecAngles, pentOwner, entityOverrides);
-	if (pEntity)
-	{
-		if (DispatchSpawn( pEntity->edict() ) == -1 )
-		{
-			REMOVE_ENTITY(pEntity->edict());
-			return 0;
-		}
-	}
-	return pEntity;
+	return DispatchSpawnAutoClean(pEntity);
 }
 
 /*
@@ -1711,22 +1715,26 @@ CBaseEntity *CBaseEntity::Create( const char *szName, const Vector &vecOrigin, c
  */
 CBaseEntity *CBaseEntity::CreateNoSpawn( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner, EntityOverrides entityOverrides )
 {
-	edict_t	*pent;
-	CBaseEntity *pEntity;
-
 	if( !szName )
 	{
 		ALERT( at_console, "Create() - No item name!\n" );
-		return NULL;
+		return nullptr;
 	}
 
-	pent = CREATE_NAMED_ENTITY( MAKE_STRING( szName ) );
+	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szName ) );
 	if( FNullEnt( pent ) )
 	{
 		ALERT ( at_console, "NULL Ent in Create! (%s)\n", szName );
-		return NULL;
+		return nullptr;
 	}
-	pEntity = Instance( pent );
+	CBaseEntity *pEntity = Instance( pent );
+
+	if (!pEntity->IsEnabledInMod())
+	{
+		REMOVE_ENTITY(pEntity->edict());
+		return nullptr;
+	}
+
 	pEntity->pev->owner = pentOwner;
 	pEntity->pev->origin = vecOrigin;
 	pEntity->pev->angles = vecAngles;

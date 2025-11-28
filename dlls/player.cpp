@@ -4430,11 +4430,9 @@ void CBloodSplat::Spray()
 //==============================================
 void CBasePlayer::GiveNamedItem(const char *pszName , int spawnFlags)
 {
-	edict_t	*pent;
+	string_t istr = MAKE_STRING( pszName );
 
-	int istr = MAKE_STRING( pszName );
-
-	pent = CREATE_NAMED_ENTITY( istr );
+	edict_t	*pent = CREATE_NAMED_ENTITY( istr );
 	if( FNullEnt( pent ) )
 	{
 		ALERT( at_console, "NULL Ent in GiveNamedItem!\n" );
@@ -4444,10 +4442,9 @@ void CBasePlayer::GiveNamedItem(const char *pszName , int spawnFlags)
 	pent->v.spawnflags |= SF_NORESPAWN;
 	pent->v.spawnflags |= spawnFlags;
 
-	if ( DispatchSpawn( pent ) == -1 )
+	if (!DispatchSpawnAutoClean(OwnInstance(pent)))
 	{
 		ALERT( at_console, "Game rejected to spawn '%s' (probably not enabled)\n", pszName );
-		REMOVE_ENTITY(pent);
 		return;
 	}
 

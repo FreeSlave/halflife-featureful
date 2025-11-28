@@ -2201,11 +2201,13 @@ CBaseEntity* GetExtraSpeakerForEntity(CBaseEntity* pTargetEntity)
 			pEntity->pev->aiment = pTargetEntity->edict();
 			pEntity->pev->owner = pTargetEntity->edict();
 			pEntity->m_EFlags |= EFLAG_PREVENT_ORIGIN_UNSETTING;
-			DispatchSpawn(pEntity->edict());
-			SET_MODEL(pEntity->edict(), "sprites/iunknown.spr");
-			pEntity->pev->rendermode = kRenderTransAlpha;
-			pEntity->pev->renderamt = 0;
-			pEntity->pev->nextthink = gpGlobals->time + 1.0f;
+			if (DispatchSpawnAutoClean(pEntity))
+			{
+				SET_MODEL(pEntity->edict(), "sprites/iunknown.spr");
+				pEntity->pev->rendermode = kRenderTransAlpha;
+				pEntity->pev->renderamt = 0;
+				pEntity->pev->nextthink = gpGlobals->time + 1.0f;
+			}
 		}
 	}
 

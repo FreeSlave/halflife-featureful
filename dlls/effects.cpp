@@ -2960,18 +2960,19 @@ void CEnvBeverage::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	if (pCan)
 	{
 		pCan->pev->model = pev->model;
-		DispatchSpawn( pCan->edict() );
-
-		pCan->pev->health = pev->weapons;
-
-		if( pev->skin == 6 )
+		if (DispatchSpawnAutoClean(pCan))
 		{
-			// random
-			pCan->pev->skin = RANDOM_LONG( 0, 5 );
-		}
-		else
-		{
-			pCan->pev->skin = pev->skin;
+			pCan->pev->health = pev->weapons;
+
+			if( pev->skin == 6 )
+			{
+				// random
+				pCan->pev->skin = RANDOM_LONG( 0, 5 );
+			}
+			else
+			{
+				pCan->pev->skin = pev->skin;
+			}
 		}
 	}
 
@@ -3947,10 +3948,7 @@ void CEnvXenMaker::TrySpawn()
 		pevCreate->angles = pev->angles;
 		SetBits( pevCreate->spawnflags, SF_MONSTER_FALL_TO_GROUND );
 
-		if (DispatchSpawn( ENT( pevCreate ) ) == -1)
-		{
-			REMOVE_ENTITY(ENT(pevCreate));
-		}
+		DispatchSpawnAutoClean(OwnInstance(pent));
 	}
 
 	WarpballTemplate w;

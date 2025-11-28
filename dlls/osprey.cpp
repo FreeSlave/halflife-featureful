@@ -452,44 +452,49 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 	{
 		if( m_hGrunt[i] == 0 || !m_hGrunt[i]->IsAlive() )
 		{
-			if( m_hGrunt[i] != 0 && m_hGrunt[i]->pev->rendermode == kRenderNormal )
+			if( m_hGrunt[i] != 0 && m_hGrunt[i]->pev->rendermode == kRenderNormal ) // TODO: what if the grunt normally has some other render mode?
 			{
 				m_hGrunt[i]->SUB_StartFadeOut();
 			}
 			pEntity = CreateNoSpawn( TrooperName(), vecSrc, spawnAngles );
-			pGrunt = pEntity->MyMonsterPointer();
-			// If player is my enemy and default relationship of my grunts with player is ally, reverse their relationship
-			if (IDefaultRelationship(CLASS_PLAYER) >= R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) < R_DL)
+			if (pEntity)
 			{
-				pGrunt->m_reverseRelationship = true;
-			}
-			else if (IDefaultRelationship(CLASS_PLAYER) < R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) >= R_DL)
-			{
-				pGrunt->m_reverseRelationship = true;
-			}
-			pGrunt->m_iClass = m_iClass;
-			PrepareGruntBeforeSpawn(pGrunt);
-			DispatchSpawn(pEntity->edict());
-			pGrunt->pev->movetype = MOVETYPE_FLY;
-			pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
-			pGrunt->SetActivity( ACT_GLIDE );
+				pGrunt = pEntity->MyMonsterPointer();
+				// If player is my enemy and default relationship of my grunts with player is ally, reverse their relationship
+				if (IDefaultRelationship(CLASS_PLAYER) >= R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) < R_DL)
+				{
+					pGrunt->m_reverseRelationship = true;
+				}
+				else if (IDefaultRelationship(CLASS_PLAYER) < R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) >= R_DL)
+				{
+					pGrunt->m_reverseRelationship = true;
+				}
+				pGrunt->m_iClass = m_iClass;
+				PrepareGruntBeforeSpawn(pGrunt);
+				if (DispatchSpawnAutoClean(pEntity))
+				{
+					pGrunt->pev->movetype = MOVETYPE_FLY;
+					pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
+					pGrunt->SetActivity( ACT_GLIDE );
 
-			CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
-			if (pBeam)
-			{
-				pBeam->PointEntInit( vecSrc + Vector(0, 0, 112), pGrunt->entindex() );
-				pBeam->SetThink( &CBaseEntity::SUB_Remove );
-				pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
-			}
+					CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
+					if (pBeam)
+					{
+						pBeam->PointEntInit( vecSrc + Vector(0, 0, 112), pGrunt->entindex() );
+						pBeam->SetThink( &CBaseEntity::SUB_Remove );
+						pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+					}
 
-			// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );  
-			pGrunt->m_vecLastPosition = m_vecOrigin[i];
-			m_hGrunt[i] = pGrunt;
-			return pGrunt;
+					// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );
+					pGrunt->m_vecLastPosition = m_vecOrigin[i];
+					m_hGrunt[i] = pGrunt;
+					return pGrunt;
+				}
+			}
 		}
 	}
 	// ALERT( at_console, "none dead\n");
-	return NULL;
+	return nullptr;
 }
 
 void COsprey::PrepareGruntBeforeSpawn(CBaseEntity *pGrunt)

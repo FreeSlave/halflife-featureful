@@ -818,10 +818,9 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 		createdMonster->m_reverseRelationship = m_reverseRelationship;
 	}
 
-	if (DispatchSpawn( ENT( pevCreate ) ) == -1)
+	if (!DispatchSpawnAutoClean(pEntity))
 	{
 		ALERT( at_console, "Game rejected to spawn '%s' (probably not enabled)\n", STRING(m_iszMonsterClassname) );
-		REMOVE_ENTITY(ENT(pevCreate));
 		return 0;
 	}
 

@@ -2417,7 +2417,7 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 			pFireAndDie->pev->origin = pPlayer->pev->origin;
 
 			// Call spawn
-			DispatchSpawn( pFireAndDie->edict() );
+			DispatchSpawnAutoClean(pFireAndDie);
 		}
 	}
 
