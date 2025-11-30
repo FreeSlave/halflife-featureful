@@ -3881,7 +3881,6 @@ bool CMedic::CheckRangeAttack2(float flDot, float flDist)
 {
 	if (!FBitSet(pev->weapons, MEDIC_HANDGRENADE))
 		return false;
-	ALERT(at_console, "Checking for handgrenade attack! Grenade speed: %g\n", gSkillData.medicGrenadeSpeed);
 	return CheckRangeAttack2Impl(gSkillData.medicGrenadeSpeed, flDot, flDist);
 }
 
