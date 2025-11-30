@@ -316,7 +316,9 @@ static CFuncTank* GetFuncTankPointer(CBaseEntity* pEntity)
 	if (!pEntity)
 		return nullptr;
 	if (FClassnameIs(pEntity->pev, "func_tank") || FClassnameIs(pEntity->pev, "func_tanklaser") ||
-		FClassnameIs(pEntity->pev, "func_tankmortar") || FClassnameIs(pEntity->pev, "func_tankrocket"))
+		FClassnameIs(pEntity->pev, "func_tankmortar") || FClassnameIs(pEntity->pev, "func_tankrocket") ||
+		FClassnameIs(pEntity->pev, "func_tank_of") || FClassnameIs(pEntity->pev, "func_tanklaser_of") ||
+		FClassnameIs(pEntity->pev, "func_tankmortar_of") || FClassnameIs(pEntity->pev, "func_tankrocket_of"))
 	{
 		return (CFuncTank*)pEntity;
 	}
