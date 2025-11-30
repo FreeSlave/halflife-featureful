@@ -110,8 +110,13 @@ ChildVariant ChildVariant::FromJSON(const rapidjson::Value& value)
 		for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
 		{
 			const char* name = it->name.GetString();
-			const char* val = it->value.GetString();
-			result.parameters[name] = val;
+			const Value& paramValue = it->value;
+			if (paramValue.IsString())
+				result.parameters[name] = paramValue.GetString();
+			else if (paramValue.IsInt())
+				result.parameters[name] = std::to_string(paramValue.GetInt());
+			else if (paramValue.IsFloat())
+				result.parameters[name] = std::to_string(paramValue.GetFloat());
 		}
 	});
 

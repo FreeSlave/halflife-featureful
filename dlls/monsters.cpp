@@ -4675,12 +4675,15 @@ int CBaseMonster::DefaultClassify()
 
 void CBaseMonster::FixChildClassify(CBaseMonster *pChild)
 {
+	// If I have a custom class forward it to the child
 	if (m_iClass)
 		pChild->m_iClass = m_iClass;
 	if (m_reverseRelationship)
 		pChild->m_reverseRelationship = m_reverseRelationship;
 
-	if (IDefaultRelationship(pChild->Classify()) >= R_DL)
+	// If my child turned enemy to me, set the same classify as myself
+	// TODO: this won't work for the classify that dislikes its own kind (like bullsquids)
+	if (IRelationship(pChild) >= R_DL)
 	{
 		pChild->m_iClass = Classify();
 	}

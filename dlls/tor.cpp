@@ -978,16 +978,7 @@ void CTorSummonPoint::SummonThink()
 	if (mon)
 	{
 		SetBits(ent->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND);
-
-		if (pTor->m_iClass)
-			mon->m_iClass = pTor->m_iClass;
-		if (pTor->m_reverseRelationship)
-			mon->m_reverseRelationship = pTor->m_reverseRelationship;
-
-		if (pTor->IDefaultRelationship(mon->Classify()) >= R_DL)
-		{
-			mon->m_iClass = pTor->Classify();
-		}
+		pTor->FixChildClassify(mon);
 	}
 
 	if (DispatchSpawnAutoClean(ent))

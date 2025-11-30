@@ -697,7 +697,7 @@ const char* const json_schemas::definitions = R"(
 			"parameters": {
 				"type": "object",
 				"additionalProperties": {
-					"type": "string",
+					"type": ["string", "number"],
 					"minLength": 1
 				}
 			},

@@ -281,7 +281,7 @@ void COsprey::Precache()
 
 void COsprey::PrecacheImpl(const char* modelName, const char* tailGibs, const char* bodyGibs, const char* engineGibs)
 {
-	UTIL_PrecacheMonster( TrooperName(), m_reverseRelationship );
+	PrecacheChildren(TrooperName(), m_reverseRelationship);
 
 	PrecacheMyModel( modelName );
 
@@ -335,10 +335,32 @@ void COsprey::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
+struct ClassnameAndEntTemplate
+{
+	const char* classname = nullptr;
+	const char* entTemplate = nullptr;
+
+	bool operator==(const ClassnameAndEntTemplate& other) const
+	{
+		return FStrEq(classname, other.classname) && ((!entTemplate && !other.entTemplate) || (entTemplate && other.entTemplate && FStrEq(entTemplate, other.entTemplate)));
+	}
+	bool operator<(const ClassnameAndEntTemplate& other) const
+	{
+		if (strcmp(classname, other.classname) < 0)
+			return true;
+		if (entTemplate)
+		{
+			if (other.entTemplate)
+			{
+				return strcmp(entTemplate, other.entTemplate) < 0;
+			}
+		}
+		return false;
+	}
+};
+
 void COsprey::FindAllThink()
 {
-	CBaseEntity *pEntity = NULL;
-
 	if (!FBitSet(pev->spawnflags, SF_OSPREY_DONT_DEPLOY))
 	{
 		m_iUnits = 0;
@@ -349,14 +371,69 @@ void COsprey::FindAllThink()
 		}
 		else
 		{
-			while( m_iUnits < MAX_CARRY && ( pEntity = UTIL_FindEntityByClassname( pEntity, TrooperName() ) ) != NULL )
+			auto countUnitsForClassnameAndEntTemplate = [&](const char* classname, const char* entTemplate)
 			{
-				if( pEntity->IsAlive() && IRelationship(pEntity) < R_DL )
+				CBaseEntity *pEntity = nullptr;
+
+				while( m_iUnits < MAX_CARRY && ( pEntity = UTIL_FindEntityByClassname( pEntity, classname ) ) != NULL )
 				{
-					m_hGrunt[m_iUnits] = pEntity;
-					m_vecOrigin[m_iUnits] = pEntity->pev->origin;
-					m_iUnits++;
+					if( pEntity->IsAlive() && IRelationship(pEntity) < R_DL )
+					{
+						if (entTemplate && *entTemplate)
+						{
+							if (FStringNull(pEntity->m_entTemplate))
+								continue;
+							if (!FStrEq(entTemplate, STRING(pEntity->m_entTemplate)))
+								continue;
+						}
+						else
+						{
+							if (!FStringNull(pEntity->m_entTemplate))
+								continue;
+						}
+
+						m_hGrunt[m_iUnits] = pEntity;
+						m_vecOrigin[m_iUnits] = pEntity->pev->origin;
+						m_iUnits++;
+					}
 				}
+			};
+
+			const char* defaultTrooperName = TrooperName();
+
+			const EntTemplate* entTemplate = GetMyEntTemplate();
+			if (entTemplate)
+			{
+				const ChildrenInfo& childrenInfo = entTemplate->GetChildrenInfo();
+				if (childrenInfo.variants.size() > 0)
+				{
+					std::set<ClassnameAndEntTemplate> childrenSet;
+
+					for (const auto& child : childrenInfo.variants)
+					{
+						ClassnameAndEntTemplate needle;
+						needle.classname = defaultTrooperName;
+						if (!child.classname.empty())
+							needle.classname = child.classname.c_str();
+						if (!child.parameters.empty())
+						{
+							auto it = child.parameters.find("ent_template");
+							if (it != child.parameters.end())
+								needle.entTemplate = it->second.c_str();
+						}
+
+						childrenSet.insert(needle);
+					}
+
+					for (const auto& needle : childrenSet)
+					{
+						countUnitsForClassnameAndEntTemplate(needle.classname, needle.entTemplate);
+					}
+				}
+			}
+			else
+			{
+				countUnitsForClassnameAndEntTemplate(defaultTrooperName, nullptr);
 			}
 		}
 
@@ -438,9 +515,6 @@ const char* COsprey::TrooperName()
 
 CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 {
-	CBaseEntity *pEntity;
-	CBaseMonster *pGrunt;
-
 	TraceResult tr;
 	UTIL_TraceLine( vecSrc, vecSrc + Vector( 0.0f, 0.0f, -4096.0f ), dont_ignore_monsters, ENT( pev ), &tr );
 	if( tr.pHit && Instance( tr.pHit )->pev->solid != SOLID_BSP )
@@ -456,39 +530,61 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 			{
 				m_hGrunt[i]->SUB_StartFadeOut();
 			}
-			pEntity = CreateNoSpawn( TrooperName(), vecSrc, spawnAngles );
+
+			ChildVariantHandle childVariant = SelectChildVariant(TrooperName());
+
+			CBaseEntity *pEntity = CreateNoSpawn( childVariant.classname, vecSrc, spawnAngles );
 			if (pEntity)
 			{
-				pGrunt = pEntity->MyMonsterPointer();
-				// If player is my enemy and default relationship of my grunts with player is ally, reverse their relationship
-				if (IDefaultRelationship(CLASS_PLAYER) >= R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) < R_DL)
+				PrepareGruntBeforeSpawn(pEntity);
+				pEntity->FillKeyValues(childVariant.parameters);
+
+				CBaseMonster *pGrunt = pEntity->MyMonsterPointer();
+				if (pGrunt)
 				{
-					pGrunt->m_reverseRelationship = true;
+					if (m_iClass)
+					{
+						pGrunt->m_iClass = m_iClass;
+					}
+					else
+					{
+						// If player is my enemy and default relationship of my grunts with player is ally, reverse their relationship
+						if (IDefaultRelationship(CLASS_PLAYER) >= R_DL && pGrunt->IDefaultRelationship(CLASS_PLAYER) < R_DL)
+						{
+							pGrunt->m_reverseRelationship = true;
+						}
+						else if (IDefaultRelationship(CLASS_PLAYER) < R_DL && pGrunt->IDefaultRelationship(CLASS_PLAYER) >= R_DL)
+						{
+							pGrunt->m_reverseRelationship = true;
+						}
+					}
+					if (IRelationship(pGrunt) >= R_DL)
+					{
+						pGrunt->m_iClass = Classify();
+					}
 				}
-				else if (IDefaultRelationship(CLASS_PLAYER) < R_DL && IDefaultRelationship(pGrunt->DefaultClassify(), CLASS_PLAYER) >= R_DL)
-				{
-					pGrunt->m_reverseRelationship = true;
-				}
-				pGrunt->m_iClass = m_iClass;
-				PrepareGruntBeforeSpawn(pGrunt);
+
 				if (DispatchSpawnAutoClean(pEntity))
 				{
-					pGrunt->pev->movetype = MOVETYPE_FLY;
-					pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
-					pGrunt->SetActivity( ACT_GLIDE );
-
-					CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
-					if (pBeam)
+					if (pGrunt)
 					{
-						pBeam->PointEntInit( vecSrc + Vector(0, 0, 112), pGrunt->entindex() );
-						pBeam->SetThink( &CBaseEntity::SUB_Remove );
-						pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
-					}
+						pGrunt->pev->movetype = MOVETYPE_FLY;
+						pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
+						pGrunt->SetActivity( ACT_GLIDE );
 
-					// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );
-					pGrunt->m_vecLastPosition = m_vecOrigin[i];
-					m_hGrunt[i] = pGrunt;
-					return pGrunt;
+						CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
+						if (pBeam)
+						{
+							pBeam->PointEntInit( vecSrc + Vector(0, 0, 112), pGrunt->entindex() );
+							pBeam->SetThink( &CBaseEntity::SUB_Remove );
+							pBeam->pev->nextthink = gpGlobals->time + -4096.0f * tr.flFraction / pGrunt->pev->velocity.z + 0.5f;
+						}
+
+						// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );
+						pGrunt->m_vecLastPosition = m_vecOrigin[i];
+						m_hGrunt[i] = pGrunt;
+						return pGrunt;
+					}
 				}
 			}
 		}
