@@ -444,11 +444,12 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 
 						m_bTrooperDropped = true;
 
-						CBaseEntity *pEntity = CreateNoSpawn("monster_shocktrooper", tr.vecEndPos + Vector(0, 0, 48), pev->angles);
-						if (pEntity)
+						CBaseEntity* pOwner = CBaseEntity::OwnInstance(pev->owner);
+						if (pOwner)
 						{
-							CBaseEntity* pOwner = CBaseEntity::Instance(pev->owner);
-							if (pev->owner != 0 && pOwner)
+							ChildVariantHandle childVariant = pOwner->SelectChildVariant("monster_shocktrooper");
+							CBaseEntity *pEntity = CreateNoSpawn(childVariant.classname, tr.vecEndPos + Vector(0, 0, 48), pev->angles);
+							if (pEntity)
 							{
 								CBaseMonster* geneworm = pOwner->MyMonsterPointer();
 								if (geneworm)
@@ -456,12 +457,11 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 									CBaseMonster* strooper = pEntity->MyMonsterPointer();
 									if (strooper)
 									{
-										strooper->m_iClass = geneworm->m_iClass;
-										strooper->m_reverseRelationship = geneworm->m_reverseRelationship;
+										geneworm->FixChildClassify(strooper);
 									}
 								}
+								DispatchSpawnAutoClean(pEntity);
 							}
-							DispatchSpawnAutoClean(pEntity);
 						}
 					}
 					else
@@ -929,7 +929,7 @@ void CGeneWorm::Precache()
 
 	RegisterVisual(eyeLightVisual);
 
-	UTIL_PrecacheOther("monster_shocktrooper");
+	PrecacheChildren("monster_shocktrooper", m_reverseRelationship);
 	UTIL_PrecacheOther("env_genewormcloud", GetProjectileOverrides());
 	UTIL_PrecacheOther("env_genewormspawn", GetProjectileOverrides());
 }

@@ -502,7 +502,7 @@ void CShockTrooper::Precache()
 
 	UTIL_PrecacheOther("shock_beam", GetProjectileOverrides());
 	UTIL_PrecacheOther("spore", GetProjectileOverrides());
-	UTIL_PrecacheOther("monster_shockroach");
+	PrecacheChildren("monster_shockroach", m_reverseRelationship);
 
 	// get voice pitch
 	if (RANDOM_LONG(0, 1))
@@ -549,25 +549,32 @@ void CShockTrooper::DropShockRoach(bool gibbed)
 		Vector vecDropGunPos = gibbed ? (vecGunPos + Vector(0, 0, 32)) : (pev->origin + Vector(0, 0, 48));
 
 		// now spawn a shockroach.
-		CBaseEntity* pRoach = CBaseEntity::Create( "monster_shockroach", vecDropGunPos, vecDropGunAngles, edict() );
+		ChildVariantHandle childVariant = SelectChildVariant("monster_shockroach");
+		CBaseEntity* pRoach = CreateNoSpawn(childVariant.classname, vecDropGunPos, vecDropGunAngles, edict());
 		if (pRoach)
 		{
-			if (gibbed)
+			pRoach->FillKeyValues(childVariant.parameters);
+
+			CBaseMonster* pMonster = pRoach->MyMonsterPointer();
+			if (pMonster)
 			{
-				pRoach->pev->velocity = Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(200.0f, 300.0f));
-				pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(200.0f, 300.0f), 0);
+				if (ShouldFadeOnDeath())
+					pRoach->pev->spawnflags |= SF_MONSTER_FADECORPSE;
+				FixChildClassify(pMonster);
 			}
-			else
+
+			if (DispatchSpawnAutoClean(pRoach))
 			{
-				pRoach->pev->velocity = Vector(RANDOM_FLOAT(-20.0f, 20.0f) , RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(20.0f, 30.0f));
-				pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(20.0f, 40.0f), 0);
-			}
-			if (ShouldFadeOnDeath())
-				pRoach->pev->spawnflags |= SF_MONSTER_FADECORPSE;
-			CBaseMonster *pNewMonster = pRoach->MyMonsterPointer();
-			if (pNewMonster) {
-				pNewMonster->m_iClass = m_iClass;
-				pNewMonster->m_reverseRelationship = m_reverseRelationship;
+				if (gibbed)
+				{
+					pRoach->pev->velocity = Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(200.0f, 300.0f));
+					pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(200.0f, 300.0f), 0);
+				}
+				else
+				{
+					pRoach->pev->velocity = Vector(RANDOM_FLOAT(-20.0f, 20.0f) , RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(20.0f, 30.0f));
+					pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(20.0f, 40.0f), 0);
+				}
 			}
 		}
 	}
