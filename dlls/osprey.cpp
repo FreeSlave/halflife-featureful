@@ -67,6 +67,7 @@ public:
 
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	void ReportAIState(ALERT_TYPE level) override;
 	void ShowDamage();
 	void Update();
 
@@ -584,7 +585,10 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 						}
 
 						// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );
-						pGrunt->m_vecLastPosition = m_vecOrigin[i];
+						if (m_gruntMaxChildren > 0 && m_vecOrigin[i] == g_vecZero)
+							pGrunt->m_vecLastPosition = tr.vecEndPos + Vector(RANDOM_FLOAT(-128, 128), RANDOM_FLOAT(-128, 128), 0.0f);
+						else
+							pGrunt->m_vecLastPosition = m_vecOrigin[i];
 						m_hGrunt[i] = pGrunt;
 						return pGrunt;
 					}
@@ -1066,6 +1070,12 @@ TakeDamageResult COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAtta
 	m_MonsterState = MONSTERSTATE_COMBAT;
 
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
+}
+
+void COsprey::ReportAIState(ALERT_TYPE level)
+{
+	CBaseMonster::ReportAIState(level);
+	ALERT(level, "Number of grunts to resupply: %d. ", m_iUnits);
 }
 
 class CBlkopOsprey : public COsprey
