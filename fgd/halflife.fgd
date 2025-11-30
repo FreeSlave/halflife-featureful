@@ -588,6 +588,7 @@
 	spawnflags(Flags) =
 	[
 		64 : "Start Inactive" : 0
+		1024: "Grunts Don't Drop Gun" : 0
 		32768 : "No deploy, just fly" : 0
 	]
 	num(integer) : "Number of grunts per deploy [1-4]" : : "By default the number of grunts Osprey can bring at once depends on the number of alive grunts at the moment the Osprey starts flying."

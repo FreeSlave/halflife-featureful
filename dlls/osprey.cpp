@@ -542,6 +542,9 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 				CBaseMonster *pGrunt = pEntity->MyMonsterPointer();
 				if (pGrunt)
 				{
+					if (FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
+						pEntity->pev->spawnflags |= SF_MONSTER_DONT_DROP_GUN;
+
 					if (m_iClass)
 					{
 						pGrunt->m_iClass = m_iClass;

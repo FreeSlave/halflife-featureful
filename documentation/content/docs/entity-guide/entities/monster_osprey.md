@@ -22,6 +22,7 @@ bookToC: false
 
 ### New spawnflags
 
+* `Grunts Don't Drop Gun` - monsters spawned by Osprey won't drop guns like if they had `Don't Drop Gun` spawnflag set.
 * `No deploy, just fly` - make osprey not care about grunt deploying and just fly on specified path. Such Osprey does not skip path corners with low speed like the default one does to find the deploy point.
 
 ### Skill variables
