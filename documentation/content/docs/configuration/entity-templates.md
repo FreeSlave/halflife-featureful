@@ -869,6 +869,104 @@ An object that allows to add some visual effects at the hit location when condit
 
 Same as `effects`, but plays only if `dmg_min_threshold` has been applied. `effects` are still played independently.
 
+### children
+
+This property configures the monster's children. E.g. grunts supplied by the [monster_osprey]({{< ref monster_osprey >}}) or babies delivered by [monster_bigmomma]({{< ref monster_bigmomma >}}). This allows to change the children's classname in order to spawn a different monster and provide custom properties for the spawned entity.
+
+The children can be configured in two ways: via the object and via the array (if you want to have multiple children variants).
+
+The following example will make `monster_bigmomma` spawn grown headcrabs instead of babycrabs. This will also apply a `"headcrab_black"` template to the spawned entity.
+
+```json
+{
+    "monster_bigmomma": {
+        "children": {
+            "classname": "monster_headcrab",
+            "parameters": {
+                "ent_template": "headcrab_black"
+            }
+        }
+    }
+}
+```
+
+* `"classname"` - the classname of the monster to spawn. It can be anything really, but the parent usually expects the children to be monster entities. This property is optional - if it's not set the default child classname will be used, e.g. `monster_babycrab` in case of `monster_bigmomma`.
+* `"parameters"` - the object of key-value parameters like they're set in the level editor (the internal names should be used for keys and values, like if the *SmartEdit* is toggled). Examples of keys: `"ent_template"`, `"health"`, `"weapons"`. The values can be strings or numbers.
+
+The following example demonstrates how the children array can be used to allow spawning monsters with different parameters:
+
+```json
+{
+    "monster_osprey": {
+        "children": [
+            {
+                "parameters": {
+                    "weapons": 3
+                },
+                "chance": 0.5
+            },
+            {
+                "parameters": {
+                    "weapons": 10
+                },
+                "chance": 0.25
+            },
+            {
+                "parameters": {
+                    "weapons": 5
+                },
+                "chance": 0.25
+            }
+        ]
+    }
+}
+```
+
+This uses the array form of `"children"` property, introducing another sub-property:
+
+* `"chance"` - the chance of spawning this particular variant of the child relatively to chances of other children. This can be any positive number. This is an optional property - the default chance is 1.
+
+In this example:
+
+* The classname is not explicitly set, so the Osprey uses the default one (`monster_human_grunt` or `monster_human_grunt_ally` depending on its properties).
+* It sets 50% chance of spawning the human grunt with 9mmAR and handgrenade. (`weapons` value 3).
+* It sets 25% chance of spawning the human grunt with shotgun and handgrendes (`weapons` value 10).
+* It sets 25% chance of spawning the human grunt with 9mmAR and AR grenades (`weapons` value 5).
+
+The following example demonstrates how the monster can spawn mixed children, i.e. children of different classnames:
+
+```json
+{
+    "monster_osprey": {
+        "children": [
+            {
+                "classname": "monster_human_grunt"
+            },
+            {
+                "classname": "monster_hwgrunt"
+            },
+            {
+                "classname": "monster_male_assassin"
+            },
+            {
+                "classname": "monster_robogrunt"
+            }
+        ]
+    }
+}
+```
+
+Here it's using the array form again, with equal chances for each monster type to spawn.
+
+The list of monsters who is capable of spawning children:
+
+* [monster_alien_tor]({{< ref monster_alien_tor >}}) - spawns [monster_alien_grunt]({{< ref monster_alien_grunt >}}).
+* [monster_bigmomma]({{< ref monster_bigmomma >}}) - spawns [monster_babycrab]({{< ref monster_babycrab >}}).
+* [monster_osprey]({{< ref monster_osprey >}}) - spawns [monster_human_grunt]({{< ref monster_human_grunt >}}) or [monster_human_grunt_ally]({{<  ref monster_human_grunt_ally>}}) depending on the Grunt Type parameter.
+* [monster_blkop_osprey]({{< ref monster_blkop_osprey >}}) - spawns [monster_male_assassin]({{< ref monster_male_assassin >}}).
+* [monster_shocktrooper]({{< ref monster_shocktrooper >}}) - drops [monster_shockroach]({{< ref monster_shockroach >}}) on death.
+* [monster_geneworm]({{< ref monster_geneworm >}}) - spawns [monster_shocktrooper]({{< ref monster_shocktrooper >}}) after taking enough damage.
+
 ### loot_drop
 
 Defines additional items dropped from monster when it dies.

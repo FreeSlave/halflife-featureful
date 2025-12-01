@@ -41,6 +41,20 @@ bookToC: false
 
 {{% tabs %}}
 
+{{% tab "Spawning grown headcrabs"%}}
+
+```json
+{
+    "monster_bigmomma": {
+        "children": {
+            "classname": "monster_headcrab",
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
 {{% tab "Trace Attack and Take Damage rules" %}}
 The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) and [take damage]({{< ref "entity-templates/#take_damage" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
 

@@ -66,6 +66,16 @@ Talkmonsters are monsters who talk to each other and a player and can follow the
 * If monster does not have a question sentence group or it's missing from sentences.txt, the monster will not try to start a conversation with other friend. In Half-Life talkmonsters could start conversations even in the absence of question sentences that led to weird situations when other monster answered to unspoken questions.
 * ![](/images/opfor.png)  If player is attacked by the enemy monster, the ally soldiers (Opposing Force human grunts) following the player will instantly know about the attacker even if they didn't see the enemy yet.
 
+## Children configuration
+
+Some monsters can spawn other monsters, i.e. children. The monster's children can be configured via [entity templates]({{< ref "entity-templates/#children" >}}).
+
+{{% hint info %}}
+If the parent has a custom classification the children will inherit it as well.
+
+If the parent is configured to spawn children of enemy classification the parent will force the children to have the same classification as itself to avoid situations when children start attack the parent.
+{{% /hint %}}
+
 ## Debugging
 
 Commands used for testing and debugging the monster behavior:

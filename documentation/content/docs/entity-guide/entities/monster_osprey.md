@@ -12,11 +12,18 @@ bookToC: false
 * Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned Osprey has the path to follow. Set the `#maxlivechildren` keyvalue parameter to ensure the resupply won't depend on the number of grunts alive on the map at the moment when the Osprey spawns. See [Configuring the spawned monster]({{< ref "monstermaker/#configuring-the-spawned-monster" >}}) and the **flyers_demo** map in the sample mod.
 * `Death` and `50% Health Remaining` trigger conditions now work for Osprey.
 
+The maximum number of grunts the Osprey can supply depends on the number of alive grunts at the moment the Osprey is activated. This is the default behavior from Half-Life which can be overriden by the `Custom number of grunts to resupply` parameter.
+
+In Featureful SDK it also has some other changes:
+
+* As Featureful SDK allows to chane the monster's relationship classification the Osprey will count only those grunts who are not enemy to it.
+* If Osprey is configured to spawn grunts of certain [entity template]({{< ref "entity-templates" >}}) it will count only grunts of this entity template.
+
 ### New parameters
 
 * `Rotor volume` - configure rotor volume. This can also be configured via **Osprey.Rotor** soundscript.
 * `Rotor sound attenuation` - configure rotor sound attenuation. The less the value the larger the sound radius. The default attenuation is 0.15. This can also be configured via **Osprey.Rotor** soundscript.
-* ![](/images/svencoop.png) `Grunt Type` - deploy Opposing Force grunts instead of Half-Life ones.
+* ![](/images/svencoop.png) `Grunt Type` - deploy Opposing Force grunts instead of Half-Life ones. Note: by default the spawned grunts will act as enemies to the player. Change the Osprey's classification to Player Ally so grunts inherit the custom classification.
 * ![](/images/svencoop.png) `Number of grunts per deploy` - override the maximum number of grunts deployed at once. If defined this must be a number from 1 to 4.
 * `Custom number of grunts to resupply` - override the maximum number of alive grunts the Osprey can resupply. After spawning this number of grunts the Osprey will stop deploying new ones until someone has died or been removed from the map.
 
@@ -45,3 +52,114 @@ bookToC: false
 * **Osprey.Fireball** - big fireball played when Osprey crashes.
 * **Osprey.BlastCircle** - wave played when Osprey crashes.
 * **NPC.Rope** - the rope sprite for the rappelling grunts.
+
+### Children
+
+The type and variations of grunts spawned by Osprey can be configured via [entity templates]({{< ref "entity-templates/#children" >}}).
+
+The list of monsters that can be correctly supplied by Osprey:
+
+* [monster_human_grunt]({{< ref monster_human_grunt >}})
+* [monster_human_grunt_ally]({{< ref monster_human_medic_ally >}})
+* [monster_human_medic_ally]({{< ref monster_human_medic_ally >}})
+* [monster_human_torch_ally]({{< ref monster_human_torch_ally >}})
+* [monster_male_assassin]({{< ref monster_male_assassin >}})
+* [monster_hwgrunt]({{< ref monster_hwgrunt >}})
+* [monster_robogrunt]({{< ref monster_robogrunt >}})
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Spawning human grunts with different weapons" %}}
+
+```json
+{
+    "monster_osprey": {
+        "children": [
+            {
+                "parameters": {
+                    "weapons": 3
+                },
+                "chance": 0.5
+            },
+            {
+                "parameters": {
+                    "weapons": 10
+                },
+                "chance": 0.25
+            },
+            {
+                "parameters": {
+                    "weapons": 5
+                },
+                "chance": 0.25
+            }
+        ]
+    }
+}
+```
+
+{{% /tab %}}
+
+{{% tab "Spawning different opfor human grunts" %}}
+
+This will make Osprey to spawn opfor grunts with different weapons, including a medic.
+
+```json
+{
+    "monster_osprey": {
+        "children": [
+            {
+                "classname": "monster_human_grunt_ally",
+                "parameters": {
+                    "weapons": 3
+                }
+            },
+            {
+                "classname": "monster_human_grunt_ally",
+                "parameters": {
+                    "weapons": 10
+                }
+            },
+            {
+                "classname": "monster_human_grunt_ally",
+                "parameters": {
+                    "head": 1,
+                    "weapons": 5
+                }
+            },
+            {
+                "classname": "monster_human_grunt_ally",
+                "parameters": {
+                    "weapons": 16
+                }
+            },
+            {
+                "classname": "monster_human_medic_ally",
+                "parameters": {
+                    "weapons": 10
+                }
+            }
+        ]
+    }
+}
+```
+
+{{% /tab %}}
+
+{{% tab "Spawning robogrunts" %}}
+
+```json
+{
+    "monster_osprey": {
+        "children": {
+            "classname": "monster_robogrunt"
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
+{{% /tabs %}}
