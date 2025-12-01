@@ -4747,7 +4747,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 101:
 	{
 		gEvilImpulse101 = true;
-		GiveNamedItem( "item_suit", SF_ITEM_NOFALL );
+		GiveNamedItem( "item_suit", SF_ITEM_NOFALL|SF_SUIT_NOLOGON );
 		SetDefaultLight();
 		GiveNamedItem( "item_battery", SF_ITEM_NOFALL );
 
