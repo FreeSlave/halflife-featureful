@@ -171,10 +171,29 @@ NODE_LINKENT CFuncWallToggle::HandleLinkEnt(int afCapMask, bool nodeQueryStatic)
 class CFuncConveyor : public CFuncWall
 {
 public:
+	enum {
+		CONV_USE_SET_DEFAULT,
+		CONV_USE_SET_SET = 1,
+		CONV_USE_SET_ADD = 2
+	};
+
 	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void UpdateSpeed( float speed );
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	short m_useSetPolicy;
 };
+
+TYPEDESCRIPTION	CFuncConveyor::m_SaveData[] =
+{
+	DEFINE_FIELD( CFuncConveyor, m_useSetPolicy, FIELD_SHORT )
+};
+IMPLEMENT_SAVERESTORE( CFuncConveyor, CFuncWall )
 
 LINK_ENTITY_TO_CLASS( func_conveyor, CFuncConveyor )
 
@@ -199,6 +218,17 @@ void CFuncConveyor::Spawn()
 	UpdateSpeed( pev->speed );
 }
 
+void CFuncConveyor::KeyValue(KeyValueData *pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "useset_policy"))
+	{
+		m_useSetPolicy = (short)atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CBaseEntity::KeyValue(pkvd);
+}
+
 // HACKHACK -- This is ugly, but encode the speed in the rendercolor to avoid adding more data to the network stream
 void CFuncConveyor::UpdateSpeed( float speed )
 {
@@ -216,7 +246,24 @@ void CFuncConveyor::UpdateSpeed( float speed )
 
 void CFuncConveyor::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-    pev->speed = -pev->speed;
+	if (useType == USE_SET)
+	{
+		switch(m_useSetPolicy)
+		{
+		case CONV_USE_SET_SET:
+			pev->speed = value;
+			UpdateSpeed(pev->speed);
+			return;
+		case CONV_USE_SET_ADD:
+			pev->speed += value;
+			UpdateSpeed(pev->speed);
+			return;
+		default:
+			break;
+		}
+	}
+
+	pev->speed = -pev->speed;
 	UpdateSpeed( pev->speed );
 }
 
