@@ -653,7 +653,7 @@ You can create your own trace hull attacks without relying on the ones that are 
 
 ### touch_attack
 
-The object that redefines the parameters for the monster's touch attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}) and [shockroaches]({{< ref monster_shockroach >}}).
+The object that redefines the parameters for the monster's touch attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}), [shockroaches]({{< ref monster_shockroach >}}) and [monster_panthereye]({{< ref monster_panthereye >}}).
 
 {{% details title="Example" %}}
 

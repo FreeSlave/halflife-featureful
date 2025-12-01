@@ -12,6 +12,27 @@
 
 #define PANTHEREYE_MELEE_DISTANCE 84
 
+Task_t tlPantherRangeAttack1[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_FACE_IDEAL, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_FACE_IDEAL, (float)0 },
+	{ TASK_WAIT_RANDOM, (float)0.5 },
+};
+
+Schedule_t slPantherRangeAttack1[] =
+{
+	{
+		tlPantherRangeAttack1,
+		ARRAYSIZE( tlPantherRangeAttack1 ),
+		bits_COND_ENEMY_OCCLUDED,
+		0,
+		"PantherRangeAttack1"
+	},
+};
+
 class CPantherEye : public CSquadMonster
 {
 public:
@@ -24,10 +45,14 @@ public:
 
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	Schedule_t* GetScheduleOfType(int Type) override;
+	void OnChangeSchedule(Schedule_t *pNewSchedule) override;
+	void RunTask(Task_t *pTask) override;
+
+	void EXPORT LeapTouch ( CBaseEntity *pOther );
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckMeleeAttack2( float flDot, float flDist ) override {return false;}
-	bool CheckRangeAttack1( float flDot, float flDist ) override {return false;}
+	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override {return false;}
 
 	void PerformStrike(const TraceHullAttackParams& params);
@@ -64,6 +89,8 @@ public:
 	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
+
+	bool m_leaping;
 };
 
 LINK_ENTITY_TO_CLASS( monster_panthereye, CPantherEye );
@@ -150,6 +177,11 @@ bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
 	return HasConditions(bits_COND_SEE_ENEMY) && CheckMeleeAttackImpl(flDot, flDist, params, false) && m_hEnemy != 0;
 }
 
+bool CPantherEye::CheckRangeAttack1( float flDot, float flDist )
+{
+	return FBitSet(pev->flags, FL_ONGROUND) && flDist > 80.0f && flDist <= 256 && flDot >= 0.65f && m_flNextAttack <= gpGlobals->time;
+}
+
 void CPantherEye::PerformStrike(const TraceHullAttackParams& params)
 {
 	PerformTraceHullAttack( params );
@@ -223,9 +255,117 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 {
-	if (Type == SCHED_CHASE_ENEMY_FAILED && HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
+	if (Type == SCHED_CHASE_ENEMY_FAILED)
 	{
-		return CSquadMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
+		if (HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
+			return CSquadMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
+		else if (m_flNextAttack <= gpGlobals->time && !HasConditions(bits_COND_ENEMY_OCCLUDED))
+			return slPantherRangeAttack1;
+
+	}
+	if (Type == SCHED_RANGE_ATTACK1)
+	{
+		return slPantherRangeAttack1;
 	}
 	return CSquadMonster::GetScheduleOfType(Type);
+}
+
+void CPantherEye::OnChangeSchedule(Schedule_t *pNewSchedule)
+{
+	CSquadMonster::OnChangeSchedule(pNewSchedule);
+	m_leaping = false;
+}
+
+void CPantherEye::RunTask(Task_t *pTask)
+{
+	CSquadMonster::RunTask(pTask);
+
+	if (pTask->iTask == TASK_RANGE_ATTACK1)
+	{
+		if (m_fSequenceFinished)
+		{
+			SetTouch(nullptr);
+			m_leaping = false;
+		}
+		else if (!m_leaping && pev->frame >= 120.0f)
+		{
+			SetTouch(&CPantherEye::LeapTouch);
+			m_leaping = true;
+
+			ClearBits( pev->flags, FL_ONGROUND );
+
+			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );// take him off ground so engine doesn't instantly reset onground
+			UTIL_MakeVectors( pev->angles );
+
+			Vector vecJumpDir;
+			if( m_hEnemy != 0 )
+			{
+				float gravity = g_psv_gravity->value;
+				if( gravity <= 1 )
+					gravity = 1;
+
+				// How fast does the panther need to travel to reach that height given gravity?
+				float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
+				if( height < 16 )
+					height = 16;
+				float speed = sqrt( 2 * gravity * height );
+				float time = speed / gravity;
+
+				// Scale the sideways velocity to get there at the right time
+				vecJumpDir = m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin;
+				vecJumpDir *= ( 1.0f / time );
+
+				// Speed to offset gravity at the desired height
+				vecJumpDir.z = speed;
+
+				// Don't jump too far/fast
+				float distance = vecJumpDir.Length();
+
+				if( distance > 650.0f )
+				{
+					vecJumpDir *= ( 650.0f / distance );
+				}
+			}
+			else
+			{
+				// jump hop, don't care where
+				vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * 350.0f;
+			}
+
+			pev->velocity = vecJumpDir;
+
+			EmitSoundScript(attackSoundScript);
+			m_flNextAttack = gpGlobals->time + 3.5f;
+		}
+	}
+}
+
+void CPantherEye::LeapTouch( CBaseEntity *pOther )
+{
+	if (!pOther->pev->takedamage)
+	{
+		return;
+	}
+
+	if (pOther->Classify() == Classify())
+	{
+		return;
+	}
+
+	EmitSoundScript(attackHitSoundScript);
+
+	TouchAttackParams params;
+	params.damageInfo = DamageInfo(gSkillData.panthereyeDmgClaw, DMG_SLASH);
+	SetTouchAttackFromTemplate(params);
+	PerformTouchAttack(params, pOther);
+
+	if (pOther->IsPlayer())
+	{
+		pOther->pev->punchangle.x = 5.0f;
+		pOther->pev->punchangle.z = RANDOM_LONG(0, 1) ? 15.0f : -15.0f;
+	}
+
+	pev->velocity *= 0.5f;
+
+	SetTouch(nullptr);
 }

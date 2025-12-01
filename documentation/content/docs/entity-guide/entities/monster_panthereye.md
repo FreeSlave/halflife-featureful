@@ -29,6 +29,7 @@ An alien creature cut from Half-Life.
 ### Attacks
 
 * *Melee Attack 1* - melee.
+* *Range Attack 1* - leap attack.
 
 ### Animation events
 
