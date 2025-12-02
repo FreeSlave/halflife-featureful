@@ -264,6 +264,7 @@ Some monsters define the so called Object Collision Box which is different from 
 Most entities has their collision box to match the size. However some monsters redefine their collision box to match the model dimensions. If you change the `size` for such monsters, you may want to change the `collision_box` as well. The list of monsters who redefine their collision box:
 
 * monster_alien_grunt
+* monster_alien_tor
 * monster_babygarg
 * monster_bigmomma
 * monster_garganuta

@@ -77,6 +77,8 @@ public:
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void DeathNotice(entvars_t* pevChild) override;
 
+	Vector DefaultMinHullSize() override { return Vector(-24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 72.0f ); }
 	void SetObjectCollisionBox() override
 	{
 		pev->absmin = pev->origin + Vector(-24, -24, 0);
@@ -711,7 +713,7 @@ void CTor::Spawn()
 	Precache();
 
 	SetMyModel("models/Tor.mdl");
-	SetMySize(Vector(-24, -24, 0), Vector(24, 24, 72));
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
