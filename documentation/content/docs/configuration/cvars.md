@@ -39,6 +39,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
     - 1 - Counter-Strike nightvision style.
 * `cl_nvgradius_cs` - radius of dynamic light of Counter-Strike like nightvision.
 * `cl_nvgradius_of` - radius of dynamic light of Opposing Force like nightvision.
+* `cl_nvgfadetime` - fade time in seconds, for the smooth transition.
 
 ### Debugging
 

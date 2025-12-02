@@ -115,8 +115,10 @@ ClientFeatures::ClientFeatures()
 	nvg_opfor.radius.minValue = NVG_DLIGHT_MIN_RADIUS;
 	nvg_opfor.radius.maxValue = NVG_DLIGHT_MAX_RADIUS;
 	nvg_opfor.layer_color = RGB_GREENISH;
-	nvg_opfor.layer_alpha = 255;
+	nvg_opfor.layer_alpha = 225;
 	nvg_opfor.light_color = 0xFAFAFA;
+
+	nvg_fade_time.defaultValue = 0.0f;
 
 	memset(nvg_empty_sprite, 0, sizeof (nvg_empty_sprite));
 	memset(nvg_full_sprite, 0, sizeof (nvg_full_sprite));
@@ -247,6 +249,7 @@ cvar_t* cl_muzzlelight_monsters = NULL;
 cvar_t *cl_nvgstyle = NULL;
 cvar_t *cl_nvgradius_cs = NULL;
 cvar_t *cl_nvgradius_of = NULL;
+cvar_t *cl_nvgfadetime = NULL;
 
 cvar_t* cl_flashlight_custom = NULL;
 cvar_t* cl_flashlight_radius = NULL;
@@ -777,6 +780,7 @@ void CHud::Init()
 	CreateIntegerCvarConditionally(cl_nvgstyle, "cl_nvgstyle", clientFeatures.nvgstyle);
 	CreateIntegerCvarConditionally(cl_nvgradius_cs, "cl_nvgradius_cs", clientFeatures.nvg_cs.radius );
 	CreateIntegerCvarConditionally(cl_nvgradius_of, "cl_nvgradius_of", clientFeatures.nvg_opfor.radius );
+	CreateFloatCvarConditionally(cl_nvgfadetime, "cl_nvgfadetime", clientFeatures.nvg_fade_time);
 
 	CreateBooleanCvarConditionally(cl_flashlight_custom, "cl_flashlight_custom", clientFeatures.flashlight.custom);
 	CreateIntegerCvarConditionally(cl_flashlight_radius, "cl_flashlight_radius", clientFeatures.flashlight.radius);
@@ -1022,6 +1026,7 @@ void CHud::ParseClientFeatures()
 	KeyValueDefinition<ConfigurableFloatValue> configurableFloats[] = {
 		{ "hud_scale.", clientFeatures.hud_scale },
 		{ "rollangle.", clientFeatures.rollangle },
+		{ "nvg_fade_time.", clientFeatures.nvg_fade_time },
 	};
 	KeyValueDefinition<bool> booleans[] = {
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },

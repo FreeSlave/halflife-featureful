@@ -640,13 +640,15 @@ public:
 	void UserCmd_NVGAdjustUp();
 	float CSNvgRadius();
 	float OpforNvgRadius();
-	bool IsOn();
+	float NvgFadeTime();
+	bool IsOn() const;
 private:
 	bool m_fOn;
 	dlight_t* m_pLightCS;
 	dlight_t* m_pLightOF;
 	HSPRITE m_hSprite;
 	int m_iFrame, m_nFrameCount;
+	float m_progress;
 };
 //
 //-----------------------------------------------------
@@ -948,6 +950,7 @@ struct ClientFeatures
 
 	NVGFeatures nvg_cs;
 	NVGFeatures nvg_opfor;
+	ConfigurableFloatValue nvg_fade_time;
 
 	char nvg_empty_sprite[MAX_SPRITE_NAME_LENGTH];
 	char nvg_full_sprite[MAX_SPRITE_NAME_LENGTH];

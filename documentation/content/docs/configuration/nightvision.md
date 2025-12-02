@@ -39,3 +39,9 @@ Note that flashlight and NVG share the same battery and currently there's no opt
 Your mod might feature the flashlight in one part of the campaign and the NVG in another part. In this case you want different sprites to show up depending on the current light item.
 
 `nvg_empty_sprite` and `nvg_full_sprite` features in **features/featureful_client.cfg** allow to configure which sprite names from hud.txt should be used when player has NVG.
+
+### NVG fade time
+
+The smooth transition to NVG state can be enabled by `nvg_fade_time` feature in **features/featureful_client.cfg** and by `cl_nvgfadetime` cvar value by user. This is the amount of seconds to switch between no-NVG state to full NVG. 0 means instant switch (default). Maximum value is 2.
+
+This option may be used for aesthetic reasons or to help preventing potential epileptic seizures.
