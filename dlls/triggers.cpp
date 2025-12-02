@@ -1749,18 +1749,6 @@ USE_TYPE CTriggerMultiple::UseType()
 		return USE_TOGGLE;
 }
 
-/*QUAKED trigger_once (.5 .5 .5) ? notouch
-Variable sized trigger. Triggers once, then removes itself.  You must set the key "target" to the name of another object in the level that has a matching
-"targetname".  If "health" is set, the trigger must be killed to activate.
-If notouch is set, the trigger is only fired by other entities, not by touching.
-if "killtarget" is set, any objects that have a matching "target" will be removed when the trigger is fired.
-if "angle" is set, the trigger will only fire when someone is facing the direction of the angle.  Use "360" for an angle of 0.
-sounds
-1)      secret
-2)      beep beep
-3)      large switch
-4)
-*/
 class CTriggerOnce : public CTriggerMultiple
 {
 public:
@@ -2081,12 +2069,6 @@ void CTriggerInOut::FireOnLeaving(CBaseEntity* pEnt)
 	}
 }
 
-/*QUAKED trigger_counter (.5 .5 .5) ? nomessage
-Acts as an intermediary for an action that takes multiple inputs.
-If nomessage is not set, it will print "1 more.. " etc when triggered and
-"sequence complete" when finished.  After the counter has been triggered "cTriggersLeft"
-times (default 2), it will fire all of it's targets and remove itself.
-*/
 class CTriggerCounter : public CBaseTrigger
 {
 public:
@@ -2279,9 +2261,6 @@ void CChangeLevel::KeyValue( KeyValueData *pkvd )
 
 FILE_GLOBAL char st_szPrevMap[cchMapNameMost];
 
-/*QUAKED trigger_changelevel (0.5 0.5 0.5) ? NO_INTERMISSION
-When the player touches this, he gets sent to the map listed in the "map" variable.  Unless the NO_INTERMISSION flag is set, the view will go to the info_intermission spot and display stats.
-*/
 void CChangeLevel::Spawn()
 {
 	Precache();
@@ -2777,10 +2756,6 @@ void CTriggerPush::KeyValue( KeyValueData *pkvd )
 	else
 		CBaseTrigger::KeyValue( pkvd );
 }
-
-/*QUAKED trigger_push (.5 .5 .5) ? TRIG_PUSH_ONCE
-Pushes the player
-*/
 
 void CTriggerPush::Spawn()
 {
