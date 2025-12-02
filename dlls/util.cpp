@@ -1734,6 +1734,14 @@ void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector
 			if (vecMax)
 				*vecMax = pMonster->DefaultMaxHullSize();
 		}
+		if (vecMin && pMonster->m_minHullSize != g_vecZero)
+		{
+			*vecMin = pMonster->m_minHullSize;
+		}
+		if (vecMax && pMonster->m_maxHullSize != g_vecZero)
+		{
+			*vecMax = pMonster->m_maxHullSize;
+		}
 	}
 }
 

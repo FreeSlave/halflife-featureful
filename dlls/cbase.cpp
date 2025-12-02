@@ -1413,11 +1413,21 @@ void CBaseEntity::PrecacheEntTemplateResources()
 	}
 }
 
+struct ChildrenPrecacher
+{
+	string_t classname = iStringNull;
+	const EntTemplate* entTemplate = nullptr;
+	string_t entTemplateName = iStringNull;
+	ChildrenPrecacher* next = nullptr;
+};
+
+ChildrenPrecacher g_ChildrenPrecacherHead;
+
 void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool reverseRelationship, Vector *vecMin, Vector *vecMax)
 {
 	auto PrecacheChildImpl = [&](const char* childClassname, const decltype(ChildVariant::parameters)& parameters)
 	{
-		CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(childClassname, "PrecacheChild");
+		CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(childClassname, "PrecacheChildren");
 		if (pEntity)
 		{
 			const bool enabled = pEntity->IsEnabledInMod();
@@ -1431,13 +1441,55 @@ void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool rever
 				}
 				pEntity->Precache();
 				pEntity->PrecacheEntTemplateResources();
-				UTIL_GetSizeFromEntityPrecache(pEntity, vecMin, vecMax);
+
+				// TODO: children might have different sizes. For now report the largest
+				if (vecMin || vecMax)
+				{
+					Vector localMin, localMax;
+					UTIL_GetSizeFromEntityPrecache(pEntity, &localMin, &localMax);
+					if (vecMin)
+					{
+						if (localMin.LengthSqr() > vecMin->LengthSqr())
+							*vecMin = localMin;
+					}
+					if (vecMax)
+					{
+						if (localMax.LengthSqr() > vecMax->LengthSqr())
+							*vecMax = localMin;
+					}
+				}
 			}
 			REMOVE_ENTITY(pEntity->edict());
 		}
 	};
 
 	const EntTemplate* entTemplate = GetMyEntTemplate();
+
+	ChildrenPrecacher* lastChildrenPrecacher = &g_ChildrenPrecacherHead;
+	while (lastChildrenPrecacher->next)
+	{
+		if (FStrEq(lastChildrenPrecacher->next->classname, pev->classname) && entTemplate == lastChildrenPrecacher->next->entTemplate)
+		{
+			ALERT(at_aiconsole, "Recursion in children precache detected. Stopping\n");
+			/*ALERT(at_aiconsole, "Recursion loop:\n");
+
+			ChildrenPrecacher* curChildrenPrecacher = &g_ChildrenPrecacherHead;
+			while(curChildrenPrecacher->next)
+			{
+				curChildrenPrecacher = curChildrenPrecacher->next;
+				ALERT(at_aiconsole, "Classname: '%s'. Entity Template: '%s'\n", STRING(curChildrenPrecacher->classname), FStringNull(curChildrenPrecacher->entTemplateName) ? "" : STRING(curChildrenPrecacher->entTemplateName));
+			}*/
+			return;
+		}
+		lastChildrenPrecacher = lastChildrenPrecacher->next;
+	}
+
+	ChildrenPrecacher childrenPrecacher;
+	childrenPrecacher.classname = pev->classname;
+	childrenPrecacher.entTemplate = entTemplate;
+	childrenPrecacher.entTemplateName = m_entTemplate;
+	lastChildrenPrecacher->next = &childrenPrecacher;
+
 	bool customChildren = false;
 	if (entTemplate)
 	{
@@ -1453,6 +1505,8 @@ void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool rever
 	}
 	if (!customChildren)
 		PrecacheChildImpl(childDefaultClassname, decltype(ChildVariant::parameters)());
+
+	lastChildrenPrecacher->next = nullptr;
 }
 
 static ChildVariantHandle ChildVariantToHandle(const char* childDefaultClassname, const ChildVariant& child)
