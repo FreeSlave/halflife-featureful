@@ -26,7 +26,6 @@ This is the list of features that would be nice to have in our codebase. You are
 * ![](/images/svencoop.png) Ability of scientists and medics to revive allies (including player).
 * ![](/images/svencoop.png) Alien grunts throwing snark nests.
 * The ability for blackops assassins to throw flash grenades.
-* Leap ability for panthereyes.
 * Leap ability for gonomes.
 * Zombies that spawn headcrabs when they're killed not in the head.
 
@@ -36,7 +35,6 @@ This is the list of features that would be nice to have in our codebase. You are
 * Configuration of monster's weapon (e.g. let barneys wield shotguns, let human grunts wield sniper rifles, etc.). This should allow to implement variety of human-like npcs via entity templates, e.g. HEV scientists from Sweet Half-Life.
 * Configuration of monster's dropped items.
 * The option to turn off certain attacks for monsters (e.g. to make melee-only alien grunts).
-* Configuration of monster's "children", e.g. babycrabs spawned by bigmomma or soldiers spawned by osprey. This should, for example, allow bigmomma to give birth to full grown headcrabs or even some other species.
 
 ## Weapons
 
@@ -48,7 +46,6 @@ This is the list of features that would be nice to have in our codebase. You are
 * ![](/images/tfc.png) TFC Nailgun
 * ![](/images/tfc.png) TFC Engineer's blaster (railgun)
 * ![](/images/tfc.png) TFC Sniper rifle
-* ![](/images/tfc.png) TFC Assault cannon
 * DMC/Quake lightning gun
 * ![](/images/decay.png) Vortigaunt hands
 * ![](/images/cstrike.png) flash grenade - should also make monsters temporarily blind
@@ -67,7 +64,6 @@ This is the list of features that would be nice to have in our codebase. You are
 
 ### Weapon configuration
 
-* Allow to make player's speed depend on the currently selected weapon (like in Counter-Strike).
 * Support for holster animations.
 * Configuration of some visual effects on view models (e.g. beams on shockrifle and displacer).
 
