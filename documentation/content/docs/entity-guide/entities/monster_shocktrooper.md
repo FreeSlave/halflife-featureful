@@ -31,3 +31,7 @@ bookToC: false
 * **ShockTrooper.MuzzleFlash** - temporary flash sprite played when firing a shock projectile.
 * [shock_beam visuals]({{< ref "shock_beam/#visuals" >}}).
 * [spore visuals]({{< ref "spore/#visuals" >}}).
+
+### Bugfixes
+
+The original shock trooper model from Opposing Force (**models/strooper.mdl**) has a bug with `limpingwalk` sequence (used by shock trooper when it's low on health) - the sequence doesn't have a looping flag, so the monster plays the sequence once and then just moves towards its goal without animation. The fixed model is distributed with the sample mod. Make sure your shock trooper model has a looping flag on the `limpingwalk` sequence.
