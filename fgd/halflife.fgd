@@ -3484,6 +3484,20 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_gauss(choices) : "Tau-Cannon" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_egon(choices) : "Gluon Gun" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 	weapon_hornetgun(choices) : "Hornetgun" =
 	[
 		-1: "Remove"
@@ -3559,6 +3573,83 @@
 		2: "Give (allow duplicate)"
 	]
 	weapon_sporelauncher(choices) : "Spore Launcher" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_minigun(choices) : "Minigun" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_camera(choices) : "Camera" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_radio(choices) : "Radio" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_pistol(choices) : "Pistol (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_pistol2(choices) : "Pistol 2 (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_smg(choices) : "SMG (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_smg2(choices) : "SMG 2 (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_rifle(choices) : "Rifle (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_rifle2(choices) : "Rifle 2 (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_shotgun2(choices) : "Shotgun 2 (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
+	weapon_sniperrifle2(choices) : "Sniperrifle 2 (custom)" =
 	[
 		-1: "Remove"
 		0: "No change"
@@ -3680,6 +3771,8 @@
 	weapon_shotgun(string) : "Shotgun chance"
 	weapon_crossbow(string) : "Crossbow chance"
 	weapon_rpg(string) : "RPG chance"
+	weapon_gauss(string) : "Tau-cannon chance"
+	weapon_egon(string) : "Gluon Gun chance"
 	weapon_hornetgun(string) : "Hornetgun chance"
 	weapon_pipewrench(string) : "Pipewrench chance"
 	weapon_knife(string) : "Knife chance"
@@ -3691,6 +3784,18 @@
 	weapon_sniperrifle(string) : "Sniperrifle chance"
 	weapon_shockrifle(string) : "Shock Roach chance"
 	weapon_sporelauncher(string) : "Spore Launcher chance"
+	weapon_minigun(string) : "Minigun chance"
+	weapon_uzi(string) : "Uzi chance"
+	weapon_camera(string) : "Camera chance"
+	weapon_radio(string) : "Radio chance"
+	weapon_pistol(string) : "Pistol (custom) chance"
+	weapon_pistol2(string) : "Pistol 2 (custom) chance"
+	weapon_smg(string) : "SMG (custom) chance"
+	weapon_smg2(string) : "SMG 2 (custom) chance"
+	weapon_rifle(string) : "Rifle (custom) chance"
+	weapon_rifle2(string) : "Rifle 2 (custom) chance"
+	weapon_shotgun2(string) : "Shotgun 2 (custom) chance"
+	weapon_sniperrifle2(string) : "Sniperrifle 2 (custom) chance"
 	spawnflags(Flags) =
 	[
 		64 : "Predetermined" : 0
@@ -9412,6 +9517,7 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_displacer.mdl") = weapon_displacer : "Displacer" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_spore_launcher.mdl") = weapon_sporelauncher : "Spore Launcher" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_medkit.mdl") = weapon_medkit : "Portable Medkit" []
+@PointClass base(Weapon, WeaponInitAmmo) studio("models/w_minigun.mdl") = weapon_minigun : "Minigun" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
 
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
