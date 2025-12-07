@@ -36,7 +36,7 @@ The main goal of this SDK is to aid non-programmer developers. I may answer your
 
 ### Can I borrow code from this SDK for my own project?
 
-Yes. But it's up to you to figure our how to properly port the features you're interested in to your own codebase.
+Yes. But it's up to you to figure out how to properly port the features you're interested in to your own codebase.
 
 ### Can Featureful SDK be used to create a multiplayer mod?
 

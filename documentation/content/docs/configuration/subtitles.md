@@ -4,7 +4,7 @@ title: "Subtitles"
 
 # {{% param "title" %}}
 
-Featureful SDL has a subtitles (closed captions) system allowing for showing texts as the scripted voice line is played.
+Featureful SDK has a subtitles (closed captions) system allowing for showing texts as the scripted voice line is played.
 
 Captions are not showing for the regular sentences spoken by monsters (e.g. idle voicelines) to avoid littering the screen with too much text.
 
