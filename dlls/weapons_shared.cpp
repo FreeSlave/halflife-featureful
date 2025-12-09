@@ -759,8 +759,9 @@ bool CConfigurableWeapon::PerformDeploy()
 		m_bDelayFire = true;
 		ResetInaccuracy();
 
-		m_flChargeStart = 0;
+		m_chargingAttack = false;
 		m_shouldPlayCooldown = false;
+		m_chargingAltFire = false;
 
 		if (!m_playedFirstDeploy && params.startInAltMode && !m_inAltMode)
 		{
@@ -1033,6 +1034,7 @@ bool CConfigurableWeapon::PerformCooldown(bool altMode)
 	if (m_shouldPlayCooldown)
 	{
 		m_shouldPlayCooldown = false;
+		m_chargingAltFire = false;
 
 		const WeaponParameters& params = MyParameters();
 
@@ -1137,21 +1139,38 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	const auto fireType = fire.fireType.Get(altMode);
 
-	const float chargeTime = fire.chargeTime.Get(altMode);
+	const float chargeTime = fire.chargeTime.Get(m_chargingAttack ? m_chargingAltFire : altMode);
 	if (chargeTime > 0.0f && fireType != WeaponParameters::Fire::MELEE_WIND)
 	{
-		float& chargeStart = m_flChargeStart;
-		if (!chargeStart)
+		if (!m_chargingAttack)
 		{
+			m_chargingAltFire = altMode;
 			m_shouldPlayCooldown = true;
-			chargeStart = gpGlobals->time;
+			m_chargingAttack = true;
 			SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
 
 			PlayWeaponSoundScript(fire.chargeSound.Get(altMode));
+
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + chargeTime;
+			m_flNextPrimaryAttack = GetNextAttackDelay(chargeTime);
+			return;
 		}
 
-		if (gpGlobals->time - chargeStart <= chargeTime)
-			return;
+		if (!params.sharedChargeAndCooldown && m_chargingAltFire != altMode)
+		{
+			const bool chargingAltFire = m_chargingAltFire;
+			if (PerformCooldown(chargingAltFire))
+			{
+				m_chargingAttack = false;
+				const float cooldownDelay = fire.cooldownTime.Get(chargingAltFire);
+				if (cooldownDelay > 0.0f)
+				{
+					m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + cooldownDelay;
+					m_flNextPrimaryAttack = GetNextAttackDelay(cooldownDelay);
+				}
+				return;
+			}
+		}
 	}
 
 	const bool allowUnderwater = fire.allowUnderwater.Get(altMode);
@@ -1829,9 +1848,10 @@ bool CConfigurableWeapon::PerformReload()
 	if (reload.waitForRecoil.Get(altMode, empty) && m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
 		return false;
 
-	if (PerformCooldown(InAltMode()))
+	if (PerformCooldown(m_chargingAltFire))
 		return false;
 
+	m_chargingAttack = false;
 	m_bDelayFire = false;
 	ResetInaccuracy();
 
@@ -2049,18 +2069,16 @@ void CConfigurableWeapon::WeaponIdle()
 		}
 	}
 
-	if (m_flChargeStart)
+	if (m_chargingAttack)
 	{
-		const float chargeTime = params.fire.chargeTime.Get(altMode);
-		if (gpGlobals->time - m_flChargeStart <= chargeTime)
-		{
-			return;
-		}
+		if (CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()) || CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()))
+			m_chargingAttack = false;
 	}
 
-	m_flChargeStart = 0;
+	if (m_chargingAttack)
+		return;
 
-	if (PerformCooldown(altMode))
+	if (PerformCooldown(m_chargingAltFire))
 		return;
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
@@ -2203,6 +2221,26 @@ void CConfigurableWeapon::ResetZoom(SwitchModeReason reason)
 void CConfigurableWeapon::KickBack(const WeaponKickBack&) {}
 #endif
 
+enum
+{
+	WEAPONDATA_ALTMODE = (1<<0),
+	WEAPONDATA_LASERSPOT = (1<<1),
+	WEAPONDATA_BURST_IS_ALT = (1<<2),
+	WEAPONDATA_BURSTING = (1<<3),
+	WEAPONDATA_SWITCHING_BODY = (1<<4),
+	WEAPONDATA_WAS_IN_ALT_MODE_BEFORE_SWITCHING_BODY = (1<<5),
+	WEAPONDATA_SWITCHING_MODE = (1<<6),
+	WEAPONDATA_SWING_MODE = (1<<7),
+	WEAPONDATA_SWING_MODE2 = (1<<8),
+};
+
+enum
+{
+	WEAPONCHARGE_CHARGING = (1<<0),
+	WEAPONCHARGE_ALTMODE = (1<<1),
+	WEAPONCHARGE_SHOULD_COOLDOWN = (1<<2),
+};
+
 void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
 {
 	data.iuser1 = 0;
@@ -2224,7 +2262,18 @@ void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
 	else if (m_iSwingMode == 1)
 		data.iuser1 |= WEAPONDATA_SWING_MODE;
 
-	data.iuser2 = pev->body;
+	data.iuser2 = pev->body & 0xF;
+
+	int chargeFlags = 0;
+	if (m_chargingAttack)
+		chargeFlags |= WEAPONCHARGE_CHARGING;
+	if (m_chargingAltFire)
+		chargeFlags |= WEAPONCHARGE_ALTMODE;
+	if (m_shouldPlayCooldown)
+		chargeFlags |= WEAPONCHARGE_SHOULD_COOLDOWN;
+
+	data.iuser2 |= chargeFlags << 4;
+
 	data.iuser3 = m_iShotsFired & 0xFF;
 
 	if (m_burstTime != 0.0f)
@@ -2251,7 +2300,13 @@ void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
 	else if (FBitSet(data.iuser1, WEAPONDATA_SWING_MODE))
 		m_iSwingMode = 1;
 
-	pev->body = data.iuser2;
+	pev->body = data.iuser2 & 0xF;
+
+	int chargeFlags = data.iuser2 >> 4;
+	m_chargingAttack = FBitSet(chargeFlags, WEAPONCHARGE_CHARGING);
+	m_chargingAltFire = FBitSet(chargeFlags, WEAPONCHARGE_ALTMODE);
+	m_shouldPlayCooldown = FBitSet(chargeFlags, WEAPONCHARGE_SHOULD_COOLDOWN);
+
 	m_iShotsFired = data.iuser3 & 0xFF;
 
 	if (FBitSet(data.iuser1, WEAPONDATA_BURSTING))

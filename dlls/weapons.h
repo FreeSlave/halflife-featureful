@@ -86,19 +86,6 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 
 #define WEAPON_IS_ONTARGET 0x40
 
-enum
-{
-	WEAPONDATA_ALTMODE = (1<<0),
-	WEAPONDATA_LASERSPOT = (1<<1),
-	WEAPONDATA_BURST_IS_ALT = (1<<2),
-	WEAPONDATA_BURSTING = (1<<3),
-	WEAPONDATA_SWITCHING_BODY = (1<<4),
-	WEAPONDATA_WAS_IN_ALT_MODE_BEFORE_SWITCHING_BODY = (1<<5),
-	WEAPONDATA_SWITCHING_MODE = (1<<6),
-	WEAPONDATA_SWING_MODE = (1<<7),
-	WEAPONDATA_SWING_MODE2 = (1<<8),
-};
-
 struct ItemInfo
 {
 	int		iSlot = 0;
@@ -496,7 +483,8 @@ public:
 	float m_flRechargeTime;
 
 	// charge
-	float m_flChargeStart;
+	bool m_chargingAttack;
+	bool m_chargingAltFire;
 	bool m_shouldPlayCooldown;
 
 	// tool

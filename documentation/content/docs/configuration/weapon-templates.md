@@ -535,6 +535,8 @@ The interval between shots in burst fire. Ideally the [cycle_time](#cycle_time) 
 
 The array of animation indices. The random animation is picked when weapon is charging its fire. Used by [weapon_minigun]({{< ref weapon_minigun >}}), [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}). This requires [charge_time](#charge_time) to be set.
 
+See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
+
 ### charge_sound
 
 [Weapon soundscript](#weapon-soundscript) to play on charging the attack. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
@@ -546,6 +548,8 @@ The time in seconds after the weapon starts firing after initial charge. Used by
 ### cooldown_anims
 
 The array of animation indices. The random animation is picked when weapon after the weapon has fired. Used by [weapon_minigun]({{< ref weapon_minigun >}}) for spindown animation.
+
+See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
 
 ### cooldown_sound
 
@@ -1689,9 +1693,22 @@ Defines how the secondary attack works. The available values are:
     * Disabling the secondary attack on [weapon_shotgun]({{< ref weapon_shotgun >}}) would remove double shot.
     * Disabling the secondary attack on [weapon_crossbow]({{< ref weapon_crossbow >}}) would disable its zooming ability.
 
+## shared_charge_and_cooldown
+
+A boolean that defines whether the primary and secondary attack share the [charge](#charge_anims) and [cooldown](#cooldown_anims) delays. This is used by [weapon_minigun]({{< ref weapon_minigun >}}) to allow transition from the just spinning to fire.
+
+```json
+{
+    "weapon_minigun": {
+        "shared_charge_and_cooldown": false,
+        "prioritize_primary_attack": false
+    }
+}
+```
+
 ## start_in_alt_mode
 
-A boolean defining whether the weapon should be in the alternative mode when picked up.
+A boolean that defines whether the weapon should be in the alternative mode when picked up.
 
 This is ignored if weapon uses zoom (scope) to avoid deploying the weapon in the zoomed state.
 

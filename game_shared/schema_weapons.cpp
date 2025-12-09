@@ -921,6 +921,9 @@ R"(
 			"prevent_jump": {
 				"type": "boolean"
 			},
+			"shared_charge_and_cooldown": {
+				"type": "boolean"
+			},
 			"viewmodel_body": {
 				"type": "integer",
 				"minimum": 0

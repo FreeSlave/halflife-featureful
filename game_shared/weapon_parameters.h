@@ -687,6 +687,7 @@ struct WeaponParameters
 	bool manualReloadRestartOnDeploy = false;
 	bool startInAltMode = false;
 	bool primaryFirePrioritized = false;
+	bool sharedChargeAndCooldown = false;
 
 	Deploy deploy;
 

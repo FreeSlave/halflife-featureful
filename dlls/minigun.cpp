@@ -158,6 +158,7 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 	params.primaryFirePrioritized = true;
+	params.sharedChargeAndCooldown = true;
 	params.playerMaxSpeed.main.value = 0.6f;
 	params.playerMaxSpeed.main.isFactor = true;
 	params.preventJump = true;
