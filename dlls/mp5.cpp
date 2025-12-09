@@ -128,6 +128,7 @@ WeaponParameters CMP5::GetDefaultParameters() const
 	// Alt fire
 	params.fire.fireType.alt = WeaponParameters::Fire::PROJECTILE;
 	params.fire.anims.alt = {MP5_LAUNCH};
+	params.fire.spread.SetStaticSpread(true, g_vecZero);
 
 	params.fire.projectileName.alt = "grenade";
 	params.fire.projectileOffsetForward.alt = 16.0f;

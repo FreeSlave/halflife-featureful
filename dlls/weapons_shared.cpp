@@ -1055,6 +1055,66 @@ bool CConfigurableWeapon::PerformCooldown(bool altMode)
 	return false;
 }
 
+Vector CConfigurableWeapon::GetSpread(bool altMode)
+{
+	bool useInaccuracy = false;
+	auto getSpread = [this, &useInaccuracy, altMode]()
+	{
+		const WeaponParameters& params = MyParameters();
+		const WeaponParameters::Fire& fire = params.fire;
+
+		const auto& ruleList = fire.spread.GetRuleList(altMode);
+		if (fire.spread.UsesDynamicInaccuracy(altMode))
+		{
+			useInaccuracy = true;
+			if (ruleList.size())
+			{
+				for (const auto& rule : ruleList)
+				{
+					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
+					{
+						return rule.GetDynamicSpread(m_flInaccuracy);
+					}
+				}
+				return ruleList.back().GetDynamicSpread(m_flInaccuracy); // pick the last as default option
+			}
+			else
+			{
+				const float spread = 0.02 * m_flInaccuracy;
+				return Vector(spread, spread, 0.0f);
+			}
+
+		}
+		else
+		{
+			if (ruleList.size())
+			{
+				for (const auto& rule : ruleList)
+				{
+					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
+					{
+						return rule.GetStaticSpread();
+					}
+				}
+				return ruleList.back().GetStaticSpread(); // pick the last as default option
+			}
+
+		}
+		return Vector{};
+	};
+
+	const Vector vecSpread = getSpread();
+	if (useInaccuracy)
+	{
+		//ALERT(at_console, "Firing with inaccuracy %g. Spread %g, %g\n", m_flInaccuracy, vecSpread.x, vecSpread.y);
+	}
+	else
+	{
+		//ALERT(at_console, "Firing with spread %g, %g. AltMode: %s\n", vecSpread.x, vecSpread.y, altMode ? "yes" : "no");
+	}
+	return vecSpread;
+}
+
 void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 {
 	const WeaponParameters& params = MyParameters();
@@ -1244,46 +1304,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	float spreadX = 0.0f;
 	float spreadY = 0.0f;
-	Vector vecSpread;
+	Vector vecSpread{};
 	if (fireType == WeaponParameters::Fire::BULLETS)
 	{
-		const auto& ruleList = fire.spread.GetRuleList(altMode);
-		if (fire.spread.UsesDynamicInaccuracy(altMode))
-		{
-			if (ruleList.size())
-			{
-				vecSpread = ruleList.back().GetDynamicSpread(m_flInaccuracy);
-				for (const auto& rule : ruleList)
-				{
-					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
-					{
-						vecSpread = rule.GetDynamicSpread(m_flInaccuracy);
-						break;
-					}
-				}
-			}
-			else
-			{
-				vecSpread.x = vecSpread.y = 0.02 * m_flInaccuracy;
-			}
-			//ALERT(at_console, "Firing with inaccuracy %g. Spread %g, %g\n", m_flInaccuracy, vecSpread.x, vecSpread.y);
-		}
-		else
-		{
-			if (ruleList.size())
-			{
-				vecSpread = ruleList.back().GetStaticSpread(); // pick the last as default option
-				for (const auto& rule : ruleList)
-				{
-					if (PlayerMatchesConditions(m_pPlayer, rule.Conditions()))
-					{
-						vecSpread = rule.GetStaticSpread();
-						break;
-					}
-				}
-			}
-			//ALERT(at_console, "Firing with spread %g, %g. AltMode: %s\n", vecSpread.x, vecSpread.y, altMode ? "yes" : "no");
-		}
+		vecSpread = GetSpread(altMode);
 
 		const int bulletCount = fire.bulletCount.Get(altMode);
 		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
@@ -1478,6 +1502,24 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 			TraceResult tr;
 			UTIL_TraceLine(vecHead, vecHead + vecDir * 4096, dont_ignore_monsters, edict(), &tr);
 			vecDir = (tr.vecEndPos - vecSrc).Normalize();
+		}
+
+		const Vector vecSpread = GetSpread(altMode);
+		if (vecSpread != g_vecZero)
+		{
+			float x, y;
+			do {
+				x = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
+				y = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
+			}
+			while( x * x + y * y > 1.0f );
+
+			vecDir += x * vecSpread.x * gpGlobals->v_right;
+			vecDir += y * vecSpread.y * gpGlobals->v_up;
+		}
+
+		if (fire.projectileAdjustToCross.Get(altMode))
+		{
 			vecAngles = UTIL_VecToAngles(vecDir);
 			//vecAngles.x = -vecAngles.x;
 		}

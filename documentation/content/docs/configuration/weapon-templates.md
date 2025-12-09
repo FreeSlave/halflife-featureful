@@ -575,7 +575,9 @@ The amount of damage the weapon deals per bullet.
 
 This can be either a number (e.g. `8`) or the name of the skill cvar (e.g. `"sk_plr_357_bullet"`). Currently it's not possible to register new skill variables, so you can just use a constant number (player's damage values are usually not affected by difficulty anyway).
 
-Note: this currently can't configure damage values for anything other than bullets.
+{{% hint warning %}}
+This currently can't configure damage values for anything other than bullets.
+{{% /hint %}}
 
 ### delay_after_empty
 
@@ -1157,7 +1159,7 @@ For melee weapons it's the "miss" sound (when weapon doesn't hit anything).
 
 ### spread
 
-Configure the bullet spread (this currently doesn't affect projectiles). There're several types of spreads and therefore it can be defined in different ways.
+Configure the bullet or projectile spread. There're several types of spreads and therefore it can be defined in different ways.
 
 #### Universal spread with static inaccuracy
 

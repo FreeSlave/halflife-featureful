@@ -379,6 +379,7 @@ public:
 	void SendScreenShake(const PlayerShake& shake);
 	bool SelectAndSendFireAnimation(const WeaponParameters::FireAnimArray& arr);
 	bool PerformCooldown(bool altMode);
+	Vector GetSpread(bool altMode);
 	void PerformWeaponFire(bool altMode);
 	void FireRemaining();
 	void ResetBurst();
