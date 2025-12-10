@@ -2221,7 +2221,6 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 	Vector vecRight = gpGlobals->v_right;
 	Vector vecUp = gpGlobals->v_up;
 	float x = 0.0f, y = 0.0f;
-	//float z;
 
 	if( pevAttacker == NULL )
 		pevAttacker = pev;  // the default attacker is ourselves
@@ -2231,10 +2230,14 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 	for( unsigned int iShot = 1; iShot <= cShots; iShot++ )
 	{
 		//Use player's random seed.
-		// get circular gaussian spread
-		x = UTIL_SharedRandomFloat( shared_rand + iShot, -0.5f, 0.5f ) + UTIL_SharedRandomFloat( shared_rand + ( 1 + iShot ) , -0.5f, 0.5f );
-		y = UTIL_SharedRandomFloat( shared_rand + ( 2 + iShot ), -0.5f, 0.5f ) + UTIL_SharedRandomFloat( shared_rand + ( 3 + iShot ), -0.5f, 0.5f );
-		//z = x * x + y * y;
+		// get circular spread (triangular distribution)
+		int attempt = 0;
+		do {
+			const int sharedRandWithAttempt = shared_rand + attempt;
+			x = UTIL_SharedRandomFloat( sharedRandWithAttempt + iShot, -0.5f, 0.5f ) + UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 1 + iShot ) , -0.5f, 0.5f );
+			y = UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 2 + iShot ), -0.5f, 0.5f ) + UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 3 + iShot ), -0.5f, 0.5f );
+			attempt++;
+		} while (x * x + y * y > 1.0f);
 
 		Vector vecDir = vecDirShooting +
 						x * vecSpread.x * vecRight +

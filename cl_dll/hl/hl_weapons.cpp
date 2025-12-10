@@ -249,27 +249,30 @@ Only produces random numbers to match the server ones.
 */
 Vector CBaseEntity::FireBulletsPlayer ( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, float flRangeModifier, int iTracerFreq, entvars_t *pevAttacker, int shared_rand )
 {
-	float x = 0.0f, y = 0.0f, z;
+	float x = 0.0f, y = 0.0f;
 
 	for( unsigned int iShot = 1; iShot <= cShots; iShot++ )
 	{
 		if( pevAttacker == NULL )
 		{
-			// get circular gaussian spread
+			// get circular spread (triangular distribution)
 			do {
-					x = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5f, 0.5f );
-					y = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5f, 0.5f );
-					z = x * x + y * y;
-			} while( z > 1 );
+				x = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5f, 0.5f );
+				y = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5f, 0.5f );
+			} while(x * x + y * y > 1.0f);
 		}
 		else
 		{
 			//Use player's random seed.
-			// get circular gaussian spread
-			x = UTIL_SharedRandomFloat( shared_rand + iShot, -0.5f, 0.5f ) + UTIL_SharedRandomFloat( shared_rand + ( 1 + iShot ) , -0.5f, 0.5f );
-			y = UTIL_SharedRandomFloat( shared_rand + ( 2 + iShot ), -0.5f, 0.5f ) + UTIL_SharedRandomFloat( shared_rand + ( 3 + iShot ), -0.5f, 0.5f );
-			// z = x * x + y * y;
-		}			
+			// get circular spread (triangular distribution)
+			int attempt = 0;
+			do {
+				const int sharedRandWithAttempt = shared_rand + attempt;
+				x = UTIL_SharedRandomFloat( sharedRandWithAttempt + iShot, -0.5f, 0.5f ) + UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 1 + iShot ) , -0.5f, 0.5f );
+				y = UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 2 + iShot ), -0.5f, 0.5f ) + UTIL_SharedRandomFloat( sharedRandWithAttempt + ( 3 + iShot ), -0.5f, 0.5f );
+				attempt++;
+			} while (x * x + y * y > 1.0f);
+		}
 	}
 
 	return Vector( x * vecSpread.x, y * vecSpread.y, 0.0f );
