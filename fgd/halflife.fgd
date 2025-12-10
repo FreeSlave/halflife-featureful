@@ -9094,7 +9094,6 @@
 		256:"Ignore Armor" : 0
 		512:"No Camera Punch" : 0
 	]
-	master(string) : "Master"
 	dmg(integer) : "Damage" : 10 : "The damage is applied every 0.5 seconds. Negative value means healing. The value is getting halved, unless 'Full dmg every 0.5 seconds' spawnflag is set."
 	delay(string) : "Delay before trigger"
 	untouchable_ent_name(string) : "Untouchable entity name" : : "Don't hurt targets with this classname or targetname"
