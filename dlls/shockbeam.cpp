@@ -76,7 +76,17 @@ void CShock::Spawn()
 	SET_MODEL(ENT(pev), "models/shock_effect.mdl");
 	UTIL_SetOrigin(pev, pev->origin);
 
-	pev->dmg = gSkillData.monDmgShockroach;
+	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
+	{
+		if (g_pGameRules->IsMultiplayer())
+			SetDefaultProjectileDamage(gSkillData.plrDmgShockroachM);
+		else
+			SetDefaultProjectileDamage(gSkillData.plrDmgShockroach);
+	}
+	else
+	{
+		SetDefaultProjectileDamage(gSkillData.monDmgShockroach);
+	}
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 
@@ -102,7 +112,7 @@ void CShock::FlyThink()
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
 		EmitSoundScript(impactSoundScript);
-		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, DamageInfo(pev->dmg * 3, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 144, CLASS_NONE );
+		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, DamageInfo(GetProjectileDamage() * 3, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 144, CLASS_NONE );
 		ClearEffects();
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time;
@@ -153,7 +163,7 @@ void CShock::Touch(CBaseEntity *pOther)
 		}
 		entvars_t *pevOwner = VARS(pev->owner);
 		entvars_t *pevAttacker = pevOwner ? pevOwner : pev;
-		pOther->ApplyTraceAttack(pev, pevAttacker, DamageInfo{pev->dmg, damageType}, pev->velocity.Normalize(), &tr );
+		pOther->ApplyTraceAttack(pev, pevAttacker, DamageInfo{GetProjectileDamage(), damageType}, pev->velocity.Normalize(), &tr );
 		if (pOther->IsPlayer() && (UTIL_PointContents(pev->origin) != CONTENTS_WATER))
 		{
 			const Vector position = tr.vecEndPos;
@@ -223,13 +233,6 @@ void CShock::UpdateOnRemove()
 
 void CShock::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params.direction, params.speedOverride);
-	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
-	{
-		if (g_pGameRules->IsMultiplayer())
-			pev->dmg = gSkillData.plrDmgShockroachM;
-		else
-			pev->dmg = gSkillData.plrDmgShockroach;
-	}
+	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params);
 	pev->nextthink = gpGlobals->time;
 }

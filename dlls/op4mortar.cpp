@@ -21,6 +21,9 @@ public:
 	void Spawn() override;
 	void EXPORT FlyThink();
 
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	int FireballDeciScaleFromDamage(float dmg) override {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.8f;
@@ -89,7 +92,7 @@ void CMortarShell::Spawn()
 
 	pev->gravity = 1;
 
-	pev->dmg = gSkillData.op4mortarDmg;
+	SetDefaultProjectileDamage(gSkillData.op4mortarDmg);
 
 	pev->nextthink = gpGlobals->time + 0.01f;
 	m_flIgniteTime = gpGlobals->time;
@@ -139,7 +142,7 @@ void CMortarShell::FlyThink()
 
 	if (m_dangerSoundTime <= gpGlobals->time)
 	{
-		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, pev->dmg * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
+		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
 		m_dangerSoundTime = gpGlobals->time + 0.2f;
 	}
 

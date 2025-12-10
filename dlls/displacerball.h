@@ -16,6 +16,9 @@ public:
 	void Precache() override;
 
 	static void SelfCreate(entvars_t *pevOwner, Vector vecStart);
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void EXPORT BallTouch(CBaseEntity *pOther);

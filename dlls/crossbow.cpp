@@ -45,6 +45,7 @@ public:
 	void EXPORT BoltTouch( CBaseEntity *pOther );
 	void EXPORT ExplodeThink();
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) {
+		SetProjectileParamsBeforeSpawnImpl(params);
 		if (params.variant)
 			pev->spawnflags |= SF_CROSSBOW_BOLT_EXPLOSIVE;
 	}
@@ -85,7 +86,7 @@ void CCrossbowBolt::LaunchAsProjectile(const ProjectileParameters& params)
 
 	const float defaultSpeed = inWater ? BOLT_WATER_VELOCITY : BOLT_AIR_VELOCITY;
 
-	LaunchAsProjectileImpl(defaultSpeed, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(defaultSpeed, params);
 	pev->speed = pev->velocity.Length();
 	pev->avelocity.z = 10.0f;
 }
@@ -132,14 +133,28 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		TraceResult tr = UTIL_GetGlobalTrace();
 		entvars_t *pevOwner = VARS( pev->owner );
 
-		DamageInfo damageInfo(gSkillData.plrDmgCrossbowMonster, DMG_BULLET);
-		damageInfo.SetGibPolicy(GIB_NEVER);
+		float damage = GetProjectileDamage();
+		int dmgType = DMG_GENERIC;
 
-		if( pOther->IsPlayer() )
+		if (damage == 0)
 		{
-			damageInfo.damage = gSkillData.plrDmgCrossbowClient;
-			damageInfo.type = DMG_GENERIC;
+			if( pOther->IsPlayer() )
+			{
+				damage = gSkillData.plrDmgCrossbowClient;
+			}
+			else
+			{
+				damage = gSkillData.plrDmgCrossbowMonster;
+			}
 		}
+
+		if (!pOther->IsPlayer())
+		{
+			dmgType = DMG_BULLET;
+		}
+
+		DamageInfo damageInfo(damage, dmgType);
+		damageInfo.SetGibPolicy(GIB_NEVER);
 		pOther->ApplyTraceAttack( pev, pevOwner, damageInfo, pev->velocity.Normalize(), &tr );
 
 		pev->velocity = Vector( 0, 0, 0 );

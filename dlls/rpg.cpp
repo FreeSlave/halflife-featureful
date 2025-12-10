@@ -198,7 +198,7 @@ void CRpgRocket::Spawn()
 
 	pev->nextthink = gpGlobals->time + 0.4f;
 
-	pev->dmg = gSkillData.plrDmgRPG;
+	SetDefaultProjectileDamage(gSkillData.plrDmgRPG);
 }
 
 //=========================================================
@@ -213,6 +213,7 @@ void CRpgRocket::Precache()
 
 void CRpgRocket::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
+	SetProjectileParamsBeforeSpawnImpl(params);
 	if (params.pLauncher)
 	{
 		CBasePlayerWeapon* pWeapon = params.pLauncher->MyWeaponPointer();

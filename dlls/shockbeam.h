@@ -27,6 +27,9 @@ public:
 	void CreateEffects();
 	void ClearEffects();
 	void UpdateOnRemove() override;
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	CBeam *m_pBeam;

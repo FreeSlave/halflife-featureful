@@ -78,13 +78,15 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	pev->takedamage = DAMAGE_NO;
 
+	const float damage = GetProjectileDamage();
+
 	// Pull out of the wall a bit
 	if( pTrace->flFraction != 1.0f )
 	{
 		if (explosionfix.value)
 			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * 0.6f );
 		else
-			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * ( pev->dmg - 24 ) * 0.6f );
+			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * ( damage - 24 ) * 0.6f );
 	}
 
 	int iContents = UTIL_PointContents( pev->origin );
@@ -100,7 +102,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		{
 			WRITE_SHORT( g_sModelIndexWExplosion );
 		}
-		WRITE_BYTE( FireballDeciScaleFromDamage( pev->dmg ) ); // scale * 10
+		WRITE_BYTE( FireballDeciScaleFromDamage( damage ) ); // scale * 10
 		WRITE_BYTE( FireballFramerate() ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
@@ -116,9 +118,9 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	const float exploRadius = ExplosionRadius();
 	if (exploRadius)
-		::RadiusDamage(pev->origin, pev, pevOwner, DamageInfo{pev->dmg, bitsDamageType}, exploRadius, CLASS_NONE);
+		::RadiusDamage(pev->origin, pev, pevOwner, DamageInfo{damage, bitsDamageType}, exploRadius, CLASS_NONE);
 	else
-		RadiusDamage( pev, pevOwner, DamageInfo{pev->dmg, bitsDamageType}, CLASS_NONE );
+		RadiusDamage( pev, pevOwner, DamageInfo{damage, bitsDamageType}, CLASS_NONE );
 
 	if( RANDOM_FLOAT( 0, 1 ) < 0.5f )
 	{
@@ -158,7 +160,7 @@ void CGrenade::Smoke()
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( SmokeDeciScaleFromDamage( pev->dmg ) ); // scale * 10
+			WRITE_BYTE( SmokeDeciScaleFromDamage( GetProjectileDamage() ) ); // scale * 10
 			WRITE_BYTE( 12 ); // framerate
 		MESSAGE_END();
 	}
@@ -222,7 +224,7 @@ void CGrenade::DangerSoundThink()
 		return;
 	}
 
-	CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, pev->dmg * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2 );
+	CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2 );
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	if( pev->waterlevel != WL_NotInWater )
@@ -266,7 +268,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		// go ahead and emit the danger sound.
 
 		// register a radius louder than the explosion, so we make sure everyone gets out of the way
-		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, (int)( pev->dmg / 0.4f ), 0.3f );
+		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, (int)( GetProjectileDamage() / 0.4f ), 0.3f );
 		m_fRegisteredSound = true;
 	}
 
@@ -362,7 +364,6 @@ void CGrenade::Spawn()
 		ApplyVisualWithOwn(GetVisual(arGrenadeVisual));
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
-	pev->dmg = gSkillData.plrDmgHandGrenade;
 	m_fRegisteredSound = false;
 }
 
@@ -383,6 +384,16 @@ void CGrenade::PrecacheBaseGrenadeSounds()
 void CGrenade::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
 	m_isTimed = params.variant == TIMED;
+	SetProjectileParamsBeforeSpawnImpl(params);
+
+	if (params.variant == CONTACT)
+	{
+		SetDefaultProjectileDamage(gSkillData.plrDmgM203Grenade);
+	}
+	else
+	{
+		SetDefaultProjectileDamage(gSkillData.plrDmgHandGrenade);
+	}
 }
 
 void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
@@ -390,7 +401,7 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 	if (params.variant == CONTACT)
 	{
 		pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
-		LaunchAsProjectileImpl(800.0f, params.direction, params.speedOverride);
+		LaunchAsProjectileImpl(800.0f, params);
 
 		// make monsters afaid of it while in the air
 		SetThink( &CGrenade::DangerSoundThink );
@@ -401,12 +412,10 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 
 		// Explode on contact
 		SetTouch( &CGrenade::ExplodeTouch );
-
-		pev->dmg = gSkillData.plrDmgM203Grenade;
 	}
 	else
 	{
-		LaunchAsProjectileImpl(600.0f, params.direction, params.speedOverride);
+		LaunchAsProjectileImpl(600.0f, params);
 
 		SetTouch( &CGrenade::BounceTouch );	// Bounce if touched
 
@@ -428,8 +437,6 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 
 		pev->gravity = 0.5f;
 		pev->friction = 0.8f;
-
-		pev->dmg = gSkillData.plrDmgHandGrenade;
 	}
 }
 

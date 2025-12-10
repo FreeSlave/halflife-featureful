@@ -51,6 +51,9 @@ public:
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void IgniteTrail();

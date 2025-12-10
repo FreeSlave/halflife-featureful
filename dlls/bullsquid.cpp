@@ -85,6 +85,7 @@ const NamedVisual CSquidSpit::fleckVisual = BuildVisual::Spray("Bullsquid.Fleck"
 void CSquidSpit::Spawn()
 {
 	SpawnHelper("squidspit", spitVisual);
+	SetDefaultProjectileDamage(gSkillData.bullsquidDmgSpit);
 }
 
 void CSquidSpit::Precache()
@@ -135,7 +136,7 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgSpit, DMG_GENERIC) );
+		pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -144,7 +145,7 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 
 void CSquidSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
@@ -200,6 +201,8 @@ void CSquidToxicSpit::Spawn()
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
+
+	SetDefaultProjectileDamage(gSkillData.bullsquidDmgToxicImpact);
 }
 
 void CSquidToxicSpit::Precache()
@@ -285,7 +288,7 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
 			pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgToxicPoison, DMG_POISON).SetNonLethal().SetIgnoreArmor() );
-			pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgToxicImpact, DMG_ACID) );
+			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}
 
@@ -301,7 +304,7 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 
 void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }

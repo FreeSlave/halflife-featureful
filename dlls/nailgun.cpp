@@ -26,6 +26,9 @@ public:
 	void Precache() override;
 
 	void EXPORT NailTouch(CBaseEntity* pOther);
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	static const NamedVisual modelVisual;
@@ -66,6 +69,15 @@ void CNail::Spawn()
 	UTIL_SetOrigin(pev, pev->origin);
 
 	SetTouch(&CNail::NailTouch);
+
+	if (!FNullEnt(pev->owner) && FBitSet(pev->owner->v.flags, FL_CLIENT))
+	{
+		SetDefaultProjectileDamage(gSkillData.plrDmgNail);
+	}
+	else
+	{
+		SetDefaultProjectileDamage(gSkillData.monDmgNail);
+	}
 }
 
 void CNail::Precache()
@@ -84,18 +96,8 @@ void CNail::NailTouch(CBaseEntity *pOther)
 
 	if (pOther->pev->takedamage)
 	{
-		float nailDmg;
-		if (!FNullEnt(pev->owner) && FBitSet(pev->owner->v.flags, FL_CLIENT))
-		{
-			nailDmg = gSkillData.plrDmgNail;
-		}
-		else
-		{
-			nailDmg = gSkillData.monDmgNail;
-		}
-
 		entvars_t *pevOwner = VARS(pev->owner);
-		DamageInfo damageInfo(nailDmg, DMG_GENERIC);
+		DamageInfo damageInfo(GetProjectileDamage(), DMG_GENERIC);
 		damageInfo.SetGibPolicy(GIB_NEVER);
 		pOther->ApplyTraceAttack(pev, pevOwner, damageInfo, pev->velocity.Normalize(), &tr);
 
@@ -114,7 +116,7 @@ void CNail::NailTouch(CBaseEntity *pOther)
 
 void CNail::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(1000.0f, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(1000.0f, params);
 }
 
 #endif

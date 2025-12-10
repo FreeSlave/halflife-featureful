@@ -118,6 +118,9 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void Touch( CBaseEntity *pOther ) override;
 	void EXPORT Animate();
@@ -1344,6 +1347,7 @@ void CBMortar::Spawn()
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 	pev->dmgtime = gpGlobals->time + 0.4f;
+	SetDefaultProjectileDamage(gSkillData.bigmommaDmgBlast);
 }
 
 void CBMortar::Precache()
@@ -1369,7 +1373,7 @@ void CBMortar::Animate()
 
 void CBMortar::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(800.0f, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(800.0f, params);
 	pev->gravity = 1.0f;
 	SetThink( &CBMortar::Animate );
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -1402,6 +1406,6 @@ void CBMortar::Touch( CBaseEntity *pOther )
 	if( pev->owner )
 		pevOwner = VARS(pev->owner);
 
-	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{gSkillData.bigmommaDmgBlast, DMG_ACID}, gSkillData.bigmommaRadiusBlast, CLASS_NONE );
+	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ACID}, gSkillData.bigmommaRadiusBlast, CLASS_NONE );
 	UTIL_Remove( this );
 }

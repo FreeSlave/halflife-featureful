@@ -49,6 +49,9 @@ public:
 	void Precache() override;
 	void EXPORT SpikeTouch(CBaseEntity *pOther);
 	void EXPORT StartTrail();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	static const NamedSoundScript hitWorldSoundScript;
@@ -99,6 +102,8 @@ void CPitdroneSpike::Spawn()
 	pev->frame = 0;
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
+
+	SetDefaultProjectileDamage(gSkillData.pitdroneDmgSpit);
 }
 
 void CPitdroneSpike::Precache()
@@ -138,7 +143,7 @@ void CPitdroneSpike::SpikeTouch(CBaseEntity *pOther)
 	else
 	{
 		entvars_t	*pevOwner = VARS(pev->owner);
-		pOther->TakeDamage(pev, pevOwner, DamageInfo(gSkillData.pitdroneDmgSpit, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
+		pOther->TakeDamage(pev, pevOwner, DamageInfo(GetProjectileDamage(), DMG_GENERIC).SetGibPolicy(GIB_NEVER));
 		EmitSoundScript(hitBodySoundScript);
 	}
 }
@@ -151,7 +156,7 @@ void CPitdroneSpike::StartTrail()
 
 void CPitdroneSpike::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(PITDRONE_SPIKE_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(PITDRONE_SPIKE_SPEED, params);
 
 	SetThink(&CPitdroneSpike::StartTrail);
 	pev->nextthink = gpGlobals->time;

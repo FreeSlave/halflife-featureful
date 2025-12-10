@@ -91,6 +91,8 @@ void CDisplacerBall::Spawn()
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	m_iBeams = 0;
+
+	SetDefaultProjectileDamage(gSkillData.plrDmgDisplacer);
 }
 
 void CDisplacerBall::Precache()
@@ -163,7 +165,7 @@ void CDisplacerBall::ArmBeam( int iSide )
 
 void CDisplacerBall::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(DISPLACERBALL_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(DISPLACERBALL_SPEED, params);
 }
 
 void CDisplacerBall::SelfCreate(entvars_t *pevOwner,Vector vecStart)
@@ -296,7 +298,7 @@ void CDisplacerBall::ExplodeThink()
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;
 
-	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(gSkillData.plrDmgDisplacer, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), gSkillData.plrDisplacerRadius, CLASS_NONE );
+	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), gSkillData.plrDisplacerRadius, CLASS_NONE );
 
 	UTIL_Remove( this );
 }

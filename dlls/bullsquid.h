@@ -35,6 +35,9 @@ public:
 
 	void Touch(CBaseEntity *pOther) override;
 	void EXPORT Animate();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save(CSave &save) override;
@@ -63,6 +66,9 @@ public:
 	void Touch( CBaseEntity *pOther ) override;
 	void EXPORT Animate();
 	CBaseMonster* GetSpitOwner();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save( CSave &save ) override;

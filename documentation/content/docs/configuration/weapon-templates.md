@@ -580,7 +580,15 @@ The amount of damage the weapon deals per bullet.
 This can be either a number (e.g. `8`) or the name of the skill cvar (e.g. `"sk_plr_357_bullet"`). Currently it's not possible to register new skill variables, so you can just use a constant number (player's damage values are usually not affected by difficulty anyway).
 
 {{% hint warning %}}
-This currently can't configure damage values for anything other than bullets.
+This currently can configure damage values only for bullets and projectiles.
+
+For [projectile](#projectile) weapons the exact meaning of damage value depends on the projectile type: for some it's an impact damage, for some it's a damage of explosion, meaning some damage values can't be set yet - for example hand grenade direct impact damage or voltigore's charged bolt damage dealt to surrounding entities over its flight.
+{{% /hint %}}
+
+{{% hint info %}}
+The custom projectile damage needs to be provided explicitly for both primary and secondary attacks, i.e. the alt fire doesn't inherit damage from the primary fire, unless both use the same projectile name and projectile entity template.
+
+If damage is not provided the default value for the projectile will be used.
 {{% /hint %}}
 
 ### delay_after_empty
@@ -790,6 +798,10 @@ A boolean defining whether player can't move during firing. This is used by [wea
 
 An object defining the properties of the fired projectile if the [fire type](#type) is `"projectile"`.
 
+{{% hint info %}}
+To set the custom projectile damage use the [damage](#damage) property of the [fire](#fire) or [alt_fire](#alt_fire) objects. This is especially recommended when using the monster's projectiles as their damage values depend on the difficulty while player's damage is usually uniform on all difficulties.
+{{% /hint %}}
+
 #### name
 
 The name of the projectile type. Technically is can be any existing entity classname, but only certain entities support proper launching logic:
@@ -824,6 +836,7 @@ Example: make hornetgun fire squid spits instead of hornets on primary attack.
 {
     "weapon_hornetgun": {
         "fire": {
+            "damage": 10,
             "projectile": {
                 "name": "squidspit"
             }

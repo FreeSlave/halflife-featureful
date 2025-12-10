@@ -258,6 +258,8 @@ void CSpore::UpdateOnRemove()
 
 void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
+	SetProjectileParamsBeforeSpawnImpl(params);
+
 	m_SporeType = static_cast<SporeType>(params.variant);
 
 	if (!params.time)
@@ -277,7 +279,7 @@ void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 
 void CSpore::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(m_SporeType == ROCKET ? SPORE_ROCKET_SPEED : SPORE_GRENADE_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(m_SporeType == ROCKET ? SPORE_ROCKET_SPEED : SPORE_GRENADE_SPEED, params);
 }
 
 //=========================================================

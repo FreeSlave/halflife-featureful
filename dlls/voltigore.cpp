@@ -50,6 +50,9 @@ public:
 
 	static CChargedBolt* ChargedBoltCreate(EntityOverrides entityOverrides = EntityOverrides());
 
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	void SetAttachment(CBaseAnimating* pAttachEnt, int iAttachIdx);
@@ -133,6 +136,8 @@ void CChargedBolt::Spawn()
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 
 	InitBeams();
+
+	SetDefaultProjectileDamage(gSkillData.voltigoreDmgBeam);
 }
 
 void CChargedBolt::InitBeams()
@@ -178,7 +183,7 @@ CChargedBolt* CChargedBolt::ChargedBoltCreate(EntityOverrides entityOverrides)
 
 void CChargedBolt::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(CHARGEDBOLT_SPEED, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(CHARGEDBOLT_SPEED, params);
 
 	SetTouch(&CChargedBolt::ChargedBoltTouch);
 	SetThink(&CChargedBolt::FlyThink);
@@ -288,7 +293,7 @@ void CChargedBolt::FlyThink()
 
 	if (m_radiusCheckTime <= gpGlobals->time)
 	{
-		DoRadiusDamage(gSkillData.voltigoreDmgBeam * 0.2f, 32);
+		DoRadiusDamage(GetProjectileDamage() * 0.2f, 32);
 		m_radiusCheckTime = gpGlobals->time + 0.1f;
 	}
 }
@@ -296,7 +301,7 @@ void CChargedBolt::FlyThink()
 void CChargedBolt::PreShutdownThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
-	DoRadiusDamage(gSkillData.voltigoreDmgBeam * 0.2f, 32);
+	DoRadiusDamage(GetProjectileDamage() * 0.2f, 32);
 
 	if (m_shutdownTime <= gpGlobals->time)
 	{
@@ -336,7 +341,7 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 	{
 		TraceResult tr = UTIL_GetGlobalTrace();
 		entvars_t* pAttacker = FNullEnt(pev->owner) ? pev : VARS(pev->owner);
-		pOther->ApplyTraceAttack(pev, pAttacker, DamageInfo(gSkillData.voltigoreDmgBeam, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
+		pOther->ApplyTraceAttack(pev, pAttacker, DamageInfo(GetProjectileDamage(), DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
 	}
 
 	pev->velocity = g_vecZero;

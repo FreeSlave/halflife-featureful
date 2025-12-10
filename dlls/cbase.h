@@ -278,6 +278,7 @@ struct ProjectileParameters
 	float speedOverride{0.0f};
 	CBaseEntity* pLauncher = nullptr;
 	float time{0.0f};
+	float damageOverride{0.0f};
 };
 
 #define SF_ITEM_TOUCH_ONLY 128
@@ -676,10 +677,21 @@ public:
 	virtual bool PlaysItsOwnHitSounds() const { return false; }
 	virtual bool MustAddToFullPack(unsigned char *pSet) { return false; }
 
+	inline void SetDefaultProjectileDamage(float damage) {
+		if (!pev->dmg)
+			pev->dmg = damage;
+	}
+	inline float GetProjectileDamage() {
+		return pev->dmg;
+	}
+	void SetProjectileParamsBeforeSpawnImpl(const ProjectileParameters& params) {
+		if (params.damageOverride > 0.0f)
+			pev->dmg = params.damageOverride;
+	}
 	virtual void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) {}
-	void LaunchAsProjectileImpl(float defaultSpeed, const Vector& vecDirection, float speedOverride = 0.0f) {
-		float speed = speedOverride ? speedOverride : defaultSpeed;
-		pev->velocity = vecDirection * speed;
+	void LaunchAsProjectileImpl(float defaultSpeed, const ProjectileParameters& params) {
+		float speed = params.speedOverride ? params.speedOverride : defaultSpeed;
+		pev->velocity = params.direction * speed;
 	}
 	virtual void LaunchAsProjectile(const ProjectileParameters& params) {}
 };

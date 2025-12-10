@@ -1553,6 +1553,10 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 		projectileParams.variant = projectileVariant;
 		projectileParams.pLauncher = this;
 		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+		const bool allowDamageInheritance = !altMode || (fire.projectileName.Get(false) == fire.projectileName.Get(true) && fire.projectileEntTemplate.Get(false) == fire.projectileEntTemplate.Get(true));
+		const float customDamage = allowDamageInheritance ? fire.damage.Get(altMode) : (altMode ? fire.damage.alt : fire.damage.main);
+		if (customDamage > 0)
+			projectileParams.damageOverride = customDamage;
 		CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);
 
 		if (pProjectile)

@@ -73,6 +73,7 @@ const NamedVisual CGonomeGuts::gutsVisual = BuildVisual::Animated("Gonome.Guts")
 void CGonomeGuts::Spawn()
 {
 	SpawnHelper("gonomeguts", gutsVisual);
+	SetDefaultProjectileDamage(gSkillData.gonomeDmgGuts);
 }
 
 void CGonomeGuts::Precache()
@@ -100,7 +101,7 @@ void CGonomeGuts::Touch( CBaseEntity *pOther )
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.gonomeDmgGuts, DMG_GENERIC) );
+		pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );

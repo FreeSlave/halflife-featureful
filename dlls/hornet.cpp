@@ -136,12 +136,12 @@ void CHornet::Spawn()
 
 	if( !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
 	{
-		pev->dmg = gSkillData.plrDmgHornet;
+		SetDefaultProjectileDamage(gSkillData.plrDmgHornet);
 	}
 	else
 	{
-		// no real owner, or owner isn't a client. 
-		pev->dmg = gSkillData.monDmgHornet;
+		// no real owner, or owner isn't a client.
+		SetDefaultProjectileDamage(gSkillData.monDmgHornet);
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -202,7 +202,7 @@ int CHornet::Classify()
 void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	const float defaultSpeed = params.variant == DART ? 1200.0f : 300.0f;
-	LaunchAsProjectileImpl(defaultSpeed, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(defaultSpeed, params);
 	if (params.variant == DART)
 		SetThink( &CHornet::StartDart );
 }
@@ -416,7 +416,7 @@ void CHornet::DieTouch( CBaseEntity *pOther )
 		// do the damage
 		EmitSoundScript(dieSoundScript);
 
-		pOther->TakeDamage( pev, VARS( pev->owner ), DamageInfo(pev->dmg, DMG_BULLET) );
+		pOther->TakeDamage( pev, VARS( pev->owner ), DamageInfo(GetProjectileDamage(), DMG_BULLET) );
 	}
 
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid

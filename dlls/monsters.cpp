@@ -3903,7 +3903,7 @@ void CBaseMonster::Activate()
 
 void CBaseMonster::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(600.0f, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(600.0f, params);
 	pev->angles.x = pev->angles.z = 0;
 	pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
 	m_clearOwnerTime = gpGlobals->time + 1.0f;

@@ -1079,6 +1079,9 @@ public:
 	void Precache() override;
 	void EXPORT IgniteThink();
 	void EXPORT AccelerateThink();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save( CSave &save ) override;
@@ -1141,7 +1144,7 @@ void CApacheHVR::Spawn()
 
 	pev->nextthink = gpGlobals->time + 0.1f;
 
-	pev->dmg = 150;
+	SetDefaultProjectileDamage(150.0f);
 }
 
 void CApacheHVR::Precache()
@@ -1194,7 +1197,7 @@ void CApacheHVR::AccelerateThink()
 
 void CApacheHVR::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(100.0f, params.direction, params.speedOverride);
+	LaunchAsProjectileImpl(100.0f, params);
 }
 
 class CBlkopApache : public CApache
