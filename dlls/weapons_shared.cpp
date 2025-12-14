@@ -1549,12 +1549,14 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 			entityOverrides.entTemplate = MAKE_STRING(fire.projectileEntTemplate.Get(altMode).c_str());
 		}
 		ProjectileParameters projectileParams(projectileStr, vecSrc, vecAngles, vecDir, m_pPlayer, entityOverrides);
-		projectileParams.speedOverride = fire.projectileSpeed.Get(altMode);
+		const bool allowInheritance = !altMode || (fire.projectileName.Get(false) == fire.projectileName.Get(true) && fire.projectileEntTemplate.Get(false) == fire.projectileEntTemplate.Get(true));
+		const float customSpeed = allowInheritance ? fire.projectileSpeed.Get(altMode) : (altMode ? fire.projectileSpeed.alt : fire.projectileSpeed.main);
+		if (customSpeed > 0)
+			projectileParams.speedOverride = customSpeed;
 		projectileParams.variant = projectileVariant;
 		projectileParams.pLauncher = this;
 		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
-		const bool allowDamageInheritance = !altMode || (fire.projectileName.Get(false) == fire.projectileName.Get(true) && fire.projectileEntTemplate.Get(false) == fire.projectileEntTemplate.Get(true));
-		const float customDamage = allowDamageInheritance ? fire.damage.Get(altMode) : (altMode ? fire.damage.alt : fire.damage.main);
+		const float customDamage = allowInheritance ? fire.damage.Get(altMode) : (altMode ? fire.damage.alt : fire.damage.main);
 		if (customDamage > 0)
 			projectileParams.damageOverride = customDamage;
 		CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);

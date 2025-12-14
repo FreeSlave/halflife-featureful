@@ -894,7 +894,7 @@ A boolean - whether the current player's punchangle should be accounted for when
 
 #### speed
 
-Custom speed for a projectile. This must be a number higher than 0. If not set the speed depends on the projectile.
+Custom speed for a projectile. This must be a number higher than 0. If not set, the default speed is used (depends on the projectile type). The secondary attack inherits the custom speed only if it uses the projectile of the same name and entity template.
 
 #### time
 

@@ -629,7 +629,7 @@ struct WeaponParameters
 		WeaponModeValue<float> projectileOffsetForward{0.0f};
 		WeaponModeValue<bool> projectileRespectPunchangle{true};
 		WeaponModeValue<bool> projectileAdjustToCross{true};
-		WeaponModeValue<float> projectileSpeed{0.0f};
+		WeaponModeValueNonNegative<float> projectileSpeed{0.0f};
 		WeaponModeValue<ADD_VELOCITY> projectileAddCurrentVelocity{DONT_ADD_VELOCITY};
 		WeaponModeValue<float> projectileDetonationTime{0.0f};
 		WeaponModeValue<FirePhaseArray> projectileFirePhases;
