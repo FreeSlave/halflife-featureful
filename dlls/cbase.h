@@ -628,6 +628,7 @@ public:
 
 	static CBaseEntity *Create( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner = NULL, EntityOverrides entityOverrides = EntityOverrides() );
 	static CBaseEntity *CreateNoSpawn( const char *szName, const Vector &vecOrigin, const Vector &vecAngles, edict_t *pentOwner = NULL, EntityOverrides entityOverrides = EntityOverrides() );
+	static CBaseEntity *CreateProjectile(const ProjectileParameters& params);
 	static CBaseEntity *CreateAndLaunchAsProjectile(const ProjectileParameters& params);
 
 	virtual bool FBecomeProne() {return false;}

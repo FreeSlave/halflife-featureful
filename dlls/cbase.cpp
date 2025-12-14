@@ -1828,17 +1828,23 @@ CBaseEntity *CBaseEntity::CreateNoSpawn( const char *szName, const Vector &vecOr
 	return pEntity;
 }
 
-CBaseEntity* CBaseEntity::CreateAndLaunchAsProjectile(const ProjectileParameters& params)
+CBaseEntity* CBaseEntity::CreateProjectile(const ProjectileParameters& params)
 {
 	CBaseEntity* pProjectile = CreateNoSpawn(params.classname, params.origin, params.angles, params.pOwner ? params.pOwner->edict() : nullptr, params.entityOverrides);
 	if (pProjectile)
 	{
 		pProjectile->SetProjectileParamsBeforeSpawn(params);
 		pProjectile = DispatchSpawnAutoClean(pProjectile);
-		if (pProjectile)
-		{
-			pProjectile->LaunchAsProjectile(params);
-		}
+	}
+	return pProjectile;
+}
+
+CBaseEntity* CBaseEntity::CreateAndLaunchAsProjectile(const ProjectileParameters& params)
+{
+	CBaseEntity* pProjectile = CreateProjectile(params);
+	if (pProjectile)
+	{
+		pProjectile->LaunchAsProjectile(params);
 	}
 	return pProjectile;
 }

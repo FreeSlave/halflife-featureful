@@ -48,8 +48,6 @@ public:
 
 	void EXPORT ShutdownChargedBolt();
 
-	static CChargedBolt* ChargedBoltCreate(EntityOverrides entityOverrides = EntityOverrides());
-
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -168,17 +166,6 @@ void CChargedBolt::ShutdownChargedBolt()
 	ClearBeams();
 
 	UTIL_Remove(this);
-}
-
-CChargedBolt* CChargedBolt::ChargedBoltCreate(EntityOverrides entityOverrides)
-{
-	auto pBolt = GetClassPtr<CChargedBolt>(nullptr);
-
-	pBolt->pev->classname = MAKE_STRING("charged_bolt");
-	pBolt->AssignEntityOverrides(entityOverrides);
-	pBolt->Spawn();
-
-	return pBolt;
 }
 
 void CChargedBolt::LaunchAsProjectile(const ProjectileParameters &params)
@@ -708,7 +695,8 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 	{
 	case VOLTIGORE_AE_THROW:
 	{
-		if (m_pChargedBolt)
+		CBaseEntity* pChargedBolt = m_pChargedBolt;
+		if (pChargedBolt)
 		{
 			UTIL_MakeVectors(pev->angles);
 
@@ -719,12 +707,9 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 			TraceResult tr;
 			UTIL_TraceLine(shootPosition, shootPosition + direction * 1024, dont_ignore_monsters, edict(), &tr);
 
-			CChargedBolt* bolt = m_pChargedBolt.Entity<CChargedBolt>();
-			bolt->pev->owner = edict();
-
 			ProjectileParameters params;
 			params.direction = direction;
-			bolt->LaunchAsProjectile(params);
+			pChargedBolt->LaunchAsProjectile(params);
 
 			//We no longer have to manage the bolt now
 			m_pChargedBolt = 0;
@@ -1030,9 +1015,9 @@ void CVoltigore::StartTask(Task_t *pTask)
 				pBeam->SetEndAttachment(i + 1);
 			}
 
-			m_pChargedBolt = CChargedBolt::ChargedBoltCreate(GetProjectileOverrides());
-
-			UTIL_SetOrigin(m_pChargedBolt->pev, vecConverge);
+			ProjectileParameters params("charged_bolt", vecConverge, pev->angles, 0.0f, this);
+			params.entityOverrides = GetProjectileOverrides();
+			m_pChargedBolt = CreateProjectile(params);
 
 			EmitSoundScriptAmbient(pev->origin, beamAttackSoundScript);
 			CSquadMonster::StartTask(pTask);
