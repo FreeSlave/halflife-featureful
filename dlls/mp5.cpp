@@ -157,8 +157,8 @@ WeaponParameters CMP5::GetDefaultParameters() const
 	params.fire.muzzleFlash.alt = false;
 	params.fire.weaponVolume.alt = NORMAL_GUN_VOLUME;
 	params.fire.weaponFlash.alt = BRIGHT_GUN_FLASH;
-	params.fire.extraSoundTypes = bits_SOUND_DANGER;
-	params.fire.extraSoundTime = 0.2f;
+	//params.fire.extraSoundTypes = bits_SOUND_DANGER;
+	//params.fire.extraSoundTime = 0.2f;
 
 	params.fire.delayAfterEmpty.alt = 0.0f;
 
