@@ -1158,7 +1158,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	if (extraSoundTypes)
 	{
 		m_pPlayer->m_iExtraSoundTypes = extraSoundTypes;
-		m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + fire.extraSoundTime.Get(altMode);
+		m_pPlayer->m_flStopExtraSoundTime = gpGlobals->time + fire.extraSoundTime.Get(altMode);
 	}
 
 	Vector vecSrc = m_pPlayer->GetGunPosition();
