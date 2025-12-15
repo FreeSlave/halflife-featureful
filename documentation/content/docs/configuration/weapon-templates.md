@@ -292,25 +292,6 @@ Everything else should be manually defined.
 
 This option is useful if you want to ensure there're no lingering options left from the original weapon.
 
-## autoaim
-
-An autoaim degree. This must be a number between 0 and 1 (the `sin` of autoaim angle) or the string in the form `"5degrees"`, `"8degrees"`, etc. The number before `degrees` is the angle. It must be an integer between 1 and 10.
-
-```json
-{
-    "weapon_9mmhandgun": {
-        "fire": {
-            "autoaim": "10degrees"
-        }
-    },
-    "weapon_9mmAR": {
-        "fire": {
-            "autoaim": "5degrees"
-        }
-    }
-}
-```
-
 ## deploy
 
 An object defining properties for weapon deploy customization.
@@ -507,6 +488,28 @@ Same as [anims](#anims), but used when weapon becomes out of ammo. Some weapons 
 * [weapon_sniperrifle]({{< ref weapon_sniperrifle >}})
 
 Set it to `null` to remove the defaults and let the weapon always use [anims](#anims).
+
+### autoaim
+
+An autoaim degree (used when autoaim is enabled). This must be a number between 0 and 1 (the `sin` of autoaim angle) where 0 means no autoaim or the string in the form `"5degrees"`, `"8degrees"`, etc. The number before `degrees` is the angle. It must be an integer between 1 and 10.
+
+```json
+{
+    "weapon_9mmhandgun": {
+        "fire": {
+            "autoaim": "10degrees"
+        }
+    },
+    "weapon_9mmAR": {
+        "fire": {
+            "autoaim": "5degrees"
+        },
+        "alt_fire": {
+            "autoaim": 0
+        }
+    }
+}
+```
 
 ### bullet_count
 
