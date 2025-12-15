@@ -6,6 +6,7 @@
 #include "error_collector.h"
 #include "weapon_parameters.h"
 #include "sound_channel.h"
+#include "soundent_bits.h"
 
 #if SERVER_DLL
 #include "skill.h"
@@ -621,6 +622,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			});
 
 			UpdatePropertyFromJson(fire.cycleTime, value, "cycle_time", altMode);
+			UpdatePropertyFromJson(fire.cycleTimeLastShot, value, "cycle_time_last_shot", altMode);
 			UpdatePropertyFromJson(fire.idleDelay, value, "idle_delay", altMode, false);
 			UpdatePropertyFromJson(fire.idleDelay, value, "idle_delay_empty", altMode, true);
 			UpdatePropertyFromJson(fire.ammoPerFire, value, "ammo_per_fire", altMode);
@@ -954,6 +956,38 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						fire.projectileFirePhases.Materialize(altMode) = std::move(firePhases);
 					}
 				});
+			});
+
+			HandleJSONMember(value, "extra_ai_sound", [&](const Value& value) {
+				HandleJSONMember(value, "type", [&](const Value& value) {
+					auto parseAISoundType = [](const char* str)
+					{
+						if (stricmp(str, "danger") == 0)
+						{
+							return bits_SOUND_DANGER;
+						}
+						else if (stricmp(str, "combat") == 0)
+						{
+							return bits_SOUND_COMBAT;
+						}
+						return 0;
+					};
+					int soundType = 0;
+					if (value.IsArray())
+					{
+						Value::ConstArray arr = value.GetArray();
+						for (auto& item : arr)
+						{
+							soundType |= parseAISoundType(item.GetString());
+						}
+					}
+					else if (value.IsString())
+					{
+						soundType = parseAISoundType(value.GetString());
+					}
+					fire.extraSoundTypes.Materialize(altMode) = soundType;
+				});
+				UpdatePropertyFromJson(fire.extraSoundTime, value, "time", altMode);
 			});
 		});
 	};

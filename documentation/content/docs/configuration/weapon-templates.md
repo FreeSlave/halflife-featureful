@@ -482,7 +482,7 @@ The array of animation indices. The random animation is picked when weapon is fi
 
 ### anims_last_shot
 
-Same as [anims](#anims), but used when weapon becomes out of ammo. Some weapons define this by default:
+Same as [anims](#anims), but used when weapon becomes out of ammo (primary or secondary ammo depending on what ammo is used by the attack). Some weapons define this by default:
 
 * [weapon_9mmhandgun]({{< ref weapon_9mmhandgun >}})
 * [weapon_crossbow]({{< ref weapon_crossbow >}})
@@ -573,6 +573,10 @@ Same as [client_punch_pitch](#client_punch_pitch) but for lateral punch. Use neg
 
 The delay between shots, in seconds. This defines the rate of fire: the less the value, the higher the rate.
 
+### cycle_time_last_shot
+
+The delay before next shot after the ammo depletion. This makes sense only for weapons that use different ammo types for primary and secondary attacks. This is 0 by default. If it's 0 the value of `cycle_time` is used for the last shot.
+
 ### damage
 
 The amount of damage the weapon deals per bullet.
@@ -622,6 +626,35 @@ Example:
 A boolean defining whether the default **Weapon.Empty** soundscript (see [common item soundscripts]({{< ref "soundscripts#common-item-soundscripts" >}})) should be played when player is trying to fire a weapon without having enough ammo for it or underwater with [allow_underwater](#allow_underwater) set to `false`.
 
 This is `true` by default. You must define [empty_sound](#empty_sound) to change the empty sound or set this property to `false` to remove the empty sound altogether.
+
+### extra_ai_sound
+
+An object defining an extra AI sound produced by player when firing this weapon. Monsters may react to it.
+
+```json
+{
+    "weapon_9mmAR": {
+        "alt_fire": {
+            "extra_ai_sound": {
+                "type": ["danger"],
+                "time": 0.2
+            }
+        }
+    }
+}
+```
+
+{{% hint info %}}
+Firing a weapon already produces a combat AI sound (depends on the [weapon_volume](#weapon_volume)), thus the "extra" in the name of this property.
+{{% /hint %}}
+
+#### type
+
+Type of AI sound. This can be a single string value or an array. Possible values: `"danger"`. Empty array explicitly disables the extra sounds.
+
+#### time
+
+Duration of sound. This is 0.2 by default.
 
 ### idle_delay
 

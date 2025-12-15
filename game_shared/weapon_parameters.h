@@ -564,6 +564,7 @@ struct WeaponParameters
 
 		WeaponSpread spread{};
 		WeaponModeValueNonNegative<float> cycleTime{0.2f};
+		WeaponModeValueNonNegative<float> cycleTimeLastShot{0.0f};
 		WeaponModeValueEmptyAwareNonNegative<FloatRange> idleDelay{(FloatRange{10.0f, 15.0f})};
 		WeaponModeValueNonNegative<short> ammoPerFire{1};
 		WeaponModeValue<bool> allowUnderwater{true};

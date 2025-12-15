@@ -1185,6 +1185,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
 	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
 
+	bool lastShot = false;
+
 	if (ammoPerFire > 0)
 	{
 		if (useSecondaryAmmo)
@@ -1199,6 +1201,9 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				}
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
+
+				if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] == 0)
+					lastShot = true;
 			}
 		}
 		else
@@ -1226,6 +1231,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				}
 				SpendAmmo(ammoPerFire);
 				UpdateRechargeTime(altMode);
+				lastShot = Emptied();
 				OnSpendAmmo();
 			}
 		}
@@ -1233,7 +1239,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	m_shouldPlayCooldown = true;
 
-	const float flCycleTime = fire.cycleTime.Get(altMode);
+	const float flCycleTime = (lastShot && fire.cycleTimeLastShot.Get(altMode) > 0.0f) ? fire.cycleTimeLastShot.Get(altMode) : fire.cycleTime.Get(altMode);
 
 	if (params.toolIndex >= 0)
 	{
@@ -1384,7 +1390,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	m_flInaccuracy = fire.spread.GetNewInaccuracy(altMode, m_flInaccuracy, m_iShotsFired, m_flLastFire, gpGlobals->time);
 	m_flLastFire = gpGlobals->time;
 
-	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+	const int iParam1Bits = PackIParam1(altMode, lastShot, m_bAlternatingEject);
 
 	/* TODO: is this good enough?
 	 * We could send spread values as is, pack flags and body into iparam1 and
@@ -1431,7 +1437,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	if (pumpTime)
 		m_flPumpTime = gpGlobals->time + pumpTime;
 
-	const FloatRange weaponIdleDelayRange = fire.idleDelay.Get(altMode, Emptied());
+	const FloatRange weaponIdleDelayRange = fire.idleDelay.Get(altMode, lastShot);
 	const float weaponIdleDelay = RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, weaponIdleDelayRange);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + weaponIdleDelay;
 

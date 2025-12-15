@@ -362,6 +362,10 @@ const char* const json_schemas::weapons = R"(
 				"type": "number",
 				"exclusiveMinimum": 0
 			},
+			"cycle_time_last_shot": {
+				"type": "number",
+				"minimum": 0
+			},
 			"idle_delay": {
 				"$ref": "definitions.json#/range"
 			},
@@ -657,6 +661,28 @@ const char* const json_schemas::weapons = R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"extra_ai_sound": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"oneOf": [
+							{
+								"$ref": "definitions.json#/ai_sound_type"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "definitions.json#/ai_sound_type"
+								}
+							}
+						]
+					},
+					"time": {
+						"type": "number",
+						"exclusiveMinimum": 0
+					}
+				}
 			}
 		},
 		"additionalProperties": false

@@ -714,6 +714,14 @@ const char* const json_schemas::definitions = R"(
 			"$ref": "#/child_variant"
 		}
 	},
+	"ai_sound_type": {
+		"enum": [
+			"Danger",
+			"danger",
+			"Combat",
+			"combat"
+		]
+	},
 )"
 R"(
 	"entity_template": {
