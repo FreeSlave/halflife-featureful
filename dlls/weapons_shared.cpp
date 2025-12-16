@@ -1875,7 +1875,9 @@ bool CConfigurableWeapon::PerformReload()
 #if !CLIENT_DLL
 	if (m_pLaser)
 	{
-		const float reloadDuration = reload.duration.Get(altMode, empty);
+		float reloadDuration = reload.duration.Get(altMode, empty);
+		const float attackDelay = reload.attackDelay.Get(altMode, empty);
+		reloadDuration = Q_max(reloadDuration, attackDelay);
 		const float suspendLaserTime = reload.suspendLaserSpotTime.Get(altMode, empty);
 		const float suspendDuration = Q_max(reloadDuration, suspendLaserTime);
 		if (suspendDuration > 0.0f)
