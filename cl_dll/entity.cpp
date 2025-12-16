@@ -707,7 +707,10 @@ void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct
 		break;
 	case 5005:
 		// TODO: this is a stub for Sven Co-op specific event. Sven Co-op defines muzzle flashes in the external files
-		gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], 31 );
+		{
+			if (*event->options != '\0' && atoi(event->options) == 0) // check that this is not an empty string and not a number (Sven Co-op expects the file name)
+				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], 31 );
+		}
 		break;
 	default:
 		break;
