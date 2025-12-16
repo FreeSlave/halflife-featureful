@@ -130,6 +130,7 @@ TYPEDESCRIPTION	CRpgRocket::m_SaveData[] =
 {
 	DEFINE_FIELD( CRpgRocket, m_flIgniteTime, FIELD_TIME ),
 	DEFINE_FIELD( CRpgRocket, m_hLauncher, FIELD_EHANDLE ),
+	DEFINE_FIELD( CRpgRocket, m_straight, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CRpgRocket, CGrenade )
@@ -176,7 +177,10 @@ void CRpgRocket::Spawn()
 {
 	Precache();
 	// motor
-	pev->movetype = MOVETYPE_BOUNCE;
+	if (m_straight)
+		pev->movetype = MOVETYPE_FLY;
+	else
+		pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
 	SetMyModel("models/rpgrocket.mdl");
@@ -188,13 +192,15 @@ void CRpgRocket::Spawn()
 	SetThink( &CRpgRocket::IgniteThink );
 	SetTouch( &CGrenade::ExplodeTouch );
 
-	Vector angles = pev->angles;
-	angles.x = -angles.x;
-	angles.x -= 30.0f;
-	UTIL_MakeVectors(angles);
-
+	if (!m_straight)
+	{
+		Vector angles = pev->angles;
+		angles.x = -angles.x;
+		angles.x -= 30.0f;
+		UTIL_MakeVectors(angles);
+		pev->gravity = 0.5f;
+	}
 	pev->velocity = gpGlobals->v_forward * 250.0f;
-	pev->gravity = 0.5f;
 
 	pev->nextthink = gpGlobals->time + 0.4f;
 
@@ -214,6 +220,7 @@ void CRpgRocket::Precache()
 void CRpgRocket::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
 	SetProjectileParamsBeforeSpawnImpl(params);
+	m_straight = params.variant != 0;
 	if (params.pLauncher)
 	{
 		CBasePlayerWeapon* pWeapon = params.pLauncher->MyWeaponPointer();

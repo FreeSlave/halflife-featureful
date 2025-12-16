@@ -10,6 +10,12 @@ class CRpg;
 class CRpgRocket : public CGrenade
 {
 public:
+	enum
+	{
+		STANDARD = 0,
+		STRAIGHT = 1
+	};
+
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
@@ -24,6 +30,7 @@ public:
 
 	float m_flIgniteTime;
 	EHANDLE m_hLauncher; // handle back to the launcher that fired me.
+	bool m_straight;
 
 	static const NamedSoundScript rocketIgniteSoundScript;
 

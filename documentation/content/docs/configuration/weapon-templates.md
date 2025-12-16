@@ -857,7 +857,9 @@ The name of the projectile type. Technically is can be any existing entity class
 
 There're also some predefined names to support alternative variants of existing projectiles:
 
+* `"AR grenade"` - same as `"grenade"`.
 * `"crossbow_bolt explosive"` - explosive crossbow bolt (Half-Life deathmatch).
+* `"rpg_rocket straight"` - same as `"rpg_rocket"` but it doesn't fly upwards a bit before going to the target.
 * `"hornet dart"` - fast non-tracking hornets (hornetgun secondary attack).
 * `"hand grenade"` - timed hand grenade.
 * `"spore rocket"` - contact spore that flies forward (spore launcher primary attack).

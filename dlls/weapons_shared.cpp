@@ -624,6 +624,11 @@ const char* GetRealProjectileClassname(const char* projectileName, int& variant)
 		variant = 1;
 		return "crossbow_bolt";
 	}
+	else if (FStrEq(projectileName, "rpg_rocket straight"))
+	{
+		variant = 1;
+		return "rpg_rocket";
+	}
 #endif
 	variant = 0;
 	return projectileName;
