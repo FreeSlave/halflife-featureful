@@ -765,7 +765,7 @@ TEST(Weapons, Parse) {
 
 		const WeaponParameters& testParams = *pTestParams;
 
-		EXPECT_EQ(testParams.fire.fireType.Get(false), WeaponParameters::Fire::PROJECTLE);
+		EXPECT_EQ(testParams.fire.fireType.Get(false), WeaponParameters::Fire::PROJECTILE);
 		EXPECT_EQ(testParams.fire.projectileName.Get(false), "grenade");
 		EXPECT_EQ(testParams.fire.projectileEntTemplate.Get(false), "template_name");
 		EXPECT_EQ(testParams.fire.projectileOffsetForward.Get(false), 16.0f);
