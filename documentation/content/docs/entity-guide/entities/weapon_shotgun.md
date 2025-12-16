@@ -22,4 +22,16 @@ See [M3]({{< ref "weapon-templates-presets#m3" >}})
 
 {{% /tab %}}
 
+{{% tab "Shotguns from Deathmatch Classic" %}}
+
+See [Deathmatch Classic]({{< ref "weapon-templates-presets#deathmatch-classic" >}})
+
+{{% /tab %}}
+
+{{% tab "Shotgun from Sven Co-op" %}}
+
+See [Sven Co-op]({{< ref "weapon-templates-presets#sven-co-op" >}})
+
+{{% /tab %}}
+
 {{% /tabs %}}

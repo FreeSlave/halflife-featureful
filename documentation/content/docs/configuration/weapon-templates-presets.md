@@ -685,9 +685,117 @@ Required sounds:
 * **weapons/m249_coverdown.wav**
 {{% /details_header %}}
 
+## Deathmatch Classic
+
+The templates for Deathmatch Classic weapons are stored in the **templates/weapons/dmc/** directory. Not all weapons are implemented yet.
+
+{{% details "Example" open %}}
+```json
+{
+    "weapon_shotgun": "dmc/shotgun",
+    "weapon_shotgun2": "dmc/supershotgun",
+    "weapon_nailgun": "dmc/nailgun",
+    "weapon_rifle": "dmc/supernailgun"
+}
+```
+{{% /details %}}
+
+{{% details_header title="Shotgun" %}}
+```json
+{
+    "weapon_shotgun": "dmc/shotgun"
+}
+```
+
+A simple shotgun.
+
+Required models:
+
+* **v_shot.mdl**
+* **p_shot.mdl**
+
+{{% hint warning %}}
+The **w_** model is missing in Deathmatch Classic because shotgun is provided to the player by default (so no need for the world model). This template uses **w_weaponbox.mdl** instead. Change it if you have a custom model.
+{{% /hint %}}
+
+Required sounds:
+
+* **weapons/guncock.wav**
+{{% /details_header %}}
+
+{{% details_header title="Super Shotgun" %}}
+```json
+{
+    "weapon_shotgun2": "dmc/supershotgun"
+}
+```
+
+A simple double barrel shotgun.
+
+Required models:
+
+* **g_shot2.mdl**
+* **v_shot2.mdl**
+* **p_shot2.mdl**
+
+Required sounds:
+
+* **weapons/shotgn2.wav**
+{{% /details_header %}}
+
+{{% details_header title="Nailgun" %}}
+```json
+{
+    "weapon_nailgun": "dmc/nailgun"
+}
+```
+
+Required models:
+
+* **g_nail.mdl**
+* **v_nail.mdl**
+* **p_nail.mdl**
+
+Required sounds:
+
+* **weapons/rocket1i.wav**
+{{% /details_header %}}
+
+{{% details_header title="Super Nailgun" %}}
+```json
+{
+    "weapon_rifle": "dmc/supernailgun"
+}
+```
+
+Required models:
+
+* **g_nail2.mdl**
+* **v_nail2.mdl**
+* **p_nail2.mdl**
+
+Required sounds:
+
+* **weapons/spike2_dmc.wav**
+{{% /details_header %}}
+
+{{% hint info %}}
+The DMC nailguns use a different model for the nails. You can copy **spike.mdl** from DMC under the **nail.mdl** name or use the following [entity template]({{< ref entity-templates >}}):
+
+```json
+{
+    "dmc_nail": {
+        "own_visual": {
+            "model": "models/spike.mdl"
+        }
+    }
+}
+```
+{{% /hint %}}
+
 ## Delta Particles
 
-The templates for Delta Particles weapons are stored in the **templates/weapons/dp/** directory. Not all weapons are implemented yet. This is work in progress.
+The templates for Delta Particles weapons are stored in the **templates/weapons/dp/** directory. Not all weapons are implemented yet.
 
 {{% details "Example" open %}}
 ```json
@@ -695,6 +803,7 @@ The templates for Delta Particles weapons are stored in the **templates/weapons/
     "weapon_9mmhandgun": "dp/glock",
     "weapon_357": "dp/python",
     "weapon_eagle": "dp/44desert_eagle",
+    "weapon_9mmAR": "dp/m4a1",
     "weapon_smg": "dp/smg",
     "weapon_shotgun": "dp/shotgun",
     "weapon_sniperrifle": "dp/barrett_m82a1"
@@ -716,7 +825,7 @@ Delta Particles changes the way some HL weapons behave as well as adds its own w
 }
 ```
 
-Glock from Delta Particles with burst fire, screen shake and shells ejecting to the left side.
+Glock from Delta Particles with burst fire and shells ejecting to the left side.
 
 {{% hint warning %}}
 This template is designed specifically for `weapon_9mmhandgun`, it won't work properly for other weapons without modifications.
@@ -744,7 +853,7 @@ Required sounds:
 }
 ```
 
-Python with a scope ability and a laser spot when unscoped. This also adds a screen shake effect.
+Python with a scope ability and a laser spot when unscoped.
 
 {{% hint warning %}}
 This template is designed specifically for `weapon_357`, it won't work properly for other weapons without modifications.
@@ -790,6 +899,38 @@ Required sounds:
 * **weapons/44_gun_fire.wav**
 {{% /details_header %}}
 
+{{% details_header title="M4A1" %}}
+```json
+{
+    "weapon_9mmAR": "dp/m4a1"
+}
+```
+
+M4A1 with a grenade launcher. Uses `556` ammo.
+
+Required models:
+
+* **w_m4a1.mdl**
+* **v_m4a1.mdl**
+* **p_m4a1.mdl**
+* **rifleshell.mdl**
+
+Required sounds:
+
+* **weapons/556mm_fire.wav**
+* **weapons/glauncher.wav** (custom sound from Delta Particles)
+* **weapons/glauncher2.wav** (custom sound from Delta Particles)
+* **items/gl_insertshell.wav**
+* **items/glauncher_in.wav**
+* **items/glauncher_out.wav**
+* **items/clipinsert1.wav** (custom sound from Delta Particles)
+* **items/cliprelease1.wav** (custom sound from Delta Particles)
+* **items/AR_slide.wav**
+* **items/deploy_default3.wav**
+* **items/deploy_m4a1.wav**
+
+{{% /details_header %}}
+
 {{% details_header title="SMG" %}}
 ```json
 {
@@ -832,7 +973,7 @@ This template is designed specifically for `weapon_shotgun`, it won't work prope
 {{% /hint %}}
 
 {{% hint warning %}}
-Delta Particles uses custom animation events and attachment point for shell ejection. This is not implemented in Featureful SDK. Instead, the ejection delay and shell offset are provided as constant value in the configuration file.
+Delta Particles uses custom animation events and attachment point for shell ejection. This is not implemented in Featureful SDK. Instead, the ejection delay and shell offset are provided as constant value in the weapon template file.
 {{% /hint %}}
 
 Required models:
@@ -877,6 +1018,55 @@ Required sounds:
 * **weapons/sniper_bolt3.wav**
 {{% /details_header %}}
 
+## Poke646
+
+The templates for Poke646 weapons are store in the **templates/weapons/poke646/** directory. Not all weapons are implemented yet.
+
+{{% details "Example" open %}}
+```json
+{
+    "weapon_pistol": "poke646/bradnailer",
+    "weapon_nailgun": "poke646/nailgun"
+}
+```
+{{% /details %}}
+
+{{% details_header title="Bradnailer" %}}
+```json
+{
+    "weapon_pistol": "poke646/bradnailer"
+}
+```
+
+Required models:
+
+* **w_bradnailer.mdl**
+* **v_bradnailer.mdl**
+* **p_bradnailer.mdl**
+
+Required sounds:
+
+* **weapons/bradnailer.wav**
+{{% /details_header %}}
+
+{{% details_header title="Nailgun" %}}
+```json
+{
+    "weapon_nailgun": "poke646/nailgun"
+}
+```
+
+Required models:
+
+* **w_nailgun.mdl**
+* **v_nailgun.mdl**
+* **p_nailgun.mdl**
+
+Required sounds:
+
+* **weapons/nailgun.wav**
+{{% /details_header %}}
+
 ## Sven Co-op
 
 Starting with Sven Co-op 4.0 the mod uses custom behaviors and models for some Half-Life weapons. These templates are written for Sven Co-op 5.x weapons.
@@ -910,7 +1100,7 @@ Shotgun with a faster secondary attack instead of doubleshot.
 ```
 
 {{% hint info %}}
-This weapon template uses the same model and sound paths as a Half-Life shotgu but the resources themselves are different in Sven Co-op.
+This weapon template uses the same model and sound paths as a Half-Life shotgun but the resources themselves are different in Sven Co-op.
 {{% /hint %}}
 
 {{% /details_header %}}
