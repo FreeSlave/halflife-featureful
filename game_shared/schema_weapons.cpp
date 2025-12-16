@@ -735,6 +735,10 @@ const char* const json_schemas::weapons = R"(
 				"type": "number",
 				"minimum": 0
 			},
+			"attack_delay": {
+				"type": "number",
+				"minimum": 0
+			},
 			"idle_delay": {
 				"type": "number",
 				"minimum": 0

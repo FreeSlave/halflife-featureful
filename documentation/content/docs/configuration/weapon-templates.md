@@ -1602,9 +1602,13 @@ Index of reload animation.
 
 ### duration
 
-Delay before the weapon is usable after the reload has started.
+Delay before the weapon clip is getting reloaded and the minimum delay before the weapon becomes usable again since the reload has started.
 
 This is usually set to 0 for [manual_reload](#manual_reload) weapons so the reload can be interrupted by firing at any point.
+
+### attack_delay
+
+Custom delay before weapon can fire again after the reload has started. If this is not set or is set to 0, the delay is the same as `duration`. When provided, only larger values than `duration` make sense. This property is useful if you want to let the reload finish before the weapon can fire again to allow switching the weapon earlier without interrupting the reload (e.g. if the act of loading the new clip into the weapon is noticeably faster than the whole reload animation).
 
 ### idle_delay
 

@@ -1077,6 +1077,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			{
 				reload.animIndex.Reset(altMode, emptied);
 				reload.duration.Reset(altMode, emptied);
+				reload.attackDelay.Reset(altMode, emptied);
 				reload.idleDelay.Reset(altMode, emptied);
 				reload.waitForRecoil.Reset(altMode, emptied);
 				reload.suspendLaserSpotTime.Reset(altMode, emptied);
@@ -1086,6 +1087,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			{
 				UpdatePropertyFromJson(reload.animIndex, value, "anim", altMode, emptied);
 				UpdatePropertyFromJson(reload.duration, value, "duration", altMode, emptied);
+				UpdatePropertyFromJson(reload.attackDelay, value, "attack_delay", altMode, emptied);
 				UpdatePropertyFromJson(reload.idleDelay, value, "idle_delay", altMode, emptied);
 				UpdatePropertyFromJson(reload.waitForRecoil, value, "wait_for_recoil", altMode, emptied);
 				UpdatePropertyFromJson(reload.suspendLaserSpotTime, value, "laser_suspend_time", altMode, emptied);

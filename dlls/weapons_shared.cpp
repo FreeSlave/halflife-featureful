@@ -1955,8 +1955,19 @@ bool CConfigurableWeapon::PerformReload()
 
 		m_pPlayer->m_bResumeZoom = false;
 		ResetZoom(SwitchModeReason::Reload);
-		const float idleDelay = RandomizeNumberFromRange(reload.idleDelay.Get(altMode, empty));
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + Q_max(idleDelay, reloadDuration);
+
+		const float attackDelay = reload.attackDelay.Get(altMode, empty);
+		if (attackDelay > 0)
+		{
+			m_flNextPrimaryAttack = GetNextAttackDelay(Q_max(attackDelay, reloadDuration));
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + Q_max(attackDelay, reloadDuration);
+		}
+
+		float idleDelay = RandomizeNumberFromRange(reload.idleDelay.Get(altMode, empty));
+		idleDelay = Q_max(idleDelay, attackDelay);
+		idleDelay = Q_max(idleDelay, reloadDuration);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + idleDelay;
+
 		m_iShotsFired = 0;
 		m_bDelayFire = true;
 	}
