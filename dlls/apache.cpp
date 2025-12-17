@@ -582,6 +582,8 @@ void CApache::HuntThink()
 
 		if( flLength < 128.0f )
 		{
+			CBaseEntity* pPrevGoalEnt = m_pGoalEnt;
+
 			m_pGoalEnt = UTIL_FindEntityByTargetname( NULL, STRING( m_pGoalEnt->pev->target ) );
 			if( m_pGoalEnt )
 			{
@@ -589,6 +591,11 @@ void CApache::HuntThink()
 				UTIL_MakeAimVectors( m_pGoalEnt->pev->angles );
 				m_vecGoal = gpGlobals->v_forward;
 				flLength = ( pev->origin - m_posDesired ).Length();
+			}
+
+			if (pPrevGoalEnt && !FStringNull(pPrevGoalEnt->pev->message))
+			{
+				FireTargets(STRING(pPrevGoalEnt->pev->message), this, this);
 			}
 		}
 	}

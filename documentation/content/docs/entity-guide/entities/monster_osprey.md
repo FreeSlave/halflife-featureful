@@ -11,6 +11,7 @@ bookToC: false
 
 * Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned Osprey has the path to follow. Set the `#maxlivechildren` keyvalue parameter to ensure the resupply won't depend on the number of grunts alive on the map at the moment when the Osprey spawns. See [Configuring the spawned monster]({{< ref "monstermaker/#configuring-the-spawned-monster" >}}) and the **flyers_demo** map in the sample mod.
 * `Death` and `50% Health Remaining` trigger conditions now work for Osprey.
+* Osprey can use `Fire On Pass` triggers on the path entities.
 
 The maximum number of grunts the Osprey can supply depends on the number of alive grunts at the moment the Osprey is activated. This is the default behavior from Half-Life which can be overriden by the `Custom number of grunts to resupply` parameter.
 

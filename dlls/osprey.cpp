@@ -684,6 +684,8 @@ void COsprey::FlyThink()
 
 	if( gpGlobals->time > m_startTime + m_dTime )
 	{
+		CBaseEntity* pPrevGoalEnt = m_pGoalEnt;
+
 		if( m_pGoalEnt )
 		{
 			if( m_pGoalEnt->pev->speed == 0 )
@@ -700,6 +702,11 @@ void COsprey::FlyThink()
 				do {
 					m_pGoalEnt = CBaseEntity::Instance( FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_pGoalEnt->pev->target ) ) );
 				} while( m_pGoalEnt->pev->speed < 400 && !HasDead() );
+			}
+
+			if (pPrevGoalEnt && !FStringNull(pPrevGoalEnt->pev->message))
+			{
+				FireTargets(STRING(pPrevGoalEnt->pev->message), this, this);
 			}
 		}
 		UpdateGoal();
