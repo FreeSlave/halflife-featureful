@@ -914,6 +914,12 @@ KilledResult CFloater::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, i
 
 void CFloater::GibMonster()
 {
+	const SoundScript* bloatSound = GetSoundScript(bloatSoundScript);
+	if (bloatSound && !bloatSound->waves.empty())
+	{
+		EMIT_SOUND(edict(), bloatSound->channel, "common/null.wav", 1.0f, ATTN_NORM);
+	}
+
 	EmitSoundScript(NPC::bodySplatSoundScript);
 
 	CGib::SpawnRandomClientGibs( pev, GibCount(), GibModel() );
