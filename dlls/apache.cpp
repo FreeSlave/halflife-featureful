@@ -49,6 +49,8 @@ public:
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster() override;
 
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, -64.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 0.0f ); }
 	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
@@ -59,6 +61,7 @@ public:
 	void EXPORT CrashTouch( CBaseEntity *pOther );
 	void EXPORT DyingThink();
 	void EXPORT StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void EXPORT StopUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT NullThink();
 
 	void ShowDamage();
@@ -96,6 +99,8 @@ public:
 
 	int m_iDoSmokePuff;
 	CBeam *m_pBeam;
+
+	bool m_iObeyTriggerMode;
 
 	static const NamedSoundScript rotorSoundScript;
 	static const NamedSoundScript fireGunSoundScript;
@@ -143,6 +148,7 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	DEFINE_FIELD( CApache, m_pBeam, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CApache, m_flGoalSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
+	DEFINE_FIELD( CApache, m_iObeyTriggerMode, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CApache, CBaseMonster )
@@ -214,7 +220,7 @@ void CApache::SpawnImpl(const char *modelName)
 	pev->solid = SOLID_BBOX;
 
 	SetMyModel( modelName );
-	UTIL_SetSize( pev, Vector( -32.0f, -32.0f, -64.0f ), Vector( 32.0f, 32.0f, 0.0f ) );
+	SetMySize();
 	UTIL_SetOrigin( pev, pev->origin );
 
 	pev->flags |= FL_MONSTER;
@@ -239,6 +245,7 @@ void CApache::SpawnImpl(const char *modelName)
 	{
 		SetThink( &CApache::HuntThink );
 		SetTouch( &CApache::FlyTouch );
+		SetUse( &CApache::StopUse );
 	}
 	pev->nextthink = gpGlobals->time + 1.0f;
 
@@ -288,6 +295,11 @@ void CApache::KeyValue(KeyValueData *pkvd)
 		pev->armorvalue = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq(pkvd->szKeyName, "m_iObeyTriggerMode" ) )
+	{
+		m_iObeyTriggerMode = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseMonster::KeyValue( pkvd );
 }
@@ -298,14 +310,34 @@ void CApache::NullThink()
 	FCheckAITrigger();
 	pev->nextthink = gpGlobals->time + 0.5f;
 	GlowShellUpdate();
+	ShowDamage();
 }
 
 void CApache::StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	SetThink( &CApache::HuntThink );
-	SetTouch( &CApache::FlyTouch );
-	pev->nextthink = gpGlobals->time + 0.1f;
-	SetUse( NULL );
+	if (!m_iObeyTriggerMode || useType != USE_OFF)
+	{
+		SetThink(&CApache::HuntThink);
+		SetTouch(&CApache::FlyTouch);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		SetUse(&CApache::StopUse);
+	}
+}
+
+void CApache::StopUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	if (m_iObeyTriggerMode && useType != USE_ON)
+	{
+		pev->velocity = g_vecZero;
+		pev->avelocity = g_vecZero;
+		m_iSoundState = 0;
+		StopSoundScript(rotorSoundScript);
+
+		SetThink(&CApache::NullThink);
+		SetTouch(nullptr);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		SetUse(&CApache::StartupUse);
+	}
 }
 
 KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
@@ -315,9 +347,10 @@ KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 
 	StopSoundScript(rotorSoundScript);
 
-	UTIL_SetSize( pev, Vector( -32.0f, -32.0f, -64.0f ), Vector( 32.0f, 32.0f, 0.0f ) );
+	SetMySize();
 	SetThink( &CApache::DyingThink );
 	SetTouch( &CApache::CrashTouch );
+	SetUse(nullptr);
 	pev->nextthink = gpGlobals->time + 0.1f;
 	pev->health = 0;
 	pev->takedamage = DAMAGE_NO;

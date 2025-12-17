@@ -51,9 +51,13 @@ public:
 	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	void UpdateGoal();
+	Vector DefaultMinHullSize() override { return Vector( -400, -400, -100 ); }
+	Vector DefaultMaxHullSize() override { return Vector( 400, 400, 32 ); }
+
+	void UpdateGoal(bool restart = false);
 	bool HasDead();
 	void EXPORT FlyThink();
+	void EXPORT NullThink();
 	void EXPORT DeployThink();
 	void Flight();
 	void EXPORT HitTouch( CBaseEntity *pOther );
@@ -113,6 +117,9 @@ public:
 
 	string_t m_triggerOnDeploy;
 	string_t m_triggerOnDeployGrunt;
+
+	bool m_isFlying;
+	bool m_iObeyTriggerMode;
 
 	static const NamedSoundScript rotorSoundScript;
 	static constexpr const char* crashSoundScript = "Osprey.Crash";
@@ -197,6 +204,9 @@ TYPEDESCRIPTION	COsprey::m_SaveData[] =
 
 	DEFINE_FIELD( COsprey, m_triggerOnDeploy, FIELD_STRING ),
 	DEFINE_FIELD( COsprey, m_triggerOnDeployGrunt, FIELD_STRING ),
+
+	DEFINE_FIELD( COsprey, m_isFlying, FIELD_BOOLEAN ),
+	DEFINE_FIELD( COsprey, m_iObeyTriggerMode, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( COsprey, CBaseMonster )
@@ -250,7 +260,7 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	pev->solid = SOLID_BBOX;
 
 	SetMyModel( modelName );
-	UTIL_SetSize( pev, Vector( -400, -400, -100 ), Vector( 400, 400, 32 ) );
+	SetMySize();
 	UTIL_SetOrigin( pev, pev->origin );
 
 	pev->flags |= FL_MONSTER | FL_FLY;
@@ -343,13 +353,47 @@ void COsprey::KeyValue(KeyValueData *pkvd)
 		m_triggerOnDeployGrunt = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq(pkvd->szKeyName, "m_iObeyTriggerMode" ) )
+	{
+		m_iObeyTriggerMode = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseMonster::KeyValue( pkvd );
 }
 
 void COsprey::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	pev->nextthink = gpGlobals->time + 0.1f;
+	if (m_iObeyTriggerMode)
+	{
+		if (pev->health > 0 && m_iUnits > 0 && ShouldToggle(useType, m_isFlying))
+		{
+			m_isFlying = !m_isFlying;
+			if (m_isFlying)
+			{
+				if (m_pfnThink == &COsprey::NullThink)
+				{
+					UpdateGoal(true);
+					SetThink( &COsprey::FlyThink );
+					pev->nextthink = gpGlobals->time;
+				}
+			}
+			else
+			{
+				if (m_pfnThink == &COsprey::FlyThink)
+				{
+					m_iSoundState = 0;
+					StopSoundScript(rotorSoundScript);
+					SetThink( &COsprey::NullThink );
+					pev->nextthink = gpGlobals->time;
+				}
+			}
+		}
+	}
+	else
+	{
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
 }
 
 struct ClassnameAndEntTemplate
@@ -463,6 +507,7 @@ void COsprey::FindAllThink()
 	}
 
 	SetThink( &COsprey::FlyThink );
+	m_isFlying = true;
 	pev->nextthink = gpGlobals->time + 0.1f;
 	m_startTime = gpGlobals->time;
 }
@@ -655,7 +700,16 @@ void COsprey::HoverThink()
 	if( i == 4 )
 	{
 		m_startTime = gpGlobals->time;
-		SetThink( &COsprey::FlyThink );
+		if (m_isFlying)
+		{
+			SetThink( &COsprey::FlyThink );
+		}
+		else
+		{
+			m_iSoundState = 0;
+			StopSoundScript(rotorSoundScript);
+			SetThink( &COsprey::NullThink );
+		}
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -663,10 +717,17 @@ void COsprey::HoverThink()
 	Update();
 }
 
-void COsprey::UpdateGoal()
+void COsprey::UpdateGoal(bool restart)
 {
 	if( m_pGoalEnt )
 	{
+		if (restart)
+		{
+			m_pos2 = pev->origin;
+			m_ang2 = pev->angles;
+			m_vel2 = pev->velocity;
+		}
+
 		m_pos1 = m_pos2;
 		m_ang1 = m_ang2;
 		m_vel1 = m_vel2;
@@ -675,7 +736,14 @@ void COsprey::UpdateGoal()
 		UTIL_MakeAimVectors( Vector( 0, m_ang2.y, 0 ) );
 		m_vel2 = gpGlobals->v_forward * m_pGoalEnt->pev->speed;
 
-		m_startTime = m_startTime + m_dTime;
+		if (restart)
+		{
+			m_startTime = gpGlobals->time;
+		}
+		else
+		{
+			m_startTime = m_startTime + m_dTime;
+		}
 		m_dTime = 2.0f * ( m_pos1 - m_pos2 ).Length() / ( m_vel1.Length() + m_pGoalEnt->pev->speed );
 
 		if( m_ang1.y - m_ang2.y < -180 )
@@ -741,6 +809,13 @@ void COsprey::FlyThink()
 
 	Flight();
 	Update();
+}
+
+void COsprey::NullThink()
+{
+	StudioFrameAdvance();
+	Update();
+	pev->nextthink = gpGlobals->time + 0.5f;
 }
 
 void COsprey::Flight()

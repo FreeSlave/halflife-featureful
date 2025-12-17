@@ -581,6 +581,11 @@
 		64 : "Start Inactive" : 0
 	]
 	rotorvolume(string) : "Rotor sound volume (0.1 - 1.0)"
+	m_iObeyTriggerMode(choices) : "Obey Trigger Mode" : : "Allow stopping and restarting Apache on trigger" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
 ]
 
 @BaseClass base(Monster) = Osprey
@@ -597,6 +602,11 @@
 	attenuation(string) : "Rotor sound attenuation" : : "The higher the value the stronger the volume fading with distance. The default attenuation for osprey is 0.15"
 	trigger_on_deploy(string) : "Trigger on deploy (activator is Osprey)"
 	trigger_on_deploy_grunt(string) : "Trigger on deploy (activator is grunt)"
+	m_iObeyTriggerMode(choices) : "Obey Trigger Mode" : : "Allow stopping and restarting Osprey on trigger" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
 ]
 
 @BaseClass base(Targetname, Angles) size(-8 -8 -8, 8 8 8) = gibshooterbase

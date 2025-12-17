@@ -29,6 +29,7 @@ In Featureful SDK it also has some other changes:
 * `Custom number of grunts to resupply` - override the maximum number of alive grunts the Osprey can resupply. After spawning this number of grunts the Osprey will stop deploying new ones until someone has died or been removed from the map.
 * `Trigger on deploy (activator is Osprey)` - fire when Osprey is deploying grunts. The activator for this trigger is Osprey itself.
 * `Trigger on deploy (activator is grunt)` - fire per grunt deploy. The activator for this trigger is the deployed grunt (so the trigger will be fired the number of times equal to the number of spawned grunts).
+* `Obey Trigger Mode` - allows to stop and start Osprey. When stopped, the Osprey doesn't play rotor sound. If stopped during the deploy sequence  the Osprey will stop only after finishing the deploying.
 
 ### New spawnflags
 
@@ -38,6 +39,20 @@ In Featureful SDK it also has some other changes:
 ### Skill variables
 
 * **sk_osprey** - monster's health.
+
+### Reaction to use-type
+
+If `Start Inactive` spawnflag is set triggering the Osprey will make it start following its path.
+If `Obey Trigger Mode` parameter is set to Yes, the Osprey will stop or continue depending on the use-type and current state.
+
+{{% hint warning %}}
+In order to remove (despawn) the Osprey properly you should:
+* Have `Obey Trigger Mode` on it set to Yes.
+* Trigger the aircraft (preferebly with `Off` use-type, e.g. via `trigger_relay`).
+* Kill the aircraft via any kill-target trigger (e.g. `KillTarget` of `trigger_relay`). Ideally this should happen a bit later than turning the aircraft off (e.g. in 0.1 seconds).
+
+If you just remove the aircraft (without turning it off first) while it's moving the rotor sound will continue playing until player saves and reloads the game.
+{{% /hint %}}
 
 ### Default classification
 
