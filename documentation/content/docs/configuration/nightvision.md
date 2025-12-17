@@ -17,9 +17,7 @@ The Counter Strike style is usually better accepted by players, so it's the defa
 
 In order to let player have NVG instead of the flashlight set `suit_light` feature in **features/featureful_server.cfg** to `nvg`.
 
-You should also configure the **Player.NVGOn** and **Player.NVGOff** [soundscripts]({{< ref soundscripts >}}) for nightvision sounds.
-
-**Note:** the old way of configuring the NVG sound was through the `nvg_sound_on` and `nvg_sound_off` features. These are deprecated and eventually will be removed.
+You should also configure the **Player.NVGOn** and **Player.NVGOff** [soundscripts]({{< ref soundscripts >}}) for nightvision sounds. See [Player soundscripts]({{< ref "player/#soundscripts" >}}).
 
 In **features/featureful_client.cfg** you can configure the NVG parameters (like color, brightness) and whether the NVG style can be chosen by player with the help of the `cl_nvgstyle` cvar. Opposing Force and Counter Strike NVG parameters are configured separately.
 

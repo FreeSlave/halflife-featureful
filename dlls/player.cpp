@@ -6918,7 +6918,8 @@ void CBasePlayer::SendPlayerTemplateData()
 		Player::fallPainSoundScript.name,
 		Player::jumpSoundScript.name,
 		Player::wadeSoundScript.name,
-		Player::geigerSoundScript.name
+		Player::geigerSoundScript.name,
+		Player::longjumpSoundScript.name
 	};
 
 	for (size_t i=0; i<ARRAYSIZE(sharedSoundScripts); ++i)

@@ -2378,6 +2378,8 @@ void PM_Jump()
 			}
 
 			pmove->velocity[2] = sqrt( 2.0f * 800.0f * 56.0f );
+
+			PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.LongJump"));
 		}
 		else
 		{

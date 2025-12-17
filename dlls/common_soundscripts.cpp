@@ -318,4 +318,10 @@ const NamedSoundScript geigerSoundScript = {
 	"Player.Geiger"
 };
 
+const NamedSoundScript longjumpSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Player.LongJump"
+};
+
 }

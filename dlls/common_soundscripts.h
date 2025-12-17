@@ -70,6 +70,7 @@ extern const NamedSoundScript nvgOffSoundScript;
 extern const NamedSoundScript deathSoundScript;
 extern const NamedSoundScript deathUnderwaterSoundScript;
 extern const NamedSoundScript geigerSoundScript;
+extern const NamedSoundScript longjumpSoundScript;
 }
 
 #endif

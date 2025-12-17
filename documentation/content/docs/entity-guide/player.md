@@ -49,7 +49,27 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.Undrown** - player gets out of the water while having no air left in lungs.
 * **Player.EmergeInhale** - player get out of the water after spending some amount of air.
 * **Player.Geiger** - geiger counter sounds played when player is close to the radioactive [trigger_hurt]({{< ref trigger_hurt >}}).
+* **Player.LongJump** - long jump sound. This is empty by default.
 * **SprayCan.Paint** - player paints a spray on the wall. It's actually played on the entity created temporarily, not on the player.
+
+Example:
+
+```json
+{
+    "Player.DeathUnderwater": {
+        "waves": ["player/h2odeath.wav"]
+    },
+    "Player.NVGOn": {
+        "waves": ["items/nvg_on.wav"]
+    },
+    "Player.NVGOff": {
+        "waves": ["items/nvg_off.wav"]
+    },
+    "Player.LongJump": {
+        "waves": ["ctf/pow_big_jump.wav"]
+    }
+}
+```
 
 ### Maximum speed
 
