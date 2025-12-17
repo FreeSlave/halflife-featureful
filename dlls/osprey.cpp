@@ -111,6 +111,9 @@ public:
 
 	float m_soundAttenuation;
 
+	string_t m_triggerOnDeploy;
+	string_t m_triggerOnDeployGrunt;
+
 	static const NamedSoundScript rotorSoundScript;
 	static constexpr const char* crashSoundScript = "Osprey.Crash";
 
@@ -191,6 +194,9 @@ TYPEDESCRIPTION	COsprey::m_SaveData[] =
 	DEFINE_FIELD( COsprey, m_gruntNumber, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_gruntMaxChildren, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_soundAttenuation, FIELD_FLOAT ),
+
+	DEFINE_FIELD( COsprey, m_triggerOnDeploy, FIELD_STRING ),
+	DEFINE_FIELD( COsprey, m_triggerOnDeployGrunt, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( COsprey, CBaseMonster )
@@ -325,6 +331,16 @@ void COsprey::KeyValue(KeyValueData *pkvd)
 	else if( FStrEq(pkvd->szKeyName, "attenuation" ) )
 	{
 		m_soundAttenuation = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq(pkvd->szKeyName, "trigger_on_deploy" ) )
+	{
+		m_triggerOnDeploy = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq(pkvd->szKeyName, "trigger_on_deploy_grunt" ) )
+	{
+		m_triggerOnDeployGrunt = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else
@@ -465,6 +481,11 @@ void COsprey::DeployThink()
 	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0.0f, 0.0f, -4096.0f ), ignore_monsters, ENT( pev ), &tr );
 	CSoundEnt::InsertSound( bits_SOUND_DANGER, tr.vecEndPos, 400, 0.3f );
 
+	if (!FStringNull(m_triggerOnDeploy))
+	{
+		FireTargets(STRING(m_triggerOnDeploy), this, this);
+	}
+
 	vecSrc = pev->origin + vecForward *  32 + vecRight *  100 + vecUp * -96;
 	m_hRepel[0] = MakeGrunt( vecSrc );
 
@@ -590,8 +611,14 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 						else
 							pGrunt->m_vecLastPosition = m_vecOrigin[i];
 						m_hGrunt[i] = pGrunt;
-						return pGrunt;
 					}
+
+					if (!FStringNull(m_triggerOnDeployGrunt))
+					{
+						FireTargets(STRING(m_triggerOnDeployGrunt), this, pEntity);
+					}
+
+					return pGrunt;
 				}
 			}
 		}

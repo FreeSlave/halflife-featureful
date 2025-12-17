@@ -27,6 +27,8 @@ In Featureful SDK it also has some other changes:
 * ![](/images/svencoop.png) `Grunt Type` - deploy Opposing Force grunts instead of Half-Life ones. Note: by default the spawned grunts will act as enemies to the player. Change the Osprey's classification to Player Ally so grunts inherit the custom classification.
 * ![](/images/svencoop.png) `Number of grunts per deploy` - override the maximum number of grunts deployed at once. If defined this must be a number from 1 to 4.
 * `Custom number of grunts to resupply` - override the maximum number of alive grunts the Osprey can resupply. After spawning this number of grunts the Osprey will stop deploying new ones until someone has died or been removed from the map.
+* `Trigger on deploy (activator is Osprey)` - fire when Osprey is deploying grunts. The activator for this trigger is Osprey itself.
+* `Trigger on deploy (activator is grunt)` - fire per grunt deploy. The activator for this trigger is the deployed grunt (so the trigger will be fired the number of times equal to the number of spawned grunts).
 
 ### New spawnflags
 
