@@ -970,9 +970,20 @@ public:
 
 	int ObjectCaps() override { return CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	virtual USE_TYPE UseType() { return USE_TOGGLE; }
+	virtual void OnStateToggle() {}
+
+	bool m_iObeyTriggerMode;
+
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
+	static	TYPEDESCRIPTION m_SaveData[];
 };
 
-LINK_ENTITY_TO_CLASS( trigger, CBaseTrigger )
+TYPEDESCRIPTION	CBaseTrigger::m_SaveData[] =
+{
+	DEFINE_FIELD( CBaseTrigger, m_iObeyTriggerMode, FIELD_BOOLEAN ),
+};
+IMPLEMENT_SAVERESTORE(CBaseTrigger, CBaseToggle)
 
 /*
 ================
@@ -1029,6 +1040,11 @@ void CBaseTrigger::KeyValue( KeyValueData *pkvd )
 		m_bitsDamageInflict = atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq(pkvd->szKeyName, "m_iObeyTriggerMode" ) )
+	{
+		m_iObeyTriggerMode = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseToggle::KeyValue( pkvd );
 }
@@ -1039,7 +1055,7 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Spawn() override;
 	void EXPORT HurtTouch( CBaseEntity *pOther );
-	void EXPORT HurtToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void OnStateToggle() override;
 	void EXPORT RadiationThink();
 	void HurtNonMovingMonsters();
 	void EXPORT HurtNonMovingMonstersThink();
@@ -1378,7 +1394,7 @@ void CTriggerHurt::Spawn()
 
 	if( !FStringNull( pev->targetname ) )
 	{
-		SetUse( &CTriggerHurt::HurtToggleUse );
+		SetUse( &CTriggerHurt::ToggleUse );
 	}
 	else
 	{
@@ -1485,9 +1501,8 @@ void CTriggerHurt::HurtNonMovingMonstersThink()
 	HurtNonMovingMonsters();
 }
 
-void CTriggerHurt::HurtToggleUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+void CTriggerHurt::OnStateToggle()
 {
-	ToggleUse(pActivator, pCaller, useType, value);
 	if (FBitSet(pev->spawnflags, SF_TRIGGER_HURT_AFFECT_NON_MOVING_MONSTERS))
 	{
 		pev->nextthink = gpGlobals->time;
@@ -1499,20 +1514,26 @@ void CTriggerHurt::HurtToggleUse(CBaseEntity *pActivator, CBaseEntity *pCaller, 
 //
 void CBaseTrigger::ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if( pev->solid == SOLID_NOT )
-	{
-		// if the trigger is off, turn it on
-		pev->solid = SOLID_TRIGGER;
+	const bool shouldToggle = m_iObeyTriggerMode ? ShouldToggle(useType, pev->solid != SOLID_NOT) : true;
 
-		// Force retouch
-		gpGlobals->force_retouch++;
-	}
-	else
+	if (shouldToggle)
 	{
-		// turn the trigger off
-		pev->solid = SOLID_NOT;
+		if( pev->solid == SOLID_NOT )
+		{
+			// if the trigger is off, turn it on
+			pev->solid = SOLID_TRIGGER;
+
+			// Force retouch
+			gpGlobals->force_retouch++;
+		}
+		else
+		{
+			// turn the trigger off
+			pev->solid = SOLID_NOT;
+		}
+		UTIL_SetOrigin( pev, pev->origin );
+		OnStateToggle();
 	}
-	UTIL_SetOrigin( pev, pev->origin );
 }
 
 bool CTriggerHurt::CanHurt(CBaseEntity *pOther)

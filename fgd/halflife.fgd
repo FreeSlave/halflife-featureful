@@ -9182,6 +9182,11 @@
 	delay(string) : "Delay before trigger"
 	untouchable_ent_name(string) : "Untouchable entity name" : : "Don't hurt targets with this classname or targetname"
 	min_health(string) : "Minimum health threshold" : : "Don't decrease the toucher health beyond this value"
+	m_iObeyTriggerMode(choices) : "Obey Trigger Mode" =
+	[
+		0 : "No (always toggle)"
+		1 : "Yes"
+	]
 ]
 
 @PointClass base(Targetname, Target, DamageType, GibbingPolicy) = trigger_hurt_remote : "Trigger Hurt (non-touch)"
@@ -9333,7 +9338,7 @@
 	]
 ]
 
-@SolidClass base(Trigger, Angles) = trigger_push : "Trigger player push"
+@SolidClass base(Targetname, Angles) = trigger_push : "Trigger player push"
 [
 	spawnflags(flags) =
 	[
@@ -9345,6 +9350,11 @@
 	speed(integer) : "Speed of push" : 40
 	m_iszPushSpeed(string) : "Push speed multiplier [LR]"
 	m_iszPushVel(string) : "Push direction (blank = angle) [LV]"
+	m_iObeyTriggerMode(choices) : "Obey Trigger Mode" =
+	[
+		0 : "No (always toggle)"
+		1 : "Yes"
+	]
 ]
 
 @BaseClass = Random
