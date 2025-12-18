@@ -44,7 +44,6 @@ public:
 
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	bool AddToPlayer(CBasePlayer *pPlayer) override;
 
 	void NativeAttack(bool altMode) override;
 	void Holster() override;
@@ -79,27 +78,6 @@ void CShockrifle::Precache()
 void CShockrifle::PrecacheDefaultModelSounds()
 {
 	PRECACHE_SOUND("weapons/shock_draw.wav");
-}
-
-bool CShockrifle::AddToPlayer(CBasePlayer *pPlayer)
-{
-	if (CBasePlayerWeapon::AddToPlayer(pPlayer))
-	{
-
-#if !CLIENT_DLL
-		if (g_pGameRules->IsMultiplayer())
-		{
-			// in multiplayer, all hivehands come full.
-			pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex());
-		}
-#endif
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev);
-		WRITE_BYTE(WeaponId());
-		MESSAGE_END();
-		return true;
-	}
-	return false;
 }
 
 bool CShockrifle::GetItemInfo(ItemInfo *p)

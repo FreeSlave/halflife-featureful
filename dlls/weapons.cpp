@@ -506,6 +506,7 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	DEFINE_FIELD( CBasePlayerWeapon, m_iMaxClip, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientClip, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientWeaponState, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
+	DEFINE_FIELD( CBasePlayerWeapon, m_packedTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlayerWeapon, CBaseAnimating )
@@ -1301,16 +1302,37 @@ bool CConfigurableWeapon::IsUseable()
 
 bool CConfigurableWeapon::AddToPlayer(CBasePlayer *pPlayer)
 {
+	const WeaponParameters& params = MyParameters();
+	bool result;
 	if (iFlags() & ITEM_FLAG_EXHAUSTIBLE)
 	{
-		return CBasePlayerWeapon::AddToPlayer(pPlayer);
+		result = CBasePlayerWeapon::AddToPlayer(pPlayer);
 	}
 	else
 	{
-		const WeaponParameters& params = MyParameters();
 		pev->body = params.viewModelBody.Get(m_inAltMode);
-		return AddToPlayerDefault(pPlayer);
+		result = AddToPlayerDefault(pPlayer);
 	}
+#if !CLIENT_DLL
+	if (result && g_pGameRules->IsMultiplayer() && m_packedTime > 0.0f)
+	{
+		if (CanRechargeAmmo())
+		{
+			const float timeSpent = gpGlobals->time - m_packedTime;
+			const float interval = params.recharge.interval.Get(InAltMode());
+			const int ammo = (int)(timeSpent / interval);
+
+			m_flRechargeTime = gpGlobals->time + interval;
+
+			if (ammo > 0)
+			{
+				pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = Q_min(pPlayer->m_rgAmmo[PrimaryAmmoIndex()] + ammo, g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()));
+			}
+		}
+	}
+	m_packedTime = 0.0f;
+#endif
+	return result;
 }
 
 extern int gmsgSetBody;
@@ -1593,6 +1615,8 @@ bool CWeaponBox::PackWeapon( CBasePlayerWeapon *pWeapon )
 	pWeapon->SetTouch( NULL );
 	pWeapon->m_pPlayer = NULL;
 	UTIL_SetOrigin(pWeapon->pev, pev->origin);
+
+	pWeapon->m_packedTime = gpGlobals->time;
 
 	//ALERT( at_console, "packed %s\n", STRING( pWeapon->pev->classname ) );
 

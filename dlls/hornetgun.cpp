@@ -41,29 +41,9 @@ public:
 	int WeaponId() const override { return WEAPON_HORNETGUN; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	bool AddToPlayer( CBasePlayer *pPlayer ) override;
 };
 
 LINK_WEAPON_TO_CLASS( weapon_hornetgun, CHgun )
-
-bool CHgun::AddToPlayer( CBasePlayer *pPlayer )
-{
-	if( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
-	{
-#if !CLIENT_DLL
-		if( g_pGameRules->IsMultiplayer() )
-		{
-			// in multiplayer, all hivehands come full. 
-			pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex());
-		}
-#endif
-		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
-			WRITE_BYTE( WeaponId() );
-		MESSAGE_END();
-		return true;
-	}
-	return false;
-}
 
 bool CHgun::GetItemInfo( ItemInfo *p )
 {

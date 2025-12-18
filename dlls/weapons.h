@@ -331,6 +331,8 @@ public:
 	int m_iMaxClip;
 	int m_iClientMaxClip;
 
+	float m_packedTime;
+
 	bool UsesClip();
 	bool HasAmmoToFire(int ammo = 1);
 	bool IsOutOfAmmo();
