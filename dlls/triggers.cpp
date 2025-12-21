@@ -5779,7 +5779,7 @@ void CTriggerSetPatrol::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 
 static void Motion_PrintVectors(const char* text, const Vector& oldVec, const Vector& newVec)
 {
-	ALERT(at_console, "%s from %f %f %f to %f %f %f\n", text, oldVec.x, oldVec.y, oldVec.z, newVec.x, newVec.y, newVec.z);
+	ALERT(at_console, "%s from %g %g %g to %g %g %g\n", text, oldVec.x, oldVec.y, oldVec.z, newVec.x, newVec.y, newVec.z);
 }
 
 #if FEATURE_TRIGGER_MOTION
@@ -6114,8 +6114,16 @@ void CMotionThread::MotionThink()
 		pev->nextthink = gpGlobals->time; // think every frame
 	}
 
-	if (debug)
-		ALERT(at_console, "motion_thread \"%s\" affects %s \"%s\" (time: %g):\n", STRING(pev->targetname), STRING(m_hTarget->pev->classname), STRING(m_hTarget->pev->targetname), gpGlobals->time);
+	auto printAffect = [&debug, this](const char* text, const Vector& oldVec, const Vector& newVec) {
+		if (debug)
+		{
+			if (oldVec != newVec)
+			{
+				ALERT(at_console, "motion_thread \"%s\" affects %s \"%s\" (time: %g):\n", STRING(pev->targetname), STRING(m_hTarget->pev->classname), STRING(m_hTarget->pev->targetname), gpGlobals->time);
+				Motion_PrintVectors(text, oldVec, newVec);
+			}
+		}
+	};
 
 	Vector vecTemp = g_vecZero;
 	Vector vecOld = g_vecZero;
@@ -6126,8 +6134,7 @@ void CMotionThread::MotionThink()
 		{
 		case POSMODE_SET: // set position
 			if (TryCalcLocus_Position( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
-				if (debug)
-					Motion_PrintVectors("DEBUG: Set origin", m_hTarget->pev->origin, vecTemp);
+				printAffect("DEBUG: Set origin", m_hTarget->pev->origin, vecTemp);
 				UTIL_AssignOrigin(m_hTarget, vecTemp);
 			}
 			else
@@ -6138,8 +6145,7 @@ void CMotionThread::MotionThink()
 			if (TryCalcLocus_Velocity( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
 				vecOld = m_hTarget->pev->origin;
 				UTIL_AssignOrigin(m_hTarget, vecOld + gpGlobals->frametime * vecTemp);
-				if (debug)
-					Motion_PrintVectors("DEBUG: Set origin", vecOld, m_hTarget->pev->origin);
+				printAffect("DEBUG: Set origin", vecOld, m_hTarget->pev->origin);
 			}
 			else
 				m_reportedPosError = true;
@@ -6147,8 +6153,7 @@ void CMotionThread::MotionThink()
 			break;
 		case POSMODE_SETVEL: // set velocity
 			if (TryCalcLocus_Velocity( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
-				if (debug)
-					Motion_PrintVectors("DEBUG: Set velocity", m_hTarget->pev->velocity, vecTemp);
+				printAffect("DEBUG: Set velocity", m_hTarget->pev->velocity, vecTemp);
 				UTIL_SetVelocity(m_hTarget, vecTemp);
 			}
 			else
@@ -6158,8 +6163,7 @@ void CMotionThread::MotionThink()
 			if (TryCalcLocus_Velocity( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
 				vecOld = m_hTarget->pev->velocity;
 				UTIL_SetVelocity(m_hTarget, vecOld + gpGlobals->frametime * vecTemp);
-				if (debug)
-					Motion_PrintVectors("DEBUG: Accelerate", vecOld, m_hTarget->pev->velocity);
+				printAffect("DEBUG: Accelerate", vecOld, m_hTarget->pev->velocity);
 			}
 			else
 				m_reportedPosError = true;
@@ -6168,8 +6172,7 @@ void CMotionThread::MotionThink()
 			if (TryCalcLocus_Position( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
 				vecOld = m_hTarget->pev->velocity;
 				UTIL_SetVelocity(m_hTarget, vecTemp - m_hTarget->pev->origin);
-				if (debug)
-					Motion_PrintVectors("DEBUG: Set velocity", vecOld, m_hTarget->pev->velocity);
+				printAffect("DEBUG: Set velocity", vecOld, m_hTarget->pev->velocity);
 			}
 			else
 				m_reportedPosError = true;
@@ -6191,8 +6194,7 @@ void CMotionThread::MotionThink()
 				{
 					vecOld = m_hTarget->pev->angles;
 					UTIL_SetAngles(m_hTarget, UTIL_VecToAngles( vecTemp ));
-					if (debug)
-						Motion_PrintVectors("DEBUG: Set angles", vecOld, m_hTarget->pev->angles);
+					printAffect("DEBUG: Set angles", vecOld, m_hTarget->pev->angles);
 				}
 				else if (debug)
 				{
@@ -6209,8 +6211,7 @@ void CMotionThread::MotionThink()
 				{
 					vecOld = m_hTarget->pev->angles;
 					UTIL_SetAngles(m_hTarget, m_hTarget->pev->angles + gpGlobals->frametime * UTIL_VecToAngles( vecTemp ));
-					if (debug)
-						Motion_PrintVectors("DEBUG: Offset angles", vecOld, m_hTarget->pev->angles);
+					printAffect("DEBUG: Offset angles", vecOld, m_hTarget->pev->angles);
 				}
 				else if (debug)
 				{
@@ -6224,13 +6225,11 @@ void CMotionThread::MotionThink()
 			UTIL_StringToRandomVector( vecVelAngles, STRING(m_iszFacing) );
 			vecOld = m_hTarget->pev->angles;
 			UTIL_SetAngles(m_hTarget, m_hTarget->pev->angles + gpGlobals->frametime * vecVelAngles);
-			if (debug)
-				Motion_PrintVectors("DEBUG: Rotate angles", vecOld, m_hTarget->pev->angles);
+			printAffect("DEBUG: Rotate angles", vecOld, m_hTarget->pev->angles);
 			break;
 		case FACEMODE_SET_ANGULAR_VELOCITY: // set avelocity
 			UTIL_StringToRandomVector( vecTemp, STRING(m_iszFacing) );
-			if (debug)
-				Motion_PrintVectors("DEBUG: Set avelocity", m_hTarget->pev->avelocity, vecTemp);
+			printAffect("DEBUG: Set avelocity", m_hTarget->pev->avelocity, vecTemp);
 			UTIL_SetAvelocity(m_hTarget, vecTemp);
 			break;
 		case FACEMODE_SET_VELOCITY:
@@ -6238,11 +6237,8 @@ void CMotionThread::MotionThink()
 			CBaseEntity *pCalc = UTIL_FindEntityByTargetname(NULL, STRING(m_iszFacing), m_hLocus);
 			if (pCalc != NULL)
 			{
-				if (pev->spawnflags & SF_MOTION_DEBUG)
-					ALERT(at_console, "DEBUG: Set angles from %f %f %f ", m_hTarget->pev->angles.x, m_hTarget->pev->angles.y, m_hTarget->pev->angles.z);
+				printAffect("DEBUG: Set angles", m_hTarget->pev->angles, pCalc->pev->angles);
 				UTIL_SetAngles(m_hTarget, pCalc->pev->angles);
-				if (pev->spawnflags & SF_MOTION_DEBUG)
-					ALERT(at_console, "to %f %f %f\n", m_hTarget->pev->angles.x, m_hTarget->pev->angles.y, m_hTarget->pev->angles.z);
 			}
 			else
 			{
