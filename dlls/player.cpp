@@ -8004,8 +8004,8 @@ void CPlayerFlicker::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 
 static void DisableChangelevels()
 {
-	CBaseEntity* pEntity = 0;
-	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_changelevel")) != 0) {
+	CBaseEntity* pEntity = nullptr;
+	while (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_changelevel")) != 0) {
 		pEntity->SetTouch(NULL);
 		if (!FStringNull(pEntity->pev->targetname)) {
 			pEntity->SetUse(NULL);
@@ -8019,11 +8019,12 @@ static void DisableChangelevels()
 
 static void DisableAutosaves()
 {
-	CBaseEntity* pEntity = 0;
-	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_autosave")) != 0) {
+	CBaseEntity* pEntity = nullptr;
+	while (( pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_autosave")) != 0) {
 		pEntity->SetTouch(NULL);
 	}
-	if (( pEntity = UTIL_FindEntityByClassname(pEntity, "game_autosave")) != 0) {
+	pEntity = nullptr;
+	while (( pEntity = UTIL_FindEntityByClassname(pEntity, "game_autosave")) != 0) {
 		UTIL_Remove(pEntity);
 	}
 }
