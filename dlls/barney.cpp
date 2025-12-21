@@ -1200,6 +1200,7 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 		params.punchAngle.x = 5;
 		params.knockForward = -100;
 		params.knockUp = 50;
+		params.damageInfo.damage = gSkillData.hgruntDmgKick;
 		params.damageInfo.type = DMG_CLUB;
 		params.skipAllies = true;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
