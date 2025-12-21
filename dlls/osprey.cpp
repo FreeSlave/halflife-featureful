@@ -366,7 +366,17 @@ void COsprey::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 {
 	if (m_iObeyTriggerMode)
 	{
-		if (pev->health > 0 && m_iUnits > 0 && ShouldToggle(useType, m_isFlying))
+		// Are we still initializing?
+		if (m_pfnThink == &COsprey::FindAllThink)
+		{
+			if (useType != USE_OFF)
+			{
+				pev->nextthink = gpGlobals->time;
+			}
+			return;
+		}
+
+		if (pev->health > 0 && ShouldToggle(useType, m_isFlying))
 		{
 			m_isFlying = !m_isFlying;
 			if (m_isFlying)
@@ -380,10 +390,10 @@ void COsprey::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 			}
 			else
 			{
+				m_iSoundState = 0;
+				StopSoundScript(rotorSoundScript);
 				if (m_pfnThink == &COsprey::FlyThink)
 				{
-					m_iSoundState = 0;
-					StopSoundScript(rotorSoundScript);
 					SetThink( &COsprey::NullThink );
 					pev->nextthink = gpGlobals->time;
 				}
@@ -498,7 +508,7 @@ void COsprey::FindAllThink()
 			}
 		}
 
-		if( m_iUnits == 0 )
+		if (m_iUnits == 0)
 		{
 			ALERT( at_console, "osprey error: no grunts to resupply\n" );
 			UTIL_Remove( this );
@@ -723,6 +733,12 @@ void COsprey::UpdateGoal(bool restart)
 	{
 		if (restart)
 		{
+			if (m_pGoalEnt->pev->speed == 0)
+			{
+				m_startTime = gpGlobals->time;
+				return;
+			}
+
 			m_pos2 = pev->origin;
 			m_ang2 = pev->angles;
 			m_vel2 = pev->velocity;
