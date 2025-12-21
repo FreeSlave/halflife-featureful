@@ -1094,6 +1094,8 @@ public:
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript firePistolSoundScript;
+	static const NamedSoundScript kickSoundScript;
+	static const NamedSoundScript punchSoundScript;
 
 protected:
 	bool PrioritizeMeleeAttack() override { return true; }
@@ -1122,6 +1124,18 @@ const NamedSoundScript CKate::firePistolSoundScript = {
 	"Kate.FirePistol"
 };
 
+const NamedSoundScript CKate::kickSoundScript = {
+	CHAN_ITEM,
+	{"common/kick.wav"},
+	"Kate.Kick"
+};
+
+const NamedSoundScript CKate::punchSoundScript = {
+	CHAN_ITEM,
+	{"common/punch.wav"},
+	"Kate.Punch"
+};
+
 void CKate::Spawn()
 {
 	Precache();
@@ -1146,10 +1160,13 @@ void CKate::Precache()
 
 	PRECACHE_SOUND( "kate/ka_attack1.wav" );
 
-	PRECACHE_SOUND( "zombie/claw_miss1.wav" );
-	PRECACHE_SOUND( "zombie/claw_miss2.wav" );
-	PRECACHE_SOUND( "common/kick.wav" );
-	PRECACHE_SOUND( "common/punch.wav" );
+	if (!ShouldAutoPrecacheSounds())
+	{
+		PRECACHE_SOUND( "zombie/claw_miss1.wav" );
+		PRECACHE_SOUND( "zombie/claw_miss2.wav" );
+	}
+	RegisterAndPrecacheSoundScript(kickSoundScript);
+	RegisterAndPrecacheSoundScript(punchSoundScript);
 
 	TalkInit();
 	CTalkMonster::Precache();
@@ -1207,20 +1224,20 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		if (PerformTraceHullAttack(params))
 		{
-			const char *pszSound;
+			const SoundScript* hitSoundScript = nullptr;
 			if( m_iCombatState == -1 )
 			{
-				pszSound = "common/kick.wav";
+				hitSoundScript = GetSoundScript(kickSoundScript);
 			}
 			else
 			{
 				++m_iCombatState;
 				if( m_iCombatState == 3 )
-					pszSound = "common/kick.wav";
+					hitSoundScript = GetSoundScript(kickSoundScript);
 				else
-					pszSound = "common/punch.wav";
+					hitSoundScript = GetSoundScript(punchSoundScript);
 			}
-			EmitSoundDyn( CHAN_VOICE, pszSound, 1, ATTN_NORM, 0, PITCH_NORM );
+			EmitSoundScript(hitSoundScript);
 		}
 	}
 		break;

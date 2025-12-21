@@ -13,7 +13,7 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 
 * **sk_kate_health** - monster's health.
 * **sk_9mm_bullet** - handgun bullet damage.
-* **sk_hgrunt_kick** - kick damage.
+* **sk_hgrunt_kick** - kick/punch damage.
 
 ### Default classification
 
@@ -24,6 +24,8 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 * **Kate.Pain** - pain sound.
 * **Kate.Die** - death sound.
 * **Kate.FirePistol** - firing a handgun.
+* **Kate.Kick** - kick sound.
+* **Kate.Punch** - punch sound.
 
 ### Attacks
 
@@ -32,7 +34,7 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 
 ### Animation events
 
-* `6` - kick trace hull attack. Deals **sk_hgrunt_kick** damage.
+* `6` - kick/punch trace hull attack. Deals **sk_hgrunt_kick** damage.
 
 ### Entity template examples
 
