@@ -383,6 +383,9 @@ void CBarnacle::BarnacleThink()
 //=========================================================
 KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
+	if (!HasMemory(bits_MEMORY_KILLED))
+		OnDying(false);
+
 	pev->solid = SOLID_NOT;
 	pev->takedamage = DAMAGE_NO;
 
@@ -415,6 +418,9 @@ void CBarnacle::WaitTillDead()
 		// death anim finished. 
 		StopAnimation();
 		SetThink( NULL );
+
+		if (ShouldFadeOnDeath())
+			SUB_StartFadeOut();
 	}
 }
 
@@ -449,6 +455,8 @@ void CBarnacle::UpdateOnRemove()
 		UTIL_Remove(pTip);
 		pTip = nullptr;
 	}
+
+	CBaseMonster::UpdateOnRemove();
 }
 
 bool CBarnacle::MustAddToFullPack(unsigned char *pSet)

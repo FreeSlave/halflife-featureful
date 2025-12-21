@@ -10,6 +10,7 @@ bookToC: false
 ### Changes
 
 * Barnacles won't grab monsters in Non-interruptible scripts.
+* Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (barnacle notifies the monstermaker about its death).
 
 ### Skill variables
 
