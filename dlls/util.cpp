@@ -698,6 +698,24 @@ CBaseEntity *UTIL_PlayerByIndex( int playerIndex )
 	return pPlayer;
 }
 
+CBaseEntity* UTIL_ClosestAlivePlayer(const Vector &vecSrc)
+{
+	float minDistSqr = 100000000.0f;
+	CBaseEntity* foundPlayer = nullptr;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity* player = UTIL_PlayerByIndex(i);
+		if (player && player->IsPlayer() && player->IsAlive()) {
+			const float distSqr = (vecSrc - player->pev->origin).LengthSqr();
+			if (distSqr < minDistSqr) {
+				minDistSqr = distSqr;
+				foundPlayer = player;
+			}
+		}
+	}
+	return foundPlayer;
+}
+
 void UTIL_MakeVectors( const Vector &vecAngles )
 {
 	MAKE_VECTORS( vecAngles );

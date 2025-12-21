@@ -258,6 +258,7 @@ extern bool UTIL_HasClassnameOrTargetname(entvars_t *pevToucher, const char* nam
 // otherwise returns NULL
 // Index is 1 based
 extern CBaseEntity	*UTIL_PlayerByIndex( int playerIndex );
+extern CBaseEntity	*UTIL_ClosestAlivePlayer(const Vector& vecSrc);
 
 #define UTIL_EntitiesInPVS(pent)			(*g_engfuncs.pfnEntitiesInPVS)(pent)
 extern void			UTIL_MakeVectors		(const Vector &vecAngles);

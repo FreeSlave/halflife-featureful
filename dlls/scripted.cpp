@@ -1660,14 +1660,17 @@ bool CScriptedSentence::StartSentence( CBaseToggle *pTarget )
 		CFollowingMonster* followingMonster = pMonster->MyFollowingMonsterPointer();
 		if (followingMonster)
 		{
-			CBaseEntity* pPlayer = UTIL_FindEntityByClassname(NULL, "player");
 			if (m_followAction == FOLLOW_START)
 			{
-				followingMonster->DoFollowerUse(pPlayer, false, USE_ON, true);
+				if (!followingMonster->IsFollowingPlayer())
+				{
+					CBaseEntity* pPlayer = UTIL_ClosestAlivePlayer(followingMonster->Center());
+					followingMonster->DoFollowerUse(pPlayer, false, USE_ON, true);
+				}
 			}
 			else if (m_followAction == FOLLOW_STOP)
 			{
-				followingMonster->DoFollowerUse(pPlayer, false, USE_OFF, true);
+				followingMonster->DoFollowerUse(followingMonster->FollowedPlayer(), false, USE_OFF, true);
 			}
 		}
 	}

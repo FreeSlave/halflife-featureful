@@ -657,18 +657,7 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 	{
 		if (FStringNull(m_positionToFaceTo) || FStrEq(STRING(m_positionToFaceTo), "*player"))
 		{
-			float minDist = 10000.0f;
-			CBaseEntity* foundPlayer = nullptr;
-			for (int i = 1; i <= gpGlobals->maxClients; ++i) {
-				CBaseEntity* player = UTIL_PlayerByIndex(i);
-				if (player && player->IsPlayer() && player->IsAlive()) {
-					const float dist = (pev->origin - player->pev->origin).Length();
-					if (dist < minDist) {
-						minDist = dist;
-						foundPlayer = player;
-					}
-				}
-			}
+			CBaseEntity* foundPlayer = UTIL_ClosestAlivePlayer(placePosition);
 			if (foundPlayer) {
 				placeAngles = Vector(0, UTIL_VecToYaw(foundPlayer->pev->origin - placePosition), 0);
 			}
