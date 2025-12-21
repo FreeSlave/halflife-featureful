@@ -5209,9 +5209,17 @@ public:
 	void EXPORT TeleportTouch( CBaseEntity *pOther );
 
 	edict_t* GetTeleportTarget(CBaseEntity* pToucher) override;
+
+	static const NamedSoundScript teleportSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS(trigger_xen_return, CTriggerXenReturn)
+
+const NamedSoundScript CTriggerXenReturn::teleportSoundScript = {
+	CHAN_STATIC,
+	{"weapons/displacer_self.wav"},
+	"XenReturn.Teleport"
+};
 
 void CTriggerXenReturn::Spawn()
 {
@@ -5223,7 +5231,7 @@ void CTriggerXenReturn::Spawn()
 
 void CTriggerXenReturn::Precache()
 {
-	PRECACHE_SOUND( "weapons/displacer_self.wav" );
+	RegisterAndPrecacheSoundScript(teleportSoundScript);
 }
 
 void CTriggerXenReturn::TeleportTouch(CBaseEntity* pOther)
@@ -5238,8 +5246,8 @@ void CTriggerXenReturn::TeleportTouch(CBaseEntity* pOther)
 			pPlayer->m_SndRoomtype = pPlayer->m_DisplacerSndRoomtype;
 		}
 
-		// Play teleport sound.
-		EMIT_SOUND(ENT(pOther->pev), CHAN_WEAPON, "weapons/displacer_self.wav", 1, ATTN_NORM );
+		const SoundScript* soundScript = GetSoundScript(teleportSoundScript);
+		pOther->EmitSoundScript(soundScript);
 	}
 }
 
