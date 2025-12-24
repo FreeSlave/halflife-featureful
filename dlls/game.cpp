@@ -1373,6 +1373,15 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("islave_zap_rate", 1.0f, 1.0f, 1.5f);
 	g_SkillData.ProvideFallback("islave_revival", 0.0f, 0.0f, 1.0f);
 
+	g_SkillData.ProvideFallback("snark_add_dmg_pop", "snark_dmg_pop");
+	g_SkillData.ProvideFallback("snark_max_dmg_pop", 0.0f);
+
+	g_SkillData.ProvideFallback("penguin_health", "snark_health");
+	g_SkillData.ProvideFallback("penguin_dmg_bite", "snark_dmg_bite");
+	g_SkillData.ProvideFallback("penguin_dmg_pop", "plr_hand_grenade");
+	g_SkillData.ProvideFallback("penguin_add_dmg_pop", "penguin_dmg_pop");
+	g_SkillData.ProvideFallbackWithFactor("penguin_max_dmg_pop", "plr_hand_grenade", 5.0f);
+
 	g_SkillData.ProvideFallback("kate_health", "barney_health");
 
 	g_SkillData.ProvideFallback("massassin_health", "hgrunt_health");

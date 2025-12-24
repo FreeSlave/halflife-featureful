@@ -9,9 +9,11 @@ Similar to [snark]({{< ref monster_snark >}}) but detonates like a grenade.
 
 ### Skill variables
 
-* **sk_snark_health** - monster's health.
-* **sk_snark_dmg_bite** - bite damage.
-* **sk_plr_hand_grenade** - the base explosion damage. Each bite insreases the explosion damage by the same number.
+* **sk_penguin_health** - monster's health. If not defined, **sk_snark_health** is used.
+* **sk_penguin_dmg_bite** - bite damage. If not defined, **sk_snark_dmg_bite** is used.
+* **sk_penguin_dmg_pop** - the base explosion damage. If not defined, **sk_plr_hand_grenade** is used.
+* **sk_penguin_add_dmg_pop** - each bite insreases the explosion damage by the this number. By default this is the same as **sk_penguin_dmg_pop**.
+* **sk_penguin_max_dmg_pop** - maximum explosion damage penguin can reach by biting the prey. 0 means no limit. By default this is **sk_plr_hand_grenade** multiplied by 5.
 
 ### Default classification
 

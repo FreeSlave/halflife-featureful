@@ -52,6 +52,8 @@ public:
 
 	static TYPEDESCRIPTION m_SaveData[];
 
+	virtual float DefaultHealth();
+	virtual float BiteDamage();
 	virtual float AdditionalExplosionDamage();
 	virtual float MaximumExplosionDamage();
 
@@ -147,7 +149,7 @@ void CSqueakGrenade::Spawn()
 	SpawnImpl("models/w_squeak.mdl", GetSkillValue("snark_dmg_pop"));
 }
 
-void CSqueakGrenade::SpawnImpl(const char* modelName , float damage)
+void CSqueakGrenade::SpawnImpl(const char* modelName, float damage)
 {
 	// motor
 	pev->movetype = MOVETYPE_BOUNCE;
@@ -165,7 +167,7 @@ void CSqueakGrenade::SpawnImpl(const char* modelName , float damage)
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
-	pev->health = GetSkillValue("snark_health");
+	SetMyHealth(DefaultHealth());
 	pev->gravity = 0.5f;
 	pev->friction = 0.5f;
 
@@ -233,14 +235,24 @@ void CSqueakGrenade::GibMonster()
 	EmitSoundScript(gibbedSoundScript);
 }
 
+float CSqueakGrenade::DefaultHealth()
+{
+	return GetSkillValue("snark_health");
+}
+
+float CSqueakGrenade::BiteDamage()
+{
+	return GetSkillValue("snark_dmg_bite");
+}
+
 float CSqueakGrenade::AdditionalExplosionDamage()
 {
-	return GetSkillValue("snark_dmg_pop");
+	return GetSkillValue("snark_add_dmg_pop");
 }
 
 float CSqueakGrenade::MaximumExplosionDamage()
 {
-	return 0;
+	return GetSkillValue("snark_max_dmg_pop");
 }
 
 void CSqueakGrenade::HuntThink()
@@ -398,7 +410,7 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 			{
 				// ALERT( at_console, "hit enemy\n" );
 				entvars_t* pevAttacker = m_hOwner != 0 ? m_hOwner->pev : pev;
-				pOther->ApplyTraceAttack( pev, pevAttacker, DamageInfo{GetSkillValue("snark_dmg_bite"), DMG_SLASH}, gpGlobals->v_forward, &tr );
+				pOther->ApplyTraceAttack( pev, pevAttacker, DamageInfo{BiteDamage(), DMG_SLASH}, gpGlobals->v_forward, &tr );
 
 				pev->dmg += AdditionalExplosionDamage(); // add more explosion damage
 				if (MaximumExplosionDamage()) {
@@ -455,18 +467,20 @@ class CPenguinGrenade : public CSqueakGrenade
 	void Precache() override;
 	KilledResult Killed(entvars_t *pevInflictor,entvars_t *pevAttacker, int iGib) override;
 	float AdditionalExplosionDamage() override;
+	float DefaultHealth() override;
+	float BiteDamage() override;
 	float MaximumExplosionDamage() override;
 	float ExplosionRadius() override
 	{
-		const float grenadeDmg = GetSkillValue("plr_hand_grenade");
-		return Q_min(grenadeDmg*5, pev->dmg * 2.5);
+		const float maxDmg = GetSkillValue("penguin_max_dmg_pop");
+		return Q_min(maxDmg, pev->dmg * 2.5f);
 	}
 };
 
 void CPenguinGrenade::Spawn()
 {
 	Precache();
-	SpawnImpl("models/w_penguin.mdl", GetSkillValue("plr_hand_grenade"));
+	SpawnImpl("models/w_penguin.mdl", GetSkillValue("penguin_dmg_pop"));
 }
 
 void CPenguinGrenade::Precache()
@@ -486,14 +500,24 @@ KilledResult CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAtta
 	return KilledResult();
 }
 
+float CPenguinGrenade::DefaultHealth()
+{
+	return GetSkillValue("penguin_health");
+}
+
+float CPenguinGrenade::BiteDamage()
+{
+	return GetSkillValue("penguin_dmg_bite");
+}
+
 float CPenguinGrenade::AdditionalExplosionDamage()
 {
-	return GetSkillValue("plr_hand_grenade");
+	return GetSkillValue("penguin_add_dmg_pop");
 }
 
 float CPenguinGrenade::MaximumExplosionDamage()
 {
-	return GetSkillValue("plr_hand_grenade")*5;
+	return GetSkillValue("penguin_max_dmg_pop")*5;
 }
 
 LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )
