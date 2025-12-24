@@ -441,7 +441,7 @@ void CShockTrooper::Spawn()
 {
 	Precache();
 
-	SpawnHelper("models/strooper.mdl", GetSkillValue("shocktrooper_health") * 2.5, BLOOD_COLOR_GREEN);
+	SpawnHelper("models/strooper.mdl", GetSkillValue("shocktrooper_health") * GetSkillValue("shocktrooper_health_factor"), BLOOD_COLOR_GREEN);
 	SetMySize();
 
 	if (pev->weapons == 0)

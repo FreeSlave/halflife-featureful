@@ -1389,6 +1389,7 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("rgrunt_explode", "plr_hand_grenade");
 
+	g_SkillData.ProvideFallback("shocktrooper_health_factor", 2.5f);
 	g_SkillData.ProvideFallback("voltigore_dmg_explode", "voltigore_dmg_beam");
 
 	g_SkillData.ProvideFallback("zaptrap_sense_radius", 244.0f);

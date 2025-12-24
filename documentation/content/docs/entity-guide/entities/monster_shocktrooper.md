@@ -7,7 +7,8 @@ bookToC: false
 
 ### Skill variables
 
-* **sk_shocktrooper_health** - monster's health. The number is multiplied by 2.5 to get the actual health value, replicating the behavior from Opposing Force.
+* **sk_shocktrooper_health** - monster's health. The number is multiplied by **sk_shocktrooper_health_factor** to get the actual health value.
+* **sk_shocktrooper_health_factor** - the factor for **sk_shocktrooper_health**. This is 2.5 by default (the value from Opposing Force). This is applied only when the monster's health is set by the skill variable. The health value override in entity properties or in entity template doesn't get multiplied.
 * **sk_shocktrooper_kick** - melee damage.
 * **sk_shocktrooper_gspeed** - the spore speed when it's thrown.
 * **sk_shocktrooper_maxcharge** - the shockrifle clip size.
