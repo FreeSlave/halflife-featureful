@@ -1425,6 +1425,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("556_bullet", 15.0f);
 	g_SkillData.ProvideFallback("762_bullet", 35.0f, 35.0f, 40.0f);
 	g_SkillData.ProvideFallback("buckshot", "plr_buckshot");
+	g_SkillData.ProvideFallback("plr_xbow_bolt_hitscan", 120.0f);
+	g_SkillData.ProvideFallback("plr_xbow_bolt_explo", 40.0f);
 	g_SkillData.ProvideFallback("plr_hornet_dmg", 7.0f);
 	g_SkillData.ProvideFallback("shockroach", "plr_shockroachs");
 	g_SkillData.ProvideFallback("nail", 8.0f);

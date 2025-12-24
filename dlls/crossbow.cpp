@@ -231,7 +231,7 @@ void CCrossbowBolt::ExplodeThink()
 	int iContents = UTIL_PointContents( pev->origin );
 	int iScale;
 
-	pev->dmg = 40;
+	pev->dmg = GetSkillValue("plr_xbow_bolt_explo");
 	iScale = 10;
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
@@ -421,7 +421,7 @@ void CCrossbow::NativeAttack(bool altMode)
 #if !CLIENT_DLL
 	if( tr.pHit->v.takedamage )
 	{
-		CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(120, DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
+		CBaseEntity::Instance( tr.pHit )->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(GetSkillValue("plr_xbow_bolt_hitscan"), DMG_BULLET).SetGibPolicy(GIB_NEVER), vecDir, &tr );
 	}
 #endif
 }
