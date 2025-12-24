@@ -616,7 +616,7 @@ void CBarnacleGrapple::PrimaryAttack()
 					{
 						if( m_flDamageTime + 0.5 < gpGlobals->time )
 						{
-							float flDamage = gSkillData.plrDmgGrapple;
+							float flDamage = GetSkillValue("plr_grapple");
 
 							if( g_pGameRules->IsMultiplayer() )
 							{

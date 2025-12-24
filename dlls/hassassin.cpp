@@ -318,7 +318,7 @@ void CHAssassin::Shoot()
 
 	Vector vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT( 40, 90 ) + gpGlobals->v_up * RANDOM_FLOAT( 75, 200 ) + gpGlobals->v_forward * RANDOM_FLOAT( -40, 40 );
 	EjectBrass( pev->origin + gpGlobals->v_up * 32 + gpGlobals->v_forward * 12, vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHELL );
-	FireBullets( 1, vecShootOrigin, vecShootDir, Vector( m_flDiviation, m_flDiviation, m_flDiviation ), 2048, gSkillData.monDmg9MM ); // shoot +-8 degrees
+	FireBullets( 1, vecShootOrigin, vecShootDir, Vector( m_flDiviation, m_flDiviation, m_flDiviation ), 2048, GetSkillValue("9mm_bullet") ); // shoot +-8 degrees
 
 	EmitSoundScript(shotSoundScript);
 
@@ -362,7 +362,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				{
 					//ALERT(at_console,"Assassin %s throws nonprecise grenade\n",STRING(pev->targetname));
 					// what speed would be best to use, here? Borrowing the hgrunt grenade speed seems silly...
-					vecToss = ((gpGlobals->v_forward*0.5)+(gpGlobals->v_up*0.5)).Normalize()*gSkillData.hgruntGrenadeSpeed;
+					vecToss = ((gpGlobals->v_forward*0.5)+(gpGlobals->v_up*0.5)).Normalize()*GetSkillValue("hgrunt_gspeed");
 				}
 				CGrenade::ShootTimed( this, vecGunPosition, vecToss, 2.0f, GetProjectileOverrides() );
 			}
@@ -430,7 +430,7 @@ void CHAssassin::Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
 	pev->effects		= 0;
-	SetMyHealth( gSkillData.hassassinHealth );
+	SetMyHealth( GetSkillValue("hassassin_health") );
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_afCapability		= bits_CAP_MELEE_ATTACK1;
@@ -856,7 +856,7 @@ void CHAssassin::RunAI()
 
 	// always visible if moving
 	// always visible is not on hard
-	if( !gSkillData.hassassinCloaking || m_hEnemy == 0 || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || !( pev->flags & FL_ONGROUND ) )
+	if( !GetSkillValue("hassassin_cloaking") || m_hEnemy == 0 || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || !( pev->flags & FL_ONGROUND ) )
 		m_iTargetRanderamt = 255;
 	else
 		m_iTargetRanderamt = 20;

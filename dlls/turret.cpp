@@ -402,7 +402,7 @@ void CTurret::Spawn()
 {
 	Precache();
 	SetMyModel( "models/turret.mdl" );
-	SetMyHealth( gSkillData.turretHealth );
+	SetMyHealth( GetSkillValue("turret_health") );
 	m_HackedGunPos		= Vector( 0, 0, 12.75 );
 	m_flMaxSpin		= TURRET_MAXSPIN;
 	pev->view_ofs.z		= 12.75;
@@ -442,7 +442,7 @@ void CMiniTurret::Spawn()
 {
 	Precache();
 	SetMyModel( "models/miniturret.mdl" );
-	SetMyHealth( gSkillData.miniturretHealth );
+	SetMyHealth( GetSkillValue("miniturret_health") );
 	m_HackedGunPos = Vector( 0.0f, 0.0f, 12.75f );
 	m_flMaxSpin = 0;
 	pev->view_ofs.z = 12.75f;
@@ -725,14 +725,14 @@ void CBaseTurret::ActiveThink()
 
 void CTurret::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmg12MM, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, GetSkillValue("12mm_bullet"), 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
 
 void CMiniTurret::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmg9MM, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, GetSkillValue("9mm_bullet"), 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }
@@ -1320,7 +1320,7 @@ void CSentry::Spawn()
 {
 	Precache();
 	SetMyModel( "models/sentry.mdl" );
-	SetMyHealth( gSkillData.sentryHealth );
+	SetMyHealth( GetSkillValue("sentry_health") );
 	m_HackedGunPos = Vector( 0, 0, 48 );
 	pev->view_ofs.z = 48;
 	if (!g_modFeatures.sentry_retract)
@@ -1340,7 +1340,7 @@ void CSentry::Spawn()
 
 void CSentry::Shoot( Vector &vecSrc, Vector &vecDirToEnemy )
 {
-	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, gSkillData.monDmgMP5, 1 );
+	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, GetSkillValue("9mmAR_bullet"), 1 );
 	EmitSoundScript(shootSoundScript);
 	pev->effects = pev->effects | EF_MUZZLEFLASH;
 }

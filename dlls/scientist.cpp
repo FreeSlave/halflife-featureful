@@ -791,7 +791,7 @@ int CScientist::GetDefaultVoicePitch()
 
 void CScientist::Spawn()
 {
-	SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth);
+	SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health"));
 	CalcTotalHeadCount();
 
 	// White hands
@@ -1181,11 +1181,11 @@ void CScientist::Heal()
 	if( target.IsLengthGreaterThan(100.0f) )
 		return;
 
-	m_hTargetEnt->TakeHealth(this, gSkillData.scientistHeal, DMG_GENERIC );
+	m_hTargetEnt->TakeHealth(this, GetSkillValue("scientist_heal"), DMG_GENERIC );
 	EmitSoundScript(healSoundScript);
 
 	// Don't heal again for 1 minute
-	m_healTime = gpGlobals->time + gSkillData.scientistHealTime;
+	m_healTime = gpGlobals->time + GetSkillValue("scientist_heal_time");
 }
 
 void CScientist::ReportAIState(ALERT_TYPE level)
@@ -1570,7 +1570,7 @@ LINK_ENTITY_TO_CLASS( monster_cleansuit_scientist, CCleansuitScientist )
 
 void CCleansuitScientist::Spawn()
 {
-	SciSpawnHelper("models/cleansuit_scientist.mdl", gSkillData.cleansuitScientistHealth);
+	SciSpawnHelper("models/cleansuit_scientist.mdl", GetSkillValue("cleansuit_scientist_health"));
 	TalkMonsterInit();
 }
 
@@ -1675,7 +1675,7 @@ void CRosenberg::Spawn()
 #if FEATURE_ROSENBERG_DECAY
 	SciSpawnHelper("models/scientist_rosenberg.mdl", gSkillData.scientistHealth * 2);
 #else
-	SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth * 2);
+	SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health") * 2);
 	CalcTotalHeadCount();
 	pev->body = 3;
 #endif
@@ -1753,7 +1753,7 @@ public:
 	int GetDefaultVoicePitch() override { return 100; }
 	void Spawn() override
 	{
-		SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth);
+		SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health"));
 		TalkMonsterInit();
 	}
 	void Precache() override;
@@ -1923,7 +1923,7 @@ const NamedSoundScript CKeller::dieSoundScript = {
 
 void CKeller::Spawn()
 {
-	SciSpawnHelper("models/wheelchair_sci.mdl", gSkillData.scientistHealth * 2);
+	SciSpawnHelper("models/wheelchair_sci.mdl", GetSkillValue("scientist_health") * 2);
 	TalkMonsterInit();
 }
 

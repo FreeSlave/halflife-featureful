@@ -144,7 +144,7 @@ int CSqueakGrenade::DefaultClassify()
 void CSqueakGrenade::Spawn()
 {
 	Precache();
-	SpawnImpl("models/w_squeak.mdl", gSkillData.snarkDmgPop);
+	SpawnImpl("models/w_squeak.mdl", GetSkillValue("snark_dmg_pop"));
 }
 
 void CSqueakGrenade::SpawnImpl(const char* modelName , float damage)
@@ -165,7 +165,7 @@ void CSqueakGrenade::SpawnImpl(const char* modelName , float damage)
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
-	pev->health = gSkillData.snarkHealth;
+	pev->health = GetSkillValue("snark_health");
 	pev->gravity = 0.5f;
 	pev->friction = 0.5f;
 
@@ -235,7 +235,7 @@ void CSqueakGrenade::GibMonster()
 
 float CSqueakGrenade::AdditionalExplosionDamage()
 {
-	return gSkillData.snarkDmgPop;
+	return GetSkillValue("snark_dmg_pop");
 }
 
 float CSqueakGrenade::MaximumExplosionDamage()
@@ -398,7 +398,7 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 			{
 				// ALERT( at_console, "hit enemy\n" );
 				entvars_t* pevAttacker = m_hOwner != 0 ? m_hOwner->pev : pev;
-				pOther->ApplyTraceAttack( pev, pevAttacker, DamageInfo{gSkillData.snarkDmgBite, DMG_SLASH}, gpGlobals->v_forward, &tr );
+				pOther->ApplyTraceAttack( pev, pevAttacker, DamageInfo{GetSkillValue("snark_dmg_bite"), DMG_SLASH}, gpGlobals->v_forward, &tr );
 
 				pev->dmg += AdditionalExplosionDamage(); // add more explosion damage
 				if (MaximumExplosionDamage()) {
@@ -458,14 +458,15 @@ class CPenguinGrenade : public CSqueakGrenade
 	float MaximumExplosionDamage() override;
 	float ExplosionRadius() override
 	{
-		return Q_min(gSkillData.plrDmgHandGrenade*5, pev->dmg * 2.5);
+		const float grenadeDmg = GetSkillValue("plr_hand_grenade");
+		return Q_min(grenadeDmg*5, pev->dmg * 2.5);
 	}
 };
 
 void CPenguinGrenade::Spawn()
 {
 	Precache();
-	SpawnImpl("models/w_penguin.mdl", gSkillData.plrDmgHandGrenade);
+	SpawnImpl("models/w_penguin.mdl", GetSkillValue("plr_hand_grenade"));
 }
 
 void CPenguinGrenade::Precache()
@@ -487,12 +488,12 @@ KilledResult CPenguinGrenade::Killed(entvars_t *pevInflictor, entvars_t *pevAtta
 
 float CPenguinGrenade::AdditionalExplosionDamage()
 {
-	return gSkillData.plrDmgHandGrenade;
+	return GetSkillValue("plr_hand_grenade");
 }
 
 float CPenguinGrenade::MaximumExplosionDamage()
 {
-	return gSkillData.plrDmgHandGrenade*5;
+	return GetSkillValue("plr_hand_grenade")*5;
 }
 
 LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )

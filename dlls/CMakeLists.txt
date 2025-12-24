@@ -173,6 +173,7 @@ set (SVDLL_SOURCES
 	shotgun.cpp
 	singleplay_gamerules.cpp
 	skill.cpp
+	skilldata.cpp
 	sniperrifle.cpp
 	sound.cpp
 	soundent.cpp

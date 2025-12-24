@@ -641,7 +641,7 @@ public:
 protected:
 	virtual const char* DefaultModel() { return "models/w_battery.mdl"; }
 	virtual bool ShouldSetSuitUpdate() { return true; }
-	virtual int DefaultCapacity() { return gSkillData.batteryCapacity; }
+	virtual int DefaultCapacity() { return GetSkillValue("battery"); }
 };
 
 LINK_ENTITY_TO_CLASS( item_battery, CItemBattery )

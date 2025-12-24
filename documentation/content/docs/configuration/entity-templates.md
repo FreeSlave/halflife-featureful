@@ -1082,6 +1082,38 @@ If some property is omitted the default one for the monster class will be used.
 ```
 {{% /details %}}
 
+### skill
+
+An object that allows to override the skill values for the entity template. See also: [Skill variables]({{< ref "skill-variables" >}}).
+
+```json
+{
+    "custom_vort": {
+        "skill": {
+            "islave_health": "barney_health",
+            "islave_zap_rate": "*1.5",
+            "islave_dmg_zap": 40,
+            "islave_dmg_claw": [10, 15, 20]
+        }
+    }
+}
+```
+
+Each object property represents an override. The keys are the difficulty-independent names of skill variables you want to override (with or without *sk_* prefix). The values can come in various forms:
+
+* As a string - the name of another skill variable (with or without *sk_* prefix). If the replacement variable doesn't exist, the warning is printed in the console and the original is used.
+* As a string starting with `*` followed by a number - the number works as a multiplier for the original skill value.
+* As a number - the same value will be used on all difficulties.
+* As an array of three numbers - values for easy, medium and hard difficulties.
+
+{{% hint info %}}
+Skill values are replaced as whole - it's not possible to replace skill value for a specific difficulty only.
+{{% /hint %}}
+
+{{% hint warning %}}
+Using multiplier replacements (like `"*1.5"`) don't work with skill variables that fallback to other skill variables values.
+{{% /hint %}}
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

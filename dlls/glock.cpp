@@ -94,7 +94,7 @@ WeaponParameters CGlock::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = gSkillData.plrDmg9MM;
+	params.fire.damage = ::GetSkillValue("plr_9mm_bullet");
 	params.fire.anims.main = {GLOCK_SHOOT};
 	params.fire.anims.mainEmptied = {GLOCK_SHOOT_EMPTY};
 

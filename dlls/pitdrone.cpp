@@ -103,7 +103,7 @@ void CPitdroneSpike::Spawn()
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 
-	SetDefaultProjectileDamage(gSkillData.pitdroneDmgSpit);
+	SetDefaultProjectileDamage(GetSkillValue("pitdrone_dmg_spit"));
 }
 
 void CPitdroneSpike::Precache()
@@ -463,7 +463,7 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.distance = 70.0f;
 		params.knockForward = 100.0f;
 		params.knockUp = 100.0f;
-		params.damageInfo.damage = gSkillData.pitdroneDmgBite;
+		params.damageInfo.damage = GetSkillValue("pitdrone_dmg_bite");
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
 		PerformTraceHullAttack(params);
@@ -480,7 +480,7 @@ void CPitdrone::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.punchAngle = Vector(20.0f, 0.0f, -20);
 		params.knockRight =  -100;
 		params.knockForward = 100;
-		params.damageInfo.damage = gSkillData.pitdroneDmgWhip;
+		params.damageInfo.damage = GetSkillValue("pitdrone_dmg_whip");
 		params.missSoundScript = attackMissSoundScript;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 		if (shouldAttackWithLeftClaw)
@@ -610,7 +610,7 @@ void CPitdrone::Spawn()
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.pitdroneHealth );
+	SetMyHealth( GetSkillValue("pitdrone_health") );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMySquadCapabilities(bits_CAP_SQUAD);
@@ -1180,7 +1180,7 @@ void CDeadPitdrone::Precache()
 
 void CDeadPitdrone::Spawn()
 {
-	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.pitdroneHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("pitdrone_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }

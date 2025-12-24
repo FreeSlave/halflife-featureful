@@ -41,6 +41,8 @@ bookToC: false
         "own_visual": {
             "model": "models/chicken.mdl"
         },
+        "blood": "red",
+        "classify": "Alien Monster",
         "soundscripts": {
             "Headcrab.Idle": {
                 "waves": ["chicken/ch_idle1.wav", "chicken/ch_idle2.wav"]
@@ -57,8 +59,30 @@ bookToC: false
             "Headcrab.Attack": {
                 "waves": ["chicken/ch_attack1.wav", "chicken/ch_attack2.wav"]
             }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "The Hand from They Hunger" %}}
+```json
+{
+    "thehand": {
+        "own_visual": {
+            "model": "models/thehand.mdl"
         },
-        "classify": "Alien Monster"
+        "blood": "red",
+        "classify": "Alien Monster",
+        "skill": {
+            "headcrab_health": "*2",
+            "headcrab_dmg_bite": "*2"
+        },
+        "soundscripts": {
+            "Headcrab.Attack": {
+                "waves": ["thehand/hc_attack1.wav"]
+            }
+        }
     }
 }
 ```

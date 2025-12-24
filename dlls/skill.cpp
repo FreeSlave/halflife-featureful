@@ -15,49 +15,125 @@
 //=========================================================
 // skill.cpp - code for skill level concerns
 //=========================================================
-#include	"extdll.h"
-#include	"util.h"
 #include	"skill.h"
+#include	"skilldata.h"
+#include	"ent_templates.h"
 
-skilldata_t gSkillData;
-
-//=========================================================
-// take the name of a cvar, tack a digit for the skill level
-// on, and return the value.of that Cvar 
-//=========================================================
-static float GetSkillCvar(const char *pName , const char *fallback, bool allowZero, float fallbackValue = 0)
+float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char* entTemplateName, const EntTemplate* ownerEntTemplate, const char* ownerEntTemplateName)
 {
-	float flValue;
-	char szBuffer[64];
+	typedef std::pair<const SkillVariable*, optional<float>> variable_and_value;
 
-	sprintf( szBuffer, "%s%d",pName, gSkillData.iSkillLevel );
-
-	flValue = CVAR_GET_FLOAT( szBuffer );
-
-	if( flValue <= 0 && !allowZero)
+	auto variableOrValueForNameFromTemplate = [&](const char* name, const EntTemplate* entTemplate, const char* entTemplateName) -> variable_and_value
 	{
-		if (fallback)
-			flValue = GetSkillCvar(fallback);
-		else if (fallbackValue)
-			flValue = fallbackValue;
-		if (flValue <= 0)
-			ALERT( at_console, "\n\n** GetSkillCVar Got a zero for %s **\n\n", szBuffer );
+		const SkillReplacement* replacement = entTemplate->GetSkillReplacement(name);
+		if (replacement)
+		{
+			switch(replacement->type)
+			{
+			case SkillReplacement::STRING:
+			{
+				const SkillVariable* variable = g_SkillData.GetSkillVariable(replacement->replacement.c_str());
+				if (!variable)
+				{
+					ALERT(at_warning, "Entity template \"%s\": skill %s is set to be replaced with %s, but the replacement doesn't exist\n",
+						entTemplateName, name, replacement->replacement.c_str());
+				}
+				return variable_and_value(variable, optional<float>());
+			}
+			case SkillReplacement::COMMON:
+			{
+				return variable_and_value(nullptr, optional<float>(replacement->medium));
+			}
+			case SkillReplacement::DIFFICULTIES:
+			{
+				float value;
+				if (g_iSkillLevel >= SKILL_HARD)
+				{
+					value = replacement->hard;
+				}
+				else if (g_iSkillLevel == SKILL_MEDIUM)
+				{
+					value = replacement->medium;
+				}
+				else if (g_iSkillLevel <= SKILL_EASY)
+				{
+					value = replacement->easy;
+				}
+				return variable_and_value(nullptr, optional<float>(value));
+			}
+			case SkillReplacement::MULTIPLIER:
+			{
+				const SkillVariable* variable = g_SkillData.GetSkillVariable(name);
+				if (variable)
+				{
+					optional<float> value = variable->ValueForSkillLevel(g_iSkillLevel);
+					if (value.has_value())
+					{
+						*value *= replacement->medium;
+					}
+					return variable_and_value(variable, value);
+				}
+				break;
+			}
+			}
+		}
+		return variable_and_value(nullptr, optional<float>());
+	};
+
+	auto variableOrValueForName = [&](const char* name)
+	{
+		variable_and_value pair;
+		if (entTemplate)
+		{
+			pair = variableOrValueForNameFromTemplate(name, entTemplate, entTemplateName);
+			if (pair.first || pair.second.has_value())
+				return pair;
+		}
+		else if (ownerEntTemplate)
+		{
+			pair = variableOrValueForNameFromTemplate(name, ownerEntTemplate, ownerEntTemplateName);
+			if (pair.first || pair.second.has_value())
+				return pair;
+		}
+
+		pair.first = g_SkillData.GetSkillVariable(name);
+		pair.second.reset();
+		return pair;
+	};
+
+	optional<float> multiplier;
+	for (int limiter = 0; limiter <= SKILL_FALLBACK_LIMIT; ++limiter)
+	{
+		auto pair = variableOrValueForName(name);
+		if (pair.second.has_value())
+		{
+			if (multiplier.has_value())
+				return *pair.second * *multiplier;
+			return *pair.second;
+		}
+
+		const SkillVariable* variable = pair.first;
+		if (variable)
+		{
+			optional<float> value = variable->ValueForSkillLevel(g_iSkillLevel);
+			if (value.has_value())
+			{
+				if (multiplier.has_value())
+					return *value * *multiplier;
+				return *value;
+			}
+			const char* fallback = variable->Fallback();
+			multiplier = variable->FallbackMultiplier();
+			if (fallback)
+			{
+				//ALERT(at_aiconsole, "%s: checking fallback %s for %s\n", STRING(pev->classname), fallback, name);
+				name = fallback;
+			}
+			else
+			{
+				break;
+			}
+		}
 	}
-
-	return flValue;
-}
-
-float GetSkillCvar(const char *pName , const char *fallback)
-{
-	return GetSkillCvar(pName, fallback, false);
-}
-
-float GetSkillCvar( const char *pName, float fallback )
-{
-	return GetSkillCvar(pName, 0, false, fallback);
-}
-
-float GetSkillCvarZeroable(const char *pName)
-{
-	return GetSkillCvar(pName, 0, true);
+	return 0.0f;
 }

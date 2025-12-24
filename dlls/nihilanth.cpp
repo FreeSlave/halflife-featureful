@@ -438,7 +438,8 @@ void CNihilanth::Spawn()
 
 	pev->flags		|= FL_MONSTER | FL_FLY;
 	pev->takedamage		= DAMAGE_AIM;
-	pev->health		= gSkillData.nihilanthHealth;
+	pev->health		= GetSkillValue("nihilanth_health");
+	pev->max_health = pev->health;
 	pev->view_ofs		= Vector( 0, 0, 300 );
 
 	SetMyFieldOfView(-1.0f); // 360 degrees
@@ -532,7 +533,7 @@ PainSoundRule CNihilanth::DefaultPainSoundRule()
 
 void CNihilanth::PainSound()
 {
-	if( pev->health > gSkillData.nihilanthHealth / 2 )
+	if( pev->health > pev->max_health / 2 )
 	{
 		EmitSoundScript(painLaughSoundScript);
 	}
@@ -859,7 +860,7 @@ void CNihilanth::NextActivity()
 		}
 	}
 
-	if( ( pev->health < gSkillData.nihilanthHealth / 2 || m_iActiveSpheres < N_SPHERES / 2 ) && m_hRecharger == 0 && m_iLevel <= 9 )
+	if( ( pev->health < pev->max_health / 2 || m_iActiveSpheres < N_SPHERES / 2 ) && m_hRecharger == 0 && m_iLevel <= 9 )
 	{
 		char szName[128];
 
@@ -945,7 +946,7 @@ void CNihilanth::NextActivity()
 	{
 		if( m_flLastSeen + 5 > gpGlobals->time && flDist < 256 && flDot > 0 )
 		{
-			if( m_irritation >= 2 && pev->health < gSkillData.nihilanthHealth / 2.0f )
+			if( m_irritation >= 2 && pev->health < pev->max_health / 2.0f )
 			{
 				pev->sequence = LookupSequence( "attack1_open" );
 			}
@@ -1003,9 +1004,9 @@ void CNihilanth::HuntThink()
 	// ALERT( at_console, "health %.0f\n", pev->health );
 
 	// if damaged, try to abosorb some spheres
-	if( pev->health < gSkillData.nihilanthHealth && AbsorbSphere() )
+	if( pev->health < pev->max_health && AbsorbSphere() )
 	{
-		pev->health += gSkillData.nihilanthHealth / N_SPHERES;
+		pev->health += GetSkillValue("nihilanth_health") / N_SPHERES;
 	}
 
 	// get new sequence
@@ -1015,7 +1016,7 @@ void CNihilanth::HuntThink()
 		pev->frame = 0;
 		NextActivity();
 		ResetSequenceInfo();
-		pev->framerate = 2.0f - 1.0f * ( pev->health / gSkillData.nihilanthHealth );
+		pev->framerate = 2.0f - 1.0f * ( pev->health / pev->max_health );
 	}
 
 	// look for current enemy	
@@ -1357,7 +1358,7 @@ void CNihilanth::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	{
 		Vector vecBlood = ( ptr->vecEndPos - pev->origin ).Normalize();
 
-		UTIL_BloodStream( ptr->vecEndPos, vecBlood, BloodColor(), damageInfo.damage + ( 100 - 100 * ( pev->health / gSkillData.nihilanthHealth ) ) );
+		UTIL_BloodStream( ptr->vecEndPos, vecBlood, BloodColor(), damageInfo.damage + ( 100 - 100 * ( pev->health / pev->max_health ) ) );
 	}
 
 	// SpawnBlood( ptr->vecEndPos, BloodColor(), flDamage * 5.0 );// a little surface blood.
@@ -1549,7 +1550,7 @@ void CNihilanthHVR::ZapThink()
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack( pev, pev, DamageInfo{gSkillData.nihilanthZap, DMG_SHOCK}, pev->velocity.Normalize(), &tr );
+			pEntity->ApplyTraceAttack( pev, pev, DamageInfo{GetSkillValue("nihilanth_zap"), DMG_SHOCK}, pev->velocity.Normalize(), &tr );
 		}
 
 		const Visual* pBeamVisual = GetVisual(zapBeamVisual);

@@ -95,7 +95,7 @@ public:
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
-	virtual float GetDamageAmount() { return gSkillData.headcrabDmgBite; }
+	virtual float GetDamageAmount() { return GetSkillValue("headcrab_dmg_bite"); }
 
 	Schedule_t* GetScheduleOfType ( int Type ) override;
 
@@ -317,7 +317,7 @@ void CHeadCrab::HandleAnimEvent( MonsterEvent_t *pEvent )
 void CHeadCrab::Spawn()
 {
 	Precache();
-	SpawnHelper("models/headcrab.mdl", gSkillData.headcrabHealth);
+	SpawnHelper("models/headcrab.mdl", GetSkillValue("headcrab_health"));
 	MonsterInit();
 }
 
@@ -557,7 +557,7 @@ public:
 	void Precache() override;
 	const char* DefaultDisplayName() override { return "Baby Headcrab"; }
 	void SetYawSpeed() override;
-	float GetDamageAmount() override { return gSkillData.headcrabDmgBite * 0.3f; }
+	float GetDamageAmount() override { return GetSkillValue("headcrab_dmg_bite") * 0.3f; }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	Schedule_t *GetScheduleOfType ( int Type ) override;
 
@@ -608,7 +608,7 @@ void CBabyCrab::ApplyDefaultRenderProps(int overridenRenderProps)
 void CBabyCrab::Spawn()
 {
 	Precache();
-	SpawnHelper("models/baby_headcrab.mdl", gSkillData.headcrabHealth * 0.25f); // less health than full grown
+	SpawnHelper("models/baby_headcrab.mdl", GetSkillValue("headcrab_health") * 0.25f); // less health than full grown
 	MonsterInit();
 }
 
@@ -677,7 +677,7 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shockroach"); }
 	const char* DefaultDisplayName() override { return "Shock Roach"; }
-	float GetDamageAmount() override { return gSkillData.sroachDmgBite; }
+	float GetDamageAmount() override { return GetSkillValue("shockroach_dmg_bite"); }
 	void EXPORT LeapTouch(CBaseEntity *pOther);
 	bool TryGiveAsWeapon(CBaseEntity* pOther);
 	void EXPORT RoachUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -800,7 +800,7 @@ void CShockRoach::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.sroachHealth );
+	SetMyHealth( GetSkillValue("shockroach_health") );
 	pev->view_ofs = Vector(0, 0, 20);// position of the eyes relative to monster's origin.
 	pev->yaw_speed = 5;//!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -906,7 +906,7 @@ void CShockRoach::MonsterThink()
 		SetMySize();
 	}
 	// die when ready
-	if (lifeTime >= gSkillData.sroachLifespan)
+	if (lifeTime >= GetSkillValue("shockroach_lifespan"))
 	{
 		TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
 	}

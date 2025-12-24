@@ -300,7 +300,7 @@ void CFlybee::Spawn()
 	pev->solid			= SOLID_BBOX;
 	pev->movetype		= MOVETYPE_FLY;
 	SetMyBloodColor(BLOOD_COLOR_GREEN);
-	SetMyHealth(gSkillData.flybeeHealth);
+	SetMyHealth(GetSkillValue("flybee_health"));
 	pev->view_ofs		= Vector ( 0, 0, 16 );
 	SetMyFieldOfView(VIEW_FIELD_WIDE);
 	m_MonsterState		= MONSTERSTATE_NONE;
@@ -313,7 +313,7 @@ void CFlybee::Spawn()
 
 	m_idealDist		= 384;
 	m_flMinSpeed	= 80;
-	m_flMaxSpeed	= gSkillData.flybeeMaxspeed * 0.75f;
+	m_flMaxSpeed	= GetSkillValue("flybee_maxspeed") * 0.75f;
 	m_flMaxDist		= 384;
 
 	m_iFear			= 0;
@@ -393,7 +393,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			TraceHullAttackParams params;
 			params.punchAngle.z = 25;
-			params.damageInfo.damage = gSkillData.flybeeDmgKick;
+			params.damageInfo.damage = GetSkillValue("flybee_dmg_kick");
 			params.damageInfo.type = DMG_CLUB;
 			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
@@ -444,7 +444,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 					WriteBeamVisual(waveVisual);
 				MESSAGE_END();
 			}
-			RadiusDamage( vecEnd, pev, pev, DamageInfo{gSkillData.flybeeDmgBeam, DMG_SHOCK}, CLASS_ALIEN_MONSTER );
+			RadiusDamage( vecEnd, pev, pev, DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}, CLASS_ALIEN_MONSTER );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);
 			break;
@@ -663,7 +663,7 @@ Schedule_t* CFlybee::GetSchedule()
 		return GetScheduleOfType( SCHED_IDLE_WALK );
 
 	case MONSTERSTATE_COMBAT:
-		m_flMaxSpeed = gSkillData.flybeeMaxspeed;
+		m_flMaxSpeed = GetSkillValue("flybee_maxspeed");
 
 		if ( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 		{
@@ -1203,7 +1203,7 @@ void CFlyBall::ExplodeTouch( CBaseEntity *pOther )
 		if ( pOther->pev != VARS ( pev->owner ) )
 		{
 			CBaseEntity* pAttacker = !FNullEnt(pev->owner) ? CBaseEntity::Instance(pev->owner) : nullptr;
-			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, DamageInfo{gSkillData.flybeeDmgFlyball, DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
+			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, DamageInfo{GetSkillValue("flybee_dmg_flyball"), DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
 		}
 	}
 

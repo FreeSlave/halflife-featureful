@@ -72,11 +72,11 @@ void CNail::Spawn()
 
 	if (!FNullEnt(pev->owner) && FBitSet(pev->owner->v.flags, FL_CLIENT))
 	{
-		SetDefaultProjectileDamage(gSkillData.plrDmgNail);
+		SetDefaultProjectileDamage(GetSkillValue("plr_nail"));
 	}
 	else
 	{
-		SetDefaultProjectileDamage(gSkillData.monDmgNail);
+		SetDefaultProjectileDamage(GetSkillValue("nail"));
 	}
 }
 

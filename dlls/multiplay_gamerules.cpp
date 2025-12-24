@@ -26,6 +26,7 @@
 #include	"gamerules.h"
  
 #include	"skill.h"
+#include	"skilldata.h"
 #include	"game.h"
 #include	"items.h"
 #if !NO_VOICEGAMEMGR
@@ -319,56 +320,56 @@ void CHalfLifeMultiplay::RefreshSkillData()
 	// override some values for multiplay.
 
 	// suitcharger
-	gSkillData.suitchargerCapacity = 30;
+	g_SkillData.ForceValue("suitcharger", 30.0f);
 
 	// Crowbar whack
-	gSkillData.plrDmgCrowbar = 25;
+	g_SkillData.ForceValue("plr_crowbar", 25.0f);
 
 	// Glock Round
-	gSkillData.plrDmg9MM = 12;
+	g_SkillData.ForceValue("plr_9mm_bullet", 12.0f);
 
 	// 357 Round
-	gSkillData.plrDmg357 = 50;
+	g_SkillData.ForceValue("plr_357_bullet", 50.0f);
 
 	// MP5 Round
-	gSkillData.plrDmgMP5 = 12;
+	g_SkillData.ForceValue("plr_9mmAR_bullet", 12.0f);
 
 	// M203 grenade
-	gSkillData.plrDmgM203Grenade = 100;
+	g_SkillData.ForceValue("plr_9mmAR_grenade", 100.0f);
 
 	// Shotgun buckshot
-	gSkillData.plrDmgBuckshot = 20;// fewer pellets in deathmatch
+	g_SkillData.ForceValue("plr_buckshot", 20.0f);// fewer pellets in deathmatch
 
 	// Crossbow
-	gSkillData.plrDmgCrossbowClient = 20;
+	g_SkillData.ForceValue("plr_xbow_bolt_client", 20.0f);
 
 	// RPG
-	gSkillData.plrDmgRPG = 120;
+	g_SkillData.ForceValue("plr_rpg", 120.0f);
 
 	// Egon
-	gSkillData.plrDmgEgonWide = 20;
-	gSkillData.plrDmgEgonNarrow = 10;
+	g_SkillData.ForceValue("plr_egon_wide", 20.0f);
+	g_SkillData.ForceValue("plr_egon_narrow", 10.0f);
 
 	// Hand Grendade
-	gSkillData.plrDmgHandGrenade = 100;
+	g_SkillData.ForceValue("plr_hand_grenade", 100.0f);
 
 	// Satchel Charge
-	gSkillData.plrDmgSatchel = 120;
+	g_SkillData.ForceValue("plr_satchel", 120.0f);
 
 	// Tripmine
-	gSkillData.plrDmgTripmine = 150;
+	g_SkillData.ForceValue("plr_tripmine", 150.0f);
 
 	// hornet
-	gSkillData.plrDmgHornet = 10;
+	g_SkillData.ForceValue("plr_hornet_dmg", 10.0f);
 
 	// Desert Eagle
-	gSkillData.plrDmgEagle = 34;
+	g_SkillData.ForceValue("plr_eagle", 34.0f);
 
 	// Pipe wrench
-	gSkillData.plrDmgPWrench = 20;
+	g_SkillData.ForceValue("plr_pipewrench", 2.0f);
 
 	// 762 Round
-	gSkillData.plrDmg762 = 100;
+	g_SkillData.ForceValue("plr_762_bullet", 100.0f);
 }
 
 // longest the intermission can last, in seconds

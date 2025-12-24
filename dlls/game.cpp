@@ -21,6 +21,8 @@
 #include "weapon_ids.h"
 #include "saverestore.h"
 #include "locus.h"
+#include "skill.h"
+#include "skilldata.h"
 #include "ammo_amounts.h"
 #include "inventory.h"
 #include "soundscripts.h"
@@ -819,383 +821,6 @@ cvar_t *g_enable_cheats = NULL;
 
 cvar_t *g_psv_developer = NULL;
 
-#define DECLARE_SKILL_VALUE(name, defaultValue) \
-cvar_t name ## 1 = { #name "1", defaultValue, 0, 0, 0 }; \
-cvar_t name ## 2 = { #name "2", defaultValue, 0, 0, 0 }; \
-cvar_t name ## 3 = { #name "3", defaultValue, 0, 0, 0 };
-
-#define DECLARE_SKILL_VALUE3(name, defaultValue1, defaultValue2, defaultValue3) \
-cvar_t name ## 1 = { #name "1", defaultValue1, 0, 0, 0 }; \
-cvar_t name ## 2 = { #name "2", defaultValue2, 0, 0, 0 }; \
-cvar_t name ## 3 = { #name "3", defaultValue3, 0, 0, 0 };
-
-#define REGISTER_SKILL_CVARS(name) \
-CVAR_REGISTER( &name ## 1 ); \
-CVAR_REGISTER( &name ## 2 ); \
-CVAR_REGISTER( &name ## 3 );
-
-//CVARS FOR SKILL LEVEL SETTINGS
-// Agrunt
-DECLARE_SKILL_VALUE(sk_agrunt_health, "0")
-DECLARE_SKILL_VALUE(sk_agrunt_dmg_punch, "0")
-
-// Apache
-DECLARE_SKILL_VALUE(sk_apache_health, "0")
-
-// Baby Gargantua
-DECLARE_SKILL_VALUE(sk_babygargantua_health, "0")
-DECLARE_SKILL_VALUE(sk_babygargantua_dmg_slash, "0")
-DECLARE_SKILL_VALUE(sk_babygargantua_dmg_fire, "0")
-DECLARE_SKILL_VALUE(sk_babygargantua_dmg_stomp, "0")
-
-// Barnacle
-DECLARE_SKILL_VALUE(sk_barnacle_health, "25")
-
-// Barney
-DECLARE_SKILL_VALUE(sk_barney_health, "0")
-
-// Bullsquid
-DECLARE_SKILL_VALUE(sk_bullsquid_health, "0")
-DECLARE_SKILL_VALUE(sk_bullsquid_dmg_bite, "0")
-DECLARE_SKILL_VALUE(sk_bullsquid_dmg_whip, "0")
-DECLARE_SKILL_VALUE(sk_bullsquid_dmg_spit, "0")
-DECLARE_SKILL_VALUE3(sk_bullsquid_toxicity, "0", "1", "1")
-DECLARE_SKILL_VALUE(sk_bullsquid_dmg_toxic_poison, "0")
-DECLARE_SKILL_VALUE(sk_bullsquid_dmg_toxic_impact, "0")
-
-// Big Momma
-DECLARE_SKILL_VALUE(sk_bigmomma_health_factor, "1.0")
-DECLARE_SKILL_VALUE(sk_bigmomma_dmg_slash, "50")
-DECLARE_SKILL_VALUE(sk_bigmomma_dmg_blast, "100")
-DECLARE_SKILL_VALUE(sk_bigmomma_radius_blast, "250")
-
-// Cleansuit Scientist
-DECLARE_SKILL_VALUE(sk_cleansuit_scientist_health, "0")
-
-// Flybee
-DECLARE_SKILL_VALUE(sk_flybee_health, "0")
-DECLARE_SKILL_VALUE(sk_flybee_dmg_kick, "20")
-DECLARE_SKILL_VALUE(sk_flybee_dmg_beam, "50")
-DECLARE_SKILL_VALUE(sk_flybee_dmg_flyball, "20")
-DECLARE_SKILL_VALUE(sk_flybee_maxspeed, "400")
-
-// Gargantua
-DECLARE_SKILL_VALUE(sk_gargantua_health, "0")
-DECLARE_SKILL_VALUE(sk_gargantua_dmg_slash, "0")
-DECLARE_SKILL_VALUE(sk_gargantua_dmg_fire, "0")
-DECLARE_SKILL_VALUE(sk_gargantua_dmg_stomp, "0")
-
-// Hassassin
-DECLARE_SKILL_VALUE(sk_hassassin_health, "0")
-DECLARE_SKILL_VALUE3(sk_hassassin_cloaking, "0", "0", "1")
-
-// Headcrab
-DECLARE_SKILL_VALUE(sk_headcrab_health, "0")
-DECLARE_SKILL_VALUE(sk_headcrab_dmg_bite, "0")
-
-// Opposing Force Hgrunt
-DECLARE_SKILL_VALUE(sk_hgrunt_ally_health, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_ally_kick, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_ally_pellets, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_ally_gspeed, "0")
-
-// Medic
-DECLARE_SKILL_VALUE(sk_medic_ally_health, "0")
-DECLARE_SKILL_VALUE(sk_medic_ally_kick, "0")
-DECLARE_SKILL_VALUE(sk_medic_ally_gspeed, "0")
-DECLARE_SKILL_VALUE(sk_medic_ally_heal, "0")
-
-// Torch
-DECLARE_SKILL_VALUE(sk_torch_ally_health, "0")
-DECLARE_SKILL_VALUE(sk_torch_ally_kick, "0")
-DECLARE_SKILL_VALUE(sk_torch_ally_gspeed, "0")
-
-// Hgrunt 
-DECLARE_SKILL_VALUE(sk_hgrunt_health, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_kick, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_pellets, "0")
-DECLARE_SKILL_VALUE(sk_hgrunt_gspeed, "0")
-
-DECLARE_SKILL_VALUE(sk_hwgrunt_health, "0")
-
-// Houndeye
-DECLARE_SKILL_VALUE(sk_houndeye_health, "0")
-DECLARE_SKILL_VALUE(sk_houndeye_dmg_blast, "0")
-
-// ISlave
-DECLARE_SKILL_VALUE(sk_islave_health, "0")
-DECLARE_SKILL_VALUE(sk_islave_dmg_claw, "0")
-DECLARE_SKILL_VALUE(sk_islave_dmg_clawrake, "0")
-DECLARE_SKILL_VALUE(sk_islave_dmg_zap, "0")
-
-DECLARE_SKILL_VALUE3(sk_islave_zap_rate, "1", "1", "1.5")
-DECLARE_SKILL_VALUE3(sk_islave_revival, "0", "0", "1")
-
-// Icthyosaur
-DECLARE_SKILL_VALUE(sk_ichthyosaur_health, "0")
-DECLARE_SKILL_VALUE(sk_ichthyosaur_shake, "0")
-
-// Leech
-DECLARE_SKILL_VALUE(sk_leech_health, "0")
-DECLARE_SKILL_VALUE(sk_leech_dmg_bite, "0")
-
-// Controller
-DECLARE_SKILL_VALUE(sk_controller_health, "0")
-DECLARE_SKILL_VALUE(sk_controller_dmgzap, "0")
-DECLARE_SKILL_VALUE(sk_controller_speedball, "0")
-DECLARE_SKILL_VALUE(sk_controller_dmgball, "0")
-
-// Massassin
-DECLARE_SKILL_VALUE(sk_massassin_health, "0")
-DECLARE_SKILL_VALUE(sk_massassin_kick, "0")
-DECLARE_SKILL_VALUE(sk_massassin_gspeed, "0")
-
-// Nihilanth
-DECLARE_SKILL_VALUE(sk_nihilanth_health, "0")
-DECLARE_SKILL_VALUE(sk_nihilanth_zap, "0")
-
-// Osprey
-DECLARE_SKILL_VALUE(sk_osprey, "400")
-
-// Blackops Osprey
-DECLARE_SKILL_VALUE(sk_blkopsosprey, "0")
-
-// Otis
-DECLARE_SKILL_VALUE(sk_otis_health, "0")
-
-// Kate
-DECLARE_SKILL_VALUE(sk_kate_health, "0")
-
-// Panthereye
-DECLARE_SKILL_VALUE(sk_panthereye_health, "150")
-DECLARE_SKILL_VALUE(sk_panthereye_dmg_claw, "20")
-
-// Pitdrone
-DECLARE_SKILL_VALUE(sk_pitdrone_health, "0")
-DECLARE_SKILL_VALUE(sk_pitdrone_dmg_bite, "0")
-DECLARE_SKILL_VALUE(sk_pitdrone_dmg_whip, "0")
-DECLARE_SKILL_VALUE(sk_pitdrone_dmg_spit, "0")
-
-// Pitworm
-DECLARE_SKILL_VALUE(sk_pitworm_health, "0")
-DECLARE_SKILL_VALUE(sk_pitworm_dmg_swipe, "0")
-DECLARE_SKILL_VALUE(sk_pitworm_dmg_beam, "0")
-
-// Geneworm
-DECLARE_SKILL_VALUE(sk_geneworm_health, "0")
-DECLARE_SKILL_VALUE(sk_geneworm_dmg_spit, "0")
-DECLARE_SKILL_VALUE(sk_geneworm_dmg_hit, "0")
-
-// Scientist
-DECLARE_SKILL_VALUE(sk_scientist_health, "0")
-
-DECLARE_SKILL_VALUE(sk_rgrunt_explode, "0")
-
-// Shock Roach
-DECLARE_SKILL_VALUE(sk_shockroach_health, "0")
-DECLARE_SKILL_VALUE(sk_shockroach_dmg_bite, "0")
-DECLARE_SKILL_VALUE(sk_shockroach_lifespan, "0")
-
-// ShockTrooper
-DECLARE_SKILL_VALUE(sk_shocktrooper_health, "0")
-DECLARE_SKILL_VALUE(sk_shocktrooper_kick, "0")
-DECLARE_SKILL_VALUE(sk_shocktrooper_gspeed, "0")
-DECLARE_SKILL_VALUE(sk_shocktrooper_maxcharge, "0")
-DECLARE_SKILL_VALUE(sk_shocktrooper_rchgspeed, "0")
-
-// Snark
-DECLARE_SKILL_VALUE(sk_snark_health, "0")
-DECLARE_SKILL_VALUE(sk_snark_dmg_bite, "0")
-DECLARE_SKILL_VALUE(sk_snark_dmg_pop, "0")
-
-// Voltigore
-DECLARE_SKILL_VALUE(sk_voltigore_health, "0")
-DECLARE_SKILL_VALUE(sk_voltigore_dmg_punch, "0")
-DECLARE_SKILL_VALUE(sk_voltigore_dmg_beam, "0")
-DECLARE_SKILL_VALUE(sk_voltigore_dmg_explode, "0")
-
-// Baby Voltigore
-DECLARE_SKILL_VALUE(sk_babyvoltigore_health, "0")
-DECLARE_SKILL_VALUE(sk_babyvoltigore_dmg_punch, "0")
-
-// Zombie
-DECLARE_SKILL_VALUE(sk_zombie_health, "0")
-DECLARE_SKILL_VALUE(sk_zombie_dmg_one_slash, "0")
-DECLARE_SKILL_VALUE(sk_zombie_dmg_both_slash, "0")
-
-// Zombie Barney
-DECLARE_SKILL_VALUE(sk_zombie_barney_health, "0")
-DECLARE_SKILL_VALUE(sk_zombie_barney_dmg_one_slash, "0")
-DECLARE_SKILL_VALUE(sk_zombie_barney_dmg_both_slash, "0")
-
-// Zombie Soldier
-DECLARE_SKILL_VALUE(sk_zombie_soldier_health, "0")
-DECLARE_SKILL_VALUE(sk_zombie_soldier_dmg_one_slash, "0")
-DECLARE_SKILL_VALUE(sk_zombie_soldier_dmg_both_slash, "0")
-
-// Gonome
-DECLARE_SKILL_VALUE(sk_gonome_health, "0")
-DECLARE_SKILL_VALUE(sk_gonome_dmg_one_slash, "0")
-DECLARE_SKILL_VALUE(sk_gonome_dmg_guts, "0")
-DECLARE_SKILL_VALUE(sk_gonome_dmg_one_bite, "0")
-
-// Floater
-DECLARE_SKILL_VALUE(sk_floater_health, "0")
-DECLARE_SKILL_VALUE(sk_floater_explode, "0")
-
-//Turret
-DECLARE_SKILL_VALUE(sk_turret_health, "0")
-
-// MiniTurret
-DECLARE_SKILL_VALUE(sk_miniturret_health, "0")
-
-// Sentry Turret
-DECLARE_SKILL_VALUE(sk_sentry_health, "0")
-
-// Robocop
-DECLARE_SKILL_VALUE(sk_robocop_health, "0")
-DECLARE_SKILL_VALUE(sk_robocop_dmg_mortar, "0")
-DECLARE_SKILL_VALUE(sk_robocop_dmg_fist, "0")
-DECLARE_SKILL_VALUE(sk_robocop_sw_radius, "0")
-
-DECLARE_SKILL_VALUE(sk_tor_health, "0")
-DECLARE_SKILL_VALUE(sk_tor_punch, "0")
-DECLARE_SKILL_VALUE(sk_tor_energybeam, "0")
-DECLARE_SKILL_VALUE(sk_tor_sonicblast, "0")
-
-DECLARE_SKILL_VALUE(sk_zaptrap_sense_radius, "244")
-DECLARE_SKILL_VALUE(sk_zaptrap_respawn_time, "18")
-
-// PLAYER WEAPONS
-
-// Crowbar whack
-DECLARE_SKILL_VALUE(sk_plr_crowbar, "0")
-
-// Glock Round
-DECLARE_SKILL_VALUE(sk_plr_9mm_bullet, "0")
-
-// 357 Round
-DECLARE_SKILL_VALUE(sk_plr_357_bullet, "0")
-
-// MP5 Round
-DECLARE_SKILL_VALUE(sk_plr_9mmAR_bullet, "0")
-
-// M203 grenade
-DECLARE_SKILL_VALUE(sk_plr_9mmAR_grenade, "0")
-
-// Shotgun buckshot
-DECLARE_SKILL_VALUE(sk_buckshot, "0")
-DECLARE_SKILL_VALUE(sk_plr_buckshot, "0")
-
-// Crossbow
-DECLARE_SKILL_VALUE(sk_plr_xbow_bolt_client, "0")
-DECLARE_SKILL_VALUE(sk_plr_xbow_bolt_monster, "0")
-
-// RPG
-DECLARE_SKILL_VALUE(sk_plr_rpg, "0")
-
-// Tau Cannon
-DECLARE_SKILL_VALUE(sk_plr_gauss, "0")
-
-// Gluon Gun
-DECLARE_SKILL_VALUE(sk_plr_egon_narrow, "0")
-DECLARE_SKILL_VALUE(sk_plr_egon_wide, "0")
-
-// Hand Grendade
-DECLARE_SKILL_VALUE(sk_plr_hand_grenade, "0")
-
-// Satchel Charge
-DECLARE_SKILL_VALUE(sk_plr_satchel, "0")
-
-// Tripmine
-DECLARE_SKILL_VALUE(sk_plr_tripmine, "0")
-
-// Desert Eagle
-DECLARE_SKILL_VALUE(sk_plr_eagle, "0")
-
-// Pipe wrench
-DECLARE_SKILL_VALUE(sk_plr_pipewrench, "0")
-
-// Knife
-DECLARE_SKILL_VALUE(sk_plr_knife, "0")
-
-// Grapple
-DECLARE_SKILL_VALUE(sk_plr_grapple, "0")
-
-// M249
-DECLARE_SKILL_VALUE(sk_plr_556_bullet, "0")
-
-// Sniper rifle
-DECLARE_SKILL_VALUE(sk_plr_762_bullet, "0")
-
-// Medkit
-DECLARE_SKILL_VALUE(sk_plr_medkitshot, "10")
-
-DECLARE_SKILL_VALUE3(sk_plr_medkittime, "3", "5", "0")
-
-// WORLD WEAPONS
-DECLARE_SKILL_VALUE(sk_12mm_bullet, "0")
-DECLARE_SKILL_VALUE(sk_9mmAR_bullet, "0")
-DECLARE_SKILL_VALUE(sk_9mm_bullet, "0")
-DECLARE_SKILL_VALUE(sk_357_bullet, "34")
-DECLARE_SKILL_VALUE(sk_556_bullet, "15")
-DECLARE_SKILL_VALUE3(sk_762_bullet, "35", "40", "40")
-
-DECLARE_SKILL_VALUE(sk_plr_shockroachs, "0")
-DECLARE_SKILL_VALUE(sk_plr_shockroachm, "0")
-DECLARE_SKILL_VALUE(sk_shockroach, "0")
-
-DECLARE_SKILL_VALUE(sk_plr_spore, "0")
-
-DECLARE_SKILL_VALUE(sk_plr_displacer_other, "0")
-DECLARE_SKILL_VALUE(sk_plr_displacer_radius, "0")
-
-DECLARE_SKILL_VALUE(sk_plr_uzi, "6")
-
-// HORNET
-DECLARE_SKILL_VALUE(sk_hornet_dmg, "0")
-DECLARE_SKILL_VALUE(sk_plr_hornet_dmg, "7")
-
-// NAIL
-DECLARE_SKILL_VALUE(sk_nail, "8")
-DECLARE_SKILL_VALUE(sk_plr_nail, "8")
-
-// MORTAR
-DECLARE_SKILL_VALUE(sk_mortar, "200")
-DECLARE_SKILL_VALUE(sk_op4mortar, "0")
-
-// HEALTH/CHARGE
-DECLARE_SKILL_VALUE(sk_suitcharger, "0")
-DECLARE_SKILL_VALUE(sk_battery, "0")
-DECLARE_SKILL_VALUE(sk_healthcharger, "0")
-DECLARE_SKILL_VALUE(sk_healthkit, "0")
-DECLARE_SKILL_VALUE(sk_scientist_heal, "0")
-DECLARE_SKILL_VALUE(sk_scientist_heal_time, "60")
-DECLARE_SKILL_VALUE(sk_soda, "1")
-DECLARE_SKILL_VALUE(sk_vortigaunt_armor_charge, "0")
-
-// monster damage adjusters
-DECLARE_SKILL_VALUE(sk_monster_head, "2")
-DECLARE_SKILL_VALUE(sk_monster_chest, "1")
-DECLARE_SKILL_VALUE(sk_monster_stomach, "1")
-DECLARE_SKILL_VALUE(sk_monster_arm, "1")
-DECLARE_SKILL_VALUE(sk_monster_leg, "1")
-
-// player damage adjusters
-DECLARE_SKILL_VALUE(sk_player_head, "2")
-DECLARE_SKILL_VALUE(sk_player_chest, "1")
-DECLARE_SKILL_VALUE(sk_player_stomach, "1")
-DECLARE_SKILL_VALUE(sk_player_arm, "1")
-DECLARE_SKILL_VALUE(sk_player_leg, "1")
-
-// flashlight settings
-DECLARE_SKILL_VALUE(sk_flashlight_drain_time, "120")
-DECLARE_SKILL_VALUE(sk_flashlight_charge_time, "20")
-
-DECLARE_SKILL_VALUE(sk_plr_armor_strength, "2")
-
-// END Cvars for Skill Level settings
-
 void Cmd_ReportAIState()
 {
 	ReportAIStateByClassname(CMD_ARGV( 1 ));
@@ -1494,6 +1119,108 @@ void ForceScheduleFail()
 	}
 }
 
+void PrintSkillVariable()
+{
+	const int argc = CMD_ARGC();
+	if (argc <= 1)
+	{
+		ALERT(at_console, "Usage: %s <skill variable name>\n", CMD_ARGV(0));
+		return;
+	}
+
+	for (int i=1; i<argc; ++i)
+	{
+		const char* name = CMD_ARGV(i);
+		const SkillVariable* variable = g_SkillData.GetSkillVariable(name);
+		if (variable)
+		{
+			if (argc > 2)
+			{
+				ALERT(at_console, "%s:\n", name);
+			}
+			if (variable->HasValue(SkillVariable::COMMON))
+			{
+				ALERT(at_console, "Common: %g\n", variable->GetValue(SkillVariable::COMMON));
+			}
+			if (variable->HasValue(SkillVariable::EASY))
+			{
+				ALERT(at_console, "Easy: %g\n", variable->GetValue(SkillVariable::EASY));
+			}
+			if (variable->HasValue(SkillVariable::MEDIUM))
+			{
+				ALERT(at_console, "Normal: %g\n", variable->GetValue(SkillVariable::MEDIUM));
+			}
+			if (variable->HasValue(SkillVariable::HARD))
+			{
+				ALERT(at_console, "Hard: %g\n", variable->GetValue(SkillVariable::HARD));
+			}
+			const char* fallback = variable->Fallback();
+			if (fallback)
+			{
+				ALERT(at_console, "Fallback: %s\n", fallback);
+			}
+			optional<float> multiplier = variable->FallbackMultiplier();
+			if (multiplier.has_value())
+			{
+				ALERT(at_console, "Fallback multiplier: %g\n", *multiplier);
+			}
+			ALERT(at_console, "Current value: %g\n", ::GetSkillValue(name));
+		}
+		else
+		{
+			ALERT(at_console, "No skill variable '%s' found\n", name);
+		}
+	}
+}
+
+void PrintSkillReplacementForEntTemplate()
+{
+	const int argc = CMD_ARGC();
+	if (argc <= 2)
+	{
+		ALERT(at_console, "Usage: %s <entity template name> <skill variable name>\n", CMD_ARGV(0));
+		return;
+	}
+
+	const char* entTemplateName = CMD_ARGV(1);
+	const EntTemplate* entTemplate = g_EntTemplateSystem.GetTemplate(entTemplateName);
+
+	if (!entTemplate)
+	{
+		ALERT(at_console, "No entity template with such name: %s\n", entTemplateName);
+		return;
+	}
+
+	for (int i=2; i<argc; ++i)
+	{
+		const char* name = CMD_ARGV(i);
+
+		const SkillReplacement* replacement = entTemplate->GetSkillReplacement(name);
+		if (replacement)
+		{
+			switch(replacement->type)
+			{
+			case SkillReplacement::STRING:
+				ALERT(at_console, "Replacement variable is %s\n", replacement->replacement.c_str());
+				break;
+			case SkillReplacement::COMMON:
+				ALERT(at_console, "Replacement value is %g\n", replacement->medium);
+				break;
+			case SkillReplacement::DIFFICULTIES:
+				ALERT(at_console, "Replacement values are: %g, %g, %g\n", replacement->easy, replacement->medium, replacement->hard);
+				break;
+			case SkillReplacement::MULTIPLIER:
+				ALERT(at_console, "Replacement multiplier is %g\n", replacement->medium);
+				break;
+			default:
+				break;
+			}
+		}
+
+		ALERT(at_console, "Evaluated value: %g\n", ::GetSkillValue(name, entTemplate, entTemplateName));
+	}
+}
+
 static void CVAR_REGISTER_INTEGER( cvar_t* cvar, int value )
 {
 	char valueStr[12];
@@ -1528,9 +1255,210 @@ cvar_t sv_busters = { "sv_busters", "0" };
 extern void RegisterAmmoTypes();
 extern void ReportRegisteredAmmoTypes();
 
+void ParseSkillCfg(byte *pMemFile, const char* fileName, int fileSize)
+{
+	int filePos = 0;
+	char buffer[512] = { 0 };
+	int lineNum = 0;
+
+	while(memfgets(pMemFile, fileSize, filePos, buffer, sizeof(buffer)-1)) {
+		lineNum++;
+		int i = 0;
+		SkipSpaceCharacters(buffer, i, sizeof(buffer));
+		if (buffer[i] == '\0') // it's an empty line, skip
+			continue;
+		if (buffer[i] == '/') // it's a comment, skip
+			continue;
+
+		const int strStart = i;
+		ConsumeNonSpaceCharacters(buffer, i, sizeof(buffer));
+		int strEnd = i;
+
+		if (strEnd - strStart > 0)
+		{
+			const char lastDigit = buffer[strEnd-1];
+			const bool lastIsDigit = isdigit(lastDigit);
+			if (lastIsDigit)
+			{
+				strEnd--;
+			}
+
+			if (strEnd - strStart <= 0)
+			{
+				ALERT(at_error, "%s: bad skill value name on line %d\n", fileName, lineNum);
+				continue;
+			}
+
+			std::string skillName(buffer+strStart, buffer+strEnd);
+
+			SkipSpaceCharacters(buffer, i, sizeof(buffer));
+
+			int valueStart;
+			int valueEnd;
+			if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), valueStart, valueEnd))
+			{
+				ALERT(at_error, "%s: error parsing the skill value for %s on line %d\n", fileName, skillName.c_str(), lineNum);
+				continue;
+			}
+
+			std::string valueStr(buffer+valueStart, buffer+valueEnd);
+			const float value = atof(valueStr.c_str());
+
+			int category = SkillVariable::COMMON;
+			if (lastIsDigit)
+			{
+				switch(lastDigit)
+				{
+				case '1':
+					category = SkillVariable::EASY;
+					break;
+				case '2':
+					category = SkillVariable::MEDIUM;
+					break;
+				case '3':
+					category = SkillVariable::HARD;
+					break;
+				default:
+					category = SkillVariable::BAD;
+					break;
+				}
+
+				if (category == SkillVariable::BAD)
+				{
+					ALERT(at_error, "%s: unknown skill value digit suffix %c for %s on line %d\n", fileName, lastDigit, skillName.c_str(), lineNum);
+					continue;
+				}
+			}
+
+			//ALERT(at_console, "Setting skill variable %s to value %g in category %d\n", skillName.c_str(), value, category);
+			g_SkillData.SetVariableValue(std::move(skillName), category, value);
+		}
+	}
+}
+
+void ProvideSkillFallbacks()
+{
+	g_SkillData.ProvideFallback("barnacle_health", 25.0f);
+
+	g_SkillData.ProvideFallback("bigmomma_health_factor", 1.0f);
+	g_SkillData.ProvideFallback("bigmomma_dmg_slash", 50.0f);
+	g_SkillData.ProvideFallback("bigmomma_dmg_blast", 100.0f);
+	g_SkillData.ProvideFallback("bigmomma_radius_blast", 250.0f);
+
+	g_SkillData.ProvideFallback("bullsquid_toxicity", 0.0f, 1.0f, 1.0f);
+	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_poison", "bullsquid_dmg_spit", 0.25f);
+	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_impact", "bullsquid_dmg_spit", 1.5f);
+
+	g_SkillData.ProvideFallback("cleansuit_scientist_health", "scientist_health");
+
+	g_SkillData.ProvideFallback("flybee_health", "ichthyosaur_health");
+	g_SkillData.ProvideFallback("flybee_dmg_kick", 20.0f);
+	g_SkillData.ProvideFallback("flybee_dmg_beam", 50.0f);
+	g_SkillData.ProvideFallback("flybee_dmg_flyball", 20.0f);
+	g_SkillData.ProvideFallback("flybee_maxspeed", 400.0f);
+
+	g_SkillData.ProvideFallback("hassassin_cloaking", 0.0f, 0.0f, 1.0f);
+
+	g_SkillData.ProvideFallback("hgrunt_ally_health", "hgrunt_health");
+	g_SkillData.ProvideFallback("hgrunt_ally_kick", "hgrunt_kick");
+	g_SkillData.ProvideFallback("hgrunt_ally_pellets", "hgrunt_pellets");
+	g_SkillData.ProvideFallback("hgrunt_ally_gspeed", "hgrunt_gspeed");
+
+	g_SkillData.ProvideFallback("medic_ally_health", "hgrunt_ally_health");
+	g_SkillData.ProvideFallback("medic_ally_kick", "hgrunt_ally_kick");
+	g_SkillData.ProvideFallback("medic_ally_gspeed", "hgrunt_ally_gspeed");
+
+	g_SkillData.ProvideFallback("torch_ally_health", "hgrunt_ally_health");
+	g_SkillData.ProvideFallback("torch_ally_kick", "hgrunt_ally_kick");
+	g_SkillData.ProvideFallback("torch_ally_gspeed", "hgrunt_ally_gspeed");
+
+	g_SkillData.ProvideFallback("islave_zap_rate", 1.0f, 1.0f, 1.5f);
+	g_SkillData.ProvideFallback("islave_revival", 0.0f, 0.0f, 1.0f);
+
+	g_SkillData.ProvideFallback("kate_health", "barney_health");
+
+	g_SkillData.ProvideFallback("massassin_health", "hgrunt_health");
+	g_SkillData.ProvideFallback("massassin_kick", "hgrunt_kick");
+	g_SkillData.ProvideFallback("massassin_gspeed", "hgrunt_gspeed");
+
+	g_SkillData.ProvideFallback("osprey", 400.0f);
+	g_SkillData.ProvideFallback("blkopsosprey", "osprey");
+
+	g_SkillData.ProvideFallback("otis_health", "barney_health");
+
+	g_SkillData.ProvideFallback("panthereye_health", 150.0f);
+	g_SkillData.ProvideFallback("panthereye_dmg_claw", 20.0f);
+
+	g_SkillData.ProvideFallback("rgrunt_explode", "plr_hand_grenade");
+
+	g_SkillData.ProvideFallback("voltigore_dmg_explode", "voltigore_dmg_beam");
+
+	g_SkillData.ProvideFallback("zaptrap_sense_radius", 244.0f);
+	g_SkillData.ProvideFallback("zaptrap_respawn_time", 18);
+
+	g_SkillData.ProvideFallback("zombie_barney_health", "zombie_health");
+	g_SkillData.ProvideFallback("zombie_barney_dmg_one_slash", "zombie_dmg_one_slash");
+	g_SkillData.ProvideFallback("zombie_barney_dmg_both_slash", "zombie_dmg_both_slash");
+
+	g_SkillData.ProvideFallback("plr_medkitshot", 10.0f);
+	g_SkillData.ProvideFallback("plr_medkittime", 3.0f, 5.0f, 0.0f);
+	g_SkillData.ProvideFallback("plr_uzi", 6.0f);
+
+	g_SkillData.ProvideFallback("mortar", 200.0f);
+	g_SkillData.ProvideFallbackWithFactor("op4mortar", "plr_rpg", 2.0f);
+
+	g_SkillData.ProvideFallback("scientist_heal_time", 60.0f);
+	g_SkillData.ProvideFallback("soda", 1.0f);
+	g_SkillData.ProvideFallback("vortigaunt_armor_charge", "battery");
+
+	g_SkillData.ProvideFallback("monster_head", 2.0f);
+	g_SkillData.ProvideFallback("monster_chest", 1.0f);
+	g_SkillData.ProvideFallback("monster_stomach", 1.0f);
+	g_SkillData.ProvideFallback("monster_leg", 1.0f);
+	g_SkillData.ProvideFallback("monster_arm", 1.0f);
+
+	g_SkillData.ProvideFallback("player_head", 2.0f);
+	g_SkillData.ProvideFallback("player_chest", 1.0f);
+	g_SkillData.ProvideFallback("player_stomach", 1.0f);
+	g_SkillData.ProvideFallback("player_arm", 1.0f);
+	g_SkillData.ProvideFallback("player_leg", 1.0f);
+
+	g_SkillData.ProvideFallback("357_bullet", 34.0f);
+	g_SkillData.ProvideFallback("556_bullet", 15.0f);
+	g_SkillData.ProvideFallback("762_bullet", 35.0f, 35.0f, 40.0f);
+	g_SkillData.ProvideFallback("buckshot", "plr_buckshot");
+	g_SkillData.ProvideFallback("plr_hornet_dmg", 7.0f);
+	g_SkillData.ProvideFallback("shockroach", "plr_shockroachs");
+	g_SkillData.ProvideFallback("nail", 8.0f);
+	g_SkillData.ProvideFallback("plr_nail", 8.0f);
+
+	g_SkillData.ProvideFallback("flashlight_drain_time", 120.0f);
+	g_SkillData.ProvideFallback("flashlight_charge_time", 20.0f);
+
+	g_SkillData.ProvideFallback("plr_armor_strength", 2.0f);
+}
+
+void ParseSkillCfg(const char* fileName)
+{
+	int fileSize;
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
+	if (!pMemFile)
+		return;
+
+	ALERT(at_console, "Parsing %s\n", fileName);
+	ParseSkillCfg(pMemFile, fileName, fileSize);
+
+	g_engfuncs.pfnFreeFile(pMemFile);
+}
+
 void ParseModConfigs()
 {
 	g_errorCollector.Clear();
+
+	g_SkillData.Clear();
+	ParseSkillCfg("skill.cfg");
+	ParseSkillCfg("skillopfor.cfg");
+	ProvideSkillFallbacks();
 
 	auto start = std::chrono::steady_clock::now();
 
@@ -1716,457 +1644,7 @@ void GameDLLInit()
 
 	CVAR_REGISTER( &keepinventory );
 
-// REGISTER CVARS FOR SKILL LEVEL STUFF
-	// Agrunt
-	REGISTER_SKILL_CVARS(sk_agrunt_health);
-	REGISTER_SKILL_CVARS(sk_agrunt_dmg_punch);
-
-	// Apache
-	REGISTER_SKILL_CVARS( sk_apache_health );
-	
-	// Barnacle
-	REGISTER_SKILL_CVARS(sk_barnacle_health);
-
-	// Baby Gargantua
-	if (g_modFeatures.IsMonsterEnabled("babygarg"))
-	{
-		REGISTER_SKILL_CVARS(sk_babygargantua_health);
-		REGISTER_SKILL_CVARS(sk_babygargantua_dmg_slash);
-		REGISTER_SKILL_CVARS(sk_babygargantua_dmg_fire);
-		REGISTER_SKILL_CVARS(sk_babygargantua_dmg_stomp);
-	}
-
-	// Barney
-	REGISTER_SKILL_CVARS(sk_barney_health);
-
-	// Bullsquid
-	REGISTER_SKILL_CVARS(sk_bullsquid_health);
-	REGISTER_SKILL_CVARS(sk_bullsquid_dmg_bite);
-	REGISTER_SKILL_CVARS(sk_bullsquid_dmg_whip);
-	REGISTER_SKILL_CVARS(sk_bullsquid_dmg_spit);
-	REGISTER_SKILL_CVARS(sk_bullsquid_toxicity);
-	REGISTER_SKILL_CVARS(sk_bullsquid_dmg_toxic_poison);
-	REGISTER_SKILL_CVARS(sk_bullsquid_dmg_toxic_impact);
-
-	// Big Momma
-	REGISTER_SKILL_CVARS(sk_bigmomma_health_factor);
-	REGISTER_SKILL_CVARS(sk_bigmomma_dmg_slash);
-	REGISTER_SKILL_CVARS(sk_bigmomma_dmg_blast);
-	REGISTER_SKILL_CVARS(sk_bigmomma_radius_blast);
-
-	// Cleansuit Scientist
-	if (g_modFeatures.IsMonsterEnabled("cleansuit_scientist"))
-		REGISTER_SKILL_CVARS(sk_cleansuit_scientist_health);
-
-	// Flybee
-	if (g_modFeatures.IsMonsterEnabled("flybee"))
-	{
-		REGISTER_SKILL_CVARS(sk_flybee_health);
-		REGISTER_SKILL_CVARS(sk_flybee_dmg_kick);
-		REGISTER_SKILL_CVARS(sk_flybee_dmg_beam);
-		REGISTER_SKILL_CVARS(sk_flybee_dmg_flyball);
-		REGISTER_SKILL_CVARS(sk_flybee_maxspeed);
-	}
-
-	// Gargantua
-	REGISTER_SKILL_CVARS(sk_gargantua_health);
-	REGISTER_SKILL_CVARS(sk_gargantua_dmg_slash);
-	REGISTER_SKILL_CVARS(sk_gargantua_dmg_fire);
-	REGISTER_SKILL_CVARS(sk_gargantua_dmg_stomp);
-
-	// Hassassin
-	REGISTER_SKILL_CVARS(sk_hassassin_health);
-	REGISTER_SKILL_CVARS(sk_hassassin_cloaking);
-
-	// Headcrab
-	REGISTER_SKILL_CVARS(sk_headcrab_health);
-	REGISTER_SKILL_CVARS(sk_headcrab_dmg_bite);
-
-	// Opposing Hgrunt
-	if (g_modFeatures.IsMonsterEnabled("human_grunt_ally"))
-	{
-		REGISTER_SKILL_CVARS(sk_hgrunt_ally_health);
-		REGISTER_SKILL_CVARS(sk_hgrunt_ally_kick);
-		REGISTER_SKILL_CVARS(sk_hgrunt_ally_pellets);
-		REGISTER_SKILL_CVARS(sk_hgrunt_ally_gspeed);
-	}
-
-	// Medic
-	if (g_modFeatures.IsMonsterEnabled("human_grunt_medic"))
-	{
-		REGISTER_SKILL_CVARS(sk_medic_ally_health);
-		REGISTER_SKILL_CVARS(sk_medic_ally_kick);
-		REGISTER_SKILL_CVARS(sk_medic_ally_gspeed);
-		REGISTER_SKILL_CVARS(sk_medic_ally_heal);
-	}
-
-	// Torch
-	if (g_modFeatures.IsMonsterEnabled("human_grunt_torch"))
-	{
-		REGISTER_SKILL_CVARS(sk_torch_ally_health);
-		REGISTER_SKILL_CVARS(sk_torch_ally_kick);
-		REGISTER_SKILL_CVARS(sk_torch_ally_gspeed);
-	}
-
-	// Hgrunt
-	REGISTER_SKILL_CVARS(sk_hgrunt_health);
-	REGISTER_SKILL_CVARS(sk_hgrunt_kick);
-	REGISTER_SKILL_CVARS(sk_hgrunt_pellets);
-	REGISTER_SKILL_CVARS(sk_hgrunt_gspeed);
-
-	// HWgrunt
-	if (g_modFeatures.IsMonsterEnabled("hwgrunt"))
-		REGISTER_SKILL_CVARS(sk_hwgrunt_health);
-
-	// Houndeye
-	REGISTER_SKILL_CVARS(sk_houndeye_health);
-	REGISTER_SKILL_CVARS(sk_houndeye_dmg_blast);
-
-	// ISlave
-	REGISTER_SKILL_CVARS(sk_islave_health);
-	REGISTER_SKILL_CVARS(sk_islave_dmg_claw);
-	REGISTER_SKILL_CVARS(sk_islave_dmg_clawrake);
-	REGISTER_SKILL_CVARS(sk_islave_dmg_zap);
-	REGISTER_SKILL_CVARS(sk_islave_zap_rate);
-	REGISTER_SKILL_CVARS(sk_islave_revival);
-
-	// Icthyosaur
-	REGISTER_SKILL_CVARS(sk_ichthyosaur_health);
-	REGISTER_SKILL_CVARS(sk_ichthyosaur_shake);
-
-	// Leech
-	REGISTER_SKILL_CVARS(sk_leech_health);
-	REGISTER_SKILL_CVARS(sk_leech_dmg_bite);
-
-	// Controller
-	REGISTER_SKILL_CVARS(sk_controller_health);
-	REGISTER_SKILL_CVARS(sk_controller_dmgzap);
-	REGISTER_SKILL_CVARS(sk_controller_speedball);
-	REGISTER_SKILL_CVARS(sk_controller_dmgball);
-
-	// Massassin
-	if (g_modFeatures.IsMonsterEnabled("male_assassin"))
-	{
-		REGISTER_SKILL_CVARS(sk_massassin_health);
-		REGISTER_SKILL_CVARS(sk_massassin_kick);
-		REGISTER_SKILL_CVARS(sk_massassin_gspeed);
-	}
-
-	// Nihilanth
-	REGISTER_SKILL_CVARS(sk_nihilanth_health);
-	REGISTER_SKILL_CVARS(sk_nihilanth_zap);
-
-	// Osprey
-	REGISTER_SKILL_CVARS(sk_osprey);
-
-	// Blackops Osprey
-	if (g_modFeatures.IsMonsterEnabled("blkop_osprey"))
-		REGISTER_SKILL_CVARS(sk_blkopsosprey);
-
-	// Otis
-	if (g_modFeatures.IsMonsterEnabled("otis"))
-		REGISTER_SKILL_CVARS(sk_otis_health);
-
-	// Kate
-	if (g_modFeatures.IsMonsterEnabled("kate"))
-		REGISTER_SKILL_CVARS(sk_kate_health);
-
-	// Panthereye
-	if (g_modFeatures.IsMonsterEnabled("panthereye"))
-	{
-		REGISTER_SKILL_CVARS(sk_panthereye_health);
-		REGISTER_SKILL_CVARS(sk_panthereye_dmg_claw);
-	}
-
-	// Pitdrone
-	if (g_modFeatures.IsMonsterEnabled("pitdrone"))
-	{
-		REGISTER_SKILL_CVARS(sk_pitdrone_health);
-		REGISTER_SKILL_CVARS(sk_pitdrone_dmg_bite);
-		REGISTER_SKILL_CVARS(sk_pitdrone_dmg_whip);
-		REGISTER_SKILL_CVARS(sk_pitdrone_dmg_spit);
-	}
-
-	// Pitworm
-	if (g_modFeatures.IsMonsterEnabled("pitworm"))
-	{
-		REGISTER_SKILL_CVARS(sk_pitworm_health);
-		REGISTER_SKILL_CVARS(sk_pitworm_dmg_swipe);
-		REGISTER_SKILL_CVARS(sk_pitworm_dmg_beam);
-	}
-
-	// Geneworm
-	if (g_modFeatures.IsMonsterEnabled("geneworm"))
-	{
-		REGISTER_SKILL_CVARS(sk_geneworm_health);
-		REGISTER_SKILL_CVARS(sk_geneworm_dmg_spit);
-		REGISTER_SKILL_CVARS(sk_geneworm_dmg_hit);
-	}
-
-	if (g_modFeatures.IsMonsterEnabled("robogrunt"))
-		REGISTER_SKILL_CVARS(sk_rgrunt_explode);
-
-	// ShockTrooper
-	if (g_modFeatures.IsMonsterEnabled("shocktrooper"))
-	{
-		REGISTER_SKILL_CVARS(sk_shocktrooper_health);
-		REGISTER_SKILL_CVARS(sk_shocktrooper_kick);
-		REGISTER_SKILL_CVARS(sk_shocktrooper_gspeed);
-		REGISTER_SKILL_CVARS(sk_shocktrooper_maxcharge);
-		REGISTER_SKILL_CVARS(sk_shocktrooper_rchgspeed);
-	}
-
-	// Shock Roach
-	if (g_modFeatures.IsMonsterEnabled("shockroach"))
-	{
-		REGISTER_SKILL_CVARS(sk_shockroach_health);
-		REGISTER_SKILL_CVARS(sk_shockroach_dmg_bite);
-		REGISTER_SKILL_CVARS(sk_shockroach_lifespan);
-	}
-
-	// Scientist
-	REGISTER_SKILL_CVARS(sk_scientist_health);
-
-	// Snark
-	REGISTER_SKILL_CVARS(sk_snark_health);
-	REGISTER_SKILL_CVARS(sk_snark_dmg_bite);
-	REGISTER_SKILL_CVARS(sk_snark_dmg_pop);
-
-	// Voltigore
-	if (g_modFeatures.IsMonsterEnabled("voltigore"))
-	{
-		REGISTER_SKILL_CVARS(sk_voltigore_health);
-		REGISTER_SKILL_CVARS(sk_voltigore_dmg_punch);
-		REGISTER_SKILL_CVARS(sk_voltigore_dmg_beam);
-		REGISTER_SKILL_CVARS(sk_voltigore_dmg_explode);
-	}
-
-	// Baby Voltigore
-	if (g_modFeatures.IsMonsterEnabled("babyvoltigore"))
-	{
-		REGISTER_SKILL_CVARS(sk_babyvoltigore_health);
-		REGISTER_SKILL_CVARS(sk_babyvoltigore_dmg_punch);
-	}
-
-	// Zombie
-	REGISTER_SKILL_CVARS(sk_zombie_health);
-	REGISTER_SKILL_CVARS(sk_zombie_dmg_one_slash);
-	REGISTER_SKILL_CVARS(sk_zombie_dmg_both_slash);
-
-	// Zombie Barney
-	if (g_modFeatures.IsMonsterEnabled("zombie_barney"))
-	{
-		REGISTER_SKILL_CVARS(sk_zombie_barney_health);
-		REGISTER_SKILL_CVARS(sk_zombie_barney_dmg_one_slash);
-		REGISTER_SKILL_CVARS(sk_zombie_barney_dmg_both_slash);
-	}
-
-	// Zombie Soldier
-	if (g_modFeatures.IsMonsterEnabled("zombie_soldier"))
-	{
-		REGISTER_SKILL_CVARS(sk_zombie_soldier_health);
-		REGISTER_SKILL_CVARS(sk_zombie_soldier_dmg_one_slash);
-		REGISTER_SKILL_CVARS(sk_zombie_soldier_dmg_both_slash);
-	}
-
-	// Gonome
-	if (g_modFeatures.IsMonsterEnabled("gonome"))
-	{
-		REGISTER_SKILL_CVARS(sk_gonome_health);
-		REGISTER_SKILL_CVARS(sk_gonome_dmg_one_slash);
-		REGISTER_SKILL_CVARS(sk_gonome_dmg_guts);
-		REGISTER_SKILL_CVARS(sk_gonome_dmg_one_bite);
-	}
-
-	if (g_modFeatures.IsMonsterEnabled("floater"))
-	{
-		REGISTER_SKILL_CVARS(sk_floater_health);
-		REGISTER_SKILL_CVARS(sk_floater_explode);
-	}
-
-	//Turret
-	REGISTER_SKILL_CVARS(sk_turret_health);
-
-	// MiniTurret
-	REGISTER_SKILL_CVARS(sk_miniturret_health);
-
-	// Sentry Turret
-	REGISTER_SKILL_CVARS(sk_sentry_health);
-
-	// Robocop
-	if (g_modFeatures.IsMonsterEnabled("robocop"))
-	{
-		REGISTER_SKILL_CVARS(sk_robocop_health);
-		REGISTER_SKILL_CVARS(sk_robocop_dmg_mortar);
-		REGISTER_SKILL_CVARS(sk_robocop_dmg_fist);
-		REGISTER_SKILL_CVARS(sk_robocop_sw_radius);
-	}
-
-	// Tor
-	if (g_modFeatures.IsMonsterEnabled("tor"))
-	{
-		REGISTER_SKILL_CVARS(sk_tor_health);
-		REGISTER_SKILL_CVARS(sk_tor_punch);
-		REGISTER_SKILL_CVARS(sk_tor_energybeam);
-		REGISTER_SKILL_CVARS(sk_tor_sonicblast);
-	}
-
-	REGISTER_SKILL_CVARS(sk_zaptrap_sense_radius);
-	REGISTER_SKILL_CVARS(sk_zaptrap_respawn_time);
-
-	// PLAYER WEAPONS
-
-	// Crowbar whack
-	REGISTER_SKILL_CVARS(sk_plr_crowbar);
-
-	// Glock Round
-	REGISTER_SKILL_CVARS(sk_plr_9mm_bullet);
-
-	// 357 Round
-	REGISTER_SKILL_CVARS(sk_plr_357_bullet);
-
-	// MP5 Round
-	REGISTER_SKILL_CVARS(sk_plr_9mmAR_bullet);
-
-	// M203 grenade
-	REGISTER_SKILL_CVARS(sk_plr_9mmAR_grenade);
-
-	// Shotgun buckshot
-	REGISTER_SKILL_CVARS(sk_buckshot);
-	REGISTER_SKILL_CVARS(sk_plr_buckshot);
-
-	// Crossbow
-	REGISTER_SKILL_CVARS(sk_plr_xbow_bolt_monster);
-	REGISTER_SKILL_CVARS(sk_plr_xbow_bolt_client);
-
-	// RPG
-	REGISTER_SKILL_CVARS(sk_plr_rpg);
-
-	// Tau Cannon
-	REGISTER_SKILL_CVARS(sk_plr_gauss);
-
-	// Gluon Gun
-	REGISTER_SKILL_CVARS(sk_plr_egon_narrow);
-	REGISTER_SKILL_CVARS(sk_plr_egon_wide);
-
-	// Hand Grendade
-	REGISTER_SKILL_CVARS(sk_plr_hand_grenade);
-
-	// Satchel Charge
-	REGISTER_SKILL_CVARS(sk_plr_satchel);
-
-	// Tripmine
-	REGISTER_SKILL_CVARS(sk_plr_tripmine);
-
-	// Medkit
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT))
-	{
-		REGISTER_SKILL_CVARS(sk_plr_medkitshot);
-		REGISTER_SKILL_CVARS(sk_plr_medkittime);
-	}
-
-	// Desert Eagle
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_EAGLE))
-		REGISTER_SKILL_CVARS(sk_plr_eagle);
-
-	// Pipe wrench
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_PIPEWRENCH))
-		REGISTER_SKILL_CVARS(sk_plr_pipewrench);
-
-	// Knife
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_KNIFE))
-		REGISTER_SKILL_CVARS(sk_plr_knife);
-
-	// Grapple
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_GRAPPLE))
-		REGISTER_SKILL_CVARS(sk_plr_grapple);
-
-	// M249
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_M249) || g_modFeatures.IsWeaponEnabled(WEAPON_MINIGUN))
-		REGISTER_SKILL_CVARS(sk_plr_556_bullet);
-
-	// Sniper rifle
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE))
-		REGISTER_SKILL_CVARS(sk_plr_762_bullet);
-
-	// Shock rifle
-	if (g_modFeatures.ShockBeamEnabled())
-	{
-		REGISTER_SKILL_CVARS(sk_plr_shockroachs);
-		REGISTER_SKILL_CVARS(sk_plr_shockroachm);
-		REGISTER_SKILL_CVARS(sk_shockroach);
-	}
-
-	if (g_modFeatures.SporesEnabled())
-		REGISTER_SKILL_CVARS(sk_plr_spore);
-
-	if (g_modFeatures.DisplacerBallEnabled())
-	{
-		REGISTER_SKILL_CVARS(sk_plr_displacer_other);
-		REGISTER_SKILL_CVARS(sk_plr_displacer_radius);
-	}
-
-	if (g_modFeatures.IsWeaponEnabled(WEAPON_UZI))
-		REGISTER_SKILL_CVARS(sk_plr_uzi);
-
-	// WORLD WEAPONS
-	REGISTER_SKILL_CVARS(sk_12mm_bullet);
-	REGISTER_SKILL_CVARS(sk_9mmAR_bullet);
-	REGISTER_SKILL_CVARS(sk_9mm_bullet);
-	REGISTER_SKILL_CVARS(sk_357_bullet);
-	REGISTER_SKILL_CVARS(sk_556_bullet);
-	REGISTER_SKILL_CVARS(sk_762_bullet);
-
-	// HORNET
-	REGISTER_SKILL_CVARS(sk_hornet_dmg);
-	REGISTER_SKILL_CVARS(sk_plr_hornet_dmg);
-
-	// NAIL
-	REGISTER_SKILL_CVARS(sk_nail);
-	REGISTER_SKILL_CVARS(sk_plr_nail);
-
-	// MORTAR
-	REGISTER_SKILL_CVARS(sk_mortar);
-	REGISTER_SKILL_CVARS(sk_op4mortar);
-
-	// HEALTH/SUIT CHARGE DISTRIBUTION
-	REGISTER_SKILL_CVARS(sk_suitcharger);
-	REGISTER_SKILL_CVARS(sk_battery);
-	REGISTER_SKILL_CVARS(sk_healthcharger);
-	REGISTER_SKILL_CVARS(sk_healthkit);
-	REGISTER_SKILL_CVARS(sk_scientist_heal);
-	REGISTER_SKILL_CVARS(sk_scientist_heal_time);
-	REGISTER_SKILL_CVARS(sk_soda);
-	REGISTER_SKILL_CVARS(sk_vortigaunt_armor_charge);
-
-	// monster damage adjusters
-	REGISTER_SKILL_CVARS(sk_monster_head);
-	REGISTER_SKILL_CVARS(sk_monster_chest);
-	REGISTER_SKILL_CVARS(sk_monster_stomach);
-	REGISTER_SKILL_CVARS(sk_monster_arm);
-	REGISTER_SKILL_CVARS(sk_monster_leg);
-
-	// player damage adjusters
-	REGISTER_SKILL_CVARS(sk_player_head);
-	REGISTER_SKILL_CVARS(sk_player_chest);
-	REGISTER_SKILL_CVARS(sk_player_stomach);
-	REGISTER_SKILL_CVARS(sk_player_arm);
-	REGISTER_SKILL_CVARS(sk_player_leg);
-
-	// Flashlight
-	REGISTER_SKILL_CVARS(sk_flashlight_drain_time);
-	REGISTER_SKILL_CVARS(sk_flashlight_charge_time);
-
-	// Player armor
-	REGISTER_SKILL_CVARS(sk_plr_armor_strength);
-// END REGISTER CVARS FOR SKILL LEVEL STUFF
-
 	CVAR_REGISTER( &sv_pushable_fixed_tick_fudge );
-
-	SERVER_COMMAND( "exec skill.cfg\n" );
-
-	if (g_modFeatures.skill_opfor)
-		SERVER_COMMAND( "exec skillopfor.cfg\n" );
 
 	const char* fileName = "features/featureful_exec.cfg";
 	int fileSize;
@@ -2200,6 +1678,8 @@ void GameDLLInit()
 	g_engfuncs.pfnAddServerCommand("dump_visuals", ReportVisuals);
 	g_engfuncs.pfnAddServerCommand("dump_materials", ReportMaterials);
 	g_engfuncs.pfnAddServerCommand("force_schedule_fail", ForceScheduleFail);
+	g_engfuncs.pfnAddServerCommand("get_skill_for_entity_template", PrintSkillReplacementForEntTemplate);
+	g_engfuncs.pfnAddServerCommand("get_skill", PrintSkillVariable);
 }
 
 bool ItemsPickableByTouch()

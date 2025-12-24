@@ -368,7 +368,7 @@ void CController::Spawn()
 	pev->movetype		= MOVETYPE_FLY;
 	pev->flags		|= FL_FLY;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
-	SetMyHealth( gSkillData.controllerHealth );
+	SetMyHealth( GetSkillValue("controller_health") );
 	pev->view_ofs		= Vector( 0.0f, 0.0f, -2.0f );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_FULL);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
@@ -649,12 +649,12 @@ void CController::RunTask( Task_t *pTask )
 				{
 					if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
 					{
-						vecDir = (m_hTargetEnt->pev->origin - pev->origin).Normalize() * gSkillData.controllerSpeedBall;
+						vecDir = (m_hTargetEnt->pev->origin - pev->origin).Normalize() * GetSkillValue("controller_speedball");
 					}
 					else
 					{
 						UTIL_MakeVectors(pev->angles);
-						vecDir = gpGlobals->v_forward * gSkillData.controllerSpeedBall;
+						vecDir = gpGlobals->v_forward * GetSkillValue("controller_speedball");
 					}
 				}
 				else if (m_hEnemy != 0)
@@ -667,10 +667,10 @@ void CController::RunTask( Task_t *pTask )
 					{
 						m_vecEstVelocity = m_vecEstVelocity * 0.8f;
 					}
-					vecDir = Intersect( vecSrc, m_hEnemy->BodyTarget( pev->origin ), m_vecEstVelocity, gSkillData.controllerSpeedBall );
+					vecDir = Intersect( vecSrc, m_hEnemy->BodyTarget( pev->origin ), m_vecEstVelocity, GetSkillValue("controller_speedball") );
 				}
 				float delta = 0.03490f; // +-2 degree
-				vecDir += Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * gSkillData.controllerSpeedBall;
+				vecDir += Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * GetSkillValue("controller_speedball");
 
 				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
 
@@ -1140,7 +1140,7 @@ LINK_ENTITY_TO_CLASS( monster_alien_controller_dead, CControllerDead )
 
 void CControllerDead::Spawn()
 {
-	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.controllerHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("controller_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }
@@ -1287,7 +1287,7 @@ void CControllerHeadBall::HuntThink()
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{gSkillData.controllerDmgZap, DMG_SHOCK}, pev->velocity.Normalize(), &tr);
+			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{GetSkillValue("controller_dmgzap"), DMG_SHOCK}, pev->velocity.Normalize(), &tr);
 		}
 
 		MakeTraceBeam(tr.vecEndPos);
@@ -1431,7 +1431,7 @@ void CControllerZapBall::Spawn()
 	pev->nextthink = gpGlobals->time + 0.1f;
 
 	SetMaxFrame();
-	SetDefaultProjectileDamage(gSkillData.controllerDmgBall);
+	SetDefaultProjectileDamage(GetSkillValue("controller_dmgball"));
 }
 
 void CControllerZapBall::Precache()
@@ -1443,7 +1443,7 @@ void CControllerZapBall::Precache()
 
 void CControllerZapBall::LaunchAsProjectile(const ProjectileParameters &params)
 {
-	LaunchAsProjectileImpl(gSkillData.controllerSpeedBall, params);
+	LaunchAsProjectileImpl(GetSkillValue("controller_speedball"), params);
 }
 
 void CControllerZapBall::AnimateThink()
@@ -1509,11 +1509,8 @@ public:
 		pev->frags = value;
 	}
 
-	float SenseRadius() const {
-		return pev->health > 0.0f ? pev->health : gSkillData.zaptrapSenseRadius;
-	}
-	float FastSenseRadius() const {
-		return SenseRadius() / 3;
+	float SenseRadius() {
+		return pev->health > 0.0f ? pev->health : GetSkillValue("zaptrap_sense_radius");
 	}
 
 	bool IncreaseAwareness(CBaseEntity *pTarget, int value);
@@ -1540,8 +1537,8 @@ public:
 		return m_maxScale;
 	}
 
-	float RespawnTime() const {
-		return pev->dmg_take > 0 ? pev->dmg_take : gSkillData.zaptrapRespawnTime;
+	float RespawnTime() {
+		return pev->dmg_take > 0 ? pev->dmg_take : GetSkillValue("zaptrap_respawn_time");
 	}
 
 	int Save( CSave &save ) override;
@@ -1688,6 +1685,9 @@ void CZapBallTrap::DetectThink()
 	{
 		m_detectThinkTime = gpGlobals->time + detectThinkPeriod;
 
+		const float senseRadius = SenseRadius();
+		const float fastSenseRadius = senseRadius / 3.0f;
+
 		CBaseEntity *pFoundTarget = NULL;
 		for( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
@@ -1695,7 +1695,7 @@ void CZapBallTrap::DetectThink()
 			if (pPlayer && pPlayer->IsPlayer())
 			{
 				const float distance = (pPlayer->pev->origin - pev->origin).Length();
-				if (distance <= SenseRadius())
+				if (distance <= senseRadius)
 				{
 					TraceResult tr;
 					UTIL_TraceLine(pev->origin, pPlayer->Center(), dont_ignore_monsters, ENT(pev), &tr);
@@ -1703,7 +1703,7 @@ void CZapBallTrap::DetectThink()
 					if (pEntity == pPlayer)
 					{
 						pFoundTarget = pPlayer;
-						bool ballLaunched = IncreaseAwareness(pPlayer, distance <= FastSenseRadius() ? 4 : 2);
+						bool ballLaunched = IncreaseAwareness(pPlayer, distance <= fastSenseRadius ? 4 : 2);
 						if (ballLaunched)
 							return;
 					}

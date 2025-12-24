@@ -136,12 +136,12 @@ void CHornet::Spawn()
 
 	if( !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
 	{
-		SetDefaultProjectileDamage(gSkillData.plrDmgHornet);
+		SetDefaultProjectileDamage(GetSkillValue("plr_hornet_dmg"));
 	}
 	else
 	{
 		// no real owner, or owner isn't a client.
-		SetDefaultProjectileDamage(gSkillData.monDmgHornet);
+		SetDefaultProjectileDamage(GetSkillValue("hornet_dmg"));
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1f;

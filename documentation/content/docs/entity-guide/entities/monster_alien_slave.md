@@ -155,7 +155,7 @@ Experimental fusion of human and chumtoad from Azure Sheep.
 {{% /tab %}}
 
 {{% tab "Azure Sheep Pantheyeye" %}}
-The Panthereye in Azure Sheep is based on vortigaunt, so we can implement it via entity template. Do not confuse it with [monster_panthereye]({{< ref monster_panthereye >}}). The only thing that is currently missing is replacement of skill values (for higher damage output). We also took liberty of increasing the monster's bounding box size to allow projectiles properly hit the panther.
+The Panthereye in Azure Sheep is based on vortigaunt, so we can implement it via entity template. Do not confuse it with [monster_panthereye]({{< ref monster_panthereye >}}). We took liberty of increasing the monster's bounding box size to allow projectiles properly hit the panther.
 
 ```json
 {
@@ -167,6 +167,14 @@ The Panthereye in Azure Sheep is based on vortigaunt, so we can implement it via
         "size": {
             "mins": [-32, -32, 0],
             "maxs": [32, 32, 112]
+        },
+        "skill": {
+            "islave_health": [800, 800, 1000],
+            "islave_dmg_claw": [16, 20, 20],
+            "islave_dmg_clawrake": [25, 25, 25],
+            "islave_dmg_zap": [40, 40, 45],
+            "islave_zap_rate": [1, 1, 1.5],
+            "islave_revival": 0
         },
         "soundscripts": {
             "Vortigaunt.Idle": {

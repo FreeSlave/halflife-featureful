@@ -276,7 +276,8 @@ static DamageInfo AgruntHandleTraceAttack(CBaseMonster* self, entvars_t *pevInfl
 
 float CAGrunt::HeadHitGroupDamageMultiplier()
 {
-	return Q_min(gSkillData.monHead, 1.5f);
+	const float defaultMultiplier = GetSkillValue("monster_head");
+	return Q_min(defaultMultiplier, 1.5f);
 }
 
 DamageInfo CAGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
@@ -534,7 +535,7 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			params.punchAngle.x = 8.0f;
 			params.knockRight = 250.0f;
 			params.knockPlayerOnly = true;
-			params.damageInfo.damage = gSkillData.agruntDmgPunch;
+			params.damageInfo.damage = GetSkillValue("agrunt_dmg_punch");
 			params.damageInfo.type = DMG_CLUB;
 			params.spawnBlood = true;
 			params.bloodOrigin = vecArmPos;
@@ -556,7 +557,7 @@ void CAGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			params.punchAngle.x = 8.0f;
 			params.knockRight = -250.0f;
 			params.knockPlayerOnly = true;
-			params.damageInfo.damage = gSkillData.agruntDmgPunch;
+			params.damageInfo.damage = GetSkillValue("agrunt_dmg_punch");
 			params.damageInfo.type = DMG_CLUB;
 			params.spawnBlood = true;
 			params.bloodOrigin = vecArmPos;
@@ -587,7 +588,7 @@ void CAGrunt::Spawn()
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.agruntHealth );
+	SetMyHealth( GetSkillValue("agrunt_health") );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMySquadCapabilities(bits_CAP_SQUAD);
@@ -1200,7 +1201,7 @@ LINK_ENTITY_TO_CLASS( monster_alien_grunt_dead, CDeadAgrunt )
 
 void CDeadAgrunt::Spawn()
 {
-	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.agruntHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("agrunt_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }

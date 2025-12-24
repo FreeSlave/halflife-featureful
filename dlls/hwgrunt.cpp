@@ -144,7 +144,7 @@ void CHWGrunt::Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
 	pev->effects		= 0;
-	SetMyHealth( gSkillData.hwgruntHealth );
+	SetMyHealth( GetSkillValue("hwgrunt_health") );
 	SetMyFieldOfView(0.2);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_flNextPainTime	= gpGlobals->time;
@@ -428,7 +428,7 @@ void CHWGrunt::Shoot()
 
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iM249Link, TE_BOUNCE_SHELL);
 
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, gSkillData.monDmg556 ); // shoot +-5 degrees
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, GetSkillValue("556_bullet") ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 

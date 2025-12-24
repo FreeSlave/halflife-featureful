@@ -141,7 +141,7 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 	if ((!pev->owner || pOther->pev->modelindex != pev->owner->v.modelindex) && pev->modelindex != pOther->pev->modelindex)
 	{
 		if(pOther->pev->takedamage)
-			pOther->TakeDamage(pev, pev, DamageInfo(gSkillData.gwormDmgSpit, DMG_ACID));
+			pOther->TakeDamage(pev, pev, DamageInfo(GetSkillValue("geneworm_dmg_spit"), DMG_ACID));
 
 		pev->nextthink = gpGlobals->time;
 		SetThink(NULL);
@@ -862,7 +862,7 @@ void CGeneWorm::Spawn()
 
 	pev->effects = 0;
 
-	SetMyHealth(gSkillData.gwormHealth);
+	SetMyHealth(GetSkillValue("geneworm_health"));
 	pev->max_health = pev->health;
 
 	pev->view_ofs = Vector{0, 0, 300};

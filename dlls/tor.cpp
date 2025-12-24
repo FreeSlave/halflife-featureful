@@ -432,7 +432,7 @@ void CTor::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case EVENT_STAFF_SWING:
 	{
 		TraceHullAttackParams params;
-		params.damageInfo = DamageInfo{gSkillData.torDmgPunch, DMG_SLASH};
+		params.damageInfo = DamageInfo{GetSkillValue("tor_punch"), DMG_SLASH};
 		params.distance = MELEE_ATTACK_DISTANCE;
 		params.punchAngle.x = 5;
 		params.punchAngle.z = 18;
@@ -453,7 +453,7 @@ void CTor::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case EVENT_STAFF_STAB:
 	{
 		TraceHullAttackParams params;
-		params.damageInfo = DamageInfo{gSkillData.torDmgPunch, DMG_SLASH};
+		params.damageInfo = DamageInfo{GetSkillValue("tor_punch"), DMG_SLASH};
 		params.distance = MELEE_ATTACK_DISTANCE;
 		params.punchAngle.x = 18;
 		params.knockForward = 100;
@@ -575,7 +575,7 @@ void CTor::MonsterThink()
 
 				CBaseEntity* phit = CBaseEntity::Instance(tr.pHit);
 				if (phit) {
-					phit->TakeDamage(pev, pev, DamageInfo{gSkillData.torDmgEnergyBeam, DMG_ENERGYBEAM});
+					phit->TakeDamage(pev, pev, DamageInfo{GetSkillValue("tor_energybeam"), DMG_ENERGYBEAM});
 
 					if (phit->MyMonsterPointer() && (phit->pev->movetype == MOVETYPE_STEP || phit->IsPlayer())) {
 						phit->pev->velocity.z += (phit->pev->flags & FL_ONGROUND) ? 200 : 120;
@@ -718,7 +718,7 @@ void CTor::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
-	SetMyHealth( gSkillData.torHealth );
+	SetMyHealth( GetSkillValue("tor_health") );
 	pev->view_ofs = Vector(0, 0, 0);// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_WIDE);
 	m_MonsterState = MONSTERSTATE_NONE;
@@ -819,7 +819,7 @@ void CTor::SlamAttack()
 			const Vector pushForce = pushDir * 700 * pushPower;
 
 			pEntity->pev->velocity = pEntity->pev->velocity + launchForce + pushForce;
-			pEntity->TakeDamage(pev, pev, DamageInfo{gSkillData.torDmgSonicBlast * launchPower, DMG_SONIC});
+			pEntity->TakeDamage(pev, pev, DamageInfo{GetSkillValue("tor_sonicblast") * launchPower, DMG_SONIC});
 
 			if (pEntity->IsPlayer()) {
 				pEntity->pev->punchangle.x = 10;

@@ -147,7 +147,7 @@ void CPantherEye::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor(BLOOD_COLOR_YELLOW);
-	SetMyHealth(gSkillData.panthereyeHealth);
+	SetMyHealth(GetSkillValue("panthereye_health"));
 	SetMyFieldOfView(0.5f);
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMySquadCapabilities(bits_CAP_SQUAD|bits_CAP_SQUAD_SAME_CLASSNAME);
@@ -203,7 +203,7 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			params.knockRight = 100.0f;
 			params.knockForward = -50.0f;
 			params.knockUp = 50.0f;
-			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.damageInfo.damage = GetSkillValue("panthereye_dmg_claw");
 			params.hitSoundScript = attackHitSoundScript;
 			params.missSoundScript = attackMissSoundScript;
 			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -221,7 +221,7 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			params.knockRight = -25.0f;
 			params.knockForward = -25.0f;
 			params.knockUp = 25.0f;
-			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.damageInfo.damage = GetSkillValue("panthereye_dmg_claw");
 			params.hitSoundScript = attackHitSoundScript;
 			params.missSoundScript = attackMissSoundScript;
 			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -239,7 +239,7 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			params.knockRight = -100.0f;
 			params.knockForward = -50.0f;
 			params.knockUp = 50.0f;
-			params.damageInfo.damage = gSkillData.panthereyeDmgClaw;
+			params.damageInfo.damage = GetSkillValue("panthereye_dmg_claw");
 			params.hitSoundScript = attackHitSoundScript;
 			params.missSoundScript = attackMissSoundScript;
 			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -355,7 +355,7 @@ void CPantherEye::LeapTouch( CBaseEntity *pOther )
 	EmitSoundScript(attackHitSoundScript);
 
 	TouchAttackParams params;
-	params.damageInfo = DamageInfo(gSkillData.panthereyeDmgClaw, DMG_SLASH);
+	params.damageInfo = DamageInfo(GetSkillValue("panthereye_dmg_claw"), DMG_SLASH);
 	SetTouchAttackFromTemplate(params);
 	PerformTouchAttack(params, pOther);
 

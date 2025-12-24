@@ -237,7 +237,7 @@ void CStompShooter::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	stompParams.origin = vecStart;
 	stompParams.end = vecEnd;
 	stompParams.speed = pev->speed;
-	stompParams.damage = gSkillData.gargantuaDmgStomp;
+	stompParams.damage = GetSkillValue("gargantua_dmg_stomp");
 	stompParams.owner = pOwner ? pOwner->edict() : NULL;
 	stompParams.soundAttenuation = pev->armortype;
 
@@ -1330,7 +1330,7 @@ void CGargantua::HandleAnimEvent( MonsterEvent_t *pEvent )
 		params.distance = GARG_ATTACKDIST + 10.0f;
 		params.verticalDistance = params.distance * -0.3f;
 		params.height = 64;
-		params.damageInfo.damage = gSkillData.gargantuaDmgSlash;
+		params.damageInfo.damage = GetSkillValue("gargantua_dmg_slash");
 		params.useAimVectors = false;
 		params.hitSoundScript = AttackHitSound();
 		params.missSoundScript = AttackMissSound();
@@ -1607,17 +1607,17 @@ void CGargantua::RunTask( Task_t *pTask )
 
 float CGargantua::DefaultHealth()
 {
-	return gSkillData.gargantuaHealth;
+	return GetSkillValue("gargantua_health");
 }
 
 float CGargantua::FireAttackDamage()
 {
-	return gSkillData.gargantuaDmgFire;
+	return GetSkillValue("gargantua_dmg_fire");
 }
 
 float CGargantua::StompAttackDamage()
 {
-	return gSkillData.gargantuaDmgStomp;
+	return GetSkillValue("gargantua_dmg_stomp");
 }
 
 const char* CGargantua::DefaultModel()
@@ -2256,7 +2256,7 @@ void CBabyGargantua::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.distance = GARG_ATTACKDIST + 10.0f;
 		params.verticalDistance = params.distance * -0.3f;
 		params.height = 64;
-		params.damageInfo.damage = gSkillData.babygargantuaDmgSlash;
+		params.damageInfo.damage = GetSkillValue("babygargantua_dmg_slash");
 		params.useAimVectors = false;
 		params.hitSoundScript = AttackHitSound();
 		params.missSoundScript = AttackMissSound();
@@ -2274,7 +2274,7 @@ void CBabyGargantua::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.distance = GARG_ATTACKDIST + 5.0f;
 		params.verticalDistance = params.distance * -0.3f;
 		params.height = 64;
-		params.damageInfo.damage = gSkillData.babygargantuaDmgSlash;
+		params.damageInfo.damage = GetSkillValue("babygargantua_dmg_slash");
 		params.useAimVectors = false;
 		params.hitSoundScript = AttackHitSound();
 		params.missSoundScript = AttackMissSound();
@@ -2301,17 +2301,17 @@ void CBabyGargantua::DeathSound()
 
 float CBabyGargantua::DefaultHealth()
 {
-	return gSkillData.babygargantuaHealth;
+	return GetSkillValue("babygargantua_health");
 }
 
 float CBabyGargantua::FireAttackDamage()
 {
-	return gSkillData.babygargantuaDmgFire;
+	return GetSkillValue("babygargantua_dmg_fire");
 }
 
 float CBabyGargantua::StompAttackDamage()
 {
-	return gSkillData.babygargantuaDmgStomp;
+	return GetSkillValue("babygargantua_dmg_stomp");
 }
 
 const char* CBabyGargantua::DefaultModel()

@@ -204,7 +204,7 @@ void CRpgRocket::Spawn()
 
 	pev->nextthink = gpGlobals->time + 0.4f;
 
-	SetDefaultProjectileDamage(gSkillData.plrDmgRPG);
+	SetDefaultProjectileDamage(GetSkillValue("plr_rpg"));
 }
 
 //=========================================================

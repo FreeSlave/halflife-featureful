@@ -79,13 +79,13 @@ void CShock::Spawn()
 	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
 	{
 		if (g_pGameRules->IsMultiplayer())
-			SetDefaultProjectileDamage(gSkillData.plrDmgShockroachM);
+			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachm"));
 		else
-			SetDefaultProjectileDamage(gSkillData.plrDmgShockroach);
+			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachs"));
 	}
 	else
 	{
-		SetDefaultProjectileDamage(gSkillData.monDmgShockroach);
+		SetDefaultProjectileDamage(GetSkillValue("shockroach"));
 	}
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));

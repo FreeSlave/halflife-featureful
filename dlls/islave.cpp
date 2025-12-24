@@ -212,7 +212,7 @@ void CChargeToken::Spawn()
 
 	UTIL_SetOrigin( pev, pev->origin );
 
-	pev->health = gSkillData.vortigauntArmorCharge;
+	pev->health = GetSkillValue("vortigaunt_armor_charge");
 
 	pev->frags = MODEL_FRAMES( pev->modelindex ) - 1;
 
@@ -446,7 +446,7 @@ public:
 		return g_modFeatures.vortigaunt_heal;
 	}
 	bool AbleToRevive() {
-		return g_modFeatures.vortigaunt_revive && gSkillData.slaveRevival > 0;
+		return g_modFeatures.vortigaunt_revive && GetSkillValue("islave_revival") > 0;
 	}
 	bool CanRevive();
 	int HealOther(CBaseEntity* pEntity);
@@ -923,7 +923,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			m_clawStrikeNum++;
 			int damageType = DMG_SLASH;
-			float damage = gSkillData.slaveDmgClaw;
+			float damage = GetSkillValue("islave_dmg_claw");
 			if (CanUseGlowArms()) {
 				if ( m_clawStrikeNum == 1 ) {
 					HandGlowOff(m_handGlow1);
@@ -958,7 +958,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 			TraceHullAttackParams params;
 			params.punchAngle.z = -18;
 			params.punchAngle.x = 5;
-			params.damageInfo.damage = gSkillData.slaveDmgClawrake;
+			params.damageInfo.damage = GetSkillValue("islave_dmg_clawrake");
 			params.hitSoundScript = attackHitSoundScript;
 			params.missSoundScript = attackMissSoundScript;
 			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -972,7 +972,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 			if (m_iTaskStatus == TASKSTATUS_COMPLETE)
 				break;
 			// speed up attack depending on difficulty level
-			pev->framerate = gSkillData.slaveZapRate;
+			pev->framerate = GetSkillValue("islave_zap_rate");
 
 			UTIL_MakeAimVectors( pev->angles );
 
@@ -1090,7 +1090,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				UTIL_ScreenShake( pev->origin, 3.0, 40.0, 1.0, ISLAVE_COIL_ATTACK_RADIUS );
 
-				::RadiusDamage(this, pev->origin, pev, pev, DamageInfo{gSkillData.slaveDmgZap*2.5f, DMG_SHOCK},
+				::RadiusDamage(this, pev->origin, pev, pev, DamageInfo{GetSkillValue("islave_dmg_zap")*2.5f, DMG_SHOCK},
 							   ISLAVE_COIL_ATTACK_RADIUS,
 							   RADIUSDAMAGE_SPOT_IS_TARGET_CENTER,
 							   [this](CBaseEntity* pEntity) {
@@ -1170,7 +1170,7 @@ bool CISlave::CheckHealOrReviveTargets(float flDist, bool mustSee)
 {
 	if (m_nextHealTargetCheck >= gpGlobals->time)
 	{
-		return (m_hDead != 0 && gSkillData.slaveRevival > 0) || m_hWounded != 0;
+		return (m_hDead != 0 && GetSkillValue("islave_revival") > 0) || m_hWounded != 0;
 	}
 
 	m_nextHealTargetCheck = gpGlobals->time + 1;
@@ -1414,7 +1414,7 @@ void CISlave::Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects		= 0;
-	SetMyHealth( gSkillData.slaveHealth );
+	SetMyHealth( GetSkillValue("islave_health") );
 	pev->view_ofs		= Vector( 0, 0, 64 );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // NOTE: we need a wide field of view so npc will notice player and say hello
 	m_MonsterState		= MONSTERSTATE_NONE;
@@ -2001,11 +2001,11 @@ CBaseEntity *CISlave::ZapBeam( int side )
 				ALERT(at_aiconsole, "Vortigaunt healed friend with zap attack\n");
 			}
 		} else {
-			pEntity->TraceAttack( pev, pev, DamageInfo{gSkillData.slaveDmgZap, DMG_SHOCK}, vecAim.Normalize(), &tr );
+			pEntity->TraceAttack( pev, pev, DamageInfo{GetSkillValue("islave_dmg_zap"), DMG_SHOCK}, vecAim.Normalize(), &tr );
 #if FEATURE_ISLAVE_ENERGY
 			if (pEntity->pev->flags & (FL_CLIENT | FL_MONSTER)) {
 				//TODO: check that target is actually a living creature, not machine
-				const float toHeal = gSkillData.slaveDmgZap;
+				const float toHeal = GetSkillValue("islave_dmg_zap");
 				int healed = 0;
 				if (g_modFeatures.vortigaunt_selfheal)
 					healed = TakeHealth(this, toHeal, DMG_GENERIC);
@@ -2173,7 +2173,7 @@ void CISlave::RemoveChargeToken()
 
 float CISlave::HealPower()
 {
-	return Q_min(gSkillData.slaveDmgZap, m_freeEnergy);
+	return Q_min(GetSkillValue("islave_dmg_zap"), m_freeEnergy);
 }
 
 void CISlave::SpendEnergy(float energy)

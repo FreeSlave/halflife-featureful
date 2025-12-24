@@ -1274,13 +1274,13 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 					{
 						switch (m_bulletType) {
 						case TANK_BULLET_9MM:
-							flDamage = gSkillData.monDmg9MM;
+							flDamage = GetSkillValue("9mm_bullet");
 							break;
 						case TANK_BULLET_MP5:
-							flDamage = gSkillData.monDmgMP5;
+							flDamage = GetSkillValue("9mmAR_bullet");
 							break;
 						case TANK_BULLET_12MM:
-							flDamage = gSkillData.monDmg12MM;
+							flDamage = GetSkillValue("12mm_bullet");
 							break;
 						default:
 							break;

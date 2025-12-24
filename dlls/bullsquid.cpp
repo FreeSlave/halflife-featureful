@@ -85,7 +85,7 @@ const NamedVisual CSquidSpit::fleckVisual = BuildVisual::Spray("Bullsquid.Fleck"
 void CSquidSpit::Spawn()
 {
 	SpawnHelper("squidspit", spitVisual);
-	SetDefaultProjectileDamage(gSkillData.bullsquidDmgSpit);
+	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_spit"));
 }
 
 void CSquidSpit::Precache()
@@ -202,7 +202,7 @@ void CSquidToxicSpit::Spawn()
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 
-	SetDefaultProjectileDamage(gSkillData.bullsquidDmgToxicImpact);
+	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_toxic_impact"));
 }
 
 void CSquidToxicSpit::Precache()
@@ -225,7 +225,7 @@ void CSquidToxicSpit::Animate()
 	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
 		if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
 			if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(gSkillData.bullsquidDmgToxicPoison, DMG_POISON).SetNonLethal().SetIgnoreArmor());
+				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(GetSkillValue("bullsquid_dmg_toxic_poison"), DMG_POISON).SetNonLethal().SetIgnoreArmor());
 			}
 		}
 	}
@@ -287,7 +287,7 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		CBaseMonster* spitOwner = GetSpitOwner();
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
-			pOther->TakeDamage( pev, pevAttacker, DamageInfo(gSkillData.bullsquidDmgToxicPoison, DMG_POISON).SetNonLethal().SetIgnoreArmor() );
+			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetSkillValue("bullsquid_dmg_toxic_poison"), DMG_POISON).SetNonLethal().SetIgnoreArmor() );
 			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}
@@ -570,7 +570,7 @@ bool CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
 {
 	CheckMeleeAttackParams params;
 	params.distance = 85.0f;
-	return m_hEnemy->pev->health <= gSkillData.bullsquidDmgWhip && CheckMeleeAttackImpl(flDot, flDist, params, false);
+	return m_hEnemy->pev->health <= GetSkillValue("bullsquid_dmg_whip") && CheckMeleeAttackImpl(flDot, flDist, params, false);
 }
 
 //=========================================================
@@ -717,7 +717,7 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				bool toxicSpit = false;
 #if FEATURE_BULLSQUID_TOXICSPIT
-				if (gSkillData.bullsquidToxicity > 0.0f && RANDOM_LONG(0,1))
+				if (GetSkillValue("bullsquid_toxicity") > 0.0f && RANDOM_LONG(0,1))
 				{
 					if (distanceToEnemy < 400) {
 						toxicSpit = true;
@@ -742,7 +742,7 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				TraceHullAttackParams params;
 				params.knockForward = -100.0f;
 				params.knockUp = 100.0f;
-				params.damageInfo.damage = gSkillData.bullsquidDmgBite;
+				params.damageInfo.damage = GetSkillValue("bullsquid_dmg_bite");
 				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
 				PerformTraceHullAttack(params);
@@ -754,7 +754,7 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				params.punchAngle = Vector(20.0f, 0.0f, -20.0f);
 				params.knockRight = 200.0f;
 				params.knockUp = 100.0f;
-				params.damageInfo.damage = gSkillData.bullsquidDmgWhip;
+				params.damageInfo.damage = GetSkillValue("bullsquid_dmg_whip");
 				params.damageInfo.type = DMG_CLUB;
 				params.damageInfo.SetGibPolicy(GIB_ALWAYS);
 				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -826,7 +826,7 @@ void CBullsquid::Spawn()
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.bullsquidHealth );
+	SetMyHealth( GetSkillValue("bullsquid_health") );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMyCanOpenDoors(false);
@@ -1446,7 +1446,7 @@ LINK_ENTITY_TO_CLASS( monster_bullchicken_dead, CDeadBullsquid )
 
 void CDeadBullsquid::Spawn()
 {
-	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.bullsquidHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("bullsquid_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }

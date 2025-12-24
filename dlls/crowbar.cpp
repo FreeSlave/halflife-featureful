@@ -110,5 +110,5 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 
 DamageInfo CCrowbar::MeleeDamageInfo()
 {
-	return DamageInfo{gSkillData.plrDmgCrowbar, DMG_CLUB};
+	return DamageInfo{GetSkillValue("plr_crowbar"), DMG_CLUB};
 }

@@ -58,6 +58,7 @@ int CBaseEntity::DamageDecal( int bitsDamageType ) { return -1; }
 void CBaseEntity::UpdateOnRemove() { }
 int CBaseEntity::IRelationship( CBaseEntity *pTarget ) { return 0; }
 int CBaseEntity::PRECACHE_SOUND(const char *soundName) { return 0; }
+float CBaseEntity::GetSkillValue(const char* name) { return 0.0f; }
 
 // CBaseDelay Stubs
 void CBaseDelay::KeyValue( struct KeyValueData_s * ) { }
@@ -89,7 +90,6 @@ int CBaseToggle::Save( class CSave & ) { return 1; }
 void CBaseToggle::KeyValue( struct KeyValueData_s * ) { }
 
 void UTIL_Remove( CBaseEntity *pEntity ){ }
-struct skilldata_t gSkillData;
 void UTIL_SetSize( entvars_t *pev, const Vector &vecMin, const Vector &vecMax ){ }
 CBaseEntity *UTIL_FindEntityInSphere( CBaseEntity *pStartEntity, const Vector &vecCenter, float flRadius ){ return 0;}
 

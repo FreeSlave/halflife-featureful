@@ -377,7 +377,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 #if SERVER_DLL
 				else if (value.IsString())
 				{
-					fire.damage.Materialize(altMode) = GetSkillCvar(value.GetString());
+					fire.damage.Materialize(altMode) = GetSkillValue(value.GetString());
 				}
 #endif
 			});

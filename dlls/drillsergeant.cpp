@@ -62,7 +62,7 @@ void CDrillSergeant::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
-	SetMyHealth( gSkillData.barneyHealth );
+	SetMyHealth( GetSkillValue("barney_health") );
 	pev->view_ofs = Vector ( 0, 0, 50 );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // NOTE: we need a wide field of view so npc will notice player and say hello
 	m_MonsterState = MONSTERSTATE_NONE;

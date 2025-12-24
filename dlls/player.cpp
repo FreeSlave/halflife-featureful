@@ -55,7 +55,6 @@
 
 extern DLL_GLOBAL bool g_fGameOver;
 bool gEvilImpulse101;
-extern DLL_GLOBAL int g_iSkillLevel;
 extern DLL_GLOBAL bool gDisplayTitle;
 
 bool gInitHUD = true;
@@ -625,7 +624,7 @@ float CBasePlayer::ArmorStrength()
 {
 	if (m_armorStrength > 0)
 		return m_armorStrength;
-	return gSkillData.plrArmorStrength;
+	return GetSkillValue("plr_armor_strength");
 }
 
 Vector CBasePlayer::GetGunPosition()
@@ -666,21 +665,21 @@ void CBasePlayer::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		case HITGROUP_GENERIC:
 			break;
 		case HITGROUP_HEAD:
-			dmgInfo.damage *= gSkillData.plrHead;
+			dmgInfo.damage *= GetSkillValue("player_head");
 			break;
 		case HITGROUP_CHEST:
-			dmgInfo.damage *= gSkillData.plrChest;
+			dmgInfo.damage *= GetSkillValue("player_chest");
 			break;
 		case HITGROUP_STOMACH:
-			dmgInfo.damage *= gSkillData.plrStomach;
+			dmgInfo.damage *= GetSkillValue("player_stomach");
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
-			dmgInfo.damage *= gSkillData.plrArm;
+			dmgInfo.damage *= GetSkillValue("player_arm");
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
-			dmgInfo.damage *= gSkillData.plrLeg;
+			dmgInfo.damage *= GetSkillValue("player_leg");
 			break;
 		default:
 			break;
@@ -4497,7 +4496,7 @@ void CBasePlayer::UpdateSuitLightBattery(bool on)
 		WRITE_BYTE( m_iFlashBattery );
 	MESSAGE_END();
 
-	m_flFlashLightTime = gSkillData.flashlightDrainTime/100 + gpGlobals->time;
+	m_flFlashLightTime = GetSkillValue("flashlight_drain_time")/100 + gpGlobals->time;
 }
 
 void CBasePlayer::FlashlightToggle()
@@ -5421,7 +5420,7 @@ void CBasePlayer::UpdateClientData()
 		{
 			if( m_iFlashBattery )
 			{
-				m_flFlashLightTime = gSkillData.flashlightDrainTime/100 + gpGlobals->time;
+				m_flFlashLightTime = GetSkillValue("flashlight_drain_time")/100 + gpGlobals->time;
 				m_iFlashBattery--;
 
 				if( !m_iFlashBattery )
@@ -5432,7 +5431,7 @@ void CBasePlayer::UpdateClientData()
 		{
 			if( m_iFlashBattery < 100 )
 			{
-				m_flFlashLightTime = gSkillData.flashlightChargeTime/100 + gpGlobals->time;
+				m_flFlashLightTime = GetSkillValue("flashlight_charge_time")/100 + gpGlobals->time;
 				m_iFlashBattery++;
 			}
 			else

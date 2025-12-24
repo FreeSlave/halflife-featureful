@@ -140,11 +140,11 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		{
 			if( pOther->IsPlayer() )
 			{
-				damage = gSkillData.plrDmgCrossbowClient;
+				damage = GetSkillValue("plr_xbow_bolt_client");
 			}
 			else
 			{
-				damage = gSkillData.plrDmgCrossbowMonster;
+				damage = GetSkillValue("plr_xbow_bolt_monster");
 			}
 		}
 

@@ -905,6 +905,18 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"skill": {
+				"type": "object",
+				"additionalProperties": {
+					"type": ["string", "number", "array"],
+					"minLength": 1,
+					"minItems": 3,
+					"maxItems": 3,
+					"items": {
+						"type": "number"
+					}
+				}
 			}
 		},
 		"additionalProperties": false

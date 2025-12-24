@@ -36,7 +36,7 @@ class CRecharge : public CWallCharger
 {
 public:
 	int RechargeTime() override { return (int)g_pGameRules->FlHEVChargerRechargeTime(); }
-	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : gSkillData.suitchargerCapacity); }
+	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : GetSkillValue("suitcharger")); }
 	bool GiveCharge(CBaseEntity* pActivator) override
 	{
 		return pActivator->TakeArmor(this, 1);
@@ -157,7 +157,7 @@ public:
 			SetBits(m_beam->pev->effects, EF_NODRAW);
 	}
 
-	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.suitchargerCapacity); }
+	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : GetSkillValue("suitcharger")); }
 
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 

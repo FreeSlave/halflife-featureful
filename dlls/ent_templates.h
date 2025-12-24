@@ -13,6 +13,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -112,6 +113,23 @@ struct ChildVariant
 struct ChildrenInfo
 {
 	std::vector<ChildVariant> variants;
+};
+
+struct SkillReplacement
+{
+	enum
+	{
+		STRING,
+		COMMON,
+		DIFFICULTIES,
+		MULTIPLIER
+	};
+
+	std::string replacement;
+	float easy{0.0f};
+	float medium{0.0f};
+	float hard{0.0f};
+	int type{STRING};
 };
 
 struct EntTemplate
@@ -490,6 +508,20 @@ public:
 		_painSoundRule = rule;
 	}
 	void UpdatePainSoundRule(::PainSoundRule& rule) const;
+
+	void SetSkillReplacement(const char* name, const SkillReplacement& replacement) {
+		_skillReplacements[name] = replacement;
+	}
+	const SkillReplacement* GetSkillReplacement(const char* name) const {
+		if (_skillReplacements.empty())
+			return nullptr;
+		auto it = _skillReplacements.find(name);
+		if (it != _skillReplacements.end())
+		{
+			return &it->second;
+		}
+		return nullptr;
+	}
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
@@ -534,6 +566,8 @@ private:
 	DropItemSet _lootDrop;
 
 	PainSoundRule _painSoundRule;
+
+	std::unordered_map<std::string, SkillReplacement> _skillReplacements;
 };
 
 class EntTemplateSystem : public JSONConfig

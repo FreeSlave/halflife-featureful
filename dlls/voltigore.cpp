@@ -135,7 +135,7 @@ void CChargedBolt::Spawn()
 
 	InitBeams();
 
-	SetDefaultProjectileDamage(gSkillData.voltigoreDmgBeam);
+	SetDefaultProjectileDamage(GetSkillValue("voltigore_dmg_beam"));
 }
 
 void CChargedBolt::InitBeams()
@@ -606,8 +606,9 @@ void CVoltigore::DeathGibThink()
 			pBeam->pev->nextthink = gpGlobals->time + 0.6;
 		}
 
-		const float attackRadius = Q_max(Q_min(gSkillData.voltigoreDmgExplode * 2.0f, 200.0f), 160.0f);
-		::RadiusDamage(pev->origin, pev, pev, DamageInfo{gSkillData.voltigoreDmgExplode, DMG_SHOCK}, attackRadius, CLASS_NONE);
+		const float dmgExplode = GetSkillValue("voltigore_dmg_explode");
+		const float attackRadius = Q_max(Q_min(dmgExplode * 2.0f, 200.0f), 160.0f);
+		::RadiusDamage(pev->origin, pev, pev, DamageInfo{dmgExplode, DMG_SHOCK}, attackRadius, CLASS_NONE);
 	}
 }
 
@@ -733,7 +734,7 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.punchAngle.x = 15;
 		params.knockRight = -150;
 		params.knockUp = 100;
-		params.damageInfo.damage = gSkillData.voltigoreDmgPunch;
+		params.damageInfo.damage = GetSkillValue("voltigore_dmg_punch");
 		params.damageInfo.type = DMG_CLUB;
 		params.spawnBlood = true;
 		params.bloodOrigin = vecArmPos;
@@ -757,7 +758,7 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.punchAngle.x = 20;
 		params.knockForward = 150;
 		params.knockUp = 100;
-		params.damageInfo.damage = gSkillData.voltigoreDmgPunch;
+		params.damageInfo.damage = GetSkillValue("voltigore_dmg_punch");
 		params.damageInfo.type = DMG_CLUB;
 		params.spawnBlood = true;
 		params.bloodOrigin = vecArmPos;
@@ -795,7 +796,7 @@ void CVoltigore::Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor(BLOOD_COLOR_GREEN);
 	pev->effects		= 0;
-	SetMyHealth(gSkillData.voltigoreHealth);
+	SetMyHealth(GetSkillValue("voltigore_health"));
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_afCapability = bits_CAP_TURN_HEAD;
@@ -1163,7 +1164,7 @@ void CBabyVoltigore::Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor(BLOOD_COLOR_GREEN);
 	pev->effects		= 0;
-	SetMyHealth(gSkillData.babyVoltigoreHealth);
+	SetMyHealth(GetSkillValue("babyvoltigore_health"));
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_afCapability = bits_CAP_TURN_HEAD;
@@ -1217,7 +1218,7 @@ void CBabyVoltigore::HandleAnimEvent(MonsterEvent_t* pEvent)
 		params.punchAngle.x = 10;
 		params.knockRight = -100;
 		params.knockUp = 50;
-		params.damageInfo.damage = gSkillData.babyVoltigoreDmgPunch;
+		params.damageInfo.damage = GetSkillValue("babyvoltigore_dmg_punch");
 		params.damageInfo.type = DMG_CLUB;
 		params.spawnBlood = true;
 		params.bloodOrigin = vecArmPos;
@@ -1240,7 +1241,7 @@ void CBabyVoltigore::HandleAnimEvent(MonsterEvent_t* pEvent)
 		params.punchAngle.x = 15;
 		params.knockForward = 100;
 		params.knockUp = 50;
-		params.damageInfo.damage = gSkillData.babyVoltigoreDmgPunch;
+		params.damageInfo.damage = GetSkillValue("babyvoltigore_dmg_punch");
 		params.damageInfo.type = DMG_CLUB;
 		params.spawnBlood = true;
 		params.bloodOrigin = vecArmPos;

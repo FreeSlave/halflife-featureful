@@ -5635,7 +5635,7 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("geneworm"); }
 	float DamageAmount() override {
-		return pev->dmg ? pev->dmg : gSkillData.gwormDmgHit;
+		return pev->dmg ? pev->dmg : GetSkillValue("geneworm_dmg_hit");
 	}
 	void EXPORT GeneWormTouch(CBaseEntity *pOther);
 

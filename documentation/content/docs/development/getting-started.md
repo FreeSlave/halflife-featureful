@@ -34,8 +34,8 @@ Decide which of the available weapons you want to include in your mod. Based on 
 * HUD sprites and .txt file describing the weapon hud (e.g. weapon_eagle.txt)
 * Projectile sprites and models (for some weapons, e.g. shock rifle, spore launcher)
 * Sounds
-* `events/*.sc` file (the Grapple doesn't need `.sc` file)
-* Additional skill cvars in skill.cfg.
+* `events/*.sc` file (currently needed by displacer, medkit and penguin).
+* Additional skill variables in skill.cfg.
 
 Open **features/featureful_weapons.cfg** in your mod directory and configure the list of enabled custom weapons.
 

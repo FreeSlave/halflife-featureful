@@ -47,8 +47,6 @@
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 
-extern DLL_GLOBAL int		g_iSkillLevel;
-
 //=========================================================
 // monster-specific DEFINE's
 //=========================================================
@@ -441,7 +439,7 @@ bool CHGrunt::CheckRangeAttack2( float flDot, float flDist )
 	{
 		return false;
 	}
-	return CheckRangeAttack2Impl(gSkillData.hgruntGrenadeSpeed, flDot, flDist, FBitSet(pev->weapons, HGRUNT_GRENADELAUNCHER));
+	return CheckRangeAttack2Impl(GetSkillValue("hgrunt_gspeed"), flDot, flDist, FBitSet(pev->weapons, HGRUNT_GRENADELAUNCHER));
 }
 
 bool CHGrunt::CheckRangeAttack2Impl( float grenadeSpeed, float flDot, float flDist, bool contact )
@@ -808,7 +806,7 @@ void CHGrunt::Shoot()
 
 	Vector vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT( 40, 90 ) + gpGlobals->v_up * RANDOM_FLOAT( 75, 200 ) + gpGlobals->v_forward * RANDOM_FLOAT( -40, 40 );
 	EjectBrass( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL );
-	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, gSkillData.monDmgMP5 ); // shoot +-5 degrees
+	FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, GetSkillValue("9mmAR_bullet") ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -829,8 +827,8 @@ void CHGrunt::Shotgun()
 	UTIL_MakeVectors( pev->angles );
 
 	Vector vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT( 40, 90 ) + gpGlobals->v_up * RANDOM_FLOAT( 75, 200 ) + gpGlobals->v_forward * RANDOM_FLOAT( -40, 40 );
-	EjectBrass( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL ); 
-	FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, gSkillData.monDmgBuckshot, 0 ); // shoot +-7.5 degrees
+	EjectBrass( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL );
+	FireBullets( GetSkillValue("hgrunt_pellets"), vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, GetSkillValue("buckshot"), 0 ); // shoot +-7.5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -894,7 +892,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				}
 				if (vecToss == g_vecZero)
 				{
-					vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*gSkillData.hgruntGrenadeSpeed;
+					vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*GetSkillValue("hgrunt_gspeed");
 				}
 				CGrenade::ShootTimed( this, GetGunPosition(), vecToss, 3.5f, GetProjectileOverrides() );
 			}
@@ -914,12 +912,12 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			{
 				Vector vecToss;
 				if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
-					vecToss = VecCheckThrow( pev, GetGunPosition(), m_hTargetEnt->pev->origin, gSkillData.hgruntGrenadeSpeed, 0.5 );
+					vecToss = VecCheckThrow( pev, GetGunPosition(), m_hTargetEnt->pev->origin, GetSkillValue("hgrunt_gspeed"), 0.5 );
 				else
 				{
 					// just shoot diagonally up+forwards
 					UTIL_MakeVectors(pev->angles);
-					vecToss = (gpGlobals->v_forward*0.5 + gpGlobals->v_up*0.5).Normalize() * gSkillData.hgruntGrenadeSpeed;
+					vecToss = (gpGlobals->v_forward*0.5 + gpGlobals->v_up*0.5).Normalize() * GetSkillValue("hgrunt_gspeed");
 				}
 				CGrenade::ShootContact( this, GetGunPosition(), vecToss, GetProjectileOverrides() );
 			}
@@ -962,7 +960,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case HGRUNT_AE_KICK:
 		{
-			PerformKick(pEvent->event, gSkillData.hgruntDmgKick);
+			PerformKick(pEvent->event, GetSkillValue("hgrunt_kick"));
 		}
 			break;
 		case HGRUNT_AE_CAUGHT_ENEMY:
@@ -1023,7 +1021,7 @@ void CHGrunt::KeyValue(KeyValueData *pkvd)
 
 void CHGrunt::Spawn()
 {
-	SpawnHelper("models/hgrunt.mdl", gSkillData.hgruntHealth);
+	SpawnHelper("models/hgrunt.mdl", GetSkillValue("hgrunt_health"));
 	if( pev->weapons == 0 )
 	{
 		// initialize to original values

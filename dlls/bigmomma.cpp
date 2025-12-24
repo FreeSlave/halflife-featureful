@@ -543,7 +543,7 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			if( pHurt )
 			{
-				pHurt->TakeDamage( pev, pev, DamageInfo(gSkillData.bigmommaDmgSlash, DMG_CRUSH | DMG_SLASH) );
+				pHurt->TakeDamage( pev, pev, DamageInfo(GetSkillValue("bigmomma_dmg_slash"), DMG_CRUSH | DMG_SLASH) );
 				pHurt->pev->punchangle.x = 15.0f;
 				switch( pEvent->event )
 				{
@@ -798,7 +798,7 @@ void CBigMomma::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
-	SetMyHealth( 150.0f * gSkillData.bigmommaHealthFactor );
+	SetMyHealth( 150.0f * GetSkillValue("bigmomma_health_factor") );
 	pev->view_ofs = Vector( 0.0f, 0.0f, 128.0f );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(0.3f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
@@ -875,7 +875,7 @@ void CBigMomma::NodeReach()
 		return;
 
 	if( pTarget->pev->health > 0.0f )
-		pev->max_health = pev->health = pTarget->pev->health * gSkillData.bigmommaHealthFactor;
+		pev->max_health = pev->health = pTarget->pev->health * GetSkillValue("bigmomma_health_factor");
 
 	if( !HasMemory( bits_MEMORY_FIRED_NODE ) )
 	{
@@ -1347,7 +1347,7 @@ void CBMortar::Spawn()
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 	pev->dmgtime = gpGlobals->time + 0.4f;
-	SetDefaultProjectileDamage(gSkillData.bigmommaDmgBlast);
+	SetDefaultProjectileDamage(GetSkillValue("bigmomma_dmg_blast"));
 }
 
 void CBMortar::Precache()
@@ -1406,6 +1406,6 @@ void CBMortar::Touch( CBaseEntity *pOther )
 	if( pev->owner )
 		pevOwner = VARS(pev->owner);
 
-	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ACID}, gSkillData.bigmommaRadiusBlast, CLASS_NONE );
+	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ACID}, GetSkillValue("bigmomma_radius_blast"), CLASS_NONE );
 	UTIL_Remove( this );
 }

@@ -27,13 +27,14 @@
 #include	"scriptevent.h"
 #include	"ai_debug.h"
 #include	"mod_features.h"
+#include	"skill.h"
+#include	"skilldata.h"
 
 bool g_fIsXash3D = false;
 
 void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
 
 extern DLL_GLOBAL Vector g_vecAttackDir;
-extern DLL_GLOBAL int g_iSkillLevel;
 
 static DLL_FUNCTIONS gFunctionTable =
 {
@@ -1857,6 +1858,14 @@ const char* CBaseEntity::DisplayName()
 int CBaseEntity::IRelationship( CBaseEntity *pTarget )
 {
 	return R_NO;
+}
+
+float CBaseEntity::GetSkillValue(const char *name)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	const EntTemplate* ownerEntTemplate = GetOwnerEntTemplate();
+
+	return ::GetSkillValue(name, entTemplate, STRING(m_entTemplate), ownerEntTemplate, STRING(m_ownerEntTemplate));
 }
 
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)

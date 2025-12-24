@@ -313,7 +313,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 			// Narrow mode only does damage to the entity it hits
 			if( pEntity->pev->takedamage )
 			{
-				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{gSkillData.plrDmgEgonNarrow, DMG_ENERGYBEAM}, vecDir, &tr );
+				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{GetSkillValue("plr_egon_narrow"), DMG_ENERGYBEAM}, vecDir, &tr );
 			}
 
 			if( g_pGameRules->IsMultiplayer() )
@@ -348,13 +348,13 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 			// wide mode does damage to the ent, and radius damage
 			if( pEntity->pev->takedamage )
 			{
-				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide, DMG_ENERGYBEAM).SetGibPolicy(GIB_ALWAYS), vecDir, &tr);
+				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(GetSkillValue("plr_egon_wide"), DMG_ENERGYBEAM).SetGibPolicy(GIB_ALWAYS), vecDir, &tr);
 			}
 
 			if( g_pGameRules->IsMultiplayer() )
 			{
 				// radius damage a little more potent in multiplayer.
-				::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
+				::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, DamageInfo(GetSkillValue("plr_egon_wide") * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
 			}
 
 			if( !m_pPlayer->IsAlive() )

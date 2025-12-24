@@ -95,7 +95,7 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = gSkillData.plrDmg762;
+	params.fire.damage = ::GetSkillValue("plr_762_bullet");
 	params.fire.anims.main = {SNIPER_FIRE};
 	params.fire.anims.mainEmptied = {SNIPER_FIRELASTROUND};
 

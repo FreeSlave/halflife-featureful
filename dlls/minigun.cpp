@@ -82,7 +82,7 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 	};
 
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = gSkillData.plrDmg556;
+	params.fire.damage = ::GetSkillValue("plr_556_bullet");
 	params.fire.anims = {MINIGUN_SPINFIRE};
 
 	params.fire.sound = {

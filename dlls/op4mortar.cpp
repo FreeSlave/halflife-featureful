@@ -92,7 +92,7 @@ void CMortarShell::Spawn()
 
 	pev->gravity = 1;
 
-	SetDefaultProjectileDamage(gSkillData.op4mortarDmg);
+	SetDefaultProjectileDamage(GetSkillValue("op4mortar"));
 
 	pev->nextthink = gpGlobals->time + 0.01f;
 	m_flIgniteTime = gpGlobals->time;

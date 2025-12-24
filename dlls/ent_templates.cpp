@@ -1318,6 +1318,51 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetPainSoundRule(rule);
 	});
 
+	HandleJSONMember(value, "skill", [&entTemplate](const Value& value) {
+		for (auto skillIt = value.MemberBegin(); skillIt != value.MemberEnd(); ++skillIt)
+		{
+			const char* skillName = skillIt->name.GetString();
+			const Value& skillValue = skillIt->value;
+
+			if (*skillName)
+			{
+				SkillReplacement replacement;
+				if (skillValue.IsString())
+				{
+					const char* str = skillValue.GetString();
+					if (*str == '*')
+					{
+						const float multiplier = atof(str+1);
+						replacement.easy = replacement.medium = replacement.hard = multiplier;
+						replacement.type = SkillReplacement::MULTIPLIER;
+					}
+					else
+					{
+						replacement.replacement = skillValue.GetString();
+						replacement.type = SkillReplacement::STRING;
+					}
+				}
+				else if (skillValue.IsNumber())
+				{
+					replacement.easy = replacement.medium = replacement.hard = skillValue.GetFloat();
+					replacement.type = SkillReplacement::COMMON;
+				}
+				else if (skillValue.IsArray())
+				{
+					Value::ConstArray arr = skillValue.GetArray();
+					if (arr.Size() == 3)
+					{
+						replacement.type = SkillReplacement::DIFFICULTIES;
+						replacement.easy = arr[0].GetFloat();
+						replacement.medium = arr[1].GetFloat();
+						replacement.hard = arr[2].GetFloat();
+					}
+				}
+				entTemplate.SetSkillReplacement(skillName, replacement);
+			}
+		}
+	});
+
 	_entTemplates[templateName] = entTemplate;
 }
 

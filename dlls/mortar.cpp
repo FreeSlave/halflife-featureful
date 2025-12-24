@@ -247,7 +247,7 @@ void CMortar::Spawn()
 	pev->movetype = MOVETYPE_NONE;
 	pev->solid = SOLID_NOT;
 
-	pev->dmg = gSkillData.mortarDmg;
+	pev->dmg = GetSkillValue("mortar");
 
 	SetThink( &CMortar::MortarExplode );
 	pev->nextthink = 0;

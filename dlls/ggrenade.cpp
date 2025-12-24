@@ -388,11 +388,11 @@ void CGrenade::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params
 
 	if (params.variant == CONTACT)
 	{
-		SetDefaultProjectileDamage(gSkillData.plrDmgM203Grenade);
+		SetDefaultProjectileDamage(GetSkillValue("plr_9mmAR_grenade"));
 	}
 	else
 	{
-		SetDefaultProjectileDamage(gSkillData.plrDmgHandGrenade);
+		SetDefaultProjectileDamage(GetSkillValue("plr_hand_grenade"));
 	}
 }
 

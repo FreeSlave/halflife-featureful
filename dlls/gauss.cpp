@@ -379,8 +379,8 @@ void CGauss::StartFire()
 		// fixed damage on primary attack
 #if CLIENT_DLL
 		flDamage = 20.0f;
-#else 
-		flDamage = gSkillData.plrDmgGauss;
+#else
+		flDamage = GetSkillValue("plr_gauss");
 #endif
 	}
 

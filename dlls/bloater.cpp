@@ -397,7 +397,7 @@ void CFloater::Spawn()
 	pev->movetype		= MOVETYPE_FLY;
 	pev->flags		|= FL_FLY;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
-	SetMyHealth( gSkillData.floaterHealth );
+	SetMyHealth( GetSkillValue("floater_health") );
 	pev->view_ofs		= Vector( 0, 0, -2 );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_FULL);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
@@ -1014,7 +1014,7 @@ void CFloater::ExplodeEffect()
 
 	EmitSoundScript(explodeSoundScript);
 
-	RadiusDamage(exploOrigin, pev, pev, DamageInfo{gSkillData.floaterExplode, DMG_BLAST|DMG_ACID}, Classify());
+	RadiusDamage(exploOrigin, pev, pev, DamageInfo{GetSkillValue("floater_explode"), DMG_BLAST|DMG_ACID}, Classify());
 }
 
 void CFloater::FloaterBloatUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)

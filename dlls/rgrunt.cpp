@@ -150,7 +150,7 @@ const char* CRGrunt::SentenceByNumber(int sentence)
 
 void CRGrunt::Spawn()
 {
-	SpawnHelper("models/rgrunt.mdl", gSkillData.hgruntHealth, DONT_BLEED);
+	SpawnHelper("models/rgrunt.mdl", GetSkillValue("hgrunt_health"), DONT_BLEED);
 	if( pev->weapons == 0 )
 	{
 		pev->weapons = HGRUNT_9MMAR | HGRUNT_HANDGRENADE;
@@ -315,7 +315,7 @@ void CRGrunt::Explode()
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, -32 ), ignore_monsters, ENT( pev ), & tr );
 
-	pev->dmg = gSkillData.rgruntExplode;
+	pev->dmg = GetSkillValue("rgrunt_explode");
 	int iContents = UTIL_PointContents( pev->origin );
 
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );

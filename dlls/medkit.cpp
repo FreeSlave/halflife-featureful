@@ -241,7 +241,7 @@ void CMedkit::Reload()
 	if( CanRecharge() && m_flRechargeTime < gpGlobals->time )
 	{
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
-		m_flRechargeTime = gpGlobals->time + gSkillData.plrMedkitTime;
+		m_flRechargeTime = gpGlobals->time + GetSkillValue("plr_medkittime");
 	}
 }
 
@@ -252,7 +252,8 @@ void CMedkit::WeaponIdle()
 
 	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
 	{
-		const int maxHeal = Q_min((int)gSkillData.plrDmgMedkit, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		const float medkitShot = GetSkillValue("plr_medkitshot");
+		const int maxHeal = Q_min((int)medkitShot, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
 		if (m_secondaryAttack) {
 			const int diff = (int)ceil(m_pPlayer->pev->max_health - m_pPlayer->pev->health);
 			const int healResult = m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
@@ -283,7 +284,7 @@ bool CMedkit::CanRecharge()
 {
 	if( bIsMultiplayer() )
 	{
-		return gSkillData.plrMedkitTime != 0;
+		return GetSkillValue("plr_medkittime") != 0;
 	}
 	else
 	{

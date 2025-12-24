@@ -347,11 +347,11 @@ void CBarney::HandleAnimEvent( MonsterEvent_t *pEvent )
 		ReportFireAnimEvent(pEvent->event);
 		if (pev->frags)
 		{
-			BarneyFirePistol(firePythonSoundScript, gSkillData.monDmg357);
+			BarneyFirePistol(firePythonSoundScript, GetSkillValue("357_bullet"));
 		}
 		else
 		{
-			BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
+			BarneyFirePistol(firePistolSoundScript, GetSkillValue("9mm_bullet"));
 		}
 		break;
 	case BARNEY_AE_DRAW:
@@ -394,7 +394,7 @@ void CBarney::SpawnImpl(const char* modelName, float health)
 void CBarney::Spawn()
 {
 	Precache();
-	SpawnImpl("models/barney.mdl", gSkillData.barneyHealth);
+	SpawnImpl("models/barney.mdl", GetSkillValue("barney_health"));
 	if (bodystate == -1) {
 		bodystate = RANDOM_LONG(BARNEY_BODY_GUNHOLSTERED, BARNEY_BODY_GUNDRAWN);
 	}
@@ -727,7 +727,7 @@ LINK_ENTITY_TO_CLASS( monster_otis, COtis )
 void COtis::Spawn()
 {
 	Precache();
-	SpawnImpl("models/otis.mdl", gSkillData.otisHealth);
+	SpawnImpl("models/otis.mdl", GetSkillValue("otis_health"));
 	SetNonGunBody();
 	if ( m_iHead == -1 )
 		SetBodygroup(OTIS_HEAD_GROUP, RANDOM_LONG(0, 1));
@@ -814,7 +814,7 @@ void COtis::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 		case BARNEY_AE_SHOOT:
 			ReportFireAnimEvent(pEvent->event);
-			BarneyFirePistol(fireDesertEagleSoundScript, gSkillData.monDmg357);
+			BarneyFirePistol(fireDesertEagleSoundScript, GetSkillValue("357_bullet"));
 			break;
 			
 		case BARNEY_AE_DRAW:
@@ -952,7 +952,7 @@ const NamedSoundScript CBarniel::firePistolSoundScript = {
 void CBarniel::Spawn()
 {
 	Precache();
-	SpawnImpl("models/barniel.mdl", gSkillData.barneyHealth);
+	SpawnImpl("models/barniel.mdl", GetSkillValue("barney_health"));
 
 	if (bodystate == -1) {
 		bodystate = RANDOM_LONG(BARNEY_BODY_GUNHOLSTERED, BARNEY_BODY_GUNDRAWN);
@@ -1012,7 +1012,7 @@ void CBarniel::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 	case BARNEY_AE_SHOOT:
 		ReportFireAnimEvent(pEvent->event);
-		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
+		BarneyFirePistol(firePistolSoundScript, GetSkillValue("9mm_bullet"));
 		break;
 	default:
 		CBarney::HandleAnimEvent( pEvent );
@@ -1139,7 +1139,7 @@ const NamedSoundScript CKate::punchSoundScript = {
 void CKate::Spawn()
 {
 	Precache();
-	SpawnImpl("models/kate.mdl", gSkillData.kateHealth);
+	SpawnImpl("models/kate.mdl", GetSkillValue("kate_health"));
 	m_iCombatState = -1;
 
 	if (bodystate == -1) {
@@ -1209,7 +1209,7 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 	case BARNEY_AE_SHOOT:
 		ReportFireAnimEvent(pEvent->event);
-		BarneyFirePistol(firePistolSoundScript, gSkillData.monDmg9MM);
+		BarneyFirePistol(firePistolSoundScript, GetSkillValue("9mm_bullet"));
 		break;
 	case KATE_AE_KICK:
 	{
@@ -1217,7 +1217,7 @@ void CKate::HandleAnimEvent( MonsterEvent_t *pEvent )
 		params.punchAngle.x = 5;
 		params.knockForward = -100;
 		params.knockUp = 50;
-		params.damageInfo.damage = gSkillData.hgruntDmgKick;
+		params.damageInfo.damage = GetSkillValue("hgrunt_kick");
 		params.damageInfo.type = DMG_CLUB;
 		params.skipAllies = true;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);

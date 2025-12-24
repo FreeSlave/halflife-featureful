@@ -43,7 +43,6 @@
 #include <random>
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
-extern DLL_GLOBAL int			g_iSkillLevel;
 
 #define GERMAN_GIB_COUNT		4
 #define	HUMAN_GIB_COUNT			6
@@ -2070,7 +2069,7 @@ void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOri
 //=========================================================
 float CBaseMonster::HeadHitGroupDamageMultiplier()
 {
-	return gSkillData.monHead;
+	return GetSkillValue("monster_head");
 }
 
 void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
@@ -2092,18 +2091,18 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 			damageInfo.damage *= HeadHitGroupDamageMultiplier();
 			break;
 		case HITGROUP_CHEST:
-			damageInfo.damage *= gSkillData.monChest;
+			damageInfo.damage *= GetSkillValue("monster_chest");
 			break;
 		case HITGROUP_STOMACH:
-			damageInfo.damage *= gSkillData.monStomach;
+			damageInfo.damage *= GetSkillValue("monster_stomach");
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
-			damageInfo.damage *= gSkillData.monArm;
+			damageInfo.damage *= GetSkillValue("monster_arm");
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
-			damageInfo.damage *= gSkillData.monLeg;
+			damageInfo.damage *= GetSkillValue("monster_leg");
 			break;
 		default:
 			break;

@@ -166,7 +166,7 @@ void CMassn::Sniperrifle()
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_1DEGREES, 2048, gSkillData.monDmg762, 1);
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_1DEGREES, 2048, GetSkillValue("762_bullet"), 1);
 
 	pev->effects |= EF_MUZZLEFLASH;
 
@@ -288,7 +288,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case MASSN_AE_KICK:
 	{
-		PerformKick(pEvent->event, gSkillData.massnDmgKick);
+		PerformKick(pEvent->event, GetSkillValue("massassin_kick"));
 	}
 	break;
 
@@ -311,7 +311,7 @@ bool CMassn::CheckRangeAttack2( float flDot, float flDist )
 	{
 		return false;
 	}
-	return CheckRangeAttack2Impl(gSkillData.massnGrenadeSpeed, flDot, flDist, FBitSet(pev->weapons, MASSN_GRENADELAUNCHER));
+	return CheckRangeAttack2Impl(GetSkillValue("massassin_gspeed"), flDot, flDist, FBitSet(pev->weapons, MASSN_GRENADELAUNCHER));
 }
 
 //=========================================================
@@ -319,7 +319,7 @@ bool CMassn::CheckRangeAttack2( float flDot, float flDist )
 //=========================================================
 void CMassn::Spawn()
 {
-	SpawnHelper("models/massn.mdl", gSkillData.massnHealth);
+	SpawnHelper("models/massn.mdl", GetSkillValue("massassin_health"));
 
 	if (pev->weapons == 0)
 	{

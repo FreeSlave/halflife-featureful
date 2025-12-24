@@ -695,6 +695,8 @@ public:
 		pev->velocity = params.direction * speed;
 	}
 	virtual void LaunchAsProjectile(const ProjectileParameters& params) {}
+
+	float GetSkillValue(const char* name);
 };
 
 // Ugly technique to override base member functions

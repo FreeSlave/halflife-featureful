@@ -92,7 +92,7 @@ void CDisplacerBall::Spawn()
 
 	m_iBeams = 0;
 
-	SetDefaultProjectileDamage(gSkillData.plrDmgDisplacer);
+	SetDefaultProjectileDamage(GetSkillValue("plr_displacer_other"));
 }
 
 void CDisplacerBall::Precache()
@@ -298,7 +298,7 @@ void CDisplacerBall::ExplodeThink()
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;
 
-	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), gSkillData.plrDisplacerRadius, CLASS_NONE );
+	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), GetSkillValue("plr_displacer_radius"), CLASS_NONE );
 
 	UTIL_Remove( this );
 }

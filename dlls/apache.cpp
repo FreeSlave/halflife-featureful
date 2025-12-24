@@ -27,8 +27,6 @@
 #include "visuals_utils.h"
 #include "graphic_debug.h"
 
-extern DLL_GLOBAL int		g_iSkillLevel;
-
 #define SF_WAITFORTRIGGER	(0x04 | 0x40) // UNDONE: Fix!
 #define SF_NOWRECKAGE		0x08
 
@@ -227,7 +225,7 @@ void CApache::SpawnImpl(const char *modelName)
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
-	SetMyHealth( gSkillData.apacheHealth );
+	SetMyHealth( GetSkillValue("apache_health") );
 	pev->max_health = pev->health;
 
 	SetMyFieldOfView(-0.707f); // 270 degrees
@@ -1004,7 +1002,7 @@ bool CApache::FireGun()
 	if( DotProduct( vecGun, vecTarget ) > 0.98f )
 	{
 #if 1
-		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, gSkillData.monDmg12MM, 1 );
+		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, GetSkillValue("12mm_bullet"), 1 );
 		EmitSoundScript(fireGunSoundScript);
 #else
 		static float flNext;

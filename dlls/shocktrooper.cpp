@@ -316,7 +316,7 @@ bool CShockTrooper::CheckRangeAttack2( float flDot, float flDist )
 	{
 		return false;
 	}
-	return CheckRangeAttack2Impl(gSkillData.strooperGrenadeSpeed, flDot, flDist, false);
+	return CheckRangeAttack2Impl(GetSkillValue("shocktrooper_gspeed"), flDot, flDist, false);
 }
 
 //=========================================================
@@ -353,7 +353,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 			}
 			if (vecToss == g_vecZero)
 			{
-				vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*gSkillData.strooperGrenadeSpeed;
+				vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*GetSkillValue("shocktrooper_gspeed");
 			}
 			ProjectileParameters params("spore", vecOrigin, pev->angles, vecToss.Normalize(), this, GetProjectileOverrides());
 			params.variant = CSpore::GRENADE_THROWN;
@@ -413,7 +413,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case STROOPER_AE_KICK:
 	{
-		PerformKick(pEvent->event, gSkillData.strooperDmgKick, (m_bRightClaw) ? -10 : 10);
+		PerformKick(pEvent->event, GetSkillValue("shocktrooper_kick"), (m_bRightClaw) ? -10 : 10);
 		m_bRightClaw = !m_bRightClaw;
 	}
 	break;
@@ -441,7 +441,7 @@ void CShockTrooper::Spawn()
 {
 	Precache();
 
-	SpawnHelper("models/strooper.mdl", gSkillData.strooperHealth * 2.5, BLOOD_COLOR_GREEN);
+	SpawnHelper("models/strooper.mdl", GetSkillValue("shocktrooper_health") * 2.5, BLOOD_COLOR_GREEN);
 	SetMySize();
 
 	if (pev->weapons == 0)
@@ -450,14 +450,14 @@ void CShockTrooper::Spawn()
 		pev->weapons = STROOPER_SHOCKRIFLE | STROOPER_HANDGRENADE;
 	}
 
-	m_cClipSize = gSkillData.strooperMaxCharge;
+	m_cClipSize = GetSkillValue("shocktrooper_maxcharge");
 
 	m_cAmmoLoaded = m_cClipSize;
 
 	m_bRightClaw = false;
 
 	CTalkMonster::g_talkWaitTime = 0;
-	m_rechargeTime = gpGlobals->time + gSkillData.strooperRchgSpeed;
+	m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 	m_blinkTime = gpGlobals->time + RANDOM_FLOAT(3.0f, 7.0f);
 
 	FollowingMonsterInit();
@@ -470,7 +470,7 @@ void CShockTrooper::MonsterThink()
 		if (m_rechargeTime < gpGlobals->time)
 		{
 			m_cAmmoLoaded++;
-			m_rechargeTime = gpGlobals->time + gSkillData.strooperRchgSpeed;
+			m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 		}
 	}
 	if (m_blinkTime <= gpGlobals->time && pev->skin == 0) {
@@ -635,7 +635,7 @@ void CDeadStrooper::Precache()
 
 void CDeadStrooper::Spawn()
 {
-	SpawnHelper(BLOOD_COLOR_YELLOW, gSkillData.strooperHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("shocktrooper_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }

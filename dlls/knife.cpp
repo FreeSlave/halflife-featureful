@@ -126,12 +126,13 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 DamageInfo CKnife::MeleeDamageInfo()
 {
-	return DamageInfo{gSkillData.plrDmgKnife, DMG_CLUB};
+	return DamageInfo{GetSkillValue("plr_knife"), DMG_CLUB};
 }
 
 DamageInfo CKnife::MeleeWindDamageInfo()
 {
-	float flDamage = (gpGlobals->time - m_flBigSwingStart) * gSkillData.plrDmgKnife + gSkillData.plrDmgKnife*2.0f;
+	const float knifeDamage = GetSkillValue("plr_knife");
+	float flDamage = (gpGlobals->time - m_flBigSwingStart) * knifeDamage + knifeDamage*2.0f;
 	if (flDamage > 100.0f) {
 		flDamage = 100.0f;
 	}

@@ -29,8 +29,6 @@
 
 extern bool FEntIsVisible( entvars_t *pev, entvars_t *pevTarget );
 
-extern DLL_GLOBAL int g_iSkillLevel;
-
 // Landmark class
 void CPointEntity::Spawn()
 {

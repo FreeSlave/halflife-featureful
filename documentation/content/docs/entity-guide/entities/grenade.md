@@ -8,7 +8,8 @@ entityCategory: projectile
 
 ### Skill variables
 
-* **sk_plr_hand_grenade** - explosion damage.
+* **sk_plr_hand_grenade** - explosion damage of the hand (timed) grenade.
+* **sk_plr_9mmAR_grenade** - explosion damage of the AR (contact) grenade.
 
 ### Soundscripts
 

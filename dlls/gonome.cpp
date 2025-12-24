@@ -73,7 +73,7 @@ const NamedVisual CGonomeGuts::gutsVisual = BuildVisual::Animated("Gonome.Guts")
 void CGonomeGuts::Spawn()
 {
 	SpawnHelper("gonomeguts", gutsVisual);
-	SetDefaultProjectileDamage(gSkillData.gonomeDmgGuts);
+	SetDefaultProjectileDamage(GetSkillValue("gonome_dmg_guts"));
 }
 
 void CGonomeGuts::Precache()
@@ -522,7 +522,7 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.punchAngle.x = 5;
 		params.punchAngle.z = 9;
 		params.knockRight = 25.0f;
-		params.damageInfo.damage = gSkillData.gonomeDmgOneSlash;
+		params.damageInfo.damage = GetSkillValue("gonome_dmg_one_slash");
 		params.hitSoundScript = attackHitSoundScript;
 		params.missSoundScript = attackMissSoundScript;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -538,7 +538,7 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 		params.punchAngle.x = 5;
 		params.punchAngle.z = -9;
 		params.knockRight = -25.0f;
-		params.damageInfo.damage = gSkillData.gonomeDmgOneSlash;
+		params.damageInfo.damage = GetSkillValue("gonome_dmg_one_slash");
 		params.hitSoundScript = attackHitSoundScript;
 		params.missSoundScript = attackMissSoundScript;
 		SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
@@ -556,7 +556,7 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 			params.distance = GONOME_MELEE_ATTACK_RADIUS;
 			params.punchAngle.x = 9;
 			params.knockForward = -25.0f;
-			params.damageInfo.damage = gSkillData.gonomeDmgOneBite;
+			params.damageInfo.damage = GetSkillValue("gonome_dmg_one_bite");
 			if (pEvent->event == GONOME_AE_BITE4)
 			{
 				params.punchAngle.x = 15;
@@ -636,7 +636,7 @@ void CGonome::Spawn()
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_GREEN );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.gonomeHealth );
+	SetMyHealth( GetSkillValue("gonome_health") );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMyCanOpenDoors(true);

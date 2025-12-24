@@ -581,7 +581,7 @@ The delay before next shot after the ammo depletion. This makes sense only for w
 
 The amount of damage the weapon deals per bullet.
 
-This can be either a number (e.g. `8`) or the name of the skill cvar (e.g. `"sk_plr_357_bullet"`). Currently it's not possible to register new skill variables, so you can just use a constant number (player's damage values are usually not affected by difficulty anyway).
+This can be either a number (e.g. `8`) or the name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`).
 
 {{% hint warning %}}
 This currently can configure damage values only for bullets and projectiles.

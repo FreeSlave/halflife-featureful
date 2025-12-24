@@ -249,7 +249,7 @@ const NamedVisual COsprey::blastCircleVisual = BuildVisual("Osprey.BlastCircle")
 
 void COsprey::Spawn()
 {
-	SpawnImpl("models/osprey.mdl", gSkillData.ospreyHealth);
+	SpawnImpl("models/osprey.mdl", GetSkillValue("osprey"));
 }
 
 void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
@@ -1230,7 +1230,7 @@ LINK_ENTITY_TO_CLASS( monster_blkop_osprey, CBlkopOsprey )
 
 void CBlkopOsprey::Spawn()
 {
-	SpawnImpl("models/blkop_osprey.mdl", gSkillData.blackopsOspreyHealth);
+	SpawnImpl("models/blkop_osprey.mdl", GetSkillValue("blkopsosprey"));
 }
 
 void CBlkopOsprey::Precache()
