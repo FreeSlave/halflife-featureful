@@ -66,6 +66,8 @@ public:
 	void SetWeaponData(const weapon_data_t& data) override;
 
 private:
+	void SendStopEvent(bool sendToHost);
+
 	unsigned short m_usGaussFire;
 	unsigned short m_usGaussSpin;
 };
@@ -168,7 +170,7 @@ bool CGauss::Deploy()
 
 void CGauss::Holster()
 {
-	PLAYBACK_EVENT_FULL( FEV_RELIABLE | FEV_GLOBAL, m_pPlayer->edict(), m_usGaussFire, 0.01f, m_pPlayer->pev->origin, m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1 );
+	SendStopEvent(true);
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
 
@@ -220,8 +222,8 @@ void CGauss::SecondaryAttack()
 	{
 		if( m_fInAttack != 0 )
 		{
-			PLAYBACK_EVENT_FULL( FEV_RELIABLE, m_pPlayer->edict(), m_usGaussSpin, 0.0, g_vecZero, g_vecZero, 0.0, 0.0, 80 + RANDOM_LONG( 0, 0x3f ), 1, 0, 0 );
-			//EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/electro4.wav", 1.0, ATTN_NORM, 0, 80 + RANDOM_LONG( 0, 0x3f ) );
+			EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/electro4.wav", 1.0, ATTN_NORM, 0, 80 + RANDOM_LONG( 0, 0x3f ) );
+			SendStopEvent(true);
 			SendWeaponAnim( GAUSS_IDLE );
 			m_fInAttack = 0;
 		}
@@ -315,7 +317,7 @@ void CGauss::SecondaryAttack()
 		if( m_iSoundState == 0 )
 			ALERT( at_console, "sound state %d\n", m_iSoundState );
 
-		if (!overcharge)
+		//if (!overcharge)
 			PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usGaussSpin, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, pitch, 0, ( m_iSoundState == SND_CHANGE_PITCH ) ? 1 : 0, 0 );
 
 		m_iSoundState = SND_CHANGE_PITCH; // hack for going through level transitions
@@ -326,13 +328,15 @@ void CGauss::SecondaryAttack()
 		if( overcharge )
 		{
 			// Player charged up too long. Zap him.
-			PLAYBACK_EVENT_FULL( FEV_NOTHOST | FEV_RELIABLE, m_pPlayer->edict(), m_usGaussSpin, 0.0, g_vecZero, g_vecZero, 0.0, 0.0, 80 + RANDOM_LONG( 0, 0x3f ), 1, 0, 0 );
-			//EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/electro4.wav", 1.0f, ATTN_NORM, 0, 80 + RANDOM_LONG( 0, 0x3f ) );
+			EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_WEAPON, "weapons/electro4.wav", 1.0f, ATTN_NORM, 0, 80 + RANDOM_LONG( 0, 0x3f ) );
 			EMIT_SOUND_DYN( ENT( m_pPlayer->pev ), CHAN_ITEM, "weapons/electro6.wav", 1.0f, ATTN_NORM, 0, 75 + RANDOM_LONG( 0, 0x3f ) );
 
 			m_fInAttack = 0;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
 			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
+
+			SendStopEvent(false);
+
 #if !CLIENT_DLL
 			m_pPlayer->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), DamageInfo(50, DMG_SHOCK) );
 			UTIL_ScreenFade( m_pPlayer, Vector( 255, 128, 0 ), 2, 0.5f, 128, FFADE_IN );
@@ -431,11 +435,7 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	// The main firing event is sent unreliably so it won't be delayed.
 	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usGaussFire, 0.0f, m_pPlayer->pev->origin, m_pPlayer->pev->angles, flDamage, 0.0, 0, 0, m_fPrimaryFire ? 1 : 0, 0 );
 
-	// This reliable event is used to stop the spinning sound
-	// It's delayed by a fraction of second to make sure it is delayed by 1 frame on the client
-	// It's sent reliably anyway, which could lead to other delays
-
-	PLAYBACK_EVENT_FULL( FEV_NOTHOST | FEV_RELIABLE | FEV_GLOBAL, m_pPlayer->edict(), m_usGaussFire, 0.01f, m_pPlayer->pev->origin, m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1 );
+	SendStopEvent(false);
 
 	/*ALERT( at_console, "%f %f %f\n%f %f %f\n", 
 		vecSrc.x, vecSrc.y, vecSrc.z, 
@@ -625,11 +625,25 @@ void CGauss::WeaponIdle()
 void CGauss::GetWeaponData(weapon_data_t& data)
 {
 	data.iuser2 = m_fInAttack;
-	data.fuser1 = m_pPlayer->m_flStartCharge;
 }
 
 void CGauss::SetWeaponData(const weapon_data_t& data)
 {
 	m_fInAttack = data.iuser2;
-	m_pPlayer->m_flStartCharge = data.fuser1;
+}
+
+void CGauss::SendStopEvent(bool sendToHost)
+{
+	// This reliable event is used to stop the spinning sound
+	// It's delayed by a fraction of second to make sure it is delayed by 1 frame on the client
+	// It's sent reliably anyway, which could lead to other delays
+
+	int flags = FEV_RELIABLE | FEV_GLOBAL;
+
+	if (!sendToHost)
+	{
+		flags |= FEV_NOTHOST;
+	}
+
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usGaussFire, 0.01f, m_pPlayer->pev->origin, m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1);
 }
