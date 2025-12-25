@@ -346,6 +346,9 @@ void CHalfLifeMultiplay::RefreshSkillData()
 	// RPG
 	g_SkillData.ForceValue("plr_rpg", 120.0f);
 
+	// Gauss
+	g_SkillData.ForceValue("plr_gauss_radius_factor", 1.75f);
+
 	// Egon
 	g_SkillData.ForceValue("plr_egon_wide", 20.0f);
 	g_SkillData.ForceValue("plr_egon_narrow", 10.0f);

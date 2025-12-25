@@ -338,7 +338,7 @@ void CGauss::SecondaryAttack()
 			SendStopEvent(false);
 
 #if !CLIENT_DLL
-			m_pPlayer->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), DamageInfo(50, DMG_SHOCK) );
+			m_pPlayer->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), DamageInfo(GetSkillValue("plr_gauss_overcharge"), DMG_SHOCK) );
 			UTIL_ScreenFade( m_pPlayer, Vector( 255, 128, 0 ), 2, 0.5f, 128, FFADE_IN );
 #endif
 			SendWeaponAnim( GAUSS_IDLE );
@@ -365,14 +365,7 @@ void CGauss::StartFire()
 	Vector vecAiming = gpGlobals->v_forward;
 	Vector vecSrc = m_pPlayer->GetGunPosition(); // + gpGlobals->v_up * -8 + gpGlobals->v_right * 8;
 
-	if( gpGlobals->time - m_pPlayer->m_flStartCharge > GetFullChargeTime() )
-	{
-		flDamage = 200.0f;
-	}
-	else
-	{
-		flDamage = 200.0f * ( ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / GetFullChargeTime() );
-	}
+
 
 	if( m_fPrimaryFire )
 	{
@@ -382,6 +375,22 @@ void CGauss::StartFire()
 #else
 		flDamage = GetSkillValue("plr_gauss");
 #endif
+	}
+	else
+	{
+#if CLIENT_DLL
+		const float maxDamage = 200.0f;
+#else
+		const float maxDamage = GetSkillValue("plr_gauss_maxspin");
+#endif
+		if( gpGlobals->time - m_pPlayer->m_flStartCharge > GetFullChargeTime() )
+		{
+			flDamage = maxDamage;
+		}
+		else
+		{
+			flDamage = maxDamage * ( ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / GetFullChargeTime() );
+		}
 	}
 
 	if( m_fInAttack != 3 )
@@ -471,6 +480,7 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 		{
 			if( pEntity->pev == m_pPlayer->pev )
 				tr.iHitgroup = 0;
+
 			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_BULLET}, vecDir, &tr );
 		}
 
@@ -534,16 +544,7 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 
 							// exit blast damage
 							//m_pPlayer->RadiusDamage( beam_tr.vecEndPos + vecDir * 8, pev, m_pPlayer->pev, flDamage, CLASS_NONE, DMG_BLAST );
-							float damage_radius;
-
-							if( g_pGameRules->IsMultiplayer() )
-							{
-								damage_radius = flDamage * 1.75f;  // Old code == 2.5
-							}
-							else
-							{
-								damage_radius = flDamage * 2.5f;
-							}
+							const float damage_radius = flDamage * GetSkillValue("plr_gauss_radius_factor");
 
 							::RadiusDamage( beam_tr.vecEndPos + vecDir * 8, pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_BLAST}, damage_radius, CLASS_NONE );
 

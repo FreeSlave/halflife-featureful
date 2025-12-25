@@ -1441,6 +1441,9 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("buckshot", "plr_buckshot");
 	g_SkillData.ProvideFallback("plr_xbow_bolt_hitscan", 120.0f);
 	g_SkillData.ProvideFallback("plr_xbow_bolt_explo", 40.0f);
+	g_SkillData.ProvideFallback("plr_gauss_maxspin", 200.0f);
+	g_SkillData.ProvideFallback("plr_gauss_radius_factor", 2.5f);
+	g_SkillData.ProvideFallback("plr_gauss_overcharge", 50.0f);
 	g_SkillData.ProvideFallback("plr_hornet_dmg", 7.0f);
 	g_SkillData.ProvideFallback("shockroach", "plr_shockroachs");
 	g_SkillData.ProvideFallback("plr_shockroachm", "plr_shockroachs");

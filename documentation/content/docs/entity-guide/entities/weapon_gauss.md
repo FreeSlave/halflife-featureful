@@ -17,10 +17,9 @@ entityCategory: pickup
 ### Skill variables
 
 * **sk_plr_gauss** - single shot damage.
-
-The secondary fire damage is not configurable yet.
-
-The gauss overcharge damage is not configurable yet.
+* **sk_plr_gauss_maxspin** - maximum damage for the secondary attack (the longer the spin the higher the damage). The default value is 200.
+* **sk_plr_gauss_radius_factor** - the factor to calculate radius of the tau-cannon blast (when it hits something behind the wall). The radius is evaluated as the damage multiplied by this factor. The default value is 2.5 (forced to 1.75 in deathmatch).
+* **sk_plr_gauss_overcharge** - overcharge damage (when spinning for too long). The default value is 50.
 
 ### Weapon templates
 
