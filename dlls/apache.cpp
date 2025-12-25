@@ -25,6 +25,7 @@
 #include "game.h"
 #include "common_soundscripts.h"
 #include "visuals_utils.h"
+#include "graphic_debug.h"
 
 extern DLL_GLOBAL int		g_iSkillLevel;
 
@@ -74,6 +75,7 @@ public:
 	bool MustDoSmoke(const DamageInfo& damageInfo, const TraceResult* ptr);
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	void ReportAIState(ALERT_TYPE level) override;
 
 	int m_iRockets;
 	float m_flForce;
@@ -676,6 +678,21 @@ void CApache::HuntThink()
 	Vector vecEst = ( gpGlobals->v_forward * 800.0f + pev->velocity ).Normalize();
 	// ALERT( at_console, "%d %d %d %4.2f\n", pev->angles.x < 0.0f, DotProduct( pev->velocity, gpGlobals->v_forward ) > -100.0f, m_flNextRocket < gpGlobals->time, DotProduct( m_vecTarget, vecEst ) );
 
+	auto allyInRange = [this](const Vector& vecLocation, float flDist)
+	{
+		CBaseEntity* pEntity = nullptr;
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecLocation, flDist)) != nullptr)
+		{
+			CBaseMonster* monster = pEntity->MyMonsterPointer();
+			if (monster != nullptr && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
+			{
+				ALERT(at_aiconsole, "%s: Ally %s at search radius.\n", STRING(pev->classname), STRING(monster->pev->classname));
+				return true;
+			}
+		}
+		return false;
+	};
+
 	if( ( m_iRockets % 2 ) == 1 )
 	{
 		FireRocket();
@@ -699,17 +716,35 @@ void CApache::HuntThink()
 
 					UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, ignore_monsters, edict(), &tr );
 					if( (tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
-						FireRocket();
+					{
+						if (!allyInRange(tr.vecEndPos + Vector(0, 0, 32), 256.0f))
+						{
+							FireRocket();
+						}
+						else
+						{
+							m_flNextRocket = gpGlobals->time + 1.0f;
+						}
+					}
 				}
 			}
-			else
+			else if (m_flLastSeen + 15.0f > gpGlobals->time)
 			{
 				TraceResult tr;
 
 				UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, dont_ignore_monsters, edict(), &tr );
 				// just fire when close
 				if( ( tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
-					FireRocket();
+				{
+					if (!allyInRange(tr.vecEndPos + Vector(0, 0, 32), 384.0f))
+					{
+						FireRocket();
+					}
+					else
+					{
+						m_flNextRocket = gpGlobals->time + 1.0f;
+					}
+				}
 			}
 		}
 	}
@@ -1110,6 +1145,13 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 			m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
 		}
 	}
+}
+
+void CApache::ReportAIState(ALERT_TYPE level)
+{
+	CBaseMonster::ReportAIState(level);
+	ALERT(level, "Rockets: %d; ", m_iRockets);
+	ALERT(level, "Current time: %g; Next rocket time: %g; Last seen enemy time: %g; Prev seen enemy time: %g; ", gpGlobals->time, m_flNextRocket, m_flLastSeen, m_flPrevSeen);
 }
 
 class CApacheHVR : public CGrenade

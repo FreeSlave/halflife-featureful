@@ -12,6 +12,7 @@ bookToC: false
 * Can be correctly spawned via [monstermaker]({{< ref monstermaker >}}) (notifies the monstermaker about its death). Use a custom `#target` keyvalue parameter so the spawned Apache has the path to follow. See [Configuring the spawned monster]({{< ref "monstermaker/#configuring-the-spawned-monster" >}}) and the **flyers_demo** map in the sample mod.
 * `Death` and `50% Health Remaining` trigger conditions now work for Apache.
 * Apache can use `Fire On Pass` triggers on the path entities.
+* Apache checks for potential friendly fire before firing the rockets.
 
 ### New parameters
 
