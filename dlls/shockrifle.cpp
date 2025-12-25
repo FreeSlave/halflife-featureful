@@ -46,6 +46,7 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 
 	void NativeAttack(bool altMode) override;
+	bool HandleAttackSubstitution(bool altMode) override;
 	void Holster() override;
 	void CreateChargeEffect();
 	void EXPORT ClearBeams();
@@ -166,6 +167,16 @@ void CShockrifle::Holster()
 
 void CShockrifle::NativeAttack(bool altMode)
 {
+	CreateChargeEffect();
+
+	ProjectileAttack(altMode);
+
+	SetThink( &CShockrifle::ClearBeams );
+	pev->nextthink = gpGlobals->time + 0.08;
+}
+
+bool CShockrifle::HandleAttackSubstitution(bool altMode)
+{
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
 #if !CLIENT_DLL
@@ -175,15 +186,9 @@ void CShockrifle::NativeAttack(bool altMode)
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 0;
 		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );
 #endif
-		return;
+		return true;
 	}
-
-	CreateChargeEffect();
-
-	ProjectileAttack(altMode);
-
-	SetThink( &CShockrifle::ClearBeams );
-	pev->nextthink = gpGlobals->time + 0.08;
+	return false;
 }
 
 void CShockrifle::CreateChargeEffect()

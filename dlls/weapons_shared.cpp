@@ -1204,6 +1204,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 					PerformCooldown(altMode);
 					return;
 				}
+
+				if (HandleAttackSubstitution(altMode))
+					return;
+
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
 
@@ -1234,12 +1238,21 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 					PerformCooldown(altMode);
 					return;
 				}
+
+				if (HandleAttackSubstitution(altMode))
+					return;
+
 				SpendAmmo(ammoPerFire);
 				UpdateRechargeTime(altMode);
 				lastShot = Emptied();
 				OnSpendAmmo();
 			}
 		}
+	}
+	else
+	{
+		if (HandleAttackSubstitution(altMode))
+			return;
 	}
 
 	m_shouldPlayCooldown = true;

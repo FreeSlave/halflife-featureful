@@ -387,6 +387,7 @@ public:
 
 	void ProjectileAttack(bool altMode);
 	virtual void NativeAttack(bool altMode) { return; }
+	virtual bool HandleAttackSubstitution(bool altMode) { return false; }
 	virtual void OnSpendAmmo() { return; }
 	virtual void OnEndReload() { return; }
 	virtual int GetPlaybackEvent(bool altModeFire) const { return m_usFire; }
