@@ -39,6 +39,7 @@ In Featureful SDK it also has some other changes:
 ### Skill variables
 
 * **sk_osprey** - monster's health.
+* **sk_osprey_dmg_blast** - explosion damage on Apache's crash.
 
 ### Reaction to use-type
 

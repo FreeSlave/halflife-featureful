@@ -468,7 +468,7 @@ void CApache::DyingThink()
 
 		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, DamageInfo{300, DMG_BLAST}, CLASS_NONE );
+		RadiusDamage( pev->origin, pev, pev, DamageInfo{GetSkillValue("apache_dmg_blast"), DMG_BLAST}, CLASS_NONE );
 
 		if(/*!( pev->spawnflags & SF_NOWRECKAGE ) && */( pev->flags & FL_ONGROUND ) )
 		{

@@ -1085,7 +1085,7 @@ void COsprey::DyingThink()
 
 		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, DamageInfo{300, DMG_BLAST}, CLASS_NONE );
+		RadiusDamage( pev->origin, pev, pev, DamageInfo{GetSkillValue("osprey_dmg_blast"), DMG_BLAST}, CLASS_NONE );
 
 		// gibs
 		vecSpot = pev->origin + ( pev->mins + pev->maxs ) * 0.5f;

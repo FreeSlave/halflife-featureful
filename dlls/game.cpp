@@ -1336,6 +1336,8 @@ void ParseSkillCfg(byte *pMemFile, const char* fileName, int fileSize)
 
 void ProvideSkillFallbacks()
 {
+	g_SkillData.ProvideFallback("apache_dmg_blast", 300.0f);
+
 	g_SkillData.ProvideFallback("barnacle_health", 25.0f);
 
 	g_SkillData.ProvideFallback("bigmomma_health_factor", 1.0f);
@@ -1391,6 +1393,7 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("osprey", 400.0f);
 	g_SkillData.ProvideFallback("blkopsosprey", "osprey");
+	g_SkillData.ProvideFallback("osprey_dmg_blast", 300.0f);
 
 	g_SkillData.ProvideFallback("otis_health", "barney_health");
 

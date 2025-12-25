@@ -22,6 +22,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_apache_health** - monster's health.
+* **sk_apache_dmg_blast** - explosion damage on Apache's crash.
 
 ### Reaction to use-type
 
