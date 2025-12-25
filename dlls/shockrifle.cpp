@@ -180,8 +180,8 @@ bool CShockrifle::HandleAttackSubstitution(bool altMode)
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
 #if !CLIENT_DLL
-		const float radius = 150 * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
-		const float dmg = 100 * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+		const float dmg = GetSkillValue("plr_shockroach_discharge_factor") * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+		const float radius = 1.5f * dmg;
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_discharge.wav", VOL_NORM, ATTN_NORM);
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 0;
 		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );

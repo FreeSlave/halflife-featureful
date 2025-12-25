@@ -1443,6 +1443,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("plr_xbow_bolt_explo", 40.0f);
 	g_SkillData.ProvideFallback("plr_hornet_dmg", 7.0f);
 	g_SkillData.ProvideFallback("shockroach", "plr_shockroachs");
+	g_SkillData.ProvideFallback("plr_shockroachm", "plr_shockroachs");
+	g_SkillData.ProvideFallback("plr_shockroach_discharge_factor", 100.0f);
 	g_SkillData.ProvideFallback("nail", 8.0f);
 	g_SkillData.ProvideFallback("plr_nail", 8.0f);
 

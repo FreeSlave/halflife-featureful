@@ -12,7 +12,8 @@ entityCategory: pickup
 
 ### Skill variables
 
-See [shock_beam]({{< ref "shock_beam/#skill-variables" >}})
+* See [shock_beam]({{< ref "shock_beam/#skill-variables" >}})
+* **sk_plr_shockroach_discharge_factor** - the damage dealt when using the shockrifle underwater is calculated as the amount of primary ammo multiplied by this factor. The default value is 100.
 
 ### Weapon templates
 
