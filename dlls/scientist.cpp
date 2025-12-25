@@ -1753,7 +1753,7 @@ public:
 	int GetDefaultVoicePitch() override { return 100; }
 	void Spawn() override
 	{
-		SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health"));
+		SciSpawnHelper("models/scientist.mdl", GetSkillValue("civilian_health"));
 		TalkMonsterInit();
 	}
 	void Precache() override;

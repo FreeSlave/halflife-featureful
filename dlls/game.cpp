@@ -1347,6 +1347,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_poison", "bullsquid_dmg_spit", 0.25f);
 	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_impact", "bullsquid_dmg_spit", 1.5f);
 
+	g_SkillData.ProvideFallback("civilian_health", "scientist_health");
 	g_SkillData.ProvideFallback("cleansuit_scientist_health", "scientist_health");
 
 	g_SkillData.ProvideFallback("flybee_health", "ichthyosaur_health");

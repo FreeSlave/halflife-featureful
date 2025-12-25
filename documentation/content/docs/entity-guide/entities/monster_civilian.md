@@ -9,7 +9,7 @@ Generic npc that acts like scientist but doesn't have an ability to heal the pla
 
 ### Skill variables
 
-* **sk_scientist_health** - monster's health.
+* **sk_civilian_health** - monster's health. If not defined, **sk_scientist_health** is used.
 
 ### Default classification
 
