@@ -135,7 +135,7 @@ void ReadSaveTitles()
 		int keyNameEnd;
 		if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), keyNameStart, keyNameEnd))
 		{
-			ALERT(at_error, "%s: error parsing the mapname prefix on line %d. Error: %d\n", fileName, lineNum);
+			ALERT(at_error, "%s: error parsing the mapname prefix on line %d\n", fileName, lineNum);
 			break;
 		}
 		SkipSpaceCharacters(buffer, i, sizeof(buffer));
