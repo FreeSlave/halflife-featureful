@@ -347,6 +347,8 @@ WeaponParameters CBarnacleGrapple::GetDefaultParameters() const
 	params.playerAnimExt = "gauss";
 	params.priority = 21;
 
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
 	return params;
 }
 
