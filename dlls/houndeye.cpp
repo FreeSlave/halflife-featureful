@@ -598,7 +598,7 @@ void CHoundeye::SonicAttack()
 	if( squadCount > 1 )
 	{
 		// squad gets attack bonus.
-		flDamage = flDamage + flDamage * ( HOUNDEYE_SQUAD_BONUS * ( squadCount - 1 ) );
+		flDamage += flDamage * GetSkillValue("houndeye_squad_bonus_factor") * ( squadCount - 1 );
 	}
 
 	::RadiusDamage(this, pev->origin, pev, pev, DamageInfo(flDamage, DMG_SONIC).SetGibPolicy(GIB_ALWAYS),

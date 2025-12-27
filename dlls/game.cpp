@@ -1383,6 +1383,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("torch_ally_kick", "hgrunt_ally_kick");
 	g_SkillData.ProvideFallback("torch_ally_gspeed", "hgrunt_ally_gspeed");
 
+	g_SkillData.ProvideFallback("houndeye_squad_bonus_factor", 1.1f);
+
 	g_SkillData.ProvideFallback("ichthyosaur_maxspeed", 400.0f);
 
 	g_SkillData.ProvideFallback("islave_zap_rate", 1.0f, 1.0f, 1.5f);

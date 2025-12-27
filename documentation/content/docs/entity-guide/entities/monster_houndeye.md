@@ -22,6 +22,7 @@ bookToC: false
 
 * **sk_houndeye_health** - monster's health.
 * **sk_houndeye_dmg_blast** - base shockwave damage. Gets factored by the number of houndeyes in the squad.
+* **sk_houndeye_squad_bonus_factor** - bonus factor for the additional shockwave damage when houndeye is in squad. The additional damage is calculated as `sk_houndeye_dmg_blast * sk_houndeye_squad_bonus_factor * (squad_size - 1)`. Default value is 1.1.
 
 ### Default classification
 
