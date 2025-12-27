@@ -16,6 +16,10 @@ Original Half-Life also has the entity `monster_bloater` which uses the floater 
 
 * **sk_floater_health** - monster's health.
 * **sk_floater_explode** - the explosion damage.
+* **sk_floater_basespeed** - base speed. Default value is 100.
+* **sk_floater_extraspeed** - maximum extra speed bonus the float gains when it's bloating (moving to the enemy in order to explode nearby). Default value is 400.
+* **sk_floater_bloat_time** - the time (in seconds) before floater explodes. Default value is 2.1.
+* **sk_floater_bloat_distance** - the distance at which the floater starts bloating. Default value is 128.
 
 ### Default classification
 

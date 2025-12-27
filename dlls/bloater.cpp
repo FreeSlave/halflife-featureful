@@ -130,8 +130,6 @@ void CBloater::Precache()
 // AI Schedules Specific to this monster
 //=========================================================
 
-#define BLOATING_TIME 2.1
-#define BASE_FLOATER_SPEED 100
 #define FLOATER_GLOW_SPRITE "sprites/glow02.spr"
 
 #define bits_MEMORY_FLOATER_PROVOKED bits_MEMORY_CUSTOM1
@@ -551,7 +549,7 @@ void CFloater::RunTask( Task_t *pTask )
 		{
 			MakeIdealYaw( m_vecEnemyLKP );
 			ChangeYaw( pev->yaw_speed );
-			if (((m_hEnemy->Center() - pev->origin)).IsLengthLessThan(128) && !Bloating())
+			if (!Bloating() && ((m_hEnemy->Center() - pev->origin)).IsLengthLessThan(GetSkillValue("floater_bloat_distance")))
 			{
 				StartBloating();
 			}
@@ -579,13 +577,14 @@ void CFloater::PrescheduleThink()
 	GlowUpdate();
 	if (Bloating())
 	{
-		float fraction = (gpGlobals->time - StartBloatingTime()) / BLOATING_TIME;
+		const float bloatTime = GetSkillValue("floater_bloat_time");
+		const float fraction = (gpGlobals->time - StartBloatingTime()) / bloatTime;
 		pev->scale = OriginalScale() + (TargetScale() - OriginalScale()) * fraction;
-		if (gpGlobals->time >= StartBloatingTime() + BLOATING_TIME)
+		if (gpGlobals->time >= StartBloatingTime() + bloatTime)
 		{
 			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC));
 		}
-		m_flGroundSpeed = BASE_FLOATER_SPEED + 400 * fraction;
+		m_flGroundSpeed = GetSkillValue("floater_basespeed") + GetSkillValue("floater_extraspeed") * fraction;
 	}
 	CBaseMonster::PrescheduleThink();
 }
@@ -662,7 +661,7 @@ void CFloater::SetActivity( Activity NewActivity )
 	CBaseMonster::SetActivity(NewActivity);
 	if (m_flGroundSpeed == 0)
 	{
-		m_flGroundSpeed = BASE_FLOATER_SPEED;
+		m_flGroundSpeed = GetSkillValue("floater_basespeed");
 	}
 }
 
@@ -699,7 +698,7 @@ void CFloater::Move( float flInterval )
 
 	if( m_flGroundSpeed == 0 )
 	{
-		m_flGroundSpeed = BASE_FLOATER_SPEED;
+		m_flGroundSpeed = GetSkillValue("floater_basespeed");
 	}
 
 	flMoveDist = m_flGroundSpeed * flInterval;

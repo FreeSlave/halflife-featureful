@@ -1352,6 +1352,11 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("civilian_health", "scientist_health");
 	g_SkillData.ProvideFallback("cleansuit_scientist_health", "scientist_health");
 
+	g_SkillData.ProvideFallback("floater_basespeed", 100.0f);
+	g_SkillData.ProvideFallback("floater_extraspeed", 400.0f);
+	g_SkillData.ProvideFallback("floater_bloat_time", 2.1f);
+	g_SkillData.ProvideFallback("floater_bloat_distance", 128.0f);
+
 	g_SkillData.ProvideFallback("flybee_health", "ichthyosaur_health");
 	g_SkillData.ProvideFallback("flybee_dmg_kick", 20.0f);
 	g_SkillData.ProvideFallback("flybee_dmg_beam", 50.0f);
