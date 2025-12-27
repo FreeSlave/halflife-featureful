@@ -809,7 +809,7 @@ void CGargantua::StompAttack()
 	StompParams stompParams;
 	stompParams.origin = vecStart;
 	stompParams.end = trace.vecEndPos;
-	stompParams.speed = 0;
+	stompParams.speed = GetSkillValue("gargantua_stomp_initial_speed");
 	stompParams.damage = StompAttackDamage();
 	stompParams.owner = edict();
 

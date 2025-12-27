@@ -13,6 +13,7 @@ bookToC: false
 * **sk_gargantua_dmg_slash** - melee damage.
 * **sk_gargantua_dmg_fire** - fire damage (per 0.1 seconds).
 * **sk_gargantua_dmg_stomp** - stomp damage (per 0.1 seconds).
+* **sk_gargantua_stomp_initial_speed** - initial stomp speed. Default value is 0.
 
 ### Default classification
 

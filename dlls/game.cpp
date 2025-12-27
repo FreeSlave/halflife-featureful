@@ -1363,6 +1363,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("flybee_dmg_flyball", 20.0f);
 	g_SkillData.ProvideFallback("flybee_maxspeed", 400.0f);
 
+	g_SkillData.ProvideFallback("gargantua_stomp_initial_speed", 0.0f);
+
 	g_SkillData.ProvideFallback("hassassin_cloaking", 0.0f, 0.0f, 1.0f);
 
 	g_SkillData.ProvideFallback("hgrunt_ally_health", "hgrunt_health");
