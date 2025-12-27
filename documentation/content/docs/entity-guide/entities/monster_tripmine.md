@@ -10,6 +10,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_plr_tripmine** - explosion damage.
+* **sk_tripmine_health** - tripmine health.
 
 ### Soundscripts
 

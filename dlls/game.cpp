@@ -1421,6 +1421,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("zombie_barney_dmg_one_slash", "zombie_dmg_one_slash");
 	g_SkillData.ProvideFallback("zombie_barney_dmg_both_slash", "zombie_dmg_both_slash");
 
+	g_SkillData.ProvideFallback("tripmine_health", 1.0f);
+
 	g_SkillData.ProvideFallback("plr_medkitshot", 10.0f);
 	g_SkillData.ProvideFallback("plr_medkittime", 3.0f, 5.0f, 0.0f);
 	g_SkillData.ProvideFallback("plr_uzi", 6.0f);
