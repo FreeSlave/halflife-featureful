@@ -11,6 +11,7 @@ bookToC: false
 
 * **sk_ichthyosaur_health** - monster's health.
 * **sk_ichthyosaur_shake** - bite damage.
+* **sk_ichthyosaur_maxspeed** - the maximum flight speed an ichthyosaur can reach.
 
 ### Default classification
 

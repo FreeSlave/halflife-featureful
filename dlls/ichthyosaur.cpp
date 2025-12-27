@@ -531,7 +531,7 @@ void CIchthyosaur::Spawn()
 
 	m_idealDist = 384;
 	m_flMinSpeed = 80;
-	m_flMaxSpeed = 300;
+	m_flMaxSpeed = GetSkillValue("ichthyosaur_maxspeed") * 0.75f;
 	m_flMaxDist = 384;
 
 	Vector Forward;
@@ -573,7 +573,7 @@ Schedule_t* CIchthyosaur::GetSchedule()
 		return GetScheduleOfType( SCHED_IDLE_WALK );
 		break;
 	case MONSTERSTATE_COMBAT:
-		m_flMaxSpeed = 400;
+		m_flMaxSpeed = GetSkillValue("ichthyosaur_maxspeed");
 		// eat them
 		if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 		{
