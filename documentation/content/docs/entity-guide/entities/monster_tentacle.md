@@ -9,7 +9,9 @@ bookToC: false
 
 ### Skill variables
 
-Currently doesn't use any skill variables. The health (the amount of damage tentacle can take before it's forced to hide) is hardcoded as 75, and beak damage is hardcoded as 200.
+* **sk_tentacle_health** - tentacle health, i.e. the damage the tentacle can take before it's forced to hide. Default value is 75.
+* **sk_tentacle_dmg_hit** - beak damage.
+* **sk_tentacle_dmg_tap** - neck/side damage. When you touch the tentacle, but not on the beak.
 
 ### Default classification
 

@@ -1414,6 +1414,10 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("rgrunt_explode", "plr_hand_grenade");
 
+	g_SkillData.ProvideFallback("tentacle_health", 75.0f);
+	g_SkillData.ProvideFallback("tentacle_dmg_hit", 200.0f);
+	g_SkillData.ProvideFallback("tentacle_dmg_tap", 20.0f);
+
 	g_SkillData.ProvideFallback("shocktrooper_health_factor", 2.5f);
 	g_SkillData.ProvideFallback("voltigore_dmg_explode", "voltigore_dmg_beam");
 

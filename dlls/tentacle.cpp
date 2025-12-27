@@ -300,7 +300,7 @@ void CTentacle::Spawn()
 	pev->solid = SOLID_BBOX;
 	pev->movetype = MOVETYPE_FLY;
 	pev->effects = 0;
-	SetMyHealth( 75 );
+	SetMyHealth(GetSkillValue("tentacle_health"));
 	pev->max_health = pev->health;
 	pev->sequence = 0;
 	//Always interpolate tentacles since they don't actually move.
@@ -601,7 +601,7 @@ void CTentacle::Cycle()
 			m_iGoalAnim = TENTACLE_ANIM_Pit_Idle;
 			if( pev->sequence == TENTACLE_ANIM_Pit_Idle )
 			{
-				pev->health = 75;
+				pev->health = pev->max_health;
 			}
 		}
 		else if( m_flSoundTime > gpGlobals->time )
@@ -871,12 +871,12 @@ void CTentacle::HandleAnimEvent( MonsterEvent_t *pEvent )
 		break;
 	case 3:
 		// start killing swing
-		m_iHitDmg = 200;
+		m_iHitDmg = GetSkillValue("tentacle_dmg_hit");
 		// UTIL_EmitAmbientSound( ENT( pev ), pev->origin + Vector( 0, 0, MyHeight() ), "tentacle/te_swing1.wav", 1.0, ATTN_NORM, 0, 100 );
 		break;
 	case 4:
 		// end killing swing
-		m_iHitDmg = 25;
+		m_iHitDmg = GetSkillValue("tentacle_dmg_hit") * 0.125f;
 		break;
 	case 5:
 		// just "whoosh" sound
@@ -970,12 +970,11 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 	if( tr.iHitgroup >= 3 )
 	{
 		pOther->TakeDamage( pev, pev, DamageInfo(m_iHitDmg, DMG_CRUSH) );
-		// ALERT( at_console, "wack %3d : ", m_iHitDmg );
+		//ALERT( at_console, "%s: wack %d\n", STRING(pev->classname), m_iHitDmg );
 	}
 	else if( tr.iHitgroup != 0 )
 	{
-		pOther->TakeDamage( pev, pev, DamageInfo(20, DMG_CRUSH) );
-		// ALERT( at_console, "tap  %3d : ", 20 );
+		pOther->TakeDamage( pev, pev, DamageInfo(GetSkillValue("tentacle_dmg_tap"), DMG_CRUSH) );
 	}
 	else
 	{
