@@ -866,6 +866,8 @@ void CHud::Init()
 	gEngfuncs.pfnAddCommand("make_stop_following", nullptr);
 	gEngfuncs.pfnAddCommand("make_start_following", nullptr);
 	gEngfuncs.pfnAddCommand("buddha", nullptr);
+	gEngfuncs.pfnAddCommand("ent_remove_all", nullptr);
+	gEngfuncs.pfnAddCommand("ent_remove", nullptr);
 
 	MsgFunc_ResetHUD( 0, 0, NULL );
 	ClientCmd( "richpresence_gamemode\n" );

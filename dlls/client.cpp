@@ -460,6 +460,15 @@ void ClientCommand( edict_t *pEntity )
 	entvars_t *pev = &pEntity->v;
 	CBasePlayer* pPlayer = GetClassPtr( (CBasePlayer *)pev );
 
+	auto removeEntity = [pEntity](CBaseEntity* pRemoveEnt)
+	{
+		if (pRemoveEnt && pRemoveEnt->entindex() > gpGlobals->maxClients)
+		{
+			ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs("Removing %s \"%s\"\n", STRING(pRemoveEnt->pev->classname), STRING(pRemoveEnt->pev->targetname)));
+			UTIL_Remove(pRemoveEnt);
+		}
+	};
+
 	if( FStrEq( pcmd, "say" ) )
 	{
 		Host_Say( pEntity, 0 );
@@ -572,6 +581,66 @@ void ClientCommand( edict_t *pEntity )
 			else
 			{
 				FireTargets( CMD_ARGV( 1 ), pPlayer, pPlayer, useType, value );
+			}
+		}
+	}
+	else if( FStrEq( pcmd, "ent_remove" ) )
+	{
+		if (CanRunCheatCommand(pev))
+		{
+			const bool entityUnderCrosshair = CMD_ARGC() <= 1 || FStrEq(CMD_ARGV(1), "") || FStrEq( CMD_ARGV(1), "!cross" );
+
+			if (entityUnderCrosshair)
+			{
+				CBaseEntity *pHitEnt = FindEntityForward(pPlayer);
+				if (pHitEnt && pHitEnt->entindex() > gpGlobals->maxClients)
+				{
+					UTIL_Remove(pHitEnt);
+				}
+			}
+			else
+			{
+				const char* removeTarget = CMD_ARGV(1);
+
+				int index  = atoi(removeTarget);
+				if (index > 0)
+				{
+					removeEntity(CBaseEntity::OwnInstance(INDEXENT(index)));
+				}
+				else
+				{
+					CBaseEntity* pRemoveEnt = UTIL_FindEntityByTargetname(nullptr, removeTarget);
+					if (pRemoveEnt)
+					{
+						removeEntity(pRemoveEnt);
+					}
+					pRemoveEnt = UTIL_FindEntityByClassname(nullptr, removeTarget);
+					if (pRemoveEnt)
+					{
+						removeEntity(pRemoveEnt);
+					}
+				}
+			}
+		}
+	}
+	else if( FStrEq( pcmd, "ent_remove_all" ) )
+	{
+		if (CMD_ARGC() < 2)
+		{
+			ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs("usage: %s <targetname>/<classname>\n", CMD_ARGV(1)));
+		}
+		else
+		{
+			const char* removeTarget = CMD_ARGV(1);
+
+			CBaseEntity* pRemoveEnt = nullptr;
+			while((pRemoveEnt = UTIL_FindEntityByTargetname(pRemoveEnt, removeTarget)) != nullptr)
+			{
+				removeEntity(pRemoveEnt);
+			}
+			while((pRemoveEnt = UTIL_FindEntityByClassname(pRemoveEnt, removeTarget)) != nullptr)
+			{
+				removeEntity(pRemoveEnt);
 			}
 		}
 	}
