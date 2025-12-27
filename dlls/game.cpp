@@ -1337,6 +1337,9 @@ void ParseSkillCfg(byte *pMemFile, const char* fileName, int fileSize)
 void ProvideSkillFallbacks()
 {
 	g_SkillData.ProvideFallback("apache_dmg_blast", 300.0f);
+	g_SkillData.ProvideFallback("apache_rockets_and_gun", 0.0f, 1.0f, 1.0f);
+	g_SkillData.ProvideFallback("apache_rocket_reload_time", 10.0f);
+	g_SkillData.ProvideFallback("apache_rocket_delay", 0.5f);
 
 	g_SkillData.ProvideFallback("barnacle_health", 25.0f);
 

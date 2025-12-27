@@ -674,7 +674,7 @@ void CApache::HuntThink()
 		}
 
 		// don't fire rockets and gun on easy mode
-		if( g_iSkillLevel == SKILL_EASY )
+		if (GetSkillValue("apache_rockets_and_gun") == 0.0f)
 			m_flNextRocket = gpGlobals->time + 10.0f;
 	}
 
@@ -700,11 +700,14 @@ void CApache::HuntThink()
 	if( ( m_iRockets % 2 ) == 1 )
 	{
 		FireRocket();
-		m_flNextRocket = gpGlobals->time + 0.5f;
-		if( m_iRockets <= 0 )
+		if (m_iRockets <= 0)
 		{
-			m_flNextRocket = gpGlobals->time + 10.0f;
+			m_flNextRocket = gpGlobals->time + GetSkillValue("apache_rocket_reload_time");
 			m_iRockets = 10;
+		}
+		else
+		{
+			m_flNextRocket = gpGlobals->time + GetSkillValue("apache_rocket_delay");
 		}
 	}
 	else if( pev->angles.x < 0.0f && DotProduct( pev->velocity, gpGlobals->v_forward ) > -100.0f && m_flNextRocket < gpGlobals->time )
