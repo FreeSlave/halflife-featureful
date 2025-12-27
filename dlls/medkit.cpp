@@ -257,7 +257,7 @@ void CMedkit::WeaponIdle()
 			const int diff = (int)ceil(m_pPlayer->pev->max_health - m_pPlayer->pev->health);
 			const int healResult = m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
 			SpendAmmo(healResult);
-			EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot5.wav", 1.0, ATTN_NORM, 0, 100);
+			EMIT_SOUND_DYN(m_pPlayer->edict(), CHAN_WEAPON, "items/medshot5.wav", 1.0, ATTN_NORM, 0, 100);
 		} else {
 			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 
@@ -267,7 +267,7 @@ void CMedkit::WeaponIdle()
 				const int diff = (int)ceil(healTarget->pev->max_health - healTarget->pev->health);
 				const int healResult = healTarget->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
 				SpendAmmo(healResult);
-				EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot4.wav", 1.0, ATTN_NORM, 0, 100);
+				EMIT_SOUND_DYN(m_pPlayer->edict(), CHAN_WEAPON, "items/medshot4.wav", 1.0, ATTN_NORM, 0, 100);
 			}
 		}
 		m_flSoundDelay = 0;
