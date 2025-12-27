@@ -115,8 +115,6 @@ struct ModFeatures
 	bool bigmomma_wait_fix;
 	bool bigmomma_lastnode_fix;
 
-	bool gonome_lock_player;
-
 	bool doors_open_in_move_direction;
 	bool doors_blocked_recheck;
 	bool doors_blocked_fade_corpses;

@@ -170,7 +170,6 @@ protected:
 	float m_flNextFlinch;
 	float m_flNextThrowTime;// last time the gonome used the guts attack.
 	CGonomeGuts* m_pGonomeGuts;
-	bool m_fPlayerLocked;
 	EHANDLE m_lockedPlayer;
 	bool m_meleeAttack2;
 	bool m_playedAttackSound;
@@ -228,7 +227,7 @@ TYPEDESCRIPTION	CGonome::m_SaveData[] =
 {
 	DEFINE_FIELD( CGonome, m_flNextFlinch, FIELD_TIME ),
 	DEFINE_FIELD( CGonome, m_flNextThrowTime, FIELD_TIME ),
-	DEFINE_FIELD( CGonome, m_fPlayerLocked, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CGonome, m_lockedPlayer, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CGonome, CBaseMonster )
@@ -249,22 +248,16 @@ void CGonome::UpdateOnRemove()
 
 void CGonome::UnlockPlayer()
 {
-	if (g_modFeatures.gonome_lock_player)
+	if (m_lockedPlayer != 0)
 	{
-		if (m_fPlayerLocked)
-		{
-			CBasePlayer* player = 0;
-			if (m_lockedPlayer != 0 && m_lockedPlayer->IsPlayer())
-				player = m_lockedPlayer.Entity<CBasePlayer>();
-			else // if ehandle is empty for some reason just unlock the first player
-				player = (CBasePlayer*)UTIL_FindEntityByClassname(0, "player");
+		CBasePlayer* player = nullptr;
+		if (m_lockedPlayer->IsPlayer())
+			player = m_lockedPlayer.Entity<CBasePlayer>();
 
-			if (player)
-				player->EnableControl(true);
+		if (player)
+			player->EnableControl(true);
 
-			m_lockedPlayer = 0;
-			m_fPlayerLocked = false;
-		}
+		m_lockedPlayer = 0;
 	}
 }
 
@@ -569,21 +562,17 @@ void CGonome::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 			if (pHurt)
 			{
-				if (g_modFeatures.gonome_lock_player)
+				if (pEvent->event == GONOME_AE_BITE4)
 				{
-					if (pEvent->event == GONOME_AE_BITE4)
+					UnlockPlayer();
+				}
+				else if (pHurt->IsPlayer() && pHurt->IsAlive() && GetSkillValue("gonome_lock_player"))
+				{
+					if (m_lockedPlayer == 0)
 					{
-						UnlockPlayer();
-					}
-					else if (pHurt->IsPlayer() && pHurt->IsAlive())
-					{
-						if (!m_fPlayerLocked)
-						{
-							CBasePlayer* player = (CBasePlayer*)pHurt;
-							player->EnableControl(false);
-							m_lockedPlayer = player;
-							m_fPlayerLocked = true;
-						}
+						CBasePlayer* player = (CBasePlayer*)pHurt;
+						player->EnableControl(false);
+						m_lockedPlayer = player;
 					}
 				}
 			}

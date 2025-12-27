@@ -113,8 +113,6 @@ ModFeatures::ModFeatures()
 	bigmomma_wait_fix = false;
 	bigmomma_lastnode_fix = false;
 
-	gonome_lock_player = false;
-
 	doors_open_in_move_direction = false;
 	doors_blocked_recheck = false;
 	doors_blocked_fade_corpses = false;
@@ -171,7 +169,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(sentry_retract),
 		KEY_VALUE_DEF(bigmomma_wait_fix),
 		KEY_VALUE_DEF(bigmomma_lastnode_fix),
-		KEY_VALUE_DEF(gonome_lock_player),
 		KEY_VALUE_DEF(doors_open_in_move_direction),
 		KEY_VALUE_DEF(doors_blocked_recheck),
 		KEY_VALUE_DEF(doors_blocked_fade_corpses),
@@ -1369,6 +1366,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("flybee_maxspeed", 400.0f);
 
 	g_SkillData.ProvideFallback("gargantua_stomp_initial_speed", 0.0f);
+
+	g_SkillData.ProvideFallback("gonome_lock_player", 0.0f);
 
 	g_SkillData.ProvideFallback("hassassin_cloaking", 0.0f, 0.0f, 1.0f);
 
