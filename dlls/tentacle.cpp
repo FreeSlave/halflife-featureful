@@ -957,6 +957,9 @@ void CTentacle::HitTouch( CBaseEntity *pOther )
 	if( pOther->pev->modelindex == pev->modelindex )
 		return;
 
+	if (!pOther->pev->takedamage)
+		return;
+
 	if( m_flHitTime > gpGlobals->time )
 		return;
 
