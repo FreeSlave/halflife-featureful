@@ -10,12 +10,13 @@ bookToC: false
 ### Changes
 
 * Restores health when eating.
-* Hitting the alien grunt's head now counts as a headshot (in original Half-Life it counts as regular shot). The damage multiplier is still lower than the one from skill.cfg in order to not break a balance much.
+* Hitting the alien grunt's head now counts as a headshot (in original Half-Life it counts as regular shot). The damage multiplier is controlled by **sk_agrunt_head** skill variable.
 
 ### Skill variables
 
 * **sk_agrunt_health** - monster's health.
 * **sk_agrunt_dmg_punch** - melee damage.
+* **sk_agrunt_head** - alien grunt specific headshot damage multiplier. If set to 0, the **sk_monster_head** is used. Default value is 1.5.
 * [hornet skill variables]({{< ref "hornet/#skill-variables" >}}).
 
 ### Default classification

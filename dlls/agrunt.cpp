@@ -276,8 +276,12 @@ static DamageInfo AgruntHandleTraceAttack(CBaseMonster* self, entvars_t *pevInfl
 
 float CAGrunt::HeadHitGroupDamageMultiplier()
 {
-	const float defaultMultiplier = GetSkillValue("monster_head");
-	return Q_min(defaultMultiplier, 1.5f);
+	const float agruntMultiplier = GetSkillValue("agrunt_head");
+	const float defaultMultiplier = CFollowingMonster::HeadHitGroupDamageMultiplier();
+	if (agruntMultiplier > 0.0f)
+		return Q_min(defaultMultiplier, agruntMultiplier);
+	else
+		return defaultMultiplier;
 }
 
 DamageInfo CAGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
