@@ -457,6 +457,7 @@ void CHFGrunt::ReportAIState(ALERT_TYPE level)
 {
 	CTalkMonster::ReportAIState(level);
 	ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
+	ALERT(level, "Next grenade check: %g (current time is %g). ", m_flNextGrenadeCheck, gpGlobals->time);
 }
 
 //=========================================================
@@ -1749,8 +1750,12 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				CGrenade::ShootTimed( this, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
 
 			m_fThrowGrenade = false;
-			m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
-			// !!!LATER - when in a group, only try to throw grenade if ordered.
+
+			float checkDelay = GetSkillValue("hgrunt_ally_gren_throw_delay");
+			const float checkDelayMax = GetSkillValue("hgrunt_ally_gren_throw_delay_max");
+			if (checkDelay < checkDelayMax)
+				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
+			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
 		}
 		break;
 
@@ -1774,10 +1779,12 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			else
 				CGrenade::ShootContact( this, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
 			m_fThrowGrenade = false;
-			if (g_iSkillLevel == SKILL_EASY)
-				m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2, 5 );// wait a random amount of time before shooting again
-			else
-				m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+
+			float checkDelay = GetSkillValue("hgrunt_ally_gren_launch_delay");
+			const float checkDelayMax = GetSkillValue("hgrunt_ally_gren_launch_delay_max");
+			if (checkDelay < checkDelayMax)
+				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
+			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
 		}
 		break;
 

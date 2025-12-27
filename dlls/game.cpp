@@ -1372,10 +1372,21 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("hassassin_cloaking", 0.0f, 0.0f, 1.0f);
 
+	g_SkillData.ProvideFallback("hgrunt_gren_launch_delay", 6.0f, 6.0f, 2.0f);
+	g_SkillData.ProvideFallback("hgrunt_gren_launch_delay_max", 0.0f, 0.0f, 5.0f);
+	g_SkillData.ProvideFallback("hgrunt_gren_throw_delay", 6.0f);
+	g_SkillData.ProvideFallback("hgrunt_gren_throw_delay_max", 0.0f);
+	g_SkillData.ProvideFallback("hgrunt_gren_before_cover", 0.0f, 0.0f, 1.0f);
+
 	g_SkillData.ProvideFallback("hgrunt_ally_health", "hgrunt_health");
 	g_SkillData.ProvideFallback("hgrunt_ally_kick", "hgrunt_kick");
 	g_SkillData.ProvideFallback("hgrunt_ally_pellets", "hgrunt_pellets");
 	g_SkillData.ProvideFallback("hgrunt_ally_gspeed", "hgrunt_gspeed");
+
+	g_SkillData.ProvideFallback("hgrunt_ally_gren_launch_delay", 6.0f);
+	g_SkillData.ProvideFallback("hgrunt_ally_gren_launch_delay_max", 0.0f);
+	g_SkillData.ProvideFallback("hgrunt_ally_gren_throw_delay", 6.0f);
+	g_SkillData.ProvideFallback("hgrunt_ally_gren_throw_delay_max", 0.0f);
 
 	g_SkillData.ProvideFallback("medic_ally_health", "hgrunt_ally_health");
 	g_SkillData.ProvideFallback("medic_ally_kick", "hgrunt_ally_kick");

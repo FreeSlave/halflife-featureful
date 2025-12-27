@@ -900,7 +900,12 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				CGrenade::ShootTimed( this, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
 
 			m_fThrowGrenade = false;
-			m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+
+			float checkDelay = GetSkillValue("hgrunt_gren_throw_delay");
+			const float checkDelayMax = GetSkillValue("hgrunt_gren_throw_delay_max");
+			if (checkDelay < checkDelayMax)
+				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
+			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
 			// !!!LATER - when in a group, only try to throw grenade if ordered.
 		}
 			break;
@@ -924,10 +929,12 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			else
 				CGrenade::ShootContact( this, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
 			m_fThrowGrenade = false;
-			if( g_iSkillLevel == SKILL_HARD )
-				m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2.0f, 5.0f );// wait a random amount of time before shooting again
-			else
-				m_flNextGrenadeCheck = gpGlobals->time + 6.0f;// wait six seconds before even looking again to see if a grenade can be thrown.
+
+			float checkDelay = GetSkillValue("hgrunt_gren_launch_delay");
+			const float checkDelayMax = GetSkillValue("hgrunt_gren_launch_delay_max");
+			if (checkDelay < checkDelayMax)
+				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
+			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
 		}
 			break;
 		case HGRUNT_AE_GREN_DROP:
@@ -2191,7 +2198,7 @@ Schedule_t *CHGrunt::GetScheduleOfType( int Type )
 		{
 			if( InSquad() )
 			{
-				if( g_iSkillLevel == SKILL_HARD && HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) && OccupySlot( bits_SLOTS_HGRUNT_GRENADE ) )
+				if( HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) && GetSkillValue("hgrunt_gren_before_cover") && OccupySlot( bits_SLOTS_HGRUNT_GRENADE ) )
 				{
 					if( FOkToSpeak() )
 					{
@@ -2339,6 +2346,7 @@ void CHGrunt::ReportAIState(ALERT_TYPE level)
 {
 	CFollowingMonster::ReportAIState(level);
 	ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
+	ALERT(level, "Next grenade check: %g (current time is %g). ", m_flNextGrenadeCheck, gpGlobals->time);
 }
 
 void CHGrunt::OnBecomingLeader()
