@@ -4469,7 +4469,7 @@ CBaseEntity *FindEntityForward( CBaseEntity *pMe )
 		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 		return pHit;
 	}
-	return NULL;
+	return nullptr;
 }
 
 void CBasePlayer::SuitLightTurnOn()

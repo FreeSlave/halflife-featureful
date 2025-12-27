@@ -540,7 +540,6 @@ void ClientCommand( edict_t *pEntity )
 	{
 		if( CanRunCheatCommand(pev) )
 		{
-			CBaseEntity *pPlayer = CBaseEntity::Instance( pEntity );
 			const bool entityUnderCrosshair = CMD_ARGC() <= 1 || FStrEq( CMD_ARGV(1), "!cross" );
 			USE_TYPE useType = USE_TOGGLE;
 			float value = 0.0f;
@@ -561,24 +560,13 @@ void ClientCommand( edict_t *pEntity )
 				}
 			}
 
-			if ( entityUnderCrosshair )
+			if (entityUnderCrosshair)
 			{
-				TraceResult tr;
-				UTIL_MakeVectors( pev->v_angle );
-				UTIL_TraceLine(
-					pev->origin + pev->view_ofs,
-					pev->origin + pev->view_ofs + gpGlobals->v_forward * 1000,
-					dont_ignore_monsters, pEntity, &tr
-				);
-
-				if( tr.pHit )
+				CBaseEntity *pHitEnt = FindEntityForward(pPlayer);
+				if( pHitEnt )
 				{
-					CBaseEntity *pHitEnt = CBaseEntity::Instance( tr.pHit );
-					if( pHitEnt )
-					{
-						pHitEnt->Use( pPlayer, pPlayer, useType, value );
-						ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "Fired %s \"%s\"\n", STRING( pHitEnt->pev->classname ), STRING( pHitEnt->pev->targetname ) ) );
-					}
+					pHitEnt->Use( pPlayer, pPlayer, useType, value );
+					ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "Fired %s \"%s\"\n", STRING( pHitEnt->pev->classname ), STRING( pHitEnt->pev->targetname ) ) );
 				}
 			}
 			else
@@ -602,21 +590,10 @@ void ClientCommand( edict_t *pEntity )
 
 				if (entityUnderCrosshair)
 				{
-					TraceResult tr;
-					UTIL_MakeVectors( pev->v_angle );
-					UTIL_TraceLine(
-						pev->origin + pev->view_ofs,
-						pev->origin + pev->view_ofs + gpGlobals->v_forward * 1000,
-						dont_ignore_monsters, pEntity, &tr
-					);
-
-					if (tr.pHit && ENTINDEX(tr.pHit) != 0)
+					CBaseEntity *pHitEnt = FindEntityForward(pPlayer);
+					if (pHitEnt)
 					{
-						CBaseEntity *pHitEnt = CBaseEntity::Instance(tr.pHit);
-						if (pHitEnt)
-						{
-							PrintEntityKeyValues(pev, pHitEnt);
-						}
+						PrintEntityKeyValues(pev, pHitEnt);
 					}
 					else
 					{
@@ -678,7 +655,6 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "spectate" ) ) // clients wants to become a spectator
 	{
-		CBasePlayer *pPlayer = GetClassPtr( (CBasePlayer *)pev );
 		if( !pPlayer->IsObserver() )
 		{
 			// always allow proxies to become a spectator
