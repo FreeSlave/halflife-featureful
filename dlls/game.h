@@ -124,7 +124,6 @@ struct ModFeatures
 
 	bool env_spark_transit;
 
-	bool skill_opfor;
 	bool opfor_deadhaz;
 	bool tentacle_opfor_height;
 private:
