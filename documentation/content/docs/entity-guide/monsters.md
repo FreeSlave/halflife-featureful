@@ -43,6 +43,7 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * ![](/images/opfor.png) When squad member dies while not being in combat others go into the hunt state searching the area for the attacker.
 * When squad leader dies the new one is selected to prevent squad dissolving upon leader's death.
 * Monsters now properly switch to the combat state when they get enemy info from other squad member.
+* Monster now properly vacates its squad slot if the monster has been removed from the game via trigger.
 
 ## Following monsters features
 

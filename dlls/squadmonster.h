@@ -79,6 +79,8 @@ public:
 	void VacateSlot();
 	void ScheduleChange() override;
 	void OnDying(bool gibbed) override;
+	void UpdateOnRemove() override;
+	void RemoveMySelfFromSquad();
 	bool OccupySlot( int iDesiredSlot );
 	bool NoFriendlyFire();
 
