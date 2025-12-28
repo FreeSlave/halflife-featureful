@@ -625,22 +625,25 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if( FStrEq( pcmd, "ent_remove_all" ) )
 	{
-		if (CMD_ARGC() < 2)
+		if (CanRunCheatCommand(pev))
 		{
-			ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs("usage: %s <targetname>/<classname>\n", CMD_ARGV(1)));
-		}
-		else
-		{
-			const char* removeTarget = CMD_ARGV(1);
-
-			CBaseEntity* pRemoveEnt = nullptr;
-			while((pRemoveEnt = UTIL_FindEntityByTargetname(pRemoveEnt, removeTarget)) != nullptr)
+			if (CMD_ARGC() < 2)
 			{
-				removeEntity(pRemoveEnt);
+				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs("usage: %s <targetname>/<classname>\n", CMD_ARGV(1)));
 			}
-			while((pRemoveEnt = UTIL_FindEntityByClassname(pRemoveEnt, removeTarget)) != nullptr)
+			else
 			{
-				removeEntity(pRemoveEnt);
+				const char* removeTarget = CMD_ARGV(1);
+
+				CBaseEntity* pRemoveEnt = nullptr;
+				while((pRemoveEnt = UTIL_FindEntityByTargetname(pRemoveEnt, removeTarget)) != nullptr)
+				{
+					removeEntity(pRemoveEnt);
+				}
+				while((pRemoveEnt = UTIL_FindEntityByClassname(pRemoveEnt, removeTarget)) != nullptr)
+				{
+					removeEntity(pRemoveEnt);
+				}
 			}
 		}
 	}
