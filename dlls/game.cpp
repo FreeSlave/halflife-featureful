@@ -100,14 +100,6 @@ ModFeatures::ModFeatures()
 
 	scientist_random_heads =  4;
 
-	vortigaunt_coil_attack = true;
-	vortigaunt_idle_effects = false;
-	vortigaunt_arm_boost = true;
-	vortigaunt_selfheal = true;
-	vortigaunt_heal = true;
-	vortigaunt_revive = true;
-	vortigaunt_armor_charge = false;
-
 	sentry_retract = true;
 
 	bigmomma_wait_fix = false;
@@ -159,13 +151,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(racex_dislike_alien_military),
 		KEY_VALUE_DEF(racex_dislike_gargs),
 		KEY_VALUE_DEF(racex_dislike_alien_monsters),
-		KEY_VALUE_DEF(vortigaunt_coil_attack),
-		KEY_VALUE_DEF(vortigaunt_idle_effects),
-		KEY_VALUE_DEF(vortigaunt_arm_boost),
-		KEY_VALUE_DEF(vortigaunt_selfheal),
-		KEY_VALUE_DEF(vortigaunt_heal),
-		KEY_VALUE_DEF(vortigaunt_revive),
-		KEY_VALUE_DEF(vortigaunt_armor_charge),
 		KEY_VALUE_DEF(sentry_retract),
 		KEY_VALUE_DEF(bigmomma_wait_fix),
 		KEY_VALUE_DEF(bigmomma_lastnode_fix),
@@ -1401,6 +1386,15 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("islave_zap_rate", 1.0f, 1.0f, 1.5f);
 	g_SkillData.ProvideFallback("islave_revival", 0.0f, 0.0f, 1.0f);
+	g_SkillData.ProvideFallback("islave_coil_attack", 1.0f);
+	g_SkillData.ProvideFallbackWithFactor("islave_dmg_coil", "islave_dmg_zap", 2.5f);
+	g_SkillData.ProvideFallback("islave_selfheal", "islave_dmg_zap");
+	g_SkillData.ProvideFallback("islave_heal", "islave_dmg_zap");
+	g_SkillData.ProvideFallback("islave_arm_boost", 1.0f);
+	g_SkillData.ProvideFallbackWithFactor("islave_boosted_dmg_claw", "islave_dmg_claw", 1.5f);
+	g_SkillData.ProvideFallback("islave_idle_effects", 0.0f);
+	g_SkillData.ProvideFallback("islave_initial_energy", 0.0f);
+	g_SkillData.ProvideFallback("islave_max_energy", "islave_health");
 
 	g_SkillData.ProvideFallback("snark_add_dmg_pop", "snark_dmg_pop");
 	g_SkillData.ProvideFallback("snark_max_dmg_pop", 0.0f);

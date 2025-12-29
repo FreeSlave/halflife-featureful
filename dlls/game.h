@@ -102,14 +102,6 @@ struct ModFeatures
 
 	int scientist_random_heads;
 
-	bool vortigaunt_coil_attack;
-	bool vortigaunt_idle_effects;
-	bool vortigaunt_arm_boost;
-	bool vortigaunt_selfheal;
-	bool vortigaunt_heal;
-	bool vortigaunt_revive;
-	bool vortigaunt_armor_charge;
-
 	bool sentry_retract;
 
 	bool bigmomma_wait_fix;

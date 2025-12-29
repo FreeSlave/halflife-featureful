@@ -9,24 +9,40 @@ bookToC: false
 
 ### Changes
 
-* Restores some bits of its health upon damaging targets with electro-attack (if `vortigaunt_selfheal` feature is enabled).
-* When full on health vortigaunt gains an additional energy upon electrocuting enemies. The energy is used to execute new abilities.
-* ![](/images/svencoop.png) Can revive fallen ally alien slaves using an excess energy (if `vortigaunt_revive` feature is enabled). Unlike Sven Co-op implementation it does not halve the maximum vortigaunt health. Instead vortigaunt can be revived only once.
-* Can heal injured ally alien slaves spending an excess energy (if `vortigaunt_heal` feature is enabled).
-* New ability: a coil attack (if `vortigaunt_coil_attack` feature is enabled).
+* Restores some bits of its health upon damaging targets with zap attack (if **sk_islave_selfheal** is higher than 0).
+* When full on health a vortigaunt gains an additional energy upon zapping enemies. The energy is used to perform the following abilities:
+    - Revival of another ally vortigaunt (spends energy equal to the maximum health of the revived vortigaunt).
+    - Healing an ally vortigaunt (energy converts to health).
+    - Sending an armor charge to the ally player (spends energy equal to the amount of armor the charge token provides).
+* Performing any of these abilities requires a vortigaunt to have higher than 0 energy. The energy can go negative if performing an ability spends more energy than the vortigaunt currently has. In order to use the abilities again the vortigaunt must gain the positive value.
+* The amount of energy the vortigaunt gets from zap attack depends on the amount of damage it dealt. So, if enemy is protected from shock attacks, damaging it will give less energy.
+* The vortigaunt with `Squad Leader` spawnflag (even if he's not in the squad) has an initial pool of free energy on spawn. He also spends less energy comparing to other vortigaunts.
+* ![](/images/svencoop.png) Can revive fallen ally alien slaves using an excess energy (if **sk_islave_revival** is higher than 0). Unlike Sven Co-op implementation it does not halve the maximum vortigaunt health. Instead each vortigaunt can be revived only once.
+* Can heal injured ally alien slaves spending an excess energy (if **sk_islave_heal** is higher than 0).
+* New ability: a coil attack (enabled if **sk_islave_coil_attack** is not 0) - makes a wave around the vortigaunt damaging all the nearby enemies and healing nearby ally vortigaunts. The coil attack neither gives nor requires energy, but healing nearby ally vortigaunts will take energy.
 * Vortigaunt's arms are glowing upon charging an electro attack.
-* When a vortigaunt has an excess energy, his claws deal more damage (claws are glowing at the time of melee attack) (if `vortigaunt_arm_boost` feature is enabled).
-* When idle, plays some additional effects like random lightning (a feature cut from Half-Life) (if `vortigaunt_idle_effects` feature is enabled).
-* If player is ally, vortigaunt can charge player's suit armor (requires energy) kinda like in Half-Life 2 (if `vortigaunt_armor_charge` feature is enabled).
+* When a vortigaunt has an excess energy, his claws deal more damage (if **sk_islave_arm_boost** is not 0). Claws are glowing at the time of melee attack.
+* When idle, plays some additional effects like random lightning (if **sk_islave_idle_effects** is not 0). This is a feature cut from Half-Life.
+* If player is ally, vortigaunt can charge player's suit armor kinda like in Half-Life 2 (if **sk_vortigaunt_armor_charge** is higher than 0). This action requires energy.
 
 ### Skill variables
 
 * **sk_islave_health** - monster's health.
 * **sk_islave_dmg_claw** - melee damage.
 * **sk_islave_dmg_clawrake** - melee damage (event 2) (not used?).
-* **sk_islave_dmg_zap** - zap beam damage. Note: alien slave creates two zap beams, so he can deal double damage if both beams hit the target. This also controls how much alien slave heals another. The maximum coil attack damage is this variable multiplied by 2.5.
-* **sk_islave_zap_rate** - framerate of zap attack animation. In Half-Life it wasn't configurable. Default values: 1 on easy and medium, 1.5 on hard (replicating the behavior from Half-Life).
-* **sk_islave_revival** - whether alien slaves can revive each other. `0` means revival is not allowed. `1` means revival is allowed. Default values: 0 on easy and medium, 1 on hard. 
+* **sk_islave_dmg_zap** - zap beam damage. Note: alien slave creates two zap beams, so he can deal double damage if both beams hit the target. This also controls how much alien slave heals another.
+* **sk_islave_zap_rate** - framerate of zap attack animation. In Half-Life it wasn't configurable. Default values: 1 on Easy and Medium, 1.5 on Hard (replicating the behavior from Half-Life).
+* **sk_islave_revival** - whether alien slaves can revive each other. `0` means revival is not allowed. `1` means revival is allowed. Default values: 0 on easy and medium, 1 on hard.
+* **sk_islave_coil_attack** - whether alien slaves can perform a coil attack. Default value is 1.
+* **sk_islave_dmg_coil** - the maximum coil attack damage. By default it's **sk_islave_dmg_zap** multiplied by 2.5.
+* **sk_islave_selfheal** - amount of self healing from zap attacks. By default it fallbacks to **sk_islave_dmg_zap**. Set it to 0 to disable self healing. The actual amount of self-healing depends on the damage the vortigaunt dealt with a zap attack, so it can't exceed the **sk_islave_dmg_zap** (unless the target has a special vulnerability to the shock attack or it was a crit hit, e.g. a headshot, so it dealt more damage).
+* **sk_islave_heal** - the maximum amount of healing the vortigaunt can provide to another vortigaunt. By default it fallbacks to **sk_islave_dmg_zap**.
+* **sk_islave_arm_boost** - whether the vortigaunt can use a boosted melee attack (when he has some free energy).
+* **sk_islave_boosted_dmg_claw** - the boosted melee attack damage. By default it's **sk_islave_dmg_claw** multiplied by 1.5.
+* **sk_islave_idle_effects** - whether the vortigaunt can play additional idle effects. Default value is 0 (disabled).
+* **sk_islave_initial_energy** - amount of initial energy. Default value is 0.
+* **sk_islave_max_energy** - maximum amount of energy the vortigaunt can get. By default it fallbacks to **sk_islave_health**.
+* **sk_vortigaunt_armor_charge** - how much armor the charge token provides to an ally player. By default it fallbacks to **sk_battery**.
 
 ### Default classification
 
