@@ -1419,6 +1419,7 @@ void CISlave::Spawn()
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // NOTE: we need a wide field of view so npc will notice player and say hello
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_afCapability		= bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_RANGE_ATTACK2;
+	SetMySquadCapabilities();
 	SetMyCanOpenDoors(true);
 
 	m_voicePitch		= RANDOM_LONG( 85, 110 );
