@@ -5130,8 +5130,10 @@ void CTriggerRespawn::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 			{
 				if (!FBitSet(pev->spawnflags, SF_TRIGGERRESPAWN_DONT_MOVE_LIVING_PLAYERS))
 				{
+					if (pPlayer->IsOnRope())
+						pPlayer->LetGoRope();
 					g_pGameRules->GetPlayerSpawnSpot(pPlayer);
-					pPlayer->pev->health = pPlayer->pev->max_health;
+					pPlayer->pev->health = Q_max(pPlayer->pev->max_health, pPlayer->pev->health);
 				}
 			}
 			else
