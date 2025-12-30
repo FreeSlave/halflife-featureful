@@ -19,7 +19,7 @@
 #if !defined(SKILL_H)
 #define SKILL_H
 
-class EntTemplate;
+struct EntTemplate;
 
 #if CLIENT_DLL
 inline float GetSkillValue(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "") { return 0.0f; }
