@@ -22,6 +22,7 @@ bookToC: false
 * **sk_bullsquid_toxicity** - whether bullsquids can use toxic spit attack. Default values: 0 on easy, 1 on medium and hard.
 * **sk_bullsquid_dmg_toxic_poison** - the poison damage of the toxic spit.
 * **sk_bullsquid_dmg_toxic_impact** - the impact damage of the toxic spit.
+* **sk_bullsquid_spit_inaccuracy** - the spit inaccuracy in unspecified units. The higher value means the worse accuracy. Default values: 5 on Easy, 3 on Medium, 1 on Hard. 0 means the perfect accuracy. In original Half-Life the inaccuracy worked as if it had value 5 regardless of difficulty.
 
 ### Default classification
 

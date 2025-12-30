@@ -713,11 +713,7 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				const Vector vecSpitOffset = ( gpGlobals->v_right * 8.0f + gpGlobals->v_forward * 37.0f + gpGlobals->v_up * 23.0f );
 				const Vector vecSpitOrigin = ( pev->origin + vecSpitOffset );
 
-				float dirRandomDeviation = 0.05f;
-				if (g_iSkillLevel == SKILL_HARD)
-					dirRandomDeviation = 0.01f;
-				else if (g_iSkillLevel == SKILL_MEDIUM)
-					dirRandomDeviation = 0.03f;
+				float dirRandomDeviation = GetSkillValue("bullsquid_spit_inaccuracy") * 0.01f;
 				float distanceToEnemy;
 
 				const Vector vecSpitDir = SpitAtEnemy(vecSpitOrigin, dirRandomDeviation, &distanceToEnemy);
