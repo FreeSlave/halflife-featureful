@@ -222,10 +222,15 @@ void CSquidToxicSpit::Animate()
 {
 	CBaseEntity* pEntity = NULL;
 	CBaseMonster* spitOwner = GetSpitOwner();
-	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
-		if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
-			if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(GetSkillValue("bullsquid_dmg_toxic_poison"), DMG_POISON).SetNonLethal().SetIgnoreArmor());
+
+	const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
+	if (poisonDamage > 0.0f)
+	{
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
+			if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
+				if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
+					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetNonLethal().SetIgnoreArmor());
+				}
 			}
 		}
 	}
@@ -287,7 +292,9 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		CBaseMonster* spitOwner = GetSpitOwner();
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
-			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetSkillValue("bullsquid_dmg_toxic_poison"), DMG_POISON).SetNonLethal().SetIgnoreArmor() );
+			const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
+			if (poisonDamage > 0)
+				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetNonLethal().SetIgnoreArmor() );
 			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}
