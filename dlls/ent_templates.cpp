@@ -838,6 +838,33 @@ void EntTemplate::UpdatePainSoundRule(::PainSoundRule &rule) const
 	}
 }
 
+void EntTemplate::SetSkillReplacement(const char* name, const SkillReplacement& replacement) {
+	if (strncmp(name, "sk_", 3) == 0)
+	{
+		name += 3;
+	}
+	if (*name == '\0')
+		return;
+	_skillReplacements[name] = replacement;
+}
+
+const SkillReplacement* EntTemplate::GetSkillReplacement(const char* name) const {
+	if (_skillReplacements.empty())
+		return nullptr;
+	if (strncmp(name, "sk_", 3) == 0)
+	{
+		name += 3;
+	}
+	if (*name == '\0')
+		return nullptr;
+	auto it = _skillReplacements.find(name);
+	if (it != _skillReplacements.end())
+	{
+		return &it->second;
+	}
+	return nullptr;
+}
+
 bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonValue, const char* name, const Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
 {
 	const std::string templateName = name;

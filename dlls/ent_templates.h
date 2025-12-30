@@ -509,19 +509,8 @@ public:
 	}
 	void UpdatePainSoundRule(::PainSoundRule& rule) const;
 
-	void SetSkillReplacement(const char* name, const SkillReplacement& replacement) {
-		_skillReplacements[name] = replacement;
-	}
-	const SkillReplacement* GetSkillReplacement(const char* name) const {
-		if (_skillReplacements.empty())
-			return nullptr;
-		auto it = _skillReplacements.find(name);
-		if (it != _skillReplacements.end())
-		{
-			return &it->second;
-		}
-		return nullptr;
-	}
+	void SetSkillReplacement(const char* name, const SkillReplacement& replacement);
+	const SkillReplacement* GetSkillReplacement(const char* name) const;
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
