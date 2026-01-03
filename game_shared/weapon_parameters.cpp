@@ -1,4 +1,5 @@
 #include "weapon_parameters.h"
+#include "clamp.h"
 
 template<>
 WeaponSoundScript& WeaponModeValue<WeaponSoundScript>::Materialize(bool altMode)

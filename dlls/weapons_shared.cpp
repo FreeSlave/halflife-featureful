@@ -1410,19 +1410,9 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	const int iParam1Bits = PackIParam1(altMode, lastShot, m_bAlternatingEject);
 
-	/* TODO: is this good enough?
-	 * We could send spread values as is, pack flags and body into iparam1 and
-	 * encode punchangle in iparam2 instead
-	 */
-	const float encodedSpread = WeaponSpreadPacker::encode(spreadX, spreadY);
-	const float encodedPunchangle = WeaponSpreadPacker::encode(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y);
-
-	/*ALERT(at_console, "Shared spread: %g, %g. Encoded: %g. Shared punch angles: %g, %g. Encoded: %g\n",
-			spreadX, spreadY, encodedSpread,
-			m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, encodedPunchangle);
-	*/
-	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
-						encodedSpread, encodedPunchangle,
+	const Vector eventAngles = m_pPlayer->pev->angles + Vector(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, 0.0f);
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, eventAngles,
+						spreadX, spreadY,
 						iParam1Bits, PackIParam2(), 0, 0);
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( flCycleTime );
@@ -1677,11 +1667,9 @@ void CConfigurableWeapon::FireRemaining()
 
 	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
 
-	const float encodedSpread = WeaponSpreadPacker::encode(spreadX, spreadY);
-	const float encodedPunchangle = WeaponSpreadPacker::encode(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y);
-
-	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
-						encodedSpread, encodedPunchangle,
+	const Vector eventAngles = m_pPlayer->pev->angles + Vector(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, 0.0f);
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, eventAngles,
+						spreadX, spreadY,
 						iParam1Bits, PackIParam2(), 0, 0);
 
 	SendScreenShake(fire.shake.Get(altMode));

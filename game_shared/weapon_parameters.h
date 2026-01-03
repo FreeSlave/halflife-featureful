@@ -20,10 +20,6 @@
 #include "shake.h"
 #include "shell_bounce.h"
 
-#include "float_pair_packer.h"
-
-typedef FloatPairPacker<15, 14> WeaponSpreadPacker;
-
 #define LOUD_GUN_VOLUME			1000
 #define NORMAL_GUN_VOLUME		600
 #define QUIET_GUN_VOLUME		200

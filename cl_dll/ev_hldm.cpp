@@ -595,19 +595,10 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		return;
 	}
 
-	float spreadX;
-	float spreadY;
-	WeaponSpreadPacker::decode(args->fparam1, &spreadX, &spreadY);
+	const float spreadX = args->fparam1;
+	const float spreadY = args->fparam2;
 
-	float punchAngleX;
-	float punchAngleY;
-	WeaponSpreadPacker::decode(args->fparam2, &punchAngleX, &punchAngleY);
-
-	/*gEngfuncs.Con_Printf("Event spread: %g, %g. Encoded: %g. Event punch angles: %g, %g. Encoded: %g\n",
-		  spreadX, spreadY, args->fparam1,
-		  punchAngleX, punchAngleY, args->fparam2);
-	*/
-	Vector angles{args->angles[0] + punchAngleX, args->angles[1] + punchAngleY, args->angles[2]};
+	const Vector angles{args->angles};
 
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
