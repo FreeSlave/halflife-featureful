@@ -974,11 +974,6 @@ bool CheckTakeDamageConditions(const EntTemplate::DamageConditions& conditions, 
 ApplyTakeDamageModifierResult ApplyTakeDamageModifier(const EntTemplate::DamageInfoModifier& modifier, DamageInfo& damageInfo, CBaseEntity* pTarget);
 
 //
-// Weapons 
-//
-#define	BAD_WEAPON 0x00007FFF
-
-//
 // Converts a entvars_t * to a class pointer
 // It will allocate the class and entity if necessary
 //
@@ -1001,31 +996,6 @@ template <class T> T * GetClassPtr( T *a )
 	}
 	return a;
 }
-
-/*
-bit_PUSHBRUSH_DATA | bit_TOGGLE_DATA
-bit_MONSTER_DATA
-bit_DELAY_DATA
-bit_TOGGLE_DATA | bit_DELAY_DATA | bit_MONSTER_DATA
-bit_PLAYER_DATA | bit_MONSTER_DATA
-bit_MONSTER_DATA | CYCLER_DATA
-bit_LIGHT_DATA
-path_corner_data
-bit_MONSTER_DATA | wildcard_data
-bit_MONSTER_DATA | bit_GROUP_DATA
-boid_flock_data
-boid_data
-CYCLER_DATA
-bit_ITEM_DATA
-bit_ITEM_DATA | func_hud_data
-bit_TOGGLE_DATA | bit_ITEM_DATA
-EOFFSET
-env_sound_data
-env_sound_data
-push_trigger_data
-*/
-
-#define TRACER_FREQ		4			// Tracers fire every 4 bullets
 
 typedef struct _SelAmmo
 {
