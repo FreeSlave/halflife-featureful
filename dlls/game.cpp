@@ -375,25 +375,6 @@ const char* ModFeatures::DeadHazModel() const
 		return "models/player.mdl";
 }
 
-bool ModFeatures::DisplacerBallEnabled() const
-{
-	return IsWeaponEnabled(WEAPON_DISPLACER);
-}
-
-bool ModFeatures::ShockBeamEnabled() const
-{
-	if (IsMonsterEnabled("shocktrooper"))
-		return true;
-	return IsWeaponEnabled(WEAPON_SHOCKRIFLE);
-}
-
-bool ModFeatures::SporesEnabled() const
-{
-	if (IsMonsterEnabled("shocktrooper"))
-		return true;
-	return IsWeaponEnabled(WEAPON_SPORELAUNCHER);
-}
-
 void ModFeatures::EnableMonster(const char *name)
 {
 	for (unsigned int i=0; i<monstersCount; ++i)

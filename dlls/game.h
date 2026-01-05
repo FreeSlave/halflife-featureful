@@ -49,10 +49,6 @@ struct ModFeatures
 	const char* M249DropName() const;
 	const char* DeadHazModel() const;
 
-	bool DisplacerBallEnabled() const;
-	bool ShockBeamEnabled() const;
-	bool SporesEnabled() const;
-
 	void EnableMonster(const char* name);
 	bool IsMonsterEnabled(const char* name) const;
 
