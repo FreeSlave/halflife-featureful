@@ -92,7 +92,6 @@ public:
 	void SetVariableValue(const char* name, int category, FloatRange value);
 	void SetVariableValue(std::string&& name, int category, FloatRange value);
 	const SkillVariable* GetSkillVariable(const char* name) const;
-	FloatRange GetValueForSkillLevel(const char* name, int level) const;
 	void Clear() {
 		_map.clear();
 	}

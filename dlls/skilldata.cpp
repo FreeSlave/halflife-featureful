@@ -91,62 +91,6 @@ SkillVariable* SkillData::AccessSkillVariable(const char *name, bool createIfNot
 	return nullptr;
 }
 
-FloatRange SkillData::GetValueForSkillLevel(const char *name, int level) const
-{
-	const SkillVariable* variable = GetSkillVariable(name);
-	if (!variable)
-		return 0.0f;
-
-	auto getForCategory = [](const SkillVariable* variable, int category)
-	{
-		optional<FloatRange> value;
-		if (variable->HasValue(category))
-		{
-			value = variable->GetValue(category);
-		}
-		else if (variable->HasValue(SkillVariable::COMMON))
-		{
-			value = variable->GetValue(SkillVariable::COMMON);
-		}
-		return value;
-	};
-
-	int limiter = 0;
-
-	int category;
-	if (level <= SKILL_EASY)
-		category = SkillVariable::EASY;
-	else if (level == SKILL_MEDIUM)
-		category = SkillVariable::MEDIUM;
-	else if (level >= SKILL_HARD)
-		category = SkillVariable::HARD;
-
-	do {
-		optional<FloatRange> value = getForCategory(variable, category);
-		if (value.has_value())
-		{
-			return *value;
-		}
-		else
-		{
-			const std::string& fallback = variable->Fallback();
-			if (!fallback.empty())
-			{
-				variable = GetSkillVariable(fallback.c_str());
-				if (!variable)
-					break;
-			}
-			else
-			{
-				break;
-			}
-		}
-		limiter++;
-	} while(limiter <= 2);
-
-	return 0.0f;
-}
-
 void SkillData::ProvideFallback(const char *name, const char *fallback)
 {
 	SkillVariable* variable = AccessSkillVariable(name, true);
