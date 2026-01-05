@@ -9,13 +9,21 @@ bookToC: false
 
 * **sk_shockroach_health** - monster's health.
 * **sk_shockroach_dmg_bite** - bite damage.
-* **sk_shockroach_lifespan** - lifespan after spawn, in seconds.
+* **sk_shockroach_lifespan** - lifespan after spawn, in seconds. Negative values mean an infinite lifespan.
+
+{{% hint info %}}
+In Opposing Force shockroaches don't take damage during the first two seconds after the spawn. In Featureful they do take damage for this period, but only the non-lethal one (i.e. the health can't go under 1).
+
+If **sk_shockroach_lifespan** is set to a negative value (which means an infinite lifespan) this rule doesn't apply.
+{{% /hint %}}
 
 ### Default classification
 
 `Alien Prey`
 
-Note: this makes pitdrones attack shockroaches. The behavior retained from Opposing Force.
+{{% hint warning %}}
+This makes pitdrones attack shockroaches. The behavior retained from Opposing Force.
+{{% /hint %}}
 
 ### Soundscripts
 

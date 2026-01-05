@@ -694,8 +694,10 @@ public:
 	void MonsterThink() override;
 	void StartTask(Task_t* pTask) override;
 	bool ShouldFadeOnDeath() override;
+	bool IsStillSpawning();
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void OnDying(bool gibbed) override;
+	void ReportAIState(ALERT_TYPE level) override;
 
 	Vector DefaultMinHullSize() override { return Vector( -12.0f, -12.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 12.0f, 12.0f, 4.0f ); }
@@ -713,6 +715,7 @@ public:
 	static const NamedSoundScript biteSoundScript;
 
 	float m_flBirthTime;
+	float m_flDie;
 	bool m_fRoachSolid;
 
 protected:
@@ -724,6 +727,7 @@ LINK_ENTITY_TO_CLASS(monster_shockroach, CShockRoach)
 TYPEDESCRIPTION	CShockRoach::m_SaveData[] =
 {
 	DEFINE_FIELD(CShockRoach, m_flBirthTime, FIELD_TIME),
+	DEFINE_FIELD(CShockRoach, m_flDie, FIELD_TIME),
 	DEFINE_FIELD(CShockRoach, m_fRoachSolid, FIELD_BOOLEAN),
 };
 
@@ -809,6 +813,12 @@ void CShockRoach::Spawn()
 
 	m_fRoachSolid = false;
 	m_flBirthTime = gpGlobals->time;
+
+	const float lifespan = GetSkillValue("shockroach_lifespan");
+	if (lifespan >= 0.0f)
+		m_flDie = gpGlobals->time + lifespan;
+	else
+		m_flDie = 0.0f;
 
 	MonsterInit();
 
@@ -896,21 +906,24 @@ void CShockRoach::RoachUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 //=========================================================
 void CShockRoach::MonsterThink()
 {
-	float lifeTime = (gpGlobals->time - m_flBirthTime);
-	if (lifeTime >= 0.2)
+	const float lifeTime = (gpGlobals->time - m_flBirthTime);
+	if (lifeTime >= 0.2f)
 	{
 		pev->movetype = MOVETYPE_STEP;
 	}
-	if (!m_fRoachSolid && lifeTime >= 2.0) {
+	if (!m_fRoachSolid && lifeTime >= 2.0f) {
 		m_fRoachSolid = true;
 		SetMySize();
 	}
-	// die when ready
-	if (lifeTime >= GetSkillValue("shockroach_lifespan"))
-	{
-		TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
-	}
 
+	if (m_flDie)
+	{
+		// die when ready
+		if (lifeTime >= (m_flDie - m_flBirthTime))
+		{
+			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER));
+		}
+	}
 	CHeadCrab::MonsterThink();
 }
 
@@ -976,11 +989,23 @@ void CShockRoach::AttackSound()
 		EmitSoundScript(attackSoundScript);
 }
 
+bool CShockRoach::IsStillSpawning()
+{
+	if (m_flDie)
+	{
+		const float lifespan = m_flDie - m_flBirthTime;
+		return gpGlobals->time - m_flBirthTime < Q_min(lifespan, 2.0f);
+	}
+	return false;
+}
+
 TakeDamageResult CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	DamageInfo dmgInfo = damageInfo;
-	if ( gpGlobals->time - m_flBirthTime < 2.0 )
-		dmgInfo.damage = 0.0;
+	if (IsStillSpawning())
+	{
+		dmgInfo.nonLethal = true;
+	}
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
@@ -988,6 +1013,19 @@ void CShockRoach::OnDying(bool gibbed)
 {
 	SetUse(NULL);
 	CHeadCrab::OnDying(gibbed);
+}
+
+void CShockRoach::ReportAIState(ALERT_TYPE level)
+{
+	CHeadCrab::ReportAIState(level);
+	if (m_flDie)
+	{
+		ALERT(level, "Lifespan left: %g. ", m_flDie - gpGlobals->time);
+	}
+	else
+	{
+		ALERT(level, "Has infinite lifespan. ");
+	}
 }
 
 class CDeadShockRoach : public CDeadMonster
