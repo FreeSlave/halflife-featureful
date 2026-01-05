@@ -145,6 +145,7 @@ struct DamageInfo
 	bool noPlayerPush = false; // don't push player
 	bool noPunch = false; // don't make a smalle punch on player's camera
 	bool noBlood = false; // used in TraceAttack. Force not to bleed.
+	bool ignoreTransform = false;
 
 	bool mustSkip = false;
 
@@ -174,6 +175,10 @@ struct DamageInfo
 	}
 	DamageInfo& SetNoBlood(bool enable = true) {
 		noBlood = enable;
+		return *this;
+	}
+	DamageInfo& SetIgnoreTransform(bool enable = true) {
+		ignoreTransform = enable;
 		return *this;
 	}
 };

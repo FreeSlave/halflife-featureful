@@ -641,6 +641,9 @@ void CBaseEntity::SetNonLethalHealthThreshold()
 
 DamageInfo CBaseEntity::TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo)
 {
+	if (inputDamageInfo.ignoreTransform)
+		return inputDamageInfo;
+
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate && entTemplate->HasCustomTakeDamageRules())
 	{

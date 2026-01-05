@@ -5379,10 +5379,10 @@ void CTriggerKillMonster::KillMonster(CBaseEntity *pEntity)
 		default:
 			break;
 		}
-		pMonster->pev->health = 0;
-		DamageInfo damageInfo{1, DMG_GENERIC};
+		DamageInfo damageInfo{pMonster->pev->health, DMG_GENERIC};
 		if (pev->spawnflags & SF_KILLMONSTER_GIBALWAYS)
 			damageInfo.SetGibPolicy(GIB_ALWAYS);
+		damageInfo.SetIgnoreTransform();
 		pMonster->TakeDamage(pev, pev, damageInfo );
 	}
 }
