@@ -25,6 +25,17 @@ bookToC: false
 * When idle, plays some additional effects like random lightning (if **sk_islave_idle_effects** is not 0). This is a feature cut from Half-Life.
 * If player is ally, vortigaunt can charge player's suit armor kinda like in Half-Life 2 (if **sk_vortigaunt_armor_charge** is higher than 0). This action requires energy.
 
+{{% hint warning %}}
+If you don't want any new vortigaunt's abilities put the following entries in your **skill.cfg**:
+
+```
+sk_islave_revival 0
+sk_islave_coil_attack 0
+sk_islave_selfheal 0
+sk_islave_heal 0
+```
+{{% /hint %}}
+
 ### Skill variables
 
 * **sk_islave_health** - monster's health.
