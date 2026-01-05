@@ -9,8 +9,8 @@ bookToC: false
 
 ### Skill variables
 
-* **sk_headcrab_health** - monster's health. This is multiplied by 0.25 for babycrab.
-* **sk_headcrab_dmg_bite** - melee damage. This is multiplied by 0.3 for babycrab.
+* **babycrab_health** - monster's health. By default it's **sk_headcrab_health** multiplied by 0.25.
+* **sk_babycrab_dmg_bite** - melee damage. By default it's **sk_headcrab_dmg_bite** multiplied by 0.3.
 
 ### Default classification
 

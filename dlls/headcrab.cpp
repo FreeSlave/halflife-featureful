@@ -557,7 +557,7 @@ public:
 	void Precache() override;
 	const char* DefaultDisplayName() override { return "Baby Headcrab"; }
 	void SetYawSpeed() override;
-	float GetDamageAmount() override { return GetSkillValue("headcrab_dmg_bite") * 0.3f; }
+	float GetDamageAmount() override { return GetSkillValue("babycrab_dmg_bite"); }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	Schedule_t *GetScheduleOfType ( int Type ) override;
 
@@ -608,7 +608,7 @@ void CBabyCrab::ApplyDefaultRenderProps(int overridenRenderProps)
 void CBabyCrab::Spawn()
 {
 	Precache();
-	SpawnHelper("models/baby_headcrab.mdl", GetSkillValue("headcrab_health") * 0.25f); // less health than full grown
+	SpawnHelper("models/baby_headcrab.mdl", GetSkillValue("babycrab_health"));
 	MonsterInit();
 }
 
