@@ -1101,7 +1101,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 				});
 				EmitSoundScriptAmbient(pev->origin, electroSoundScript);
 
-				m_flNextAttack = gpGlobals->time + RANDOM_FLOAT( 1.0, 4.0 );
+				m_flNextAttack = gpGlobals->time + GetSkillValue("islave_delay_coil");
 			} else {
 				Forget(bits_MEMORY_ISLAVE_LAST_ATTACK_WAS_COIL);
 				UTIL_MakeAimVectors( pev->angles );
@@ -1155,7 +1155,7 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 				ApplyMultiDamage( pev, pev );
 				handleZapEntity(pZapEntity2, zapEntity2Health);
 
-				m_flNextAttack = gpGlobals->time + RANDOM_FLOAT( 0.5, 4.0 );
+				m_flNextAttack = gpGlobals->time + GetSkillValue("islave_delay_zap");
 			}
 		}
 			break;
@@ -2275,13 +2275,21 @@ void CISlave::ReportAIState(ALERT_TYPE level )
 	{
 		ALERT(level, "Has wounded friend. ");
 		if (shouldDrawHealTargets)
-			DrawBeamLine(m_hWounded->pev->origin, m_hWounded->pev->origin + Vector(0,0,72), Color3(96, 128, 16), 20);
+			DrawBeamLine(EyePosition(), m_hWounded->Center(), Color3(96, 192, 16), 20);
 	}
 	if (m_hDead)
 	{
 		ALERT(level, "Has dead friend. ");
 		if (shouldDrawHealTargets)
-			DrawBeamLine(m_hDead->pev->origin, m_hDead->pev->origin + Vector(0,0,72), Color3(96, 128, 16), 20);
+			DrawBeamLine(EyePosition(), m_hDead->pev->origin, Color3(96, 128, 16), 20);
+	}
+	if (m_flNextAttack > gpGlobals->time)
+	{
+		ALERT(level, "Time before next attack: %g. ", m_flNextAttack - gpGlobals->time);
+	}
+	else
+	{
+		ALERT(level, "Can do zap attack now. ");
 	}
 }
 

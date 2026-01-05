@@ -53,6 +53,8 @@ sk_islave_heal 0
 * **sk_islave_idle_effects** - whether the vortigaunt can play additional idle effects. Default value is 0 (disabled).
 * **sk_islave_initial_energy** - amount of initial energy. Default value is 0.
 * **sk_islave_max_energy** - maximum amount of energy the vortigaunt can get. By default it fallbacks to **sk_islave_health**.
+* **sk_islave_delay_zap** - the minimum delay before the next attack after using a zap attack. This is `[0.5, 4.0]` range by default.
+* **sk_islave_delay_coil** - the minimum delay before the next attack after using a coil attack. This is `[0.9, 4.0]` range by default.
 * **sk_vortigaunt_armor_charge** - how much armor the charge token provides to an ally player. By default it fallbacks to **sk_battery**.
 
 ### Default classification

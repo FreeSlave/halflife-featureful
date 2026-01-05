@@ -1329,6 +1329,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("islave_idle_effects", 0.0f);
 	g_SkillData.ProvideFallback("islave_initial_energy", 0.0f);
 	g_SkillData.ProvideFallback("islave_max_energy", "islave_health");
+	g_SkillData.ProvideFallback("islave_delay_zap", FloatRange(0.5f, 4.0f));
+	g_SkillData.ProvideFallback("islave_delay_coil", FloatRange(0.9f, 4.0f));
 
 	g_SkillData.ProvideFallback("snark_add_dmg_pop", "snark_dmg_pop");
 	g_SkillData.ProvideFallback("snark_max_dmg_pop", 0.0f);
