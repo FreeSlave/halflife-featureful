@@ -85,7 +85,7 @@ WeaponParameters CPython::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValue("plr_357_bullet");
+	params.fire.damage = ::GetSkillValueRange("plr_357_bullet");
 	params.fire.anims.main = {PYTHON_FIRE1};
 
 	params.fire.sound = {

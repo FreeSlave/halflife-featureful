@@ -19,20 +19,24 @@
 #if !defined(SKILL_H)
 #define SKILL_H
 
+#include "template_property_types.h"
+
 struct EntTemplate;
-
-#if CLIENT_DLL
-inline float GetSkillValue(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "") { return 0.0f; }
-#else
-#include "util.h"
-
-float GetSkillValue(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "");
-
-extern DLL_GLOBAL int		g_iSkillLevel;
 
 #define SKILL_EASY		1
 #define SKILL_MEDIUM	2
 #define SKILL_HARD		3
+
+extern int g_iSkillLevel;
+
+#if CLIENT_DLL
+inline FloatRange GetSkillValueRange(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "") { return 0.0f; }
+inline float GetSkillValue(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "") { return 0.0f; }
+#else
+float RandomizeSkillValue(const FloatRange& range);
+
+FloatRange GetSkillValueRange(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "");
+float GetSkillValue(const char* name, const EntTemplate* entTemplate = nullptr, const char* entTemplateName = "", const EntTemplate* ownerEntTemplate = nullptr, const char* ownerEntTemplateName = "");
 #endif
 
 #endif // SKILL_H

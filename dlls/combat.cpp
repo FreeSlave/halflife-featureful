@@ -2214,7 +2214,7 @@ Go to the trouble of combining multiple pellets into a single damage call.
 This version is used by Players, uses the random seed generator to sync client and server side shots.
 ================
 */
-Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, float flRangeModifier, int iTracerFreq, entvars_t *pevAttacker, int shared_rand )
+Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, const FloatRange& flDamageRange, float flRangeModifier, int iTracerFreq, entvars_t *pevAttacker, int shared_rand )
 {
 	TraceResult tr;
 	Vector vecRight = gpGlobals->v_right;
@@ -2250,9 +2250,10 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 		if( tr.flFraction != 1.0f )
 		{
 			const float flCurrentDistance = tr.flFraction * flDistance;
+			const float flDamage = RandomizeSkillValue(flDamageRange);
 			const float currentDamage = (flRangeModifier == 1.0f || flRangeModifier == 0.0f) ? flDamage : flDamage * std::pow(flRangeModifier, flCurrentDistance / 500);
 
-			//ALERT(at_console, "Damage is %g\n", currentDamage);
+			//ALERT(at_console, "Damage is %g. Min: %g. Max: %g\n", currentDamage, flDamageRange.min, flDamageRange.max);
 
 			DamageInfo damageInfo{currentDamage, DMG_BULLET};
 			damageInfo.SetGibPolicy(GIB_NEVER);

@@ -293,7 +293,7 @@ const char weaponTemplates[] = R"(
 			"pushback_vertical": true
 		},
 		"alt_fire": {
-			"damage": 7,
+			"damage": "7, 9",
 			"sound_additional": {
 				"waves": ["weapons/test.wav"]
 			},
@@ -396,6 +396,7 @@ const char weaponTemplates[] = R"(
 	"weapon_projectile": {
 		"fire": {
 			"type": "projectile",
+			"damage": [50, 100],
 			"projectile": {
 				"name": "grenade",
 				"ent_template": "template_name",
@@ -674,7 +675,7 @@ TEST(Weapons, Parse) {
 		EXPECT_EQ(fire.pushbackForce.Get(false), 100.0f);
 		EXPECT_TRUE(fire.pushbackVertical.Get(false));
 
-		EXPECT_EQ(fire.damage.Get(true), 7.0f);
+		EXPECT_EQ(fire.damage.Get(true), FloatRange(7.0f, 9.0f));
 		ASSERT_EQ(fire.soundAdditional.Get(true).waves.size(), 1);
 		EXPECT_STREQ(fire.soundAdditional.Get(true).waves[0], "weapons/test.wav");
 		EXPECT_EQ(fire.soundAdditional.Get(true).channel, CHAN_ITEM);
@@ -766,6 +767,7 @@ TEST(Weapons, Parse) {
 		const WeaponParameters& testParams = *pTestParams;
 
 		EXPECT_EQ(testParams.fire.fireType.Get(false), WeaponParameters::Fire::PROJECTILE);
+		EXPECT_EQ(testParams.fire.damage.Get(false), FloatRange(50, 100));
 		EXPECT_EQ(testParams.fire.projectileName.Get(false), "grenade");
 		EXPECT_EQ(testParams.fire.projectileEntTemplate.Get(false), "template_name");
 		EXPECT_EQ(testParams.fire.projectileOffsetForward.Get(false), 16.0f);

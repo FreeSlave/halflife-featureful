@@ -18,10 +18,24 @@
 #include	"skill.h"
 #include	"skilldata.h"
 #include	"ent_templates.h"
+#include	"logger.h"
+#include	"random_utils.h"
+#include	"util_shared.h"
 
-float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char* entTemplateName, const EntTemplate* ownerEntTemplate, const char* ownerEntTemplateName)
+float RandomizeSkillValue(const FloatRange& range)
 {
-	typedef std::pair<const SkillVariable*, optional<float>> variable_and_value;
+	if (range.min >= range.max)
+		return range.min;
+	if (std::round(range.min) == range.min && std::round(range.max) == range.max)
+	{
+		return RandomInt(range.min, range.max);
+	}
+	return RandomFloat(range.min, range.max);
+}
+
+FloatRange GetSkillValueRange(const char* name, const EntTemplate* entTemplate, const char* entTemplateName, const EntTemplate* ownerEntTemplate, const char* ownerEntTemplateName)
+{
+	typedef std::pair<const SkillVariable*, optional<FloatRange>> variable_and_value;
 
 	auto variableOrValueForNameFromTemplate = [&](const char* name, const EntTemplate* entTemplate, const char* entTemplateName) -> variable_and_value
 	{
@@ -35,18 +49,18 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 				const SkillVariable* variable = g_SkillData.GetSkillVariable(replacement->replacement.c_str());
 				if (!variable)
 				{
-					ALERT(at_warning, "Entity template \"%s\": skill %s is set to be replaced with %s, but the replacement doesn't exist\n",
+					LOG_WARNING("Entity template \"%s\": skill %s is set to be replaced with %s, but the replacement doesn't exist\n",
 						entTemplateName, name, replacement->replacement.c_str());
 				}
-				return variable_and_value(variable, optional<float>());
+				return variable_and_value(variable, optional<FloatRange>());
 			}
 			case SkillReplacement::COMMON:
 			{
-				return variable_and_value(nullptr, optional<float>(replacement->medium));
+				return variable_and_value(nullptr, optional<FloatRange>(replacement->medium));
 			}
 			case SkillReplacement::DIFFICULTIES:
 			{
-				float value;
+				FloatRange value;
 				if (g_iSkillLevel >= SKILL_HARD)
 				{
 					value = replacement->hard;
@@ -59,17 +73,18 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 				{
 					value = replacement->easy;
 				}
-				return variable_and_value(nullptr, optional<float>(value));
+				return variable_and_value(nullptr, optional<FloatRange>(value));
 			}
 			case SkillReplacement::MULTIPLIER:
 			{
 				const SkillVariable* variable = g_SkillData.GetSkillVariable(name);
 				if (variable)
 				{
-					optional<float> value = variable->ValueForSkillLevel(g_iSkillLevel);
+					optional<FloatRange> value = variable->ValueForSkillLevel(g_iSkillLevel);
 					if (value.has_value())
 					{
-						*value *= replacement->medium;
+						const float multiplier = replacement->medium.min;
+						*value *= multiplier;
 					}
 					return variable_and_value(variable, value);
 				}
@@ -77,7 +92,7 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 			}
 			}
 		}
-		return variable_and_value(nullptr, optional<float>());
+		return variable_and_value(nullptr, optional<FloatRange>());
 	};
 
 	auto variableOrValueForName = [&](const char* name)
@@ -115,7 +130,7 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 		const SkillVariable* variable = pair.first;
 		if (variable)
 		{
-			optional<float> value = variable->ValueForSkillLevel(g_iSkillLevel);
+			optional<FloatRange> value = variable->ValueForSkillLevel(g_iSkillLevel);
 			if (value.has_value())
 			{
 				if (multiplier.has_value())
@@ -126,7 +141,7 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 			multiplier = variable->FallbackMultiplier();
 			if (fallback)
 			{
-				//ALERT(at_aiconsole, "%s: checking fallback %s for %s\n", STRING(pev->classname), fallback, name);
+				//LOG_DEV("%s: checking fallback %s for %s\n", STRING(pev->classname), fallback, name);
 				name = fallback;
 			}
 			else
@@ -136,4 +151,9 @@ float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char
 		}
 	}
 	return 0.0f;
+}
+
+float GetSkillValue(const char* name, const EntTemplate* entTemplate, const char* entTemplateName, const EntTemplate* ownerEntTemplate, const char* ownerEntTemplateName)
+{
+	return RandomizeSkillValue(GetSkillValueRange(name, entTemplate, entTemplateName, ownerEntTemplate, ownerEntTemplateName));
 }

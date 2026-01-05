@@ -194,9 +194,15 @@ const char* const json_schemas::weapons = R"(
 				"enum": ["bullet", "bullets", "melee", "projectile"]
 			},
 			"damage": {
-				"type": ["number", "string"],
-				"minimum": 0,
-				"minLength": 1
+				"oneOf": [
+					{
+						"type": "string",
+						"minLength": 1
+					},
+					{
+						"$ref": "definitions.json#/range"
+					}
+				]
 			},
 			"anims": {
 				"$ref": "#/anim_array"

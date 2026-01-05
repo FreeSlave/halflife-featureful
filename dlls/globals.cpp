@@ -30,7 +30,6 @@
 DLL_GLOBAL unsigned int		g_ulFrameCount;
 DLL_GLOBAL unsigned int		g_ulModelIndexEyes;
 DLL_GLOBAL Vector		g_vecAttackDir;
-DLL_GLOBAL int			g_iSkillLevel;
 DLL_GLOBAL bool			gDisplayTitle;
 DLL_GLOBAL bool			g_fGameOver;
 DLL_GLOBAL const Vector		g_vecZero = Vector( 0, 0, 0 );

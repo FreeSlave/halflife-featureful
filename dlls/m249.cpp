@@ -106,7 +106,7 @@ WeaponParameters CM249::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValue("plr_556_bullet");
+	params.fire.damage = ::GetSkillValueRange("plr_556_bullet");
 	params.fire.anims = {M249_SHOOT1, M249_SHOOT2, M249_SHOOT3};
 
 	params.fire.sound = {

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "fixed_string.h"
 #include "optional.h"
+#include "template_property_types.h"
 
 #define SKILL_FALLBACK_LIMIT 2
 
@@ -20,18 +21,18 @@ struct SkillVariable
 		HARD
 	};
 
-	void SetValue(int category, float value)
+	void SetValue(int category, FloatRange value)
 	{
 		GetVar(category) = value;
 	}
-	optional<float> ValueForSkillLevel(int level) const;
+	optional<FloatRange> ValueForSkillLevel(int level) const;
 	bool HasValue(int category) const
 	{
 		return GetVar(category).has_value();
 	}
-	float GetValue(int category) const
+	FloatRange GetValue(int category) const
 	{
-		return GetVar(category).value_or(0.0f);
+		return GetVar(category).value_or(FloatRange{});
 	}
 	void Reset()
 	{
@@ -58,7 +59,7 @@ struct SkillVariable
 		return _multiplier;
 	}
 private:
-	optional<float>& GetVar(int category)
+	optional<FloatRange>& GetVar(int category)
 	{
 		switch(category)
 		{
@@ -72,15 +73,15 @@ private:
 			return _common;
 		}
 	}
-	const optional<float>& GetVar(int category) const
+	const optional<FloatRange>& GetVar(int category) const
 	{
 		return const_cast<SkillVariable*>(this)->GetVar(category);
 	}
 
-	optional<float> _common;
-	optional<float> _easy;
-	optional<float> _medium;
-	optional<float> _hard;
+	optional<FloatRange> _common;
+	optional<FloatRange> _easy;
+	optional<FloatRange> _medium;
+	optional<FloatRange> _hard;
 	std::string _fallback;
 	optional<float> _multiplier;
 };
@@ -88,18 +89,18 @@ private:
 struct SkillData
 {
 public:
-	void SetVariableValue(const char* name, int category, float value);
-	void SetVariableValue(std::string&& name, int category, float value);
+	void SetVariableValue(const char* name, int category, FloatRange value);
+	void SetVariableValue(std::string&& name, int category, FloatRange value);
 	const SkillVariable* GetSkillVariable(const char* name) const;
-	float GetValueForSkillLevel(const char* name, int level) const;
+	FloatRange GetValueForSkillLevel(const char* name, int level) const;
 	void Clear() {
 		_map.clear();
 	}
 	void ProvideFallback(const char* name, const char* fallback);
-	void ProvideFallback(const char* name, float fallback);
-	void ProvideFallback(const char* name, float fallbackOnEasy, float fallbackOnMedium, float fallbackOnHard);
+	void ProvideFallback(const char* name, FloatRange fallback);
+	void ProvideFallback(const char* name, FloatRange fallbackOnEasy, FloatRange fallbackOnMedium, FloatRange fallbackOnHard);
 	void ProvideFallbackWithFactor(const char* name, const char* fallback, float factor);
-	void ForceValue(const char* name, float value);
+	void ForceValue(const char* name, FloatRange value);
 private:
 	SkillVariable* AccessSkillVariable(const char* name, bool createIfNotExist = false);
 	SkillVariable* EnsureSkillVariable(const char* name);
@@ -107,6 +108,8 @@ private:
 	typedef std::string keytype;
 	std::unordered_map<std::string, SkillVariable> _map;
 };
+
+void ParseSkillCfg(unsigned char *pMemFile, int fileSize, const char* fileName);
 
 extern SkillData g_SkillData;
 

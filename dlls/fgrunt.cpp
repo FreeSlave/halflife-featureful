@@ -1750,12 +1750,7 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				CGrenade::ShootTimed( this, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
 
 			m_fThrowGrenade = false;
-
-			float checkDelay = GetSkillValue("hgrunt_ally_gren_throw_delay");
-			const float checkDelayMax = GetSkillValue("hgrunt_ally_gren_throw_delay_max");
-			if (checkDelay < checkDelayMax)
-				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
-			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
+			m_flNextGrenadeCheck = gpGlobals->time + GetSkillValue("hgrunt_ally_gren_throw_delay");
 		}
 		break;
 
@@ -1779,12 +1774,7 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			else
 				CGrenade::ShootContact( this, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
 			m_fThrowGrenade = false;
-
-			float checkDelay = GetSkillValue("hgrunt_ally_gren_launch_delay");
-			const float checkDelayMax = GetSkillValue("hgrunt_ally_gren_launch_delay_max");
-			if (checkDelay < checkDelayMax)
-				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
-			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
+			m_flNextGrenadeCheck = gpGlobals->time + GetSkillValue("hgrunt_ally_gren_launch_delay");
 		}
 		break;
 

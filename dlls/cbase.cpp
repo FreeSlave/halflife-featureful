@@ -1860,6 +1860,14 @@ int CBaseEntity::IRelationship( CBaseEntity *pTarget )
 	return R_NO;
 }
 
+FloatRange CBaseEntity::GetSkillValueRange(const char *name)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	const EntTemplate* ownerEntTemplate = GetOwnerEntTemplate();
+
+	return ::GetSkillValueRange(name, entTemplate, STRING(m_entTemplate), ownerEntTemplate, STRING(m_ownerEntTemplate));
+}
+
 float CBaseEntity::GetSkillValue(const char *name)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();

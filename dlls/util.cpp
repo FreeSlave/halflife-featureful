@@ -2832,65 +2832,6 @@ void UTIL_CleanSpawnPoint( Vector origin, float dist )
 	}
 }
 
-char *memfgets( byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize )
-{
-	// Bullet-proofing
-	if( !pMemFile || !pBuffer )
-		return NULL;
-
-	if( filePos >= fileSize )
-		return NULL;
-
-	int i = filePos;
-	int last = fileSize;
-
-	// fgets always NULL terminates, so only read bufferSize-1 characters
-	if( last - filePos > ( bufferSize - 1 ) )
-		last = filePos + ( bufferSize - 1 );
-
-	int stop = 0;
-
-	// Stop at the next newline (inclusive) or end of buffer
-	while( i < last && !stop )
-	{
-		if( pMemFile[i] == '\n' )
-		{
-			stop = 1;
-		}
-		if ( pMemFile[i] == '\r' )
-		{
-			if (i+1 < last && pMemFile[i+1] == '\n')
-			{
-				pMemFile[i] = '\n';
-				pMemFile[i+1] = '\0';
-				++i;
-			}
-			stop = 1;
-		}
-		i++;
-	}
-
-	// If we actually advanced the pointer, copy it over
-	if( i != filePos )
-	{
-		// We read in size bytes
-		int size = i - filePos;
-		// copy it out
-		memcpy( pBuffer, pMemFile + filePos, sizeof(byte) * size );
-
-		// If the buffer isn't full, terminate (this is always true)
-		if( size < bufferSize )
-			pBuffer[size] = 0;
-
-		// Update file pointer
-		filePos = i;
-		return pBuffer;
-	}
-
-	// No data read, bail
-	return NULL;
-}
-
 // LRC- change the origin to the given position, and bring any movewiths along too.
 void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin )
 {

@@ -60,6 +60,36 @@ TEST(NumberRange, Equal) {
 	EXPECT_EQ(s, 7);
 	EXPECT_EQ(s.min, 7);
 	EXPECT_EQ(s.max, 7);
+
+	FloatRange f{0.25f, 1.4f};
+	FloatRange m{0.75f};
+	EXPECT_EQ(f, FloatRange(0.25f, 1.4f));
+	EXPECT_EQ(f.min, 0.25f);
+	EXPECT_EQ(f.max, 1.4f);
+
+	EXPECT_EQ(m, 0.75f);
+	EXPECT_EQ(m.min, 0.75f);
+	EXPECT_EQ(m.max, 0.75f);
+}
+
+TEST(NumberRange, Multiply) {
+	FloatRange f{0.4f, 1.2f};
+	f *= 2;
+	EXPECT_EQ(f.min, 0.8f);
+	EXPECT_EQ(f.max, 2.4f);
+
+	FloatRange m = f * 0.5f;
+	EXPECT_EQ(m.min, 0.4f);
+	EXPECT_EQ(m.max, 1.2f);
+
+	IntRange r{2, 5};
+	r *= 2;
+	EXPECT_EQ(r.min, 4);
+	EXPECT_EQ(r.max, 10);
+
+	FloatRange rf = r * 0.5f;
+	EXPECT_EQ(rf.min, 2.0f);
+	EXPECT_EQ(rf.max, 5.0f);
 }
 
 TEST(Random, Int) {

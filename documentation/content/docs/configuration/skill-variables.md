@@ -26,6 +26,19 @@ As you notice the `sk_barney_health` doesn't end with 1, 2 or 3. So, if `sk_barn
 
 If both difficulty-independent and difficulty-specific variable are defined, the latter has a priority on an appropriate difficulty.
 
+### Values can be ranges
+
+Using ranges allow a skill value randomization (e.g. for randomized damage or health). To make a range use the numbers separated by comma:
+
+```
+sk_plr_9mm_bullet "8, 10"
+sk_hgrunt_gren_launch_delay "2.5, 5.6"
+```
+
+Each time the skill value is requested by the entity the resulting value will be randomized between min and max (inclusive).
+
+If both values in range don't have the floating point part (or it's zero) then the game will use the integer randomization (in the example above it will generate values 8, 9 and 10). If at least one of these values has a non-zero floating point part the floating randomization will be used.
+
 ### Optional sk_ prefix
 
 The skill variables can be referred with *sk_* prefix omitted. E.g. `sk_barney_health` and `barney_health` refer to the same variable.

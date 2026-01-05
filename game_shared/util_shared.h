@@ -49,4 +49,6 @@ float RandomizeNumberFromRange_Shared(unsigned int seed, float minF, float maxF)
 int RandomizeNumberFromRange_Shared(unsigned int seed, const IntRange& r);
 int RandomizeNumberFromRange_Shared(unsigned int seed, int minI, int maxI);
 
+char *memfgets(unsigned char *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize);
+
 #endif

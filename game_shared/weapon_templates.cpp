@@ -8,9 +8,7 @@
 #include "sound_channel.h"
 #include "soundent_bits.h"
 
-#if SERVER_DLL
 #include "skill.h"
-#endif
 
 #include "rapidjson/writer.h"
 #include "rapidjson/ostreamwrapper.h"
@@ -370,16 +368,22 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			});
 
 			HandleJSONMember(value, "damage", [&](const Value& value) {
-				if (value.IsNumber())
+				if (value.IsNumber() || value.IsArray() || value.IsObject())
 				{
-					fire.damage.Materialize(altMode) = value.GetFloat();
+					fire.damage.Materialize(altMode) = FloatRangeFromJSON(value);
 				}
-#if SERVER_DLL
 				else if (value.IsString())
 				{
-					fire.damage.Materialize(altMode) = GetSkillValue(value.GetString());
+					const char* str = value.GetString();
+					if (strchr(str, ',') != nullptr)
+					{
+						fire.damage.Materialize(altMode) = FloatRangeFromJSON(value);
+					}
+					else
+					{
+						fire.damage.Materialize(altMode) = GetSkillValueRange(value.GetString());
+					}
 				}
-#endif
 			});
 
 			auto HandleFireAnimArray = [](Value::ConstArray& animArr, WeaponParameters::FireAnimArray& v)

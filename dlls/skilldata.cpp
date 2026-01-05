@@ -1,9 +1,14 @@
 #include "skilldata.h"
 #include "skill.h"
+#include "logger.h"
+#include "parsetext.h"
+#include "util_shared.h"
+
+int g_iSkillLevel = SKILL_EASY;
 
 SkillData g_SkillData;
 
-optional<float> SkillVariable::ValueForSkillLevel(int level) const
+optional<FloatRange> SkillVariable::ValueForSkillLevel(int level) const
 {
 	if (level >= SKILL_HARD)
 	{
@@ -29,12 +34,12 @@ optional<float> SkillVariable::ValueForSkillLevel(int level) const
 	return _common;
 }
 
-void SkillData::SetVariableValue(const char* name, int category, float value)
+void SkillData::SetVariableValue(const char* name, int category, FloatRange value)
 {
 	SetVariableValue(std::string(name), category, value);
 }
 
-void SkillData::SetVariableValue(std::string&& key, int category, float value)
+void SkillData::SetVariableValue(std::string&& key, int category, FloatRange value)
 {
 	if (key.compare(0, 3, "sk_") == 0)
 	{
@@ -86,7 +91,7 @@ SkillVariable* SkillData::AccessSkillVariable(const char *name, bool createIfNot
 	return nullptr;
 }
 
-float SkillData::GetValueForSkillLevel(const char *name, int level) const
+FloatRange SkillData::GetValueForSkillLevel(const char *name, int level) const
 {
 	const SkillVariable* variable = GetSkillVariable(name);
 	if (!variable)
@@ -94,7 +99,7 @@ float SkillData::GetValueForSkillLevel(const char *name, int level) const
 
 	auto getForCategory = [](const SkillVariable* variable, int category)
 	{
-		optional<float> value;
+		optional<FloatRange> value;
 		if (variable->HasValue(category))
 		{
 			value = variable->GetValue(category);
@@ -117,7 +122,7 @@ float SkillData::GetValueForSkillLevel(const char *name, int level) const
 		category = SkillVariable::HARD;
 
 	do {
-		optional<float> value = getForCategory(variable, category);
+		optional<FloatRange> value = getForCategory(variable, category);
 		if (value.has_value())
 		{
 			return *value;
@@ -149,7 +154,7 @@ void SkillData::ProvideFallback(const char *name, const char *fallback)
 		variable->SetFallback(fallback);
 }
 
-void SkillData::ProvideFallback(const char *name, float fallback)
+void SkillData::ProvideFallback(const char *name, FloatRange fallback)
 {
 	SkillVariable* variable = AccessSkillVariable(name, true);
 
@@ -157,7 +162,7 @@ void SkillData::ProvideFallback(const char *name, float fallback)
 		variable->SetValue(SkillVariable::COMMON, fallback);
 }
 
-void SkillData::ProvideFallback(const char *name, float fallbackOnEasy, float fallbackOnMedium, float fallbackOnHard)
+void SkillData::ProvideFallback(const char *name, FloatRange fallbackOnEasy, FloatRange fallbackOnMedium, FloatRange fallbackOnHard)
 {
 	SkillVariable* variable = AccessSkillVariable(name, true);
 
@@ -179,12 +184,99 @@ void SkillData::ProvideFallbackWithFactor(const char *name, const char *fallback
 		variable->SetFallbackWithMultiplier(fallback, factor);
 }
 
-void SkillData::ForceValue(const char *name, float value)
+void SkillData::ForceValue(const char *name, FloatRange value)
 {
 	SkillVariable* variable = AccessSkillVariable(name, true);
 	if (variable)
 	{
 		variable->Reset();
 		variable->SetValue(SkillVariable::COMMON, value);
+	}
+}
+
+void ParseSkillCfg(unsigned char* pMemFile, int fileSize, const char* fileName)
+{
+	int filePos = 0;
+	char buffer[512] = { 0 };
+	int lineNum = 0;
+
+	while(memfgets(pMemFile, fileSize, filePos, buffer, sizeof(buffer)-1)) {
+		lineNum++;
+		int i = 0;
+		SkipSpaceCharacters(buffer, i, sizeof(buffer));
+		if (buffer[i] == '\0') // it's an empty line, skip
+			continue;
+		if (buffer[i] == '/') // it's a comment, skip
+			continue;
+
+		const int strStart = i;
+		ConsumeNonSpaceCharacters(buffer, i, sizeof(buffer));
+		int strEnd = i;
+
+		if (strEnd - strStart <= 0)
+			continue;
+
+		const char lastDigit = buffer[strEnd-1];
+		const bool lastIsDigit = isdigit(lastDigit);
+		if (lastIsDigit)
+		{
+			strEnd--;
+		}
+
+		if (strEnd - strStart <= 0)
+		{
+			LOG_ERROR("%s: bad skill value name on line %d\n", fileName, lineNum);
+			continue;
+		}
+
+		std::string skillName(buffer+strStart, buffer+strEnd);
+
+		SkipSpaceCharacters(buffer, i, sizeof(buffer));
+
+		int valueStart;
+		int valueEnd;
+		if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), valueStart, valueEnd))
+		{
+			LOG_ERROR("%s: error parsing the skill value for %s on line %d\n", fileName, skillName.c_str(), lineNum);
+			continue;
+		}
+
+		std::string valueStr(buffer+valueStart, buffer+valueEnd);
+		FloatRange value;
+		if (ParseFloatRange(valueStr.c_str(), value))
+		{
+			int category = SkillVariable::COMMON;
+			if (lastIsDigit)
+			{
+				switch(lastDigit)
+				{
+				case '1':
+					category = SkillVariable::EASY;
+					break;
+				case '2':
+					category = SkillVariable::MEDIUM;
+					break;
+				case '3':
+					category = SkillVariable::HARD;
+					break;
+				default:
+					category = SkillVariable::BAD;
+					break;
+				}
+
+				if (category == SkillVariable::BAD)
+				{
+					LOG_ERROR("%s: unknown skill value digit suffix %c for %s on line %d\n", fileName, lastDigit, skillName.c_str(), lineNum);
+					continue;
+				}
+			}
+
+			//LOG("Setting skill variable %s to value %g in category %d\n", skillName.c_str(), value, category);
+			g_SkillData.SetVariableValue(std::move(skillName), category, value);
+		}
+		else
+		{
+			LOG_WARNING("%s: couldn't parse skill value for %s from %s\n", fileName, skillName.c_str(), valueStr.c_str());
+		}
 	}
 }

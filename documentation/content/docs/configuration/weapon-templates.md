@@ -581,7 +581,7 @@ The delay before next shot after the ammo depletion. This makes sense only for w
 
 The amount of damage the weapon deals per bullet.
 
-This can be either a number (e.g. `8`) or the name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`).
+This can be either a number (e.g. `8`), the name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`) or [range]({{< ref "json/#range" >}}) (e.g. `[10,15]` - in this case the damage will be randomized on each fire).
 
 {{% hint warning %}}
 This currently can configure damage values only for bullets and projectiles.

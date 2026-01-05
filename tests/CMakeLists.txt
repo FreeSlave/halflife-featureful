@@ -25,6 +25,7 @@ add_executable(test
 	messages_test.cpp
 	objecthint_test.cpp
 	parsetext_test.cpp
+	skilldata_test.cpp
 	soundscripts_test.cpp
 	visuals_test.cpp
 	warpball_test.cpp
@@ -54,6 +55,8 @@ add_executable(test
 	../dlls/followers.cpp
 	../dlls/inventory.cpp
 	../dlls/objecthint_spec.cpp
+	../dlls/skill.cpp
+	../dlls/skilldata.cpp
 	../dlls/visuals.cpp
 	../dlls/warpball.cpp
 	main.cpp

@@ -20,10 +20,8 @@ bookToC: false
 * **sk_hgrunt_gspeed** - the grenade speed when it's thrown.
 * **sk_9mmAR_bullet** - 9mmAR damage.
 * **sk_buckshot** - shotgun pellet damage. If not defined, **sk_plr_buckshot** is used.
-* **sk_hgrunt_gren_launch_delay** - delay before the next check for grenade launch after firing a grenade. Default value is 6 on Easy and Medium, and 2 on Hard.
-* **sk_hgrunt_gren_launch_delay_max** - if this is higher than **sk_hgrunt_gren_launch_delay** it's used to randomize the next check delay. Default value is 0 on Easy and Medium (no random), and 5 on Hard (so the delay is randomized between 2 and 5 by default).
+* **sk_hgrunt_gren_launch_delay** - delay before the next check for grenade launch after firing a grenade. Default value is 6 on Easy and Medium, and `[2, 5]` (range) on Hard.
 * **sk_hgrunt_gren_throw_delay** - delay before the next check for grenade toss after throwing a grenade. Default value is 6.
-* **sk_hgrunt_gren_throw_delay_max** - if this is higher than **sk_hgrunt_gren_throw_delay** it's used to randomize the next check delay. Default value is 0 (no random).
 * **sk_hgrunt_gren_before_cover** - whether the human grunt can throw (or launch) a grenade before taking cover from enemy if the grunt is in squad. In game the conditions for this behavior are rarely met, but we introduce this variable just to get rid of the hardcoded check on hard difficulty. Default value is 0 on Easy and Medium, and 1 on Hard.
 
 ### Default classification

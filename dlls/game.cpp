@@ -1099,6 +1099,18 @@ void ForceScheduleFail()
 	}
 }
 
+static void PrintFloatRange(const char* prefix, const FloatRange& range)
+{
+	if (range.max > range.min)
+	{
+		ALERT(at_console, "%s: [%g, %g]\n", prefix, range.min, range.max);
+	}
+	else
+	{
+		ALERT(at_console, "%s: %g\n", prefix, range.min);
+	}
+}
+
 void PrintSkillVariable()
 {
 	const int argc = CMD_ARGC();
@@ -1120,19 +1132,19 @@ void PrintSkillVariable()
 			}
 			if (variable->HasValue(SkillVariable::COMMON))
 			{
-				ALERT(at_console, "Common: %g\n", variable->GetValue(SkillVariable::COMMON));
+				PrintFloatRange("Common", variable->GetValue(SkillVariable::COMMON));
 			}
 			if (variable->HasValue(SkillVariable::EASY))
 			{
-				ALERT(at_console, "Easy: %g\n", variable->GetValue(SkillVariable::EASY));
+				PrintFloatRange("Easy", variable->GetValue(SkillVariable::EASY));
 			}
 			if (variable->HasValue(SkillVariable::MEDIUM))
 			{
-				ALERT(at_console, "Normal: %g\n", variable->GetValue(SkillVariable::MEDIUM));
+				PrintFloatRange("Normal", variable->GetValue(SkillVariable::MEDIUM));
 			}
 			if (variable->HasValue(SkillVariable::HARD))
 			{
-				ALERT(at_console, "Hard: %g\n", variable->GetValue(SkillVariable::HARD));
+				PrintFloatRange("Hard", variable->GetValue(SkillVariable::HARD));
 			}
 			const char* fallback = variable->Fallback();
 			if (fallback)
@@ -1144,7 +1156,7 @@ void PrintSkillVariable()
 			{
 				ALERT(at_console, "Fallback multiplier: %g\n", *multiplier);
 			}
-			ALERT(at_console, "Current value: %g\n", ::GetSkillValue(name));
+			PrintFloatRange("Current value", ::GetSkillValueRange(name));
 		}
 		else
 		{
@@ -1184,20 +1196,23 @@ void PrintSkillReplacementForEntTemplate()
 				ALERT(at_console, "Replacement variable is %s\n", replacement->replacement.c_str());
 				break;
 			case SkillReplacement::COMMON:
-				ALERT(at_console, "Replacement value is %g\n", replacement->medium);
+				PrintFloatRange("Replacement value", replacement->medium);
 				break;
 			case SkillReplacement::DIFFICULTIES:
-				ALERT(at_console, "Replacement values are: %g, %g, %g\n", replacement->easy, replacement->medium, replacement->hard);
+				ALERT(at_console, "Replacement values are:\n");
+				PrintFloatRange("On Easy:", replacement->easy);
+				PrintFloatRange("On Medium:", replacement->medium);
+				PrintFloatRange("On Hard:", replacement->hard);
 				break;
 			case SkillReplacement::MULTIPLIER:
-				ALERT(at_console, "Replacement multiplier is %g\n", replacement->medium);
+				ALERT(at_console, "Replacement multiplier is %g\n", replacement->medium.min);
 				break;
 			default:
 				break;
 			}
 		}
 
-		ALERT(at_console, "Evaluated value: %g\n", ::GetSkillValue(name, entTemplate, entTemplateName));
+		PrintFloatRange("Evaluated value", ::GetSkillValueRange(name, entTemplate, entTemplateName));
 	}
 }
 
@@ -1234,87 +1249,6 @@ cvar_t sv_busters = { "sv_busters", "0" };
 
 extern void RegisterAmmoTypes();
 extern void ReportRegisteredAmmoTypes();
-
-void ParseSkillCfg(byte *pMemFile, const char* fileName, int fileSize)
-{
-	int filePos = 0;
-	char buffer[512] = { 0 };
-	int lineNum = 0;
-
-	while(memfgets(pMemFile, fileSize, filePos, buffer, sizeof(buffer)-1)) {
-		lineNum++;
-		int i = 0;
-		SkipSpaceCharacters(buffer, i, sizeof(buffer));
-		if (buffer[i] == '\0') // it's an empty line, skip
-			continue;
-		if (buffer[i] == '/') // it's a comment, skip
-			continue;
-
-		const int strStart = i;
-		ConsumeNonSpaceCharacters(buffer, i, sizeof(buffer));
-		int strEnd = i;
-
-		if (strEnd - strStart > 0)
-		{
-			const char lastDigit = buffer[strEnd-1];
-			const bool lastIsDigit = isdigit(lastDigit);
-			if (lastIsDigit)
-			{
-				strEnd--;
-			}
-
-			if (strEnd - strStart <= 0)
-			{
-				ALERT(at_error, "%s: bad skill value name on line %d\n", fileName, lineNum);
-				continue;
-			}
-
-			std::string skillName(buffer+strStart, buffer+strEnd);
-
-			SkipSpaceCharacters(buffer, i, sizeof(buffer));
-
-			int valueStart;
-			int valueEnd;
-			if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), valueStart, valueEnd))
-			{
-				ALERT(at_error, "%s: error parsing the skill value for %s on line %d\n", fileName, skillName.c_str(), lineNum);
-				continue;
-			}
-
-			std::string valueStr(buffer+valueStart, buffer+valueEnd);
-			const float value = atof(valueStr.c_str());
-
-			int category = SkillVariable::COMMON;
-			if (lastIsDigit)
-			{
-				switch(lastDigit)
-				{
-				case '1':
-					category = SkillVariable::EASY;
-					break;
-				case '2':
-					category = SkillVariable::MEDIUM;
-					break;
-				case '3':
-					category = SkillVariable::HARD;
-					break;
-				default:
-					category = SkillVariable::BAD;
-					break;
-				}
-
-				if (category == SkillVariable::BAD)
-				{
-					ALERT(at_error, "%s: unknown skill value digit suffix %c for %s on line %d\n", fileName, lastDigit, skillName.c_str(), lineNum);
-					continue;
-				}
-			}
-
-			//ALERT(at_console, "Setting skill variable %s to value %g in category %d\n", skillName.c_str(), value, category);
-			g_SkillData.SetVariableValue(std::move(skillName), category, value);
-		}
-	}
-}
 
 void ProvideSkillFallbacks()
 {
@@ -1357,10 +1291,8 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("hassassin_cloaking", 0.0f, 0.0f, 1.0f);
 
-	g_SkillData.ProvideFallback("hgrunt_gren_launch_delay", 6.0f, 6.0f, 2.0f);
-	g_SkillData.ProvideFallback("hgrunt_gren_launch_delay_max", 0.0f, 0.0f, 5.0f);
+	g_SkillData.ProvideFallback("hgrunt_gren_launch_delay", 6.0f, 6.0f, FloatRange(2.0f, 5.0f));
 	g_SkillData.ProvideFallback("hgrunt_gren_throw_delay", 6.0f);
-	g_SkillData.ProvideFallback("hgrunt_gren_throw_delay_max", 0.0f);
 	g_SkillData.ProvideFallback("hgrunt_gren_before_cover", 0.0f, 0.0f, 1.0f);
 
 	g_SkillData.ProvideFallback("hgrunt_ally_health", "hgrunt_health");
@@ -1369,9 +1301,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("hgrunt_ally_gspeed", "hgrunt_gspeed");
 
 	g_SkillData.ProvideFallback("hgrunt_ally_gren_launch_delay", 6.0f);
-	g_SkillData.ProvideFallback("hgrunt_ally_gren_launch_delay_max", 0.0f);
 	g_SkillData.ProvideFallback("hgrunt_ally_gren_throw_delay", 6.0f);
-	g_SkillData.ProvideFallback("hgrunt_ally_gren_throw_delay_max", 0.0f);
 
 	g_SkillData.ProvideFallback("medic_ally_health", "hgrunt_ally_health");
 	g_SkillData.ProvideFallback("medic_ally_kick", "hgrunt_ally_kick");
@@ -1492,7 +1422,7 @@ void ParseSkillCfg(const char* fileName)
 		return;
 
 	ALERT(at_console, "Parsing %s\n", fileName);
-	ParseSkillCfg(pMemFile, fileName, fileSize);
+	ParseSkillCfg(pMemFile, fileSize, fileName);
 
 	g_engfuncs.pfnFreeFile(pMemFile);
 }

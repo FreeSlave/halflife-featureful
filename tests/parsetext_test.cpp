@@ -54,3 +54,39 @@ TEST(ParseText, Boolean) {
 	EXPECT_FALSE(ParseBoolean("10", temp));
 	EXPECT_FALSE(ParseBoolean("2", temp));
 }
+
+TEST(ParseText, FloatRange) {
+	FloatRange floatRange;
+	EXPECT_TRUE(ParseFloatRange("0.5", floatRange));
+	EXPECT_EQ(floatRange.min, 0.5f);
+	EXPECT_LE(floatRange.max, floatRange.min);
+
+	EXPECT_TRUE(ParseFloatRange("0.25,1.75", floatRange));
+	EXPECT_EQ(floatRange.min, 0.25f);
+	EXPECT_EQ(floatRange.max, 1.75f);
+
+	EXPECT_TRUE(ParseFloatRange("0.5, 1.5", floatRange));
+	EXPECT_EQ(floatRange.min, 0.5f);
+	EXPECT_EQ(floatRange.max, 1.5f);
+
+	EXPECT_FALSE(ParseFloatRange("ab", floatRange));
+	EXPECT_FALSE(ParseFloatRange("0.5,ab", floatRange));
+}
+
+TEST(ParseText, IntRange) {
+	IntRange intRange;
+	EXPECT_TRUE(ParseIntRange("69", intRange));
+	EXPECT_EQ(intRange.min, 69);
+	EXPECT_LE(intRange.max, intRange.min);
+
+	EXPECT_TRUE(ParseIntRange("13,72", intRange));
+	EXPECT_EQ(intRange.min, 13);
+	EXPECT_EQ(intRange.max, 72);
+
+	EXPECT_TRUE(ParseIntRange("27, 50", intRange));
+	EXPECT_EQ(intRange.min, 27);
+	EXPECT_EQ(intRange.max, 50);
+
+	EXPECT_FALSE(ParseIntRange("ab", intRange));
+	EXPECT_FALSE(ParseIntRange("27,ab", intRange));
+}

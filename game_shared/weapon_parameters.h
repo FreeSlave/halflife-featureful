@@ -542,7 +542,7 @@ struct WeaponParameters
 		};
 
 		WeaponModeValue<Type> fireType{NATIVE};
-		WeaponModeValueNonNegative<float> damage{0.0f};
+		WeaponModeValueNonNegative<FloatRange> damage{0.0f};
 
 		WeaponModeValueEmptyAware<FireAnimArray> anims;
 		WeaponModeValue<FireAnimArray> hitAnims;

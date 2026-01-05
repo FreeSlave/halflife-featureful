@@ -126,9 +126,9 @@ struct SkillReplacement
 	};
 
 	std::string replacement;
-	float easy{0.0f};
-	float medium{0.0f};
-	float hard{0.0f};
+	FloatRange easy{0.0f};
+	FloatRange medium{0.0f};
+	FloatRange hard{0.0f};
 	int type{STRING};
 };
 

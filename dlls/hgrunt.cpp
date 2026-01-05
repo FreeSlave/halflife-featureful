@@ -900,12 +900,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				CGrenade::ShootTimed( this, GetGunPosition(), m_vecTossVelocity, 3.5f, GetProjectileOverrides() );
 
 			m_fThrowGrenade = false;
-
-			float checkDelay = GetSkillValue("hgrunt_gren_throw_delay");
-			const float checkDelayMax = GetSkillValue("hgrunt_gren_throw_delay_max");
-			if (checkDelay < checkDelayMax)
-				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
-			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
+			m_flNextGrenadeCheck = gpGlobals->time + GetSkillValue("hgrunt_gren_throw_delay");
 			// !!!LATER - when in a group, only try to throw grenade if ordered.
 		}
 			break;
@@ -929,12 +924,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			else
 				CGrenade::ShootContact( this, GetGunPosition(), m_vecTossVelocity, GetProjectileOverrides() );
 			m_fThrowGrenade = false;
-
-			float checkDelay = GetSkillValue("hgrunt_gren_launch_delay");
-			const float checkDelayMax = GetSkillValue("hgrunt_gren_launch_delay_max");
-			if (checkDelay < checkDelayMax)
-				checkDelay = RANDOM_FLOAT(checkDelay, checkDelayMax);
-			m_flNextGrenadeCheck = gpGlobals->time + checkDelay;
+			m_flNextGrenadeCheck = gpGlobals->time + GetSkillValue("hgrunt_gren_launch_delay");
 		}
 			break;
 		case HGRUNT_AE_GREN_DROP:
