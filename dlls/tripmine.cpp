@@ -159,6 +159,7 @@ void CTripmineGrenade::Spawn()
 	pev->takedamage = DAMAGE_YES;
 	pev->dmg = GetSkillValue("plr_tripmine");
 	pev->health = GetSkillValue("tripmine_health"); // don't let die normally
+	pev->max_health = pev->health;
 
 	if( pev->owner != NULL )
 	{

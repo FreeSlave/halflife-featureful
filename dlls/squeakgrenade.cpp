@@ -167,6 +167,7 @@ void CSqueakGrenade::SpawnImpl(const char* modelName, float damage, float lifesp
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
 	SetMyHealth(DefaultHealth());
+	pev->max_health = pev->health;
 	pev->gravity = 0.5f;
 	pev->friction = 0.5f;
 
