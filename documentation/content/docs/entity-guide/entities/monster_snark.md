@@ -14,6 +14,7 @@ bookToC: false
 * **sk_snark_dmg_pop** - the base explosion damage.
 * **sk_snark_add_dmg_pop** - each bite insreases the explosion damage by the this number. By default this is the same as **sk_snark_dmg_pop**.
 * **sk_snark_max_dmg_pop** - maximum explosion damage snark can reach by biting the prey. 0 means no limit. This is 0 by default.
+* **sk_snark_lifespan** - maximum monster's lifespan before it explodes. Negative values mean an infinite lifespan. Default value is 15.
 
 ### Default classification
 
