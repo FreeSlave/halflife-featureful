@@ -1153,8 +1153,8 @@
 		128: "No Script Movement" : 0
 		256: "Continuous animation" : 0 : "Don't reset to idle between animations"
 		512: "Apply new angles" : 0 : "If the animation includes changing of monster's angles, set them after it finished. For smoother transition and better looks."
-		1024: "Auto-search" : 0 : "Act as if scripted sequence doesn't have a targetname: start searching for the monster in the script radius."
-		4096: "Try once" : 0 : "By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior"
+		1024: "Auto-search (act as unnamed)" : 0 : "Act as if scripted sequence doesn't have a targetname: start searching for the monster in the script radius."
+		4096: "Try search once" : 0 : "By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior"
 		8192: "Don't reset head turn" : 0 : "Don't reset head turn for talk monsters"
 		16384: "Force idle looping" : 0 : "Force idle animation looping. Use it when you want to loop an animation that does not have a loop flag"
 		32768: "Remove on interruption" : 0 : "Remove scripted sequence when it's getting interrupted"

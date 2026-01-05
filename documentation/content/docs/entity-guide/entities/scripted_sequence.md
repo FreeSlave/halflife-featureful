@@ -33,8 +33,8 @@ bookToC: false
 
 * ![](/images/opfor.png) `Continuous animation` allows a smooth transition between animations that are meant to play one after another.
 * `Apply new angles`. If monster turns during the animation, set new angles after sequence finished (example: houndeye's jumpwindow animation).
-* `Auto-Search` makes the `scripted_sequence` to act as if doesn't have a name. This allows to remove the script from the map while in-game with some other entity's `KillTarget` while preserving the behavior of the unnamed script.
-* `Try once`. By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior making `scripted_sequence` do the search only once per firing. If it could not find the appropriate monster, nothing happens.
+* `Auto-Search (act as unnamed)` makes the `scripted_sequence` to act as if doesn't have a name. This allows to remove the script from the map while in-game with some other entity's `KillTarget` while preserving the behavior of the unnamed script.
+* `Try search once`. By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior making `scripted_sequence` do the search only once per firing. If it could not find the appropriate monster, nothing happens.
 * `Don't reset head turn`. When monster is talking to someone else, the monster turns its head to the listener. By default playing `scripted_sequence` on the monster resets the head turn. Use this flag to avoid such behavior.
 * `Force idle looping` for force idle animation looping even if it doesn't have a loop flag.
 * `Remove on interruption`. This flag is useful in scripts with idle animation to ensure that the script won't be activated by some external trigger again after it was interrupted by damage dealt to the possessed monster (which could lead to weird situations like monster starting playing the idle animation again).
