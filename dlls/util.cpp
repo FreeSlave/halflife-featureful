@@ -856,8 +856,17 @@ void UTIL_ScreenShakeAll( const Vector &center, float amplitude, float frequency
 
 void UTIL_ScreenFadeBuild( ScreenFade &fade, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
 {
-	fade.duration = FixedUnsigned16( fadeTime, 1 << 12 );		// 4.12 fixed
-	fade.holdTime = FixedUnsigned16( fadeHold, 1 << 12 );		// 4.12 fixed
+	if (fadeTime > 16.0f || fadeHold > 16.0f)
+	{
+		fade.duration = FixedUnsigned16( fadeTime, 1 << 8 );
+		fade.holdTime = FixedUnsigned16( fadeHold, 1 << 8 );
+		flags |= FFADE_LONGFADE;
+	}
+	else
+	{
+		fade.duration = FixedUnsigned16( fadeTime, 1 << 12 );		// 4.12 fixed
+		fade.holdTime = FixedUnsigned16( fadeHold, 1 << 12 );		// 4.12 fixed
+	}
 	fade.r = (int)color.x;
 	fade.g = (int)color.y;
 	fade.b = (int)color.z;

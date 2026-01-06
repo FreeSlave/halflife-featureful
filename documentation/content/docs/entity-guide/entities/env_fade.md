@@ -10,6 +10,7 @@ bookToC: false
 ### Changes
 
 * The fade effect is now getting saved and restored so it doesn't get lost upon save-reload.
+* Fade now can last longer than 16 seconds (in original Half-Life it's limited to 16 seconds max).
 
 ### New spawnflags
 
