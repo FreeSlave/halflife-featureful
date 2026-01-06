@@ -1395,6 +1395,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("plr_shockroach_discharge_factor", 100.0f);
 	g_SkillData.ProvideFallback("nail", 8.0f);
 	g_SkillData.ProvideFallback("plr_nail", 8.0f);
+	g_SkillData.ProvideFallback("displacer_beam_dmg", 25.0f);
+	g_SkillData.ProvideFallback("displacer_beam_radius", 15.0f);
 
 	g_SkillData.ProvideFallback("flashlight_drain_time", 120.0f);
 	g_SkillData.ProvideFallback("flashlight_charge_time", 20.0f);

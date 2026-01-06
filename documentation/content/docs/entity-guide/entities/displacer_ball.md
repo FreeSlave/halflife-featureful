@@ -10,6 +10,8 @@ entityCategory: projectile
 
 * **sk_plr_displacer_other** - displacer ball damage amount.
 * **sk_plr_displacer_radius** - displacer ball damage radius.
+* **sk_displacer_beam_dmg** - the damage dealt by the beam coming out of the displacer ball when the beam hits something. Default value is 25.
+* **sk_displacer_beam_radius** - the radius of the damage dealt by the beam. Default value is 15.
 
 ### Soundscripts
 

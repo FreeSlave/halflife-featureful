@@ -154,7 +154,7 @@ void CDisplacerBall::ArmBeam( int iSide )
 	{
 		//Beam hit something, deal radius damage to it
 		m_pBeam[m_iBeams]->EntsInit( pHit->entindex(), entindex() );
-		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), DamageInfo{25, DMG_ENERGYBEAM}, 15, CLASS_NONE );
+		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), DamageInfo{GetSkillValue("displacer_beam_dmg"), DMG_ENERGYBEAM}, GetSkillValue("displacer_beam_radius"), CLASS_NONE );
 	}
 	else
 	{
