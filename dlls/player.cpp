@@ -49,6 +49,7 @@
 #include "locus.h"
 #include "ropes.h"
 #include "mod_features.h"
+#include "monsterinfo.h"
 #include "player_capabilities.h"
 
 // #define DUCKFIX
@@ -2461,16 +2462,24 @@ void CBasePlayer::UpdateStatusBar()
 							displayName = className;
 					}
 				}
+
+				int monsterInfoFlags = MONSTERINFO_FLAG_NO;
+				if (pMonster)
+					monsterInfoFlags |= MONSTERINFO_FLAG_MONSTER;
+				if (isPlayer)
+					monsterInfoFlags |= MONSTERINFO_FLAG_PLAYER;
+				if (isFriendMonster || isFriendPlayer)
+					monsterInfoFlags |= MONSTERINFO_FLAG_ALLY;
+
 				if (displayName && *displayName)
 				{
 					MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+						WRITE_BYTE(MONSTERINFO_FULLUPDATE);
 						WRITE_STRING(displayName);
 						WRITE_SHORT(health);
 						WRITE_SHORT((int)ceil(pEntity->pev->max_health));
 						WRITE_SHORT(armor);
-						WRITE_BYTE(pMonster ? 1 : 0);
-						WRITE_BYTE(isPlayer ? 1 : 0);
-						WRITE_BYTE((isFriendPlayer || isFriendMonster) ? 1 : 0);
+						WRITE_BYTE(monsterInfoFlags);
 					MESSAGE_END();
 				}
 			}
@@ -2509,15 +2518,77 @@ void CBasePlayer::UpdateStatusBar()
 	{
 		return;
 	}
-	else if (m_lastSeenEntityIndex >= 0 && m_lastSeenTime + MONSTERINFO_LINGER_TIME <= gpGlobals->time)
+	else if (m_lastSeenEntityIndex >= 0)
 	{
-		m_lastSeenEntityIndex = -1;
-		m_lastSeenHealth = -1;
-		m_lastSeenArmor = -1;
+		if (m_lastSeenTime + MONSTERINFO_LINGER_TIME <= gpGlobals->time)
+		{
+			m_lastSeenEntityIndex = -1;
+			m_lastSeenHealth = -1;
+			m_lastSeenArmor = -1;
 
-		MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
-			WRITE_STRING("");
-		MESSAGE_END();
+			MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+				WRITE_BYTE(MONSTERINFO_CLEAR);
+			MESSAGE_END();
+		}
+		else
+		{
+			edict_t* pEdict = INDEXENT(m_lastSeenEntityIndex);
+			if (!FNullEnt(pEdict))
+			{
+				CBaseEntity* pEntity = CBaseEntity::Instance(pEdict);
+				if (pEntity)
+				{
+					CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+
+					int health = (int)ceil(pEntity->pev->health);
+					if (health < 0 || !pEntity->IsFullyAlive()) {
+						health = 0;
+					}
+					const int armor = (int)pEntity->pev->armorvalue;
+
+					const bool isPlayer = pEntity->IsPlayer();
+					const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
+					const bool isFriendMonster = (pMonster && pMonster->IDefaultRelationship(this) == R_AL);
+
+					if (m_lastSeenHealth != health || (m_lastSeenArmor != armor && isFriendPlayer))
+					{
+						m_lastSeenHealth = health;
+						m_lastSeenArmor = armor;
+
+						int monsterInfoFlags = MONSTERINFO_FLAG_NO;
+						if (pMonster)
+							monsterInfoFlags |= MONSTERINFO_FLAG_MONSTER;
+						if (isPlayer)
+							monsterInfoFlags |= MONSTERINFO_FLAG_PLAYER;
+						if (isFriendMonster || isFriendPlayer)
+							monsterInfoFlags |= MONSTERINFO_FLAG_ALLY;
+
+						if (health == 0)
+						{
+							m_lastSeenTime = Q_min(gpGlobals->time - MONSTERINFO_LINGER_TIME * 0.8f, m_lastSeenTime);
+						}
+
+						MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+							WRITE_BYTE(MONSTERINFO_FASTUPDATE);
+							WRITE_SHORT(health);
+							WRITE_SHORT((int)ceil(pEntity->pev->max_health));
+							WRITE_SHORT(armor);
+							WRITE_BYTE(monsterInfoFlags);
+						MESSAGE_END();
+					}
+				}
+			}
+			else
+			{
+				m_lastSeenEntityIndex = -1;
+				m_lastSeenHealth = -1;
+				m_lastSeenArmor = -1;
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
+					WRITE_BYTE(MONSTERINFO_CLEAR);
+				MESSAGE_END();
+			}
+		}
 	}
 
 	bool bForceResend = false;

@@ -1,7 +1,9 @@
 #include "hud.h"
 #include "cl_util.h"
+#include "monsterinfo.h"
 #include "parsemsg.h"
 #include "string_utils.h"
+#include "util_shared.h"
 
 DECLARE_MESSAGE( m_MonsterInfo, MonsterInfo )
 
@@ -73,25 +75,34 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 {
 	BEGIN_READ(pbuf, iSize);
 
-	const char* name = READ_STRING();
+	const int update = READ_BYTE();
 
-	if (!*name)
+	if (update == MONSTERINFO_CLEAR)
 	{
 		Reset();
 		return 1;
 	}
 
+	if (update == MONSTERINFO_FULLUPDATE)
+	{
+		const char* name = READ_STRING();
+
+		if(!(m_iFlags & HUD_ACTIVE))
+			m_iFlags |= HUD_ACTIVE;
+
+		strncpyEnsureTermination(displayName, name);
+	}
+
 	health = READ_SHORT();
 	maxHealth = READ_SHORT();
 	armor = READ_SHORT();
-	isMonster = READ_BYTE() ? true : false;
-	isPlayer = READ_BYTE() ? true : false;
-	isAlly = READ_BYTE() ? true : false;
 
-	if(!(m_iFlags & HUD_ACTIVE))
-		m_iFlags |= HUD_ACTIVE;
+	const int monsterInfoFlags = READ_BYTE();
 
-	strncpyEnsureTermination(displayName, name);
+	isMonster = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_MONSTER);
+	isPlayer = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_PLAYER);
+	isAlly = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_ALLY);
+
 	if (isPlayer)
 	{
 		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d", health);
@@ -99,7 +110,10 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 	}
 	else if (isMonster)
 	{
-		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d/%d", health, maxHealth);
+		if (health > 0)
+			safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d/%d", health, maxHealth);
+		else
+			safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d", health);
 	}
 	else
 	{
