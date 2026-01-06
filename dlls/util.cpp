@@ -31,6 +31,7 @@
 #include "global_models.h"
 #include "game.h"
 #include "gamerules.h"
+#include "color_utils.h"
 #include "string_utils.h"
 
 #include <set>
@@ -892,7 +893,22 @@ static int CalculateFadeAlpha( const Vector& fadeSource, CBaseEntity* pEntity, i
 		return 0;
 }
 
-void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+static void SaveFadeToPlayer(CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags)
+{
+	if (pEntity && pEntity->IsPlayer())
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)pEntity;
+
+		pPlayer->m_fadeStarted = gpGlobals->time;
+		pPlayer->m_fadeDuration = fadeTime;
+		pPlayer->m_fadeHoldTime = fadeHold;
+		pPlayer->m_fadeColor = PackRGB((int)color.x, (int)color.y, (int)color.z);
+		pPlayer->m_fadeAlpha = alpha;
+		pPlayer->m_fadeFlags = flags;
+	}
+}
+
+void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	int i;
 	ScreenFade fade;
@@ -903,11 +919,13 @@ void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, in
 	{
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 
+		if (save)
+			SaveFadeToPlayer(pPlayer, color, fadeTime, fadeHold, alpha, flags);
 		UTIL_ScreenFadeWrite( fade, pPlayer );
 	}
 }
 
-void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	int i;
 
@@ -916,24 +934,27 @@ void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fa
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 		if (pPlayer)
 		{
-			UTIL_ScreenFade( fadeSource, pPlayer, color, fadeTime, fadeHold, alpha, flags );
+			UTIL_ScreenFade( fadeSource, pPlayer, color, fadeTime, fadeHold, alpha, flags, save );
 		}
 	}
 }
 
-void UTIL_ScreenFade( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+void UTIL_ScreenFade( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	ScreenFade fade;
+
+	if (save)
+		SaveFadeToPlayer(pEntity, color, fadeTime, fadeHold, alpha, flags);
 
 	UTIL_ScreenFadeBuild( fade, color, fadeTime, fadeHold, alpha, flags );
 	UTIL_ScreenFadeWrite( fade, pEntity );
 }
 
-void UTIL_ScreenFade( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+void UTIL_ScreenFade( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	alpha = CalculateFadeAlpha(fadeSource, pEntity, alpha);
 	if (alpha > 0)
-		UTIL_ScreenFade( pEntity, color, fadeTime, fadeHold, alpha, flags );
+		UTIL_ScreenFade( pEntity, color, fadeTime, fadeHold, alpha, flags, save );
 }
 
 void UTIL_HudMessage( CBaseEntity *pEntity, const hudtextparms_t &textparms, const char *pMessage )

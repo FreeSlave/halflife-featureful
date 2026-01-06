@@ -2665,11 +2665,11 @@ void CFade::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType
 		{
 			if (FBitSet(pev->spawnflags, SF_FADE_BLINDDIRECT))
 			{
-				UTIL_ScreenFade( pev->origin, pActivator, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags );
+				UTIL_ScreenFade( pev->origin, pActivator, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags, true );
 			}
 			else
 			{
-				UTIL_ScreenFade( pActivator, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags );
+				UTIL_ScreenFade( pActivator, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags, true );
 			}
 		}
 	}
@@ -2677,11 +2677,11 @@ void CFade::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType
 	{
 		if (FBitSet(pev->spawnflags, SF_FADE_BLINDDIRECT))
 		{
-			UTIL_ScreenFadeAll( pev->origin, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags );
+			UTIL_ScreenFadeAll( pev->origin, pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags, true );
 		}
 		else
 		{
-			UTIL_ScreenFadeAll( pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags );
+			UTIL_ScreenFadeAll( pev->rendercolor, Duration(), HoldTime(), (int)pev->renderamt, fadeFlags, true );
 		}
 	}
 	SUB_UseTargets( this );

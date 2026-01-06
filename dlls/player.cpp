@@ -160,6 +160,13 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 
 	DEFINE_FIELD(CBasePlayer, m_playerTemplateName, FIELD_STRING),
 
+	DEFINE_FIELD(CBasePlayer, m_fadeStarted, FIELD_TIME),
+	DEFINE_FIELD(CBasePlayer, m_fadeDuration, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_fadeHoldTime, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_fadeColor, FIELD_INTEGER),
+	DEFINE_FIELD(CBasePlayer, m_fadeAlpha, FIELD_SHORT),
+	DEFINE_FIELD(CBasePlayer, m_fadeFlags, FIELD_SHORT),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -5651,6 +5658,53 @@ void CBasePlayer::UpdateClientData()
 		}
 
 		SendPlayerTemplateData();
+
+		if (m_fadeStarted)
+		{
+			const float sumDurationLeft = m_fadeStarted + m_fadeDuration + m_fadeHoldTime - gpGlobals->time;
+			if (sumDurationLeft < 0.2f)
+			{
+				// it's too short, no point in replaying
+				m_fadeStarted = 0.0f;
+			}
+			else
+			{
+				int r, g, b;
+				UnpackRGB(r, g, b, m_fadeColor);
+				int alpha = m_fadeAlpha;
+
+				float fadeDuration, fadeHold;
+
+				if (FBitSet(m_fadeFlags, FFADE_OUT))
+				{
+					fadeDuration = sumDurationLeft - m_fadeHoldTime;
+					if (fadeDuration < 0.01f)
+					{
+						// Make sure it's not 0
+						fadeDuration = 0.01f;
+						fadeHold = sumDurationLeft - fadeDuration;
+					}
+					else
+					{
+						fadeHold = m_fadeHoldTime;
+					}
+				}
+				else
+				{
+					fadeHold = sumDurationLeft - m_fadeDuration;
+					fadeHold = Q_max(fadeHold, 0.0f);
+
+					fadeDuration = sumDurationLeft - fadeHold;
+
+					if (fadeDuration < m_fadeDuration)
+					{
+						alpha = alpha * fadeDuration / m_fadeDuration;
+					}
+				}
+
+				UTIL_ScreenFade(this, Vector(r, g, b), fadeDuration, fadeHold, alpha, m_fadeFlags);
+			}
+		}
 
 		m_bSentMessages = true;
 	}

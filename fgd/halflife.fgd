@@ -1915,7 +1915,7 @@
 		1: "Fade From" : 0
 		2: "Modulate" : 0
 		4: "Activator Only" : 0
-		8: "Direct blind" : 0 : "Fade alpha depends on the angle between viewer camera and env_fade origin"
+		8: "Directional blind" : 0 : "Fade alpha depends on the angle between viewer camera and env_fade origin"
 	]
 	duration(string) : "Duration (seconds)" : "2"
 	holdtime(string) : "Hold Fade (seconds)" : "0"

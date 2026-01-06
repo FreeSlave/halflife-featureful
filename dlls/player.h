@@ -569,6 +569,13 @@ public:
 	int m_ClientVolume;
 	float m_NextClientVolumeUpdate;
 
+	float m_fadeStarted;
+	float m_fadeDuration;
+	float m_fadeHoldTime;
+	int m_fadeColor;
+	short m_fadeAlpha;
+	short m_fadeFlags;
+
 	int m_ToolSignalBits;
 	int m_ToolStateBits;
 	int m_ClientToolStateBits;
