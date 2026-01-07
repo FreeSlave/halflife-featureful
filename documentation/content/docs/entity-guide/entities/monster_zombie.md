@@ -22,7 +22,7 @@ bookToC: false
 * **Zombie.Idle** - idle sounds.
 * **Zombie.Alert** - alert sounds.
 * **Zombie.Pain** - pain sounds.
-* **Zombie.Die** - death sounds.
+* **Zombie.Die** - death sounds. Empty by default.
 * **Zombie.Attack** - plays occasionally on the slash attack.
 * **Zombie.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **Zombie.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**

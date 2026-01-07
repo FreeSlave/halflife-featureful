@@ -51,6 +51,7 @@ public:
 
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
+	void DeathSound() override;
 	void AlertSound() override;
 	void IdleSound() override;
 	void AttackSound();
@@ -58,6 +59,7 @@ public:
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
 	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript attackSoundScript;
 	static constexpr const char* attackHitSoundScript = "Zombie.AttackHit";
 	static constexpr const char* attackMissSoundScript = "Zombie.AttackMiss";
@@ -100,6 +102,12 @@ const NamedSoundScript CZombie::painSoundScript = {
 	{"zombie/zo_pain1.wav", "zombie/zo_pain2.wav"},
 	IntRange(95, 104),
 	"Zombie.Pain"
+};
+
+const NamedSoundScript CZombie::dieSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Zombie.Die"
 };
 
 const NamedSoundScript CZombie::attackSoundScript = {
@@ -153,6 +161,11 @@ PainSoundRule CZombie::DefaultPainSoundRule()
 void CZombie::PainSound()
 {
 	EmitSoundScript(painSoundScript);
+}
+
+void CZombie::DeathSound()
+{
+	EmitSoundScript(dieSoundScript);
 }
 
 void CZombie::AlertSound()
@@ -274,6 +287,7 @@ void CZombie::PrecacheSounds()
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
