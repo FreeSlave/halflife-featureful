@@ -1614,7 +1614,7 @@ Custom delay before weapon can fire again after the reload has started. If this 
 
 ### idle_delay
 
-Delay before weapon can play idle animations after the reload has started.
+Delay before weapon can play idle animations after the reload has started. This can be [range]({{< ref "JSON/#range" >}}) for randomized delays.
 
 For [manual_reload](#manual_reload) weapons it becomes a delay between ammo transfers from the inventory into the weapon clip.
 

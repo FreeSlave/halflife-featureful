@@ -36,6 +36,28 @@ const char* const json_schemas::definitions = R"(
 		"minItems": 2,
 		"maxItems": 2
 	},
+	"range_non_negative": {
+		"type": ["string", "object", "number", "array"],
+		"minimum": 0,
+		"pattern": "^[0-9]+(\\.[0-9]+)?(,[0-9]+(\\.[0-9]+)?)?$",
+		"properties": {
+			"min": {
+				"type": "number",
+				"minimum": 0
+			},
+			"max": {
+				"type": "number",
+				"minimum": 0
+			}
+		},
+		"additionalProperties": false,
+		"items": {
+			"type": "number",
+			"minimum": 0
+		},
+		"minItems": 2,
+		"maxItems": 2
+	},
 	"range_int": {
 		"type": ["string", "object", "integer", "array"],
 		"pattern": "^[0-9]+(,[0-9]+)?$",

@@ -746,8 +746,7 @@ const char* const json_schemas::weapons = R"(
 				"minimum": 0
 			},
 			"idle_delay": {
-				"type": "number",
-				"minimum": 0
+				"$ref": "definitions.json#/range_non_negative"
 			},
 			"sound": {
 				"$ref": "#/w_soundscript"
