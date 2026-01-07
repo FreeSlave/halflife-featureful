@@ -366,9 +366,6 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 	if (bIsMultiplayer())
 		params.fire.clientPunchPitch.alt = 0.0f;
 
-	params.fire.idleDelay = 5.0f;
-	params.fire.idleDelay.mainEmptied = 0.75f;
-
 	params.fire.projectileName = "crossbow_bolt";
 	params.fire.projectileOffsetUp = -2.0f;
 	params.fire.projectileRespectPunchangle = true;
