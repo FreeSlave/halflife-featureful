@@ -1018,9 +1018,81 @@ Required sounds:
 * **weapons/sniper_bolt3.wav**
 {{% /details_header %}}
 
+## Half-Life
+
+Full written configurations for some standard Half-Life weapons are stored in the **templates/weapons/hl** directory. These can be used as a reference. Or you can copy the configuration for your custom weapon and change it a bit if you want a weapon similar to the standard Half-Life one.
+
+{{% details_header title="9mm Handgun (Glock)" %}}
+```json
+{
+    "weapon_pistol": "hl/9mmhandgun"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="357 Python" %}}
+```json
+{
+    "weapon_pistol2": "hl/357"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="9mm AR (MP5)" %}}
+```json
+{
+    "weapon_smg": "hl/9mmAR"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="SPAS Shotgun" %}}
+```json
+{
+    "weapon_shotgun2": "hl/shotgun"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="Crossbow" %}}
+```json
+{
+    "weapon_sniperrifle2": "hl/crossbow"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="Hornetgun" %}}
+```json
+{
+    "weapon_rifle": "hl/hornetgun"
+}
+```
+{{% /details_header %}}
+
+## Opposing Force
+
+Full written configurations for some standard Opposing Force weapons are stored in the **templates/weapons/op4** directory. These can be used as a reference. Or you can copy the configuration for your custom weapon and change it a bit if you want a weapon similar to the standard Opposing Force one.
+
+{{% details_header title="Desert Eagle" %}}
+```json
+{
+    "weapon_pistol": "op4/eagle"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="M40A1" %}}
+```json
+{
+    "weapon_sniperrifle2": "hl/sniperrifle"
+}
+```
+{{% /details_header %}}
+
 ## Poke646
 
-The templates for Poke646 weapons are store in the **templates/weapons/poke646/** directory. Not all weapons are implemented yet.
+The templates for Poke646 weapons are stored in the **templates/weapons/poke646/** directory. Not all weapons are implemented yet.
 
 {{% details "Example" open %}}
 ```json
