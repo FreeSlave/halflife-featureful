@@ -51,6 +51,23 @@ The Tor's energy beam and slam attacks can launch enemies upwards, so make sure 
 * **Tor.SummonBeam** - the temporary beam linking the Tor and the portal he creates.
 * **Tor.SummonSprite** - the portal sprite.
 
+### Attacks
+
+* *Melee Attack 1* - slam attack.
+* *Melee Attack 2* - staff attack.
+* *Range Attack 1* - energy beam.
+* *Range Attack 2* - summon.
+
+### Animation events
+
+* `1` - create slam wave.
+* `2` - trace hull attack using the staff swing. Deals **sk_tor_punch** damage.
+* `3` - start energy beam attack.
+* `4` - start summoning another monster. Plays **Tor.Summon** and **Tor.SummonPortal** soundscripts.
+* `7` - trace hull attack using the staff stab. Deals **sk_tor_punch** damage.
+* `10` - play **Tor.RightFoot** soundscript.
+* `11` - play **Tor.LeftFoot** soundscript.
+
 ### Entity template examples
 
 {{% tabs %}}
@@ -72,6 +89,42 @@ The Tor's energy beam and slam attacks can launch enemies upwards, so make sure 
                 "color": [128, 255, 255]
             }
         }
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_tor": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": 10,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.1,
+                    "hitgroup": "generic",
+                    "no_blood": true
+                },
+                "effects": {
+                    "ricochet": {
+                        "certain_on_new_frame": true,
+                        "chance": 0.1,
+                        "scale": [1.0, 2.0]
+                    },
+                    "tracer": {
+                        "chance": 0.5,
+                        "variance": 0.3
+                    }
+                }
+            }
+        ]
     }
 }
 ```
