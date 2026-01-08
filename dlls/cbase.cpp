@@ -1491,7 +1491,7 @@ void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool rever
 					if (vecMax)
 					{
 						if (localMax.LengthSqr() > vecMax->LengthSqr())
-							*vecMax = localMin;
+							*vecMax = localMax;
 					}
 				}
 			}
