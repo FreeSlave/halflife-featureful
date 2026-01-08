@@ -1348,6 +1348,9 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("shocktrooper_health_factor", 2.5f);
 	g_SkillData.ProvideFallback("voltigore_dmg_explode", "voltigore_dmg_beam");
 
+	g_SkillData.ProvideFallback("tor_lift_speed_ground", 200.0f);
+	g_SkillData.ProvideFallbackWithFactor("tor_lift_speed", "tor_lift_speed_ground", 0.6f);
+
 	g_SkillData.ProvideFallback("zaptrap_sense_radius", 244.0f);
 	g_SkillData.ProvideFallback("zaptrap_respawn_time", 18);
 

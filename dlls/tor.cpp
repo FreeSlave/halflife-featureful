@@ -578,7 +578,7 @@ void CTor::MonsterThink()
 					phit->TakeDamage(pev, pev, DamageInfo{GetSkillValue("tor_energybeam"), DMG_ENERGYBEAM});
 
 					if (phit->MyMonsterPointer() && (phit->pev->movetype == MOVETYPE_STEP || phit->IsPlayer())) {
-						phit->pev->velocity.z += (phit->pev->flags & FL_ONGROUND) ? 200 : 120;
+						phit->pev->velocity.z += (phit->pev->flags & FL_ONGROUND) ? GetSkillValue("tor_lift_speed_ground") : GetSkillValue("tor_lift_speed");
 					}
 				}
 			}

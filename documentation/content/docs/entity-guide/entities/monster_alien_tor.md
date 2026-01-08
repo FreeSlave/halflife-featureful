@@ -17,6 +17,8 @@ The Tor's energy beam and slam attacks can launch enemies upwards, so make sure 
 * **sk_tor_punch** - melee damage.
 * **sk_tor_energybeam** - damage per energy beam tick.
 * **sk_tor_sonicblast** - maximum slam attack damage.
+* **sk_tor_lift_speed_ground** - amount of vertical velocity to apply to the enemy on energy beam attack when enemy is on the ground. Default value is 200. This is usually higher than **sk_tor_lift_speed** to help lifting the target from the ground.
+* **sk_tor_lift_speed** - amount of vertical velocity to apply to the enemy on energy beam attack when enemy is *not* on the ground. By default it's **sk_tor_lift_speed_ground** multiplied by 0.6.
 
 ### Default classification
 
