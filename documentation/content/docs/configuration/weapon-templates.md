@@ -7,6 +7,125 @@ toc_start_level: 1
 
 Weapon templates allow to configure some aspects of weapon behavior via **templates/weapons.json** file. This includes fire rate, sounds, deploy and reload delays, animation indices and more.
 
+{{% details_header title="Quick example" %}}
+
+Let's say you want to do two things:
+
+* Add a burst attack to the Glock in place of its secondary attack.
+* Add a new gun which behaves exactly like Python but with a scope (like in a multiplayer) and you want to preserve the original Python untouched.
+
+Let's do it step by step.
+
+First, create a **templates/weapons.json** file in your mod directory (create **templates/** subdirectory if doesn't exist). Read [JSON editing]({{< ref "JSON/#editing" >}}). Open the file and put the following contents:
+
+```json
+{
+    "weapon_9mmhandgun": {
+        "alt_fire": {
+            "cycle_time": 0.5,
+            "burst": 3,
+            "burst_interval": 0.1,
+            "spread": 0.03
+        }
+    },
+    "weapon_pistol": "python_custom"
+}
+```
+
+As you can see there're some custom options for `weapon_9mmhandgun` - in this example they change how the secondary fire of the weapon works without touching other bits.
+
+Now, we also want a new weapon. The way how GoldSource works doesn't allow us to create new classnames on the fly, so instead Featureful SDK provides some predefined classnames for [additional weapons](#additional-weapons). The `weapon_pistol` is one of them, so we use it. While we were able to afford making minor changes to `weapon_9mmhandgun` because the Glock already has an established behavior, we want a completely custom behavior for the `weapon_pistol`. We could define its full configuration in the same file, but it quickly becomes lengthy and ugly espeically if you add more custom weapons later. To overcome this problem the weapon template system allows to define a weapon template in a separate file which should be located in **templates/weapons/** subdirectory.
+
+* Create the **templates/weapons/** subdirectory.
+* Create the **templates/weapons/python_custom.json** file.
+* Put the following contents in the **templates/weapons/python_custom.json** (I told you, it's pretty long!):
+```json
+{
+    "from_scratch": true,
+    "world_model": "models/w_357.mdl",
+    "view_model": "models/v_357.mdl",
+    "player_model": "models/p_357.mdl",
+    "player_anim_ext": "python",
+    "ammo_name": "357",
+    "ammo_amount": 6,
+    "max_clip": 6,
+    "priority": 15,
+    "deploy": {
+        "anim": 5
+    },
+    "idle": [
+        {
+            "anim": 0,
+            "chance": 0.5,
+            "duration": 2.333
+        },
+        {
+            "anim": 6,
+            "chance": 0.2,
+            "duration": 2
+        },
+        {
+            "anim": 7,
+            "chance": 0.2,
+            "duration": 2.933
+        },
+        {
+            "anim": 1,
+            "chance": 0.1,
+            "duration": 5.667
+        }
+    ],
+    "fire": {
+        "type": "bullet",
+        "damage": "plr_357_bullet",
+        "anims": [2],
+        "sound": {
+            "waves": ["weapons/357_shot1.wav", "weapons/357_shot2.wav"],
+            "volume": [0.8, 0.9]
+        },
+        "spread": "1degrees",
+        "autoaim": "10degrees",
+        "cycle_time": 0.75,
+        "allow_underwater": false,
+        "muzzleflash": true,
+        "weapon_volume": "loud",
+        "weapon_flash": "bright",
+        "client_punch_pitch": -10
+    },
+    "secondary_attack": "switch_mode",
+    "switch_mode": {
+        "attack_delay": 0.5
+    },
+    "viewmodel_body": 1,
+    "zoom": {
+        "fov": 40
+    },
+    "reload": {
+        "anim": 3,
+        "duration": 2
+    }
+}
+```
+
+We're almost there, just few more details:
+
+* As other non-standard weapons the `weapon_pistol` is not enabled by default. Go to **features/featureful_weapons.cfg** and enable `pistol` there.
+* Make sure the **sprites/weapon_pistol.txt** exists and configured to your liking.
+* You can configure the weapon position in the weapon list by editing the **features/hud_weapon_layout.cfg** file.
+
+Now, launch your mod and acquire the new weapon by using the `give weapon_pistol` cheat command (or put this entity on your map and pick it up). Enjoy the new weapon and don't forget to test the new Glock secondary attack.
+
+So, to reiterate:
+
+* Customizing a weapon via templates requires **templates/weapons.json** file.
+* Weapon templates can be defined either right in the **templates/weapons.json** file or in a separate file located in the **templates/weapons** subdirectory.
+* Weapon templates allow to change some aspects of the existing weapons with minial configuration.
+* Adding a new weapon would require to create a full configuration.
+* Using the classname of the non-standard weapon might require changes to the **features/featureful_weapons.cfg** in order to enable this weapon.
+* The HUD .txt file must be provided in **sprites/** for the weapon classname for the correct display of the weapon in HUD.
+
+{{% /details_header %}}
+
 # Format of templates/weapons.json
 
 The document is an object where each property presents a weapon template. The keys must be weapon entity names, case sensitive (e.g. `"weapon_9mmhandgun"`). The value must either be a weapon template or a string referring to the .json file under **templates/weapons/** directory (**.json** extension can be omitted) and in its turn this file must contain a document representing a single weapon template.

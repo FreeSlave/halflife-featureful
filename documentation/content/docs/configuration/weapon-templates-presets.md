@@ -4,7 +4,11 @@ title: "Weapon templates (presets)"
 
 # {{% param "title" %}}
 
-The sample mod includes some premade [weapon templates]({{< ref "weapon-templates" >}}) to simulate weapons from other mods.
+The sample mod includes some premade [weapon templates]({{< ref "weapon-templates" >}}) to simulate weapons from other mods. These can be used as references or a basis for further changes. Or you might want to straight up borrow a weapon from another mod.
+
+{{% hint info %}}
+Testing out the weapons from another mod requires copying all required resources from the said mod. We try listing all models and sounds required for the weapon.
+{{% /hint %}}
 
 {{% hint info %}}
 If not stated otherwise, the weapon template can be applied to any fully configurable weapon, replacing its behavior (via [from_scratch]({{< ref "weapon-templates#from_scratch" >}}) property).
@@ -827,10 +831,6 @@ Delta Particles changes the way some HL weapons behave as well as adds its own w
 
 Glock from Delta Particles with burst fire and shells ejecting to the left side.
 
-{{% hint warning %}}
-This template is designed specifically for `weapon_9mmhandgun`, it won't work properly for other weapons without modifications.
-{{% /hint %}}
-
 Required model:
 
 * **v_9mmhandgun.mdl** (custom model from Delta Particles)
@@ -854,10 +854,6 @@ Required sounds:
 ```
 
 Python with a scope ability and a laser spot when unscoped.
-
-{{% hint warning %}}
-This template is designed specifically for `weapon_357`, it won't work properly for other weapons without modifications.
-{{% /hint %}}
 
 Required model:
 
@@ -967,10 +963,6 @@ Required sounds:
     "weapon_shotgun": "dp/shotgun"
 }
 ```
-
-{{% hint warning %}}
-This template is designed specifically for `weapon_shotgun`, it won't work properly for other weapons without modifications.
-{{% /hint %}}
 
 {{% hint warning %}}
 Delta Particles uses custom animation events and attachment point for shell ejection. This is not implemented in Featureful SDK. Instead, the ejection delay and shell offset are provided as constant value in the weapon template file.
