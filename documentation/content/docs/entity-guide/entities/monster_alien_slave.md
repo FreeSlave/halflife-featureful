@@ -14,7 +14,7 @@ bookToC: false
     - Revival of another ally vortigaunt (spends energy equal to the maximum health of the revived vortigaunt).
     - Healing an ally vortigaunt (energy converts to health).
     - Sending an armor charge to the ally player (spends energy equal to the amount of armor the charge token provides).
-* Performing any of these abilities requires a vortigaunt to have higher than 0 energy. The energy can go negative if performing an ability spends more energy than the vortigaunt currently has. In order to use the abilities again the vortigaunt must gain the positive value.
+* Performing any of these abilities requires a vortigaunt to have higherr than 0 energy. The energy can go negative if performing an ability spends more energy than the vortigaunt currently has. In order to use the abilities again the vortigaunt must gain the positive value.
 * The amount of energy the vortigaunt gets from zap attack depends on the amount of damage it dealt. So, if enemy is protected from shock attacks, damaging it will give less energy.
 * The vortigaunt with `Squad Leader` spawnflag (even if he's not in the squad) has an initial pool of free energy on spawn. He also spends less energy comparing to other vortigaunts.
 * ![](/images/svencoop.png) Can revive fallen ally alien slaves using an excess energy (if **sk_islave_revival** is higher than 0). Unlike Sven Co-op implementation it does not halve the maximum vortigaunt health. Instead each vortigaunt can be revived only once.
@@ -35,6 +35,11 @@ sk_islave_selfheal 0
 sk_islave_heal 0
 ```
 {{% /hint %}}
+
+### New parameters
+
+* `Initial energy` - custom amount of initial energy. If 0 or not set, the value of **sk_islave_initial_energy** is used.
+* `Weapons` - allows vortigaunt to summon a familiar creature (snark or headcrab). Spawning other monsters is possible via [children]({{< ref "entity-templates/#children" >}}) configuration. Note that the same properties will be applied independently whether the vortigaunt is set to spawn snarks or headcrabs).
 
 ### Skill variables
 

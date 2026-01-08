@@ -420,7 +420,7 @@ public:
 	bool CanUseGlowArms();
 	void HandGlowOff(CSprite* handGlow);
 	void HandsGlowOff();
-	void CreateSummonBeams();
+	void CreateSummonBeams(const Vector& vecEnd);
 	void RemoveSummonBeams();
 	void RemoveHandGlows();
 	void RemoveChargeToken();
@@ -464,12 +464,12 @@ public:
 
 	const char* FamiliarName()
 	{
-		if (pev->weapons & ISLAVE_SNARKS) {
+		if (FBitSet(pev->weapons, ISLAVE_SNARKS)) {
 			return "monster_snark";
-		} else if (pev->weapons & ISLAVE_HEADCRABS) {
+		} else if (FBitSet(pev->weapons, ISLAVE_HEADCRABS)) {
 			return "monster_headcrab";
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	int FamiliarHull()
@@ -480,12 +480,11 @@ public:
 	Vector GetFamiliarSpawnPosition()
 	{
 		UTIL_MakeVectors( pev->angles );
-		if (pev->weapons & ISLAVE_SNARKS) {
-			return pev->origin + gpGlobals->v_forward * 36 + Vector(0,0,20);
-		} else if (pev->weapons & ISLAVE_HEADCRABS) {
-			return pev->origin + gpGlobals->v_forward * 48 + Vector(0,0,20);
-		}
-		return pev->origin + gpGlobals->v_forward * 36 + Vector(0,0,20);
+		const float familiarSide = (m_summonMaxSize.x - m_summonMinSize.x) * 0.5f;
+		const float vortSide = pev->size.x * 0.5f;
+		const float baseDist = sqrt(vortSide * vortSide + vortSide * vortSide) * 1.3f;
+		const float dist = std::ceil(baseDist + sqrt(familiarSide * familiarSide + familiarSide * familiarSide));
+		return pev->origin + gpGlobals->v_forward * dist + Vector(0,0,20);
 	}
 
 	int m_iBravery;
@@ -514,6 +513,9 @@ public:
 	CBeam *m_handsBeam2;
 
 	CChargeToken* m_chargeToken;
+
+	Vector m_summonMinSize;
+	Vector m_summonMaxSize;
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -579,6 +581,9 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 	DEFINE_FIELD( CISlave, m_minHullSize, FIELD_VECTOR ),
 	DEFINE_FIELD( CISlave, m_maxHullSize, FIELD_VECTOR ),
 	DEFINE_FIELD( CISlave, m_chargeToken, FIELD_CLASSPTR ),
+
+	DEFINE_FIELD( CISlave, m_summonMinSize, FIELD_VECTOR ),
+	DEFINE_FIELD( CISlave, m_summonMaxSize, FIELD_VECTOR ),
 };
 
 IMPLEMENT_SAVERESTORE( CISlave, CFollowingMonster )
@@ -1263,7 +1268,8 @@ void CISlave::StartTask( Task_t *pTask )
 	{
 	case TASK_ISLAVE_SUMMON_FAMILIAR:
 	{
-		if (CanSpawnAtPosition(GetFamiliarSpawnPosition(), FamiliarHull(), edict()))
+		const Vector summonPoint = GetFamiliarSpawnPosition();
+		if (CanSpawnAtPosition(summonPoint, FamiliarHull(), edict()))
 		{
 			m_IdealActivity = ACT_CROUCH;
 			EmitSoundScript(summonStartSoundScript);
@@ -1271,7 +1277,7 @@ void CISlave::StartTask( Task_t *pTask )
 			const Vector vecSrc = pev->origin + gpGlobals->v_forward * 8;
 			SendDynLight(vecSrc, GetVisual(summonLightVisual));
 			HandsGlowOn();
-			CreateSummonBeams();
+			CreateSummonBeams(summonPoint);
 		}
 		else
 		{
@@ -1398,22 +1404,31 @@ void CISlave::SpawnFamiliar(const char *entityName, const Vector &origin, int hu
 		return;
 	}
 	if (CanSpawnAtPosition(origin, hullType, edict())) {
-		CBaseEntity *pNew = Create( entityName, origin, pev->angles, edict() );
 
-		if(pNew) {
+		ChildVariantHandle childVariant = SelectChildVariant(entityName);
+		CBaseEntity* pNew = CreateNoSpawn(childVariant.classname, origin, pev->angles, edict());
+		if (pNew)
+		{
+			pNew->FillKeyValues(childVariant.parameters);
+
 			CBaseMonster *pNewMonster = pNew->MyMonsterPointer();
 
-			Remember(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE);
 			CreateSpriteFromVisual(GetVisual(summonSpriteVisual), origin, SF_SPRITE_ONCE_AND_REMOVE);
 			EmitSoundScript(summonEndSoundScript);
 
-			SetBits( pNew->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND );
-			if (pNewMonster) {
-				pNewMonster->m_iClass = m_iClass;
-				pNewMonster->m_reverseRelationship = m_reverseRelationship;
-				if (m_hEnemy) {
+			if (pNewMonster)
+			{
+				SetBits( pNew->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND );
+				FixChildClassify(pNewMonster);
+			}
+
+			if (DispatchSpawnAutoClean(pNew))
+			{
+				if (pNewMonster)
+				{
 					pNewMonster->PushEnemy(m_hEnemy, m_vecEnemyLKP);
 				}
+				Remember(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE);
 			}
 		}
 	} else {
@@ -1518,8 +1533,12 @@ void CISlave::Precache()
 		RegisterAndPrecacheSoundScript(glowAlarmSoundScript);
 
 	RegisterVisual(summonSpriteVisual);
-	UTIL_PrecacheOther( "monster_snark" );
-	UTIL_PrecacheOther( "monster_headcrab" );
+
+	const char* familiarClassname = FamiliarName();
+	if (familiarClassname)
+	{
+		PrecacheChildren(familiarClassname, m_reverseRelationship, &m_summonMinSize, &m_summonMaxSize);
+	}
 
 	UTIL_PrecacheOther( "charge_token", GetProjectileOverrides() );
 }
@@ -2137,10 +2156,8 @@ Vector CISlave::HandPosition(int side)
 	return pev->origin + gpGlobals->v_up * 36 + gpGlobals->v_right * side * 16 + gpGlobals->v_forward * 32;
 }
 
-void CISlave::CreateSummonBeams()
+void CISlave::CreateSummonBeams(const Vector& vecEnd)
 {
-	UTIL_MakeVectors(pev->angles);
-	Vector vecEnd = pev->origin + gpGlobals->v_forward * 36;
 	if (m_handGlow1) {
 		m_handsBeam1 = CreateSummonBeam(vecEnd, 1);
 	}
