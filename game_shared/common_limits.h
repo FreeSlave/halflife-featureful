@@ -6,4 +6,7 @@
 #define	MAX_AMMO_TYPES 32
 #define MAX_INVENTORY_ITEMS 8
 
+#define MAX_WEAPON_NAME 128
+#define WEAPON_SLOTS_HARDLIMIT 7
+
 #endif

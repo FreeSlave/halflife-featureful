@@ -7,7 +7,7 @@
 #include <cstddef>
 
 void SkipSpaceCharacters(const char* text, int& i, const int length);
-bool SkipSpaces(const char* text, int& i, const int length);
+bool SkipSpacesAndTabs(const char* text, int& i, const int length);
 void ConsumeNonSpaceCharacters(const char* text, int& i, const int length);
 void ConsumeLine(const char* text, int& i, const int length);
 void ConsumeLineSignificantOnly(const char* text, int& i, const int length);

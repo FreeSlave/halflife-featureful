@@ -20,18 +20,12 @@
 #define AMMOHISTORY_H
 
 #include "ammo.h"
+#include "bucket_preferences.h"
 
 #include <cstdint>
 
 // this is the max number of items in each bucket
 #define MAX_WEAPON_POSITIONS		10
-
-struct BucketPreference
-{
-	char szName[MAX_WEAPON_NAME];
-	int iPreferredSlot;
-	int iPreferredSlotPos;
-};
 
 class WeaponsResource
 {
@@ -44,7 +38,7 @@ private:
 	int			riAmmo[MAX_AMMO_TYPES];					// count of each ammo type
 
 	WEAPON*	weaponTable[WEAPON_SLOTS_HARDLIMIT][MAX_WEAPON_POSITIONS + 1]; // Unlike rgSlots this is always filled with registered weapons
-	BucketPreference bucketPreferences[MAX_WEAPONS];
+	BucketPreferenceSet bucketPreferences;
 public:
 	void Init();
 

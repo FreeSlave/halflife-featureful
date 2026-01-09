@@ -457,7 +457,7 @@ bool IsNonSignificantLine(const char* line, bool allowMinus = false)
 char* TryConsumeToken(char* buffer, const int length)
 {
 	int i = 0;
-	SkipSpaces(buffer, i, length);
+	SkipSpacesAndTabs(buffer, i, length);
 
 	if (IsNonSignificantLine(buffer + i, true))
 		return NULL;
@@ -484,7 +484,7 @@ enum
 void TryConsumeKeyAndValue(char* buffer, const int length, char*& key, char*& value, int consumeValuePolicy = CONSUME_VALUE_ONLY_FIRST_TOKEN)
 {
 	int i = 0;
-	SkipSpaces(buffer, i, length);
+	SkipSpacesAndTabs(buffer, i, length);
 
 	if (IsNonSignificantLine(buffer + i))
 		return;
@@ -492,7 +492,7 @@ void TryConsumeKeyAndValue(char* buffer, const int length, char*& key, char*& va
 	const int keyStart = i;
 	ConsumeNonSpaceCharacters(buffer, i, length);
 	const int keyLength = i - keyStart;
-	SkipSpaces(buffer, i, length);
+	SkipSpacesAndTabs(buffer, i, length);
 	const int valueStart = i;
 	if (consumeValuePolicy == CONSUME_VALUE_ONLY_FIRST_TOKEN)
 		ConsumeNonSpaceCharacters(buffer, i, length);
@@ -1499,7 +1499,15 @@ void GameDLLInit()
 
 	ParseModConfigs();
 
-	ReadSaveTitles();
+	{
+		const char* fileName = "save_titles.txt";
+		int fileSize;
+		unsigned char *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
+		if (!pMemFile)
+			return;
+		ReadSaveTitles(pMemFile, fileSize, fileName);
+		g_engfuncs.pfnFreeFile(pMemFile);
+	}
 
 	// Register cvars here:
 

@@ -4,9 +4,12 @@
 #include <vector>
 #include <utility>
 
-#include "util.h"
+#include "arraysize.h"
+#include "file_utils.h"
+#include "logger.h"
 #include "parsetext.h"
 #include "savetitles.h"
+#include "util_shared.h"
 
 struct TitleComment
 {
@@ -112,14 +115,9 @@ const char* GetSaveTitleForMap(const char* mapname)
 	return nullptr;
 }
 
-void ReadSaveTitles()
+void ReadSaveTitles(unsigned char *pMemFile, int fileSize, const char* fileName)
 {
-	const char* fileName = "save_titles.txt";
 	int filePos = 0;
-	int fileSize;
-	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
-	if (!pMemFile)
-		return;
 
 	char buffer[512] = { 0 };
 	int lineNum = 0;
@@ -135,7 +133,7 @@ void ReadSaveTitles()
 		int keyNameEnd;
 		if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), keyNameStart, keyNameEnd))
 		{
-			ALERT(at_error, "%s: error parsing the mapname prefix on line %d\n", fileName, lineNum);
+			LOG_ERROR("%s: error parsing the mapname prefix on line %d\n", fileName, lineNum);
 			break;
 		}
 		SkipSpaceCharacters(buffer, i, sizeof(buffer));
@@ -143,14 +141,13 @@ void ReadSaveTitles()
 		int valueEnd;
 		if (!ConsumePossiblyQuotedString(buffer, i, sizeof(buffer), valueStart, valueEnd))
 		{
-			ALERT(at_error, "%s: error parsing the title on line %d\n", fileName, lineNum);
+			LOG_ERROR("%s: error parsing the title on line %d\n", fileName, lineNum);
 			break;
 		}
 		g_SaveTitles.push_back(std::make_pair(std::string(buffer+keyNameStart, buffer+keyNameEnd), std::string(buffer+valueStart, buffer+valueEnd)));
 	}
 	for (auto it = g_SaveTitles.begin(); it != g_SaveTitles.end(); ++it)
 	{
-		ALERT(at_console, "Save title: %s : %s\n", it->first.c_str(), it->second.c_str());
+		LOG("Save title: %s : %s\n", it->first.c_str(), it->second.c_str());
 	}
-	g_engfuncs.pfnFreeFile(pMemFile);
 }

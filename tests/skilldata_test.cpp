@@ -22,9 +22,9 @@ sk_barney_health "35"
 
 sk_plr_crowbar 10
 
-islave_health1  "30"
-islave_health2  "40"
-islave_health3  "60"
+islave_health1	"30"
+islave_health2	"40"
+islave_health3	"60"
 
 scientist_health "20"
 

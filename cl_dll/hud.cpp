@@ -1055,7 +1055,7 @@ void CHud::ParseClientFeatures()
 			ConsumeNonSpaceCharacters(pfile, i, fileSize);
 
 			const int keyLength = i - keyStart;
-			SkipSpaces(pfile, i, fileSize);
+			SkipSpacesAndTabs(pfile, i, fileSize);
 			const int valueStart = i;
 			ConsumeLineSignificantOnly(pfile, i, fileSize);
 			const int valueLength = i - valueStart;

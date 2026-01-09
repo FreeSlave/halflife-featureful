@@ -11,10 +11,10 @@ void SkipSpaceCharacters(const char* text, int& i, const int length)
 	}
 }
 
-bool SkipSpaces(const char *text, int& i, const int length)
+bool SkipSpacesAndTabs(const char *text, int& i, const int length)
 {
 	int start = i;
-	while (i<length && text[i] == ' ')
+	while (i<length && text[i] == ' ' || text[i] == '\t')
 	{
 		++i;
 	}
@@ -23,7 +23,7 @@ bool SkipSpaces(const char *text, int& i, const int length)
 
 void ConsumeNonSpaceCharacters(const char *text, int& i, const int length)
 {
-	while(i<length && text[i] != ' ' && text[i] != '\n' && text[i] != '\r' && text[i] != '\0')
+	while(i<length && !IsSpaceCharacter(text[i]) && text[i] != '\0')
 	{
 		++i;
 	}

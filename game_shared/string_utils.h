@@ -34,7 +34,7 @@ inline bool IsValidIdentifierCharacter(char c) {
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
 }
 inline bool IsSpaceCharacter(char c) {
-	return c == ' ' || c == '\r' || c == '\n';
+	return c == ' ' || c == '\r' || c == '\n' || c == '\t';
 }
 
 #endif

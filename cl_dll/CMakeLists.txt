@@ -94,6 +94,7 @@ set (CLDLL_SOURCES
 	ammo.cpp
 	ammo_secondary.cpp
 	ammohistory.cpp
+	bucket_preferences.cpp
 	cdll_int.cpp
 	cl_fx.cpp
 	cl_msg_fx.cpp

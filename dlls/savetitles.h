@@ -4,6 +4,6 @@
 
 const char* GetSaveTitleForMap(const char* mapname);
 
-void ReadSaveTitles();
+void ReadSaveTitles(unsigned char *pMemFile, int fileSize, const char* fileName);
 
 #endif

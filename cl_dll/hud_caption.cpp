@@ -394,7 +394,7 @@ static void ParseCaptionColor(const char* pfile, int& i, int length, CaptionProf
 	int rgb[3];
 	for (int j=0; j<3; ++j)
 	{
-		SkipSpaces(pfile, i, length);
+		SkipSpacesAndTabs(pfile, i, length);
 		rgb[j] = atoi(pfile + i);
 		ConsumeNonSpaceCharacters(pfile, i, length);
 	}
@@ -548,7 +548,7 @@ bool CHudCaption::ParseCaptionsFile()
 				Caption_t caption(captionName);
 
 				do {
-					SkipSpaces(pfile, i, length);
+					SkipSpacesAndTabs(pfile, i, length);
 					currentTokenStart = i;
 					ConsumeNonSpaceCharacters(pfile, i, length);
 
@@ -571,7 +571,7 @@ bool CHudCaption::ParseCaptionsFile()
 					gEngfuncs.Con_Printf("Could not find a caption profile '%c%c' for %s\n", firstLetter, secondLetter, caption.name);
 				}
 
-				SkipSpaces(pfile, i, length);
+				SkipSpacesAndTabs(pfile, i, length);
 				currentTokenStart = i;
 				ConsumeLine(pfile, i, length);
 

@@ -16,13 +16,11 @@
 #if !defined(__AMMO_H__)
 #define __AMMO_H__
 
-#define MAX_WEAPON_NAME 128
+#include "common_limits.h"
 
 #define WEAPON_FLAGS_SELECTONEMPTY	1
 
 #define WEAPON_IS_ONTARGET 0x40
-
-#define WEAPON_SLOTS_HARDLIMIT 7
 
 struct WEAPON
 {
