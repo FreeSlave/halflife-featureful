@@ -109,17 +109,17 @@ Now, we also want a new weapon. The way how GoldSource works doesn't allow us to
 
 We're almost there, just few more details:
 
-* As other non-standard weapons the `weapon_pistol` is not enabled by default. Go to **features/featureful_weapons.cfg** and enable `pistol` there.
+* Being a non-standard weapon the `weapon_pistol` is not enabled by default. Go to **features/featureful_weapons.cfg** and enable `pistol` there.
 * Make sure the **sprites/weapon_pistol.txt** exists and configured to your liking.
 * You can configure the weapon position in the weapon list by editing the **features/hud_weapon_layout.cfg** file.
 
-Now, launch your mod and acquire the new weapon by using the `give weapon_pistol` cheat command (or put this entity on your map and pick it up). Enjoy the new weapon and don't forget to test the new Glock secondary attack.
+Now, launch your mod and acquire the new weapon by using the `give weapon_pistol` or `impulse 101` cheat command (or put this entity on your map and pick it up). Enjoy the new weapon and don't forget to test the new Glock secondary attack.
 
 So, to reiterate:
 
 * Customizing a weapon via templates requires **templates/weapons.json** file.
 * Weapon templates can be defined either right in the **templates/weapons.json** file or in a separate file located in the **templates/weapons** subdirectory.
-* Weapon templates allow to change some aspects of the existing weapons with minial configuration.
+* Weapon templates allow to change some aspects of the existing weapons with minimal configuration.
 * Adding a new weapon would require to create a full configuration.
 * Using the classname of the non-standard weapon might require changes to the **features/featureful_weapons.cfg** in order to enable this weapon.
 * The HUD .txt file must be provided in **sprites/** for the weapon classname for the correct display of the weapon in HUD.
