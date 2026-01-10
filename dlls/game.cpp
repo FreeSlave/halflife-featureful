@@ -1503,10 +1503,11 @@ void GameDLLInit()
 		const char* fileName = "save_titles.txt";
 		int fileSize;
 		unsigned char *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
-		if (!pMemFile)
-			return;
-		ReadSaveTitles(pMemFile, fileSize, fileName);
-		g_engfuncs.pfnFreeFile(pMemFile);
+		if (pMemFile)
+		{
+			ReadSaveTitles(pMemFile, fileSize, fileName);
+			g_engfuncs.pfnFreeFile(pMemFile);
+		}
 	}
 
 	// Register cvars here:
