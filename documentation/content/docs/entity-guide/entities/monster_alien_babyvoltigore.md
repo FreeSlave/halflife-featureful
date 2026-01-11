@@ -54,7 +54,8 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
                 "spawn_blood": true,
                 "damage_info": {
                     "type": ["club"],
-                }
+                },
+                "height": "*1"
             },
             "13": {
                 "distance": 64,
@@ -69,7 +70,8 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
                 "spawn_blood": true,
                 "damage_info": {
                     "type": ["club"],
-                }
+                },
+                "height": "*1"
             }
         }
     }

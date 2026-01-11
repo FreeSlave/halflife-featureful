@@ -8,7 +8,7 @@ Various configuration files in Featureful SDK are in [JSON](https://en.wikipedia
 
 ## Editing
 
-JSON files can be opened and modified in any text editor, but the text must be formatted in the special way. To avoid mistakes it's recommended to use a text editor with support for JSON validation, e.g. [Visual Studio Code](https://code.visualstudio.com/), [Sublime Text](https://www.sublimetext.com/) or use online JSON validators.
+JSON files can be opened and modified in any text editor, but the text must be formatted in the special way. To avoid mistakes it's recommended to use a text editor with support for JSON validation, e.g. [Visual Studio Code](https://code.visualstudio.com/), [Sublime Text](https://www.sublimetext.com/) or use online JSON validators. [Notepad++](https://notepad-plus-plus.org/) has a 'JSON Viewer' plugin which is capable of displaying the object hierarchy and do the formatting for better readibility.
 
 ## Common mistakes
 

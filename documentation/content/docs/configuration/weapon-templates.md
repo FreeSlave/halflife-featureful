@@ -7,6 +7,14 @@ toc_start_level: 1
 
 Weapon templates allow to configure some aspects of weapon behavior via **templates/weapons.json** file. This includes fire rate, sounds, deploy and reload delays, animation indices and more.
 
+{{% hint info %}}
+Weapon templates can become hard to maintain when they grow in size and count. Ensure you studied the [JSON]({{< ref json >}}) format and use the proper software to view and edit **.json** files.
+{{% /hint %}}
+
+{{% hint warning %}}
+When editing the weapon templates ensure to run the mod in the developer mod to see the errors on the screen and allow re-parsing the configuration on the save-reload or the map restart. See [Recommendations]({{< ref "developing-the-mod/#recommendations" >}}).
+{{% /hint %}}
+
 {{% details_header title="Quick example" %}}
 
 Let's say you want to do two things:

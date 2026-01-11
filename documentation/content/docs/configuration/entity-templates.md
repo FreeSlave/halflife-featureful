@@ -13,6 +13,14 @@ This is where Entity templates come to the rescue. You define the template with 
 
 The Entity templates are configured via **templates/entities.json**. Each template has a name that is used by entities to refer to the template.
 
+{{% hint info %}}
+Entity templates can become hard to maintain when they grow in size and count. Ensure you studied the [JSON]({{< ref json >}}) format and use the proper software to view and edit **.json** files.
+{{% /hint %}}
+
+{{% hint warning %}}
+When editing the entity templates ensure to run the mod in the developer mod to see the errors on the screen and allow re-parsing the configuration on the save-reload or the map restart. See [Recommendations]({{< ref "developing-the-mod/#recommendations" >}}).
+{{% /hint %}}
+
 ## Examples
 
 Here's a list of some useful example to give you the idea of what templates are capable of.
@@ -103,10 +111,19 @@ Let's say your want a friendly vortigaunt variation in the mod, with a different
             "Vortigaunt.ArmBeamColor": {
                 "color": [128, 16, 96]
             }
+        },
+        "skill": {
+            "islave_health": 50,
+            "islave_dmg_claw": 10,
+            "islave_dmg_zap": 12,
+            "islave_zap_rate": 1.25,
+            "islave_revival": 1
         }
     }
 }
 ```
+
+We also set skill values the way so friendly vortigaunts have the same stats across all difficulties.
 
 {{% /details %}}
 
@@ -573,9 +590,19 @@ The property keys must be stringified numbers equal to the animation event indic
     - `"up"` - upwards velocity.
     - `"player_only"` - whether the knockback is applied to player only.
 * `"damage_info"` - [damage info](#damage_info). This allows to change the damage type of the attack and other damage characteristics.
-* `"spawn_blood"` - a boolean denoting whether melee attack should make the hit target bleed if damage has been dealt.
+* `"spawn_blood"` - a boolean denoting whether melee attack should make the hit target bleed (if it can) if damage has been dealt.
 * `"hit_soundscript"` - soundscript to play if trace hull attack hit something. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
 * `"miss_soundscript"` - soundscript to play if trace hull attack didn't hit anything. Must be either the name of the soundscript from **sound/soundscripts.json** or the object defining the soundscript. You should prefer replacing the monster's soundscript via [soundscripts](#soundscripts) when possible.
+
+{{% hint warning %}}
+The distance must be large enough for the checking hull to leave the monster's geometry.
+
+The distance value must also be in agreement with the `check_melee_attack1` and `check_melee_attack2` conditions to avoid situations when monster thinks they can hit their target but the trace hull attack doesn't propagate far enough to actually hit the target.
+{{% /hint %}}
+
+{{% hint warning %}}
+The resulting height value (whether it's defined as a constant or as a multiplier for the monster's height) must be at least 18 units for the land monsters. Otherwise the hull check will stop at the ground level (as the monster's origin of the land monsters is at their feet).
+{{% /hint %}}
 
 The provided parameters are getting merged with the predefined parameters in-game (depending on the monster). For example, if the attack has the forward knock by default and your definition doesn't mention it, the forward knock is still preserved. You'll need to manually set it to 0 if you don't want it.
 
@@ -962,6 +989,7 @@ Here it's using the array form again, with equal chances for each monster type t
 
 The list of monsters who is capable of spawning children:
 
+* [monster_alien_slave]({{< ref monster_alien_slave >}}) - spawns [monster_snark]({{< ref monster_snark >}}) or [monster_headcrab]({{< ref monster_headcrab >}}) (depends on the chosen weapon).
 * [monster_alien_tor]({{< ref monster_alien_tor >}}) - spawns [monster_alien_grunt]({{< ref monster_alien_grunt >}}).
 * [monster_bigmomma]({{< ref monster_bigmomma >}}) - spawns [monster_babycrab]({{< ref monster_babycrab >}}).
 * [monster_osprey]({{< ref monster_osprey >}}) - spawns [monster_human_grunt]({{< ref monster_human_grunt >}}) or [monster_human_grunt_ally]({{<  ref monster_human_grunt_ally>}}) depending on the Grunt Type parameter.
