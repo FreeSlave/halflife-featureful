@@ -416,6 +416,12 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				}
 			});
 
+			HandleJSONMember(value, "hit_anims", [&](const Value& value) {
+				Value::ConstArray animArr = value.GetArray();
+				auto& v = fire.hitAnims.Materialize(altMode);
+				HandleFireAnimArray(animArr, v);
+			});
+
 			HandleJSONMember(value, "charge_anims", [&](const Value& value) {
 				Value::ConstArray animArr = value.GetArray();
 				auto& v = fire.chargeAnims.Materialize(altMode);

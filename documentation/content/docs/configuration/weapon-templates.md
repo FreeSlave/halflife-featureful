@@ -622,6 +622,10 @@ Same as [anims](#anims), but used when weapon becomes out of ammo (primary or se
 
 Set it to `null` to remove the defaults and let the weapon always use [anims](#anims).
 
+### hit_anims
+
+The array of animation indices. The random animation is picked when melee weapon hits something. Used by melee weapons to distinguish between hit and miss.
+
 ### autoaim
 
 An autoaim degree (used when autoaim is enabled). This must be a number between 0 and 1 (the `sin` of autoaim angle) where 0 means no autoaim or the string in the form `"5degrees"`, `"8degrees"`, etc. The number before `degrees` is the angle. It must be an integer between 1 and 10.

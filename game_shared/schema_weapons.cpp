@@ -219,6 +219,9 @@ const char* const json_schemas::weapons = R"(
 				"minItems": 1,
 				"maxItems": 4
 			},
+			"hit_anims": {
+				"$ref": "#/anim_array"
+			},
 			"charge_anims": {
 				"$ref": "anim_array"
 			},
