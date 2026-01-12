@@ -585,6 +585,9 @@ const char* const json_schemas::weapons = R"(
 			"shake": {
 				"$ref": "definitions.json#/shake"
 			},
+			"hit_shake": {
+				"$ref": "definitions.json#/shake"
+			},
 			"prevent_movement": {
 				"type": "boolean"
 			},

@@ -2367,6 +2367,8 @@ void CConfigurableWeapon::ResetWeaponData()
 void CConfigurableWeapon::Smack()
 {
 #if !CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+	SendScreenShake(params.fire.hitShake.Get(m_swingIsAltAttack));
 	DecalSmack( &m_trHit );
 #endif
 }

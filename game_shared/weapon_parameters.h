@@ -615,6 +615,7 @@ struct WeaponParameters
 		WeaponModeValue<bool> pushbackVertical{false};
 
 		WeaponModeValue<PlayerShake> shake;
+		WeaponModeValue<PlayerShake> hitShake;
 
 		// TODO: this is temporary, will be replaced with configurable spray
 		WeaponModeValue<bool> spitSpray;

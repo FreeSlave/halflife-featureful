@@ -1225,6 +1225,10 @@ An object defining screen shake properties. The shake is played on each fire.
 * `"frequency"` - shake frequency (between 0 and 255). Default value is 160.
 * `"amplitude"` - shake amplitude (between 0 and 16). Default value is 6.
 
+### hit_shake
+
+Same as `"shake"` but plays only when melee attack hits something.
+
 ### shell
 
 An object that defines properties related to shell ejection on bullet fire.
