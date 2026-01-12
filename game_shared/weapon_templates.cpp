@@ -386,6 +386,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				}
 			});
 
+			UpdatePropertyFromJson(fire.subsequentSwingFactor, value, "subsequent_swing_dmg_factor", altMode);
+
 			auto HandleFireAnimArray = [](Value::ConstArray& animArr, WeaponParameters::FireAnimArray& v)
 			{
 				v.clear();

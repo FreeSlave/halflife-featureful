@@ -1529,6 +1529,14 @@ Properties:
     * `"factor"` - how much of inaccuracy is translated to the extra spread. This property is required.
     * `"conditions"` (only if array) - an object that defines player movement conditions to check against when choosing the spread rule.
 
+### subsequent_swing_dmg_factor
+
+The multiplier for the subsequent melee attacks (i.e. every swing after the first one in the sequence of swings). This is 1.0 by default.
+
+[weapon_crowbar]({{< ref weapon_crowbar >}}) and [weapon_pipewrench]({{< ref weapon_pipewrench >}}) use the value 0.5 by default.
+
+[weapon_knife]({{< ref weapon_knife >}}) uses the value 1.0 by default.
+
 ### use_secondary_ammo
 
 Whether firing a weapon should use a secondary ammo. The only weapon that uses a secondary ammo by default is [weapon_9mmAR]({{< ref weapon_9mmAR >}}). For others you must explicitly provide `"secondary_ammo_name"`.

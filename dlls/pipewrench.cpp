@@ -80,6 +80,7 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 
 	// Primary attack
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
+	params.fire.subsequentSwingFactor = 0.5f;
 	params.fire.anims = {PIPEWRENCH_ATTACK1MISS, PIPEWRENCH_ATTACK2MISS, PIPEWRENCH_ATTACK3MISS};
 	params.fire.hitAnims = {PIPEWRENCH_ATTACK2HIT, PIPEWRENCH_ATTACK3HIT};
 	params.fire.sound = {

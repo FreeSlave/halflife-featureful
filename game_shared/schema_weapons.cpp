@@ -204,6 +204,10 @@ const char* const json_schemas::weapons = R"(
 					}
 				]
 			},
+			"subsequent_swing_dmg_factor": {
+				"type": "number",
+				"minimum": 0
+			},
 			"anims": {
 				"$ref": "#/anim_array"
 			},

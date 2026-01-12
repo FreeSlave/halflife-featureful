@@ -12,4 +12,4 @@ entityCategory: pickup
 
 ### Skill variables
 
-* **sk_plr_knife** - damage of the first hit. Consecutive hits damage is halved.
+* **sk_plr_knife** - hit damage.

@@ -2470,7 +2470,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 			else
 			{
 				// subsequent swings do half
-				damageInfo.damage *= 0.5f;
+				damageInfo.damage *= fire.subsequentSwingFactor.Get(altMode);
 			}
 			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, damageInfo, gpGlobals->v_forward, &tr );
 

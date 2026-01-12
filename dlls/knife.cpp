@@ -79,6 +79,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 	// Primary attack
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
+	params.fire.subsequentSwingFactor = 1.0f;
 	params.fire.anims = {KNIFE_ATTACK1MISS, KNIFE_ATTACK2, KNIFE_ATTACK3};
 	params.fire.hitAnims = {KNIFE_ATTACK2HIT, KNIFE_ATTACK3HIT};
 
