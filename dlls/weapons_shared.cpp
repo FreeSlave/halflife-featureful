@@ -2483,6 +2483,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 				if( !pEntity->IsAlive() )
 				{
 					m_flNextPrimaryAttack = GetNextAttackDelay(hitCycleTime);
+					m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + hitCycleTime;
 					return true;
 				}
 				else
