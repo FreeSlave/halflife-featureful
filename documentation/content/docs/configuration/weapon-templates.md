@@ -12,7 +12,7 @@ Weapon templates can become hard to maintain when they grow in size and count. E
 {{% /hint %}}
 
 {{% hint warning %}}
-When editing the weapon templates ensure to run the mod in the developer mod to see the errors on the screen and allow re-parsing the configuration on the save-reload or the map restart. See [Recommendations]({{< ref "developing-the-mod/#recommendations" >}}).
+When editing the weapon templates ensure to run the mod in the developer mode to see the errors on the screen and allow re-parsing the configuration on the save-reload or the map restart. See [Recommendations]({{< ref "developing-the-mod/#recommendations" >}}).
 {{% /hint %}}
 
 {{% details_header title="Quick example" %}}
@@ -599,9 +599,13 @@ A boolean defining whether the weapon can fire underwater.
 
 ### ammo_per_fire
 
-Ammo spent per fire. E.g. [weapon_shotgun]({{< ref weapon_shotgun >}}) uses two shells on the secondary attack.
+Ammo spent per fire. E.g. [weapon_shotgun]({{< ref weapon_shotgun >}}) uses two shells on the secondary attack. Default value is 1.
 
-Note: this has nothing to do with the number of bullets fired. It's just how much ammo is used.
+{{% hint info %}}
+This has nothing to do with the number of bullets fired. It's just how much ammo is used. See [bullet_count](#bullet_count).
+
+For example shotgun uses one shell (ammo) to fire multiple pellets (bullets).
+{{% /hint %}}
 
 ### anims
 
@@ -653,6 +657,10 @@ The distance of trace checks when detecting whether the bullet hit something. Th
 The maximum number of shots for the burst fire. I.e. player presses the attack button once, but the weapon fires several times in a row (if there's enough ammo). Setting this to 1 removes the burst fire.
 
 Example of a weapon using the burst fire: Counter Strike FAMAS in the burst mode.
+
+{{% hint warning %}}
+Currently the burst mode works only for the bullet attack type. Support for projectiles will come later.
+{{% /hint %}}
 
 ### burst_interval
 
@@ -1320,7 +1328,7 @@ Example:
 
 [Weapon soundscript](#weapon-soundscript) to play on fire. This is played on the player's weapon channel by default.
 
-For melee weapons it's the "miss" sound (when weapon doesn't hit anything).
+For melee weapons it's a "swing" sound. See also: [hit_body_sound](#hit_body_sound) and [hit_wall_sound](#hit_wall_sound).
 
 ### sound_additional
 
