@@ -85,6 +85,7 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 		PITCH_NORM
 	};
 	params.fire.cycleTime = 0.5f;
+	params.fire.hitCycleTime = 0.25f;
 	params.fire.idleDelay = FloatRange(6.0f, 10.0f);
 	params.fire.hitBodySound = {
 		CHAN_ITEM,

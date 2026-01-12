@@ -91,6 +91,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 		PITCH_NORM
 	};
 	params.fire.cycleTime = 0.5f;
+	params.fire.hitCycleTime = 0.25f;
 	params.fire.idleDelay = 0.5f;
 	params.fire.hitBodySound = {
 		CHAN_ITEM,

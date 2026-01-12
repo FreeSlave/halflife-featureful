@@ -712,9 +712,17 @@ Same as [client_punch_pitch](#client_punch_pitch) but for lateral punch. Use neg
 
 The delay between shots, in seconds. This defines the rate of fire: the less the value, the higher the rate.
 
+For melee attacks this is the delay between 'miss' swings (when it didn't hit anything). Use [hit_cycle_time](#hit_cycle_time) to define delay between hits.
+
 ### cycle_time_last_shot
 
 The delay before next shot after the ammo depletion. This makes sense only for weapons that use different ammo types for primary and secondary attacks. This is 0 by default. If it's 0 the value of `cycle_time` is used for the last shot.
+
+### hit_cycle_time
+
+The delay before the next melee swing after hitting something. This is usually less than `"cycle_time"`. E.g. crowbar has `"cycle_time"` set to 0.5, but `"hit_cycle_time"` set to 0.25.
+
+If this is set to 0 the cycle time for hits is evaluated as: `min(cycle_time * 0.5, cycle_time - 0.25)`.
 
 ### damage
 

@@ -635,6 +635,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			UpdatePropertyFromJson(fire.cycleTime, value, "cycle_time", altMode);
 			UpdatePropertyFromJson(fire.cycleTimeLastShot, value, "cycle_time_last_shot", altMode);
+			UpdatePropertyFromJson(fire.hitCycleTime, value, "hit_cycle_time", altMode);
 			UpdatePropertyFromJson(fire.idleDelay, value, "idle_delay", altMode, false);
 			UpdatePropertyFromJson(fire.idleDelay, value, "idle_delay_empty", altMode, true);
 			UpdatePropertyFromJson(fire.ammoPerFire, value, "ammo_per_fire", altMode);

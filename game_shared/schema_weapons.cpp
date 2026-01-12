@@ -379,6 +379,10 @@ const char* const json_schemas::weapons = R"(
 				"type": "number",
 				"minimum": 0
 			},
+			"hit_cycle_time": {
+				"type": "number",
+				"minimum": 0
+			},
 			"idle_delay": {
 				"$ref": "definitions.json#/range"
 			},

@@ -91,6 +91,7 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 		PITCH_NORM
 	};
 	params.fire.cycleTime = 0.75f;
+	params.fire.hitCycleTime = 0.5f;
 	params.fire.idleDelay = 5.0f;
 	params.fire.hitBodySound = {
 		CHAN_ITEM,

@@ -2382,7 +2382,8 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 	const WeaponParameters::Fire& fire = params.fire;
 	const bool altMode = m_swingIsAltAttack;
 	const float cycleTime = fire.cycleTime.Get(altMode);
-	const float hitCycleTime = Q_max(cycleTime * 0.5f, cycleTime - 0.25f);
+	const float definedHitCycleTime = fire.hitCycleTime.Get(altMode);
+	const float hitCycleTime = definedHitCycleTime <= 0.0f ? Q_max(cycleTime * 0.5f, cycleTime - 0.25f) : definedHitCycleTime;
 	const FloatRange idleDelay = fire.idleDelay.Get(altMode, false);
 
 	bool fDidHit = false;
