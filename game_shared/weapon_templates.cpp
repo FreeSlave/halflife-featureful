@@ -845,6 +845,9 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				UpdatePlayerShake(fire.hitShake.Materialize(altMode), value);
 			});
 
+			UpdatePropertyFromJson(fire.smackDelay, value, "smack_delay", altMode);
+			UpdatePropertyFromJson(fire.hitDecal, value, "hit_decal", altMode);
+
 			UpdatePropertyFromJson(fire.preventMovement, value, "prevent_movement", altMode);
 
 			HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {

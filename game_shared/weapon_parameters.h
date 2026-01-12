@@ -617,6 +617,9 @@ struct WeaponParameters
 		WeaponModeValue<PlayerShake> shake;
 		WeaponModeValue<PlayerShake> hitShake;
 
+		WeaponModeValueNonNegative<float> smackDelay{0.2f};
+		WeaponModeValue<bool> hitDecal{true};
+
 		// TODO: this is temporary, will be replaced with configurable spray
 		WeaponModeValue<bool> spitSpray;
 

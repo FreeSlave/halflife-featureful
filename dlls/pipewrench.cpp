@@ -134,6 +134,8 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	kickBack.verticalBase = 2.0f;
 	kickBack.verticalMax = 4.0f;
 	params.fire.kickBack.SetKickBack(false, kickBack);
+
+	params.fire.smackDelay.alt = 0.13f;
 	//
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;

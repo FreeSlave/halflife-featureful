@@ -588,6 +588,13 @@ const char* const json_schemas::weapons = R"(
 			"hit_shake": {
 				"$ref": "definitions.json#/shake"
 			},
+			"smack_delay": {
+				"type": "number",
+				"minimum": 0
+			},
+			"hit_decal": {
+				"type": "boolean"
+			},
 			"prevent_movement": {
 				"type": "boolean"
 			},

@@ -2369,7 +2369,9 @@ void CConfigurableWeapon::Smack()
 #if !CLIENT_DLL
 	const WeaponParameters& params = MyParameters();
 	SendScreenShake(params.fire.hitShake.Get(m_swingIsAltAttack));
-	DecalSmack( &m_trHit );
+
+	if (params.fire.hitDecal.Get(m_swingIsAltAttack))
+		DecalSmack( &m_trHit );
 #endif
 }
 
@@ -2521,7 +2523,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );
 
 		SetThink( &CConfigurableWeapon::Smack );
-		pev->nextthink = gpGlobals->time + 0.2f;
+		pev->nextthink = gpGlobals->time + fire.smackDelay.Get(altMode);
 #endif
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + hitCycleTime;
 	}
@@ -2635,6 +2637,9 @@ void CConfigurableWeapon::BigSwing()
 		}
 
 		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );
+
+		SetThink( &CConfigurableWeapon::Smack );
+		pev->nextthink = gpGlobals->time + fire.smackDelay.Get(altMode);
 #endif
 	}
 }

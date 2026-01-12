@@ -801,6 +801,10 @@ Type of AI sound. This can be a single string value or an array. Possible values
 
 Duration of sound. This is 0.2 by default.
 
+### hit_decal
+
+A boolean. Whether the melee attack should leave a decal on the wall. This is `true` by default.
+
 ### idle_delay
 
 Delay before starting playing idle animations after firing a shot. This can be [range]({{< ref "JSON/#range" >}}). By default it's `[10, 15]`.
@@ -1339,6 +1343,10 @@ Example:
     }
 }
 ```
+
+### smack_delay
+
+The delay (in seconds) before the decal appears on the wall after melee hit. This is 0.2 by default.
 
 ### sound
 

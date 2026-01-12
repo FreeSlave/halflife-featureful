@@ -116,6 +116,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	params.fire.chargeAnims.alt = {KNIFE_CHARGE};
 	params.fire.chargeTime.alt = 0.8f;
 	params.fire.cycleTime.alt = 0.9f;
+	params.fire.smackDelay.alt = 0.13f;
 	//
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
