@@ -2458,7 +2458,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 			// If building with the clientside weapon prediction system,
 			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
 			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
-			DamageInfo damageInfo = MeleeDamageInfo();
+			DamageInfo damageInfo{RandomizeNumberFromRange(fire.damage.Get(altMode)), DMG_CLUB};
 #if CLIENT_WEAPONS
 			if( ( m_flNextPrimaryAttack + 1.0f == UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 #else

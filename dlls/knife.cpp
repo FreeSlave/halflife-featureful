@@ -44,7 +44,6 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	DamageInfo MeleeDamageInfo() override;
 	DamageInfo MeleeWindDamageInfo() override;
 };
 
@@ -79,6 +78,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 	// Primary attack
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
+	params.fire.damage = ::GetSkillValueRange("plr_knife");
 	params.fire.subsequentSwingFactor = 1.0f;
 	params.fire.anims = {KNIFE_ATTACK1MISS, KNIFE_ATTACK2, KNIFE_ATTACK3};
 	params.fire.hitAnims = {KNIFE_ATTACK2HIT, KNIFE_ATTACK3HIT};
@@ -123,11 +123,6 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-DamageInfo CKnife::MeleeDamageInfo()
-{
-	return DamageInfo{GetSkillValue("plr_knife"), DMG_CLUB};
 }
 
 DamageInfo CKnife::MeleeWindDamageInfo()

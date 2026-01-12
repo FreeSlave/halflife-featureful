@@ -41,7 +41,6 @@ public:
 	int WeaponId() const override { return WEAPON_CROWBAR; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	DamageInfo MeleeDamageInfo() override;
 };
 
 LINK_WEAPON_TO_CLASS( weapon_crowbar, CCrowbar )
@@ -74,6 +73,7 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 	};
 
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
+	params.fire.damage = ::GetSkillValueRange("plr_crowbar");
 	params.fire.subsequentSwingFactor = 0.5f;
 	params.fire.anims = {CROWBAR_ATTACK1MISS, CROWBAR_ATTACK2MISS, CROWBAR_ATTACK3MISS};
 	params.fire.hitAnims = {CROWBAR_ATTACK2HIT, CROWBAR_ATTACK3HIT};
@@ -107,9 +107,4 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-DamageInfo CCrowbar::MeleeDamageInfo()
-{
-	return DamageInfo{GetSkillValue("plr_crowbar"), DMG_CLUB};
 }

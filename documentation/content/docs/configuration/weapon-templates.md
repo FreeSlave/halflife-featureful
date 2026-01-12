@@ -706,13 +706,11 @@ The delay before next shot after the ammo depletion. This makes sense only for w
 
 ### damage
 
-The amount of damage the weapon deals per bullet.
+The amount of damage the weapon deals per bullet, melee hit or the amount of damage the fired projectile can deal.
 
 This can be either a number (e.g. `8`), the name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`) or [range]({{< ref "json/#range" >}}) (e.g. `[10,15]` - in this case the damage will be randomized on each fire).
 
 {{% hint warning %}}
-This currently can configure damage values only for bullets and projectiles.
-
 For [projectile](#projectile) weapons the exact meaning of damage value depends on the projectile type: for some it's an impact damage, for some it's a damage of explosion, meaning some damage values can't be set yet - for example hand grenade direct impact damage or voltigore's charged bolt damage dealt to surrounding entities over its flight.
 {{% /hint %}}
 

@@ -45,7 +45,6 @@ public:
 	int WeaponId() const override { return WEAPON_PIPEWRENCH; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	DamageInfo MeleeDamageInfo() override;
 	DamageInfo MeleeWindDamageInfo() override;
 };
 
@@ -80,6 +79,7 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 
 	// Primary attack
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
+	params.fire.damage = ::GetSkillValueRange("plr_pipewrench");
 	params.fire.subsequentSwingFactor = 0.5f;
 	params.fire.anims = {PIPEWRENCH_ATTACK1MISS, PIPEWRENCH_ATTACK2MISS, PIPEWRENCH_ATTACK3MISS};
 	params.fire.hitAnims = {PIPEWRENCH_ATTACK2HIT, PIPEWRENCH_ATTACK3HIT};
@@ -141,11 +141,6 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-DamageInfo CPipeWrench::MeleeDamageInfo()
-{
-	return DamageInfo{GetSkillValue("plr_pipewrench"), DMG_CLUB};
 }
 
 DamageInfo CPipeWrench::MeleeWindDamageInfo()
