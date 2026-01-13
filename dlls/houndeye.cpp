@@ -1473,25 +1473,94 @@ void CHoundeye::UseSleeping(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 	SetUse( &CBaseMonster::MonsterUse );
 }
 
+#define HOUNDEYE_DEAD_MODEL "models/houndeye_dead.mdl"
+
 class CDeadHoundeye : public CDeadMonster
 {
+	static bool g_hasHoundeyeDeadModel;
+	static bool g_checkedHoundeyeDeadModel;
+
 public:
+	void Precache() override;
 	void Spawn() override;
-	const char* DefaultModel() override { return "models/houndeye_dead.mdl"; }
+	const char* DefaultModel() override { return g_hasHoundeyeDeadModel && WantsOpforModel() ? HOUNDEYE_DEAD_MODEL : "models/houndeye.mdl"; }
 	int	DefaultClassify() override { return CLASS_ALIEN_MONSTER; }
 
 	const char* getPos(int pos) const override;
+	static const char *m_szPoses[6];
+
+private:
+	bool WantsOpforModel() {
+		return strcmp(getPos(m_iPose), "dead") == 0;
+	}
 };
+
+const char *CDeadHoundeye::m_szPoses[] = { "dead", "die", "die1", "die2", "die3", "die_crumple" };
 
 const char* CDeadHoundeye::getPos(int pos) const
 {
-	return "dead";
+	return m_szPoses[pos % ARRAYSIZE(m_szPoses)];
 }
 
 LINK_ENTITY_TO_CLASS( monster_houndeye_dead, CDeadHoundeye )
 
+bool CDeadHoundeye::g_hasHoundeyeDeadModel = false;
+bool CDeadHoundeye::g_checkedHoundeyeDeadModel = false;
+
+void CDeadHoundeye::Precache()
+{
+	bool usesDefaultModel = false;
+	if (FStringNull(pev->model))
+	{
+		const Visual* ownVisual = MyOwnVisual();
+		if (!ownVisual || !ownVisual->model)
+		{
+			usesDefaultModel = true;
+		}
+	}
+
+	if (usesDefaultModel)
+	{
+		if (!g_checkedHoundeyeDeadModel)
+		{
+			int fileSize;
+			byte* pMemFile = g_engfuncs.pfnLoadFileForMe(HOUNDEYE_DEAD_MODEL, &fileSize);
+			if (pMemFile)
+			{
+				g_hasHoundeyeDeadModel = true;
+				g_engfuncs.pfnFreeFile(pMemFile);
+			}
+			g_checkedHoundeyeDeadModel = true;
+
+			ALERT(at_aiconsole, "%s model %s\n", HOUNDEYE_DEAD_MODEL, g_hasHoundeyeDeadModel ? "exists" : "doesn't exist");
+		}
+
+		if (g_hasHoundeyeDeadModel)
+			PRECACHE_MODEL(HOUNDEYE_DEAD_MODEL);
+		PRECACHE_MODEL("models/houndeye.mdl");
+		PrecacheMyGibModel();
+	}
+	else
+	{
+		CDeadMonster::Precache();
+	}
+}
+
 void CDeadHoundeye::Spawn()
 {
+	Precache();
+
+	bool shouldForceLastFrame = m_iPose != 0;
 	SpawnHelper(BLOOD_COLOR_YELLOW);
+	if (pev->sequence == -1)
+	{
+		if (WantsOpforModel())
+		{
+			pev->sequence = LookupSequence("die");
+			shouldForceLastFrame = true;
+		}
+	}
 	MonsterInitDead();
+	if (shouldForceLastFrame)
+		pev->frame = 255;
 }

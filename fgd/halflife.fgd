@@ -5399,11 +5399,16 @@
 		32768 : "Start sleeping" : 0 : "Houndeye starts sleeping with eyes closed and doesn't wake up until hears player or combat"
 	]
 ]
-@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/houndeye_dead.mdl") = monster_houndeye_dead : "Dead Houndeye"
+@PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/houndeye.mdl") = monster_houndeye_dead : "Dead Houndeye"
 [
-	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+	sequence(Choices) : "Animation Sequence (editor)" : 6 =
 	[
-		0 : "dead"
+		0 : "dead (Opfor houndeye_dead.mdl)"
+		6 : "die"
+		7 : "die1"
+		8 : "die2"
+		9 : "die3"
+		13 : "die_crumple"
 	]
 	skin(Choices) : "Eye state" =
 	[
@@ -5411,9 +5416,14 @@
 		1 : "Half open"
 		2 : "Closed"
 	]
-	pose(Choices) : "Pose" : 0 =
+	pose(Choices) : "Pose" : 1 =
 	[
-		0 : "Just plain dead"
+		0 : "Dead (Opfor houndeye_dead.mdl)"
+		1 : "On left side"
+		2 : "On left side (alt)"
+		3 : "Backwards on left side"
+		4 : "Backwards on right side"
+		5 : "On stomach"
 	]
 ]
 @PointClass base(Monster, FollowingMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = monster_human_assassin : "Human Assassin"
