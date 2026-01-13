@@ -148,9 +148,10 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 
 DamageInfo CPipeWrench::MeleeWindDamageInfo()
 {
-	float flDamage = (gpGlobals->time - m_flBigSwingStart) * GetSkillValue("plr_pipewrench") + 25.0f;
-	if (flDamage > 150.0f) {
-		flDamage = 150.0f;
+	float flDamage = GetSkillValue("plr_pipewrench_wind_base") + (gpGlobals->time - m_flBigSwingStart) * GetSkillValue("plr_pipewrench_wind_factor");
+	const float maxDamage = GetSkillValue("plr_pipewrench_wind_max");
+	if (flDamage > maxDamage) {
+		flDamage = maxDamage;
 	}
 	return DamageInfo{flDamage, DMG_CLUB};
 }

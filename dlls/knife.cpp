@@ -129,10 +129,10 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 DamageInfo CKnife::MeleeWindDamageInfo()
 {
-	const float knifeDamage = GetSkillValue("plr_knife");
-	float flDamage = (gpGlobals->time - m_flBigSwingStart) * knifeDamage + knifeDamage*2.0f;
-	if (flDamage > 100.0f) {
-		flDamage = 100.0f;
+	float flDamage = GetSkillValue("plr_knife_stab_base") + (gpGlobals->time - m_flBigSwingStart) * GetSkillValue("plr_knife_stab_factor");
+	const float maxDamage = GetSkillValue("plr_knife_stab_max");
+	if (flDamage > maxDamage) {
+		flDamage = maxDamage;
 	}
 	return DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER);
 }
