@@ -546,6 +546,7 @@ class CDeadMonster : public CBaseMonster
 public:
 	void Precache() override;
 	void SpawnHelper(int bloodColor = BLOOD_COLOR_RED, int health = 8);
+	void MonsterInitDead() override;
 	void KeyValue( KeyValueData *pkvd ) override;
 	virtual const char* DefaultModel() {
 		return nullptr;

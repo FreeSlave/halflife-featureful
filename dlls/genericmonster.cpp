@@ -296,7 +296,7 @@ void CDeadGenericMonster::Spawn()
 		pev->sequence = LookupSequence( STRING(pev->netname) );
 		if (pev->sequence == -1)
 		{
-			ALERT ( at_console, "%s with bad pose (no %s animation in %s)\n", STRING(pev->classname), STRING(pev->netname), STRING(pev->model) );
+			ALERT ( at_console, "%s with bad pose (no '%s' animation in %s)\n", STRING(pev->classname), STRING(pev->netname), STRING(pev->model) );
 		}
 	}
 

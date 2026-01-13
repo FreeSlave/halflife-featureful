@@ -4895,7 +4895,7 @@ void CDeadMonster::SpawnHelper(const char* defaultModel, int bloodColor, int hea
 	pev->sequence = LookupSequence( seqName );
 	if (pev->sequence == -1)
 	{
-		ALERT ( at_console, "%s with bad pose (no %s animation in %s)\n", STRING(pev->classname), seqName, defaultModel );
+		ALERT ( at_console, "%s with bad pose (no '%s' animation in %s)\n", STRING(pev->classname), seqName, STRING(pev->model) );
 	}
 	SetMyHealth( health );
 }
@@ -4903,6 +4903,27 @@ void CDeadMonster::SpawnHelper(const char* defaultModel, int bloodColor, int hea
 void CDeadMonster::SpawnHelper(int bloodColor, int health)
 {
 	SpawnHelper(DefaultModel(), bloodColor, health);
+}
+
+void CDeadMonster::MonsterInitDead()
+{
+	bool shouldForceLastFrame = false;
+	if (pev->sequence < 0)
+	{
+		pev->sequence = LookupActivity(ACT_DIESIMPLE);
+		if (pev->sequence != ACTIVITY_NOT_AVAILABLE)
+		{
+			ALERT(at_aiconsole, "Dead monster %s had invalid sequence. Setting a sequence based on ACT_DIESIMPLE as a fallback\n", STRING(pev->classname));
+			shouldForceLastFrame = true;
+		}
+		else
+		{
+			pev->sequence = 0;
+		}
+	}
+	CBaseMonster::MonsterInitDead();
+	if (shouldForceLastFrame)
+		pev->frame = 255;
 }
 
 bool CDeadMonster::ShouldCollide(CBaseEntity* pOther)

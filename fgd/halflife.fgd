@@ -4453,10 +4453,10 @@
 	pose(Choices) : "Pose" : 0 =
 	[
 		0 : "On Stomach (OpFor)"
-        1 : "On Stomach (hands forward)"
-        2 : "On Side"
-        3 : "On Back"
-        4 : "On Stomach (hands backward)"
+		1 : "On Stomach (hands forward)"
+		2 : "On Side"
+		3 : "On Back"
+		4 : "On Stomach (hands backward)"
 	]
 ]
 @PointClass base(Monster, FollowingMonster, Sequence) size(-32 -32 0, 32 32 64) studio("models/Tor.mdl") = monster_alien_tor : "Alien Tor"
@@ -7843,7 +7843,7 @@
 	]
 	body(integer) : "Body"
 	skin(integer) : "Skin"
-	pose(integer) : "Pose (Only for dead monsters)" : : "Dead pose index. Should match the one in the spawned entity."
+	pose(integer) : "Pose sequence index (Only for dead monsters)" : : "Dead pose sequence index. Should match the one in the spawned entity."
 	gag(Choices) : "Gag" =
 	[
 		0 : "No"
