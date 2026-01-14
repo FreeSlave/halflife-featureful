@@ -1282,6 +1282,11 @@ Schedule_t* CHGrunt::ScheduleOnRangeAttack1()
 	}
 }
 
+bool CHGrunt::CanFireWhileRappelling()
+{
+	return FBitSet(pev->weapons, HGRUNT_9MMAR);
+}
+
 float CHGrunt::LimpHealth()
 {
 	return HGRUNT_LIMP_HEALTH;
@@ -1979,8 +1984,8 @@ Schedule_t *CHGrunt::GetSchedule()
 		}
 		else
 		{
-			// repel down a rope, 
-			if( m_MonsterState == MONSTERSTATE_COMBAT )
+			// repel down a rope,
+			if( m_MonsterState == MONSTERSTATE_COMBAT && CanFireWhileRappelling() )
 				return GetScheduleOfType( SCHED_GRUNT_REPEL_ATTACK );
 			else
 				return GetScheduleOfType( SCHED_GRUNT_REPEL );

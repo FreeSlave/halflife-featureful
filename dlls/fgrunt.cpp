@@ -253,6 +253,8 @@ protected:
 
 	virtual bool HasWeaponEquiped();
 	bool CheckRangeAttack2Impl(float grenadeSpeed, float flDot, float flDist , bool contact = false);
+
+	virtual bool CanFireWhileRappelling();
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_grunt_ally, CHFGrunt )
@@ -309,6 +311,7 @@ public:
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType(int Type) override;
 	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
+	bool CanFireWhileRappelling() override { return false; }
 	CBaseEntity* FollowedPlayer() override;
 	void StopFollowing( bool clearSchedule, bool saySentence = true ) override;
 	void ClearFollowedPlayer() override;
@@ -2411,7 +2414,7 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 		else
 		{
 			// repel down a rope,
-			if ( m_MonsterState == MONSTERSTATE_COMBAT )
+			if ( m_MonsterState == MONSTERSTATE_COMBAT && CanFireWhileRappelling() )
 				return GetScheduleOfType ( SCHED_HGRUNT_ALLY_REPEL_ATTACK );
 			else
 				return GetScheduleOfType ( SCHED_HGRUNT_ALLY_REPEL );
@@ -2445,6 +2448,11 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 		}
 	}
 	return NULL;
+}
+
+bool CHFGrunt::CanFireWhileRappelling()
+{
+	return FBitSet(pev->weapons, FGRUNT_9MMAR|FGRUNT_M249);
 }
 
 Schedule_t *CHFGrunt::GetReloadSchedule()
@@ -2917,6 +2925,7 @@ public:
 	void UpdateOnRemove() override;
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	void PrescheduleThink() override;
+	bool CanFireWhileRappelling() override { return false; }
 
 	void DropMyItems(bool isGibbed);
 

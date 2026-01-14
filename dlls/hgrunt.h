@@ -160,6 +160,7 @@ protected:
 
 	virtual void SpeakCaughtEnemy();
 	virtual bool AlertSentenceIsForPlayerOnly();
+	virtual bool CanFireWhileRappelling();
 
 public:
 	static const NamedSoundScript painSoundScript;
