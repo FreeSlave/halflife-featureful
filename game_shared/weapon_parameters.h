@@ -530,7 +530,6 @@ struct WeaponParameters
 			NATIVE,
 			BULLETS,
 			MELEE,
-			MELEE_WIND,
 			PROJECTILE
 		};
 
@@ -543,12 +542,15 @@ struct WeaponParameters
 
 		WeaponModeValue<Type> fireType{NATIVE};
 		WeaponModeValueNonNegative<FloatRange> damage{0.0f};
+		WeaponModeValueNonNegative<FloatRange> damageChargedFactor{0.0f};
+		WeaponModeValueNonNegative<FloatRange> damageChargedMax{0.0f};
 		WeaponModeValueNonNegative<float> subsequentSwingFactor{1.0f};
 
 		WeaponModeValueEmptyAware<FireAnimArray> anims;
 		WeaponModeValue<FireAnimArray> hitAnims;
 		WeaponModeValue<FireAnimArray> chargeAnims;
 		WeaponModeValueNonNegative<float> chargeTime{0.0f};
+		WeaponModeValue<bool> chargedAttack{false};
 		WeaponModeValue<FireAnimArray> cooldownAnims;
 		WeaponModeValueNonNegative<float> cooldownTime{0.5f};
 		WeaponModeValue<WeaponSoundScript> sound{CHAN_WEAPON};
@@ -610,6 +612,7 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<float> suspendLaserSpotTime{0.0f};
 
 		WeaponKickBackProfile kickBack;
+		WeaponModeValue<bool> kickBackOnHitOnly{false};
 
 		WeaponModeValueNonNegative<float> pushbackForce{0.0f};
 		WeaponModeValue<bool> pushbackVertical{false};

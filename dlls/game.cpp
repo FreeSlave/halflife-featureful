@@ -297,6 +297,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("penguin", WEAPON_PENGUIN),
 		WeaponNameAndId("uzi", WEAPON_UZI),
 		WeaponNameAndId("nailgun", WEAPON_NAILGUN),
+		WeaponNameAndId("melee", WEAPON_MELEE),
 		WeaponNameAndId("pistol", WEAPON_PISTOL),
 		WeaponNameAndId("pistol2", WEAPON_PISTOL2),
 		WeaponNameAndId("smg", WEAPON_SMG),

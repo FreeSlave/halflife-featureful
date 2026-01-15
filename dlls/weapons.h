@@ -413,12 +413,6 @@ public:
 	bool Swing(bool fFirst);
 	void BigSwing();
 
-	virtual DamageInfo MeleeDamageInfo() { return DamageInfo{10.0f, DMG_CLUB}; }
-	virtual DamageInfo MeleeWindDamageInfo() {
-		float damage = Q_max(100.0f, (gpGlobals->time - m_flBigSwingStart) * 10.0f);
-		return DamageInfo{damage, DMG_CLUB};
-	}
-
 	bool CanRechargeAmmo();
 	void UpdateRechargeTime(bool altMode);
 

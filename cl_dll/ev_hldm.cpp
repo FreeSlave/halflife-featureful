@@ -579,7 +579,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		return;
 	}
 
-	if (fireType == WeaponParameters::Fire::MELEE || fireType == WeaponParameters::Fire::MELEE_WIND)
+	if (fireType == WeaponParameters::Fire::MELEE)
 	{
 		EV_PlayWeaponSoundScript(idx, origin, fire.sound.Get(altMode));
 

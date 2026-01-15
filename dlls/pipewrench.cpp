@@ -45,7 +45,6 @@ public:
 	int WeaponId() const override { return WEAPON_PIPEWRENCH; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	DamageInfo MeleeWindDamageInfo() override;
 };
 
 LINK_WEAPON_TO_CLASS(weapon_pipewrench, CPipeWrench)
@@ -82,7 +81,7 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	params.fire.damage = ::GetSkillValueRange("plr_pipewrench");
 	params.fire.subsequentSwingFactor = 0.5f;
 	params.fire.anims = {PIPEWRENCH_ATTACK1MISS, PIPEWRENCH_ATTACK2MISS, PIPEWRENCH_ATTACK3MISS};
-	params.fire.hitAnims = {PIPEWRENCH_ATTACK2HIT, PIPEWRENCH_ATTACK3HIT};
+	params.fire.hitAnims = {PIPEWRENCH_ATTACK1HIT, PIPEWRENCH_ATTACK2HIT, PIPEWRENCH_ATTACK3HIT};
 	params.fire.sound = {
 		CHAN_WEAPON,
 		{"weapons/pwrench_miss1.wav", "weapons/pwrench_miss2.wav"},
@@ -110,7 +109,11 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	//
 
 	// Alt attack
-	params.fire.fireType.alt = WeaponParameters::Fire::MELEE_WIND;
+	params.fire.fireType.alt = WeaponParameters::Fire::MELEE;
+	params.fire.damage.alt = ::GetSkillValueRange("plr_pipewrench_wind_base");
+	params.fire.damageChargedFactor.alt = ::GetSkillValueRange("plr_pipewrench_wind_factor");
+	params.fire.damageChargedMax.alt = ::GetSkillValueRange("plr_pipewrench_wind_max");
+	params.fire.chargedAttack.alt = true;
 	params.fire.anims.alt = {PIPEWRENCH_ATTACKBIGMISS};
 	params.fire.chargeAnims.alt = {PIPEWRENCH_ATTACKBIGWIND};
 	params.fire.chargeTime.alt = 1.0f;
@@ -133,7 +136,8 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	WeaponKickBack kickBack;
 	kickBack.verticalBase = 2.0f;
 	kickBack.verticalMax = 4.0f;
-	params.fire.kickBack.SetKickBack(false, kickBack);
+	params.fire.kickBack.SetKickBack(true, kickBack);
+	params.fire.kickBackOnHitOnly.alt = true;
 
 	params.fire.smackDelay.alt = 0.13f;
 	//
@@ -144,14 +148,4 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-DamageInfo CPipeWrench::MeleeWindDamageInfo()
-{
-	float flDamage = GetSkillValue("plr_pipewrench_wind_base") + (gpGlobals->time - m_flBigSwingStart) * GetSkillValue("plr_pipewrench_wind_factor");
-	const float maxDamage = GetSkillValue("plr_pipewrench_wind_max");
-	if (flDamage > maxDamage) {
-		flDamage = maxDamage;
-	}
-	return DamageInfo{flDamage, DMG_CLUB};
 }

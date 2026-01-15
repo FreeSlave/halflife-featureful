@@ -59,6 +59,7 @@ nailgun
 camera
 radio
 
+melee
 pistol
 pistol2
 smg

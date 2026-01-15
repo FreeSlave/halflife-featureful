@@ -1014,6 +1014,14 @@ Required sounds:
 
 Full written configurations for some standard Half-Life weapons are stored in the **templates/weapons/hl** directory. These can be used as a reference. Or you can copy the configuration for your custom weapon and change it a bit if you want a weapon similar to the standard Half-Life one.
 
+{{% details_header title="Crowbar" %}}
+```json
+{
+    "weapon_melee": "hl/crowbar"
+}
+```
+{{% /details_header %}}
+
 {{% details_header title="9mm Handgun (Glock)" %}}
 ```json
 {
@@ -1065,6 +1073,22 @@ Full written configurations for some standard Half-Life weapons are stored in th
 ## Opposing Force
 
 Full written configurations for some standard Opposing Force weapons are stored in the **templates/weapons/op4** directory. These can be used as a reference. Or you can copy the configuration for your custom weapon and change it a bit if you want a weapon similar to the standard Opposing Force one.
+
+{{% details_header title="Pipe Wrench" %}}
+```json
+{
+    "weapon_melee": "op4/pipewrench"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="Knife" %}}
+```json
+{
+    "weapon_melee": "op4/knife"
+}
+```
+{{% /details_header %}}
 
 {{% details_header title="Desert Eagle" %}}
 ```json

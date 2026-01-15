@@ -682,7 +682,27 @@ See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
 
 ### charge_time
 
-The time in seconds after the weapon starts firing after initial charge. Used by [weapon_minigun]({{< ref weapon_minigun >}}). This is also the minimum time before melee weapons do their swing attack (e.g. [weapon_pipewrench]({{< ref weapon_pipewrench >}})).
+The time in seconds after the weapon starts firing after initial charge. Used by [weapon_minigun]({{< ref weapon_minigun >}}). This is also the minimum charge time for the winding attack of melee weapons (e.g. [weapon_pipewrench]({{< ref weapon_pipewrench >}})).
+
+### charged_attack
+
+A boolean - whether the attack is charged. I.e. the longer it's charged the more damage it will deal. This is used by [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}) secondary attacks.
+
+{{% hint warning %}}
+Currently the charged attack is implemented for the `"melee"` fire type only.
+{{% /hint %}}
+
+The charged attack expects the following properties to be defined:
+
+* [charge_time](#charge_time)
+* [damage_charged_factor](#damage_charged_factor)
+* [damage_charged_max](#damage_charged_max)
+
+The resulting damage is calculated by formula:
+
+```
+MIN(damage + damage_charged_factor * time_since_charge_start, damage_charged_max)
+```
 
 ### cooldown_anims
 
@@ -739,6 +759,14 @@ The custom projectile damage needs to be provided explicitly for both primary an
 
 If damage is not provided the default value for the projectile will be used.
 {{% /hint %}}
+
+### damage_charged_factor
+
+The amount of damage added to the [charged attack](#charged_attack) per second. If it's not defined or 0, the [damage](#damage) will be used instead.
+
+### damage_charged_max
+
+The maximum damage the [charged attack](#charged_attack) can reach. If it's not defined or 0, the [damage](#damage) multiplied by 2 will be used instead.
 
 ### delay_after_empty
 
@@ -936,6 +964,10 @@ Notes:
 * If no conditions are met, the last entry in the array is used even if it has conditions defined - they're ignored. So the last entry should be the one without conditions.
 * The maximum number of rules is **4**.
 * The conditions can be used together (e.g. if you want to check whether player is both ducking and moving).
+
+### kickback_on_hit_only
+
+A boolean - whether the [kickback](#kickback) should apply only when melee attack hits something. Default value is `false` (apply kickback even on melee misses). This is `true` for [weapon_pipewrench]({{< ref weapon_pipewrench >}}) secondary attack by default.
 
 ### laser_suspend_time
 

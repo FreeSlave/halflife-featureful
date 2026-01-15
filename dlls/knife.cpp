@@ -43,8 +43,6 @@ public:
 	int WeaponId() const override { return WEAPON_KNIFE; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-
-	DamageInfo MeleeWindDamageInfo() override;
 };
 
 LINK_WEAPON_TO_CLASS(weapon_knife, CKnife)
@@ -110,7 +108,11 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	//
 
 	// Alt attack
-	params.fire.fireType.alt = WeaponParameters::Fire::MELEE_WIND;
+	params.fire.fireType.alt = WeaponParameters::Fire::MELEE;
+	params.fire.damage.alt = ::GetSkillValueRange("plr_knife_stab_base");
+	params.fire.damageChargedFactor.alt = ::GetSkillValueRange("plr_knife_stab_factor");
+	params.fire.damageChargedMax.alt = ::GetSkillValueRange("plr_knife_stab_max");
+	params.fire.chargedAttack.alt = true;
 	params.fire.anims.alt = {KNIFE_STAB};
 	params.fire.hitAnims.alt = WeaponParameters::FireAnimArray{};
 	params.fire.chargeAnims.alt = {KNIFE_CHARGE};
@@ -125,14 +127,4 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	return params;
-}
-
-DamageInfo CKnife::MeleeWindDamageInfo()
-{
-	float flDamage = GetSkillValue("plr_knife_stab_base") + (gpGlobals->time - m_flBigSwingStart) * GetSkillValue("plr_knife_stab_factor");
-	const float maxDamage = GetSkillValue("plr_knife_stab_max");
-	if (flDamage > maxDamage) {
-		flDamage = maxDamage;
-	}
-	return DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER);
 }

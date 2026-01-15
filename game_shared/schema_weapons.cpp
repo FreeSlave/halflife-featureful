@@ -19,7 +19,7 @@ const char* const json_schemas::weapons = R"(
 		"items": {
 			"$ref": "#/anim_index"
 		},
-		"minItems": 1,
+		"minItems": 0,
 		"maxItems": 4
 	},
 	"waves_array": {
@@ -187,6 +187,17 @@ const char* const json_schemas::weapons = R"(
 		},
 		"additionalProperties": false
 	},
+	"weapon_damage": {
+		"oneOf": [
+			{
+				"type": "string",
+				"minLength": 1
+			},
+			{
+				"$ref": "definitions.json#/range"
+			}
+		]
+	},
 	"fire": {
 		"type": "object",
 		"properties": {
@@ -194,15 +205,13 @@ const char* const json_schemas::weapons = R"(
 				"enum": ["bullet", "bullets", "melee", "projectile"]
 			},
 			"damage": {
-				"oneOf": [
-					{
-						"type": "string",
-						"minLength": 1
-					},
-					{
-						"$ref": "definitions.json#/range"
-					}
-				]
+				"$ref": "#/weapon_damage"
+			},
+			"damage_charged_factor": {
+				"$ref": "#/weapon_damage"
+			},
+			"damage_charged_max": {
+				"$ref": "#/weapon_damage"
 			},
 			"subsequent_swing_dmg_factor": {
 				"type": "number",
@@ -231,6 +240,9 @@ const char* const json_schemas::weapons = R"(
 			},
 			"charge_sound": {
 				"$ref": "#/w_soundscript"
+			},
+			"charged_attack": {
+				"type": "boolean"
 			},
 			"cooldown_anims": {
 				"$ref": "anim_array"
@@ -574,6 +586,9 @@ const char* const json_schemas::weapons = R"(
 						"maxItems": 4
 					}
 				]
+			},
+			"kickback_on_hit_only": {
+				"type": "boolean"
 			},
 			"pushback_force": {
 				"type": "number",

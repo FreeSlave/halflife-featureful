@@ -367,23 +367,38 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				}
 			});
 
-			HandleJSONMember(value, "damage", [&](const Value& value) {
+			auto ParseWeaponDamage = [&](const Value& value)
+			{
+				FloatRange result;
 				if (value.IsNumber() || value.IsArray() || value.IsObject())
 				{
-					fire.damage.Materialize(altMode) = FloatRangeFromJSON(value);
+					result = FloatRangeFromJSON(value);
 				}
 				else if (value.IsString())
 				{
 					const char* str = value.GetString();
 					if (strchr(str, ',') != nullptr)
 					{
-						fire.damage.Materialize(altMode) = FloatRangeFromJSON(value);
+						result = FloatRangeFromJSON(value);
 					}
 					else
 					{
-						fire.damage.Materialize(altMode) = GetSkillValueRange(value.GetString());
+						result = GetSkillValueRange(value.GetString());
 					}
 				}
+				return result;
+			};
+
+			HandleJSONMember(value, "damage", [&](const Value& value) {
+				fire.damage.Materialize(altMode) = ParseWeaponDamage(value);
+			});
+
+			HandleJSONMember(value, "damage_charged_factor", [&](const Value& value) {
+				fire.damageChargedFactor.Materialize(altMode) = ParseWeaponDamage(value);
+			});
+
+			HandleJSONMember(value, "damage_charged_max", [&](const Value& value) {
+				fire.damageChargedMax.Materialize(altMode) = ParseWeaponDamage(value);
 			});
 
 			UpdatePropertyFromJson(fire.subsequentSwingFactor, value, "subsequent_swing_dmg_factor", altMode);
@@ -432,6 +447,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				WeaponSoundScript& soundScript = fire.chargeSound.Materialize(altMode);
 				ParseWeaponSoundScript(soundScript, value);
 			});
+			UpdatePropertyFromJson(fire.chargedAttack, value, "charged_attack", altMode);
 
 			HandleJSONMember(value, "cooldown_anims", [&](const Value& value) {
 				Value::ConstArray animArr = value.GetArray();
@@ -833,6 +849,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 					fire.kickBack.SetKickBack(altMode, ParseKickBack(value));
 				}
 			});
+
+			UpdatePropertyFromJson(fire.kickBackOnHitOnly, value, "kickback_on_hit_only", altMode);
 
 			UpdatePropertyFromJson(fire.pushbackForce, value, "pushback_force", altMode);
 			UpdatePropertyFromJson(fire.pushbackVertical, value, "pushback_vertical", altMode);

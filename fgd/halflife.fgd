@@ -3682,6 +3682,13 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_melee(choices) : "Melee (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 	weapon_pistol(choices) : "Pistol (custom)" =
 	[
 		-1: "Remove"
@@ -3872,6 +3879,7 @@
 	weapon_nailgun(string) : "Nailgun chance"
 	weapon_camera(string) : "Camera chance"
 	weapon_radio(string) : "Radio chance"
+	weapon_melee(string) : "Melee (custom) chance"
 	weapon_pistol(string) : "Pistol (custom) chance"
 	weapon_pistol2(string) : "Pistol 2 (custom) chance"
 	weapon_smg(string) : "SMG (custom) chance"
@@ -9627,6 +9635,7 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []
 
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_melee : "Generic configurable melee" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol : "Generic configurable pistol" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol2 : "Generic configurable pistol" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_smg : "Generic configurable SMG" []

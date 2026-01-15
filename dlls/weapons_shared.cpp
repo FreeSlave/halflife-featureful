@@ -15,6 +15,7 @@
 #include "hornet.h"
 #include "ggrenade.h"
 #include "spore.h"
+#include "skill.h"
 #endif
 
 WeaponInfo& AccessWeaponInfo(int id)
@@ -1145,7 +1146,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	const auto fireType = fire.fireType.Get(altMode);
 
 	const float chargeTime = fire.chargeTime.Get(m_chargingAttack ? m_chargingAltFire : altMode);
-	if (chargeTime > 0.0f && fireType != WeaponParameters::Fire::MELEE_WIND)
+
+	const bool meleeWindAttack = fireType == WeaponParameters::Fire::MELEE && fire.chargedAttack.Get(altMode);
+
+	if (chargeTime > 0.0f && !meleeWindAttack)
 	{
 		if (!m_chargingAttack)
 		{
@@ -1378,27 +1382,29 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 	else if (fireType == WeaponParameters::Fire::MELEE)
 	{
-		m_swingIsAltAttack = altMode;
-		if (!m_iSwingMode && !Swing(true))
+		if (meleeWindAttack)
 		{
+			if (m_iSwingMode != 1)
+			{
+				SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
+				m_flBigSwingStart = gpGlobals->time;
+			}
+			m_swingIsAltAttack = altMode;
+			m_iSwingMode = 1;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+		}
+		else
+		{
+			m_swingIsAltAttack = altMode;
+			if (!m_iSwingMode && !Swing(true))
+			{
 #if !CLIENT_DLL
-			SetThink( &CConfigurableWeapon::SwingAgain );
-			pev->nextthink = gpGlobals->time + 0.1f;
+				SetThink( &CConfigurableWeapon::SwingAgain );
+				pev->nextthink = gpGlobals->time + 0.1f;
 #endif
+			}
 		}
-		return;
-	}
-	else if (fireType == WeaponParameters::Fire::MELEE_WIND)
-	{
-		if (m_iSwingMode != 1)
-		{
-			SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
-			m_flBigSwingStart = gpGlobals->time;
-		}
-		m_swingIsAltAttack = altMode;
-		m_iSwingMode = 1;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
-		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
 		return;
 	}
 
@@ -2042,7 +2048,7 @@ void CConfigurableWeapon::WeaponIdle()
 
 	if (m_iSwingMode == 1)
 	{
-		if (gpGlobals->time > m_flBigSwingStart + params.fire.chargeTime.Get(true))
+		if (gpGlobals->time > m_flBigSwingStart + params.fire.chargeTime.Get(m_swingIsAltAttack))
 		{
 			m_iSwingMode = 2;
 		}
@@ -2050,7 +2056,7 @@ void CConfigurableWeapon::WeaponIdle()
 	}
 	else if (m_iSwingMode == 2)
 	{
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + params.fire.cycleTime.Get(true);
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + params.fire.cycleTime.Get(m_swingIsAltAttack);
 		BigSwing();
 		m_iSwingMode = 0;
 		return;
@@ -2413,6 +2419,12 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
 			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
 		}
+		if (!fire.kickBackOnHitOnly.Get(altMode))
+			ApplyMyKickBack(altMode);
+	}
+	else
+	{
+		ApplyMyKickBack(altMode);
 	}
 #endif
 	if( fFirst )
@@ -2463,7 +2475,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 			// If building with the clientside weapon prediction system,
 			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
 			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
-			DamageInfo damageInfo{RandomizeNumberFromRange(fire.damage.Get(altMode)), DMG_CLUB};
+			DamageInfo damageInfo{RandomizeSkillValue(fire.damage.Get(altMode)), DMG_CLUB};
 #if CLIENT_WEAPONS
 			if( ( m_flNextPrimaryAttack + 1.0f == UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 #else
@@ -2558,6 +2570,12 @@ void CConfigurableWeapon::BigSwing()
 				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
 			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
 		}
+		if (!fire.kickBackOnHitOnly.Get(altMode))
+			ApplyMyKickBack(altMode);
+	}
+	else
+	{
+		ApplyMyKickBack(altMode);
 	}
 #endif
 
@@ -2566,7 +2584,6 @@ void CConfigurableWeapon::BigSwing()
 	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), GetPlaybackEvent(altMode),
 						0.0f, g_vecZero, g_vecZero, 0, 0, iParam1Bits, PackIParam2(), 0, 0 );
 
-	ApplyMyKickBack(altMode);
 	if ( tr.flFraction >= 1.0 )
 	{
 		// player "shoot" animation
@@ -2591,9 +2608,25 @@ void CConfigurableWeapon::BigSwing()
 		// hit
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
-		if( pEntity )
+		if (pEntity)
 		{
-			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, MeleeWindDamageInfo(), gpGlobals->v_forward, &tr);
+			const auto baseDamage = fire.damage.Get(altMode);
+			auto damageFactor = fire.damageChargedFactor.Get(altMode);
+			if (damageFactor == 0.0f)
+				damageFactor = baseDamage;
+			auto maxDamageRange = fire.damageChargedMax.Get(altMode);
+			if (maxDamageRange == 0.0f)
+				maxDamageRange = baseDamage * 2.0f;
+
+			float flDamage = RandomizeSkillValue(baseDamage) + (gpGlobals->time - m_flBigSwingStart) * RandomizeSkillValue(damageFactor);
+			const float maxDamage = RandomizeSkillValue(maxDamageRange);
+			if (flDamage > maxDamage) {
+				flDamage = maxDamage;
+			}
+
+			DamageInfo damageInfo{flDamage, DMG_CLUB};
+
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, damageInfo, gpGlobals->v_forward, &tr);
 		}
 
 		// play thwack, smack, or dong sound
@@ -2739,6 +2772,76 @@ void CConfigurableWeapon::PrecacheCommonEvent()
 }
 
 class CGenericConfigurableWeapon : public CConfigurableWeapon {};
+
+enum melee_e
+{
+	MELEE_IDLE = 0,
+	MELEE_DRAW,
+	MELEE_HOLSTER,
+	MELEE_ATTACK1HIT,
+	MELEE_ATTACK1MISS,
+	MELEE_ATTACK2MISS,
+	MELEE_ATTACK2HIT,
+	MELEE_ATTACK3MISS,
+	MELEE_ATTACK3HIT,
+};
+
+class CMelee : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_MELEE;
+	}
+	bool GetItemInfo(ItemInfo *p) override
+	{
+		p->iSlot = 0;
+		p->iPosition = 5;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.maxClip = WEAPON_NOCLIP;
+
+		params.worldModel = "models/w_crowbar.mdl";
+		params.viewModel = "models/v_crowbar.mdl";
+		params.playerModel = "models/p_crowbar.mdl";
+		params.playerAnimExt = "crowbar";
+		params.priority = 0;
+
+		params.deploy.animIndex = MELEE_DRAW;
+
+		params.fire.fireType = WeaponParameters::Fire::MELEE;
+		params.fire.damage = 10;
+		params.fire.anims = {MELEE_ATTACK1MISS, MELEE_ATTACK2MISS, MELEE_ATTACK3MISS};
+		params.fire.hitAnims = {MELEE_ATTACK2HIT, MELEE_ATTACK3HIT};
+		params.fire.sound = {
+			CHAN_WEAPON,
+			{"weapons/cbar_miss1.wav"},
+			1.0f,
+			ATTN_NORM,
+			PITCH_NORM
+		};
+		params.fire.cycleTime = 0.5f;
+		params.fire.hitBodySound = {
+			CHAN_ITEM,
+			{"weapons/cbar_hitbod1.wav", "weapons/cbar_hitbod2.wav", "weapons/cbar_hitbod3.wav"},
+			1.0f,
+			ATTN_NORM,
+			PITCH_NORM
+		};
+		params.fire.hitWallSound = {
+			CHAN_ITEM,
+			{"weapons/cbar_hit1.wav", "weapons/cbar_hit2.wav"},
+			1.0f,
+			ATTN_NORM,
+			IntRange(98, 101)
+		};
+
+		return params;
+	}
+};
 
 enum pistol_e
 {
@@ -3145,6 +3248,7 @@ public:
 	}
 };
 
+LINK_WEAPON_TO_CLASS(weapon_melee, CMelee)
 LINK_WEAPON_TO_CLASS(weapon_pistol, CPistol)
 LINK_WEAPON_TO_CLASS(weapon_pistol2, CPistol2)
 LINK_WEAPON_TO_CLASS(weapon_smg, CSMG)
