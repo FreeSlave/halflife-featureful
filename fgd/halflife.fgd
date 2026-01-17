@@ -7590,11 +7590,13 @@
 	[
 		0 : "On back"
 		1 : "On stomach"
+		2 : "Seated (slide wall)"
 	]
 	sequence(Choices) : "Animation Sequence (editor)" : 15 =
 	[
 		15 : "dieheadshot"
 		19 : "dieforward"
+		26 : "slidewall"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_barney.mdl") = monster_zombie_barney : "Barney Zombie"
@@ -7653,11 +7655,13 @@
 	[
 		0 : "On back"
 		1 : "On stomach"
+		2 : "Seated (slide wall)"
 	]
 	sequence(Choices) : "Animation Sequence (editor)" : 15 =
 	[
 		15 : "dieheadshot"
 		19 : "dieforward"
+		26 : "slidewall"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/zombie_soldier.mdl") = monster_zombie_soldier : "Soldier Zombie"

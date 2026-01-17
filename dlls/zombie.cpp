@@ -338,10 +338,10 @@ public:
 	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 
 	const char* getPos(int pos) const override;
-	static const char *m_szPoses[2];
+	static const char *m_szPoses[3];
 };
 
-const char *CDeadZombie::m_szPoses[] = { "dieheadshot", "dieforward" };
+const char *CDeadZombie::m_szPoses[] = { "dieheadshot", "dieforward", "slidewall" };
 
 const char* CDeadZombie::getPos(int pos) const
 {
