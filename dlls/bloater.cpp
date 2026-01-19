@@ -907,7 +907,6 @@ KilledResult CFloater::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	g_howlTime = gpGlobals->time;
 	StopSoundScript(howlSoundScript);
 	ExplodeEffect();
-	CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, 300, 0.3 );
 	return killedResult;
 }
 
