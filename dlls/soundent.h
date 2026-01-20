@@ -25,7 +25,7 @@
 #include "soundent_bits.h"
 #include <utility>
 
-#define	MAX_WORLD_SOUNDS	64 // maximum number of sounds handled by the world at one time.
+#define	MAX_WORLD_SOUNDS	128 // maximum number of sounds handled by the world at one time.
 
 #define SOUNDLIST_EMPTY	-1
 

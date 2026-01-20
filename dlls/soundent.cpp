@@ -235,7 +235,7 @@ void CSoundEnt::InsertSound( CBaseEntity* pInitiator, int iType, const Vector &v
 
 	if (iThisSound == SOUNDLIST_EMPTY)
 	{
-		ALERT(at_console, "Could not AllocSound() for InsertSound() (DLL)\n");
+		ALERT(at_warning, "Could not AllocSound() for InsertSound() (DLL)\n");
 
 		int iSound = pSoundEnt->m_iActiveSound;
 		int iPreviousSound = SOUNDLIST_EMPTY;
@@ -263,7 +263,7 @@ void CSoundEnt::InsertSound( CBaseEntity* pInitiator, int iType, const Vector &v
 		if (iSoundToFree != SOUNDLIST_EMPTY)
 		{
 			FreeSound(iSoundToFree, iPreviousSoundToFree);
-			ALERT(at_console, "Taking out an old sound in order to insert a new one\n");
+			ALERT(at_warning, "Taking out an old sound in order to insert a new one\n");
 
 			iThisSound = pSoundEnt->IAllocSound();
 			if (iThisSound == SOUNDLIST_EMPTY)
