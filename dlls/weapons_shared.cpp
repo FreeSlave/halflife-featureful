@@ -531,9 +531,9 @@ static bool PlayerMatchesConditions(CBasePlayer* pPlayer, const PlayerMovementCo
 
 void CConfigurableWeapon::Spawn()
 {
+	const WeaponParameters& params = MyParameters();
 	Precache();
-
-	SET_MODEL(ENT(pev), MyWorldModel());
+	SetMyModel(params.worldModel.c_str());
 
 	SetInitialAmmoAmount();
 	InitMaxClip();
@@ -543,7 +543,6 @@ void CConfigurableWeapon::Spawn()
 	ResetInaccuracy();
 	m_bDelayFire = true;
 
-	const WeaponParameters& params = MyParameters();
 	if (params.startLaserSpot)
 		m_bLaserActive = true;
 }

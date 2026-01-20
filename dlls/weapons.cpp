@@ -1090,7 +1090,7 @@ void CBasePlayerWeapon::PrecacheWeaponModels()
 {
 	const WeaponParameters& params = MyParameters();
 
-	PRECACHE_MODEL(MyWorldModel());
+	PrecacheMyModel(params.worldModel.c_str());
 	PRECACHE_MODEL(params.ViewModel());
 	PrecachePModel(params.PlayerModel());
 

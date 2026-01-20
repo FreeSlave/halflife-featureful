@@ -571,8 +571,9 @@ LINK_WEAPON_TO_CLASS( weapon_snark, CSqueak )
 
 void CSqueak::Spawn()
 {
+	const WeaponParameters& params = MyParameters();
 	Precache();
-	SET_MODEL(ENT(pev), MyWorldModel());
+	SetMyModel(params.worldModel.c_str());
 
 	SetInitialAmmoAmount();
 	InitMaxClip();

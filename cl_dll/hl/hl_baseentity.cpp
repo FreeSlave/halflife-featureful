@@ -57,6 +57,7 @@ bool CBaseEntity::IsInWorld() { return true; }
 int CBaseEntity::DamageDecal( int bitsDamageType ) { return -1; }
 void CBaseEntity::UpdateOnRemove() { }
 int CBaseEntity::IRelationship( CBaseEntity *pTarget ) { return 0; }
+void CBaseEntity::SetMyModel(const char* defaultModel) {}
 int CBaseEntity::PRECACHE_SOUND(const char *soundName) { return 0; }
 float CBaseEntity::GetSkillValue(const char* name) { return 0.0f; }
 

@@ -381,8 +381,10 @@ bool CSatchel::AddToPlayer( CBasePlayer *pPlayer )
 
 void CSatchel::Spawn()
 {
+	const WeaponParameters& params = MyParameters();
+
 	Precache();
-	SET_MODEL(ENT(pev), MyWorldModel());
+	SetMyModel(params.worldModel.c_str());
 
 	SetInitialAmmoAmount();
 	InitMaxClip();
