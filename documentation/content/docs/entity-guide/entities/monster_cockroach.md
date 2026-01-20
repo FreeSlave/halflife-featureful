@@ -9,7 +9,7 @@ bookToC: false
 
 ### Default classification
 
-`Human Passive`
+`Insect`
 
 ### Soundscripts
 

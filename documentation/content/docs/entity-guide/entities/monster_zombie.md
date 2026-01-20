@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_zombie)
 
+### Changes
+
+* Unlike original Half-Life, zombies don't have resistance against Tau-Cannon and tank guns anymore. This is believed to be wrong coding by Valve as zombies lack resistance to against bullets from other weapons.
+
 ### Skill variables
 
 * **sk_zombie_health** - monster's health.

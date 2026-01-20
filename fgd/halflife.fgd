@@ -623,7 +623,7 @@
 
 	m_flGibLife(string) : "Gib Life" : "4" : "Time in seconds for gibs to live +/- 5%"
 
-	m_iszSpawnTarget(target_destination) : "Fire on spawn (locus = shot)"
+	m_iszSpawnTarget(target_destination) : "Fire on spawn (locus = gib)"
 
 	spawnflags(Flags) =
 	[
