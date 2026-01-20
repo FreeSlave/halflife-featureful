@@ -1990,6 +1990,8 @@ class CEnvShooter : public CGibShooter
 	int m_iPhysics;
 	float m_fFriction;
 	Vector m_vecSize;
+	int m_bloodColor;
+	int m_startGibBody;
 };
 
 TYPEDESCRIPTION CEnvShooter::m_SaveData[] =
@@ -1999,6 +2001,8 @@ TYPEDESCRIPTION CEnvShooter::m_SaveData[] =
 	DEFINE_FIELD(CEnvShooter, m_iPhysics, FIELD_INTEGER),
 	DEFINE_FIELD(CEnvShooter, m_fFriction, FIELD_FLOAT),
 	DEFINE_FIELD(CEnvShooter, m_vecSize, FIELD_VECTOR),
+	DEFINE_FIELD(CEnvShooter, m_bloodColor, FIELD_INTEGER),
+	DEFINE_FIELD(CEnvShooter, m_startGibBody, FIELD_INTEGER),
 };
 
 IMPLEMENT_SAVERESTORE( CEnvShooter, CGibShooter )
@@ -2064,6 +2068,16 @@ void CEnvShooter::KeyValue( KeyValueData *pkvd )
 		m_vecSize = m_vecSize / 2;
 		pkvd->fHandled = true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "bloodcolor"))
+	{
+		m_bloodColor = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "start_gib_body"))
+	{
+		m_startGibBody = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else
 	{
 		CGibShooter::KeyValue( pkvd );
@@ -2112,13 +2126,13 @@ CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 		{
 			int bodyPart = 0;
 
-			if( pev->body > 1 )
-				bodyPart = RANDOM_LONG( 0, pev->body - 1 );
+			if (pev->body > 1)
+				bodyPart = RANDOM_LONG(m_startGibBody, pev->body - 1);
 
 			pGib->pev->body = bodyPart;
 		}
 
-		pGib->m_bloodColor = DONT_BLEED;
+		pGib->m_bloodColor = m_bloodColor > 0 ? m_bloodColor : DONT_BLEED;
 		pGib->m_material = m_iGibMaterial;
 
 		pGib->pev->rendermode = pev->rendermode;

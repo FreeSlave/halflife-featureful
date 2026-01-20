@@ -17,9 +17,19 @@ Set the `Delay between shots` to negative value to make `env_shooter` produce th
 To set a sprite you may need to specify the path manually instead of relying on the open file dialog in the level editor.
 {{% /hint %}}
 
+{{% hint info %}}
+With right parameters this entity can replicate the [gibshooter]({{< ref gibshooter >}}) behavior:
+
+1. Set the model name to **models/hgibs.mdl**
+2. Set the `Gib Blood Color` to Red to allow blood decals and meat scent.
+3. Set `Start gib body` to 1 (to skip the skull submodel like the `gibshooter` does).
+{{% /hint %}}
+
 ### New parameters
 
 * Shares new parameters with [gibshooter]({{< ref gibshooter >}}).
+* `Gib Blood Color` - blood color to leave blood decals when gib is touching something. Bloody gibs also produce the *meat* scent that some monsters can [sense]({{< ref ai-sound >}}).
+* `Start gib body` - randomize gib's body starting with this submodel (i.e. skip the first *n* submodels).
 * ![](/images/spirit.png) `Gib/Shot physics` - define the physics of the projectile. Also this determines whether `env_shooter` shots *gibs* or *shots*.
 * ![](/images/spirit.png) `Start frame (shot)` - start sprite frame. Only for *shots*.
 * ![](/images/spirit.png) `Framerate (shot)` - sprite framerate. Only for *shots*. Set to 10 or other value for animated sprites.

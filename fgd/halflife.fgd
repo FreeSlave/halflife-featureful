@@ -2343,6 +2343,13 @@
 	]
 	scale(string) : "Gib/Shot Scale"
 	skin(integer) : "Gib Skin (-1 is random)"
+	bloodcolor(choices) : "Gib Blood Color" =
+	[
+		0 : "Default (don't bleed)"
+		247 : "Human (red)"
+		195 : "Alien (yellow)"
+	]
+	start_gib_body(integer) : "Start gib body (skip first submodels)" : : "Randomize gib starting with this submodel"
 	spawnflags(Flags) =
 	[
 		1 : "Repeatable" 	: 0
