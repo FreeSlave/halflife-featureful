@@ -1524,28 +1524,16 @@ void EV_TrainPitchAdjust( event_args_t *args )
 
 void EV_VehiclePitchAdjust( event_args_t *args )
 {
-	int idx;
-	Vector origin;
+	int idx = args->entindex;
 
-	unsigned short us_params;
-	int noise;
-	float m_flVolume;
-	int pitch;
-	int stop;
+	Vector origin{args->origin,};
+
+	float m_flVolume = args->fparam1;
+	int noise = args->iparam1;
+	int pitch = args->iparam2;
+	int stop = args->bparam1;
 
 	const char *pszSound;
-
-	idx = args->entindex;
-
-	VectorCopy( args->origin, origin );
-
-	us_params = (unsigned short)args->iparam1;
-	stop = args->bparam1;
-
-	m_flVolume = (float)( us_params & 0x003f ) / 40.0f;
-	noise = (int)( ( ( us_params ) >> 12 ) & 0x0007 );
-	pitch = (int)( 10.0f * (float)( ( us_params >> 6 ) & 0x003f ) );
-
 	switch( noise )
 	{
 	case 1:

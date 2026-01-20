@@ -420,12 +420,7 @@ void CFuncVehicle::UpdateSound()
 	}
 	else
 	{
-		unsigned short us_sound = ( (unsigned short)( m_sounds ) & 0x0007 ) << 12;
-		unsigned short us_pitch = ( (unsigned short)( flpitch / 10.0 ) & 0x003F ) << 6;
-		unsigned short us_volume = ( (unsigned short)( m_flVolume * 40 ) & 0x003F );
-		unsigned short us_encode = us_sound | us_pitch | us_volume;
-
-		PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, g_vecZero, g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0 );
+		PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, g_vecZero, g_vecZero, m_flVolume, 0.0, m_sounds, (int)flpitch, 0, 0 );
 	}
 }
 
