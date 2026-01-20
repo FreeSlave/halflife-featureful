@@ -635,7 +635,8 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				else
 				{
 					// body is gonna be around for a while, so have it stink for a bit.
-					InsertAISound( bits_SOUND_CARCASS, 384, 30 );
+					if (BloodColor() != DONT_BLEED)
+						InsertAISound( bits_SOUND_CARCASS, 384, 30 );
 				}
 			}
 			break;
