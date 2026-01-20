@@ -201,7 +201,7 @@ int CSoundEnt::IAllocSound()
 	if( m_iFreeSound == SOUNDLIST_EMPTY )
 	{
 		// no free sound!
-		ALERT( at_console, "Free Sound List is full!\n" );
+		//ALERT( at_console, "Free Sound List is full!\n" );
 		return SOUNDLIST_EMPTY;
 	}
 
@@ -225,20 +225,55 @@ int CSoundEnt::IAllocSound()
 //=========================================================
 void CSoundEnt::InsertSound( CBaseEntity* pInitiator, int iType, const Vector &vecOrigin, int iVolume, float flDuration )
 {
-	int iThisSound;
-
 	if( !pSoundEnt )
 	{
 		// no sound ent!
 		return;
 	}
 
-	iThisSound = pSoundEnt->IAllocSound();
+	int iThisSound = pSoundEnt->IAllocSound();
 
-	if( iThisSound == SOUNDLIST_EMPTY )
+	if (iThisSound == SOUNDLIST_EMPTY)
 	{
-		ALERT( at_console, "Could not AllocSound() for InsertSound() (DLL)\n" );
-		return;
+		ALERT(at_console, "Could not AllocSound() for InsertSound() (DLL)\n");
+
+		int iSound = pSoundEnt->m_iActiveSound;
+		int iPreviousSound = SOUNDLIST_EMPTY;
+
+		float minExpireTime = 0.0f;
+		int iSoundToFree = SOUNDLIST_EMPTY;
+		int iPreviousSoundToFree = SOUNDLIST_EMPTY;
+
+		while (iSound != SOUNDLIST_EMPTY)
+		{
+			if (pSoundEnt->m_SoundPool[iSound].m_flExpireTime != SOUND_NEVER_EXPIRE)
+			{
+				if (minExpireTime == 0.0f || pSoundEnt->m_SoundPool[iSound].m_flExpireTime < minExpireTime)
+				{
+					minExpireTime = pSoundEnt->m_SoundPool[iSound].m_flExpireTime;
+					iSoundToFree = iSound;
+					iPreviousSoundToFree = iPreviousSound;
+				}
+			}
+
+			iPreviousSound = iSound;
+			iSound = pSoundEnt->m_SoundPool[iSound].m_iNext;
+		}
+
+		if (iSoundToFree != SOUNDLIST_EMPTY)
+		{
+			FreeSound(iSoundToFree, iPreviousSoundToFree);
+			ALERT(at_console, "Taking out an old sound in order to insert a new one\n");
+
+			iThisSound = pSoundEnt->IAllocSound();
+			if (iThisSound == SOUNDLIST_EMPTY)
+			{
+				ALERT(at_error, "Could not AllocSound() even after freeing?!\n");
+				return;
+			}
+		}
+		else
+			return;
 	}
 
 	pSoundEnt->m_SoundPool[iThisSound].m_vecOrigin = vecOrigin;
