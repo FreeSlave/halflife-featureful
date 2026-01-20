@@ -15,11 +15,11 @@ Set the `Delay between shots` to negative value to make `gibshooter` produce the
 
 ### New parameters
 
-* `At position` - custom position to shoot gibs from (instead of the `gibshooter` origin).
-* `At velocity` - custom direction to shoot gibs at (instead of relying on entity angle).
-* `Gib Speed Factor` (originally `Gib Velocity` in Half-Life) - now can be [locus ratio]({{< ref locus-system >}}) for dynamic gib speed.
-* `Fire on spawn` - fire this target on behalf of the created gib.
+* ![](/images/spirit.png) `Shoot from position [LP]` - custom position to shoot gibs from (instead of the `gibshooter` origin).
+* ![](/images/spirit.png) `Shoot at velocity/direction [LV]` - custom direction to shoot gibs at (instead of relying on entity's angles). Note: the calculated vector is not normalized automatically; you need to ensure the calc entity normalizes the vector, otherwise it will act as an additional speed factor.
+* ![](/images/spirit.png) `Gib Speed Factor` (originally `Gib Velocity` in Half-Life) - now can be [locus ratio]({{< ref locus-system >}}) for dynamic gib speed.
+* ![](/images/spirit.png) `Fire on spawn` - fire this target on behalf of the created gib. This allows to play additional effects on the gibs, e.g. beam trails, via the [locus system]({{< ref locus-system >}}).
 
 ### New spawnflags
 
-* `Start instantly` - start producing projectile on the same frame it was called. By default in Half-Life it starts producing gibs/shots only on the next frame which may cause some problems.
+* `Start instantly` - start producing projectile on the same frame it was called. By default in Half-Life it starts producing gibs/shots only on the next frame which may cause problems in certain setups.

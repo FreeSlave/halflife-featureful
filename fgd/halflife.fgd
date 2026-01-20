@@ -615,8 +615,8 @@
 
 	delay(string) : "Delay between shots" : "0" : "Delay (in seconds) between shots. If it's 0, delay is getting set to 0.1 automatically (default HL behavior). Set it to negative value to spawn all gibs at once"
 
-	m_iszPosition(string) : "At position (blank = here) [LP]"
-	m_iszVelocity(string) : "At velocity (blank = angle) [LV]"
+	m_iszPosition(string) : "Shoot from position (blank = here) [LP]"
+	m_iszVelocity(string) : "Shoot at velocity/direction (blank = angle) [LV]"
 	m_flVelocity(string) : "Gib Speed Factor [LR]" : "200"
 
 	m_flVariance(string) : "Course Variance" : "0.15"
