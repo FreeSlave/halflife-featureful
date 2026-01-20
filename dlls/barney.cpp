@@ -327,7 +327,7 @@ void CBarney::BarneyFirePistol( const char* shotSoundScript, float flDamage )
 	}
 	EmitSoundScript(shotSoundScript, soundParams);
 
-	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 384, 0.3f );
+	InsertAISound( bits_SOUND_COMBAT, 384, 0.3f );
 
 	// UNDONE: Reload?
 	m_cAmmoLoaded--;// take away a bullet!

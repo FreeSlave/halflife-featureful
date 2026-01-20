@@ -247,7 +247,7 @@ void CRGrunt::StartTask(Task_t *pTask)
 	{
 	case TASK_DIE:
 	{
-		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, 400, 2 );
+		InsertAISound( bits_SOUND_DANGER, 400, 2 );
 
 		if( UTIL_PointContents( pev->origin ) == CONTENTS_WATER )
 		{
@@ -334,7 +334,7 @@ void CRGrunt::Explode()
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
 
-	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+	InsertAISound( bits_SOUND_COMBAT, NORMAL_EXPLOSION_VOLUME, 3.0 );
 
 	RadiusDamage( pev, pev, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
 

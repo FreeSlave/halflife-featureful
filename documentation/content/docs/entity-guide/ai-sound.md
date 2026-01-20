@@ -77,7 +77,7 @@ In terms of monsters' reaction this is basically the same as [Carcass](#carcass)
 
 ### Garbage
 
-This scent was supposed to be produced by trash cans but it was never implemented in the game.
+This scent was supposed to be produced by trash cans but it was not used in the game. If this is manually placed via [env_soundmark]({{< ref env_soundmark >}}) some monsters like security guards and scientists may react to it with the `BA_SMELL` and `SC_SMELL` sentences. The bullsquids may go to the scent and inspect the floor.
 
 ## Mapping
 
@@ -111,7 +111,7 @@ In Featureful SDK its behavior has changed:
 
 * Changing the `displaysoundlist` value doesn't require the level restart: the reporting starts or stops right away.
 * When `displaysoundlist` is set to 1 it reports the number of active sounds in the console every 0.3 seconds but only if the number of sounds has been changed inbetween (in Half-Life it has been reported unconditionally). This also reports insertions and expirations of sounds.
-* When `displaysoundlist` is set to 2 it does the same as above and additionally visualizes the sound locations with temporary beams. The beam color denotes the sound type: red means danger, orange means combat and pink means carcass/meat.
+* When `displaysoundlist` is set to 2 it does the same as above and additionally visualizes the sound locations with temporary beams. The beam color denotes the sound type: red means danger, orange means combat and pink means carcass/meat. The width and height of the beam show relative sound volume.
 
 ## Notes
 

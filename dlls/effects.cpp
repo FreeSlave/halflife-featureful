@@ -3537,7 +3537,7 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		w.aiSound.radius = Radius();
 		w.aiSound.duration = m_aiSoundDuration > 0.0f ? m_aiSoundDuration : 0.3f;
 	}
-	PlayWarpballEffect(w, vecOrigin, playSoundEnt);
+	PlayWarpballEffect(this, w, vecOrigin, playSoundEnt);
 
 	SUB_UseTargets( this );
 
@@ -3660,7 +3660,7 @@ void CEnvWarpballTemplated::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, U
 	const WarpballTemplate* warpballTemplate = g_WarpballCatalog.FindWarpballTemplate(STRING(warpballName), entityClassname);
 	if (warpballTemplate)
 	{
-		PlayWarpballEffect(*warpballTemplate, vecOrigin, playSoundEnt);
+		PlayWarpballEffect(this, *warpballTemplate, vecOrigin, playSoundEnt);
 	}
 	else
 	{
@@ -3994,7 +3994,7 @@ void CEnvXenMaker::TrySpawn()
 		}
 	}
 
-	PlayWarpballEffect(w, vecOrigin, posEnt);
+	PlayWarpballEffect(this, w, vecOrigin, posEnt);
 }
 
 void CEnvXenMaker::PlaySecondSoundThink()

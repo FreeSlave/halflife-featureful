@@ -402,7 +402,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 			// Play fire sound.
 			EmitSoundScript(fireSoundScript);
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3);
+			InsertAISound(bits_SOUND_COMBAT, 384, 0.3);
 		}
 		else if (m_pSchedule)
 		{

@@ -223,7 +223,7 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 		{
 			if (gpGlobals->time > m_flSoundDelay)
 			{
-				CSoundEnt::InsertSound(bits_SOUND_DANGER, pev->origin, (int)(pev->dmg * 2.5f), 0.3);
+				InsertAISound(bits_SOUND_DANGER, (int)(pev->dmg * 2.5f), 0.3);
 
 				m_flSoundDelay = gpGlobals->time + 1.0;
 			}

@@ -751,7 +751,7 @@ void CTentacle::CommandUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		if( pActivator )
 		{
 			// ALERT( at_console, "insert sound\n" );
-			CSoundEnt::InsertSound( bits_SOUND_WORLD, pActivator->pev->origin, 1024, 1.0 );
+			InsertAISound( bits_SOUND_WORLD, pActivator->pev->origin, 1024, 1.0 );
 		}
 		break;
 	case USE_SET:

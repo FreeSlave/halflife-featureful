@@ -534,7 +534,7 @@ void COsprey::DeployThink()
 
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0.0f, 0.0f, -4096.0f ), ignore_monsters, ENT( pev ), &tr );
-	CSoundEnt::InsertSound( bits_SOUND_DANGER, tr.vecEndPos, 400, 0.3f );
+	InsertAISound( bits_SOUND_DANGER, tr.vecEndPos, 400, 0.3f );
 
 	if (!FStringNull(m_triggerOnDeploy))
 	{

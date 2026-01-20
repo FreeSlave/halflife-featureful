@@ -181,7 +181,7 @@ int CBaseMonster::IScheduleFlags()
 	return m_afConditions & m_pSchedule->iInterruptMask;
 }
 
-static std::pair<int, const char*> g_ConditionsNames[] = {
+static const std::pair<int, const char*> g_ConditionsNames[] = {
 	{bits_COND_NO_AMMO_LOADED, "No ammo loaded"},
 	{bits_COND_SEE_HATE, "Sees someone who they hate"},
 	{bits_COND_SEE_FEAR, "Sees someone who they fear"},
@@ -212,16 +212,6 @@ static std::pair<int, const char*> g_ConditionsNames[] = {
 	{bits_COND_SPECIAL2, "Special conditlion 2"},
 	{bits_COND_TASK_FAILED, "Task failed"},
 	{bits_COND_SCHEDULE_DONE, "Schedule done"},
-};
-
-static std::pair<int, const char*> g_SoundNames[] = {
-	{bits_SOUND_COMBAT, "Combat"},
-	{bits_SOUND_WORLD, "World"},
-	{bits_SOUND_PLAYER, "Player"},
-	{bits_SOUND_CARCASS, "Carcass"},
-	{bits_SOUND_MEAT, "Meat"},
-	{bits_SOUND_DANGER, "Danger"},
-	{bits_SOUND_GARBAGE, "Garbage"},
 };
 
 //=========================================================
@@ -645,7 +635,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				else
 				{
 					// body is gonna be around for a while, so have it stink for a bit.
-					CSoundEnt::InsertSound( bits_SOUND_CARCASS, pev->origin, 384, 30 );
+					InsertAISound( bits_SOUND_CARCASS, 384, 30 );
 				}
 			}
 			break;

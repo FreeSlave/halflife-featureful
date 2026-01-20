@@ -2151,7 +2151,7 @@ void CEnvSoundMark::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	else
 		vecPos = pev->origin;
 
-	CSoundEnt::InsertSound ( GetType(), vecPos, GetRadius(), GetDuration() );
+	InsertAISound( GetType(), vecPos, GetRadius(), GetDuration() );
 	if (FBitSet(pev->spawnflags, SF_SOUNDMARK_FIREONCE))
 	{
 		UTIL_Remove(this);

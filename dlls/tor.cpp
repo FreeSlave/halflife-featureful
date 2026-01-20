@@ -409,7 +409,7 @@ void CTor::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 	case EVENT_SLAM:
 		SlamAttack();
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, NORMAL_GUN_VOLUME, 0.3f);
+		InsertAISound(bits_SOUND_COMBAT, NORMAL_GUN_VOLUME, 0.3f);
 		break;
 	case EVENT_SHOOT:
 		m_nextBeam = m_nextBeamBurst = gpGlobals->time;
@@ -543,7 +543,7 @@ void CTor::MonsterThink()
 			m_nextBeam = gpGlobals->time + 0.05;
 			m_burstShotsFired++;
 			EmitSoundScript(shootSoundScript);
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, NORMAL_GUN_VOLUME, 0.3f);
+			InsertAISound(bits_SOUND_COMBAT, NORMAL_GUN_VOLUME, 0.3f);
 
 			Vector vecSrc, angles;
 			GetAttachment(0, vecSrc, angles);

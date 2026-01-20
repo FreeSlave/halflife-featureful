@@ -207,7 +207,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 		EmitSoundScript(smashSoundScript);
 	}
 
-	CSoundEnt::InsertSound( bits_SOUND_WORLD, pev->origin, 128, 1 );
+	InsertAISound( bits_SOUND_WORLD, 128, 1 );
 
 	OnDying(true);
 	UTIL_Remove( this );

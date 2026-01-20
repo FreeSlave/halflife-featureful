@@ -2458,9 +2458,12 @@
 	type(choices) : "Sound Type" : 32 =
 	[
 		1 : "Combat"
+		2 : "World"
+		4 : "Player"
 		8 : "Carcass"
 		16 : "Meat"
 		32 : "Danger"
+		64 : "Garbage"
 	]
 ]
 

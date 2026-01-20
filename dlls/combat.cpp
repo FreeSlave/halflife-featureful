@@ -1018,7 +1018,7 @@ void CGib::WaitTillLand()
 		if( m_bloodColor != DONT_BLEED )
 		{
 			// ok, start stinkin!
-			CSoundEnt::InsertSound( bits_SOUND_MEAT, pev->origin, 384, 25 );
+			InsertAISound( bits_SOUND_MEAT, 384, 25 );
 		}
 	}
 	else

@@ -142,7 +142,7 @@ void CMortarShell::FlyThink()
 
 	if (m_dangerSoundTime <= gpGlobals->time)
 	{
-		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
+		InsertAISound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
 		m_dangerSoundTime = gpGlobals->time + 0.2f;
 	}
 

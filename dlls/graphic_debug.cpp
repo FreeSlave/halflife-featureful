@@ -2,9 +2,12 @@
 #include "util.h"
 #include "global_models.h"
 #include "graphic_debug.h"
+#include "clamp.h"
 
 void DrawBeamLine(const Vector& vecStart, const Vector& vecEnd, int r, int g, int b, int life, int width)
 {
+	life = clamp(life, 5, 255);
+
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMPOINTS );
 		WRITE_VECTOR( vecStart );

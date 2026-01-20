@@ -29,6 +29,7 @@
 #include	"mod_features.h"
 #include	"skill.h"
 #include	"skilldata.h"
+#include	"soundent.h"
 
 bool g_fIsXash3D = false;
 
@@ -1877,6 +1878,16 @@ float CBaseEntity::GetSkillValue(const char *name)
 	const EntTemplate* ownerEntTemplate = GetOwnerEntTemplate();
 
 	return ::GetSkillValue(name, entTemplate, STRING(m_entTemplate), ownerEntTemplate, STRING(m_ownerEntTemplate));
+}
+
+void CBaseEntity::InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration)
+{
+	CSoundEnt::InsertSound(this, iType, vecOrigin, iVolume, flDuration);
+}
+
+void CBaseEntity::InsertAISound(int iType, int iVolume, float flDuration)
+{
+	InsertAISound(iType, pev->origin, iVolume, flDuration);
 }
 
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)

@@ -649,7 +649,7 @@ static void PlayWarpballSound(const WarpballSound& sound, const Vector& vecOrigi
 	}
 }
 
-void PlayWarpballEffect(const WarpballTemplate& warpball, const Vector &vecOrigin, edict_t *playSoundEnt)
+void PlayWarpballEffect(CBaseEntity* pInitiator, const WarpballTemplate& warpball, const Vector &vecOrigin, edict_t *playSoundEnt)
 {
 	PlayWarpballSound(warpball.sound1, vecOrigin, playSoundEnt);
 	PlayWarpballSound(warpball.sound2, vecOrigin, playSoundEnt);
@@ -696,8 +696,12 @@ void PlayWarpballEffect(const WarpballTemplate& warpball, const Vector &vecOrigi
 	if (warpball.aiSound.IsDefined())
 	{
 		auto& aiSound = warpball.aiSound;
-		CSoundEnt::InsertSound(aiSound.type, vecOrigin, aiSound.radius, aiSound.duration);
+		CSoundEnt::InsertSound(pInitiator, aiSound.type, vecOrigin, aiSound.radius, aiSound.duration);
 	}
+}
+
+void PlayWarpballEffect(const WarpballTemplate& warpballTemplate, const Vector& vecOrigin, edict_t* playSoundEnt) {
+	PlayWarpballEffect(nullptr, warpballTemplate, vecOrigin, playSoundEnt);
 }
 #endif
 

@@ -224,7 +224,7 @@ KilledResult CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAtta
 	// play squeek blast
 	EmitSoundScript(dieSoundScript);
 
-	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, SMALL_EXPLOSION_VOLUME, 3.0f );
+	InsertAISound( bits_SOUND_COMBAT, pev->origin, SMALL_EXPLOSION_VOLUME, 3.0f );
 
 	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
 
@@ -341,7 +341,7 @@ void CSqueakGrenade::HuntThink()
 	if( m_flDie && ( m_flDie - gpGlobals->time <= 0.5f ) && ( m_flDie - gpGlobals->time >= 0.3f ) )
 	{
 		EmitSoundScript(squeakSoundScript);
-		CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 256, 0.25f );
+		InsertAISound( bits_SOUND_COMBAT, pev->origin, 256, 0.25f );
 	}
 
 	if( m_hEnemy != 0 )
@@ -470,12 +470,12 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 		SoundScriptParamOverride param;
 		param.OverridePitchRelative((int)flpitch);
 		EmitSoundScript(bounceSoundScript, param);
-		CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 256, 0.25f );
+		InsertAISound( bits_SOUND_COMBAT, pev->origin, 256, 0.25f );
 	}
 	else
 	{
 		// skittering sound
-		CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 100, 0.1f );
+		InsertAISound( bits_SOUND_COMBAT, pev->origin, 100, 0.1f );
 	}
 
 	m_flNextBounceSoundTime = gpGlobals->time + 0.5f;// half second.

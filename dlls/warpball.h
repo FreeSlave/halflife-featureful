@@ -166,6 +166,9 @@ private:
 extern WarpballTemplateCatalog g_WarpballCatalog;
 
 #if SERVER_DLL
+class CBaseEntity;
+
+void PlayWarpballEffect(CBaseEntity* pInitiator, const WarpballTemplate& warpballTemplate, const Vector& vecOrigin, edict_t* playSoundEnt);
 void PlayWarpballEffect(const WarpballTemplate& warpballTemplate, const Vector& vecOrigin, edict_t* playSoundEnt);
 #endif
 

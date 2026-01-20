@@ -1807,7 +1807,7 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				M249();
 			}
 
-			CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );
+			InsertAISound( bits_SOUND_COMBAT, 384, 0.3 );
 		}
 		break;
 
@@ -3101,7 +3101,7 @@ void CTorch::HandleAnimEvent(MonsterEvent_t *pEvent)
 			soundParams.OverridePitchShifted(RANDOM_LONG(0,15));
 		}
 		EmitSoundScript(desertEagleSoundScript, soundParams);
-		CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );
+		InsertAISound( bits_SOUND_COMBAT, 384, 0.3 );
 		m_cAmmoLoaded--;// take away a bullet!
 	}
 		break;
@@ -3939,7 +3939,7 @@ void CMedic::FirePistol(const char *shotSoundScript, float damage)
 		soundParams.OverridePitchShifted(RANDOM_LONG(0,15));
 	}
 	EmitSoundScript(shotSoundScript, soundParams);
-	CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, 384, 0.3f );
+	InsertAISound( bits_SOUND_COMBAT, 384, 0.3f );
 
 	m_cAmmoLoaded--;// take away a bullet!
 }

@@ -850,7 +850,7 @@ void CGargantua::FlameCreate()
 			m_pFlame[i]->PointEntInit( trace.vecEndPos, entindex() );
 			// attachment is 1 based in SetEndAttachment
 			m_pFlame[i]->SetEndAttachment( attach + 2 );
-			CSoundEnt::InsertSound( bits_SOUND_COMBAT, posGun, 384, 0.3 );
+			InsertAISound( bits_SOUND_COMBAT, posGun, 384, 0.3 );
 		}
 	}
 	FlameOnSound();

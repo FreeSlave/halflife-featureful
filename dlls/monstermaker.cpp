@@ -875,7 +875,7 @@ void CMonsterMaker::StartWarpballEffect(const Vector &vecPosition, edict_t* warp
 	const WarpballTemplate* warpballTemplate = g_WarpballCatalog.FindWarpballTemplate(warpballName, STRING(m_iszMonsterClassname));
 	if (warpballTemplate)
 	{
-		PlayWarpballEffect(*warpballTemplate, vecPosition, warpballSoundEnt);
+		PlayWarpballEffect(this, *warpballTemplate, vecPosition, warpballSoundEnt);
 		return;
 	}
 

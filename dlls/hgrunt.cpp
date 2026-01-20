@@ -947,7 +947,7 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				PlayShogtunSound();
 			}
 
-			CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );
+			InsertAISound( bits_SOUND_COMBAT, 384, 0.3 );
 		}
 			break;
 		case HGRUNT_AE_BURST2:

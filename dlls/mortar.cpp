@@ -209,7 +209,7 @@ void CFuncMortarField::FieldUse( CBaseEntity *pActivator, CBaseEntity *pCaller, 
 		t += RANDOM_FLOAT( 0.2, 0.5 );
 
 		if( i == 0 )
-			CSoundEnt::InsertSound( bits_SOUND_DANGER, tr.vecEndPos, 400, 0.3 );
+			InsertAISound( bits_SOUND_DANGER, tr.vecEndPos, 400, 0.3 );
 	}
 }
 

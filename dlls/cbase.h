@@ -703,6 +703,9 @@ public:
 
 	FloatRange GetSkillValueRange(const char* name);
 	float GetSkillValue(const char* name);
+
+	void InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration);
+	void InsertAISound(int iType, int iVolume, float flDuration);
 };
 
 // Ugly technique to override base member functions

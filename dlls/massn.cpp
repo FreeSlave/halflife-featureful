@@ -258,13 +258,13 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 		{
 			Shoot();
 			PlayFirstBurstSounds();
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3);
+			InsertAISound(bits_SOUND_COMBAT, 384, 0.3);
 		}
 		else if (FBitSet(pev->weapons, MASSN_SNIPERRIFLE))
 		{
 			Sniperrifle();
 			EmitSoundScript(sniperSoundScript);
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 512, 0.3);
+			InsertAISound(bits_SOUND_COMBAT, 512, 0.3);
 
 			Vector vecGunPos;
 			Vector vecGunAngles;
