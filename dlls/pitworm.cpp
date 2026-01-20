@@ -570,8 +570,8 @@ void CPitWorm::CommandUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	switch (useType)
 	{
 	case USE_ON:
-		InsertAISound(bits_SOUND_WORLD, pActivator->pev->origin, 1024, 1.0);
-		//ALERT(at_console, "USE_ON\n");
+		if (pActivator)
+			InsertAISound(bits_SOUND_WORLD, pActivator->pev->origin, 1024, 1.0f);
 		break;
 	case USE_OFF:
 	case USE_TOGGLE:
