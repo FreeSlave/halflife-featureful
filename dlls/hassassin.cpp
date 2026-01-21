@@ -385,9 +385,8 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				pev->velocity = g_vecZero;
 				if (m_pCine->PreciseAttack() && m_hTargetEnt != 0)
 				{
-					Vector vecTemp = m_hTargetEnt->pev->origin;
-					vecTemp.y = vecTemp.y + 50; // put her feet on the target.
-					pev->velocity = VecCheckToss( pev, pev->origin, vecTemp, 0.5 );
+					const Vector vecToReach = m_hTargetEnt->pev->origin + Vector(0, 0, 50);
+					pev->velocity = VecCheckToss(pev, pev->origin, vecToReach);
 					//if (pev->velocity != g_vecZero)
 					//	ALERT(at_console,"Precise jump for assassin %s\n",STRING(pev->targetname));
 					//else
