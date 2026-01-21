@@ -910,10 +910,13 @@ void CHGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 			//LRC: firing due to a script?
 			if (m_pCine)
 			{
-				Vector vecToss;
+				Vector vecToss = g_vecZero;
 				if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
+				{
 					vecToss = VecCheckThrow( pev, GetGunPosition(), m_hTargetEnt->pev->origin, GetSkillValue("hgrunt_gspeed"), 0.5 );
-				else
+				}
+
+				if (vecToss == g_vecZero)
 				{
 					// just shoot diagonally up+forwards
 					UTIL_MakeVectors(pev->angles);
