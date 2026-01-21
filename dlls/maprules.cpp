@@ -1044,7 +1044,7 @@ TYPEDESCRIPTION	CGamePlayerSettings::m_SaveData[] =
 	DEFINE_FIELD( CGamePlayerSettings, m_armorStrength, FIELD_FLOAT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_healthSetting, FIELD_SHORT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_armorSetting, FIELD_SHORT ),
-	DEFINE_FIELD( CGamePlayerSettings, m_healthSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_maxHealthSetting, FIELD_SHORT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_maxArmorSetting, FIELD_SHORT ),
 };
 
