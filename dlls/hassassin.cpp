@@ -354,7 +354,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				Vector vecToss;
 				if (m_pCine->PreciseAttack() && m_hTargetEnt != 0)
 				{
-					vecToss = VecCheckToss( pev, vecGunPosition, m_hTargetEnt->pev->origin, 0.5 );
+					vecToss = VecCheckToss( pev, vecGunPosition, m_hTargetEnt->pev->origin, 0.5f, 0.0f );
 					//if (vecToss != g_vecZero)
 					//	ALERT(at_console,"Assassin %s throws precise grenade\n",STRING(pev->targetname));
 				}

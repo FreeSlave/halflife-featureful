@@ -1741,7 +1741,7 @@ void CHFGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 				Vector vecToss = g_vecZero;
 				if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
 				{
-					vecToss = VecCheckToss( pev, GetGunPosition(), m_hTargetEnt->pev->origin, 0.5 );
+					vecToss = VecCheckToss( pev, GetGunPosition(), m_hTargetEnt->pev->origin, 0.5f, 0.0f );
 				}
 				if (vecToss == g_vecZero)
 				{
