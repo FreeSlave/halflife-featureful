@@ -11,28 +11,28 @@ bookToC: false
 
 ### New parameters
 
-* New option for `Move to position` - `Teleport`. Unlike `Instantaneous` it does not require scripted sequence to be called twice in order for monster to proceed playing animation.
+* New option for `Move to position` - `Teleport`. Unlike `Instantaneous` it does not require scripted sequence to be called twice in order for monster to proceed playing animation. The `Instantaneous` is left for compatibility purposes and considered to be legacy.
+* `Interruption policy`. The alternative to the `No Interruptions` flag (which is considered legacy). This can be set to `By Death Only` which would allow to make the script uninterruptable unless the monster dies during the script. The `No Interruptions` flag should be unmasked in order for policy to work.
 * `Fire on Possession` - fire a trigger after the monster gets possessed by script.
 * `Fire after moving` - fire a trigger when the scripted movement is done.
 * `Fire on Animation start` allows to sync animation start and firing a trigger (e.g. useful for retina scanner animations). Note that save-load in Half-Life resets the animation, but the trigger is designed to fire only once to avoid unwanted side-effects.
 * `Target's Activator` allows to set activator to either script itself or the possessed monster when triggering a script target at the end of sequence or at the animation start.
 * ![](/images/spirit.png) `Turn Target` makes monster face the specified target instead of a script entity.
-* ![](/images/spirit.png) `Turn mode` makes monster turn to script entity position instead of aligning with its facing.
+* ![](/images/spirit.png) `Turn mode` makes monster turn to turn target (or script entity if turn target is omitted) position instead of aligning with its facing.
 * ![](/images/spirit.png) `Move Target` makes monster to walk/run/teleport to the location of the specified entity instead of a script entity.
 * ![](/images/svencoop.png) `Move to radius` makes monster stop moving when they approach the provided distance to the move target.
 * ![](/images/spirit.png) `Priority` allows a script to possess the monster even if they're currently possessed by another script.
 * `Required follower state` - the script will play depending on whether the monster is following the player or not.
 * ![](/images/spirit.png) `Repeat action X more times` repeats an animation multiple times.
-* `Interruption policy`. The alternative to the `No Interruptions` flag. This can be set to `By Death Only` which would allow to make the script uninterruptable unless the monster dies during the script. The `No Interruptions` flag should be unmasked in order for policy to work.
-* `Search policy`. By default `scripted_sequence` is searching a monster by targetname and then by classname (using the name provided in `Target Monster`). This is usually redundant and can be unwanted. This parameter allows to set whether you want the script to search the monster by targetname only or by classname only.
-* `Apply search radius`. By default search radius is taken into account only when searching for a monster by a classname. This parameter allows to apply the same behavior when searching the monster by the targetname.
+* `Search target monster by...`. By default `scripted_sequence` is searching a monster by targetname and then by classname (using the name provided in `Target Monster`). This is usually redundant and can be unwanted. This parameter allows to set whether you want the script to search the monster by targetname only or by classname only.
+* `Test against search radius`. By default search radius is taken into account only when searching for a monster by a classname. This parameter allows to apply the same behavior when searching the monster by the targetname.
 * `TakeDamage policy` - set the monster to be invulnerable or not killable during the script.
 * `Master` - allows to prevent the monster possession until master entity is unlocked.
 
 ### New spawnflags
 
-* ![](/images/opfor.png) `Continuous animation` allows a smooth transition between animations that are meant to play one after another.
-* `Apply new angles`. If monster turns during the animation, set new angles after sequence finished (example: houndeye's jumpwindow animation).
+* ![](/images/opfor.png) `No Reset Entity (Continuous animation)` allows a smooth transition between animations that are meant to play one after another.
+* `Apply new angles from bones`. If monster turns during the animation, set new angles after sequence finished (example: houndeye's jumpwindow animation).
 * `Auto-Search (act as unnamed)` makes the `scripted_sequence` to act as if doesn't have a name. This allows to remove the script from the map while in-game with some other entity's `KillTarget` while preserving the behavior of the unnamed script.
 * `Try search once`. By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior making `scripted_sequence` do the search only once per firing. If it could not find the appropriate monster, nothing happens.
 * `Don't reset head turn`. When monster is talking to someone else, the monster turns its head to the listener. By default playing `scripted_sequence` on the monster resets the head turn. Use this flag to avoid such behavior.
@@ -42,3 +42,6 @@ bookToC: false
 ### Bugfixes
 
 * The game doesn't crash anymore if `scripted_sequence` is deleted while script is played. Instead the script gets cancelled.
+* Fixed repeatable `scripted_sequence` not properly working after it got interrupted and triggered again.
+* Fixed `scripted_sequence` being unresponsive when it has Idle Animation and Turn to Face move type
+* Barnacles can't grab victims possessed by non-interruptible scripts.

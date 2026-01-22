@@ -263,7 +263,7 @@
 	effects(choices) : "Effects" =
 	[
 		0 : "No effects"
-		16 : "Invert light"
+		16 : "Invert light (take light from ceiling)"
 	]
 	TriggerTarget(String) : "TriggerTarget" : : "The event to trigger when the TriggerCondition is met. Used by monsters."
 	TriggerCondition(Choices) : "Trigger Condition" : : "This controls the condition under which a monster will trigger its TriggerTarget. The options are:" =
@@ -1120,43 +1120,63 @@
 	m_iszEntity(string) : "Target Monster [LE]"
 	m_iszPlay(string) : "Action Animation"
 	m_iszIdle(string) : "Idle Animation"
+	m_interruptionPolicy(choices) : "Interruption policy" =
+	[
+		0 : "Default (by any damage)"
+		1 : "No Interruptions (same as flag)"
+		2 : "By Death Only"
+	]
 	m_iszFireOnBegin(target_destination): "Fire after moving"
 	m_iszFireOnAnimStart(target_destination) : "Fire on Animation start" : : "Fire at the beginning of Action Animation"
 	m_iszFireOnPossessed(target_destination) : "Fire on Possession" : : "Fire when monster is possessed by script"
 	m_flRadius(integer) : "Search Radius" : 512
+	m_applySearchRadius(choices) : "Test against search radius" =
+	[
+		0 : "When searching by classname"
+		1 : "Always"
+	]
+	m_searchPolicy(choices) : "Search target monster by..." : : "Search target monster by targetname or classname" =
+	[
+		0 : "Targetname, then classname"
+		1 : "Targetname only"
+		2 : "Classname only"
+	]
+	m_fMoveTo(choices) : "Move to Position" : 5 =
+	[
+		0 : "No"
+		1 : "Walk"
+		2 : "Run"
+		4 : "Instantaneous (legacy)"
+		5 : "No - Turn to Face"
+		7 : "Teleport"
+	]
+	m_iszMoveTarget(string) : "Move target (blank = this script) [LE]"
+	moveto_radius(string) : "Move to target's radius"
+	m_iszAttack(string) : "Turn target (blank = this script) [LE]"
+	m_fTurnType(choices) : "Turn mode" =
+	[
+		0 : "Match turn target's angle"
+		1 : "Turn to target"
+		2 : "Don't Turn"
+	]
 	m_iPriority(choices) : "Priority" =
 	[
 		0 : "Normal"
 		4 : "Override other sequences"
 	]
-	m_iszMoveTarget(string) : "Move target (blank = this) [LE]"
-	m_fMoveTo(choices) : "Move to Position" : 0 =
-	[
-		0 : "No"
-		1 : "Walk"
-		2 : "Run"
-		4 : "Instantaneous"
-		5 : "No - Turn to Face"
-		7 : "Teleport"
-	]
-	m_iFinishSchedule(Choices) : "AI Schedule when done" =
-	[
-		0 : "Default AI"
-		1 : "Ambush"
-	]
 	spawnflags(Flags) =
 	[
 		4 : "Repeatable"	: 0
-		8 : "Leave Corpse"	: 0
-		32: "No Interruptions"	: 0
-		64: "Override AI"	: 0
+		8 : "Leave Corpse (scripted death)"	: 0
+		32: "No Interruptions (legacy)"	: 0
+		64: "Override AI (Allow possession in combat)"	: 1
 		128: "No Script Movement" : 0
-		256: "Continuous animation" : 0 : "Don't reset to idle between animations"
-		512: "Apply new angles" : 0 : "If the animation includes changing of monster's angles, set them after it finished. For smoother transition and better looks."
+		256: "No Reset Entity (Continuous animation)" : 0 : "Don't reset to idle between animations"
+		512: "Apply new angles from bones" : 0 : "If the animation includes changing of monster's angles, set them after it finished. For smoother transition and better looks."
 		1024: "Auto-search (act as unnamed)" : 0 : "Act as if scripted sequence doesn't have a targetname: start searching for the monster in the script radius."
 		4096: "Try search once" : 0 : "By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior"
 		8192: "Don't reset head turn" : 0 : "Don't reset head turn for talk monsters"
-		16384: "Force idle looping" : 0 : "Force idle animation looping. Use it when you want to loop an animation that does not have a loop flag"
+		16384: "Force idle animation looping" : 0 : "Force idle animation looping. Use it when you want to loop an animation that does not have a loop flag"
 		32768: "Remove on interruption" : 0 : "Remove scripted sequence when it's getting interrupted"
 	]
 	m_targetActivator(choices) : "Activator for targets" : : "Activator for Target, Fire after moving, Fire on Animation start" =
@@ -1166,21 +1186,13 @@
 		2 : "Possessed Monster"
 		3 : "Forward my activator"
 	]
-	moveto_radius(string) : "Move to radius"
-	m_iszAttack(string) : "Turn target (blank = this) [LE]"
-	m_fTurnType(choices) : "Turn mode" =
-	[
-		0 : "Match Angle"
-		1 : "Turn to face"
-		2 : "Don't Turn"
-	]
 	required_state(choices) : "Required MonsterState" =
 	[
 		0 : "Any"
 		1 : "Idle"
 		2 : "Combat"
-		3 : "Alert"
-		4 : "Idle or Alert"
+		3 : "Alert, Hunt"
+		4 : "Non-combat (Idle, Alert, Hunt)"
 	]
 	m_requiredFollowerState(choices) : "Required follower state" =
 	[
@@ -1188,31 +1200,19 @@
 		1 : "Following player"
 		2 : "Not following player"
 	]
-	m_applySearchRadius(choices) : "Apply search radius" =
-	[
-		0 : "Only to Class Name"
-		1 : "Always"
-	]
 	m_iRepeats(integer) : "Repeat action X more times"
-	m_fRepeatFrame(string) : "Repeat from frame"
+	m_fRepeatFrame(string) : "Repeat from frame [0-255]"
 	m_maxMoveFailAttempts(integer) : "Max move fail attempts" : : "When not zero, teleport the monster to the script position after this number of failed move attempts (for Walk and Run scripts)"
-	m_interruptionPolicy(choices) : "Interruption policy" =
-	[
-		0 : "Default (by any damage)"
-		1 : "No Interruptions (same as flag)"
-		2 : "By Death Only"
-	]
-	m_searchPolicy(choices) : "Search policy" : : "Search target monster by targetname or classname" =
-	[
-		0 : "Targetname, classname"
-		1 : "Targetname only"
-		2 : "Classname only"
-	]
 	m_takeDamagePolicy(choices) : "TakeDamage policy" =
 	[
 		0 : "As usual"
-		1 : "No (Invulnerable)"
+		1 : "Invulnerable during script"
 		2 : "Non-lethal damage"
+	]
+	m_iFinishSchedule(Choices) : "AI Schedule when done" =
+	[
+		0 : "Default AI"
+		1 : "Ambush"
 	]
 	master(string) : "Master" : : "Scripted sequence won't search for its target monster while master is locked"
 ]
@@ -1690,7 +1690,7 @@
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_beamtrail : "Beam trail effect"
 [
-	target(target_destination) : "Entity to trail [LE]"
+	target(target_generic) : "Entity to trail [LE]"
 	netname(sprite) : "Sprite Name" : "sprites/smoke.spr"
 	renderamt(integer) : "Brightness (1 - 255)" : 255
 	rendercolor(color255) : "Color (R G B)" : "255 255 255"
@@ -8421,7 +8421,7 @@
 	listener(string) : "Listener Type [LE]"
 	listener_radius(integer) : "Listener Search Radius" : : "If not present, it uses Search Radius"
 	volume(string) : "Volume 0-10" : "10"
-	attenuation(Choices) : "Sound Radius" : 0 =
+	attenuation(Choices) : "Sound Radius" : 1 =
 	[
 		0 : "Small Radius"
 		1 : "Medium Radius"
@@ -8451,15 +8451,15 @@
 		2 : "Speaking monster"
 		3 : "Forward my activator"
 	]
-	m_searchPolicy(choices) : "Search policy" : : "Search speaker monster by targetname or classname" =
+	m_searchPolicy(choices) : "Search speaker by..." : : "Search speaker monster by targetname or classname" =
 	[
 		0 : "Targetname, classname"
 		1 : "Targetname only"
 		2 : "Classname only"
 	]
-	m_applySearchRadius(choices) : "Apply speaker search radius" =
+	m_applySearchRadius(choices) : "Test against search radius" =
 	[
-		0 : "Only to Class Name"
+		0 : "When searching by classname"
 		1 : "Always"
 	]
 	search_origin(string) : "Speaker Search Origin (blank = here) [LP]" : : "Search the speaker relative to this position instead of the position of scripted_sentence"
@@ -8470,13 +8470,7 @@
 	]
 ]
 
-@PointClass base(ScriptedSequence) = scripted_sequence : "Scripted Sequence"
-[
-	spawnflags(Flags) =
-	[
-		64: "Override AI"	: 0
-	]
-]
+@PointClass base(ScriptedSequence) = scripted_sequence : "Scripted Sequence" []
 
 @PointClass base(ScriptedSequence) = scripted_action : "Scripted action"
 [
@@ -8492,10 +8486,6 @@
 		6 : "Reload"
 		7 : "Jump"
 		8 : "No action"
-	]
-	spawnflags(Flags) =
-	[
-		64: "Override AI"	: 0
 	]
 ]
 

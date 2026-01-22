@@ -7,7 +7,7 @@ bookToC: false
 
 Similar to [scripted_sequence]({{< ref scripted_sequence >}}) but makes a monster play a certain activity (usually the attack) instead of the named animation.
 
-For proper usage:
+For proper usage you must usually set:
 
 * Set `Move to Position` to `No - Turn to Face`
 * Set `Turn mode` to `Turn to face`

@@ -15,7 +15,7 @@ bookToC: false
 
 * `Required state` - require a certain monster state for saying a sentence.
 * `Follow action` - make a monster start or stop following upon saying a sentence.
-* `Apply search radius` - do the radius check when searching for monster by its targetname.
+* `Test against search radius` - do the radius check when searching for monster by its targetname.
 * `Speaker Search Origin` - set a different entity to search the speaker around instead of the `scripted_sentence` itself.
 * More options for `Sound Radius` parameter.
 * `Target's Activator` - allows to set activator to either script itself or the speaking monster when triggering the script target.
