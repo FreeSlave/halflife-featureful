@@ -386,6 +386,7 @@ void CStomp::Think()
 			// Life has run out
 			UTIL_Remove( this );
 			StopSoundScript(StompSoundScript());
+			break; // stop loop, don't call remove multiple times
 		}
 	}
 }
@@ -800,15 +801,26 @@ void CGargantua::StompAttack()
 	TraceResult trace;
 
 	UTIL_MakeVectors( pev->angles );
-	Vector vecStart = StompAttackStartVec();
-	Vector vecAim = ShootAtEnemy( vecStart );
-	Vector vecEnd = (vecAim * 1024) + vecStart;
+	const Vector vecStart = StompAttackStartVec();
+	const Vector vecAim = ShootAtEnemy( vecStart );
+	const Vector vecEnd = (vecAim * 1024) + vecStart;
 
 	UTIL_TraceLine( vecStart, vecEnd, ignore_monsters, edict(), &trace );
 
+	Vector stompEnd = trace.vecEndPos;
+
+	CBaseEntity* pAttackTarget = m_hTargetEnt;
+	if (m_pCine != 0 && pAttackTarget != 0 && (m_pCine->m_fTurnType == SCRIPT_TURN_FACE))
+	{
+		if (trace.pHit && trace.pHit == pAttackTarget->edict())
+		{
+			stompEnd += vecAim * pAttackTarget->pev->size.x * 0.25f;
+		}
+	}
+
 	StompParams stompParams;
 	stompParams.origin = vecStart;
-	stompParams.end = trace.vecEndPos;
+	stompParams.end = stompEnd;
 	stompParams.speed = GetSkillValue("gargantua_stomp_initial_speed");
 	stompParams.damage = StompAttackDamage();
 	stompParams.owner = edict();
