@@ -28,6 +28,8 @@ bookToC: false
 * `Test against search radius`. By default search radius is taken into account only when searching for a monster by a classname. This parameter allows to apply the same behavior when searching the monster by the targetname.
 * `TakeDamage policy` - set the monster to be invulnerable or not killable during the script.
 * `Master` - allows to prevent the monster possession until master entity is unlocked.
+* `Delay before initial search` - delay before the initial target monster search, e.g. if script is autosearch or it uses the idle animation. Default value is 1.0. Set this to some low value if you want the monster to teleport to play idle animation sooner when the level is loaded.
+* `Delay between search attempts` - delay between attempts to find and possess a target monster (if no monster found the next check is delayed). Default value is 1.0.
 
 ### New spawnflags
 

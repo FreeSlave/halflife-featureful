@@ -1215,6 +1215,8 @@
 		1 : "Ambush"
 	]
 	master(string) : "Master" : : "Scripted sequence won't search for its target monster while master is locked"
+	initial_search_delay(string) : "Delay before initial search (default = 1.0)"
+	search_delay(string) : "Delay between search attempts (default = 1.0)"
 ]
 
 //
