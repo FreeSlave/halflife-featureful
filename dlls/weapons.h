@@ -399,6 +399,8 @@ public:
 	}
 	void UpdateAutoAim();
 	void UpdateSpot();
+	void ToggleLaserSpot(bool playDeactivationSound = false);
+	void SetChargingAttack(bool charging);
 	void SetZoom(int fov);
 	void ResetZoom(SwitchModeReason reason = SwitchModeReason::Regular);
 	void KickBack(const WeaponKickBack& kickBack);
@@ -473,7 +475,6 @@ public:
 	int m_iSwing;
 	TraceResult m_trHit;
 	int m_iSwingMode;
-	float m_flBigSwingStart;
 	bool m_swingIsAltAttack;
 
 	// recharge
@@ -483,6 +484,7 @@ public:
 	bool m_chargingAttack;
 	bool m_chargingAltFire;
 	bool m_shouldPlayCooldown;
+	float m_chargeStartTime;
 
 	// tool
 	float m_toolTriggerTime;

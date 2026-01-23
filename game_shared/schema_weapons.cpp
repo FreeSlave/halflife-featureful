@@ -244,6 +244,9 @@ const char* const json_schemas::weapons = R"(
 			"charged_attack": {
 				"type": "boolean"
 			},
+			"laser_spot_on_charge": {
+				"type": "boolean"
+			},
 			"cooldown_anims": {
 				"$ref": "anim_array"
 			},
@@ -614,6 +617,9 @@ const char* const json_schemas::weapons = R"(
 				"type": "boolean"
 			},
 			"player_maxspeed": {
+				"$ref": "definitions.json#/absolute_or_factor"
+			},
+			"player_maxspeed_on_charge": {
 				"$ref": "definitions.json#/absolute_or_factor"
 			},
 			"projectile": {

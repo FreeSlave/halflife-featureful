@@ -1275,7 +1275,6 @@ TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 
 	DEFINE_FIELD( CConfigurableWeapon, m_iSwing, FIELD_INTEGER ),
 	DEFINE_FIELD( CConfigurableWeapon, m_iSwingMode, FIELD_INTEGER ),
-	DEFINE_FIELD( CConfigurableWeapon, m_flBigSwingStart, FIELD_TIME ),
 	DEFINE_FIELD( CConfigurableWeapon, m_swingIsAltAttack, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( CConfigurableWeapon, m_flRechargeTime, FIELD_TIME ),
@@ -1283,6 +1282,7 @@ TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 	DEFINE_FIELD( CConfigurableWeapon, m_chargingAttack, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CConfigurableWeapon, m_chargingAltFire, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CConfigurableWeapon, m_shouldPlayCooldown, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CConfigurableWeapon, m_chargeStartTime, FIELD_TIME ),
 
 	DEFINE_FIELD( CConfigurableWeapon, m_toolTriggerTime, FIELD_TIME ),
 

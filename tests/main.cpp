@@ -92,6 +92,29 @@ TEST(NumberRange, Multiply) {
 	EXPECT_EQ(rf.max, 5.0f);
 }
 
+TEST(NumberRange, Sum) {
+	FloatRange s1 = 5.0f;
+	FloatRange s2 = 6.0f;
+
+	FloatRange sSum = RangeSum(s1, s2);
+	EXPECT_EQ(sSum.min, 11.0f);
+	EXPECT_LE(sSum.max, sSum.min);
+
+	FloatRange r1{4.0, 6.0f};
+	FloatRange rsSum = RangeSum(r1, s2);
+	EXPECT_EQ(rsSum.min, 10.0f);
+	EXPECT_EQ(rsSum.max, 12.0f);
+
+	EXPECT_EQ(rsSum, RangeSum(s2, r1));
+
+	FloatRange r2{2.0, 3.0f};
+	FloatRange rSum = RangeSum(r1, r2);
+	EXPECT_EQ(rSum.min, 6.0f);
+	EXPECT_EQ(rSum.max, 9.0f);
+
+	EXPECT_EQ(rSum, RangeSum(r2, r1));
+}
+
 TEST(Random, Int) {
 	for (int i=0; i<10; ++i) {
 		const int low = i;

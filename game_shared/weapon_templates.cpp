@@ -448,6 +448,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				ParseWeaponSoundScript(soundScript, value);
 			});
 			UpdatePropertyFromJson(fire.chargedAttack, value, "charged_attack", altMode);
+			UpdatePropertyFromJson(fire.laserSpotOnCharge, value, "laser_spot_on_charge", altMode);
 
 			HandleJSONMember(value, "cooldown_anims", [&](const Value& value) {
 				Value::ConstArray animArr = value.GetArray();
@@ -870,6 +871,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
 				fire.playerMaxSpeed.Materialize(altMode) = ParsePlayerSpeed(value);
+			});
+
+			HandleJSONMember(value, "player_maxspeed_on_charge", [&](const Value& value) {
+				fire.playerMaxSpeedOnCharge.Materialize(altMode) = ParsePlayerSpeed(value);
 			});
 
 			HandleJSONMember(value, "projectile", [&](const Value& value) {

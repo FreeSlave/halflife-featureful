@@ -551,6 +551,7 @@ struct WeaponParameters
 		WeaponModeValue<FireAnimArray> chargeAnims;
 		WeaponModeValueNonNegative<float> chargeTime{0.0f};
 		WeaponModeValue<bool> chargedAttack{false};
+		WeaponModeValue<bool> laserSpotOnCharge{false};
 		WeaponModeValue<FireAnimArray> cooldownAnims;
 		WeaponModeValueNonNegative<float> cooldownTime{0.5f};
 		WeaponModeValue<WeaponSoundScript> sound{CHAN_WEAPON};
@@ -628,6 +629,7 @@ struct WeaponParameters
 
 		WeaponModeValue<bool> preventMovement{false};
 		WeaponModeValue<PlayerSpeed> playerMaxSpeed;
+		WeaponModeValue<PlayerSpeed> playerMaxSpeedOnCharge;
 
 		WeaponModeValue<std::string> projectileName;
 		WeaponModeValue<std::string> projectileEntTemplate;

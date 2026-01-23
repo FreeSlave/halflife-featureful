@@ -260,6 +260,7 @@ void CBasePlayerWeapon::ItemPostFrame()
 	}
 
 	const bool canPrimaryAttackNow = CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() );
+	const bool isAttackSuppressed = FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK) || FBitSet(m_pPlayer->pev->flags, FL_FROZEN);
 
 	if (params.primaryFirePrioritized)
 	{
@@ -276,7 +277,7 @@ void CBasePlayerWeapon::ItemPostFrame()
 			m_fFireOnEmpty = true;
 		}
 
-		if (!FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK) && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN))
+		if (!isAttackSuppressed)
 			SecondaryAttack();
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
@@ -294,7 +295,7 @@ void CBasePlayerWeapon::ItemPostFrame()
 			}
 		}
 
-		if (!FBitSet(m_pPlayer->m_suppressedCapabilities, PLAYER_SUPPRESS_ATTACK) && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN))
+		if (!isAttackSuppressed)
 			PrimaryAttack();
 	}
 	else if( m_pPlayer->pev->button & IN_RELOAD && UsesClip() && !m_fInReload  && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN) )
@@ -764,7 +765,7 @@ bool CConfigurableWeapon::PerformDeploy()
 		m_bDelayFire = true;
 		ResetInaccuracy();
 
-		m_chargingAttack = false;
+		SetChargingAttack(false);
 		m_shouldPlayCooldown = false;
 		m_chargingAltFire = false;
 
@@ -1145,22 +1146,28 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	const auto fireType = fire.fireType.Get(altMode);
 
 	const float chargeTime = fire.chargeTime.Get(m_chargingAttack ? m_chargingAltFire : altMode);
+	const bool chargedAttack = fire.chargedAttack.Get(altMode);
 
-	const bool meleeWindAttack = fireType == WeaponParameters::Fire::MELEE && fire.chargedAttack.Get(altMode);
-
-	if (chargeTime > 0.0f && !meleeWindAttack)
+	if ((chargeTime > 0.0f || chargedAttack)
+		&& fireType != WeaponParameters::Fire::MELEE) // charged melee attacks are handled differently
 	{
 		if (!m_chargingAttack)
 		{
 			m_chargingAltFire = altMode;
 			m_shouldPlayCooldown = true;
-			m_chargingAttack = true;
+			SetChargingAttack(true);
 			SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
 
 			PlayWeaponSoundScript(fire.chargeSound.Get(altMode));
 
 			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + chargeTime;
 			m_flNextPrimaryAttack = GetNextAttackDelay(chargeTime);
+
+			if (chargedAttack)
+			{
+				m_chargeStartTime = gpGlobals->time;
+			}
+
 			return;
 		}
 
@@ -1169,7 +1176,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 			const bool chargingAltFire = m_chargingAltFire;
 			if (PerformCooldown(chargingAltFire))
 			{
-				m_chargingAttack = false;
+				SetChargingAttack(false);
 				const float cooldownDelay = fire.cooldownTime.Get(chargingAltFire);
 				if (cooldownDelay > 0.0f)
 				{
@@ -1178,6 +1185,11 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				}
 				return;
 			}
+		}
+
+		if (chargedAttack && m_fInAttack != 2)
+		{
+			return;
 		}
 	}
 
@@ -1355,8 +1367,28 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		vecSpread = GetSpread(altMode);
 
+		auto damageRange = fire.damage.Get(altMode);
+		if (chargedAttack)
+		{
+			auto damageFactorRange = fire.damageChargedFactor.Get(altMode);
+			if (damageFactorRange == 0.0f)
+				damageFactorRange = damageRange;
+			auto maxDamageRange = fire.damageChargedMax.Get(altMode);
+			if (maxDamageRange == 0.0f)
+				maxDamageRange = damageRange * 2.0f;
+
+			auto additionalDamageRange = damageFactorRange * (gpGlobals->time - m_chargeStartTime);
+			damageRange = RangeSum(damageRange, additionalDamageRange);
+
+#if !CLIENT_DLL
+			const float maxDamage = RandomizeSkillValue(maxDamageRange);
+			damageRange.min = Q_min(damageRange.min, maxDamage);
+			damageRange.max = Q_min(damageRange.max, maxDamage);
+#endif
+		}
+
 		const int bulletCount = fire.bulletCount.Get(altMode);
-		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), damageRange, fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
 		if (bulletCount > 1)
 		{
 			// TODO: properly send spreads for multiple bullet shots to the client?
@@ -1381,12 +1413,12 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 	else if (fireType == WeaponParameters::Fire::MELEE)
 	{
-		if (meleeWindAttack)
+		if (chargedAttack)
 		{
 			if (m_iSwingMode != 1)
 			{
 				SelectAndSendFireAnimation(fire.chargeAnims.Get(altMode));
-				m_flBigSwingStart = gpGlobals->time;
+				m_chargeStartTime = gpGlobals->time;
 			}
 			m_swingIsAltAttack = altMode;
 			m_iSwingMode = 1;
@@ -1751,20 +1783,7 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 	}
 	if (params.altMode.toggleLaserSpot)
 	{
-		const bool wasActive = m_bLaserActive;
-		m_bLaserActive = !m_bLaserActive;
-		if (wasActive)
-		{
-#if !CLIENT_DLL
-			if (m_pLaser)
-			{
-				if (reason == SwitchModeReason::Regular)
-					PlayWeaponSoundScript(params.deactivateLaserSpotSound);
-				m_pLaser->Killed(nullptr, nullptr, GIB_NORMAL);
-				m_pLaser = nullptr;
-			}
-#endif
-		}
+		ToggleLaserSpot(reason == SwitchModeReason::Regular);
 	}
 
 	const int animIndex = params.altMode.animIndex.Get(m_inAltMode);
@@ -1875,7 +1894,7 @@ bool CConfigurableWeapon::PerformReload()
 	if (PerformCooldown(m_chargingAltFire))
 		return false;
 
-	m_chargingAttack = false;
+	SetChargingAttack(false);
 	m_bDelayFire = false;
 	ResetInaccuracy();
 
@@ -2047,7 +2066,7 @@ void CConfigurableWeapon::WeaponIdle()
 
 	if (m_iSwingMode == 1)
 	{
-		if (gpGlobals->time > m_flBigSwingStart + params.fire.chargeTime.Get(m_swingIsAltAttack))
+		if (gpGlobals->time > m_chargeStartTime + params.fire.chargeTime.Get(m_swingIsAltAttack))
 		{
 			m_iSwingMode = 2;
 		}
@@ -2109,7 +2128,24 @@ void CConfigurableWeapon::WeaponIdle()
 	if (m_chargingAttack)
 	{
 		if (CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()) || CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()))
-			m_chargingAttack = false;
+		{
+			const bool chargedAttackAlt = m_chargingAltFire;
+			const bool chargedAttack = params.fire.chargedAttack.Get(chargedAttackAlt);
+			if (chargedAttack)
+			{
+				const int buttonToCheck = params.secondaryFireType == SecondaryFireType::SWITCH_MODE ? IN_ATTACK : (chargedAttackAlt ? IN_ATTACK2 : IN_ATTACK);
+				const bool chargeAttackReleased = FBitSet(m_pPlayer->m_afButtonReleased, buttonToCheck);
+				if (chargeAttackReleased)
+				{
+					m_fInAttack = 2;
+					PerformWeaponFire(chargedAttackAlt);
+					SetChargingAttack(false);
+					m_fInAttack = 0;
+				}
+			}
+			else
+				SetChargingAttack(false);
+		}
 	}
 
 	if (m_chargingAttack)
@@ -2210,6 +2246,41 @@ void CConfigurableWeapon::UpdateSpot()
 		UTIL_SetOrigin( m_pLaser->pev, tr.vecEndPos );
 	}
 #endif
+}
+
+void CConfigurableWeapon::ToggleLaserSpot(bool playDeactivationSound)
+{
+	const bool wasActive = m_bLaserActive;
+	m_bLaserActive = !m_bLaserActive;
+	if (wasActive)
+	{
+#if !CLIENT_DLL
+		if (m_pLaser)
+		{
+			if (playDeactivationSound)
+			{
+				const WeaponParameters& params = MyParameters();
+				PlayWeaponSoundScript(params.deactivateLaserSpotSound);
+			}
+			m_pLaser->Killed(nullptr, nullptr, GIB_NORMAL);
+			m_pLaser = nullptr;
+		}
+#endif
+	}
+}
+
+void CConfigurableWeapon::SetChargingAttack(bool charging)
+{
+	m_chargingAttack = charging;
+
+	const WeaponParameters& params = MyParameters();
+	if (params.fire.laserSpotOnCharge.Get(m_chargingAltFire))
+	{
+		if (charging && !m_bLaserActive)
+			ToggleLaserSpot(false);
+		else if (!charging && m_bLaserActive)
+			ToggleLaserSpot(false);
+	}
 }
 
 void CConfigurableWeapon::SetZoom(int fov)
@@ -2617,7 +2688,7 @@ void CConfigurableWeapon::BigSwing()
 			if (maxDamageRange == 0.0f)
 				maxDamageRange = baseDamage * 2.0f;
 
-			float flDamage = RandomizeSkillValue(baseDamage) + (gpGlobals->time - m_flBigSwingStart) * RandomizeSkillValue(damageFactor);
+			float flDamage = RandomizeSkillValue(baseDamage) + (gpGlobals->time - m_chargeStartTime) * RandomizeSkillValue(damageFactor);
 			const float maxDamage = RandomizeSkillValue(maxDamageRange);
 			if (flDamage > maxDamage) {
 				flDamage = maxDamage;
@@ -2712,10 +2783,16 @@ float CConfigurableWeapon::GetMaxSpeed()
 
 	const WeaponParameters& params = MyParameters();
 
+	if (m_chargingAttack)
+	{
+		const PlayerSpeed& speedOnCharge = params.fire.playerMaxSpeedOnCharge.Get(m_chargingAltFire);
+		result = CalcSpeed(speedOnCharge);
+	}
+
 	const bool primaryFiring = m_primaryFireEndTime > gpGlobals->time;
 	const bool secondaryFiring = m_secondaryFireEndTime > gpGlobals->time;
 
-	if (primaryFiring || secondaryFiring)
+	if (result == 0.0f && (primaryFiring || secondaryFiring))
 	{
 		float weaponPrimaryFireSpeed = 0.0f;
 		float weaponSecondaryFireSpeed = 0.0f;

@@ -689,7 +689,7 @@ The time in seconds after the weapon starts firing after initial charge. Used by
 A boolean - whether the attack is charged. I.e. the longer it's charged the more damage it will deal. This is used by [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}) secondary attacks.
 
 {{% hint warning %}}
-Currently the charged attack is implemented for the `"melee"` fire type only.
+Currently the charged attack is implemented for the `"melee"` and `"bullet"` fire types only.
 {{% /hint %}}
 
 The charged attack expects the following properties to be defined:
@@ -969,6 +969,10 @@ Notes:
 
 A boolean - whether the [kickback](#kickback) should apply only when melee attack hits something. Default value is `false` (apply kickback even on melee misses). This is `true` for [weapon_pipewrench]({{< ref weapon_pipewrench >}}) secondary attack by default.
 
+### laser_spot_on_charge
+
+A boolean - whether the laser spot is drawn while the [charged_attack](#charged_attack) shot is getting charged. This is used by Team Fortress Classic sniper rifle.
+
 ### laser_suspend_time
 
 Hide the laser spot (if there's any) for the specified amount of time (in seconds) upon firing.
@@ -1003,6 +1007,10 @@ Use upper level [player_maxspeed](#player_maxspeed) parameter to change the play
 {{% hint info %}}
 In order to disable player's movement for the attack duration it's better to use [prevent_movement](#prevent_movement).
 {{% /hint %}}
+
+### player_maxspeed_on_charge
+
+Set the player's maximum speed while [charged_attack](#charged_attack) is being charged. Similar to [player_maxspeed](#fire-player_maxspeed).
 
 ### prevent_movement
 

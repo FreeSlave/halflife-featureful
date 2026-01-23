@@ -665,7 +665,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		if( viewModelIsOk && player.m_flNextAttack <= 0 )
 		{
-			pWeapon->ItemPostFrame();
+			if (!cmd->weaponselect)
+				pWeapon->ItemPostFrame();
 		}
 	}
 
