@@ -270,7 +270,6 @@ public:
 	virtual void ResetWeaponData() {}
 
 	virtual void RetireWeapon();
-	virtual bool ShouldWeaponIdle() { return false; }
 	virtual void Holster();
 	virtual bool UseDecrement()
 	{

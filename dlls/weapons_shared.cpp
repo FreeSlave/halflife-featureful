@@ -340,12 +340,6 @@ void CBasePlayerWeapon::ItemPostFrame()
 		WeaponIdle();
 		return;
 	}
-
-	// catch all
-	if( ShouldWeaponIdle() )
-	{
-		WeaponIdle();
-	}
 }
 
 void CBasePlayerWeapon::SetInitialAmmoAmount()

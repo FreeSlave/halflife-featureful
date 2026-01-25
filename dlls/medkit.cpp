@@ -41,16 +41,12 @@ public:
 	void SecondaryAttack() override;
 	bool Deploy() override;
 	void Holster() override;
-	void Reload() override;
 	void WeaponIdle() override;
-	bool ShouldWeaponIdle() override { return true; }
 	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 
 	float	m_flSoundDelay;
 	bool	m_secondaryAttack;
 
-protected:
-	bool CanRecharge();
 private:
 	unsigned short m_usMedkitFire;
 };
@@ -169,6 +165,11 @@ WeaponParameters CMedkit::GetDefaultParameters() const
 	params.holster.animIndex = MEDKIT_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
+	if (bIsMultiplayer())
+	{
+		params.recharge.interval = ::GetSkillValue("plr_medkittime");
+	}
+
 	return params;
 }
 
@@ -181,18 +182,15 @@ bool CMedkit::Deploy()
 void CMedkit::Holster()
 {
 	m_flSoundDelay = 0;
-
-	//HACKHACK - can't select medkit if it's empty! no way to get ammo for it, either
-	if( CanRecharge() && !HasAmmoToFire() ) {
-		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
-	}
-
 	CConfigurableWeapon::Holster();
 }
 
 void CMedkit::PrimaryAttack()
 {
-	Reload();
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
 
 	CBaseEntity* healTarget;
 	if (HasAmmoToFire() && (healTarget = FindHealTarget()) ) {
@@ -215,7 +213,10 @@ void CMedkit::PrimaryAttack()
 
 void CMedkit::SecondaryAttack()
 {
-	Reload();
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
 
 	if (!HasAmmoToFire() || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
 		PlayEmptySound(true);
@@ -234,20 +235,13 @@ void CMedkit::SecondaryAttack()
 	m_flSoundDelay = gpGlobals->time + 1;
 }
 
-void CMedkit::Reload()
-{
-	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= MEDKIT_MAX_CARRY )
-		return;
-	if( CanRecharge() && m_flRechargeTime < gpGlobals->time )
-	{
-		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;
-		m_flRechargeTime = gpGlobals->time + GetSkillValue("plr_medkittime");
-	}
-}
-
 void CMedkit::WeaponIdle()
 {
-	Reload();
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
+
 	ResetEmptySound();
 
 	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
@@ -278,16 +272,4 @@ void CMedkit::WeaponIdle()
 		return;
 
 	SendIdleAnimation();
-}
-
-bool CMedkit::CanRecharge()
-{
-	if( bIsMultiplayer() )
-	{
-		return GetSkillValue("plr_medkittime") != 0;
-	}
-	else
-	{
-		return false;
-	}
 }

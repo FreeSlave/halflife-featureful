@@ -31,8 +31,6 @@ public:
 
 	bool CanHolster() override;
 
-	bool ShouldWeaponIdle() override { return true; }
-
 	void GetWeaponData(weapon_data_t& data) override;
 	void SetWeaponData(const weapon_data_t& data) override;
 };

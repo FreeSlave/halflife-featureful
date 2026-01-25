@@ -250,6 +250,7 @@ The following weapons have only partial support for configuration:
 * [weapon_medkit]({{< ref weapon_medkit >}})
     * idle animations
     * deploy animation
+    * `"recharge"` properties
 * [weapon_tripmine]({{< ref weapon_tripmine >}})
     * idle animations
     * deploy animation
