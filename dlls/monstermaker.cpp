@@ -83,7 +83,7 @@ public:
 	void EXPORT CyclicBacklogThink();
 	void ReportNullEntity();
 	void DeathNotice( entvars_t *pevChild ) override;// monster maker children use this to tell the monster maker that they have died.
-	int MakeMonster();
+	std::pair<int, float> MakeMonster();
 
 	void GetRealHullSizes(Vector& minHullSize, Vector& maxHullSize);
 	int CalculateSpot(const Vector& testMinHullSize, const Vector& testMaxHullSize, Vector& placePosition, Vector& placeAngles, edict_t*& warpballSoundEnt, float spawnDelay);
@@ -898,12 +898,12 @@ void CMonsterMaker::StartWarpballEffect(const Vector &vecPosition, edict_t* warp
 //=========================================================
 // MakeMonster-  this is the code that drops the monster
 //=========================================================
-int CMonsterMaker::MakeMonster()
+std::pair<int, float> CMonsterMaker::MakeMonster()
 {
 	if( m_iMaxLiveChildren > 0 && m_cLiveChildren + m_delayedCount >= m_iMaxLiveChildren )
 	{
 		// not allowed to make a new one yet. Too many live ones out right now.
-		return MONSTERMAKER_LIMIT;
+		return std::make_pair(MONSTERMAKER_LIMIT, 0.0f);
 	}
 
 	Vector minHullSize = Vector( -34, -34, 0 );
@@ -944,13 +944,13 @@ int CMonsterMaker::MakeMonster()
 
 	const int spotResult = CalculateSpot(minHullSize, maxHullSize, placePosition, placeAngles, warpballSoundEnt, spawnDelay);
 	if (spotResult != 0)
-		return spotResult;
+		return std::make_pair(spotResult, 0.0f);
 
 	if (spawnDelay <= 0.0f)
 	{
 		CBaseEntity* createdEntity = SpawnMonster(placePosition, placeAngles);
 		if (!createdEntity)
-			return MONSTERMAKER_NULLENTITY;
+			return std::make_pair(MONSTERMAKER_NULLENTITY, 0.0f);
 
 		if (!FStringNull(warpballName))
 		{
@@ -980,10 +980,10 @@ int CMonsterMaker::MakeMonster()
 	else
 	{
 		if (!m_childIsValid)
-			return MONSTERMAKER_NULLENTITY;
+			return std::make_pair(MONSTERMAKER_NULLENTITY, 0.0f);
 		CMonsterMakerHull* pHull = CMonsterMakerHull::SelfCreate(this, placePosition, placeAngles, minHullSize, maxHullSize, spawnDelay);
 		if (!pHull)
-			return MONSTERMAKER_NULLENTITY;
+			return std::make_pair(MONSTERMAKER_NULLENTITY, 0.0f);
 		m_delayedCount++;
 
 		if (!FStringNull(warpballName))
@@ -1012,7 +1012,7 @@ int CMonsterMaker::MakeMonster()
 		}
 	}
 
-	return MONSTERMAKER_SPAWNED;
+	return std::make_pair(MONSTERMAKER_SPAWNED, spawnDelay);
 }
 
 //=========================================================
@@ -1023,7 +1023,7 @@ void CMonsterMaker::CyclicUse( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 {
 	m_hActivator = pActivator;
 
-	if (MakeMonster() == MONSTERMAKER_BLOCKED)
+	if (MakeMonster().first == MONSTERMAKER_BLOCKED)
 	{
 		if (FBitSet(pev->spawnflags, SF_MONSTERMAKER_CYCLIC_BACKLOG))
 		{
@@ -1067,27 +1067,31 @@ void CMonsterMaker::MakerThink()
 {
 	pev->nextthink = gpGlobals->time + m_flDelay;
 
-	const int result = MakeMonster();
-	if (result == MONSTERMAKER_BLOCKED)
+	const auto result = MakeMonster();
+	if (result.first == MONSTERMAKER_BLOCKED)
 	{
 		if (m_delayAfterBlocked > 0)
 			pev->nextthink = gpGlobals->time + m_delayAfterBlocked;
 	}
-	else if (result == MONSTERMAKER_NULLENTITY)
+	else if (result.first == MONSTERMAKER_NULLENTITY)
 	{
 		ReportNullEntity();
 		SetThink(NULL); // I can't spawn it anyway, so prevent further spamming to console
+	}
+	else if (result.first == MONSTERMAKER_SPAWNED && result.second > 0.0f && FStringNull(m_iszPlacePosition))
+	{
+		pev->nextthink = gpGlobals->time + Q_max(result.second, m_flDelay);
 	}
 }
 
 void CMonsterMaker::CyclicBacklogThink()
 {
-	const int result = MakeMonster();
-	if (result == MONSTERMAKER_SPAWNED)
+	const auto result = MakeMonster();
+	if (result.first == MONSTERMAKER_SPAWNED)
 	{
 		m_cyclicBacklogSize--;
 	}
-	else if (result == MONSTERMAKER_NULLENTITY)
+	else if (result.first == MONSTERMAKER_NULLENTITY)
 	{
 		ReportNullEntity();
 	}
