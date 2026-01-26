@@ -322,7 +322,7 @@ void DispatchThink( edict_t *pent )
 	if( pEntity )
 	{
 		if( FBitSet( pEntity->pev->flags, FL_DORMANT ) )
-			ALERT( at_error, "Dormant entity %s is thinking!!\n", STRING( pEntity->pev->classname ) );
+			ALERT(at_error, "Dormant entity %s (targetname is '%s', globalname is '%s') is thinking!!\n", STRING(pEntity->pev->classname), STRING(pEntity->pev->targetname), STRING(pEntity->pev->globalname));
 
 		pEntity->Think();
 	}
@@ -376,7 +376,7 @@ void DispatchSave( edict_t *pent, SAVERESTOREDATA *pSaveData )
 CBaseEntity *FindGlobalEntity( string_t classname, string_t globalname )
 {
 	edict_t *pent = FIND_ENTITY_BY_STRING( NULL, "globalname", STRING( globalname ) );
-	CBaseEntity *pReturn = CBaseEntity::Instance( pent );
+	CBaseEntity *pReturn = CBaseEntity::OwnInstance( pent );
 	if( pReturn )
 	{
 		if( !FClassnameIs( pReturn->pev, STRING( classname ) ) )

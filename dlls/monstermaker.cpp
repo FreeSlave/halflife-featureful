@@ -633,7 +633,7 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 		if (pBlocker)
 		{
 			const char* blockerName = FStringNull(pBlocker->pev->classname) ? "" : STRING(pBlocker->pev->classname);
-			ALERT( at_aiconsole, "Spawning of %s is blocked by %s\n", STRING(m_iszMonsterClassname), blockerName );
+			ALERT(at_aiconsole, "Spawning of %s by %s '%s' is blocked by %s\n", STRING(m_iszMonsterClassname), STRING(pev->classname), STRING(pev->targetname), blockerName);
 
 			if (m_makeBlockerMoveAway)
 			{
