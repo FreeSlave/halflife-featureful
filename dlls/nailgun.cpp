@@ -165,7 +165,7 @@ WeaponParameters CNailgun::GetDefaultParameters() const
 
 	params.fire.sound = {
 		CHAN_WEAPON,
-		{"weapons/spike2.wav"},
+		{"weapons/airgun_1.wav"},
 		1.0f,
 		ATTN_NORM,
 		IntRange(94, 109)
