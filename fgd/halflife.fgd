@@ -4609,6 +4609,13 @@
 		0 : "Gun Holstered"
 		1 : "Gun Drawn"
 	]
+	head(choices) : "Head (for custom models)" =
+	[
+		-1: "Random"
+		0 : "Default"
+		1 : "Custom 1"
+		2 : "Custom 2"
+	]
 	spawnflags(Flags) =
 	[
 		1024: "Don't Drop Gun" : 0
@@ -4627,6 +4634,13 @@
 		35 : "lying_on_back"
 		36 : "lying_on_side"
 		37 : "lying_on_stomach"
+	]
+	head(choices) : "Head (for custom models)" =
+	[
+		-1: "Random"
+		0 : "Default"
+		1 : "Custom 1"
+		2 : "Custom 2"
 	]
 ]
 @PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/barniel.mdl") = monster_barniel : "Barniel"
