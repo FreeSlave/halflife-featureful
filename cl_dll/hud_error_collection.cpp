@@ -3,17 +3,22 @@
 #include "parsemsg.h"
 
 DECLARE_MESSAGE( m_ErrorCollection, ParseErrors )
+DECLARE_MESSAGE( m_ErrorCollection, Deprecation )
 
 int CHudErrorCollection::Init()
 {
 	gHUD.AddHudElem(this);
 	m_iFlags &= ~HUD_ACTIVE;
 	HOOK_MESSAGE(ParseErrors);
+	HOOK_MESSAGE(Deprecation);
+
+	m_pCvarShowDeprecations = CVAR_CREATE("cl_showdeprecations", "1", FCVAR_ARCHIVE);
 	return 1;
 }
 
 int CHudErrorCollection::VidInit()
 {
+	m_deprecationMessages.clear();
 	return 1;
 }
 
@@ -31,7 +36,9 @@ int CHudErrorCollection::Draw(float flTime)
 	if (!gHUD.IsDeveloperModeOn())
 		return 1;
 
-	if (m_serverErrorString.empty() && m_clientErrorString.empty())
+	const bool shouldShowDeprecations = m_pCvarShowDeprecations && m_pCvarShowDeprecations->value && !m_deprecationMessages.empty();
+
+	if (m_serverErrorString.empty() && m_clientErrorString.empty() && !shouldShowDeprecations)
 		return 1;
 
 	const int LineHeight = CHud::UtfText::LineHeight();
@@ -56,9 +63,21 @@ int CHudErrorCollection::Draw(float flTime)
 	{
 		CHud::UtfText::DrawString(xpos, ypos, xmax, "CLIENT ERRORS:", r, g, b);
 		ypos += LineHeight;
-		DrawMultiLineString(m_clientErrorString.c_str(), xpos, ypos, xmax, LineHeight);
+		ypos = DrawMultiLineString(m_clientErrorString.c_str(), xpos, ypos, xmax, LineHeight);
+		ypos += LineHeight;
 	}
 
+	if (shouldShowDeprecations)
+	{
+		CHud::UtfText::DrawString(xpos, ypos, xmax, "DEPRECATIONS:", r, g, b);
+		ypos += LineHeight;
+		for (const auto& msg : m_deprecationMessages)
+		{
+			ypos = DrawMultiLineString(msg.c_str(), xpos, ypos, xmax, LineHeight);
+			ypos += LineHeight;
+		}
+		CHud::UtfText::DrawString(xpos, ypos, xmax, "Note: set cl_showdeprecations to 0 to hide deprecation messages", r, g, b);
+	}
 
 	return 1;
 }
@@ -77,6 +96,18 @@ int CHudErrorCollection::MsgFunc_ParseErrors(const char *pszName, int iSize, voi
 	}
 
 	return is_finished ? 1 : 0;
+}
+
+int CHudErrorCollection::MsgFunc_Deprecation(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+
+	std::string msg = READ_STRING();
+	m_deprecationMessages.push_back(std::move(msg));
+
+	m_iFlags |= HUD_ACTIVE;
+
+	return 1;
 }
 
 void CHudErrorCollection::SetClientErrors(const std::string &str)

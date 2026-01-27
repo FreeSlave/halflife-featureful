@@ -45,6 +45,7 @@
 #include "tex_materials.h"
 #include "unicode.h"
 #include "mod_features.h"
+#include "error_collector.h"
 
 extern DLL_GLOBAL bool		g_fGameOver;
 extern DLL_GLOBAL unsigned int		g_ulFrameCount;
@@ -1022,6 +1023,12 @@ void ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
 		{
 			ALERT( at_console, "**Graph Pointers Set!\n" );
 		}
+	}
+
+	if (g_pGameRules->IsMultiplayer() && IS_DEDICATED_SERVER())
+	{
+		// No suitable client to send the deprecations to, so just clear them
+		g_errorCollector.ClearDeprecations();
 	}
 }
 

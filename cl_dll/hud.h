@@ -265,6 +265,7 @@ public:
 	void Reset() override;
 	int Draw(float flTime) override;
 	int MsgFunc_ParseErrors( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_Deprecation( const char *pszName, int iSize, void *pbuf );
 	void SetClientErrors(const std::string& str);
 
 private:
@@ -272,6 +273,9 @@ private:
 
 	std::string m_clientErrorString;
 	std::string m_serverErrorString;
+	std::vector<std::string> m_deprecationMessages;
+
+	cvar_t* m_pCvarShowDeprecations;
 };
 
 struct CaptionProfile_t

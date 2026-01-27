@@ -28,6 +28,7 @@
 #include "soundradius.h"
 #include "game.h"
 #include "common_soundscripts.h"
+#include "error_collector.h"
 
 #define SF_BUTTON_DONTMOVE		1
 #define SF_ROTBUTTON_NOTSOLID		1
@@ -830,6 +831,7 @@ class CBaseButton : public CBaseToggle
 public:
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void RotSpawn();
 	void KeyValue( KeyValueData* pkvd) override;
 
@@ -1190,7 +1192,6 @@ void CBaseButton::Spawn()
 {
 	if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE_OLD))
 	{
-		ALERT(at_warning, "Deprecated button spawnflag (512) is used! Use spawnflag 16384 instead!\n");
 		if (FStrEq(STRING(gpGlobals->mapname), "ba_teleport2"))
 		{
 			ALERT(at_console, "Blue Shift map detected. Removing the deprecated spawnflag\n");
@@ -1274,6 +1275,17 @@ void CBaseButton::Spawn()
 		else
 			SetUse( &CBaseButton::ButtonUse );
 	}
+}
+
+void CBaseButton::Activate()
+{
+	if (FBitSet(pev->spawnflags, SF_BUTTON_PLAYER_CANT_USE_OLD))
+	{
+		const Vector center = Center();
+		g_errorCollector.AddFormattedDeprecation("%s (center: %g, %g, %g) has the spawnflag %d. This will be removed/replaced in future. Use spawnflag %d instead.",
+												 STRING(pev->classname), center.x, center.y, center.z, SF_BUTTON_PLAYER_CANT_USE_OLD, SF_BUTTON_PLAYER_CANT_USE);
+	}
+	CBaseToggle::Activate();
 }
 
 // Button sound table. 

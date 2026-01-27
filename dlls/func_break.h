@@ -61,6 +61,7 @@ public:
 	// basic functions
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void KeyValue( KeyValueData* pkvd) override;
 	void EXPORT BreakTouch( CBaseEntity *pOther );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;

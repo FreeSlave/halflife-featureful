@@ -222,6 +222,7 @@ int gmsgTeamScore = 0;
 int gmsgGameMode = 0;
 int gmsgMOTD = 0;
 int gmsgParseErrors = 0;
+int gmsgDeprecation = 0;
 int gmsgServerName = 0;
 int gmsgAmmoPickup = 0;
 int gmsgWeapPickup = 0;
@@ -338,6 +339,7 @@ void LinkUserMessages()
 	gmsgGameMode = REG_USER_MSG( "GameMode", 1 );
 	gmsgMOTD = REG_USER_MSG( "MOTD", -1 );
 	gmsgParseErrors = REG_USER_MSG( "ParseErrors", -1 );
+	gmsgDeprecation = REG_USER_MSG( "Deprecation", -1 );
 	gmsgServerName = REG_USER_MSG( "ServerName", -1 );
 	gmsgAmmoPickup = REG_USER_MSG( "AmmoPickup", 3 );
 	gmsgWeapPickup = REG_USER_MSG( "WeapPickup", 1 );
@@ -5704,6 +5706,18 @@ void CBasePlayer::UpdateClientData()
 
 				UTIL_ScreenFade(this, Vector(r, g, b), fadeDuration, fadeHold, alpha, m_fadeFlags);
 			}
+		}
+
+		if (!g_pGameRules->IsMultiplayer() || (entindex() == 1 && !IS_DEDICATED_SERVER()))
+		{
+			int numSend = 0;
+			for (auto it = g_errorCollector.DeprecationsBegin(); it != g_errorCollector.DeprecationsEnd() && numSend <= 10; ++it, ++numSend)
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgDeprecation, NULL, edict());
+					WRITE_STRING(it->c_str());
+				MESSAGE_END();
+			}
+			g_errorCollector.ClearDeprecations();
 		}
 
 		m_bSentMessages = true;

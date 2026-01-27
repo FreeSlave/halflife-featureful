@@ -29,6 +29,7 @@
 #include "game.h"
 #include "locus.h"
 #include "common_soundscripts.h"
+#include "error_collector.h"
 
 extern DLL_GLOBAL Vector	g_vecAttackDir;
 
@@ -242,6 +243,17 @@ void CBreakable::Spawn()
 	// Flag unbreakable glass as "worldbrush" so it will block ALL tracelines
 	if( !IsBreakable() && pev->rendermode != kRenderNormal )
 		pev->flags |= FL_WORLDBRUSH;
+}
+
+void CBreakable::Activate()
+{
+	if (FBitSet(pev->spawnflags, SF_BREAK_OP4MORTAR_ONLY))
+	{
+		const Vector center = Center();
+		g_errorCollector.AddFormattedDeprecation("%s (center: %g, %g, %g) has the spawnflag %d. This will be removed/replaced in future. Use entity template with custom take_damage property instead.",
+												 STRING(pev->classname), center.x, center.y, center.z, SF_BREAK_OP4MORTAR_ONLY);
+	}
+	CBaseDelay::Activate();
 }
 
 const NamedSoundScript CBreakable::woodSoundScript = {

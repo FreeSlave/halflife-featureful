@@ -26,6 +26,7 @@
 #include "locus.h"
 #include "talkmonster.h"
 #include "warpball.h"
+#include "error_collector.h"
 
 #define MONSTERMAKER_START_ON_FIX 1
 
@@ -76,6 +77,7 @@ public:
 	void Spawn() override;
 	bool CheckMonsterClassname();
 	void Precache() override;
+	void Activate() override;
 	void KeyValue( KeyValueData* pkvd) override;
 	void EXPORT ToggleUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT CyclicUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
@@ -399,6 +401,16 @@ void CMonsterMaker::Spawn()
 	}
 
 	m_flGround = 0;
+}
+
+void CMonsterMaker::Activate()
+{
+	if (FBitSet(pev->spawnflags, SF_MONSTERMAKER_ALIGN_TO_PLAYER))
+	{
+		g_errorCollector.AddFormattedDeprecation("%s: (at %g, %g, %g) has spawnflag %d. This will be removed/replaced in future. Use 'Face to' (face_position) parameter instead.",
+												 STRING(pev->classname), pev->origin.x, pev->origin.y, pev->origin.z, SF_MONSTERMAKER_ALIGN_TO_PLAYER);
+	}
+	CBaseMonster::Activate();
 }
 
 bool CMonsterMaker::CheckMonsterClassname()
