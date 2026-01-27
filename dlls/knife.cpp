@@ -119,6 +119,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	params.fire.chargeTime.alt = 0.8f;
 	params.fire.cycleTime.alt = 0.9f;
 	params.fire.smackDelay.alt = 0.13f;
+	params.fire.hitDecal.alt = false;
 	//
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
