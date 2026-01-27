@@ -1233,14 +1233,6 @@ void ClientPrecache()
 	PRECACHE_SOUND( "common/wpn_denyselect.wav" );
 #endif
 
-	// geiger sounds
-//	PRECACHE_SOUND( "player/geiger6.wav" );
-//	PRECACHE_SOUND( "player/geiger5.wav" );
-//	PRECACHE_SOUND( "player/geiger4.wav" );
-	PRECACHE_SOUND( "player/geiger3.wav" );
-	PRECACHE_SOUND( "player/geiger2.wav" );
-	PRECACHE_SOUND( "player/geiger1.wav" );
-
 	if( giPrecacheGrunt )
 		UTIL_PrecacheOther( "monster_human_grunt" );
 }
