@@ -1305,14 +1305,6 @@ const char* CBaseEntity::MyOwnModel(const char *defaultModel)
 	if (ownVisual && ownVisual->model)
 		return ownVisual->model;
 
-#if FEATURE_REVERSE_RELATIONSHIP_MODELS
-	if (m_reverseRelationship)
-	{
-		const char* reverseModel = ReverseRelationshipModel();
-		if (reverseModel)
-			return reverseModel;
-	}
-#endif
 	return defaultModel;
 }
 

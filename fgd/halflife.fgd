@@ -489,7 +489,7 @@
 		524288 : "Ignore move away requests" : 0 : "Don't move away when ally player tries to push me or when ally monster asks me to move away"
 		1048576: "Act out of PVS" : 0 : "Act as usual even if there're no players in the PVS"
 	]
-	is_player_ally(choices) : "Reverse Relationship" : : "Set inverted relationship with players. Sven Co-op compatible parameter. Simple alternative to custom classify." =
+	is_player_ally(choices) : "Reverse Relationship [Sven Co-op compat]" : : "Set inverted relationship with players. Sven Co-op compatible parameter. Simple alternative to custom classify." =
 	[
 		0 : "No"
 		1 : "Yes"
@@ -7888,7 +7888,7 @@
 		1 : "Yes"
 	]
 	head(integer) : "Head" : : "Settable head. Available only for monsters which have a separate body group for heads. The number must match the numbers used in specific monster"
-	respawn_as_playerally(choices) : "Reverse Relationship" : : "Set inverted relationship with players. Sven Co-op compatible parameter. Simple alternative to custom classify." =
+	respawn_as_playerally(choices) : "Reverse Relationship [Sven Co-op compat]" : : "Set inverted relationship with players. Sven Co-op compatible parameter. Simple alternative to custom classify." =
 	[
 		0 : "No"
 		1 : "Yes"
