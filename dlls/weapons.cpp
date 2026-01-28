@@ -507,6 +507,8 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientClip, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 	//DEFINE_FIELD( CBasePlayerWeapon, m_iClientWeaponState, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 	DEFINE_FIELD( CBasePlayerWeapon, m_packedTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CBasePlayerWeapon, m_inAltMode, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlayerWeapon, CBaseAnimating )
@@ -1245,7 +1247,6 @@ float CBasePlayerWeapon::GetNextAttackDelay( float delay )
 TYPEDESCRIPTION	CConfigurableWeapon::m_SaveData[] =
 {
 	DEFINE_FIELD( CConfigurableWeapon, m_fInSpecialReload, FIELD_INTEGER ),
-	DEFINE_FIELD( CConfigurableWeapon, m_inAltMode, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CConfigurableWeapon, m_wasEmptyReload, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CConfigurableWeapon, m_switchingBody, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CConfigurableWeapon, m_wasInAltModeBeforeSwitchingBody, FIELD_BOOLEAN ),

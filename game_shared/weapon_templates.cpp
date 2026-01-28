@@ -1125,6 +1125,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				reload.waitForRecoil.Reset(altMode, emptied);
 				reload.suspendLaserSpotTime.Reset(altMode, emptied);
 				reload.sound.Reset(altMode, emptied);
+				reload.ammoCount.Reset(altMode, emptied);
+				reload.ammoCountMin.Reset(altMode, emptied);
 			}
 			else
 			{
@@ -1139,6 +1141,9 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 					WeaponSoundScript& soundScript = reload.sound.Materialize(altMode, emptied);
 					ParseWeaponSoundScript(soundScript, value);
 				});
+
+				UpdatePropertyFromJson(reload.ammoCount, value, "ammo_count", altMode, emptied);
+				UpdatePropertyFromJson(reload.ammoCountMin, value, "ammo_count_min", altMode, emptied);
 			}
 		});
 	};

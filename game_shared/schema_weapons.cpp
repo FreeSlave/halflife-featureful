@@ -799,6 +799,14 @@ const char* const json_schemas::weapons = R"(
 			"laser_suspend_time": {
 				"type": "number",
 				"minimum": 0
+			},
+			"ammo_count": {
+				"type": "integer",
+				"minimum": 0
+			},
+			"ammo_count_min": {
+				"type": "integer",
+				"minimum": 1
 			}
 		},
 		"additionalProperties": false

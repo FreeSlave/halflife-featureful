@@ -177,9 +177,9 @@ bool CBasePlayerWeapon::DefaultReload( int iClipSize, int iAnim, float fDelay, i
 	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] <= 0 )
 		return false;
 
-	int j = Q_min( iClipSize - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
+	int j = Q_min(iClipSize - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
 
-	if( j == 0 )
+	if (j == 0)
 		return false;
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + fDelay;
@@ -226,11 +226,18 @@ bool CanAttack( float attack_time, float curtime, bool isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame()
 {
+	const WeaponParameters& params = MyParameters();
+	const bool altMode = InAltMode();
+	const bool empty = Emptied();
+
 	if( ( m_fInReload ) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
 	{
-		int maxClip = iMaxClip();
+		const int maxClip = iMaxClip();
 		// complete the reload.
-		int j = Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		int j = Q_min(maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		const int ammoCount = params.reload.ammoCount.Get(altMode, empty);
+		if (ammoCount > 0)
+			j = Q_min(j, ammoCount);
 
 		// Add them to the clip
 		m_iClip += j;
@@ -246,7 +253,6 @@ void CBasePlayerWeapon::ItemPostFrame()
 	}
 #endif
 
-	const WeaponParameters& params = MyParameters();
 	const bool hasSecondaryFire = params.secondaryFireType != SecondaryFireType::DISABLED;
 	if (!hasSecondaryFire)
 	{
@@ -411,7 +417,13 @@ bool CBasePlayerWeapon::CanReload()
 {
 	if (!UsesAmmo() || !UsesClip())
 		return false;
-	return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 && m_iClip < m_iMaxClip;
+
+	const WeaponParameters& params = MyParameters();
+	const bool altMode = InAltMode();
+	const bool empty = Emptied();
+
+	const int ammoCountMin = params.reload.ammoCountMin.Get(altMode, empty);
+	return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= ammoCountMin && m_iClip < m_iMaxClip;
 }
 
 bool CBasePlayerWeapon::UsesClip()
@@ -1958,9 +1970,18 @@ bool CConfigurableWeapon::PerformReload()
 		}
 		else
 		{
+			const int maxClip = iMaxClip();
+			int j = Q_min(maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+
+			int ammoCount = reload.ammoCount.Get(altMode, empty);
+			if (ammoCount <= 0)
+				ammoCount = 1;
+
+			j = Q_min(j, ammoCount);
+
 			// Add them to the clip
-			m_iClip += 1;
-			m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= 1;
+			m_iClip += j;
+			m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] -= j;
 			m_fInSpecialReload = 1;
 			return true;
 		}
@@ -2089,7 +2110,8 @@ void CConfigurableWeapon::WeaponIdle()
 	{
 		if (m_fInSpecialReload != 0)
 		{
-			if (params.manualReload && m_iClip != m_iMaxClip && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
+			const int ammoCountMin = params.reload.ammoCountMin.Get(altMode, false);
+			if (params.manualReload && m_iClip < m_iMaxClip && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= ammoCountMin )
 			{
 				Reload();
 				return;

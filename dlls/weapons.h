@@ -332,6 +332,8 @@ public:
 
 	float m_packedTime;
 
+	bool m_inAltMode;
+
 	bool UsesClip();
 	bool HasAmmoToFire(int ammo = 1);
 	bool IsOutOfAmmo();
@@ -339,6 +341,9 @@ public:
 	void CheckOutOfSecondaryAmmo();
 	void SpendAmmo(int ammo = 1);
 	bool Emptied();
+	bool InAltMode() const {
+		return m_inAltMode;
+	}
 
 	void PlayWeaponSoundScript(const WeaponSoundScript& soundScript, float volumeFactor = 1.0f);
 };
@@ -393,9 +398,6 @@ public:
 
 	bool PerformDeploy();
 
-	bool InAltMode() const {
-		return m_inAltMode;
-	}
 	void UpdateAutoAim();
 	void UpdateSpot();
 	void ToggleLaserSpot(bool playDeactivationSound = false);
@@ -430,7 +432,6 @@ public:
 	int PackIParam2();
 	void PrecacheCommonEvent();
 
-	bool m_inAltMode;
 	bool m_wasEmptyReload;
 	bool m_switchingBody;
 	bool m_wasInAltModeBeforeSwitchingBody;

@@ -1836,6 +1836,18 @@ A boolean. Don't allow reloading until the weapon's [cycle_time](#cycle_time) ha
 
 A boolean. Hide the laser spot (if any) for this amount of time (in seconds).
 
+### ammo_count
+
+Ammo to add to the clip per reload. For non-manual reload it means the player might need to push the perform several reloads. By default weapon loads as much ammo as possible on reload, or 1 for [manual_reload](#manual_reload). Use it with weapons that rely on [manual_reload](#manual_reload) to allow reloading of more than 1 ammo per action.
+
+Example: TFC shotgun reloads 2 shells per reload action.
+
+### ammo_count_min
+
+The minimum ammo count in the player's inventory that allows starting the reload. Default value is 1. Set the same value as in [ammo_per_fire](#ammo_per_fire) and [ammo_count](#ammo_count) if you want to make sure the weapon clip contains the ammo amount which is a multiple of some particular value (e.g. only even values).
+
+Example: TFC shotgun won't reload if there's only 1 shell left in player's inventory.
+
 ## reload_empty
 
 Same as [reload](#reload) but used when weapon clip is empty.

@@ -491,6 +491,8 @@ struct WeaponParameters
 		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_ITEM};
 		WeaponModeValueEmptyAware<bool> waitForRecoil{false};
 		WeaponModeValueEmptyAwareNonNegative<float> suspendLaserSpotTime{0.0f};
+		WeaponModeValueEmptyAwareNonNegative<int> ammoCount;
+		WeaponModeValueEmptyAwareNonNegative<int> ammoCountMin{1};
 	};
 
 	struct StartReload
