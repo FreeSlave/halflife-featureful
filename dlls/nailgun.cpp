@@ -166,9 +166,9 @@ WeaponParameters CNailgun::GetDefaultParameters() const
 	params.fire.sound = {
 		CHAN_WEAPON,
 		{"weapons/airgun_1.wav"},
-		1.0f,
+		FloatRange(0.95f, 1.0f),
 		ATTN_NORM,
-		IntRange(94, 109)
+		IntRange(93, 124)
 	};
 	params.fire.cycleTime = 0.1f;
 	params.fire.allowUnderwater = true;
