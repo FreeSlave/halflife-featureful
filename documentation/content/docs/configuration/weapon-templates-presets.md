@@ -1195,9 +1195,156 @@ This weapon template uses the same model and sound paths as a Half-Life shotgun 
 
 ## Team Fortress Classic
 
+The templates for Team Fortress Classic weapons are stored in the **templates/weapons/tfc/** directory. Not all weapons are implemented yet.
+
+{{% details "Example" open %}}
+```json
+{
+    "weapon_shotgun": "tfc/shotgun",
+    "weapon_shotgun2": "tfc/supershotgun",
+    "weapon_smg": "tfc/nailgun",
+    "weapon_smg2": "tfc/supernailgun",
+    "weapon_rifle": "tfc/autorifle",
+    "weapon_sniperrifle": "tfc/sniperrifle",
+    "weapon_minigun": "tfc/assaultcannon"
+}
+```
+{{% /details %}}
+
 {{% hint warning %}}
 Team Fortress Classic doesn't have world models for weapons. You may need to provide custom world models yourself.
 {{% /hint %}}
+
+{{% details_header title="Single-barrel shotgun" %}}
+```json
+{
+    "weapon_shotgun": "tfc/shotgun"
+}
+```
+
+A weapon used by various TFC classes.
+
+Unlike Half-Life shotgun, it can fire underwater.
+
+Required models:
+
+* **v_tfc_12gauge.mdl**
+* **p_smallshotgun.mdl**
+
+{{% /details_header %}}
+
+{{% details_header title="Double-barrel shotgun" %}}
+```json
+{
+    "weapon_shotgun2": "tfc/supershotgun"
+}
+```
+
+A weapon used by various TFC classes.
+
+Unlike Half-Life shotgun, it can fire underwater.
+
+Required models:
+
+* **v_tfc_shotgun.mdl**
+* **p_shotgun.mdl**
+
+Required sounds:
+
+* **weapons/shotgn2.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Nailgun" %}}
+```json
+{
+    "weapon_smg": "tfc/nailgun"
+}
+```
+
+A weapon used by various TFC classes.
+
+{{% hint info %}}
+This is basically the same as [weapon_nailgun]({{< ref weapon_nailgun >}}) that is already implemented in Featureful SDK. This weapon template preset can be used as a reference.
+{{% /hint %}}
+
+Required models:
+
+* **v_tfc_nailgun.mdl**
+* **p_nailgun.mdl**
+
+Required sounds:
+
+* **weapons/airgun_1.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Super Nailgun" %}}
+```json
+{
+    "weapon_smg2": "tfc/supernailgun"
+}
+```
+
+A weapon used by Medic class.
+
+Required models:
+
+* **v_tfc_supernailgun.mdl**
+* **p_snailgun.mdl**
+
+Required sounds:
+
+* **weapons/spike2.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Autorifle" %}}
+```json
+{
+    "weapon_rifle": "tfc/autorifle"
+}
+```
+
+A weapon used by the Sniper class. It uses `buckshot` ammo.
+
+Required models:
+
+* **v_tfc_sniper.mdl**
+* **p_sniper.mdl**
+
+Required sounds:
+
+* **weapons/sniper.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Sniper rifle" %}}
+```json
+{
+    "weapon_sniperrifle": "tfc/sniperrifle"
+}
+```
+
+A weapon used by the Sniper class. It uses `buckshot` ammo.
+
+Required models:
+
+* **v_tfc_sniper.mdl**
+* **p_sniper.mdl**
+
+Required sounds:
+
+* **ambience/rifle1.wav** (this is a Half-Life sound)
+
+{{% hint warning %}}
+Some behavior aspects of TFC sniperrifle are not implemented yet, namely:
+
+* In TFC player can't start charging the shot unless they move slow enough. In this configuration player can start charging the shot anytime (but the slowness will be applied automatically).
+* In TFC player can't perform the shot while in air (not on the ground). This configuration doesn't impose such limitation.
+{{% /hint %}}
+
+{{% /details_header %}}
 
 {{% details_header title="Assault Cannon" %}}
 ```json
@@ -1206,10 +1353,10 @@ Team Fortress Classic doesn't have world models for weapons. You may need to pro
 }
 ```
 
-A weapon used by the Heavy Weapon Guy class. This doesn't prevent jumping and uses `buckshot` ammo.
+A weapon used by the Heavy Weapon Guy class. It uses `buckshot` ammo.
 
-{{% hint warning %}}
-This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.
+{{% hint info %}}
+In TFC this weapon doesn't produce any kickback while firing. This is probably due to Heavy Weapons Guy being a really strong man. You can add some kickback by setting the [kickback rules]({{< ref "weapon-templates/#kickback" >}}) or [client_punch_pitch]({{< ref "weapon-templates/#client_punch_pitch" >}}) and [client_punch_yaw]({{< ref "weapon-templates/#client_punch_yaw" >}}).
 {{% /hint %}}
 
 Required models:
