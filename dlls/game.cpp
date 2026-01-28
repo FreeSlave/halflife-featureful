@@ -1317,6 +1317,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("snark_add_dmg_pop", "snark_dmg_pop");
 	g_SkillData.ProvideFallback("snark_max_dmg_pop", 0.0f);
 	g_SkillData.ProvideFallback("snark_lifespan", 15.0f);
+	g_SkillData.ProvideFallback("snark_jump_delay", 2.0f);
+	g_SkillData.ProvideFallback("snark_jump_speed", 300.0f);
 
 	g_SkillData.ProvideFallback("penguin_health", "snark_health");
 	g_SkillData.ProvideFallback("penguin_dmg_bite", "snark_dmg_bite");
@@ -1324,6 +1326,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("penguin_add_dmg_pop", "penguin_dmg_pop");
 	g_SkillData.ProvideFallbackWithFactor("penguin_max_dmg_pop", "plr_hand_grenade", 5.0f);
 	g_SkillData.ProvideFallback("penguin_lifespan", "snark_lifespan");
+	g_SkillData.ProvideFallback("penguin_jump_delay", "snark_jump_delay");
+	g_SkillData.ProvideFallback("penguin_jump_speed", "snark_jump_speed");
 
 	g_SkillData.ProvideFallback("kate_health", "barney_health");
 

@@ -57,6 +57,8 @@ public:
 	virtual float BiteDamage();
 	virtual float AdditionalExplosionDamage();
 	virtual float MaximumExplosionDamage();
+	virtual float JumpDelay();
+	virtual float JumpSpeed();
 
 	int SizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
@@ -276,6 +278,16 @@ float CSqueakGrenade::MaximumExplosionDamage()
 	return GetSkillValue("snark_max_dmg_pop");
 }
 
+float CSqueakGrenade::JumpDelay()
+{
+	return GetSkillValue("snark_jump_delay");
+}
+
+float CSqueakGrenade::JumpSpeed()
+{
+	return GetSkillValue("snark_jump_speed");
+}
+
 void CSqueakGrenade::HuntThink()
 {
 	// ALERT( at_console, "think\n" );
@@ -318,7 +330,7 @@ void CSqueakGrenade::HuntThink()
 	if( m_flNextHunt > gpGlobals->time )
 		return;
 
-	m_flNextHunt = gpGlobals->time + 2.0f;
+	m_flNextHunt = gpGlobals->time + JumpDelay();
 
 	//CBaseEntity *pOther = NULL;
 	Vector vecDir;
@@ -362,7 +374,7 @@ void CSqueakGrenade::HuntThink()
 
 		// ALERT( at_console, "%.0f %.2f %.2f %.2f\n", flVel, m_vecTarget.x, m_vecTarget.y, m_vecTarget.z );
 
-		pev->velocity = pev->velocity * flAdj + m_vecTarget * 300.0f;
+		pev->velocity = pev->velocity * flAdj + m_vecTarget * JumpSpeed();
 	}
 
 	if( pev->flags & FL_ONGROUND )
@@ -490,6 +502,8 @@ class CPenguinGrenade : public CSqueakGrenade
 	float DefaultHealth() override;
 	float BiteDamage() override;
 	float MaximumExplosionDamage() override;
+	float JumpDelay() override;
+	float JumpSpeed() override;
 	float ExplosionRadius() override
 	{
 		const float maxDmg = GetSkillValue("penguin_max_dmg_pop");
@@ -538,6 +552,16 @@ float CPenguinGrenade::AdditionalExplosionDamage()
 float CPenguinGrenade::MaximumExplosionDamage()
 {
 	return GetSkillValue("penguin_max_dmg_pop")*5;
+}
+
+float CPenguinGrenade::JumpDelay()
+{
+	return GetSkillValue("penguin_jump_delay");
+}
+
+float CPenguinGrenade::JumpSpeed()
+{
+	return GetSkillValue("penguin_jump_speed");
 }
 
 LINK_ENTITY_TO_CLASS( monster_penguin, CPenguinGrenade )
