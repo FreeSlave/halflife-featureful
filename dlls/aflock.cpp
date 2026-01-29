@@ -377,6 +377,8 @@ void CFlockingFlyer::SpawnCommonCode()
 
 	//UTIL_SetSize( pev, Vector( 0.0f, 0.0f, 0.0f ), Vector( 0.0f, 0.0f, 0.0f ) );
 	UTIL_SetSize( pev, Vector( -5.0f, -5.0f, 0.0f ), Vector( 5.0f, 5.0f, 2.0f ) );
+
+	MarkAsNonBlockerForPlayer();
 }
 
 //=========================================================

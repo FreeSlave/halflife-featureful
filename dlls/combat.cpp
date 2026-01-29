@@ -851,7 +851,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 void CBaseMonster::OnDying(bool gibbed)
 {
 	if (!g_modFeatures.dying_monsters_block_player)
-		pev->iuser3 = -1;
+		MarkAsNonBlockerForPlayer();
 	Remember( bits_MEMORY_KILLED );
 
 	const EntTemplate* entTemplate = GetMyEntTemplate();

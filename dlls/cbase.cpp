@@ -1882,6 +1882,11 @@ void CBaseEntity::InsertAISound(int iType, int iVolume, float flDuration)
 	InsertAISound(iType, pev->origin, iVolume, flDuration);
 }
 
+void CBaseEntity::MarkAsNonBlockerForPlayer()
+{
+	pev->iuser3 = -1;
+}
+
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
 {
 	auto matchClassname = [&]() -> bool {

@@ -3897,7 +3897,7 @@ void CBaseMonster::Activate()
 	CBaseToggle::Activate();
 
 	if (!g_modFeatures.dying_monsters_block_player && pev->deadflag == DEAD_DYING && HasMemory(bits_MEMORY_KILLED)) {
-		pev->iuser3 = -1;
+		MarkAsNonBlockerForPlayer();
 	}
 }
 
