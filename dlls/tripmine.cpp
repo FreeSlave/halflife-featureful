@@ -28,6 +28,9 @@
 #include "game.h"
 #include "gamerules.h"
 
+#define SF_TRIPMINE_FAST_STARTUP 1
+#define SF_TRIPMINE_TRIGGERABLE 2
+
 class CTripmineGrenade : public CGrenade
 {
 	void Spawn() override;
@@ -46,6 +49,7 @@ class CTripmineGrenade : public CGrenade
 	void EXPORT DelayDeathThink();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
+	void EXPORT ExplodeUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void MakeBeam();
 	void KillBeam();
 
@@ -123,7 +127,7 @@ void CTripmineGrenade::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_NOT;
 
-	SET_MODEL( ENT( pev ), "models/v_tripmine.mdl" );
+	SetMyModel("models/v_tripmine.mdl");
 	pev->frame = 0;
 	pev->body = 3;
 	pev->sequence = TRIPMINE_WORLD;
@@ -142,7 +146,7 @@ void CTripmineGrenade::Spawn()
 
 	UTIL_SetOrigin( pev, pev->origin );
 
-	if( pev->spawnflags & 1 )
+	if (FBitSet(pev->spawnflags, SF_TRIPMINE_FAST_STARTUP))
 	{
 		// power up quickly
 		m_flPowerUp = gpGlobals->time + 1.0f;
@@ -160,6 +164,9 @@ void CTripmineGrenade::Spawn()
 	pev->dmg = GetSkillValue("plr_tripmine");
 	pev->health = GetSkillValue("tripmine_health"); // don't let die normally
 	pev->max_health = pev->health;
+
+	if (FBitSet(pev->spawnflags, SF_TRIPMINE_TRIGGERABLE))
+		SetUse(&CTripmineGrenade::ExplodeUse);
 
 	if( pev->owner != NULL )
 	{
@@ -179,7 +186,7 @@ void CTripmineGrenade::Spawn()
 void CTripmineGrenade::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PRECACHE_MODEL( "models/v_tripmine.mdl" );
+	PrecacheMyModel("models/v_tripmine.mdl");
 	RegisterAndPrecacheSoundScript(deploySoundScript);
 	RegisterAndPrecacheSoundScript(activateSoundScript);
 	RegisterAndPrecacheSoundScript(chargeSoundScript);
@@ -360,10 +367,17 @@ void CTripmineGrenade::BeamBreakThink()
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-TakeDamageResult CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
-	if( gpGlobals->time < m_flPowerUp && damageInfo.damage < pev->health )
+	if (!pev->takedamage)
+		return TakeDamageResult();
+
+	if (gpGlobals->time < m_flPowerUp && inputDamageInfo.damage < pev->health)
 	{
+		DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+		if (damageInfo.mustSkip)
+			return TakeDamageResult();
+
 		// disable
 		// Create( "weapon_tripmine", pev->origin + m_vecDir * 24.0f, pev->angles );
 		SetThink( &CBaseEntity::SUB_Remove );
@@ -371,7 +385,7 @@ TakeDamageResult CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_
 		KillBeam();
 		return TakeDamageResult();
 	}
-	return CGrenade::TakeDamage( pevInflictor, pevAttacker, damageInfo);
+	return CGrenade::TakeDamage( pevInflictor, pevAttacker, inputDamageInfo);
 }
 
 KilledResult CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
@@ -389,6 +403,14 @@ KilledResult CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAt
 
 	EMIT_SOUND( ENT( pev ), CHAN_BODY, "common/null.wav", 0.5f, ATTN_NORM ); // shut off chargeup
 	return KilledResult();
+}
+
+void CTripmineGrenade::ExplodeUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	SetUse(nullptr);
+	pev->health = 0;
+	Killed(pev, pActivator ? pActivator->pev : pev, GIB_NEVER);
+	pev->nextthink = gpGlobals->time + 0.05f;
 }
 
 void CTripmineGrenade::DelayDeathThink()

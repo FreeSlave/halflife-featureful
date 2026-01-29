@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_tripmine)
 
+### New spawnflags
+
+* `Triggerable` - allows to trigger the tripmine explosion by tripmine's targetname.
+
 ### Skill variables
 
 * **sk_plr_tripmine** - explosion damage.

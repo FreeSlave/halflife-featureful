@@ -7346,6 +7346,7 @@
 	spawnflags(Flags) =
 	[
 		1 : "Instant On" : 1
+		2 : "Triggerable" : 0 : "Explode when triggered"
 	]
 ]
 @PointClass base(Monster, Sequence) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = monster_turret : "Auto Turret"
