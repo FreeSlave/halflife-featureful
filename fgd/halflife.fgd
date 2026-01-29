@@ -5163,18 +5163,18 @@
 		4 : "Not solid"	: 0
 		8 : "Head controller" : 0
 	]
-	model(studio) : "model"
+	model(studio) : "Model (required)"
 	body(integer) : "Body" : 0
 	skin(integer) : "Skin"
 ]
 
-@PointClass base(DeadMonster, Sequence) size(-16 -16 -36, 16 16 36) studio() = monster_generic_dead : "Generic Script Monster"
+@PointClass base(DeadMonster) size(-16 -16 -36, 16 16 36) studio() = monster_generic_dead : "Generic Script Monster"
 [
 	spawnflags(Flags) =
 	[
 		4 : "Not solid"	: 0
 	]
-	model(studio) : "model"
+	model(studio) : "Model (required)"
 	body(integer) : "Body"
 	skin(integer) : "Skin"
 	pose(string) : "Pose (string)" : : "Name of the sequence"
