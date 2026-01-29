@@ -1613,7 +1613,7 @@ bool CBaseMonster::SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHul
 	return false;
 }
 
-CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params, float height, const Vector& aimAngles )
+TraceResult CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params, float height, const Vector& aimAngles )
 {
 	TraceResult tr;
 
@@ -1628,20 +1628,106 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 
 	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
 
-	CBaseEntity *pEntity = CBaseEntity::OwnInstance( tr.pHit );
-	if (pEntity)
+	return tr;
+}
+
+static bool IsEntityOnTopOfAnother(CBaseEntity* pEntity, CBaseEntity* pOther)
+{
+	return pEntity->pev->absmin.z + 2.0f >= pOther->pev->absmax.z &&
+		pEntity->pev->absmin.x <= pOther->pev->absmax.x &&
+		pEntity->pev->absmin.y <= pOther->pev->absmax.y &&
+		pEntity->pev->absmax.x >= pOther->pev->absmin.x &&
+		pEntity->pev->absmax.y >= pOther->pev->absmin.y;
+}
+
+CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& params)
+{
+	CBaseEntity *pHurt = nullptr;
+	CBaseEntity* pHurtTry = nullptr;
+	TraceResult tr;
+
+	// check if we're trying to hit enemy on top of our head
+	if (m_hEnemy != 0 && m_IdealMonsterState != MONSTERSTATE_SCRIPT && IsEntityOnTopOfAnother(m_hEnemy, this))
 	{
-		if( params.damageInfo.damage > 0 && pEntity->pev->takedamage && !(params.skipAllies && (pEntity && IRelationship(pEntity) == R_AL)) )
+		float h = pev->size.z * 0.95f;
+		if (params.height)
+			h = Q_max(*params.height, h);
+		Vector aimAngles = pev->angles;
+		const Vector targetOrigin = m_hEnemy->BodyTarget(pev->origin);
+		const Vector aimDir = targetOrigin - (pev->origin + Vector(0,0,h));
+		aimAngles.x = UTIL_VecToAngles(aimDir).x;
+
+		TraceHullAttackParams paramsTop = params;
+		// do less damage if the attack is not originated from the top of the monster
+		if (!params.height || *params.height < pev->size.z * 0.95f)
+			paramsTop.damageInfo.damage *= 0.5f;
+		paramsTop.distance = paramsTop.distance * 0.25f;
+
+		// Try to knock the enemy from my head
+		paramsTop.knockForward = std::fabs(paramsTop.knockForward);
+		paramsTop.knockForward = Q_max(paramsTop.knockForward, 120.0f);
+		paramsTop.knockUp = -Q_max(paramsTop.knockUp * 0.5f, 120.0f);
+
+		tr = CheckTraceHullAttack(paramsTop, h, aimAngles);
+		pHurtTry = CBaseEntity::OwnInstance(tr.pHit);
+		//ALERT(at_console, "%s: enemy is on top of my head! Hit %s\n", STRING(pev->classname), pHurtTry ? STRING(pHurtTry->pev->classname) : "nothing");
+	}
+	if (!pHurtTry || !pHurtTry->pev->takedamage)
+	{
+		pHurtTry = nullptr;
+
+		const float myHeight = pev->size.z;
+
+		fixed_vector<float, 5> heights;
+		heights.push_back(params.height ? *params.height : myHeight * 0.5f);
+
+		if (params.allowRetry && npc_trace_hull_attack_retry.value && params.damageInfo.damage > 0)
 		{
-			TakeDamageResult takeDamageResult = pEntity->TakeDamage(pev, pev, params.damageInfo);
+			heights.push_back(0.75f * myHeight);
+			if (params.height)
+				heights.push_back(0.5f * myHeight);
+			heights.push_back(0.25f * myHeight);
+			if (!params.height || *params.height < myHeight)
+				heights.push_back(0.95f * myHeight);
+		}
+
+		for (float height : heights)
+		{
+			TraceResult trLocal = CheckTraceHullAttack(params, height, pev->angles);
+			CBaseEntity* pHurtTryLocal = CBaseEntity::OwnInstance(trLocal.pHit);
+			if (pHurtTryLocal)
+			{
+				if (!pHurtTry)
+				{
+					pHurtTry = pHurtTryLocal; // save the first result as more prioritized
+					tr = trLocal;
+				}
+
+				if (pHurtTryLocal->pev->takedamage) // most preference to something that can take damage
+				{
+					pHurt = pHurtTryLocal;
+					tr = trLocal;
+					break;
+				}
+			}
+		}
+	}
+
+	if (!pHurt)
+		pHurt = pHurtTry;
+
+	if (pHurt)
+	{
+		if (params.damageInfo.damage > 0 && pHurt->pev->takedamage && !(params.skipAllies && (pHurt && IRelationship(pHurt) == R_AL)))
+		{
+			TakeDamageResult takeDamageResult = pHurt->TakeDamage(pev, pev, params.damageInfo);
 
 			if (params.spawnBlood && takeDamageResult.TookDamageToHealth())
 			{
-				SpawnBlood(params.bloodOrigin ? *params.bloodOrigin : tr.vecEndPos, pEntity->BloodColor(), 25);// a little surface blood.
+				SpawnBlood(params.bloodOrigin ? *params.bloodOrigin : tr.vecEndPos, pHurt->BloodColor(), 25);// a little surface blood.
 			}
 		}
 
-		CBaseEntity* pHurt = pEntity;
 		if (params.punchAngle.x)
 			pHurt->pev->punchangle.x = params.punchAngle.x;
 		if (params.punchAngle.y)
@@ -1682,82 +1768,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& pa
 								   gpGlobals->v_up * params.knockUp;
 			//ALERT(at_console, "New velocity after knock: %g, %g, %g\n", pHurt->pev->velocity.x, pHurt->pev->velocity.y, pHurt->pev->velocity.z);
 		}
-	}
-	return pEntity;
-}
 
-static bool IsEntityOnTopOfAnother(CBaseEntity* pEntity, CBaseEntity* pOther)
-{
-	return pEntity->pev->absmin.z + 2.0f >= pOther->pev->absmax.z &&
-		pEntity->pev->absmin.x <= pOther->pev->absmax.x &&
-		pEntity->pev->absmin.y <= pOther->pev->absmax.y &&
-		pEntity->pev->absmax.x >= pOther->pev->absmin.x &&
-		pEntity->pev->absmax.y >= pOther->pev->absmin.y;
-}
-
-CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& params)
-{
-	CBaseEntity *pHurt = nullptr;
-	CBaseEntity* pHurtTry = nullptr;
-
-	// check if we're trying to hit enemy on top of our head
-	if (m_hEnemy != 0 && m_IdealMonsterState != MONSTERSTATE_SCRIPT && IsEntityOnTopOfAnother(m_hEnemy, this))
-	{
-		float h = pev->size.z * 0.95f;
-		if (params.height)
-			h = Q_max(*params.height, h);
-		Vector aimAngles = pev->angles;
-		const Vector targetOrigin = m_hEnemy->BodyTarget(pev->origin);
-		const Vector aimDir = targetOrigin - (pev->origin + Vector(0,0,h));
-		aimAngles.x = UTIL_VecToAngles(aimDir).x;
-
-		TraceHullAttackParams paramsTop = params;
-		// do less damage if the attack is not originated from the top of the monster
-		if (!params.height || *params.height < pev->size.z * 0.95f)
-			paramsTop.damageInfo.damage *= 0.5f;
-		paramsTop.distance = paramsTop.distance * 0.25f;
-
-		// Try to knock the enemy from my head
-		paramsTop.knockForward = std::fabs(paramsTop.knockForward);
-		paramsTop.knockForward = Q_max(paramsTop.knockForward, 120.0f);
-		paramsTop.knockUp = -Q_max(paramsTop.knockUp * 0.5f, 120.0f);
-
-		pHurtTry = CheckTraceHullAttack( paramsTop, h, aimAngles );
-		//ALERT(at_console, "%s: enemy is on top of my head! Hit %s\n", STRING(pev->classname), pHurtTry ? STRING(pHurtTry->pev->classname) : "nothing");
-	}
-	if (!pHurtTry || !pHurtTry->pev->takedamage)
-	{
-		const float myHeight = pev->size.z;
-
-		fixed_vector<float, 5> heights;
-		heights.push_back(params.height ? *params.height : myHeight * 0.5f);
-
-		if (params.allowRetry && npc_trace_hull_attack_retry.value && params.damageInfo.damage > 0)
-		{
-			heights.push_back(0.75f * myHeight);
-			if (params.height)
-				heights.push_back(0.5f * myHeight);
-			heights.push_back(0.25f * myHeight);
-			if (!params.height || *params.height < myHeight)
-				heights.push_back(0.95f * myHeight);
-		}
-
-		for (float height : heights)
-		{
-			pHurtTry = CheckTraceHullAttack( params, height, pev->angles );
-			if (pHurtTry && pHurtTry->pev->takedamage)
-			{
-				pHurt = pHurtTry;
-				break;
-			}
-		}
-	}
-
-	if (!pHurt)
-		pHurt = pHurtTry;
-
-	if (pHurt)
-	{
 		if (params.hitSoundScript)
 			EmitSoundScript(params.hitSoundScript);
 	}
