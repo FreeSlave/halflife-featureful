@@ -3694,6 +3694,13 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_tool(choices) : "Tool" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 	weapon_melee(choices) : "Melee (custom)" =
 	[
 		-1: "Remove"
@@ -3891,6 +3898,7 @@
 	weapon_nailgun(string) : "Nailgun chance"
 	weapon_camera(string) : "Camera chance"
 	weapon_radio(string) : "Radio chance"
+	weapon_tool(string) : "Tool chance"
 	weapon_melee(string) : "Melee (custom) chance"
 	weapon_pistol(string) : "Pistol (custom) chance"
 	weapon_pistol2(string) : "Pistol 2 (custom) chance"
@@ -9418,6 +9426,7 @@
 		"" : "None"
 		weapon_camera : "Camera"
 		weapon_radio : "Radio"
+		weapon_tool : "Tool (custom, weapon_tool)"
 	]
 	tooltarget(string) : "Tool Target" : : "Where the player needs to be looking to activate the tool, the best way to get this to work is to target an info_target thats in the general area that should be looked in."
 	master(string) : "Master"
@@ -9484,6 +9493,7 @@
 
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []
+@PointClass base(Weapon, WeaponInitAmmo) = weapon_tool : "Tool" []
 
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_melee : "Generic configurable melee" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_pistol : "Generic configurable pistol" []

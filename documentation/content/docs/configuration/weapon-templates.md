@@ -212,6 +212,7 @@ Some weapon classnames have been added specifically to be configured (so the dev
 * [weapon_rifle2]({{< ref weapon_rifle2 >}})
 * [weapon_shotgun2]({{< ref weapon_shotgun2 >}})
 * [weapon_sniperrifle2]({{< ref weapon_sniperrifle2 >}})
+* [weapon_tool]({{< ref weapon_tool >}})
 
 {{% hint info %}}
 A technical limitation in GoldSource engine prevents creation of new classnames dynamically (i.e. without code modifications). So we have to resort to this trick of providing the predefined classnames that can be utilized by the SDK user.

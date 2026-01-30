@@ -50,4 +50,6 @@
 #define WEAPON_CAMERA			60
 #define WEAPON_RADIO			61
 
+#define WEAPON_TOOL				63
+
 #endif

@@ -116,3 +116,58 @@ WeaponParameters CToolRadio::GetDefaultParameters() const
 
 	return params;
 }
+
+enum satchel_radio_e
+{
+	SATCHEL_RADIO_IDLE1 = 0,
+	SATCHEL_RADIO_FIDGET1,
+	SATCHEL_RADIO_DRAW,
+	SATCHEL_RADIO_FIRE,
+	SATCHEL_RADIO_HOLSTER
+};
+
+class CWeaponTool : public CConfigurableWeapon
+{
+public:
+	int WeaponId() const override { return WEAPON_TOOL; }
+	bool GetItemInfo(ItemInfo* p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
+
+LINK_WEAPON_TO_CLASS( weapon_tool, CWeaponTool )
+
+bool CWeaponTool::GetItemInfo(ItemInfo *p)
+{
+	p->iSlot = 4;
+	p->iPosition = 7;
+	return true;
+}
+
+WeaponParameters CWeaponTool::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.worldModel = "models/w_weaponbox.mdl";
+	params.viewModel = "models/v_satchel_radio.mdl";
+	params.playerModel = "models/p_satchel_radio.mdl";
+	params.playerAnimExt = "hive";
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{SATCHEL_RADIO_IDLE1, 0.5f, 2.7f},
+		WeaponParameters::IdleAnim{SATCHEL_RADIO_FIDGET1, 0.5f, 3.7f}
+	};
+
+	params.deploy.animIndex = SATCHEL_RADIO_DRAW;
+	params.deploy.duration = 0.63f;
+
+	params.fire.anims = {SATCHEL_RADIO_FIRE};
+	params.fire.cycleTime = 1.0f;
+	params.fire.preventMovement = true;
+
+	params.holster.animIndex = SATCHEL_RADIO_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+
+	params.toolIcon = "icon_radio";
+
+	return params;
+}

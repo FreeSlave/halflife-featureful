@@ -307,7 +307,8 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("shotgun2", WEAPON_SHOTGUN2),
 		WeaponNameAndId("sniperrifle2", WEAPON_SNIPERRIFLE2),
 		WeaponNameAndId("camera", WEAPON_CAMERA),
-		WeaponNameAndId("radio", WEAPON_RADIO)
+		WeaponNameAndId("radio", WEAPON_RADIO),
+		WeaponNameAndId("tool", WEAPON_TOOL),
 	};
 
 	for (unsigned int i=0; i<ARRAYSIZE(knownWeapons); ++i)
