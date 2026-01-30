@@ -67,6 +67,8 @@ struct MapConfig
 	};
 	int suit_light;
 
+	char deployWeapon[64];
+
 	bool longjump;
 
 	bool valid;

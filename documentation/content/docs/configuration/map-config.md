@@ -27,6 +27,7 @@ Each piece of equipment is defined by one line in the file.
 * `starthealth` - specify the starting health.
 * `maxhealth` - maximum player's health.
 * `maxarmor` - maximum player's armor.
+* `deploy` - the classname of the weapon to deploy. By default the best weapon (the one with the highest priority) is deployed.
 
 Example:
 

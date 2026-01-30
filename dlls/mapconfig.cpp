@@ -16,6 +16,7 @@ MapConfig::MapConfig() :
 {
 	memset(ammo, 0, sizeof(ammo));
 	memset(overrideCvars, 0, sizeof(overrideCvars));
+	deployWeapon[0] = '\0';
 }
 
 const char* FixedAmmoName(const char* ammoName)
@@ -86,6 +87,10 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 					mapConfig.ammoCount++;
 				}
 			}
+		}
+		else if (strcmp(key, "deploy") == 0)
+		{
+			strncpyEnsureTermination(mapConfig.deployWeapon, value);
 		}
 		else if (strcmp(key, "nomedkit") == 0)
 		{
@@ -168,7 +173,7 @@ bool ReadMapConfigFromFile(MapConfig& mapConfig, const char* fileName)
 {
 	int fileSize;
 	byte *pMemFile = g_engfuncs.pfnLoadFileForMe( fileName, &fileSize );
-	if( !pMemFile )
+	if (!pMemFile)
 		return false;
 	bool result = ReadMapConfigFromText(mapConfig, pMemFile, fileSize);
 	g_engfuncs.pfnFreeFile( pMemFile );
