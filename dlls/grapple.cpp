@@ -350,6 +350,8 @@ WeaponParameters CBarnacleGrapple::GetDefaultParameters() const
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 
+	params.fire.weaponVolume = 450;
+
 	return params;
 }
 
@@ -524,9 +526,11 @@ void CBarnacleGrapple::PrimaryAttack()
 		}
 	}
 #endif
+	const WeaponParameters& params = MyParameters();
+
 	if( m_fireState != OFF )
 	{
-		m_pPlayer->m_iWeaponVolume = 450;
+		m_pPlayer->m_iWeaponVolume = params.fire.weaponVolume.Get(false);
 
 		if( m_flShootTime != 0.0 && gpGlobals->time > m_flShootTime )
 		{
@@ -545,7 +549,7 @@ void CBarnacleGrapple::PrimaryAttack()
 
 		SendWeaponAnim( BGRAPPLE_FIRE );
 
-		m_pPlayer->m_iWeaponVolume = 450;
+		m_pPlayer->m_iWeaponVolume = params.fire.weaponVolume.Get(false);;
 
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.1;
 #if !CLIENT_DLL
