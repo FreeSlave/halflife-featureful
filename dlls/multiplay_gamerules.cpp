@@ -287,10 +287,10 @@ CHalfLifeMultiplay::CHalfLifeMultiplay()
 	{
 		if (ReadMapConfigByMapName(mapConfig, STRING(gpGlobals->mapname)))
 		{
-			for (int k=0; k<mapConfig.cvarCount; ++k)
+			for (const auto& overrideCvar : mapConfig.overrideCvars)
 			{
-				const char* name  = mapConfig.overrideCvars[k].name;
-				const char* value = mapConfig.overrideCvars[k].value;
+				const char* name  = overrideCvar.name.c_str();
+				const char* value = overrideCvar.value.c_str();
 				ALERT(at_aiconsole, "Setting %s to %s\n", name, value);
 				CVAR_SET_STRING(name, value);
 			}

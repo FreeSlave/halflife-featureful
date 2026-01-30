@@ -90,3 +90,13 @@ suitlogon short
 item_longjump
 suitlight nothing
 ```
+
+### Inventory items
+
+Put **inventory!** followed by the [player inventory]({{< ref player-inventory >}}) item name and the amount of items to give (if amount is not specified one item of the specified type is given).
+
+```
+inventory!battery_blue 3
+inventory!battery_red
+inventory!battery_yellow 2
+```

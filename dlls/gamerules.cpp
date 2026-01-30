@@ -172,24 +172,28 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 			pPlayer->SetNVGOnly();
 		}
 
-		int i, j;
-		for (i=0; i<mapConfig.pickupEntCount; ++i)
+		for (const auto& pickupEnt : mapConfig.pickupEnts)
 		{
-			for (j=0; j<mapConfig.pickupEnts[i].count; ++j)
+			for (int j=0; j<pickupEnt.count; ++j)
 			{
-				const char* entName = STRING(mapConfig.pickupEnts[i].entName);
+				const char* entName = STRING(pickupEnt.entName);
 				pPlayer->GiveNamedItem(entName);
 			}
 		}
 		gEvilImpulse101 = false;
 
-		for (i=0; i<mapConfig.ammoCount; ++i)
+		for (const auto& ammo : mapConfig.ammo)
 		{
-			const AmmoType* ammoType = CBasePlayerWeapon::GetAmmoType(mapConfig.ammo[i].name);
-			if (ammoType && mapConfig.ammo[i].count > 0)
+			const AmmoType* ammoType = CBasePlayerWeapon::GetAmmoType(ammo.name.c_str());
+			if (ammoType && ammo.count > 0)
 			{
-				pPlayer->GiveAmmo(mapConfig.ammo[i].count, ammoType->name);
+				pPlayer->GiveAmmo(ammo.count, ammoType->name);
 			}
+		}
+
+		for (const auto& inventory : mapConfig.inventory)
+		{
+			pPlayer->GiveInventoryItem(inventory.entName, inventory.count);
 		}
 
 		if (IsCoOp() && g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT) && !mapConfig.nomedkit && !pPlayer->WeaponById(WEAPON_MEDKIT))

@@ -3,10 +3,7 @@
 #include "weapons.h"
 #include "parsetext.h"
 
-PickupEnt::PickupEnt(): entName(0), count(0) {}
-
 MapConfig::MapConfig() :
-	pickupEntCount(0), ammoCount(0), cvarCount(0),
 	playerTemplate(iStringNull),
 	starthealth(0), startarmor(0),
 	maxhealth(0),
@@ -14,8 +11,6 @@ MapConfig::MapConfig() :
 	suitLogon(SuitNoLogon), suit_light(SUIT_LIGHT_DEFAULT), longjump(false),
 	valid(false)
 {
-	memset(ammo, 0, sizeof(ammo));
-	memset(overrideCvars, 0, sizeof(overrideCvars));
 	deployWeapon[0] = '\0';
 }
 
@@ -63,14 +58,13 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		key[j-i] = '\0';
 		if (strncmp(key, "weapon_", 7) == 0 || strncmp(key, "ammo_", 5) == 0)
 		{
-			if (mapConfig.pickupEntCount < MAPCONFIG_MAX_PICKUP_ENTS)
+			if (mapConfig.pickupEnts.size() < MAPCONFIG_MAX_PICKUP_ENTS)
 			{
-				mapConfig.pickupEnts[mapConfig.pickupEntCount].entName = ALLOC_STRING(key);
+				string_t entName = ALLOC_STRING(key);
 				int count = atoi(value);
 				if (count <= 0)
 					count = 1;
-				mapConfig.pickupEnts[mapConfig.pickupEntCount].count = count;
-				mapConfig.pickupEntCount++;
+				mapConfig.pickupEnts.push_back(MapConfig::PickupEnt{entName, count});
 			}
 		}
 		else if (strncmp(key, "ammo!", 5) == 0)
@@ -82,10 +76,20 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 				if (count > 0)
 				{
 					ammoName = FixedAmmoName(ammoName);
-					strncpyEnsureTermination(mapConfig.ammo[mapConfig.ammoCount].name, ammoName);
-					mapConfig.ammo[mapConfig.ammoCount].count = count;
-					mapConfig.ammoCount++;
+					mapConfig.ammo.push_back(MapConfig::AmmoQuantity{ammoName, count});
 				}
+			}
+		}
+		else if (strncmp(key, "inventory!", 10) == 0)
+		{
+			const char* inventoryItemName = key + 10;
+			if (*inventoryItemName)
+			{
+				string_t itemName = ALLOC_STRING(inventoryItemName);
+				int count = atoi(value);
+				if (count <= 0)
+					count = 1;
+				mapConfig.inventory.push_back(MapConfig::PickupEnt{itemName, count});
 			}
 		}
 		else if (strcmp(key, "deploy") == 0)
@@ -156,11 +160,9 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		}
 		else if (strncmp(key, "sv_", 3) == 0 || strncmp(key, "mp_", 3) == 0 || strncmp(key, "npc_", 4) == 0)
 		{
-			if (mapConfig.cvarCount < 32)
+			if (mapConfig.overrideCvars.size() < MAPCONFIG_MAX_OVERRIDE_CVARS)
 			{
-				strncpyEnsureTermination(mapConfig.overrideCvars[mapConfig.cvarCount].name, key);
-				strncpyEnsureTermination(mapConfig.overrideCvars[mapConfig.cvarCount].value, value);
-				mapConfig.cvarCount++;
+				mapConfig.overrideCvars.push_back(MapConfig::OverrideCvar{key, value});
 			}
 		}
 	}

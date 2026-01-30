@@ -4,6 +4,8 @@
 
 #include "extdll.h"
 #include "optional.h"
+#include "fixed_string.h"
+#include "fixed_vector.h"
 
 enum SuitLogon
 {
@@ -16,36 +18,33 @@ enum SuitLogon
 #define MAPCONFIG_MAX_OVERRIDE_CVARS 32
 #define MAPCONFIG_MAX_PICKUP_ENTS 64
 
-struct PickupEnt
-{
-	PickupEnt();
-	string_t entName;
-	short count;
-};
-
-struct AmmoQuantity
-{
-	char name[MAPCONFIG_ENTRY_LENGTH];
-	short count;
-};
-
-struct OverrideCvar
-{
-	char name[MAPCONFIG_ENTRY_LENGTH];
-	char value[MAPCONFIG_ENTRY_LENGTH];
-};
-
 struct MapConfig
 {
+	struct PickupEnt
+	{
+		string_t entName;
+		int count;
+	};
+
+	struct AmmoQuantity
+	{
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> name;
+		int count;
+	};
+
+	struct OverrideCvar
+	{
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> name;
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> value;
+	};
+
 	MapConfig();
-	PickupEnt pickupEnts[64];
-	int pickupEntCount;
 
-	AmmoQuantity ammo[MAX_AMMO_TYPES];
-	int ammoCount;
+	fixed_vector<PickupEnt, MAPCONFIG_MAX_PICKUP_ENTS> pickupEnts;
+	fixed_vector<AmmoQuantity, MAX_AMMO_TYPES> ammo;
+	fixed_vector<PickupEnt, MAX_INVENTORY_ITEMS> inventory;
 
-	OverrideCvar overrideCvars[MAPCONFIG_MAX_OVERRIDE_CVARS];
-	int cvarCount;
+	fixed_vector<OverrideCvar, MAPCONFIG_MAX_OVERRIDE_CVARS> overrideCvars;
 
 	string_t playerTemplate;
 	int starthealth;
