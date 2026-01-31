@@ -102,6 +102,7 @@ set (SVDLL_SOURCES
 	gonome.cpp
 	graphic_debug.cpp
 	grapple.cpp
+	grenadelauncher.cpp
 	h_ai.cpp
 	h_battery.cpp
 	h_cine.cpp

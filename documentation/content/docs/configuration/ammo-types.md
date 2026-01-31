@@ -31,6 +31,7 @@ Featureful SDK provides a set of predefined ammo types. Internally the ammo type
 | `45acp`       | 200                | `ammo_45acp`     | none |
 | `57mm`        | 200                | `ammo_57mm`      | none |
 | `nails`       | 200                | `ammo_nails`     | [weapon_nailgun]({{< ref weapon_nailgun >}}) |
+| `grenades`    | 50                 | `ammo_grenadeclip` | [weapon_grenadelauncher]({{< ref weapon_grenadelauncher >}}) |
 
 Some ammo types are not used by any weapons by default. These are defined for developer's convenience if they want to configure some weapon to use a different [ammo type]({{< ref "weapon-templates/#ammo_name" >}}) via the [weapon templates]({{< ref weapon-templates >}}).
 

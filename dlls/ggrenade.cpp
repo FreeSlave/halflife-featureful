@@ -26,6 +26,7 @@
 #include "soundent.h"
 #include "decals.h"
 #include "game.h"
+#include "visuals_utils.h"
 
 //===================grenade
 
@@ -522,3 +523,156 @@ void CGrenade::UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code )
 }
 
 //======================end grenade
+
+class CGrenadeRound : public CGrenade
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+
+	void EXPORT GrenadeTouch(CBaseEntity* pEntity);
+	void EXPORT GrenadeThink();
+
+	static const NamedSoundScript bounceSoundScript;
+
+	static const NamedVisual trailVisual;
+};
+
+LINK_ENTITY_TO_CLASS( grenaderound, CGrenadeRound )
+
+const NamedSoundScript CGrenadeRound::bounceSoundScript = {
+	CHAN_VOICE,
+	{"weapons/grenade_hit1.wav", "weapons/grenade_hit2.wav", "weapons/grenade_hit3.wav"},
+	0.25f,
+	ATTN_NORM,
+	"Grenade.Bounce"
+};
+
+const NamedVisual CGrenadeRound::trailVisual = BuildVisual("Grenade.Trail")
+		.Model("sprites/smoke.spr")
+		.Life(2.0f)
+		.BeamWidth(4)
+		.RenderColor(224, 224, 255)
+		.Alpha(200);
+
+void CGrenadeRound::Spawn()
+{
+	Precache();
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->solid = SOLID_BBOX;
+
+	SetMyModel("models/pipebomb.mdl");
+	pev->skin = 1;
+
+	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
+
+	SetDefaultProjectileDamage(GetSkillValue("plr_grenade"));
+
+	m_fRegisteredSound = false;
+}
+
+void CGrenadeRound::Precache()
+{
+	PrecacheMyModel("models/pipebomb.mdl");
+	RegisterVisual(trailVisual);
+	PrecacheBaseGrenadeSounds();
+	RegisterAndPrecacheSoundScript(bounceSoundScript);
+}
+
+void CGrenadeRound::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
+{
+	SetProjectileParamsBeforeSpawnImpl(params);
+}
+
+void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	const float baseSpeed = params.speedOverride ? params.speedOverride : 600.0f;
+	pev->velocity = baseSpeed * params.direction;
+
+	pev->velocity += params.up * baseSpeed / 3.0f;
+
+	pev->avelocity = Vector(300, 300, 300);
+	pev->friction = 0.5f;
+
+	const float time = params.time ? params.time : 2.5f;
+	pev->dmgtime = gpGlobals->time + time;
+
+	SetTouch(&CGrenadeRound::GrenadeTouch);
+	SetThink(&CGrenadeRound::GrenadeThink);
+	pev->nextthink = gpGlobals->time;
+
+	const Visual* visual = GetVisual(trailVisual);
+	if (visual->modelIndex)
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+		WRITE_BYTE(TE_BEAMFOLLOW);
+		WRITE_SHORT(entindex());
+		WriteBeamFollowVisual(visual);
+		MESSAGE_END();
+	}
+}
+
+void CGrenadeRound::GrenadeTouch(CBaseEntity* pOther)
+{
+	if (pOther->pev->takedamage == DAMAGE_AIM)
+	{
+		SetThink(nullptr);
+		SetTouch(nullptr);
+		Detonate();
+		return;
+	}
+
+	if (!m_fRegisteredSound)
+	{
+		Vector vecTestVelocity = pev->velocity;
+		vecTestVelocity.z *= 0.45f;
+
+		if (vecTestVelocity.IsLengthLessThanOrEqual(60))
+		{
+			InsertAISound(bits_SOUND_DANGER, pev->origin, (int)(GetProjectileDamage() * 2.5f), 0.3f);
+			m_fRegisteredSound = true;
+		}
+	}
+
+	if (pev->flags & FL_ONGROUND)
+	{
+		// add a bit of static friction
+		pev->velocity = pev->velocity * 0.75f;
+
+		if (pev->velocity.Length() <= 20)
+		{
+			pev->avelocity = g_vecZero;
+		}
+	}
+	else
+	{
+		EmitSoundScript(bounceSoundScript);
+	}
+
+	if (pev->velocity == g_vecZero)
+		pev->avelocity = g_vecZero;
+}
+
+void CGrenadeRound::GrenadeThink()
+{
+	if (!IsInWorld())
+	{
+		UTIL_Remove( this );
+		return;
+	}
+
+	pev->nextthink = gpGlobals->time + 0.1f;
+
+	if (pev->dmgtime - 1 < gpGlobals->time)
+	{
+		InsertAISound(bits_SOUND_DANGER, pev->origin + pev->velocity * ( pev->dmgtime - gpGlobals->time ), 400, 0.1f);
+	}
+
+	if (pev->dmgtime <= gpGlobals->time)
+	{
+		SetThink(&CGrenade::Detonate);
+	}
+}

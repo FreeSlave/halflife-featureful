@@ -86,6 +86,7 @@ set (CLDLL_SOURCES
 	../dlls/minigun.cpp
 	../dlls/uzi.cpp
 	../dlls/nailgun.cpp
+	../dlls/grenadelauncher.cpp
 	ev_hldm.cpp
 	hl/hl_baseentity.cpp
 	hl/hl_events.cpp

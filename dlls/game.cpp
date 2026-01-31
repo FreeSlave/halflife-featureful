@@ -297,6 +297,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("penguin", WEAPON_PENGUIN),
 		WeaponNameAndId("uzi", WEAPON_UZI),
 		WeaponNameAndId("nailgun", WEAPON_NAILGUN),
+		WeaponNameAndId("grenadelauncher", WEAPON_GRENADE_LAUNCHER),
 		WeaponNameAndId("melee", WEAPON_MELEE),
 		WeaponNameAndId("pistol", WEAPON_PISTOL),
 		WeaponNameAndId("pistol2", WEAPON_PISTOL2),
@@ -1406,6 +1407,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("plr_nail", 8.0f);
 	g_SkillData.ProvideFallback("displacer_beam_dmg", 25.0f);
 	g_SkillData.ProvideFallback("displacer_beam_radius", 15.0f);
+	g_SkillData.ProvideFallback("plr_grenade", "plr_hand_grenade");
 
 	g_SkillData.ProvideFallback("plr_knife_stab_base", 20.0f);
 	g_SkillData.ProvideFallback("plr_knife_stab_factor", "plr_knife");

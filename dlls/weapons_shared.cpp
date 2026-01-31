@@ -1547,6 +1547,7 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 			aimAngles += m_pPlayer->pev->punchangle;
 		UTIL_MakeVectors(aimAngles);
 		aimAngles.x = -aimAngles.x;
+		const Vector vecUp = gpGlobals->v_up;
 
 		Vector vecDir = gpGlobals->v_forward;
 		Vector vecSrc = vecHead +
@@ -1617,6 +1618,7 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 		const float customDamage = RandomizeNumberFromRange(damageRange);
 		if (customDamage > 0)
 			projectileParams.damageOverride = customDamage;
+		projectileParams.up = vecUp;
 		CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);
 
 		if (pProjectile)
@@ -1953,14 +1955,13 @@ bool CConfigurableWeapon::PerformReload()
 			m_fInSpecialReload = 2;
 
 			const int animIndex = reload.animIndex.Get(altMode, empty);
-			if (animIndex < 0)
-				return false;
 
 			ResetZoom(SwitchModeReason::Reload);
 
 			PlayWeaponSoundScript(reload.sound.Get(altMode, empty));
 
-			SendWeaponAnim(animIndex);
+			if (animIndex >= 0)
+				SendWeaponAnim(animIndex);
 
 			const float attackDelay = reload.duration.Get(altMode, empty);
 			if (attackDelay)

@@ -1369,6 +1369,7 @@
 @PointClass base(Ammo) studio() = ammo_45acp : ".45 ACP Ammo" []
 @PointClass base(Ammo) studio() = ammo_57mm : "57mm Ammo" []
 @PointClass base(Ammo) studio() = ammo_nails : "Nails Ammo" []
+@PointClass base(Ammo) studio() = ammo_grenadeclip : "Grenade Launcher Ammo" []
 
 @SolidClass base(Targetname, Target, ZHLT, RenderFields, EntityTemplate) = button_target : "Target Button"
 [
@@ -1775,6 +1776,7 @@
 		"pitdronespike" : "pitdronespike"
 		"mortar_shell" : "mortar_shell (op4mortar)"
 		"nail": "nail"
+		"grenaderound": "grenaderound"
 	]
 	detonation_delay(string) : "Grenade detonation delay"
 	speed(string) : "Custom projectile speed"
@@ -3181,6 +3183,7 @@
 		"pitdronespike" : "pitdronespike"
 		"mortar_shell" : "mortar_shell (op4mortar)"
 		"nail" : "nail"
+		"grenaderound": "grenaderound"
 	]
 	projectile_ent_template(string) : "Projectile Entity Template"
 	detonation_delay(string) : "Detonation delay"
@@ -3483,6 +3486,7 @@
 	_45acp(integer) : ".45 ACP"
 	_57mm(integer) : "57 mm"
 	nails(integer) : "Nails"
+	grenades(integer) : "Grenades (grenade launcher)"
 	suit(choices): "Suit" =
 	[
 		-1: "Remove suit"
@@ -3680,6 +3684,13 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_grenadelauncher(choices) : "Grenade Launcher" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 	weapon_camera(choices) : "Camera" =
 	[
 		-1: "Remove"
@@ -3869,6 +3880,7 @@
 	ammo_45acp(string) : ".45 ACP clip chance"
 	ammo_57mm(string) : "57mm clip chance"
 	ammo_nails(string) : "nails clip chance"
+	ammo_grenadeclip(string) : "grenade clip chance"
 	weapon_handgrenade(string) : "Hand Grenades chance"
 	weapon_tripmine(string) : "Tripmine chance"
 	weapon_satchel(string) : "Satchel chance"
@@ -3896,6 +3908,7 @@
 	weapon_minigun(string) : "Minigun chance"
 	weapon_uzi(string) : "Uzi chance"
 	weapon_nailgun(string) : "Nailgun chance"
+	weapon_grenadelauncher(string) : "Grenade Launcher chance"
 	weapon_camera(string) : "Camera chance"
 	weapon_radio(string) : "Radio chance"
 	weapon_tool(string) : "Tool chance"
@@ -7991,6 +8004,8 @@
 		"Penguins" : "Penguins"
 		"45acp" : ".45 ACP"
 		"57mm" : "57mm"
+		"nails" : "Nails"
+		"grenades" : "Grenades (grenade launcher)"
 	]
 	item_name(string) : "Inventory item name"
 ]
@@ -9490,6 +9505,7 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_minigun.mdl") = weapon_minigun : "Minigun" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_uzi.mdl") = weapon_uzi : "Single UZI" []
 @PointClass base(Weapon, WeaponInitAmmo) = weapon_nailgun : "Nailgun" []
+@PointClass base(Weapon, WeaponInitAmmo) = weapon_grenadelauncher : "Grenade Launcher" []
 
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_camera.mdl") = weapon_camera : "Camera" []
 @PointClass base(Weapon, WeaponInitAmmo) studio("models/w_radio.mdl") = weapon_radio : "Radio" []

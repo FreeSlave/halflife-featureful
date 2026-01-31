@@ -429,3 +429,18 @@ class CNailsAmmoClip : public CBasePlayerAmmo
 };
 
 LINK_ENTITY_TO_CLASS( ammo_nails, CNailsAmmoClip )
+
+class CGrenadeAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_ARgrenade.mdl";
+	}
+	int DefaultAmount() override {
+		return 6;
+	}
+	const char* AmmoName() override {
+		return "grenades";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_grenadeclip, CGrenadeAmmoClip )

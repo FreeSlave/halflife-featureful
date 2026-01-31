@@ -284,6 +284,7 @@ struct ProjectileParameters
 	CBaseEntity* pLauncher = nullptr;
 	float time{0.0f};
 	float damageOverride{0.0f};
+	Vector up{0.0f, 0.0f, 1.0f};
 };
 
 #define SF_ITEM_TOUCH_ONLY 128

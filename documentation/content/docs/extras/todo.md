@@ -41,9 +41,7 @@ This is the list of features that would be nice to have in our codebase. You are
 
 * ![](/images/svencoop.png) weapon_uziakimbo
 * ![](/images/tfc.png) TFC Flamethrower
-* ![](/images/tfc.png) TFC Grenade launcher
 * ![](/images/tfc.png) TFC Engineer's blaster (railgun)
-* ![](/images/tfc.png) TFC Sniper rifle
 * DMC/Quake lightning gun
 * ![](/images/decay.png) Vortigaunt hands
 * ![](/images/cstrike.png) flash grenade - should also make monsters temporarily blind
