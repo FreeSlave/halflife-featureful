@@ -313,29 +313,7 @@ Allows to change the primary ammo the weapon is using. This only works for weapo
 }
 ```
 
-Possible ammo names:
-
-* `"buckshot"`
-* `"9mm"`
-* `"ARgrenades"`
-* `"357"`
-* `"uranium"`
-* `"rockets"`
-* `"bolts"`
-* `"Trip Mine"`
-* `"Satchel Charge"`
-* `"Hand Grenade"`
-* `"Snarks"`
-* `"Hornets"`
-* `"Medicine"`
-* `"Penguins"`
-* `"556"`
-* `"762"`
-* `"Shocks"`
-* `"spores"`
-* `"45acp"`
-* `"57mm"`
-* `"nails"`
+See [ammo types]({{< ref ammo-types >}}) for the list of possible ammo names.
 
 {{% hint warning %}}
 You still need to change the ammo sprite in the weapon hud .txt file to match the actual ammo type.
