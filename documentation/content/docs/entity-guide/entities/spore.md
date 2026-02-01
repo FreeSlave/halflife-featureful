@@ -10,7 +10,12 @@ A spore grenade used by [ammo_spore]({{< ref ammo_spore >}}), [monster_shocktroo
 
 ### Skill variables
 
-* **sk_plr_spore** - impact and explosion damage.
+* **sk_plr_spore** - explosion damage.
+* **sk_plr_spore_direct** - direct hit damage. If not defined, **sk_plr_spore** is used.
+
+{{% hint info %}}
+Spore deals two times - first when (and if) it hits something that can take damage, and the explosion damage right after that.
+{{% /hint %}}
 
 ### Soundscripts
 

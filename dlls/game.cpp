@@ -1400,6 +1400,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("plr_gauss_radius_factor", 2.5f);
 	g_SkillData.ProvideFallback("plr_gauss_overcharge", 50.0f);
 	g_SkillData.ProvideFallback("plr_hornet_dmg", 7.0f);
+	g_SkillData.ProvideFallback("plr_hand_grenade_hit", 1.0f);
 	g_SkillData.ProvideFallback("shockroach", "plr_shockroachs");
 	g_SkillData.ProvideFallback("plr_shockroachm", "plr_shockroachs");
 	g_SkillData.ProvideFallback("plr_shockroach_discharge_factor", 100.0f);
@@ -1407,6 +1408,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("plr_nail", 8.0f);
 	g_SkillData.ProvideFallback("displacer_beam_dmg", 25.0f);
 	g_SkillData.ProvideFallback("displacer_beam_radius", 15.0f);
+	g_SkillData.ProvideFallback("plr_spore_direct", "plr_spore");
 	g_SkillData.ProvideFallback("plr_grenade", "plr_hand_grenade");
 
 	g_SkillData.ProvideFallback("plr_knife_stab_base", 20.0f);

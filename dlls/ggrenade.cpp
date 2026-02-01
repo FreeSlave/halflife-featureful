@@ -247,7 +247,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		if( pevOwner && pOther->pev->takedamage )
 		{
 			TraceResult tr = UTIL_GetGlobalTrace();
-			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo{1, DMG_CLUB}, gpGlobals->v_forward, &tr );
+			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo{GetSkillValue("plr_hand_grenade_hit"), DMG_CLUB}, gpGlobals->v_forward, &tr );
 		}
 		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
 	}

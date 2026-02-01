@@ -183,7 +183,7 @@ void CSpore::IgniteThink()
 
 	SendSpray(pev->origin, Vector(RANDOM_FLOAT(-1, 1), 1, RANDOM_FLOAT(-1, 1)), GetVisual(trailVisual), 2, 20, 80);
 
-	::RadiusDamage(pev->origin, pev, VARS(pev->owner), DamageInfo(pev->dmg, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 200, CLASS_NONE);
+	::RadiusDamage(pev->origin, pev, VARS(pev->owner), DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 200, CLASS_NONE);
 
 	SetThink(&CSpore::SUB_Remove);
 
@@ -209,7 +209,7 @@ void CSpore::RocketTouch(CBaseEntity* pOther)
 {
 	if (pOther->pev->takedamage != DAMAGE_NO)
 	{
-		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(GetSkillValue("plr_spore"), DMG_GENERIC));
+		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(GetSkillValue("plr_spore_direct"), DMG_GENERIC));
 	}
 
 	IgniteThink();
@@ -223,7 +223,7 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 		{
 			if (gpGlobals->time > m_flSoundDelay)
 			{
-				InsertAISound(bits_SOUND_DANGER, (int)(pev->dmg * 2.5f), 0.3);
+				InsertAISound(bits_SOUND_DANGER, (int)(GetProjectileDamage() * 2.5f), 0.3f);
 
 				m_flSoundDelay = gpGlobals->time + 1.0;
 			}
@@ -240,7 +240,7 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 	}
 	else
 	{
-		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(GetSkillValue("plr_spore"), DMG_GENERIC));
+		pOther->TakeDamage(pev, VARS(pev->owner), DamageInfo(GetSkillValue("plr_spore_direct"), DMG_GENERIC));
 
 		IgniteThink();
 	}
