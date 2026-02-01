@@ -2096,7 +2096,7 @@ void CConfigurableWeapon::WeaponIdle()
 		return;
 	}
 
-	if (m_flTimeWeaponIdle >= UTIL_WeaponTimeBase() && params.manualReload)
+	if (m_flTimeWeaponIdle >= UTIL_WeaponTimeBase() && params.manualReload && m_fInSpecialReload)
 		return;
 
 	if (m_shouldRestartReloading && UsesClip() && m_iClip < iMaxClip() && m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()])
