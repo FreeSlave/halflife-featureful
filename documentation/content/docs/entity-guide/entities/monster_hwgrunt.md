@@ -5,7 +5,13 @@ bookToC: false
 
 # ![](/images/svencoop.png) monster_hwgrunt
 
-Heavy Weapon grunt drops [weapon_minigun]({{< ref weapon_minigun >}}) on death (if the weapon is enabled).
+Heavy Weapons Grunt from Sven Co-op. He drops [weapon_minigun]({{< ref weapon_minigun >}}) on death (if the weapon is enabled).
+
+{{% hint info %}}
+This monster was implemented with the **hwgrunt.mdl** form Sven Co-op 3 in mind (the model is distributed with the sample mod).
+
+The model from Sven Co-op 5 has some changes to the model activities and the hwgrunt code in Featureful SDK has been adjusted to be compatible with this model as well. Still, Featureful SDK doesn't implement the Sven Co-op 5 behavioral trait when heavy weapons grunt involuntary drops minigun on taking high damage and draws the pistol.
+{{% /hint %}}
 
 ### Skill variables
 
