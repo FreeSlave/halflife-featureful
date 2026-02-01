@@ -19,7 +19,7 @@ Despite the `ally` part in the entity name, the monster can be made enemy to the
 * **sk_medic_ally_kick** - kick damage. If not defined, **sk_hgrunt_kick** is used.
 * **sk_medic_ally_gspeed** - the grenade speed when it's thrown. If not defined, **sk_hgrunt_ally_gspeed** is used.
 * **sk_9mm_bullet** - handgun damage.
-* **sk_357_bullet** - Desert Eagle bullet damage.
+* **sk_357_bullet** - Desert Eagle bullet damage. Default value is 34.
 * **sk_medic_ally_heal** - the amount of health charge.
 
 ### Default classification

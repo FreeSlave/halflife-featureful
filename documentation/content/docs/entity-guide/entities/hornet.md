@@ -9,7 +9,7 @@ entityCategory: projectile
 ### Skill variables
 
 * **sk_hornet_dmg** - hornet damage.
-* **sk_plr_hornet_dmg** - hornet damage dealt by player's hornetgun.
+* **sk_plr_hornet_dmg** - hornet damage dealt by player's hornetgun. Default value is 7.
 
 ### Soundscripts
 

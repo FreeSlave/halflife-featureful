@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_flyer_flock)
 
+### Changes
+
+* Boids (flocking flyers) no longer block the player movement.
+
 ### Soundscripts
 
 * **FlockingFlyer.Idle** - idle sounds.

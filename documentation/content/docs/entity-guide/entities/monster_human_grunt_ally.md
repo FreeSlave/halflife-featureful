@@ -23,7 +23,7 @@ Despite the `ally` part in the entity name, the monster can be made enemy to the
 * **sk_hgrunt_ally_gspeed** - the grenade speed when it's thrown. If not defined, **sk_hgrunt_gspeed** is used.
 * **sk_9mmAR_bullet** - 9mmAR damage.
 * **sk_buckshot** - shotgun pellet damage. If not defined, **sk_plr_buckshot** is used.
-* **sk_556_bullet** - M249 damage. If not defined, **sk_plr_556_bullet** is used.
+* **sk_556_bullet** - M249 damage. Default value is 15.
 * **sk_hgrunt_ally_gren_launch_delay** - delay before the next check for grenade launch after firing a grenade. Default value is 6.
 * **sk_hgrunt_ally_gren_throw_delay** - delay before the next check for grenade toss after throwing a grenade. Default value is 6.
 

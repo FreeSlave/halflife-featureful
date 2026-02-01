@@ -8,7 +8,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_otis_health** - monster's health. If not defined, **sk_barney_health** is used.
-* **sk_357_bullet** - Desert Eagle bullet damage.
+* **sk_357_bullet** - Desert Eagle bullet damage. Default value is 34.
 
 ### Default classification
 

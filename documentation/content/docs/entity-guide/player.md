@@ -7,6 +7,10 @@ bookToC: false
 
 Player is represented by `player` entity in-game.
 
+### Changes
+
+* Player can `+use` and toggle flashlight during the weapon reload (in original Half-Life player couldn't do so).
+
 ### Special entity names
 
 Certain player related events automatically trigger entities with special targetnames, providing the player as activator (in most cases).

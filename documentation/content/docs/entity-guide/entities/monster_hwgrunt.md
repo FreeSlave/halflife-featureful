@@ -10,7 +10,7 @@ Heavy Weapon grunt drops [weapon_minigun]({{< ref weapon_minigun >}}) on death (
 ### Skill variables
 
 * **sk_hwgrunt_health** - monster's health.
-* **sk_556_bullet** - M249 damage. If not defined, **sk_plr_556_bullet** is used.
+* **sk_556_bullet** - M249 damage. Default value is 15.
 
 ### Default classification
 

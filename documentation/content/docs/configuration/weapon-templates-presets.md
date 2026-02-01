@@ -1101,7 +1101,7 @@ Full written configurations for some standard Opposing Force weapons are stored 
 {{% details_header title="M40A1" %}}
 ```json
 {
-    "weapon_sniperrifle2": "hl/sniperrifle"
+    "weapon_sniperrifle2": "op4/sniperrifle"
 }
 ```
 {{% /details_header %}}

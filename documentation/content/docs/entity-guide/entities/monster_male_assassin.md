@@ -14,6 +14,7 @@ bookToC: false
 * **sk_massassin_health** - monster's health. If not defined, **sk_hgrunt_health** is used.
 * **sk_massassin_kick** - kick damage. If not defined, **sk_hgrunt_kick** is used.
 * **sk_massassin_gspeed** - the grenade speed when it's thrown. If not defined, **sk_hgrunt_gspeed** is used.
+* **sk_762_bullet** - sniper rifle bullet damage. Default value is 35 on easy and medium, 40 on hard.
 
 ### Default classification
 
