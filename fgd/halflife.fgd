@@ -455,6 +455,7 @@
 	minhullsize(string) : "Custom Min Hull Size (X Y Z)"
 	maxhullsize(string) : "Custom Max Hull Size (X Y Z)"
 	gibmodel(studio) : "Custom gib model"
+	trigger_on_death(target_destination) : "Trigger on death (locus = killer)"
 ]
 
 @BaseClass = MonsterGibPolicy

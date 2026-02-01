@@ -20,23 +20,30 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * Monsters now properly detour brush entities that block the path between linked nodes (e.g. `func_breakable`, or a closed door which can't be opened by a monster), instead of getting stuck. If the detour doesn't exist they fallback to the classic behavior (waiting for door to open or for `func_breakable` to get broken).
 * Corpses no longer block path finding when the corpse lies at the top of the stairs and the NPC is going up the stairs (original Half-Life bug).
 
-## New common features
+## New parameters
 
 * ![](/images/spirit.png) ![](/images/svencoop.png) Health, relationship class, blood color, monster model and its gibs model can be customized in map editor.
 * ![](/images/svencoop.png) Customizable hull size.
-* ![](/images/svencoop.png) New parameter `Is Player Ally` inverts monster relationship with player.
-* ![](/images/svencoop.png) New parameter `In-game name` to set a custom display name.
-* ![](/images/svencoop.png) New parameter `Monster Roaming` to make monsters free roam on nodes.
-* ![](/images/spirit.png) New spawnflag `Don't Drop Gun` to disable weapon and item dropping upon death (applicable to monsters who drop a gun).
-* New spawnflag `Non-solid corpse` that makes monster's model non-solid upon dying (useful if you want to prevent blocking doors or pushables by dead bodies).
-* New spawnflag `Ignore move away requests` to make monster ignore others monsters' requests to move away and player's attempts to push the monster.
-* New parameter `Trigger Alternative Condition`. Additional condition to fire a Trigger Target.
+* ![](/images/svencoop.png) `Is Player Ally` inverts monster relationship with player.
+* ![](/images/svencoop.png) `In-game name` to set a custom display name.
+* ![](/images/svencoop.png) `Monster Roaming` to make monsters free roam on nodes.
+* `Trigger Alternative Condition`. Additional condition to fire a Trigger Target.
+* `Custom Sound Mask` - allows to configure what [sounds/scents]({{< ref ai-sound >}}) monster regards.
+* `Custom Field Of View` - allows to configure the monster's field of view.
+* `Trigger on death (locus = killer)`. When monster dies it will pass its killer as an activator. So, unlike the death `Trigger Condition` and `Trigger Target` combination, this allows to do something with the attacker via the `[LE]` parameters of other entities (e.g. grant some health via the [trigger_hurt_remote]({{< ref trigger_hurt_remote >}}) by setting the target to `!activator`). Note that if the monster is in uninterruptible scripted sequence this trigger will fire the moment monster's health goes to 0 or below, i.e. before the monster exits the sequence and realizes it died. We, however, don't recommend to rely on such behavior as it might change in future.
+
+## New spawnflags
+
+* ![](/images/spirit.png) `Don't Drop Gun` - disables weapon and item dropping upon death (applicable to monsters who drop a gun).
+* `Non-solid corpse` - makes monster's model non-solid upon dying (useful if you want to prevent blocking doors or pushables by dead bodies).
+* `Ignore move away requests` - monster will ignore others monsters' requests to move away and player's attempts to push the monster.
+* `Act ouf of PVS` monsters will look for enemies and listen to the world independently of the player's presence. By default they do so only when in player's PVS.
+
+## Other features
+
 * Repel spawners (human grunts and male assassins when they come down with a rope) have options to configure the spawned monster similar to monstermaker.
-* New parameter `Custom Sound Mask` to configure what sounds monster regards.
-* Monsters can correctly patrol on path_corners now (the feature was unfinished in Half-Life) and use wait times specified in path_corners.
+* Monsters can correctly patrol on path_corners now (the feature was unfinished in Half-Life) and use wait times specified in path_corners. Set the speed in `path_corner` to 200 or higher to make monster run instead of walking.
 * `impulse 103` (Report AI state) is much more informative now.
-* New parameter `Custom Field Of View` to configure the monster's field of view.
-* New spawnflag `Act ouf of PVS` to make monsters look for enemies and listen to the world independently of the player's presence.
 
 ## Squad monsters features
 

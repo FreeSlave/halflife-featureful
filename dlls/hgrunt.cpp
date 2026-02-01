@@ -2455,6 +2455,8 @@ void CHGruntRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	pGrunt->m_activeAfterCombat = m_activeAfterCombat;
 	pGrunt->m_sizeForGrapple = m_sizeForGrapple;
 	pGrunt->m_gibPolicy = m_gibPolicy;
+	pGrunt->m_triggerOnDeath = m_triggerOnDeath;
+
 	CFollowingMonster* pFollowingMonster = pGrunt->MyFollowingMonsterPointer();
 	if (pFollowingMonster)
 	{

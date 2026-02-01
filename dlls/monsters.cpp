@@ -167,6 +167,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_equalDislikeTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_lootRandomSeed, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_triggerOnDeath, FIELD_STRING ),
 
 	DEFINE_FIELD( CBaseMonster, m_clearOwnerTime, FIELD_TIME ),
 };
@@ -3886,6 +3887,11 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 		m_gibPolicy = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq( pkvd->szKeyName, "trigger_on_death" ) )
+	{
+		m_triggerOnDeath = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 	{
 		CBaseToggle::KeyValue( pkvd );
@@ -4092,6 +4098,15 @@ bool CBaseMonster::FCheckAITrigger()
 	if (!ret)
 		return FCheckAITrigger( m_iTriggerAltCondition );
 	return ret;
+}
+
+void CBaseMonster::TriggerOnDeath(CBaseEntity *pKiller)
+{
+	if (!FStringNull(m_triggerOnDeath))
+	{
+		FireTargets(STRING(m_triggerOnDeath), pKiller, this);
+		m_triggerOnDeath = iStringNull;
+	}
 }
 
 //=========================================================	

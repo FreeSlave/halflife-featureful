@@ -776,6 +776,7 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 		createdMonster->m_activeAfterCombat = m_activeAfterCombat;
 		createdMonster->m_sizeForGrapple = m_sizeForGrapple;
 		createdMonster->m_gibPolicy = m_gibPolicy;
+		createdMonster->m_triggerOnDeath = m_triggerOnDeath;
 
 		createdMonster->SetHead(m_iHead);
 

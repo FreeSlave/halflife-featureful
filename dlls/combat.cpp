@@ -826,6 +826,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 
 	const bool shouldGib = ShouldGibMonster( iGib );
 	OnDying(shouldGib);
+	TriggerOnDeath(CBaseEntity::OwnInstance(pevAttacker));
 
 	if (shouldGib)
 	{
@@ -1306,6 +1307,12 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 			takeDamageResult.SetGotLightDamage();
 		}
+
+		if (pev->health <= 0.0f && m_pCine && m_pCine->m_interruptionPolicy != SCRIPT_INTERRUPTION_POLICY_ONLY_DEATH && !m_pCine->CanInterrupt())
+		{
+			TriggerOnDeath(CBaseEntity::OwnInstance(pevAttacker));
+		}
+
 		return takeDamageResult;
 	}
 

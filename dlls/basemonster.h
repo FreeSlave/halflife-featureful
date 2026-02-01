@@ -363,6 +363,7 @@ public:
 
 	bool FCheckAITrigger();// checks and, if necessary, fires the monster's trigger target.
 	bool FCheckAITrigger( short condition );// checks and, if necessary, fires the monster's trigger target.
+	void TriggerOnDeath(CBaseEntity* pKiller);
 
 	bool BBoxFlat();
 
@@ -525,6 +526,7 @@ public:
 	float m_flNextPainTime;
 	float m_equalDislikeTime;
 	int m_lootRandomSeed;
+	string_t m_triggerOnDeath;
 
 	float m_clearOwnerTime;
 
