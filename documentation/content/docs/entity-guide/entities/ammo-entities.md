@@ -28,14 +28,17 @@ Ammo entities share the `ammo_` prefix in their name and same parameters.
 | `ammo_57mm`       | `57mm`        | 30 |
 | `ammo_nails`      | `nails`       | 30 |
 | `ammo_grenadeclip` | `grenades`   | 6  |
+| `ammo_fuel`       | `fuel`        | 100 |
+| `ammo_cells`      | `cells`       | 100 |
+| `ammo_charges`    | `charges`     | 10 |
+| `ammo_rounds`     | `rounds`      | 200 |
+| `ammo_slugs`      | `slugs`       | 100 |
 
 {{% hint info %}}
 There's also the [ammo_spore]({{< ref ammo_spore >}}) but despite sharing the classname prefix, it technically is not a pickup item.
 {{% /hint %}}
 
-{{% hint info %}}
-`ammo_45acp` and `ammo_57mm` provide `45acp` and `57mm` ammo types which are not used by any weapon by default. The weapon can be made to use one of these ammo types via [ammo_name]({{< ref "weapon-templates#ammo_name" >}}) property in the weapon template.
-{{% /hint %}}
+See also: [ammo types]({{< ref ammo-types >}})
 
 ### Configuration
 

@@ -1370,6 +1370,11 @@
 @PointClass base(Ammo) studio() = ammo_57mm : "57mm Ammo" []
 @PointClass base(Ammo) studio() = ammo_nails : "Nails Ammo" []
 @PointClass base(Ammo) studio() = ammo_grenadeclip : "Grenade Launcher Ammo" []
+@PointClass base(Ammo) studio() = ammo_fuel : "Fuel Ammo" []
+@PointClass base(Ammo) studio() = ammo_cells : "Cells Ammo" []
+@PointClass base(Ammo) studio() = ammo_charges : "Charges Ammo" []
+@PointClass base(Ammo) studio() = ammo_rounds : "Rounds Ammo" []
+@PointClass base(Ammo) studio() = ammo_slugs : "Slugs Ammo" []
 
 @SolidClass base(Targetname, Target, ZHLT, RenderFields, EntityTemplate) = button_target : "Target Button"
 [
@@ -3487,6 +3492,11 @@
 	_57mm(integer) : "57 mm"
 	nails(integer) : "Nails"
 	grenades(integer) : "Grenades (grenade launcher)"
+	fuel(integer) : "Fuel ammo"
+	cells(integer) : "Cells ammo"
+	charges(integer) : "Charges ammo"
+	rounds(integer) : "Rounds ammo"
+	slugs(integer) : "Slugs ammo"
 	suit(choices): "Suit" =
 	[
 		-1: "Remove suit"
@@ -3881,6 +3891,11 @@
 	ammo_57mm(string) : "57mm clip chance"
 	ammo_nails(string) : "nails clip chance"
 	ammo_grenadeclip(string) : "grenade clip chance"
+	ammo_fuel(string) : "fuel ammo chance"
+	ammo_cells(string) : "cells ammo chance"
+	ammo_charges(string) : "charges ammo chance"
+	ammo_rounds(string) : "rounds ammo chance"
+	ammo_slugs(string) : "slugs ammo chance"
 	weapon_handgrenade(string) : "Hand Grenades chance"
 	weapon_tripmine(string) : "Tripmine chance"
 	weapon_satchel(string) : "Satchel chance"
@@ -8006,6 +8021,11 @@
 		"57mm" : "57mm"
 		"nails" : "Nails"
 		"grenades" : "Grenades (grenade launcher)"
+		"fuel" : "Fuel"
+		"cells" : "Cells"
+		"charges" : "Charges"
+		"rounds" : "Rounds"
+		"slugs" : "Slugs"
 	]
 	item_name(string) : "Inventory item name"
 ]

@@ -444,3 +444,78 @@ class CGrenadeAmmoClip : public CBasePlayerAmmo
 };
 
 LINK_ENTITY_TO_CLASS( ammo_grenadeclip, CGrenadeAmmoClip )
+
+class CFuelAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 20;
+	}
+	const char* AmmoName() override {
+		return "fuel";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_fuel, CFuelAmmo )
+
+class CCellsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 20;
+	}
+	const char* AmmoName() override {
+		return "cells";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_cells, CCellsAmmo )
+
+class CChargesAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 5;
+	}
+	const char* AmmoName() override {
+		return "charges";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_charges, CChargesAmmo )
+
+class CRoundsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "rounds";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_rounds, CRoundsAmmo )
+
+class CSlugsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_shotbox.mdl";
+	}
+	int DefaultAmount() override {
+		return 10;
+	}
+	const char* AmmoName() override {
+		return "slugs";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_slugs, CSlugsAmmo )

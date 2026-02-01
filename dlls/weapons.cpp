@@ -328,6 +328,11 @@ void RegisterAmmoTypes()
 	g_AmmoRegistry.Register("57mm", 200);
 	g_AmmoRegistry.Register("nails", 200);
 	g_AmmoRegistry.Register("grenades", 50);
+	g_AmmoRegistry.Register("fuel", 100);
+	g_AmmoRegistry.Register("cells", 100);
+	g_AmmoRegistry.Register("charges", 10);
+	g_AmmoRegistry.Register("rounds", 200);
+	g_AmmoRegistry.Register("slugs", 100);
 
 	for (unsigned int i = 0; i<g_modFeatures.maxAmmoCount; ++i)
 	{
@@ -385,6 +390,11 @@ void W_Precache( CBaseEntity* pWorld )
 		AmmoEnabled("57mm", "ammo_57mm"),
 		AmmoEnabled("nails", "ammo_nails"),
 		AmmoEnabled("grenades", "ammo_grenadeclip"),
+		AmmoEnabled("fuel", "ammo_fuel"),
+		AmmoEnabled("cells", "ammo_cells"),
+		AmmoEnabled("charges", "ammo_charges"),
+		AmmoEnabled("rounds", "ammo_rounds"),
+		AmmoEnabled("slugs", "ammo_slugs"),
 	};
 
 	ALERT(at_console, "Precaching weapons\n");
