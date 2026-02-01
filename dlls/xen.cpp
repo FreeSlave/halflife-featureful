@@ -303,8 +303,8 @@ public:
 	void Think() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
-	void Attack();	
-	int Classify() override { return CLASS_BARNACLE; }
+	void Attack();
+	int DefaultClassify() override { return CLASS_BARNACLE; }
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
