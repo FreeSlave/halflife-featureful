@@ -20,6 +20,7 @@ The incomplete list of shared events:
 * `1014` - play a soundscript provided in the *options* data of the event. Featureful SDK specific.
 * `2001` - play the `NPC.BodyDrop_Light` soundscript.
 * `2002` - play the `NPC.BodyDrop_Heavy` soundscript.
+* ![](/images/svencoop.png) `2003` - play footstep sound matching the material type set for the map textures.
 * `2010` - play the `NPC.SwishSound` soundscript.
 
 See also [event list on the303](https://www.the303.org/tutorials/gold_qc.htm#A1)

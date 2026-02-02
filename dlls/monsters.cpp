@@ -41,6 +41,7 @@
 #include "classify.h"
 #include "studio.h"
 #include "clamp.h"
+#include "tex_materials.h"
 #include "ai_debug.h"
 #include "graphic_debug.h"
 
@@ -3362,6 +3363,51 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			EmitSoundScript(NPC::bodyDropLightSoundScript);
 		}
+		break;
+	case MONSTER_EVENT_MATERIAL_FOOTSTEP:
+	{
+		if (FBitSet(pev->flags, FL_ONGROUND))
+		{
+			const Vector vecStart = pev->origin;
+			const Vector vecEnd = pev->origin - Vector(0, 0, 2);
+
+
+			TraceResult tr;
+			UTIL_TraceLine(vecStart, vecEnd, ignore_monsters, edict(), &tr);
+
+			CBaseEntity* pHit = Instance(tr.pHit);
+
+			float rgfl1[3];
+			float rgfl2[3];
+			const char* pTexture;
+
+			vecStart.CopyToArray(rgfl1);
+			vecEnd.CopyToArray(rgfl2);
+
+			if (pHit)
+				pTexture = TRACE_TEXTURE(ENT(pHit->pev), rgfl1, rgfl2);
+			else
+				pTexture = TRACE_TEXTURE(ENT(0), rgfl1, rgfl2);
+
+			if (pTexture && *pTexture)
+			{
+				char szbuffer[64];
+				GetStrippedTextureName(szbuffer, pTexture);
+
+				char chTextureType = TEXTURETYPE_Find(szbuffer);
+
+				const MaterialStepData* stepData = g_MaterialRegistry.GetMaterialStepData(chTextureType);
+				if (stepData)
+				{
+					const MaterialStepData::StepSoundArray& arr = RANDOM_LONG(0, 1) ? stepData->left : stepData->right;
+					if (!arr.empty())
+					{
+						EMIT_SOUND(edict(), CHAN_BODY, arr[RANDOM_LONG(0, arr.size()-1)].c_str(), stepData->running.volume, ATTN_IDLE);
+					}
+				}
+			}
+		}
+	}
 		break;
 	case MONSTER_EVENT_SWISHSOUND:
 		{
