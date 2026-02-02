@@ -134,6 +134,7 @@ public:
 	float m_angle;
 	string_t m_iszGibModel;
 	string_t m_iszSpawnObject;
+	string_t m_iszSpawnObjectTemplate;
 
 	short m_targetActivator;
 	int m_iGibs;

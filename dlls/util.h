@@ -573,6 +573,11 @@ void UTIL_CleanSpawnPoint( Vector origin, float dist );
 void UTIL_DynamicLight( const Vector& vecSrc, float flRadius, byte r, byte g, byte b, float flTime, float flDecay );
 void UTIL_MuzzleLight( const Vector& vecSrc );
 
+inline bool IsProbablyPickupClassname(const char* name)
+{
+	return name && (strncmp(name, "ammo_", 5) == 0 || strncmp(name, "item_", 5) == 0 || strncmp(name, "weapon_", 7) == 0);
+}
+
 inline bool LineOfSightSeparatedByWaterSurface(int lookerWaterlevel, int targetWaterlevel)
 {
 	return (lookerWaterlevel != WL_Eyes && targetWaterlevel == WL_Eyes) || (lookerWaterlevel == WL_Eyes && targetWaterlevel == WL_NotInWater);

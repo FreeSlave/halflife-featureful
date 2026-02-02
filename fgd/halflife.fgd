@@ -680,7 +680,7 @@
 	delay(string) : "Delay before fire" : "0"
 	gibmodel(studio) : "Gib Model" : ""
 	m_iGibs(integer) : "Custom number of gibs"
-	spawnobject(choices) : "Spawn On Break" : 0 =
+	spawnobject(choices) : "Spawn On Break (predefined)" : 0 =
 	[
 		0: "Nothing"
 		1: "Battery"
@@ -722,6 +722,8 @@
 		37: "Medkit (portable)"
 		38: "HEV Suit"
 	]
+	spawnobject_name(string) : "Spawn On Break (classname)"
+	spawnobject_template(string) : "Entity template for Spawn On Break"
 	explodemagnitude(integer) : "Explode Magnitude (0=none)" : 0
 	randomitem_template(string) : "info_item_random entity"
 	target_activator(choices) : "Target's Activator" =

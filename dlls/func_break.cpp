@@ -141,6 +141,16 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 			m_iszSpawnObject = MAKE_STRING( pSpawnObjects[object] );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "spawnobject_name" ) )
+	{
+		m_iszSpawnObject = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "spawnobject_template" ) )
+	{
+		m_iszSpawnObjectTemplate = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else if ( FStrEq( pkvd->szKeyName, "randomitem_template" ) )
 	{
 		pev->message = ALLOC_STRING(pkvd->szValue);
@@ -198,6 +208,7 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_angle, FIELD_FLOAT ),
 	DEFINE_FIELD( CBreakable, m_iszGibModel, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_iszSpawnObject, FIELD_STRING ),
+	DEFINE_FIELD( CBreakable, m_iszSpawnObjectTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_targetActivator, FIELD_SHORT ),
 	DEFINE_FIELD( CBreakable, m_iGibs, FIELD_INTEGER ),
 	DEFINE_FIELD( CBreakable, m_iszWhenHit, FIELD_STRING ),
@@ -482,8 +493,12 @@ void CBreakable::Precache()
 	m_idShard = PRECACHE_MODEL( pGibName );
 
 	// Precache the spawn item's data
-	if( m_iszSpawnObject )
-		UTIL_PrecacheOther( STRING( m_iszSpawnObject ) );
+	if (!FStringNull(m_iszSpawnObject))
+	{
+		EntityOverrides entityOverrides;
+		entityOverrides.entTemplate = m_iszSpawnObjectTemplate;
+		UTIL_PrecacheOther(STRING(m_iszSpawnObject), entityOverrides);
+	}
 }
 
 // play shard sound when func_breakable takes damage.
@@ -899,10 +914,12 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 				shouldApplyPhysicsFix = contents == 0;
 			}
 		}
-		CBaseEntity* pEntity = CBaseEntity::CreateNoSpawn( spawnObject, bmodelOrigin, pev->angles, edict() );
+		EntityOverrides entityOverrides;
+		entityOverrides.entTemplate = m_iszSpawnObjectTemplate;
+		CBaseEntity* pEntity = CBaseEntity::CreateNoSpawn( spawnObject, bmodelOrigin, pev->angles, edict(), entityOverrides );
 		if (pEntity)
 		{
-			if (shouldApplyPhysicsFix)
+			if (shouldApplyPhysicsFix && IsProbablyPickupClassname(spawnObject))
 				pEntity->pev->spawnflags |= SF_ITEM_FIX_PHYSICS;
 			DispatchSpawnAutoClean(pEntity);
 		}

@@ -196,7 +196,7 @@ IMPLEMENT_SAVERESTORE( CItemRandom, CBaseEntity )
 
 bool CItemRandom::IsAppropriateItemName(const char *name)
 {
-	return IsNullItem(name) || (strncmp(name, "ammo_", 5) == 0) || (strncmp(name, "item_", 5) == 0) || (strncmp(name, "weapon_", 7) == 0);
+	return IsNullItem(name) || IsProbablyPickupClassname(name);
 }
 
 bool CItemRandom::IsNullItem(const char *name)

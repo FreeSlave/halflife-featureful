@@ -881,7 +881,7 @@ void CBaseMonster::OnDying(bool gibbed)
 
 				pItem->pev->avelocity = Vector( 0, RANDOM_FLOAT( 0, 100 ), 0 );
 				pItem->pev->velocity = Vector( RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( velocity*2, velocity*3 ) );
-				if (strncmp(classname, "ammo_", 5) == 0 || strncmp(classname, "item_", 5) == 0 || strncmp(classname, "weapon_", 7) == 0)
+				if (IsProbablyPickupClassname(classname))
 					pItem->pev->spawnflags |= SF_NORESPAWN;
 			}
 		};
