@@ -39,9 +39,6 @@
 #include "ent_templates.h"
 #include "ai_debug.h"
 
-#include <algorithm>
-#include <random>
-
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
 #define GERMAN_GIB_COUNT		4
@@ -855,83 +852,7 @@ void CBaseMonster::OnDying(bool gibbed)
 		MarkAsNonBlockerForPlayer();
 	Remember( bits_MEMORY_KILLED );
 
-	const EntTemplate* entTemplate = GetMyEntTemplate();
-	if (entTemplate)
-	{
-		const DropItemSet& lootDrop = entTemplate->GetLootDrop();
-
-		auto dropItem = [this, gibbed](const char* classname, const char* entTemplate, const char* pickupName) {
-			if (!classname || !*classname)
-				return;
-
-			EntityOverrides entityOverrides;
-			if (entTemplate && *entTemplate)
-			{
-				entityOverrides.entTemplate = MAKE_STRING(entTemplate);
-			}
-			if (pickupName && *pickupName && strcmp(classname, "item_pickup") == 0)
-			{
-				entityOverrides.netname = MAKE_STRING(pickupName);
-			}
-
-			CBaseEntity* pItem = Create(classname, Center(), pev->angles, edict(), entityOverrides);
-			if (pItem)
-			{
-				const float velocity = gibbed ? 100.0f : 75.0f;
-
-				pItem->pev->avelocity = Vector( 0, RANDOM_FLOAT( 0, 100 ), 0 );
-				pItem->pev->velocity = Vector( RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( velocity*2, velocity*3 ) );
-				if (IsProbablyPickupClassname(classname))
-					pItem->pev->spawnflags |= SF_NORESPAWN;
-			}
-		};
-
-		auto shouldDrop = [this](const DropItemInfoHandle& handle) {
-			if (handle.chance >= 1.0f)
-				return true;
-			if (handle.chance > 0.0f && SharedRandomFloat(0.0f, 1.0f) <= handle.chance)
-				return true;
-			return false;
-		};
-
-		if (lootDrop.maxWeight > 0 && lootDrop.items.size() > 1)
-		{
-			std::vector<DropItemInfoHandle> handles;
-			handles.reserve(lootDrop.items.size());
-
-			for (const auto& itemInfo : lootDrop.items)
-			{
-				handles.push_back(DropItemInfoHandle(itemInfo));
-			}
-
-			std::minstd_rand rg(static_cast<unsigned int>(m_lootRandomSeed));
-			std::shuffle(handles.begin(), handles.end(), rg);
-			m_lootRandomSeed = static_cast<int>(rg());
-
-			float totalWeight = 0.0f;
-			for (const auto& handle : handles)
-			{
-				if ((totalWeight == 0.0f || totalWeight + handle.weight <= lootDrop.maxWeight) && shouldDrop(handle))
-				{
-					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
-					totalWeight += handle.weight;
-					if (totalWeight >= lootDrop.maxWeight)
-						break;
-				}
-			}
-		}
-		else
-		{
-			for (const auto& itemInfo : lootDrop.items)
-			{
-				const DropItemInfoHandle handle{itemInfo};
-				if (shouldDrop(handle))
-				{
-					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
-				}
-			}
-		}
-	}
+	DropLoot(gibbed);
 
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
 	CBaseEntity *pOwner = CBaseEntity::Instance( pev->owner );

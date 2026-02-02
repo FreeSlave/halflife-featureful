@@ -254,6 +254,8 @@ void CBreakable::Spawn()
 	// Flag unbreakable glass as "worldbrush" so it will block ALL tracelines
 	if( !IsBreakable() && pev->rendermode != kRenderNormal )
 		pev->flags |= FL_WORLDBRUSH;
+
+	InitLootRandomSeed();
 }
 
 void CBreakable::Activate()
@@ -924,6 +926,8 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 			DispatchSpawnAutoClean(pEntity);
 		}
 	}
+
+	DropLoot(false);
 
 	if( Explodable() )
 	{

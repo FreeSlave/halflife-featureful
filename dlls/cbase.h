@@ -709,6 +709,12 @@ public:
 	void InsertAISound(int iType, int iVolume, float flDuration);
 
 	void MarkAsNonBlockerForPlayer();
+
+	void InitLootRandomSeed();
+	float SharedLootRandomFloat(float low, float high);
+	void DropLoot(bool gibbed);
+
+	int m_lootRandomSeed;
 };
 
 // Ugly technique to override base member functions

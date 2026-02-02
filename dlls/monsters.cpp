@@ -167,7 +167,6 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_bForceConditionsGather, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_equalDislikeTime, FIELD_TIME ),
-	DEFINE_FIELD( CBaseMonster, m_lootRandomSeed, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_triggerOnDeath, FIELD_STRING ),
 
 	DEFINE_FIELD( CBaseMonster, m_clearOwnerTime, FIELD_TIME ),
@@ -2607,14 +2606,7 @@ void CBaseMonster::MonsterInit()
 	pev->nextthink = gpGlobals->time + 0.1f;
 	SetUse( &CBaseMonster::MonsterUse );
 
-	InitRandomSeeds();
-}
-
-void CBaseMonster::InitRandomSeeds()
-{
-	m_lootRandomSeed = RANDOM_LONG((1<<20), (1<<30));
-	if (m_lootRandomSeed % 2 == 0)
-		m_lootRandomSeed++;
+	InitLootRandomSeed();
 }
 
 //=========================================================
@@ -4863,20 +4855,6 @@ bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 		}
 	}
 	return false;
-}
-
-int CBaseMonster::SharedRandomLong(int low, int high)
-{
-	int result = UTIL_SharedRandomLong(static_cast<unsigned int>(m_lootRandomSeed), low, high);
-	m_lootRandomSeed = UTIL_LastRandomSeed();
-	return result;
-}
-
-float CBaseMonster::SharedRandomFloat(float low, float high)
-{
-	float result = UTIL_SharedRandomFloat(static_cast<unsigned int>(m_lootRandomSeed), low, high);
-	m_lootRandomSeed = UTIL_LastRandomSeed();
-	return result;
 }
 
 void CBaseMonster::GlowShellOn(const Visual* visual)

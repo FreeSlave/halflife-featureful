@@ -360,7 +360,7 @@ void CBaseTurret::SpawnHelper()
 	SetOrientation();
 	// m_flSightRange = TURRET_RANGE;
 
-	InitRandomSeeds();
+	InitLootRandomSeed();
 }
 
 void CBaseTurret::SetOrientation()

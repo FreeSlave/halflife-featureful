@@ -13,10 +13,15 @@ entityCategory: solid
 * ![](/images/svencoop.png) Most of spawnobject values are compatible with those in Sven Co-op.
 * `Spawn On Break (classname)` - specify the classname of the spawn object manually instead choosing from the predefined list. Technically this can be any entity. This allows easily spawn monsters from the breakables.
 * `Entity template for Spawn On Break` - set [entity template]({{< ref entity-templates >}}) for the spawn object.
+* `info_item_random entity` - name of the [info_item_random]({{< ref info_item_random >}}) entity for the item drop randomization. If this is defined the `func_breakable` will prefer using this instead of `Spawn On Break`.
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
 * ![](/images/svencoop.png) `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
 * `Switch to alternate texture` - switch the textures (from `+0` to `+A` variant or vice-versa) on the brush model when half or less health has left. This allows to simulate the half-broken materials (e.g. cracked glass).
 * `Spark When Hit` - allow spark effect when the breakable is hit, even if material is not a `Computer`.
+
+{{% hint info %}}
+The [loot drop]({{< ref "entity-templates/#loot_drop" >}}) can be configured for the breakable's entity template. This will make `func_breakable` drop additional items.
+{{% /hint %}}
 
 ### New spawnflags
 

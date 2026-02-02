@@ -251,7 +251,7 @@ void CApache::SpawnImpl(const char *modelName)
 
 	m_iRockets = 10;
 
-	InitRandomSeeds();
+	InitLootRandomSeed();
 }
 
 void CApache::Precache()

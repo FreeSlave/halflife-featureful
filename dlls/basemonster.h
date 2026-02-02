@@ -201,7 +201,6 @@ public:
 	
 	virtual void MonsterInit();
 	virtual void MonsterInitDead();	// Call after animation/pose is set up
-	void InitRandomSeeds();
 	virtual void BecomeDead();
 	void EXPORT CorpseFallThink();
 
@@ -525,7 +524,6 @@ public:
 	bool m_bForceConditionsGather;
 	float m_flNextPainTime;
 	float m_equalDislikeTime;
-	int m_lootRandomSeed;
 	string_t m_triggerOnDeath;
 
 	float m_clearOwnerTime;

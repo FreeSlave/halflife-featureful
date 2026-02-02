@@ -999,7 +999,7 @@ The list of monsters who is capable of spawning children:
 
 ### loot_drop
 
-Defines additional items dropped from monster when it dies.
+Defines additional items dropped from monster when it dies or [func_breakable]({{< ref func_breakable >}}) when it gets destroyed.
 
 {{% hint info %}}
 Loot drop doesn't interfere with weapons the monster drops by default (e.g. `monster_human_grunt` dropping his weapon). Loot drops are extra items.

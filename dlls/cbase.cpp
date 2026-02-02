@@ -31,6 +31,9 @@
 #include	"skilldata.h"
 #include	"soundent.h"
 
+#include <algorithm>
+#include <random>
+
 bool g_fIsXash3D = false;
 
 void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
@@ -756,6 +759,8 @@ TYPEDESCRIPTION	CBaseEntity::m_SaveData[] =
 	DEFINE_FIELD( CBaseEntity, m_ownerEntTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_objectHint, FIELD_STRING ),
 	DEFINE_FIELD( CBaseEntity, m_displayName, FIELD_STRING ),
+
+	DEFINE_FIELD( CBaseEntity, m_lootRandomSeed, FIELD_INTEGER ),
 };
 
 void CBaseEntity::KeyValue(KeyValueData* pkvd)
@@ -1885,6 +1890,101 @@ void CBaseEntity::InsertAISound(int iType, int iVolume, float flDuration)
 void CBaseEntity::MarkAsNonBlockerForPlayer()
 {
 	pev->iuser3 = -1;
+}
+
+void CBaseEntity::InitLootRandomSeed()
+{
+	m_lootRandomSeed = RANDOM_LONG((1<<20), (1<<30));
+	if (m_lootRandomSeed % 2 == 0)
+		m_lootRandomSeed++;
+}
+
+float CBaseEntity::SharedLootRandomFloat(float low, float high)
+{
+	float result = UTIL_SharedRandomFloat(static_cast<unsigned int>(m_lootRandomSeed), low, high);
+	m_lootRandomSeed = UTIL_LastRandomSeed();
+	return result;
+}
+
+void CBaseEntity::DropLoot(bool gibbed)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const DropItemSet& lootDrop = entTemplate->GetLootDrop();
+
+		auto dropItem = [this, gibbed](const char* classname, const char* entTemplate, const char* pickupName) {
+			if (!classname || !*classname)
+				return;
+
+			EntityOverrides entityOverrides;
+			if (entTemplate && *entTemplate)
+			{
+				entityOverrides.entTemplate = MAKE_STRING(entTemplate);
+			}
+			if (pickupName && *pickupName && strcmp(classname, "item_pickup") == 0)
+			{
+				entityOverrides.netname = MAKE_STRING(pickupName);
+			}
+
+			CBaseEntity* pItem = Create(classname, Center(), pev->angles, edict(), entityOverrides);
+			if (pItem)
+			{
+				const float velocity = gibbed ? 100.0f : 75.0f;
+
+				pItem->pev->avelocity = Vector( 0, RANDOM_FLOAT( 0, 100 ), 0 );
+				pItem->pev->velocity = Vector( RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( -velocity, velocity ), RANDOM_FLOAT( velocity*2, velocity*3 ) );
+				if (IsProbablyPickupClassname(classname))
+					pItem->pev->spawnflags |= SF_NORESPAWN;
+			}
+		};
+
+		auto shouldDrop = [this](const DropItemInfoHandle& handle) {
+			if (handle.chance >= 1.0f)
+				return true;
+			if (handle.chance > 0.0f && SharedLootRandomFloat(0.0f, 1.0f) <= handle.chance)
+				return true;
+			return false;
+		};
+
+		if (lootDrop.maxWeight > 0 && lootDrop.items.size() > 1)
+		{
+			std::vector<DropItemInfoHandle> handles;
+			handles.reserve(lootDrop.items.size());
+
+			for (const auto& itemInfo : lootDrop.items)
+			{
+				handles.push_back(DropItemInfoHandle(itemInfo));
+			}
+
+			std::minstd_rand rg(static_cast<unsigned int>(m_lootRandomSeed));
+			std::shuffle(handles.begin(), handles.end(), rg);
+			m_lootRandomSeed = static_cast<int>(rg());
+
+			float totalWeight = 0.0f;
+			for (const auto& handle : handles)
+			{
+				if ((totalWeight == 0.0f || totalWeight + handle.weight <= lootDrop.maxWeight) && shouldDrop(handle))
+				{
+					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
+					totalWeight += handle.weight;
+					if (totalWeight >= lootDrop.maxWeight)
+						break;
+				}
+			}
+		}
+		else
+		{
+			for (const auto& itemInfo : lootDrop.items)
+			{
+				const DropItemInfoHandle handle{itemInfo};
+				if (shouldDrop(handle))
+				{
+					dropItem(handle.classname, handle.entTemplate, handle.pickupName);
+				}
+			}
+		}
+	}
 }
 
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
