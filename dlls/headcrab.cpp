@@ -98,6 +98,7 @@ public:
 	virtual float GetDamageAmount() { return GetSkillValue("headcrab_dmg_bite"); }
 
 	Schedule_t* GetScheduleOfType ( int Type ) override;
+	virtual Schedule_t* GetLeapAttackSchedule();
 
 	CUSTOM_SCHEDULES
 
@@ -518,14 +519,27 @@ Schedule_t *CHeadCrab::GetScheduleOfType( int Type )
 {
 	switch( Type )
 	{
+		case SCHED_CHASE_ENEMY_FAILED:
+		{
+			if (FBitSet(pev->flags, FL_ONGROUND) && m_hEnemy != 0 && HasConditions(bits_COND_SEE_ENEMY))
+			{
+				return GetLeapAttackSchedule();
+			}
+		}
+		break;
 		case SCHED_RANGE_ATTACK1:
 		{
-			return &slHCRangeAttack1[0];
+			return GetLeapAttackSchedule();
 		}
 		break;
 	}
 
 	return CBaseMonster::GetScheduleOfType( Type );
+}
+
+Schedule_t* CHeadCrab::GetLeapAttackSchedule()
+{
+	return slHCRangeAttack1;
 }
 
 class CDeadHeadCrab : public CDeadMonster
@@ -560,6 +574,7 @@ public:
 	float GetDamageAmount() override { return GetSkillValue("babycrab_dmg_bite"); }
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	Schedule_t *GetScheduleOfType ( int Type ) override;
+	Schedule_t* GetLeapAttackSchedule() override;
 
 	static constexpr const char* idleSoundScript = "Babycrab.Idle";
 	static constexpr const char* alertSoundScript = "Babycrab.Alert";
@@ -656,16 +671,16 @@ Schedule_t *CBabyCrab::GetScheduleOfType( int Type )
 	{
 		case SCHED_FAIL:	// If you fail, try to jump!
 			if( m_hEnemy != 0 )
-				return slHCRangeAttack1Fast;
-		break;
-		case SCHED_RANGE_ATTACK1:
-		{
-			return slHCRangeAttack1Fast;
-		}
+				return GetLeapAttackSchedule();
 		break;
 	}
 
 	return CHeadCrab::GetScheduleOfType( Type );
+}
+
+Schedule_t* CBabyCrab::GetLeapAttackSchedule()
+{
+	return slHCRangeAttack1Fast;
 }
 
 #define bits_MEMORY_SHOCKTROOPER_IS_OWNER bits_MEMORY_CUSTOM1
