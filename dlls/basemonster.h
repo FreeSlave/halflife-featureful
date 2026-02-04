@@ -476,6 +476,8 @@ public:
 
 	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
 
+	virtual void AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run);
+
 	int SharedRandomLong(int low, int high);
 	float SharedRandomFloat(float low, float high);
 

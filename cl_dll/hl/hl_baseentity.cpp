@@ -184,6 +184,8 @@ int CBaseMonster::SizeForGrapple() { return GRAPPLE_NOT_A_TARGET; }
 bool CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement) { return false; }
 bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity* pPusher) { return false; }
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
+void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run) {}
+
 
 void CBasePlayer::DeathSound() { }
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) { return 0; }

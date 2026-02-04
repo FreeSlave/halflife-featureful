@@ -57,6 +57,8 @@ public:
 	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
 
+	void AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run) override;
+
 	// UNDONE: These don't necessarily need to be save/restored, but if we add more data, it may
 	bool m_fLightHacked;
 	int m_iMode;
@@ -219,7 +221,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 //=========================================================
 void CRoach::MonsterThink()
 {
-	if( FNullEnt( FIND_CLIENT_IN_PVS( edict() ) ) )
+	if (!FBitSet(pev->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS) && FNullEnt(FIND_CLIENT_IN_PVS( edict() )))
 		pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1, 1.5 );
 	else
 		pev->nextthink = gpGlobals->time + 0.1f;// keep monster thinking
@@ -444,7 +446,7 @@ void CRoach::Look( int iDistance )
 
 	// don't let monsters outside of the player's PVS act up, or most of the interesting
 	// things will happen before the player gets there!
-	if( FNullEnt( FIND_CLIENT_IN_PVS( edict() ) ) )
+	if (!FBitSet(pev->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS) && FNullEnt(FIND_CLIENT_IN_PVS( edict() )))
 	{
 		return;
 	}
@@ -485,6 +487,13 @@ void CRoach::Look( int iDistance )
 		}
 	}
 	SetConditions( iSighted );
+}
+
+void CRoach::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run)
+{
+	PickNewDest(ROACH_BORED);
+	SetActivity(ACT_WALK);
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 //=========================================================

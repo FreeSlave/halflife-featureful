@@ -645,19 +645,14 @@ int CMonsterMaker::CalculateSpot(const Vector &testMinHullSize, const Vector &te
 		if (pBlocker)
 		{
 			const char* blockerName = FStringNull(pBlocker->pev->classname) ? "" : STRING(pBlocker->pev->classname);
-			ALERT(at_aiconsole, "Spawning of %s by %s '%s' is blocked by %s\n", STRING(m_iszMonsterClassname), STRING(pev->classname), STRING(pev->targetname), blockerName);
+			ALERT(at_aiconsole, "Spawning of %s by %s '%s' is blocked by %s. Current live children: %d\n", STRING(m_iszMonsterClassname), STRING(pev->classname), STRING(pev->targetname), blockerName, m_cLiveChildren);
 
 			if (m_makeBlockerMoveAway)
 			{
 				CBaseMonster* pBlockerMonster = pBlocker->MyMonsterPointer();
-				if (pBlockerMonster && pBlockerMonster->IsFreeToManipulate())
+				if (pBlockerMonster)
 				{
-					int schedFlags = SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
-					if (m_makeBlockerMoveAway == 2)
-					{
-						schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
-					}
-					pBlockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, tempPosEnt ? tempPosEnt : this, testMaxHullSize.x * 1.5f, 256, schedFlags);
+					pBlockerMonster->AskMoveAwayFromSpot(tempPosEnt ? tempPosEnt : this, testMaxHullSize.x * 1.5f, m_makeBlockerMoveAway == 2);
 				}
 			}
 

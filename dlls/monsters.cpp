@@ -4857,6 +4857,20 @@ bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 	return false;
 }
 
+void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run)
+{
+	if (!IsFreeToManipulate())
+		return;
+
+	int schedFlags = SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
+
+	if (run)
+	{
+		schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
+	}
+	SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pSpotEntity, minDist, 256, schedFlags);
+}
+
 void CBaseMonster::GlowShellOn(const Visual* visual)
 {
 	if (!m_glowShellUpdate)
