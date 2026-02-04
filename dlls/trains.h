@@ -125,6 +125,7 @@ public:
 	float m_oldSpeed;
 	bool m_customMoveSound;
 	bool m_ignoreCorpses;
+	bool m_instantGibCorpses;
 	short m_soundRadius;
 	string_t m_touchProxyName;
 	CBaseEntity *m_vehicleProxy;

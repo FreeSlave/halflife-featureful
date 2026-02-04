@@ -683,6 +683,7 @@ public:
 	virtual bool IsLockedByMaster() { return false; }
 	virtual bool PlaysItsOwnHitSounds() const { return false; }
 	virtual bool MustAddToFullPack(unsigned char *pSet) { return false; }
+	virtual bool IsCorpse() { return pev->deadflag == DEAD_DEAD; }
 
 	inline void SetDefaultProjectileDamage(float damage) {
 		if (!pev->dmg)

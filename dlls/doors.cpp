@@ -126,6 +126,7 @@ public:
 
 	float m_returnSpeed;
 	bool m_ignoreCorpses;
+	bool m_instantGibCorpses;
 	bool m_playLockedSoundOnUse;
 	short m_blockerRecheck;
 
@@ -177,6 +178,7 @@ TYPEDESCRIPTION	CBaseDoor::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseDoor, m_returnSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CBaseDoor, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseDoor, m_instantGibCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseDoor, m_playLockedSoundOnUse, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseDoor, m_blockerRecheck, FIELD_SHORT ),
 };
@@ -431,6 +433,11 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
 	{
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
+	{
+		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
 	else if ( FStrEq(pkvd->szKeyName, "locked_play_on_use") )
@@ -1139,8 +1146,19 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 
 	// Hurt the blocker a little.
 	bool shouldProceed = false;
-	if( pev->dmg ) {
-		pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+
+	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+
+	if (pev->dmg || shouldInstaGib) {
+
+		DamageInfo damageInfo{pev->dmg, DMG_CRUSH};
+		if (shouldInstaGib)
+		{
+			damageInfo.damage = pOther->pev->health + 1;
+			damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		}
+
+		pOther->TakeDamage( pev, pev, damageInfo );
 
 		bool shouldRecheck;
 		switch (m_blockerRecheck) {
@@ -1238,7 +1256,7 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 
 bool CBaseDoor::ShouldCollide(CBaseEntity *pOther)
 {
-	if (m_ignoreCorpses && pOther->pev->deadflag == DEAD_DEAD)
+	if (m_ignoreCorpses && pOther->IsCorpse())
 		return false;
 	return true;
 }

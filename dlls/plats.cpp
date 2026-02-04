@@ -88,6 +88,7 @@ public:
 	BYTE m_fireOnStartState;
 	BYTE m_fireOnStopState;
 	bool m_ignoreCorpses;
+	bool m_instantGibCorpses;
 
 	float SoundAttenuation() const
 	{
@@ -109,6 +110,7 @@ TYPEDESCRIPTION	CBasePlatTrain::m_SaveData[] =
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStartState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStopState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBasePlatTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBasePlatTrain, m_instantGibCorpses, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlatTrain, CBaseToggle )
@@ -188,6 +190,11 @@ void CBasePlatTrain::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
 	{
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
+	{
+		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
 	else
@@ -323,7 +330,7 @@ void CBasePlatTrain::OnStopMoving()
 
 bool CBasePlatTrain::ShouldCollide(CBaseEntity *pOther)
 {
-	if (m_ignoreCorpses && pOther->pev->deadflag == DEAD_DEAD)
+	if (m_ignoreCorpses && pOther->IsCorpse())
 		return false;
 	return true;
 }
@@ -683,8 +690,18 @@ void CFuncPlat::HitTop()
 void CFuncPlat::Blocked( CBaseEntity *pOther )
 {
 	ALERT( at_aiconsole, "%s Blocked by %s\n", STRING( pev->classname ), STRING( pOther->pev->classname ) );
+
 	// Hurt the blocker a little
-	pOther->TakeDamage( pev, pev, DamageInfo(1, DMG_CRUSH) );
+	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+
+	DamageInfo damageInfo{1, DMG_CRUSH};
+	if (shouldInstaGib)
+	{
+		damageInfo.damage = pOther->pev->health + 1;
+		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+	}
+
+	pOther->TakeDamage( pev, pev, damageInfo );
 
 	if( pev->noiseMovement )
 		STOP_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMovement ) );
@@ -887,8 +904,18 @@ void CFuncTrain::Blocked( CBaseEntity *pOther )
 
 	m_flActivateFinished = gpGlobals->time + 0.5f;
 
-	if (pev->dmg)
-		pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+
+	if (pev->dmg || shouldInstaGib)
+	{
+		DamageInfo damageInfo{pev->dmg, DMG_CRUSH};
+		if (shouldInstaGib)
+		{
+			damageInfo.damage = pOther->pev->health + 1;
+			damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		}
+		pOther->TakeDamage( pev, pev, damageInfo );
+	}
 }
 
 void CFuncTrain::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
@@ -1136,6 +1163,7 @@ TYPEDESCRIPTION	CFuncTrackTrain::m_SaveData[] =
 	DEFINE_FIELD( CFuncTrackTrain, m_oldSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_customMoveSound, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CFuncTrackTrain, m_instantGibCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_soundRadius, FIELD_SHORT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_touchProxyName, FIELD_STRING ),
 };
@@ -1186,6 +1214,11 @@ void CFuncTrackTrain::KeyValue( KeyValueData *pkvd )
 		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
+	{
+		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
 	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
 	{
 		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
@@ -1223,15 +1256,25 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 		pevOther->velocity = ( pevOther->origin - pev->origin ).Normalize() * pev->dmg;
 
 	ALERT( at_aiconsole, "TRAIN(%s): Blocked by %s (dmg:%.2f)\n", STRING( pev->targetname ), STRING( pOther->pev->classname ), (double)pev->dmg );
-	if( pev->dmg <= 0 )
+
+	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+	if (pev->dmg <= 0 && !shouldInstaGib)
 		return;
 	// we can't hurt this thing, so we're not concerned with it
-	pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg, DMG_CRUSH) );
+
+	DamageInfo damageInfo{pev->dmg, DMG_CRUSH};
+	if (shouldInstaGib)
+	{
+		damageInfo.damage = pOther->pev->health + 1;
+		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+	}
+
+	pOther->TakeDamage( pev, pev, damageInfo );
 }
 
 bool CFuncTrackTrain::ShouldCollide(CBaseEntity *pOther)
 {
-	if (m_ignoreCorpses && pOther->pev->deadflag == DEAD_DEAD)
+	if (m_ignoreCorpses && pOther->IsCorpse())
 		return false;
 	return true;
 }

@@ -18,11 +18,13 @@ See also: [env_spritetrain]({{< ref env_spritetrain >}}), [env_modeltrain]({{< r
 * ![](/images/svencoop.png) `Obey Trigger Mode` - make train interpret the use-type when triggered (`On` is to start, `Off` is to stop).
 * Move sound pitch can be configured.
 * `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this train and won't get crushed.
+* `Instantly gib corpses` - instantly gib corpses that block the train, even if train deals 0 damage and `No default damage` spawnflag is set.
 
 ### New spawnflags
 
 * ![](/images/spirit.png) `Origin on paths` - make the train to position itself on the path entities using its origin instead of geometric center.
 * ![](/images/spirit.png) `Initially On`.
+* `No default damage` - by default in Half-Life if `Damage on crash` for the train is set to 0, it sets the damage to 2 on spawn. Use this spawnflag to prevent such behavior.
 
 ### Reaction to use-type
 

@@ -20,6 +20,7 @@ entityCategory: solid
 * ![](/images/svencoop.png) `Fire On Open Start`, `Fire On Close Start`, `Fire On Open End` and `Fire On Close End` and corresponding parameters to denote trigger states.
 * ![](/images/svencoop.png) `Obey Trigger Mode` - make doors interpret the use-type when triggered (`On` is to open, `Off` is to close). By default in Half-Life doors ignore the input use-type.
 * `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this door and won't get crushed.
+* `Instantly gib corpses` - instantly gib corpses that block the door, even if door deals 0 damage.
 * `Continue moving if blocker is crushed`. By default this behavior is controlled globally by the `doors_blocked_recheck` feature. This option allows to configure the behavior specifically for the door instance.
 * `If locked, play locked sound on use` - allows to enable playing the locked sounds for usable doors when the door is locked by a master. In Half-Life usable doors don't play the locked sounds.
 

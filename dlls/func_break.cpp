@@ -1139,9 +1139,9 @@ void CPushable::Move( CBaseEntity *pOther, int push )
 		return;
 	}
 
-	if (m_instantGibCorpses && pOther->pev->deadflag == DEAD_DEAD)
+	if (m_instantGibCorpses && pOther->IsCorpse())
 	{
-		pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health + 1, DMG_CRUSH).SetGibPolicy(GIB_ALWAYS));
+		pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health + 1, DMG_CRUSH).SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS));
 	}
 
 	if( pOther->IsPlayer() )
