@@ -19,6 +19,7 @@ See also: [env_spritetrain]({{< ref env_spritetrain >}}), [env_modeltrain]({{< r
 * Move sound pitch can be configured.
 * `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this train and won't get crushed.
 * `Instantly gib corpses` - instantly gib corpses that block the train, even if train deals 0 damage and `No default damage` spawnflag is set.
+* `How to handle tiny creatures` - override handling of [tiny creatures]({{< ref "monsters/#tiny-creatures" >}}).
 
 ### New spawnflags
 

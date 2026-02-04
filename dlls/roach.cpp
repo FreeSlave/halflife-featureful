@@ -56,6 +56,7 @@ public:
 
 	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
 	bool IsDisplaceable() override { return true; }
+	bool IsTinyCreature() override { return true; }
 
 	void AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run) override;
 

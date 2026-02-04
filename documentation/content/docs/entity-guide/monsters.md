@@ -84,6 +84,31 @@ If the parent has a custom classification the children will inherit it as well.
 If the parent is configured to spawn children of enemy classification the parent will force the children to have the same classification as itself to avoid situations when children start attack the parent.
 {{% /hint %}}
 
+## Tiny creatures
+
+Some monsters are considered to be "tiny creatures". This affects how moving brush entities interact with them, depending on the `handle_tiny_creatures` server feature value:
+
+* 0 - classic behavior. Tiny monsters can block moving brush entities.
+* 1 - moving brush entities will crush tiny creatures even if they normally don't do damage to other entities (e.g. the door with `Damage inflicted when blocked` set to 0).
+* 2 - moving brush entities won't collide with tiny creatures.
+
+The goal of the feature is to provide a way to ensure that non-essential monsters like cockroaches won't interfere with gameplay and that hornets won't be used as exploit for blocking the doors.
+
+The affected moving brush entities:
+
+* [func_door]({{< ref func_door >}})
+* [func_door_rotating]({{< ref func_door_rotating >}})
+* [func_plat]({{< ref func_plat >}})
+* [func_platrot]({{< ref func_platrot >}})
+* [func_pushable]({{< ref func_pushable >}})
+* [func_train]({{< ref func_train >}})
+* [func_tracktrain]({{< ref func_tracktrain >}})
+
+Currently the following monsters are considered to be tiny creatures:
+
+* [monster_cockroach]({{< ref monster_cockroach >}})
+* [hornet]({{< ref hornet >}})
+
 ## Debugging
 
 Commands used for testing and debugging the monster behavior:

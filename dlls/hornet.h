@@ -66,6 +66,8 @@ public:
 
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
+	bool IsTinyCreature() override { return true; }
+
 	float m_flStopAttack;
 	int m_iHornetType;
 	float m_flFlySpeed;

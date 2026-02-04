@@ -55,6 +55,7 @@ cvar_t corpse_player_collision_fix = {"corpse_player_collision_fix", "0"};
 cvar_t doors_open_in_move_direction = {"doors_open_in_move_direction", "0"};
 cvar_t doors_blocked_recheck = {"doors_blocked_recheck", "0"};
 cvar_t doors_blocked_fade_corpses = {"doors_blocked_fade_corpses", "0"};
+cvar_t handle_tiny_creatures = {"handle_tiny_creatures", "0"};
 
 ModFeatures::ModFeatures()
 {
@@ -430,6 +431,20 @@ bool ModFeatures::DoorsFadeCorpsesWhenBlocked() const
 bool ModFeatures::FixPlayerAndCorpseCollisionBug() const
 {
 	return ::corpse_player_collision_fix.value != 0;
+}
+
+bool ModFeatures::ShouldIgnoreTinyCreatures(int policy) const
+{
+	if (policy == HANDLE_TINY_CREATURES_DEFAULT)
+		return static_cast<int>(::handle_tiny_creatures.value) == HANDLE_TINY_CREATURES_DONTCOLLIDE;
+	return policy == HANDLE_TINY_CREATURES_DONTCOLLIDE;
+}
+
+bool ModFeatures::ShouldCrushTinyCreatures(int policy) const
+{
+	if (policy == HANDLE_TINY_CREATURES_DEFAULT)
+		return static_cast<int>(::handle_tiny_creatures.value) == HANDLE_TINY_CREATURES_CRUSH;
+	return policy == HANDLE_TINY_CREATURES_CRUSH;
 }
 
 byte* LoadFileForMeWithBackup(const char* fileName, const char* fileNameBackup, int* pFileSize, const char** chosenFileName)
@@ -1636,6 +1651,7 @@ void GameDLLInit()
 	CVAR_REGISTER_BOOLEAN(&doors_open_in_move_direction, g_modFeatures.doors_open_in_move_direction);
 	CVAR_REGISTER_BOOLEAN(&doors_blocked_recheck, g_modFeatures.doors_blocked_recheck);
 	CVAR_REGISTER_BOOLEAN(&doors_blocked_fade_corpses, g_modFeatures.doors_blocked_fade_corpses);
+	CVAR_REGISTER_INTEGER(&handle_tiny_creatures, g_modFeatures.handle_tiny_creatures);
 
 	CVAR_REGISTER( &keepinventory );
 

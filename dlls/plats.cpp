@@ -26,6 +26,7 @@
 #include "trains.h"
 #include "saverestore.h"
 #include "soundradius.h"
+#include "game.h"
 
 float SoundAttenuation(short soundRadius)
 {
@@ -89,6 +90,7 @@ public:
 	BYTE m_fireOnStopState;
 	bool m_ignoreCorpses;
 	bool m_instantGibCorpses;
+	short m_handleTinyCreatures;
 
 	float SoundAttenuation() const
 	{
@@ -111,6 +113,7 @@ TYPEDESCRIPTION	CBasePlatTrain::m_SaveData[] =
 	DEFINE_FIELD( CBasePlatTrain, m_fireOnStopState, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBasePlatTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBasePlatTrain, m_instantGibCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBasePlatTrain, m_handleTinyCreatures, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlatTrain, CBaseToggle )
@@ -195,6 +198,11 @@ void CBasePlatTrain::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
 	{
 		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "handle_tiny_creatures") )
+	{
+		m_handleTinyCreatures = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -331,6 +339,8 @@ void CBasePlatTrain::OnStopMoving()
 bool CBasePlatTrain::ShouldCollide(CBaseEntity *pOther)
 {
 	if (m_ignoreCorpses && pOther->IsCorpse())
+		return false;
+	if (g_modFeatures.ShouldIgnoreTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature())
 		return false;
 	return true;
 }
@@ -692,7 +702,7 @@ void CFuncPlat::Blocked( CBaseEntity *pOther )
 	ALERT( at_aiconsole, "%s Blocked by %s\n", STRING( pev->classname ), STRING( pOther->pev->classname ) );
 
 	// Hurt the blocker a little
-	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+	const bool shouldInstaGib = (m_instantGibCorpses && pOther->IsCorpse()) || (g_modFeatures.ShouldCrushTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature());
 
 	DamageInfo damageInfo{1, DMG_CRUSH};
 	if (shouldInstaGib)
@@ -904,7 +914,7 @@ void CFuncTrain::Blocked( CBaseEntity *pOther )
 
 	m_flActivateFinished = gpGlobals->time + 0.5f;
 
-	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+	const bool shouldInstaGib = (m_instantGibCorpses && pOther->IsCorpse()) || (g_modFeatures.ShouldCrushTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature());
 
 	if (pev->dmg || shouldInstaGib)
 	{
@@ -1164,6 +1174,7 @@ TYPEDESCRIPTION	CFuncTrackTrain::m_SaveData[] =
 	DEFINE_FIELD( CFuncTrackTrain, m_customMoveSound, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_ignoreCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CFuncTrackTrain, m_instantGibCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CFuncTrackTrain, m_handleTinyCreatures, FIELD_SHORT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_soundRadius, FIELD_SHORT ),
 	DEFINE_FIELD( CFuncTrackTrain, m_touchProxyName, FIELD_STRING ),
 };
@@ -1219,6 +1230,11 @@ void CFuncTrackTrain::KeyValue( KeyValueData *pkvd )
 		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "handle_tiny_creatures") )
+	{
+		m_handleTinyCreatures = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
 	{
 		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
@@ -1257,7 +1273,7 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 
 	ALERT( at_aiconsole, "TRAIN(%s): Blocked by %s (dmg:%.2f)\n", STRING( pev->targetname ), STRING( pOther->pev->classname ), (double)pev->dmg );
 
-	const bool shouldInstaGib = m_instantGibCorpses && pOther->IsCorpse();
+	const bool shouldInstaGib = (m_instantGibCorpses && pOther->IsCorpse()) || (g_modFeatures.ShouldCrushTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature());
 	if (pev->dmg <= 0 && !shouldInstaGib)
 		return;
 	// we can't hurt this thing, so we're not concerned with it
@@ -1275,6 +1291,8 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 bool CFuncTrackTrain::ShouldCollide(CBaseEntity *pOther)
 {
 	if (m_ignoreCorpses && pOther->IsCorpse())
+		return false;
+	if (g_modFeatures.ShouldIgnoreTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature())
 		return false;
 	return true;
 }

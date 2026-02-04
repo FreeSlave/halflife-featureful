@@ -4642,7 +4642,7 @@ bool CBaseMonster::ShouldCollide(CBaseEntity *pOther)
 {
 	if (pev->deadflag == DEAD_DEAD && FBitSet(pev->flags, FL_MONSTER))
 		return pOther->ShouldCollideWithCorpses();
-	return true;
+	return CBaseToggle::ShouldCollide(pOther);
 }
 
 bool CBaseMonster::ShouldCollideWithCorpses()

@@ -63,6 +63,8 @@ struct ModFeatures
 	bool DoorsRecheckWhenBlocked() const;
 	bool DoorsFadeCorpsesWhenBlocked() const;
 	bool FixPlayerAndCorpseCollisionBug() const;
+	bool ShouldIgnoreTinyCreatures(int policy) const;
+	bool ShouldCrushTinyCreatures(int policy) const;
 
 	int suit_light;
 	bool suit_light_allow_both;
@@ -107,6 +109,7 @@ struct ModFeatures
 	bool doors_blocked_recheck;
 	bool doors_blocked_fade_corpses;
 	bool door_rotating_starts_open_fix;
+	int handle_tiny_creatures;
 
 	bool env_spark_transit;
 

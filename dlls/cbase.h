@@ -67,6 +67,13 @@ enum
 	PLAYER_USE_POLICY_VISIBLE,
 };
 
+enum
+{
+	HANDLE_TINY_CREATURES_DEFAULT = 0,
+	HANDLE_TINY_CREATURES_CRUSH,
+	HANDLE_TINY_CREATURES_DONTCOLLIDE,
+};
+
 #include "saverestore.h"
 #include "schedule.h"
 
@@ -438,8 +445,13 @@ public:
 			( this->*m_pfnUse )( pActivator, pCaller, useType, value );
 	}
 	virtual void Blocked( CBaseEntity *pOther ) { if( m_pfnBlocked ) ( this->*m_pfnBlocked )( pOther ); }
-	virtual bool ShouldCollide(CBaseEntity* pOther) { return true; }
+	virtual bool ShouldCollide(CBaseEntity* pOther) {
+		if (IsTinyCreature())
+			return pOther->ShouldCollideWithTinyCreatures();
+		return true;
+	}
 	virtual bool ShouldCollideWithCorpses() { return true; }
+	virtual bool ShouldCollideWithTinyCreatures() { return true; }
 
 	string_t m_entTemplate;
 	string_t m_ownerEntTemplate;
@@ -684,6 +696,7 @@ public:
 	virtual bool PlaysItsOwnHitSounds() const { return false; }
 	virtual bool MustAddToFullPack(unsigned char *pSet) { return false; }
 	virtual bool IsCorpse() { return pev->deadflag == DEAD_DEAD; }
+	virtual bool IsTinyCreature() { return false; }
 
 	inline void SetDefaultProjectileDamage(float damage) {
 		if (!pev->dmg)
