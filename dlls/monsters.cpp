@@ -4200,23 +4200,20 @@ bool CBaseMonster::CanPlaySequence( int interruptFlags )
 
 bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, float maxDist, int flags )
 {
-	const bool threatIsMyself = pev->origin == vecThreat;
+	Vector vecFromThreat = pev->origin - vecThreat;
+	vecFromThreat.z = 0;
+
+	const bool threatIsRightOnMe = vecFromThreat == g_vecZero;
 
 	Vector vecRight{};
-	if (threatIsMyself)
+	if (threatIsRightOnMe)
 	{
 		UTIL_MakeVectors(pev->angles);
-		Vector vecRight = gpGlobals->v_right;
+		vecRight = gpGlobals->v_right;
 		vecRight.z = 0;
 	}
 	else
 	{
-		Vector vecFromThreat = pev->origin - vecThreat;
-		vecFromThreat.z = 0;
-
-		if (vecFromThreat == g_vecZero)
-			return false;
-
 		vecFromThreat.NormalizeInPlace();
 
 		const float sideAngleRad = M_PI_F * 0.5f;
@@ -4241,7 +4238,7 @@ bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, 
 		const Vector vecLeftTest = vecStart - startOffset - vecStepRight * ( coverChecks - i );
 		const Vector vecRightTest = vecStart + startOffset + vecStepRight * ( coverChecks - i );
 
-		if (!threatIsMyself || (vecLeftTest - vecThreat).LengthSqr() > distToThreatSqr)
+		if (!threatIsRightOnMe || (vecLeftTest - vecThreat).LengthSqr() > distToThreatSqr)
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecLeftTest )) )
 			{
@@ -4252,7 +4249,7 @@ bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, 
 			}
 		}
 
-		if (!threatIsMyself || (vecRightTest - vecThreat).LengthSqr() > distToThreatSqr)
+		if (!threatIsRightOnMe || (vecRightTest - vecThreat).LengthSqr() > distToThreatSqr)
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecRightTest )) )
 			{
