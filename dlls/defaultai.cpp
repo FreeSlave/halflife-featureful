@@ -67,6 +67,18 @@ Schedule_t slCombatFail[] =
 	},
 };
 
+Schedule_t slScriptMoveFail[] =
+{
+	{
+		tlFail,
+		ARRAYSIZE( tlFail ),
+		bits_COND_CAN_ATTACK|
+		SCRIPT_BREAK_CONDITIONS,
+		0,
+		"ScriptMoveFail"
+	},
+};
+
 //=========================================================
 //	Idle Schedules
 //=========================================================
@@ -1506,7 +1518,7 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 	case SCHED_AISCRIPT_MOVE_FAILED:
 		{
 			MakeMyBlockerMoveAway();
-			return GetScheduleOfType(SCHED_FAIL);
+			return slScriptMoveFail;
 		}
 	case SCHED_IDLE_STAND:
 		{
