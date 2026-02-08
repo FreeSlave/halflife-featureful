@@ -634,7 +634,7 @@ static void PlayWarpballSprite(const WarpballSprite& sprite, const Vector& vecOr
 {
 	if (sprite.sprite != nullptr)
 	{
-		CSprite *pSpr = CSprite::SpriteCreate( sprite.sprite, vecOrigin, true );
+		CSprite *pSpr = CSprite::SpriteCreate( sprite.sprite, vecOrigin );
 		pSpr->AnimateAndDie(sprite.framerate);
 		pSpr->SetTransparency(sprite.rendermode, sprite.color.r, sprite.color.g, sprite.color.b, sprite.alpha, sprite.renderfx);
 		pSpr->SetScale(sprite.scale > 0 ? sprite.scale : 1.0f);

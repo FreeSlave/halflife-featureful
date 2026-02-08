@@ -189,7 +189,6 @@ public:
 	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 
 	void StartBloating();
-	void ChangeGlowVisual(CSprite* pGlow, const Visual& newGlow);
 	void ExplodeEffect();
 	void MakeProvoked(bool alertOthers = true);
 	void AlertOthers();
@@ -246,6 +245,7 @@ protected:
 	{
 		return !FBitSet(pev->spawnflags, SF_MONSTER_WAIT_UNTIL_PROVOKED) || HasMemory(bits_MEMORY_FLOATER_PROVOKED);
 	}
+	void CreateGlows(const Visual* visual);
 	void GlowUpdate();
 	void GlowUpdate(CSprite* glow);
 
@@ -413,12 +413,7 @@ void CFloater::Spawn()
 			pGlowVisual = GetVisual(glowVisual);
 		if (pGlowVisual)
 		{
-			m_leftGlow = CreateSpriteFromVisual(pGlowVisual, pev->origin);
-			if (m_leftGlow)
-				m_leftGlow->SetAttachment(edict(), 2);
-			m_rightGlow = CreateSpriteFromVisual(pGlowVisual, pev->origin);
-			if (m_rightGlow)
-				m_rightGlow->SetAttachment(edict(), 1);
+			CreateGlows(pGlowVisual);
 		}
 	}
 	else
@@ -935,6 +930,19 @@ void CFloater::UpdateOnRemove()
 	CBaseMonster::UpdateOnRemove();
 }
 
+void CFloater::CreateGlows(const Visual *visual)
+{
+	if (!visual)
+		return;
+
+	m_leftGlow = CreateSpriteFromVisual(visual, pev->origin);
+	if (m_leftGlow)
+		m_leftGlow->SetAttachment(edict(), 2);
+	m_rightGlow = CreateSpriteFromVisual(visual, pev->origin);
+	if (m_rightGlow)
+		m_rightGlow->SetAttachment(edict(), 1);
+}
+
 void CFloater::GlowUpdate()
 {
 	GlowUpdate(m_leftGlow);
@@ -973,29 +981,13 @@ void CFloater::StartBloating()
 	SetTargetScale( OriginalScale() * 1.5f );
 	SetStartBloatingTime( gpGlobals->time );
 
-	if (m_leftGlow || m_rightGlow)
+	if (m_hasAttachments)
 	{
-		const Visual* pGlowBloatingVisual = GetVisual(glowBloatingVisual);
-		if (pGlowBloatingVisual)
-		{
-			if (m_leftGlow)
-				ChangeGlowVisual(m_leftGlow, *pGlowBloatingVisual);
-			if (m_rightGlow)
-				ChangeGlowVisual(m_rightGlow, *pGlowBloatingVisual);
-		}
-	}
-}
+		UTIL_Remove(m_leftGlow);
+		UTIL_Remove(m_rightGlow);
 
-void CFloater::ChangeGlowVisual(CSprite* pGlow, const Visual& newGlow)
-{
-	const char* model = newGlow.model;
-	if (model && !FStrEq(STRING(pGlow->pev->model), model))
-	{
-		SET_MODEL(pGlow->edict(), model);
+		CreateGlows(GetVisual(glowBloatingVisual));
 	}
-	pGlow->pev->rendermode = newGlow.rendermode;
-	pGlow->pev->renderfx = newGlow.renderfx;
-	pGlow->SetScale(RandomizeNumberFromRange(newGlow.scale));
 }
 
 void CFloater::ExplodeEffect()
@@ -1025,22 +1017,12 @@ void CFloater::MakeProvoked(bool alertOthers)
 {
 	if (!IsProvoked())
 	{
-		if (m_leftGlow || m_rightGlow)
+		if (m_hasAttachments)
 		{
-			const Visual* pGlowVisual = GetVisual(glowVisual);
-			if (pGlowVisual)
-			{
-				if (m_leftGlow)
-				{
-					ChangeGlowVisual(m_leftGlow, *pGlowVisual);
-					m_leftGlow->SetColor(pGlowVisual->rendercolor.r, pGlowVisual->rendercolor.g, pGlowVisual->rendercolor.b);
-				}
-				if (m_rightGlow)
-				{
-					ChangeGlowVisual(m_rightGlow, *pGlowVisual);
-					m_rightGlow->SetColor(pGlowVisual->rendercolor.r, pGlowVisual->rendercolor.g, pGlowVisual->rendercolor.b);
-				}
-			}
+			UTIL_Remove(m_leftGlow);
+			UTIL_Remove(m_rightGlow);
+
+			CreateGlows(GetVisual(glowVisual));
 		}
 
 		Remember(bits_MEMORY_FLOATER_PROVOKED);

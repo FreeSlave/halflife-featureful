@@ -1413,7 +1413,7 @@ void CISlave::SpawnFamiliar(const char *entityName, const Vector &origin, int hu
 
 			CBaseMonster *pNewMonster = pNew->MyMonsterPointer();
 
-			CreateSpriteFromVisual(GetVisual(summonSpriteVisual), origin, SF_SPRITE_ONCE_AND_REMOVE);
+			CreateSpriteFromVisual(GetVisual(summonSpriteVisual), origin, true);
 			EmitSoundScript(summonEndSoundScript);
 
 			if (pNewMonster)

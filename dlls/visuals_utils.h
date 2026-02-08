@@ -6,7 +6,7 @@
 #include "effects.h"
 #include "visuals.h"
 
-CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, int spawnFlags = 0);
+CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, bool once = false);
 
 CBeam* CreateBeamFromVisual(const Visual* visual);
 

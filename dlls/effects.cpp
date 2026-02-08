@@ -1021,7 +1021,7 @@ CSprite* CLaser::CreateTerminalSprite(string_t spriteName)
 	CSprite* pSprite = nullptr;
 	if(spriteName)
 	{
-		pSprite = CSprite::SpriteCreate( STRING(spriteName), pev->origin, true );
+		pSprite = CSprite::SpriteCreate( STRING(spriteName), pev->origin );
 		if (pSprite)
 		{
 			pSprite->SetTransparency( kRenderGlow, (int)pev->rendercolor.x, (int)pev->rendercolor.y, (int)pev->rendercolor.z, (int)pev->renderamt, (int)pev->renderfx );
@@ -1299,16 +1299,40 @@ void CSprite::SpriteInit( const char *pSpriteName, const Vector &origin )
 	Spawn();
 }
 
-CSprite *CSprite::SpriteCreate( const char *pSpriteName, const Vector &origin, bool animate, int spawnflags )
+static CSprite* CreateAndInitSprite(const char *pSpriteName, const Vector &origin, int spawnflags = 0)
 {
-	CSprite *pSprite = GetClassPtr( (CSprite *)NULL );
+	CSprite *pSprite = GetClassPtr((CSprite *)nullptr);
 	pSprite->pev->spawnflags = spawnflags;
 	pSprite->SpriteInit( pSpriteName, origin );
-	pSprite->pev->classname = MAKE_STRING( "env_sprite" );
+	pSprite->pev->classname = MAKE_STRING("env_sprite");
 	pSprite->pev->solid = SOLID_NOT;
 	pSprite->pev->movetype = MOVETYPE_NOCLIP;
-	if( animate )
+	return pSprite;
+}
+
+CSprite *CSprite::SpriteCreate( const char *pSpriteName, const Vector &origin )
+{
+	CSprite *pSprite = CreateAndInitSprite(pSpriteName, origin);
+	pSprite->TurnOn();
+
+	return pSprite;
+}
+
+CSprite *CSprite::SpriteCreateAndAnimate(const char *pSpriteName, const Vector &origin, float framerate)
+{
+	CSprite *pSprite = CreateAndInitSprite(pSpriteName, origin);
+	pSprite->pev->framerate = framerate;
+	if (pSprite->pev->framerate > 0.0f)
 		pSprite->TurnOn();
+
+	return pSprite;
+}
+
+CSprite *CSprite::SpriteCreateAndAnimateOnce(const char *pSpriteName, const Vector &origin, float framerate)
+{
+	CSprite *pSprite = CreateAndInitSprite(pSpriteName, origin, SF_SPRITE_ONCE_AND_REMOVE);
+	pSprite->pev->framerate = framerate;
+	pSprite->TurnOn();
 
 	return pSprite;
 }
@@ -6138,8 +6162,7 @@ void CEnvExtinguisher::ExtinguisherUse(CBaseEntity *pActivator, CBaseEntity *pCa
 		if (blastSprite)
 		{
 			blastSprite->SetScale(scales[i]);
-			blastSprite->AnimateAndDie(10.0f);
-			blastSprite->pev->dmgtime = turnoffTime;
+			blastSprite->AnimateForDurationAndDie(1.5f);
 		}
 	}
 

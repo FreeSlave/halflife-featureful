@@ -904,8 +904,6 @@ void CTor::StartSummon()
 	}
 
 	CSprite* portalSprite = CreateSpriteFromVisual(GetVisual(summonSpriteVisual), summonPos);
-	if (portalSprite)
-		portalSprite->TurnOn();
 
 	CTorSummonPoint* summonPoint = GetClassPtr((CTorSummonPoint*)nullptr);
 	summonPoint->pev->classname = MAKE_STRING("env_tor_summon_point");

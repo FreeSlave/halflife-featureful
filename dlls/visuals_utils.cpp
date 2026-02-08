@@ -5,16 +5,19 @@ extern int gmsgSprite;
 extern int gmsgSpray;
 extern int gmsgSmoke;
 
-CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, int spawnFlags)
+CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, bool once)
 {
 	if (!visual || !visual->modelIndex)
 		return nullptr;
 
 	const float framerate = RandomizeNumberFromRange(visual->framerate);
-	CSprite *sprite = CSprite::SpriteCreate(visual->model, origin, framerate > 0.0f, spawnFlags);
+	CSprite *sprite = nullptr;
+	if (once)
+		sprite = CSprite::SpriteCreateAndAnimateOnce(visual->model, origin, framerate);
+	else
+		sprite = CSprite::SpriteCreateAndAnimate(visual->model, origin, framerate);
 	if (sprite)
 	{
-		sprite->pev->framerate = framerate;
 		sprite->SetTransparency(visual->rendermode, visual->rendercolor.r, visual->rendercolor.g, visual->rendercolor.b, visual->renderamt, visual->renderfx);
 		sprite->SetScale(RandomizeNumberFromRange(visual->scale));
 	}

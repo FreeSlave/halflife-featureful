@@ -117,12 +117,21 @@ public:
 		pev->nextthink = gpGlobals->time; 
 	}
 
+	inline void AnimateForDurationAndDie(float duration)
+	{
+		SetThink(&CSprite::AnimateUntilDead);
+		pev->dmgtime = gpGlobals->time + duration;
+		pev->nextthink = gpGlobals->time;
+	}
+
 	void EXPORT AnimateUntilDead();
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
-	static CSprite *SpriteCreate(const char *pSpriteName, const Vector &origin, bool animate, int spawnflags = 0);
+	static CSprite *SpriteCreate(const char *pSpriteName, const Vector &origin);
+	static CSprite *SpriteCreateAndAnimate(const char *pSpriteName, const Vector &origin, float framerate);
+	static CSprite *SpriteCreateAndAnimateOnce(const char *pSpriteName, const Vector &origin, float framerate);
 
 	float m_lastTime;
 	float m_maxFrame;
