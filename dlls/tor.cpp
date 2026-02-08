@@ -895,12 +895,7 @@ void CTor::StartSummon()
 	const Visual* beamVisual = GetVisual(summonBeamVisual);
 	for (int i = 0; i < 3; i++)
 	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE(TE_BEAMPOINTS);
-		WRITE_VECTOR(startPos);
-		WRITE_VECTOR(summonPos);
-		WriteBeamVisual(beamVisual);
-		MESSAGE_END();
+		SendBeam(startPos, summonPos, beamVisual);
 	}
 
 	CSprite* portalSprite = CreateSpriteFromVisual(GetVisual(summonSpriteVisual), summonPos);

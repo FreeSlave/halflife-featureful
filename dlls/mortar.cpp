@@ -263,18 +263,7 @@ void CMortar::Precache()
 
 void CMortar::MortarExplode()
 {
-	const Visual* bVisual = GetVisual(beamVisual);
-
-	if (bVisual->modelIndex)
-	{
-		// mortar beam
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMPOINTS );
-		WRITE_VECTOR( pev->origin );
-		WRITE_VECTOR( pev->origin + Vector(0, 0, 1024) );
-		WriteBeamVisual(bVisual);
-		MESSAGE_END();
-	}
+	SendBeam(pev->origin, pev->origin + Vector(0, 0, 1024), GetVisual(beamVisual));
 
 	const Visual* cVisual = GetVisual(circleVisual);
 	if (cVisual->modelIndex)

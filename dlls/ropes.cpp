@@ -1710,14 +1710,5 @@ void CElectrifiedWire::DoLightning()
 		pSegment2 = GetSegments()[ uiSegment2 ];
 	}
 
-	const Visual* visual = GetVisual(lightningVisual);
-	if (visual)
-	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMENTS );
-			WRITE_SHORT( pSegment1->entindex() );
-			WRITE_SHORT( pSegment2->entindex() );
-			WriteBeamVisual(visual);
-		MESSAGE_END();
-	}
+	SendBeam(pSegment1->entindex(), pSegment2->entindex(), GetVisual(lightningVisual));
 }

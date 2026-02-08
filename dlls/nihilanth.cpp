@@ -691,16 +691,7 @@ void CNihilanth::DyingThink()
 
 	UTIL_TraceLine( vecSrc, vecSrc + vecDir * 4096, ignore_monsters, ENT( pev ), &tr );
 
-	const Visual* pDyingBeam = GetVisual(dyingBeamVisual);
-	if (pDyingBeam)
-	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMENTPOINT );
-			WRITE_SHORT( entindex() + 0x1000 * iAttachment );
-			WRITE_VECTOR( tr.vecEndPos );
-			WriteBeamVisual(pDyingBeam);
-		MESSAGE_END();
-	}
+	SendBeam(entindex() + 0x1000 * iAttachment, tr.vecEndPos, GetVisual(dyingBeamVisual));
 
 	GetAttachment( 0, vecSrc, vecAngles ); 
 	CNihilanthHVR *pEntity = (CNihilanthHVR *)Create( "nihilanth_energy_ball", vecSrc, pev->angles, edict(), GetProjectileOverrides() );
@@ -1553,16 +1544,7 @@ void CNihilanthHVR::ZapThink()
 			pEntity->ApplyTraceAttack( pev, pev, DamageInfo{GetSkillValue("nihilanth_zap"), DMG_SHOCK}, pev->velocity.Normalize(), &tr );
 		}
 
-		const Visual* pBeamVisual = GetVisual(zapBeamVisual);
-		if (pBeamVisual)
-		{
-			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-				WRITE_BYTE( TE_BEAMENTPOINT );
-				WRITE_SHORT( entindex() );
-				WRITE_VECTOR( tr.vecEndPos );
-				WriteBeamVisual(pBeamVisual);
-			MESSAGE_END();
-		}
+		SendBeam(entindex(), tr.vecEndPos, GetVisual(zapBeamVisual));
 
 		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
 
@@ -1667,16 +1649,7 @@ void CNihilanthHVR::AbsorbInit()
 	SetThink( &CNihilanthHVR::DissipateThink );
 	pev->renderamt = 255;
 
-	const Visual* pVisual = GetVisual(absorbingBeamVisual);
-	if (pVisual)
-	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMENTS );
-			WRITE_SHORT( this->entindex() );
-			WRITE_SHORT( m_hTargetEnt->entindex() + 0x1000 );
-			WriteBeamVisual(pVisual);
-		MESSAGE_END();
-	}
+	SendBeam(this->entindex(), m_hTargetEnt->entindex() + 0x1000, GetVisual(absorbingBeamVisual));
 }
 
 void CNihilanthHVR::TeleportTouch( CBaseEntity *pOther )

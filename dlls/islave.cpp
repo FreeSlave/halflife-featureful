@@ -1949,16 +1949,7 @@ void CISlave::ArmBeamMessage( int side )
 	if( flDist == 1.0 )
 		return;
 
-	const Visual* visual = GetVisual(idleBeamVisual);
-	if (visual->modelIndex)
-	{
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrc );
-			WRITE_BYTE( TE_BEAMENTPOINT );
-			WRITE_SHORT( entindex() + 0x1000 * (AttachmentFromSide(side)) );
-			WRITE_VECTOR( tr.vecEndPos );
-			WriteBeamVisual(visual);
-		MESSAGE_END();
-	}
+	SendBeam(entindex() + 0x1000 * (AttachmentFromSide(side)), tr.vecEndPos, GetVisual(idleBeamVisual), MSG_PVS, vecSrc);
 }
 
 //=========================================================

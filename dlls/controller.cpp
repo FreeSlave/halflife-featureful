@@ -1333,16 +1333,7 @@ void CControllerHeadBall::Crawl()
 
 void CControllerHeadBall::MakeTraceBeam(const Vector &vecSrc)
 {
-	const Visual* visual = GetVisual(headBallBeamVisual);
-	if (visual->modelIndex)
-	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMENTPOINT );
-			WRITE_SHORT( entindex() );
-			WRITE_VECTOR( vecSrc );
-			WriteBeamVisual(visual);
-		MESSAGE_END();
-	}
+	SendBeam(entindex(), vecSrc, GetVisual(headBallBeamVisual));
 }
 
 void CControllerHeadBall::BounceTouch( CBaseEntity *pOther )

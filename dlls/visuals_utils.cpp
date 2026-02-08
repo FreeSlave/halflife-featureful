@@ -181,6 +181,45 @@ void SendBeamFollow(int entIndex, const Visual* visual)
 	MESSAGE_END();
 }
 
+void SendBeam(int entIndexAndAttachment, const Vector& endPos, const Visual* visual, int msgType, const float* origin)
+{
+	if (!visual || !visual->modelIndex)
+		return;
+
+	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+		WRITE_BYTE(TE_BEAMENTPOINT);
+		WRITE_SHORT(entIndexAndAttachment);
+		WRITE_VECTOR(endPos);
+		WriteBeamVisual(visual);
+	MESSAGE_END();
+}
+
+void SendBeam(const Vector& startPos, const Vector& endPos, const Visual* visual, int msgType, const float* origin)
+{
+	if (!visual || !visual->modelIndex)
+		return;
+
+	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+		WRITE_BYTE(TE_BEAMPOINTS);
+		WRITE_VECTOR(startPos);
+		WRITE_VECTOR(endPos);
+		WriteBeamVisual(visual);
+	MESSAGE_END();
+}
+
+void SendBeam(int entIndexAndAttachment, int entIndexAndAttachment2, const Visual* visual, int msgType, const float* origin)
+{
+	if (!visual || !visual->modelIndex)
+		return;
+
+	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+		WRITE_BYTE(TE_BEAMENTS);
+		WRITE_SHORT(entIndexAndAttachment);
+		WRITE_SHORT(entIndexAndAttachment2);
+		WriteBeamVisual(visual);
+	MESSAGE_END();
+}
+
 float AnimateWithFramerate(float frame, float maxFrame, float framerate, float* pLastTime)
 {
 	if (maxFrame == 0 || framerate == 0.0f)
