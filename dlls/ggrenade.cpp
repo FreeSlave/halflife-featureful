@@ -604,15 +604,7 @@ void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
 	SetThink(&CGrenadeRound::GrenadeThink);
 	pev->nextthink = gpGlobals->time;
 
-	const Visual* visual = GetVisual(trailVisual);
-	if (visual->modelIndex)
-	{
-		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE(TE_BEAMFOLLOW);
-		WRITE_SHORT(entindex());
-		WriteBeamFollowVisual(visual);
-		MESSAGE_END();
-	}
+	SendBeamFollow(entindex(), GetVisual(trailVisual));
 }
 
 void CGrenadeRound::GrenadeTouch(CBaseEntity* pOther)

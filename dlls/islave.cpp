@@ -2115,15 +2115,7 @@ void CISlave::StartMeleeAttackGlow(int side)
 	CSprite* handGlow = side == ISLAVE_LEFT_ARM ? m_handGlow2 : m_handGlow1;
 	HandGlowOn(handGlow);
 
-	const Visual* visual = GetVisual(trailBeamVisual);
-	if (!visual->modelIndex)
-		return;
-
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMFOLLOW );
-		WRITE_SHORT( entindex() + 0x1000 * (AttachmentFromSide(side)) );
-		WriteBeamFollowVisual( visual );
-	MESSAGE_END();
+	SendBeamFollow(entindex() + 0x1000 * (AttachmentFromSide(side)), GetVisual(trailBeamVisual), MSG_PVS, pev->origin);
 }
 
 bool CISlave::CanUseGlowArms()

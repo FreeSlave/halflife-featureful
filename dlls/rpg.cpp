@@ -255,15 +255,7 @@ void CRpgRocket::IgniteThink()
 	EmitSoundScript(rocketIgniteSoundScript);
 
 	// rocket trail
-	const Visual* visual = GetVisual(trailVisual);
-	if (visual->modelIndex)
-	{
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMFOLLOW );
-			WRITE_SHORT( entindex() );	// entity
-			WriteBeamFollowVisual( visual );
-		MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
-	}
+	SendBeamFollow(entindex(), GetVisual(trailVisual));
 
 	m_flIgniteTime = gpGlobals->time;
 

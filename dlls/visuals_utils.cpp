@@ -57,7 +57,7 @@ static void WriteBeamVisual(const Visual *visual)
 	WRITE_BYTE( visual->beamScrollRate );		// speed
 }
 
-void WriteBeamFollowVisual(const Visual *visual)
+static void WriteBeamFollowVisual(const Visual *visual)
 {
 	WRITE_SHORT( visual->modelIndex );
 	WRITE_BYTE( (int)(10*RandomizeNumberFromRange(visual->life)) ); // life
@@ -169,15 +169,15 @@ void SendSmoke(const Vector& position, const Visual* visual)
 	MESSAGE_END();
 }
 
-void SendBeamFollow(int entIndex, const Visual* visual)
+void SendBeamFollow(int entIndexAndAttachment, const Visual* visual, int msgType, const float* origin)
 {
 	if (!visual || !visual->modelIndex)
 		return;
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMFOLLOW );
-		WRITE_SHORT( entIndex );	// entity
-		WriteBeamFollowVisual( visual );
+	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+		WRITE_BYTE(TE_BEAMFOLLOW);
+		WRITE_SHORT(entIndexAndAttachment);
+		WriteBeamFollowVisual(visual);
 	MESSAGE_END();
 }
 
