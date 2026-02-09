@@ -93,13 +93,9 @@ int CHudHealth::VidInit()
 	giDmgHeight = gHUD.GetSpriteRect( m_HUD_dmg_bio ).right - gHUD.GetSpriteRect( m_HUD_dmg_bio ).left;
 	giDmgWidth = gHUD.GetSpriteRect( m_HUD_dmg_bio ).bottom - gHUD.GetSpriteRect( m_HUD_dmg_bio ).top;
 
-	int HUD_suit_empty = gHUD.GetSpriteIndex( "suit_empty" );
-	int HUD_suit_full = gHUD.GetSpriteIndex( "suit_full" );
+	m_HUD_suit_empty = gHUD.GetSpriteIndex( "suit_empty" );
+	m_HUD_suit_full = gHUD.GetSpriteIndex( "suit_full" );
 
-	m_ArmorSprite1 = m_ArmorSprite2 = 0;  // delaying get sprite handles until we know the sprites are loaded
-	m_prc1 = &gHUD.GetSpriteRect( HUD_suit_empty );
-	m_prc2 = &gHUD.GetSpriteRect( HUD_suit_full );
-	m_iHeight = m_prc2->bottom - m_prc1->top;
 	m_fArmorFade = 0;
 
 	return 1;
@@ -285,8 +281,12 @@ int CHudHealth::DrawHealth(bool drawSeparator)
 
 void CHudHealth::DrawArmor(int startX)
 {
-	wrect_t rc = *m_prc2;
-	rc.top  += m_iHeight * ( (float)( 100 - ( Q_min( 100, m_iBat ) ) ) * 0.01f );	// battery can go from 0 to 100 so * 0.01 goes from 0 to 1
+	wrect_t suitEmptyRect = gHUD.GetSpriteRect(m_HUD_suit_empty);
+	wrect_t suitFullRect = gHUD.GetSpriteRect(m_HUD_suit_full);
+	const int batHeight = suitFullRect.bottom - suitEmptyRect.top;
+
+	wrect_t rc = suitFullRect;
+	rc.top  += batHeight * ( (float)( 100 - ( Q_min( 100, m_iBat ) ) ) * 0.01f );	// battery can go from 0 to 100 so * 0.01 goes from 0 to 1
 
 	int a = gHUD.MinHUDAlpha();
 
@@ -310,25 +310,19 @@ void CHudHealth::DrawArmor(int startX)
 	UnpackRGB( r, g, b, gHUD.HUDColor() );
 	ScaleColors( r, g, b, a );
 
-	int iOffset = ( m_prc1->bottom - m_prc1->top ) / 6;
+	int iOffset = ( suitEmptyRect.bottom - suitEmptyRect.top ) / 6;
 
 	int y = CHud::Renderer().PerceviedScreenHeight() - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
 	int x = gHUD.DrawArmorNearHealth() ? startX : CHud::Renderer().PerceviedScreenWidth() / 5;
 
-	// make sure we have the right sprite handles
-	if( !m_ArmorSprite1 )
-		m_ArmorSprite1 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_empty" ) );
-	if( !m_ArmorSprite2 )
-		m_ArmorSprite2 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_full" ) );
-
-	CHud::Renderer().SPR_DrawAdditive( m_ArmorSprite1, r, g, b,  x, y - iOffset, m_prc1 );
+	CHud::Renderer().SPR_DrawAdditive( gHUD.GetSprite(m_HUD_suit_empty), r, g, b,  x, y - iOffset, &suitEmptyRect );
 
 	if( rc.bottom > rc.top )
 	{
-		CHud::Renderer().SPR_DrawAdditive( m_ArmorSprite2, r, g, b, x, y - iOffset + ( rc.top - m_prc2->top ), &rc );
+		CHud::Renderer().SPR_DrawAdditive( gHUD.GetSprite(m_HUD_suit_full), r, g, b, x, y - iOffset + ( rc.top - suitFullRect.top ), &rc );
 	}
 
-	x += ( m_prc1->right - m_prc1->left );
+	x += ( suitEmptyRect.right - suitEmptyRect.left );
 
 	const int digitFlag = m_iBat >= 1000 ? DHN_4DIGITS : DHN_3DIGITS;
 	x = gHUD.DrawHudNumber( x, y + gHUD.m_iHudNumbersYOffset, digitFlag | DHN_DRAWZERO, m_iBat, r, g, b );

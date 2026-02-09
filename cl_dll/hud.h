@@ -569,6 +569,9 @@ public:
 	void GetPainColor( int &r, int &g, int &b );
 	float m_fFade;
 
+	int m_HUD_suit_empty;
+	int m_HUD_suit_full;
+
 private:
 	HSPRITE m_hSprite;
 	HSPRITE m_hDamage;
@@ -576,14 +579,9 @@ private:
 	DAMAGE_IMAGE m_dmg[NUM_DMG_TYPES];
 	int m_bitsDamage;
 
-	HSPRITE m_ArmorSprite1;
-	HSPRITE m_ArmorSprite2;
-	const wrect_t *m_prc1;
-	const wrect_t *m_prc2;
 	int m_iBat;
 	int m_iMaxBat;
 	float m_fArmorFade;
-	int m_iHeight;		// width of the battery innards
 
 	int DrawHealth(bool drawSeparator);
 	void DrawArmor(int startX);
@@ -1167,7 +1165,8 @@ public:
 
 	wrect_t& GetSpriteRect( int index )
 	{
-		return m_rgrcRects[index];
+		static wrect_t empty{0,0,0,0};
+		return (index < 0) ? empty : m_rgrcRects[index];
 	}
 
 	wrect_t* GetSpriteRectPointer( int index )
