@@ -4,6 +4,7 @@
 extern int gmsgSprite;
 extern int gmsgSpray;
 extern int gmsgSmoke;
+extern int gmsgCustomBeam;
 
 CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, bool once)
 {
@@ -186,11 +187,12 @@ void SendBeam(int entIndexAndAttachment, const Vector& endPos, const Visual* vis
 	if (!visual || !visual->modelIndex)
 		return;
 
-	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+	MESSAGE_BEGIN(msgType, gmsgCustomBeam, origin);
 		WRITE_BYTE(TE_BEAMENTPOINT);
 		WRITE_SHORT(entIndexAndAttachment);
 		WRITE_VECTOR(endPos);
 		WriteBeamVisual(visual);
+		WRITE_BYTE(visual->beamFlags);
 	MESSAGE_END();
 }
 
@@ -199,11 +201,12 @@ void SendBeam(const Vector& startPos, const Vector& endPos, const Visual* visual
 	if (!visual || !visual->modelIndex)
 		return;
 
-	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+	MESSAGE_BEGIN(msgType, gmsgCustomBeam, origin);
 		WRITE_BYTE(TE_BEAMPOINTS);
 		WRITE_VECTOR(startPos);
 		WRITE_VECTOR(endPos);
 		WriteBeamVisual(visual);
+		WRITE_BYTE(visual->beamFlags);
 	MESSAGE_END();
 }
 
@@ -212,11 +215,12 @@ void SendBeam(int entIndexAndAttachment, int entIndexAndAttachment2, const Visua
 	if (!visual || !visual->modelIndex)
 		return;
 
-	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+	MESSAGE_BEGIN(msgType, gmsgCustomBeam, origin);
 		WRITE_BYTE(TE_BEAMENTS);
 		WRITE_SHORT(entIndexAndAttachment);
 		WRITE_SHORT(entIndexAndAttachment2);
 		WriteBeamVisual(visual);
+		WRITE_BYTE(visual->beamFlags);
 	MESSAGE_END();
 }
 
