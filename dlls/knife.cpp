@@ -90,7 +90,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	};
 	params.fire.cycleTime = 0.5f;
 	params.fire.hitCycleTime = 0.25f;
-	params.fire.idleDelay = 0.5f;
+	params.fire.idleDelay = 5.0f;
 	params.fire.hitBodySound = {
 		CHAN_ITEM,
 		{"weapons/knife_hit_flesh1.wav", "weapons/knife_hit_flesh2.wav"},
