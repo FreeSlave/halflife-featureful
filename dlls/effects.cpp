@@ -690,7 +690,7 @@ void CLightning::StrikeThink()
 			}
 		}
 
-		MESSAGE_BEGIN( MSG_BROADCAST, gmsgCustomBeam ? gmsgCustomBeam : SVC_TEMPENTITY );
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgCustomBeam );
 			if( IsPointEntity( pStart ) || IsPointEntity( pEnd ) )
 			{
 				if( !IsPointEntity( pEnd ) )	// One point entity must be in pEnd
@@ -733,10 +733,7 @@ void CLightning::StrikeThink()
 			WRITE_COLOR( pev->rendercolor );   // r, g, b
 			WRITE_BYTE( (int)pev->renderamt );	// brightness
 			WRITE_BYTE( m_speed );		// speed
-		if (gmsgCustomBeam)
-		{
 			WRITE_BYTE( GetFlags() );
-		}
 		MESSAGE_END();
 		DoSparks( pStart->pev->origin, pEnd->pev->origin );
 		if( pev->dmg > 0 )
@@ -781,7 +778,7 @@ void CLightning::DamageThink()
 void CLightning::Zap( const Vector &vecSrc, const Vector &vecDest )
 {
 #if 1
-	MESSAGE_BEGIN( MSG_BROADCAST, gmsgCustomBeam ? gmsgCustomBeam : SVC_TEMPENTITY );
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgCustomBeam );
 		WRITE_BYTE( TE_BEAMPOINTS );
 		WRITE_VECTOR( vecSrc );
 		WRITE_VECTOR( vecDest );
@@ -794,10 +791,7 @@ void CLightning::Zap( const Vector &vecSrc, const Vector &vecDest )
 		WRITE_COLOR( pev->rendercolor );   // r, g, b
 		WRITE_BYTE( (int)pev->renderamt );	// brightness
 		WRITE_BYTE( m_speed );		// speed
-	if (gmsgCustomBeam)
-	{
 		WRITE_BYTE( GetFlags() );
-	}
 	MESSAGE_END();
 #else
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
@@ -971,7 +965,7 @@ void CLightning::SendRingBeam(CBaseEntity *pClient)
 			return;
 		}
 
-		MESSAGE_BEGIN( msgType, gmsgCustomBeam ? gmsgCustomBeam : SVC_TEMPENTITY, NULL, pClientEdict );
+		MESSAGE_BEGIN( msgType, gmsgCustomBeam, NULL, pClientEdict );
 			WRITE_BYTE( TE_BEAMRING );
 			WRITE_SHORT( pStart->entindex() );
 			WRITE_SHORT( pEnd->entindex() );
@@ -987,10 +981,7 @@ void CLightning::SendRingBeam(CBaseEntity *pClient)
 			WRITE_BYTE( (int)pev->rendercolor.z );   // r, g, b
 			WRITE_BYTE( (int)pev->renderamt );	// brightness
 			WRITE_BYTE( m_speed );		// speed
-		if (gmsgCustomBeam)
-		{
 			WRITE_BYTE( GetFlags() );
-		}
 		MESSAGE_END();
 	}
 }
