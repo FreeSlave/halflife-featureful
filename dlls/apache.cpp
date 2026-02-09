@@ -205,7 +205,8 @@ const NamedVisual CApache::blastCircleVisual = BuildVisual("Apache.BlastCircle")
 		.Life(0.4f)
 		.BeamParams(32, 0)
 		.RenderColor(255, 255, 192)
-		.Alpha(128);
+		.Alpha(128)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
 
 void CApache::Spawn()
 {
@@ -460,11 +461,7 @@ void CApache::DyingThink()
 		SendSmoke(vecSpot + Vector(0, 0, 512.0f), GetVisual(crashSmokeVisual));
 
 		// blast circle
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_BEAMCYLINDER );
-			WRITE_CIRCLE( pev->origin, 2000 ); // reach damage radius over .2 seconds
-			WriteBeamVisual(GetVisual(blastCircleVisual));
-		MESSAGE_END();
+		SendBeamWave(pev->origin, 2000, GetVisual(blastCircleVisual), MSG_PVS, pev->origin);
 
 		EmitSoundScript(crashSoundScript);
 

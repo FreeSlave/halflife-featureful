@@ -85,6 +85,10 @@ void Visual::CompleteFrom(const Visual &visual)
 	{
 		SetDecay(visual.decay);
 	}
+	if (ShouldCompleteFrom(visual, WAVE_DEFINED))
+	{
+		SetWaveType(visual.waveType);
+	}
 }
 
 static bool ParseRenderMode(const char* str, int& rendermode)
@@ -288,6 +292,20 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, const Value &value)
 		visual.SetDecay(decay);
 	}
 
+	HandleJSONMember(value, "wave", [&visual](const Value& value) {
+		int waveType = Visual::WAVETYPE_CYLINDER;
+		const char* str = value.GetString();
+		if (stricmp(str, "torus") == 0)
+		{
+			waveType = Visual::WAVETYPE_TORUS;
+		}
+		else if (stricmp(str, "disk") == 0)
+		{
+			waveType = Visual::WAVETYPE_DISK;
+		}
+		visual.SetWaveType(waveType);
+	});
+
 	_visuals[name] = visual;
 }
 
@@ -404,6 +422,24 @@ void VisualSystem::DumpVisualImpl(const char *name, const Visual &visual) const
 			LOG("Shadein; ");
 		if (FBitSet(beamFlags, BEAM_FSHADEOUT))
 			LOG("Shadeout; ");
+	}
+
+	if (visual.HasDefined(Visual::WAVE_DEFINED))
+	{
+		const int waveType = visual.waveType;
+		LOG("Beam Wave Type: ");
+		if (waveType == Visual::WAVETYPE_TORUS)
+		{
+			LOG("Torus");
+		}
+		else if (waveType == Visual::WAVETYPE_DISK)
+		{
+			LOG("Disk");
+		}
+		else
+		{
+			LOG("Cylinder");
+		}
 	}
 
 	LOG("\n\n");

@@ -318,6 +318,16 @@ const char* const json_schemas::definitions = R"(
 			},
 			"decay": {
 				"type": "number"
+			},
+			"wave": {
+				"enum": [
+					"Torus",
+					"torus",
+					"Disk",
+					"disk",
+					"Cylinder",
+					"cylinder"
+				]
 			}
 		},
 		"additionalProperties": false

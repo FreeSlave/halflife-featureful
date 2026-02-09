@@ -39,6 +39,14 @@ struct Visual
 		RADIUS_DEFINED = (1 << 11),
 		BEAMFLAGS_DEFINED = (1 << 12),
 		DECAY_DEFINED = (1 << 13),
+		WAVE_DEFINED = (1 << 14),
+	};
+
+	enum
+	{
+		WAVETYPE_CYLINDER,
+		WAVETYPE_TORUS,
+		WAVETYPE_DISK,
 	};
 
 	const char* model = nullptr;
@@ -55,6 +63,7 @@ struct Visual
 	IntRange radius = 0;
 	int beamFlags = 0;
 	float decay = 0.0f;
+	int waveType = WAVETYPE_CYLINDER;
 
 	int modelIndex = 0;
 
@@ -127,6 +136,11 @@ struct Visual
 	{
 		this->decay = decay;
 		MarkAsDefined(DECAY_DEFINED);
+	}
+	inline void SetWaveType(int waveType)
+	{
+		this->waveType = waveType;
+		MarkAsDefined(WAVE_DEFINED);
 	}
 
 	inline bool HasModel() const {
@@ -258,6 +272,10 @@ struct BuildVisual
 	}
 	inline BuildVisual& Decay(float decay) {
 		visual.SetDecay(decay);
+		return *this;
+	}
+	inline BuildVisual& WaveType(int waveType) {
+		visual.SetWaveType(waveType);
 		return *this;
 	}
 	inline BuildVisual& Mixin(const NamedVisual* mixin)

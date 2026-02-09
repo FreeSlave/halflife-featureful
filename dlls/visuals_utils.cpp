@@ -44,7 +44,7 @@ CBeam* CreateBeamFromVisual(const Visual* visual)
 	return beam;
 }
 
-void WriteBeamVisual(const Visual *visual)
+static void WriteBeamVisual(const Visual *visual)
 {
 	WRITE_SHORT( visual->modelIndex );
 	WRITE_BYTE( 0 ); // framestart
@@ -216,6 +216,24 @@ void SendBeam(int entIndexAndAttachment, int entIndexAndAttachment2, const Visua
 		WRITE_BYTE(TE_BEAMENTS);
 		WRITE_SHORT(entIndexAndAttachment);
 		WRITE_SHORT(entIndexAndAttachment2);
+		WriteBeamVisual(visual);
+	MESSAGE_END();
+}
+
+void SendBeamWave(const Vector& vecSrc, float radius, const Visual* visual, int msgType, const float* origin)
+{
+	if (!visual || !visual->modelIndex)
+		return;
+
+	int tmpEntType = TE_BEAMCYLINDER;
+	if (visual->waveType == Visual::WAVETYPE_TORUS)
+		tmpEntType = TE_BEAMTORUS;
+	else if (visual->waveType == Visual::WAVETYPE_DISK)
+		tmpEntType = TE_BEAMDISK;
+
+	MESSAGE_BEGIN(msgType, SVC_TEMPENTITY, origin);
+		WRITE_BYTE(tmpEntType);
+		WRITE_CIRCLE(vecSrc, radius);
 		WriteBeamVisual(visual);
 	MESSAGE_END();
 }

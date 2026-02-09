@@ -10,8 +10,6 @@ CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, bool
 
 CBeam* CreateBeamFromVisual(const Visual* visual);
 
-void WriteBeamVisual(const Visual* visual);
-
 void WriteBeamFollowVisual(const Visual* visual);
 
 void SendDynLight(const Vector& vecOrigin, const Visual* visual);
@@ -23,6 +21,8 @@ void SendBeamFollow(int entIndex, const Visual* visual);
 void SendBeam(int entIndexAndAttachment, const Vector& endPos, const Visual* visual, int msgType = MSG_BROADCAST, const float* origin = nullptr);
 void SendBeam(const Vector& startPos, const Vector& endPos, const Visual* visual, int msgType = MSG_BROADCAST, const float* origin = nullptr);
 void SendBeam(int entIndexAndAttachment, int entIndexAndAttachment2, const Visual* visual, int msgType = MSG_BROADCAST, const float* origin = nullptr);
+
+void SendBeamWave(const Vector& vecSrc, float radius, const Visual* visual, int msgType = MSG_BROADCAST, const float* origin = nullptr);
 
 float AnimateWithFramerate(float frame, float maxFrame, float framerate, float* pLastTime = nullptr);
 

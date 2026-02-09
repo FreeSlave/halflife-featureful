@@ -258,7 +258,8 @@ const NamedVisual CFlybee::zapWaveVisual = BuildVisual("Flybee.ZapWave")
 		.Life(0.2f)
 		.BeamWidth(16)
 		.RenderColor(206, 118, 255)
-		.Alpha(80);
+		.Alpha(80)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
 
 void CFlybee::IdleSound()
 {
@@ -435,15 +436,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 				pSprite->Expand( pSprite->pev->scale, 120 );
 			}
 
-			const Visual* waveVisual = GetVisual(zapWaveVisual);
-			if (waveVisual && waveVisual->modelIndex)
-			{
-				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-					WRITE_BYTE( TE_BEAMCYLINDER );
-					WRITE_CIRCLE( vecEnd, 1000 );
-					WriteBeamVisual(waveVisual);
-				MESSAGE_END();
-			}
+			SendBeamWave(vecEnd, 1000, GetVisual(zapWaveVisual), MSG_PVS, pev->origin);
 			RadiusDamage( vecEnd, pev, pev, DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}, CLASS_ALIEN_MONSTER );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);

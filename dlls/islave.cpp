@@ -714,6 +714,7 @@ const NamedVisual CISlave::coilBeamVisual = BuildVisual("Vortigaunt.CoilBeam")
 		.Framerate(10.0f)
 		.BeamParams(128, 20)
 		.Life(0.2f)
+		.WaveType(Visual::WAVETYPE_CYLINDER)
 		.Mixin(&CISlave::zapBeamColorVisual);
 
 const NamedVisual CISlave::trailBeamVisual = BuildVisual("Vortigaunt.MeleeTrailBeam")
@@ -2073,22 +2074,11 @@ void CISlave::CoilBeam()
 {
 	const Visual* visual = GetVisual(coilBeamVisual);
 
-	if (!visual->modelIndex)
-		return;
-
 	const Vector coilOrigin = pev->origin + Vector(0, 0, 16.0f);
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_CIRCLE( coilOrigin, ISLAVE_COIL_ATTACK_RADIUS*5 );
-		WriteBeamVisual(visual);
-	MESSAGE_END();
+	SendBeamWave(coilOrigin, ISLAVE_COIL_ATTACK_RADIUS*5, visual, MSG_PAS, pev->origin);
 
 	const Vector coilOrigin2 = pev->origin + Vector(0, 0, 48.0f);
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_CIRCLE( coilOrigin2, ISLAVE_COIL_ATTACK_RADIUS*2 );
-		WriteBeamVisual(visual);
-	MESSAGE_END();
+	SendBeamWave(coilOrigin2, ISLAVE_COIL_ATTACK_RADIUS*2, visual, MSG_PAS, pev->origin);
 }
 
 void CISlave::HandGlowOff(CSprite *handGlow)

@@ -56,6 +56,10 @@ Each entry in the document may have the following properties:
   - `"solid"` - draw the beam texture as solid (used by ropes in *_repel* entities).
   - `"shadein"` - shade at the start.
   - `"shadeout"` - shade at the end.
+* `"wave"` - type of the beam wave (circle). This is applicable only to beam visuals that are played as waves/rings, e.g. the houndeye's shockwave or Osprey's blast circle. Possible values:
+  - `"cylinder"`
+  - `"torus"`
+  - `"disk"`
 
 Some parameters are applied only to certain types of visuals (e.g. beam specific parameters are used by beams only). Defining these parameters has no effect if the visual doesn't use them.
 

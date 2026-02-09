@@ -295,7 +295,8 @@ const NamedVisual CRoboCop::shockWaveBaseVisual = BuildVisual("RoboCop.ShockWave
 		.Framerate(10)
 		.Life(0.2f)
 		.BeamWidth(32)
-		.Alpha(255);
+		.Alpha(255)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
 
 const NamedVisual CRoboCop::shockWave1Visual = BuildVisual("RoboCop.ShockWave1")
 		.RenderColor(101, 133, 221)
@@ -392,20 +393,8 @@ void CRoboCop::FistAttack()
 
 	for( size_t i = 0; i < ARRAYSIZE(waveVisuals); i++ )
 	{
-		if (waveVisuals[i] && waveVisuals[i]->modelIndex)
-		{
-			// blast circles
-			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_BEAMCYLINDER );
-				WRITE_COORD( vecSrc.x );
-				WRITE_COORD( vecSrc.y );
-				WRITE_COORD( vecSrc.z + 16 );
-				WRITE_COORD( vecSrc.x );
-				WRITE_COORD( vecSrc.y );
-				WRITE_COORD( vecSrc.z + shockWaveRadius / ( ( i + 1 ) * 0.2f ) ); // reach damage radius over .3 seconds
-				WriteBeamVisual(waveVisuals[i]);
-			MESSAGE_END();
-		}
+		// blast circles
+		SendBeamWave(vecSrc + Vector(0,0,16), shockWaveRadius / ( ( i + 1 ) * 0.2f ), waveVisuals[i], MSG_PAS, pev->origin);
 	}
 
 	CBaseEntity *pEntity = NULL;

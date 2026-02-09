@@ -240,7 +240,8 @@ const NamedVisual CMortar::circleVisual = BuildVisual("Mortar.Circle")
 	.Alpha(255)
 	.Framerate(0)
 	.Life(0.2f)
-	.BeamWidth(12);
+	.BeamWidth(12)
+	.WaveType(Visual::WAVETYPE_TORUS);
 
 void CMortar::Spawn()
 {
@@ -265,21 +266,7 @@ void CMortar::MortarExplode()
 {
 	SendBeam(pev->origin, pev->origin + Vector(0, 0, 1024), GetVisual(beamVisual));
 
-	const Visual* cVisual = GetVisual(circleVisual);
-	if (cVisual->modelIndex)
-	{
-		// blast circle
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMTORUS );
-		WRITE_COORD( pev->origin.x );
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z + 32 );
-		WRITE_COORD( pev->origin.x );
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z + 32 + pev->dmg * 2 / .2 ); // reach damage radius over .3 seconds
-		WriteBeamVisual(cVisual);
-		MESSAGE_END();
-	}
+	SendBeamWave(pev->origin + Vector(0,0,32), pev->dmg * 2 / .2, GetVisual(circleVisual));
 
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + Vector( 0, 0, 1024 ), pev->origin - Vector( 0, 0, 1024 ), dont_ignore_monsters, ENT( pev ), &tr );

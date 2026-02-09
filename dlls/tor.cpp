@@ -270,7 +270,8 @@ const NamedVisual CTor::slamVisual = BuildVisual("Tor.Slam")
 	.Life(0.2f)
 	.BeamWidth(12)
 	.RenderColor(255, 255, 255)
-	.Alpha(255);
+	.Alpha(255)
+	.WaveType(Visual::WAVETYPE_CYLINDER);
 
 const NamedVisual CTor::beamVisual = BuildVisual("Tor.Beam")
 	.Model("sprites/xenobeam.spr")
@@ -829,15 +830,8 @@ void CTor::SlamAttack()
 
 	EmitSoundScript(slamSoundScript);
 
-	float radius = (SLAM_ATTACK_RADIUS + 50) / 0.3f;
-
-	const Visual* visual = GetVisual(slamVisual);
-
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-	WRITE_BYTE( TE_BEAMCYLINDER );
-	WRITE_CIRCLE( pev->origin, radius );
-	WriteBeamVisual(visual);
-	MESSAGE_END();
+	const float radius = (SLAM_ATTACK_RADIUS + 50) / 0.3f;
+	SendBeamWave(pev->origin, radius, GetVisual(slamVisual), MSG_PAS, pev->origin);
 }
 
 bool CTor::GetSummonPos(Vector& pos)

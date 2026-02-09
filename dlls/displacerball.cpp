@@ -47,7 +47,8 @@ const NamedVisual CDisplacerBall::ringVisual = BuildVisual("DisplacerBall.Ring")
 		.Life(0.3f)
 		.BeamParams(36, 0)
 		.RenderColor(255, 255, 255)
-		.Alpha(255);
+		.Alpha(255)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
 
 const NamedVisual CDisplacerBall::lightVisual = BuildVisual("DisplacerBall.Light")
 		.Radius(160)
@@ -259,15 +260,7 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 
 void CDisplacerBall::Circle()
 {
-	const Visual* visual = GetVisual(ringVisual);
-	if (visual->modelIndex)
-	{
-		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pev->origin);
-			WRITE_BYTE(TE_BEAMCYLINDER);
-			WRITE_CIRCLE(pev->origin, 800.0f);
-			WriteBeamVisual(visual);
-		MESSAGE_END();
-	}
+	SendBeamWave(pev->origin, 800.0f, GetVisual(ringVisual), MSG_PAS, pev->origin);
 
 	SendDynLight(pev->origin, GetVisual(lightVisual));
 }

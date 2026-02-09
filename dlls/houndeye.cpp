@@ -241,7 +241,8 @@ const NamedVisual CHoundeye::waveVisual = BuildVisual("Houndeye.WaveBase")
 		.Model("sprites/shockwave.spr")
 		.Life(0.2f)
 		.BeamParams(16, 0)
-		.Alpha(255);
+		.Alpha(255)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
 
 const NamedVisual CHoundeye::wave1Visual = BuildVisual("Houndeye.Wave1")
 		.RenderColor(188, 220, 255)
@@ -580,17 +581,9 @@ void CHoundeye::SonicAttack()
 
 	const Vector blastOrigin = pev->origin + Vector(0, 0, 16.0f);
 	// blast circles
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_CIRCLE( blastOrigin, HOUNDEYE_MAX_ATTACK_RADIUS / 0.2f );
-		WriteBeamVisual(visual);
-	MESSAGE_END();
+	SendBeamWave(blastOrigin, HOUNDEYE_MAX_ATTACK_RADIUS / 0.2f, visual, MSG_PAS, pev->origin);
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_BEAMCYLINDER );
-		WRITE_CIRCLE( blastOrigin, ( HOUNDEYE_MAX_ATTACK_RADIUS / 2.0f ) / 0.2f );
-		WriteBeamVisual(visual);
-	MESSAGE_END();
+	SendBeamWave(blastOrigin, ( HOUNDEYE_MAX_ATTACK_RADIUS / 2.0f ) / 0.2f, visual, MSG_PAS, pev->origin);
 
 	const int squadCount = SquadCount();
 
