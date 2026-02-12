@@ -3114,8 +3114,9 @@
 		64: "X Axis" : 0
 		128: "Y Axis" : 0
 		256:"Touch Activates": 0
-		512:"Player Can't Use": 0
+		512:"Deprecated (untick this!)": 0
 		1024:"Check master on return": 0
+		16384:"Player Can't Use": 0
 	]
 	_minlight(string) : "Minimum light level"
 ]
