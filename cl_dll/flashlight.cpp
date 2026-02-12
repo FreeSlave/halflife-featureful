@@ -145,8 +145,8 @@ int CHudFlashlight::Draw( float flTime )
 	if (!emptySprite || !fullSprite)
 		return 1;
 
-	wrect_t* emptyFlash = shouldDrawNvg ? m_prc3 : m_prc1;
-	wrect_t* fullFlash = shouldDrawNvg ? m_prc4 : m_prc2;
+	const wrect_t* emptyFlash = shouldDrawNvg ? m_prc3 : m_prc1;
+	const wrect_t* fullFlash = shouldDrawNvg ? m_prc4 : m_prc2;
 
 	y = ( emptyFlash->bottom - fullFlash->top ) / 2;
 	x = CHud::Renderer().PerceviedScreenWidth() - m_iWidth - m_iWidth / 2 ;

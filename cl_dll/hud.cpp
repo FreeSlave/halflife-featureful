@@ -1907,7 +1907,7 @@ int CHudMoveMode::Draw(float flTime)
 		return 1;
 	}
 	int r, g, b, x, y;
-	wrect_t* prc;
+	const wrect_t* prc = nullptr;
 	HSPRITE sprite;
 	UnpackRGB( r,g,b, gHUD.HUDColor() );
 

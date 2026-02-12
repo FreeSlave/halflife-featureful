@@ -612,11 +612,11 @@ private:
 	HSPRITE m_hSprite3;
 	HSPRITE m_hSprite4;
 	HSPRITE m_hBeam;
-	wrect_t *m_prc1;
-	wrect_t *m_prc2;
-	wrect_t *m_prcBeam;
-	wrect_t *m_prc3;
-	wrect_t *m_prc4;
+	const wrect_t *m_prc1;
+	const wrect_t *m_prc2;
+	const wrect_t *m_prcBeam;
+	const wrect_t *m_prc3;
+	const wrect_t *m_prc4;
 	float m_flBat;	
 	int m_iBat;	
 	int m_fOn;
@@ -823,10 +823,10 @@ private:
 	HSPRITE m_hSpriteRun;
 	HSPRITE m_hSpriteCrouch;
 	HSPRITE m_hSpriteJump;
-	wrect_t *m_prcStand;
-	wrect_t *m_prcRun;
-	wrect_t *m_prcCrouch;
-	wrect_t *m_prcJump;
+	const wrect_t *m_prcStand;
+	const wrect_t *m_prcRun;
+	const wrect_t *m_prcCrouch;
+	const wrect_t *m_prcJump;
 	short m_movementState;
 };
 
@@ -1163,13 +1163,13 @@ public:
 		return ( index < 0 ) ? 0 : m_rghSprites[index];
 	}
 
-	wrect_t& GetSpriteRect( int index )
+	const wrect_t& GetSpriteRect( int index )
 	{
 		static wrect_t empty{0,0,0,0};
 		return (index < 0) ? empty : m_rgrcRects[index];
 	}
 
-	wrect_t* GetSpriteRectPointer( int index )
+	const wrect_t* GetSpriteRectPointer( int index )
 	{
 		if (index < 0 || index >= m_iSpriteCount)
 			return NULL;
