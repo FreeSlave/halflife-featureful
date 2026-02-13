@@ -362,7 +362,6 @@ class CZombieBarney : public CZombie
 	void Spawn() override;
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
-	const char* DefaultDisplayName() override { return "Zombie Barney"; }
 	float OneSlashDamage() override { return GetSkillValue("zombie_barney_dmg_one_slash"); }
 	float BothSlashDamage() override { return GetSkillValue("zombie_barney_dmg_both_slash"); }
 };
@@ -404,7 +403,6 @@ class CZombieSoldier : public CZombie
 	void Spawn() override;
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
-	const char* DefaultDisplayName() override { return "Zombie Soldier"; }
 	float OneSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_one_slash"); }
 	float BothSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_both_slash"); }
 };
