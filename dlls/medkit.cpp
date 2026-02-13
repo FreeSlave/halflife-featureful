@@ -41,6 +41,7 @@ public:
 	void SecondaryAttack() override;
 	bool Deploy() override;
 	void Holster() override;
+	void ItemPostFrame();
 	void WeaponIdle() override;
 	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 
@@ -235,15 +236,8 @@ void CMedkit::SecondaryAttack()
 	m_flSoundDelay = gpGlobals->time + 1;
 }
 
-void CMedkit::WeaponIdle()
+void CMedkit::ItemPostFrame()
 {
-	if (CanRechargeAmmo())
-	{
-		Reload();
-	}
-
-	ResetEmptySound();
-
 	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
 	{
 		const float medkitShot = GetSkillValue("plr_medkitshot");
@@ -267,6 +261,18 @@ void CMedkit::WeaponIdle()
 		}
 		m_flSoundDelay = 0;
 	}
+
+	CBasePlayerWeapon::ItemPostFrame();
+}
+
+void CMedkit::WeaponIdle()
+{
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
+
+	ResetEmptySound();
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
