@@ -21,6 +21,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Zombie`
+
 ### Soundscripts
 
 * **Zombie.Idle** - idle sounds.

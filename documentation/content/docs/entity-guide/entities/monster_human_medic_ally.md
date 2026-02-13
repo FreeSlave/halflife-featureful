@@ -26,6 +26,10 @@ Despite the `ally` part in the entity name, the monster can be made enemy to the
 
 `Player Ally Military`
 
+### Default display name
+
+`Medic Grunt`
+
 ### Soundscripts
 
 * **MedicGrunt.Heal** - healing sound. Must be looped.

@@ -78,7 +78,7 @@ public:
 	int DefaultISoundMask() override;
 	void BarneyFirePistol( const char* shotSoundScript, float flDamage );
 	void AlertSound() override;
-	const char* DefaultDisplayName() override { return "Barney"; }
+	const char* DefaultDisplayName() override { return "Security Guard"; }
 	int DefaultClassify() override;
 	const char* ReverseRelationshipModel() override { return "models/barnabus.mdl"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
@@ -776,7 +776,6 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("otis"); }
 	const char* DefaultSentenceGroup(int group) override;
-	const char* DefaultDisplayName() override { return "Otis"; }
 	const char* ReverseRelationshipModel() override { return "models/otisf.mdl"; }
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
@@ -966,7 +965,6 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("barniel"); }
 	const char* DefaultSentenceGroup(int group) override;
-	const char* DefaultDisplayName() override { return "Barniel"; }
 	const char* ReverseRelationshipModel() override { return NULL; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void DeathSound() override;

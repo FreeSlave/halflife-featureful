@@ -41,7 +41,7 @@ public:
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("panthereye"); }
 	void SetYawSpeed() override;
 	int  DefaultClassify() override;
-	const char* DefaultDisplayName() override { return "Panther Eye"; }
+	const char* DefaultDisplayName() override { return "Panthereye"; }
 
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	Schedule_t* GetScheduleOfType(int Type) override;

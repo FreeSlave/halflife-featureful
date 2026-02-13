@@ -15,6 +15,10 @@ Generic npc that acts like scientist but doesn't have an ability to heal the pla
 
 `Human Passive`
 
+### Default display name
+
+`Civilian`
+
 ### Soundscripts
 
 * **Civilian.Pain** - pain sound. Derived from **Scientist.Pain**

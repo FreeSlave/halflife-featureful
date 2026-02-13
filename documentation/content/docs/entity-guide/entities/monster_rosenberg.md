@@ -13,6 +13,10 @@ bookToC: false
 
 `Human Passive`
 
+### Default display name
+
+`Dr. Rosenberg`
+
 ### Soundscripts
 
 * **Rosenberg.Pain** - pain sound.

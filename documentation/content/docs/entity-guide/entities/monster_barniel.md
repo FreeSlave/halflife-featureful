@@ -16,6 +16,10 @@ Female version of [monster_barney]({{< ref monster_barney >}}) from Azure Sheep.
 
 `Player Ally`
 
+### Default display name
+
+`Security Guard`
+
 ### Soundscripts
 
 * **Barniel.Pain** - pain sound.

@@ -23,6 +23,10 @@ When die robogrunts play spark effects and explode after 2 seconds.
 
 `Machine`
 
+### Default display name
+
+`Robo Grunt`
+
 ### Soundscripts
 
 * **RGrunt.Die** - death sound.

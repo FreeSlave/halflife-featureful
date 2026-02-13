@@ -25,6 +25,10 @@ If **sk_shockroach_lifespan** is set to a negative value (which means an infinit
 This makes pitdrones attack shockroaches. The behavior retained from Opposing Force.
 {{% /hint %}}
 
+### Default display name
+
+`Shock Roach`
+
 ### Soundscripts
 
 * **Shockroach.Idle** - idle sounds.

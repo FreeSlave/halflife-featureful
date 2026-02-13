@@ -1853,7 +1853,17 @@ CBaseEntity* CBaseEntity::CreateAndLaunchAsProjectile(const ProjectileParameters
 
 const char* CBaseEntity::DisplayName()
 {
-	return FStringNull(m_displayName) ? DefaultDisplayName() : STRING(m_displayName);
+	if (!FStringNull(m_displayName))
+		return STRING(m_displayName);
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const char* name = entTemplate->GetDisplayName();
+		if (name)
+			return name;
+	}
+	return DefaultDisplayName();
 }
 
 int CBaseEntity::IRelationship( CBaseEntity *pTarget )

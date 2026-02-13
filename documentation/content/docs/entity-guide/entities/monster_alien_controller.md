@@ -22,6 +22,10 @@ bookToC: false
 
 `Alien Military`
 
+### Default display name
+
+`Alien Controller`
+
 ### Soundscripts
 
 * **Controller.Idle** - idle sounds.

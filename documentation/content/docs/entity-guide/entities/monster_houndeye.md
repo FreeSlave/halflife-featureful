@@ -28,6 +28,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Houndeye`
+
 ### Soundscripts
 
 * **HoundEye.Idle** - idle sounds.

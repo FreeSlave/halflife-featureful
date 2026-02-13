@@ -13,6 +13,10 @@ bookToC: false
 
 `Player Ally Military`
 
+### Default display name
+
+`Drill Sergeant`
+
 ### Soundscripts
 
 * **DrillSergeant.Pain** - pain sound.

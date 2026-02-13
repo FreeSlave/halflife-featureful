@@ -36,6 +36,10 @@ The [loot drop]({{< ref "entity-templates/#loot_drop" >}}) can be configured for
 
 Reports the *health* / *max health* fraction.
 
+### Default display name
+
+`Breakable`
+
 ### Soundscripts
 
 When the breakable gets hit (depending on the material):

@@ -36,6 +36,10 @@ sk_bullsquid_toxicity 0
 
 `Alien Predator`
 
+### Default display name
+
+`Bullsquid`
+
 ### Soundscripts
 
 * **Bullsquid.Idle** - idle sounds.

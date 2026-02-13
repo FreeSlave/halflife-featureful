@@ -16,6 +16,10 @@ bookToC: false
 
 `Alien Prey`
 
+### Default display name
+
+`Baby Headcrab`
+
 ### Soundscripts
 
 * **Babycrab.Idle** - idle sounds. Derived from **Headcrab.Idle** with increased pitch and decreased volume.

@@ -25,6 +25,10 @@ The skill variable names might be confusing as pitdrones don't bite and don't ha
 
 `Race X Predator`
 
+### Default display name
+
+`Pit Drone`
+
 ### Soundscripts
 
 * **PitDrone.Idle** - idle sounds.

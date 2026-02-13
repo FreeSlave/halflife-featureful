@@ -865,6 +865,26 @@ const SkillReplacement* EntTemplate::GetSkillReplacement(const char* name) const
 	return nullptr;
 }
 
+void EntTemplate::SetDisplayName(std::string &&name)
+{
+	_displayName = std::move(name);
+}
+
+void EntTemplate::SetDisplayName(const char *name)
+{
+	if (name && *name)
+		_displayName = name;
+	else
+		_displayName.clear();
+}
+
+const char* EntTemplate::GetDisplayName() const
+{
+	if (!_displayName.empty())
+		return _displayName.c_str();
+	return nullptr;
+}
+
 bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonValue, const char* name, const Value& value, const char* fileName, std::vector<std::string> inheritanceChain)
 {
 	const std::string templateName = name;
@@ -1389,6 +1409,12 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			}
 		}
 	});
+
+	std::string displayName;
+	if (UpdatePropertyFromJson(displayName, value, "displayname"))
+	{
+		entTemplate.SetDisplayName(std::move(displayName));
+	}
 
 	_entTemplates[templateName] = entTemplate;
 }

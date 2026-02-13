@@ -24,6 +24,10 @@ The Tor's energy beam and slam attacks can launch enemies upwards, so make sure 
 
 `Alien Military`
 
+### Default display name
+
+`Tor`
+
 ### Soundscripts
 
 * **Tor.Idle** - idle sounds.

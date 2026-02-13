@@ -51,6 +51,7 @@
 #include "inventory_hud.h"
 #include "objecthint_manager.h"
 #include "message_strings.h"
+#include "displaynames.h"
 #include "journal_config.h"
 
 #include <array>
@@ -1271,6 +1272,7 @@ public:
 
 	InventoryHudSpec m_inventorySpec;
 	MessageStrings m_messageStrings;
+	DisplayNames m_displayNames;
 	JournalConfig m_journalConfig;
 	ObjectHintManager objectHintManager;
 	KeyedDLightManager keyedDlightManager;

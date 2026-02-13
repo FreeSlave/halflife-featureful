@@ -18,7 +18,11 @@ bookToC: false
 
 ### Default classification
 
-`Human Military` or `Blackops` if `blackops_classify` server feature is enabled.
+`Human Military`, or `Blackops` if `blackops_classify` server feature is enabled.
+
+### Default display name
+
+`Male Assassin`
 
 ### Soundscripts
 

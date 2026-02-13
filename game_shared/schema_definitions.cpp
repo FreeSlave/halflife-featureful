@@ -949,6 +949,9 @@ R"(
 						"type": "number"
 					}
 				}
+			},
+			"displayname": {
+				"type": "string"
 			}
 		},
 		"additionalProperties": false

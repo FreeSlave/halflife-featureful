@@ -19,6 +19,10 @@ bookToC: false
 
 `Race X Shock`
 
+### Default display name
+
+`Shock Trooper`
+
 ### Soundscripts
 
 * **ShockTrooper.Pain** - pain sounds.

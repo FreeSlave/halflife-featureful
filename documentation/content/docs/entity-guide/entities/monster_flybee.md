@@ -19,6 +19,10 @@ A fast moving flying creature with range attacks. Ported from Half-Life Invasion
 
 `Alien Monster`
 
+### Default display name
+
+`Flybee`
+
 ### Soundscripts
 
 * **Flybee.Idle** - idle sounds.

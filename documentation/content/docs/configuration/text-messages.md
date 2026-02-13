@@ -63,6 +63,10 @@ The message IDs are case-insensitive. I.e. `hello` and `HELLO` would refer to th
 
 The `get_message` console command is used to retrieve the message text for the provided id.
 
+## Display names
+
+See [Display names]({{< ref displaynames >}})
+
 ## Subtitles
 
-See [Subtitles]({{< ref subtitles >}}).
+See [Subtitles]({{< ref subtitles >}})

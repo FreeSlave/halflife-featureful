@@ -16,6 +16,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Leech`
+
 ### Soundscripts
 
 * **Leech.Attack** - attacking the enemy.

@@ -21,6 +21,10 @@ bookToC: false
 
 `Machine`
 
+### Default display name
+
+`Turrent`
+
 ### Soundscripts
 
 * **Turret.Alert** - when detected an enemy.

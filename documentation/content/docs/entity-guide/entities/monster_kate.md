@@ -19,6 +19,10 @@ Note: you'll need to add sentences with `KA_` prefix to your `sentences.txt` and
 
 `Player Ally`
 
+### Default display name
+
+`Kate`
+
 ### Soundscripts
 
 * **Kate.Pain** - pain sound.

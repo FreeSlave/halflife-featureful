@@ -13,6 +13,10 @@ bookToC: false
 
 `Human Passive`
 
+### Default display name
+
+`Richard Keller`
+
 ### Soundscripts
 
 * **Keller.Pain** - pain sound.

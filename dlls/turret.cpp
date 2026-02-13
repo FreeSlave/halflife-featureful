@@ -292,7 +292,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	// other functions
-	const char* DefaultDisplayName() override { return "Miniturret"; }
+	const char* DefaultDisplayName() override { return "Mini-Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
 
 	static constexpr const char* shootSoundScript = "MiniTurret.Shoot";

@@ -511,6 +511,10 @@ public:
 
 	void SetSkillReplacement(const char* name, const SkillReplacement& replacement);
 	const SkillReplacement* GetSkillReplacement(const char* name) const;
+
+	void SetDisplayName(std::string&& name);
+	void SetDisplayName(const char* name);
+	const char* GetDisplayName() const;
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
@@ -557,6 +561,8 @@ private:
 	PainSoundRule _painSoundRule;
 
 	std::unordered_map<std::string, SkillReplacement> _skillReplacements;
+
+	std::string _displayName;
 };
 
 class EntTemplateSystem : public JSONConfig

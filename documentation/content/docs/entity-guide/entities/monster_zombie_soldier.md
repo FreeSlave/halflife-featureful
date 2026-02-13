@@ -15,6 +15,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Zombie`
+
 ### Soundscripts
 
 Uses same soundscripts as [monster_zombie]({{< ref monster_zombie >}}).

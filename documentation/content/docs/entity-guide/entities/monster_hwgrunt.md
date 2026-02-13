@@ -22,6 +22,10 @@ The model from Sven Co-op 5 has some changes to the model activities and the hwg
 
 `Human Military`
 
+### Default display name
+
+`Heavy Weapons Grunt`
+
 ### Soundscripts
 
 * **HWGrunt.Pain** - pain sounds. Derived from **HGrunt.Pain**

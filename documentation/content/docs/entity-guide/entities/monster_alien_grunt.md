@@ -23,6 +23,10 @@ bookToC: false
 
 `Alien Military`
 
+### Default display name
+
+`Alien Grunt`
+
 ### Soundscripts
 
 * **AlienGrunt.Idle** - idle speaking sounds. Alien grunts speak phrases consisting of short words.

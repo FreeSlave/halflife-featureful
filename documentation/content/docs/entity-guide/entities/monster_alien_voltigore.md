@@ -21,6 +21,10 @@ bookToC: false
 
 `Race X Shock`
 
+### Default display name
+
+`Voltigore`
+
 ### Soundscripts
 
 * **Voltigore.Idle** - idle sounds.

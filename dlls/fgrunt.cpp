@@ -153,7 +153,7 @@ public:
 	void SetYawSpeed() override;
 	int  DefaultISoundMask() override;
 	int  DefaultClassify() override;
-	const char* DefaultDisplayName() override { return "Human Grunt"; }
+	const char* DefaultDisplayName() override { return "Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void CheckAmmo() override;
 	int LookupActivity(int activity) override;
@@ -298,7 +298,7 @@ public:
 	int GetDefaultVoicePitch() override;
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
-	const char* DefaultDisplayName() override { return "Human Medic"; }
+	const char* DefaultDisplayName() override { return "Medic Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
@@ -2918,7 +2918,7 @@ public:
 	void Precache() override;
 	void Activate() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
-	const char* DefaultDisplayName() override { return "Human Torch"; }
+	const char* DefaultDisplayName() override { return "Torch Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t* pEvent ) override;
 	int LookupActivity(int activity) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;

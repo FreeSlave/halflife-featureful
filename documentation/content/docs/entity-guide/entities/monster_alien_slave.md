@@ -66,6 +66,10 @@ sk_islave_heal 0
 
 `Alien Military`
 
+### Default display name
+
+`Alien Slave`
+
 ### Soundscripts
 
 * **Vortigaunt.Idle** - idle sounds.

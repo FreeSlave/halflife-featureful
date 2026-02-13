@@ -18,6 +18,10 @@ A boss robot ported from Poke646.
 
 `Machine`
 
+### Default display name
+
+`Robocop`
+
 ### Soundscripts
 
 * **RoboCop.Die** - death sound.

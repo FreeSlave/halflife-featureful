@@ -102,6 +102,7 @@ set (CLDLL_SOURCES
 	com_weapons.cpp
 	death.cpp
 	demo.cpp
+	displaynames.cpp
 	entity.cpp
 	environment.cpp
 	ev_common.cpp

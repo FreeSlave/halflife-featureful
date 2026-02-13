@@ -27,6 +27,10 @@ bookToC: false
 
 `Player Ally`
 
+### Default display name
+
+`Security Guard`
+
 ### Soundscripts
 
 * **Barney.Pain** - pain sound.

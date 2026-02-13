@@ -16,6 +16,10 @@ An alien creature cut from Half-Life.
 
 `Alien Monster`
 
+### Default display name
+
+`Panthereye`
+
 ### Soundscripts
 
 * **PantherEye.Idle** - idle sounds.

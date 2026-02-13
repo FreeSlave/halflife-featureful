@@ -20,6 +20,10 @@ Despite the `ally` part in the entity name, the monster can be made enemy to the
 
 `Player Ally Military`
 
+### Default display name
+
+`Torch Grunt`
+
 ### Soundscripts
 
 * **TorchGrunt.Pain** - pain sound. Derived from **HGruntAlly.Pain**

@@ -1142,6 +1142,18 @@ Skill values are replaced as whole - it's not possible to replace skill value fo
 Using multiplier replacements (like `"*1.5"`) don't work with skill variables that fallback to other skill variables values.
 {{% /hint %}}
 
+### displayname
+
+Allows to change a default [display name]({{< ref displaynames >}}) for the entity.
+
+```json
+{
+    "monster_alien_slave": {
+        "displayname": "Vortigaunt"
+    }
+}
+```
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

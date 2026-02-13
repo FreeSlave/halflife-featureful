@@ -16,6 +16,10 @@ Baby version of [monster_alien_voltigore]({{< ref monster_alien_voltigore >}}). 
 
 `Race X Shock`
 
+### Default display name
+
+`Baby Voltigore`
+
 ### Soundscripts
 
 * **BabyVoltigore.Idle** - idle sounds. Derived from **Voltigore.Idle**

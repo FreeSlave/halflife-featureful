@@ -18,6 +18,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Big Momma`
+
 ### Soundscripts
 
 * **BigMomma.Alert** - played on the event 14 in the *angry* sequences.

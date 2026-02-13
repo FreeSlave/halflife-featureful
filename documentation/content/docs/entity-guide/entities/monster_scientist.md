@@ -23,6 +23,10 @@ bookToC: false
 
 `Human Passive`
 
+### Default display name
+
+`Scientist`
+
 ### Soundscripts
 
 * **Scientist.Pain** - pain sound.

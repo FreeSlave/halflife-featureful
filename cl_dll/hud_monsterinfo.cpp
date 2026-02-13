@@ -83,14 +83,14 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 		return 1;
 	}
 
+	const char* name = nullptr;
+
 	if (update == MONSTERINFO_FULLUPDATE)
 	{
-		const char* name = READ_STRING();
+		name = READ_STRING();
 
 		if(!(m_iFlags & HUD_ACTIVE))
 			m_iFlags |= HUD_ACTIVE;
-
-		strncpyEnsureTermination(displayName, name);
 	}
 
 	health = READ_SHORT();
@@ -102,6 +102,20 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 	isMonster = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_MONSTER);
 	isPlayer = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_PLAYER);
 	isAlly = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_ALLY);
+
+	if (name)
+	{
+		const char* localizedName = nullptr;
+		if (!isPlayer) // don't localize player's names
+		{
+			localizedName = gHUD.m_displayNames.GetDisplayName(name);
+		}
+
+		if (localizedName)
+			strncpyEnsureTermination(displayName, localizedName);
+		else
+			strncpyEnsureTermination(displayName, name);
+	}
 
 	if (isPlayer)
 	{

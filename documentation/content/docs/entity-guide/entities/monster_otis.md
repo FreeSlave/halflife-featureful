@@ -14,6 +14,10 @@ bookToC: false
 
 `Player Ally`
 
+### Default display name
+
+`Security Guard`
+
 ### Soundscripts
 
 * **Otis.Pain** - pain sound. Derived from **Barney.Pain**

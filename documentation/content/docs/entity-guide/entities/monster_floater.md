@@ -25,6 +25,10 @@ Original Half-Life also has the entity `monster_bloater` which uses the floater 
 
 `Alien Monster`
 
+### Default display name
+
+`Floater`
+
 ### Soundscripts
 
 * **Floater.Idle** - idle sounds. Empty by default.

@@ -16,6 +16,10 @@ bookToC: false
 
 `Alien Prey`
 
+### Default display name
+
+`Headcrab`
+
 ### Soundscripts
 
 * **Headcrab.Idle** - idle sounds.

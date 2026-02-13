@@ -28,6 +28,10 @@ bookToC: false
 
 `Human Military`
 
+### Default display name
+
+`Human Grunt`
+
 ### Soundscripts
 
 * **HGrunt.Pain** - pain sounds.

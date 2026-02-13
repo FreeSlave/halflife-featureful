@@ -20,6 +20,10 @@ Has same changes as [func_breakable]({{< ref func_breakable >}}) (for breakable 
 
 Reports the *health* / *max health* fraction.
 
+### Default display name
+
+`Pushable`
+
 ### Soundscripts
 
 * **Pushable.Move** - played when pushed.

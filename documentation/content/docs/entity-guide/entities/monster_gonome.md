@@ -21,6 +21,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Gonome`
+
 ### Soundscripts
 
 * **Gonome.Idle** - idle sounds.

@@ -17,6 +17,10 @@ bookToC: false
 
 `Alien Monster`
 
+### Default display name
+
+`Ichthyosaur`
+
 ### Soundscripts
 
 * **Ichthyosaur.Idle** - idle sounds.

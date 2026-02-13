@@ -16,6 +16,10 @@ bookToC: false
 
 `Gargantua`
 
+### Default display name
+
+`Baby Gargantua`
+
 ### Soundscripts
 
 * **BabyGarg.Stomp** - stomp projectile sound. Must be looped. Emitted from stomp projectile. Derived from **Garg.Stomp** with increased pitch.

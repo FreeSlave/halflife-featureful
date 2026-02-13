@@ -643,6 +643,10 @@ void CHud::ParseModConfigs()
 	translatedStrings.ReadFromFile("messages.json");
 	m_messageStrings = std::move(translatedStrings);
 
+	DisplayNames displayNames;
+	displayNames.ReadFromFile("displaynames.json");
+	m_displayNames = std::move(displayNames);
+
 	JournalConfig journalConfig;
 	journalConfig.ReadFromFile("journal.json");
 	m_journalConfig = std::move(journalConfig);
