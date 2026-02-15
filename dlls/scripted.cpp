@@ -251,6 +251,11 @@ void CCineMonster::KeyValue( KeyValueData *pkvd )
 		m_searchDelay = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq( pkvd->szKeyName, "m_playFramerate" ) )
+	{
+		m_playFramerate = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 	{
 		CBaseDelay::KeyValue( pkvd );
@@ -303,6 +308,8 @@ TYPEDESCRIPTION	CCineMonster::m_SaveData[] =
 	DEFINE_FIELD( CCineMonster, m_sMaster, FIELD_STRING ),
 	DEFINE_FIELD( CCineMonster, m_initialSearchDelay, FIELD_FLOAT ),
 	DEFINE_FIELD( CCineMonster, m_searchDelay, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CCineMonster, m_playFramerate, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CCineMonster, CBaseDelay )
@@ -789,6 +796,8 @@ bool CCineMonster::StartSequence(CBaseMonster *pTarget, string_t iszSeq, bool co
 #endif
 	pTarget->pev->frame = 0;
 	pTarget->ResetSequenceInfo();
+	if (m_playFramerate && iszSeq == m_iszPlay)
+		pTarget->pev->framerate = m_playFramerate;
 	return true;
 }
 

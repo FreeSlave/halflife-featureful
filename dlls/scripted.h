@@ -227,6 +227,7 @@ public:
 	short m_takeDamagePolicy;
 
 	string_t m_sMaster;
+	float m_playFramerate;
 
 	float m_initialSearchDelay;
 	float m_searchDelay;

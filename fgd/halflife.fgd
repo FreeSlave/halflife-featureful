@@ -1231,6 +1231,7 @@
 	master(string) : "Master" : : "Scripted sequence won't search for its target monster while master is locked"
 	initial_search_delay(string) : "Delay before initial search (default = 1.0)"
 	search_delay(string) : "Delay between search attempts (default = 1.0)"
+	m_playFramerate(string) : "Action Animation framerate" : : "Custom action animation framerate. 1.0 is normal framerate"
 ]
 
 //

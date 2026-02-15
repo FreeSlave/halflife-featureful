@@ -691,6 +691,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				if( m_pCine->m_iDelay <= 0 && gpGlobals->time >= m_pCine->m_startTime )
 				{
 					TaskComplete();
+					bool startedSequence = false;
 					if (m_pCine->IsAction())
 					{
 						switch( m_pCine->m_fAction )
@@ -723,11 +724,12 @@ void CBaseMonster::RunTask( Task_t *pTask )
 					}
 					else
 					{
-						m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszPlay, true );
+						startedSequence = m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszPlay, true );
 						if( m_fSequenceFinished )
 							ClearSchedule();
 					}
-					pev->framerate = 1.0;
+					if (!startedSequence)
+						pev->framerate = 1.0f; // TODO: not sure if this is needed at all. Just preserving the original behavior
 					//ALERT( at_aiconsole, "Script %s has begun for %s\n", STRING( m_pCine->m_iszPlay ), STRING( pev->classname ) );
 				}
 				else if ( FBitSet(m_pCine->pev->spawnflags, SF_SCRIPT_FORCE_IDLE_LOOPING) && !FStringNull( m_pCine->m_iszIdle) && !m_pCine->IsAction() )
