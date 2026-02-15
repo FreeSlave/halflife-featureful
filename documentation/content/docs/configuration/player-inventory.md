@@ -80,7 +80,7 @@ The `pickup_template` allows to define the [Entity template]({{< ref entity-temp
 In the example above inventory items `battery_blue` and `battery_red` are set to have the `models/w_battery.mdl` model and specific render effect, so mapper doesn't need to specify the model and the render effect for each [item_pickup]({{< ref item_pickup >}}) when they want to place these items on the map.
 
 {{% hint warning %}}
-Currently the maximum number of *different* items player can carry at the same time is 8.
+Currently the maximum number of *different* items player can carry at the same time is 16.
 {{% /hint %}}
 
 ## HUD

@@ -9,8 +9,8 @@ bookToC: false
 
 ### New parameters
 
-* `Stop by player input` - allow player to press '+use' in order to stop watching at the camera.
-* ![](/images/svencoop.png) `Target when turned off`.
+* `Stop by player input` - allow player to press '+use' in order to stop watching at the camera. Note: the `Freeze Player` spawnflag prevents any player's input. You may use the [player_capabilities]({{< ref player_capabilities >}}) disabling the movement and jump on camera activation and enabling them again via the `Target when turned off`.
+* ![](/images/svencoop.png) `Target when turned off` - fire a target when the camera gets turned off when either the hold time expires or the camera is turned off by a trigger or a player's input (if `Stop by player input` is enabled).
 
 ### New spawnflags
 
