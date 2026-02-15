@@ -1758,6 +1758,9 @@ public:
 		TalkMonsterInit();
 	}
 	void Precache() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override {
+		CTalkMonster::HandleAnimEvent(pEvent);
+	}
 	const char* DefaultDisplayName() override { return "Civilian"; }
 	bool AbleToHeal() override { return false; }
 
