@@ -23,6 +23,7 @@
 #define K_ENTER		13
 #define K_ESCAPE		27
 #define K_SPACE		32
+#define K_SCROLLLOCK 70
 
 // normal keys should be passed as lowercased ascii
 
@@ -129,5 +130,32 @@
 #define K_MOUSE3		243
 #define K_MOUSE4		244
 #define K_MOUSE5		245
+
+// button names for game pads
+#define K_A_BUTTON       K_AUX1
+#define K_B_BUTTON       K_AUX2
+#define K_X_BUTTON       K_AUX3
+#define K_Y_BUTTON       K_AUX4
+#define K_L1_BUTTON      K_AUX5
+#define K_R1_BUTTON      K_AUX6
+#define K_BACK_BUTTON    K_AUX7
+#define K_MODE_BUTTON    K_AUX8
+#define K_START_BUTTON   K_AUX9
+#define K_LSTICK         K_AUX10
+#define K_RSTICK         K_AUX11
+#define K_L2_BUTTON      K_AUX12
+#define K_R2_BUTTON      K_AUX13
+#define K_C_BUTTON       K_AUX14
+#define K_Z_BUTTON       K_AUX15
+#define K_DPAD_UP        K_AUX16
+#define K_DPAD_DOWN      K_AUX17
+#define K_DPAD_LEFT      K_AUX18
+#define K_DPAD_RIGHT     K_AUX19
+#define K_MISC_BUTTON    K_AUX20
+#define K_PADDLE1_BUTTON K_AUX21
+#define K_PADDLE2_BUTTON K_AUX22
+#define K_PADDLE3_BUTTON K_AUX23
+#define K_PADDLE4_BUTTON K_AUX24
+#define K_TOUCHPAD       K_AUX25
 
 #endif//KEYDEFS_H

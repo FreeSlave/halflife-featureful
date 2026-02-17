@@ -99,6 +99,7 @@ set (CLDLL_SOURCES
 	cdll_int.cpp
 	cl_fx.cpp
 	cl_msg_fx.cpp
+	cmdkeys.cpp
 	com_weapons.cpp
 	death.cpp
 	demo.cpp
