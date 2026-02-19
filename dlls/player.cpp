@@ -6222,8 +6222,8 @@ Vector CBasePlayer::GetAutoaimVectorFromPoint( const Vector& vecSrc, float flDel
 		{
 			SET_CROSSHAIRANGLE( edict(), -m_vecAutoAim.x, m_vecAutoAim.y );
 
-			m_lastx = (int)m_vecAutoAim.x;
-			m_lasty = (int)m_vecAutoAim.y;
+			m_lastx = m_vecAutoAim.x;
+			m_lasty = m_vecAutoAim.y;
 		}
 	}
 
