@@ -191,7 +191,7 @@ void CZombie::SlashAttack(const TraceHullAttackParams& params)
 {
 	PerformTraceHullAttack(params);
 
-	if (RANDOM_LONG(0,1))
+	if (m_MonsterState == MONSTERSTATE_SCRIPT || RANDOM_LONG(0,1))
 		AttackSound();
 }
 
