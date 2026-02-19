@@ -147,7 +147,7 @@ public:
 		return m_totalHeadCount > 0 ? m_totalHeadCount : 4;
 	}
 	bool NeedleIsEquiped() {
-		return pev->body >= TotalHeadCount();
+		return AbleToHeal() && pev->body >= TotalHeadCount();
 	}
 
 	static const NamedSoundScript painSoundScript;
