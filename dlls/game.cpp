@@ -781,9 +781,7 @@ cvar_t mp_chattime	= { "mp_chattime","10", FCVAR_SERVER };
 
 cvar_t pickup_policy = { "pickup_policy","0", FCVAR_SERVER };
 
-#if FEATURE_GRENADE_JUMP_CVAR
 cvar_t grenade_jump = { "grenade_jump","1", FCVAR_SERVER };
-#endif
 
 cvar_t findnearestnodefix = { "findnearestnodefix", "1", FCVAR_SERVER };
 cvar_t nodegraph_distinfo_sort_fix = {"nodegraph_distinfo_sort_fix", "0", FCVAR_SERVER};
@@ -1640,9 +1638,7 @@ void GameDLLInit()
 
 	CVAR_REGISTER( &sv_busters );
 
-#if FEATURE_GRENADE_JUMP_CVAR
 	CVAR_REGISTER( &grenade_jump );
-#endif
 
 	CVAR_REGISTER( &findnearestnodefix );
 	CVAR_REGISTER( &nodegraph_distinfo_sort_fix );

@@ -26,6 +26,7 @@
 #include	"teamplay_gamerules.h"
 #include	"skill.h"
 #include	"game.h"
+#include	"mod_features.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -346,12 +347,8 @@ bool NpcFixMeleeDistance()
 #endif
 }
 
-bool AllowGrenadeJump()
+float GrenadeJumpFactor()
 {
-#if FEATURE_GRENADE_JUMP_CVAR
 	extern cvar_t grenade_jump;
-	return grenade_jump.value != 0;
-#else
-	return true;
-#endif
+	return grenade_jump.value;
 }

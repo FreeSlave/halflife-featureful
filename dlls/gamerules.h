@@ -426,6 +426,6 @@ float NpcForgetEnemyTime();
 bool NpcActiveAfterCombat();
 bool NpcFollowOutOfPvs();
 bool NpcFixMeleeDistance();
-bool AllowGrenadeJump();
+float GrenadeJumpFactor();
 
 #endif // GAMERULES_H
