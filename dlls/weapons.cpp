@@ -1511,7 +1511,7 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 int CWeaponBox::ObjectCaps()
 {
 	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW)) {
-		return CBaseDelay::ObjectCaps() | FCAP_IMPULSE_USE;
+		return CBaseDelay::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 	} else {
 		return CBaseDelay::ObjectCaps();
 	}
