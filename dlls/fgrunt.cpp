@@ -2417,7 +2417,7 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 		else
 		{
 			// repel down a rope,
-			if ( m_MonsterState == MONSTERSTATE_COMBAT && CanFireWhileRappelling() )
+			if ( m_MonsterState == MONSTERSTATE_COMBAT && CanFireWhileRappelling() && !HasConditions(bits_COND_ENEMY_OCCLUDED) )
 				return GetScheduleOfType ( SCHED_HGRUNT_ALLY_REPEL_ATTACK );
 			else
 				return GetScheduleOfType ( SCHED_HGRUNT_ALLY_REPEL );
