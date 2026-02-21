@@ -727,7 +727,7 @@ cvar_t selfgauss	= { "selfgauss", "0", FCVAR_SERVER };
 cvar_t satchelfix	= { "satchelfix", "1", FCVAR_SERVER };
 cvar_t explosionfix	= { "explosionfix", "1", FCVAR_SERVER };
 cvar_t monsteryawspeedfix	= { "monsteryawspeedfix", "1", FCVAR_SERVER };
-cvar_t animeventfix = {"animeventfix", "0", FCVAR_SERVER };
+cvar_t animeventfix = {"animeventfix", "1", FCVAR_SERVER };
 cvar_t anim_attack_reset_fix = {"anim_attack_reset_fix", "1", FCVAR_SERVER };
 cvar_t anim_dispatch_fix = {"anim_dispatch_fix", "0", FCVAR_SERVER};
 cvar_t npc_run_task_instant = {"npc_run_task_instant", "1", FCVAR_SERVER};
@@ -784,7 +784,7 @@ cvar_t pickup_policy = { "pickup_policy","0", FCVAR_SERVER };
 cvar_t grenade_jump = { "grenade_jump","1", FCVAR_SERVER };
 
 cvar_t findnearestnodefix = { "findnearestnodefix", "1", FCVAR_SERVER };
-cvar_t nodegraph_distinfo_sort_fix = {"nodegraph_distinfo_sort_fix", "0", FCVAR_SERVER};
+cvar_t nodegraph_distinfo_sort_fix = {"nodegraph_distinfo_sort_fix", "1", FCVAR_SERVER};
 
 cvar_t keepinventory	= { "mp_keepinventory","0", FCVAR_SERVER }; // keep inventory across level transitions in multiplayer coop
 
