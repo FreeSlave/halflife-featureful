@@ -30,6 +30,7 @@
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 #include	"graphic_debug.h"
+#include	"clamp.h"
 
 #define bits_MEMORY_ISLAVE_PROVOKED bits_MEMORY_CUSTOM1
 #define bits_MEMORY_ISLAVE_REVIVED bits_MEMORY_CUSTOM2
@@ -1780,9 +1781,21 @@ Schedule_t *CISlave::GetSchedule()
 			return CBaseMonster::GetSchedule();
 		}
 
-		if( IsVortWounded(this) )
+		if( IsVortWounded(this) && !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 		{
-			if( !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			const float fearValue = clamp(GetSkillValue("islave_fear"), 0.0f, 1.0f);
+
+			bool shouldFear = true;
+			if (fearValue == 0.0f)
+				shouldFear = false;
+			else if (fearValue == 1.0f)
+				shouldFear = true;
+			else
+				shouldFear = RANDOM_FLOAT(0.0f, 1.0f) <= fearValue;
+
+			//ALERT(at_console, "Vort is wounded. Fear value: %g. Should fear? %s\n", fearValue, shouldFear ? "yes" : "no");
+
+			if (shouldFear)
 			{
 				const int sched = CanSpawnFamiliar() ? (int)SCHED_ISLAVE_COVER_AND_SUMMON_FAMILIAR : (int)SCHED_RETREAT_FROM_ENEMY;
 

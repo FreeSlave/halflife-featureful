@@ -60,6 +60,7 @@ sk_islave_heal 0
 * **sk_islave_max_energy** - maximum amount of energy the vortigaunt can get. By default it fallbacks to **sk_islave_health**.
 * **sk_islave_delay_zap** - the minimum delay before the next attack after using a zap attack. This is `[0.5, 4.0]` range by default.
 * **sk_islave_delay_coil** - the minimum delay before the next attack after using a coil attack. This is `[0.9, 4.0]` range by default.
+* **sk_islave_fear** - whether the vortigaunt will try to retreat when low on health. This must be between 0 and 1 inclusive. Default value is 1. 0 means no fear. The values between 0 and 1 mean the chance of fear. Note: even when scared the vortigaunts still can use the melee attack, and if they can't flee they will use the range attack as well.
 * **sk_vortigaunt_armor_charge** - how much armor the charge token provides to an ally player. By default it fallbacks to **sk_battery**.
 
 ### Default classification
