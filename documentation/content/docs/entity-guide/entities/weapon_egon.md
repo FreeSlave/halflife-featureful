@@ -10,5 +10,5 @@ entityCategory: pickup
 
 ### Skill variables
 
-* **sk_plr_egon_narrow** - beam damage per tick.
-* **sk_plr_egon_wide** - wide mode is not implemented yet.
+* **sk_plr_egon_narrow** -  narrow mode is not implemented yet.
+* **sk_plr_egon_wide** - beam damage per tick.

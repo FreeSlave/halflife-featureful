@@ -9,7 +9,7 @@ bookToC: false
 
 * Buttons and cyclers can be speakers for scripted sentences (like in HL 25 anniversary).
 * `Speaker` can be `*locus` (`!activator`) for chained scripted sentences.
-* `Listener type` can be `*locus` (`!activator`).
+* `Listener type` can be `*locus` (`!activator`) or `*player`.
 
 ### New parameters
 
@@ -28,3 +28,7 @@ bookToC: false
 * `Speaker turns to listener` - make speaker to turn their body to the listener if possible (not only the head).
 * `Listener turns to speaker` - make listener to turn their body to the speaker if possible (not only the head).
 * `Try once`. By default once triggered the script will continue to search for the target monster if it could not find one instantly. This flag prevents such behavior.
+
+{{% hint info %}}
+When the `scripted_sentence` is played on the brush entity (like a button) this entity must have an origin brush for `Requires listener` to work correctly.
+{{% /hint %}}

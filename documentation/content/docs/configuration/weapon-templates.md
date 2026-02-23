@@ -572,7 +572,7 @@ The attack type. Current supported values are:
 
 * `"bullet"` or `"bullets"` (these are synonyms) - used by most firearms.
 * `"melee"` - used by melee weapons.
-* `"projectile"` - the weapon fires projectiles. This requires [projectile]({#projectile}) to be defined.
+* `"projectile"` - the weapon fires projectiles. This requires [projectile](#projectile) to be defined.
 * Note: configuration of laser attacks will come later.
 
 ### allow_underwater

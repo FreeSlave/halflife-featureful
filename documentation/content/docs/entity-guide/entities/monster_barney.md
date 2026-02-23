@@ -11,7 +11,7 @@ bookToC: false
 
 * Checks for friendly fire when shooting.
 * Now uses alert sentences (`BA_ATTACK`) when encountering enemy.
-* Can set a custom head if the model has multiple heads (the bodygroup index 2 is supposed to be the head bodygroup).
+* Can set a custom head if the model has multiple heads. The bodygroup index 2 is supposed to be the head bodygroup, i.e. the following order is expected : `body`, `gun`, `heads`.
 
 ### New parameters
 
