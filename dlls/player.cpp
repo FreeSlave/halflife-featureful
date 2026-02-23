@@ -8017,6 +8017,7 @@ TYPEDESCRIPTION	CPlayerCapabilities::m_SaveData[] =
 	DEFINE_FIELD( CPlayerCapabilities, m_duckCapability, FIELD_SHORT ),
 	DEFINE_FIELD( CPlayerCapabilities, m_useCapability, FIELD_SHORT ),
 	DEFINE_FIELD( CPlayerCapabilities, m_stepSoundCapability, FIELD_SHORT ),
+	DEFINE_FIELD( CPlayerCapabilities, m_movementCapability, FIELD_SHORT ),
 	DEFINE_FIELD( CPlayerCapabilities, m_saveCapability, FIELD_SHORT ),
 };
 
