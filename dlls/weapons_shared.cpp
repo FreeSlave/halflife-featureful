@@ -1208,6 +1208,31 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		return;
 	}
 
+	if (params.toolIndex >= 0)
+	{
+		const int toolBit = 1<<params.toolIndex;
+		if (FBitSet(m_pPlayer->m_ToolStateBits, toolBit) && !FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
+		{
+#if !CLIENT_DLL
+			if (params.toolTriggerDelay > 0.0f)
+			{
+				m_toolTriggerTime = gpGlobals->time + params.toolTriggerDelay;
+			}
+			else
+			{
+				CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
+				if (triggerEnt)
+					triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
+			}
+#endif
+		}
+		else
+		{
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+			return;
+		}
+	}
+
 	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
 	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
 
@@ -1279,31 +1304,6 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	m_shouldPlayCooldown = true;
 
 	const float flCycleTime = (lastShot && fire.cycleTimeLastShot.Get(altMode) > 0.0f) ? fire.cycleTimeLastShot.Get(altMode) : fire.cycleTime.Get(altMode);
-
-	if (params.toolIndex >= 0)
-	{
-		const int toolBit = 1<<params.toolIndex;
-		if (FBitSet(m_pPlayer->m_ToolStateBits, toolBit) && !FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
-		{
-#if !CLIENT_DLL
-			if (params.toolTriggerDelay > 0.0f)
-			{
-				m_toolTriggerTime = gpGlobals->time + params.toolTriggerDelay;
-			}
-			else
-			{
-				CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
-				if (triggerEnt)
-					triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
-			}
-#endif
-		}
-		else
-		{
-			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
-			return;
-		}
-	}
 
 	if (fire.preventMovement.Get(altMode))
 	{
