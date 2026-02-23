@@ -25,7 +25,7 @@ bool MessageStrings::ReadFromDocument(const rapidjson::Document& document, const
 	return true;
 }
 
-const char* MessageStrings::GetText(const char *id) const
+const char* MessageStrings::GetText(const char *id, const char* fallback) const
 {
 	if (!id || !*id)
 		return nullptr;
@@ -34,7 +34,7 @@ const char* MessageStrings::GetText(const char *id) const
 	{
 		return it->second.c_str();
 	}
-	return nullptr;
+	return fallback;
 }
 
 void MessageStrings::SetText(const char *id, const char *text)

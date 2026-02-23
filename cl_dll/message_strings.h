@@ -10,7 +10,7 @@ protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 public:
-	const char* GetText(const char* id) const;
+	const char* GetText(const char* id, const char* fallback = nullptr) const;
 	void SetText(const char* id, const char* text);
 	typedef fixed_string<64> ID;
 private:

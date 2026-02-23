@@ -117,21 +117,26 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 			strncpyEnsureTermination(displayName, name);
 	}
 
+	const char* healthString = gHUD.m_messageStrings.GetText("__SHOWINFO_HEALTH", "Health");
+
 	if (isPlayer)
 	{
-		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d", health);
-		safe_snprintf(armorDisplay, sizeof(armorDisplay), "Armor: %d", armor);
+		const char* armorString = gHUD.m_messageStrings.GetText("__SHOWINFO_ARMOR", "Armor");
+
+		safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d", healthString, health);
+		safe_snprintf(armorDisplay, sizeof(armorDisplay), "%s: %d", armorString, armor);
 	}
 	else if (isMonster)
 	{
 		if (health > 0)
-			safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d/%d", health, maxHealth);
+			safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d/%d", healthString, health, maxHealth);
 		else
-			safe_snprintf(healthDisplay, sizeof(healthDisplay), "Health: %d", health);
+			safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d", healthString, health);
 	}
 	else
 	{
-		safe_snprintf(healthDisplay, sizeof(healthDisplay), "Strength: %d", health);
+		const char* strengthString = gHUD.m_messageStrings.GetText("__SHOWINFO_STRENGTH", "Strength");
+		safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d", strengthString, health);
 	}
 
 	return 1;

@@ -26,7 +26,7 @@ In Featureful the game also shows `AUTOSAVE` title when player touches the [trig
 
 ## Translatable messages
 
-Featureful SDK implements an additional way to handle texts, used by some subsystems (currently only by [journal]({{< ref journal >}})).
+Featureful SDK implements an additional way to handle texts, used by some subsystems (currently mostly by [journal]({{< ref journal >}})).
 
 **messages.en.json** (located in the mod main directory) defines the mapping between message IDs and messages texts. Example:
 
@@ -61,7 +61,21 @@ You can use **messages.json** for English texts as well, but then you lose the b
 The message IDs are case-insensitive. I.e. `hello` and `HELLO` would refer to the same message.
 {{% /hint %}}
 
+{{% hint info %}}
+It's recommended not to create your own message IDs that start with `__` as this convention is used by [predefined message](#predefined-messages).
+{{% /hint %}}
+
 The `get_message` console command is used to retrieve the message text for the provided id.
+
+### Predefined messages
+
+Some message IDs are predefined. They start with `__`. The default messages are provided for them and they can be translated as well.
+
+| ID | Default text | Description |
+| ---- | ---- | ---- |
+| `__SHOWINFO_HEALTH` | Health | Used when displaying the monster info or player info in co-op |
+| `__SHOWINFO_ARMOR` | Armor | Used when displaying the player info in co-op |
+| `__SHOWINFO_STRENGTH` | Strength | Used when displaying the breakable's info |
 
 ## Display names
 
