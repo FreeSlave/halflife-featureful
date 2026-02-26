@@ -102,6 +102,7 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 	isMonster = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_MONSTER);
 	isPlayer = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_PLAYER);
 	isAlly = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_ALLY);
+	isMachine = FBitSet(monsterInfoFlags, MONSTERINFO_FLAG_MACHINE);
 
 	if (name)
 	{
@@ -117,7 +118,7 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 			strncpyEnsureTermination(displayName, name);
 	}
 
-	const char* healthString = gHUD.m_messageStrings.GetText("__SHOWINFO_HEALTH", "Health");
+	const char* healthString = isMachine ? gHUD.m_messageStrings.GetText("__SHOWINFO_STRENGTH", "Strength") : gHUD.m_messageStrings.GetText("__SHOWINFO_HEALTH", "Health");
 
 	if (isPlayer)
 	{

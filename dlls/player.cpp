@@ -2479,6 +2479,8 @@ void CBasePlayer::UpdateStatusBar()
 					monsterInfoFlags |= MONSTERINFO_FLAG_PLAYER;
 				if (isFriendMonster || isFriendPlayer)
 					monsterInfoFlags |= MONSTERINFO_FLAG_ALLY;
+				if (!pEntity->HasFlesh())
+					monsterInfoFlags |= MONSTERINFO_FLAG_MACHINE;
 
 				if (displayName && *displayName)
 				{

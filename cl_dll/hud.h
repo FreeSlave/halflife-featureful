@@ -748,6 +748,7 @@ private:
 	bool isMonster;
 	bool isPlayer;
 	bool isAlly;
+	bool isMachine;
 };
 
 //
