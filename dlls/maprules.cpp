@@ -936,29 +936,6 @@ void CGamePlayerTeam::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 /*
  * Starting player settings, like initial health, armor, weapons and items
  */
-#define SF_PLAYER_SETTINGS_MEDKIT (1 << 0)
-#define SF_PLAYER_SETTINGS_SUIT (1 << 1)
-#define SF_PLAYER_SETTINGS_CROWBAR (1 << 2)
-#define SF_PLAYER_SETTINGS_GLOCK (1 << 3)
-#define SF_PLAYER_SETTINGS_PYTHON (1 << 4)
-#define SF_PLAYER_SETTINGS_MP5 (1 << 5)
-#define SF_PLAYER_SETTINGS_SHOTGUN (1 << 6)
-#define SF_PLAYER_SETTINGS_CROSSBOW (1 << 7)
-#define SF_PLAYER_SETTINGS_RPG (1 << 8)
-#define SF_PLAYER_SETTINGS_GAUSS (1 << 9)
-#define SF_PLAYER_SETTINGS_EGON (1 << 10)
-#define SF_PLAYER_SETTINGS_HORNETGUN (1 << 11)
-#define SF_PLAYER_SETTINGS_PIPEWRENCH (1 << 12)
-#define SF_PLAYER_SETTINGS_KNIFE (1 << 13)
-#define SF_PLAYER_SETTINGS_GRAPPLE (1 << 14)
-#define SF_PLAYER_SETTINGS_DESERT_EAGLE (1 << 15)
-#define SF_PLAYER_SETTINGS_SNIPERRIFLE (1 << 16)
-#define SF_PLAYER_SETTINGS_M249 (1 << 17)
-#define SF_PLAYER_SETTINGS_DISPACER (1 << 18)
-#define SF_PLAYER_SETTINGS_SHOCKRIFLE (1 << 19)
-#define SF_PLAYER_SETTINGS_SPORELAUNCHER (1 << 20)
-#define SF_PLAYER_SETTINGS_LONGJUMP (1 << 23)
-
 enum
 {
 	VALUE_SETTING_DEFAULT = 0,
