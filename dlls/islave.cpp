@@ -47,6 +47,7 @@ enum
 	SCHED_ISLAVE_SUMMON_FAMILIAR,
 	SCHED_ISLAVE_HEAL_OR_REVIVE,
 	SCHED_ISLAVE_GIVE_CHARGE,
+	SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED,
 };
 
 //=========================================================
@@ -459,7 +460,12 @@ public:
 	bool CanGoToTargetEnt()
 	{
 		if (m_hTargetEnt)
-			return BuildRoute(m_hTargetEnt->pev->origin, bits_MF_TO_TARGETENT, m_hTargetEnt);
+		{
+			if (BuildRoute(m_hTargetEnt->pev->origin, bits_MF_TO_TARGETENT, m_hTargetEnt))
+				return true;
+			else
+				m_movementGoal = MOVEGOAL_NONE;
+		}
 		return false;
 	}
 
@@ -1638,6 +1644,7 @@ Schedule_t	slSlaveAttack1[] =
 
 Task_t tlSlaveHealOrReviveAttack[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE,		(float)SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED	},
 	{ TASK_STOP_MOVING,				0	},
 	{ TASK_MOVE_TO_TARGET_RANGE,	128 },
 	{ TASK_FACE_TARGET,				0	},
@@ -1819,7 +1826,7 @@ Schedule_t *CISlave::GetSchedule()
 			if ( HasFreeEnergy() && CheckHealOrReviveTargets()) {
 				SetHealTargetAsTargetEnt();
 				if (CanGoToTargetEnt()) {
-					ALERT(at_aiconsole, "Vort gonna heal or revive friend when idle. State is %s\n", m_MonsterState == MONSTERSTATE_ALERT ? "alert" : "idle");
+					ALERT(at_aiconsole, "Vort gonna heal or revive friend when idle. State is %s\n", m_MonsterState == MONSTERSTATE_IDLE ? "idle" : "alert");
 					return GetScheduleOfType( SCHED_ISLAVE_HEAL_OR_REVIVE );
 				}
 			}
@@ -1882,6 +1889,8 @@ Schedule_t *CISlave::GetScheduleOfType( int Type )
 		return slSlaveSummon;
 	case SCHED_ISLAVE_HEAL_OR_REVIVE:
 		return slSlaveHealOrReviveAttack;
+	case SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED:
+		return CFollowingMonster::GetScheduleOfType(SCHED_FAIL);
 	case SCHED_ISLAVE_GIVE_CHARGE:
 		return slSlaveGiveArmor;
 	case SCHED_RETREAT_FROM_ENEMY_FAILED:
