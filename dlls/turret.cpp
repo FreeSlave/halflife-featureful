@@ -63,7 +63,7 @@ public:
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	int Classify() override;
 	int DefaultClassify() override;
-	int RealClassify();
+	int AwakeClassify() override;
 
 	int BloodColor() override { return DONT_BLEED; }
 	void GibMonster() override {}	// UNDONE: Throw turret gibs?
@@ -1269,7 +1269,7 @@ int CBaseTurret::Classify()
 	return CLASS_NONE;
 }
 
-int CBaseTurret::RealClassify()
+int CBaseTurret::AwakeClassify()
 {
 	return CBaseMonster::Classify();
 }
@@ -1400,7 +1400,7 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 
 void CSentry::SentryTouch( CBaseEntity *pOther )
 {
-	if( pOther && ( pOther->IsPlayer() || ( pOther->pev->flags & FL_MONSTER ) ) && IDefaultRelationship(RealClassify(), pOther->Classify()) >= R_DL )
+	if( pOther && ( pOther->IsPlayer() || ( pOther->pev->flags & FL_MONSTER ) ) && IDefaultRelationship(AwakeClassify(), pOther->Classify()) >= R_DL )
 	{
 		TakeDamage( pOther->pev, pOther->pev, DamageInfo{} );
 	}

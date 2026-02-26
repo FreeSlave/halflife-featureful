@@ -2420,7 +2420,7 @@ void CBasePlayer::UpdateStatusBar()
 
 			const bool isPlayer = pEntity->IsPlayer();
 			const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
-			const bool isFriendMonster = (pMonster && pMonster->IDefaultRelationship(this) == R_AL);
+			const bool isFriendMonster = (pMonster && CBaseMonster::IDefaultRelationship(pMonster->AwakeClassify(), Classify()) == R_AL);
 			showMonsterInfo = isFriendPlayer || (allowMonsterInfoValue == 1 && !isPlayer) ||
 							  (allowMonsterInfoValue == 2 && isFriendMonster) ||
 							  (allowMonsterInfoValue == 3 && isFriendMonster && m_pActiveItem != 0 && m_pActiveItem->WeaponId() == WEAPON_MEDKIT);

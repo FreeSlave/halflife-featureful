@@ -481,6 +481,8 @@ public:
 	int SharedRandomLong(int low, int high);
 	float SharedRandomFloat(float low, float high);
 
+	virtual int AwakeClassify() { return Classify(); }
+
 	//
 	// Glowshell effects
 	//
