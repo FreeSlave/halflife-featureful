@@ -100,7 +100,7 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 			else
 			{
 				CBaseMonster* monster = pEntity->MyMonsterPointer();
-				if (monster && monster->IDefaultRelationship(m_pPlayer) == R_AL) {
+				if (monster && monster->IDefaultRelationship(m_pPlayer) == R_AL && monster->HasFlesh()) {
 					foundTarget = pEntity;
 				}
 			}
