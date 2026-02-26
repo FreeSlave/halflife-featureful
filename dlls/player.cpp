@@ -167,6 +167,10 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_fadeAlpha, FIELD_SHORT),
 	DEFINE_FIELD(CBasePlayer, m_fadeFlags, FIELD_SHORT),
 
+	DEFINE_ARRAY(CBasePlayer, m_messageBoxEnts, FIELD_EHANDLE, MAX_MESSAGE_BOXES),
+	DEFINE_ARRAY(CBasePlayer, m_messageBoxOrigins, FIELD_POSITION_VECTOR, MAX_MESSAGE_BOXES),
+	DEFINE_ARRAY(CBasePlayer, m_messageBoxDistances, FIELD_FLOAT, MAX_MESSAGE_BOXES),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -282,6 +286,8 @@ int gmsgOnRope = 0;
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
 
+int gmsgMessageBox = 0;
+
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
 	if (!pFriend->IsFullyAlive())
@@ -395,6 +401,8 @@ void LinkUserMessages()
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
+
+	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -2803,6 +2811,24 @@ void CBasePlayer::PreThink()
 		if (viewEntity)
 		{
 			SET_VIEW(edict(), viewEntity->edict());
+		}
+	}
+
+	for (int i=0; i<MAX_MESSAGE_BOXES; ++i)
+	{
+		if (m_messageBoxEnts[i] != 0 && m_messageBoxDistances[i] > 0.0f)
+		{
+			if ((pev->origin - m_messageBoxOrigins[i]).IsLengthGreaterThan(m_messageBoxDistances[i]))
+			{
+				const int messageBoxId = m_messageBoxEnts[i]->entindex();
+
+				ClearMessageBoxByIndex(i);
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgMessageBox, nullptr, pev);
+					WRITE_BYTE(0);
+					WRITE_LONG(messageBoxId);
+				MESSAGE_END();
+			}
 		}
 	}
 
@@ -5670,6 +5696,18 @@ void CBasePlayer::UpdateClientData()
 
 		SendPlayerTemplateData();
 
+		for (int i=0; i<ARRAYSIZE(m_messageBoxEnts); ++i)
+		{
+			if (m_messageBoxEnts[i] != 0)
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgMessageBox, nullptr, pev);
+					WRITE_BYTE(1);
+					WRITE_LONG(m_messageBoxEnts[i]->entindex());
+					WRITE_STRING(STRING(m_messageBoxEnts[i]->pev->message));
+				MESSAGE_END();
+			}
+		}
+
 		if (m_fadeStarted)
 		{
 			const float sumDurationLeft = m_fadeStarted + m_fadeDuration + m_fadeHoldTime - gpGlobals->time;
@@ -7259,6 +7297,82 @@ bool CBasePlayer::ShouldCollideWithCorpses()
 		return m_forceCollideWithCorpses;
 	}
 	return true;
+}
+
+void CBasePlayer::RemoveMessageBoxGaps()
+{
+	for (int i=0; i<ARRAYSIZE(m_messageBoxEnts); ++i)
+	{
+		if (m_messageBoxEnts[i] == 0)
+		{
+			for (int j=i+1; j<ARRAYSIZE(m_messageBoxEnts); ++j)
+			{
+				m_messageBoxEnts[j-1] = m_messageBoxEnts[j];
+				m_messageBoxOrigins[j-1] = m_messageBoxOrigins[j];
+				m_messageBoxDistances[j-1] = m_messageBoxDistances[j];
+
+				ClearMessageBoxByIndex(j);
+			}
+		}
+	}
+}
+
+bool CBasePlayer::AddMessageBox(CBaseEntity *pMessageBoxEnt, const Vector& origin, float distance)
+{
+	RemoveMessageBoxGaps();
+
+	for (int i=0; i<ARRAYSIZE(m_messageBoxEnts); ++i)
+	{
+		if (m_messageBoxEnts[i] == 0)
+		{
+			//ALERT(at_console, "Adding messagebox with index %d\n", pMessageBoxEnt->entindex());
+			m_messageBoxEnts[i] = pMessageBoxEnt;
+			m_messageBoxOrigins[i] = origin;
+			m_messageBoxDistances[i] = distance;
+			return true;
+		}
+		else if (m_messageBoxEnts[i] == pMessageBoxEnt)
+		{
+			ALERT(at_aiconsole, "Messagebox with id %d is already added\n", pMessageBoxEnt->entindex());
+			return false;
+		}
+	}
+
+	ALERT(at_warning, "Too many messageboxes for player at once. Removing the oldest one\n");
+
+	ClearMessageBoxByIndex(0);
+	RemoveMessageBoxGaps();
+
+	const int lastIndex = ARRAYSIZE(m_messageBoxEnts) - 1;
+	m_messageBoxEnts[lastIndex] = pMessageBoxEnt;
+	m_messageBoxOrigins[lastIndex] = origin;
+	m_messageBoxDistances[lastIndex] = distance;
+	return true;
+}
+
+bool CBasePlayer::CloseMessageBox(int messageBoxId)
+{
+	for (int i=0; i<ARRAYSIZE(m_messageBoxEnts); ++i)
+	{
+		if (m_messageBoxEnts[i] != 0 && m_messageBoxEnts[i]->entindex() == messageBoxId)
+		{
+			//ALERT(at_console, "Removing messagebox with index %d\n", messageBoxId);
+			ClearMessageBoxByIndex(i);
+			RemoveMessageBoxGaps();
+			return true;
+		}
+	}
+	return false;
+}
+
+void CBasePlayer::ClearMessageBoxByIndex(int i)
+{
+	if (i < 0 || i >= ARRAYSIZE(m_messageBoxEnts))
+		return;
+
+	m_messageBoxEnts[i] = 0;
+	m_messageBoxOrigins[i] = g_vecZero;
+	m_messageBoxDistances[i] = 0.0f;
 }
 
 const SoundScript* PM_GetPlayerSoundScript(int playerIndex, const char* name)

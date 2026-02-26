@@ -137,7 +137,7 @@ int CHudJournal::Draw(float flTime)
 	}
 	notifications.clear();
 
-	auto geometry = gHUD.m_journalConfig.WindowGeometry();
+	auto geometry = gHUD.m_journalConfig.GetWindowGeometry();
 
 	const int xrect = (1.0f - geometry.width) / 2 * ScreenWidth;
 	const int width = geometry.width * ScreenWidth;
@@ -369,7 +369,12 @@ int CHudJournal::MsgFunc_Journal(const char *pszName, int iSize, void *pbuf)
 		section->messageText = nullptr;
 	}
 
-	section->UpdateLineOffsets();
+	if (section->messageText && *section->messageText)
+	{
+		auto geometry = gHUD.m_journalConfig.GetWindowGeometry();
+		const int maxwidth = (geometry.width - geometry.paddingHorizontal * geometry.width * 2) * ScreenWidth;
+		section->lineOffsets = CHud::UtfText::CalcLineOffsets(section->messageText, maxwidth);
+	}
 
 	return 1;
 }
@@ -414,78 +419,4 @@ void CHudJournal::AddNotification(const char *message)
 	notification.fadeTime = 3.0f;
 	notification.alpha = 255;
 	notifications.push_back(std::move(notification));
-}
-
-void CHudJournal::JournalSection::UpdateLineOffsets()
-{
-	if (!messageText || !*messageText)
-		return;
-
-	lineOffsets.clear();
-
-	const char* str = messageText;
-	auto geometry = gHUD.m_journalConfig.WindowGeometry();
-	const int maxwidth = (geometry.width - geometry.paddingHorizontal * geometry.width * 2) * ScreenWidth;
-
-	if (CHud::ShouldUseConsoleFont())
-	{
-		WordBoundaries boundaries = SplitIntoWordBoundaries(str);
-
-		unsigned int startWordIndex = 0;
-		for (unsigned int j=0; j<boundaries.size();)
-		{
-			const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
-			if (width > maxwidth) {
-				if (j == startWordIndex) {
-					lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[startWordIndex].wordEnd));
-					startWordIndex = ++j;
-				} else {
-					lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j-1].wordEnd));
-					startWordIndex = j;
-				}
-			} else {
-				if (j == boundaries.size() - 1) {
-					lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j].wordEnd));
-				}
-
-				++j;
-			}
-
-			if (lineOffsets.size() == lineOffsets.capacity())
-				break;
-		}
-	}
-	else
-	{
-		int lineWidth = 0;
-		const char* currentLine = str;
-		const char* lastSpace = str;
-		do
-		{
-			if (*str == '\0')
-			{
-				lineOffsets.push_back(std::make_pair(currentLine - messageText, str - messageText));
-				break;
-			}
-			lineWidth += gHUD.m_scrinfo.charWidths[(unsigned char)*str];
-			if (*str == ' ' || *str == '\n')
-			{
-				lastSpace = str;
-			}
-			if (lineWidth > maxwidth)
-			{
-				str = lastSpace;
-			}
-			if (*str == '\n' || lineWidth > maxwidth)
-			{
-				lineOffsets.push_back(std::make_pair(currentLine - messageText, str - messageText));
-				lineWidth = 0;
-				currentLine = str + 1;
-				if (lineOffsets.size() == lineOffsets.capacity())
-					break;
-			}
-			str++;
-		}
-		while(true);
-	}
 }

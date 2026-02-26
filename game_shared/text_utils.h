@@ -8,9 +8,10 @@
 
 struct WordBoundary
 {
-	WordBoundary() : wordStart(0), wordEnd(0) {}
+	WordBoundary() : wordStart(0), wordEnd(0), newline(false) {}
 	unsigned int wordStart;
 	unsigned int wordEnd;
+	bool newline;
 };
 
 typedef std::vector<WordBoundary> WordBoundaries;
@@ -37,6 +38,25 @@ WordBoundaries SplitIntoWordBoundaries(It begin, It end)
 		{
 			boundaries.back().wordEnd = it - begin;
 			searchingForWordStart = true;
+		}
+
+		if (*it == '\n')
+		{
+			if (!boundaries.empty())
+			{
+				if (boundaries.back().newline)
+				{
+					WordBoundary boundary;
+					boundary.wordStart = boundary.wordEnd = boundaries.back().wordEnd;
+					boundary.newline = true;
+
+					boundaries.push_back(boundary);
+				}
+				else
+				{
+					boundaries.back().newline = true;
+				}
+			}
 		}
 	}
 	if (!searchingForWordStart) {

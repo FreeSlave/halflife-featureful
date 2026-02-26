@@ -31,6 +31,7 @@
 #include "player.h"
 #include "weapons.h"
 #include "game.h"
+#include "locus.h"
 
 class CRuleEntity : public CBaseEntity
 {
@@ -1492,3 +1493,98 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( game_journal, CGameJournal )
+
+extern int gmsgMessageBox;
+
+#define SF_MESSAGEBOX_ALLPLAYERS 0x0001
+
+class CGameMessageBox : public CPointEntity
+{
+	void KeyValue( KeyValueData *pkvd ) override
+	{
+		if (FStrEq(pkvd->szKeyName, "position"))
+		{
+			m_position = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "distance"))
+		{
+			m_distance = atof(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
+	{
+		if (FBitSet(pev->spawnflags, SF_MESSAGEBOX_ALLPLAYERS))
+		{
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pEntity = UTIL_PlayerByIndex( i );
+				if (pEntity)
+				{
+					SetForPlayer((CBasePlayer*)pEntity);
+				}
+			}
+		}
+		else
+		{
+			CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+			if (pPlayer)
+			{
+				SetForPlayer(pPlayer);
+			}
+		}
+	}
+	void SetForPlayer(CBasePlayer* pPlayer)
+	{
+		Vector origin = pev->origin;
+		float distance = 0.0f;
+
+		if (m_distance > 0.0f)
+		{
+			distance = m_distance;
+
+			if (!FStringNull(m_position))
+			{
+				if (!TryCalcLocus_Position(this, pPlayer, STRING(m_position), origin))
+				{
+					return;
+				}
+			}
+
+			if ((origin - pPlayer->pev->origin).IsLength2DGreaterThan(distance))
+			{
+				ALERT(at_warning, "Player is too far from the messagebox origin position\n");
+				return;
+			}
+		}
+
+		if (pPlayer->AddMessageBox(this, origin, distance))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgMessageBox, nullptr, pPlayer->pev);
+			WRITE_BYTE(1);
+			WRITE_LONG(entindex());
+			WRITE_STRING(STRING(pev->message));
+			MESSAGE_END();
+		}
+	}
+
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
+	static	TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_position;
+	float m_distance;
+};
+
+LINK_ENTITY_TO_CLASS( game_messagebox, CGameMessageBox )
+
+TYPEDESCRIPTION CGameMessageBox::m_SaveData[] =
+{
+	DEFINE_FIELD( CGameMessageBox, m_position, FIELD_STRING ),
+	DEFINE_FIELD( CGameMessageBox, m_distance, FIELD_FLOAT )
+};
+
+IMPLEMENT_SAVERESTORE( CGameMessageBox, CPointEntity )

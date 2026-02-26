@@ -879,10 +879,7 @@ void GoldSourceInput::IN_MouseMove ( float frametime, usercmd_t *cmd)
 
 		if ( (in_mlook.state & 1) && !(in_strafe.state & 1))
 		{
-			if( gHUD.m_MOTD.m_bShow )
-				gHUD.m_MOTD.scroll += m_pitch->value * mouse_y;
-			else
-				viewangles[PITCH] += m_pitch->value * mouse_y;
+			viewangles[PITCH] += m_pitch->value * mouse_y;
 			if (viewangles[PITCH] > cl_pitchdown->value)
 				viewangles[PITCH] = cl_pitchdown->value;
 			if (viewangles[PITCH] < -cl_pitchup->value)

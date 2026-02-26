@@ -806,6 +806,13 @@ void ClientCommand( edict_t *pEntity )
 	{
 		pPlayer->DisbandFollowers();
 	}
+	else if ( FStrEq( pcmd, "close_messagebox" ) )
+	{
+		if (CMD_ARGC() > 1)
+		{
+			pPlayer->CloseMessageBox(atoi(CMD_ARGV(1)));
+		}
+	}
 	else if ( FStrEq( pcmd, "make_start_following" ) || FStrEq( pcmd, "make_stop_following" ) )
 	{
 		const bool startFollowing = FStrEq( pcmd, "make_start_following" );

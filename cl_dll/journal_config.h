@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include "json_config.h"
+#include "window_geometry.h"
 #include "optional.h"
 #include "template_property_types.h"
 
@@ -24,13 +25,6 @@ public:
 		std::string notificationSound;
 		bool showInventory = false;
 		bool alwaysShow = false;
-	};
-	struct Geometry
-	{
-		float width = 7.0f / 9.0f;
-		float height = 11.0f / 15.0f;
-		float paddingHorizontal = 1.0f / 14;
-		float paddingVertical = 1.0f / 13;
 	};
 	struct Position
 	{
@@ -55,7 +49,7 @@ public:
 	bool IsEmpy() const {
 		return sections.empty();
 	}
-	const Geometry& WindowGeometry() const {
+	const WindowGeometry& GetWindowGeometry() const {
 		return geometry;
 	}
 	const Position& NotificationPosition() const {
@@ -66,7 +60,7 @@ public:
 	}
 private:
 	std::vector<Section> sections;
-	Geometry geometry;
+	WindowGeometry geometry;
 	Position notificationPosition{1.0f / 18, 1.0f / 5};
 	Render render;
 };

@@ -854,6 +854,7 @@ void CHud::Init()
 	m_Caption.Init();
 	m_MonsterInfo.Init();
 	m_Meter.Init();
+	m_MessageBox.Init();
 
 	hudRenderer.Init();
 
@@ -1396,6 +1397,7 @@ void CHud::VidInit()
 	m_Caption.VidInit();
 	m_MonsterInfo.VidInit();
 	m_Meter.VidInit();
+	m_MessageBox.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));
@@ -2008,4 +2010,48 @@ bool CHud::UseVguiScoreBoard()
 #else
 	return false;
 #endif
+}
+
+bool CHud::HandleClientButton(int button)
+{
+	if (button == IN_ATTACK)
+	{
+		if (m_MOTD.m_bShow)
+		{
+			m_MOTD.Reset();
+			return true;
+		}
+	}
+
+	if (button == IN_ATTACK)
+	{
+		if (!TopLevelWindowIsActive() && m_MessageBox.HandleClientInput())
+			return true;
+	}
+
+	return false;
+}
+
+bool CHud::HandleKeyDown(int keynum)
+{
+	if (m_MOTD.m_bShow)
+	{
+		return m_MOTD.HandleKeyDown(keynum);
+	}
+	if (!TopLevelWindowIsActive() && m_MessageBox.HandleKeyDown(keynum))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool CHud::TopLevelWindowIsActive()
+{
+	if (m_Scoreboard.m_iShowscoresHeld)
+		return true;
+	if (m_Journal.m_iShowscoresHeld && m_Journal.ShouldDraw())
+		return true;
+	if (m_MOTD.m_bShow)
+		return true;
+	return false;
 }

@@ -26,7 +26,7 @@ In Featureful the game also shows `AUTOSAVE` title when player touches the [trig
 
 ## Translatable messages
 
-Featureful SDK implements an additional way to handle texts, used by some subsystems (currently mostly by [journal]({{< ref journal >}})).
+Featureful SDK implements an additional way to handle texts, used by some subsystems (by [journal]({{< ref journal >}}) and [game_messagebox]({{< ref game_messagebox >}})).
 
 **messages.en.json** (located in the mod main directory) defines the mapping between message IDs and messages texts. Example:
 
@@ -34,11 +34,18 @@ Featureful SDK implements an additional way to handle texts, used by some subsys
 {
     "HELLO": "Hello, world!",
     "QUESTION": "What are you on about?",
-    "ANNOUNCEMENT": "Attention. This announcement system now under military command."
+    "ANNOUNCEMENT": "Attention. This announcement system now under military command.",
+    "STILL_ALIVE": {
+        "file": "texts/still_alive.txt"
+    }
 }
 ```
 
-The ".en" part is because the default text is expected to be in English. The addon directories for localizations should contain **messages.json** file. If some translations are missing, the default one from **messages.en.json** will be used.
+It also allows specifying the file path via the object with `"file"` parameter (the `"STILL_ALIVE"` message example) - the file contents will be read and used as the text message. There's no restriction on what subdirectory should be used to store such files - it's up to the mod developer.
+
+If the message text is written right in the .json file, some characters must be [escaped](https://en.wikipedia.org/wiki/Escape_character#JavaScript). E.g. the backslash should be written as `\\` instead of `\`. If the text is loaded from the file, no escape characters needed.
+
+The ".en" part in **messages.en.json** is because the default text is expected to be in English. The addon directories for localizations (like **mod_german**, **mod_russian**, etc.) should contain **messages.json** file. If some translations are missing, the default one from **messages.en.json** will be used.
 
 Let's say you have a Russian localization **messages.json** file:
 
@@ -49,9 +56,9 @@ Let's say you have a Russian localization **messages.json** file:
 }
 ```
 
-As you can see, the `"ANNOUNCEMENT"` message ID is missing here, so the English version will be used in the absence.
+As you can see, the `"ANNOUNCEMENT"` message ID is missing here, so the English version will be used in the absence. The `"STILL_ALIVE"` will still refer to the specified file (the translated version can be shipped in the file by the same relative path in the addon directory).
 
-This allows to add new message IDs without worrying about translations not having the new message, e.g. if you want to update the mod with new messages and third-party users already published their localizations - the users of such localizations will see new texts in English and it's better than not seeing anything at all.
+This allows to add new message IDs without worrying about translations not having the new message, e.g. if you want to update the mod with new messages and third-party users already published their localizations - the users of such localizations will see new texts in English and it's better than nothing.
 
 {{% hint info %}}
 You can use **messages.json** for English texts as well, but then you lose the benefits the method above provides.

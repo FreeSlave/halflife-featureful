@@ -51,6 +51,7 @@
 #include "inventory_hud.h"
 #include "objecthint_manager.h"
 #include "message_strings.h"
+#include "window_geometry.h"
 #include "displaynames.h"
 #include "journal_config.h"
 
@@ -245,17 +246,24 @@ public:
 	void Reset() override;
 
 	bool HandleMOTDMessage( const char *pszName, int iSize, void *pbuf );
-	void Scroll( int dir );
-	void Scroll( float amount );
-	float scroll;
+	int MaxTextWidth();
+
+	bool HandleKeyDown(int keynum);
+	void ScrollUp();
+	void ScrollDown();
+	void PageUp();
+	void PageDown();
+
 	bool m_bShow;
 
 	char m_szMOTD[MAX_MOTD_LENGTH];
+	std::vector<std::pair<int, int>> m_lineOffsets;
 protected:
 	static int MOTD_DISPLAY_TIME;
 
-	int m_iLines;
 	int m_iMaxLength;
+	int m_iMaxRowsPerWindow;
+	int m_scrollLines;
 };
 
 class CHudErrorCollection : public CHudBase
@@ -360,13 +368,11 @@ class CHudJournal : public CHudBase
 		const char* headerMessage = nullptr;
 		MessageStrings::ID messageId;
 		const char* messageText = nullptr;
-		fixed_vector<std::pair<int, int>, 10> lineOffsets;
+		std::vector<std::pair<int, int>> lineOffsets;
 
 		const char* notificationMessage = nullptr;
 		const char* notificationMessageRight = nullptr;
 		const char* notificationSound = nullptr;
-
-		void UpdateLineOffsets();
 	};
 
 	struct Notification
@@ -852,6 +858,36 @@ public:
 	void UpdateSpeed(const float velocity[2]);
 };
 
+struct MessageBoxData
+{
+	int messageBoxId;
+	std::string message;
+	std::vector<std::pair<int, int>> lineOffsets;
+	float showTime;
+	int scrollLines = 0;
+};
+
+class CHudMessageBox : public CHudBase
+{
+public:
+	int Init() override;
+	int VidInit() override;
+	int Draw(float time) override;
+
+	WindowGeometry GetWindowGeometry();
+	int MsgFunc_MessageBox(const char *pszName,  int iSize, void *pbuf);
+
+	bool HandleClientInput();
+	bool HandleKeyDown(int keynum);
+	void ScrollUp();
+	void ScrollDown();
+	void PageUp();
+	void PageDown();
+private:
+	std::vector<MessageBoxData> messageBoxes;
+	int m_iMaxRowsPerWindow;
+};
+
 struct FogProperties
 {
 	short r,g,b;
@@ -1082,6 +1118,8 @@ public:
 		static int LineWidth( const char *szString, int length = -1 );
 		static int WidestCharacterWidth();
 		static int LineHeight();
+		static int DrawMultiLineString(const char* str, int xpos, int ypos, int xmax, const int LineHeight, int r, int g, int b);
+		static std::vector<std::pair<int, int>> CalcLineOffsets(const char* str, int maxwidth);
 	};
 
 	struct AdditiveText
@@ -1210,6 +1248,7 @@ public:
 	CHudCaption		m_Caption;
 	CHudMonsterInfo		m_MonsterInfo;
 	CHudMeter	m_Meter;
+	CHudMessageBox	m_MessageBox;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();
@@ -1287,6 +1326,10 @@ public:
 	int TopRightInventoryCoordinate();
 	bool UseVguiMOTD();
 	bool UseVguiScoreBoard();
+
+	bool HandleClientButton(int button);
+	bool HandleKeyDown(int keynum);
+	bool TopLevelWindowIsActive();
 };
 
 extern CHud gHUD;

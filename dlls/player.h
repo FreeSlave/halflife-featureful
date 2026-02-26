@@ -579,6 +579,14 @@ public:
 	short m_fadeAlpha;
 	short m_fadeFlags;
 
+	EHANDLE m_messageBoxEnts[MAX_MESSAGE_BOXES];
+	Vector m_messageBoxOrigins[MAX_MESSAGE_BOXES];
+	float m_messageBoxDistances[MAX_MESSAGE_BOXES];
+	void RemoveMessageBoxGaps();
+	bool AddMessageBox(CBaseEntity* pMessageBoxEnt, const Vector& origin, float distance);
+	bool CloseMessageBox(int messageBoxId);
+	void ClearMessageBoxByIndex(int i);
+
 	int m_ToolSignalBits;
 	int m_ToolStateBits;
 	int m_ClientToolStateBits;

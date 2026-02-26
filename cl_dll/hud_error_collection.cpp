@@ -121,48 +121,5 @@ void CHudErrorCollection::SetClientErrors(const std::string &str)
 
 int CHudErrorCollection::DrawMultiLineString(const char *str, int xpos, int ypos, int xmax, const int LineHeight)
 {
-	int r = 255;
-	int g = 140;
-	int b = 0;
-
-	const char *ch = str;
-	while(*ch)
-	{
-		const char *next_line = ch;
-		for(; *next_line != '\n' && *next_line != '\0'; next_line++)
-			;
-
-		const int lineLength = next_line - ch;
-		if (lineLength > 0)
-		{
-			const int lineWidth = CHud::UtfText::LineWidth(ch, lineLength);
-			const int numberOfLines = (lineWidth + xmax - xpos - 1) / (xmax - xpos);
-
-			int lineLengthRest = lineLength;
-			for (int i=0; i<numberOfLines; ++i)
-			{
-				int renderLineLength = i == 0 ? (lineLength - lineLength/numberOfLines * (numberOfLines-1)) : Q_min(lineLength/numberOfLines, lineLengthRest);
-				if (renderLineLength > 0)
-				{
-					while(isalpha(ch[renderLineLength]) || ch[renderLineLength] == '_' || isdigit(ch[renderLineLength]))
-						renderLineLength++;
-					if (ch[renderLineLength] == '\'' && isalpha(ch[renderLineLength+1]))
-						renderLineLength += 2;
-					if (ch[renderLineLength] == '"')
-						renderLineLength++;
-					if (ch[renderLineLength] == ':')
-						renderLineLength++;
-					CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, renderLineLength );
-					ypos += LineHeight;
-					lineLengthRest -= renderLineLength;
-					ch += renderLineLength;
-				}
-			}
-		}
-
-		ch = next_line;
-		if (*ch == '\n')
-			ch++;
-	}
-	return ypos;
+	return CHud::UtfText::DrawMultiLineString(str, xpos, ypos, xmax, LineHeight, 255, 140, 0);
 }

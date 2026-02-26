@@ -31,7 +31,15 @@ int CHud::UpdateClientData( client_data_t *cdata, float time )
 	memcpy( m_vecOrigin, cdata->origin, sizeof(Vector) );
 	memcpy( m_vecAngles, cdata->viewangles, sizeof(Vector) );
 
+	int oldKeyBits = m_iKeyBits;
+
 	m_iKeyBits = CL_ButtonBits( 0 );
+
+	if ((oldKeyBits & IN_ATTACK) == 0 && (m_iKeyBits & IN_ATTACK) != 0 && HandleClientButton(IN_ATTACK))
+	{
+		m_iKeyBits &= ~IN_ATTACK;
+	}
+
 	//Handled in MsgFunc_Weapons now.
 	//m_iWeaponBits = cdata->iWeaponBits;
 

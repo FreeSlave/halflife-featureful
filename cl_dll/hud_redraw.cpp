@@ -18,6 +18,7 @@
 
 #include "hud.h"
 #include "cl_util.h"
+#include "text_utils.h"
 //#include "triangleapi.h"
 
 #if USE_VGUI
@@ -255,7 +256,7 @@ int CHud::Redraw( float flTime, int intermission )
 		ResetCrosshair();
 	}
 
-	if (m_pCvarCrosshair->value > 0.0f && !gHUD.m_Scoreboard.m_iShowscoresHeld && !(gHUD.m_Journal.m_iShowscoresHeld && gHUD.m_Journal.ShouldDraw())) {
+	if (m_pCvarCrosshair->value > 0.0f && !TopLevelWindowIsActive()) {
 		CHud::Renderer().DrawCrosshair();
 	}
 
@@ -548,7 +549,7 @@ int CHud::ConsoleText::WidestCharacterWidth()
 {
 	int width, height;
 	gEngfuncs.pfnDrawConsoleStringLen("M", &width, &height);
-	return height;
+	return width;
 }
 
 int CHud::ConsoleText::LineHeight()
@@ -556,6 +557,95 @@ int CHud::ConsoleText::LineHeight()
 	int width, height;
 	gEngfuncs.pfnDrawConsoleStringLen("YAW", &width, &height);
 	return height;
+}
+
+int CHud::ConsoleText::DrawMultiLineString(const char *str, int xpos, int ypos, int xmax, const int LineHeight, int r, int g, int b)
+{
+	const char *ch = str;
+	while(*ch)
+	{
+		const char *next_line = ch;
+		for(; *next_line != '\n' && *next_line != '\0'; next_line++)
+			;
+
+		const int lineLength = next_line - ch;
+		if (lineLength > 0)
+		{
+			const int lineWidth = CHud::UtfText::LineWidth(ch, lineLength);
+			const int numberOfLines = (lineWidth + xmax - xpos - 1) / (xmax - xpos);
+
+			int lineLengthRest = lineLength;
+			for (int i=0; i<numberOfLines; ++i)
+			{
+				int renderLineLength = i == 0 ? (lineLength - lineLength/numberOfLines * (numberOfLines-1)) : Q_min(lineLength/numberOfLines, lineLengthRest);
+				if (renderLineLength > 0)
+				{
+					while(isalpha(ch[renderLineLength]) || ch[renderLineLength] == '_' || isdigit(ch[renderLineLength]))
+						renderLineLength++;
+					if (ch[renderLineLength] == '\'' && isalpha(ch[renderLineLength+1]))
+						renderLineLength += 2;
+					if (ch[renderLineLength] == '"')
+						renderLineLength++;
+					if (ch[renderLineLength] == ':')
+						renderLineLength++;
+
+					lineLengthRest -= renderLineLength;
+
+					if (i > 0)
+					{
+						while(isspace(*ch))
+						{
+							++ch;
+							--renderLineLength;
+						}
+					}
+
+					CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, renderLineLength );
+					ypos += LineHeight;
+					ch += renderLineLength;
+				}
+			}
+		}
+
+		ch = next_line;
+		if (*ch == '\n')
+			ch++;
+	}
+	return ypos;
+}
+
+std::vector<std::pair<int, int>> CHud::ConsoleText::CalcLineOffsets(const char* str, int maxwidth)
+{
+	std::vector<std::pair<int, int>> lineOffsets;
+
+	WordBoundaries boundaries = SplitIntoWordBoundaries(str);
+
+	unsigned int startWordIndex = 0;
+	for (unsigned int j=0; j<boundaries.size();)
+	{
+		const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
+		if (width > maxwidth) {
+			if (j == startWordIndex) {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[startWordIndex].wordEnd));
+				startWordIndex = ++j;
+			} else {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j-1].wordEnd));
+				startWordIndex = j;
+			}
+		} else {
+			if (j == boundaries.size() - 1) {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j].wordEnd));
+			}
+			else if (boundaries[j].newline){
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j].wordEnd));
+				startWordIndex = j+1;
+			}
+
+			++j;
+		}
+	}
+
+	return lineOffsets;
 }
 
 int CHud::AdditiveText::DrawString(int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length)
