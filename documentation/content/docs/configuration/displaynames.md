@@ -27,3 +27,5 @@ Users who have the Russian localization installed will see `Ученый` instea
 {{% hint info %}}
 The search for translated display names is currently case-insensitive.
 {{% /hint %}}
+
+In addition to the display name the info also shows the amount of health with a descriptive string. The latter can be localized as well. See [predefined messages]({{< ref "text-messages/#predefined-messages" >}}).

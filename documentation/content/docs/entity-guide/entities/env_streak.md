@@ -5,7 +5,7 @@ bookToC: false
 
 # env_streak
 
-Generates streaks - temporary effects similar to sparks or traces from bullets.
+Generates streaks - temporary effects similar to sparks or tracers from bullets.
 
 {{% hint warning %}}
 Featureful SDK 2025-03-29 was the last version where `env_streak` was directional by default (it used entity angles for direction). In latter versions `env_streak` generates streaks in random direction by default.

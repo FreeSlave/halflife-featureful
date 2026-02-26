@@ -125,7 +125,7 @@ Custom [base maximum speed]({{< ref "player/#maximum-speed" >}}) for the player.
 
 ### nosuit_allow_healthcharger
 
-A boolean - whether the player is allowed to use [health charger]({< ref func_healthcharger >}) without a suit.
+A boolean - whether the player is allowed to use [health charger]({{< ref func_healthcharger >}}) without a suit.
 
 If not set, the behavior depends on `nosuit_allow_healthcharger` option in **features/featureful_server.cfg**.
 

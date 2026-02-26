@@ -77,6 +77,18 @@ Some message IDs are predefined. They start with `__`. The default messages are 
 | `__SHOWINFO_ARMOR` | Armor | Used when displaying the player info in co-op |
 | `__SHOWINFO_STRENGTH` | Strength | Used when displaying the breakable's info |
 
+Example of Russian localization:
+
+```json
+{
+    "__SHOWINFO_HEALTH": "Здоровье",
+    "__SHOWINFO_ARMOR": "Броня",
+    "__SHOWINFO_STRENGTH": "Прочность",
+
+    //...other messages
+}
+```
+
 ## Display names
 
 See [Display names]({{< ref displaynames >}})

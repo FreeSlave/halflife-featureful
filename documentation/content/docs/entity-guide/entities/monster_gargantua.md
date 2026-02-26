@@ -7,6 +7,11 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_gargantua)
 
+### Changes
+
+* Fixed Gargantua not using the stomp attack if he loses the sight on enemy too often.
+* Fixed Gargantua not being able to attack its enemy with stomp attack when enemy is hiding in some niche in the wall so Garg can't see it.
+
 ### Skill variables
 
 * **sk_gargantua_health** - monster's health.

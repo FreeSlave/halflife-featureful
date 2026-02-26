@@ -1097,7 +1097,7 @@
 	killtarget(target_destination) : "Kill target"
 	master(string) : "Master"
 	delay(string) : "Delay before trigger" : "0"
-	message(string) : "Message (set sound too!)"
+	message(string) : "Message Name (titles.txt)"
 ]
 
 @BaseClass = TriggerCond
@@ -2006,7 +2006,7 @@
 
 @PointClass base(Targetname, Target) = env_message : "HUD Text Message"
 [
-	message(string) : "Message Name"
+	message(string) : "Message Name (titles.txt)"
 	spawnflags(flags) =
 	[
 		1: "Play Once" : 0
@@ -4077,12 +4077,12 @@
 	model(studio) : "Model" : : "The model to use. If not defined, it will use the model defined by the entity template for the inventory item type. If it's missing the models/w_security.mdl will be used as a fallback"
 	item_name(string) : "Inventory item" : : "Inventory item to give to player"
 	count(integer) : "Inventory item count" : 1 : "Count of inventory items to give (if item is defined)"
-	message(string) : "Message" : : "Message from titles.txt to show on pickup"
+	message(string) : "Message Name (titles.txt)" : : "Message from titles.txt to show on pickup"
 	noise(sound) : "Pickup sound" : : "Custom sound to play on pickup"
 ]
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_security.mdl") = item_security : "Security card"
 [
-	message(string) : "Message" : : "Message from titles.txt to show on pickup"
+	message(string) : "Message Name (titles.txt)" : : "Message from titles.txt to show on pickup"
 	noise(sound) : "Pickup sound" : "items/gunpickup4.wav"
 	hudname(string) : "HUD name" : : "Sprite from hud.txt to show on pickup. By default it won't show anything"
 ]
