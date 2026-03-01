@@ -2851,6 +2851,12 @@ void CConfigurableWeapon::OnPlayerAttackCapabilityChanged(bool enabled)
 	}
 }
 
+void CConfigurableWeapon::ResetOnRemoveAsActive()
+{
+	if (m_pPlayer->m_iFOV != 0)
+		ResetZoom(SwitchModeReason::Forced);
+}
+
 int CConfigurableWeapon::PackIParam2()
 {
 	int packed = WeaponId();

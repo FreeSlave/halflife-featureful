@@ -301,6 +301,7 @@ public:
 	virtual int ViewModelBody() { return 0; }
 	virtual float GetMaxSpeed() { return 0.0f; }
 	virtual void OnPlayerAttackCapabilityChanged(bool enabled) {}
+	virtual void ResetOnRemoveAsActive() {}
 	float GetNextAttackDelay( float delay );
 
 	int		m_fInSpecialReload;									// Are we in the middle of a reload for the shotguns
@@ -421,6 +422,7 @@ public:
 
 	float GetMaxSpeed() override;
 	void OnPlayerAttackCapabilityChanged(bool enabled) override;
+	void ResetOnRemoveAsActive() override;
 	CConfigurableWeapon *MyConfigurableWeaponPointer() override { return this; }
 
 #ifndef CLIENT_DLL

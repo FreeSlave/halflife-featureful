@@ -5052,6 +5052,8 @@ bool CBasePlayer::RemovePlayerItem( CBasePlayerWeapon *pItem, bool bCallHolster 
 		ResetAutoaim();
 		if( bCallHolster )
 			pItem->Holster();
+		else
+			pItem->ResetOnRemoveAsActive();
 		m_pActiveItem = NULL;
 		pev->viewmodel = 0;
 		pev->weaponmodel = 0;
