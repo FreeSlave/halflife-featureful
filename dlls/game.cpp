@@ -1347,6 +1347,11 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("kate_health", "barney_health");
 
+	g_SkillData.ProvideFallback("kingpin_health", "ichthyosaur_health");
+	g_SkillData.ProvideFallback("kingpin_melee", "zombie_dmg_one_slash");
+	g_SkillData.ProvideFallback("kingpin_plasma_blast", "nihilanth_zap");
+	g_SkillData.ProvideFallback("kingpin_lightning", "islave_dmg_zap");
+
 	g_SkillData.ProvideFallback("massassin_health", "hgrunt_health");
 	g_SkillData.ProvideFallback("massassin_kick", "hgrunt_kick");
 	g_SkillData.ProvideFallback("massassin_gspeed", "hgrunt_gspeed");

@@ -121,6 +121,7 @@ set (SVDLL_SOURCES
 	inventory.cpp
 	islave.cpp
 	items.cpp
+	kingpin.cpp
 	knife.cpp
 	leech.cpp
 	lights.cpp

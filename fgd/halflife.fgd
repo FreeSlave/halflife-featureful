@@ -2056,6 +2056,8 @@
 	]
 ]
 
+@PointClass base(Targetname) = env_plasmacluster : "Kingpin plasma cluster (for testing)" []
+
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_quakefx : "Quake 1 particle effects"
 [
 	message(string) : "Position (blank = here) [LP]"
@@ -6334,6 +6336,21 @@
 		15 : "new_ickyjump"
 	]
 ]
+
+@PointClass base(Monster, Sequence) size(-6 -6 0, 6 6 6) studio("models/kingpin.mdl") = monster_kingpin : "Kingpin"
+[
+	teleport_target(string) : "Teleport target" : : "Name of targets to teleport to when can't get to enemy"
+	second_chance(choices) : "Can use second chance" =
+	[
+		0: "No"
+		1: "Yes"
+	]
+	spawnflags(Flags) =
+	[
+		32768 : "Escape on death" : 0 : "Escape away via teleport instead of gibbing. Still counts as death for trigger condition"
+	]
+]
+
 @PointClass base(Monster, Sequence) size(-6 -6 0, 6 6 6) studio("models/leech.mdl") = monster_leech : "Leech"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
