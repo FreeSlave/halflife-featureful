@@ -9,9 +9,10 @@ bookToC: false
 
 ### Changes
 
-* Can heal allies, e.g. security guards or other scientists (originally scientists healed only players).
+* Can heal allies, e.g. security guards or other scientists (in original Half-Life scientists healed only players).
 * Healing now plays a medshot sound.
 * Scientists now play a death sound instead of silently dying.
+* Scientists now comment on smells (using `SC_SMELL` sentence group). This didn't work in original Half-Life.
 
 ### Skill variables
 

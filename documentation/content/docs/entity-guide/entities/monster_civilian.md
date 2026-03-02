@@ -5,7 +5,7 @@ bookToC: false
 
 # monster_civilian
 
-Generic npc that acts like scientist but doesn't have an ability to heal the player. Requires configuration of model, body, skin and Speech. By default uses the scientist model and sentences. Suitable for making civilian npcs like construction workers, hostages from Counter Strike and unarmed npcs from Condition Zero Deleted Scenes.
+Generic npc that acts like [scientist]({{< ref monster_scientist >}}) but doesn't have an ability to heal the player. Requires configuration of model, body, skin and Speech. By default uses the scientist model and sentences. Suitable for making civilian npcs like construction workers, hostages from Counter Strike and unarmed npcs from Condition Zero Deleted Scenes.
 
 ### Skill variables
 

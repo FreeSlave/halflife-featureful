@@ -74,6 +74,61 @@ Talkmonsters are monsters who talk to each other and a player and can follow the
 * If monster does not have a question sentence group or it's missing from sentences.txt, the monster will not try to start a conversation with other friend. In Half-Life talkmonsters could start conversations even in the absence of question sentences that led to weird situations when other monster answered to unspoken questions.
 * ![](/images/opfor.png)  If player is attacked by the enemy monster, the ally soldiers (Opposing Force human grunts) following the player will instantly know about the attacker even if they didn't see the enemy yet.
 
+## New monsters
+
+{{% details_header title="Civilian personnel" %}}
+* [Civilian]({{< ref monster_civilian >}})
+* [Cleansuit Scientist]({{< ref monster_cleansuit_scientist >}})
+* [Otis]({{< ref monster_otis >}})
+* [Barniel]({{< ref monster_otis >}})
+* [Kate]({{< ref monster_kate >}})
+* [Rosenberg]({{< ref monster_rosenberg >}})
+* [Richard Keller]({{< ref monster_wheelchair >}})
+{{% /details_header %}}
+
+{{% details_header title="Human grunts" %}}
+* [Opfor Human Grunt]({{< ref monster_human_grunt_ally >}})
+* [Medic]({{< ref monster_human_medic_ally >}})
+* [Engineer (Torch)]({{< ref monster_human_torch_ally >}})
+* [Heave weapons grunt]({{< ref monster_hwgrunt >}})
+{{% /details_header %}}
+
+{{% details_header title="Blackops" %}}
+* [Male Assassin]({{< ref monster_male_assassin >}})
+* [Blackops Apache]({{< ref monster_blkop_apache >}})
+* [Blackops Osprey]({{< ref monster_blkop_osprey >}})
+{{% /details_header %}}
+
+{{% details_header title="Robots" %}}
+* [Robogrunt]({{< ref monster_robogrunt >}})
+* [Robocop]({{< ref monster_robocop >}})
+{{% /details_header %}}
+
+{{% details_header title="Xen creatures" %}}
+* [Baby Gargantua]({{< ref monster_babygarg >}})
+* [Floater]({{< ref monster_floater >}})
+* [Flybee]({{< ref monster_flybee >}})
+* [Kingpin]({{< ref monster_kingpin >}})
+* [Panthereye]({{< ref monster_panthereye >}})
+* [Tor]({{< ref monster_alien_tor >}})
+{{% /details_header %}}
+
+{{% details_header title="Zombies" %}}
+* [Gonome]({{< ref monster_gonome >}})
+* [Zombie Barney]({{< ref monster_zombie_barney >}})
+* [Zombie Soldier]({{< ref monster_zombie_soldier >}})
+{{% /details_header %}}
+
+{{% details_header title="Race X" %}}
+* [Pitdrone]({{< ref monster_pitdrone >}})
+* [Shock Trooper]({{< ref monster_shocktrooper >}})
+* [Shock Roach]({{< ref monster_shockroach >}})
+* [Voltigore]({{< ref monster_alien_voltigore >}})
+* [Baby Voltigore]({{< ref monster_alien_babyvoltigore >}})
+* [Pitworm]({{< ref monster_pitworm_up >}})
+* [Geneworm]({{< ref monster_geneworm >}})
+{{% /details_header %}}
+
 ## Children configuration
 
 Some monsters can spawn other monsters, i.e. children. The monster's children can be configured via [entity templates]({{< ref "entity-templates/#children" >}}).

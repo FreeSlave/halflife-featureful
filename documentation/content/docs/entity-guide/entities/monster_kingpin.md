@@ -9,7 +9,7 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 
 * Like in Sven Co-op the Kingpin can launch [homing plasma projectiles]({{< ref kingpin_plasma_ball >}}) at its enemies.
 * Instead of the lightning attack (which looked pretty unfair in Sven Co-op as it didn't require any prior charge and could deal damage on great distances) the Kingpin got a [plasma cluster]({{< ref kingpin_plasma_cluster >}}) attack. The original lightning attack from Sven Co-op may be added later.
-* The Kingpin can teleport, but only to predefined spots. This gives the mapper better control on where the Kingpin can teleport to. Free teleport will be implemented later.
+* The Kingpin can teleport, but only to designated spots. This gives the mapper better control on where the Kingpin can teleport to. Free teleport will be implemented later.
 * The Kingpin can't deflect projectiles yet. This will be implemented later.
 
 ### Parameters
@@ -28,6 +28,10 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 * **sk_kingpin_melee** - melee damage.
 * See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) and [kingpin_plasma_cluster]({{< ref kingpin_plasma_cluster >}}) for projectile skill variables.
 
+### Default classification
+
+`Gargantua`
+
 ### Soundscripts
 
 * **Kingpin.Idle** - idle sounds.
@@ -41,7 +45,7 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 * **Kingpin.TeleportExit** - Kingpin finished teleporting. The sound is played on the exit teleport sprite, at the new spot.
 * **Kingpin.Escape** - Kingpin starts escaping (when `Escape on death` spawnflag is set). This is played on the sprite.
 * **Kingpin.EscapeEnd** - Kingpin finishes its escape. This is played on the sprite.
-* See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) for projectile soundscripts.
+* See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) and [kingpin_plasma_cluster]({{< ref kingpin_plasma_cluster >}}) for projectile soundscripts.
 
 ### Visuals
 
@@ -59,7 +63,7 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 * **Kingpin.EscapeBeam** - chaotic beams created at the start of Kingpin's escape.
 * **Kingpin.EscapeEndBeam** - chaotic beams created in the end of Kingpin's escape.
 * **Kingpin.EscapeWave** - beam wave played when Kingpin escapes.
-* See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) for projectile visuals.
+* See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) and [kingpin_plasma_cluster]({{< ref kingpin_plasma_cluster >}}) for projectile visuals.
 
 Shared visuals:
 

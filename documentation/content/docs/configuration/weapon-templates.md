@@ -388,7 +388,7 @@ An array of sounds used in the view model animation events (event 5004). These s
 
 ## from_scratch
 
-A boolean defining whether the weapon configuration should start from scratch, i.e. from the default weapon template. This preserves only the following properties:
+A boolean defining whether the weapon configuration should start from scratch, i.e. from the default weapon template which doesn't have any attacks set. This preserves only the following properties:
 
 * `"world_model"`
 * `"view_model"`
@@ -548,7 +548,7 @@ Set `null` to remove the native weapon rules.
 
 ## fire
 
-Customize weapon firing options like delay between shots, fire spread and recoil.
+Customize weapon firing options like delay between shots, fire spread and recoil. See [alt_fire](#alt_fire) for alternative fire.
 
 ```json
 {
@@ -1613,7 +1613,7 @@ The amount of illumination the player gets upon firing. Higher values also mean 
 
 ## alt_fire
 
-Same as [fire](#fire), but it defines settings for the secondary attack or for the primary attack in the alternative mode (depending on how the weapon works).
+Same as [fire](#fire), but it defines settings for the secondary attack or for the primary attack in the alternative mode (depending on the [secondary_attack](#secondary_attack)).
 
 If some setting for alternative fire is missing from default weapon configuration **and** custom configuration doesn't define it either, it reuses the value from primary attack configuration. This allows to easily change the properties for both primary and secondary attacks by editing the `"fire"` object only. On other hand this may cause the confusion if both attacks are drastically different, requiring the developer to ensure that the `"alt_fire"` doesn't inherit something it doesn't need from the `"fire"`.
 
@@ -2006,6 +2006,19 @@ A boolean defining whether pressing the secondary attack should toggle the laser
 ## tool
 
 An object defining tool-related properties used in [trigger_usetool]({{< ref trigger_usetool >}}).
+
+Example:
+
+```json
+{
+    "weapon_tool": {
+        "tool": {
+            "icon": "icon_tool",
+            "trigger_delay": 0.5
+        }
+    }
+}
+```
 
 ### icon
 
