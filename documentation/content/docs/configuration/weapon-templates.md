@@ -2014,7 +2014,11 @@ Example:
     "weapon_tool": {
         "tool": {
             "icon": "icon_tool",
-            "trigger_delay": 0.5
+            "trigger_delay": 0.4,
+            "deny_sound": {
+                "waves": ["buttons/button10.wav"]
+            },
+            "delay_after_deny": 0.5
         }
     }
 }
@@ -2026,7 +2030,15 @@ The sprite icon to show when player is in the tool zone. This must be defined in
 
 ### trigger_delay
 
-When tool is used in the designated area, fire the tool target with this delay. If the weapon gets holstered, the target won't be fired.
+When tool is used in the designated area, fire the tool target with this delay. If the weapon gets holstered (e.g. the player selected a different weapon during this time), the target won't be fired.
+
+### deny_sound
+
+[Weapon soundscript](#weapon-soundscript) to play when player is trying to use the tool out of the designated area.
+
+### delay_after_deny
+
+Delay before the weapon is usable again after the out of bounds usage attempt.
 
 ## viewmodel_body
 

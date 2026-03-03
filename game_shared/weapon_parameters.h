@@ -736,6 +736,8 @@ struct WeaponParameters
 
 	fixed_string<32> toolIcon;
 	float toolTriggerDelay{0.0f};
+	WeaponSoundScript toolDenySound{CHAN_WEAPON};
+	float toolDelayAfterDeny{0.1f};
 	int toolIndex{-1};
 
 	WeaponModeValue<PlayerSpeed> playerMaxSpeed;

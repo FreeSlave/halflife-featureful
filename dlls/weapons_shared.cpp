@@ -676,6 +676,8 @@ void CConfigurableWeapon::Precache()
 
 	PrecacheWeaponSoundScript(params.recharge.sound);
 
+	PrecacheWeaponSoundScript(params.toolDenySound);
+
 	PrecacheModelSounds();
 
 	if (params.startLaserSpot || params.altMode.toggleLaserSpot)
@@ -1228,7 +1230,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 		else
 		{
-			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+			PlayWeaponSoundScript(params.toolDenySound);
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + params.toolDelayAfterDeny;
 			return;
 		}
 	}

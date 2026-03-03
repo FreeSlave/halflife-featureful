@@ -1246,6 +1246,11 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	HandleJSONMember(value, "tool", [&](const Value& value) {
 		UpdatePropertyFromJson(params.toolIcon, value, "icon");
 		UpdatePropertyFromJson(params.toolTriggerDelay, value, "trigger_delay");
+
+		HandleJSONMember(value, "deny_sound", [&](const Value& value) {
+			ParseWeaponSoundScript(params.toolDenySound, value);
+		});
+		UpdatePropertyFromJson(params.toolDelayAfterDeny, value, "delay_after_deny");
 	});
 }
 

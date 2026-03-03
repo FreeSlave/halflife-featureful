@@ -1118,6 +1118,13 @@ R"(
 					"trigger_delay": {
 						"type": "number",
 						"minimum": 0
+					},
+					"deny_sound": {
+						"$ref": "#/w_soundscript"
+					},
+					"delay_after_deny": {
+						"type": "number",
+						"exclusiveMinimum": 0
 					}
 				},
 				"additionalProperties": false
