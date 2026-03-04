@@ -795,6 +795,7 @@ public:
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kingpin"); }
 	void SetYawSpeed() override { pev->yaw_speed = 140; }
 	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Kingpin"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void KeyValue(KeyValueData *pkvd) override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;

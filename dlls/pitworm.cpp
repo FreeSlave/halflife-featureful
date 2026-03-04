@@ -37,6 +37,7 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Pit Worm"; }
 	int	ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	void SetObjectCollisionBox() override
 	{

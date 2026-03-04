@@ -17,6 +17,10 @@ The final boss in Opposing Force.
 
 `Race X Shock`
 
+### Default display name
+
+`Gene Worm`
+
 ### Soundscripts
 
 * **GeneWorm.Idle** - idle sounds.

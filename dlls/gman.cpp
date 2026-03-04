@@ -33,6 +33,7 @@ public:
 	void Precache() override;
 	void SetYawSpeed() override;
 	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "G-man"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	int DefaultISoundMask() override;
 

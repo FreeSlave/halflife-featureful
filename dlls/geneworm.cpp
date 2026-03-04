@@ -623,6 +623,7 @@ public:
 	void Precache() override;
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("geneworm"); }
 	int  DefaultClassify() override { return CLASS_RACEX_SHOCK; }
+	const char* DefaultDisplayName() override { return "Gene Worm"; }
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 	static bool FilterHurtTargets(CBaseEntity *pTarget, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 	void FireHurtTargets(const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType);

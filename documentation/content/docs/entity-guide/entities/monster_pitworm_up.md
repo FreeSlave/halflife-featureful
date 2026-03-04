@@ -17,6 +17,10 @@ The boss worm creature from Opposing Force.
 
 `Race X Shock`
 
+### Default display name
+
+`Pit Worm`
+
 ### Soundscripts
 
 * **PitWorm.HitGround** - hitting the ground (any material).

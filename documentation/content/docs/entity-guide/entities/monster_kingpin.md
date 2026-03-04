@@ -32,6 +32,10 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 
 `Gargantua`
 
+### Default display name
+
+`Kingpin`
+
 ### Soundscripts
 
 * **Kingpin.Idle** - idle sounds.

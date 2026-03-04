@@ -16,6 +16,10 @@ bookToC: false
 
 `Alien Military`
 
+### Default display name
+
+`Nihilanth`
+
 ### Soundscripts
 
 * **Nihilanth.Pain** - pain sounds.

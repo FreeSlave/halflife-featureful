@@ -37,6 +37,7 @@ public:
 	void Precache() override;
 
 	int DefaultClassify() override { return CLASS_ALIEN_MILITARY; }
+	const char* DefaultDisplayName() override { return "Nihilanth"; }
 	void UpdateOnRemove() override;
 	int BloodColor() override { return BLOOD_COLOR_YELLOW; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
