@@ -456,5 +456,5 @@ bool CHalfLifeRules::FMonsterCanTakeDamage( CBaseMonster* pMonster, CBaseEntity*
 
 CBasePlayer *CHalfLifeRules::EffectivePlayer(CBaseEntity *pActivator)
 {
-	return (CBasePlayer*)CBaseEntity::Instance( g_engfuncs.pfnPEntityOfEntIndex( 1 ) );
+	return (CBasePlayer*)CBaseEntity::OwnInstance( g_engfuncs.pfnPEntityOfEntIndex( 1 ) );
 }
