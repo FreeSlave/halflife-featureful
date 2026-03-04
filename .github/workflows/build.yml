@@ -15,12 +15,38 @@ on:
       - 'README.md'
 
 jobs:
+  definitions:
+    runs-on: ubuntu-latest
+
+    outputs:
+      vgui_build: ${{ steps.vgui_build.outputs.vgui_build }}
+      branch: ${{ steps.extract_branch.outputs.branch }}
+      gamedir: ${{ steps.extract_gamedir.outputs.gamedir }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: mod_options.txt
+      - name: Define VGUI build type
+        id: vgui_build
+        run: |
+          echo 'vgui_build=["non-vgui", "vgui"]' >> "$GITHUB_OUTPUT"
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '_')" >> $GITHUB_OUTPUT
+        id: extract_branch
+      - name: Extract gamedir
+        shell: bash
+        run: echo "gamedir=$(grep mod_options.txt -Ee 'GAMEDIR=[a-z]+' | cut -d '=' -f 2 | cut -d' ' -f 1)" >> $GITHUB_OUTPUT
+        id: extract_gamedir
   build:
     runs-on: ${{ matrix.os }}
+    needs: [definitions]
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        vgui_build: [non-vgui, vgui]
+        vgui_build: ${{ fromJSON(needs.definitions.outputs.vgui_build) }}
         include:
           - os: ubuntu-latest
             cc: gcc
@@ -45,9 +71,9 @@ jobs:
       run: |
         if [ ${{ matrix.vgui_build }} == 'vgui' ]
         then
-        echo "USE_VGUI=ON" >> "$GITHUB_ENV"; echo "vgui_suffix=-vgui" >> "$GITHUB_ENV"
+        echo "USE_VGUI=ON" >> "$GITHUB_ENV"; echo "vgui_suffix=vgui" >> "$GITHUB_ENV"
         else
-        echo "USE_VGUI=OFF" >> "$GITHUB_ENV"; echo "vgui_suffix=" >> "$GITHUB_ENV"
+        echo "USE_VGUI=OFF" >> "$GITHUB_ENV"; echo "vgui_suffix=novgui" >> "$GITHUB_ENV"
         fi
 
     - name: Checkout steam-runtime
@@ -94,34 +120,25 @@ jobs:
         cmake --build build --target all
         cmake --build build --target install
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "branch=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '_')" >> $GITHUB_OUTPUT
-      id: extract_branch
-    - name: Extract gamedir
-      shell: bash
-      run: echo "gamedir=$(grep build/CMakeCache.txt -Ee 'GAMEDIR:STRING=[a-z]+' | cut -d '=' -f 2)" >> $GITHUB_OUTPUT
-      id: extract_gamedir
-
     - name: Copy fgd to dist dir
-      run: cp fgd/halflife.fgd dist/${{ steps.extract_gamedir.outputs.gamedir }}/${{ env.fgd_name }}
+      run: cp fgd/halflife.fgd dist/${{ needs.definitions.outputs.gamedir }}/${{ env.fgd_name }}
 
     - name: Copy features to dist dir
       shell: bash
       if:  ${{ env.include_features == 'true' }}
       run: |
-        cp -r features/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        cp -r features/ dist/${{ needs.definitions.outputs.gamedir }}/
         if [ -d templates ]
         then
-            cp -r templates/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+            cp -r templates/ dist/${{ needs.definitions.outputs.gamedir }}/
         fi
         if [ -d sound ]
         then
-            cp -r sound/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+            cp -r sound/ dist/${{ needs.definitions.outputs.gamedir }}/
         fi
         if [ -d sprites ]
         then
-            cp -r sprites/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+            cp -r sprites/ dist/${{ needs.definitions.outputs.gamedir }}/
         fi
 
     - name: Install Google Test
@@ -140,14 +157,14 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
       with:
-        name: hlsdk-${{ steps.extract_branch.outputs.branch }}-linux${{ env.vgui_suffix }}
-        path: dist/${{ steps.extract_gamedir.outputs.gamedir }}
+        name: hlsdk-${{ needs.definitions.outputs.branch }}-linux-${{ env.vgui_suffix }}
+        path: dist/${{ needs.definitions.outputs.gamedir }}
     - name: Upload windows artifact
       if: startsWith(matrix.os, 'windows')
       uses: actions/upload-artifact@v4
       with:
-        name: hlsdk-${{ steps.extract_branch.outputs.branch }}-windows${{ env.vgui_suffix }}
-        path: dist/${{ steps.extract_gamedir.outputs.gamedir }}
+        name: hlsdk-${{ needs.definitions.outputs.branch }}-windows-${{ env.vgui_suffix }}
+        path: dist/${{ needs.definitions.outputs.gamedir }}
 
   release:
     if: false
@@ -192,3 +209,26 @@ jobs:
           draft: false
           prerelease: true
           name: hlsdk-portable ${{ github.ref_name }} development build
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: [definitions, build]
+    strategy:
+      matrix:
+        vgui_build: ${{ fromJSON(needs.definitions.outputs.vgui_build) }}
+    steps:
+      - name: Setup VGUI-related environment variables
+        shell: bash
+        run: |
+            if [ ${{ matrix.vgui_build }} == 'vgui' ]
+            then
+            echo "vgui_suffix=vgui" >> "$GITHUB_ENV"; echo "vgui_artifact_suffix=-vgui" >> "$GITHUB_ENV";
+            else
+            echo "vgui_suffix=novgui" >> "$GITHUB_ENV"; echo "vgui_artifact_suffix=" >> "$GITHUB_ENV";
+            fi
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: hlsdk-${{ needs.definitions.outputs.branch }}${{ env.vgui_artifact_suffix }}
+          pattern: hlsdk-${{ needs.definitions.outputs.branch }}-*-${{ env.vgui_suffix }}
+          delete-merged: true
