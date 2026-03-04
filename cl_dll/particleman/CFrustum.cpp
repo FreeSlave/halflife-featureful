@@ -15,7 +15,17 @@
 
 //The triangle API uses OpenGL constants for certain functions.
 #include "windows_lean.h"
+
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IOS
+#include <OpenGLES/ES1/gl.h>
+#else
+#include <OpenGL/gl.h>
+#endif //TARGET_OS_IOS
+#else
 #include <GL/gl.h>
+#endif //__APPLE__
 
 #include "cl_util.h"
 #include "triangleapi.h"
