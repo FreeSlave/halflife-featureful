@@ -633,7 +633,7 @@ bool ParseDefaultShortcuts(CmdKeys& cmdKeys, const char* pfile, int fileSize, co
 			int commandNameStart, commandNameEnd;
 			if (!ConsumePossiblyQuotedString(pfile, i, fileSize, commandNameStart, commandNameEnd))
 			{
-				LOG_ERROR("%s: incomplete quoting\n", fileName);
+				LOG_ERROR("%s: incomplete quoting or empty quoted string\n", fileName);
 				ConsumeLine(pfile, i, fileSize);
 				continue;
 			}
@@ -649,13 +649,21 @@ bool ParseDefaultShortcuts(CmdKeys& cmdKeys, const char* pfile, int fileSize, co
 			int keyNameStart, keyNameEnd;
 			if (!ConsumePossiblyQuotedString(pfile, i, fileSize, keyNameStart, keyNameEnd))
 			{
-				LOG_ERROR("%s: incomplete quoting\n", fileName);
+				LOG_ERROR("%s: incomplete quoting or empty quoted string\n", fileName);
 				ConsumeLine(pfile, i, fileSize);
 				continue;
 			}
 			const int keyNameLength = keyNameEnd - keyNameStart;
 			if (keyNameLength == 0)
 			{
+				ConsumeLine(pfile, i, fileSize);
+				continue;
+			}
+
+			SkipSpacesAndTabs(pfile, i, fileSize);
+			if (i == fileSize || (pfile[i] != '\n' && pfile[i] != '\r' && pfile[i] != '/'))
+			{
+				LOG_ERROR("%s: wrong format: more than two strings on the same line\n", fileName);
 				ConsumeLine(pfile, i, fileSize);
 				continue;
 			}
