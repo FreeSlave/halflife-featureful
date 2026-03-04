@@ -671,10 +671,10 @@ bool ParseDefaultShortcuts(CmdKeys& cmdKeys, const char* pfile, int fileSize, co
 				LOG_ERROR("%s: unknown key name %s\n", fileName, keyName.c_str());
 				break;
 			case COMMANDKEY_OUTOFBOUNDS:
-				LOG_ERROR("%s: keynum is out of bounds for key name %s\n", keyName.c_str());
+				LOG_ERROR("%s: keynum is out of bounds for key name %s\n", fileName, keyName.c_str());
 				break;
 			case COMMANDKEY_TOOMANYKEYS:
-				LOG_ERROR("%s: too many keys for the command %s\n", commandName.c_str());
+				LOG_ERROR("%s: too many keys for the command %s\n", fileName, commandName.c_str());
 				break;
 			}
 		}
