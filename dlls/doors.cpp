@@ -1364,6 +1364,28 @@ public:
 		*outResult = m_fLastPos;
 		return true;
 	}
+
+	float SoundAttenuation() const
+	{
+		return ::SoundAttenuation(m_soundRadius);
+	}
+
+	short m_soundRadius;
+
+	string_t m_fireOnStart;
+	string_t m_fireOnStop;
+	string_t m_fireOnOpening;
+	string_t m_fireOnClosing;
+	string_t m_fireOnOpened;
+	string_t m_fireOnClosed;
+	BYTE m_fireOnStartState;
+	BYTE m_fireOnStopState;
+	BYTE m_fireOnOpeningState;
+	BYTE m_fireOnClosingState;
+	BYTE m_fireOnOpenedState;
+	BYTE m_fireOnClosedState;
+
+	bool m_lastMovementDirection;
 };
 
 LINK_ENTITY_TO_CLASS( momentary_door, CMomentaryDoor )
@@ -1373,6 +1395,24 @@ TYPEDESCRIPTION	CMomentaryDoor::m_SaveData[] =
 	DEFINE_FIELD( CMomentaryDoor, m_bMoveSnd, FIELD_CHARACTER ),
 	DEFINE_FIELD( CMomentaryDoor, m_bStopSnd, FIELD_CHARACTER ),
 	DEFINE_FIELD( CMomentaryDoor, m_fLastPos, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CMomentaryDoor, m_soundRadius, FIELD_SHORT ),
+
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnStart, FIELD_STRING ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnStop, FIELD_STRING ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnOpening, FIELD_STRING ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnClosing, FIELD_STRING ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnOpened, FIELD_STRING ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnClosed, FIELD_STRING ),
+
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnStartState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnStopState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnOpeningState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnClosingState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnOpenedState, FIELD_CHARACTER ),
+	DEFINE_FIELD( CMomentaryDoor, m_fireOnClosedState, FIELD_CHARACTER ),
+
+	DEFINE_FIELD( CMomentaryDoor, m_lastMovementDirection, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CMomentaryDoor, CBaseToggle )
@@ -1493,7 +1533,6 @@ void CMomentaryDoor::Precache()
 
 void CMomentaryDoor::KeyValue( KeyValueData *pkvd )
 {
-
 	if( FStrEq( pkvd->szKeyName, "movesnd" ) )
 	{
 		m_bMoveSnd = atoi( pkvd->szValue );
@@ -1509,6 +1548,71 @@ void CMomentaryDoor::KeyValue( KeyValueData *pkvd )
 		//m_bHealthValue = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstart"))
+	{
+		m_fireOnStart = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstart_triggerstate"))
+	{
+		m_fireOnStartState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop"))
+	{
+		m_fireOnStop = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonstop_triggerstate"))
+	{
+		m_fireOnStopState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopening"))
+	{
+		m_fireOnOpening = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopening_triggerstate"))
+	{
+		m_fireOnOpeningState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosing"))
+	{
+		m_fireOnClosing = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosing_triggerstate"))
+	{
+		m_fireOnClosingState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopened"))
+	{
+		m_fireOnOpened = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonopened_triggerstate"))
+	{
+		m_fireOnOpenedState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosed"))
+	{
+		m_fireOnClosed = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "fireonclosed_triggerstate"))
+	{
+		m_fireOnClosedState = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "soundradius" ) )
+	{
+		m_soundRadius = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseToggle::KeyValue( pkvd );
 }
@@ -1518,10 +1622,35 @@ void CMomentaryDoor::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 	if( useType != USE_SET )		// Momentary buttons will pass down a float in here
 		return;
 
+	m_hActivator = pActivator;
+
 	if( value > 1.0f )
 		value = 1.0f;
 	if( value < 0.0f )
 		value = 0.0f;
+
+	const bool movementDirection = value > m_fLastPos;
+	if (value != m_fLastPos)
+	{
+		if (movementDirection != m_lastMovementDirection)
+		{
+			m_lastMovementDirection = movementDirection;
+
+			if (m_fireOnStart)
+				FireTargets(STRING(m_fireOnStart), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStartState));
+
+			if (movementDirection)
+			{
+				if (m_fireOnOpening)
+					FireTargets(STRING(m_fireOnOpening), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpeningState));
+			}
+			else
+			{
+				if (m_fireOnClosing)
+					FireTargets(STRING(m_fireOnClosing), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosingState));
+			}
+		}
+	}
 
 	Vector move = m_vecPosition1 + ( value * ( m_vecPosition2 - m_vecPosition1 ) );
 	
@@ -1534,7 +1663,7 @@ void CMomentaryDoor::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 		// This entity only thinks when it moves, so if it's thinking, it's in the process of moving
 		// play the sound when it starts moving(not yet thinking)
 		if( pev->nextthink < pev->ltime || pev->nextthink == 0.0f )
-			EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMoving ), 1.0f, ATTN_NORM );
+			EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMoving ), 1.0f, SoundAttenuation() );
 		// If we already moving to designated point, return
 		else if( move == m_vecFinalDest )
 			return;
@@ -1549,12 +1678,30 @@ void CMomentaryDoor::MomentaryMoveDone()
 {
 	SetThink(&CMomentaryDoor::StopMoveSound);
 	pev->nextthink = pev->ltime + 0.1f;
+
+	if (m_fireOnStop)
+		FireTargets(STRING(m_fireOnStop), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnStopState));
+
+	if (m_fLastPos >= 1.0f)
+	{
+		if (!FStringNull(m_fireOnOpened))
+		{
+			FireTargets(STRING(m_fireOnOpened), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnOpenedState));
+		}
+	}
+	else if (m_fLastPos <= 0.0f)
+	{
+		if (!FStringNull(m_fireOnClosed))
+		{
+			FireTargets(STRING(m_fireOnClosed), m_hActivator, this, DoorTriggerStateToUseType(m_fireOnClosedState));
+		}
+	}
 }
 
 void CMomentaryDoor::StopMoveSound()
 {
 	STOP_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMoving ) );
-	EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseArrived ), 1.0f, ATTN_NORM );
+	EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseArrived ), 1.0f, SoundAttenuation() );
 	pev->nextthink = -1.0f;
 	ResetThink();
 }

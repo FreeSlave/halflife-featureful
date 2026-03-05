@@ -4274,7 +4274,55 @@
 	m_fDuration(string) : "Removed after time (secs)"
 ]
 
-@SolidClass base(Door, ZHLT) = momentary_door : "Momentary/Continuous door"
+@BaseClass = MomentaryDoor
+[
+	movesnd(choices) : "Move Sound" : 0 =
+	[
+		0: "No Sound"
+		1: "Servo (Sliding)"
+		2: "Pneumatic (Sliding)"
+		3: "Pneumatic (Rolling)"
+		4: "Vacuum"
+		5: "Power Hydraulic"
+		6: "Large Rollers"
+		7: "Track Door"
+		8: "Snappy Metal Door"
+	]
+	stopsnd(choices) : "Stop Sound" : 0 =
+	[
+		0: "No Sound"
+		1: "Clang with brake"
+		2: "Clang reverb"
+		3: "Ratchet Stop"
+		4: "Chunk"
+		5: "Light airbrake"
+		6: "Metal Slide Stop"
+		7: "Metal Lock Stop"
+		8: "Snappy Metal Stop"
+	]
+	lip(integer) : "Lip"
+]
+
+@BaseClass = StartStopableMomentary
+[
+	fireonstart(target_destination) : "Fire On Start" : : "Fire when door starts moving (either direction)"
+	fireonstart_triggerstate(choices) : "Fire On Start Trigger State" =
+	[
+		0: "Off"
+		1: "On"
+		2: "Toggle"
+	]
+
+	fireonstop(target_destination) : "Fire On Stop" : : "Fire when door stops moving"
+	fireonstop_triggerstate(choices) : "Fire On Stop Trigger State" =
+	[
+		0: "Off"
+		1: "On"
+		2: "Toggle"
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, RenderFields, Global, Angles, MomentaryDoor, SoundRadius, StartStopableMomentary, OpenClosable, CustomObjectHint, ZHLT) = momentary_door : "Momentary/Continuous door"
 [
 	spawnflags(flags) =
 	[
