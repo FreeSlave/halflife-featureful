@@ -241,7 +241,15 @@ void CMedkit::ItemPostFrame()
 	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
 	{
 		const float medkitShot = GetSkillValue("plr_medkitshot");
-		const int maxHeal = Q_min((int)medkitShot, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		int maxHeal = (int)medkitShot;
+		if (UsesClip())
+		{
+			maxHeal = Q_min(maxHeal, m_iClip);
+		}
+		else if (UsesAmmo())
+		{
+			maxHeal = Q_min(maxHeal, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		}
 		if (m_secondaryAttack) {
 			const int diff = (int)ceil(m_pPlayer->pev->max_health - m_pPlayer->pev->health);
 			const int healResult = m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);

@@ -254,6 +254,7 @@ public:
 	const char* DetonatorViewModelToDeploy(const char* viewModel);
 	bool DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
 	bool DefaultClipReload(int iAnim, float fDelay, int body = 0);
+	void ReloadClipNow(int ammoCountPerReload);
 	void PrecachePModel(const char* name);
 
 	virtual void ItemPostFrame();	// called each frame by the player PostThink

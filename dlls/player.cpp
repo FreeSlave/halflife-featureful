@@ -311,7 +311,7 @@ void LinkUserMessages()
 	}
 
 	gmsgSelAmmo = REG_USER_MSG( "SelAmmo", sizeof(SelAmmo) );
-	gmsgCurWeapon = REG_USER_MSG( "CurWeapon", 4 );
+	gmsgCurWeapon = REG_USER_MSG( "CurWeapon", 6 );
 	gmsgGeigerRange = REG_USER_MSG( "Geiger", 1 );
 	gmsgFlashlight = REG_USER_MSG( "Flashlight", 2 );
 	gmsgFlashBattery = REG_USER_MSG( "FlashBat", 1 );
@@ -1083,7 +1083,7 @@ void CBasePlayer::PackDeadPlayerItems()
 
 			if( rgpPackWeapons[iPW] )
 			{
-				if (rgpPackWeapons[iPW]->UsesClip())
+				if (rgpPackWeapons[iPW]->UsesClip() && rgpPackWeapons[iPW]->UsesAmmo())
 				{
 					// complete the reload.
 					// TODO: make it depend on the game rules
@@ -4391,6 +4391,7 @@ void CBasePlayer::SendCurWeaponClear()
 		WRITE_BYTE( 0 );
 		WRITE_BYTE( 0 );
 		WRITE_SHORT( 0 );
+		WRITE_SHORT( 0 );
 	MESSAGE_END();
 }
 
@@ -4399,6 +4400,7 @@ void CBasePlayer::SendCurWeaponDead()
 	MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
 		WRITE_BYTE( 0 );
 		WRITE_BYTE( 0XFF );
+		WRITE_SHORT( -1 );
 		WRITE_SHORT( -1 );
 	MESSAGE_END();
 }

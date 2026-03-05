@@ -671,6 +671,7 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 	int iState = READ_BYTE();
 	int iId = READ_CHAR();
 	int iClip = READ_SHORT();
+	int iMaxClip = READ_SHORT();
 
 	// detect if we're also on target
 	if( iState > 1 )
@@ -707,6 +708,8 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 		pWeapon->iClip = abs( iClip );
 	else
 		pWeapon->iClip = iClip;
+
+	pWeapon->iMaxClip = iMaxClip;
 
 	if( iState == 0 )	// we're not the current weapon, so update no more
 		return 1;
@@ -774,6 +777,7 @@ int CHudAmmo::MsgFunc_WeaponList( const char *pszName, int iSize, void *pbuf )
 	Weapon.iId = READ_CHAR();
 	Weapon.iFlags = READ_BYTE();
 	Weapon.iClip = 0;
+	Weapon.iMaxClip = 0;
 
 	if( Weapon.iId < 0 || Weapon.iId >= MAX_WEAPONS )
 		return 0;
@@ -982,7 +986,7 @@ int CHudAmmo::Draw( float flTime )
 	WEAPON *pw = m_pWeapon; // shorthand
 
 	// SPR_Draw Ammo
-	if( ( pw->iAmmoType <= 0 ) && ( pw->iAmmo2Type <= 0 ) )
+	if( ( pw->iAmmoType <= 0 ) && ( pw->iAmmo2Type <= 0 ) && pw->iMaxClip <= 0 )
 		return 0;
 
 	int iFlags = DHN_DRAWZERO; // draw 0 values
@@ -1004,18 +1008,33 @@ int CHudAmmo::Draw( float flTime )
 
 	// Does weapon have any ammo at all?
 	const AmmoType* ammoType = g_AmmoRegistry.GetByIndex(m_pWeapon->iAmmoType);
-	if( ammoType )
+
+	int rightSideValue = 0;
+	int rightSideMaxValue = 0;
+	if (ammoType)
+	{
+		rightSideValue = gWR.CountAmmo(pw->iAmmoType);
+		rightSideMaxValue = ammoType->maxAmmo;
+	}
+	else if (pw->iMaxClip > 0)
+	{
+		rightSideMaxValue = rightSideValue = pw->iMaxClip;
+	}
+
+	if (rightSideMaxValue > 0)
 	{
 		int ammoWidths = 8;
 		int drawNumberFlag = DHN_3DIGITS;
-		if (ammoType->maxAmmo >= 1000) {
+
+		if (rightSideMaxValue >= 1000)
+		{
 			ammoWidths++;
 			drawNumberFlag |= DHN_4DIGITS;
 		}
 
 		int iIconWidth = m_pWeapon->rcAmmo.right - m_pWeapon->rcAmmo.left;
 
-		if( pw->iClip >= 0 )
+		if (pw->iClip >= 0)
 		{
 			int drawNumberClipFlag = DHN_3DIGITS;
 			if (m_pWeapon->iClip >= 1000) {
@@ -1046,12 +1065,12 @@ int CHudAmmo::Draw( float flTime )
 
 			// GL Seems to need this
 			ScaleColors( r, g, b, a );
-			x = gHUD.DrawHudNumber( x, y, iFlags | drawNumberFlag, gWR.CountAmmo( pw->iAmmoType ), r, g, b );
+			x = gHUD.DrawHudNumber( x, y, iFlags | drawNumberFlag, rightSideValue, r, g, b );
 		}
 		else
 		{
 			ammoWidths = 4;
-			if (ammoType->maxAmmo >= 1000) {
+			if (ammoType && ammoType->maxAmmo >= 1000) {
 				ammoWidths++;
 			}
 

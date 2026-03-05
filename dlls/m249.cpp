@@ -182,8 +182,7 @@ void CM249::OnSpendAmmo()
 
 void CM249::OnEndReload()
 {
-	int maxClip = iMaxClip();
-	m_iVisibleClip = m_iClip + Q_min( maxClip - m_iClip, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] );
+	m_iVisibleClip = m_iClip;
 	UpdateTape(m_iVisibleClip);
 }
 
@@ -197,21 +196,25 @@ void CM249::ItemPostFrame()
 {
 	if (!m_fInReload)
 	{
-		m_iVisibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+		if (UsesClip())
+			m_iVisibleClip = m_iClip;
+		else if (UsesAmmo())
+			m_iVisibleClip = m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
 	}
 	CConfigurableWeapon::ItemPostFrame();
 }
 
 void CM249::UpdateTape()
 {
-	int visibleClip = UsesClip() ? m_iClip : m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+	int visibleClip = UsesClip() ? m_iClip : (UsesAmmo() ? m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] : 0);
 	UpdateTape(visibleClip);
 	m_iVisibleClip = visibleClip;
 }
 
 void CM249::UpdateTape(int clip)
 {
-	pev->body = BodyFromClip(clip);
+	if (UsesClip() || UsesAmmo())
+		pev->body = BodyFromClip(clip);
 }
 
 int CM249::BodyFromClip()

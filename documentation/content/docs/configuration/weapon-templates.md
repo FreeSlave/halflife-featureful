@@ -300,7 +300,7 @@ Allows to change the ammo amount the weapon comes with by default. This might be
 
 ## ammo_name
 
-Allows to change the primary ammo the weapon is using. This only works for weapons that use ammo.
+Allows to change the primary ammo the weapon is using.
 
 ```json
 {
@@ -309,14 +309,19 @@ Allows to change the primary ammo the weapon is using. This only works for weapo
     },
     "weapon_crossbow": {
         "ammo_name": "uranium"
+    },
+    "weapon_9mmhandgun": {
+        "ammo_name": null
     }
 }
 ```
 
 See [ammo types]({{< ref ammo-types >}}) for the list of possible ammo names.
 
+Setting `"ammo_name"` to `null` makes weapon to not require the ammo. [max_clip](#max_clip) still can be set on such weapon to require reloads from the 'infinite' ammo reserve (think of Left 4 Dead pistols, for example). In this case the HUD will show the max clip in place of the ammo reserve.
+
 {{% hint warning %}}
-You still need to change the ammo sprite in the weapon hud .txt file to match the actual ammo type.
+You need to change the ammo sprite in the weapon hud .txt file to match the actual ammo type.
 {{% /hint %}}
 
 {{% hint info %}}

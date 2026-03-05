@@ -914,6 +914,7 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 			WRITE_BYTE( state );
 			WRITE_BYTE( WeaponId() );
 			WRITE_SHORT( m_iClip );
+			WRITE_SHORT( m_iMaxClip );
 		MESSAGE_END();
 
 		m_iClientClip = m_iClip;
@@ -1005,13 +1006,13 @@ bool CBasePlayerWeapon::AddSecondaryAmmo(int iCount)
 //=========================================================
 bool CBasePlayerWeapon::IsUseable()
 {
-	if( m_iClip > 0 )
+	// Player has unlimited ammo for this weapon or does not use magazines
+	if (!UsesAmmo())
 	{
 		return true;
 	}
 
-	// Player has unlimited ammo for this weapon or does not use magazines
-	if (!UsesAmmo() || !UsesClip())
+	if (UsesClip() && m_iClip > 0)
 	{
 		return true;
 	}
@@ -1165,6 +1166,11 @@ bool CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon )
 		// blindly call with m_iDefaultAmmo. It's either going to be a value or zero. If it is zero,
 		// we only get the ammo in the weapon's clip, which is what we want. 
 		iReturn |= pWeapon->AddPrimaryAmmo( m_iDefaultAmmo );
+		m_iDefaultAmmo = 0;
+	}
+	else if (UsesClip())
+	{
+		m_iClip = m_iDefaultAmmo;
 		m_iDefaultAmmo = 0;
 	}
 
