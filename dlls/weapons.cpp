@@ -1170,7 +1170,8 @@ bool CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon )
 	}
 	else if (UsesClip())
 	{
-		m_iClip = m_iDefaultAmmo;
+		if (m_iDefaultAmmo > 0)
+			m_iClip = m_iDefaultAmmo;
 		m_iDefaultAmmo = 0;
 	}
 
