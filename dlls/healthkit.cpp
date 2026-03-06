@@ -23,8 +23,6 @@
 #include "wallcharger.h"
 #include "game.h"
 
-extern int gmsgItemPickup;
-
 class CHealthKit : public CItem
 {
 public:
@@ -70,10 +68,7 @@ bool CHealthKit::MyTouch( CBasePlayer *pPlayer )
 	if( pPlayer->TakeHealth( this, pev->health > 0 ? pev->health : DefaultCapacity(), HEAL_CHARGE ) )
 	{
 		if (healed) {
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING( pev->classname ) );
-			MESSAGE_END();
-
+			pPlayer->NotifyPickup(STRING(pev->classname));
 			pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 		}
 

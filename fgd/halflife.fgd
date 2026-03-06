@@ -8305,6 +8305,10 @@
 	]
 	trigger_on_stash(target_destination) : "Fire on Stash"
 	trigger_on_unstash(target_destination) : "Fire on Unstash"
+	spawnflags(Flags) =
+	[
+		2 : "No HUD notifications on unstash" : 0 : "Don't show the notifications in pickup history on unstash"
+	]
 ]
 
 @PointClass base(Targetname) = player_template : "Set a player template (from templates/player.json)"

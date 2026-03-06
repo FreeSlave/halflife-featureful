@@ -867,9 +867,12 @@ bool CBasePlayerWeapon::AddToPlayerDefault( CBasePlayer *pPlayer )
 {
 	if( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
-		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
-			WRITE_BYTE( WeaponId() );
-		MESSAGE_END();
+		if (!pPlayer->m_hidePickups)
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
+				WRITE_BYTE( WeaponId() );
+			MESSAGE_END();
+		}
 		return true;
 	}
 	return false;

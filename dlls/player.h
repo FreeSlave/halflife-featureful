@@ -554,6 +554,9 @@ public:
 	bool m_needSatchelRecheck;
 
 	bool m_forceCollideWithCorpses;
+	bool m_hidePickups;
+
+	void NotifyPickup(const char* pickupName);
 
 	bool AddJournalRecord(string_t section, string_t record);
 	string_t m_journalSections[MAX_JOURNAL_RECORDS];

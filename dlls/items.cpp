@@ -32,8 +32,6 @@
 #include "common_soundscripts.h"
 #include "inventory.h"
 
-extern int gmsgItemPickup;
-
 class CWorldItem : public CBaseEntity
 {
 public:
@@ -613,9 +611,7 @@ public:
 
 			pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING( pev->classname ) );
-			MESSAGE_END();
+			pPlayer->NotifyPickup(STRING(pev->classname));
 
 			if (ShouldSetSuitUpdate())
 			{
@@ -692,9 +688,8 @@ class CItemAntidote : public CItem
 
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-			WRITE_STRING( STRING( pev->classname ) );
-		MESSAGE_END();
+
+		pPlayer->NotifyPickup(STRING(pev->classname));
 
 		return true;
 	}
@@ -739,9 +734,7 @@ class CItemSecurity : public CItem
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
 		if (!FStringNull(pev->netname))
 		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING(pev->netname) );
-			MESSAGE_END();
+			pPlayer->NotifyPickup(STRING(pev->netname));
 		}
 		if (!FStringNull(pev->message))
 			UTIL_ShowMessage( STRING( pev->message ), pPlayer );
@@ -878,10 +871,7 @@ class CItemLongJump : public CItem
 		if( pPlayer->HasSuit() )
 		{
 			pPlayer->SetLongjump(true);
-
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING( pev->classname ) );
-			MESSAGE_END();
+			pPlayer->NotifyPickup(STRING(pev->classname));
 
 			EMIT_SOUND_SUIT( pPlayer->edict(), "!HEV_A1" );	// Play the longjump sound UNDONE: Kelly? correct sound?
 			return true;
@@ -941,9 +931,7 @@ public:
 		else if ( pPlayer->HasSuitLight() )
 			return false;
 		pPlayer->SetFlashlight();
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-			WRITE_STRING( STRING(pev->classname) );
-		MESSAGE_END();
+		pPlayer->NotifyPickup(STRING(pev->classname));
 		pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 		return true;
 	}
@@ -976,9 +964,7 @@ public:
 		else if ( pPlayer->HasSuitLight() )
 			return false;
 		pPlayer->SetNVG();
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-			WRITE_STRING( STRING(pev->classname) );
-		MESSAGE_END();
+		pPlayer->NotifyPickup(STRING(pev->classname));
 		return true;
 	}
 };

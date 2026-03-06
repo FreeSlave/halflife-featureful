@@ -544,10 +544,13 @@ int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamag
 
 				if (flHealth > 1)
 				{
-					MESSAGE_BEGIN( MSG_ONE, gmsgAmmoPickup, NULL, pev );
-						WRITE_BYTE( medAmmoIndex );		// ammo ID
-						WRITE_SHORT( toAdd );		// amount
-					MESSAGE_END();
+					if (!m_hidePickups)
+					{
+						MESSAGE_BEGIN( MSG_ONE, gmsgAmmoPickup, NULL, pev );
+							WRITE_BYTE( medAmmoIndex );		// ammo ID
+							WRITE_SHORT( toAdd );		// amount
+						MESSAGE_END();
+					}
 
 					if (healed == 0) {
 						EmitSoundScript(Items::ammoPickupSoundScript);
@@ -5137,7 +5140,7 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 	if (!addedAsWeapon)
 	{
 		m_rgAmmo[i] += iAdd;
-		if( gmsgAmmoPickup )  // make sure the ammo messages have been linked first
+		if (gmsgAmmoPickup && !m_hidePickups)  // make sure the ammo messages have been linked first
 		{
 			// Send the message that ammo has been picked up
 			MESSAGE_BEGIN( MSG_ONE, gmsgAmmoPickup, NULL, pev );
@@ -6824,10 +6827,11 @@ int CBasePlayer::GiveInventoryItem(string_t item, int count, bool allowOverflow)
 		}
 	}
 
+	const int inventoryFlags = m_hidePickups ? INVENTORY_DONT_SHOW_IN_HISTORY : 0;
 	MESSAGE_BEGIN(MSG_ONE, gmsgInventory, NULL, pev);
 		WRITE_SHORT(m_inventoryItemCounts[i]);
 		WRITE_STRING(STRING(item));
-		WRITE_BYTE(0);
+		WRITE_BYTE(inventoryFlags);
 	MESSAGE_END();
 
 	return result;
@@ -6850,10 +6854,11 @@ int CBasePlayer::SetInventoryItem(string_t item, int count, bool allowOverflow)
 		}
 		if (oldCount != count)
 		{
+			const int inventoryFlags = m_hidePickups ? INVENTORY_DONT_SHOW_IN_HISTORY : 0;
 			MESSAGE_BEGIN(MSG_ONE, gmsgInventory, NULL, pev);
 				WRITE_SHORT(m_inventoryItemCounts[i]);
 				WRITE_STRING(STRING(item));
-				WRITE_BYTE(0);
+				WRITE_BYTE(inventoryFlags);
 			MESSAGE_END();
 
 			int result = INVENTORY_ITEM_COUNT_CHANGED;
@@ -6935,6 +6940,15 @@ int CBasePlayer::InventoryItemIndex(string_t item)
 		}
 	}
 	return -1;
+}
+
+void CBasePlayer::NotifyPickup(const char *pickupName)
+{
+	if (m_hidePickups)
+		return;
+	MESSAGE_BEGIN(MSG_ONE, gmsgItemPickup, nullptr, pev);
+		WRITE_STRING(pickupName);
+	MESSAGE_END();
 }
 
 bool CBasePlayer::AddJournalRecord(string_t section, string_t record)
@@ -8304,6 +8318,8 @@ void CRevertSaved::LoadThink()
 	}
 }
 
+#define SF_PLAYERSTASH_DONT_SHOW_PICKUPS (1 << 1)
+
 enum
 {
 	PLAYER_STASH_STASH = 1,
@@ -8475,6 +8491,9 @@ public:
 
 	void UnstashToPlayer(CBasePlayer* pPlayer)
 	{
+		if (FBitSet(pev->spawnflags, SF_PLAYERSTASH_DONT_SHOW_PICKUPS))
+			pPlayer->m_hidePickups = true;
+
 		if (m_healthPolicy > 0)
 		{
 			pPlayer->pev->health = pev->health;
@@ -8553,6 +8572,9 @@ public:
 				}
 			}
 		}
+
+		if (FBitSet(pev->spawnflags, SF_PLAYERSTASH_DONT_SHOW_PICKUPS))
+			pPlayer->m_hidePickups = false;
 
 		if (!FStringNull(m_triggerOnUnstash))
 			FireTargets(STRING(m_triggerOnUnstash), pPlayer, this);
