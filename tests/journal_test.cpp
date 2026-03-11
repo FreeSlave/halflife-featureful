@@ -79,7 +79,7 @@ TEST(Journal, Parse)
 	++it;
 	ASSERT_EQ(it, range.second);
 
-	auto geometry = config.WindowGeometry();
+	auto geometry = config.GetWindowGeometry();
 	EXPECT_EQ(geometry.width, 0.9f);
 	EXPECT_EQ(geometry.height, 1.0f);
 	EXPECT_EQ(geometry.paddingHorizontal, 0.15f);

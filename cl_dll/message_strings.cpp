@@ -39,9 +39,12 @@ bool MessageStrings::ReadFromDocument(const rapidjson::Document& document, const
 			std::string fileName;
 			UpdatePropertyFromJson(fileName, it->value, "file");
 			int fileSize;
-			const char* text = ReadFileContents(fileName.c_str(), fileSize);
+			char* text = ReadFileContents(fileName.c_str(), fileSize);
 			if (text)
+			{
 				SetText(id, text);
+				FreeFileContents(text);
+			}
 		}
 	}
 	return true;
