@@ -391,6 +391,8 @@ An array of sounds used in the view model animation events (event 5004). These s
 }
 ```
 
+Setting the `"model_sounds"` to the empty array disables the weapon precaching its default model sounds.
+
 ## from_scratch
 
 A boolean defining whether the weapon configuration should start from scratch, i.e. from the default weapon template which doesn't have any attacks set. This preserves only the following properties:

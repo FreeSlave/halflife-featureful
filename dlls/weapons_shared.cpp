@@ -123,7 +123,7 @@ void CBasePlayerWeapon::PrecacheModelSounds()
 {
 	const WeaponParameters& params = MyParameters();
 
-	if (params.modelSounds.size())
+	if (params.modelSounds.size() || params.modelSoundsDefined)
 	{
 		for (const auto& sound : params.modelSounds)
 		{

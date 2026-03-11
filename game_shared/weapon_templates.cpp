@@ -205,6 +205,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			fromScratchParams.idleAnims.main = params.idleAnims.main;
 			fromScratchParams.deploy.animIndex.main = params.deploy.animIndex.main;
 
+			fromScratchParams.modelSoundsDefined = true;
+
 			params = std::move(fromScratchParams);
 		}
 	}
@@ -1237,6 +1239,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 	HandleJSONMember(value, "model_sounds", [&](const Value& value) {
 		Value::ConstArray arr = value.GetArray();
+		params.modelSoundsDefined = true;
 		for (auto& item : arr)
 		{
 			params.modelSounds.push_back(item.GetString());

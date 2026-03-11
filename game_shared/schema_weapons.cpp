@@ -1105,8 +1105,7 @@ R"(
 			"model_sounds": {
 				"type": "array",
 				"items": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				}
 			},
 			"tool": {

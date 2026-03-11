@@ -725,6 +725,7 @@ struct WeaponParameters
 	fixed_string<32> secondaryAmmoName;
 
 	std::vector<std::string> modelSounds;
+	bool modelSoundsDefined = false;
 	std::string viewModel;
 	std::string viewModelDetonator;
 	std::string worldModel;
