@@ -1957,11 +1957,6 @@ int CHudMoveMode::MsgFunc_MoveMode(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
-bool CHud::ShouldUseConsoleFont()
-{
-	return true;
-}
-
 extern WEAPON *gpActiveSel;
 
 int ActiveWeaponId()

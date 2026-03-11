@@ -1320,8 +1320,6 @@ public:
 	HudSpriteRenderer hudRenderer;
 	bool hasHudScaleInEngine;
 
-	static bool ShouldUseConsoleFont();
-
 	bool CanDrawStatusIcons();
 	int TopRightInventoryCoordinate();
 	bool UseVguiMOTD();

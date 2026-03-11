@@ -167,78 +167,38 @@ void CHudCaption::CalculateLineOffsets(Subtitle_t &sub)
 	const char* str = start;
 	const int xmax = SUB_MAX_XPOS - SUB_START_XPOS;
 
-	if (CHud::ShouldUseConsoleFont())
+	WordBoundaries boundaries = SplitIntoWordBoundaries(sub.caption->message);
+
+	unsigned int startWordIndex = 0;
+	for (unsigned int j=0; j<boundaries.size();)
 	{
-		WordBoundaries boundaries = SplitIntoWordBoundaries(sub.caption->message);
+		const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
+		if (width > xmax) {
+			if (j == startWordIndex) {
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[startWordIndex].wordEnd;
+				sub.lineCount++;
 
-		unsigned int startWordIndex = 0;
-		for (unsigned int j=0; j<boundaries.size();)
-		{
-			const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
-			if (width > xmax) {
-				if (j == startWordIndex) {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[startWordIndex].wordEnd;
-					sub.lineCount++;
-
-					startWordIndex = ++j;
-				} else {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[j-1].wordEnd;
-					sub.lineCount++;
-
-					startWordIndex = j;
-				}
+				startWordIndex = ++j;
 			} else {
-				if (j == boundaries.size() - 1) {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[j].wordEnd;
-					sub.lineCount++;
-				}
-
-				++j;
-			}
-
-			if (sub.lineCount >= SUB_MAX_LINES)
-				break;
-		}
-	}
-	else
-	{
-		int lineWidth = 0;
-		const char* currentLine = str;
-		const char* lastSpace = str;
-		do
-		{
-			if (*str == '\0')
-			{
-				sub.lineOffsets[sub.lineCount] = currentLine - start;
-				sub.lineEndOffsets[sub.lineCount] = str - start;
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[j-1].wordEnd;
 				sub.lineCount++;
-				break;
+
+				startWordIndex = j;
 			}
-			lineWidth += gHUD.m_scrinfo.charWidths[(unsigned char)*str];
-			if (*str == ' ' || *str == '\n')
-			{
-				lastSpace = str;
-			}
-			if (lineWidth > xmax)
-			{
-				str = lastSpace;
-			}
-			if (*str == '\n' || lineWidth > xmax)
-			{
-				sub.lineOffsets[sub.lineCount] = currentLine - start;
-				sub.lineEndOffsets[sub.lineCount] = str - start;
+		} else {
+			if (j == boundaries.size() - 1) {
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[j].wordEnd;
 				sub.lineCount++;
-				lineWidth = 0;
-				currentLine = str + 1;
-				if (sub.lineCount >= SUB_MAX_LINES)
-					break;
 			}
-			str++;
+
+			++j;
 		}
-		while(true);
+
+		if (sub.lineCount >= SUB_MAX_LINES)
+			break;
 	}
 }
 
@@ -312,21 +272,7 @@ int CHudCaption::Draw(float flTime)
 		overallLineCount += subtitles[i].lineCount;
 		for (j=0; j<subtitles[i].lineCount; ++j)
 		{
-			int lineWidth = 0;
-
-			if (CHud::ShouldUseConsoleFont())
-			{
-				lineWidth += CHud::UtfText::LineWidth(subtitles[i].caption->message.c_str() + subtitles[i].lineOffsets[j], subtitles[i].lineEndOffsets[j] - subtitles[i].lineOffsets[j]);
-			}
-			else
-			{
-				const char* str = subtitles[i].caption->message.c_str() + subtitles[i].lineOffsets[j];
-				while( str != subtitles[i].caption->message.c_str() + subtitles[i].lineEndOffsets[j] )
-				{
-					lineWidth += gHUD.m_scrinfo.charWidths[(unsigned char)*str];
-					str++;
-				}
-			}
+			const int lineWidth = CHud::UtfText::LineWidth(subtitles[i].caption->message.c_str() + subtitles[i].lineOffsets[j], subtitles[i].lineEndOffsets[j] - subtitles[i].lineOffsets[j]);
 
 			if (lineWidth > maxLineWidth)
 				maxLineWidth = lineWidth;
