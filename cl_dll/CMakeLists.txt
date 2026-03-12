@@ -154,6 +154,7 @@ set (CLDLL_SOURCES
 	../game_shared/schema_weapons.cpp
 	../game_shared/sound_channel.cpp
 	../game_shared/soundscripts.cpp
+	../game_shared/visual_object.cpp
 	../game_shared/unicode.cpp
 	../game_shared/util_shared.cpp
 	../game_shared/weapon_parameters.cpp

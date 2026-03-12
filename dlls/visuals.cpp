@@ -4,15 +4,13 @@
 #include "logger.h"
 #include "util_shared.h"
 
-#include "json_utils.h"
-
 using namespace rapidjson;
 
 const char* visualsSchema = R"(
 {
 	"type": "object",
 	"additionalProperties": {
-		"$ref": "definitions.json#/visual"
+		"$ref": "definitions.json#/visual_object"
 	}
 }
 )";
@@ -91,49 +89,6 @@ void Visual::CompleteFrom(const Visual &visual)
 	}
 }
 
-static bool ParseRenderMode(const char* str, int& rendermode)
-{
-	constexpr std::pair<const char*, int> modes[] = {
-		{"normal", kRenderNormal},
-		{"color", kRenderTransColor},
-		{"texture", kRenderTransTexture},
-		{"glow", kRenderGlow},
-		{"solid", kRenderTransAlpha},
-		{"additive", kRenderTransAdd},
-	};
-
-	for (auto& p : modes)
-	{
-		if (stricmp(str, p.first) == 0)
-		{
-			rendermode = p.second;
-			return true;
-		}
-	}
-	return false;
-}
-
-static bool ParseRenderFx(const char* str, int& renderfx)
-{
-	constexpr std::pair<const char*, int> modes[] = {
-		{"normal", kRenderFxNone},
-		{"constant glow", kRenderFxNoDissipation},
-		{"distort", kRenderFxDistort},
-		{"hologram", kRenderFxHologram},
-		{"glow shell", kRenderFxGlowShell},
-	};
-
-	for (auto& p : modes)
-	{
-		if (stricmp(str, p.first) == 0)
-		{
-			renderfx = p.second;
-			return true;
-		}
-	}
-	return false;
-}
-
 const char* VisualSystem::Schema() const
 {
 	return visualsSchema;
@@ -144,12 +99,8 @@ bool VisualSystem::ReadFromDocument(const Document& document, const char *fileNa
 	for (auto scriptIt = document.MemberBegin(); scriptIt != document.MemberEnd(); ++scriptIt)
 	{
 		const char* name = scriptIt->name.GetString();
-
 		const Value& value = scriptIt->value;
-		if (value.IsObject())
-			AddVisualFromJsonValue(name, value);
-		else
-			g_errorCollector.AddFormattedError("%s: visual '%s' is not an object!\n", fileName, name);
+		AddVisualFromJsonValue(name, value);
 	}
 
 	return true;
@@ -157,156 +108,18 @@ bool VisualSystem::ReadFromDocument(const Document& document, const char *fileNa
 
 void VisualSystem::AddVisualFromJsonValue(const char *name, const Value &value)
 {
-	Visual visual;
-
-	HandleJSONMember(value, "model", [&visual, this](const Value& value) {
-		std::string str = value.GetString();
+	auto makeConstantString = [this](const char* modelStr) {
+		std::string str = modelStr;
 		auto strIt = _modelStringSet.find(str);
 		if (strIt == _modelStringSet.end())
 		{
 			auto p = _modelStringSet.insert(str);
 			strIt = p.first;
 		}
-		visual.SetModel(strIt->c_str());
-	});
+		return strIt->c_str();
+	};
 
-	HandleJSONMember(value, "sprite", [&visual, this, name](const Value& value) {
-		if (visual.HasDefined(Visual::MODEL_DEFINED))
-		{
-			LOG_WARNING("Visual \"%s\" has both 'model' and 'sprite' properties defined!\n", name);
-		}
-		else
-		{
-			std::string str = value.GetString();
-			auto strIt = _modelStringSet.find(str);
-			if (strIt == _modelStringSet.end())
-			{
-				auto p = _modelStringSet.insert(str);
-				strIt = p.first;
-			}
-			visual.SetModel(strIt->c_str());
-		}
-	});
-
-	HandleJSONMember(value, "rendermode", [&visual](const Value& value) {
-		if (value.IsString())
-		{
-			int rendermode;
-			if (ParseRenderMode(value.GetString(), rendermode))
-			{
-				visual.SetRenderMode(rendermode);
-			}
-		}
-		else if (value.IsInt())
-		{
-			visual.SetRenderMode(value.GetInt());
-		}
-	});
-
-	Color3 color;
-	if (UpdatePropertyFromJson(color, value, "color"))
-	{
-		visual.SetColor(color);
-	}
-
-	int renderamt;
-	if (UpdatePropertyFromJson(renderamt, value, "alpha"))
-	{
-		visual.SetAlpha(renderamt);
-	}
-
-	HandleJSONMember(value, "renderfx", [&visual](const Value& value) {
-		if (value.IsString())
-		{
-			int renderfx;
-			if (ParseRenderFx(value.GetString(), renderfx))
-			{
-				visual.SetRenderFx(renderfx);
-			}
-		}
-		else if (value.IsInt())
-		{
-			visual.SetRenderFx(value.GetInt());
-		}
-	});
-
-	FloatRange scale;
-	if (UpdatePropertyFromJson(scale, value, "scale"))
-	{
-		visual.SetScale(scale);
-	}
-
-	float framerate;
-	if (UpdatePropertyFromJson(framerate, value, "framerate"))
-	{
-		visual.SetFramerate(framerate);
-	}
-
-	int beamWidth, beamNoise, beamScrollRate;
-	if (UpdatePropertyFromJson(beamWidth, value, "width"))
-	{
-		visual.SetBeamWidth(beamWidth);
-	}
-	if (UpdatePropertyFromJson(beamNoise, value, "noise"))
-	{
-		visual.SetBeamNoise(beamNoise);
-	}
-	if (UpdatePropertyFromJson(beamScrollRate, value, "scrollrate"))
-	{
-		visual.SetBeamScrollRate(beamScrollRate);
-	}
-
-	FloatRange life;
-	if (UpdatePropertyFromJson(life, value, "life"))
-	{
-		visual.SetLife(life);
-	}
-
-	IntRange radius;
-	if (UpdatePropertyFromJson(radius, value, "radius"))
-	{
-		visual.SetRadius(radius);
-	}
-
-	HandleJSONMember(value, "beamflags", [&visual](const Value& value) {
-		int beamFlags = 0;
-		Value::ConstArray arr = value.GetArray();
-		for (auto& item : arr)
-		{
-			const char* str = item.GetString();
-			if (stricmp(str, "sine") == 0)
-				beamFlags |= BEAM_FSINE;
-			else if (stricmp(str, "solid") == 0)
-				beamFlags |= BEAM_FSOLID;
-			else if (stricmp(str, "shadein") == 0)
-				beamFlags |= BEAM_FSHADEIN;
-			else if (stricmp(str, "shadeout") == 0)
-				beamFlags |= BEAM_FSHADEOUT;
-		}
-		visual.SetBeamFlags(beamFlags);
-	});
-
-	float decay;
-	if (UpdatePropertyFromJson(decay, value, "decay"))
-	{
-		visual.SetDecay(decay);
-	}
-
-	HandleJSONMember(value, "wave", [&visual](const Value& value) {
-		int waveType = Visual::WAVETYPE_CYLINDER;
-		const char* str = value.GetString();
-		if (stricmp(str, "torus") == 0)
-		{
-			waveType = Visual::WAVETYPE_TORUS;
-		}
-		else if (stricmp(str, "disk") == 0)
-		{
-			waveType = Visual::WAVETYPE_DISK;
-		}
-		visual.SetWaveType(waveType);
-	});
-
-	_visuals[name] = visual;
+	_visuals[name] = ParseVisualFromJSON(value, name, makeConstantString);
 }
 
 void VisualSystem::EnsureVisualExists(const std::string& name)

@@ -221,8 +221,8 @@ const char* const json_schemas::definitions = R"(
 		},
 		"additionalProperties": false
 	},
-	"visual": {
-		"type": ["object", "string"],
+	"visual_object": {
+		"type": "object",
 		"properties": {
 			"model": {
 				"type": "string"
@@ -331,6 +331,17 @@ const char* const json_schemas::definitions = R"(
 			}
 		},
 		"additionalProperties": false
+	},
+	"visual": {
+		"oneOf": [
+			{
+				"type": "string",
+				"minLength": 1
+			},
+			{
+				"$ref": "#/visual_object"
+			}
+		]
 	},
 	"body_filter": {
 		"type": ["integer", "object"],

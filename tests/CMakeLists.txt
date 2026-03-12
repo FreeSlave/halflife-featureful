@@ -43,6 +43,7 @@ add_executable(test
 	../game_shared/schema_definitions.cpp
 	../game_shared/schema_weapons.cpp
 	../game_shared/tex_materials.cpp
+	../game_shared/visual_object.cpp
 	../game_shared/util_shared.cpp
 	../game_shared/weapon_parameters.cpp
 	../game_shared/weapon_templates.cpp
