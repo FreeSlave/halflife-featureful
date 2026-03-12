@@ -467,9 +467,15 @@ struct WeaponParameters
 {
 	struct IdleAnim
 	{
+		IdleAnim() {}
+		IdleAnim(int index, float probability, const FloatRange& dur):
+			animIndex(index), chance(probability), duration(dur) {}
+		IdleAnim(int index, float probability, const FloatRange& dur, const WeaponSoundScript& soundScript):
+			animIndex(index), chance(probability), duration(dur), sound(soundScript) {}
 		int animIndex;
 		float chance;
 		FloatRange duration;
+		WeaponSoundScript sound{CHAN_STATIC};
 	};
 	typedef fixed_vector<IdleAnim, 5> IdleAnimArray;
 	typedef fixed_vector<int, 4> FireAnimArray;

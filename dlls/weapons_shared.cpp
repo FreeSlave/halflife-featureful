@@ -693,6 +693,27 @@ void CConfigurableWeapon::Precache()
 
 	const WeaponParameters& params = MyParameters();
 
+	auto precacheIdleAnims = [](const WeaponParameters::IdleAnimArray& idleAnims) {
+		for (const auto& idleAnim : idleAnims)
+		{
+			PrecacheWeaponSoundScript(idleAnim.sound);
+		}
+	};
+
+	precacheIdleAnims(params.idleAnims.main);
+	if (params.idleAnims.mainEmptied.has_value())
+	{
+		precacheIdleAnims(*params.idleAnims.mainEmptied);
+	}
+	if (params.idleAnims.alt.has_value())
+	{
+		precacheIdleAnims(*params.idleAnims.alt);
+	}
+	if (params.idleAnims.altEmptied.has_value())
+	{
+		precacheIdleAnims(*params.idleAnims.altEmptied);
+	}
+
 	PrecacheWeaponSoundScript(params.fire.sound);
 	PrecacheWeaponSoundScript(params.fire.soundAdditional);
 	PrecacheWeaponSoundScript(params.fire.hitBodySound);
@@ -2088,7 +2109,7 @@ void CConfigurableWeapon::SendIdleAnimation()
 
 	auto sendIdleAnim = [this](const WeaponParameters::IdleAnim anim) {
 		SendWeaponAnim(anim.animIndex);
-		OnIdleAnimation(anim.animIndex);
+		PlayWeaponSoundScript(anim.sound);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, anim.duration);
 	};
 

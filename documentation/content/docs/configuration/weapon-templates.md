@@ -513,6 +513,10 @@ Delay before repicking the idle animation. This is usually duration of the anima
 
 Chance that this animation will be picked (in relation to the sum of chances of all idle animations). The chances are used only when there're multiple idle animations.
 
+### sound
+
+[Weapon soundscript](#weapon-soundscript) to play along the idle animation. This is not needed if the sound is played by the event in the model. This is used by [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}) on fidget animation.
+
 ## idle_empty
 
 Same as [idle](#idle), but when weapon clip is empty.

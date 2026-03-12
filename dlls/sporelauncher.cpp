@@ -47,8 +47,6 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void OnIdleAnimation(int anim) override;
-
 	int m_iSquidSpitSprite;
 };
 
@@ -64,8 +62,6 @@ void CSporelauncher::Spawn()
 void CSporelauncher::Precache()
 {
 	CConfigurableWeapon::Precache();
-
-	PRECACHE_SOUND("weapons/splauncher_pet.wav");
 
 	PRECACHE_MODEL("sprites/bigspit.spr");
 	m_iSquidSpitSprite = PRECACHE_MODEL("sprites/tinyspit.spr");
@@ -100,10 +96,12 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 
 	params.deploy.animIndex = SPLAUNCHER_DRAW1;
 
+	WeaponSoundScript fidgetSoundScript(CHAN_ITEM, {"weapons/splauncher_pet.wav"}, 0.7f, ATTN_NORM, 100);
+
 	params.idleAnims.main = WeaponParameters::IdleAnimArray{
 		WeaponParameters::IdleAnim{SPLAUNCHER_IDLE, 0.75f, 2.0f},
 		WeaponParameters::IdleAnim{SPLAUNCHER_IDLE2, 0.20f, 4.0f},
-		WeaponParameters::IdleAnim{SPLAUNCHER_FIDGET, 0.05f, 4.0f}
+		WeaponParameters::IdleAnim{SPLAUNCHER_FIDGET, 0.05f, 4.0f, fidgetSoundScript}
 	};
 
 	// Primary fire
@@ -175,12 +173,4 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	params.endReload.attackDelay = 0.0f;
 
 	return params;
-}
-
-void CSporelauncher::OnIdleAnimation(int anim)
-{
-	if (anim == SPLAUNCHER_FIDGET)
-	{
-		EMIT_SOUND(m_pPlayer->edict(), CHAN_ITEM, "weapons/splauncher_pet.wav", 0.7f, ATTN_NORM);
-	}
 }

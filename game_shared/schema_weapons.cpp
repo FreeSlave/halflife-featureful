@@ -91,6 +91,9 @@ const char* const json_schemas::weapons = R"(
 			},
 			"duration": {
 				"$ref": "definitions.json#/range"
+			},
+			"sound": {
+				"$ref": "#/w_soundscript"
 			}
 		},
 		"additionalProperties": false,
@@ -106,6 +109,9 @@ const char* const json_schemas::weapons = R"(
 				"chance": {
 					"type": "number",
 					"exclusiveMinimum": 0
+				},
+				"sound": {
+					"$ref": "#/w_soundscript"
 				}
 			},
 			"required": ["anim", "duration", "chance"],

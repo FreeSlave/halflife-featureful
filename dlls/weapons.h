@@ -384,7 +384,6 @@ public:
 	void SecondaryAttack() override;
 	bool PerformReload();
 	void Reload() override;
-	virtual void OnIdleAnimation(int anim) {}
 	void SendIdleAnimation();
 	void WeaponIdle() override;
 	void Holster() override;

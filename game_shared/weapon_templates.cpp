@@ -309,6 +309,11 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 					UpdatePropertyFromJson(anim.animIndex, item, "anim");
 					UpdatePropertyFromJson(anim.chance, item, "chance");
 					UpdatePropertyFromJson(anim.duration, item, "duration");
+
+					HandleJSONMember(item, "sound", [&](const Value& value) {
+						ParseWeaponSoundScript(anim.sound, value);
+					});
+
 					v.push_back(anim);
 				}
 			}
@@ -321,6 +326,11 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				anim.chance = 1.0f;
 				UpdatePropertyFromJson(anim.animIndex, value, "anim");
 				UpdatePropertyFromJson(anim.duration, value, "duration");
+
+				HandleJSONMember(value, "sound", [&](const Value& value) {
+					ParseWeaponSoundScript(anim.sound, value);
+				});
+
 				v.push_back(anim);
 			}
 		});
