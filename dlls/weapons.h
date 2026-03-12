@@ -388,14 +388,12 @@ public:
 	void SendIdleAnimation();
 	void WeaponIdle() override;
 	void Holster() override;
-	int ViewModelBody() override { return pev->body; }
+	int ViewModelBody() override;
 	void SetBody(int body);
 
 	void ProjectileAttack(bool altMode);
 	virtual void NativeAttack(bool altMode) { return; }
 	virtual bool HandleAttackSubstitution(bool altMode) { return false; }
-	virtual void OnSpendAmmo() { return; }
-	virtual void OnEndReload() { return; }
 	virtual int GetPlaybackEvent(bool altModeFire) const { return m_usFire; }
 
 	bool PerformDeploy();
@@ -425,6 +423,11 @@ public:
 	void OnPlayerAttackCapabilityChanged(bool enabled) override;
 	void ResetOnRemoveAsActive() override;
 	CConfigurableWeapon *MyConfigurableWeaponPointer() override { return this; }
+
+	void UpdateTape();
+	void UpdateTape(int clip);
+	int BodyFromClip();
+	int BodyFromClip(int clip);
 
 #ifndef CLIENT_DLL
 	int Save(CSave &save) override;
@@ -502,6 +505,8 @@ public:
 
 	// Common event
 	int m_usFire;
+
+	int m_iVisibleClip;
 };
 
 //=========================================================

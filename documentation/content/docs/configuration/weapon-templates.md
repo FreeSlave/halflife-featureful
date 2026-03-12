@@ -1984,7 +1984,7 @@ Index of animation to play when starting switching the mode. If this is omitted 
 
 ### body_switch_delay
 
-Delay before the view model switches its body from `"viewmodel_body"` to `"viewmodel_body_alt"` or back if the weapon is in alternative mode.
+Delay before the view model switches its body from [viewmodel_body](#viewmodel_body) to [viewmodel_body_alt](#viewmodel_body_alt) or back if the weapon is in alternative mode.
 
 ### mode_switch_delay
 
@@ -2054,6 +2054,29 @@ The view model body. Should be an integer.
 ## viewmodel_body_alt
 
 The view model body to use in the alternative mode.
+
+## ammo_to_viewmodel_body
+
+The mapping between amount of ammo in the clip (or in the ammo reserve if the weapon doesn't use clip) and the viewmodel body. This is used by [weapon_m249]({{< ref weapon_m249 >}}).
+
+The key names must be integer numbers enclosed in quotes (as required by JSON format).
+
+Example:
+
+```json
+{
+    "weapon_357": {
+        "viewmodel_body": 0,
+        "ammo_to_viewmodel_body": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+        }
+    }
+}
+```
+
+This makes `weapon_357` show the body `1` if the current clip has from 4 to 6 ammo, and the body `0` otherwise.
 
 ## zoom
 

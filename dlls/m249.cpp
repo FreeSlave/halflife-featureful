@@ -41,20 +41,6 @@ public:
 	int WeaponId() const override { return WEAPON_M249; }
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-	void OnSpendAmmo() override;
-	void OnEndReload() override;
-
-	bool Deploy() override;
-	void ItemPostFrame() override;
-
-	int ViewModelBody() override;
-
-	void UpdateTape();
-	void UpdateTape(int clip);
-	int BodyFromClip();
-	int BodyFromClip(int clip);
-
-	int m_iVisibleClip;
 };
 
 LINK_WEAPON_TO_CLASS(weapon_m249, CM249)
@@ -172,68 +158,17 @@ WeaponParameters CM249::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 	params.holster.idleDelay = FloatRange(10.0f, 15.0f);
 
+	params.ammoToBody = {
+		{0, 8},
+		{1, 8},
+		{2, 7},
+		{3, 6},
+		{4, 5},
+		{5, 4},
+		{6, 3},
+		{7, 2},
+		{8, 1},
+	};
+
 	return params;
-}
-
-void CM249::OnSpendAmmo()
-{
-	UpdateTape();
-}
-
-void CM249::OnEndReload()
-{
-	m_iVisibleClip = m_iClip;
-	UpdateTape(m_iVisibleClip);
-}
-
-bool CM249::Deploy()
-{
-	UpdateTape();
-	return PerformDeploy();
-}
-
-void CM249::ItemPostFrame()
-{
-	if (!m_fInReload)
-	{
-		if (UsesClip())
-			m_iVisibleClip = m_iClip;
-		else if (UsesAmmo())
-			m_iVisibleClip = m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
-	}
-	CConfigurableWeapon::ItemPostFrame();
-}
-
-void CM249::UpdateTape()
-{
-	int visibleClip = UsesClip() ? m_iClip : (UsesAmmo() ? m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] : 0);
-	UpdateTape(visibleClip);
-	m_iVisibleClip = visibleClip;
-}
-
-void CM249::UpdateTape(int clip)
-{
-	if (UsesClip() || UsesAmmo())
-		pev->body = BodyFromClip(clip);
-}
-
-int CM249::BodyFromClip()
-{
-	return BodyFromClip(m_iVisibleClip);
-}
-
-int CM249::BodyFromClip(int clip)
-{
-	if (clip == 0) {
-		return 8;
-	} else if (clip > 0 && clip <= 8) {
-		return 9 - clip;
-	} else {
-		return 0;
-	}
-}
-
-int CM249::ViewModelBody()
-{
-	return BodyFromClip();
 }

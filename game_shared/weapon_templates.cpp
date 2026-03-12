@@ -1107,6 +1107,19 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body", false);
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body_alt", true);
 
+	HandleJSONMember(value, "ammo_to_viewmodel_body", [&](const Value& value) {
+		for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+		{
+			const char* ammoAmountStr = it->name.GetString();
+			const int ammoAmount = atoi(ammoAmountStr);
+			const Value& bodyValue = it->value;
+			if (bodyValue.IsInt())
+			{
+				params.ammoToBody.push_back(std::make_pair(ammoAmount, bodyValue.GetInt()));
+			}
+		}
+	});
+
 	HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
 		params.playerMaxSpeed.Materialize(false) = ParsePlayerSpeed(value);
 	});

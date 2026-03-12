@@ -748,6 +748,7 @@ void CConfigurableWeapon::Precache()
 
 bool CConfigurableWeapon::Deploy()
 {
+	UpdateTape();
 	return PerformDeploy();
 }
 
@@ -869,6 +870,14 @@ void CConfigurableWeapon::ItemPostFrame()
 	UpdateSpot();
 
 	const WeaponParameters& params = MyParameters();
+
+	if (!m_fInReload)
+	{
+		if (UsesClip())
+			m_iVisibleClip = m_iClip;
+		else if (UsesAmmo())
+			m_iVisibleClip = m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+	}
 
 #if !CLIENT_DLL
 	if (m_toolTriggerTime != 0.0f && m_toolTriggerTime < gpGlobals->time)
@@ -1338,7 +1347,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				SpendAmmo(ammoPerFire);
 				UpdateRechargeTime(altMode);
 				lastShot = Emptied();
-				OnSpendAmmo();
+				UpdateTape();
 			}
 		}
 	}
@@ -1721,7 +1730,7 @@ void CConfigurableWeapon::FireRemaining()
 			else
 			{
 				SpendAmmo(ammoPerFire);
-				OnSpendAmmo();
+				UpdateTape();
 			}
 		}
 	}
@@ -2165,7 +2174,10 @@ void CConfigurableWeapon::WeaponIdle()
 			if (endReloadAnimIndex >= 0)
 			{
 				// reload debounce has timed out
-				OnEndReload();
+
+				m_iVisibleClip = m_iClip;
+				UpdateTape(m_iVisibleClip);
+
 				SendWeaponAnim(endReloadAnimIndex);
 
 				// play cocking sound
@@ -2265,6 +2277,16 @@ void CConfigurableWeapon::Holster()
 	{
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
 	}
+}
+
+int CConfigurableWeapon::ViewModelBody()
+{
+	const WeaponParameters& params = MyParameters();
+
+	if (params.ammoToBody.empty())
+		return pev->body;
+	else
+		return BodyFromClip();
 }
 
 void CConfigurableWeapon::UpdateAutoAim()
@@ -2896,6 +2918,40 @@ void CConfigurableWeapon::ResetOnRemoveAsActive()
 {
 	if (m_pPlayer->m_iFOV != 0)
 		ResetZoom(SwitchModeReason::Forced);
+}
+
+void CConfigurableWeapon::UpdateTape()
+{
+	int visibleClip = UsesClip() ? m_iClip : (UsesAmmo() ? m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] : 0);
+	UpdateTape(visibleClip);
+	m_iVisibleClip = visibleClip;
+}
+
+void CConfigurableWeapon::UpdateTape(int clip)
+{
+	const WeaponParameters& params = MyParameters();
+
+	if (!params.ammoToBody.empty() && (UsesClip() || UsesAmmo()))
+		pev->body = BodyFromClip(clip);
+}
+
+int CConfigurableWeapon::BodyFromClip()
+{
+	return BodyFromClip(m_iVisibleClip);
+}
+
+int CConfigurableWeapon::BodyFromClip(int clip)
+{
+	const WeaponParameters& params = MyParameters();
+
+	for (const auto& p : params.ammoToBody)
+	{
+		if (clip == p.first)
+		{
+			return p.second;
+		}
+	}
+	return params.viewModelBody.Get(InAltMode());
 }
 
 int CConfigurableWeapon::PackIParam2()

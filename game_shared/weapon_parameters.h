@@ -692,6 +692,7 @@ struct WeaponParameters
 
 	WeaponModeValueEmptyAware<IdleAnimArray> idleAnims;
 	WeaponModeValueNonNegative<int> viewModelBody{0};
+	std::vector<std::pair<int, int>> ammoToBody;
 	bool reloadAutostart = false;
 	bool manualReload = false;
 	bool manualReloadContinueOnDeploy = true;

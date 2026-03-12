@@ -1017,6 +1017,16 @@ R"(
 				"type": "integer",
 				"minimum": 0
 			},
+			"ammo_to_viewmodel_body": {
+				"type": "object",
+				"patternProperties": {
+					"^[0-9]+$": {
+						"type": "integer",
+						"minimum": 0
+					}
+				},
+				"additionalProperties": false
+			},
 			"reload": {
 				"$ref": "#/reload"
 			},
