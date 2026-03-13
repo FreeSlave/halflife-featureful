@@ -330,7 +330,10 @@ const char* const json_schemas::definitions = R"(
 				]
 			}
 		},
-		"additionalProperties": false
+		"additionalProperties": false,
+		"dependencies": {
+			"sprite": { "not": { "required": ["model"] } }
+		}
 	},
 	"visual": {
 		"oneOf": [

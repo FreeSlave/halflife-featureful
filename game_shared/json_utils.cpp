@@ -148,37 +148,49 @@ bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fi
 		StringBuffer docPathBuffer;
 		docPointer.Stringify(docPathBuffer);
 
-		StringBuffer badValueBuffer;
-		Value *badVal = GetValueByPointer(document, docPointer);
-		if (badVal)
-		{
-			Writer<StringBuffer> writer(badValueBuffer);
-			badVal->Accept(writer);
-		}
-
-		StringBuffer schemaPartBuffer;
 		const char* invalidKeyword = validator.GetInvalidSchemaKeyword();
 		auto& errorVal = validator.GetError();
-		if (errorVal.HasMember(invalidKeyword))
-		{
-			Writer<StringBuffer> writer(schemaPartBuffer);
-			errorVal[invalidKeyword].Accept(writer);
-		}
-
-		const char* keyword = validator.GetInvalidSchemaKeyword();
 
 		char buf[1028];
-		if (strcmp(keyword, "additionalProperties") == 0)
+		if (strcmp(invalidKeyword, "additionalProperties") == 0)
 		{
 			safe_snprintf(buf, sizeof(buf), "%s: unknown property \"%s\" is prohibited\n", fileName, docPathBuffer.GetString());
 		}
+		else if (strcmp(invalidKeyword, "dependencies") == 0 && errorVal.HasMember(invalidKeyword) && errorVal[invalidKeyword].HasMember("errors"))
+		{
+			const char* dependentPropertyName = "";
+
+			auto& errors = errorVal[invalidKeyword]["errors"];
+			auto it = errors.MemberBegin();
+			if (it != errors.MemberEnd())
+			{
+				dependentPropertyName = it->name.GetString();
+			}
+
+			safe_snprintf(buf, sizeof(buf), "%s: dependencies constraint is unmet (incompatible properties are given) in \"%s\": '%s'\n", fileName, docPathBuffer.GetString(), dependentPropertyName);
+		}
 		else
 		{
+			StringBuffer badValueBuffer;
+			Value *badVal = GetValueByPointer(document, docPointer);
+			if (badVal)
+			{
+				Writer<StringBuffer> writer(badValueBuffer);
+				badVal->Accept(writer);
+			}
+
+			StringBuffer schemaPartBuffer;
+			if (errorVal.HasMember(invalidKeyword))
+			{
+				Writer<StringBuffer> writer(schemaPartBuffer);
+				errorVal[invalidKeyword].Accept(writer);
+			}
+
 			safe_snprintf(buf, sizeof(buf), "%s: property \"%s\" : %s doesn't match the constraint '%s' in '%s': %s\n",
 				fileName,
 				docPathBuffer.GetString(),
 				badValueBuffer.GetString(),
-				keyword,
+				invalidKeyword,
 				schemaPathBuffer.GetString(),
 				schemaPartBuffer.GetString());
 		}

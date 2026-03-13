@@ -156,7 +156,7 @@ void ParseRestVisualFromJSON(Visual& visual, const rapidjson::Value& value);
 }
 
 template<typename ConstantStringMaker>
-Visual ParseVisualFromJSON(const rapidjson::Value& value, const char* name, const ConstantStringMaker& makeConstantString)
+Visual ParseVisualFromJSON(const rapidjson::Value& value, const ConstantStringMaker& makeConstantString)
 {
 	Visual visual;
 
@@ -164,15 +164,8 @@ Visual ParseVisualFromJSON(const rapidjson::Value& value, const char* name, cons
 		visual.SetModel(makeConstantString(value.GetString()));
 	});
 
-	HandleJSONMember(value, "sprite", [&visual, &makeConstantString, name](const rapidjson::Value& value) {
-		if (visual.HasDefined(Visual::MODEL_DEFINED))
-		{
-			LOG_WARNING("Visual \"%s\" has both 'model' and 'sprite' properties defined!\n", name);
-		}
-		else
-		{
-			visual.SetModel(makeConstantString(value.GetString()));
-		}
+	HandleJSONMember(value, "sprite", [&visual, &makeConstantString](const rapidjson::Value& value) {
+		visual.SetModel(makeConstantString(value.GetString()));
 	});
 
 	detail::ParseRestVisualFromJSON(visual, value);

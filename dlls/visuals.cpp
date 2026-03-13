@@ -119,7 +119,7 @@ void VisualSystem::AddVisualFromJsonValue(const char *name, const Value &value)
 		return strIt->c_str();
 	};
 
-	_visuals[name] = ParseVisualFromJSON(value, name, makeConstantString);
+	_visuals[name] = ParseVisualFromJSON(value, makeConstantString);
 }
 
 void VisualSystem::EnsureVisualExists(const std::string& name)
