@@ -23,6 +23,8 @@
 #else
 #include <OpenGL/gl.h>
 #endif //TARGET_OS_IOS
+#elif __ANDROID__
+#include <GLES/gl.h>
 #else
 #include <GL/gl.h>
 #endif //__APPLE__
