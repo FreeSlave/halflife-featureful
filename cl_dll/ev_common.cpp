@@ -70,12 +70,9 @@ EV_IsPlayer
 Is the entity's index in the player range?
 =================
 */
-qboolean EV_IsPlayer( int idx )
+bool EV_IsPlayer(int idx)
 {
-	if( idx >= 1 && idx <= gEngfuncs.GetMaxClients() )
-		return true;
-
-	return false;
+	return idx >= 1 && idx <= gEngfuncs.GetMaxClients();
 }
 
 /*
@@ -85,7 +82,7 @@ EV_IsLocal
 Is the entity == the local player
 =================
 */
-qboolean EV_IsLocal( int idx )
+bool EV_IsLocal( int idx )
 {
 	// check if we are in some way in first person spec mode
 	if( IS_FIRSTPERSON_SPEC )

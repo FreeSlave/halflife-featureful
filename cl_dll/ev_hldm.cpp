@@ -107,7 +107,7 @@ char EV_HLDM_GetTextureSound( int idx, pmtrace_t *ptr, float *vecSrc, float *vec
 	isSky = false;
 
 	// Player
-	if( ( entity >= 1 && entity <= gEngfuncs.GetMaxClients() )
+	if( EV_IsPlayer(entity)
 	    || ( ( ent = gEngfuncs.GetEntityByIndex( entity )) && ( ent->curstate.eflags & EFLAG_FLESH_SOUND )))
 	{
 		// hit body
@@ -390,7 +390,7 @@ int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, flo
 {
 	int tracer = 0;
 	int i;
-	qboolean player = idx >= 1 && idx <= gEngfuncs.GetMaxClients() ? true : false;
+	bool player = EV_IsPlayer(idx);
 
 	if( iTracerFreq != 0 && ( (*tracerCount)++ % iTracerFreq ) == 0 )
 	{
