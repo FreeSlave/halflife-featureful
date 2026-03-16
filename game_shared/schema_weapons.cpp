@@ -737,6 +737,48 @@ const char* const json_schemas::weapons = R"(
 						"exclusiveMinimum": 0
 					}
 				}
+			},
+			"spray": {
+				"type": "object",
+				"properties": {
+					"offset": {
+						"type": "object",
+						"properties": {
+							"up": {
+								"type": "number"
+							},
+							"side": {
+								"type": "number"
+							},
+							"forward": {
+								"type": "number"
+							}
+						},
+						"additionalProperties": false
+					},
+					"visual": {
+						"$ref": "definitions.json#/visual_object"
+					},
+					"count": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"speed": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"spread": {
+						"type": "number",
+						"minimum": 0
+					},
+					"flags": {
+						"type": "array",
+						"items": {
+							"enum": ["collideworld", "animate", "animated", "fadeout"]
+						}
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false

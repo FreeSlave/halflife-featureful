@@ -20,6 +20,7 @@
 #include "weapons.h"
 #include "player.h"
 #include "mod_features.h"
+#include "fx_flags.h"
 #ifndef CLIENT_DLL
 #include "spore.h"
 #endif
@@ -41,13 +42,10 @@ class CSporelauncher : public CConfigurableWeapon
 {
 public:
 	void Spawn() override;
-	void Precache() override;
 	int WeaponId() const override { return WEAPON_SPORELAUNCHER; }
 
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-
-	int m_iSquidSpitSprite;
 };
 
 LINK_WEAPON_TO_CLASS(weapon_sporelauncher, CSporelauncher)
@@ -57,14 +55,6 @@ void CSporelauncher::Spawn()
 	CConfigurableWeapon::Spawn();
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0f;
-}
-
-void CSporelauncher::Precache()
-{
-	CConfigurableWeapon::Precache();
-
-	PRECACHE_MODEL("sprites/bigspit.spr");
-	m_iSquidSpitSprite = PRECACHE_MODEL("sprites/tinyspit.spr");
 }
 
 bool CSporelauncher::GetItemInfo(ItemInfo *p)
@@ -134,7 +124,22 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 
 	params.fire.clientPunchPitch = -3.0f;
 
-	params.fire.spitSpray = true;
+	params.fire.sprayOffsetUp = -20.0f;
+	params.fire.sprayOffsetSide = 8.0f;
+	params.fire.sprayOffsetForward = 16.0f;
+
+	Visual sprayVisual;
+	sprayVisual.SetModel("sprites/tinyspit.spr");
+	sprayVisual.SetAlpha(255);
+	sprayVisual.SetRenderMode(kRenderTransAlpha);
+	sprayVisual.SetFramerate(0.5f);
+	sprayVisual.SetRenderFx(kRenderFxNoDissipation);
+
+	params.fire.sprayVisual = sprayVisual;
+	params.fire.sprayCount = 8;
+	params.fire.spraySpeed = 210;
+	params.fire.spraySpread = 0.25f;
+	params.fire.sprayFlags = SPRAY_FLAG_FADEOUT;
 	//
 
 	// Alt fire

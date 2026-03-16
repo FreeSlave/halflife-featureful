@@ -382,66 +382,6 @@ int __MsgFunc_SpriteTrail( const char* pszName, int iSize, void *pbuf )
 	return 1;
 }
 
-void FX_Spray( Vector pos, Vector dir, int modelIndex, int count, int speed, int spread, int rendermode, color24 color, int renderamt, int renderfx, float scale, float framerate, int flags )
-{
-	TEMPENTITY *pTemp;
-	model_t	*pmodel;
-	int		i;
-
-	if(( pmodel = gEngfuncs.pfnGetModelByIndex( modelIndex )) == NULL )
-		return;
-
-	float noise = (float)spread / 100.0f;
-	float znoise = Q_min( 1.0f, noise * 1.5f );
-
-	const float clientTime = gEngfuncs.GetClientTime();
-
-	for( i = 0; i < count; i++ )
-	{
-		pTemp = gEngfuncs.pEfxAPI->CL_TempEntAlloc( pos, pmodel );
-		if( !pTemp ) return;
-
-		pTemp->frameMax = pmodel->numframes - 1;
-		if (pmodel->numframes > 1)
-			pTemp->flags |= FTENT_SPRCYCLE;
-
-		pTemp->entity.curstate.scale = scale;
-		pTemp->entity.curstate.rendermode = rendermode;
-		pTemp->entity.curstate.rendercolor = color;
-		pTemp->entity.baseline.renderamt = pTemp->entity.curstate.renderamt = renderamt;
-		pTemp->entity.curstate.renderfx = renderfx;
-		pTemp->entity.curstate.framerate = framerate;
-
-		pTemp->flags |= FTENT_SLOWGRAVITY;
-		if (flags & SPRAY_FLAG_COLLIDEWORLD)
-			pTemp->flags |= FTENT_COLLIDEWORLD;
-		if (flags & SPRAY_FLAG_ANIMATE)
-			pTemp->flags |= FTENT_SPRANIMATE;
-		if (flags & SPRAY_FLAG_FADEOUT)
-		{
-			pTemp->flags |= FTENT_FADEOUT;
-			pTemp->fadeSpeed = 2.0f;
-		}
-
-		if(pmodel->numframes > 1 && (flags & SPRAY_FLAG_ANIMATE))
-		{
-			pTemp->die = clientTime + (pTemp->frameMax / framerate);
-		}
-		else
-			pTemp->die = clientTime + 0.35f;
-
-		if (pmodel->numframes > 1 && !(flags & SPRAY_FLAG_ANIMATE))
-		{
-			pTemp->entity.curstate.frame = Com_RandomLong( 0, pmodel->numframes - 1 );
-		}
-
-		pTemp->entity.baseline.origin[0] = dir[0] + Com_RandomFloat( -noise, noise );
-		pTemp->entity.baseline.origin[1] = dir[1] + Com_RandomFloat( -noise, noise );
-		pTemp->entity.baseline.origin[2] = dir[2] + Com_RandomFloat( 0, znoise );
-		VectorScale( pTemp->entity.baseline.origin, Com_RandomFloat(( speed * 0.8f ), ( speed * 1.2f )), pTemp->entity.baseline.origin );
-	}
-}
-
 int __MsgFunc_Spray( const char* pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
@@ -464,7 +404,7 @@ int __MsgFunc_Spray( const char* pszName, int iSize, void *pbuf )
 	float framerate = READ_SHORT() * 0.1f;
 	int flags = READ_BYTE();
 
-	FX_Spray(pos, dir, modelIndex, count, speed, spread, rendermode, color, a, renderfx, scale, framerate, flags);
+	FX_Spray(pos, dir, modelIndex, count, speed, spread / 100.0f, rendermode, color, a, renderfx, scale, framerate, flags);
 
 	return 1;
 }

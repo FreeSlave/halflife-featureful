@@ -3,6 +3,80 @@
 
 #include <cstring>
 
+void Visual::CompleteFrom(const Visual &visual)
+{
+	if (ShouldCompleteFrom(visual, MODEL_DEFINED))
+	{
+		SetModel(visual.model);
+	}
+	if (ShouldCompleteFrom(visual, RENDERMODE_DEFINED))
+	{
+		SetRenderMode(visual.rendermode);
+	}
+	if (ShouldCompleteFrom(visual, COLOR_DEFINED))
+	{
+		SetColor(visual.rendercolor);
+	}
+	if (ShouldCompleteFrom(visual, ALPHA_DEFINED))
+	{
+		SetAlpha(visual.renderamt);
+	}
+	if (ShouldCompleteFrom(visual, RENDERFX_DEFINED))
+	{
+		SetRenderFx(visual.renderfx);
+	}
+	if (ShouldCompleteFrom(visual, SCALE_DEFINED))
+	{
+		SetScale(visual.scale);
+	}
+	if (ShouldCompleteFrom(visual, FRAMERATE_DEFINED))
+	{
+		SetFramerate(visual.framerate);
+	}
+	if (ShouldCompleteFrom(visual, BEAMWIDTH_DEFINED))
+	{
+		SetBeamWidth(visual.beamWidth);
+	}
+	if (ShouldCompleteFrom(visual, BEAMNOISE_DEFINED))
+	{
+		SetBeamNoise(visual.beamNoise);
+	}
+	if (ShouldCompleteFrom(visual, BEAMSCROLLRATE_DEFINED))
+	{
+		SetBeamScrollRate(visual.beamScrollRate);
+	}
+	if (ShouldCompleteFrom(visual, LIFE_DEFINED))
+	{
+		SetLife(visual.life);
+	}
+	if (ShouldCompleteFrom(visual, RADIUS_DEFINED))
+	{
+		SetRadius(visual.radius);
+	}
+	if (ShouldCompleteFrom(visual, BEAMFLAGS_DEFINED))
+	{
+		SetBeamFlags(visual.beamFlags);
+	}
+	if (ShouldCompleteFrom(visual, DECAY_DEFINED))
+	{
+		SetDecay(visual.decay);
+	}
+	if (ShouldCompleteFrom(visual, WAVE_DEFINED))
+	{
+		SetWaveType(visual.waveType);
+	}
+}
+
+void Visual::DoPrecache()
+{
+	if (HasModel())
+	{
+#if SERVER_DLL
+		modelIndex = PRECACHE_MODEL(model);
+#endif
+	}
+}
+
 using namespace rapidjson;
 
 static bool ParseRenderMode(const char* str, int& rendermode)

@@ -765,6 +765,16 @@ void CConfigurableWeapon::Precache()
 
 	precacheProjectile(false);
 	precacheProjectile(true);
+
+	auto precacheSprayVisual = [&params](bool altMode) {
+		const Visual& sprayVisual = params.fire.sprayVisual.Get(altMode);
+		if (sprayVisual.HasModel())
+		{
+			PRECACHE_MODEL(sprayVisual.model);
+		}
+	};
+	precacheSprayVisual(false);
+	precacheSprayVisual(true);
 }
 
 bool CConfigurableWeapon::Deploy()

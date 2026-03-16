@@ -20,4 +20,9 @@ inline int PackRGB(const color24& color)
 {
 	return (int(color.r) << 16) | (int(color.g) << 8) | int(color.b);
 }
+
+inline color24 MakeColor24(int r, int g, int b)
+{
+	return color24{(byte)r, byte(g), byte(b)};
+}
 #endif

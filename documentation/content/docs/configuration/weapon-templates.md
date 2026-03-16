@@ -1399,6 +1399,69 @@ For melee weapons it's a "swing" sound. See also: [hit_body_sound](#hit_body_sou
 
 [Weapon soundscript](#weapon-soundscript) to play when melee attack hits the wall.
 
+### spray
+
+Configure spray effect played upon firing a weapon. The spray is a number of sprites fired roughly in the shooting direction. This is used by [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}) by default and it's similar to the spray effect of bullsquid's spit.
+
+```json
+{
+    "weapon_shotgun": {
+        "fire": {
+            "spray": {
+                "offset": {
+                    "up": -20,
+                    "side": 8,
+                    "forward": 16
+                },
+                "visual": {
+                    "sprite": "sprites/flare6.spr",
+                    "alpha": 255,
+                    "rendermode": "additive",
+                    "framerate": 10,
+                    "scale": 0.5
+                },
+                "flags": ["animated", "fadeout"],
+                "count": 6,
+                "speed": 300,
+                "spread": 0.5
+            }
+        }
+    }
+}
+```
+
+#### offset {#spray-offset}
+
+An offset object. The values are relative to the player's **origin** (not the head).
+
+* `"forward"` - forward offset (how far from the player's camera).
+* `"side"` - offset to the right side. Make it negative to offset to the left side.
+* `"up"` - vertical offset. It's usually a negative value since weapons are drawn at the bottom. The default value is `-24`.
+
+#### visual {#spray-visual}
+
+A [visual]({{< ref visuals >}}) object that defines the appearance of the spray particle.
+
+#### count {#spray-count}
+
+The count of spray particles. The default value is `8`.
+
+#### speed {#spray-speed}
+
+The base speed of spray particles. The default value is `210`.
+
+#### spread {#spray-spread}
+
+The value of direction randomness. The default value is `0.25`.
+
+#### flags {#spray-flags}
+
+The array of spray flags. Possible item values:
+
+* `"collideworld"` - whether the spray particles should collide with world.
+* `"animate"` - whether the spray particles should be animated.
+* `"fadeout"` - whether the spray particles should fade out.
+
 ### spread
 
 Configure the bullet or projectile spread. There're several types of spreads and therefore it can be defined in different ways.

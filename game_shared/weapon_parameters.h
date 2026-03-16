@@ -19,6 +19,7 @@
 #include "cone_degrees.h"
 #include "shake.h"
 #include "shell_bounce.h"
+#include "visual_object.h"
 
 #define LOUD_GUN_VOLUME			1000
 #define NORMAL_GUN_VOLUME		600
@@ -632,8 +633,14 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<float> smackDelay{0.2f};
 		WeaponModeValue<bool> hitDecal{true};
 
-		// TODO: this is temporary, will be replaced with configurable spray
-		WeaponModeValue<bool> spitSpray;
+		WeaponModeValue<float> sprayOffsetUp{-24.0f};
+		WeaponModeValue<float> sprayOffsetSide{0.0f};
+		WeaponModeValue<float> sprayOffsetForward{0.0f};
+		WeaponModeValue<Visual> sprayVisual;
+		WeaponModeValue<int> sprayCount{8};
+		WeaponModeValue<int> spraySpeed{210};
+		WeaponModeValue<float> spraySpread{0.25f};
+		WeaponModeValue<int> sprayFlags{0};
 
 		WeaponModeValue<bool> preventMovement{false};
 		WeaponModeValue<PlayerSpeed> playerMaxSpeed;

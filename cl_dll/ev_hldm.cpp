@@ -29,6 +29,7 @@
 #include "event_api.h"
 #include "event_args.h"
 #include "in_defs.h"
+#include "cl_fx.h"
 
 #include "r_studioint.h"
 #include "com_model.h"
@@ -600,7 +601,6 @@ static void EV_PerformWeaponFire(event_args_t *args)
 
 	const Vector angles{args->angles};
 
-	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
 
 	AngleVectors( angles, forward, right, up );
@@ -732,21 +732,26 @@ static void EV_PerformWeaponFire(event_args_t *args)
 
 	if (fireType == WeaponParameters::Fire::BULLETS)
 	{
-		EV_GetGunPosition( args, vecSrc, origin );
-		VectorCopy( forward, vecAiming );
+		Vector vecSrc = EV_GetGunPosition(args, origin);
+		Vector vecAiming = forward;
 		EV_HLDM_FireBullets(idx, forward, right, up, fire.bulletCount.Get(altMode), vecSrc, vecAiming, fire.bulletDistance.Get(altMode),
 							fire.tracerFreq.Get(altMode), &g_tracerCount[idx - 1], spreadX, spreadY);
 	}
 
-	if (fire.spitSpray.Get(altMode))
-	{
-		Vector vecSpitDir = forward;
-		Vector vecSpitPos = origin + forward * 16 + right * 8 + up * 4;
+	const Visual& sprayVisual = fire.sprayVisual.Get(altMode);
+	const int sprayCount = fire.sprayCount.Get(altMode);
 
-		int iSpitModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/tinyspit.spr");
-		// spew the spittle temporary ents.
-		if (iSpitModelIndex)
-			gEngfuncs.pEfxAPI->R_Sprite_Spray( (float*)&vecSpitPos, (float*)&vecSpitDir, iSpitModelIndex, 8, 210, 25 );
+	if (sprayVisual.HasModel() && sprayCount > 0)
+	{
+		const Vector vecSrc = EV_GetGunPosition(args, origin);
+		Vector vecSpitDir = forward;
+		Vector vecSpitPos = vecSrc + forward * fire.sprayOffsetForward.Get(altMode) + right * fire.sprayOffsetSide.Get(altMode) + up * fire.sprayOffsetUp.Get(altMode);
+
+		int sprayModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex(sprayVisual.model);
+		if (sprayModelIndex)
+		{
+			FX_Spray(vecSpitPos, vecSpitDir, sprayModelIndex, sprayCount, fire.spraySpeed.Get(altMode), fire.spraySpread.Get(altMode), sprayVisual, fire.sprayFlags.Get(altMode));
+		}
 	}
 }
 
@@ -828,7 +833,7 @@ void EV_FireGauss( event_args_t *args )
 	}
 
 	//Con_Printf( "Firing gauss with %f\n", flDamage );
-	EV_GetGunPosition( args, vecSrc, origin );
+	vecSrc = EV_GetGunPosition( args, origin );
 
 	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smoke.spr" );
 	m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr" );
@@ -1123,7 +1128,7 @@ void EV_FireCrossbow2( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	EV_GetGunPosition( args, vecSrc, origin );
+	vecSrc = EV_GetGunPosition( args, origin );
 
 	VectorMA( vecSrc, 8192, forward, vecEnd );
 
@@ -1275,7 +1280,7 @@ void EV_EgonFire( event_args_t *args )
 
 			AngleVectors( angles, forward, right, up );
 
-			EV_GetGunPosition( args, vecSrc, pl->origin );
+			vecSrc = EV_GetGunPosition( args, pl->origin );
 
 			VectorMA( vecSrc, 2048, forward, vecEnd );
 

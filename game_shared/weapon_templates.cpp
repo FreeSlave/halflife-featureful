@@ -7,6 +7,7 @@
 #include "weapon_parameters.h"
 #include "sound_channel.h"
 #include "soundent_bits.h"
+#include "fx_flags.h"
 
 #include "skill.h"
 
@@ -1009,6 +1010,40 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 							currentAngle += angleFraction * ((orientation == CLOCKWISE) ? -1.0f : 1.0f);
 						}
 						fire.projectileFirePhases.Materialize(altMode) = std::move(firePhases);
+					}
+				});
+			});
+
+			HandleJSONMember(value, "spray", [&](const Value& value) {
+				HandleJSONMember(value, "offset", [&](const Value& value) {
+					UpdatePropertyFromJson(fire.sprayOffsetUp, value, "up", altMode);
+					UpdatePropertyFromJson(fire.sprayOffsetSide, value, "side", altMode);
+					UpdatePropertyFromJson(fire.sprayOffsetForward, value, "forward", altMode);
+				});
+				HandleJSONMember(value, "visual", [&](const Value& value) {
+					Visual visual = ParseVisualFromJSON(value, [this](const char* str){ return this->MakeConstantString(str); });
+					visual.CompleteFrom(fire.sprayVisual.Materialize(altMode));
+					fire.sprayVisual.Materialize(altMode) = visual;
+				});
+				UpdatePropertyFromJson(fire.sprayCount, value, "count", altMode);
+				UpdatePropertyFromJson(fire.spraySpeed, value, "speed", altMode);
+				UpdatePropertyFromJson(fire.spraySpread, value, "spread", altMode);
+				HandleJSONMember(value, "flags", [&](const Value& value) {
+					Value::ConstArray arr = value.GetArray();
+					for (const auto& item : arr)
+					{
+						if (strcmp(item.GetString(), "collideworld") == 0)
+						{
+							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_COLLIDEWORLD;
+						}
+						else if (strcmp(item.GetString(), "animate") == 0 || strcmp(item.GetString(), "animated") == 0)
+						{
+							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_ANIMATE;
+						}
+						else if (strcmp(item.GetString(), "fadeout") == 0)
+						{
+							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_FADEOUT;
+						}
 					}
 				});
 			});
