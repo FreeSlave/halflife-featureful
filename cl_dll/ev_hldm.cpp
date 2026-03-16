@@ -1118,6 +1118,14 @@ void EV_FireCrossbow2( event_args_t *args )
 {
 	EV_PerformWeaponFire(args);
 
+	const int weaponId = args->iparam2 & 0x3F;
+	const WeaponParameters& params = GetWeaponParameters(weaponId);
+
+	if (params.fire.fireType.Get(true) != WeaponParameters::Fire::PROJECTILE || strcmp(params.fire.projectileName.Get(true).c_str(), "crossbow_bolt") != 0)
+	{
+		return;
+	}
+
 	Vector vecSrc, vecEnd;
 	Vector up, right, forward;
 	pmtrace_t tr;
