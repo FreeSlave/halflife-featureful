@@ -262,6 +262,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	UpdatePropertyFromJson(params.playerModel, value, "player_model");
 	UpdatePropertyFromJson(params.playerAnimExt, value, "player_anim_ext");
 	UpdatePropertyFromJson(params.priority, value, "priority");
+	UpdatePropertyFromJson(params.worldModelAnimated, value, "world_model_animated");
+	UpdatePropertyFromJson(params.worldModelSequence, value, "world_model_sequence");
 
 	auto HandleDeploy = [&](const char* propName, bool altMode, bool emptied)
 	{

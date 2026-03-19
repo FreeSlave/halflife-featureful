@@ -1737,10 +1737,21 @@ void CWeaponBox::SetWeaponModel(CBasePlayerWeapon *pItem)
 		weaponAngles.y += 180 + RANDOM_LONG(-15,15);
 
 		SET_MODEL( ENT( pev ), worldModel );
+
+		const WeaponParameters& weaponParams =  pItem->MyParameters();
+		if (weaponParams.worldModelAnimated)
+		{
+			pev->animtime = gpGlobals->time;
+			pev->framerate = 1.0f;
+		}
+		if (weaponParams.worldModelSequence > 0)
+		{
+			pev->sequence = weaponParams.worldModelSequence;
+		}
+
 		pev->angles = weaponAngles;
 		if (pItem->WeaponId() == WEAPON_TRIPMINE) {
 			pev->body = 3;
-			pev->sequence = 8;
 		}
 	}
 }

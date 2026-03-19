@@ -943,6 +943,13 @@ R"(
 			"priority": {
 				"type": "integer"
 			},
+			"world_model_animated": {
+				"type": "boolean"
+			},
+			"world_model_sequence": {
+				"type": "integer",
+				"minimum": 0
+			},
 			"deploy": {
 				"$ref": "#/deploy"
 			},

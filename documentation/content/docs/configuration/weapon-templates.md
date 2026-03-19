@@ -173,6 +173,8 @@ These properties are available for all weapons:
 * [player_model](#player_model)
 * [player_anim_ext](#player_anim_ext)
 * [priority](#priority)
+* [world_model_animated](#world_model_animated)
+* [world_model_sequence](#world_model_sequence)
 * [model_sounds](#model_sounds)
 * [max_clip](#max_clip)
 * [ammo_name](#ammo_name)
@@ -373,6 +375,14 @@ The player animation extension (suffix) that defines how the weapon is carried i
 ## priority
 
 The weapon deploy priority. The weapon with the highest priority will be deployed at the start if players gets weapons via the [map config]({{< ref "map-config" >}}) or via [game_player_settings]({{< ref game_player_settings >}}). This also defines whether player will switch to the newly picked weapon in multiplayer automatically.
+
+## world_model_animated
+
+A boolean - whether the weapon's world model should be animated. Used by [weapon_snark]({{< ref weapon_snark >}}), [weapon_shockrifle]({{< ref weapon_shockrifle >}}) and [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}).
+
+## world_model_sequence
+
+The world model default sequence index. The entity parameters still can override this (e.g. crossbow tilted placement). Used by [weapon_snark]({{< ref weapon_snark >}}) and [weapon_tripmine]({{< ref weapon_tripmine >}}).
 
 ## model_sounds
 

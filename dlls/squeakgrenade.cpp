@@ -604,9 +604,7 @@ void CSqueak::Spawn()
 
 	FallInit();//get ready to fall down.
 
-	pev->sequence = 1;
-	pev->animtime = gpGlobals->time;
-	pev->framerate = 1.0f;
+	SetWorldModelProps();
 }
 
 void CSqueak::Precache()
@@ -645,6 +643,8 @@ WeaponParameters CSqueak::GetDefaultParameters() const
 	params.playerModel = "models/p_squeak.mdl";
 	params.playerAnimExt = "squeak";
 	params.priority = 5;
+	params.worldModelAnimated = true;
+	params.worldModelSequence = 1;
 
 	return params;
 }
@@ -835,6 +835,8 @@ WeaponParameters CPenguin::GetDefaultParameters() const
 	params.playerModel = "models/p_penguin.mdl";
 	params.playerAnimExt = "squeak";
 	params.priority = 5;
+	params.worldModelAnimated = true;
+	params.worldModelSequence = 1;
 
 	return params;
 }

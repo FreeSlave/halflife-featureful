@@ -348,6 +348,7 @@ public:
 	}
 
 	void PlayWeaponSoundScript(const WeaponSoundScript& soundScript, float volumeFactor = 1.0f);
+	void SetWorldModelProps();
 };
 
 enum class SwitchModeReason

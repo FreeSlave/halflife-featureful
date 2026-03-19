@@ -552,6 +552,20 @@ void CBasePlayerWeapon::PlayWeaponSoundScript(const WeaponSoundScript& soundScri
 	}
 }
 
+void CBasePlayerWeapon::SetWorldModelProps()
+{
+	const WeaponParameters& params = MyParameters();
+	if (params.worldModelAnimated)
+	{
+		pev->animtime = gpGlobals->time;
+		pev->framerate = 1.0f;
+	}
+	if (pev->sequence == 0 && params.worldModelSequence > 0)
+	{
+		pev->sequence = params.worldModelSequence;
+	}
+}
+
 static bool PlayerMatchesConditions(CBasePlayer* pPlayer, const PlayerMovementConditions& conditions)
 {
 	if (!indeterminate(conditions.inAir))
@@ -596,6 +610,8 @@ void CConfigurableWeapon::Spawn()
 
 	if (params.startLaserSpot)
 		m_bLaserActive = true;
+
+	SetWorldModelProps();
 }
 
 static void PrecacheWeaponSoundScript(const WeaponSoundScript& soundScript)

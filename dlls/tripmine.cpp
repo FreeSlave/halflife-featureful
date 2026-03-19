@@ -457,9 +457,6 @@ void CTripmine::Spawn()
 #else
 	pev->body = 3;
 #endif
-	pev->sequence = TRIPMINE_GROUND;
-	// ResetSequenceInfo();
-	pev->framerate = 0;
 
 	if( !bIsMultiplayer() )
 	{
@@ -500,6 +497,7 @@ WeaponParameters CTripmine::GetDefaultParameters() const
 	params.playerModel = "models/p_tripmine.mdl";
 	params.playerAnimExt = "trip";
 	params.priority = -10;
+	params.worldModelSequence = TRIPMINE_GROUND;
 
 	params.deploy.animIndex = TRIPMINE_DRAW;
 

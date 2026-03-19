@@ -748,6 +748,8 @@ struct WeaponParameters
 	fixed_string<32> playerAnimExt{"onehanded"};
 	fixed_string<32> playerAnimExtDetonator{};
 	int priority{0};
+	bool worldModelAnimated{false};
+	int worldModelSequence{0};
 
 	fixed_string<32> toolIcon;
 	float toolTriggerDelay{0.0f};

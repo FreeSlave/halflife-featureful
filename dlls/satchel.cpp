@@ -390,6 +390,8 @@ void CSatchel::Spawn()
 	InitMaxClip();
 
 	FallInit();// get ready to fall down.
+
+	SetWorldModelProps();
 }
 
 void CSatchel::Precache()

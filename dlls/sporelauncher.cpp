@@ -41,7 +41,6 @@ enum sporelauncher_e
 class CSporelauncher : public CConfigurableWeapon
 {
 public:
-	void Spawn() override;
 	int WeaponId() const override { return WEAPON_SPORELAUNCHER; }
 
 	bool GetItemInfo(ItemInfo *p) override;
@@ -49,13 +48,6 @@ public:
 };
 
 LINK_WEAPON_TO_CLASS(weapon_sporelauncher, CSporelauncher)
-
-void CSporelauncher::Spawn()
-{
-	CConfigurableWeapon::Spawn();
-	pev->animtime = gpGlobals->time;
-	pev->framerate = 1.0f;
-}
 
 bool CSporelauncher::GetItemInfo(ItemInfo *p)
 {
@@ -83,6 +75,7 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	params.playerModel = "models/p_spore_launcher.mdl";
 	params.playerAnimExt = "rpg";
 	params.priority = 20;
+	params.worldModelAnimated = true;
 
 	params.deploy.animIndex = SPLAUNCHER_DRAW1;
 

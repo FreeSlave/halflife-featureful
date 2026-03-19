@@ -37,7 +37,6 @@ enum shockrifle_e
 class CShockrifle : public CConfigurableWeapon
 {
 public:
-	void Spawn() override;
 	void Precache() override;
 	void PrecacheDefaultModelSounds() override;
 	int WeaponId() const override { return WEAPON_SHOCKRIFLE; }
@@ -57,14 +56,6 @@ private:
 };
 
 LINK_WEAPON_TO_CLASS(weapon_shockrifle, CShockrifle)
-
-void CShockrifle::Spawn()
-{
-	CConfigurableWeapon::Spawn();
-	pev->sequence = 0;
-	pev->animtime = gpGlobals->time;
-	pev->framerate = 1.0f;
-}
 
 void CShockrifle::Precache()
 {
@@ -107,6 +98,7 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 	params.playerModel = "models/p_shock.mdl";
 	params.playerAnimExt = "bow";
 	params.priority = 15;
+	params.worldModelAnimated = true;
 
 	params.deploy.animIndex = SHOCK_DRAW;
 
