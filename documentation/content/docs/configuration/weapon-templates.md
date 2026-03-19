@@ -656,12 +656,23 @@ The maximum number of shots for the burst fire. I.e. player presses the attack b
 Example of a weapon using the burst fire: Counter Strike FAMAS in the burst mode.
 
 {{% hint warning %}}
-Currently the burst mode works only for the bullet attack type. Support for projectiles will come later.
+Currently the burst mode works only for the `bullet` and `projectile` attack types.
 {{% /hint %}}
+
+```json
+{
+    "weapon_nailgun": {
+        "fire": {
+            "burst": 3,
+            "cycle_time": 0.5
+        }
+    }
+}
+```
 
 ### burst_interval
 
-The interval between shots in burst fire. Ideally the [cycle_time](#cycle_time) must be higher than this multiplied by the [burst](#burst) value.
+The interval between shots in burst fire. Ideally the [cycle_time](#cycle_time) must be higher than this multiplied by the [burst](#burst) value. The default value is 0.1.
 
 ### charge_anims
 

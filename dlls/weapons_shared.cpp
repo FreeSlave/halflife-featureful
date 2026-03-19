@@ -1738,30 +1738,33 @@ void CConfigurableWeapon::FireRemaining()
 	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
 
 	bool canFireMore = true;
-	if (useSecondaryAmmo)
+	if (ammoPerFire > 0)
 	{
-		if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+		if (useSecondaryAmmo)
 		{
-			canFireMore = false;
-		}
-		else
-		{
-			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
-			m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
-		}
-	}
-	else
-	{
-		if (UsesAmmo() || UsesClip())
-		{
-			if (!HasAmmoToFire(ammoPerFire))
+			if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
 			{
 				canFireMore = false;
 			}
 			else
 			{
-				SpendAmmo(ammoPerFire);
-				UpdateTape();
+				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
+				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
+			}
+		}
+		else
+		{
+			if (UsesAmmo() || UsesClip())
+			{
+				if (!HasAmmoToFire(ammoPerFire))
+				{
+					canFireMore = false;
+				}
+				else
+				{
+					SpendAmmo(ammoPerFire);
+					UpdateTape();
+				}
 			}
 		}
 	}
@@ -1785,17 +1788,26 @@ void CConfigurableWeapon::FireRemaining()
 	float spreadX = 0.0f;
 	float spreadY = 0.0f;
 
-	const int bulletCount = fire.bulletCount.Get(altMode);
-	const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, gpGlobals->v_forward, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
-	if (bulletCount > 1)
+	const auto fireType = fire.fireType.Get(altMode);
+
+	if (fireType == WeaponParameters::Fire::BULLETS)
 	{
-		spreadX = vecSpread.x;
-		spreadY = vecSpread.y;
+		const int bulletCount = fire.bulletCount.Get(altMode);
+		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, gpGlobals->v_forward, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+		if (bulletCount > 1)
+		{
+			spreadX = vecSpread.x;
+			spreadY = vecSpread.y;
+		}
+		else
+		{
+			spreadX = randomizedSpread.x;
+			spreadY = randomizedSpread.y;
+		}
 	}
-	else
+	else if (fireType == WeaponParameters::Fire::PROJECTILE)
 	{
-		spreadX = randomizedSpread.x;
-		spreadY = randomizedSpread.y;
+		ProjectileAttack(altMode);
 	}
 
 	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
