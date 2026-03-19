@@ -1246,7 +1246,7 @@ void CApacheHVR::IgniteThink()
 	// pev->movetype = MOVETYPE_TOSS;
 
 	// pev->movetype = MOVETYPE_FLY;
-	pev->effects |= EF_LIGHT;
+	SetMyProjectileEffectFlags(EF_LIGHT);
 
 	// make rocket sound
 	EmitSoundScript(rpgSoundScript);

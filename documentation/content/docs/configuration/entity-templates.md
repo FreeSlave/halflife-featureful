@@ -1154,6 +1154,34 @@ Allows to change a default [display name]({{< ref displaynames >}}) for the enti
 }
 ```
 
+### projectile
+
+An object that defines projectile-related properties.
+
+#### effects_flags
+
+An array of pre-defined effect-flags recognized by the engine. Possible item values:
+
+* `"rocketflare"` - a rocket flare effect (used by [rpg_rocket]({{< ref rpg_rocket >}}) and [hvr_rocket]({{< ref hvr_rocket >}}) by default). This produces a white sprite of randomized scale attached to the projectile as well as the small dynamic light.
+* `"brightlight"` - a bright light effect - a large dynamic light attached to the projectile.
+
+Set the empty array to override the default effect flags (e.g. to remove the rocket flare from the `rpg_rocket`).
+
+```json
+{
+    "rpg_rocket": {
+        "projectile": {
+            "effect_flags": []
+        }
+    },
+    "crossbow_bolt": {
+        "projectile": {
+            "effect_flags": ["rocketflare"]
+        }
+    }
+}
+```
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

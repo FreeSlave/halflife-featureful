@@ -117,6 +117,7 @@ void CNail::NailTouch(CBaseEntity *pOther)
 void CNail::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(1000.0f, params);
+	SetMyProjectileEffectFlags();
 }
 
 #endif

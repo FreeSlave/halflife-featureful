@@ -234,5 +234,6 @@ void CShock::UpdateOnRemove()
 void CShock::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params);
+	SetMyProjectileEffectFlags();
 	pev->nextthink = gpGlobals->time;
 }

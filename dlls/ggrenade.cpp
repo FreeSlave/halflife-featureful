@@ -403,6 +403,7 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 	{
 		pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
 		LaunchAsProjectileImpl(800.0f, params);
+		SetMyProjectileEffectFlags();
 
 		// make monsters afaid of it while in the air
 		SetThink( &CGrenade::DangerSoundThink );
@@ -417,6 +418,7 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 	else
 	{
 		LaunchAsProjectileImpl(600.0f, params);
+		SetMyProjectileEffectFlags();
 
 		SetTouch( &CGrenade::BounceTouch );	// Bounce if touched
 
@@ -600,6 +602,7 @@ void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
 	const float time = params.time ? params.time : 2.5f;
 	pev->dmgtime = gpGlobals->time + time;
 
+	SetMyProjectileEffectFlags();
 	SetTouch(&CGrenadeRound::GrenadeTouch);
 	SetThink(&CGrenadeRound::GrenadeThink);
 	pev->nextthink = gpGlobals->time;

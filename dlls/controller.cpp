@@ -1435,6 +1435,7 @@ void CControllerZapBall::Precache()
 void CControllerZapBall::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(GetSkillValue("controller_speedball"), params);
+	SetMyProjectileEffectFlags();
 }
 
 void CControllerZapBall::AnimateThink()

@@ -31,6 +31,7 @@ public:
 	float m_flIgniteTime;
 	EHANDLE m_hLauncher; // handle back to the launcher that fired me.
 	bool m_straight;
+	bool m_soundStarted;
 
 	static const NamedSoundScript rocketIgniteSoundScript;
 

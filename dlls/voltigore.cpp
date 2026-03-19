@@ -171,6 +171,7 @@ void CChargedBolt::ShutdownChargedBolt()
 void CChargedBolt::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(CHARGEDBOLT_SPEED, params);
+	SetMyProjectileEffectFlags();
 
 	SetTouch(&CChargedBolt::ChargedBoltTouch);
 	SetThink(&CChargedBolt::FlyThink);

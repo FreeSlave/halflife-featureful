@@ -146,6 +146,7 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 void CSquidSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
+	SetMyProjectileEffectFlags();
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
@@ -312,6 +313,7 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
+	SetMyProjectileEffectFlags();
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }

@@ -87,6 +87,7 @@ void CCrossbowBolt::LaunchAsProjectile(const ProjectileParameters& params)
 	const float defaultSpeed = inWater ? BOLT_WATER_VELOCITY : BOLT_AIR_VELOCITY;
 
 	LaunchAsProjectileImpl(defaultSpeed, params);
+	SetMyProjectileEffectFlags();
 	pev->speed = pev->velocity.Length();
 	pev->avelocity.z = 10.0f;
 }
@@ -207,6 +208,8 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		{
 			UTIL_Sparks( pev->origin );
 		}
+
+		ClearBits(pev->effects, EF_LIGHT);
 	}
 
 	if (explosiveBolt)

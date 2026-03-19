@@ -129,6 +129,7 @@ TYPEDESCRIPTION	CRpgRocket::m_SaveData[] =
 	DEFINE_FIELD( CRpgRocket, m_flIgniteTime, FIELD_TIME ),
 	DEFINE_FIELD( CRpgRocket, m_hLauncher, FIELD_EHANDLE ),
 	DEFINE_FIELD( CRpgRocket, m_straight, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CRpgRocket, m_soundStarted, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CRpgRocket, CGrenade )
@@ -249,9 +250,10 @@ void CRpgRocket::IgniteThink()
 	// pev->movetype = MOVETYPE_TOSS;
 
 	pev->movetype = MOVETYPE_FLY;
-	pev->effects |= EF_LIGHT;
+	SetMyProjectileEffectFlags(EF_LIGHT);
 
 	// make rocket sound
+	m_soundStarted = true;
 	EmitSoundScript(rocketIgniteSoundScript);
 
 	// rocket trail
@@ -316,9 +318,10 @@ void CRpgRocket::FollowThink()
 	}
 	else
 	{
-		if( pev->effects & EF_LIGHT )
+		pev->effects = 0;
+		if (m_soundStarted)
 		{
-			pev->effects = 0;
+			m_soundStarted = false;
 			StopSoundScript(rocketIgniteSoundScript);
 		}
 		pev->velocity = pev->velocity * 0.2f + vecTarget * flSpeed * 0.798f;

@@ -1416,6 +1416,27 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetDisplayName(std::move(displayName));
 	}
 
+	HandleJSONMember(value, "projectile", [&entTemplate](const Value& value) {
+		EntTemplate::Projectile projectile;
+		HandleJSONMember(value, "effect_flags", [&entTemplate, &projectile](const Value& value) {
+			int effects = 0;
+			Value::ConstArray arr = value.GetArray();
+			for (const auto& item : arr)
+			{
+				if (strcmp(item.GetString(), "rocketflare") == 0)
+				{
+					effects |= EF_LIGHT;
+				}
+				else if (strcmp(item.GetString(), "brightlight") == 0)
+				{
+					effects |= EF_BRIGHTLIGHT;
+				}
+			}
+			projectile.effects = effects;
+		});
+		entTemplate.SetProjectileParams(projectile);
+	});
+
 	_entTemplates[templateName] = entTemplate;
 }
 

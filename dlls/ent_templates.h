@@ -196,6 +196,11 @@ public:
 		void UpdateFromJSON(const rapidjson::Value& value);
 	};
 
+	struct Projectile
+	{
+		optional<int> effects;
+	};
+
 	static int DamageTypeFromJSON(const rapidjson::Value& value);
 	static bool UpdateDamageInfoFromJSON(const rapidjson::Value& value, DamageInfo& damageInfo);
 	static EntityFilter EntityFilterFromJSON(const rapidjson::Value& value);
@@ -515,6 +520,13 @@ public:
 	void SetDisplayName(std::string&& name);
 	void SetDisplayName(const char* name);
 	const char* GetDisplayName() const;
+
+	void SetProjectileParams(const Projectile& projectileParams) {
+		_projectile = projectileParams;
+	}
+	const Projectile& GetProjectileParams() const {
+		return _projectile;
+	}
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
@@ -563,6 +575,8 @@ private:
 	std::unordered_map<std::string, SkillReplacement> _skillReplacements;
 
 	std::string _displayName;
+
+	Projectile _projectile;
 };
 
 class EntTemplateSystem : public JSONConfig

@@ -715,6 +715,7 @@ public:
 		pev->velocity = params.direction * speed;
 	}
 	virtual void LaunchAsProjectile(const ProjectileParameters& params) {}
+	void SetMyProjectileEffectFlags(int defaultEffects = 0);
 
 	FloatRange GetSkillValueRange(const char* name);
 	float GetSkillValue(const char* name);

@@ -157,6 +157,7 @@ void CPitdroneSpike::StartTrail()
 void CPitdroneSpike::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(PITDRONE_SPIKE_SPEED, params);
+	SetMyProjectileEffectFlags();
 
 	SetThink(&CPitdroneSpike::StartTrail);
 	pev->nextthink = gpGlobals->time;

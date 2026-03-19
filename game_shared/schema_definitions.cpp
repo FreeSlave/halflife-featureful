@@ -966,6 +966,18 @@ R"(
 			},
 			"displayname": {
 				"type": "string"
+			},
+			"projectile": {
+				"type": "object",
+				"properties": {
+					"effect_flags": {
+						"type": "array",
+						"items": {
+							"enum": ["rocketflare", "brightlight"]
+						}
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false

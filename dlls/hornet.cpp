@@ -203,6 +203,7 @@ void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	const float defaultSpeed = params.variant == DART ? 1200.0f : 300.0f;
 	LaunchAsProjectileImpl(defaultSpeed, params);
+	SetMyProjectileEffectFlags();
 	if (params.variant == DART)
 		SetThink( &CHornet::StartDart );
 }

@@ -280,6 +280,7 @@ void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 void CSpore::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(m_SporeType == ROCKET ? SPORE_ROCKET_SPEED : SPORE_GRENADE_SPEED, params);
+	SetMyProjectileEffectFlags();
 }
 
 //=========================================================

@@ -1871,6 +1871,21 @@ int CBaseEntity::IRelationship( CBaseEntity *pTarget )
 	return R_NO;
 }
 
+void CBaseEntity::SetMyProjectileEffectFlags(int defaultEffects)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectileParams = entTemplate->GetProjectileParams();
+		if (projectileParams.effects.has_value())
+		{
+			pev->effects |= *projectileParams.effects;
+			return;
+		}
+	}
+	pev->effects |= defaultEffects;
+}
+
 FloatRange CBaseEntity::GetSkillValueRange(const char *name)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();

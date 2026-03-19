@@ -164,6 +164,8 @@ void CMortarShell::LaunchAsProjectile(const ProjectileParameters &params)
 		pev->angles = UTIL_VecToAngles(pev->velocity);
 		pev->angles.x -= 90.0f;
 	}
+
+	SetMyProjectileEffectFlags();
 }
 
 #define SF_MORTAR_ACTIVE (1 << 0)

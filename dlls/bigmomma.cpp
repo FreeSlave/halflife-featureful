@@ -1374,6 +1374,7 @@ void CBMortar::Animate()
 void CBMortar::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(800.0f, params);
+	SetMyProjectileEffectFlags();
 	pev->gravity = 1.0f;
 	SetThink( &CBMortar::Animate );
 	pev->nextthink = gpGlobals->time + 0.1f;
