@@ -527,6 +527,13 @@ public:
 	const Projectile& GetProjectileParams() const {
 		return _projectile;
 	}
+
+	void SetPickupHudSprite(const char* name) {
+		_pickupHudSprite = name;
+	}
+	const char* GetPickupHudSprite() const {
+		return _pickupHudSprite.empty() ? nullptr : _pickupHudSprite.c_str();
+	}
 private:
 	static int ParseDamageType(const char* type);
 	static int ParseGibPolicy(const char* gibPolicyName);
@@ -577,6 +584,8 @@ private:
 	std::string _displayName;
 
 	Projectile _projectile;
+
+	std::string _pickupHudSprite;
 };
 
 class EntTemplateSystem : public JSONConfig

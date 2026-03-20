@@ -64,6 +64,7 @@ public:
 	}
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void TouchOrUse( CBaseEntity* pOther );
+	void NotifyPickup(CBasePlayer* pPlayer, string_t defaultPickup);
 
 	Vector MyRespawnSpot() override;
 	float MyRespawnTime() override;

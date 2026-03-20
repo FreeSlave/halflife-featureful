@@ -525,6 +525,24 @@ void CItem::TouchOrUse(CBaseEntity *pOther)
 	}
 }
 
+void CItem::NotifyPickup(CBasePlayer* pPlayer, string_t defaultPickup)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const char* hudSprite = entTemplate->GetPickupHudSprite();
+		if (hudSprite)
+		{
+			pPlayer->NotifyPickup(hudSprite);
+			return;
+		}
+	}
+	if (!FStringNull(defaultPickup))
+	{
+		pPlayer->NotifyPickup(STRING(defaultPickup));
+	}
+}
+
 Vector CItem::MyRespawnSpot()
 {
 	return g_pGameRules->VecItemRespawnSpot( this );
@@ -611,7 +629,7 @@ public:
 
 			pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 
-			pPlayer->NotifyPickup(STRING(pev->classname));
+			NotifyPickup(pPlayer, pev->classname);
 
 			if (ShouldSetSuitUpdate())
 			{
@@ -689,7 +707,7 @@ class CItemAntidote : public CItem
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
 
-		pPlayer->NotifyPickup(STRING(pev->classname));
+		NotifyPickup(pPlayer, pev->classname);
 
 		return true;
 	}
@@ -732,10 +750,7 @@ class CItemSecurity : public CItem
 
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
-		if (!FStringNull(pev->netname))
-		{
-			pPlayer->NotifyPickup(STRING(pev->netname));
-		}
+		NotifyPickup(pPlayer, pev->netname);
 		if (!FStringNull(pev->message))
 			UTIL_ShowMessage( STRING( pev->message ), pPlayer );
 
@@ -871,7 +886,7 @@ class CItemLongJump : public CItem
 		if( pPlayer->HasSuit() )
 		{
 			pPlayer->SetLongjump(true);
-			pPlayer->NotifyPickup(STRING(pev->classname));
+			NotifyPickup(pPlayer, pev->classname);
 
 			EMIT_SOUND_SUIT( pPlayer->edict(), "!HEV_A1" );	// Play the longjump sound UNDONE: Kelly? correct sound?
 			return true;
@@ -931,7 +946,7 @@ public:
 		else if ( pPlayer->HasSuitLight() )
 			return false;
 		pPlayer->SetFlashlight();
-		pPlayer->NotifyPickup(STRING(pev->classname));
+		NotifyPickup(pPlayer, pev->classname);
 		pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 		return true;
 	}
@@ -964,7 +979,7 @@ public:
 		else if ( pPlayer->HasSuitLight() )
 			return false;
 		pPlayer->SetNVG();
-		pPlayer->NotifyPickup(STRING(pev->classname));
+		NotifyPickup(pPlayer, pev->classname);
 		return true;
 	}
 };

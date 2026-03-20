@@ -1154,6 +1154,41 @@ Allows to change a default [display name]({{< ref displaynames >}}) for the enti
 }
 ```
 
+### pickup
+
+An object that defines pickup-related properties.
+
+#### hud_sprite
+
+The name of the custom HUD sprite to show when the item is picked up. By default the item classname (e.g. `item_battery`) is used as a HUD sprite name.
+
+This property affects only the following items:
+
+* [item_battery]({{< ref item_battery >}})
+* [item_healthkit]({{< ref item_healthkit >}})
+* [item_longjump]({{< ref item_longjump >}})
+* [item_antidote]({{< ref item_antidote >}})
+* [item_security]({{< ref item_security >}})
+* [item_flashlight]({{< ref item_flashlight >}})
+* [item_nvgs]({{< ref item_nvgs >}})
+* [item_helmet]({{< ref item_helmet >}})
+* [item_armorvest]({{< ref item_armorvest >}})
+
+```json
+{
+    "custom_healthkit": {
+        "pickup": {
+            "hud_sprite": "my_healthkit"
+        }
+    },
+    "custom_battery": {
+        "pickup": {
+            "hud_sprite": "my_battery"
+        }
+    },
+}
+```
+
 ### projectile
 
 An object that defines projectile-related properties.

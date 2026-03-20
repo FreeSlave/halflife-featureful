@@ -1437,6 +1437,15 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetProjectileParams(projectile);
 	});
 
+	HandleJSONMember(value, "pickup", [&entTemplate](const Value& value) {
+		HandleJSONMember(value, "hud_sprite", [&entTemplate](const Value& value) {
+			if (value.IsString())
+			{
+				entTemplate.SetPickupHudSprite(value.GetString());
+			}
+		});
+	});
+
 	_entTemplates[templateName] = entTemplate;
 }
 

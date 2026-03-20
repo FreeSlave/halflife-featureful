@@ -978,6 +978,15 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"pickup": {
+				"type": "object",
+				"properties": {
+					"hud_sprite": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false
