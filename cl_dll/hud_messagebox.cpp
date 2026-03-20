@@ -178,6 +178,11 @@ bool CHudMessageBox::HandleKeyDown(int keynum)
 	}
 }
 
+bool CHudMessageBox::HasActiveMessageBoxes()
+{
+	return !messageBoxes.empty();
+}
+
 void CHudMessageBox::ScrollDown()
 {
 	if (messageBoxes.empty())

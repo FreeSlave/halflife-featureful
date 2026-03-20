@@ -879,6 +879,7 @@ public:
 
 	bool HandleClientInput();
 	bool HandleKeyDown(int keynum);
+	bool HasActiveMessageBoxes();
 	void ScrollUp();
 	void ScrollDown();
 	void PageUp();

@@ -256,7 +256,7 @@ int CHud::Redraw( float flTime, int intermission )
 		ResetCrosshair();
 	}
 
-	if (m_pCvarCrosshair->value > 0.0f && !TopLevelWindowIsActive()) {
+	if (m_pCvarCrosshair->value > 0.0f && !TopLevelWindowIsActive() && !m_MessageBox.HasActiveMessageBoxes()) {
 		CHud::Renderer().DrawCrosshair();
 	}
 
