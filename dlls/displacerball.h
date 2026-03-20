@@ -40,6 +40,9 @@ public:
 
 	EHANDLE m_hDisplacedTarget;
 
+	int m_maxFrame;
+	float m_lastTime;
+
 	static const NamedVisual spriteVisual;
 	static const NamedVisual armBeamVisual;
 	static const NamedVisual hitBeamVisual;

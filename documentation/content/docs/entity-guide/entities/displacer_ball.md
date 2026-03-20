@@ -25,3 +25,23 @@ entityCategory: projectile
 * **DisplacerBall.HitBeam** - beam created when the ball hits something.
 * **DisplacerBall.Ring** - ring beam.
 * **DisplacerBall.Light** - dynamic light played along with the ring beam.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Animated sprite" %}}
+By default the sprite of the displacer ball is not animated. This can be changed via the entity template:
+
+```json
+{
+    "displacer_ball": {
+        "own_visual": {
+            "framerate": 10
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

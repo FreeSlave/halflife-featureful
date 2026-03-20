@@ -20,6 +20,8 @@ TYPEDESCRIPTION	CDisplacerBall::m_SaveData[] =
 	DEFINE_FIELD(CDisplacerBall, m_iBeams, FIELD_INTEGER),
 	DEFINE_ARRAY(CDisplacerBall, m_pBeam, FIELD_CLASSPTR, 8),
 	DEFINE_FIELD(CDisplacerBall, m_hDisplacedTarget, FIELD_EHANDLE),
+	DEFINE_FIELD(CDisplacerBall, m_maxFrame, FIELD_INTEGER),
+	DEFINE_FIELD(CDisplacerBall, m_lastTime, FIELD_TIME),
 };
 
 IMPLEMENT_SAVERESTORE(CDisplacerBall, CBaseEntity);
@@ -86,6 +88,8 @@ void CDisplacerBall::Spawn()
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 
 	pev->frame = 0;
+	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
+	m_lastTime = gpGlobals->time;
 
 	SetTouch(&CDisplacerBall::BallTouch);
 	SetThink(&CDisplacerBall::FlyThink);
@@ -112,9 +116,11 @@ void CDisplacerBall::Precache()
 
 void CDisplacerBall::FlyThink()
 {
-	ArmBeam( -1 );
-	ArmBeam( 1 );
-	pev->nextthink = gpGlobals->time + 0.05;
+	ArmBeam(-1);
+	ArmBeam(1);
+	pev->nextthink = gpGlobals->time + 0.05f;
+
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate, &m_lastTime);
 }
 
 void CDisplacerBall::ArmBeam( int iSide )

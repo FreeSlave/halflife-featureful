@@ -1120,14 +1120,11 @@ const Visual* CBaseEntity::RegisterVisual(const NamedVisual &defaultVisual, bool
 
 void CBaseEntity::RegisterVisualAsMineOwn(const NamedVisual &visual)
 {
-	if (!FStringNull(m_entTemplate))
+	// Precache custom model if it's defined in the own_visual of my entity template
+	const char* myModel = MyOwnModel(nullptr);
+	if (myModel)
 	{
-		// Precache custom model if it's defined in the own_visual of my entity template
-		const char* myModel = MyOwnModel(nullptr);
-		if (myModel)
-		{
-			PRECACHE_MODEL(myModel);
-		}
+		PRECACHE_MODEL(myModel);
 	}
 	RegisterVisual(visual);
 }
@@ -1212,18 +1209,15 @@ void CBaseEntity::ApplyVisual(const Visual *visual, const char* modelOverride, i
 
 void CBaseEntity::ApplyVisualWithOwn(const Visual *visual)
 {
-	if (!FStringNull(m_entTemplate))
+	const Visual* ownVisual = MyOwnVisual();
+	if (ownVisual)
 	{
-		const Visual* ownVisual = MyOwnVisual();
-		if (ownVisual)
-		{
-			// If own_visual is defined in my entity template, join it with the referenced visual
-			Visual joinedVisual = *ownVisual;
-			if (visual)
-				joinedVisual.CompleteFrom(*visual);
-			ApplyVisual(&joinedVisual, nullptr);
-			return;
-		}
+		// If own_visual is defined in my entity template, join it with the referenced visual
+		Visual joinedVisual = *ownVisual;
+		if (visual)
+			joinedVisual.CompleteFrom(*visual);
+		ApplyVisual(&joinedVisual, nullptr);
+		return;
 	}
 	ApplyVisual(visual, nullptr);
 }
