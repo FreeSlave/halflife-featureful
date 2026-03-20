@@ -435,6 +435,7 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 #endif
 
+	int PackIParam1(bool altMode, bool emptied);
 	int PackIParam2();
 	void PrecacheCommonEvent();
 

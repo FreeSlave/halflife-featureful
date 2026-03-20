@@ -1072,24 +1072,6 @@ void CConfigurableWeapon::UpdateInaccuracy()
 	}
 }
 
-static int PackIParam1(bool altMode, bool emptied, bool alternatingEject)
-{
-	int iParam1Bits = 0;
-	if (altMode)
-	{
-		iParam1Bits |= (int)WeaponEventFlags::ALTMODE;
-	}
-	if (emptied)
-	{
-		iParam1Bits |= (int)WeaponEventFlags::EMPTIED;
-	}
-	if (alternatingEject)
-	{
-		iParam1Bits |= (int)WeaponEventFlags::ALTERNATING_EJECT;
-	}
-	return iParam1Bits;
-}
-
 void CConfigurableWeapon::SendScreenShake(const PlayerShake& shake)
 {
 #ifndef CLIENT_DLL
@@ -1158,7 +1140,7 @@ bool CConfigurableWeapon::PerformCooldown(bool altMode)
 		if (primarySoundScript.looped || secondarySoundScript.looped)
 		{
 			PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
-								0.0f, 0.0f, PackIParam1(altMode, Emptied(), m_bAlternatingEject), PackIParam2(), 1, 0);
+								0.0f, 0.0f, PackIParam1(altMode, Emptied()), PackIParam2(), 1, 0);
 		}
 
 		PlayWeaponSoundScript(params.fire.cooldownSound.Get(altMode));
@@ -1554,12 +1536,11 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	m_flInaccuracy = fire.spread.GetNewInaccuracy(altMode, m_flInaccuracy, m_iShotsFired, m_flLastFire, gpGlobals->time);
 	m_flLastFire = gpGlobals->time;
 
-	const int iParam1Bits = PackIParam1(altMode, lastShot, m_bAlternatingEject);
+	//ALERT(at_console, "Punch to send: %g, %g\n", m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y);
 
-	const Vector eventAngles = m_pPlayer->pev->angles + Vector(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, 0.0f);
-	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, eventAngles,
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
 						spreadX, spreadY,
-						iParam1Bits, PackIParam2(), 0, 0);
+						PackIParam1(altMode, lastShot), PackIParam2(), 0, 0);
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( flCycleTime );
 	if (params.secondaryFireType == SecondaryFireType::ALTERNATIVE_FIRE)
@@ -1826,10 +1807,9 @@ void CConfigurableWeapon::FireRemaining()
 		ProjectileAttack(altMode);
 	}
 
-	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
+	const int iParam1Bits = PackIParam1(altMode, Emptied());
 
-	const Vector eventAngles = m_pPlayer->pev->angles + Vector(m_pPlayer->pev->punchangle.x, m_pPlayer->pev->punchangle.y, 0.0f);
-	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, eventAngles,
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), GetPlaybackEvent(altMode), 0.0, g_vecZero, g_vecZero,
 						spreadX, spreadY,
 						iParam1Bits, PackIParam2(), 0, 0);
 
@@ -2638,10 +2618,8 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 #endif
 	if( fFirst )
 	{
-		const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
-
 		PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), GetPlaybackEvent(altMode),
-							0.0f, g_vecZero, g_vecZero, 0, 0, iParam1Bits, PackIParam2(), 0, 0 );
+							0.0f, g_vecZero, g_vecZero, 0, 0, PackIParam1(altMode, Emptied()), PackIParam2(), 0, 0 );
 	}
 
 	if( tr.flFraction >= 1.0f )
@@ -2788,10 +2766,8 @@ void CConfigurableWeapon::BigSwing()
 	}
 #endif
 
-	const int iParam1Bits = PackIParam1(altMode, Emptied(), m_bAlternatingEject);
-
 	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), GetPlaybackEvent(altMode),
-						0.0f, g_vecZero, g_vecZero, 0, 0, iParam1Bits, PackIParam2(), 0, 0 );
+						0.0f, g_vecZero, g_vecZero, 0, 0, PackIParam1(altMode, Emptied()), PackIParam2(), 0, 0 );
 
 	if ( tr.flFraction >= 1.0 )
 	{
@@ -3013,11 +2989,68 @@ int CConfigurableWeapon::BodyFromClip(int clip)
 	return params.viewModelBody.Get(InAltMode());
 }
 
+static int PackPunchAngleComponent(float f)
+{
+	int i = static_cast<int>(std::round(f * 8));
+	i = clamp(i, -255, 255);
+	return i;
+}
+
+int CConfigurableWeapon::PackIParam1(bool altMode, bool emptied)
+{
+	int packed = 0;
+	if (altMode)
+	{
+		packed |= (int)WeaponEventFlags::ALTMODE;
+	}
+	if (emptied)
+	{
+		packed |= (int)WeaponEventFlags::EMPTIED;
+	}
+	if (m_bAlternatingEject)
+	{
+		packed |= (int)WeaponEventFlags::ALTERNATING_EJECT;
+	}
+
+	int body = ViewModelBody();
+	body = clamp(body, 0, 15);
+
+	packed |= (body << 3);
+
+	if (m_pPlayer)
+	{
+		int punchAngleCoded = PackPunchAngleComponent(m_pPlayer->pev->punchangle.x);
+
+		if (punchAngleCoded >= 0)
+		{
+			packed |= (punchAngleCoded << 7);
+		}
+		else
+		{
+			packed |= ((-punchAngleCoded) << 7);
+			packed = -packed;
+		}
+	}
+
+	return packed;
+}
+
 int CConfigurableWeapon::PackIParam2()
 {
 	int packed = WeaponId();
-	int body = ViewModelBody();
-	packed |= body << 6;
+
+	int punchAngleCoded = PackPunchAngleComponent(m_pPlayer->pev->punchangle.y);
+
+	if (punchAngleCoded >= 0)
+	{
+		packed |= (punchAngleCoded << 7);
+	}
+	else
+	{
+		packed |= ((-punchAngleCoded) << 7);
+		packed = -packed;
+	}
+
 	return packed;
 }
 

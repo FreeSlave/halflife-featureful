@@ -535,17 +535,53 @@ static void ResetLoopedPlayingVars()
 	g_secondaryAdditionalLoopedPlaying = false;
 }
 
+static float DecodePunchAngleComponent(int i)
+{
+	const int punchAngleCoded = (i >> 7) & 0xFF;
+	return punchAngleCoded / 8.0f;
+}
+
 static void EV_PerformWeaponFire(event_args_t *args)
 {
 	int idx = args->entindex;
 	Vector origin{args->origin};
 	Vector velocity{args->velocity};
 
-	const bool altMode = FBitSet(args->iparam1, (int)WeaponEventFlags::ALTMODE);
-	const bool empty = FBitSet(args->iparam1, (int)WeaponEventFlags::EMPTIED);
-	const bool bAlternatingEject = FBitSet(args->iparam1, (int)WeaponEventFlags::ALTERNATING_EJECT);
-	const int weaponId = args->iparam2 & 0x3F;
-	const int body = args->iparam2 >> 6;
+	int iparam1 = args->iparam1;
+	int iparam2 = args->iparam2;
+
+	float punchAngleX = 0.0f;
+	float punchAngleY = 0.0f;
+
+	if (iparam1 < 0)
+	{
+		iparam1 = -iparam1;
+
+		punchAngleX = DecodePunchAngleComponent(iparam1);
+		punchAngleX = -punchAngleX;
+	}
+	else
+	{
+		punchAngleX = DecodePunchAngleComponent(iparam1);
+	}
+
+	if (iparam2 < 0)
+	{
+		iparam2 = -iparam2;
+
+		punchAngleY = DecodePunchAngleComponent(iparam2);
+		punchAngleY = -punchAngleY;
+	}
+	else
+	{
+		punchAngleY = DecodePunchAngleComponent(iparam2);
+	}
+
+	const bool altMode = FBitSet(iparam1, (int)WeaponEventFlags::ALTMODE);
+	const bool empty = FBitSet(iparam1, (int)WeaponEventFlags::EMPTIED);
+	const bool bAlternatingEject = FBitSet(iparam1, (int)WeaponEventFlags::ALTERNATING_EJECT);
+	const int body = (iparam1 >> 3) & 0xF;
+	const int weaponId = iparam2 & 0x3F;
 
 	if (g_lastFireWeaponId != weaponId)
 	{
@@ -599,7 +635,13 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	const float spreadX = args->fparam1;
 	const float spreadY = args->fparam2;
 
-	const Vector angles{args->angles};
+	//gEngfuncs.Con_Printf("Punch in event: %g, %g\n", punchAngleX, punchAngleY);
+
+	const Vector angles{
+		args->angles[0] + punchAngleX,
+		args->angles[1] + punchAngleY,
+		args->angles[2]
+	};
 
 	Vector up, right, forward;
 
