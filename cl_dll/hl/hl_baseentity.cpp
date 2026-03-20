@@ -29,6 +29,7 @@ This file contains "stubs" of class member implementations so that we can predic
 #include	"weapons.h"
 #include	"nodes.h"
 #include	"skill.h"
+#include	"event_api.h"
 
 // Globals used by game logic
 const Vector g_vecZero = Vector( 0, 0, 0 );
@@ -79,7 +80,10 @@ bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverride
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount ) { }
 void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber ) { }
 void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber ) { }
-void UTIL_MakeVectors( const Vector &vecAngles ) { }
+void UTIL_MakeVectors( const Vector &vecAngles )
+{
+	gEngfuncs.pfnAngleVectors( vecAngles, gpGlobals->v_forward, gpGlobals->v_right, gpGlobals->v_up );
+}
 void UTIL_SetOrigin( entvars_t *, const Vector &org ) { }
 void UTIL_LogPrintf(char *,...) { }
 void UTIL_ClientPrintAll( int,char const *,char const *,char const *,char const *,char const *) { }
@@ -223,7 +227,15 @@ Vector CBasePlayer::GetAutoaimVector( float flDelta ) { return g_vecZero; }
 Vector CBasePlayer::GetAutoaimVectorFromPoint( const Vector& vecSrc, float flDelta ) { return g_vecZero; }
 Vector CBasePlayer::AutoaimDeflection( const Vector &vecSrc, float flDist, float flDelta  ) { return g_vecZero; }
 void CBasePlayer::ResetAutoaim() { }
-Vector CBasePlayer::GetGunPosition() { return g_vecZero; }
+Vector CBasePlayer::GetGunPosition()
+{
+	Vector origin = pev->origin;
+	Vector view_ofs;
+
+	gEngfuncs.pEventAPI->EV_LocalPlayerViewheight(view_ofs);
+
+	return origin + view_ofs;
+}
 const char *CBasePlayer::TeamID() { return ""; }
 int CBasePlayer::GiveAmmo( int iCount, const char *szName ) { return 0; }
 void CBasePlayer::AddPoints( int score, bool bAllowNegativeScore ) { }
