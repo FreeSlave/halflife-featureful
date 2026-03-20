@@ -312,7 +312,7 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 
 void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
+	LaunchAsProjectileImpl(SQUIDSPIT_TOXIC_SPIT, params);
 	SetMyProjectileEffectFlags();
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
