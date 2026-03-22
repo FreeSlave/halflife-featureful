@@ -3,6 +3,7 @@
 
 #include "blood_types.h"
 #include "classify.h"
+#include "const.h"
 #include "grapple_target.h"
 #include "hull_sizes.h"
 #include "dmg_types.h"
