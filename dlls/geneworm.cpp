@@ -64,10 +64,12 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void TurnOn();
-	void RunGeneWormCloud(float frames);
+	void RunGeneWormCloud();
 
-	static CGeneWormCloud* GeneWormCloudCreate(const Vector& origin, EntityOverrides entityOverrides);
-	void LaunchCloud(const Vector& origin, const Vector& aim, int nSpeed, edict_t* pOwner, float fadeTime);
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
 	int Save(CSave &save) override;
 	int Restore(CRestore &restore) override;
@@ -134,6 +136,8 @@ void CGeneWormCloud::Spawn()
 	m_bLaunched = false;
 
 	m_baseScale = pev->scale ? pev->scale : 1.0f;
+
+	SetDefaultProjectileDamage(GetSkillValue("geneworm_dmg_spit"));
 }
 
 void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
@@ -141,7 +145,7 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 	if ((!pev->owner || pOther->pev->modelindex != pev->owner->v.modelindex) && pev->modelindex != pOther->pev->modelindex)
 	{
 		if(pOther->pev->takedamage)
-			pOther->TakeDamage(pev, pev, DamageInfo(GetSkillValue("geneworm_dmg_spit"), DMG_ACID));
+			pOther->TakeDamage(pev, pev, DamageInfo(GetProjectileDamage(), DMG_ACID));
 
 		pev->nextthink = gpGlobals->time;
 		SetThink(NULL);
@@ -152,19 +156,15 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 
 void CGeneWormCloud::TurnOn()
 {
-	pev->effects = 0;
-
 	if ((pev->framerate != 0 && m_maxFrame > 1.0f) || (pev->spawnflags & 2) != 0)
 	{
 		SetThink(&CGeneWormCloud::GeneWormCloudThink);
 		pev->nextthink = gpGlobals->time;
 		m_lastTime = gpGlobals->time;
 	}
-
-	pev->frame = 0;
 }
 
-void CGeneWormCloud::RunGeneWormCloud(float frames)
+void CGeneWormCloud::RunGeneWormCloud()
 {
 	if (m_bLaunched)
 	{
@@ -183,59 +183,35 @@ void CGeneWormCloud::RunGeneWormCloud(float frames)
 		pev->scale += m_baseScale * 0.1f;
 	}
 
-	pev->frame += frames;
-
-	if (pev->frame > m_maxFrame && m_maxFrame > 0)
-	{
-		pev->frame = fmod(pev->frame, m_maxFrame);
-	}
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate, &m_lastTime);
 }
 
 void CGeneWormCloud::GeneWormCloudThink()
 {
-	RunGeneWormCloud((gpGlobals->time - m_lastTime) * pev->framerate);
-
-	pev->nextthink = gpGlobals->time + 0.1;
-	m_lastTime = gpGlobals->time;
+	RunGeneWormCloud();
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-CGeneWormCloud* CGeneWormCloud::GeneWormCloudCreate(const Vector& origin, EntityOverrides entityOverrides)
+void CGeneWormCloud::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	CGeneWormCloud* pCloud = GetClassPtr<CGeneWormCloud>(nullptr);
+	pev->angles = params.pOwner->pev->angles;
+	pev->owner = params.pOwner->edict();
 
-	pCloud->AssignEntityOverrides(entityOverrides);
-	pCloud->Spawn();
+	pev->velocity = params.direction * (params.speedOverride > 0 ? params.speedOverride : 1000);
 
-	pCloud->pev->origin = origin;
-	pCloud->pev->classname = MAKE_STRING("env_genewormcloud");
-	pCloud->pev->solid = SOLID_BBOX;
-	pCloud->pev->movetype = MOVETYPE_FLY;
-	pCloud->pev->effects = 0;
-
-	pCloud->TurnOn();
-
-	pCloud->SetTouch(&CGeneWormCloud::CloudTouch);
-
-	return pCloud;
-}
-
-void CGeneWormCloud::LaunchCloud(const Vector& origin, const Vector& aim, int nSpeed, edict_t* pOwner, float fadeTime)
-{
-	pev->angles = pOwner->v.angles;
-
-	pev->owner = pOwner;
-
-	pev->velocity = aim * nSpeed;
+	const float fadeTime = 35;
 
 	m_fadeScale = 2.5 / fadeTime;
-	m_fadeRender = (pev->renderamt - 7.0) / fadeTime;
+	m_fadeRender = 248.0f * (pev->renderamt / 255.0f) / fadeTime;
 
 	pev->skin = 0;
 	pev->body = 0;
 	pev->aiment = nullptr;
 	pev->movetype = MOVETYPE_FLY;
 
-	UTIL_SetOrigin(pev, origin);
+	UTIL_SetOrigin(pev, pev->origin);
+
+	TurnOn();
 
 	SetTouch(&CGeneWormCloud::CloudTouch);
 	m_bLaunched = true;
@@ -1551,18 +1527,20 @@ void CGeneWorm::HuntThink()
 			{
 				Vector vecOrigin, vecAngles;
 				GetAttachment(GENEWORM_ATTACHMENT_MOUTH, vecOrigin, vecAngles);
-				CGeneWormCloud* pCloud = CGeneWormCloud::GeneWormCloudCreate(vecOrigin, GetProjectileOverrides());
 
-				if (edict())
+				Vector vecDir = (m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - vecOrigin).Normalize() + Vector(0, 0, RANDOM_FLOAT(-0.01, 0.01));
+
+				ProjectileParameters params("env_genewormcloud", vecOrigin, vecAngles, vecDir, this, GetProjectileOverrides());
+				CBaseEntity* pProjectile = CreateProjectile(params);
+				if (pProjectile)
 				{
-					pCloud->pev->skin = entindex();
-					pCloud->pev->body = 1;
-					pCloud->pev->aiment = edict();
-					pCloud->pev->movetype = MOVETYPE_FOLLOW;
-				}
+					/*pProjectile->pev->skin = entindex();
+					pProjectile->pev->body = 1;
+					pProjectile->pev->aiment = edict();
+					pProjectile->pev->movetype = MOVETYPE_FOLLOW;*/
 
-				pCloud->TurnOn();
-				pCloud->LaunchCloud(vecOrigin, (m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - vecOrigin).Normalize() + Vector(0, 0, RANDOM_FLOAT(-0.01, 0.01)), 1000, edict(), 35);
+					pProjectile->LaunchAsProjectile(params);
+				}
 			}
 		}
 		else

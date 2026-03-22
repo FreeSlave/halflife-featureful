@@ -1047,6 +1047,7 @@ The name of the projectile type. Technically is can be any existing entity class
 * [controller_energy_ball]({{< ref controller_energy_ball >}})
 * [crossbow_bolt]({{< ref crossbow_bolt >}})
 * [displacer_ball]({{< ref displacer_ball >}})
+* [env_genewormcloud]({{< ref env_genewormcloud >}})
 * [grenade]({{< ref grenade >}}) - AR grenade.
 * [hornet]({{< ref hornet >}}) - tracking hornet.
 * [hvr_rocket]({{< ref hvr_rocket >}})

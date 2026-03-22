@@ -1797,6 +1797,7 @@
 		"mortar_shell" : "mortar_shell (op4mortar)"
 		"nail": "nail"
 		"grenaderound": "grenaderound"
+		"env_genewormcloud": "env_genewormcloud"
 	]
 	detonation_delay(string) : "Grenade detonation delay"
 	speed(string) : "Custom projectile speed"
@@ -3207,6 +3208,7 @@
 		"mortar_shell" : "mortar_shell (op4mortar)"
 		"nail" : "nail"
 		"grenaderound": "grenaderound"
+		"env_genewormcloud": "env_genewormcloud"
 	]
 	projectile_ent_template(string) : "Projectile Entity Template"
 	detonation_delay(string) : "Detonation delay"
