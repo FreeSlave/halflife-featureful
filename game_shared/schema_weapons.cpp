@@ -204,6 +204,8 @@ const char* const json_schemas::weapons = R"(
 			}
 		]
 	},
+)"
+R"(
 	"fire": {
 		"type": "object",
 		"properties": {
