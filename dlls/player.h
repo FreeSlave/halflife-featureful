@@ -594,6 +594,8 @@ public:
 	int m_ToolUnalignedBits;
 	int m_ClientToolUnalignedBits;
 	edict_t* m_UseToolTriggers[32];
+
+	bool m_bunnyhop;
 };
 
 extern int gmsgHudText;

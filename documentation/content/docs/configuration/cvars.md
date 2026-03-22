@@ -60,6 +60,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 
 * `cl_autojump` - jump automatically as soon as player touches the ground while +jump is held.
 * `hud_speedometer` - show [speedometer]({{< ref "HUD/#speedometer" >}}).
+* See also: [server speedrun-related cvars](#speedrunning-and-movement).
 
 ### Multiplayer
 
@@ -110,3 +111,8 @@ Changes to the server cvars values are not saved between game launches, unlike f
     - 1 - show info for all monsters.
     - 2 - show info only for ally monsters.
     - 3 - show info only for ally monsters when player is currently equipped with portable medkit.
+
+### Speedrunning and movement
+
+* `sv_bunnyhop` - whether the bunny hop is enabled.
+* `grenade_jump` - the factor for the vertical velocity added when the player is taking damage. Use the value `0` for completely removing the grenade/rocket jumps.

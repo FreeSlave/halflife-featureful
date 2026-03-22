@@ -2725,6 +2725,13 @@ void CBasePlayer::PreThink()
 {
 	SetMovementMode();
 
+	const bool bunnyhop = sv_bunnyhop.value ? true : false;
+	if (m_bunnyhop != bunnyhop)
+	{
+		m_bunnyhop = bunnyhop;
+		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "bj", bunnyhop ? "1" : "0" );
+	}
+
 	int buttonsChanged = ( m_afButtonLast ^ pev->button );	// These buttons have changed this frame
 
 	// Debounced button codes for pressed/released
