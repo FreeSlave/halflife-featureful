@@ -145,7 +145,13 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 	if ((!pev->owner || pOther->pev->modelindex != pev->owner->v.modelindex) && pev->modelindex != pOther->pev->modelindex)
 	{
 		if(pOther->pev->takedamage)
-			pOther->TakeDamage(pev, pev, DamageInfo(GetProjectileDamage(), DMG_ACID));
+		{
+			entvars_t* pevAttacker = pev;
+			CBaseEntity* pOwner = CBaseEntity::OwnInstance(pev->owner);
+			if (pOwner)
+				pevAttacker = pOwner->pev;
+			pOther->TakeDamage(pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID));
+		}
 
 		pev->nextthink = gpGlobals->time;
 		SetThink(NULL);
