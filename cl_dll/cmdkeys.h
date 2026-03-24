@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <utility>
 
 enum
 {
@@ -27,9 +28,13 @@ public:
 
 	CommandToKeysMap::const_iterator begin() const { return _cmdsToKeySets.begin(); }
 	CommandToKeysMap::const_iterator end() const { return _cmdsToKeySets.end(); }
+	bool empty() const { return _cmdsToKeySets.empty(); }
 	int AddDefaultKeyNumForCommand(const std::string& command, int keynum);
 	int AddDefaultKeyNumForCommand(const std::string& command, const char* keyname);
 	void Clear() { _cmdsToKeySets.clear(); }
+	CommandToKeysMap&& MoveMap() {
+		return std::move(_cmdsToKeySets);
+	}
 private:
 	CommandToKeysMap _cmdsToKeySets;
 };

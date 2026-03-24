@@ -262,26 +262,101 @@ extern bool g_checkingBindings;
 extern std::set<int> g_boundKeynums;
 bool g_bindingsChecked = false;
 
+static CmdKeys::CommandToKeysMap ReadConfigBindings(const char* pfile, int fileSize)
+{
+	CmdKeys cmdKeys;
+
+	int i = 0;
+	while (i < fileSize)
+	{
+		if (IsSpaceCharacter(pfile[i]))
+		{
+			++i;
+		}
+		else if (pfile[i] == '/')
+		{
+			++i;
+			ConsumeLine(pfile, i, fileSize);
+		}
+		else
+		{
+			int tokenStart = i;
+			ConsumeNonSpaceCharacters(pfile, i, fileSize);
+			int tokenLength = i - tokenStart;
+
+			if (tokenLength > 0 && strncmp(pfile + tokenStart, "bind", tokenLength) == 0)
+			{
+				SkipSpacesAndTabs(pfile, i, fileSize);
+				int keyStart, keyEnd;
+				if (ConsumePossiblyQuotedString(pfile, i, fileSize, keyStart, keyEnd))
+				{
+					SkipSpacesAndTabs(pfile, i, fileSize);
+					int commandStart, commandEnd;
+					if (ConsumePossiblyQuotedString(pfile, i, fileSize, commandStart, commandEnd))
+					{
+						std::string key{pfile + keyStart, pfile + keyEnd};
+						std::string command{pfile + commandStart, pfile + commandEnd};
+
+						cmdKeys.AddDefaultKeyNumForCommand(command, key.c_str());
+					}
+					else
+					{
+						ConsumeLine(pfile, i, fileSize);
+					}
+				}
+				else
+				{
+					ConsumeLine(pfile, i, fileSize);
+				}
+			}
+			else
+			{
+				ConsumeLine(pfile, i, fileSize);
+			}
+		}
+	}
+
+	return cmdKeys.MoveMap();
+}
+
+static CmdKeys::CommandToKeysMap ReadConfigBindings()
+{
+	int fileSize = 0;
+	char* pfile = (char *)gEngfuncs.COM_LoadFile("config.cfg", 5, &fileSize);
+	if (!pfile)
+		return CmdKeys::CommandToKeysMap();
+
+	CmdKeys::CommandToKeysMap result = ReadConfigBindings(pfile, fileSize);
+	gEngfuncs.COM_FreeFile(pfile);
+	return result;
+}
+
 static void ApplyDefaultKeyBindings()
 {
 	std::set<int> keynumsToCheck;
 	CmdKeys::CommandToKeysMap commandsMissingKeys;
 
-	for (const auto& ck : g_DefaultCmdKeys)
+	if (!g_DefaultCmdKeys.empty())
 	{
-		//gEngfuncs.Con_DPrintf("Checking %s\n", ck.first.c_str());
-		const char* key = gEngfuncs.Key_LookupBinding(ck.first.c_str());
-		if (!key || !*key || strcmp(key, "<KEY NOT FOUND>") == 0)
-		{
-			gEngfuncs.Con_DPrintf("The command %s is not bound to anything. Going to search a free keynum\n", ck.first.c_str());
-			commandsMissingKeys.insert(ck);
+		CmdKeys::CommandToKeysMap configBindings = ReadConfigBindings();
 
-			for (int k : ck.second.keynums)
+		for (const auto& ck : g_DefaultCmdKeys)
+		{
+			//gEngfuncs.Con_DPrintf("Checking %s\n", ck.first.c_str());
+
+			auto it = configBindings.find(ck.first);
+			if (it == configBindings.end())
 			{
-				if (k > 0)
-					keynumsToCheck.insert(k);
-				else
-					break;
+				gEngfuncs.Con_DPrintf("The command %s is not bound to anything. Going to search a free keynum\n", ck.first.c_str());
+				commandsMissingKeys.insert(ck);
+
+				for (int k : ck.second.keynums)
+				{
+					if (k > 0)
+						keynumsToCheck.insert(k);
+					else
+						break;
+				}
 			}
 		}
 	}
