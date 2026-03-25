@@ -5,6 +5,7 @@
 #include	"squadmonster.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
+#include	"clamp.h"
 
 #define PANTHEREYE_AE_STRIKE_LEFT			( 1 )
 #define PANTHEREYE_AE_STRIKE_RIGHT_LOW				( 2 )
@@ -306,8 +307,7 @@ void CPantherEye::RunTask(Task_t *pTask)
 
 				// How fast does the panther need to travel to reach that height given gravity?
 				float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
-				if( height < 16 )
-					height = 16;
+				height = clamp(height, 16.0f, 120.0f);
 				float speed = sqrt( 2 * gravity * height );
 				float time = speed / gravity;
 
@@ -365,7 +365,8 @@ void CPantherEye::LeapTouch( CBaseEntity *pOther )
 		pOther->pev->punchangle.z = RANDOM_LONG(0, 1) ? 15.0f : -15.0f;
 	}
 
-	pev->velocity *= 0.5f;
+	pev->velocity.x *= 0.5f;
+	pev->velocity.y *= 0.5f;
 
 	SetTouch(nullptr);
 }

@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_headcrab)
 
+### Changes
+
+* The jump height now has an upper limit like in Half-Life 2 and Half-Life: Source (120 units). In original Half-Life headcrabs didn't have vertical limit on jump.
+
 ### Skill variables
 
 * **sk_headcrab_health** - monster's health.
