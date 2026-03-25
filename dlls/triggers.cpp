@@ -6457,6 +6457,54 @@ void CTriggerCommand::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 }
 #endif
 
+class CTriggerImpulse : public CBaseDelay
+{
+public:
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+
+	void KeyValue(KeyValueData *pkvd) override;
+
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_sMaster;
+};
+
+LINK_ENTITY_TO_CLASS( trigger_impulse, CTriggerImpulse )
+
+TYPEDESCRIPTION CTriggerImpulse::m_SaveData[] =
+{
+	DEFINE_FIELD( CTriggerImpulse, m_sMaster, FIELD_STRING ),
+};
+
+IMPLEMENT_SAVERESTORE( CTriggerImpulse, CBaseDelay )
+
+void CTriggerImpulse::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	int iImpulse = (int)value;
+
+	if (pev->impulse != iImpulse)
+		return;
+
+	if (m_sMaster && !UTIL_IsMasterTriggered(m_sMaster, pActivator))
+		return;
+
+	SUB_UseTargets(pActivator);
+}
+
+void CTriggerImpulse::KeyValue( KeyValueData *pkvd )
+{
+	if (FStrEq( pkvd->szKeyName, "master" ))
+	{
+		m_sMaster = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CBaseDelay::KeyValue(pkvd);
+}
+
 class CTriggerChangeClass : public CPointEntity
 {
 public:

@@ -4766,6 +4766,19 @@ void CBasePlayer::ImpulseCommands()
 	PlayerUse();
 
 	int iImpulse = (int)pev->impulse;
+
+	// custom handled buttons
+	if (iImpulse >= 1 && iImpulse <= 50)
+	{
+		CBaseEntity* pEntity = nullptr;
+		while ((pEntity = UTIL_FindEntityByClassname(pEntity, "trigger_impulse")) != nullptr)
+		{
+			pEntity->Use(this, this, USE_TOGGLE, iImpulse);
+		}
+		pev->impulse = 0;
+		return;
+	}
+
 	switch( iImpulse )
 	{
 	case 99:

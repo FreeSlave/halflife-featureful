@@ -9245,6 +9245,12 @@
 	master(string) : "Master"
 ]
 
+@PointClass base(Targetx) = trigger_impulse : "Trigger to fire on player's impulse"
+[
+	impulse(integer) : "Impulse [1..50]" : 1
+	master(string) : "Master"
+]
+
 @SolidClass base(Targetname, TriggerCond) = trigger_inout : "Trigger: Activate on entering or leaving"
 [
 	target(target_destination) : "Fire on entering"
