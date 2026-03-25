@@ -30,6 +30,7 @@ Example:
 "nightvision" "h"
 "recruit_followers" "z"
 "disband_followers" "x"
+"impulse 1" "m"
 ```
 
 Upon loading the game it will do the following checks:
@@ -41,3 +42,13 @@ Upon loading the game it will do the following checks:
 {{% hint info %}}
 The default keybindings are applied during the client initialization (in the game menu) in GoldSource. On Xash3D due to the design differences the default keybindings will be applied only once the player is in the actual game (i.e. on some map).
 {{% /hint %}}
+
+{{% hint info %}}
+The custom `impulse` commands are meant for map-specific actions that can be set up via the [trigger_impulse]({{< ref trigger_impulse >}}).
+{{% /hint %}}
+
+## Adding new commands to the options menu
+
+You probably want to add new commands to **gfx/shell/kb_act.lst** and **gfx/shell/kb_def.lst**
+
+Read also: [TWHL article on setting game strings](https://twhl.info/wiki/page/Tutorial%3A_Setting_up_a_Mod%3A_Part_3_-_Game_Strings_%28Steam%29)
