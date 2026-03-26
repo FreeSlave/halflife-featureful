@@ -10,8 +10,10 @@
 #define STUDIOMODELRENDERER_H
 
 #include "com_model.h"
+#include "entity_state.h"
 #include "fixed_string.h"
 #include "icase_compare.h"
+#include "fake_mirror.h"
 #include <set>
 
 /*
@@ -197,6 +199,19 @@ public:
 
 	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szCheckedModels;
 	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szFullBrightModels;
+
+	void HandleGaitsequence(entity_state_t *pplayer, bool setupTransform = true);
+	void HandleStudioEvents();
+	void HandlePlayerModel(entity_state_t *pplayer, alight_t& lighting, Vector& dir);
+	void SetRemapColors();
+	void SetRemapColorsForPlayer();
+	void SetupLighting(alight_t& lighting);
+	void MirrorRotationMatrix(const FakeMirror& mirror, bool player = false);
+
+	// Mirror stuff
+	int mirror_id;
+	bool b_PlayerMarkerParsed;
+	int m_nCachedFrameCount;
 };
 
 #endif // STUDIOMODELRENDERER_H

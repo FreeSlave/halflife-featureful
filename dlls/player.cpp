@@ -288,6 +288,8 @@ int gmsgToolState = 0;
 
 int gmsgMessageBox = 0;
 
+int gmsgMirror = 0;
+
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
 	if (!pFriend->IsFullyAlive())
@@ -403,6 +405,7 @@ void LinkUserMessages()
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
 
 	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
+	gmsgMirror = REG_USER_MSG("Mirror", 10);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -8789,6 +8792,29 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( player_template, CPlayerTemplate )
+
+class CPlayerMarker : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+};
+
+LINK_ENTITY_TO_CLASS(player_marker, CPlayerMarker)
+
+void CPlayerMarker::Spawn()
+{
+	Precache();
+	SET_MODEL(ENT(pev), "models/player.mdl");
+	// use unique render fx to identify the entity on client
+	pev->renderfx = kRenderFxClampMinScale;
+	//ALERT(at_aiconsole, "DEBUG: Player_marker coordinates is %g %g %g \n", pev->origin.x, pev->origin.y, pev->origin.z);
+}
+
+void CPlayerMarker::Precache()
+{
+	PRECACHE_MODEL("models/player.mdl");
+}
 
 enum
 {

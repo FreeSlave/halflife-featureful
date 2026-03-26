@@ -44,6 +44,7 @@
 #include "cl_dll.h"
 #include "ammo.h"
 #include "dlight.h"
+#include "fake_mirror.h"
 #include "template_property_types.h"
 #include "fixed_vector.h"
 
@@ -1282,6 +1283,7 @@ public:
 	int _cdecl MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_Capability( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_OnRope( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_Mirror( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;
@@ -1317,6 +1319,9 @@ public:
 	JournalConfig m_journalConfig;
 	ObjectHintManager objectHintManager;
 	KeyedDLightManager keyedDlightManager;
+
+	fixed_vector<FakeMirror, 32> fakeMirrors;
+	bool HasActiveFakeMirrors() const;
 
 	HudSpriteRenderer hudRenderer;
 	bool hasHudScaleInEngine;

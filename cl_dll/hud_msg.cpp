@@ -285,6 +285,43 @@ int CHud::MsgFunc_OnRope(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+int CHud::MsgFunc_Mirror(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	const bool enabled = READ_BYTE() != 0;
+	const Vector mirrorCenter = READ_VECTOR();
+	const float radius = READ_SHORT();
+	const int type = READ_BYTE();
+
+	bool bNew = true;
+
+	for (FakeMirror& mirror : fakeMirrors)
+	{
+		if (mirror.origin == mirrorCenter)
+		{
+			mirror.enabled = enabled;
+			mirror.origin = mirrorCenter;
+			mirror.radius = radius;
+			mirror.type = type;
+			bNew = false;
+		}
+	}
+
+	if (bNew)
+	{
+		gEngfuncs.Con_DPrintf("Registering a new mirror!\n");
+
+		FakeMirror mirror;
+		mirror.enabled = enabled;
+		mirror.origin = mirrorCenter;
+		mirror.radius = radius;
+		mirror.type = type;
+		fakeMirrors.push_back(mirror);
+	}
+
+	return 1;
+}
+
 int CHud::MsgFunc_Weapons( const char* pszName, int iSize, void* pbuf )
 {
 	BEGIN_READ(pbuf, iSize);

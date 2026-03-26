@@ -6187,3 +6187,103 @@ void CEnvExtinguisher::TurnOff()
 		pev->nextthink = gpGlobals->time;
 	}
 }
+
+//=========================================================
+// G-Cont - env_mirror, mirroring only models
+//=========================================================
+
+#define SF_MIRROR_DRAWPLAYER 0x01
+
+extern int gmsgMirror;
+
+class CEnvMirror : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	void KeyValue(KeyValueData* pkvd) override;
+	int ObjectCaps() override { return CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
+	void SendMessages(CBaseEntity* pClient);
+
+	float m_flRadius;
+	bool m_iActive;
+	static TYPEDESCRIPTION m_SaveData[];
+};
+
+TYPEDESCRIPTION CEnvMirror::m_SaveData[] =
+{
+	DEFINE_FIELD(CEnvMirror, m_flRadius, FIELD_FLOAT),
+	DEFINE_FIELD(CEnvMirror, m_iActive, FIELD_BOOLEAN),
+};
+IMPLEMENT_SAVERESTORE(CEnvMirror, CBaseEntity)
+
+void CEnvMirror::KeyValue(KeyValueData* pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "radius"))
+	{
+		m_flRadius = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CBaseEntity::KeyValue(pkvd);
+}
+
+LINK_ENTITY_TO_CLASS(env_mirror, CEnvMirror)
+
+void CEnvMirror::Spawn(void)
+{
+	pev->flags |= FL_WORLDBRUSH;
+
+	pev->angles = g_vecZero;
+	pev->movetype = MOVETYPE_PUSH; // so it doesn't get pushed by anything
+
+	pev->solid = SOLID_BSP;
+
+	m_iActive = true;
+
+	Precache();
+
+	SET_MODEL(ENT(pev), STRING(pev->model));
+
+	if (pev->spawnflags & SF_MIRROR_DRAWPLAYER)
+		CBaseEntity::Create("player_marker", VecBModelOrigin(pev), pev->angles);
+
+	if (m_flRadius <= 0)
+		m_flRadius = 330;
+	if (!pev->frags) //Smart field system. g-cont
+	{
+		if (pev->size.y > pev->size.x && pev->size.z > pev->size.x)
+			pev->frags = 0;
+		if (pev->size.x > pev->size.y && pev->size.z > pev->size.y)
+			pev->frags = 1;
+		if (pev->size.y > pev->size.z && pev->size.x > pev->size.z)
+			pev->frags = 2;
+	}
+
+	pev->nextthink = gpGlobals->time + 0.1f;
+}
+
+void CEnvMirror::SendMessages(CBaseEntity *pClient)
+{
+	edict_t* pClientEdict = pClient ? pClient->edict() : nullptr;
+	const int msgType = pClient ? MSG_ONE : MSG_ALL;
+
+	MESSAGE_BEGIN(msgType, gmsgMirror, nullptr, pClientEdict);
+		WRITE_BYTE(m_iActive ? 1 : 0);
+		WRITE_VECTOR(Center());
+		WRITE_SHORT((int)m_flRadius);
+		WRITE_BYTE((byte)pev->frags);
+	MESSAGE_END();
+}
+
+void CEnvMirror::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	if (ShouldToggle(useType, m_iActive))
+	{
+		m_iActive = !m_iActive;
+		SendMessages(nullptr);
+	}
+}
