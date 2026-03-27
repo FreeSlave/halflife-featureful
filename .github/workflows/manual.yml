@@ -85,7 +85,7 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       run: |
         cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=${{ github.event.inputs.buildtype }} -DCMAKE_INSTALL_PREFIX="dist" -DUSE_VGUI=${{ github.event.inputs.usevgui }}
-        cmake --build build --target all\
+        cmake --build build --target all
         cmake --build build --target install
 
     - name: Extract branch name
@@ -104,8 +104,8 @@ jobs:
     - name: Copy pdbs to dist dir
       if: ${{ startsWith(matrix.os, 'windows') && github.event.inputs.buildtype == 'Debug' }}
       run: |
-        copy build/cl_dll/Debug/client.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/cl_dlls/
-        copy build/dlls/Debug/hl.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/dlls/
+        copy build/cl_dll/client.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/cl_dlls/
+        copy build/dlls/hl.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/dlls/
     - name: Upload linux artifact
       if: startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
