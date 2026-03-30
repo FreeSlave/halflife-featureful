@@ -1521,6 +1521,26 @@ void ParseModConfigs()
 	}
 }
 
+static void ExecuteServerCommand(const char* pfile, int size)
+{
+	if (size <= 1)
+		return;
+
+	if (pfile[size-1] != '\n')
+	{
+		std::vector<char> vec(size + 2);
+		memcpy(vec.data(), pfile, size);
+		vec[size] = '\n';
+		vec[size+1] = '\0';
+
+		SERVER_COMMAND(vec.data());
+	}
+	else
+	{
+		SERVER_COMMAND(pfile);
+	}
+}
+
 // Register your console variables here
 // This gets called one time when the game is initialied
 void GameDLLInit()
@@ -1669,7 +1689,7 @@ void GameDLLInit()
 
 	if (pExecFile)
 	{
-		SERVER_COMMAND((const char*)pExecFile);
+		ExecuteServerCommand((const char*)pExecFile, fileSize);
 		g_engfuncs.pfnFreeFile( pExecFile );
 	}
 
