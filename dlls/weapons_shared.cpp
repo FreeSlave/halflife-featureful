@@ -1518,13 +1518,16 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 		else
 		{
-			m_swingIsAltAttack = altMode;
-			if (!m_iSwingMode && !Swing(true))
+			if (!m_iSwingMode)
 			{
+				m_swingIsAltAttack = altMode;
+				if (!Swing(true))
+				{
 #if !CLIENT_DLL
-				SetThink( &CConfigurableWeapon::SwingAgain );
-				pev->nextthink = gpGlobals->time + 0.1f;
+					SetThink( &CConfigurableWeapon::SwingAgain );
+					pev->nextthink = gpGlobals->time + 0.1f;
 #endif
+				}
 			}
 		}
 		return;
@@ -2526,6 +2529,8 @@ void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
 		m_iSwingMode = 2;
 	else if (FBitSet(data.iuser1, WEAPONDATA_SWING_MODE))
 		m_iSwingMode = 1;
+	else
+		m_iSwingMode = 0;
 
 	pev->body = data.iuser2 & 0xF;
 
