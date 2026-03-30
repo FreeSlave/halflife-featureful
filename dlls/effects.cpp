@@ -6208,14 +6208,14 @@ public:
 	int Restore(CRestore& restore) override;
 	void SendMessages(CBaseEntity* pClient);
 
-	float m_flRadius;
+	int m_iRadius;
 	bool m_iActive;
 	static TYPEDESCRIPTION m_SaveData[];
 };
 
 TYPEDESCRIPTION CEnvMirror::m_SaveData[] =
 {
-	DEFINE_FIELD(CEnvMirror, m_flRadius, FIELD_FLOAT),
+	DEFINE_FIELD(CEnvMirror, m_iRadius, FIELD_INTEGER),
 	DEFINE_FIELD(CEnvMirror, m_iActive, FIELD_BOOLEAN),
 };
 IMPLEMENT_SAVERESTORE(CEnvMirror, CBaseEntity)
@@ -6224,7 +6224,7 @@ void CEnvMirror::KeyValue(KeyValueData* pkvd)
 {
 	if (FStrEq(pkvd->szKeyName, "radius"))
 	{
-		m_flRadius = atof(pkvd->szValue);
+		m_iRadius = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -6251,8 +6251,8 @@ void CEnvMirror::Spawn(void)
 	if (pev->spawnflags & SF_MIRROR_DRAWPLAYER)
 		CBaseEntity::Create("player_marker", VecBModelOrigin(pev), pev->angles);
 
-	if (m_flRadius <= 0)
-		m_flRadius = 330;
+	if (m_iRadius <= 0)
+		m_iRadius = 330;
 	if (!pev->frags) //Smart field system. g-cont
 	{
 		if (pev->size.y > pev->size.x && pev->size.z > pev->size.x)
@@ -6274,7 +6274,7 @@ void CEnvMirror::SendMessages(CBaseEntity *pClient)
 	MESSAGE_BEGIN(msgType, gmsgMirror, nullptr, pClientEdict);
 		WRITE_BYTE(m_iActive ? 1 : 0);
 		WRITE_VECTOR(Center());
-		WRITE_SHORT((int)m_flRadius);
+		WRITE_SHORT((int)m_iRadius);
 		WRITE_BYTE((byte)pev->frags);
 	MESSAGE_END();
 }

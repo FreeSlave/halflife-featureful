@@ -172,6 +172,7 @@ void CStudioModelRenderer::StudioCalcBoneAdj( float dadt, float *adj, const byte
 			value = ( 1.0f - value ) * pbonecontroller[j].start + value * pbonecontroller[j].end;
 			// Con_DPrintf( "%d %f\n", mouthopen, value );
 		}
+
 		switch( pbonecontroller[j].type & STUDIO_TYPES )
 		{
 		case STUDIO_XR:
@@ -1259,6 +1260,8 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if ((gHUD.HasActiveFakeMirrors() && (gEngfuncs.GetViewModel() != m_pCurrentEntity)))
 	{
+		bool shouldSetupTransform = false;
+
 		for (int ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
 		{
 			if (!gHUD.fakeMirrors[ic].enabled)
@@ -1276,7 +1279,10 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 				continue;
 			}
 
+			if (shouldSetupTransform) // no need to do it if there's only one mirror
+				StudioSetUpTransform( 0 );
 			MirrorRotationMatrix(gHUD.fakeMirrors[ic]);
+			shouldSetupTransform = true;
 			mirror_id = ic;
 
 			gEngfuncs.pTriAPI->CullFace(TRI_NONE);
@@ -1542,10 +1548,6 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 	if (gHUD.HasActiveFakeMirrors())
 	{
-		StudioSetUpTransform(0); //G-cont. transform must be first!
-
-		MirrorRotationMatrix(gHUD.fakeMirrors[mirror_id], true);
-
 		for (int ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
 		{
 			m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(m_pRenderModel);
@@ -1571,7 +1573,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 			gEngfuncs.pTriAPI->CullFace(TRI_NONE);
 
-			HandleGaitsequence(pplayer, false);
+			HandleGaitsequence(pplayer, &gHUD.fakeMirrors[mirror_id]);
 
 			if (flags & STUDIO_RENDER)
 			{
@@ -1614,7 +1616,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	IEngineStudio.StudioSetHeader( m_pStudioHeader );
 	IEngineStudio.SetRenderModel( m_pRenderModel );
 
-	HandleGaitsequence(pplayer, true);
+	HandleGaitsequence(pplayer);
 
 	if( flags & STUDIO_RENDER )
 	{
@@ -2008,7 +2010,7 @@ bool CStudioModelRenderer::HasFullbrightSupportInEngine()
 	return IsAnyXash() || !LibrarySideFullbrightSupportIsOn();
 }
 
-void CStudioModelRenderer::HandleGaitsequence(entity_state_t *pplayer, bool setupTransform)
+void CStudioModelRenderer::HandleGaitsequence(entity_state_t *pplayer, const FakeMirror* mirror)
 {
 	if (pplayer->gaitsequence)
 	{
@@ -2022,8 +2024,11 @@ void CStudioModelRenderer::HandleGaitsequence(entity_state_t *pplayer, bool setu
 		m_pPlayerInfo->gaitsequence = pplayer->gaitsequence;
 		m_pPlayerInfo = NULL;
 
-		if (setupTransform)
-			StudioSetUpTransform( 0 );
+		StudioSetUpTransform( 0 );
+		if (mirror)
+		{
+			MirrorRotationMatrix(*mirror, true);
+		}
 		VectorCopy( orig_angles, m_pCurrentEntity->angles );
 	}
 	else
@@ -2040,8 +2045,11 @@ void CStudioModelRenderer::HandleGaitsequence(entity_state_t *pplayer, bool setu
 		m_pPlayerInfo = IEngineStudio.PlayerInfo( m_nPlayerIndex );
 		m_pPlayerInfo->gaitsequence = 0;
 
-		if (setupTransform)
-			StudioSetUpTransform( 0 );
+		StudioSetUpTransform( 0 );
+		if (mirror)
+		{
+			MirrorRotationMatrix(*mirror, true);
+		}
 	}
 }
 

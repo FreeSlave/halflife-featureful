@@ -12,6 +12,11 @@ Unlike most of other `env_` entities this is the *brush entity*.
 
 It's recommended to use this entity in the confined space for better control and to avoid potential performance issues.
 
+### Bugfixes
+
+* Fixed entities not reflected in all mirrors if there're multiple mirrors nearby.
+* Fixed player body being turned to the side in the reflection
+
 ### Known bugs
 
 The models with controllers may render incorrectly (e.g. the turning of the monster's head).

@@ -200,7 +200,7 @@ public:
 	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szCheckedModels;
 	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szFullBrightModels;
 
-	void HandleGaitsequence(entity_state_t *pplayer, bool setupTransform = true);
+	void HandleGaitsequence(entity_state_t *pplayer, const FakeMirror* mirror = nullptr);
 	void HandleStudioEvents();
 	void HandlePlayerModel(entity_state_t *pplayer, alight_t& lighting, Vector& dir);
 	void SetRemapColors();
