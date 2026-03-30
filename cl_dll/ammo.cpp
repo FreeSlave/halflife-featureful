@@ -72,54 +72,62 @@ void WeaponsResource::Reset()
 
 void WeaponsResource::AddWeapon(WEAPON *wp)
 {
-	// Check user preferences
-	bool foundUserPreference = false;
-	for (const BucketPreference& pref : bucketPreferences.list)
+	if (rgWeapons[wp->iId].iId == wp->iId)
 	{
-		if (pref.szName[0] == '\0')
-			break;
-
-		if (pref.iPreferredSlot > 0 && strcmp(pref.szName, wp->szName) == 0)
-		{
-			// The user has preferred slot for this weapon
-			wp->iSlot = pref.iPreferredSlot - 1;
-			if (pref.iPreferredSlotPos > 0)
-				wp->iSlotPos = pref.iPreferredSlotPos - 1;
-			else // is position is not specified, to to the end of the bucket
-				wp->iSlotPos = MAX_WEAPON_POSITIONS-1;
-			foundUserPreference = true;
-			break;
-		}
+		wp->iSlot = rgWeapons[wp->iId].iSlot;
+		wp->iSlotPos = rgWeapons[wp->iId].iSlotPos;
 	}
-
-	// Check if there's a registered weapon with such position
-	WEAPON* registeredWeapon = weaponTable[wp->iSlot][wp->iSlotPos];
-	if (registeredWeapon && registeredWeapon->iId != wp->iId)
+	else
 	{
-		const char* weaponName = foundUserPreference ? registeredWeapon->szName : wp->szName;
-		gEngfuncs.Con_DPrintf("Searching unoccupied position for %s at slot %d\n", weaponName, wp->iSlot + 1);
-		int j;
-		for (j=0; j< MAX_WEAPON_POSITIONS; ++j)
+		// Check user preferences
+		bool foundUserPreference = false;
+		for (const BucketPreference& pref : bucketPreferences.list)
 		{
-			if (weaponTable[wp->iSlot][j] == NULL)
+			if (pref.szName[0] == '\0')
+				break;
+
+			if (pref.iPreferredSlot > 0 && strcmp(pref.szName, wp->szName) == 0)
 			{
-				// If it's user preference move the existing weapon to the unoccupied position
-				if (foundUserPreference)
-				{
-					registeredWeapon->iSlotPos = j;
-					weaponTable[wp->iSlot][j] = registeredWeapon;
-				}
-				// otherwise just find unoccupied position for this weapon
-				else
-				{
-					wp->iSlotPos = j;
-				}
+				// The user has preferred slot for this weapon
+				wp->iSlot = pref.iPreferredSlot - 1;
+				if (pref.iPreferredSlotPos > 0)
+					wp->iSlotPos = pref.iPreferredSlotPos - 1;
+				else // is position is not specified, to to the end of the bucket
+					wp->iSlotPos = MAX_WEAPON_POSITIONS-1;
+				foundUserPreference = true;
 				break;
 			}
 		}
-		if (j >= MAX_WEAPON_POSITIONS)
+
+		// Check if there's a registered weapon with such position
+		WEAPON* registeredWeapon = weaponTable[wp->iSlot][wp->iSlotPos];
+		if (registeredWeapon && registeredWeapon->iId != wp->iId)
 		{
-			gEngfuncs.Con_DPrintf("Coulnd't find unoccupied position for %s at slot %d\n", weaponName, wp->iSlot + 1);
+			const char* weaponName = foundUserPreference ? registeredWeapon->szName : wp->szName;
+			gEngfuncs.Con_DPrintf("Searching unoccupied position for %s at slot %d\n", weaponName, wp->iSlot + 1);
+			int j;
+			for (j=0; j< MAX_WEAPON_POSITIONS; ++j)
+			{
+				if (weaponTable[wp->iSlot][j] == NULL)
+				{
+					// If it's user preference move the existing weapon to the unoccupied position
+					if (foundUserPreference)
+					{
+						registeredWeapon->iSlotPos = j;
+						weaponTable[wp->iSlot][j] = registeredWeapon;
+					}
+					// otherwise just find unoccupied position for this weapon
+					else
+					{
+						wp->iSlotPos = j;
+					}
+					break;
+				}
+			}
+			if (j >= MAX_WEAPON_POSITIONS)
+			{
+				gEngfuncs.Con_DPrintf("Coulnd't find unoccupied position for %s at slot %d\n", weaponName, wp->iSlot + 1);
+			}
 		}
 	}
 
