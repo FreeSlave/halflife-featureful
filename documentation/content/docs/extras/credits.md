@@ -21,13 +21,14 @@ In its turn some parts of **Half-Life Featureful SDK** are also based on other p
 * * The result of the decompilation of the original Opposing Force code.
 * * Works done by [SamVanheer](https://github.com/SamVanheer) (also known as SoloKiller in the community). Especially the reimplementation of ropes.
 * ParticleMan re-implementation is based on code by [SamVanheer](https://github.com/SamVanheer).
-* Rain and snow implementations are based on code by [SamVanheer](https://github.com/SamVanheer) from now discontinued HLEnhanced project.
-* The RoboCop implementation is reverse-engineered from Poke646 by [malortie](https://github.com/malortie) and [nekonomicon](https://github.com/nekonomicon).
-* The Flybee implementation is taken from Half-Life: Invasion code.
+* [Rain]({{< ref env_rain >}}) and [snow]({{< ref env_snow >}}) implementations are based on code by [SamVanheer](https://github.com/SamVanheer) from now discontinued HLEnhanced project.
+* The [RoboCop]({{< ref monster_robocop >}}) implementation is reverse-engineered from Poke646 by [malortie](https://github.com/malortie) and [nekonomicon](https://github.com/nekonomicon).
+* The [Flybee]({{< ref monster_flybee >}}) implementation is taken from Half-Life: Invasion code.
 * Fullbright textures support on models is based on [halflife_fullbright](https://github.com/BlueNightHawk/halflife_fullbright) by [BlueNightHawk](https://github.com/BlueNightHawk).
 * Some player view related features are based on changes from [halflife-newlight](https://github.com/BlueNightHawk/halflife-newlight) by [BlueNightHawk](https://github.com/BlueNightHawk).
 * Some changes were taken from [SevenKewp](https://github.com/wootguy/SevenKewp) project made by [wootguy](https://github.com/wootguy).
 * Some features were taken from [OpenAG](https://github.com/YaLTeR/OpenAG) project made by [YaLTeR](https://github.com/YaLTeR).
+* [env_mirror]({{< ref env_mirror >}}) implementation is based on the one by G-Cont (Uncle Mike) from Spirit of Half-Life 1.4.
 * The custom Otis model (distributed in the sample mod; the mdl source is part of the repository) with a 'nogun' submodel is provided by [malortie](https://github.com/malortie).
 
 If you decide to use the hwgrunt, babygarg, tor, minigun or uzi models and sounds in your mod then don't forget to credit the Sven Co-op team and ask them for permission to use the resources.

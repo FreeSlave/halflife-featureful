@@ -791,7 +791,7 @@ An object consisting of the following properties:
 * `"skip_damage"` - when set to true, makes entity completely skip taking the damage.
 * `"no_blood"` - when set to true, prevents entity from spawning blood.
 * `"gib"` - change the gibbing rule.
-    - `"normal"` - set normal gibbing rule (gib if the incoming damage in much higher than the current health).
+    - `"normal"` - set normal gibbing rule (gib if the incoming damage is much higher than the current health).
     - `"always"` - force gibbing.
     - `"never"` - don't gib the monster even on high damage.
 
