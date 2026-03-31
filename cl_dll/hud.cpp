@@ -992,12 +992,6 @@ void CHud::ParseClientFeatures()
 	const char* fileName = "features/featureful_client.cfg";
 	int fileSize = 0;
 	char* pfile = (char *)gEngfuncs.COM_LoadFile( fileName, 5, &fileSize );
-	if ( !pfile )
-	{
-		fileName = "featureful_client.cfg";
-		pfile = (char *)gEngfuncs.COM_LoadFile( fileName, 5, &fileSize );
-	}
-
 	if( !pfile )
 		return;
 

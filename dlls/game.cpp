@@ -447,22 +447,6 @@ bool ModFeatures::ShouldCrushTinyCreatures(int policy) const
 	return policy == HANDLE_TINY_CREATURES_CRUSH;
 }
 
-byte* LoadFileForMeWithBackup(const char* fileName, const char* fileNameBackup, int* pFileSize, const char** chosenFileName)
-{
-	*chosenFileName = fileName;
-
-	byte *pMemFile = g_engfuncs.pfnLoadFileForMe( fileName, pFileSize );
-	if (!pMemFile)
-	{
-		pMemFile = g_engfuncs.pfnLoadFileForMe( fileNameBackup, pFileSize );
-		if (pMemFile)
-		{
-			*chosenFileName = fileNameBackup;
-		}
-	}
-	return pMemFile;
-}
-
 bool IsNonSignificantLine(const char* line, bool allowMinus = false)
 {
 	if (!*line || *line == '/')
@@ -531,15 +515,11 @@ void TryConsumeKeyAndValue(char* buffer, const int length, char*& key, char*& va
 	}
 }
 
-#define FEATUREFUL_WEAPONS_CONFIG "featureful_weapons.cfg"
-#define FEATUREFUL_MONSTERS_CONFIG "featureful_monsters.cfg"
-#define FEATUREFUL_SERVER_CONFIG "featureful_server.cfg"
-
 void ReadEnabledWeapons()
 {
-	const char* fileName;
+	const char* fileName = "features/featureful_weapons.cfg";
 	int filePos = 0, fileSize;
-	byte *pMemFile = LoadFileForMeWithBackup("features/" FEATUREFUL_WEAPONS_CONFIG, FEATUREFUL_WEAPONS_CONFIG, &fileSize, &fileName);
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
 	if (!pMemFile)
 		return;
 
@@ -564,9 +544,9 @@ void ReadEnabledWeapons()
 
 void ReadEnabledMonsters()
 {
-	const char* fileName;
+	const char* fileName = "features/featureful_monsters.cfg";
 	int filePos = 0, fileSize;
-	byte *pMemFile = LoadFileForMeWithBackup("features/" FEATUREFUL_MONSTERS_CONFIG, FEATUREFUL_MONSTERS_CONFIG, &fileSize, &fileName);
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
 	if (!pMemFile)
 		return;
 
@@ -588,9 +568,9 @@ void ReadEnabledMonsters()
 
 void ReadServerFeatures()
 {
-	const char* fileName;
+	const char* fileName = "features/featureful_server.cfg";
 	int filePos = 0, fileSize;
-	byte *pMemFile = LoadFileForMeWithBackup("features/" FEATUREFUL_SERVER_CONFIG, FEATUREFUL_SERVER_CONFIG, &fileSize, &fileName);
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
 	if (!pMemFile)
 		return;
 
@@ -1682,11 +1662,6 @@ void GameDLLInit()
 	const char* fileName = "features/featureful_exec.cfg";
 	int fileSize;
 	byte *pExecFile = g_engfuncs.pfnLoadFileForMe( fileName, &fileSize );
-	if (!pExecFile)
-	{
-		pExecFile = g_engfuncs.pfnLoadFileForMe( "featureful_exec.cfg", &fileSize );
-	}
-
 	if (pExecFile)
 	{
 		ExecuteServerCommand((const char*)pExecFile, fileSize);
