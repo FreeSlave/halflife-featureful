@@ -784,6 +784,8 @@ struct WeaponParameters
 	const char* DetonatorPlayerAnimExt() const {
 		return playerAnimExtDetonator.c_str();
 	}
+
+	bool IsUsableWithoutAmmo() const;
 };
 
 #endif

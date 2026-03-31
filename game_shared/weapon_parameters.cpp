@@ -125,3 +125,17 @@ const WeaponKickBackProfile::RuleList& WeaponKickBackProfile::GetRuleList(bool a
 {
 	return _rules.Get(altMode);
 }
+
+bool WeaponParameters::IsUsableWithoutAmmo() const
+{
+	if (fire.ammoPerFire.Get(false) <= 0)
+		return true;
+
+	if (secondaryFireType != SecondaryFireType::DISABLED && fire.ammoPerFire.Get(true) <= 0)
+		return true;
+
+	if ((fire.useSecondaryAmmo.Get(false) || fire.useSecondaryAmmo.Get(true)) && secondaryAmmoName.empty())
+		return true;
+
+	return false;
+}

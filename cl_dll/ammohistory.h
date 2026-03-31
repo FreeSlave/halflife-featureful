@@ -77,7 +77,7 @@ public:
 	void SelectSlot( int iSlot, int fAdvance, int iDirection );
 	WEAPON* GetNextActivePos( int iSlot, int iSlotPos );
 
-	int HasAmmo( WEAPON *p );
+	bool HasAmmo( WEAPON *p );
 
 ///// AMMO /////
 	AMMO GetAmmo( int iId ) { return iId; }

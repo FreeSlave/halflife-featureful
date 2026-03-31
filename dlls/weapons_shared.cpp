@@ -168,7 +168,7 @@ bool CBasePlayerWeapon::CanDeploy()
 	if( !bHasAmmo )
 	{
 		const WeaponParameters& params = MyParameters();
-		return (params.fire.useSecondaryAmmo.Get(false) || params.fire.useSecondaryAmmo.Get(true)) && params.secondaryAmmoName.empty();
+		return params.IsUsableWithoutAmmo();
 	}
 
 	return true;

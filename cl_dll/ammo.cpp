@@ -28,6 +28,8 @@
 #include "ammoregistry.h"
 #include "string_utils.h"
 
+#include "weapons.h"
+
 #if USE_VGUI
 #include "vgui_TeamFortressViewport.h"
 #endif
@@ -154,14 +156,21 @@ int WeaponsResource::CountAmmo( int iId )
 	return riAmmo[iId];
 }
 
-int WeaponsResource::HasAmmo( WEAPON *p )
+bool WeaponsResource::HasAmmo( WEAPON *p )
 {
 	if( !p )
 		return 0;
 
 	// weapons with no max ammo can always be selected
-	return ( p->iAmmoType <= 0 ) || p->iClip > 0 || CountAmmo( p->iAmmoType )
+	bool result = ( p->iAmmoType <= 0 ) || p->iClip > 0 || CountAmmo( p->iAmmoType )
 		|| CountAmmo( p->iAmmo2Type ) || ( p->iFlags & WEAPON_FLAGS_SELECTONEMPTY );
+
+	if (!result)
+	{
+		const WeaponParameters& params = GetWeaponParameters(p->iId);
+		return params.IsUsableWithoutAmmo();
+	}
+	return result;
 }
 
 void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
