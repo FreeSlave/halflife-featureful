@@ -189,7 +189,7 @@ const char* const json_schemas::definitions = R"(
 				"maximum": 255.0
 			},
 			"amplitude": {
-				"type": "number",
+				"type": "integer",
 				"minimum": 0,
 				"maximum": 16
 			}
