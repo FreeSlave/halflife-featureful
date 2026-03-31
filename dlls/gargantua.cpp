@@ -2248,6 +2248,7 @@ void CBabyGargantua::RunTask(Task_t *pTask)
 {
 	switch (pTask->iTask) {
 	case TASK_DIE:
+		FlameControls(0, 0);
 		CFollowingMonster::RunTask(pTask);
 		break;
 	default:
