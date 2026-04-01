@@ -207,10 +207,12 @@ public:
 	void SetRemapColorsForPlayer();
 	void SetupLighting(alight_t& lighting);
 	void MirrorRotationMatrix(const FakeMirror& mirror, bool player = false);
+	bool CanRenderReflections();
 
 	// Mirror stuff
 	int mirror_id;
 	bool b_PlayerMarkerParsed;
+	bool m_reinforceNoneCulling;
 	int m_nCachedFrameCount;
 };
 

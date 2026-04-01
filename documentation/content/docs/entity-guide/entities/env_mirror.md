@@ -15,11 +15,13 @@ It's recommended to use this entity in the confined space for better control and
 ### Bugfixes
 
 * Fixed entities not reflected in all mirrors if there're multiple mirrors nearby.
-* Fixed player body being turned to the side in the reflection
+* Fixed player body being turned to the side in the reflection.
+* Fixed some body parts not being rendered correctly.
 
 ### Known bugs
 
-The models with controllers may render incorrectly (e.g. the turning of the monster's head).
+* Reflected models don't render in Software mode.
+* Reflected models render incorrectly on Xash3D-FWGS.
 
 ### Parameters
 

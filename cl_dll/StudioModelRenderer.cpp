@@ -1144,7 +1144,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if (m_pCurrentEntity->curstate.renderfx == kRenderFxClampMinScale && strcmp(m_pCurrentEntity->model->name, "models/player.mdl") == 0)
 	{
-		if (!b_PlayerMarkerParsed)
+		if (CanRenderReflections() && !b_PlayerMarkerParsed)
 		{
 			cl_entity_t* player = gEngfuncs.GetLocalPlayer();
 			entity_state_t* shinyplr = IEngineStudio.GetPlayerState(0);
@@ -1209,12 +1209,19 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		// see if the bounding box lets us trivially reject, also sets
 		if( !IEngineStudio.StudioCheckBBox() )
 		{
-			Vector delta;
-			float dist;
-			VectorSubtract(gHUD.fakeMirrors[mirror_id].origin, m_pCurrentEntity->origin, delta);
-			dist = Length(delta);
-			if (!gHUD.HasActiveFakeMirrors() || (gHUD.fakeMirrors[mirror_id].radius < dist))
+			if (!gHUD.HasActiveFakeMirrors())
+			{
 				return 0;
+			}
+			else
+			{
+				Vector delta;
+				float dist;
+				VectorSubtract(gHUD.fakeMirrors[mirror_id].origin, m_pCurrentEntity->origin, delta);
+				dist = Length(delta);
+				if (gHUD.fakeMirrors[mirror_id].radius < dist)
+					return 0;
+			}
 		}
 
 		( *m_pModelsDrawn )++;
@@ -1258,7 +1265,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		}
 	}
 
-	if ((gHUD.HasActiveFakeMirrors() && (gEngfuncs.GetViewModel() != m_pCurrentEntity)))
+	if (CanRenderReflections() && gHUD.HasActiveFakeMirrors() && (gEngfuncs.GetViewModel() != m_pCurrentEntity))
 	{
 		bool shouldSetupTransform = false;
 
@@ -1286,6 +1293,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			mirror_id = ic;
 
 			gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+			m_reinforceNoneCulling = true;
 
 			if (flags & STUDIO_RENDER)
 			{
@@ -1327,6 +1335,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			}
 
 			gEngfuncs.pTriAPI->CullFace(TRI_FRONT);
+			m_reinforceNoneCulling = false;
 		}
 	}
 
@@ -1546,8 +1555,10 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	IEngineStudio.StudioSetHeader( m_pStudioHeader );
 	IEngineStudio.SetRenderModel( m_pRenderModel );
 
-	if (gHUD.HasActiveFakeMirrors())
+	if (CanRenderReflections() && gHUD.HasActiveFakeMirrors())
 	{
+		m_reinforceNoneCulling = true;
+
 		for (int ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
 		{
 			m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(m_pRenderModel);
@@ -1606,6 +1617,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			}
 		} //end for
 
+		m_reinforceNoneCulling = false;
 		gEngfuncs.pTriAPI->CullFace(TRI_FRONT);
 	}
 
@@ -1796,6 +1808,9 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware()
 			IEngineStudio.GL_SetRenderMode( rendermode );
 			IEngineStudio.StudioDrawPoints();
 			IEngineStudio.GL_StudioDrawShadow();
+
+			if (m_reinforceNoneCulling)
+				gEngfuncs.pTriAPI->CullFace(TRI_NONE);
 		}
 	}
 
@@ -2170,4 +2185,9 @@ void CStudioModelRenderer::MirrorRotationMatrix(const FakeMirror& mirror, bool p
 		}
 		break;
 	}
+}
+
+bool CStudioModelRenderer::CanRenderReflections()
+{
+	return IEngineStudio.IsHardware() != 0;
 }
