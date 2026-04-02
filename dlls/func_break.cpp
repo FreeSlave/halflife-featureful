@@ -966,6 +966,8 @@ bool CBreakable::IsDestroyableObstacle()
 	return pev->takedamage && IsBreakable();
 }
 
+#define SF_PUSHABLE_DISABLED (1<<24)
+
 class CPushable : public CBreakable
 {
 public:
@@ -980,7 +982,12 @@ public:
 	void EXPORT StopSound();
 	//virtual void	SetActivator( CBaseEntity *pActivator ) { m_pPusher = pActivator; }
 
-	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_CONTINUOUS_USE; }
+	int ObjectCaps() override {
+		int caps = CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION;
+		if (!FBitSet(pev->spawnflags, SF_PUSHABLE_DISABLED))
+			caps |= FCAP_CONTINUOUS_USE;
+		return caps;
+	}
 	bool PlaysItsOwnHitSounds() const override {
 		return FBitSet(pev->spawnflags, SF_PUSH_BREAKABLE);
 	}
@@ -1008,6 +1015,7 @@ public:
 	bool m_ignoreCorpses;
 	bool m_instantGibCorpses;
 	short m_handleTinyCreatures;
+	bool m_toggleable;
 
 	static const NamedSoundScript moveSoundScript;
 };
@@ -1019,6 +1027,7 @@ TYPEDESCRIPTION	CPushable::m_SaveData[] =
 	DEFINE_FIELD( CPushable, m_ignoreCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CPushable, m_instantGibCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CPushable, m_handleTinyCreatures, FIELD_SHORT ),
+	DEFINE_FIELD( CPushable, m_toggleable, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CPushable, CBreakable )
@@ -1099,6 +1108,11 @@ void CPushable::KeyValue( KeyValueData *pkvd )
 		m_handleTinyCreatures = atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "toggleable_push") )
+	{
+		m_toggleable = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
 	else
 		CBreakable::KeyValue( pkvd );
 }
@@ -1106,12 +1120,35 @@ void CPushable::KeyValue( KeyValueData *pkvd )
 // Pull the func_pushable
 void CPushable::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
+	if (m_toggleable && (!pCaller || !pCaller->IsPlayer()))
+	{
+		const bool state = !FBitSet(pev->spawnflags, SF_PUSHABLE_DISABLED);
+		if (ShouldToggle(useType, state))
+		{
+			if (state)
+			{
+				SetBits(pev->spawnflags, SF_PUSHABLE_DISABLED);
+				pev->solid = FBitSet(pev->spawnflags, SF_BREAK_NOT_SOLID) ? SOLID_NOT : SOLID_BSP;
+			}
+			else
+			{
+				ClearBits(pev->spawnflags, SF_PUSHABLE_DISABLED);
+				pev->solid = SOLID_BBOX;
+			}
+			UTIL_SetOrigin(pev, pev->origin);
+		}
+		return;
+	}
+
 	if( !pActivator || !pActivator->IsPlayer() )
 	{
 		if( pev->spawnflags & SF_PUSH_BREAKABLE )
 			this->CBreakable::Use( pActivator, pCaller, useType, value );
 		return;
 	}
+
+	if (FBitSet(pev->spawnflags, SF_PUSHABLE_DISABLED))
+		return;
 
 	if( pActivator->pev->velocity != g_vecZero )
 		Move( pActivator, 0 );
@@ -1128,6 +1165,9 @@ NODE_LINKENT CPushable::HandleLinkEnt(int afCapMask, bool nodeQueryStatic)
 
 void CPushable::Touch( CBaseEntity *pOther )
 {
+	if (FBitSet(pev->spawnflags, SF_PUSHABLE_DISABLED))
+		return;
+
 	if( FClassnameIs( pOther->pev, "worldspawn" ) )
 		return;
 

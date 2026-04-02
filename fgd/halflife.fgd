@@ -3091,6 +3091,11 @@
 	buoyancy(integer) : "Buoyancy" : 20
 	_minlight(string) : "Minimum light level"
 	displayname(string) : "HUD Info name" : : "Name to display when player is looking at this pushable. Requires 'Show HUD Info' spawnflag."
+	toggleable_push(choices) : "Toggleable pushability" =
+	[
+		0: "No"
+		1: "Yes"
+	]
 ]
 
 @SolidClass base(Global, Recharger, EntityTemplate, RenderFields, ZHLT, CustomObjectHint) = func_recharge: "Battery recharger"
