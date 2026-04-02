@@ -1265,7 +1265,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		}
 	}
 
-	if (CanRenderReflections() && gHUD.HasActiveFakeMirrors() && (gEngfuncs.GetViewModel() != m_pCurrentEntity))
+	if (CanRenderReflections() && !(m_pCurrentEntity->curstate.effects & EF_NOREFLECTION) && gHUD.HasActiveFakeMirrors() && (gEngfuncs.GetViewModel() != m_pCurrentEntity))
 	{
 		bool shouldSetupTransform = false;
 

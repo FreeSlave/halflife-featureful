@@ -10,7 +10,10 @@ A fake mirror that reflects only models. Ported from Spirit of Half-Life 1.4. To
 
 Unlike most of other `env_` entities this is the *brush entity*.
 
-It's recommended to use this entity in the confined space for better control and to avoid potential performance issues.
+* It's recommended to use this entity in the confined space for better control and to avoid potential performance issues.
+* The reflections are visible even if the client isn't looking through the `env_mirror` brush.
+* The mirror reflects models from both sides. I.e. if some model is behind the mirror its reflection will be rendered in front.
+* If you want some entity not to be reflected, use [trigger_changevalue]({{< ref "trigger_changevalue/#effects" >}}).
 
 ### Bugfixes
 

@@ -122,17 +122,8 @@
 #define EF_NODRAW			128	// don't draw entity
 #define EF_NIGHTVISION			256	// player nightvision
 #define EF_SNIPERLASER			512	// sniper laser effect
-#define EF_FIBERCAMERA			1024	// fiber camera
+#define EF_NOREFLECTION			1024
 #define EF_MODEL_BRIGHT			2048
-
-#define EF_NOREFLECT		(1<<24)	// Entity won't reflecting in mirrors
-#define EF_REFLECTONLY		(1<<25)	// Entity will be drawing only in mirrors
-#define EF_NOWATERCSG		(1<<26)	// Do not remove sides for func_water entity
-#define EF_FULLBRIGHT		(1<<27)	// Just get fullbright
-#define EF_NOSHADOW			(1<<28)	// ignore shadow for this entity
-#define EF_MERGE_VISIBILITY		(1<<29)	// this entity allowed to merge vis (e.g. env_sky or portal camera)
-#define EF_REQUEST_PHS		(1<<30)	// This entity requested phs bitvector instead of pvsbitvector in AddToFullPack calls
-// g-cont. one reserved bit here for me
 
 // entity flags
 #define EFLAG_SLERP			1	// do studio interpolation of this entity

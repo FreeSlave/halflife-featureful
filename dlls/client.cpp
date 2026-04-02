@@ -1403,21 +1403,10 @@ void SetupVisibility( edict_t *pViewEntity, edict_t *pClient, unsigned char **pv
 		return;
 	}
 
-	if( pView->v.effects & EF_MERGE_VISIBILITY )
+	org = pView->v.origin + pView->v.view_ofs;
+	if( pView->v.flags & FL_DUCKING )
 	{
-		if( FClassnameIs( pView, "env_sky" ) )
-		{
-			org = pView->v.origin;
-		}
-		else return; // don't merge pvs
-	}
-	else
-	{
-		org = pView->v.origin + pView->v.view_ofs;
-		if( pView->v.flags & FL_DUCKING )
-		{
-			org += ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
-		}
+		org += ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 	}
 
 	*pvs = ENGINE_SET_PVS( org );
@@ -1464,7 +1453,6 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	{
 		if( !ENGINE_CHECK_VISIBILITY( (const struct edict_s *)ent, pSet ) )
 		{
-			// env_sky is visible always
 			if (!(pEntity->m_EFlags & EFLAG_ALWAYS_SEND) && !pEntity->MustAddToFullPack(pSet))
 			{
 				return 0;
