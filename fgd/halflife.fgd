@@ -250,7 +250,18 @@
 	]
 ]
 
-@BaseClass base(Targetname,RenderFields,Appearflags,Angles,Sequence,BloodColor) = DeadMonster
+@BaseClass = EntityEffects
+[
+	effects(choices) : "Effects" =
+	[
+		0 : "No effects"
+		16 : "Invert light (take light from ceiling)"
+		1024 : "Don't reflect in env_mirror"
+		2048 : "Model is always bright"
+	]
+]
+
+@BaseClass base(Targetname,RenderFields,Appearflags,Angles,Sequence,BloodColor,EntityEffects) = DeadMonster
 [
 	health(string) : "Custom Health"
 	model(studio) : "Custom Model"
@@ -259,11 +270,6 @@
 	[
 		2 : "Don't drop to ground" : 0
 		4 : "Not solid"	: 0
-	]
-	effects(choices) : "Effects" =
-	[
-		0 : "No effects"
-		16 : "Invert light (take light from ceiling)"
 	]
 	TriggerTarget(String) : "TriggerTarget" : : "The event to trigger when the TriggerCondition is met. Used by monsters."
 	TriggerCondition(Choices) : "Trigger Condition" : : "This controls the condition under which a monster will trigger its TriggerTarget. The options are:" =
@@ -2033,12 +2039,11 @@
 	]
 ]
 
-@PointClass base(Targetname, Angles, RenderFields) studio() = env_model : "New alternative to cyclers"
+@PointClass base(Targetname, Angles, RenderFields, Scalable, EntityEffects) studio() = env_model : "New alternative to cyclers"
 [
 	model(studio) : "Model name"
 	skin(integer) : "Skin" : 0
 	body(integer) : "Body" : 0
-	scale(string) : "Scale (1.0 = normal size)"
 	frame(integer) : "Starting frame (-1..255)"
 	m_iszSequence_On(string) : "Sequence when on"
 	m_iAction_On(choices) : "Behaviour when on" : 0 =
@@ -4139,7 +4144,7 @@
 	template(string) : "info_item_random entity"
 ]
 
-@PointClass base(Targetname, Appearflags, Angles, Global, RenderFields, Scalable) studio() = item_generic : "Generic scenery item"
+@PointClass base(Targetname, Appearflags, Angles, Global, RenderFields, Scalable, EntityEffects) studio() = item_generic : "Generic scenery item"
 [
 	model(studio) : "Model" : "models/w_security.mdl"
 	sequencename(string) : "Sequence Name"
@@ -5281,7 +5286,7 @@
 		21 : "bust"
 	]
 ]
-@PointClass base(Monster, Sequence) size(-16 -16 -36, 16 16 36) studio() = monster_generic : "Generic Script Monster"
+@PointClass base(Monster, Sequence, EntityEffects) size(-16 -16 -36, 16 16 36) studio() = monster_generic : "Generic Script Monster"
 [
 	spawnflags(Flags) =
 	[
