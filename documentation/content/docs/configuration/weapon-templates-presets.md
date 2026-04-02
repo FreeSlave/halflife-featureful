@@ -1098,10 +1098,26 @@ Full written configurations for some standard Opposing Force weapons are stored 
 ```
 {{% /details_header %}}
 
+{{% details_header title="M249" %}}
+```json
+{
+    "weapon_rifle": "op4/m249"
+}
+```
+{{% /details_header %}}
+
 {{% details_header title="M40A1" %}}
 ```json
 {
     "weapon_sniperrifle2": "op4/sniperrifle"
+}
+```
+{{% /details_header %}}
+
+{{% details_header title="Spore Launcher" %}}
+```json
+{
+    "weapon_shotgun2": "op4/sporelauncher"
 }
 ```
 {{% /details_header %}}
