@@ -410,7 +410,7 @@
 	size_for_grapple(Choices) : "Size For Grapple" =
 	[
 		-1 : "Not a Target"
-		0 : "Monster's Default"
+		0 : "Object's Default"
 		1 : "Small"
 		2 : "Medium"
 		3 : "Large"
@@ -3077,7 +3077,7 @@
 	_minlight(string) : "Minimum light level"
 ]
 
-@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable, CollisionWithCorpses, InstantGibCorpses, TinyCreaturesHandling) = func_pushable : "Pushable object"
+@SolidClass base(Breakable, BreakableSpawnFlags, RenderFields, ZHLT, EntityTemplate, VisibleBreakable, CollisionWithCorpses, InstantGibCorpses, TinyCreaturesHandling, SizeForGrapple) = func_pushable : "Pushable object"
 [
 	spawnflags(flags) =
 	[

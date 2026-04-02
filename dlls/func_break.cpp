@@ -1007,6 +1007,21 @@ public:
 		return !g_modFeatures.ShouldIgnoreTinyCreatures(m_handleTinyCreatures);
 	}
 
+	int SizeForGrapple()
+	{
+		if (m_sizeForGrapple < 0)
+			return GRAPPLE_NOT_A_TARGET;
+		else if (m_sizeForGrapple > 0 && m_sizeForGrapple <= GRAPPLE_FIXED)
+			return m_sizeForGrapple;
+		else
+		{
+			const EntTemplate* entTemplate = GetMyEntTemplate();
+			if (entTemplate && entTemplate->IsSizeForGrappleDefined())
+				return entTemplate->SizeForGrapple();
+		}
+		return DefaultSizeForGrapple();
+	}
+
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_lastSound;	// no need to save/restore, just keeps the same sound from playing twice in a row
@@ -1016,6 +1031,7 @@ public:
 	bool m_instantGibCorpses;
 	short m_handleTinyCreatures;
 	bool m_toggleable;
+	short m_sizeForGrapple;
 
 	static const NamedSoundScript moveSoundScript;
 };
@@ -1028,6 +1044,7 @@ TYPEDESCRIPTION	CPushable::m_SaveData[] =
 	DEFINE_FIELD( CPushable, m_instantGibCorpses, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CPushable, m_handleTinyCreatures, FIELD_SHORT ),
 	DEFINE_FIELD( CPushable, m_toggleable, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CPushable, m_sizeForGrapple, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CPushable, CBreakable )
@@ -1111,6 +1128,11 @@ void CPushable::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq(pkvd->szKeyName, "toggleable_push") )
 	{
 		m_toggleable = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "size_for_grapple" ) )
+	{
+		m_sizeForGrapple = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else

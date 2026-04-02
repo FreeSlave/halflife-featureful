@@ -16,6 +16,7 @@ Has same changes as [func_breakable]({{< ref func_breakable >}}) (for breakable 
 * `Instantly gib corpses` - instantly gib corpses on touch. Of course this won't do anything if `Collision with corpses` is set to not collide with corpses.
 * `How to handle tiny creatures` - override handling of [tiny creatures]({{< ref "monsters/#tiny-creatures" >}}).
 * `Toggleable pushability` - whether the 'pushability' of the entity should be toggleable by the triggers. This allows to turn off and on the pushable.
+* `Size For Grapple` - how [weapon_grapple]({{< ref weapon_grapple >}}) should interact with a pushable. Set to `Small` to allow pulling the pushable with a grapple.
 
 ### Calc Ratio
 
