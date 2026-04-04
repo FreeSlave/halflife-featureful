@@ -154,6 +154,32 @@ const char entities[] = R"(
 				"type": "poison"
 			}
 		}
+	},
+	"monster_human_grunt": {
+		"equipment_drop": [
+			{
+				"weapons": 1,
+				"classname": "weapon_smg"
+			},
+			{
+				"weapons": 8,
+				"classname": "weapon_shotgun"
+			},
+			{
+				"weapons": 2,
+				"classname": "weapon_handgrenade",
+				"ent_template": "grenadeclip",
+				"at_position": "body"
+			},
+			{
+				"weapons": 4,
+				"classname": "ammo_ARgrenades",
+				"at_position": "body"
+			},
+			{
+				"classname": "item_battery"
+			}
+		]
 	}
 }
 )";
@@ -411,6 +437,36 @@ TEST(EntityTemplates, Parse)
 	}
 
 	{
+		const EntTemplate* hgrunt = es.GetTemplate("monster_human_grunt");
+		ASSERT_TRUE(hgrunt != nullptr);
+		auto equipment = hgrunt->GetEquipmentDrop();
+		ASSERT_TRUE(equipment.has_value());
+		ASSERT_EQ(equipment->size(), 5);
+
+		auto it = equipment->begin();
+		ASSERT_TRUE(it->weapons.has_value());
+		EXPECT_EQ(*it->weapons, 1);
+		EXPECT_EQ(it->classname, "weapon_smg");
+		EXPECT_EQ(it->position, EquipmentItem::POS_GUN);
+
+		++it;
+		ASSERT_TRUE(it->weapons.has_value());
+		EXPECT_EQ(*it->weapons, 8);
+		EXPECT_EQ(it->classname, "weapon_shotgun");
+
+		++it;
+		ASSERT_TRUE(it->weapons.has_value());
+		EXPECT_EQ(*it->weapons, 2);
+		EXPECT_EQ(it->classname, "weapon_handgrenade");
+		EXPECT_EQ(it->entTemplate, "grenadeclip");
+		EXPECT_EQ(it->position, EquipmentItem::POS_BODY);
+
+		++it;
+		++it;
+		ASSERT_FALSE(it->weapons.has_value());
+	}
+
+	{
 		const EntTemplate* nonExistent = es.GetTemplate("nonexistent");
 		EXPECT_TRUE(nonExistent == nullptr);
 	}
@@ -547,7 +603,7 @@ TEST(EntityTemplates, ParseTakeDamage)
 
 		ASSERT_TRUE(conditions.dmgType.has_value());
 		EXPECT_EQ(*conditions.dmgType, DMG_BURN);
-		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::ONE);
+		EXPECT_EQ(conditions.dmgTypeMatch, FlagSetMatch::ONE);
 		EXPECT_EQ(conditions.dmgComparison, ValueComparison::GREATER_OR_EQUAL);
 		EXPECT_EQ(conditions.dmg, 10.0f);
 
@@ -619,7 +675,7 @@ TEST(EntityTemplates, ParseTakeDamage)
 		ASSERT_TRUE(conditions.dmgType.has_value());
 		EXPECT_EQ(*conditions.dmgType, DMG_BULLET | DMG_BLAST);
 		EXPECT_EQ(conditions.dmgComparison, ValueComparison::LESS_OR_EQUAL);
-		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::EXACT);
+		EXPECT_EQ(conditions.dmgTypeMatch, FlagSetMatch::EXACT);
 		EXPECT_EQ(conditions.dmg, 2.5f);
 
 		ASSERT_TRUE(conditions.attackerFilter.has_value());
@@ -652,7 +708,7 @@ TEST(EntityTemplates, ParseTakeDamage)
 		const EntTemplate::TakeDamageRule::Conditions& conditions = takeDamageIt->conditions;
 		ASSERT_TRUE(conditions.dmgType.has_value());
 		EXPECT_EQ(*conditions.dmgType, DMG_ACID | DMG_POISON);
-		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::ALL);
+		EXPECT_EQ(conditions.dmgTypeMatch, FlagSetMatch::ALL);
 		EXPECT_EQ(conditions.dmg, 50);
 		EXPECT_EQ(conditions.dmgComparison, ValueComparison::GREATER);
 
@@ -680,7 +736,7 @@ TEST(EntityTemplates, ParseTakeDamage)
 		const EntTemplate::TakeDamageRule::Conditions& conditions = takeDamageIt->conditions;
 		ASSERT_TRUE(conditions.dmgType.has_value());
 		EXPECT_EQ(*conditions.dmgType, DMG_FREEZE);
-		EXPECT_EQ(conditions.dmgTypeMatch, DamageTypeMatch::NONE);
+		EXPECT_EQ(conditions.dmgTypeMatch, FlagSetMatch::NONE);
 		EXPECT_EQ(conditions.dmg, 1);
 		EXPECT_EQ(conditions.dmgComparison, ValueComparison::LESS);
 
@@ -833,4 +889,31 @@ TEST(EntityTemplates, DetectLoop)
 	es.SetVisualSystem(&vs);
 
 	ASSERT_FALSE(es.ReadFromContents(looped, ""));
+}
+
+TEST(FlagSet, Test)
+{
+	EXPECT_TRUE(MatchFlagSet(1, 1, FlagSetMatch::ONE));
+	EXPECT_TRUE(MatchFlagSet(1, 3, FlagSetMatch::ONE));
+
+	EXPECT_FALSE(MatchFlagSet(1, 2, FlagSetMatch::ONE));
+	EXPECT_FALSE(MatchFlagSet(1, 0, FlagSetMatch::ONE));
+
+	EXPECT_TRUE(MatchFlagSet(3, 3, FlagSetMatch::ALL));
+	EXPECT_TRUE(MatchFlagSet(3, 2, FlagSetMatch::ALL));
+	EXPECT_TRUE(MatchFlagSet(7, 3, FlagSetMatch::ALL));
+
+	EXPECT_FALSE(MatchFlagSet(3, 5, FlagSetMatch::ALL));
+	EXPECT_FALSE(MatchFlagSet(3, 4, FlagSetMatch::ALL));
+	EXPECT_FALSE(MatchFlagSet(2, 3, FlagSetMatch::ALL));
+
+	EXPECT_TRUE(MatchFlagSet(1, 2, FlagSetMatch::NONE));
+	EXPECT_TRUE(MatchFlagSet(3, 4, FlagSetMatch::NONE));
+
+	EXPECT_FALSE(MatchFlagSet(1, 3, FlagSetMatch::NONE));
+	EXPECT_FALSE(MatchFlagSet(3, 2, FlagSetMatch::NONE));
+
+	EXPECT_TRUE(MatchFlagSet(2, 2, FlagSetMatch::EXACT));
+
+	EXPECT_FALSE(MatchFlagSet(2, 3, FlagSetMatch::EXACT));
 }

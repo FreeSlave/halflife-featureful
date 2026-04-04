@@ -1235,34 +1235,37 @@ void CHFGrunt::DropMyItems(bool isGibbed)
 		if (!isGibbed) {
 			SetBodygroup( FG_GUN_GROUP, FG_GUN_NONE );
 		}
-		if (FBitSet( pev->weapons, FGRUNT_SHOTGUN ))
-		{
-			DropMyItem( "weapon_shotgun", vecGunPos, vecGunAngles, isGibbed );
-		}
-		else if (FBitSet( pev->weapons, FGRUNT_9MMAR ))
-		{
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
-		}
-		else if (FBitSet( pev->weapons, FGRUNT_M249 ))
-		{
-			DropMyItem( g_modFeatures.M249DropName(), vecGunPos, vecGunAngles, isGibbed );
-		}
 
-		if (FBitSet( pev->weapons, FGRUNT_GRENADELAUNCHER ))
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
 		{
-			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, FGRUNT_HANDGRENADE ) ) {
-			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-			if (pGrenadeEnt)
+			if (FBitSet( pev->weapons, FGRUNT_SHOTGUN ))
 			{
-				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-				if (pGrenadeWeap)
-					pGrenadeWeap->m_iDefaultAmmo = 1;
+				DropMyItem( "weapon_shotgun", vecGunPos, vecGunAngles, isGibbed );
 			}
-		}
+			else if (FBitSet( pev->weapons, FGRUNT_9MMAR ))
+			{
+				DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
+			}
+			else if (FBitSet( pev->weapons, FGRUNT_M249 ))
+			{
+				DropMyItem( g_modFeatures.M249DropName(), vecGunPos, vecGunAngles, isGibbed );
+			}
+			if (FBitSet( pev->weapons, FGRUNT_GRENADELAUNCHER ))
+			{
+				DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+			}
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+			if ( FBitSet (pev->weapons, FGRUNT_HANDGRENADE ) ) {
+				CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+				if (pGrenadeEnt)
+				{
+					CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+					if (pGrenadeWeap)
+						pGrenadeWeap->m_iDefaultAmmo = 1;
+				}
+			}
 #endif
+		}
 	}
 	pev->weapons = 0;
 }
@@ -1991,6 +1994,8 @@ void CHFGrunt::PrecacheCommon()
 	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 
 	m_iBrassShell = PRECACHE_MODEL ("models/shell.mdl");// brass shell
+
+	PrecacheEquipmentDrop();
 }
 
 const char* CHFGrunt::DefaultSentenceGroup(int group)
@@ -3192,7 +3197,11 @@ void CTorch::DropMyItems(bool isGibbed)
 		Vector	vecGunAngles;
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 		FixupDropItemPosition(vecGunPos);
-		DropMyItem(g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles, isGibbed);
+
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
+		{
+			DropMyItem(g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles, isGibbed);
+		}
 	}
 }
 
@@ -3912,11 +3921,16 @@ void CMedic::DropMyItems(bool isGibbed)
 		Vector	vecGunAngles;
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 		FixupDropItemPosition(vecGunPos);
-		if (FBitSet(pev->weapons, MEDIC_EAGLE))
-			DropMyItem(g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles, isGibbed);
-		else if (FBitSet(pev->weapons, MEDIC_HANDGUN)) {
-			DropMyItem("weapon_9mmhandgun", vecGunPos, vecGunAngles, isGibbed);
+
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
+		{
+			if (FBitSet(pev->weapons, MEDIC_EAGLE))
+				DropMyItem(g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles, isGibbed);
+			else if (FBitSet(pev->weapons, MEDIC_HANDGUN)) {
+				DropMyItem("weapon_9mmhandgun", vecGunPos, vecGunAngles, isGibbed);
+			}
 		}
+
 		if (g_modFeatures.medic_drop_healthkit && m_flHealCharge >= GetSkillValue("healthkit"))
 			DropMyItem("item_healthkit", BodyTarget( pev->origin ), vecGunAngles, isGibbed);
 	}

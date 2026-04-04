@@ -492,6 +492,8 @@ void CBarney::Precache()
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
+
+	PrecacheEquipmentDrop();
 }	
 
 const char* CBarney::DefaultSentenceGroup(int group)
@@ -604,10 +606,13 @@ void CBarney::OnDying(bool gibbed)
 		SetGunState(BARNEY_BODY_GUNGONE);
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
-		if (pev->frags)
-			DropItem( "weapon_357", vecGunPos, vecGunAngles );
-		else
-			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		if (!DropEquipment(vecGunPos, vecGunAngles, gibbed))
+		{
+			if (pev->frags)
+				DropItem( "weapon_357", vecGunPos, vecGunAngles );
+			else
+				DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		}
 	}
 	CTalkMonster::OnDying(gibbed);
 }
@@ -839,6 +844,8 @@ void COtis::Precache()
 
 	if (pev->modelindex)
 		CacheGunGroupModels();
+
+	PrecacheEquipmentDrop();
 }
 
 const char* COtis::DefaultSentenceGroup(int group)
@@ -915,7 +922,10 @@ void COtis::OnDying(bool gibbed)
 
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
-		DropItem( g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles );
+		if (!DropEquipment(vecGunPos, vecGunAngles, gibbed))
+		{
+			DropItem( g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles );
+		}
 	}
 	CTalkMonster::OnDying(gibbed);
 }
@@ -1023,6 +1033,8 @@ void CBarniel::Precache()
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
+
+	PrecacheEquipmentDrop();
 }
 
 const char* CBarniel::DefaultSentenceGroup(int group)
@@ -1088,7 +1100,10 @@ void CBarniel::OnDying(bool gibbed)
 		SetGunState(BARNEY_BODY_GUNGONE);
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
-		DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		if (!DropEquipment(vecGunPos, vecGunAngles, gibbed))
+		{
+			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		}
 	}
 	CTalkMonster::OnDying(gibbed);
 }
@@ -1222,6 +1237,8 @@ void CKate::Precache()
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
+
+	PrecacheEquipmentDrop();
 }
 
 const char* CKate::DefaultSentenceGroup(int group)
@@ -1359,7 +1376,10 @@ void CKate::OnDying(bool gibbed)
 		SetGunState(BARNEY_BODY_GUNGONE);
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
-		DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		if (!DropEquipment(vecGunPos, vecGunAngles, gibbed))
+		{
+			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+		}
 	}
 	CTalkMonster::OnDying(gibbed);
 }

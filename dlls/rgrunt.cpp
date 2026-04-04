@@ -178,6 +178,8 @@ void CRGrunt::Precache()
 	PrecacheMyGibModel(DefaultGibModel());
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
+	PrecacheEquipmentDrop();
+
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
 

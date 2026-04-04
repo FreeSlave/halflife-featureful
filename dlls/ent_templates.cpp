@@ -9,6 +9,7 @@
 #include "dmg_types.h"
 #include "gib.h"
 #include "hitgroup.h"
+#include "util_shared.h"
 
 #include <algorithm>
 #include <set>
@@ -29,17 +30,33 @@ const char* entTemplatesSchema = R"(
 }
 )";
 
-static DamageTypeMatch ParseDamageTypeMatch(const char* str)
+bool MatchFlagSet(int flagSet, int matchedFlagSet, FlagSetMatch matchType)
+{
+	switch (matchType) {
+	case FlagSetMatch::ONE:
+		return FBitSet(flagSet, matchedFlagSet);
+	case FlagSetMatch::ALL:
+		return (flagSet & matchedFlagSet) == matchedFlagSet;
+	case FlagSetMatch::NONE:
+		return !FBitSet(flagSet, matchedFlagSet);
+	case FlagSetMatch::EXACT:
+		return flagSet == matchedFlagSet;
+	default:
+		return false;
+	}
+}
+
+static FlagSetMatch ParseFlagSetMatch(const char* str)
 {
 	if (stricmp(str, "one") == 0)
-		return DamageTypeMatch::ONE;
+		return FlagSetMatch::ONE;
 	else if (stricmp(str, "all") == 0)
-		return DamageTypeMatch::ALL;
+		return FlagSetMatch::ALL;
 	else if (stricmp(str, "none") == 0)
-		return DamageTypeMatch::NONE;
+		return FlagSetMatch::NONE;
 	else if (stricmp(str, "exact") == 0)
-		return DamageTypeMatch::EXACT;
-	return DamageTypeMatch::INVALID;
+		return FlagSetMatch::EXACT;
+	return FlagSetMatch::INVALID;
 }
 
 static std::pair<ValueComparison, float> ParseValueComparison(const char* str)
@@ -587,8 +604,8 @@ void EntTemplate::DamageConditions::UpdateFromJSON(const Value &value)
 	});
 
 	HandleJSONMember(value, "dmg_type_match", [this](const Value& value) {
-		auto dmgTypeMatchResult = ParseDamageTypeMatch(value.GetString());
-		if (dmgTypeMatchResult != DamageTypeMatch::INVALID)
+		auto dmgTypeMatchResult = ParseFlagSetMatch(value.GetString());
+		if (dmgTypeMatchResult != FlagSetMatch::INVALID)
 			dmgTypeMatch = dmgTypeMatchResult;
 	});
 
@@ -1334,6 +1351,36 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 
 	HandleJSONMember(value, "loot_drop", [&entTemplate](const Value& value) {
 		entTemplate.SetLootDrop(DropItemSet::FromJSON(value));
+	});
+
+	HandleJSONMember(value, "equipment_drop", [&entTemplate](const Value& value) {
+		Value::ConstArray arr = value.GetArray();
+		std::vector<EquipmentItem> equipmentDrop;
+		for (auto& item : arr)
+		{
+			EquipmentItem equipment;
+			UpdatePropertyFromJson(equipment.weapons, item, "weapons");
+
+			HandleJSONMember(item, "weapons_match", [&equipment](const Value& value) {
+				auto weaponsMatch = ParseFlagSetMatch(value.GetString());
+				if (weaponsMatch != FlagSetMatch::INVALID)
+					equipment.weaponsMatch = weaponsMatch;
+			});
+
+			UpdatePropertyFromJson(equipment.classname, item, "classname");
+			UpdatePropertyFromJson(equipment.entTemplate, item, "ent_template");
+
+			HandleJSONMember(item, "at_position", [&equipment](const Value& value) {
+				const char* str = value.GetString();
+				if (strcmp(str, "gun") == 0)
+					equipment.position = EquipmentItem::POS_GUN;
+				else if (strcmp(str, "body") == 0)
+					equipment.position = EquipmentItem::POS_BODY;
+			});
+
+			equipmentDrop.push_back(equipment);
+		}
+		entTemplate.SetEquipmentDrop(std::move(equipmentDrop));
 	});
 
 	HandleJSONMember(value, "children", [&entTemplate](const Value& value) {

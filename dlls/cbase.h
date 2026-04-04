@@ -729,6 +729,9 @@ public:
 	float SharedLootRandomFloat(float low, float high);
 	void DropLoot(bool gibbed);
 
+	bool DropEquipment(const Vector& gunPos, const Vector& angles, bool extraVelocity);
+	void PrecacheEquipmentDrop();
+
 	int m_lootRandomSeed;
 };
 

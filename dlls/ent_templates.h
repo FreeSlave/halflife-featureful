@@ -42,7 +42,7 @@ struct PainSoundRule
 	bool allowWhenDying = false;
 };
 
-enum class DamageTypeMatch
+enum class FlagSetMatch
 {
 	INVALID = -1,
 	ONE = 0,
@@ -50,6 +50,8 @@ enum class DamageTypeMatch
 	NONE,
 	EXACT
 };
+
+bool MatchFlagSet(int flagSet, int matchedFlagSet, FlagSetMatch matchType);
 
 enum class ValueComparison
 {
@@ -99,6 +101,21 @@ struct DropItemSet
 	float maxWeight = 0.0f;
 
 	static DropItemSet FromJSON(const rapidjson::Value& value);
+};
+
+struct EquipmentItem
+{
+	enum
+	{
+		POS_GUN = 0,
+		POS_BODY = 1,
+	};
+
+	optional<int> weapons;
+	FlagSetMatch weaponsMatch{FlagSetMatch::ONE};
+	std::string classname;
+	std::string entTemplate;
+	int position{POS_GUN};
 };
 
 struct ChildVariant
@@ -162,7 +179,7 @@ public:
 	struct DamageConditions
 	{
 		optional<int> dmgType;
-		DamageTypeMatch dmgTypeMatch = DamageTypeMatch::ONE;
+		FlagSetMatch dmgTypeMatch = FlagSetMatch::ONE;
 		float dmg = 0.0f;
 		ValueComparison dmgComparison = ValueComparison::UNKNOWN;
 		optional<EntityFilter> inflictorFilter;
@@ -506,6 +523,13 @@ public:
 		_lootDrop = dropItemSet;
 	}
 
+	const optional<std::vector<EquipmentItem>>& GetEquipmentDrop() const {
+		return _equipmentDrop;
+	}
+	void SetEquipmentDrop(std::vector<EquipmentItem>&& equipmentDrop) {
+		_equipmentDrop = equipmentDrop;
+	}
+
 	PainSoundRule GetPainSoundRule() const {
 		return _painSoundRule;
 	}
@@ -576,6 +600,7 @@ private:
 	ChildrenInfo _childrenInfo;
 
 	DropItemSet _lootDrop;
+	optional<std::vector<EquipmentItem>> _equipmentDrop;
 
 	PainSoundRule _painSoundRule;
 

@@ -2006,6 +2006,73 @@ void CBaseEntity::DropLoot(bool gibbed)
 	}
 }
 
+bool CBaseEntity::DropEquipment(const Vector& gunPos, const Vector& angles, bool extraVelocity)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		auto& equipmentDrop = entTemplate->GetEquipmentDrop();
+		if (equipmentDrop.has_value())
+		{
+			for (auto& equipment : *equipmentDrop)
+			{
+				if (equipment.weapons.has_value())
+				{
+					if (!MatchFlagSet(pev->weapons, *equipment.weapons, equipment.weaponsMatch))
+					{
+						continue;
+					}
+				}
+
+				EntityOverrides entityOverrides;
+				entityOverrides.entTemplate = equipment.entTemplate.empty() ? iStringNull : MAKE_STRING(equipment.entTemplate.c_str());
+
+				Vector vecPos = gunPos;
+				if (equipment.position == EquipmentItem::POS_BODY)
+					vecPos = BodyTarget(pev->origin);
+
+				CBaseEntity* pItem = Create(equipment.classname.c_str(), vecPos, angles, edict(), entityOverrides);
+				if (pItem)
+				{
+					if (extraVelocity)
+					{
+						pItem->pev->velocity = Vector(RANDOM_FLOAT(-100, 100), RANDOM_FLOAT(-100, 100), RANDOM_FLOAT(200, 300));
+						pItem->pev->avelocity = Vector(0, RANDOM_FLOAT(200, 400), 0);
+					}
+					else
+					{
+						pItem->pev->velocity = pev->velocity;
+						pItem->pev->avelocity = Vector(0, RANDOM_FLOAT(0, 100), 0);
+					}
+					pItem->pev->spawnflags |= SF_NORESPAWN;
+				}
+			}
+
+			return true;
+		}
+	}
+	return false;
+}
+
+void CBaseEntity::PrecacheEquipmentDrop()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		auto& equipmentDrop = entTemplate->GetEquipmentDrop();
+		if (equipmentDrop.has_value())
+		{
+			for (auto& equipment : *equipmentDrop)
+			{
+				EntityOverrides entityOverrides;
+				entityOverrides.entTemplate = equipment.entTemplate.empty() ? iStringNull : MAKE_STRING(equipment.entTemplate.c_str());
+
+				UTIL_PrecacheOther(equipment.classname.c_str(), entityOverrides);
+			}
+		}
+	}
+}
+
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
 {
 	auto matchClassname = [&]() -> bool {
@@ -2140,22 +2207,6 @@ bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity*
 	return filter.negate ? !match : match;
 }
 
-static bool MatchDamageType(int damageType, int matchedDamageType, DamageTypeMatch damageTypeMatch)
-{
-	switch (damageTypeMatch) {
-	case DamageTypeMatch::ONE:
-		return FBitSet(damageType, matchedDamageType);
-	case DamageTypeMatch::ALL:
-		return (damageType & matchedDamageType) == matchedDamageType;
-	case DamageTypeMatch::NONE:
-		return !FBitSet(damageType, matchedDamageType);
-	case DamageTypeMatch::EXACT:
-		return damageType == matchedDamageType;
-	default:
-		return false;
-	}
-}
-
 static bool MatchDamageValue(float damage, float matchedDamage, ValueComparison comparison)
 {
 	switch (comparison) {
@@ -2176,7 +2227,7 @@ bool CheckTakeDamageConditions(const EntTemplate::DamageConditions& conditions, 
 {
 	if (conditions.dmgType)
 	{
-		if (!MatchDamageType(damageInfo.type, *conditions.dmgType, conditions.dmgTypeMatch))
+		if (!MatchFlagSet(damageInfo.type, *conditions.dmgType, conditions.dmgTypeMatch))
 			return false;
 	}
 	if (conditions.dmgComparison != ValueComparison::UNKNOWN)

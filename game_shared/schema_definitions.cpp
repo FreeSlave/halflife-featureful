@@ -924,6 +924,33 @@ R"(
 					}
 				]
 			},
+			"equipment_drop": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"weapons": {
+							"type": "integer",
+							"minimum": 0
+						},
+						"weapons_match": {
+							"enum": ["one", "all", "none", "exact"]
+						},
+						"classname": {
+							"type": "string",
+							"minLength": 1
+						},
+						"ent_template": {
+							"type": "string"
+						},
+						"at_position": {
+							"enum": ["gun", "body"]
+						}
+					},
+					"required": ["classname"],
+					"additionalProperties": false
+				}
+			},
 			"children": {
 				"oneOf": [
 					{

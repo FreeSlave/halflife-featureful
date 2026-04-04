@@ -267,25 +267,29 @@ void CHGrunt::DropMyItems(bool isGibbed)
 		if (!isGibbed) {
 			SetBodygroup( GUN_GROUP, GUN_NONE );
 		}
-		if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) ) {
-			DropMyItem( "weapon_shotgun", vecGunPos, vecGunAngles, isGibbed );
-		} else if ( FBitSet( pev->weapons, HGRUNT_9MMAR ) ) {
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
-		}
-		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) ) {
-			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, HGRUNT_HANDGRENADE ) ) {
-			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-			if (pGrenadeEnt)
-			{
-				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-				if (pGrenadeWeap)
-					pGrenadeWeap->m_iDefaultAmmo = 1;
+
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
+		{
+			if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) ) {
+				DropMyItem( "weapon_shotgun", vecGunPos, vecGunAngles, isGibbed );
+			} else if ( FBitSet( pev->weapons, HGRUNT_9MMAR ) ) {
+				DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
 			}
-		}
+			if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) ) {
+				DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+			}
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+			if ( FBitSet (pev->weapons, HGRUNT_HANDGRENADE ) ) {
+				CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+				if (pGrenadeEnt)
+				{
+					CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+					if (pGrenadeWeap)
+						pGrenadeWeap->m_iDefaultAmmo = 1;
+				}
+			}
 #endif
+		}
 	}
 	pev->weapons = 0;
 }
@@ -1080,6 +1084,8 @@ void CHGrunt::PrecacheHelper(const char *modelName)
 	PrecacheMyModel( modelName );
 	PrecacheMyGibModel();
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);// because we use the basemonster SWIPE animation event
+
+	PrecacheEquipmentDrop();
 }
 
 void CHGrunt::Precache()

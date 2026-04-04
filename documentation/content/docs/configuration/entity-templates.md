@@ -997,12 +997,93 @@ The list of monsters who is capable of spawning children:
 * [monster_shocktrooper]({{< ref monster_shocktrooper >}}) - drops [monster_shockroach]({{< ref monster_shockroach >}}) on death.
 * [monster_geneworm]({{< ref monster_geneworm >}}) - spawns [monster_shocktrooper]({{< ref monster_shocktrooper >}}) after taking enough damage.
 
+### equipment_drop
+
+An array that defines the item drop from the monster depending on monster's `weapons` value. This allows, for example, to make `monster_human_grunt` drop something else instead of [weapon_9mmAR]({{< ref weapon_9mmAR >}}) or [weapon_shotgun]({{< ref weapon_shotgun >}}).
+
+Example:
+
+```json
+{
+    "monster_human_grunt": {
+        "equipment_drop": [
+            {
+                "weapons": 1,
+                "classname": "weapon_smg"
+            },
+            {
+                "weapons": 8,
+                "classname": "weapon_shotgun"
+            },
+            {
+                "weapons": 4,
+                "classname": "ammo_ARgrenades",
+                "at_position": "body"
+            }
+        ]
+    },
+    "monster_male_assassin": {
+        "equipment_drop": [
+            {
+                "weapons": 1,
+                "classname": "weapon_rifle"
+            },
+            {
+                "weapons": 8,
+                "classname": "weapon_sniperrifle"
+            },
+            {
+                "weapons": 4,
+                "classname": "ammo_ARgrenades",
+                "at_position": "body"
+            }
+        ]
+    }
+}
+```
+
+This makes human grunts and male assassins drop [weapon_smg]({{< ref weapon_smg >}}) and [weapon_rifle]({{< ref weapon_rifle >}}) instead of `weapon_9mmAR`.
+
+Currently this property affects only the following monsters:
+
+* [monster_barney]({{< ref monster_barney >}})
+* [monster_barniel]({{< ref monster_barniel >}})
+* [monster_human_grunt]({{< ref monster_human_grunt >}})
+* [monster_human_grunt_ally]({{< ref monster_human_grunt_ally >}})
+* [monster_human_grunt_medic]({{< ref monster_human_medic_ally >}})
+* [monster_human_grunt_torch]({{< ref monster_human_torch_ally >}})
+* [monster_kate]({{< ref monster_kate >}})
+* [monster_male_assassin]({{< ref monster_male_assassin >}})
+* [monster_otis]({{< ref monster_otis >}})
+* [monster_robogrunt]({{< ref monster_robogrunt >}})
+
+Behavior details:
+
+* Each check is independent of others.
+* Defining the `equipment_drop` completely replaces the item drop rules for the monster. I.e. you can't just replace one weapon drop with another - you must define the full list.
+* Even if the list doesn't contain a weapon, the monster will still change the model to non-weapon body on death.
+* Setting an *empty* array (`[]`) removes the item drop, but the change to non-weapon body is still applied on monster's death.
+
+Each array item can have the following properties:
+
+* `"weapons"` - the value of `weapons` parameter to check against. This is usually a power of 2 number (1, 2, 4, 8, etc.), but in general you can think of it as of a bit flag. This property is optional - if it's not defined, the drop is unconditional (you can also use [loot_drop](#loot_drop) for the drop that doesn't depend on the `weapons` parameter).
+* `"weapons_match"` - the type of `weapons` match. Optional. Possible values:
+    - `"one"` - at least one bit must match. This is the default option.
+    - `"all"` - the monster's `weapons` parameter must contain all the bits from the `weapons` property of the array item.
+    - `"none"` - none of the bits must match.
+    - `"exact"` - the exact equality is expected. Use this if you want to check for the `0` value.
+* `"classname"` - the classname of the dropped item. This is a required property.
+* `"ent_template"` - the entity template for the dropped item. Optional.
+* `"at_position"` - the position to spawn the dropped item at. Optional. Possible values:
+    - `"gun"` - at gun position (depends on the monster's usually an attachment on the hand). This is the default value.
+    - `"body"` - at *body* position, usually somewhere between the monster's center and the head. This suits for non-weapon drops (otherwise it would look weird to drop an item from the same place as a weapon).
+
 ### loot_drop
 
 Defines additional items dropped from monster when it dies or [func_breakable]({{< ref func_breakable >}}) when it gets destroyed.
 
 {{% hint info %}}
-Loot drop doesn't interfere with weapons the monster drops by default (e.g. `monster_human_grunt` dropping his weapon). Loot drops are extra items.
+Loot drop doesn't interfere with weapons and items the monster drops by default (e.g. `monster_human_grunt` dropping his weapon). Loot drops are extra items. To modify the 'native' drop use [equipment_drop](#equipment_drop).
 {{% /hint %}}
 
 Loot can be defined in 2 forms: as an array and as an object.

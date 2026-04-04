@@ -600,7 +600,7 @@
 	spawnflags(Flags) =
 	[
 		64 : "Start Inactive" : 0
-		1024: "Grunts Don't Drop Gun" : 0
+		1024: "Grunts Don't Drop Gun/Equipment" : 0
 		32768 : "No deploy, just fly" : 0
 	]
 	num(integer) : "Number of grunts per deploy [1-4]" : : "By default the number of grunts Osprey can bring at once depends on the number of alive grunts at the moment the Osprey starts flying."
@@ -4753,7 +4753,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 @PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/barney.mdl") = monster_barney_dead : "Dead Barney"
@@ -4869,7 +4869,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 @PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/barniel.mdl") = monster_barniel_dead : "Dead Barniel"
@@ -4985,7 +4985,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 @PointClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/kate.mdl") = monster_kate_dead : "Dead Kate"
@@ -5111,7 +5111,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 
@@ -5443,7 +5443,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 @PointClass base(Weapon, Targetx, RenderFields, Sequence) studio("models/w_grenade.mdl") = monster_handgrenade : "Live Handgrenade" []
@@ -5642,7 +5642,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 	netname(string) : "Squad Name"
 	weapons(Choices) : "Weapons" : 1 =
@@ -5874,7 +5874,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 
@@ -5958,7 +5958,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 	netname(string) : "Squad Name"
 ]
@@ -6052,7 +6052,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 
 	head(Choices) : "Heads" : -1 =
@@ -6142,7 +6142,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 
@@ -6236,7 +6236,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 	weapons(Choices) : "Weapons" : 1 =
 	[
@@ -6310,7 +6310,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 
@@ -6343,7 +6343,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
@@ -6372,7 +6372,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
     sequence(Choices) : "Animation Sequence (editor)" : 14 =
 	[
@@ -6497,7 +6497,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 
 	head(Choices) : "Heads" : 0 =
@@ -6753,7 +6753,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 @PointClass base(DeadMonster, OtisHead) size(-16 -16 0, 16 16 72) studio("models/otis.mdl") = monster_otis_dead : "Dead Otis"
@@ -6992,7 +6992,7 @@
 	spawnflags(Flags) =
 	[
 		32 : "SquadLeader" : 0
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 	netname(string) : "Squad Name"
 	weapons(Choices) : "Weapons" : 1 =
@@ -7017,7 +7017,7 @@
 	]
 	spawnflags(Flags) =
 	[
-		1024: "Don't Drop Gun" : 0
+		1024: "Don't Drop Gun/Equipment" : 0
 	]
 ]
 
@@ -7850,7 +7850,7 @@
 		64: "Cyclic backlog" : 0 : "Used with 'Cyclic' flag. Keep track of number of monsters who could not be spawned, e.g. because of blocking. Try to spawn them later. Useful when you want to ensure that the specific number of monsters will spawn."
 		128 : "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Wait for script' flag"
 		256 : "Pre-Disaster" : 0 : "The spawned talkmonster (e.g. scientist) will use pre-disaster sentences"
-		1024: "Don't Drop Gun" : 0 : "The spawned monster won't drop items upon death."
+		1024: "Don't Drop Gun/Equipment" : 0 : "The spawned monster won't drop items upon death."
 		4096 : "[Deprecated] Face to player" : 0 : "Use 'Face to' with *player value instead. Spawned monsters will be aligned to the closest player increasing the chance of seeing the player right after the spawn."
 		8192 : "Monster Flag 64" : 0 : "Set spawnflag 64 for spawned monster. E.g. used by vortigaunts as 'wait until provoked'"
 		16384: "No ground check" : 0 : "Don't check if something prevents a monster to fall on ground upon spawning. Useful for spawning flying monsters and those who are supposed to fall on whatever underneath them"
@@ -8933,7 +8933,7 @@
 		0 : "No change"
 		1 : "Add flag"
 	]
-	dont_drop_gun_flag(choices) : "Don't Drop Gun flag" =
+	dont_drop_gun_flag(choices) : "Don't Drop Gun/Equipment flag" =
 	[
 		-1 : "Remove flag"
 		0 : "No change"

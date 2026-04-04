@@ -202,25 +202,29 @@ void CMassn::DropMyItems(bool isGibbed)
 		if (!isGibbed) {
 			SetBodygroup( MASSN_GUN_GROUP, MASSN_GUN_NONE );
 		}
-		if( FBitSet( pev->weapons, MASSN_SNIPERRIFLE ) ) {
-			DropMyItem( "weapon_sniperrifle", vecGunPos, vecGunAngles, isGibbed );
-		} else if ( FBitSet( pev->weapons, MASSN_9MMAR ) ) {
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
-		}
-		if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
-			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
-			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-			if (pGrenadeEnt)
-			{
-				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-				if (pGrenadeWeap)
-					pGrenadeWeap->m_iDefaultAmmo = 1;
+
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
+		{
+			if( FBitSet( pev->weapons, MASSN_SNIPERRIFLE ) ) {
+				DropMyItem( "weapon_sniperrifle", vecGunPos, vecGunAngles, isGibbed );
+			} else if ( FBitSet( pev->weapons, MASSN_9MMAR ) ) {
+				DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
 			}
-		}
+			if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
+				DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+			}
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+			if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
+				CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+				if (pGrenadeEnt)
+				{
+					CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+					if (pGrenadeWeap)
+						pGrenadeWeap->m_iDefaultAmmo = 1;
+				}
+			}
 #endif
+		}
 	}
 	pev->weapons = 0;
 }
