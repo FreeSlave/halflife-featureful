@@ -28,11 +28,11 @@ Ammo entities share the `ammo_` prefix in their name and same parameters.
 | `ammo_57mm`       | `57mm`        | 30 |
 | `ammo_nails`      | `nails`       | 30 |
 | `ammo_grenadeclip` | `grenades`   | 6  |
-| `ammo_fuel`       | `fuel`        | 100 |
-| `ammo_cells`      | `cells`       | 100 |
-| `ammo_charges`    | `charges`     | 10 |
-| `ammo_rounds`     | `rounds`      | 200 |
-| `ammo_slugs`      | `slugs`       | 100 |
+| `ammo_fuel`       | `fuel`        | 20 |
+| `ammo_cells`      | `cells`       | 20 |
+| `ammo_charges`    | `charges`     | 5 |
+| `ammo_rounds`     | `rounds`      | 30 |
+| `ammo_slugs`      | `slugs`       | 10 |
 
 {{% hint info %}}
 There's also the [ammo_spore]({{< ref ammo_spore >}}) but despite sharing the classname prefix, it technically is not a pickup item.
