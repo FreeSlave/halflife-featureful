@@ -702,8 +702,9 @@ void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct
 		gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options ), -100, 100 );
 		break;
 	// Client side sound
-	case 5004:		
-		gEngfuncs.pfnPlaySoundByNameAtLocation( event->options, 1.0, (float *)&entity->attachment[0] );
+	case 5004:
+		if (event->options[0] != '\0')
+			gEngfuncs.pfnPlaySoundByNameAtLocation( event->options, 1.0, (float *)&entity->attachment[0] );
 		break;
 	case 5005:
 		// TODO: this is a stub for Sven Co-op specific event. Sven Co-op defines muzzle flashes in the external files
