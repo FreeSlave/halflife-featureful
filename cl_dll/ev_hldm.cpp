@@ -332,7 +332,10 @@ void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, float sc
 		te->callback = callback;
 		te->hitcallback = EV_HugWalls;
 		te->flags |= FTENT_SPRANIMATE | FTENT_COLLIDEALL | FTENT_CLIENTCUSTOM;
-		te->entity.curstate.rendermode = kRenderTransAdd;
+
+		msprite_t* spriteDef = (msprite_t*)wallPuffSprite->cache.data;
+
+		te->entity.curstate.rendermode = spriteDef->texFormat == SPR_INDEXALPHA ? kRenderTransAlpha : kRenderTransAdd;
 		te->entity.curstate.rendercolor.r = r;
 		te->entity.curstate.rendercolor.g = g;
 		te->entity.curstate.rendercolor.b = b;
