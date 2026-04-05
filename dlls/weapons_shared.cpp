@@ -1396,15 +1396,18 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		m_pPlayer->m_movementPreventedTime = gpGlobals->time + flCycleTime;
 	}
 
+	bool mustResetZoom = false;
+
 	if (params.altMode.zoomFOV > 0 && m_pPlayer->m_iFOV != 0 && params.altMode.resetZoomOnFire)
 	{
 		if (params.altMode.resumeZoomAfterReset)
 		{
 			m_pPlayer->m_bResumeZoom = true;
 			m_pPlayer->m_iLastZoom = m_pPlayer->m_iFOV;
+			SetZoom(0);
 		}
-
-		SetZoom(0);
+		else
+			mustResetZoom = true;
 	}
 
 	m_bAlternatingEject = !m_bAlternatingEject;
@@ -1614,6 +1617,9 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		m_burstSpreadX = vecSpread.x;
 		m_burstSpreadY = vecSpread.y;
 	}
+
+	if (mustResetZoom)
+		ResetZoom(SwitchModeReason::Forced);
 }
 
 void CConfigurableWeapon::ProjectileAttack(bool altMode)
