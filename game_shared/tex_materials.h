@@ -22,6 +22,8 @@ struct MaterialStepSoundData
 	int timeMsec;
 };
 
+constexpr Color3 DEFAULT_WALLPUFF_COLOR(40, 40, 40);
+
 struct MaterialStepData
 {
 	MaterialStepData();
@@ -56,7 +58,7 @@ struct MaterialHitData
 	bool allowWeaponSparks = true;
 	bool playSparks = false;
 
-	Color3 wallpuffColor = Color3(40, 40, 40);
+	Color3 wallpuffColor{DEFAULT_WALLPUFF_COLOR};
 
 	fixed_vector<MaterialSoundString, 5> waves;
 
@@ -100,6 +102,9 @@ public:
 	inline void SetWadeStepData(const MaterialStepData& stepData) {
 		_wade = stepData;
 	}
+	inline IntRange GetWallpuffAlphaRange() const {
+		return _wallpuffAlpha;
+	}
 
 	void DumpMaterials() const;
 	void DumpMaterial(char c) const;
@@ -118,6 +123,7 @@ private:
 	char _defaultStepMaterial;
 	char _sloshMaterial;
 	char _fleshMaterial;
+	IntRange _wallpuffAlpha{120, 180};
 };
 
 extern MaterialRegistry g_MaterialRegistry;

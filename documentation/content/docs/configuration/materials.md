@@ -58,7 +58,9 @@ Example:
                 "wallpuff_color": [90, 80, 70]
             }
         }
-    }
+    },
+    "wallpuff_color": [100, 100, 100],
+    "wallpuff_alpha": [200, 250]
 }
 ```
 
@@ -75,6 +77,12 @@ The root object can have the following properties:
 * `default_step_material` - the name of the material type to use for footstep sounds if the other material doesn't define its own footstep sounds (e.g. wood and glass materials don't define the special footstep sounds in Half-Life). If not defined, the `default_material` will be used.
 * `slosh_material` - the name of the material type to use when player is feet-deep in the water. By default it's **S**.
 * `flesh_material` - the name of the material type to use as a *flesh* material (melee weapons depend on that). By default it's **F**.
+* `wallpuff_color` - the default wallpuff [color]({{< ref "json/#color" >}}).
+    - Default value is `[40, 40, 40]`.
+    - This color is applied to all materials unless the material defines its own wallpuff color.
+    - The only materials that set their own color by default are concrete (`C`) and wood (`W`). If custom `wallpuff_color` is set, these materials will adjust their default colors accordingly, but you may still want to set a custom color specifically for a material, especially for wood, since it may get weird color when adjusted.
+    - The sprites with `SPR_INDEXALPHA` texture format usually require setting a custom wallpuff color, as the default one would be too dark for them.
+* `wallpuff_alpha` - the [range]({{< ref "json/#range_int" >}}) of wallpuff alpha value. The default value is `[120, 180]`. The higher the values the brighter the wallpuffs.
 
 ### materials
 
@@ -107,8 +115,18 @@ The `hit` entry has the following properties:
 * `allow_wallpuff` - a boolean value defining whether the wallpuffs (`cl_weapon_wallpuff`) are allowed to spawn when hitting this material. `true` by default.
 * `allow_weapon_sparks` - a boolean value defining whether the bullet impact streaks/sparks are allowed to spawn when hitting this material. `true` by default. Out of the predefined material the wood (**W**) has set it to `false`.
 * `play_sparks` - a boolean value defining whether the spark effect and sound should sometimes play when the material is hit. `false` by default. Out of the predefined materials the computer (**P**) has set it to `true`, so when you hit the computer screen the spark is produced sometimes.
-* `wallpuff_color` - the color of the wallpuff produced. E.g. the wood (**W**) has a custom wallpuff color. The default color is `[40, 40, 40]`, i.e. light grey.
+* `wallpuff_color` - the custom color of the wallpuff produced.
 
 ### ladder_step and wade_step
 
 Both `ladder_step` and `wade_step` have the same format as `step` entry of the material.
+
+## Wallpuffs
+
+Wallpuffs are temporary sprites created on bullet impact on the world geometry, similar to Counter Strike.
+
+This effect is disabled by default, but the user can enable it via the `cl_weapon_wallpuff` cvar or the developer can force it via the `weapon_wallpuff` feature in **features/featureful_client.cfg**.
+
+The sprites are configued in **features/featureful_client.cfg**.
+
+Wallpuffs can be different colors depending on the type of material that was hit.

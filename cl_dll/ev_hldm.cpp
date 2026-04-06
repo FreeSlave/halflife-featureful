@@ -301,7 +301,7 @@ void EV_HugWalls(TEMPENTITY *te, pmtrace_s *ptr)
 	te->entity.baseline.origin = projection * len;
 }
 
-void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, float scale, int r, int g, int b , bool wind, Vector velocity = Vector(0,0,0), int framerate = 35 )
+static void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, float scale, int r, int g, int b, bool wind, const IntRange& wallpuffAlphaRange, Vector velocity = Vector(0,0,0), int framerate = 35)
 {
 	TEMPENTITY *te = NULL;
 	void ( *callback )( struct tempent_s *ent, float frametime, float currenttime ) = NULL;
@@ -339,7 +339,7 @@ void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, float sc
 		te->entity.curstate.rendercolor.r = r;
 		te->entity.curstate.rendercolor.g = g;
 		te->entity.curstate.rendercolor.b = b;
-		te->entity.curstate.renderamt = gEngfuncs.pfnRandomLong( 120, 180 );
+		te->entity.curstate.renderamt = RandomizeNumberFromRange(wallpuffAlphaRange);
 		te->entity.curstate.scale = scale;
 		te->entity.baseline.origin = speed * dir;
 		te->entity.curstate.framerate = framerate;
@@ -384,7 +384,7 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, char cTextureType = 0, bool isSky 
 		if (mData && mData->hit.allowWallpuff && gHUD.WeaponWallpuffEnabled())
 		{
 			const Color3 smoke = mData->hit.wallpuffColor;
-			EV_CreateShotSmoke( SMOKE_WALLPUFF, pTrace->endpos + pTrace->plane.normal * 5, pTrace->plane.normal, 25, 0.5f, smoke.r, smoke.g, smoke.b, true );
+			EV_CreateShotSmoke(SMOKE_WALLPUFF, pTrace->endpos + pTrace->plane.normal * 5, pTrace->plane.normal, 25, 0.5f, smoke.r, smoke.g, smoke.b, true, g_MaterialRegistry.GetWallpuffAlphaRange());
 		}
 	}
 }

@@ -4,6 +4,7 @@
 #include "error_collector.h"
 #include "json_utils.h"
 #include "logger.h"
+#include "clamp.h"
 #include <cstring>
 
 const char materialsSchema[] = R"(
@@ -131,6 +132,12 @@ const char materialsSchema[] = R"(
 		},
 		"flesh_material": {
 			"$ref": "#/definitions/material_name"
+		},
+		"wallpuff_color": {
+			"$ref": "definitions.json#/color"
+		},
+		"wallpuff_alpha": {
+			"$ref": "definitions.json#/range_int"
 		}
 	}
 }
@@ -398,6 +405,25 @@ void AssignMaterialStepData(MaterialStepData& data, const Value& stepJsonValue)
 
 bool MaterialRegistry::ReadFromDocument(const rapidjson::Document& document, const char* fileName)
 {
+	Color3 defaultWallpuffColor;
+	if (UpdatePropertyFromJson(defaultWallpuffColor, document, "wallpuff_color"))
+	{
+		for (auto& item : _materials)
+		{
+			Color3& wallpuffColor = item.second.hit.wallpuffColor;
+
+			wallpuffColor.r = clamp(defaultWallpuffColor.r * wallpuffColor.r / DEFAULT_WALLPUFF_COLOR.r, 0, 255);
+			wallpuffColor.g = clamp(defaultWallpuffColor.g * wallpuffColor.g / DEFAULT_WALLPUFF_COLOR.g, 0, 255);
+			wallpuffColor.b = clamp(defaultWallpuffColor.b * wallpuffColor.b / DEFAULT_WALLPUFF_COLOR.b, 0, 255);
+		}
+	}
+
+	if (UpdatePropertyFromJson(_wallpuffAlpha, document, "wallpuff_alpha"))
+	{
+		_wallpuffAlpha.min = clamp(_wallpuffAlpha.min, 0, 255);
+		_wallpuffAlpha.max = clamp(_wallpuffAlpha.max, 0, 255);
+	}
+
 	auto materialsIt = document.FindMember("materials");
 	if (materialsIt != document.MemberEnd())
 	{
