@@ -295,7 +295,7 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
 			const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
 			if (poisonDamage > 0)
-				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetNonLethal().SetIgnoreArmor() );
+				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor() );
 			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}
