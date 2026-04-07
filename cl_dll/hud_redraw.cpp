@@ -90,7 +90,7 @@ void CHud::Think()
 
 	if( gEngfuncs.IsSpectateOnly() )
 	{
-		m_iFOV = gHUD.m_Spectator.GetFOV(); // default_fov->value;
+		m_iFOV = m_Spectator.GetFOV(); // default_fov->value;
 	}
 }
 
@@ -138,7 +138,7 @@ int CHud::Redraw( float flTime, int intermission )
 			m_iIntermission = intermission;
 			gViewPort->HideCommandMenu();
 			gViewPort->HideVGUIMenu();
-			if (gHUD.UseVguiScoreBoard())
+			if (UseVguiScoreBoard())
 				gViewPort->ShowScoreBoard();
 			gViewPort->UpdateSpectatorPanel();
 			// Take a screenshot if the client's got the cvar set
@@ -322,7 +322,7 @@ int CHud::DrawHudString(int xpos, int ypos, int iMaxX, const char *szIt, int r, 
 	// draw the string until we hit the null character or a newline character
 	for( ; (length == -1 || szIt - start < length) && *szIt != 0 && *szIt != '\n'; szIt++ )
 	{
-		int w = gHUD.m_scrinfo.charWidths[(unsigned char)*szIt];
+		int w = m_scrinfo.charWidths[(unsigned char)*szIt];
 		if( xpos + w  > iMaxX )
 			return xpos;
 		if( ( *szIt == '^' ) && ( *( szIt + 1 ) >= '0') && ( *( szIt + 1 ) <= '7') )
@@ -354,10 +354,10 @@ int CHud::DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szStr
 {
 	// find the end of the string
 	for( const char *szIt = szString; *szIt != 0; szIt++ )
-		xpos -= gHUD.m_scrinfo.charWidths[(unsigned char)*szIt];
+		xpos -= m_scrinfo.charWidths[(unsigned char)*szIt];
 	if( xpos < iMinX )
 		xpos = iMinX;
-	DrawHudString( xpos, ypos, gHUD.m_scrinfo.iWidth, szString, r, g, b );
+	DrawHudString( xpos, ypos, m_scrinfo.iWidth, szString, r, g, b );
 	return xpos;
 }
 
@@ -764,7 +764,7 @@ void CHud::DrawDarkRectangle(int x, int y, int wide, int tall, const RectangleRe
 int CHud::HUDColor()
 {
 	int result = HasSuit() ? m_cachedHudColor : (m_forcedHudColorNoSuit ? m_forcedHudColorNoSuit : clientFeatures.hud_color_nosuit);
-	if (this == &gHUD && gHUD.m_Nightvision.IsOn()) {
+	if (m_Nightvision.IsOn()) {
 		result = clientFeatures.hud_color_nvg;
 	}
 	return result;
@@ -822,7 +822,7 @@ int CHud::GetCrosshairColor()
 {
 	if (CrosshairColorable())
 	{
-		return gHUD.HUDColor();
+		return HUDColor();
 	}
 	else
 	{
@@ -837,7 +837,7 @@ void CHud::ResetCrosshair()
 		WEAPON* pWeapon = m_Ammo.GetWeapon();
 		if (pWeapon)
 		{
-			int crosshairColor = gHUD.GetCrosshairColor();
+			int crosshairColor = GetCrosshairColor();
 			int r,g,b;
 			UnpackRGB(r,g,b,crosshairColor);
 			if( !ShouldUseZoomedCrosshair() )
