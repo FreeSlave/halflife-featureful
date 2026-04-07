@@ -24,6 +24,8 @@
 #define ITEM_SECURITY		3
 #define ITEM_BATTERY		4
 
+#define SF_ITEM_WAIT_FOR_FALL 0x80000000
+
 class CPickup : public CBaseDelay
 {
 public:
@@ -69,5 +71,8 @@ public:
 	Vector MyRespawnSpot() override;
 	float MyRespawnTime() override;
 	void OnMaterialize() override;
+
+	void PrepareAsAmmoEnt(int amount) override;
+	void DropAsAmmoEnt(int amount) override;
 };
 #endif // ITEMS_H

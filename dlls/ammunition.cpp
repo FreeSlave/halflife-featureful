@@ -80,11 +80,11 @@ void CBasePlayerAmmo::DefaultTouch( CBaseEntity *pOther )
 {
 	if (IsPickableByTouch()) {
 		//Prevent dropped ammo from touching at the same time
-		if( pev->bInDuck && !( pev->flags & FL_ONGROUND ) )
+		if (FBitSet(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL) && !FBitSet(pev->flags, FL_ONGROUND))
 		{
 			return;
 		}
-		pev->bInDuck = 0;
+		ClearBits(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL);
 		TouchOrUse(pOther);
 	}
 }
@@ -182,6 +182,12 @@ void CBasePlayerAmmo::RemoveMyself()
 {
 	SetThink( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time + 0.1f;
+}
+
+void CBasePlayerAmmo::DropAsAmmoEnt(int amount)
+{
+	SetCustomAmount(amount);
+	pev->spawnflags |= SF_ITEM_WAIT_FOR_FALL;
 }
 
 // Ammo entities

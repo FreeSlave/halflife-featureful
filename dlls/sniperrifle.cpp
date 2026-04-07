@@ -64,8 +64,6 @@ bool CSniperrifle::GetItemInfo(ItemInfo *p)
 	p->iSlot = 2;
 	p->iPosition = 4;
 #endif
-	p->pszAmmoEntity = "ammo_762";
-	p->iDropAmmo = AMMO_762BOX_GIVE;
 
 	return true;
 }
@@ -142,6 +140,8 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 
 	params.holster.animIndex = SNIPER_HOLSTER;
 	params.holster.attackDelay = 0.25f;
+
+	params.dropAmmo.classname = "ammo_762";
 
 	return params;
 }

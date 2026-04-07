@@ -63,8 +63,6 @@ bool CM249::GetItemInfo(ItemInfo *p)
 	p->iSlot = 2;
 	p->iPosition = 3;
 #endif
-	p->pszAmmoEntity = "ammo_556";
-	p->iDropAmmo = AMMO_556CLIP_GIVE;
 
 	return true;
 }
@@ -169,6 +167,8 @@ WeaponParameters CM249::GetDefaultParameters() const
 		{7, 2},
 		{8, 1},
 	};
+
+	params.dropAmmo.classname = "ammo_556";
 
 	return params;
 }

@@ -27,6 +27,8 @@ public:
 
 	CBasePlayerAmmo* MyAmmoPointer() override {return this;}
 
+	void DropAsAmmoEnt(int amount) override;
+
 protected:
 	void SetTouchAndUse();
 	void ClearTouchAndUse();

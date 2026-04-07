@@ -26,9 +26,7 @@ In **features/featureful_client.cfg** you can configure the NVG parameters (like
 You can allow player to hold both flashlight and NVG. To do so set `suit_light_allow_both` feature in **features/featureful_server.cfg** to `true`.
 The player can obtain the flashlight by picking up `item_flashlight` and NVG by picking up [item_nvgs]({{< ref item_nvgs >}}). The default light item coming with a suit depends on the `suit_light` feature.
 
-If player has both items, then the flashlight command (`impulse 100`) toggles the flashlight. To use the NVG in this case player should bind `nightvision` command. To let player configure this keybind via menu, the mod developer needs to add a new line somewhere in **gfx/shell/kb_act.lst**:
-
-```"nightvision"	"Nightvision"```
+If player has both items, then the flashlight command (`impulse 100`) toggles the flashlight. To use the NVG in this case player should bind `nightvision` command. See [User commands]({{< ref user-commands >}}).
 
 Note that flashlight and NVG share the same battery and currently there's no option to configure this behavior.
 

@@ -310,8 +310,6 @@ bool CCrossbow::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 2;
 	p->iPosition = 2;
-	p->pszAmmoEntity = "ammo_crossbow";
-	p->iDropAmmo = AMMO_CROSSBOWCLIP_GIVE;
 	return true;
 }
 
@@ -398,6 +396,8 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	params.holster.animIndex.mainEmptied = CROSSBOW_HOLSTER2;
+
+	params.dropAmmo.classname = "ammo_crossbow";
 
 	return params;
 }

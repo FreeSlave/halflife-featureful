@@ -379,16 +379,6 @@ bool CRpg::GetItemInfo( ItemInfo *p )
 	p->iSlot = 3;
 	p->iPosition = 0;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHTO;
-	p->pszAmmoEntity = "ammo_rpgclip";
-	if( bIsMultiplayer() )
-	{
-		// hand out more ammo per rocket in multiplayer.
-		p->iDropAmmo = AMMO_RPGCLIP_GIVE * 2;
-	}
-	else
-	{
-		p->iDropAmmo = AMMO_RPGCLIP_GIVE;
-	}
 
 	return true;
 }
@@ -477,6 +467,8 @@ WeaponParameters CRpg::GetDefaultParameters() const
 
 	params.holster.animIndex = RPG_HOLSTER1;
 	params.holster.attackDelay = 0.5f;
+
+	params.dropAmmo.classname = "ammo_rpgclip";
 
 	return params;
 }

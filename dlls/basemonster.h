@@ -157,6 +157,7 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Activate() override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void DropAsAmmoEnt(int amount) override;
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
 	void SetMySize();
 	void SetMySquadCapabilities(int defaultCaps = 0);

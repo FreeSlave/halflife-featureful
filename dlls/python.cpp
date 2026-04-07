@@ -52,8 +52,6 @@ bool CPython::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 1;
 	p->iPosition = 1;
-	p->pszAmmoEntity = "ammo_357";
-	p->iDropAmmo = AMMO_357BOX_GIVE;
 
 	return true;
 }
@@ -120,6 +118,8 @@ WeaponParameters CPython::GetDefaultParameters() const
 	params.holster.animIndex = PYTHON_HOLSTER;
 	params.holster.attackDelay = 1.0f;
 	params.holster.idleDelay = FloatRange(10, 15);
+
+	params.dropAmmo.classname = "ammo_357";
 
 	return params;
 }

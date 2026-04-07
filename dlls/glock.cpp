@@ -63,8 +63,6 @@ bool CGlock::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 1;
 	p->iPosition = 0;
-	p->pszAmmoEntity = "ammo_9mmclip";
-	p->iDropAmmo = AMMO_GLOCKCLIP_GIVE;
 
 	return true;
 }
@@ -137,6 +135,8 @@ WeaponParameters CGlock::GetDefaultParameters() const
 	params.reload.duration = 1.5f;
 	params.reload.idleDelay = FloatRange(10.0f, 15.0f);
 	params.reload.animIndex.mainEmptied = GLOCK_RELOAD;
+
+	params.dropAmmo.classname = "ammo_9mmclip";
 
 	return params;
 }

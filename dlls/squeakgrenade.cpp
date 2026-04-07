@@ -617,6 +617,8 @@ void CSqueak::Precache()
 	UTIL_PrecacheOther( GrenadeName() );
 
 	m_usSnarkFire = PRECACHE_EVENT( 1, EventsFile() );
+
+	PrecacheDropAmmo();
 }
 
 bool CSqueak::GetItemInfo( ItemInfo *p )
@@ -624,8 +626,6 @@ bool CSqueak::GetItemInfo( ItemInfo *p )
 	p->iSlot = 4;
 	p->iPosition = PositionInSlot();
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
-	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
 }
@@ -645,6 +645,8 @@ WeaponParameters CSqueak::GetDefaultParameters() const
 	params.priority = 5;
 	params.worldModelAnimated = true;
 	params.worldModelSequence = 1;
+
+	params.dropAmmo.classname = "weapon_snark";
 
 	return params;
 }
@@ -837,6 +839,8 @@ WeaponParameters CPenguin::GetDefaultParameters() const
 	params.priority = 5;
 	params.worldModelAnimated = true;
 	params.worldModelSequence = 1;
+
+	params.dropAmmo.classname = "weapon_penguin";
 
 	return params;
 }

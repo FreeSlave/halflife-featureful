@@ -1315,6 +1315,17 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 		});
 		UpdatePropertyFromJson(params.toolDelayAfterDeny, value, "delay_after_deny");
 	});
+
+	auto HandleDropAmmo = [&](const char* propName, WeaponParameters::DropAmmoEnt& dropAmmo) {
+		HandleJSONMember(value, propName, [&](const Value& value) {
+			UpdatePropertyFromJson(dropAmmo.classname, value, "classname");
+			UpdatePropertyFromJson(dropAmmo.entTemplate, value, "ent_template");
+			UpdatePropertyFromJson(dropAmmo.amount, value, "amount");
+		});
+	};
+
+	HandleDropAmmo("dropammo", params.dropAmmo);
+	HandleDropAmmo("dropammo_secondary", params.dropAmmoSecondary);
 }
 
 bool WeaponTemplateSystem::ReadFromDocument(const Document &document, const char *fileName)

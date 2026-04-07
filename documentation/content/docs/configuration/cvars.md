@@ -88,7 +88,7 @@ Changes to the server cvars values are not saved between game launches, unlike f
     - 1 is by pressing +use only.
     - 2 is for both by touch and pressing +use.
 * `items_physics_fix` - various attempts to fix some bugs with items that drop from breakables.
-    - 0 - default Half-Life behavior (items fall through in a right space).
+    - 0 - default Half-Life behavior (items fall through in a tight space).
     - 1 - items dropped from [func_breakable]({{< ref func_breakable >}}) boxes placed in a tight space don't fall through. Items still fall through if box is in the air.
     - 2 - same effect as 1 plus items placed in a tight space don't fall through at the level start. But prespawned items start to fall through clip brushes.
     - 3 - same effect as 1 plus fix for boxes in the air. Items placed in a tight space don't fall through, but they fall through clip brushes no matter whether they're prespawned or come from func_breakable.
@@ -106,11 +106,17 @@ Changes to the server cvars values are not saved between game launches, unlike f
     - 0 - allow kicking func_door_rotating in scripted sequences.
     - 1 - allow kicking anything (vanilla behavior).
     - 2 - allow kicking anything but only in scripted sequences.
-* `sp_allowmonsterinfo` - show monsters' display names and current health in singleplayer when player looks at the monster.
+* `sp_allowmonsterinfo` - show monsters' display names and current health in singleplayer when player looks at the monster. Default value is 0.
     - 0 - don't show monster info.
     - 1 - show info for all monsters.
     - 2 - show info only for ally monsters.
     - 3 - show info only for ally monsters when player is currently equipped with portable medkit.
+* `mp_allowmonsterinfo` - same as `sp_allowmonsterinfo`, but for multiplayer. Default value is 0.
+
+### Weapons
+
+* `mp_allowdropammo` - whether the ammo drop via the `dropammo` and `dropammo2` commands are allowed in multiplayer. The default value is 1.
+* `sp_allowdropammo` - whether the ammo drop via the `dropammo` and `dropammo2` commands are allowed in singleplayer. The default value is 0.
 
 ### Speedrunning and movement
 

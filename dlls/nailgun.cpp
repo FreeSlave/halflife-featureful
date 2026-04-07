@@ -188,5 +188,7 @@ WeaponParameters CNailgun::GetDefaultParameters() const
 
 	params.secondaryFireType = SecondaryFireType::DISABLED;
 
+	params.dropAmmo.classname = "ammo_nails";
+
 	return params;
 }

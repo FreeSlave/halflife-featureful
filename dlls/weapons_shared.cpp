@@ -136,6 +136,30 @@ void CBasePlayerWeapon::PrecacheModelSounds()
 	}
 }
 
+void CBasePlayerWeapon::PrecacheDropAmmo()
+{
+#if !CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+
+	auto precacheDropAmmo = [this](const WeaponParameters::DropAmmoEnt& dropAmmo, int& amount)
+	{
+		if (dropAmmo.classname.empty())
+			return;
+
+		if (FStrEq(STRING(pev->classname), dropAmmo.classname.c_str()))
+			return; // avoid recursion
+
+		EntityOverrides entityOverrides;
+		entityOverrides.entTemplate = dropAmmo.entTemplate.empty() ? iStringNull : MAKE_STRING(dropAmmo.entTemplate.c_str());
+
+		UTIL_PrecacheAmmoEntity(dropAmmo.classname.c_str(), amount, entityOverrides);
+	};
+
+	precacheDropAmmo(params.dropAmmo, m_dropAmmoAmount);
+	precacheDropAmmo(params.dropAmmoSecondary, m_dropSecondaryAmmoAmount);
+#endif
+}
+
 void CBasePlayerWeapon::SendWeaponAnim(int iAnim)
 {
 	SendWeaponAnim(iAnim, ViewModelBody());
@@ -791,6 +815,8 @@ void CConfigurableWeapon::Precache()
 	};
 	precacheSprayVisual(false);
 	precacheSprayVisual(true);
+
+	PrecacheDropAmmo();
 }
 
 bool CConfigurableWeapon::Deploy()

@@ -204,6 +204,23 @@ const char* const json_schemas::weapons = R"(
 			}
 		]
 	},
+	"dropammo": {
+		"type": "object",
+		"properties": {
+			"classname": {
+				"type": "string",
+				"minLength": 1
+			},
+			"ent_template": {
+				"type": "string"
+			},
+			"amount": {
+				"type": "integer",
+				"minimum": 0
+			}
+		},
+		"additionalProperties": false
+	},
 )"
 R"(
 	"fire": {
@@ -1194,6 +1211,12 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"dropammo": {
+				"$ref": "#/dropammo"
+			},
+			"dropammo_secondary": {
+				"$ref": "#/dropammo"
 			}
 		},
 		"additionalProperties": false

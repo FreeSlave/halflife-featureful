@@ -142,8 +142,6 @@ bool CEgon::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 3;
 	p->iPosition = 2;
-	p->pszAmmoEntity = "ammo_gaussclip";
-	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 
 	return true;
 }
@@ -168,6 +166,8 @@ WeaponParameters CEgon::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{EGON_IDLE1, 0.5f, FloatRange(10.0f, 15.0f)},
 		WeaponParameters::IdleAnim{EGON_FIDGET1, 0.5f, 3.0f},
 	};
+
+	params.dropAmmo.classname = "ammo_gaussclip";
 
 	return params;
 }

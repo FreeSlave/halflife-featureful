@@ -67,8 +67,6 @@ bool CMP5::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 2;
 	p->iPosition = 0;
-	p->pszAmmoEntity = "ammo_9mmAR";
-	p->iDropAmmo = AMMO_MP5CLIP_GIVE;
 
 	return true;
 }
@@ -166,6 +164,9 @@ WeaponParameters CMP5::GetDefaultParameters() const
 
 	params.reload.animIndex = MP5_RELOAD;
 	params.reload.duration = 1.5f;
+
+	params.dropAmmo.classname = "ammo_9mmAR";
+	params.dropAmmoSecondary.classname = "ammo_ARgrenades";
 
 	return params;
 }

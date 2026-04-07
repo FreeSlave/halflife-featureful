@@ -31,6 +31,8 @@
 #include "global_models.h"
 #include "game.h"
 #include "gamerules.h"
+#include "ammunition.h"
+#include "weapons.h"
 #include "color_utils.h"
 #include "string_utils.h"
 
@@ -1828,6 +1830,27 @@ bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverride
 		if (enabled)
 		{
 			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
+	}
+	return false;
+}
+
+bool UTIL_PrecacheAmmoEntity( const char *szClassname, int& amount, EntityOverrides entityOverrides )
+{
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheAmmoEntity");
+	if (pEntity)
+	{
+		const bool enabled = pEntity->IsEnabledInMod();
+		if (enabled)
+		{
+			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+			CBasePlayerAmmo* pAmmoEntity = pEntity->MyAmmoPointer();
+			if (pAmmoEntity)
+			{
+				amount = pAmmoEntity->MyAmount();
+			}
 		}
 		REMOVE_ENTITY(pEntity->edict());
 		return enabled;

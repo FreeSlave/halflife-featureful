@@ -433,6 +433,10 @@ void CItem::Spawn()
 	pev->solid = SOLID_TRIGGER;
 
 	bool instantDrop = g_modFeatures.items_instant_drop;
+
+	if (FBitSet(pev->spawnflags, SF_ITEM_NO_INSTANT_DROP))
+		instantDrop = false;
+
 	const bool comesFromBreakable = pev->owner != NULL;
 	if (!comesFromBreakable && ItemsPhysicsFix() == 2)
 	{
@@ -472,6 +476,11 @@ void CItem::Spawn()
 void CItem::ItemTouch( CBaseEntity *pOther )
 {
 	if (IsPickableByTouch()) {
+		if (FBitSet(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL) && !FBitSet(pev->flags, FL_ONGROUND))
+		{
+			return;
+		}
+		ClearBits(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL);
 		TouchOrUse(pOther);
 	}
 }
@@ -557,6 +566,16 @@ void CItem::OnMaterialize()
 {
 	SetTouch( &CItem::ItemTouch );
 	SetThink( NULL );
+}
+
+void CItem::PrepareAsAmmoEnt(int amount)
+{
+	pev->spawnflags |= SF_ITEM_NO_INSTANT_DROP;
+}
+
+void CItem::DropAsAmmoEnt(int amount)
+{
+	pev->spawnflags |= SF_ITEM_WAIT_FOR_FALL;
 }
 
 class CItemSuit : public CItem

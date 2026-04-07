@@ -95,8 +95,6 @@ struct ItemInfo
 	const char	*pszName = nullptr;
 	int		iId = 0;
 	int		iFlags = 0;
-	const char* pszAmmoEntity = nullptr;
-	int iDropAmmo = 0;
 };
 
 #if !CLIENT_DLL
@@ -158,6 +156,7 @@ public:
 	CBaseEntity* Respawn() override;// copy a weapon
 	bool IsLockedByMaster() override;
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+	void DropAsAmmoEnt(int amount) override;
 	void FallInit();
 	void CheckRespawn();
 	virtual bool GetItemInfo(ItemInfo *p) = 0;	// returns false if struct not filled out
@@ -210,8 +209,6 @@ public:
 	int			iMaxClip();
 	int			iWeight();
 	int			iFlags()		{ return ItemInfoArray[ WeaponId() ].iFlags; }
-	const char* pszAmmoEntity() { return ItemInfoArray[ WeaponId() ].pszAmmoEntity; }
-	int			iDropAmmo()	{ return ItemInfoArray[ WeaponId() ].iDropAmmo; }
 
 	const char* MyWorldModel();
 	void PrecacheWeaponModels();
@@ -227,6 +224,8 @@ public:
 	// generic "shared" ammo handlers
 	bool AddPrimaryAmmo(int iCount);
 	bool AddSecondaryAmmo(int iCount);
+
+	void PrecacheDropAmmo();
 
 	virtual void UpdateItemInfo() {}	// updates HUD state
 
@@ -335,6 +334,9 @@ public:
 	float m_packedTime;
 
 	bool m_inAltMode;
+
+	int m_dropAmmoAmount;
+	int m_dropSecondaryAmmoAmount;
 
 	bool UsesClip();
 	bool HasAmmoToFire(int ammo = 1);

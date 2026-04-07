@@ -297,6 +297,7 @@ struct ProjectileParameters
 #define SF_ITEM_TOUCH_ONLY 128
 #define SF_ITEM_USE_ONLY 256 //  ITEM_USE_ONLY = BUTTON_USE_ONLY = DOOR_USE_ONLY!!!
 
+#define SF_ITEM_NO_INSTANT_DROP (1 << 26)
 #define SF_ITEM_DONT_TRANSIT_ACROSS_LEVELS (1 << 27)
 #define SF_ITEM_NOFALL ( 1 << 28 )
 #define SF_ITEM_FIX_PHYSICS ( 1 << 29 )
@@ -715,6 +716,8 @@ public:
 		pev->velocity = params.direction * speed;
 	}
 	virtual void LaunchAsProjectile(const ProjectileParameters& params) {}
+	virtual void PrepareAsAmmoEnt(int amount) {}
+	virtual void DropAsAmmoEnt(int amount) {}
 	void SetMyProjectileEffectFlags(int defaultEffects = 0);
 
 	FloatRange GetSkillValueRange(const char* name);

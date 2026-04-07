@@ -400,6 +400,8 @@ void CSatchel::Precache()
 	PrecacheModelSounds();
 
 	UTIL_PrecacheOther( "monster_satchel" );
+
+	PrecacheDropAmmo();
 }
 
 bool CSatchel::GetItemInfo( ItemInfo *p )
@@ -407,8 +409,6 @@ bool CSatchel::GetItemInfo( ItemInfo *p )
 	p->iSlot = 4;
 	p->iPosition = 1;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
-	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
 }
@@ -431,6 +431,8 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 	params.priority = -10;
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	params.dropAmmo.classname = "weapon_satchel";
 
 	return params;
 }

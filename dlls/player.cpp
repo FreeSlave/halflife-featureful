@@ -49,6 +49,7 @@
 #include "locus.h"
 #include "ropes.h"
 #include "mod_features.h"
+#include "ammunition.h"
 #include "monsterinfo.h"
 #include "player_capabilities.h"
 
@@ -6588,58 +6589,80 @@ void CBasePlayer::DropPlayerItemImpl(CBasePlayerWeapon *pWeapon, int dropType, f
 		SendCurWeaponClear();
 }
 
-void CBasePlayer::DropAmmo()
+void CBasePlayer::DropAmmo(bool secondary)
 {
-	if( !g_pGameRules->IsMultiplayer() )
+	if (g_pGameRules->IsMultiplayer())
 	{
-		// no dropping in single player.
+		if (mp_allowdropammo.value == 0)
+			return;
+	}
+	else if (sp_allowdropammo.value == 0)
+	{
 		return;
 	}
 
-	const char* pszItemName = "";
+	CBasePlayerWeapon *pWeapon = m_pActiveItem;
 
-	if( !*pszItemName )
+	if (!pWeapon)
+		return;
+
+	if (secondary && !pWeapon->UsesSecondaryAmmo())
+		return;
+
+	if (!secondary && !pWeapon->UsesAmmo())
+		return;
+
+	const WeaponParameters& params = pWeapon->MyParameters();
+
+	const WeaponParameters::DropAmmoEnt& dropAmmo = secondary ? params.dropAmmoSecondary : params.dropAmmo;
+
+	if (dropAmmo.classname.empty())
+		return;
+
+	int iAmmoIndex = GetAmmoIndex(secondary ? pWeapon->pszAmmo2() : pWeapon->pszAmmo1());
+	if (iAmmoIndex <= 0)
+		return;
+
+	int ammoCount = dropAmmo.amount;
+
+	if (ammoCount <= 0)
 	{
-		// if this string has no length, the client didn't type a name!
-		// assume player wants to drop the active item.
-		// make the string null to make future operations in this function easier
-		pszItemName = NULL;
+		ammoCount = secondary ? pWeapon->m_dropSecondaryAmmoAmount : pWeapon->m_dropAmmoAmount;
 	}
 
-	int i;
-
-	for( i = 0; i < MAX_WEAPONS; i++ )
+	if (ammoCount <= 0 && FStrEq(dropAmmo.classname.c_str(), STRING(pWeapon->pev->classname)))
 	{
-		CBasePlayerWeapon *pWeapon = m_rgpPlayerWeapons[i];
+		ammoCount = Q_max(params.initialAmmoAmount.min, 1);
+	}
 
-		if( pWeapon && ((pszItemName && FStrEq( pszItemName, STRING( pWeapon->pev->classname ) )) || pWeapon == m_pActiveItem) )
-		{
-			const char* entName = pWeapon->pszAmmoEntity();
-			int ammoCount = pWeapon->iDropAmmo();
-			if (entName && ammoCount) {
-				int iAmmoIndex = GetAmmoIndex( pWeapon->pszAmmo1() );
-				if( iAmmoIndex > 0 )
-				{
-					if (m_rgAmmo[iAmmoIndex] >= ammoCount) {
-						UTIL_MakeVectors( pev->angles );
+	if (ammoCount <= 0)
+		return;
 
-						CBaseEntity* ammoEnt = CBaseEntity::Create( entName, pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
-						if (ammoEnt) {
-							ammoEnt->pev->spawnflags |= SF_NORESPAWN;
-							//UTIL_SetSize( ammoEnt->pev, g_vecZero, g_vecZero );
-							//UTIL_SetOrigin( ammoEnt->pev, ammoEnt->pev->origin );
-							ammoEnt->pev->bInDuck = 1;
-							ammoEnt->pev->angles.x = 0;
-							ammoEnt->pev->angles.z = 0;
-							ammoEnt->pev->velocity = gpGlobals->v_forward * 400;
-							m_rgAmmo[iAmmoIndex] -= ammoCount;
-						}
-					}
-				}
-			}
+	if (m_rgAmmo[iAmmoIndex] < ammoCount)
+		return;
 
-			return;
-		}
+	UTIL_MakeVectors(pev->angles);
+
+	EntityOverrides entityOverrides;
+	entityOverrides.entTemplate = dropAmmo.entTemplate.empty() ? iStringNull : MAKE_STRING(dropAmmo.entTemplate.c_str());
+
+	CBaseEntity* pEntity = CBaseEntity::CreateNoSpawn(dropAmmo.classname.c_str(), pev->origin + gpGlobals->v_forward * 10, pev->angles, edict());
+
+	if (pEntity)
+		pEntity->PrepareAsAmmoEnt(ammoCount);
+
+	pEntity = DispatchSpawnAutoClean(pEntity);
+
+	if (pEntity)
+	{
+		pEntity->pev->spawnflags |= SF_NORESPAWN;
+		pEntity->pev->angles.x = 0;
+		pEntity->pev->angles.z = 0;
+		pEntity->pev->velocity = gpGlobals->v_forward * 400;
+
+		pEntity->DropAsAmmoEnt(ammoCount);
+
+		m_rgAmmo[iAmmoIndex] -= ammoCount;
 	}
 }
 

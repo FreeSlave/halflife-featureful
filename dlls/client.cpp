@@ -696,7 +696,11 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq( pcmd, "dropammo") )
 	{
-		pPlayer->DropAmmo();
+		pPlayer->DropAmmo(false);
+	}
+	else if (FStrEq( pcmd, "dropammo2") )
+	{
+		pPlayer->DropAmmo(true);
 	}
 	else if( FStrEq( pcmd, "fov" ) )
 	{

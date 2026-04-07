@@ -85,8 +85,6 @@ bool CDisplacer::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 6;
 #endif
-	p->pszAmmoEntity = "ammo_gaussclip";
-	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 
 	return true;
 }
@@ -139,6 +137,8 @@ WeaponParameters CDisplacer::GetDefaultParameters() const
 	params.holster.attackDelay = 1.0f;
 	params.holster.idleDelay = 1.0f;
 
+	params.dropAmmo.classname = "ammo_gaussclip";
+
 	return params;
 }
 
@@ -159,6 +159,8 @@ void CDisplacer::Precache()
 	UTIL_PrecacheOther("displacer_ball");
 
 	m_usDisplacer = PRECACHE_EVENT(1, "events/displacer.sc");
+
+	PrecacheDropAmmo();
 }
 
 void CDisplacer::Holster()

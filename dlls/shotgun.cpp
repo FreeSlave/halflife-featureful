@@ -52,8 +52,6 @@ bool CShotgun::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 2;
 	p->iPosition = 1;
-	p->pszAmmoEntity = "ammo_buckshot";
-	p->iDropAmmo = AMMO_BUCKSHOTBOX_GIVE;
 
 	return true;
 }
@@ -178,6 +176,8 @@ WeaponParameters CShotgun::GetDefaultParameters() const
 		ATTN_NORM,
 		IntRange(95, 124)
 	};
+
+	params.dropAmmo.classname = "ammo_buckshot";
 
 	return params;
 }

@@ -122,8 +122,6 @@ bool CGauss::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 3;
 	p->iPosition = 1;
-	p->pszAmmoEntity = "ammo_gaussclip";
-	p->iDropAmmo = AMMO_URANIUMBOX_GIVE;
 
 	return true;
 }
@@ -158,6 +156,8 @@ WeaponParameters CGauss::GetDefaultParameters() const
 	params.fire.clientPunchPitch = -2;
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	params.dropAmmo.classname = "ammo_gaussclip";
 
 	return params;
 }

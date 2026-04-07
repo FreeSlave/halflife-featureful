@@ -1,5 +1,6 @@
 ---
 title: "Text font"
+bookToC: false
 ---
 
 # {{% param "title" %}}

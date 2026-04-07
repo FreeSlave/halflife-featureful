@@ -3953,6 +3953,12 @@ void CBaseMonster::LaunchAsProjectile(const ProjectileParameters &params)
 	m_clearOwnerTime = gpGlobals->time + 1.0f;
 }
 
+void CBaseMonster::DropAsAmmoEnt(int amount)
+{
+	pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	m_clearOwnerTime = gpGlobals->time + 1.0f;
+}
+
 void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)
 {
 	Vector vecMins = vecMin;

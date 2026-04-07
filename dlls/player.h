@@ -373,7 +373,7 @@ public:
 	bool RemovePlayerItem( CBasePlayerWeapon *pItem, bool bCallHoster );
 	void DropPlayerItem ( const char *pszItemName );
 	void DropPlayerItemById( int iId );
-	void DropAmmo();
+	void DropAmmo(bool secondary);
 	bool HasPlayerItem( CBasePlayerWeapon *pCheckItem );
 	bool HasNamedPlayerItem( const char *pszItemName );
 	CBasePlayerWeapon* GetWeaponByName( const char *pszItemName );

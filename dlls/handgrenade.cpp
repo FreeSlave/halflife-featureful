@@ -59,8 +59,6 @@ bool CHandGrenade::GetItemInfo( ItemInfo *p )
 	p->iSlot = 4;
 	p->iPosition = 0;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
-	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
 }
@@ -94,6 +92,8 @@ WeaponParameters CHandGrenade::GetDefaultParameters() const
 	params.fire.projectileOffsetForward = 16.0f;
 	params.fire.projectileAddCurrentVelocity = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
 	*/
+
+	params.dropAmmo.classname = "weapon_handgrenade";
 
 	return params;
 }

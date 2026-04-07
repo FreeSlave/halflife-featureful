@@ -166,5 +166,7 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 	params.holster.animIndex = MINIGUN_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
+	params.dropAmmo.classname = "ammo_556";
+
 	return params;
 }

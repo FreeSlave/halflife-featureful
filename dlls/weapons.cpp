@@ -709,6 +709,11 @@ bool CBasePlayerWeapon::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 	return false;
 }
 
+void CBasePlayerWeapon::DropAsAmmoEnt(int amount)
+{
+	m_iDefaultAmmo = amount;
+}
+
 static bool IsPickableByTouch(CBaseEntity* pEntity)
 {
 	return !FBitSet(pEntity->pev->spawnflags, SF_ITEM_USE_ONLY) &&

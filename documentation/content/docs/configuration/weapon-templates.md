@@ -790,6 +790,42 @@ Delay before attempting to fire again after trying to shoot without enough ammo.
 
 Delay before attempting to fire again after trying to shoot underwater (if weapon can't fire underwater).
 
+### dropammo
+
+An object that defines the ammo entity drop by the `dropammo` [user command]({{< ref user-commands >}}).
+
+Example:
+
+```json
+{
+    "weapon_smg": {
+        "dropammo": {
+            "classname": "ammo_9mmAR",
+            "amount": 25
+        },
+        "dropammo_secondary": {
+            "classname": "ammo_ARgrenades"
+        }
+    }
+}
+```
+
+Properties:
+
+* `"classname"` - the classname of the entity to spawn. This is usually an `ammo_*` or `weapon_*` (for hand grenades, etc.) entity.
+* `"ent_template"` - the name of the entity template to apply.
+* `"amount"` - custom count of ammo in the ammo entity. This is also the required amount of ammo the player must have in order to drop an ammo entity. If set to 0 it's calculated automatically depending on the entity classname (e.g. `ammo_9mmAR` provides 50 ammo).
+
+{{% hint warning %}}
+It doesn't check if the ammo entity provides the same ammo type that is used by the weapon.
+
+Technically it can be any entity.
+{{% /hint %}}
+
+### dropammo_secondary
+
+Same as [dropammo](#dropammo), but for secondary ammo.
+
 ### empty_sound
 
 Custom [weapon soundscript](#weapon-soundscript) to play when player is trying to fire a weapon without having enough ammo for it or underwater with [allow_underwater](#allow_underwater) set to `false`. Defining this automatically sets [use_standard_empty_sound](#use_standard_empty_sound) to `false`.

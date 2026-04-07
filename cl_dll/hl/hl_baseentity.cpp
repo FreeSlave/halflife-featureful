@@ -142,6 +142,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
 void CBaseMonster::Activate() {}
 void CBaseMonster::LaunchAsProjectile(const ProjectileParameters&) {}
+void CBaseMonster::DropAsAmmoEnt(int amount) {}
 bool CBaseMonster::CanPlaySequence( int interruptFlags ) { return false; }
 bool CBaseMonster::FCanActiveIdle() { return false; }
 bool CBaseToggle::PlaySentence( const char *pszSentence, float duration, float volume, float attenuation, bool subtitle ) { return true; }
@@ -251,6 +252,7 @@ void CBasePlayerWeapon::FallInit() { }
 CBaseEntity *CBasePlayerWeapon::Respawn() { return nullptr; }
 bool CBasePlayerWeapon::IsLockedByMaster() { return false; }
 bool CBasePlayerWeapon::IsUsefulToDisplayHint(CBaseEntity* pPlayer) { return false; }
+void CBasePlayerWeapon::DropAsAmmoEnt(int amount) {}
 void CBasePlayerWeapon::DefaultTouch( CBaseEntity *pOther ) { }
 void CBasePlayerWeapon::DestroyItem() { }
 bool CBasePlayerWeapon::IsEnabledInMod() { return true; }

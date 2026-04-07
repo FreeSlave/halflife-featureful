@@ -357,6 +357,7 @@ void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector
 
 // allows precacheing of other entities
 extern bool			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides = EntityOverrides());
+extern bool			UTIL_PrecacheAmmoEntity(const char *szClassname, int& amount, EntityOverrides entityOverrides = EntityOverrides());
 extern bool			UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship , Vector *vecMin = NULL, Vector *vecMax = NULL, EntityOverrides entityOverrides = EntityOverrides(), string_t* keys = nullptr, string_t* values = nullptr, int keyValueCount = 0);
 
 // prints a message to each client

@@ -100,5 +100,7 @@ WeaponParameters CGrenadeLauncher::GetDefaultParameters() const
 	params.endReload.animIndex = GL_RELOAD_UP;
 	params.endReload.idleDelay = 0.6f;
 
+	params.dropAmmo.classname = "ammo_grenadeclip";
+
 	return params;
 }

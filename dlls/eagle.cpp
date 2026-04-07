@@ -55,8 +55,6 @@ bool CEagle::GetItemInfo(ItemInfo *p)
 {
 	p->iSlot = 1;
 	p->iPosition = 2;
-	p->pszAmmoEntity = "ammo_357";
-	p->iDropAmmo = AMMO_357BOX_GIVE;
 
 	return true;
 }
@@ -149,6 +147,8 @@ WeaponParameters CEagle::GetDefaultParameters() const
 	params.laserSpotScale = 0.5f;
 	params.activateLaserSpotSound.waves = {"weapons/desert_eagle_sight.wav"};
 	params.deactivateLaserSpotSound.waves = {"weapons/desert_eagle_sight2.wav"};
+
+	params.dropAmmo.classname = "ammo_357";
 
 	return params;
 }

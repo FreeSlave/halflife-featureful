@@ -59,8 +59,6 @@ bool CUzi::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 1;
 	p->iPosition = 3;
-	p->pszAmmoEntity = "ammo_9mmclip";
-	p->iDropAmmo = AMMO_GLOCKCLIP_GIVE;
 
 	return true;
 }
@@ -125,6 +123,8 @@ WeaponParameters CUzi::GetDefaultParameters() const
 
 	params.reload.animIndex = UZI_RELOAD;
 	params.reload.duration = 2.5f;
+
+	params.dropAmmo.classname = "ammo_9mmclip";
 
 	return params;
 }

@@ -478,8 +478,6 @@ bool CTripmine::GetItemInfo( ItemInfo *p )
 	p->iSlot = 4;
 	p->iPosition = 2;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
-	p->pszAmmoEntity = STRING(pev->classname);
-	p->iDropAmmo = MyParameters().initialAmmoAmount.min;
 
 	return true;
 }
@@ -509,6 +507,8 @@ WeaponParameters CTripmine::GetDefaultParameters() const
 
 	params.holster.animIndex = TRIPMINE_HOLSTER;
 	params.holster.attackDelay = 0.5f;
+
+	params.dropAmmo.classname = "weapon_tripmine";
 
 	return params;
 }

@@ -700,6 +700,13 @@ struct WeaponParameters
 		WeaponModeValue<WeaponSoundScript> sound{CHAN_WEAPON};
 	};
 
+	struct DropAmmoEnt
+	{
+		std::string classname;
+		std::string entTemplate;
+		int amount{0};
+	};
+
 	Fire fire;
 	Mode altMode;
 
@@ -759,6 +766,9 @@ struct WeaponParameters
 
 	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
 	bool preventJump{false};
+
+	DropAmmoEnt dropAmmo;
+	DropAmmoEnt dropAmmoSecondary;
 
 	const char* ViewModel() const {
 		return viewModel.c_str();
