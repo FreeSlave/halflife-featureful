@@ -7,6 +7,7 @@
 
 #include "gib.h"
 #include "dmg_types.h"
+#include "template_property_types.h"
 
 struct DamageInfo
 {
@@ -67,7 +68,7 @@ struct DamageInfoUpdate
 		ADD_DAMAGE_TYPE,
 	};
 
-	optional<float> damage;
+	optional<FloatRange> damage;
 	optional<int> type;
 	int typePolicy = ADD_DAMAGE_TYPE;
 	tribool nonLethal;

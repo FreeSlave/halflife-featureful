@@ -417,7 +417,7 @@ const char* const json_schemas::definitions = R"(
 		"type": "object",
 		"properties": {
 			"damage": {
-				"type": "number"
+				"$ref": "#/range"
 			},
 			"type": {
 				"$ref": "#/string_set"

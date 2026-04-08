@@ -1,5 +1,6 @@
 #include <cstring>
 #include "damageinfo.h"
+#include "util_shared.h"
 
 int ParseDamageType(const char *type)
 {
@@ -82,7 +83,7 @@ void UpdateDamageInfoFromTemplate(DamageInfo& curDamageInfo, const DamageInfoUpd
 {
 	if (damageInfo.damage)
 	{
-		curDamageInfo.damage = *damageInfo.damage;
+		curDamageInfo.damage = RandomizeNumberFromRange(*damageInfo.damage);
 	}
 	if (damageInfo.type)
 	{
