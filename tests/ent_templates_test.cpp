@@ -350,14 +350,14 @@ TEST(EntityTemplates, Parse)
 		EXPECT_TRUE(!indeterminate(traceHullAttack->spawnBlood));
 		EXPECT_TRUE(traceHullAttack->spawnBlood);
 
-		const EntTemplate::DamageInfo damageInfo = traceHullAttack->damageInfo;
+		const DamageInfoUpdate damageInfo = traceHullAttack->damageInfo;
 
 		EXPECT_TRUE(damageInfo.damage.has_value());
 		EXPECT_EQ(*damageInfo.damage, 42.0f);
 
 		EXPECT_TRUE(damageInfo.type.has_value());
 		EXPECT_EQ(*damageInfo.type, DMG_ACID|DMG_POISON);
-		EXPECT_EQ(damageInfo.typePolicy, EntTemplate::DamageInfo::ADD_DAMAGE_TYPE);
+		EXPECT_EQ(damageInfo.typePolicy, DamageInfoUpdate::ADD_DAMAGE_TYPE);
 
 		EXPECT_TRUE(!indeterminate(damageInfo.nonLethal));
 		EXPECT_TRUE(damageInfo.nonLethal);
@@ -378,10 +378,10 @@ TEST(EntityTemplates, Parse)
 		EXPECT_EQ(*traceHullAttack2->height, 64.0f);
 		EXPECT_FALSE(traceHullAttack2->heightIsFactor);
 
-		const EntTemplate::DamageInfo damageInfo2 = traceHullAttack2->damageInfo;
+		const DamageInfoUpdate damageInfo2 = traceHullAttack2->damageInfo;
 		EXPECT_TRUE(damageInfo2.type.has_value());
 		EXPECT_EQ(*damageInfo2.type, DMG_BURN);
-		EXPECT_EQ(damageInfo2.typePolicy, EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE);
+		EXPECT_EQ(damageInfo2.typePolicy, DamageInfoUpdate::REPLACE_DAMAGE_TYPE);
 		EXPECT_TRUE(damageInfo2.gibPolicy.has_value());
 		EXPECT_EQ(*damageInfo2.gibPolicy, GIB_ALWAYS);
 	}

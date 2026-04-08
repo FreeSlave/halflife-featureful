@@ -7,6 +7,7 @@
 #include "grapple_target.h"
 #include "hull_sizes.h"
 #include "dmg_types.h"
+#include "damageinfo.h"
 #include "gib.h"
 #include "hitgroup.h"
 #include "util_shared.h"
@@ -316,142 +317,6 @@ static bool UpdateSizesFromJSON(const rapidjson::Value& value, Vector& mins, Vec
 		return UpdatePropertyFromJson(mins, value, "mins") && UpdatePropertyFromJson(maxs, value, "maxs");
 	}
 	return false;
-}
-
-int EntTemplate::ParseDamageType(const char *type)
-{
-	if (stricmp(type, "generic") == 0)
-	{
-		return DMG_GENERIC;
-	}
-	else if (stricmp(type, "crush") == 0)
-	{
-		return DMG_CRUSH;
-	}
-	else if (stricmp(type, "bullet") == 0)
-	{
-		return DMG_BULLET;
-	}
-	else if (stricmp(type, "slash") == 0)
-	{
-		return DMG_SLASH;
-	}
-	else if (stricmp(type, "burn") == 0)
-	{
-		return DMG_BURN;
-	}
-	else if (stricmp(type, "freeze") == 0)
-	{
-		return DMG_FREEZE;
-	}
-	else if (stricmp(type, "blast") == 0)
-	{
-		return DMG_BLAST;
-	}
-	else if (stricmp(type, "club") == 0)
-	{
-		return DMG_CLUB;
-	}
-	else if (stricmp(type, "shock") == 0)
-	{
-		return DMG_SHOCK;
-	}
-	else if (stricmp(type, "sonic") == 0)
-	{
-		return DMG_SONIC;
-	}
-	else if (stricmp(type, "energybeam") == 0)
-	{
-		return DMG_ENERGYBEAM;
-	}
-	else if (stricmp(type, "paralyze") == 0)
-	{
-		return DMG_PARALYZE;
-	}
-	else if (stricmp(type, "nervegas") == 0)
-	{
-		return DMG_NERVEGAS;
-	}
-	else if (stricmp(type, "poison") == 0)
-	{
-		return DMG_POISON;
-	}
-	else if (stricmp(type, "radiation") == 0)
-	{
-		return DMG_RADIATION;
-	}
-	else if (stricmp(type, "acid") == 0)
-	{
-		return DMG_ACID;
-	}
-	else if (stricmp(type, "slowburn") == 0)
-	{
-		return DMG_SLOWBURN;
-	}
-	else if (stricmp(type, "slowfreeze") == 0)
-	{
-		return DMG_SLOWFREEZE;
-	}
-	return -1;
-}
-
-int EntTemplate::ParseGibPolicy(const char *gibPolicyName)
-{
-	if (stricmp(gibPolicyName, "always") == 0)
-	{
-		return GIB_ALWAYS;
-	}
-	else if (stricmp(gibPolicyName, "never") == 0)
-	{
-		return GIB_NEVER;
-	}
-	return GIB_NORMAL;
-}
-
-int EntTemplate::DamageTypeFromJSON(const Value& value)
-{
-	return JSONStringSetToFlags(value, [](const char* damageTypeName) {
-		int subType = ParseDamageType(damageTypeName);
-		if (subType >= 0)
-		{
-			return subType;
-		}
-		else
-		{
-			LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
-			return 0;
-		}
-	});
-}
-
-bool EntTemplate::UpdateDamageInfoFromJSON(const rapidjson::Value &value, DamageInfo &damageInfo)
-{
-	UpdatePropertyFromJson(damageInfo.damage, value, "damage");
-
-	HandleJSONMember(value, "type", [&damageInfo](const Value& value) {
-		damageInfo.type = DamageTypeFromJSON(value);
-	});
-
-	HandleJSONMember(value, "type_policy", [&damageInfo](const Value& value) {
-		const char* typePolicyName = value.GetString();
-		if (strcmp(typePolicyName, "add") == 0)
-		{
-			damageInfo.typePolicy = EntTemplate::DamageInfo::ADD_DAMAGE_TYPE;
-		}
-		else if (strcmp(typePolicyName, "replace") == 0)
-		{
-			damageInfo.typePolicy = EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE;
-		}
-	});
-
-	UpdatePropertyFromJson(damageInfo.nonLethal, value, "nonlethal");
-	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
-
-	HandleJSONMember(value, "gib", [&](const Value& value) {
-		damageInfo.gibPolicy = ParseGibPolicy(value.GetString());
-	});
-
-	return true;
 }
 
 EntityFilter EntTemplate::EntityFilterFromJSON(const Value &value)
@@ -1285,7 +1150,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			});
 
 			HandleJSONMember(attackValue, "damage_info", [&traceHullAttack](const Value& value) {
-				EntTemplate::UpdateDamageInfoFromJSON(value, traceHullAttack.damageInfo);
+				UpdateDamageInfoFromJson(traceHullAttack.damageInfo, value);
 			});
 
 			UpdatePropertyFromJson(traceHullAttack.spawnBlood, attackValue, "spawn_blood");
@@ -1318,7 +1183,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	HandleJSONMember(value, "touch_attack", [&entTemplate, this](const Value& value) {
 		HandleJSONMember(value, "damage_info", [&entTemplate](const Value& value) {
 			auto touchAttack = entTemplate.GetTouchAttack();
-			EntTemplate::UpdateDamageInfoFromJSON(value, touchAttack.damageInfo);
+			UpdateDamageInfoFromJson(touchAttack.damageInfo, value);
 			entTemplate.SetTouchAttack(touchAttack);
 		});
 	});

@@ -1384,38 +1384,6 @@ float CBaseMonster::DamageForce( float damage )
 	return force;
 }
 
-static void UpdateDamageInfoFromTemplate(DamageInfo& curDamageInfo, const EntTemplate::DamageInfo& damageInfo)
-{
-	if (damageInfo.damage)
-	{
-		curDamageInfo.damage = *damageInfo.damage;
-	}
-	if (damageInfo.type)
-	{
-		if (damageInfo.typePolicy == EntTemplate::DamageInfo::ADD_DAMAGE_TYPE)
-		{
-			curDamageInfo.type |= *damageInfo.type;
-		}
-		else if (damageInfo.typePolicy == EntTemplate::DamageInfo::REPLACE_DAMAGE_TYPE)
-		{
-			curDamageInfo.type = *damageInfo.type;
-		}
-	}
-	if (!indeterminate(damageInfo.nonLethal))
-	{
-		curDamageInfo.nonLethal = (bool)damageInfo.nonLethal;
-	}
-	if (!indeterminate(damageInfo.ignoreArmor))
-	{
-		curDamageInfo.ignoreArmor = (bool)damageInfo.ignoreArmor;
-	}
-	if (damageInfo.gibPolicy)
-	{
-		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;
-	}
-}
-
-
 //
 // RadiusDamage - this entity is exploding, or otherwise needs to inflict damage upon entities within a certain range.
 // 

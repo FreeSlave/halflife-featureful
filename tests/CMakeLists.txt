@@ -32,8 +32,10 @@ add_executable(test
 	visuals_test.cpp
 	warpball_test.cpp
 	weapons_test.cpp
+	../game_shared/damageinfo.cpp
 	../game_shared/error_collector.cpp
 	../game_shared/file_utils.cpp
+	../game_shared/gib.cpp
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/parsetext.cpp

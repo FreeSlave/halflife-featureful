@@ -210,9 +210,11 @@ set (SVDLL_SOURCES
 	../pm_shared/pm_shared.cpp
 	../game_shared/tex_materials.cpp
 	../game_shared/parsetext.cpp
+	../game_shared/damageinfo.cpp
 	../game_shared/error_collector.cpp
 	../game_shared/file_utils.cpp
 	../game_shared/fx_types.cpp
+	../game_shared/gib.cpp
 	../game_shared/json_config.cpp
 	../game_shared/json_utils.cpp
 	../game_shared/random_utils.cpp

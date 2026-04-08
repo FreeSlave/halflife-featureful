@@ -8,4 +8,6 @@
 #define GIB_NEVER			1// never gib, no matter how much death damage is done ( freezing, etc )
 #define GIB_ALWAYS			2// always gib ( Houndeye Shock, Barnacle Bite )
 
+int ParseGibPolicy(const char *gibPolicyName);
+
 #endif

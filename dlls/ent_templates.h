@@ -160,22 +160,6 @@ public:
 		tribool allowWhenDying;
 	};
 
-	struct DamageInfo
-	{
-		enum
-		{
-			REPLACE_DAMAGE_TYPE,
-			ADD_DAMAGE_TYPE,
-		};
-
-		optional<float> damage;
-		optional<int> type;
-		int typePolicy = ADD_DAMAGE_TYPE;
-		tribool nonLethal;
-		tribool ignoreArmor;
-		optional<int> gibPolicy;
-	};
-
 	struct DamageConditions
 	{
 		optional<int> dmgType;
@@ -218,8 +202,6 @@ public:
 		optional<int> effects;
 	};
 
-	static int DamageTypeFromJSON(const rapidjson::Value& value);
-	static bool UpdateDamageInfoFromJSON(const rapidjson::Value& value, DamageInfo& damageInfo);
 	static EntityFilter EntityFilterFromJSON(const rapidjson::Value& value);
 	static int HitgroupFromJSON(const rapidjson::Value& value);
 	static std::vector<int> HitgroupSetFromJSON(const rapidjson::Value& value);
@@ -252,7 +234,7 @@ public:
 		bool heightIsFactor = false;
 		PunchAngle punchAngle;
 		Knock knock;
-		DamageInfo damageInfo;
+		DamageInfoUpdate damageInfo;
 		tribool spawnBlood;
 
 		std::string hitSoundScript;
@@ -261,7 +243,7 @@ public:
 
 	struct TouchAttack
 	{
-		DamageInfo damageInfo;
+		DamageInfoUpdate damageInfo;
 	};
 
 	struct TraceAttackRule
@@ -559,9 +541,6 @@ public:
 		return _pickupHudSprite.empty() ? nullptr : _pickupHudSprite.c_str();
 	}
 private:
-	static int ParseDamageType(const char* type);
-	static int ParseGibPolicy(const char* gibPolicyName);
-
 	mutable std::string tempString;
 	std::map<std::string, std::string> _soundScripts;
 	std::map<std::string, std::string> _visuals;

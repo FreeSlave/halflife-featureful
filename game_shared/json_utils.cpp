@@ -573,3 +573,52 @@ void UpdatePlayerShake(PlayerShake& shake, const Value& value)
 		UpdatePropertyFromJson(shake.frequency, value, "frequency");
 	}
 }
+
+int DamageTypeFromJSON(const Value& value)
+{
+	return JSONStringSetToFlags(value, [](const char* damageTypeName) {
+		int subType = ParseDamageType(damageTypeName);
+		if (subType >= 0)
+		{
+			return subType;
+		}
+		else
+		{
+			LOG_WARNING("Unknown damage type '%s'\n", damageTypeName);
+			return 0;
+		}
+	});
+}
+
+bool UpdateDamageInfoFromJson(DamageInfoUpdate &damageInfo, const rapidjson::Value &value)
+{
+	if (!value.IsObject())
+		return false;
+
+	UpdatePropertyFromJson(damageInfo.damage, value, "damage");
+
+	HandleJSONMember(value, "type", [&damageInfo](const Value& value) {
+		damageInfo.type = DamageTypeFromJSON(value);
+	});
+
+	HandleJSONMember(value, "type_policy", [&damageInfo](const Value& value) {
+		const char* typePolicyName = value.GetString();
+		if (strcmp(typePolicyName, "add") == 0)
+		{
+			damageInfo.typePolicy = DamageInfoUpdate::ADD_DAMAGE_TYPE;
+		}
+		else if (strcmp(typePolicyName, "replace") == 0)
+		{
+			damageInfo.typePolicy = DamageInfoUpdate::REPLACE_DAMAGE_TYPE;
+		}
+	});
+
+	UpdatePropertyFromJson(damageInfo.nonLethal, value, "nonlethal");
+	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
+
+	HandleJSONMember(value, "gib", [&](const Value& value) {
+		damageInfo.gibPolicy = ParseGibPolicy(value.GetString());
+	});
+
+	return true;
+}

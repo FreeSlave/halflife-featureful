@@ -10,6 +10,7 @@
 #include "optional.h"
 #include "tribool.h"
 #include "vector.h"
+#include "damageinfo.h"
 #include "rapidjson/document.h"
 #include "template_property_types.h"
 
@@ -106,5 +107,8 @@ bool UpdatePropertyFromJson(optional<T>& v, const rapidjson::Value& jsonValue, c
 
 bool UpdateAttenuationFromJson(float& attn, const rapidjson::Value& jsonValue);
 void UpdatePlayerShake(PlayerShake& shake, const rapidjson::Value& value);
+
+int DamageTypeFromJSON(const rapidjson::Value& value);
+bool UpdateDamageInfoFromJson(DamageInfoUpdate &damageInfo, const rapidjson::Value &value);
 
 #endif
