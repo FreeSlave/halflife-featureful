@@ -1318,27 +1318,31 @@ void CKingpin::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 extern int gmsgSpriteTrail;
 
-void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
+void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
 	if (m_isTeleporting)
 		return;
 
-	DamageInfo dmgInfo = damageInfo;
+	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+
+	if (damageInfo.mustSkip)
+		return;
+
 	if (pev->armorvalue > 0)
 	{
-		const bool isBlast = (FBitSet(dmgInfo.type, DMG_BLAST) && dmgInfo.damage > 50);
+		const bool isBlast = (FBitSet(damageInfo.type, DMG_BLAST) && damageInfo.damage > 50);
 		const int count = isBlast ? 3 : 1;
 		const int randomness = isBlast ? 30 : 15;
 
 		const int deciScale = RandomizeNumberFromRange(m_shieldDebrisVisual->scale) * 10;
 
-		int scaleToSend = deciScale + int(dmgInfo.damage / 8.0f);
+		int scaleToSend = deciScale + int(damageInfo.damage / 8.0f);
 		scaleToSend = Q_min(scaleToSend, deciScale * 3);
 
-		if (FBitSet(dmgInfo.type, DMG_BLAST))
+		if (FBitSet(damageInfo.type, DMG_BLAST))
 		{
 			// Up to 1.5x damage from blast damage to shields
-			dmgInfo.damage += Q_min(dmgInfo.damage * 0.5f, pev->armorvalue);
+			damageInfo.damage += Q_min(damageInfo.damage * 0.5f, pev->armorvalue);
 		}
 
 		if (m_shieldDebrisVisual && m_shieldDebrisVisual->modelIndex)
@@ -1364,14 +1368,12 @@ void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 		}
 	}
 
-	AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
-
 	// Spawn blood only if shield is dropped or gonna drop
 	if (gMultiDamage.damageInfo.damage > pev->armorvalue)
 	{
-		SpawnBlood( ptr->vecEndPos, BloodColor(), dmgInfo.damage );// a little surface blood.
-		TraceBleed( dmgInfo.damage, vecDir, ptr, dmgInfo.type );
+		BloodEffect(damageInfo, vecDir, ptr);
 	}
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 }
 
 TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
