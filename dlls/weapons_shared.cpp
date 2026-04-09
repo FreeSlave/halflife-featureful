@@ -1487,9 +1487,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		vecSpread = GetSpread(altMode);
 
-		auto damageRange = fire.damage.Get(altMode);
+		DamageInfoPatch damageInfo = fire.damageInfo.Get(altMode);
 		if (chargedAttack)
 		{
+			auto damageRange = damageInfo.GetDamageRange();
 			auto damageFactorRange = fire.damageChargedFactor.Get(altMode);
 			if (damageFactorRange == 0.0f)
 				damageFactorRange = damageRange;
@@ -1505,10 +1506,11 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 			damageRange.min = Q_min(damageRange.min, maxDamage);
 			damageRange.max = Q_min(damageRange.max, maxDamage);
 #endif
+			damageInfo.damage = damageRange;
 		}
 
 		const int bulletCount = fire.bulletCount.Get(altMode);
-		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), damageRange, fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, vecAiming, vecSpread, fire.bulletDistance.Get(altMode), damageInfo, fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
 		if (bulletCount > 1)
 		{
 			// TODO: properly send spreads for multiple bullet shots to the client?
@@ -1733,8 +1735,26 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 		projectileParams.variant = projectileVariant;
 		projectileParams.pLauncher = this;
 		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
-		const FloatRange damageRange = allowInheritance ? fire.damage.Get(altMode) : (altMode ? fire.damage.alt : fire.damage.main);
-		const float customDamage = RandomizeNumberFromRange(damageRange);
+		DamageInfoPatch damageInfo;
+		if (allowInheritance)
+		{
+			damageInfo = fire.damageInfo.Get(altMode);
+		}
+		else
+		{
+			if (altMode)
+			{
+				if (fire.damageInfo.alt.has_value())
+				{
+					damageInfo = *fire.damageInfo.alt;
+				}
+			}
+			else
+			{
+				damageInfo = fire.damageInfo.main;
+			}
+		}
+		const float customDamage = RandomizeNumberFromRange(damageInfo.GetDamageRange());
 		if (customDamage > 0)
 			projectileParams.damageOverride = customDamage;
 		projectileParams.up = vecUp;
@@ -1825,7 +1845,7 @@ void CConfigurableWeapon::FireRemaining()
 	if (fireType == WeaponParameters::Fire::BULLETS)
 	{
 		const int bulletCount = fire.bulletCount.Get(altMode);
-		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, gpGlobals->v_forward, vecSpread, fire.bulletDistance.Get(altMode), fire.damage.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
+		const Vector randomizedSpread = m_pPlayer->FireBulletsPlayer(bulletCount, vecSrc, gpGlobals->v_forward, vecSpread, fire.bulletDistance.Get(altMode), fire.damageInfo.Get(altMode), fire.rangeModifier.Get(altMode), fire.tracerFreq.Get(altMode), m_pPlayer->pev, m_pPlayer->random_seed);
 		if (bulletCount > 1)
 		{
 			spreadX = vecSpread.x;
@@ -2699,7 +2719,8 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 			// If building with the clientside weapon prediction system,
 			// UTIL_WeaponTimeBase() is always 0 and m_flNextPrimaryAttack is >= -1.0f, thus making
 			// m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() always evaluate to false.
-			DamageInfo damageInfo{RandomizeSkillValue(fire.damage.Get(altMode)), DMG_CLUB};
+			DamageInfo damageInfo{0.0f, DMG_CLUB};
+			ApplyDamageInfoPatch(damageInfo, fire.damageInfo.Get(altMode));
 #if CLIENT_WEAPONS
 			if( ( m_flNextPrimaryAttack + 1.0f == UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 #else
@@ -2832,21 +2853,21 @@ void CConfigurableWeapon::BigSwing()
 
 		if (pEntity)
 		{
-			const auto baseDamage = fire.damage.Get(altMode);
+			DamageInfo damageInfo{0.0f, DMG_CLUB};
+			ApplyDamageInfoPatch(damageInfo, fire.damageInfo.Get(altMode));
+
 			auto damageFactor = fire.damageChargedFactor.Get(altMode);
 			if (damageFactor == 0.0f)
-				damageFactor = baseDamage;
+				damageFactor = damageInfo.damage;
 			auto maxDamageRange = fire.damageChargedMax.Get(altMode);
 			if (maxDamageRange == 0.0f)
-				maxDamageRange = baseDamage * 2.0f;
+				maxDamageRange = damageInfo.damage * 2.0f;
 
-			float flDamage = RandomizeSkillValue(baseDamage) + (gpGlobals->time - m_chargeStartTime) * RandomizeSkillValue(damageFactor);
+			damageInfo.damage = damageInfo.damage + (gpGlobals->time - m_chargeStartTime) * RandomizeSkillValue(damageFactor);
 			const float maxDamage = RandomizeSkillValue(maxDamageRange);
-			if (flDamage > maxDamage) {
-				flDamage = maxDamage;
+			if (damageInfo.damage > maxDamage) {
+				damageInfo.damage = maxDamage;
 			}
-
-			DamageInfo damageInfo{flDamage, DMG_CLUB};
 
 			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, damageInfo, gpGlobals->v_forward, &tr);
 		}
@@ -3138,7 +3159,7 @@ public:
 		params.deploy.animIndex = MELEE_DRAW;
 
 		params.fire.fireType = WeaponParameters::Fire::MELEE;
-		params.fire.damage = 10;
+		params.fire.damageInfo.main.damage = 10;
 		params.fire.anims = {MELEE_ATTACK1MISS, MELEE_ATTACK2MISS, MELEE_ATTACK3MISS};
 		params.fire.hitAnims = {MELEE_ATTACK2HIT, MELEE_ATTACK3HIT};
 		params.fire.sound = {
@@ -3215,7 +3236,7 @@ public:
 		};
 
 		params.fire.fireType = WeaponParameters::Fire::BULLETS;
-		params.fire.damage = 8;
+		params.fire.damageInfo.main.damage = 8;
 		params.fire.anims.main = {PISTOL_SHOOT};
 
 		params.fire.sound = {
@@ -3310,7 +3331,7 @@ public:
 		};
 
 		params.fire.fireType = WeaponParameters::Fire::BULLETS;
-		params.fire.damage = 8;
+		params.fire.damageInfo.main.damage = 8;
 		params.fire.anims.main = {SMG_FIRE1, SMG_FIRE2, SMG_FIRE3};
 
 		params.fire.sound = {
@@ -3433,7 +3454,7 @@ public:
 
 		// Primary fire
 		params.fire.fireType = WeaponParameters::Fire::BULLETS;
-		params.fire.damage = 5;
+		params.fire.damageInfo.main.damage = 5;
 		params.fire.anims.main = {SHOTGUN2_FIRE};
 
 		params.fire.sound = {
@@ -3536,7 +3557,7 @@ public:
 
 		// Primary fire
 		params.fire.fireType = WeaponParameters::Fire::BULLETS;
-		params.fire.damage = 40;
+		params.fire.damageInfo.main.damage = 40;
 		params.fire.anims.main = {SNIPER2_FIRE};
 
 		params.fire.sound = {

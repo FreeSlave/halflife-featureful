@@ -590,7 +590,7 @@ int DamageTypeFromJSON(const Value& value)
 	});
 }
 
-bool UpdateDamageInfoFromJson(DamageInfoUpdate &damageInfo, const rapidjson::Value &value)
+bool UpdateDamageInfoFromJson(DamageInfoPatch &damageInfo, const rapidjson::Value &value)
 {
 	if (!value.IsObject())
 		return false;
@@ -605,11 +605,11 @@ bool UpdateDamageInfoFromJson(DamageInfoUpdate &damageInfo, const rapidjson::Val
 		const char* typePolicyName = value.GetString();
 		if (strcmp(typePolicyName, "add") == 0)
 		{
-			damageInfo.typePolicy = DamageInfoUpdate::ADD_DAMAGE_TYPE;
+			damageInfo.typePolicy = DamageInfoPatch::ADD_DAMAGE_TYPE;
 		}
 		else if (strcmp(typePolicyName, "replace") == 0)
 		{
-			damageInfo.typePolicy = DamageInfoUpdate::REPLACE_DAMAGE_TYPE;
+			damageInfo.typePolicy = DamageInfoPatch::REPLACE_DAMAGE_TYPE;
 		}
 	});
 

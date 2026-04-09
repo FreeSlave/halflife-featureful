@@ -17,6 +17,7 @@
 
 #include "const_sound.h"
 #include "cone_degrees.h"
+#include "damageinfo.h"
 #include "shake.h"
 #include "shell_bounce.h"
 #include "visual_object.h"
@@ -550,7 +551,7 @@ struct WeaponParameters
 		};
 
 		WeaponModeValue<Type> fireType{NATIVE};
-		WeaponModeValueNonNegative<FloatRange> damage{0.0f};
+		WeaponModeValue<DamageInfoPatch> damageInfo;
 		WeaponModeValueNonNegative<FloatRange> damageChargedFactor{0.0f};
 		WeaponModeValueNonNegative<FloatRange> damageChargedMax{0.0f};
 		WeaponModeValueNonNegative<float> subsequentSwingFactor{1.0f};

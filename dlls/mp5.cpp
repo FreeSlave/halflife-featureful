@@ -95,7 +95,7 @@ WeaponParameters CMP5::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValueRange("plr_9mmAR_bullet");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_9mmAR_bullet");
 	params.fire.anims.main = {MP5_FIRE1, MP5_FIRE2, MP5_FIRE3};
 
 	params.fire.sound = {

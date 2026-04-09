@@ -503,7 +503,7 @@ public:
 	void EXPORT SUB_CallUseToggle() { this->Use( this, this, USE_TOGGLE, 0 ); }
 	bool ShouldToggle( USE_TYPE useType, bool currentState );
 	void FireBullets( unsigned int cShots, Vector  vecSrc, Vector	vecDirShooting,	Vector	vecSpread, float flDistance, float flDamage, int iTracerFreq = 4, entvars_t *pevAttacker = NULL  );
-	Vector FireBulletsPlayer( unsigned int cShots, Vector  vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, const FloatRange& flDamageRange, float flRangeModifier, int iTracerFreq = 4, entvars_t *pevAttacker = NULL, int shared_rand = 0 );
+	Vector FireBulletsPlayer( unsigned int cShots, Vector  vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, const DamageInfoPatch& damageInfoPatch, float flRangeModifier, int iTracerFreq = 4, entvars_t *pevAttacker = NULL, int shared_rand = 0 );
 
 	virtual CBaseEntity *Respawn() { return NULL; }
 

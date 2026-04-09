@@ -73,7 +73,7 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 	};
 
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
-	params.fire.damage = ::GetSkillValueRange("plr_crowbar");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_crowbar");
 	params.fire.subsequentSwingFactor = 0.5f;
 	params.fire.anims = {CROWBAR_ATTACK1MISS, CROWBAR_ATTACK2MISS, CROWBAR_ATTACK3MISS};
 	params.fire.hitAnims = {CROWBAR_ATTACK2HIT, CROWBAR_ATTACK3HIT};

@@ -201,6 +201,9 @@ const char* const json_schemas::weapons = R"(
 			},
 			{
 				"$ref": "definitions.json#/range"
+			},
+			{
+				"$ref": "definitions.json#/damage_info"
 			}
 		]
 	},

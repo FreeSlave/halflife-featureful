@@ -80,7 +80,7 @@ WeaponParameters CShotgun::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValueRange("plr_buckshot");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_buckshot");
 	params.fire.anims.main = {SHOTGUN_FIRE};
 
 	params.fire.sound = {

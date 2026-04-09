@@ -760,12 +760,65 @@ If this is set to 0 the cycle time for hits is evaluated as: `min(cycle_time * 0
 
 ### damage
 
-The amount of damage the weapon deals per bullet, melee hit or the amount of damage the fired projectile can deal.
+The damage the weapon deals per bullet, melee hit or the amount of damage the fired projectile can deal.
 
-This can be either a number (e.g. `8`), the name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`) or [range]({{< ref "json/#range" >}}) (e.g. `[10,15]` - in this case the damage will be randomized on each fire).
+This can be:
+
+* A single number (e.g. `8`).
+* A [range]({{< ref "json/#range" >}}) (e.g. `[10,15]` - in this case the damage will be randomized on each fire).
+* The name of a [skill variable]({{< ref "skill-variables" >}}) (e.g. `"sk_plr_357_bullet"`).
+* [damage info]({{< ref "entity-templates/#damage_info" >}}) - allows to set other parameters besides the amount of damage, like type and gib policy.
+
+Example:
+
+```json
+{
+    "weapon_smg": {
+        "fire": {
+            "damage": 6
+        }
+    },
+    "weapon_rifle": {
+        "fire": {
+            "damage": [8, 10]
+        }
+    },
+    "weapon_pistol": {
+        "fire": {
+            "damage": "plr_9mm_bullet"
+        }
+    },
+    "weapon_knife": {
+        "alt_fire": {
+            "damage": {
+                "gib": "never",
+                "type": ["sonic"],
+                "type_policy": "replace"
+            }
+        }
+    },
+    "weapon_357": {
+        "fire": {
+            "damage": {
+                "damage": 30,
+                "type": ["burn"],
+                "gib": "normal"
+            }
+        }
+    }
+}
+```
+
+{{% hint info %}}
+If the fire type is `"bullet"`, the damage type is automatically set to `"bullet"`. It the fire type is `"melee"`, the damage type is automatically set to `"club"`. If you want to replace the damage type, use damage info with `"type_policy"` set to `"replace"`.
+{{% /hint %}}
 
 {{% hint warning %}}
 For [projectile](#projectile) weapons the exact meaning of damage value depends on the projectile type: for some it's an impact damage, for some it's a damage of explosion, meaning some damage values can't be set yet - for example hand grenade direct impact damage or voltigore's charged bolt damage dealt to surrounding entities over its flight.
+{{% /hint %}}
+
+{{% hint warning %}}
+Custom properties like damage type currently won't apply to projectile attacks - only custom damage value will work.
 {{% /hint %}}
 
 {{% hint info %}}

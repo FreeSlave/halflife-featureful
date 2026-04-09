@@ -88,7 +88,7 @@ WeaponParameters CUzi::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValueRange("plr_uzi");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_uzi");
 	params.fire.anims.main = {UZI_SHOOT};
 
 	params.fire.sound = {

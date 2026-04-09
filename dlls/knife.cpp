@@ -76,7 +76,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 	// Primary attack
 	params.fire.fireType = WeaponParameters::Fire::MELEE;
-	params.fire.damage = ::GetSkillValueRange("plr_knife");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_knife");
 	params.fire.subsequentSwingFactor = 1.0f;
 	params.fire.anims = {KNIFE_ATTACK1MISS, KNIFE_ATTACK2, KNIFE_ATTACK3};
 	params.fire.hitAnims = {KNIFE_ATTACK2HIT, KNIFE_ATTACK3HIT};
@@ -109,7 +109,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 
 	// Alt attack
 	params.fire.fireType.alt = WeaponParameters::Fire::MELEE;
-	params.fire.damage.alt = ::GetSkillValueRange("plr_knife_stab_base");
+	params.fire.damageInfo.Materialize(true).damage = ::GetSkillValueRange("plr_knife_stab_base");
 	params.fire.damageChargedFactor.alt = ::GetSkillValueRange("plr_knife_stab_factor");
 	params.fire.damageChargedMax.alt = ::GetSkillValueRange("plr_knife_stab_max");
 	params.fire.chargedAttack.alt = true;

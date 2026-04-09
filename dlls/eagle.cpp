@@ -89,7 +89,7 @@ WeaponParameters CEagle::GetDefaultParameters() const
 
 	// Primary fire
 	params.fire.fireType = WeaponParameters::Fire::BULLETS;
-	params.fire.damage = ::GetSkillValueRange("plr_eagle");
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_eagle");
 	params.fire.anims.main = {EAGLE_SHOOT};
 	params.fire.anims.mainEmptied = {EAGLE_SHOOT_EMPTY};
 

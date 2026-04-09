@@ -109,6 +109,6 @@ bool UpdateAttenuationFromJson(float& attn, const rapidjson::Value& jsonValue);
 void UpdatePlayerShake(PlayerShake& shake, const rapidjson::Value& value);
 
 int DamageTypeFromJSON(const rapidjson::Value& value);
-bool UpdateDamageInfoFromJson(DamageInfoUpdate &damageInfo, const rapidjson::Value &value);
+bool UpdateDamageInfoFromJson(DamageInfoPatch &damageInfo, const rapidjson::Value &value);
 
 #endif

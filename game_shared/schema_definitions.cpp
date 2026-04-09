@@ -29,6 +29,7 @@ const char* const json_schemas::definitions = R"(
 				"type": "number"
 			}
 		},
+		"required": ["min", "max"],
 		"additionalProperties": false,
 		"items": {
 			"type": "number"
@@ -50,6 +51,7 @@ const char* const json_schemas::definitions = R"(
 				"minimum": 0
 			}
 		},
+		"required": ["min", "max"],
 		"additionalProperties": false,
 		"items": {
 			"type": "number",
@@ -69,6 +71,7 @@ const char* const json_schemas::definitions = R"(
 				"type": "integer"
 			}
 		},
+		"required": ["min", "max"],
 		"additionalProperties": false,
 		"items": {
 			"type": "integer"
@@ -90,6 +93,7 @@ const char* const json_schemas::definitions = R"(
 				"minimum": 0
 			}
 		},
+		"required": ["min", "max"],
 		"additionalProperties": false,
 		"items": {
 			"type": "integer",
@@ -417,7 +421,7 @@ const char* const json_schemas::definitions = R"(
 		"type": "object",
 		"properties": {
 			"damage": {
-				"$ref": "#/range"
+				"$ref": "#/range_non_negative"
 			},
 			"type": {
 				"$ref": "#/string_set"

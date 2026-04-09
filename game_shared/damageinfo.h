@@ -60,7 +60,7 @@ struct DamageInfo
 	}
 };
 
-struct DamageInfoUpdate
+struct DamageInfoPatch
 {
 	enum
 	{
@@ -74,10 +74,14 @@ struct DamageInfoUpdate
 	tribool nonLethal;
 	tribool ignoreArmor;
 	optional<int> gibPolicy;
+
+	inline FloatRange GetDamageRange() const {
+		return damage.has_value() ? *damage : FloatRange();
+	}
 };
 
 int ParseDamageType(const char *type);
 
-void UpdateDamageInfoFromTemplate(DamageInfo& curDamageInfo, const DamageInfoUpdate& damageInfo);
+void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
 
 #endif

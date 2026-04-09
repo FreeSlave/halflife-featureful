@@ -382,6 +382,40 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				}
 			});
 
+			auto UpdateWeaponDamageInfo = [&](DamageInfoPatch& result, const Value& value)
+			{
+				if (value.IsObject())
+				{
+					auto minIt = value.FindMember("min");
+					if (minIt != value.MemberEnd())
+					{
+						result.damage = FloatRangeFromJSON(value);
+						return;
+					}
+					else
+					{
+						UpdateDamageInfoFromJson(result, value);
+						return;
+					}
+				}
+				if (value.IsNumber() || value.IsArray())
+				{
+					result.damage = FloatRangeFromJSON(value);
+				}
+				else if (value.IsString())
+				{
+					const char* str = value.GetString();
+					if (strchr(str, ',') != nullptr)
+					{
+						result.damage = FloatRangeFromJSON(value);
+					}
+					else
+					{
+						result.damage = GetSkillValueRange(value.GetString());
+					}
+				}
+			};
+
 			auto ParseWeaponDamage = [&](const Value& value)
 			{
 				FloatRange result;
@@ -405,7 +439,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			};
 
 			HandleJSONMember(value, "damage", [&](const Value& value) {
-				fire.damage.Materialize(altMode) = ParseWeaponDamage(value);
+				UpdateWeaponDamageInfo(fire.damageInfo.Materialize(altMode), value);
 			});
 
 			HandleJSONMember(value, "damage_charged_factor", [&](const Value& value) {

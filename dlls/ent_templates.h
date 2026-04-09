@@ -234,7 +234,7 @@ public:
 		bool heightIsFactor = false;
 		PunchAngle punchAngle;
 		Knock knock;
-		DamageInfoUpdate damageInfo;
+		DamageInfoPatch damageInfo;
 		tribool spawnBlood;
 
 		std::string hitSoundScript;
@@ -243,7 +243,7 @@ public:
 
 	struct TouchAttack
 	{
-		DamageInfoUpdate damageInfo;
+		DamageInfoPatch damageInfo;
 	};
 
 	struct TraceAttackRule

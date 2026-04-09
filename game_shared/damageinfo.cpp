@@ -79,7 +79,7 @@ int ParseDamageType(const char *type)
 	return -1;
 }
 
-void UpdateDamageInfoFromTemplate(DamageInfo& curDamageInfo, const DamageInfoUpdate& damageInfo)
+void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo)
 {
 	if (damageInfo.damage)
 	{
@@ -87,11 +87,11 @@ void UpdateDamageInfoFromTemplate(DamageInfo& curDamageInfo, const DamageInfoUpd
 	}
 	if (damageInfo.type)
 	{
-		if (damageInfo.typePolicy == DamageInfoUpdate::ADD_DAMAGE_TYPE)
+		if (damageInfo.typePolicy == DamageInfoPatch::ADD_DAMAGE_TYPE)
 		{
 			curDamageInfo.type |= *damageInfo.type;
 		}
-		else if (damageInfo.typePolicy == DamageInfoUpdate::REPLACE_DAMAGE_TYPE)
+		else if (damageInfo.typePolicy == DamageInfoPatch::REPLACE_DAMAGE_TYPE)
 		{
 			curDamageInfo.type = *damageInfo.type;
 		}
