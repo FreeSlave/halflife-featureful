@@ -71,9 +71,10 @@ struct DamageInfoPatch
 	optional<FloatRange> damage;
 	optional<int> type;
 	int typePolicy = ADD_DAMAGE_TYPE;
+	optional<int> gibPolicy;
 	tribool nonLethal;
 	tribool ignoreArmor;
-	optional<int> gibPolicy;
+	tribool noBlood;
 
 	inline FloatRange GetDamageRange() const {
 		return damage.has_value() ? *damage : FloatRange();

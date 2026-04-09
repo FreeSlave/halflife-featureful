@@ -1351,6 +1351,7 @@ This type describes the damage data. It consists of the following properties:
     - `"add"` - add types to the default or inherited ones. This is default value.
 * `"nonlethal"` - a boolean that marks damage as non lethal. It can do damage, but can't kill a target.
 * `"ignore_armor"` - a boolean that makes damage to ignore armor (currently only players have armor).
+* `"no_blood"` - if set to `true`, this damage can't make the target bleed.
 * `"gib"` - whether damage is set to force gibbing. Possible values:
     - `"always"` - always gib.
     - `"never"` - never gib.

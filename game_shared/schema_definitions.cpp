@@ -435,6 +435,9 @@ const char* const json_schemas::definitions = R"(
 			"ignore_armor": {
 				"type": "boolean"
 			},
+			"no_blood": {
+				"type": "boolean"
+			},
 			"gib": {
 				"enum": ["always", "never", "normal"]
 			}

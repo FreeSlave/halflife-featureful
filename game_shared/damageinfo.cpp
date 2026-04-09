@@ -98,11 +98,15 @@ void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& dama
 	}
 	if (!indeterminate(damageInfo.nonLethal))
 	{
-		curDamageInfo.nonLethal = (bool)damageInfo.nonLethal;
+		curDamageInfo.SetNonLethal((bool)damageInfo.nonLethal);
 	}
 	if (!indeterminate(damageInfo.ignoreArmor))
 	{
-		curDamageInfo.ignoreArmor = (bool)damageInfo.ignoreArmor;
+		curDamageInfo.SetIgnoreArmor((bool)damageInfo.ignoreArmor);
+	}
+	if (!indeterminate(damageInfo.noBlood))
+	{
+		curDamageInfo.SetNoBlood((bool)damageInfo.noBlood);
 	}
 	if (damageInfo.gibPolicy)
 	{

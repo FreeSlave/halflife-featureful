@@ -615,6 +615,7 @@ bool UpdateDamageInfoFromJson(DamageInfoPatch &damageInfo, const rapidjson::Valu
 
 	UpdatePropertyFromJson(damageInfo.nonLethal, value, "nonlethal");
 	UpdatePropertyFromJson(damageInfo.ignoreArmor, value, "ignore_armor");
+	UpdatePropertyFromJson(damageInfo.noBlood, value, "no_blood");
 
 	HandleJSONMember(value, "gib", [&](const Value& value) {
 		damageInfo.gibPolicy = ParseGibPolicy(value.GetString());
