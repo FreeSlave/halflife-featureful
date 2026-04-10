@@ -3739,6 +3739,10 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 
 	ALERT(level, "Illumination: %d. ", GETENTITYILLUM(edict()));
 
+	ALERT(level, "On ground: %s. ", FBitSet(pev->flags, FL_ONGROUND) ? "yes" : "no");
+	if (pev->groundentity)
+		ALERT(level, "Ground entity: %s (%d). ", STRING(pev->groundentity->v.classname), ENTINDEX(pev->groundentity));
+
 	const char* targetForGrapple = nullptr;
 	switch (SizeForGrapple()) {
 	case GRAPPLE_NOT_A_TARGET:
