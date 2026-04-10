@@ -692,7 +692,8 @@ The object that redefines the parameters for the monster's touch attack. Current
         "touch_attack": {
             "damage_info": {
                 "type": "poison"
-            }
+            },
+            "spawn_blood": true
         }
     }
 }
@@ -702,6 +703,7 @@ The object that redefines the parameters for the monster's touch attack. Current
 Properties:
 
 * `"damage_info"` - [damage info](#damage_info) type. This allows to change the damage type of the attack and other damage characteristics.
+* `"spawn_blood"` - a boolean denoting whether the touch attack should make the hit target bleed (if it can) if damage has been dealt.
 
 ### take_damage
 

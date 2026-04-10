@@ -1181,11 +1181,15 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	});
 
 	HandleJSONMember(value, "touch_attack", [&entTemplate, this](const Value& value) {
-		HandleJSONMember(value, "damage_info", [&entTemplate](const Value& value) {
-			auto touchAttack = entTemplate.GetTouchAttack();
+		auto touchAttack = entTemplate.GetTouchAttack();
+
+		HandleJSONMember(value, "damage_info", [&touchAttack](const Value& value) {
 			UpdateDamageInfoFromJson(touchAttack.damageInfo, value);
-			entTemplate.SetTouchAttack(touchAttack);
 		});
+
+		UpdatePropertyFromJson(touchAttack.spawnBlood, value, "spawn_blood");
+
+		entTemplate.SetTouchAttack(touchAttack);
 	});
 
 	HandleJSONMember(value, "take_damage", [&entTemplate](const Value& value) {

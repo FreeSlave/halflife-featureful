@@ -53,6 +53,7 @@ struct TraceHullAttackParams
 struct TouchAttackParams
 {
 	DamageInfo damageInfo{0.0f, DMG_SLASH};
+	bool spawnBlood = false;
 };
 
 //

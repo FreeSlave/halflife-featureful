@@ -1413,12 +1413,41 @@ void CBaseMonster::SetTouchAttackFromTemplate(TouchAttackParams& params)
 	{
 		const EntTemplate::TouchAttack attack = entTemplate->GetTouchAttack();
 		ApplyDamageInfoPatch(params.damageInfo, attack.damageInfo);
+		if (!indeterminate(attack.spawnBlood))
+		{
+			params.spawnBlood = (bool)attack.spawnBlood;
+		}
 	}
 }
 
 void CBaseMonster::PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther)
 {
-	pOther->TakeDamage(pev, pev, params.damageInfo);
+	TakeDamageResult takeDamageResult = pOther->TakeDamage(pev, pev, params.damageInfo);
+
+	if (params.spawnBlood && takeDamageResult.TookDamageToHealth())
+	{
+		const int bloodColor = pOther->BloodColor();
+		if (bloodColor != DONT_BLEED)
+		{
+			// Try find a fitting spot for a blood
+			const float distance = pev->size.x * 1.5f;
+
+			const Vector vecVelocityBased = pev->velocity.Normalize();
+			const Vector vecEnemyBased = (pOther->Center() - Center()).Normalize();
+
+			const Vector vecCheckDir = ((vecVelocityBased + vecEnemyBased) * 0.5f).Normalize();
+
+			TraceResult tr;
+			const Vector traceStart = pev->origin + Vector(0, 0, 1);
+			const Vector traceEnd = traceStart + vecCheckDir * distance;
+			UTIL_TraceLine(traceStart, traceEnd, dont_ignore_monsters, edict(), &tr);
+
+			if (tr.pHit == pOther->edict())
+			{
+				SpawnBlood(tr.vecEndPos, bloodColor, 25);
+			}
+		}
+	}
 }
 
 //=========================================================

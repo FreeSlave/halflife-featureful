@@ -244,6 +244,7 @@ public:
 	struct TouchAttack
 	{
 		DamageInfoPatch damageInfo;
+		tribool spawnBlood;
 	};
 
 	struct TraceAttackRule

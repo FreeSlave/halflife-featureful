@@ -894,6 +894,9 @@ R"(
 				"properties": {
 					"damage_info": {
 						"$ref": "#/damage_info"
+					},
+					"spawn_blood": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false
