@@ -88,11 +88,7 @@ Some Half-Life behavior aspects were changed from vanilla to better alternatives
 * `sentry_retract`
 * Some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default.
 
-There're also some cvars that you might be interested in changing in [featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg):
-
-* `npc_forget_enemy_time`
-* `npc_tridepth`
-* `npc_active_after_combat`
+There're also some [cvars]({{< ref "cvars/#server-cvars" >}}) that you might be interested in changing in [featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg).
 
 Be mindful when deciding on what custom weapons and monsters should be enabled in your mod. Featureful SDK provides many new weapons and monsters, but it's not the reason to throw all of them into your mod! First think of what actually belongs to the campaign you're making. It's better to utilize less to its full extent instead of turning your mod into a zoo.
 

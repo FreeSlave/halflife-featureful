@@ -753,7 +753,7 @@ cvar_t npc_fix_melee_distance = { "npc_fix_melee_distance", "0", FCVAR_SERVER };
 #endif
 cvar_t npc_active_after_combat = { "npc_active_after_combat", "0", FCVAR_SERVER };
 cvar_t npc_combat_fail_schedule = { "npc_combat_fail_schedule", "0", FCVAR_SERVER };
-cvar_t npc_lateral_retreat = { "npc_lateral_retreat", "0", FCVAR_SERVER };
+cvar_t npc_lateral_retreat = { "npc_lateral_retreat", "1", FCVAR_SERVER };
 cvar_t npc_follow_out_of_pvs = { "npc_follow_out_of_pvs", "1", FCVAR_SERVER };
 cvar_t npc_patrol = { "npc_patrol", "1", FCVAR_SERVER };
 cvar_t npc_vanilla_kick_behavior = { "npc_vanilla_kick_behavior", "0", FCVAR_SERVER };
