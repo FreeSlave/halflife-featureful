@@ -139,6 +139,7 @@ set (CLDLL_SOURCES
 	nightvision.cpp
 	objecthint_manager.cpp
 	parsemsg.cpp
+	quake_palette.cpp
 	../pm_shared/pm_debug.cpp
 	../pm_shared/pm_math.cpp
 	../pm_shared/pm_shared.cpp

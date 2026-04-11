@@ -38,6 +38,7 @@
 #include "weapon_ids.h"
 #include "weapon_parameters.h"
 #include "util_shared.h"
+#include "clamp.h"
 
 extern const WeaponParameters& GetWeaponParameters(int id);
 
@@ -179,12 +180,76 @@ char *EV_HLDM_DamageDecal( physent_t *pe )
 	return decalname;
 }
 
-void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
+extern Vector v_origin;
+
+void ImpactParticles(const Vector& pos, int baseColor)
+{
+	constexpr int maxDistance = 1000;
+	constexpr int maxColorVariance = 3;
+	constexpr int maxBaseQuantity = 10;
+
+	int dist = (int)(pos - v_origin).Length();
+
+	int quantity = (maxDistance - dist + 80) / 100;
+	quantity = clamp(quantity, 1, maxBaseQuantity);
+
+	int color = baseColor;
+
+	if (baseColor < 224)
+	{
+		int darkener = (maxColorVariance * maxBaseQuantity * quantity) / 100;
+		darkener = clamp(darkener, 0, maxColorVariance);
+
+		int shift = darkener - 2;
+
+		if (baseColor >= 0 && baseColor <= 127)
+			shift = -shift;
+
+		const int palColumn = baseColor % 16;
+		const int palRow = baseColor / 16;
+
+		if (palColumn + shift >= 16)
+		{
+			color = palRow * 16 + 15;
+		}
+		else if (palColumn + shift < 0)
+		{
+			color = palRow * 16;
+		}
+		else
+		{
+			color += shift;
+		}
+	}
+
+	//gEngfuncs.Con_Printf("ImpactParticles: base index: %d. Result: %d. Dist: %d\n", baseColor, color, dist);
+
+	for (int i = 0; i < quantity * 4; i++)
+	{
+		particle_t	*p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+		if (!p) return;
+
+		p->org = pos;
+
+		p->vel[0] = Com_RandomFloat( -1.0f, 1.0f );
+		p->vel[1] = Com_RandomFloat( -1.0f, 1.0f );
+		p->vel[2] = Com_RandomFloat( -1.0f, 1.0f );
+
+		p->vel = p->vel * Com_RandomFloat( 50.0f, 100.0f );
+
+		p->die = gEngfuncs.GetClientTime() + 0.5f;
+		p->color = color;
+		p->type = pt_grav;
+	}
+}
+
+void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName, int particleColorIndex )
 {
 	int iRand;
 	physent_t *pe;
 
-	gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
+	ImpactParticles(pTrace->endpos, particleColorIndex);
+	gEngfuncs.pEfxAPI->R_SparkStreaks(pTrace->endpos, 2, -200, 200);
 
 	iRand = gEngfuncs.pfnRandomLong( 0, 0x7FFF );
 	if( iRand < ( 0x7fff / 2 ) )// not every bullet makes a sound.
@@ -368,9 +433,15 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, char cTextureType = 0, bool isSky 
 
 	if( pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP ) )
 	{
-		EV_HLDM_GunshotDecalTrace( pTrace, EV_HLDM_DamageDecal( pe ) );
-
 		const MaterialData* mData = g_MaterialRegistry.GetMaterialDataWithFallback(cTextureType);
+
+		int impactParticleColorIndex = g_MaterialRegistry.GetDefaultImpactParticleColorIndex();
+		if (mData && mData->hit.impactParticleColorIndex.has_value())
+		{
+			impactParticleColorIndex = *mData->hit.impactParticleColorIndex;
+		}
+
+		EV_HLDM_GunshotDecalTrace(pTrace, EV_HLDM_DamageDecal( pe ), impactParticleColorIndex);
 
 		if( mData && mData->hit.allowWeaponSparks && gHUD.WeaponSparksEnabled() )
 		{

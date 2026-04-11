@@ -55,12 +55,14 @@ Example:
                 "volume_bar": 0.1,
                 "volume": 0.7,
                 "attenuation": 1.25,
-                "wallpuff_color": [90, 80, 70]
+                "wallpuff_color": [90, 80, 70],
+                "impact_particle_color": [90, 80, 70]
             }
         }
     },
     "wallpuff_color": [100, 100, 100],
-    "wallpuff_alpha": [200, 250]
+    "wallpuff_alpha": [200, 250],
+    "impact_particle_color": [90, 90, 90]
 }
 ```
 
@@ -83,6 +85,7 @@ The root object can have the following properties:
     - The only materials that set their own color by default are concrete (`C`) and wood (`W`). If custom `wallpuff_color` is set, these materials will adjust their default colors accordingly, but you may still want to set a custom color specifically for a material, especially for wood, since it may get weird color when adjusted.
     - The sprites with `SPR_INDEXALPHA` texture format usually require setting a custom wallpuff color, as the default one would be too dark for them.
 * `wallpuff_alpha` - the [range]({{< ref "json/#range_int" >}}) of wallpuff alpha value. The default value is `[120, 180]`. The higher the values the brighter the wallpuffs.
+* `impact_particle_color` - the default color of impact particles (usually from bullet impact) for all materials that don't define its own color. Note that the resulting color may not match exactly the one you provided as native engine particles support colors only from the internal palette (inherited from Quake). You may use color picking on [quake palette](https://quakewiki.org/wiki/Quake_palette) to get the exact available RGB-values. Default value is almost pitch-black.
 
 ### materials
 
@@ -116,6 +119,7 @@ The `hit` entry has the following properties:
 * `allow_weapon_sparks` - a boolean value defining whether the bullet impact streaks/sparks are allowed to spawn when hitting this material. `true` by default. Out of the predefined material the wood (**W**) has set it to `false`.
 * `play_sparks` - a boolean value defining whether the spark effect and sound should sometimes play when the material is hit. `false` by default. Out of the predefined materials the computer (**P**) has set it to `true`, so when you hit the computer screen the spark is produced sometimes.
 * `wallpuff_color` - the custom color of the wallpuff produced.
+* `impact_particle_color` - the color of impact particles (usually from bullet impact). Same as top-level property, but for a certain material.
 
 ### ladder_step and wade_step
 

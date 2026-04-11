@@ -6,6 +6,7 @@
 #include "min_and_max.h"
 #include "fixed_string.h"
 #include "fixed_vector.h"
+#include "optional.h"
 #include "template_property_types.h"
 #include "json_config.h"
 #include <cstddef>
@@ -65,6 +66,8 @@ struct MaterialHitData
 	void SetWaves(std::initializer_list<const char *> sounds) {
 		waves = sounds;
 	}
+
+	optional<int> impactParticleColorIndex;
 };
 
 struct MaterialData
@@ -105,6 +108,9 @@ public:
 	inline IntRange GetWallpuffAlphaRange() const {
 		return _wallpuffAlpha;
 	}
+	inline int GetDefaultImpactParticleColorIndex() const {
+		return _impactParticleColorIndex;
+	}
 
 	void DumpMaterials() const;
 	void DumpMaterial(char c) const;
@@ -124,6 +130,7 @@ private:
 	char _sloshMaterial;
 	char _fleshMaterial;
 	IntRange _wallpuffAlpha{120, 180};
+	int _impactParticleColorIndex{1};
 };
 
 extern MaterialRegistry g_MaterialRegistry;

@@ -35,6 +35,7 @@
 #include "environment.h"
 #include "error_collector.h"
 #include "tex_materials.h"
+#include "quake_palette.h"
 
 extern bool m_bCacheFullbrightModels;
 
@@ -630,6 +631,24 @@ void GetTranslatedMessage()
 		gEngfuncs.Con_Printf("No message with id \"%s\"\n", msgId);
 }
 
+void ShowClosestPaletteColor()
+{
+	if (gEngfuncs.Cmd_Argc() <= 3)
+	{
+		gEngfuncs.Con_Printf("usage: %s R G B\n", gEngfuncs.Cmd_Argv(0));
+		return;
+	}
+
+	const int r = atoi(gEngfuncs.Cmd_Argv(1));
+	const int g = atoi(gEngfuncs.Cmd_Argv(2));
+	const int b = atoi(gEngfuncs.Cmd_Argv(3));
+
+	const int colorIndex = ClosestPaletteColorIndex(Color3(r, g, b));
+
+	gEngfuncs.Con_Printf("%d (%d, %d, %d)\n", colorIndex,
+						(int)quakePalette[colorIndex * 3], (int)quakePalette[colorIndex * 3 + 1], (int)quakePalette[colorIndex * 3 + 2]);
+}
+
 void CHud::ParseModConfigs()
 {
 	g_errorCollector.Clear();
@@ -866,6 +885,7 @@ void CHud::Init()
 
 	gEngfuncs.pfnAddCommand("dump_ammo_types_client", ReportRegisteredAmmoTypes);
 	gEngfuncs.pfnAddCommand("get_message", GetTranslatedMessage);
+	gEngfuncs.pfnAddCommand("closest_palette_color", ShowClosestPaletteColor);
 	gEngfuncs.pfnAddCommand("give_inventory", nullptr);
 	gEngfuncs.pfnAddCommand("remove_inventory", nullptr);
 	gEngfuncs.pfnAddCommand("give", nullptr);

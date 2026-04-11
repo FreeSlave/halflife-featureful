@@ -7,6 +7,10 @@
 #include "clamp.h"
 #include <cstring>
 
+#if CLIENT_DLL
+#include "quake_palette.h"
+#endif
+
 const char materialsSchema[] = R"(
 {
 	"type": "object",
@@ -89,6 +93,9 @@ const char materialsSchema[] = R"(
 				},
 				"wallpuff_color": {
 					"$ref": "definitions.json#/color"
+				},
+				"impact_particle_color": {
+					"$ref": "definitions.json#/color"
 				}
 			},
 			"additionalProperties": false
@@ -137,7 +144,10 @@ const char materialsSchema[] = R"(
 			"$ref": "definitions.json#/color"
 		},
 		"wallpuff_alpha": {
-			"$ref": "definitions.json#/range_int"
+			"$ref": "definitions.json#/range_int_non_negative"
+		},
+		"impact_particle_color": {
+			"$ref": "definitions.json#/color"
 		}
 	}
 }
@@ -424,6 +434,14 @@ bool MaterialRegistry::ReadFromDocument(const rapidjson::Document& document, con
 		_wallpuffAlpha.max = clamp(_wallpuffAlpha.max, 0, 255);
 	}
 
+	Color3 defaultImpactParticleColor;
+	if (UpdatePropertyFromJson(defaultImpactParticleColor, document, "impact_particle_color"))
+	{
+#if CLIENT_DLL
+		_impactParticleColorIndex = ClosestPaletteColorIndex(defaultImpactParticleColor);
+#endif
+	}
+
 	auto materialsIt = document.FindMember("materials");
 	if (materialsIt != document.MemberEnd())
 	{
@@ -477,6 +495,14 @@ bool MaterialRegistry::ReadFromDocument(const rapidjson::Document& document, con
 					UpdatePropertyFromJson(data.hit.allowWeaponSparks, hitJsonValue, "allow_weapon_sparks");
 					UpdatePropertyFromJson(data.hit.playSparks, hitJsonValue, "play_sparks");
 					UpdatePropertyFromJson(data.hit.wallpuffColor, hitJsonValue, "wallpuff_color");
+
+					Color3 impactParticleColor;
+					if (UpdatePropertyFromJson(impactParticleColor, hitJsonValue, "impact_particle_color"))
+					{
+#if CLIENT_DLL
+						data.hit.impactParticleColorIndex = ClosestPaletteColorIndex(impactParticleColor);
+#endif
+					}
 				}
 			}
 
