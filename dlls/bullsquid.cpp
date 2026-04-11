@@ -230,7 +230,7 @@ void CSquidToxicSpit::Animate()
 		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
 			if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
 				if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetNonLethal().SetIgnoreArmor());
+					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor());
 				}
 			}
 		}
@@ -314,7 +314,7 @@ void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SQUIDSPIT_TOXIC_SPIT, params);
 	SetMyProjectileEffectFlags();
-	SetThink(&CSquidSpit::Animate);
+	SetThink(&CSquidToxicSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
