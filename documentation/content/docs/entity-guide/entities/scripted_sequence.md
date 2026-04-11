@@ -41,6 +41,8 @@ bookToC: false
 * `Don't reset head turn`. When monster is talking to someone else, the monster turns its head to the listener. By default playing `scripted_sequence` on the monster resets the head turn. Use this flag to avoid such behavior.
 * `Force idle looping` for force idle animation looping even if it doesn't have a loop flag.
 * `Remove on interruption`. This flag is useful in scripts with idle animation to ensure that the script won't be activated by some external trigger again after it was interrupted by damage dealt to the possessed monster (which could lead to weird situations like monster starting playing the idle animation again).
+* `Don't Drop to Floor` - don't try instantly dropping the monster to floor after the sequence has finished. The monster still may naturally fall due to gravity after that.
+* `Allow stuck` - allow monster being stuck after the sequence has done (if the animation included some movement, e.g. some jump/leap sequence). Otherwise in case of becoming stuck the monster will just get teleported to its position before the animation.
 
 ### Bugfixes
 

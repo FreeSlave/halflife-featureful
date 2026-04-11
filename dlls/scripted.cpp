@@ -954,7 +954,7 @@ void ScriptEntityCancel( edict_t *pentCine, int cancellationReason )
 			}
 		}
 
-		if (cancellationReason && FBitSet(pCineTarget->pev->spawnflags, SF_REMOVE_ON_INTERRUPTION))
+		if (cancellationReason && FBitSet(pCineTarget->pev->spawnflags, SF_SCRIPT_REMOVE_ON_INTERRUPTION))
 		{
 			pCineTarget->SetThink(&CBaseEntity::SUB_Remove);
 			pCineTarget->pev->nextthink = gpGlobals->time;
@@ -1175,18 +1175,44 @@ bool CBaseMonster::CineCleanup()
 				pev->ideal_yaw = UTIL_AngleMod( pev->angles.y );
 			}
 
-			pev->flags |= FL_ONGROUND;
-			int drop = DROP_TO_FLOOR( ENT( pev ) );
-
-			// Origin in solid?  Set to org at the end of the sequence
-			if( drop < 0 )
-				pev->origin = oldOrigin;
-			else if( drop == 0 ) // Hanging in air?
+			if (FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_DONT_DROP_TO_FLOOR))
 			{
-				pev->origin.z = new_origin.z;
-				pev->flags &= ~FL_ONGROUND;
+				TraceResult tr;
+				TRACE_MONSTER_HULL(edict(), pev->origin, pev->origin, dont_ignore_monsters, edict(), &tr);
+
+				if (tr.fAllSolid)
+				{
+					if (!FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_ALLOW_STUCK))
+						pev->origin = oldOrigin;
+					else
+						pev->origin.z = new_origin.z;
+				}
+				else
+				{
+					pev->origin.z = new_origin.z;
+					pev->flags &= ~FL_ONGROUND;
+				}
 			}
-			// else entity hit floor, leave there
+			else
+			{
+				pev->flags |= FL_ONGROUND;
+				int drop = DROP_TO_FLOOR( ENT( pev ) );
+
+				// Origin in solid?  Set to org at the end of the sequence
+				if (drop < 0)
+				{
+					if (!FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_ALLOW_STUCK))
+						pev->origin = oldOrigin;
+					else
+						pev->origin.z = new_origin.z;
+				}
+				else if (drop == 0) // Hanging in air?
+				{
+					pev->origin.z = new_origin.z;
+					pev->flags &= ~FL_ONGROUND;
+				}
+				// else entity hit floor, leave there
+			}
 
 			// pEntity->pev->origin.z = new_origin.z + 5.0; // damn, got to fix this
 

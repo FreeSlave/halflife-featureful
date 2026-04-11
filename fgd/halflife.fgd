@@ -1198,6 +1198,8 @@
 		8192: "Don't reset head turn" : 0 : "Don't reset head turn for talk monsters"
 		16384: "Force idle animation looping" : 0 : "Force idle animation looping. Use it when you want to loop an animation that does not have a loop flag"
 		32768: "Remove on interruption" : 0 : "Remove scripted sequence when it's getting interrupted"
+		65536: "Don't Drop to Floor" : 0 : "Don't try instantly dropping the monster to floor after the sequence has finished (the monster still may naturally fall due to gravity after that)"
+		131072: "Allow stuck" : 0 : "Allow monster being stuck after the sequence has done (if the animation included some movement). Otherwise the monster will just get teleported to its position before the animation."
 	]
 	m_targetActivator(choices) : "Activator for targets" : : "Activator for Target, Fire after moving, Fire on Animation start" =
 	[
