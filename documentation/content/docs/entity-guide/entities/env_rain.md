@@ -30,6 +30,12 @@ The way how the particles are lit depends on the light mode parameter:
 * `Light color affects color` - the resulting particle color will be mixed with color of the surrounding light.
 * `Light intensity affects color` - the resulting particle color will be scaled by the surrounding light intensity (sum of color components).
 
+{{% hint info %}}
+Rainsplashes and ripples use `Light intensity affects color` by default. Set the corresponding parameters to `Light doesn't affect color` to ensure the effects are clearly visible even in dim light.
+
+Alternatively you can also set some high brightness value.
+{{% /hint %}}
+
 Raindrops and windpuffs are affected by a global wind. The wind changes its strength and direction randomly. There's currently no way to configure the wind (will be implemented later).
 
 {{% hint info %}}
@@ -52,12 +58,13 @@ Various parameters available for the visual effects configuration.
 
 * `Start Active` - whether the rain starts automatically at the start of the map. Unnamed rains are always active.
 * `Allow indoor` - tick this flag to allow raindrops appear in the indoor areas tick (that will make it look like raindrops appear from the ceiling). By default raindrops appear only under the sky.
-* `Raindrops not affected by wind`
-* `Disable wind puff particles`
+* `Raindrops not affected by wind` - raindrops movement won't be affected by the global wind.
+* `Disable wind puff particles` - disable wind puff particles that float above the ground by default.
 * `No rain splashes` - disable rain splashes on the ground.
 * `No ripples` - disable ripples on the water.
 * `Localized` - tick this flag to make rain localized in the certain area independent of player position. By default the raindrops will appear around the player giving the illusion of global rain.
 * `Distance is radius` - by default `Rain max distance` means half of the square area side the raindrops will spawn in. This flag makes it treat distance as circle radius.
+* `Can go through brush entities` - whether raindrops can go through the brush entities.
 
 ### Reaction to use-type
 

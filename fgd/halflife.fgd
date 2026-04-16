@@ -2107,6 +2107,7 @@
 		32: "No wind particles" : 0 : "Disable wind puff particles"
 		64: "No rain splashes" : 0 : "Disable rain splashes on the ground"
 		128: "No ripples" : 0 : "Disable ripples on the water"
+		256: "Can go through brush entities" : 0 : "Whether raindrops can go through the brush entities"
 	]
 ]
 
@@ -2225,8 +2226,7 @@
 		1: "Start Active" : 0
 		2: "Allow indoor" : 0 : "Allow snow even under the roof"
 		4: "Snowflakes not affected by wind": 0
-		8: "Localized" : 0 : "Spawn snowflakes above the env_snow entity. By default snowflakes spawn above players (i.e. globally)"
-		16: "Distance is radius" : 0 : "By default 'distance' means half of the square area side the snowflakes will spawn in. This flag makes treat distance as circle radius."
+		256: "Can go through brush entities" : 0 : "Whether snowflakes can go through the brush entities"
 	]
 ]
 
@@ -2270,7 +2270,14 @@
 	snowflake_life(string) : "Snowflake max life (seconds)"
 ]
 
-@PointClass base(Targetname, SnowFlags, SnowBaseParams, EnvSnowParams, SnowParticlesParams) = env_snow : "Similar to snow in Counter Strike, but with configurable options" []
+@PointClass base(Targetname, SnowFlags, SnowBaseParams, EnvSnowParams, SnowParticlesParams) = env_snow : "Similar to snow in Counter Strike, but with configurable options"
+[
+	spawnflags(flags) =
+	[
+		8: "Localized" : 0 : "Spawn snowflakes above the env_snow entity. By default snowflakes spawn above players (i.e. globally)"
+		16: "Distance is radius" : 0 : "By default 'distance' means half of the square area side the snowflakes will spawn in. This flag makes treat distance as circle radius."
+	]
+]
 
 @SolidClass base(Targetname, SnowFlags, SnowBaseParams, SnowParticlesParams) = func_snowvolume : "Brush version of env_rain, localized in the designated area. The rain height and distance depend on the brush size." []
 

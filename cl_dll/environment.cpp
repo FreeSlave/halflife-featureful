@@ -113,6 +113,11 @@ float WeatherData::RandomHeight() const
 	return minHeight;
 }
 
+bool WeatherData::CanGoThroughBrushEntities() const
+{
+	return (flags & SF_WEATHER_GO_THROUGH_BRUSH_ENTITIES) != 0;
+}
+
 Vector WeatherData::GetWeatherOrigin(const Vector &globalWeatherOrigin) const
 {
 	if (IsVolume())
@@ -331,10 +336,23 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 	pmtrace_t trace;
 
 	{
+		int traceFlags = PM_STUDIO_BOX | PM_STUDIO_IGNORE;
+		if ((GetCollisionFlags() & (TRI_COLLIDEBRUSHENTS)) == 0)
+			traceFlags = PM_WORLD_ONLY;
+
 		Vector vecEnd = m_vOrigin;
 		vecEnd.z -= 16.0f;
 
-		gEngfuncs.pEventAPI->EV_PlayerTrace( vecStart, vecEnd, PM_WORLD_ONLY, -1, &trace );
+		gEngfuncs.pEventAPI->EV_PlayerTrace(vecStart, vecEnd, traceFlags, -1, &trace);
+
+		if (trace.ent != 0 && (GetCollisionFlags() & (TRI_COLLIDEBRUSHENTS)) != 0)
+		{
+			physent_t* entity = gEngfuncs.pEventAPI->EV_GetPhysent(trace.ent);
+			if (!entity || !entity->model || entity->model->name[0] != '*')
+			{
+				gEngfuncs.pEventAPI->EV_PlayerTrace(vecStart, vecEnd, PM_WORLD_ONLY, -1, &trace);
+			}
+		}
 	}
 
 	Vector vecNormal;
@@ -737,6 +755,8 @@ void CEnvironment::UpdateRain(const RainData& rainData)
 		if (!inPvs)
 			return;
 
+		const int traceFlags = rainData.CanGoThroughBrushEntities() ? PM_WORLD_ONLY : (PM_STUDIO_BOX | PM_STUDIO_IGNORE);
+
 		for( size_t uiIndex = 0; static_cast<float>( uiIndex ) < rainIntensity; ++uiIndex )
 		{
 			Vector vecOrigin = rainData.GetRandomOrigin(weatherOrigin);
@@ -746,7 +766,7 @@ void CEnvironment::UpdateRain(const RainData& rainData)
 			vecEndPos.z = 8000.0f;
 
 			gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
-			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, PM_WORLD_ONLY, -1, &trace );
+			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, traceFlags, -1, &trace );
 			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, vecOrigin, trace.endpos );
 
 			if( allowIndoors || (pszTexture && strncmp( pszTexture, "sky", 3 ) == 0) )
@@ -821,6 +841,8 @@ void CEnvironment::UpdateSnow(const SnowData& snowData)
 		if (!inPvs)
 			return;
 
+		const int traceFlags = snowData.CanGoThroughBrushEntities() ? PM_WORLD_ONLY : (PM_STUDIO_BOX | PM_STUDIO_IGNORE);
+
 		for( size_t uiIndex = 0; static_cast<float>( uiIndex ) < snowIntensity; ++uiIndex )
 		{
 			Vector vecOrigin = snowData.GetRandomOrigin(weatherOrigin);
@@ -830,7 +852,7 @@ void CEnvironment::UpdateSnow(const SnowData& snowData)
 			vecEndPos.z = 8000.0f;
 
 			gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
-			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, PM_WORLD_ONLY, -1, &trace );
+			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, traceFlags, -1, &trace );
 			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, vecOrigin, trace.endpos );
 
 			if( allowIndoors || (pszTexture && strncmp( pszTexture, "sky", 3 ) == 0) )
@@ -874,7 +896,10 @@ CPartRainDrop* CEnvironment::CreateRaindrop( const Vector& vecOrigin, const Rain
 
 	pParticle->m_vVelocity.z = -rainData.GetRaindropFallingSpeed();
 
-	pParticle->SetCollisionFlags( TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE );
+	int flags = TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE;
+	if (!rainData.CanGoThroughBrushEntities())
+		flags |= TRI_COLLIDEBRUSHENTS;
+	pParticle->SetCollisionFlags(flags);
 
 	pParticle->m_flGravity = 0;
 
@@ -984,7 +1009,10 @@ void CEnvironment::CreateSnowFlake( const Vector& vecOrigin, const SnowData& sno
 
 	pParticle->m_vVelocity.z = -snowData.GetSnowflakeFallingSpeed();
 
-	pParticle->SetCollisionFlags( TRI_COLLIDEWORLD );
+	int flags = TRI_COLLIDEWORLD;
+	if (!snowData.CanGoThroughBrushEntities())
+		flags |= TRI_COLLIDEBRUSHENTS;
+	pParticle->SetCollisionFlags(flags);
 
 	const float flFrac = Com_RandomFloat( 0.0, 1.0 );
 

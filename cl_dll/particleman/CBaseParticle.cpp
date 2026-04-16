@@ -162,6 +162,7 @@ void CBaseParticle::Draw()
 		gEngfuncs.pTriAPI->LightAtPoint(m_vOrigin, vColor);
 
 		intensity = (vColor.x + vColor.y + vColor.z) / 3.0;
+		//gEngfuncs.Con_Printf("Intensity: %g. Color: %g, %g, %g\n", intensity, vColor.x, vColor.y, vColor.z);
 	}
 
 	if ((m_iRenderFlags & (RENDER_FACEPLAYER | RENDER_FACEPLAYER_ROTATEZ)) != 0)
@@ -364,7 +365,7 @@ void CBaseParticle::CheckCollision(float time)
 
 	m_flNextCollisionTime = time;
 
-	if ((m_iCollisionFlags & (TRI_WATERTRACE | TRI_COLLIDEALL | TRI_COLLIDEWORLD)) == 0)
+	if ((m_iCollisionFlags & (TRI_WATERTRACE | TRI_COLLIDEBRUSHENTS | TRI_COLLIDEWORLD)) == 0)
 	{
 		return;
 	}
@@ -373,41 +374,45 @@ void CBaseParticle::CheckCollision(float time)
 
 	bool collided = false;
 
-	if ((m_iCollisionFlags & TRI_COLLIDEALL) != 0)
+	if ((m_iCollisionFlags & (TRI_COLLIDEWORLD|TRI_COLLIDEBRUSHENTS)) != 0)
 	{
+		int traceFlags = PM_STUDIO_BOX | PM_STUDIO_IGNORE;
+		if ((m_iCollisionFlags & (TRI_COLLIDEBRUSHENTS)) == 0)
+			traceFlags = PM_WORLD_ONLY;
+
 		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-		gEngfuncs.pEventAPI->EV_PlayerTrace(m_vPrevOrigin, m_vOrigin, PM_STUDIO_BOX, -1, &trace);
+		gEngfuncs.pEventAPI->EV_PlayerTrace(m_vPrevOrigin, m_vOrigin, traceFlags, -1, &trace);
 
 		if (trace.fraction != 1.0)
 		{
-			//Called but never used, probably unfinished code for colliding with other entities.
-			//auto entity = gEngfuncs.pEventAPI->EV_GetPhysent(trace.ent);
-
-			//Collided with something other than world, ignore.
-			if (0 == trace.ent)
+			if (trace.ent != 0 && (m_iCollisionFlags & (TRI_COLLIDEBRUSHENTS)) != 0)
+			{
+				physent_t* entity = gEngfuncs.pEventAPI->EV_GetPhysent(trace.ent);
+				if (entity && entity->model)
+				{
+					if (entity->model->name[0] == '*' && (m_iCollisionFlags & TRI_COLLIDEBRUSHENTS) != 0)
+					{
+						collided = true;
+					}
+				}
+			}
+			else
 			{
 				collided = true;
 			}
-		}
-	}
-	else if ((m_iCollisionFlags & TRI_COLLIDEWORLD) != 0)
-	{
-		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-		gEngfuncs.pEventAPI->EV_PlayerTrace(m_vPrevOrigin, m_vOrigin, PM_WORLD_ONLY | PM_STUDIO_BOX, -1, &trace);
 
-		if (trace.fraction != 1.0)
-		{
-			m_vVelocity = m_vVelocity * 0.6;
-
-			if (m_vVelocity.IsLengthLessThan(10))
+			if (collided)
 			{
-				m_iCollisionFlags = 0;
-				m_vVelocity = g_vecZero;
-				m_vAVelocity = g_vecZero;
-				m_vOrigin = trace.endpos;
-			}
+				m_vVelocity = m_vVelocity * 0.6;
 
-			collided = true;
+				if (m_vVelocity.IsLengthLessThan(10))
+				{
+					m_iCollisionFlags = 0;
+					m_vVelocity = g_vecZero;
+					m_vAVelocity = g_vecZero;
+					m_vOrigin = trace.endpos;
+				}
+			}
 		}
 	}
 
