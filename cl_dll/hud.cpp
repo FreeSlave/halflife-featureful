@@ -290,6 +290,11 @@ int __MsgFunc_Snow(const char *pszName, int iSize, void *pbuf)
 	return g_Environment.MsgFunc_Snow( pszName, iSize, pbuf );
 }
 
+int __MsgFunc_WeatherPos(const char *pszName, int iSize, void *pbuf)
+{
+	return g_Environment.MsgFunc_WeatherPos( pszName, iSize, pbuf );
+}
+
 //LRC
 int __MsgFunc_KeyedDLight(const char *pszName, int iSize, void *pbuf)
 {
@@ -704,6 +709,7 @@ void CHud::Init()
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( Rain );
 	HOOK_MESSAGE( Snow );
+	HOOK_MESSAGE( WeatherPos );
 	HOOK_MESSAGE( KeyedDLight );
 
 	// TFFree CommandMenu

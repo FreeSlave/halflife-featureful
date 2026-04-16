@@ -1390,6 +1390,47 @@ int CEnvironment::MsgFunc_Snow(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+int CEnvironment::MsgFunc_WeatherPos(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+
+	const int entIndex = READ_LONG();
+
+	auto rainIt = std::find_if(m_rains.begin(), m_rains.end(), [&entIndex](const RainData& data) {
+		return data.entIndex == entIndex;
+	});
+	auto snowIt = std::find_if(m_snows.begin(), m_snows.end(), [&entIndex](const SnowData& data) {
+		return data.entIndex == entIndex;
+	});
+
+	const bool isBrush = READ_BYTE() != 0;
+
+	WeatherData* weatherData = nullptr;
+	if (rainIt != m_rains.end())
+	{
+		weatherData = &*rainIt;
+	}
+	else if (snowIt != m_snows.end())
+	{
+		weatherData = &*snowIt;
+	}
+
+	if (weatherData)
+	{
+		if (isBrush)
+		{
+			weatherData->absmin = READ_VECTOR();
+			weatherData->absmax = READ_VECTOR();
+		}
+		else
+		{
+			weatherData->location = READ_VECTOR();
+		}
+	}
+
+	return 1;
+}
+
 void CEnvironment::RemoveRain(int entIndex)
 {
 	auto it = std::find_if(m_rains.begin(), m_rains.end(), [&](const RainData& data) {

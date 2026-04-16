@@ -5150,11 +5150,13 @@ void CEnvFog::SendDataToOne(CBaseEntity *pClient, Vector col, int iFadeTime, int
 LINK_ENTITY_TO_CLASS( env_fog, CEnvFog )
 
 extern int gmsgRain;
+extern int gmsgWeatherPos;
 
 class CBaseWeather : public CBaseEntity
 {
 public:
 	void Spawn() override;
+	void Activate() override;
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 	void KeyValue(KeyValueData *pkvd) override;
 	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
@@ -5175,12 +5177,17 @@ public:
 	virtual void SendWeather(CBaseEntity* pClient = nullptr) = 0;
 	virtual void SendClearWeather() = 0;
 
+	optional<Vector> GetDynamicPosition();
+	void StartWeatherPosThink();
+	void EXPORT WeatherPosThink();
+	float WeatherPosUpdateDelay() const;
+
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 protected:
-	void WriteBaseWeaterData(int flags);
+	void WriteBaseWeaterData(int flags, const optional<Vector>& dynamicPos);
 
 	short m_intensity;
 	float m_updatePeriod;
@@ -5188,6 +5195,9 @@ protected:
 
 	short m_minHeight;
 	short m_maxHeight;
+
+	string_t m_position;
+	Vector m_lastPos;
 };
 
 TYPEDESCRIPTION CBaseWeather::m_SaveData[] =
@@ -5197,6 +5207,8 @@ TYPEDESCRIPTION CBaseWeather::m_SaveData[] =
 	DEFINE_FIELD( CBaseWeather, m_distance, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseWeather, m_minHeight, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseWeather, m_maxHeight, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseWeather, m_position, FIELD_STRING ),
+	DEFINE_FIELD( CBaseWeather, m_lastPos, FIELD_VECTOR ),
 };
 
 IMPLEMENT_SAVERESTORE( CBaseWeather, CBaseEntity )
@@ -5206,6 +5218,17 @@ void CBaseWeather::Spawn()
 	pev->effects |= EF_NODRAW;
 	if (FStringNull(pev->targetname))
 		pev->spawnflags |= SF_WEATHER_ACTIVE;
+}
+
+void CBaseWeather::Activate()
+{
+	auto dynPos = GetDynamicPosition();
+	if (dynPos.has_value())
+		m_lastPos = *dynPos;
+	else
+		m_lastPos = pev->origin;
+
+	StartWeatherPosThink();
 }
 
 void CBaseWeather::KeyValue(KeyValueData *pkvd)
@@ -5235,6 +5258,11 @@ void CBaseWeather::KeyValue(KeyValueData *pkvd)
 		m_maxHeight = (short)atoi(pkvd->szValue);
 		pkvd->fHandled = true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "position"))
+	{
+		m_position = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseEntity::KeyValue(pkvd);
 }
@@ -5248,11 +5276,13 @@ void CBaseWeather::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 		{
 			SetActive(false);
 			SendClearWeather();
+			SetThink(nullptr);
 		}
 		else
 		{
 			SetActive(true);
 			SendWeather();
+			StartWeatherPosThink();
 		}
 	}
 }
@@ -5264,7 +5294,7 @@ void CBaseWeather::SendMessages(CBaseEntity *pClient)
 	SendWeather(pClient);
 }
 
-void CBaseWeather::WriteBaseWeaterData(int flags)
+void CBaseWeather::WriteBaseWeaterData(int flags, const optional<Vector>& dynamicPos)
 {
 	WRITE_LONG(entindex());
 	WRITE_SHORT(flags);
@@ -5273,8 +5303,16 @@ void CBaseWeather::WriteBaseWeaterData(int flags)
 
 	if (FBitSet(flags, WEATHER_BRUSH_ENTITY))
 	{
-		WRITE_VECTOR(pev->absmin);
-		WRITE_VECTOR(pev->absmax);
+		if (dynamicPos.has_value())
+		{
+			WRITE_VECTOR(*dynamicPos + pev->mins);
+			WRITE_VECTOR(*dynamicPos + pev->maxs);
+		}
+		else
+		{
+			WRITE_VECTOR(pev->absmin);
+			WRITE_VECTOR(pev->absmax);
+		}
 	}
 	else
 	{
@@ -5284,9 +5322,75 @@ void CBaseWeather::WriteBaseWeaterData(int flags)
 
 		if (FBitSet(flags, SF_WEATHER_LOCALIZED))
 		{
-			WRITE_VECTOR(pev->origin);
+			const Vector origin = dynamicPos.value_or(pev->origin);
+			WRITE_VECTOR(origin);
 		}
 	}
+}
+
+optional<Vector> CBaseWeather::GetDynamicPosition()
+{
+	if (FBitSet(pev->spawnflags, SF_WEATHER_LOCALIZED|WEATHER_BRUSH_ENTITY) && !FStringNull(m_position))
+	{
+		Vector result;
+		if (TryCalcLocus_Position(this, this, STRING(m_position), result))
+			return optional<Vector>(result);
+	}
+	return optional<Vector>();
+}
+
+void CBaseWeather::StartWeatherPosThink()
+{
+	if (IsActive() && FBitSet(pev->spawnflags, SF_WEATHER_LOCALIZED|WEATHER_BRUSH_ENTITY))
+	{
+		SetThink(&CBaseWeather::WeatherPosThink);
+		pev->nextthink = gpGlobals->time + WeatherPosUpdateDelay();
+	}
+}
+
+void CBaseWeather::WeatherPosThink()
+{
+	auto dynPos = GetDynamicPosition();
+	const Vector& currentPos = dynPos.value_or(pev->origin);
+
+	if (currentPos != m_lastPos)
+	{
+		m_lastPos = currentPos;
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgWeatherPos);
+		WRITE_LONG(entindex());
+
+		if (FBitSet(pev->spawnflags, WEATHER_BRUSH_ENTITY))
+		{
+			WRITE_BYTE(1);
+
+			if (dynPos.has_value())
+			{
+				WRITE_VECTOR(currentPos + pev->mins);
+				WRITE_VECTOR(currentPos + pev->maxs);
+			}
+			else
+			{
+				WRITE_VECTOR(pev->absmin);
+				WRITE_VECTOR(pev->absmax);
+			}
+		}
+		else
+		{
+			WRITE_BYTE(0);
+			WRITE_VECTOR(currentPos);
+		}
+
+		MESSAGE_END();
+	}
+	pev->nextthink = gpGlobals->time + WeatherPosUpdateDelay();
+}
+
+float CBaseWeather::WeatherPosUpdateDelay() const
+{
+	if (m_updatePeriod <= 0.0f)
+		return 0.3f;
+	return Q_max(m_updatePeriod, 0.1f);
 }
 
 class CEnvRain : public CBaseWeather
@@ -5525,9 +5629,10 @@ void CEnvRain::SendWeather(CBaseEntity *pClient)
 {
 	const int msgType = pClient ? MSG_ONE : MSG_ALL;
 	edict_t* pClientEdict = pClient ? pClient->edict() : NULL;
+	auto dynPos = GetDynamicPosition();
 
 	MESSAGE_BEGIN(msgType, gmsgRain, NULL, pClientEdict);
-		WriteBaseWeaterData(pev->spawnflags);
+		WriteBaseWeaterData(pev->spawnflags, dynPos);
 
 		WRITE_SHORT(m_raindropWidth);
 		WRITE_SHORT(m_raindropHeight);
@@ -5677,9 +5782,10 @@ void CEnvSnow::SendWeather(CBaseEntity *pClient)
 {
 	const int msgType = pClient ? MSG_ONE : MSG_ALL;
 	edict_t* pClientEdict = pClient ? pClient->edict() : NULL;
+	auto dynPos = GetDynamicPosition();
 
 	MESSAGE_BEGIN(msgType, gmsgSnow, NULL, pClientEdict);
-		WriteBaseWeaterData(pev->spawnflags);
+		WriteBaseWeaterData(pev->spawnflags, dynPos);
 
 		WRITE_SHORT(m_snowflakeMinSize);
 		WRITE_SHORT(m_snowflakeMaxSize);

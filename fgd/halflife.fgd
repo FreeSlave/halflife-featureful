@@ -2097,6 +2097,11 @@
 	]
 ]
 
+@BaseClass = WeatherParams
+[
+	position(string) : "Position [LP]" : : "Dynamic position for localized weather"
+]
+
 @BaseClass = RainFlags
 [
 	spawnflags(flags) =
@@ -2113,111 +2118,111 @@
 
 @BaseClass = RainBaseParams
 [
-	intensity(integer) : "Rain intensity" : : "The maximum number of raindrops to spawn per rain update. Default is 150. The result also depends on the user's cl_weather value. If you customize the rain volume you should adjust this value accordingly to preserve the same rain density."
+	intensity(integer) : "Rain intensity (max raindrops per update)" : : "The maximum number of raindrops to spawn per rain update. Default is 150. The result also depends on the user's cl_weather value. If you customize the rain volume you should adjust this value accordingly to preserve the same rain density."
 	update_period(string) : "Update period (seconds)" : : "The delay between spawns of bunches of raindrops. Default is 0.3. Decreasing this value will produce raindrops more frequently."
 ]
 
 @BaseClass = EnvRainParams
 [
-	distance(integer) : "Rain max distance" : : "Maximum distance the raindrops appear in. Default is 400"
+	distance(integer) : "Rain max distance from center" : : "Maximum distance the raindrops appear in. Default is 400"
 	min_height(integer) : "Precipitation min height" : : "Minimum height above the rain origin where the raindrops spawn. Default is 100. If rain is global the origin is rougly at the player's head. Localized rain uses the entity origin."
 	max_height(integer) : "Precipitation max height" : : "Maximum height above the rain origin where the raindrops spawn. Default is 300. If rain is global the origin is rougly at the player's head. Localized rain uses the entity origin."
 ]
 
 @BaseClass = RainParticlesParams
 [
-	raindrop_sprite(sprite) : "Raindrop custom sprite"
-	raindrop_width(integer) : "Raindrop width (units)"
-	raindrop_height(integer) : "Raindrop tallness (units)"
+	raindrop_sprite(sprite) : "Raindrop custom sprite" : : "Default is sprites/effects/rain.spr"
+	raindrop_width(integer) : "Raindrop width (units)" : : "Default value is 2"
+	raindrop_height(integer) : "Raindrop tallness (units)" : : "Default value is 80"
 	rendermode(choices) : "Raindrop render mode" =
 	[
 		0: "Default (Solid)"
 		4: "Solid"
 		5: "Additive"
 	]
-	renderamt(integer) : "Raindrop brightness [1-255]"
+	renderamt(integer) : "Raindrop brightness [1-255]" : : "Default is 128"
 	rendercolor(color255) : "Raindrop color"
 
 	raindrop_light_mode(choices) : "Raindrop light mode" =
 	[
-		0: "Default"
-		1: "Light doesn't affect color"
+		0: "Default (None)"
+		1: "None: Light doesn't affect color"
 		2: "Light color affects color"
 		3: "Light intensity affects color"
 	]
 
-	raindrop_min_speed(integer) : "Raindrop min falling speed"
-	raindrop_max_speed(integer) : "Raindrop max falling speed"
-	raindrop_life(string) : "Raindrop max life (seconds)"
+	raindrop_min_speed(integer) : "Raindrop min falling speed" : : "Default value is 500"
+	raindrop_max_speed(integer) : "Raindrop max falling speed" : : "Default value is 1800"
+	raindrop_life(string) : "Raindrop max life (seconds)" : : "Default value is 1.0"
 
-	windpuff_sprite(sprite) : "Windpuff custom sprite"
-	windpuff_min_size(integer) : "Wind puff min size (units)"
-	windpuff_max_size(integer) : "Wind puff max size (units)"
+	windpuff_sprite(sprite) : "Windpuff custom sprite" : : "Default is sprites/gas_puff_01.spr"
+	windpuff_min_size(integer) : "Wind puff min size (units)" : : "Default value is 50"
+	windpuff_max_size(integer) : "Wind puff max size (units)" : : "Default value is 75"
 	windpuff_rendermode(choices) : "Wind puff render mode" =
 	[
 		0: "Default (Solid)"
 		4: "Solid"
 		5: "Additive"
 	]
-	windpuff_renderamt(integer) : "Wind puff brightness [1-255]"
-	windpuff_rendercolor(color255) : "Wind puff color"
+	windpuff_renderamt(integer) : "Wind puff brightness [1-255]" : : "Default value is 128"
+	windpuff_rendercolor(color255) : "Wind puff color" : : "Default value is 128 128 128"
 	windpuff_light_mode(choices) : "Wind puff light mode" =
 	[
-		0: "Default"
-		1: "Light doesn't affect color"
+		0: "Default (None)"
+		1: "None: Light doesn't affect color"
 		2: "Light color affects color"
 		3: "Light intensity affects color"
 	]
-	windpuff_life(string) : "Wind puff life (seconds)"
+	windpuff_life(string) : "Wind puff life (seconds)" : : "Default value is 6.0"
 
-	splash_sprite(sprite) : "Rainsplash custom sprite"
-	splash_min_size(integer) : "Rainsplash min size (units)"
-	splash_max_size(integer) : "Rainsplash max size (units)"
+	splash_sprite(sprite) : "Rainsplash custom sprite" : : "Default is sprites/wsplash3.spr"
+	splash_min_size(integer) : "Rainsplash min size (units)" : : "Default value is 20"
+	splash_max_size(integer) : "Rainsplash max size (units)" : : "Default value is 25"
 	splash_rendermode(choices) : "Rainsplash render mode" =
 	[
 		0: "Default (Additive)"
 		4: "Solid"
 		5: "Additive"
 	]
-	splash_renderamt(integer) : "Rainsplash brightness [1-255]"
+	splash_renderamt(integer) : "Rainsplash brightness [1-255]" : : "Default value is 150"
 	splash_rendercolor(color255) : "Rainsplash color"
 	splash_light_mode(choices) : "Rainsplash light mode" =
 	[
-		0: "Default"
-		1: "Light doesn't affect color"
+		0: "Default (Intensity)"
+		1: "None: Light doesn't affect color"
 		2: "Light color affects color"
 		3: "Light intensity affects color"
 	]
 
-	ripple_sprite(sprite) : "Ripple custom sprite"
-	ripple_size(integer) : "Ripple size (units)"
+	ripple_sprite(sprite) : "Ripple custom sprite" : : "Default is sprites/effects/ripple.spr"
+	ripple_size(integer) : "Ripple size (units)" : : "Default value is 15"
 	ripple_rendermode(choices) : "Ripple render mode" =
 	[
 		0: "Default (Additive)"
 		4: "Solid"
 		5: "Additive"
 	]
-	ripple_renderamt(integer) : "Ripple brightness [1-255]"
+	ripple_renderamt(integer) : "Ripple brightness [1-255]" : : "Default value is 150"
 	ripple_rendercolor(color255) : "Ripple color"
 	ripple_light_mode(choices) : "Ripple light mode" =
 	[
-		0: "Default"
-		1: "Light doesn't affect color"
+		0: "Default (Intensity)"
+		1: "None: Light doesn't affect color"
 		2: "Light color affects color"
 		3: "Light intensity affects color"
 	]
 ]
 
-@PointClass base(Targetname, RainFlags, RainBaseParams, EnvRainParams, RainParticlesParams) = env_rain : "Similar to rain in Counter Strike, but with configurable options"
+@PointClass base(Targetname, WeatherParams, RainFlags, RainBaseParams, EnvRainParams, RainParticlesParams) = env_rain : "Similar to rain in Counter Strike, but with configurable options"
 [
 	spawnflags(flags) =
 	[
 		8: "Localized" : 0 : "Spawn raindrops above the env_rain entity. By default raindrops spawn above players (i.e. globally)"
-		16: "Distance is radius" : 0 : "By default 'distance' means half of the square area side the raindrops will spawn in. This flag makes treat distance as circle radius."
+		16: "Distance is radius (circle area)" : 0 : "By default 'distance' means half of the square area side the raindrops will spawn in. This flag makes treat distance as circle radius."
 	]
 ]
 
-@SolidClass base(Targetname, RainFlags, RainBaseParams, RainParticlesParams) = func_rainvolume : "Brush version of env_rain, localized in the designated area. The rain height and distance depend on the brush size." []
+@SolidClass base(Targetname, WeatherParams, RainFlags, RainBaseParams, RainParticlesParams) = func_rainvolume : "Brush version of env_rain, localized in the designated area. The rain height and distance depend on the brush size." []
 
 @BaseClass = SnowFlags
 [
@@ -2232,54 +2237,54 @@
 
 @BaseClass = SnowBaseParams
 [
-	intensity(integer) : "Snow intensity" : : "The maximum number of snowflakes to spawn per update. Default is 150. The result also depends on the user's cl_weather value. If you customize the snow volume you should adjust this value accordingly to preserve the same snow density."
+	intensity(integer) : "Snow intensity (max snowflakes per update)" : : "The maximum number of snowflakes to spawn per update. Default is 150. The result also depends on the user's cl_weather value. If you customize the snow volume you should adjust this value accordingly to preserve the same snow density."
 	update_period(string) : "Update period (seconds)" : : "The delay between spawns of bunches of snowflakes. Default is 0.5. Decreasing this value will produce snowflakes more frequently."
 ]
 
 @BaseClass = EnvSnowParams
 [
-	distance(integer) : "Snow max distance" : : "Maximum distance the snowflakes appear in. Default is 300"
+	distance(integer) : "Snow max distance from center" : : "Maximum distance the snowflakes appear in. Default is 300"
 	min_height(integer) : "Precipitation min height" : : "Minimum height above the snow origin where the snowflakes spawn. Default is 100. If snow is global the origin is rougly at the player's head. Localized snow uses the entity origin."
 	max_height(integer) : "Precipitation max height" : : "Maximum height above the snow origin where the snowflakes spawn. Default is 300. If snow is global the origin is rougly at the player's head. Localized snow uses the entity origin."
 ]
 
 @BaseClass = SnowParticlesParams
 [
-	snowflake_sprite(sprite) : "Snowflake custom sprite"
-	snowflake_min_size(integer) : "Snowflake min size (units)"
-	snowflake_max_size(integer) : "Snowflake max size (units)"
+	snowflake_sprite(sprite) : "Snowflake custom sprite" : : "Default is sprites/effects/snowflake.spr"
+	snowflake_min_size(integer) : "Snowflake min size (units)" : : "Default value is 2"
+	snowflake_max_size(integer) : "Snowflake max size (units)" : : "Default value is 2.5"
 	rendermode(choices) : "Snowflake render mode" =
 	[
 		0: "Default (Additive)"
 		4: "Solid"
 		5: "Additive"
 	]
-	renderamt(integer) : "Snowflake brightness [1-255]"
-	rendercolor(color255) : "Snowflake color"
+	renderamt(integer) : "Snowflake brightness [1-255]" : : "Default value is 130"
+	rendercolor(color255) : "Snowflake color" : : "Default value is 128 128 128"
 
 	snowflake_light_mode(choices) : "Snowflake light mode" =
 	[
-		0: "Default"
-		1: "Light doesn't affect color"
+		0: "Default (None)"
+		1: "None: Light doesn't affect color"
 		2: "Light color affects color"
 		3: "Light intensity affects color"
 	]
 
-	snowflake_min_speed(integer) : "Snowflake min falling speed"
-	snowflake_max_speed(integer) : "Snowflake max falling speed"
-	snowflake_life(string) : "Snowflake max life (seconds)"
+	snowflake_min_speed(integer) : "Snowflake min falling speed" : : "Default value is 100"
+	snowflake_max_speed(integer) : "Snowflake max falling speed" : : "Default value is 200"
+	snowflake_life(string) : "Snowflake max life (seconds)" : : "Default value is 3.0"
 ]
 
-@PointClass base(Targetname, SnowFlags, SnowBaseParams, EnvSnowParams, SnowParticlesParams) = env_snow : "Similar to snow in Counter Strike, but with configurable options"
+@PointClass base(Targetname, WeatherParams, SnowFlags, SnowBaseParams, EnvSnowParams, SnowParticlesParams) = env_snow : "Similar to snow in Counter Strike, but with configurable options"
 [
 	spawnflags(flags) =
 	[
 		8: "Localized" : 0 : "Spawn snowflakes above the env_snow entity. By default snowflakes spawn above players (i.e. globally)"
-		16: "Distance is radius" : 0 : "By default 'distance' means half of the square area side the snowflakes will spawn in. This flag makes treat distance as circle radius."
+		16: "Distance is radius (circle area)" : 0 : "By default 'distance' means half of the square area side the snowflakes will spawn in. This flag makes treat distance as circle radius."
 	]
 ]
 
-@SolidClass base(Targetname, SnowFlags, SnowBaseParams, SnowParticlesParams) = func_snowvolume : "Brush version of env_rain, localized in the designated area. The rain height and distance depend on the brush size." []
+@SolidClass base(Targetname, WeatherParams, SnowFlags, SnowBaseParams, SnowParticlesParams) = func_snowvolume : "Brush version of env_snow, localized in the designated area. The rain height and distance depend on the brush size." []
 
 @PointClass base(Targetname, RenderFields) size(-16 -16 -16, 16 16 16) color(100 100 0) = env_render : "Render Controls"
 [

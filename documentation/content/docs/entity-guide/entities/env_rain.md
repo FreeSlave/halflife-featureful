@@ -51,6 +51,7 @@ See also: [func_rainvolume]({{< ref func_rainvolume >}})
 * `Rain max distance` - maximum distance the raindrops appear in. Default is 400.
 * `Precipitation min height` - minimum height above the rain origin where the raindrops spawn. Default is 100. If rain is global the origin is rougly at the player's head. Localized rain uses the entity origin.
 * `Precipitation max height` - maximum height above the rain origin where the raindrops spawn. Default is 300. If rain is global the origin is rougly at the player's head. Localized rain uses the entity origin.
+* `Position` - a dynamic rain position (could reference a train for example). This requires the `Localized` spawnflag to be enabled.
 
 Various parameters available for the visual effects configuration.
 

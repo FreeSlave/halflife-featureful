@@ -275,6 +275,7 @@ int gmsgObjectHint = 0;
 
 int gmsgRain = 0;
 int gmsgSnow = 0;
+int gmsgWeatherPos = 0;
 
 int gmsgJournal = 0;
 int gmsgPlTemplate = 0;
@@ -393,6 +394,7 @@ void LinkUserMessages()
 
 	gmsgRain = REG_USER_MSG("Rain", -1);
 	gmsgSnow = REG_USER_MSG("Snow", -1);
+	gmsgWeatherPos = REG_USER_MSG("WeatherPos", -1);
 
 	gmsgJournal = REG_USER_MSG("Journal", -1);
 	gmsgPlTemplate = REG_USER_MSG("PlTemplate", 10);

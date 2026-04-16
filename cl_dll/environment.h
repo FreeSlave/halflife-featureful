@@ -118,6 +118,7 @@ public:
 
 	int MsgFunc_Rain(const char *pszName, int iSize, void *pbuf);
 	int MsgFunc_Snow(const char *pszName, int iSize, void *pbuf);
+	int MsgFunc_WeatherPos(const char *pszName, int iSize, void *pbuf);
 
 private:
 	void RemoveRain(int entIndex);
