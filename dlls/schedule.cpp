@@ -75,6 +75,7 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 
 	if (isSuggested) {
 		m_suggestedSchedule = SCHED_NONE; // don't loop
+		m_suggestedScheduleFlags |= SUGGEST_SCHEDULE_FLAG_PLAYING;
 	} else {
 		// clear overrides
 		ClearSuggestedSchedule();
@@ -2018,12 +2019,16 @@ bool CBaseMonster::SuggestSchedule(int schedule, CBaseEntity* spotEntity, float 
 
 float CBaseMonster::SuggestedMinDist(float defaultValue) const
 {
-	return m_suggestedScheduleMinDist > 0 ? m_suggestedScheduleMinDist: defaultValue;
+	if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING) && m_suggestedScheduleMinDist > 0)
+		return m_suggestedScheduleMinDist;
+	return defaultValue;
 }
 
 float CBaseMonster::SuggestedMaxDist(float defaultValue) const
 {
-	return m_suggestedScheduleMaxDist > 0 ? m_suggestedScheduleMaxDist: defaultValue;
+	if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING) && m_suggestedScheduleMaxDist > 0)
+		return m_suggestedScheduleMaxDist;
+	return defaultValue;
 }
 
 static bool CalcSuggestedSpotEntity(CBaseMonster* pMonster, CBaseEntity* pSpotEntity, Vector *outVec, Vector* viewOffset)
@@ -2088,6 +2093,7 @@ Activity CBaseMonster::GetSuggestedMovementActivity(Activity defaultActivity)
 
 void CBaseMonster::ClearSuggestedSchedule()
 {
+	m_suggestedSchedule = SCHED_NONE;
 	m_suggestedScheduleEntity = 0;
 	m_suggestedScheduleOrigin = g_vecZero;
 	m_suggestedScheduleMinDist = 0.0f;

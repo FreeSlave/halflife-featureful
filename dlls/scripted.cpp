@@ -1966,7 +1966,6 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
 			if (pMonster) {
 				if (ScheduleType() == SCRIPTED_SCHEDULE_CLEAR) {
-					pMonster->m_suggestedSchedule = SCHED_NONE;
 					pMonster->ClearSuggestedSchedule();
 				} else {
 					const int knownSchedule = KnownSchedule();
