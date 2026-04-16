@@ -170,6 +170,7 @@ public:
 
 	void ReleaseEntity( CBaseMonster *pEntity );
 	void CancelScript( int cancellationReason = SCRIPT_CANCELLATION_REASON_GENERIC );
+	void FireOnAnimStart(CBaseMonster *pTarget);
 	virtual bool StartSequence( CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty );
 	virtual bool FCanOverrideState ();
 	void SequenceDone ( CBaseMonster *pMonster );

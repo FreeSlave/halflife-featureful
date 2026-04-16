@@ -755,6 +755,16 @@ typedef enum
 	STA_FORWARD = 3,
 } SCRIPT_TARGET_ACTIVATOR;
 
+void CCineMonster::FireOnAnimStart(CBaseMonster *pTarget)
+{
+	if (!m_firedOnAnimStart && !FStringNull(m_iszFireOnAnimStart))
+	{
+		CBaseEntity* pActivator = GetActivator(pTarget);
+		FireTargets(STRING(m_iszFireOnAnimStart), pActivator, this);
+	}
+	m_firedOnAnimStart = true;
+}
+
 // lookup a sequence name and setup the target monster to play it
 bool CCineMonster::StartSequence(CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty )
 {
@@ -770,12 +780,7 @@ bool CCineMonster::StartSequence(CBaseMonster *pTarget, string_t iszSeq, bool co
 
 	if ( m_iszPlay != 0 && iszSeq == m_iszPlay )
 	{
-		if( !m_firedOnAnimStart && !FStringNull( m_iszFireOnAnimStart ) )
-		{
-			CBaseEntity* pActivator = GetActivator(pTarget);
-			FireTargets( STRING( m_iszFireOnAnimStart ), pActivator, this );
-		}
-		m_firedOnAnimStart = true;
+		FireOnAnimStart(pTarget);
 	}
 
 	pTarget->pev->sequence = pTarget->LookupSequence( STRING( iszSeq ) );

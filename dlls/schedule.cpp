@@ -695,6 +695,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 					bool startedSequence = false;
 					if (m_pCine->IsAction())
 					{
+						bool tryFireOnAnimStart = true;
 						switch( m_pCine->m_fAction )
 						{
 						case SCRIPT_ACT_RANGE_ATTACK:
@@ -721,11 +722,16 @@ void CBaseMonster::RunTask( Task_t *pTask )
 						case SCRIPT_ACT_JUMP:
 							m_IdealActivity = ACT_HOP;
 							break;
+						default:
+							tryFireOnAnimStart = false;
+							break;
 						}
+						if (tryFireOnAnimStart)
+							m_pCine->FireOnAnimStart(this);
 					}
 					else
 					{
-						startedSequence = m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszPlay, true );
+						startedSequence = m_pCine->StartSequence( this, m_pCine->m_iszPlay, true );
 						if( m_fSequenceFinished )
 							ClearSchedule();
 					}
