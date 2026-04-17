@@ -21,3 +21,12 @@ Use different color to create other kinds of precipitation like dust, falling as
 {{% /hint %}}
 
 See also: [func_snowvolume]({{< ref func_snowvolume >}})
+
+### Parameters
+
+* Same base parameters as [env_rain]({{< ref env_rain >}}).
+
+### Spawnflags
+
+* Some spawnflags are shared with [env_rain]({{< ref env_rain >}}).
+* `Don't dissolve in water` - disable snowflakes dissolving (fading) when the snowflake enters the water.

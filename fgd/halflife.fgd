@@ -2113,6 +2113,7 @@
 		64: "No rain splashes" : 0 : "Disable rain splashes on the ground"
 		128: "No ripples" : 0 : "Disable ripples on the water"
 		256: "Can go through brush entities" : 0 : "Whether raindrops can go through the brush entities"
+		512: "Don't stop at water surface" : 0 : "Raindrops won't disappear on touching the water surface"
 	]
 ]
 
@@ -2232,6 +2233,7 @@
 		2: "Allow indoor" : 0 : "Allow snow even under the roof"
 		4: "Snowflakes not affected by wind": 0
 		256: "Can go through brush entities" : 0 : "Whether snowflakes can go through the brush entities"
+		512: "Don't dissolve in water" : 0 : "Disable snowlake dissolving in water"
 	]
 ]
 

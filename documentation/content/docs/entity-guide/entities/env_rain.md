@@ -66,6 +66,7 @@ Various parameters available for the visual effects configuration.
 * `Localized` - tick this flag to make rain localized in the certain area independent of player position. By default the raindrops will appear around the player giving the illusion of global rain.
 * `Distance is radius` - by default `Rain max distance` means half of the square area side the raindrops will spawn in. This flag makes it treat distance as circle radius.
 * `Can go through brush entities` - whether raindrops can go through the brush entities.
+* `Don't stop at water surface` - raindrops won't disappear on touching the water surface. Ripple effect will still play on the water surface (unless disabled). The splash effect will play on the bottom (unless disabled).
 
 ### Reaction to use-type
 

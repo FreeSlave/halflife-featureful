@@ -460,17 +460,17 @@ void CBaseParticle::CheckCollision(float time)
 			m_vAngles = m_vAngles * 0.9;
 		}
 
-		Touch(trace.endpos, trace.plane.normal, trace.ent);
+		Touch(trace.endpos, trace.plane.normal, trace.ent, false);
 	}
 	else if ((m_iCollisionFlags & TRI_WATERTRACE) != 0)
 	{
-		if (gEngfuncs.PM_PointContents(m_vOrigin, nullptr) == CONTENTS_WATER && !m_bInWater)
+		if (!m_bInWater && gEngfuncs.PM_PointContents(m_vOrigin, nullptr) == CONTENTS_WATER)
 		{
-			Touch(m_vOrigin, {0, 0, 1}, 0);
+			Touch(m_vOrigin, {0, 0, 1}, 0, true);
 
 			m_bInWater = true;
 
-			if ((m_iCollisionFlags & TRI_COLLIDEKILL) != 0)
+			if ((m_iCollisionFlags & TRI_WATERTRACEKILL) != 0)
 			{
 				m_flDieTime = gEngfuncs.GetClientTime();
 			}
@@ -480,7 +480,7 @@ void CBaseParticle::CheckCollision(float time)
 	m_vPrevOrigin = m_vOrigin;
 }
 
-void CBaseParticle::Touch(Vector pos, Vector normal, int index)
+void CBaseParticle::Touch(Vector pos, Vector normal, int index, bool enteringWater)
 {
 	//Nothing.
 }

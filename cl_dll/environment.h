@@ -52,6 +52,7 @@ struct WeatherData
 	bool NeedsPVSCheck() const;
 	float RandomHeight() const;
 	bool CanGoThroughBrushEntities() const;
+	bool ShouldTraceWater() const;
 
 	Vector GetWeatherOrigin(const Vector& globalWeatherOrigin) const;
 	void GetBoundingBox(const Vector& weatherOrigin, Vector& mins, Vector& maxs) const;

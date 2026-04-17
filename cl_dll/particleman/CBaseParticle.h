@@ -6,7 +6,7 @@
 #define TRI_SPIRAL (1 << 3)
 #define TRI_ANIMATEDIE (1 << 4) //animate once and then die
 #define TRI_WATERTRACE (1 << 5)
-
+#define TRI_WATERTRACEKILL (1 << 6)
 
 #define CULL_FRUSTUM_POINT (1 << 0)
 #define CULL_FRUSTUM_SPHERE (1 << 1)
@@ -57,7 +57,7 @@ public:
 	virtual void Spin(float time);
 	virtual void CalculateVelocity(float time);
 	virtual void CheckCollision(float time);
-	virtual void Touch(Vector pos, Vector normal, int index);
+	virtual void Touch(Vector pos, Vector normal, int index, bool enteringWater);
 	virtual void Die();
 	virtual void InitializeSprite(Vector org, Vector normal, model_s* sprite, float size, float brightness);
 	virtual void Force();

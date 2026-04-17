@@ -145,6 +145,11 @@ bool WeatherData::CanGoThroughBrushEntities() const
 	return (flags & SF_WEATHER_GO_THROUGH_BRUSH_ENTITIES) != 0;
 }
 
+bool WeatherData::ShouldTraceWater() const
+{
+	return (flags & SF_WEATHER_IGNORE_WATER) == 0;
+}
+
 Vector WeatherData::GetWeatherOrigin(const Vector &globalWeatherOrigin) const
 {
 	if (IsVolume())
@@ -317,7 +322,7 @@ class CPartRainDrop : public CBaseParticle
 public:
 	CPartRainDrop() = default;
 	void Think( float flTime ) override;
-	void Touch( Vector pos, Vector normal, int index ) override;
+	void Touch(Vector pos, Vector normal, int index, bool enteringWater) override;
 
 	bool m_splashAllowed = true;
 	bool m_rippleAllowed = true;
@@ -328,6 +333,8 @@ public:
 
 private:
 	bool m_bTouched = false;
+	bool m_playedSplash = false;
+	bool m_playedRipple = false;
 };
 
 void CPartRainDrop::Think( float flTime )
@@ -348,14 +355,28 @@ void CPartRainDrop::Think( float flTime )
 	CBaseParticle::Think( flTime );
 }
 
-void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
+void CPartRainDrop::Touch(Vector pos, Vector normal, int index, bool enteringWater)
 {
-	if( m_bTouched )
+	if (m_bTouched)
+	{
+		return;
+	}
+	if (m_playedSplash && m_playedRipple)
 	{
 		return;
 	}
 
-	m_bTouched = true;
+	if (enteringWater)
+	{
+		if ((GetCollisionFlags() & TRI_WATERTRACEKILL) != 0)
+		{
+			m_bTouched = true;
+		}
+	}
+	else
+	{
+		m_bTouched = true;
+	}
 
 	Vector vecStart = m_vOrigin;
 	vecStart.z += 32.0f;
@@ -392,9 +413,9 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 
 	VectorAngles( vecNormal, vecAngles );
 
-	if( gEngfuncs.PM_PointContents( trace.endpos, nullptr ) == gEngfuncs.PM_PointContents( vecStart, nullptr ) )
+	if (gEngfuncs.PM_PointContents( trace.endpos, nullptr ) == gEngfuncs.PM_PointContents( vecStart, nullptr ))
 	{
-		if (m_splashAllowed && m_pRainSplash)
+		if (!m_playedSplash && m_splashAllowed && m_pRainSplash)
 		{
 			CBaseParticle* pParticle = new CBaseParticle();
 
@@ -418,10 +439,11 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 			pParticle->SetCollisionFlags( TRI_ANIMATEDIE );
 			pParticle->SetRenderFlag( RENDER_FACEPLAYER );
 		}
+		m_playedSplash = true;
 	}
 	else
 	{
-		if (m_rippleAllowed && m_pRipple)
+		if (!m_playedRipple && m_rippleAllowed && m_pRipple)
 		{
 			Vector vecBegin = FindSurfaceDividerPoint(vecStart, trace.endpos);
 
@@ -437,6 +459,7 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 			pParticle->m_flFadeSpeed = 2.0f;
 			pParticle->m_flDieTime = gEngfuncs.GetClientTime() + 2.0f;
 		}
+		m_playedRipple = true;
 	}
 }
 
@@ -479,7 +502,7 @@ class CPartSnowFlake : public CBaseParticle
 public:
 	CPartSnowFlake() = default;
 	void Think( float flTime ) override;
-	void Touch( Vector pos, Vector normal, int index ) override;
+	void Touch(Vector pos, Vector normal, int index, bool enteringWater) override;
 
 public:
 	bool m_bSpiral;
@@ -488,12 +511,13 @@ public:
 
 private:
 	bool m_bTouched = false;
+	bool m_dissolving = false;
 };
 
 void CPartSnowFlake::Think( float flTime )
 {
-	if( m_flBrightness < m_targetBrightness && !m_bTouched )
-		m_flBrightness += 4.5;
+	if (m_flBrightness < m_targetBrightness && !m_bTouched && !m_dissolving)
+		m_flBrightness += 4.5f;
 
 	if (m_flBrightness > 255.0f)
 		m_flBrightness = 255.0f;
@@ -526,35 +550,45 @@ void CPartSnowFlake::Think( float flTime )
 	CheckCollision( flTime );
 }
 
-void CPartSnowFlake::Touch( Vector pos, Vector normal, int index )
+void CPartSnowFlake::Touch(Vector pos, Vector normal, int index, bool enteringWater)
 {
 	if( m_bTouched )
 	{
 		return;
 	}
 
-	m_bTouched = true;
+	if (enteringWater)
+	{
+		m_dissolving = true;
 
-	SetRenderFlag( RENDER_FACEPLAYER );
+		m_flFadeSpeed = 0;
 
-	m_flOriginalBrightness = m_flBrightness;
+		m_flOriginalBrightness = m_flBrightness;
+		m_flTimeCreated = gEngfuncs.GetClientTime();
+		m_flDieTime = m_flTimeCreated + 0.5f;
+	}
+	else
+	{
+		m_bTouched = true;
 
-	m_vVelocity = g_vecZero;
+		SetRenderFlag( RENDER_FACEPLAYER );
 
-	//m_iRendermode = kRenderTransAdd;
+		m_vVelocity = g_vecZero;
 
-	m_flFadeSpeed = 0;
-	m_flScaleSpeed = 0;
-	m_flDampingTime = 0;
-	m_iFrame = 0;
-	m_flMass = 1.0;
-	m_flGravity = 0;
+		m_flFadeSpeed = 0;
+		m_flScaleSpeed = 0;
+		m_flDampingTime = 0;
+		m_iFrame = 0;
+		m_flMass = 1.0;
+		m_flGravity = 0;
 
-	//m_vColor.x = m_vColor.y = m_vColor.z = 128.0;
-
-	m_flDieTime = gEngfuncs.GetClientTime() + 0.5;
-
-	m_flTimeCreated = gEngfuncs.GetClientTime();
+		if (!m_dissolving)
+		{
+			m_flOriginalBrightness = m_flBrightness;
+			m_flTimeCreated = gEngfuncs.GetClientTime();
+			m_flDieTime = m_flTimeCreated + 0.5f;
+		}
+	}
 }
 
 void CEnvironment::Initialize()
@@ -905,6 +939,8 @@ CPartRainDrop* CEnvironment::CreateRaindrop( const Vector& vecOrigin, const Rain
 	int flags = TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE;
 	if (!rainData.CanGoThroughBrushEntities())
 		flags |= TRI_COLLIDEBRUSHENTS;
+	if (rainData.ShouldTraceWater())
+		flags |= TRI_WATERTRACEKILL;
 	pParticle->SetCollisionFlags(flags);
 
 	pParticle->m_flGravity = 0;
@@ -1018,6 +1054,8 @@ void CEnvironment::CreateSnowFlake( const Vector& vecOrigin, const SnowData& sno
 	int flags = TRI_COLLIDEWORLD;
 	if (!snowData.CanGoThroughBrushEntities())
 		flags |= TRI_COLLIDEBRUSHENTS;
+	if (snowData.ShouldTraceWater())
+		flags |= TRI_WATERTRACE;
 	pParticle->SetCollisionFlags(flags);
 
 	const float flFrac = Com_RandomFloat( 0.0, 1.0 );
