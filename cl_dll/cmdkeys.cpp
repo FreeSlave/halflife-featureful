@@ -136,8 +136,6 @@ static unsigned char NibbleHex( char c )
 
 static int Key_StringToKeynum(const char *str)
 {
-	int i;
-
 	if (!str || !str[0])
 		return -1;
 
@@ -176,7 +174,7 @@ int CmdKeys::AddDefaultKeyNumForCommand(const std::string &command, int keynum)
 	auto it = _cmdsToKeySets.find(command);
 	if (it != _cmdsToKeySets.end())
 	{
-		for (int i=1; i<ARRAYSIZE(it->second.keynums); ++i)
+		for (size_t i=1; i<ARRAYSIZE(it->second.keynums); ++i)
 		{
 			if (it->second.keynums[i] == 0)
 			{

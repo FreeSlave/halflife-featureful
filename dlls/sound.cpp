@@ -249,7 +249,7 @@ void CAmbientGeneric::Spawn()
 
 	if( FStringNull( pev->message ) || szSoundFile[0] == '\0' )
 	{
-		ALERT( at_error, "EMPTY AMBIENT AT: %f, %f, %f\n", (double)pev->origin.x, (double)pev->origin.y, (double)pev->origin.z );
+		ALERT( at_error, "EMPTY %s at: %g, %g, %g\n", STRING(pev->classname), pev->origin.x, pev->origin.y, pev->origin.z );
 		pev->nextthink = gpGlobals->time + 0.1f;
 		SetThink( &CBaseEntity::SUB_Remove );
 		return;

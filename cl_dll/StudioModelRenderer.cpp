@@ -1269,7 +1269,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	{
 		bool shouldSetupTransform = false;
 
-		for (int ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
+		for (size_t ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
 		{
 			if (!gHUD.fakeMirrors[ic].enabled)
 			{
@@ -1559,7 +1559,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	{
 		m_reinforceNoneCulling = true;
 
-		for (int ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
+		for (size_t ic = 0; ic < gHUD.fakeMirrors.size(); ic++)
 		{
 			m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(m_pRenderModel);
 			IEngineStudio.StudioSetHeader(m_pStudioHeader);

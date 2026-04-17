@@ -210,7 +210,7 @@ public:
 	bool CanRenderReflections();
 
 	// Mirror stuff
-	int mirror_id;
+	size_t mirror_id;
 	bool b_PlayerMarkerParsed;
 	bool m_reinforceNoneCulling;
 	int m_nCachedFrameCount;

@@ -1681,7 +1681,7 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 		const auto& firePhases = fire.projectileFirePhases.Get(altMode);
 		if (!firePhases.empty())
 		{
-			m_iFirePhase = Q_min(firePhases.size()-1, m_iFirePhase); // just in case
+			m_iFirePhase = Q_min((int)firePhases.size()-1, m_iFirePhase); // just in case
 
 			vecShift += gpGlobals->v_up * firePhases[m_iFirePhase].up;
 			vecShift += gpGlobals->v_right * firePhases[m_iFirePhase].side;

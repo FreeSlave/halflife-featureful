@@ -351,7 +351,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			const char* heightStr = value.GetString();
 			if (*heightStr == '*')
 			{
-				playerSpeed.value = atof(heightStr + 1);
+				playerSpeed.value = static_cast<float>(atof(heightStr + 1));
 				playerSpeed.isFactor = true;
 			}
 		}
@@ -1028,7 +1028,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						float angleFraction = 360.0f / count;
 						for (int i=0; i<count; ++i)
 						{
-							const float currentAngleDeg = currentAngle * M_PI / 180.0f;
+							const float currentAngleDeg = currentAngle * M_PI_F / 180.0f;
 							float x = std::cos(currentAngleDeg);
 							float y = std::sin(currentAngleDeg);
 							if (type == SQUARE)

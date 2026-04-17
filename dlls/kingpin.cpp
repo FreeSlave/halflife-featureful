@@ -1199,7 +1199,7 @@ void CKingpin::Spawn()
 	m_shieldRegenResource = pev->armortype = GetSkillValue("kingpin_shield");
 	pev->armorvalue = MaximumShield();
 
-	for (int i=0; i<ARRAYSIZE(m_Glows); ++i)
+	for (size_t i=0; i<ARRAYSIZE(m_Glows); ++i)
 	{
 		m_Glows[i] = CreateSpriteFromVisual(m_glowVisual, pev->origin);
 		if (m_Glows[i])
@@ -1814,21 +1814,21 @@ void CKingpin::DeathSound()
 
 void CKingpin::UpdateGlows(int target, int speed)
 {
-	for (int i=0; i<ARRAYSIZE(m_Glows); ++i)
+	for (CSprite* glow : m_Glows)
 	{
-		if (m_Glows[i])
+		if (glow)
 		{
-			m_Glows[i]->pev->renderamt = UTIL_Approach(target, m_Glows[i]->pev->renderamt, speed);
+			glow->pev->renderamt = UTIL_Approach(target, glow->pev->renderamt, speed);
 		}
 	}
 }
 
 void CKingpin::ClearGlows()
 {
-	for (int i=0; i<ARRAYSIZE(m_Glows); ++i)
+	for (CSprite*& glow : m_Glows)
 	{
-		UTIL_Remove(m_Glows[i]);
-		m_Glows[i] = NULL;
+		UTIL_Remove(glow);
+		glow = nullptr;
 	}
 }
 
@@ -1923,7 +1923,7 @@ void CKingpin::TryMakePlasmaCluster(const Vector &pos)
 
 			float minDistanceFromEye = 4096.0f;
 			int eyeAttachmentIndex = 0;
-			for (int i=0; i<ARRAYSIZE(m_Glows); ++i)
+			for (size_t i=0; i<ARRAYSIZE(m_Glows); ++i)
 			{
 				CSprite* glow = m_Glows[i];
 				if (glow)
