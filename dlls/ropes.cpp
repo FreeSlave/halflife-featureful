@@ -23,6 +23,7 @@
 #include "effects.h"
 #include "saverestore.h"
 #include "visuals_utils.h"
+#include "clamp.h"
 
 #include "ropes.h"
 
@@ -207,10 +208,7 @@ void CRope::KeyValue( KeyValueData* pkvd )
 
 		m_iSegments = strtol( pkvd->szValue, NULL, 10 );
 
-		if (m_iSegments < 1)
-			m_iSegments = 1;
-		if( m_iSegments >= MAX_SEGMENTS )
-			m_iSegments = MAX_SEGMENTS - 1;
+		m_iSegments = clamp(m_iSegments, 2, MAX_SEGMENTS - 1);
 	}
 	else if( FStrEq( pkvd->szKeyName, "bodymodel" ) )
 	{
