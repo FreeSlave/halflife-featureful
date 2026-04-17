@@ -16,7 +16,7 @@ bookToC: false
 
 * **sk_agrunt_health** - monster's health.
 * **sk_agrunt_dmg_punch** - melee damage.
-* **sk_agrunt_head** - alien grunt specific headshot damage multiplier. If set to 0, the **sk_monster_head** is used. Default value is 1.5.
+* **sk_agrunt_head** - alien grunt specific headshot damage multiplier. This must be in range `(0, sk_monster_head]`, otherwise the **sk_monster_head** is used. Default value is 1.5.
 * [hornet skill variables]({{< ref "hornet/#skill-variables" >}}).
 
 ### Default classification

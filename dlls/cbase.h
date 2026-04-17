@@ -339,8 +339,8 @@ public:
 	virtual DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr) { return inputDamageInfo; }
 	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr);
 	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr );
-	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, TraceResult* ptr);
-	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, TraceResult* ptr) {
+	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, const TraceResult* ptr);
+	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, const TraceResult* ptr) {
 		BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
 	}
 	virtual DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) { return inputDamageInfo; }
@@ -350,7 +350,7 @@ public:
 	virtual bool TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return false; }
 	virtual KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	virtual int BloodColor() { return DONT_BLEED; }
-	virtual void TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	virtual void TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType );
 	virtual bool IsTriggered( CBaseEntity *pActivator ) {return true; }
 	virtual CBaseAnimating *MyAnimatingPointer() { return nullptr; }
 	virtual CBaseToggle *MyTogglePointer() { return nullptr; }

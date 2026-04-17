@@ -1989,7 +1989,7 @@ void CBaseEntity::ApplyTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttack
 	ApplyMultiDamage(pevInflictor, pevAttacker);
 }
 
-void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, TraceResult *ptr)
+void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
 {
 	if (!damageInfo.noBlood)
 	{
@@ -2006,9 +2006,37 @@ float CBaseMonster::HeadHitGroupDamageMultiplier()
 	return GetSkillValue("monster_head");
 }
 
+void CBaseMonster::ApplyHitGroupDamageMultiplier(DamageInfo &damageInfo, int hitgroup)
+{
+	switch(hitgroup)
+	{
+	case HITGROUP_GENERIC:
+		break;
+	case HITGROUP_HEAD:
+		damageInfo.damage *= HeadHitGroupDamageMultiplier();
+		break;
+	case HITGROUP_CHEST:
+		damageInfo.damage *= GetSkillValue("monster_chest");
+		break;
+	case HITGROUP_STOMACH:
+		damageInfo.damage *= GetSkillValue("monster_stomach");
+		break;
+	case HITGROUP_LEFTARM:
+	case HITGROUP_RIGHTARM:
+		damageInfo.damage *= GetSkillValue("monster_arm");
+		break;
+	case HITGROUP_LEFTLEG:
+	case HITGROUP_RIGHTLEG:
+		damageInfo.damage *= GetSkillValue("monster_leg");
+		break;
+	default:
+		break;
+	}
+}
+
 void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
 {
-	if( pev->takedamage )
+	if (pev->takedamage)
 	{
 		DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 
@@ -2017,30 +2045,7 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 		m_LastHitGroup = ptr->iHitgroup;
 
-		switch( ptr->iHitgroup )
-		{
-		case HITGROUP_GENERIC:
-			break;
-		case HITGROUP_HEAD:
-			damageInfo.damage *= HeadHitGroupDamageMultiplier();
-			break;
-		case HITGROUP_CHEST:
-			damageInfo.damage *= GetSkillValue("monster_chest");
-			break;
-		case HITGROUP_STOMACH:
-			damageInfo.damage *= GetSkillValue("monster_stomach");
-			break;
-		case HITGROUP_LEFTARM:
-		case HITGROUP_RIGHTARM:
-			damageInfo.damage *= GetSkillValue("monster_arm");
-			break;
-		case HITGROUP_LEFTLEG:
-		case HITGROUP_RIGHTLEG:
-			damageInfo.damage *= GetSkillValue("monster_leg");
-			break;
-		default:
-			break;
-		}
+		ApplyHitGroupDamageMultiplier(damageInfo, ptr->iHitgroup);
 
 		BloodEffect(damageInfo, vecDir, ptr);
 		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
@@ -2203,7 +2208,7 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 	return Vector( x * vecSpread.x, y * vecSpread.y, 0.0 );
 }
 
-void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType )
 {
 	if( BloodColor() == DONT_BLEED )
 		return;

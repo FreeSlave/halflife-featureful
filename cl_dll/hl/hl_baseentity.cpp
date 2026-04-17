@@ -137,7 +137,7 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent ) { }
 Vector CBaseMonster::GetGunPosition() { return g_vecZero; }
 void CBaseEntity::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) { }
 void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker ) { }
-void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType ) { }
+void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType ) { }
 void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
 void CBaseMonster::Activate() {}

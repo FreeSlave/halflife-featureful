@@ -798,6 +798,7 @@ public:
 	const char* DefaultDisplayName() override { return "Kingpin"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void KeyValue(KeyValueData *pkvd) override;
+	float HeadHitGroupDamageMultiplier() override;
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	float MaximumShield() const { return pev->armortype; }
@@ -1316,17 +1317,29 @@ void CKingpin::HandleAnimEvent(MonsterEvent_t *pEvent)
 	}
 }
 
+float CKingpin::HeadHitGroupDamageMultiplier()
+{
+	const float kingpinMultiplier = GetSkillValue("kingpin_head");
+	const float defaultMultiplier = CBaseMonster::HeadHitGroupDamageMultiplier();
+	if (kingpinMultiplier > 0.0f)
+		return Q_min(defaultMultiplier, kingpinMultiplier);
+	else
+		return defaultMultiplier;
+}
+
 extern int gmsgSpriteTrail;
 
 void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	if (m_isTeleporting)
+	if (m_isTeleporting || pev->takedamage == DAMAGE_NO)
 		return;
 
 	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 
 	if (damageInfo.mustSkip)
 		return;
+
+	m_LastHitGroup = ptr->iHitgroup;
 
 	if (pev->armorvalue > 0)
 	{
@@ -1366,6 +1379,10 @@ void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 				WRITE_BYTE( 5 ); // random extra life in 0.1s
 			MESSAGE_END();
 		}
+	}
+	else
+	{
+		ApplyHitGroupDamageMultiplier(damageInfo, ptr->iHitgroup);
 	}
 
 	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );

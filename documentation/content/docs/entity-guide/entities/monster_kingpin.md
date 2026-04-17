@@ -26,6 +26,7 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 * **sk_kingpin_health** - monster's health.
 * **sk_kingpin_shield** - maximum shiled health. This is also the amount of extra resource that's converted to the shield health when it regenerates.
 * **sk_kingpin_melee** - melee damage.
+* **sk_kingpin_head** - kingpin specific headshot damage multiplier. This must be in range `(0, sk_monster_head]`, otherwise the **sk_monster_head** is used. Default value is 1.25 (kingpin's head is pretty big, thus the low multiplier)
 * See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) and [kingpin_plasma_cluster]({{< ref kingpin_plasma_cluster >}}) for projectile skill variables.
 
 ### Default classification
