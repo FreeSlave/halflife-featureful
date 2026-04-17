@@ -8,6 +8,7 @@
 #include "sound_channel.h"
 #include "soundent_bits.h"
 #include "fx_flags.h"
+#include "pi_constant.h"
 
 #include "skill.h"
 
