@@ -55,6 +55,33 @@ static int ParticleLightModeToFlag(int lightMode)
 	}
 }
 
+static Vector FindSurfaceDividerPoint(const Vector& vecStart, const Vector& vecFinish)
+{
+	Vector vecBegin = vecStart;
+	Vector vecEnd = vecFinish;
+
+	Vector vecDist = vecEnd - vecBegin;
+
+	while (vecDist.IsLengthGreaterThan(4.0f))
+	{
+		vecDist = vecDist * 0.5f;
+
+		const Vector vecHalf = vecBegin + vecDist;
+
+		if (gEngfuncs.PM_PointContents( vecBegin, nullptr ) == gEngfuncs.PM_PointContents( vecHalf, nullptr ))
+		{
+			vecBegin = vecHalf;
+		}
+		else
+		{
+			vecEnd = vecHalf;
+		}
+		vecDist = vecEnd - vecBegin;
+	}
+
+	return vecBegin;
+}
+
 float ParticleParams::GetSize() const
 {
 	if (maxSize > minSize)
@@ -396,34 +423,7 @@ void CPartRainDrop::Touch( Vector pos, Vector normal, int index )
 	{
 		if (m_rippleAllowed && m_pRipple)
 		{
-			Vector vecBegin = vecStart;
-			Vector vecEnd = trace.endpos;
-
-			Vector vecDist = vecEnd - vecBegin;
-
-			Vector vecHalf;
-
-			Vector vecNewBegin;
-
-			while( vecDist.IsLengthGreaterThan(4.0) )
-			{
-				vecDist = vecDist * 0.5;
-
-				vecHalf = vecBegin + vecDist;
-
-				if( gEngfuncs.PM_PointContents( vecBegin, nullptr ) == gEngfuncs.PM_PointContents( vecHalf, nullptr ) )
-				{
-					vecBegin = vecHalf;
-					vecNewBegin = vecHalf;
-				}
-				else
-				{
-					vecEnd = vecHalf;
-					vecNewBegin = vecBegin;
-				}
-
-				vecDist = vecEnd - vecNewBegin;
-			}
+			Vector vecBegin = FindSurfaceDividerPoint(vecStart, trace.endpos);
 
 			CBaseParticle* pParticle = new CBaseParticle();
 
@@ -799,7 +799,13 @@ void CEnvironment::UpdateRain(const RainData& rainData)
 							gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
 							gEngfuncs.pEventAPI->EV_PlayerTrace( vecWindOrigin, vecEndPos, PM_WORLD_ONLY, -1, &trace );
 
-							CPartWind* windParticle = CreateWindParticle( trace.endpos, rainData );
+							Vector vecWindPos = trace.endpos;
+							if (gEngfuncs.PM_PointContents(vecWindOrigin, nullptr) != gEngfuncs.PM_PointContents(trace.endpos + Vector(0,0,1), nullptr))
+							{
+								vecWindPos = FindSurfaceDividerPoint(vecWindOrigin, trace.endpos);
+							}
+
+							CPartWind* windParticle = CreateWindParticle( vecWindPos, rainData );
 							if (windParticle)
 								windParticleCount++;
 						}
