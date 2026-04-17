@@ -1368,12 +1368,12 @@ void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 		}
 	}
 
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 	// Spawn blood only if shield is dropped or gonna drop
 	if (gMultiDamage.damageInfo.damage > pev->armorvalue)
 	{
 		BloodEffect(damageInfo, vecDir, ptr);
 	}
-	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
 }
 
 TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
