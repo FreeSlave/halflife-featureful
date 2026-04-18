@@ -7,7 +7,22 @@
 #define		BLOOD_COLOR_RED		247
 #define		BLOOD_COLOR_YELLOW	195
 #define		BLOOD_COLOR_GREEN	BLOOD_COLOR_YELLOW
+#define		BLOOD_COLOR_WHITE 12
+#define		BLOOD_COLOR_GREY 5
+#define		BLOOD_COLOR_BROWN 26
+#define		BLOOD_COLOR_OLIVE 59
+#define		BLOOD_COLOR_GREYGREEN 178
+#define		BLOOD_COLOR_ORANGE 92
+#define		BLOOD_COLOR_GOLDISH 106
+#define		BLOOD_COLOR_PEACH 124
+#define		BLOOD_COLOR_MAGENTA 145
+#define		BLOOD_COLOR_TAN 161
+#define		BLOOD_COLOR_BLUE 210
+#define		BLOOD_COLOR_DARKBLUE 214
+#define		BLOOD_COLOR_BLUISH 43
 
 int BloodTypeFromName(const char* name);
+
+int GetBloodStreamColor(int bloodColor);
 
 #endif

@@ -1072,7 +1072,7 @@ void CGargantua::Spawn()
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	SetMyHealth( DefaultHealth() );
 	//pev->view_ofs		= Vector ( 0, 0, 96 );// taken from mdl file
 	SetMyFieldOfView(-0.2f);// width of forward view cone ( as a dotproduct result )

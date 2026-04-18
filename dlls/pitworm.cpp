@@ -329,7 +329,7 @@ void CPitWorm::Spawn()
 	pev->max_health = pev->health;
 
 	pev->view_ofs = PITWORM_EYE_OFFSET;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	SetMyFieldOfView( 0.5f );
 
 	pev->sequence = 0;

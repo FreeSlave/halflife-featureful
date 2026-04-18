@@ -1192,7 +1192,7 @@ void CKingpin::Spawn()
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	SetMyHealth( GetSkillValue("kingpin_health") );
 	SetMyFieldOfView(VIEW_FIELD_FULL);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;

@@ -419,7 +419,7 @@ int GibType(CBaseMonster* monster)
 		int bloodColor = monster->BloodColor();
 		if (bloodColor == BLOOD_COLOR_RED)
 			return GIBTYPE_HUMAN;
-		else if (bloodColor == BLOOD_COLOR_YELLOW)
+		else if (bloodColor > 0)
 			return GIBTYPE_ALIEN;
 	}
 	default:

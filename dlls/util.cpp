@@ -1317,16 +1317,16 @@ bool UTIL_ShouldShowBlood( int color )
 {
 	extern cvar_t* violence_hblood;
 	extern cvar_t* violence_ablood;
-	if( color != DONT_BLEED )
+	if (color != DONT_BLEED)
 	{
-		if( color == BLOOD_COLOR_RED )
+		if (color == BLOOD_COLOR_RED)
 		{
-			if( violence_hblood->value != 0 )
+			if (violence_hblood->value != 0)
 				return true;
 		}
 		else
 		{
-			if( violence_ablood->value != 0 )
+			if (violence_ablood->value != 0)
 				return true;
 		}
 	}
@@ -1340,21 +1340,24 @@ int UTIL_PointContents(	const Vector &vec )
 
 void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount )
 {
-	if( !UTIL_ShouldShowBlood( color ) )
+	if (!UTIL_ShouldShowBlood( color ))
 		return;
+
+	color = GetBloodStreamColor(color);
+	amount = clamp(amount, 0, 255);
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
 		WRITE_BYTE( TE_BLOODSTREAM );
 		WRITE_VECTOR( origin );
 		WRITE_VECTOR( direction );
 		WRITE_BYTE( color );
-		WRITE_BYTE( Q_min( amount, 255 ) );
+		WRITE_BYTE( amount );
 	MESSAGE_END();
 }				
 
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount )
 {
-	if( color == DONT_BLEED || amount == 0 )
+	if (color == DONT_BLEED || amount <= 0)
 		return;
 
 	if( !UTIL_ShouldShowBlood( color ) )
@@ -1366,8 +1369,7 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 		amount *= 2;
 	}
 
-	if( amount > 255 )
-		amount = 255;
+	amount = clamp(amount, 0, 255);
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
 		WRITE_BYTE( TE_BLOODSPRITE );
@@ -1392,12 +1394,21 @@ Vector UTIL_RandomBloodVector()
 
 void UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor )
 {
-	if( UTIL_ShouldShowBlood( bloodColor ) )
+	if (UTIL_ShouldShowBlood(bloodColor))
 	{
-		if( bloodColor == BLOOD_COLOR_RED )
+		switch(bloodColor)
+		{
+		case BLOOD_COLOR_RED:
+		case BLOOD_COLOR_MAGENTA:
 			UTIL_DecalTrace( pTrace, DECAL_BLOOD1 + RANDOM_LONG( 0, 5 ) );
-		else
+			break;
+		case BLOOD_COLOR_YELLOW:
+		case BLOOD_COLOR_OLIVE:
 			UTIL_DecalTrace( pTrace, DECAL_YBLOOD1 + RANDOM_LONG( 0, 5 ) );
+			break;
+		default:
+			break;
+		}
 	}
 }
 

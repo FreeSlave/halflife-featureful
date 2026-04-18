@@ -850,7 +850,7 @@ void CGeneWorm::Spawn()
 
 	pev->view_ofs = Vector{0, 0, 300};
 
-	SetMyBloodColor(BLOOD_COLOR_GREEN);
+	SetMyBloodColor(BLOOD_COLOR_YELLOW);
 	SetMyFieldOfView(0.5f);
 
 	SetThink(&CGeneWorm::StartThink);

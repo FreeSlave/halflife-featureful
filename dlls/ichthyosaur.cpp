@@ -513,7 +513,7 @@ void CIchthyosaur::Spawn()
 
 	pev->solid		= SOLID_BBOX;
 	pev->movetype		= MOVETYPE_FLY;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	SetMyHealth( GetSkillValue("ichthyosaur_health") );
 	pev->view_ofs		= Vector( 0, 0, 16 );
 	SetMyFieldOfView(VIEW_FIELD_WIDE);

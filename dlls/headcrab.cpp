@@ -329,7 +329,7 @@ void CHeadCrab::SpawnHelper(const char *modelName, float health)
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	pev->effects		= 0;
 	SetMyHealth( health );
 	pev->view_ofs		= Vector( 0, 0, 20 );// position of the eyes relative to monster's origin.
@@ -817,7 +817,7 @@ void CShockRoach::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	pev->effects = 0;
 	SetMyHealth( GetSkillValue("shockroach_health") );
 	pev->view_ofs = Vector(0, 0, 20);// position of the eyes relative to monster's origin.

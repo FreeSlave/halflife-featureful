@@ -2416,13 +2416,16 @@ void CBlood::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "color" ) )
 	{
 		int color = atoi( pkvd->szValue );
-		switch( color )
+		switch(color)
 		{
+		case 0:
+			SetColor(BLOOD_COLOR_RED);
+			break;
 		case 1:
-			SetColor( BLOOD_COLOR_YELLOW );
+			SetColor(BLOOD_COLOR_YELLOW);
 			break;
 		default:
-			SetColor( BLOOD_COLOR_RED );
+			SetColor(color);
 			break;
 		}
 
@@ -2479,7 +2482,7 @@ void CBlood::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 
 	if( pev->spawnflags & SF_BLOOD_STREAM ) {
 		if (CheckBloodPosition( pActivator, bloodPos ) && CheckBloodDirection( pActivator, bloodDir ))
-			UTIL_BloodStream( bloodPos, bloodDir, ( Color() == BLOOD_COLOR_RED ) ? 70 : Color(), (int)BloodAmount() );
+			UTIL_BloodStream( bloodPos, bloodDir, Color(), (int)BloodAmount() );
 	} else {
 		if (CheckBloodPosition( pActivator, bloodPos ) && CheckBloodDirection( pActivator, bloodDir ))
 			UTIL_BloodDrips( bloodPos, bloodDir, Color(), (int)BloodAmount() );

@@ -1,22 +1,54 @@
 #include <cstring>
+#include <utility>
 #include "blood_types.h"
 
 int BloodTypeFromName(const char* name)
 {
-	if (stricmp(name, "red") == 0)
+	static constexpr std::pair<const char*, int> pairs[] = {
+		{"red", BLOOD_COLOR_RED},
+		{"yellow", BLOOD_COLOR_YELLOW},
+		{"no", DONT_BLEED},
+		{"white", BLOOD_COLOR_WHITE},
+		{"grey", BLOOD_COLOR_GREY},
+		{"gray", BLOOD_COLOR_GREY},
+		{"brown", BLOOD_COLOR_BROWN},
+		{"olive", BLOOD_COLOR_OLIVE},
+		{"greygreen", BLOOD_COLOR_GREYGREEN},
+		{"graygreen", BLOOD_COLOR_GREYGREEN},
+		{"orange", BLOOD_COLOR_ORANGE},
+		{"goldish", BLOOD_COLOR_GOLDISH},
+		{"peach", BLOOD_COLOR_PEACH},
+		{"magenta", BLOOD_COLOR_MAGENTA},
+		{"tan", BLOOD_COLOR_TAN},
+		{"blue", BLOOD_COLOR_BLUE},
+		{"darkblue", BLOOD_COLOR_DARKBLUE},
+		{"bluish", BLOOD_COLOR_BLUISH},
+	};
+
+	for (auto p : pairs)
 	{
-		return BLOOD_COLOR_RED;
+		if (stricmp(name, p.first) == 0)
+			return p.second;
 	}
-	else if (stricmp(name, "yellow") == 0)
+	return BLOOD_COLOR_INVALID;
+}
+
+int GetBloodStreamColor(int bloodColor)
+{
+	switch (bloodColor) {
+	case BLOOD_COLOR_RED:
+		return 70;
+	case BLOOD_COLOR_GREY:
+		return 2;
+	}
+	if (bloodColor <= 127)
 	{
-		return BLOOD_COLOR_YELLOW;
+		int row = bloodColor / 16;
+		int column = bloodColor % 16;
+		if (column > 6)
+		{
+			return row * 16 + 6;
+		}
 	}
-	else if (stricmp(name, "no") == 0)
-	{
-		return DONT_BLEED;
-	}
-	else
-	{
-		return BLOOD_COLOR_INVALID;
-	}
+	return bloodColor;
 }

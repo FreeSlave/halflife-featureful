@@ -1465,7 +1465,7 @@ void CISlave::Spawn()
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	pev->effects		= 0;
 	SetMyHealth( GetSkillValue("islave_health") );
 	pev->view_ofs		= Vector( 0, 0, 64 );// position of the eyes relative to monster's origin.

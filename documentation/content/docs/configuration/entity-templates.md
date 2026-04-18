@@ -296,9 +296,22 @@ Most entities has their collision box to match the size. However some monsters r
 
 Default blood color of the monster belonging to this template. Possible values:
 
-* `"red"` - red human blood.
-* `"yellow"` - yellow alien blood.
+* `"red"` - red (human) blood.
+* `"yellow"` - yellow (alien) blood.
 * `"no"` - don't bleed.
+* `"white"`
+* `"grey"` or `"gray"`
+* `"brown"`
+* `"olive"` - dirty/tinted green
+* `"greygreen"` or `"graygreen"`
+* `"orange"`
+* `"goldish"` - bright orange
+* `"peach"`
+* `"magenta"`
+* `"tan"`
+* `"blue"`
+* `"darkblue"`
+* `"bluish"` - bluish/navy
 
 ```json
 {
