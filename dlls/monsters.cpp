@@ -3648,22 +3648,37 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	else if ( HasMemory( bits_MEMORY_SUSPICIOUS ) )
 		ALERT(level, "Has MEMORY_SUSPICIOUS, ");
 
-	int i = 0;
-	while( activity_map[i].type != 0 )
-	{
-		if( activity_map[i].type == (int)m_Activity )
+	auto getActivityName = [](Activity activity) -> const char* {
+		int i = 0;
+		while (activity_map[i].type != 0)
 		{
-			ALERT( level, "Activity %s, ", activity_map[i].name );
-			break;
+			if (activity_map[i].type == (int)activity)
+			{
+				return activity_map[i].name;
+			}
+			i++;
 		}
-		i++;
+		return nullptr;
+	};
+
+	const char* activityName = getActivityName(m_Activity);
+	if (activityName)
+	{
+		ALERT(level, "Activity %s, ", activityName);
 	}
+
+	const char* idealActivityName = getActivityName(m_IdealActivity);
+	if (idealActivityName)
+	{
+		ALERT(level, "Ideal Activity %s, ", idealActivityName);
+	}
+
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
 	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
 	if (pev->sequence >= 0 && pev->sequence < pstudiohdr->numseq)
 	{
 		mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)( (byte *)pstudiohdr + pstudiohdr->seqindex );
-		ALERT(at_console, "Playing sequence %s (index %d, frame %g), ", pseqdesc[pev->sequence].label, pev->sequence, pev->frame);
+		ALERT(at_console, "Playing sequence %s (index %d, frame %g, framerate %g, finished: %s), ", pseqdesc[pev->sequence].label, pev->sequence, pev->frame, pev->framerate, m_fSequenceFinished ? "yes" : "no");
 	}
 
 	if( m_pSchedule )
@@ -3680,21 +3695,24 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	else
 		ALERT( level, "No Schedule, " );
 
-	if( m_hEnemy != 0 )
-		ALERT( level, "Enemy is %s (%s, ent: %d, LKP: (%g, %g, %g)). ",
-			STRING(m_hEnemy->pev->classname), m_hEnemy->IsAlive() ? "alive" : "dead", m_hEnemy->entindex(),
-			m_vecEnemyLKP.x, m_vecEnemyLKP.y, m_vecEnemyLKP.z );
-	else
-		ALERT( level, "No enemy. " );
-
-	for (i=0; i<MAX_OLD_ENEMIES; ++i)
+	auto reportEnemy = [level](CBaseEntity* pEnemy, const Vector& enemyLKP, const char* kind)
 	{
-		if (m_hOldEnemy[i] != 0)
+		if (pEnemy)
 		{
-			ALERT( level, "Old enemy is %s (%s, ent: %d, LKP: (%g, %g, %g)). ",
-				STRING(m_hOldEnemy[i]->pev->classname), m_hOldEnemy[i]->IsAlive() ? "alive" : "dead", m_hOldEnemy[i]->entindex(),
-				m_vecOldEnemy[i].x, m_vecOldEnemy[i].y, m_vecOldEnemy[i].z );
+			ALERT(level, "%s is %s (%s, ent: %d, LKP: (%g, %g, %g)). ", kind,
+				  STRING(pEnemy->pev->classname), pEnemy->IsAlive() ? "alive" : "dead", pEnemy->entindex(),
+				  enemyLKP.x, enemyLKP.y, enemyLKP.z);
 		}
+	};
+
+	if (m_hEnemy != 0)
+		reportEnemy(m_hEnemy, m_vecEnemyLKP, "Enemy");
+	else
+		ALERT(level, "No enemy. ");
+
+	for (int i=0; i<MAX_OLD_ENEMIES; ++i)
+	{
+		reportEnemy(m_hOldEnemy[i], m_vecOldEnemy[i], "Old enemy");
 	}
 
 	if ( m_hTargetEnt != 0 )
