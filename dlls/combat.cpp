@@ -1993,8 +1993,25 @@ void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOri
 {
 	if (!damageInfo.noBlood)
 	{
-		SpawnBlood( vecOrigin, BloodColor(), damageInfo.damage );// a little surface blood.
-		TraceBleed( damageInfo.damage, vecDir, ptr, damageInfo.type );
+		int bloodColor = BloodColor();
+
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate)
+		{
+			const EntTemplate::HitGroupToBlood& hitGroupToBlood = entTemplate->GetHitGroupToBlood();
+
+			for (auto p : hitGroupToBlood)
+			{
+				if (p.first == ptr->iHitgroup)
+				{
+					bloodColor = p.second;
+					break;
+				}
+			}
+		}
+
+		SpawnBlood(vecOrigin, bloodColor, damageInfo.damage);
+		TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
 	}
 }
 
@@ -2208,12 +2225,12 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 	return Vector( x * vecSpread.x, y * vecSpread.y, 0.0 );
 }
 
-void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType )
+void CBaseEntity::TraceBleed(float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor)
 {
-	if( BloodColor() == DONT_BLEED )
+	if (bloodColor == DONT_BLEED)
 		return;
 
-	if( (int)flDamage == 0 )
+	if ((int)flDamage <= 0)
 		return;
 
 	if( !( bitsDamageType & ( DMG_CRUSH | DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB | DMG_MORTAR ) ) )
@@ -2269,7 +2286,7 @@ void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, const TraceResult *
 
 		if( Bloodtr.flFraction != 1.0f )
 		{
-			UTIL_BloodDecalTrace( &Bloodtr, BloodColor() );
+			UTIL_BloodDecalTrace( &Bloodtr, bloodColor );
 		}
 	}
 }

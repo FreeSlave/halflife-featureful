@@ -775,6 +775,10 @@ const char* const json_schemas::definitions = R"(
 			"combat"
 		]
 	},
+	"blood_color": {
+		"type": "string",
+		"minLength": 1
+	},
 )"
 R"(
 	"entity_template": {
@@ -799,7 +803,36 @@ R"(
 				"type": "string"
 			},
 			"blood": {
-				"type": "string"
+				"oneOf": [
+					{
+						"$ref": "#/blood_color"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"color": {
+								"$ref": "#/blood_color"
+							},
+							"by_hitgroup": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"hitgroup": {
+											"type": ["string", "integer"]
+										},
+										"color": {
+											"$ref": "#/blood_color"
+										}
+									},
+									"required": ["hitgroup", "color"],
+									"additionalProperties": false
+								}
+							}
+						},
+						"additionalProperties": false
+					}
+				]
 			},
 			"field_of_view": {
 				"type": ["number", "string"],

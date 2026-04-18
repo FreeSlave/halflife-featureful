@@ -350,7 +350,7 @@ public:
 	virtual bool TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return false; }
 	virtual KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	virtual int BloodColor() { return DONT_BLEED; }
-	virtual void TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType );
+	virtual void TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor );
 	virtual bool IsTriggered( CBaseEntity *pActivator ) {return true; }
 	virtual CBaseAnimating *MyAnimatingPointer() { return nullptr; }
 	virtual CBaseToggle *MyTogglePointer() { return nullptr; }

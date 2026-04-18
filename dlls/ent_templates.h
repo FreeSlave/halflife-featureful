@@ -300,6 +300,8 @@ public:
 		static TakeDamageRule FromJSON(const rapidjson::Value& value);
 	};
 
+	typedef std::vector<std::pair<int, int>> HitGroupToBlood;
+
 	const char* OwnVisualName() const;
 	void SetOwnVisualName(const std::string& name) {
 		_ownVisual = name;
@@ -367,6 +369,13 @@ public:
 	}
 	void SetBloodColor(int bloodColor) {
 		_bloodColor = bloodColor;
+	}
+
+	const EntTemplate::HitGroupToBlood& GetHitGroupToBlood() const {
+		return _hitGroupToBlood;
+	}
+	void SetHitGroupToBlood(EntTemplate::HitGroupToBlood&& hitGroupToBlood) {
+		_hitGroupToBlood = hitGroupToBlood;
 	}
 
 	bool IsHealthDefined() const {
@@ -556,6 +565,7 @@ private:
 
 	optional<int> _classify;
 	optional<int> _bloodColor;
+	HitGroupToBlood _hitGroupToBlood;
 	optional<float> _health;
 	optional<float> _fieldOfView;
 	optional<ObjectSize> _size;

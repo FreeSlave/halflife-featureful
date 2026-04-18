@@ -294,7 +294,17 @@ Most entities has their collision box to match the size. However some monsters r
 
 ### blood
 
-Default blood color of the monster belonging to this template. Possible values:
+Blood properties. Can be defined in two forms: as a string or as an object. If it's a string, then it's just a blood color. Example:
+
+```json
+{
+    "template_name": {
+        "blood": "red"
+    }
+}
+```
+
+Possible values for blood colors:
 
 * `"red"` - red (human) blood.
 * `"yellow"` - yellow (alien) blood.
@@ -313,10 +323,27 @@ Default blood color of the monster belonging to this template. Possible values:
 * `"darkblue"`
 * `"bluish"` - bluish/navy
 
+If it's an object, it have the following properties:
+
+* `"color"` - same as a string form. Just the blood color.
+* `"by_hitgroup"` - an array that allows to set different blood colors depending on the hitbox type that was hit. Each item in the array is an object of the following properties:
+    - `"hitgroup"` - an integer or a string representing a [standard hitgroup](#hitgroup).
+    - `"color"` - the name of the blood color for this hitgroup.
+
+In the following example we set the main blood color of zombie to red, and the head blood color to yellow:
+
 ```json
 {
-    "template_name": {
-        "blood": "red"
+    "monster_zombie": {
+        "blood": {
+            "color": "red",
+            "by_hitgroup": [
+                {
+                    "hitgroup": "head",
+                    "color": "yellow"
+                }
+            ]
+        }
     }
 }
 ```
@@ -872,23 +899,14 @@ The trace attack rules provided in the entity template completely replace the "n
 
 Has same properties as conditions of [take_damage](#take_damage), but also has hitgroup related checks:
 
-* `"hitgroup"` - a single entry or array of hitgroups to test against. Entries can be be numbers representing the hitgroup value in the model (e.g. stomach hitgroup has a number 3) or they can be strings corresponding to the standard hitgroups:
-    - `"generic"` (0)
-    - `"head"` (1)
-    - `"chest"` (2)
-    - `"stomach"` (3)
-    - `"left arm"` (4)
-    - `"right arm"` (5)
-    - `"left leg"` (6)
-    - `"right leg"` (7)
-    - custom hitgroups must be referred by a number (e.g. armor hitgroup is usually implemented via hitgroup 10).
+* `"hitgroup"` - a single entry or array of hitgroups to test against. Entries can be be numbers representing the hitgroup value in the model (e.g. stomach hitgroup has a number 3) or they can be strings corresponding to the [standard hitgroups](#hitgroup).
 * `"invert_hitgroup_check"` - a boolean. Whether to invert the hitgroup check, i.e. instead of testing whether the hitgroup is from specified the set, test that the hitgroup is not in the set.
 
 #### modifier
 
 Has same properties as modifier of [take_damage](#take_damage), but also provides a way to modify the perceived hitgroup:
 
-* `"hitgroup"` - a single entry to change the perceived hitgroup to. This is useful with custom hitgroups in order to change them into some standard one, so the hitgroup damage multiplier (e.g. for headshots) is properly applied and monster knows their last body part that took damage to play a proper death animation in case of death.
+* `"hitgroup"` - a single entry to change the perceived hitgroup to. This is useful with custom hitgroups in order to change them into some [standard one](#hitgroup), so the hitgroup damage multiplier (e.g. for headshots) is properly applied and monster knows their last body part that took damage to play a proper death animation in case of death.
 
 {{% hint info %}}
 You can omit the modifier completely if you want just to play `effects`.
@@ -1415,6 +1433,21 @@ Set of conditions to filter entities by. When matching against the filter, some 
 * `"negate"` - a boolean. Whether to change the filter result to opposite (a logical *Not* applied to the filter result).
 
 All properties are optional. All checks are joined by logical *And* to evaluate the filter result.
+
+### hitgroup
+
+Standard hitgroup names used by various objects:
+
+* `"generic"` (0)
+* `"head"` (1)
+* `"chest"` (2)
+* `"stomach"` (3)
+* `"left arm"` (4)
+* `"right arm"` (5)
+* `"left leg"` (6)
+* `"right leg"` (7)
+
+Custom hitgroups must be referred by a number (e.g. armor hitgroup is usually implemented via hitgroup 10).
 
 ## Known issues
 

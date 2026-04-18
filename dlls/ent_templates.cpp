@@ -979,15 +979,64 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	});
 
 	HandleJSONMember(value, "blood", [&entTemplate](const Value& value) {
-		const char* bloodTypeName = value.GetString();
-		const int bloodType = BloodTypeFromName(bloodTypeName);
-		if (bloodType == BLOOD_COLOR_INVALID)
+
+		auto handleMainBloodColor = [&entTemplate](const Value& value) {
+			const char* bloodTypeName = value.GetString();
+			const int bloodType = BloodTypeFromName(bloodTypeName);
+			if (bloodType == BLOOD_COLOR_INVALID)
+			{
+				LOG_WARNING("Unknown blood type '%s'\n", bloodTypeName);
+			}
+			else
+			{
+				entTemplate.SetBloodColor(bloodType);
+			}
+		};
+
+		if (value.IsString())
 		{
-			LOG_WARNING("Unknown blood type '%s'\n", bloodTypeName);
+			handleMainBloodColor(value);
 		}
 		else
 		{
-			entTemplate.SetBloodColor(bloodType);
+			HandleJSONMember(value, "color", handleMainBloodColor);
+
+			HandleJSONMember(value, "by_hitgroup", [&entTemplate](const Value& value) {
+				EntTemplate::HitGroupToBlood byHitGroup;
+
+				Value::ConstArray arr = value.GetArray();
+				byHitGroup.reserve(arr.Size());
+
+				for (auto& item : arr)
+				{
+					int hitgroup = -1;
+					int bloodColor = BLOOD_COLOR_INVALID;
+
+					HandleJSONMember(item, "color", [&bloodColor](const Value& value) {
+						const char* bloodTypeName = value.GetString();
+						const int bloodType = BloodTypeFromName(bloodTypeName);
+						if (bloodType == BLOOD_COLOR_INVALID)
+						{
+							LOG_WARNING("Unknown blood type '%s'\n", bloodTypeName);
+						}
+						else
+						{
+							bloodColor = bloodType;
+						}
+					});
+
+					HandleJSONMember(item, "hitgroup", [&hitgroup](const Value& value) {
+						hitgroup = EntTemplate::HitgroupFromJSON(value);
+					});
+
+					if (hitgroup >= 0 && bloodColor != BLOOD_COLOR_INVALID)
+					{
+						byHitGroup.push_back(std::make_pair(hitgroup, bloodColor));
+					}
+				}
+
+				entTemplate.SetHitGroupToBlood(std::move(byHitGroup));
+			});
 		}
 	});
 
