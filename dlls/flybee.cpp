@@ -777,7 +777,8 @@ void CFlybee::StartTask(Task_t *pTask)
 	case TASK_DIE:
 		pev->movetype	= MOVETYPE_STEP;
 		pev->angles.x = 0;
-		UTIL_SetSize( pev, Vector( -8, -8, 0 ), Vector( 8,8,8 ) );
+		UTIL_SetSize( pev, Vector( -8, -8, 0 ), Vector( 8,8,1 ) );
+		pev->deadflag = DEAD_DYING;
 
 		CFlyingMonster::StartTask(pTask);
 		break;
@@ -927,21 +928,18 @@ void CFlybee::RunTask ( Task_t *pTask )
 		break;
 
 	case TASK_DIE:
-
-		if ( m_fSequenceFinished && m_IdealActivity == ACT_DIESIMPLE && (FBitSet( pev->flags, FL_ONGROUND) || pev->waterlevel == WL_Eyes) )
+		if ((m_IdealActivity == ACT_FALL || pev->frame >= 175.0f) && m_IdealActivity != ACT_LAND && (FBitSet( pev->flags, FL_ONGROUND) || pev->waterlevel == WL_Eyes) )
 		{
-			pev->deadflag = DEAD_DYING;
 			m_IdealActivity = ACT_LAND;
-
-			ResetSequenceInfo ();
 		}
-		else if ( m_fSequenceFinished && m_IdealActivity == ACT_DIESIMPLE )
+		else if (pev->frame >= 175.0f && m_IdealActivity != ACT_LAND && m_IdealActivity != ACT_FALL)
 		{
-			pev->deadflag = DEAD_DYING;
+			StopAnimation();
+			m_IdealActivity = ACT_FALL;
 		}
-		else if ( m_fSequenceFinished && m_IdealActivity == ACT_LAND )
+		else if (m_fSequenceFinished && m_IdealActivity == ACT_LAND)
 		{
-			CFlyingMonster::RunTask ( pTask );
+			CFlyingMonster::RunTask(pTask);
 			pev->deadflag = DEAD_DEAD;
 		}
 		break;
