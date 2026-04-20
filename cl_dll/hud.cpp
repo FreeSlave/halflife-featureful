@@ -35,7 +35,7 @@
 #include "environment.h"
 #include "error_collector.h"
 #include "tex_materials.h"
-#include "quake_palette.h"
+#include "hl_palette.h"
 
 extern bool m_bCacheFullbrightModels;
 
@@ -651,7 +651,7 @@ void ShowClosestPaletteColor()
 	const int colorIndex = ClosestPaletteColorIndex(Color3(r, g, b));
 
 	gEngfuncs.Con_Printf("%d (%d, %d, %d)\n", colorIndex,
-						(int)quakePalette[colorIndex * 3], (int)quakePalette[colorIndex * 3 + 1], (int)quakePalette[colorIndex * 3 + 2]);
+						(int)hlPalette[colorIndex * 3], (int)hlPalette[colorIndex * 3 + 1], (int)hlPalette[colorIndex * 3 + 2]);
 }
 
 void CHud::ParseModConfigs()

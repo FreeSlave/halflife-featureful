@@ -85,7 +85,7 @@ The root object can have the following properties:
     - The only materials that set their own color by default are concrete (`C`) and wood (`W`). If custom `wallpuff_color` is set, these materials will adjust their default colors accordingly, but you may still want to set a custom color specifically for a material, especially for wood, since it may get weird color when adjusted.
     - The sprites with `SPR_INDEXALPHA` texture format usually require setting a custom wallpuff color, as the default one would be too dark for them.
 * `wallpuff_alpha` - the [range]({{< ref "json/#range_int" >}}) of wallpuff alpha value. The default value is `[120, 180]`. The higher the values the brighter the wallpuffs.
-* `impact_particle_color` - the default color of impact particles (usually from bullet impact) for all materials that don't define its own color. Note that the resulting color may not match exactly the one you provided as native engine particles support colors only from the internal palette (inherited from Quake). You may use color picking on [quake palette](https://quakewiki.org/wiki/Quake_palette) to get the exact available RGB-values. Default value is almost pitch-black.
+* `impact_particle_color` - the default color of impact particles (usually from bullet impact) for all materials that don't define its own color. Note that the resulting color may not match exactly the one you provided as native engine particles support colors only from the [internal palette]({{< ref color-palette >}}). Default value is almost pitch-black.
 
 ### materials
 

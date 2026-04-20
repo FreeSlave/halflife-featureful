@@ -26,6 +26,7 @@ add_executable(test
 	messages_test.cpp
 	objecthint_test.cpp
 	parsetext_test.cpp
+	hl_palette_test.cpp
 	savetitles_test.cpp
 	skilldata_test.cpp
 	soundscripts_test.cpp
@@ -52,6 +53,7 @@ add_executable(test
 	../public/safe_snprintf.c
 	../cl_dll/bucket_preferences.cpp
 	../cl_dll/inventory_hud.cpp
+	../cl_dll/hl_palette.cpp
 	../cl_dll/journal_config.cpp
 	../cl_dll/message_strings.cpp
 	../dlls/ammoregistry.cpp

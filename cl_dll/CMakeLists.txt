@@ -112,6 +112,7 @@ set (CLDLL_SOURCES
 	GameStudioModelRenderer.cpp
 	geiger.cpp
 	health.cpp
+	hl_palette.cpp
 	hud.cpp
 	hud_caption.cpp
 	hud_error_collection.cpp
@@ -139,7 +140,6 @@ set (CLDLL_SOURCES
 	nightvision.cpp
 	objecthint_manager.cpp
 	parsemsg.cpp
-	quake_palette.cpp
 	../pm_shared/pm_debug.cpp
 	../pm_shared/pm_math.cpp
 	../pm_shared/pm_shared.cpp

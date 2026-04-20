@@ -1,8 +1,9 @@
-#include "quake_palette.h"
+#include "hl_palette.h"
 
 #include <cstddef>
+#include "clamp.h"
 
-const unsigned char quakePalette[] =
+const unsigned char hlPalette[] =
 {
 	// marked: colormap colors: cb = (colormap & 0xF0);cb += (cb >= 128 && cb < 224) ? 4 : 12;
 	// 0x0*
@@ -51,7 +52,7 @@ const unsigned char quakePalette[] =
 	43,0,0,       59,0,0,       75,7,0,       95,7,0,       111,15,0,     127,23,7,     147,31,7,     163,39,11,
 	183,51,15,    195,75,27,    207,99,43,    219,127,59,   227,151,79,   231,171,95,   239,191,119,  247,211,139,
 	// 0xF*                                                  14 ^
-	167,123,59,   183,155,55,   199,195,55,   231,227,87,   127,191,255,  171,231,255,  215,255,255,  103,0,0,
+	167,123,59,   183,155,55,   199,195,55,   231,227,87,   0,255,0,      171,231,255,  215,255,255,  103,0,0,
 	139,0,0,      179,0,0,      215,0,0,      255,0,0,      255,243,147,  255,247,199,  255,255,255,  159,91,83
 }; //
 
@@ -66,9 +67,9 @@ int ClosestPaletteColorIndex(const Color3 color)
 
 	for (size_t i = 0; i<256; ++i)
 	{
-		const int rDist = color.r - quakePalette[i*3];
-		const int gDist = color.g - quakePalette[i*3 + 1];
-		const int bDist = color.b - quakePalette[i*3 + 2];
+		const int rDist = color.r - hlPalette[i*3];
+		const int gDist = color.g - hlPalette[i*3 + 1];
+		const int bDist = color.b - hlPalette[i*3 + 2];
 
 		const float distanceSquared = RED_WEIGHT * rDist * rDist + GREEN_WEIGHT * gDist * gDist + BLUE_WEIGHT * bDist * bDist;
 
@@ -80,4 +81,44 @@ int ClosestPaletteColorIndex(const Color3 color)
 	}
 
 	return closestColor;
+}
+
+IntRange GetRangeForColorIndex(int colorIndex, int variance)
+{
+	variance = clamp(variance, 0, 15);
+
+	if (variance == 0)
+	{
+		return IntRange{colorIndex, colorIndex};
+	}
+
+	const int palColumn = colorIndex % 16;
+	const int palRow = colorIndex / 16;
+
+	if (palRow < 15)
+	{
+		int leftEnd = palColumn;
+		int rightEnd = palColumn + variance;
+		if (rightEnd > 15)
+		{
+			rightEnd = 15;
+			leftEnd = rightEnd - variance;
+		}
+		return IntRange{palRow * 16 + leftEnd, palRow * 16 + rightEnd};
+	}
+	else if (colorIndex >= 247 && colorIndex <= 251)
+	{
+		variance = clamp(variance, 0, 4);
+
+		int leftEnd = colorIndex;
+		int rightEnd = colorIndex + variance;
+		if (rightEnd > 251)
+		{
+			rightEnd = 251;
+			leftEnd = rightEnd - variance;
+		}
+		return IntRange{leftEnd, rightEnd};
+	}
+
+	return IntRange{colorIndex, colorIndex};
 }

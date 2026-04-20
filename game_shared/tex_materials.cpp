@@ -8,7 +8,7 @@
 #include <cstring>
 
 #if CLIENT_DLL
-#include "quake_palette.h"
+#include "hl_palette.h"
 #endif
 
 const char materialsSchema[] = R"(
