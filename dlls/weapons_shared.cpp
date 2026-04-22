@@ -1332,8 +1332,11 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	SendScreenShake(fire.shake.Get(altMode));
 
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	if (fireType != WeaponParameters::Fire::MELEE)
+	{
+		// Melee attacks play animation in the swing functions
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	}
 
 	m_pPlayer->m_iWeaponVolume = fire.weaponVolume.Get(altMode);
 	m_pPlayer->m_iWeaponFlash = fire.weaponFlash.Get(altMode);
