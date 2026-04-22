@@ -999,6 +999,9 @@ struct ClientFeatures
 
 	char wall_puffs[MAX_WALLPUFF_COUNT][64];
 
+	ConfigurableIntegerValue bloodsplatter_style;
+	ConfigurableIntegerValue bloodstream_threshold;
+
 	bool fullbright_textures;
 };
 

@@ -318,8 +318,8 @@ extern void			UTIL_BloodStream( const Vector &origin, const Vector &direction, i
 extern void			UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount );
 extern Vector		UTIL_RandomBloodVector();
 extern bool			UTIL_ShouldShowBlood( int bloodColor );
-extern void			UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor );
-extern void			UTIL_DecalTrace( TraceResult *pTrace, int decalNumber );
+extern void			UTIL_BloodDecalTrace( const TraceResult *pTrace, int bloodColor );
+extern void			UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber );
 extern void			UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, bool bIsCustom );
 extern void			UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber );
 extern void			UTIL_Sparks( const Vector &position );

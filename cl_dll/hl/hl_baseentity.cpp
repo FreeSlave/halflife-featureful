@@ -78,7 +78,7 @@ edict_t *DBG_EntOfVars( const entvars_t *pev ) { return NULL; }
 // UTIL_* Stubs
 bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides ) { return false; }
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount ) { }
-void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber ) { }
+void UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber ) { }
 void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber ) { }
 void UTIL_MakeVectors( const Vector &vecAngles )
 {
@@ -137,7 +137,7 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent ) { }
 Vector CBaseMonster::GetGunPosition() { return g_vecZero; }
 void CBaseEntity::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) { }
 void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker ) { }
-void CBaseEntity::TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor ) { }
+void CBaseEntity::TraceBleed( float flDamage, const Vector& vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor ) { }
 void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
 void CBaseMonster::Activate() {}

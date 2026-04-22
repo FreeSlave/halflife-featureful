@@ -38,6 +38,7 @@
 #include "visuals_utils.h"
 #include "ent_templates.h"
 #include "ai_debug.h"
+#include "global_models.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -1444,7 +1445,7 @@ void CBaseMonster::PerformTouchAttack(const TouchAttackParams& params, CBaseEnti
 
 			if (tr.pHit == pOther->edict())
 			{
-				SpawnBlood(tr.vecEndPos, bloodColor, 25);
+				SendBloodEffect(tr.vecEndPos, -pev->velocity, bloodColor, 25);
 			}
 		}
 	}
@@ -1539,7 +1540,7 @@ bool CBaseMonster::SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHul
 	return false;
 }
 
-TraceResult CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params, float height, const Vector& aimAngles )
+std::pair<TraceResult, Vector> CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params, float height, const Vector& aimAngles )
 {
 	TraceResult tr;
 
@@ -1550,11 +1551,12 @@ TraceResult CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& par
 
 	Vector vecStart = pev->origin;
 	vecStart.z += height;
-	Vector vecEnd = vecStart + ( gpGlobals->v_forward * params.distance ) + ( gpGlobals->v_up * params.verticalDistance );
+	const Vector vecDir = ( gpGlobals->v_forward * params.distance ) + ( gpGlobals->v_up * params.verticalDistance );
+	const Vector vecEnd = vecStart + vecDir;
 
 	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
 
-	return tr;
+	return std::make_pair(tr, vecDir);
 }
 
 static bool IsEntityOnTopOfAnother(CBaseEntity* pEntity, CBaseEntity* pOther)
@@ -1570,7 +1572,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 {
 	CBaseEntity *pHurt = nullptr;
 	CBaseEntity* pHurtTry = nullptr;
-	TraceResult tr;
+	std::pair<TraceResult, Vector> trAndVec;
 
 	// check if we're trying to hit enemy on top of our head
 	if (m_hEnemy != 0 && m_IdealMonsterState != MONSTERSTATE_SCRIPT && IsEntityOnTopOfAnother(m_hEnemy, this))
@@ -1594,8 +1596,8 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 		paramsTop.knockForward = Q_max(paramsTop.knockForward, 120.0f);
 		paramsTop.knockUp = -Q_max(paramsTop.knockUp * 0.5f, 120.0f);
 
-		tr = CheckTraceHullAttack(paramsTop, h, aimAngles);
-		pHurtTry = CBaseEntity::OwnInstance(tr.pHit);
+		trAndVec = CheckTraceHullAttack(paramsTop, h, aimAngles);
+		pHurtTry = CBaseEntity::OwnInstance(trAndVec.first.pHit);
 		//ALERT(at_console, "%s: enemy is on top of my head! Hit %s\n", STRING(pev->classname), pHurtTry ? STRING(pHurtTry->pev->classname) : "nothing");
 	}
 	if (!pHurtTry || !pHurtTry->pev->takedamage)
@@ -1619,20 +1621,20 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 
 		for (float height : heights)
 		{
-			TraceResult trLocal = CheckTraceHullAttack(params, height, pev->angles);
-			CBaseEntity* pHurtTryLocal = CBaseEntity::OwnInstance(trLocal.pHit);
+			std::pair<TraceResult, Vector> trAndVecLocal = CheckTraceHullAttack(params, height, pev->angles);
+			CBaseEntity* pHurtTryLocal = CBaseEntity::OwnInstance(trAndVecLocal.first.pHit);
 			if (pHurtTryLocal)
 			{
 				if (!pHurtTry)
 				{
 					pHurtTry = pHurtTryLocal; // save the first result as more prioritized
-					tr = trLocal;
+					trAndVec = trAndVecLocal;
 				}
 
 				if (pHurtTryLocal->pev->takedamage) // most preference to something that can take damage
 				{
 					pHurt = pHurtTryLocal;
-					tr = trLocal;
+					trAndVec = trAndVecLocal;
 					break;
 				}
 			}
@@ -1650,7 +1652,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 
 			if (params.spawnBlood && takeDamageResult.TookDamageToHealth())
 			{
-				SpawnBlood(params.bloodOrigin ? *params.bloodOrigin : tr.vecEndPos, pHurt->BloodColor(), 25);// a little surface blood.
+				SendBloodEffect(params.bloodOrigin ? *params.bloodOrigin : trAndVec.first.vecEndPos, -trAndVec.second, pHurt->BloodColor(), 25);
 			}
 		}
 
@@ -2010,9 +2012,36 @@ void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOri
 			}
 		}
 
-		SpawnBlood(vecOrigin, bloodColor, damageInfo.damage);
+		SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
 		TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
 	}
+}
+
+void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
+{
+	extern int gmsgBlood;
+
+	if (bloodColor < 0 || amount <= 0 || !UTIL_ShouldShowBlood(bloodColor))
+		return;
+
+	//ALERT(at_console, "Dir: %g, %g, %g\n", vecDir.x, vecDir.y, vecDir.z);
+
+	if (IsPlayer() && g_pGameRules->IsMultiplayer())
+	{
+		// scale up blood effect in multiplayer for better visibility
+		amount *= 2;
+	}
+
+	MESSAGE_BEGIN(MSG_PVS, gmsgBlood, vecOrigin);
+	WRITE_SHORT(entindex());
+	WRITE_BYTE(params);
+	WRITE_VECTOR(vecOrigin);
+	WRITE_VECTOR(vecDir);
+	WRITE_SHORT(g_sModelIndexBloodSpray);
+	WRITE_SHORT(g_sModelIndexBloodDrop);
+	WRITE_BYTE(bloodColor);
+	WRITE_SHORT(amount);
+	MESSAGE_END();
 }
 
 //=========================================================
@@ -2225,7 +2254,7 @@ Vector CBaseEntity::FireBulletsPlayer( unsigned int cShots, Vector vecSrc, Vecto
 	return Vector( x * vecSpread.x, y * vecSpread.y, 0.0 );
 }
 
-void CBaseEntity::TraceBleed(float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor)
+void CBaseEntity::TraceBleed(float flDamage, const Vector& vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor)
 {
 	if (bloodColor == DONT_BLEED)
 		return;

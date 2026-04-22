@@ -258,6 +258,7 @@ int gmsgSpray = 0;
 int gmsgStreaks = 0;
 int gmsgSmoke = 0;
 int gmsgSparkShower = 0;
+int gmsgBlood = 0;
 int gmsgParticleShooter = 0;
 
 int gmsgNightvision = 0;
@@ -379,6 +380,7 @@ void LinkUserMessages()
 	gmsgStreaks = REG_USER_MSG( "Streaks", -1 );
 	gmsgSmoke = REG_USER_MSG( "Smoke", -1 );
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );
+	gmsgBlood = REG_USER_MSG( "Blood", 22 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
 
 	gmsgNightvision = REG_USER_MSG( "Nightvision", 1 );

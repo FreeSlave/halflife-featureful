@@ -343,6 +343,7 @@ public:
 	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, const TraceResult* ptr) {
 		BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
 	}
+	void SendBloodEffect(const Vector& vecOrigin, const Vector& vecDir, int bloodColor, int amount, int params = 0);
 	virtual DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) { return inputDamageInfo; }
 	DamageInfo TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
 	virtual TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
@@ -350,7 +351,7 @@ public:
 	virtual bool TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return false; }
 	virtual KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
 	virtual int BloodColor() { return DONT_BLEED; }
-	virtual void TraceBleed( float flDamage, Vector vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor );
+	virtual void TraceBleed( float flDamage, const Vector& vecDir, const TraceResult *ptr, int bitsDamageType, int bloodColor );
 	virtual bool IsTriggered( CBaseEntity *pActivator ) {return true; }
 	virtual CBaseAnimating *MyAnimatingPointer() { return nullptr; }
 	virtual CBaseToggle *MyTogglePointer() { return nullptr; }

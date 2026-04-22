@@ -358,7 +358,7 @@ public:
 	void SetTouchAttackFromTemplate(TouchAttackParams& params);
 	void PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther);
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
-	TraceResult CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
+	std::pair<TraceResult, Vector> CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
 	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);
 	bool FacingIdeal();
 

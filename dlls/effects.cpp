@@ -2482,10 +2482,10 @@ void CBlood::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 
 	if( pev->spawnflags & SF_BLOOD_STREAM ) {
 		if (CheckBloodPosition( pActivator, bloodPos ) && CheckBloodDirection( pActivator, bloodDir ))
-			UTIL_BloodStream( bloodPos, bloodDir, Color(), (int)BloodAmount() );
+			SendBloodEffect( bloodPos, bloodDir, Color(), (int)BloodAmount(), BLOOD_FORCED_TYPE_ONLYSTREAM );
 	} else {
 		if (CheckBloodPosition( pActivator, bloodPos ) && CheckBloodDirection( pActivator, bloodDir ))
-			UTIL_BloodDrips( bloodPos, bloodDir, Color(), (int)BloodAmount() );
+			SendBloodEffect( bloodPos, bloodDir, Color(), (int)BloodAmount(), BLOOD_FORCED_TYPE_ONLYDRIPS );
 	}
 
 	if( pev->spawnflags & SF_BLOOD_DECAL )

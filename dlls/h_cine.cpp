@@ -120,7 +120,7 @@ void CLegacyCineMonster :: CineSpawn( const char *szModel )
 	ResetSequenceInfo();
 	pev->framerate = 0.0;
 
-	m_bloodColor = BLOOD_COLOR_RED;
+	SetMyBloodColor(BLOOD_COLOR_RED);
 
 	// if no targetname, start now
 	if ( FStringNull(pev->targetname) )	

@@ -542,8 +542,8 @@ void CPitWorm::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, con
 			}
 		}
 
-		UTIL_BloodDrips(ptr->vecEndPos, vecDir, m_bloodColor, damageInfo.damage * 10);
-		UTIL_BloodDecalTrace(ptr, m_bloodColor);
+		SendBloodEffect(ptr->vecEndPos, -vecDir, BloodColor(), damageInfo.damage * 10);
+		UTIL_BloodDecalTrace(ptr, BloodColor());
 
 		if (m_hEnemy == 0)
 		{

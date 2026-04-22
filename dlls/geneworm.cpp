@@ -1308,7 +1308,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, con
 
 				m_iWasHit = 1;
 
-				SpawnBlood(ptr->vecEndPos - vecDir * 4, BloodColor(), 300.0f);
+				SendBloodEffect(ptr->vecEndPos - vecDir * 4, -vecDir, BloodColor(), 300.0f);
 				TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, BloodColor());
 				break;
 			}
@@ -1339,7 +1339,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, con
 
 				m_iWasHit = 1;
 
-				SpawnBlood(ptr->vecEndPos - vecDir * 4, BloodColor(), 300.0f);
+				SendBloodEffect(ptr->vecEndPos - vecDir * 4, -vecDir, BloodColor(), 300.0f);
 				TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, BloodColor());
 				break;
 			}
@@ -1358,7 +1358,7 @@ void CGeneWorm::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, con
 			{
 				m_fOrificeHit = true;
 
-				UTIL_BloodDecalTrace(ptr, m_bloodColor);
+				UTIL_BloodDecalTrace(ptr, BloodColor());
 
 				++m_iHitTimes;
 

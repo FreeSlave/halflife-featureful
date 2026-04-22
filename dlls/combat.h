@@ -25,7 +25,6 @@ extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBa
 
 extern void DecalGunshot( TraceResult *pTrace );
 extern void DecalSmack( TraceResult *pTrace );
-extern void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage);
 extern int DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
 extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore );
 

@@ -309,6 +309,9 @@ Possible values for blood colors:
 * `"red"` - red (human) blood.
 * `"yellow"` - yellow (alien) blood.
 * `"no"` - don't bleed.
+* `"darkred"`
+* `"brightyellow"` - brighter yellow
+* `"green"`
 * `"white"`
 * `"grey"` or `"gray"`
 * `"brown"`

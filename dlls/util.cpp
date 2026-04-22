@@ -1319,7 +1319,7 @@ bool UTIL_ShouldShowBlood( int color )
 	extern cvar_t* violence_ablood;
 	if (color != DONT_BLEED)
 	{
-		if (color == BLOOD_COLOR_RED)
+		if (IsReddishBlood(color))
 		{
 			if (violence_hblood->value != 0)
 				return true;
@@ -1392,27 +1392,22 @@ Vector UTIL_RandomBloodVector()
 	return direction;
 }
 
-void UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor )
+void UTIL_BloodDecalTrace(const TraceResult *pTrace, int bloodColor)
 {
 	if (UTIL_ShouldShowBlood(bloodColor))
 	{
-		switch(bloodColor)
+		if (IsReddishBlood(bloodColor))
 		{
-		case BLOOD_COLOR_RED:
-		case BLOOD_COLOR_MAGENTA:
-			UTIL_DecalTrace( pTrace, DECAL_BLOOD1 + RANDOM_LONG( 0, 5 ) );
-			break;
-		case BLOOD_COLOR_YELLOW:
-		case BLOOD_COLOR_OLIVE:
-			UTIL_DecalTrace( pTrace, DECAL_YBLOOD1 + RANDOM_LONG( 0, 5 ) );
-			break;
-		default:
-			break;
+			UTIL_DecalTrace(pTrace, DECAL_BLOOD1 + RANDOM_LONG(0, 5));
+		}
+		else if (IsYellowishBlood(bloodColor))
+		{
+			UTIL_DecalTrace(pTrace, DECAL_YBLOOD1 + RANDOM_LONG(0, 5));
 		}
 	}
 }
 
-void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber )
+void UTIL_DecalTrace(const TraceResult *pTrace, int decalNumber)
 {
 	short entityIndex;
 	int index;

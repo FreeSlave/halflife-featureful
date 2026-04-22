@@ -122,3 +122,12 @@ IntRange GetRangeForColorIndex(int colorIndex, int variance)
 
 	return IntRange{colorIndex, colorIndex};
 }
+
+color24 Color24FromPalette(int index)
+{
+	if (index >= 0 && index <= 255)
+	{
+		return {hlPalette[index * 3], hlPalette[index * 3 + 1], hlPalette[index * 3 + 2]};
+	}
+	return {0,0,0};
+}

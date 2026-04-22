@@ -258,10 +258,23 @@ cvar_t* cl_flashlight_fade_distance = NULL;
 
 cvar_t *cl_subtitles = NULL;
 
+cvar_t *cl_bloodsplatter_style = NULL;
+cvar_t *cl_bloodstream_threshold = NULL;
+
 cvar_t *hud_scale = NULL;
 cvar_t *hud_sprite_offset = NULL;
 
 void ShutdownInput();
+
+int GetBloodSplatterStyle()
+{
+	return cl_bloodsplatter_style ? (int)cl_bloodsplatter_style->value : gHUD.clientFeatures.bloodsplatter_style.defaultValue;
+}
+
+int GetBloodBloodStreamThreshold()
+{
+	return cl_bloodstream_threshold ? (int)cl_bloodstream_threshold->value : gHUD.clientFeatures.bloodstream_threshold.defaultValue;
+}
 
 //DECLARE_MESSAGE( m_Logo, Logo )
 int __MsgFunc_Logo( const char *pszName, int iSize, void *pbuf )
@@ -823,6 +836,9 @@ void CHud::Init()
 
 	cl_subtitles = CVAR_CREATE( "cl_subtitles", "1", FCVAR_ARCHIVE );
 
+	CreateIntegerCvarConditionally(cl_bloodsplatter_style, "cl_bloodsplatter_style", clientFeatures.bloodsplatter_style);
+	CreateIntegerCvarConditionally(cl_bloodstream_threshold, "cl_bloodstream_threshold", clientFeatures.bloodstream_threshold);
+
 	hasHudScaleInEngine = gEngfuncs.pfnGetCvarPointer( "hud_scale" ) != NULL;
 
 	if (!hasHudScaleInEngine)
@@ -1061,6 +1077,11 @@ void CHud::ParseClientFeatures()
 		{ "rollangle.", clientFeatures.rollangle },
 		{ "nvg_fade_time.", clientFeatures.nvg_fade_time },
 	};
+	KeyValueDefinition<ConfigurableIntegerValue> configurableIntegers[] = {
+		{ "nvgstyle.", clientFeatures.nvgstyle },
+		{ "bloodsplatter_style.", clientFeatures.bloodsplatter_style },
+		{ "bloodstream_threshold.", clientFeatures.bloodstream_threshold },
+	};
 	KeyValueDefinition<bool> booleans[] = {
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
@@ -1145,6 +1166,15 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
+			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableIntegers); ++i)
+			{
+				if ((subKey = strStartsWith(keyName, configurableIntegers[i].name)))
+				{
+					UpdateIntegerValue(configurableIntegers[i].value, subKey, valueBuf);
+					shouldContinue = false;
+					break;
+				}
+			}
 			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableBounds); ++i)
 			{
 				if ((subKey = strStartsWith(keyName, configurableBounds[i].name)))
@@ -1165,11 +1195,7 @@ void CHud::ParseClientFeatures()
 			}
 			if (shouldContinue)
 			{
-				if ((subKey = strStartsWith(keyName, "nvgstyle.")))
-				{
-					UpdateIntegerValue(clientFeatures.nvgstyle, subKey, valueBuf);
-				}
-				else if ((subKey = strStartsWith(keyName, "nvg_cs.")))
+				if ((subKey = strStartsWith(keyName, "nvg_cs.")))
 				{
 					UpdateNVGValue(clientFeatures.nvg_cs, subKey, valueBuf);
 				}

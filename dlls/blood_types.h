@@ -6,7 +6,10 @@
 #define		DONT_BLEED			-1
 #define		BLOOD_COLOR_RED		247
 #define		BLOOD_COLOR_YELLOW	195
-#define		BLOOD_COLOR_GREEN	BLOOD_COLOR_YELLOW
+//#define		BLOOD_COLOR_GREEN	BLOOD_COLOR_YELLOW
+#define		BLOOD_COLOR_DARKRED	70
+#define		BLOOD_COLOR_BRIGHTYELLOW	192
+#define		BLOOD_COLOR_BRIGHTGREEN	244
 #define		BLOOD_COLOR_WHITE 12
 #define		BLOOD_COLOR_GREY 5
 #define		BLOOD_COLOR_BROWN 26
@@ -24,5 +27,8 @@
 int BloodTypeFromName(const char* name);
 
 int GetBloodStreamColor(int bloodColor);
+
+bool IsReddishBlood(int bloodColor);
+bool IsYellowishBlood(int bloodColor);
 
 #endif

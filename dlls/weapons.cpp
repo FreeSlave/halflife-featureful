@@ -115,16 +115,6 @@ void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntit
 	gMultiDamage.damageInfo.damage += damageInfo.damage;
 }
 
-/*
-================
-SpawnBlood
-================
-*/
-void SpawnBlood( Vector vecSpot, int bloodColor, float flDamage )
-{
-	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
-}
-
 int DamageDecal( CBaseEntity *pEntity, int bitsDamageType )
 {
 	if( !pEntity )

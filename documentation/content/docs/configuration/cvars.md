@@ -26,6 +26,15 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 * `cl_weapon_wallpuff` - whether to create a puff from the bullet impact on the walls. Similar to Counter-Strike.
 * `cl_muzzlelight` - whether some player weapons produce a dynamic light upon firing.
 
+### Blood effects
+
+* `cl_bloodsplatter_style` - select a blood splatter style. Possible values:
+    - `0` - default sprite-based splatter and spray.
+    - `1` - legacy particle-based splatter used in Day One.
+    - `2` - particle cloud (similar to blood effect from Quake).
+    - `3` - sprite particle cloud with fade effect (similar to blood effect from Quake 2). This expects the **sprites/dot_index.spr** sprite of index-alpha texture format to be present in the game files (distributed with the sample mod). If it's missing the **sprites/dot.spr** will be used in the additive mode.
+* `cl_bloodstream_threshold` - the minimum amount of damage per hit that can produce the blood streams (the effect used in Half-Life Alpha and some mods). `0` means no bloodstreams. A good start is `40` (the default python damage in Half-Life).
+
 ### Flashlight
 
 * `cl_flashlight_custom` - whether to use a custom flashlight code.

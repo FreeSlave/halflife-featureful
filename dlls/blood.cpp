@@ -8,6 +8,9 @@ int BloodTypeFromName(const char* name)
 		{"red", BLOOD_COLOR_RED},
 		{"yellow", BLOOD_COLOR_YELLOW},
 		{"no", DONT_BLEED},
+		{"darkred", BLOOD_COLOR_DARKRED},
+		{"brightyellow", BLOOD_COLOR_BRIGHTYELLOW},
+		{"green", BLOOD_COLOR_BRIGHTGREEN},
 		{"white", BLOOD_COLOR_WHITE},
 		{"grey", BLOOD_COLOR_GREY},
 		{"gray", BLOOD_COLOR_GREY},
@@ -51,4 +54,14 @@ int GetBloodStreamColor(int bloodColor)
 		}
 	}
 	return bloodColor;
+}
+
+bool IsReddishBlood(int bloodColor)
+{
+	return (bloodColor >= 247 && bloodColor <= 251) || (bloodColor >= 70 && bloodColor <= 79);
+}
+
+bool IsYellowishBlood(int bloodColor)
+{
+	return (bloodColor >= 192 && bloodColor <= 200) || (bloodColor >= 59 && bloodColor <= 63);
 }

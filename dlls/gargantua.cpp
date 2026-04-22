@@ -1481,7 +1481,7 @@ void CGargantua::RunTask( Task_t *pTask )
 					bodyPart = RANDOM_LONG( 0, parts - 1 );
 
 				pGib->pev->body = bodyPart;
-				pGib->m_bloodColor = m_bloodColor;
+				pGib->m_bloodColor = BloodColor();
 				pGib->m_material = matNone;
 				pGib->pev->origin = pev->origin;
 				pGib->pev->velocity = UTIL_RandomBloodVector() * RANDOM_FLOAT( 300, 500 );

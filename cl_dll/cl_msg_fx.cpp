@@ -10,11 +10,19 @@
 #include "pmtrace.h"
 #include "cl_msg.h"
 #include "cl_fx.h"
+#include "clamp.h"
+#include "util_shared.h"
+#include "hl_palette.h"
 
-#include "r_studioint.h"
+#include "eventscripts.h"
 
 #include "fx_flags.h"
 #include "particleman.h"
+
+extern "C"
+{
+int DLLEXPORT CL_IsThirdPerson();
+}
 
 extern engine_studio_api_t IEngineStudio;
 extern cvar_t* cl_muzzlelight_monsters;
@@ -563,6 +571,111 @@ int __MsgFunc_SparkShower( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+extern int GetBloodSplatterStyle();
+extern int GetBloodBloodStreamThreshold();
+
+static float BloodSpriteAmount(int amount)
+{
+	return clamp(amount / 10.0f, 3.0f, 16.0f);
+}
+
+enum BloodSplatterType
+{
+	BLOODSPLATTER_SPRITE = 0,
+	BLOODSPLATTER_LEGACY = 1,
+	BLOODSPLATTER_QUAKE = 2,
+	BLOODSPLATTER_QUAKE2 = 3,
+};
+
+int __MsgFunc_Blood( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	int entindex = READ_SHORT();
+	int params = READ_BYTE();
+	const Vector pos = READ_VECTOR();
+	const Vector dir = READ_VECTOR();
+	const int bloodSpraySpriteIndex = READ_SHORT();
+	const int bloodSplatterSpriteIndex = READ_SHORT();
+
+	const int color = READ_BYTE();
+	const int amount = READ_SHORT();
+
+	const bool isFirstPerson = EV_IsLocal(entindex) && !CL_IsThirdPerson();
+
+	int style = GetBloodSplatterStyle();
+
+	const int bloodStreamThreshold = GetBloodBloodStreamThreshold();
+
+	bool doSplatter = true;
+	bool doStream = bloodStreamThreshold > 0.0f && amount >= bloodStreamThreshold;
+
+	if (params == BLOOD_FORCED_TYPE_ONLYDRIPS)
+	{
+		style = BLOODSPLATTER_SPRITE;
+		doStream = false;
+	}
+	else if (params == BLOOD_FORCED_TYPE_ONLYSTREAM)
+	{
+		doSplatter = false;
+		doStream = true;
+	}
+
+	if (doSplatter)
+	{
+		int variance = 3;
+		switch (style) {
+		case BLOODSPLATTER_LEGACY:
+		case BLOODSPLATTER_QUAKE:
+		case BLOODSPLATTER_QUAKE2:
+			if (color < 240)
+				variance = 6;
+			break;
+		default:
+			break;
+		}
+		const IntRange colorRange = GetRangeForColorIndex(color, variance);
+
+		if (style == BLOODSPLATTER_LEGACY)
+		{
+			FX_BloodLegacy(pos + dir.Normalize() * 4.0f, dir, colorRange, clamp(amount, 5, 150));
+		}
+		else if (style == BLOODSPLATTER_QUAKE)
+		{
+			if (isFirstPerson)
+				FX_BloodParticles(pos, colorRange, (int)BloodSpriteAmount(amount));
+			else
+				FX_QuakeParticles(pos, dir, colorRange, clamp(amount * 2, 10, 250));
+		}
+		else if (style == BLOODSPLATTER_QUAKE2)
+		{
+			FX_DotParticles(pos, dir, colorRange, clamp(amount, 40, 60));
+		}
+		else
+		{
+			const int bloodSprayColorIndex = colorRange.IsProperRange() ? RandomizeNumberFromRange(colorRange.min + 1, colorRange.max) : colorRange.min;
+			const int bloodSplatterColorIndex = colorRange.IsProperRange() ? bloodSprayColorIndex - 1 : bloodSprayColorIndex;
+
+			const float spriteAmount = BloodSpriteAmount(amount);
+
+			FX_BloodSplatter(pos, bloodSplatterColorIndex, bloodSplatterSpriteIndex, (int)spriteAmount);
+			FX_BloodSpray(pos, bloodSprayColorIndex, bloodSpraySpriteIndex, spriteAmount);
+		}
+	}
+
+	if (doStream)
+	{
+		const Vector streamVector = Vector(Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(0.0f, 2.0f));
+		const IntRange streamColorRange = GetRangeForColorIndex(color, 6);
+
+		const int streamAmount = params == BLOOD_FORCED_TYPE_ONLYSTREAM ? Q_min(amount, 255) : (clamp(amount, 60, 90) + Com_RandomLong(0, 20));
+
+		FX_BloodStream(pos - dir.Normalize() * 8.0f, streamVector, streamColorRange, streamAmount);
+	}
+
+	return 1;
+}
+
 int __MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
@@ -639,5 +752,6 @@ void HookFXMessages()
 	HOOK_MESSAGE( Streaks );
 	HOOK_MESSAGE( Smoke );
 	HOOK_MESSAGE( SparkShower );
+	HOOK_MESSAGE( Blood );
 	HOOK_MESSAGE( Particle );
 }
