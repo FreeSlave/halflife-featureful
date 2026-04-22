@@ -1124,7 +1124,12 @@ A boolean defining whether player can't move during firing. This is used by [wea
 An object defining the properties of the fired projectile if the [fire type](#type) is `"projectile"`.
 
 {{% hint info %}}
-To set the custom projectile damage use the [damage](#damage) property of the [fire](#fire) or [alt_fire](#alt_fire) objects. This is especially recommended when using the monster's projectiles as their damage values depend on the difficulty while player's damage is usually uniform on all difficulties.
+To set the custom projectile damage one can use:
+
+* The [damage](#damage) property of the [fire](#fire) or [alt_fire](#alt_fire) objects. This is however a limited feature as some projectiles may have different ways to deal damage (e.g. the main impact damage and the radius damage as the projectile travels).
+* Set the appropriate skill variables in the entity template referenced in `ent_template` property.
+
+Setting the custom damage is especially recommended when using the monster's projectiles as their damage values depend on the difficulty while player's damage is usually uniform on all difficulties.
 {{% /hint %}}
 
 #### name
@@ -1138,6 +1143,7 @@ The name of the projectile type. Technically is can be any existing entity class
 * [displacer_ball]({{< ref displacer_ball >}})
 * [env_genewormcloud]({{< ref env_genewormcloud >}})
 * [grenade]({{< ref grenade >}}) - AR grenade.
+* [grenaderound]({{< ref grenaderound >}})
 * [hornet]({{< ref hornet >}}) - tracking hornet.
 * [hvr_rocket]({{< ref hvr_rocket >}})
 * [mortar_shell]({{< ref mortar_shell >}})
