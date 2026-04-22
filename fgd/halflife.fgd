@@ -8120,7 +8120,6 @@
 	message(target_destination) : "Fire On Pass"
 	wait(integer) : "Wait here (secs)" : 0
 	speed(integer) : "New Train Speed" : 0
-	yaw_speed(integer) : "New Train rot. Speed" : 0
 ]
 
 @PointClass base(Targetname, Angles) flags(Path) size(16 16 16) = path_track : "Train Track Path"
