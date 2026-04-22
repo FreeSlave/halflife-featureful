@@ -372,7 +372,6 @@ public:
 	virtual void PrescheduleThink() { return; }
 
 	bool GetEnemy( bool forcePopping );
-	void MakeDamageBloodDecal( int cCount, float flNoise, TraceResult *ptr, const Vector &vecDir );
 	virtual float HeadHitGroupDamageMultiplier();
 	void ApplyHitGroupDamageMultiplier(DamageInfo& damageInfo, int hitgroup);
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
