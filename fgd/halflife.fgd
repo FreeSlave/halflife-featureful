@@ -8067,7 +8067,7 @@
 	particle_speed(string) : "Particle Speed" : "200"
 	vel_variance(string) : "Velocity Variance" : "12"
 	//spin_speed(integer) : "spin ( degrees per sec )" : 0
-	gravity(string) : "Gravity" : "0.0"
+	gravity(string) : "Gravity factor" : "0.0" : "1 is normal gravity"
 	//damping_time(string) : "damping time" : "0.0"
 	//damping_vel(string) : "damping velocity" : "0.0"
 

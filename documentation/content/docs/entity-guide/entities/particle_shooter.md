@@ -22,6 +22,7 @@ See also: [env_smoker]({{< ref env_smoker >}}).
 * `Particle size` - particle size, in units (as a side of a square).
 * `Fade Speed` - how fast the render amount fades. This value multiplied by 30 is substructed by the render amount, per second.
 * `Scale Speed` - how fast the sprite expands or shrinks. This value multiplied by 30 is added to the initial size (in units), per second. Use negative values for shrinking.
+* `Gravity factor` - how much gravity affects the particles movement. 0 means gravity is not applied. 1 is normal gravity.
 
 ### Spawnflags
 
