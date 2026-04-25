@@ -38,7 +38,7 @@
 #include "weapon_ids.h"
 #include "weapon_parameters.h"
 #include "util_shared.h"
-#include "clamp.h"
+#include "hl_palette.h"
 
 extern const WeaponParameters& GetWeaponParameters(int id);
 
@@ -180,78 +180,13 @@ char *EV_HLDM_DamageDecal( physent_t *pe )
 	return decalname;
 }
 
-extern Vector v_origin;
-
-void ImpactParticles(const Vector& pos, int baseColor)
+void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, float* forward, char *decalName, int particleColorIndex )
 {
-	constexpr int maxDistance = 1000;
-	constexpr int maxColorVariance = 3;
-	constexpr int maxBaseQuantity = 10;
+	FX_WallImpact(pTrace->endpos, -Vector(forward), particleColorIndex, GetWallImpactStyle());
 
-	int dist = (int)(pos - v_origin).Length();
-
-	int quantity = (maxDistance - dist + 80) / 100;
-	quantity = clamp(quantity, 1, maxBaseQuantity);
-
-	int color = baseColor;
-
-	if (baseColor < 224)
-	{
-		int darkener = (maxColorVariance * maxBaseQuantity * quantity) / 100;
-		darkener = clamp(darkener, 0, maxColorVariance);
-
-		int shift = darkener - 2;
-
-		if (baseColor >= 0 && baseColor <= 127)
-			shift = -shift;
-
-		const int palColumn = baseColor % 16;
-		const int palRow = baseColor / 16;
-
-		if (palColumn + shift >= 16)
-		{
-			color = palRow * 16 + 15;
-		}
-		else if (palColumn + shift < 0)
-		{
-			color = palRow * 16;
-		}
-		else
-		{
-			color += shift;
-		}
-	}
-
-	//gEngfuncs.Con_Printf("ImpactParticles: base index: %d. Result: %d. Dist: %d\n", baseColor, color, dist);
-
-	for (int i = 0; i < quantity * 4; i++)
-	{
-		particle_t	*p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
-		if (!p) return;
-
-		p->org = pos;
-
-		p->vel[0] = Com_RandomFloat( -1.0f, 1.0f );
-		p->vel[1] = Com_RandomFloat( -1.0f, 1.0f );
-		p->vel[2] = Com_RandomFloat( -1.0f, 1.0f );
-
-		p->vel = p->vel * Com_RandomFloat( 50.0f, 100.0f );
-
-		p->die = gEngfuncs.GetClientTime() + 0.5f;
-		p->color = color;
-		p->type = pt_grav;
-	}
-}
-
-void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName, int particleColorIndex )
-{
-	int iRand;
-	physent_t *pe;
-
-	ImpactParticles(pTrace->endpos, particleColorIndex);
 	gEngfuncs.pEfxAPI->R_SparkStreaks(pTrace->endpos, 2, -200, 200);
 
-	iRand = gEngfuncs.pfnRandomLong( 0, 0x7FFF );
+	int iRand = gEngfuncs.pfnRandomLong( 0, 0x7FFF );
 	if( iRand < ( 0x7fff / 2 ) )// not every bullet makes a sound.
 	{
 		switch( iRand % 5 )
@@ -274,7 +209,7 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName, int particle
 		}
 	}
 
-	pe = gEngfuncs.pEventAPI->EV_GetPhysent( pTrace->ent );
+	physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( pTrace->ent );
 
 	// Only decal brush models such as the world etc.
 	if(  decalName && decalName[0] && pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP ) )
@@ -422,14 +357,12 @@ static void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, f
 	}
 }
 
-void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, char cTextureType = 0, bool isSky = false )
+void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, float* forward, char cTextureType = 0, bool isSky = false )
 {
-	physent_t *pe;
-
-	if ( isSky )
+	if (isSky)
 		return;
 
-	pe = gEngfuncs.pEventAPI->EV_GetPhysent( pTrace->ent );
+	physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( pTrace->ent );
 
 	if( pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP ) )
 	{
@@ -441,7 +374,7 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, char cTextureType = 0, bool isSky 
 			impactParticleColorIndex = *mData->hit.impactParticleColorIndex;
 		}
 
-		EV_HLDM_GunshotDecalTrace(pTrace, EV_HLDM_DamageDecal( pe ), impactParticleColorIndex);
+		EV_HLDM_GunshotDecalTrace(pTrace, forward, EV_HLDM_DamageDecal( pe ), impactParticleColorIndex);
 
 		if( mData && mData->hit.allowWeaponSparks && gHUD.WeaponSparksEnabled() )
 		{
@@ -570,7 +503,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				}
 				if ( shouldPlayGunshotEffect )
 				{
-					EV_HLDM_DecalGunshot( &tr, cTextureType, isSky );
+					EV_HLDM_DecalGunshot( &tr, forward, cTextureType, isSky );
 				}
 			}
 		}
@@ -1101,7 +1034,7 @@ void EV_FireGauss( event_args_t *args )
 				// tunnel
 				if (!isSky)
 				{
-					EV_HLDM_DecalGunshot( &tr );
+					EV_HLDM_DecalGunshot( &tr, forward );
 
 					gEngfuncs.pEfxAPI->R_TempSprite( tr.endpos, vec3_origin, 1.0, m_iGlow, kRenderGlow, kRenderFxNoDissipation, flDamage / 255.0f, 6.0f, FTENT_FADEOUT );
 				}
@@ -1160,7 +1093,7 @@ void EV_FireGauss( event_args_t *args )
 							isSky = DidHitSky(&beam_tr, beam_tr.endpos, tr.endpos);
 							if (!isSky)
 							{
-								EV_HLDM_DecalGunshot( &beam_tr );
+								EV_HLDM_DecalGunshot( &beam_tr, forward );
 
 								gEngfuncs.pEfxAPI->R_TempSprite( beam_tr.endpos, vec3_origin, 0.1, m_iGlow, kRenderGlow, kRenderFxNoDissipation, flDamage / 255.0f, 6.0f, FTENT_FADEOUT );
 

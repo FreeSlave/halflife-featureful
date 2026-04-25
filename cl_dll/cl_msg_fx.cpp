@@ -18,6 +18,7 @@
 
 #include "fx_flags.h"
 #include "particleman.h"
+#include "tex_materials.h"
 
 extern "C"
 {
@@ -676,6 +677,28 @@ int __MsgFunc_Blood( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+int __MsgFunc_Gunshot( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	Vector pos = READ_VECTOR();
+	Vector dir = READ_VECTOR();
+	int entIndex = READ_SHORT();
+	int decalIndex = READ_SHORT();
+	char cTextureType = READ_BYTE();
+
+	const MaterialData* mData = g_MaterialRegistry.GetMaterialDataWithFallback(cTextureType);
+	int impactParticleColorIndex = g_MaterialRegistry.GetDefaultImpactParticleColorIndex();
+	if (mData && mData->hit.impactParticleColorIndex.has_value())
+	{
+		impactParticleColorIndex = *mData->hit.impactParticleColorIndex;
+	}
+
+	FX_GunshotDecal(pos, dir, decalIndex, entIndex, impactParticleColorIndex);
+
+	return 1;
+}
+
 int __MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
@@ -753,5 +776,6 @@ void HookFXMessages()
 	HOOK_MESSAGE( Smoke );
 	HOOK_MESSAGE( SparkShower );
 	HOOK_MESSAGE( Blood );
+	HOOK_MESSAGE( Gunshot );
 	HOOK_MESSAGE( Particle );
 }

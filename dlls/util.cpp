@@ -1472,7 +1472,7 @@ Tell connected clients to display it, or use the default spray can decal
 if the custom can't be loaded.
 ==============
 */
-void UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, bool bIsCustom )
+void UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber, bool bIsCustom)
 {
 	int index;
 
@@ -1488,35 +1488,38 @@ void UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber,
 	else
 		index = decalNumber;
 
-	if( pTrace->flFraction == 1.0f )
+	if (tr.flFraction == 1.0f)
 		return;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_PLAYERDECAL );
 		WRITE_BYTE( playernum );
-		WRITE_VECTOR( pTrace->vecEndPos );
-		WRITE_SHORT( (short)ENTINDEX( pTrace->pHit ) );
+		WRITE_VECTOR( tr.vecEndPos );
+		WRITE_SHORT( (short)ENTINDEX( tr.pHit ) );
 		WRITE_BYTE( index );
 	MESSAGE_END();
 }
 
-void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber )
+void UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumber, char chTextureType)
 {
-	if( decalNumber < 0 )
+	extern int gmsgGunshot;
+
+	if (decalNumber < 0)
 		return;
 
 	int index = gDecals[decalNumber].index;
-	if( index < 0 )
+	if (index < 0)
 		return;
 
-	if( pTrace->flFraction == 1.0f )
+	if (tr.flFraction == 1.0f)
 		return;
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos );
-		WRITE_BYTE( TE_GUNSHOTDECAL );
-		WRITE_VECTOR( pTrace->vecEndPos );
-		WRITE_SHORT( (short)ENTINDEX( pTrace->pHit ) );
-		WRITE_BYTE( index );
+	MESSAGE_BEGIN(MSG_PAS, gmsgGunshot, tr.vecEndPos);
+		WRITE_VECTOR(tr.vecEndPos);
+		WRITE_VECTOR(vecDir);
+		WRITE_SHORT((short)ENTINDEX(tr.pHit));
+		WRITE_SHORT(index);
+		WRITE_BYTE(chTextureType);
 	MESSAGE_END();
 }
 

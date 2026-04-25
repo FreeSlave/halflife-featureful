@@ -92,14 +92,18 @@ void CNail::NailTouch(CBaseEntity *pOther)
 	SetTouch(nullptr);
 
 	TraceResult tr = UTIL_GetGlobalTrace();
-	DecalGunshot(&tr);
+
+	const Vector& vecDir = pev->velocity.Normalize();
+
+	char chTextureType = TEXTURETYPE_Trace(tr, tr.vecEndPos - vecDir, tr.vecEndPos + vecDir);
+	DecalGunshot(tr, vecDir, chTextureType);
 
 	if (pOther->pev->takedamage)
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
 		DamageInfo damageInfo(GetProjectileDamage(), DMG_GENERIC);
 		damageInfo.SetGibPolicy(GIB_NEVER);
-		pOther->ApplyTraceAttack(pev, pevOwner, damageInfo, pev->velocity.Normalize(), &tr);
+		pOther->ApplyTraceAttack(pev, pevOwner, damageInfo, vecDir, &tr);
 
 		if (FBitSet(pOther->pev->flags, FL_CLIENT) || RANDOM_LONG(0, 1))
 			EmitSoundScript(hitBodySoundScript);

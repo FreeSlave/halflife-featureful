@@ -320,8 +320,8 @@ extern Vector		UTIL_RandomBloodVector();
 extern bool			UTIL_ShouldShowBlood( int bloodColor );
 extern void			UTIL_BloodDecalTrace( const TraceResult *pTrace, int bloodColor );
 extern void			UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber );
-extern void			UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, bool bIsCustom );
-extern void			UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber );
+extern void			UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber, bool bIsCustom );
+extern void			UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumberm, char chTextureType);
 extern void			UTIL_Sparks( const Vector &position );
 extern void			UTIL_SparkShower( const Vector &position, const SparkEffectParams& params );
 extern void			UTIL_Ricochet( const Vector &position, float scale );
@@ -511,7 +511,9 @@ int SENTENCEG_Lookup(const char *sample, char *sentencenum);
 
 void TEXTURETYPE_Init();
 char TEXTURETYPE_Find(char *name);
-float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bool ignoreFlesh = false);
+char TEXTURETYPE_Trace(const TraceResult& tr, Vector vecSrc, Vector vecEnd);
+float TEXTURETYPE_PlaySound(const TraceResult &tr, char chTextureType);
+float TEXTURETYPE_PlaySound(const TraceResult &tr, const Vector& vecSrc, const Vector& vecEnd, bool ignoreFlesh = false);
 
 // NOTE: use EMIT_SOUND_DYN to set the pitch of a sound. Pitch of 100
 // is no pitch shift.  Pitch > 100 up to 255 is a higher pitch, pitch < 100

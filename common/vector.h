@@ -92,6 +92,11 @@ public:
 		}
 		return flLen;
 	}
+	bool IsZero(float tolerance = 0.01f) const
+	{
+		return (x > -tolerance && x < tolerance &&
+				y > -tolerance && y < tolerance);
+	}
 
 	float	x, y;
 };
@@ -158,8 +163,14 @@ public:
 		}
 		return flLen;
 	}
+	bool IsZero(float tolerance = 0.01f) const
+	{
+		return (x > -tolerance && x < tolerance &&
+				y > -tolerance && y < tolerance &&
+				z > -tolerance && z < tolerance);
+	}
 
-	NODISCARD constexpr Vector2D Make2D( void ) const
+	NODISCARD constexpr Vector2D Make2D() const
 	{
 		return {x, y};
 	}

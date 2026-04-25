@@ -261,6 +261,8 @@ cvar_t *cl_subtitles = NULL;
 cvar_t *cl_bloodsplatter_style = NULL;
 cvar_t *cl_bloodstream_threshold = NULL;
 
+cvar_t *cl_wallimpact_style = NULL;
+
 cvar_t *hud_scale = NULL;
 cvar_t *hud_sprite_offset = NULL;
 
@@ -274,6 +276,11 @@ int GetBloodSplatterStyle()
 int GetBloodBloodStreamThreshold()
 {
 	return cl_bloodstream_threshold ? (int)cl_bloodstream_threshold->value : gHUD.clientFeatures.bloodstream_threshold.defaultValue;
+}
+
+int GetWallImpactStyle()
+{
+	return cl_wallimpact_style ? (int)cl_wallimpact_style->value : gHUD.clientFeatures.wallimpact_style.defaultValue;
 }
 
 //DECLARE_MESSAGE( m_Logo, Logo )
@@ -838,6 +845,7 @@ void CHud::Init()
 
 	CreateIntegerCvarConditionally(cl_bloodsplatter_style, "cl_bloodsplatter_style", clientFeatures.bloodsplatter_style);
 	CreateIntegerCvarConditionally(cl_bloodstream_threshold, "cl_bloodstream_threshold", clientFeatures.bloodstream_threshold);
+	CreateIntegerCvarConditionally(cl_wallimpact_style, "cl_wallimpact_style", clientFeatures.wallimpact_style);
 
 	hasHudScaleInEngine = gEngfuncs.pfnGetCvarPointer( "hud_scale" ) != NULL;
 
@@ -1081,6 +1089,7 @@ void CHud::ParseClientFeatures()
 		{ "nvgstyle.", clientFeatures.nvgstyle },
 		{ "bloodsplatter_style.", clientFeatures.bloodsplatter_style },
 		{ "bloodstream_threshold.", clientFeatures.bloodstream_threshold },
+		{ "wallimpact_style.", clientFeatures.wallimpact_style },
 	};
 	KeyValueDefinition<bool> booleans[] = {
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },

@@ -1001,6 +1001,7 @@ struct ClientFeatures
 
 	ConfigurableIntegerValue bloodsplatter_style;
 	ConfigurableIntegerValue bloodstream_threshold;
+	ConfigurableIntegerValue wallimpact_style;
 
 	bool fullbright_textures;
 };

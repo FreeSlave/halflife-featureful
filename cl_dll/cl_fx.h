@@ -7,6 +7,15 @@
 #include "vector.h"
 #include "visual_object.h"
 
+enum
+{
+	WALLIMPACT_HL = 0,
+	WALLIMPACT_QUAKE = 1,
+	WALLIMPACT_QUAKE2 = 2,
+};
+
+extern int GetWallImpactStyle();
+
 void LoadDefaultSprites();
 
 void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams, bool isDirectional);
@@ -22,5 +31,8 @@ void FX_BloodLegacy(const Vector& org, const Vector& ndir, const IntRange& color
 void FX_BloodParticles(const Vector& org, const IntRange& colorRange, int count);
 void FX_QuakeParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count);
 void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count);
+void FX_ImpactParticles(const Vector& pos, int baseColor);
+void FX_WallImpact(const Vector& pos, const Vector& dir, int particleColor, int style);
+void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int entIndex, int particleColor);
 
 #endif

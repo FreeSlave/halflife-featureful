@@ -117,41 +117,34 @@ void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntit
 
 int DamageDecal( CBaseEntity *pEntity, int bitsDamageType )
 {
-	if( !pEntity )
+	if (!pEntity)
 		return ( DECAL_GUNSHOT1 + RANDOM_LONG( 0, 4 ) );
 	
 	return pEntity->DamageDecal( bitsDamageType );
 }
 
-void DecalGunshot( TraceResult *pTrace )
+void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType)
 {
 	// Is the entity valid
-	if( !UTIL_IsValidEntity( pTrace->pHit ) )
+	if (!UTIL_IsValidEntity(tr.pHit))
 		return;
 
-	if( VARS( pTrace->pHit )->solid == SOLID_BSP || VARS( pTrace->pHit )->movetype == MOVETYPE_PUSHSTEP )
+	if (VARS(tr.pHit)->solid == SOLID_BSP || VARS(tr.pHit)->movetype == MOVETYPE_PUSHSTEP)
 	{
-		CBaseEntity *pEntity = NULL;
-		// Decal the wall with a gunshot
-		if( !FNullEnt( pTrace->pHit ) )
-			pEntity = CBaseEntity::Instance( pTrace->pHit );
-
-		UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
+		CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
+		UTIL_GunshotDecalTrace(tr, vecDir, DamageDecal(pEntity, DMG_BULLET), chTextureType);
 	}
 }
 
-void DecalSmack( TraceResult *pTrace )
+void DecalSmack(const TraceResult& tr)
 {
-	if (!UTIL_IsValidEntity( pTrace->pHit ))
+	if (!UTIL_IsValidEntity(tr.pHit))
 		return;
 
-	if (VARS( pTrace->pHit )->solid == SOLID_BSP || VARS( pTrace->pHit )->movetype == MOVETYPE_PUSHSTEP)
+	if (VARS(tr.pHit)->solid == SOLID_BSP || VARS(tr.pHit)->movetype == MOVETYPE_PUSHSTEP)
 	{
-		CBaseEntity *pEntity = nullptr;
-		if( !FNullEnt( pTrace->pHit ) )
-			pEntity = CBaseEntity::Instance( pTrace->pHit );
-
-		UTIL_DecalTrace(pTrace, DamageDecal(pEntity, DMG_CLUB));
+		CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
+		UTIL_DecalTrace(&tr, DamageDecal(pEntity, DMG_CLUB));
 	}
 }
 

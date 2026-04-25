@@ -23,8 +23,8 @@ extern void ClearMultiDamage();
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
 extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo);
 
-extern void DecalGunshot( TraceResult *pTrace );
-extern void DecalSmack( TraceResult *pTrace );
+extern void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType);
+extern void DecalSmack(const TraceResult& tr);
 extern int DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
 extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore );
 

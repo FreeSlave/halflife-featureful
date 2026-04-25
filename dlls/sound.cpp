@@ -1799,64 +1799,49 @@ char TEXTURETYPE_Find( char *name )
 // original traceline endpoints used by the attacker.
 // returns volume of strike instrument (crowbar) to play
 
-float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bool ignoreFlesh )
+char TEXTURETYPE_Trace(const TraceResult& tr, Vector vecSrc, Vector vecEnd)
 {
-	// hit the world, try to play sound based on texture material type
-	char chTextureType;
-	float fvol;
-	float fvolbar;
 	char szbuffer[64];
-	const char *pTextureName;
-	float rgfl1[3];
-	float rgfl2[3];
 
-	if( !g_pGameRules->PlayTextureSounds() )
-		return 0.0f;
-
-	CBaseEntity *pEntity = CBaseEntity::Instance( ptr->pHit );
-
-	chTextureType = 0;
+	CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
 
 	if( pEntity && pEntity->HasFlesh() )
-		// hit body
-		chTextureType = g_MaterialRegistry.FleshMaterial();
+		return g_MaterialRegistry.FleshMaterial();
 	else
 	{
-		// hit world
+		const char* pTextureName;
 
-		// find texture under strike, get material type
-
-		// copy trace vector into array for trace_texture
-
-		vecSrc.CopyToArray( rgfl1 );
-		vecEnd.CopyToArray( rgfl2 );
-
-		// get texture from entity or world (world is ent(0))
-		if( pEntity )
-			pTextureName = TRACE_TEXTURE( ENT( pEntity->pev ), rgfl1, rgfl2 );
+		if (pEntity)
+			pTextureName = TRACE_TEXTURE( ENT( pEntity->pev ), vecSrc, vecEnd );
 		else
-			pTextureName = TRACE_TEXTURE( ENT( 0 ), rgfl1, rgfl2 );
+			pTextureName = TRACE_TEXTURE( ENT( 0 ), vecSrc, vecEnd );
 
-		if( pTextureName )
+		if (pTextureName)
 		{
 			GetStrippedTextureName(szbuffer, pTextureName);
-	
-			// ALERT( at_console, "texture hit: %s\n", szbuffer );
 
-			// get texture type
-			chTextureType = TEXTURETYPE_Find( szbuffer );
+			return TEXTURETYPE_Find( szbuffer );
 		}
 	}
+	return 0;
+}
+
+float TEXTURETYPE_PlaySound(const TraceResult &tr, char chTextureType)
+{
+	if (!g_pGameRules->PlayTextureSounds())
+		return 0.0f;
+
+	if (!chTextureType)
+		return 0.0f;
 
 	const MaterialData* mData = g_MaterialRegistry.GetMaterialDataWithFallback(chTextureType);
 	if (!mData || mData->hit.waves.empty())
 		return 0.0f;
 
-	if (chTextureType == g_MaterialRegistry.FleshMaterial() && ignoreFlesh)
-		return 0.0f;
+	float fvol = mData->hit.volume;
+	float fvolbar = mData->hit.volumebar;
 
-	fvol = mData->hit.volume;
-	fvolbar = mData->hit.volumebar;
+	CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
 
 	// did we hit a breakable?
 	if( pEntity && pEntity->PlaysItsOwnHitSounds() )
@@ -1868,19 +1853,29 @@ float TEXTURETYPE_PlaySound( TraceResult *ptr,  Vector vecSrc, Vector vecEnd, bo
 	else if( mData->hit.playSparks )
 	{
 		// play random spark if computer
-		if( ptr->flFraction != 1.0f && RANDOM_LONG( 0, 1 ) )
+		if( tr.flFraction != 1.0f && RANDOM_LONG( 0, 1 ) )
 		{
-			UTIL_Sparks( ptr->vecEndPos );
+			UTIL_Sparks( tr.vecEndPos );
 			CBaseEntity* pWorld = CBaseEntity::Instance(0);
 			if (pWorld)
-				pWorld->EmitSoundScriptAmbient(ptr->vecEndPos, materialSparkSoundScript);
+				pWorld->EmitSoundScriptAmbient(tr.vecEndPos, materialSparkSoundScript);
 		}
 	}
 
 	// play material hit sound
-	UTIL_EmitAmbientSound( ENT( 0 ), ptr->vecEndPos, mData->hit.waves[RANDOM_LONG(0, mData->hit.waves.size() - 1)].c_str(), fvol, mData->hit.attn, 0, 96 + RANDOM_LONG( 0, 0xf ) );
+	UTIL_EmitAmbientSound( ENT( 0 ), tr.vecEndPos, mData->hit.waves[RANDOM_LONG(0, mData->hit.waves.size() - 1)].c_str(), fvol, mData->hit.attn, 0, 96 + RANDOM_LONG( 0, 0xf ) );
 
 	return fvolbar;
+}
+
+float TEXTURETYPE_PlaySound(const TraceResult &tr, const Vector& vecSrc, const Vector& vecEnd, bool ignoreFlesh)
+{
+	char chTextureType = TEXTURETYPE_Trace(tr, vecSrc, vecEnd);
+
+	if (ignoreFlesh && chTextureType == g_MaterialRegistry.FleshMaterial())
+		return 0.0f;
+
+	return TEXTURETYPE_PlaySound(tr, chTextureType);
 }
 
 // ===================================================================================

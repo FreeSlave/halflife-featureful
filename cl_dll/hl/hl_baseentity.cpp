@@ -79,7 +79,6 @@ edict_t *DBG_EntOfVars( const entvars_t *pev ) { return NULL; }
 bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides ) { return false; }
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount ) { }
 void UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber ) { }
-void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber ) { }
 void UTIL_MakeVectors( const Vector &vecAngles )
 {
 	gEngfuncs.pfnAngleVectors( vecAngles, gpGlobals->v_forward, gpGlobals->v_right, gpGlobals->v_up );

@@ -259,6 +259,7 @@ int gmsgStreaks = 0;
 int gmsgSmoke = 0;
 int gmsgSparkShower = 0;
 int gmsgBlood = 0;
+int gmsgGunshot = 0;
 int gmsgParticleShooter = 0;
 
 int gmsgNightvision = 0;
@@ -381,6 +382,7 @@ void LinkUserMessages()
 	gmsgSmoke = REG_USER_MSG( "Smoke", -1 );
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );
 	gmsgBlood = REG_USER_MSG( "Blood", 22 );
+	gmsgGunshot = REG_USER_MSG( "Gunshot", 17 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
 
 	gmsgNightvision = REG_USER_MSG( "Nightvision", 1 );
@@ -4515,7 +4517,7 @@ void CSprayCan::Think()
 	}
 	else
 	{
-		UTIL_PlayerDecalTrace( &tr, playernum, (int)pev->frame, true );
+		UTIL_PlayerDecalTrace(tr, playernum, (int)pev->frame, true);
 		// Just painted last custom frame.
 		if( pev->frame++ >= ( nFrames - 1 ) )
 			UTIL_Remove( this );

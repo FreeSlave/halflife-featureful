@@ -129,7 +129,7 @@ struct efx_api_s
 	void		(*R_ParticleLine)( float *start, float *end, unsigned char r, unsigned char g, unsigned char b, float life );
 	void		(*R_PlayerSprites)( int client, int modelIndex, int count, int size );
 	void		(*R_Projectile)( float *origin, float *velocity, int modelIndex, int life, int owner, void (*hitcallback)( struct tempent_s *ent, struct pmtrace_s *ptr ) );
-	void		(*R_RicochetSound)( float *pos );
+	void		(*R_RicochetSound)( const float *pos );
 	void		(*R_RicochetSprite)( float *pos, struct model_s *pmodel, float duration, float scale );
 	void		(*R_RocketFlare)( float *pos );
 	void		(*R_RocketTrail)( float *start, float *end, int type );

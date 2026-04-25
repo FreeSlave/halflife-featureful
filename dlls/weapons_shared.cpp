@@ -2626,7 +2626,7 @@ void CConfigurableWeapon::Smack()
 	SendScreenShake(params.fire.hitShake.Get(m_swingIsAltAttack));
 
 	if (params.fire.hitDecal.Get(m_swingIsAltAttack))
-		DecalSmack( &m_trHit );
+		DecalSmack(m_trHit);
 #endif
 }
 
@@ -2763,7 +2763,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 
 		if( fHitWorld )
 		{
-			float fvolbar = TEXTURETYPE_PlaySound( &tr, vecSrc, vecSrc + ( vecEnd - vecSrc ) * 2.0f, true );
+			float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
 
 			if( g_pGameRules->IsMultiplayer() )
 			{
@@ -2899,7 +2899,7 @@ void CConfigurableWeapon::BigSwing()
 		// play texture hit sound
 		if( fHitWorld )
 		{
-			float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, true );
+			float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
 
 			if ( g_pGameRules->IsMultiplayer() )
 			{

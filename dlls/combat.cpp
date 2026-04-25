@@ -2111,8 +2111,9 @@ static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 	if (!decalsPredicted)
 	{
-		TEXTURETYPE_PlaySound( &tr, vecSrc, vecEnd );
-		DecalGunshot( &tr );
+		char chTextureType = TEXTURETYPE_Trace(tr, vecSrc, vecEnd);
+		TEXTURETYPE_PlaySound(tr, chTextureType);
+		DecalGunshot(tr, vecDir, chTextureType);
 	}
 }
 

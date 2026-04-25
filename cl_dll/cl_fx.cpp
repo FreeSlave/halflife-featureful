@@ -6,6 +6,7 @@
 #include "color_utils.h"
 #include "fx_flags.h"
 #include "r_efx.h"
+#include "clamp.h"
 #include "util_shared.h"
 #include "hl_palette.h"
 #include "particleman.h"
@@ -13,6 +14,26 @@
 model_t* cl_sprite_ricochet = nullptr;
 model_t* cl_sprite_dot = nullptr;
 model_t* cl_sprite_dot_index = nullptr;
+
+extern Vector v_origin;
+extern Vector g_viewPlaneNormal;
+
+#define RGBPAL565(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 2) << 8 ) & 0xf800 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 3 ) & 0x07e0 ) | ( (short) *(((p)+((i)*3)) + 0) >> 3 ) )
+#define RGBPAL555(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 2) << 7 ) & 0x7c00 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 2 ) & 0x03e0 ) | ( (short) *(((p)+((i)*3)) + 0) >> 3 ) )
+
+short GetPackedColor(int colorIndex)
+{
+	colorIndex = clamp(colorIndex, 0, 255);
+	return RGBPAL565(hlPalette, colorIndex);
+}
+
+static particle_t* AllocColoredParticle(int colorIndex)
+{
+	particle_t* p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+	p->color = colorIndex;
+	p->packedColor = GetPackedColor(colorIndex);
+	return p;
+}
 
 void LoadDefaultSprites()
 {
@@ -268,12 +289,11 @@ void FX_BloodStream(const Vector& org, const Vector& ndir, const IntRange& color
 
 	for (arc = 0.05f, i = 0; i < 100; i++)
 	{
-		particle_t *p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+		particle_t *p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
 		if (!p) return;
 
 		p->die = clientTime + 2.0f;
 		p->type = pt_vox_grav;
-		p->color = RandomizeNumberFromRange(colorRange);
 
 		p->org = org;
 		p->vel = dir;
@@ -286,11 +306,10 @@ void FX_BloodStream(const Vector& org, const Vector& ndir, const IntRange& color
 
 	for (arc = 0.075f, i = 0; i < (speed / 5); i++)
 	{
-		particle_t *p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+		particle_t *p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
 		if (!p) return;
 
 		p->die = clientTime + 3.0f;
-		p->color = RandomizeNumberFromRange(colorRange);
 		p->type = pt_vox_slowgrav;
 
 		p->org = org;
@@ -308,11 +327,10 @@ void FX_BloodStream(const Vector& org, const Vector& ndir, const IntRange& color
 
 		for (int j = 0; j < 2; j++)
 		{
-			p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+			p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
 			if (!p) return;
 
 			p->die = clientTime + 3.0f;
-			p->color = RandomizeNumberFromRange(colorRange);
 			p->type = pt_vox_slowgrav;
 
 			p->org = org + Vector(Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(-1.0f, 1.0f));
@@ -329,7 +347,7 @@ void FX_BloodStream(const Vector& org, const Vector& ndir, const IntRange& color
 void FX_BloodLegacy(const Vector& org, const Vector& ndir, const IntRange& colorRange, int amount)
 {
 	const float clientTime = gEngfuncs.GetClientTime();
-	const Vector dir = ndir.Normalize();
+	const Vector dir = ndir.IsZero() ? Vector() : ndir.Normalize();
 
 	int pspeed = amount * 3;
 
@@ -343,11 +361,10 @@ void FX_BloodLegacy(const Vector& org, const Vector& ndir, const IntRange& color
 
 		for (int j = 0; j < 8; j++)
 		{
-			particle_t *p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+			particle_t *p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
 			if (!p) return;
 
 			p->die = clientTime + 1.5f;
-			p->color = RandomizeNumberFromRange(colorRange);
 			p->type = pt_vox_grav;
 
 			p->org = pos + Vector(Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(-1.0f, 1.0f), Com_RandomFloat(-1.0f, 1.0f));
@@ -364,11 +381,10 @@ void FX_BloodParticles(const Vector& org, const IntRange& colorRange, int count)
 
 	for (int i = 0; i < count; i++)
 	{
-		particle_t *p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+		particle_t *p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
 		if (!p) return;
 
 		p->die = clientTime + Com_RandomFloat(1.0f, 3.0f);
-		p->color = RandomizeNumberFromRange(colorRange);
 		p->type = pt_grav;
 		p->org = org;
 		p->vel[0] = Com_RandomFloat( -96.0f, 95.0f );
@@ -377,23 +393,80 @@ void FX_BloodParticles(const Vector& org, const IntRange& colorRange, int count)
 	}
 }
 
+class CQParticle : public CBaseParticle
+{
+public:
+	CQParticle() = default;
+	CQParticle(const Vector& pos)
+	{
+		model_t* sprite = cl_sprite_dot_index ? cl_sprite_dot_index : cl_sprite_dot;
+		const float size = cl_sprite_dot_index ? 1.0f : 1.5f;
+		InitializeSprite(pos, Vector(0.0f, 0.0f, 0.0f), sprite, size, 255);
+		strcpy(m_szClassname, "qparticle");
+
+		m_iRendermode = cl_sprite_dot_index ? kRenderTransAlpha : kRenderTransAdd;
+
+		SetLightFlag(LIGHT_NONE);
+		SetCullFlag(CULL_PVS);
+		SetRenderFlag(RENDER_FACEPLAYER);
+
+		m_flGravity = 0.05f;
+	}
+	void Draw()
+	{
+		const float particleSize = m_flSize;
+
+		float factor = DotProduct((m_vOrigin - v_origin), g_viewPlaneNormal);
+		if (factor < 20)
+			factor = 1;
+		else
+			factor = 1 + factor * 0.004f;
+
+		m_flSize *= factor;
+
+		CBaseParticle::Draw();
+		m_flSize = particleSize;
+	}
+};
+
 // Quake wall impact puffs and blood
 void FX_QuakeParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count)
 {
 	const float clientTime = gEngfuncs.GetClientTime();
-	const Vector dir = ndir.Normalize();
+	const Vector dir = ndir.IsZero() ? Vector() : ndir.Normalize();
+
+	const Vector velocity = dir * 15.0f;
 
 	for (int i=0 ; i<count ; i++)
 	{
-		particle_t *p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
-		if (!p) return;
-		p->die = clientTime + 0.1f * Com_RandomLong(2, 5);
-		p->color = RandomizeNumberFromRange(colorRange);
-		p->type = pt_slowgrav;
+		Vector position = org;
 		for (int j=0 ; j<3 ; j++)
 		{
-			p->org[j] = org[j] + Com_RandomLong(-8, 7);
-			p->vel[j] = dir[j] * 15.0f;
+			position[j] = org[j] + Com_RandomLong(-8, 8);
+		}
+		const float dieTime = clientTime + 0.1f * Com_RandomLong(2, 5);
+
+		if (cl_sprite_dot_index)
+		{
+			CQParticle *particle = new CQParticle(position);
+
+			particle->m_vVelocity = velocity;
+
+			color24 rgb = Color24FromPalette(RandomizeNumberFromRange(colorRange));
+			particle->m_vColor[0] = rgb.r;
+			particle->m_vColor[1] = rgb.g;
+			particle->m_vColor[2] = rgb.b;
+
+			particle->m_flDieTime = dieTime;
+		}
+		else
+		{
+			particle_t *p = AllocColoredParticle(RandomizeNumberFromRange(colorRange));
+			if (!p) return;
+			p->die = dieTime;
+			p->type = pt_slowgrav;
+			p->org = position;
+			p->vel = velocity;
 		}
 	}
 }
@@ -402,7 +475,7 @@ void FX_QuakeParticles(const Vector& org, const Vector& ndir, const IntRange& co
 void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count)
 {
 	const float clientTime = gEngfuncs.GetClientTime();
-	const Vector dir = ndir.Normalize();
+	const Vector dir = ndir.IsZero() ? Vector() : ndir.Normalize();
 
 	for (int i=0 ; i<count ; i++)
 	{
@@ -412,30 +485,109 @@ void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colo
 		Vector velocity;
 		for (int j=0 ; j<3 ; j++)
 		{
-			position[j] = org[j] + Com_RandomLong(-4, 3) + d*dir[j];
+			position[j] = org[j] + Com_RandomLong(-4, 4) + d*dir[j];
 			velocity[j] = Com_RandomFloat(-20.0f, 20.0f);
 		}
 
-		model_t* sprite = cl_sprite_dot_index ? cl_sprite_dot_index : cl_sprite_dot;
-		const float size = cl_sprite_dot_index ? 1.0f : 1.5f;
-		CBaseParticle *particle = g_pParticleMan->CreateParticle(position, Vector(0.0f, 0.0f, 0.0f), sprite, size, 255, "particle");
-		if (!particle)
-			return;
-
-		particle->SetLightFlag(LIGHT_NONE);
-		particle->SetCullFlag(CULL_PVS);
-		particle->SetRenderFlag(RENDER_FACEPLAYER);
+		CQParticle *particle = new CQParticle(position);
 
 		particle->m_vVelocity = velocity;
-		particle->m_iRendermode = cl_sprite_dot_index ? kRenderTransAlpha : kRenderTransAdd;
 
 		color24 rgb = Color24FromPalette(RandomizeNumberFromRange(colorRange));
 		particle->m_vColor[0] = rgb.r;
 		particle->m_vColor[1] = rgb.g;
 		particle->m_vColor[2] = rgb.b;
 
-		particle->m_flGravity = 0.05f;
 		particle->m_flFadeSpeed = 0;
 		particle->m_flDieTime = clientTime + Com_RandomFloat(0.6f, 0.8f);
+	}
+}
+
+void FX_ImpactParticles(const Vector& pos, int baseColor)
+{
+	constexpr int maxDistance = 1000;
+	constexpr int maxColorVariance = 3;
+	constexpr int maxBaseQuantity = 10;
+
+	int dist = (int)(pos - v_origin).Length();
+
+	int quantity = (maxDistance - dist + 40) / 100;
+	quantity = clamp(quantity, 1, maxBaseQuantity);
+
+	int color = baseColor;
+
+	if (baseColor < 224)
+	{
+		int darkener = (maxColorVariance * maxBaseQuantity * quantity) / 100;
+		darkener = clamp(darkener, 0, maxColorVariance);
+
+		int shift = darkener - 2;
+
+		if (baseColor >= 0 && baseColor <= 127)
+			shift = -shift;
+
+		const int palColumn = baseColor % 16;
+		const int palRow = baseColor / 16;
+
+		if (palColumn + shift >= 16)
+		{
+			color = palRow * 16 + 15;
+		}
+		else if (palColumn + shift < 0)
+		{
+			color = palRow * 16;
+		}
+		else
+		{
+			color += shift;
+		}
+	}
+
+	//gEngfuncs.Con_Printf("ImpactParticles: base index: %d. Result: %d. Dist: %d\n", baseColor, color, dist);
+
+	for (int i = 0; i < quantity * 4; i++)
+	{
+		particle_t	*p = AllocColoredParticle(color);
+		if (!p) return;
+
+		p->org = pos;
+
+		p->vel[0] = Com_RandomFloat( -1.0f, 1.0f );
+		p->vel[1] = Com_RandomFloat( -1.0f, 1.0f );
+		p->vel[2] = Com_RandomFloat( -1.0f, 1.0f );
+
+		p->vel = p->vel * Com_RandomFloat( 50.0f, 100.0f );
+
+		p->die = gEngfuncs.GetClientTime() + 0.5f;
+		p->type = pt_grav;
+	}
+}
+
+void FX_WallImpact(const Vector& pos, const Vector& dir, int particleColor, int style)
+{
+	switch(style)
+	{
+	case WALLIMPACT_QUAKE:
+		FX_QuakeParticles(pos + dir, Vector(), GetRangeForColorIndex(particleColor, 6), 20);
+		break;
+	case WALLIMPACT_QUAKE2:
+		FX_DotParticles(pos, dir, GetRangeForColorIndex(particleColor, 6), 40);
+		break;
+	case WALLIMPACT_HL:
+	default:
+		FX_ImpactParticles(pos, particleColor);
+		break;
+	}
+}
+
+void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int entIndex, int particleColor)
+{
+	gEngfuncs.pEfxAPI->R_DecalShoot(gEngfuncs.pEfxAPI->Draw_DecalIndex(decalIndex), entIndex, 0, Vector(pos), 0);
+
+	FX_WallImpact(pos, -dir, particleColor, GetWallImpactStyle());
+
+	if (Com_RandomLong(0, 1))
+	{
+		gEngfuncs.pEfxAPI->R_RicochetSound(pos);
 	}
 }

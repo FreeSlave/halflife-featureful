@@ -26,6 +26,7 @@ CFrustum g_cFrustum;
 float g_flGravity;
 float g_flOldTime;
 Vector g_vViewAngles;
+Vector g_viewPlaneNormal;
 
 static bool g_iRenderMode = true;
 
@@ -93,6 +94,9 @@ void IParticleMan_Active::SetVariables(float flGravity, Vector vViewAngles)
 	if (gEngfuncs.GetClientTime() != g_flOldTime)
 	{
 		g_vViewAngles = vViewAngles;
+
+		Vector right, up;
+		AngleVectors(g_vViewAngles, g_viewPlaneNormal, right, up);
 	}
 }
 
