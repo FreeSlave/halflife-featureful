@@ -1000,6 +1000,7 @@ struct ClientFeatures
 	char wall_puffs[MAX_WALLPUFF_COUNT][64];
 
 	ConfigurableIntegerValue bloodsplatter_style;
+	ConfigurableBooleanValue bloodstream;
 	ConfigurableIntegerValue bloodstream_threshold;
 	ConfigurableIntegerValue wallimpact_style;
 

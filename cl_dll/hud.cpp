@@ -127,6 +127,9 @@ ClientFeatures::ClientFeatures()
 	memset(wall_puffs, 0, sizeof(wall_puffs));
 	strcpy(wall_puffs[0], "sprites/stmbal1.spr");
 
+	bloodstream_threshold.configurable = false;
+	bloodstream_threshold.defaultValue = 90;
+
 	fullbright_textures = true;
 }
 
@@ -259,6 +262,7 @@ cvar_t* cl_flashlight_fade_distance = NULL;
 cvar_t *cl_subtitles = NULL;
 
 cvar_t *cl_bloodsplatter_style = NULL;
+cvar_t *cl_bloodstream = NULL;
 cvar_t *cl_bloodstream_threshold = NULL;
 
 cvar_t *cl_wallimpact_style = NULL;
@@ -273,9 +277,16 @@ int GetBloodSplatterStyle()
 	return cl_bloodsplatter_style ? (int)cl_bloodsplatter_style->value : gHUD.clientFeatures.bloodsplatter_style.defaultValue;
 }
 
-int GetBloodBloodStreamThreshold()
+bool ShouldSpawnBloodStream(int damageAmount)
 {
-	return cl_bloodstream_threshold ? (int)cl_bloodstream_threshold->value : gHUD.clientFeatures.bloodstream_threshold.defaultValue;
+	const bool canSpawnBloodStream = cl_bloodstream ? cl_bloodstream->value != 0 : gHUD.clientFeatures.bloodstream.enabled_by_default;
+	if (canSpawnBloodStream)
+	{
+		const int threshold = cl_bloodstream_threshold ? (int)cl_bloodstream_threshold->value : gHUD.clientFeatures.bloodstream_threshold.defaultValue;
+		if (damageAmount >= threshold)
+			return true;
+	}
+	return false;
 }
 
 int GetWallImpactStyle()
@@ -844,6 +855,7 @@ void CHud::Init()
 	cl_subtitles = CVAR_CREATE( "cl_subtitles", "1", FCVAR_ARCHIVE );
 
 	CreateIntegerCvarConditionally(cl_bloodsplatter_style, "cl_bloodsplatter_style", clientFeatures.bloodsplatter_style);
+	CreateBooleanCvarConditionally(cl_bloodstream, "cl_bloodstream", clientFeatures.bloodstream);
 	CreateIntegerCvarConditionally(cl_bloodstream_threshold, "cl_bloodstream_threshold", clientFeatures.bloodstream_threshold);
 	CreateIntegerCvarConditionally(cl_wallimpact_style, "cl_wallimpact_style", clientFeatures.wallimpact_style);
 
@@ -1074,6 +1086,7 @@ void CHud::ParseClientFeatures()
 		{ "muzzlelight.", clientFeatures.muzzlelight},
 		{ "movemode.", clientFeatures.movemode},
 		{ "crosshair_colorable.", clientFeatures.crosshair_colorable},
+		{ "bloodstream.", clientFeatures.bloodstream},
 	};
 	KeyValueDefinition<ConfigurableBoundedValue> configurableBounds[] = {
 		{ "hud_min_alpha.", clientFeatures.hud_min_alpha },

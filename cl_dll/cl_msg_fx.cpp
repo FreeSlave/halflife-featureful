@@ -573,7 +573,7 @@ int __MsgFunc_SparkShower( const char *pszName, int iSize, void *pbuf )
 }
 
 extern int GetBloodSplatterStyle();
-extern int GetBloodBloodStreamThreshold();
+extern bool ShouldSpawnBloodStream(int damageAmount);
 
 static float BloodSpriteAmount(int amount)
 {
@@ -606,10 +606,8 @@ int __MsgFunc_Blood( const char *pszName, int iSize, void *pbuf )
 
 	int style = GetBloodSplatterStyle();
 
-	const int bloodStreamThreshold = GetBloodBloodStreamThreshold();
-
 	bool doSplatter = true;
-	bool doStream = bloodStreamThreshold > 0.0f && amount >= bloodStreamThreshold;
+	bool doStream = ShouldSpawnBloodStream(amount);
 
 	if (params == BLOOD_FORCED_TYPE_ONLYDRIPS)
 	{
