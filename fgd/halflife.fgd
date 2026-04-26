@@ -6538,7 +6538,24 @@
 	]
 ]
 
-@PointClass base(Monster, FollowingMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/massn.mdl") = monster_male_assassin : "Male Assassin"
+@BaseClass = MaleAssassinHead
+[
+	head(Choices) : "Heads" : 0 =
+	[
+		-1 : "Random"
+		0 : "Ski Mask White (0)"
+		1 : "Ski Mask Black (1)"
+		2 : "Night Goggles (2)"
+		3 : "Custom (3)"
+		4 : "Custom (4)"
+		5 : "Custom (5)"
+		6 : "Custom (6)"
+		7 : "Custom (7)"
+		8 : "Custom (8)"
+	]
+]
+
+@PointClass base(Monster, FollowingMonster, Sequence, MaleAssassinHead) size(-16 -16 0, 16 16 72) studio("models/massn.mdl") = monster_male_assassin : "Male Assassin"
 [
 	netname(string) : "Squad Name"
 
@@ -6546,14 +6563,6 @@
 	[
 		32 : "SquadLeader" : 0
 		1024: "Don't Drop Gun/Equipment" : 0
-	]
-
-	head(Choices) : "Heads" : 0 =
-	[
-		-1 : "Random"
-		0 : "Ski Mask White"
-		1 : "Ski Mask Black"
-		2 : "Night Goggles"
 	]
 
 	weapons(Choices) : "Weapons" : 3 =
@@ -6623,20 +6632,13 @@
 	]
 ]
 
-@BaseClass base(DeadMonster) size(-16 -16 0, 16 16 72) studio("models/massn.mdl") = MaleAssassinDead
+@BaseClass base(DeadMonster, MaleAssassinHead) size(-16 -16 0, 16 16 72) studio("models/massn.mdl") = MaleAssassinDead
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 43 =
 	[
 		43 : "deadstomach"
 		44 : "deadside"
 		45 : "deadsitting"
-	]
-	head(Choices) : "Heads" : -1 =
-	[
-		-1 : "Random"
-		0 : "Ski Mask White"
-		1 : "Ski Mask Black"
-		2 : "Night Goggles"
 	]
 	pose(Choices) : "Pose" : 0 =
 	[

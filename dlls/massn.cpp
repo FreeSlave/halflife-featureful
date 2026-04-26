@@ -342,7 +342,7 @@ void CMassn::Spawn()
 	}
 	m_cAmmoLoaded = m_cClipSize;
 
-	if (m_iHead == -1 || m_iHead >= MASSN_HEAD_COUNT) {
+	if (m_iHead == -1) {
 		m_iHead = RANDOM_LONG(MASSN_HEAD_WHITE, MASSN_HEAD_BLACK); // never random night googles
 	}
 	SetBodygroup(MASSN_HEAD_GROUP, m_iHead);
@@ -510,7 +510,7 @@ void CDeadMassn::Spawn()
 		SetBodygroup(MASSN_GUN_GROUP, MASSN_GUN_SNIPERRIFLE);
 	}
 
-	if ( m_iHead < 0 || m_iHead >= MASSN_HEAD_COUNT ) {
+	if (m_iHead < 0) {
 		m_iHead = RANDOM_LONG(MASSN_HEAD_WHITE, MASSN_HEAD_BLACK);  // never random night googles
 	}
 
