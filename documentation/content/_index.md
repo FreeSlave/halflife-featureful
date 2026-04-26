@@ -34,7 +34,7 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 
 Half-Life Featureful is not just SDK in vacuum. It's a result of working on the real mods.
 
-* [Half-Life: Field Intensity](https://www.moddb.com/mods/field-intensity) uses the same codebase but versions before 1.6 were released before the feature configuration concept was introduced. Practically Field Intensity is the reason why this SDK exists.
+* [Half-Life: Field Intensity](https://www.moddb.com/mods/field-intensity) uses the same codebase but versions before 1.6 were released before the feature configuration concept was introduced. Practically Field Intensity is the reason why this SDK exists. The Field Intensity 1.7 source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/field_intensity_1.7) of this repository.
 * [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) uses this codebase since version 1.3. The Induction source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/induction) of this repository along with the release of version 1.4.
 * [Half-Life: Hard Duty](https://www.moddb.com/mods/hard-duty-second-edition) - in development, demo available.
 * [The Big Boned and The Curious](https://www.moddb.com/mods/the-big-boned-and-the-curious) - in development, demo available.
@@ -43,7 +43,7 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - in development, demo available (the mod, however, branched off to utilize its own gamecode).
 * [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - in development, demo available.
 * [Retrograde](https://www.moddb.com/mods/retrograde) - in development.
-* [Specific impulse](https://www.moddb.com/mods/specific-impulse) - in development.
+* [Specific impulse](https://www.moddb.com/mods/specific-impulse) - in development, demo available.
 
 ## Compatibility with other mods and addons
 
