@@ -18,8 +18,13 @@ model_t* cl_sprite_dot_index = nullptr;
 extern Vector v_origin;
 extern Vector g_viewPlaneNormal;
 
+#if _WIN32
+#define RGBPAL565(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 0) << 8 ) & 0xf800 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 3 ) & 0x07e0 ) | ( (short) *(((p)+((i)*3)) + 2) >> 3 ) )
+#define RGBPAL555(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 0) << 7 ) & 0x7c00 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 2 ) & 0x03e0 ) | ( (short) *(((p)+((i)*3)) + 2) >> 3 ) )
+#else
 #define RGBPAL565(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 2) << 8 ) & 0xf800 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 3 ) & 0x07e0 ) | ( (short) *(((p)+((i)*3)) + 0) >> 3 ) )
 #define RGBPAL555(p,i)    ( ( ( (short) *(((p)+((i)*3)) + 2) << 7 ) & 0x7c00 ) | ( ( (short) *(((p)+((i)*3)) + 1) << 2 ) & 0x03e0 ) | ( (short) *(((p)+((i)*3)) + 0) >> 3 ) )
+#endif
 
 short GetPackedColor(int colorIndex)
 {
