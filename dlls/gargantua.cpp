@@ -1125,11 +1125,7 @@ void CGargantua::Precache()
 
 void CGargantua::UpdateOnRemove()
 {
-	if( m_pEyeGlow )
-	{
-		UTIL_Remove( m_pEyeGlow );
-		m_pEyeGlow = 0;
-	}
+	UTIL_RemoveAndClean(m_pEyeGlow);
 
 	FlameDestroy();
 	CFollowingMonster::UpdateOnRemove();
@@ -1215,8 +1211,7 @@ KilledResult CGargantua::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker
 void CGargantua::OnDying(bool gibbed)
 {
 	EyeOff();
-	UTIL_Remove( m_pEyeGlow );
-	m_pEyeGlow = NULL;
+	UTIL_RemoveAndClean(m_pEyeGlow);
 	CFollowingMonster::OnDying(gibbed);
 }
 
