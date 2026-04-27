@@ -997,11 +997,7 @@ void CGargantua::FlameDestroy()
 {
 	for( int i = 0; i < 4; i++ )
 	{
-		if( m_pFlame[i] )
-		{
-			UTIL_Remove( m_pFlame[i] );
-			m_pFlame[i] = NULL;
-		}
+		UTIL_RemoveAndClean(m_pFlame[i]);
 	}
 }
 

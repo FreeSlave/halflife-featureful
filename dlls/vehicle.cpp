@@ -1083,8 +1083,7 @@ void CFuncVehicle::Precache()
 
 void CFuncVehicle::UpdateOnRemove()
 {
-	UTIL_Remove(m_vehicleProxy);
-	m_vehicleProxy = nullptr;
+	UTIL_RemoveAndClean(m_vehicleProxy);
 
 	CBaseEntity::UpdateOnRemove();
 }

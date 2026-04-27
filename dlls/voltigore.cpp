@@ -152,11 +152,7 @@ void CChargedBolt::ClearBeams()
 {
 	for (auto& pBeam : m_pBeam)
 	{
-		if (pBeam)
-		{
-			UTIL_Remove(pBeam);
-			pBeam = nullptr;
-		}
+		UTIL_RemoveAndClean(pBeam);
 	}
 
 	m_iBeams = 0;
@@ -1027,8 +1023,7 @@ void CVoltigore::OnDying(bool gibbed)
 
 void CVoltigore::UpdateOnRemove()
 {
-	if (m_pChargedBolt != 0)
-		UTIL_Remove(m_pChargedBolt);
+	UTIL_RemoveAndClean(m_pChargedBolt);
 	ClearBeams();
 	CSquadMonster::UpdateOnRemove();
 }
@@ -1055,18 +1050,10 @@ void CVoltigore::ClearBeams()
 {
 	for (auto& pBeam : m_pBeam)
 	{
-		if (pBeam)
-		{
-			UTIL_Remove(pBeam);
-			pBeam = nullptr;
-		}
+		UTIL_RemoveAndClean(pBeam);
 	}
 
-	if (m_pChargedBolt)
-	{
-		UTIL_Remove(m_pChargedBolt);
-		m_pChargedBolt = nullptr;
-	}
+	UTIL_RemoveAndClean(m_pChargedBolt);
 }
 
 Vector CVoltigore::BoltPosition()

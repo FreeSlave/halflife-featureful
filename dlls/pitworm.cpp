@@ -725,16 +725,8 @@ void CPitWorm::DyingThink()
 		ResetSequenceInfo();
 		DeathSound();
 
-		if (m_pBeam)
-		{
-			UTIL_Remove(m_pBeam);
-			m_pBeam = NULL;
-		}
-		if (m_pSprite)
-		{
-			UTIL_Remove(m_pSprite);
-			m_pSprite = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam);
+		UTIL_RemoveAndClean(m_pSprite);
 
 		SetUse(NULL);
 		SetTouch(NULL);
@@ -759,10 +751,8 @@ void CPitWorm::HuntThink()
 		}
 		else
 		{
-			UTIL_Remove(m_pBeam);
-			m_pBeam = NULL;
-			UTIL_Remove(m_pSprite);
-			m_pSprite = NULL;
+			UTIL_RemoveAndClean(m_pBeam);
+			UTIL_RemoveAndClean(m_pSprite);
 		}
 	}
 

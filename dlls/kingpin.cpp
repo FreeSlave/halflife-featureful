@@ -481,17 +481,8 @@ void CKingpinPlasmaCluster::StartUse(CBaseEntity *pActivator, CBaseEntity *pCall
 void CKingpinPlasmaCluster::RemoveEffects()
 {
 	for (int i=0; i<KINGPIN_CLUSTER_PARTICLE_COUNT; ++i) {
-		CBaseEntity* pParticle = m_particles[i];
-		if (pParticle) {
-			UTIL_Remove(pParticle);
-			m_particles[i] = 0;
-		}
-
-		CBeam* pBeam = m_beams[i];
-		if (pBeam) {
-			UTIL_Remove(pBeam);
-			m_beams[i] = 0;
-		}
+		UTIL_RemoveAndClean(m_particles[i]);
+		UTIL_RemoveAndClean(m_beams[i]);
 	}
 }
 
@@ -1844,8 +1835,7 @@ void CKingpin::ClearGlows()
 {
 	for (CSprite*& glow : m_Glows)
 	{
-		UTIL_Remove(glow);
-		glow = nullptr;
+		UTIL_RemoveAndClean(glow);
 	}
 }
 
@@ -1894,8 +1884,7 @@ void CKingpin::DeathBeams(const Visual* visual)
 
 void CKingpin::ClearPlasmaBall()
 {
-	UTIL_Remove(m_plasmaBall);
-	m_plasmaBall = 0;
+	UTIL_RemoveAndClean(m_plasmaBall);
 }
 
 Vector CKingpin::PlasmaBallPos()

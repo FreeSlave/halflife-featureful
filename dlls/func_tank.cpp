@@ -610,10 +610,7 @@ void CFuncTank::UpdateOnRemove()
 		pTankControls->CheckAnyTanksLeft(this);
 	}
 	CBaseEntity::UpdateOnRemove();
-	if (m_pSpot) {
-		UTIL_Remove(m_pSpot);
-		m_pSpot = NULL;
-	}
+	UTIL_RemoveAndClean(m_pSpot);
 	if (m_pFireProxy) {
 		m_pFireProxy->SetThink(&CBaseEntity::SUB_Remove);
 		m_pFireProxy->pev->nextthink = gpGlobals->time + 0.1f;

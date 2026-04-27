@@ -403,10 +403,8 @@ void CController::Precache()
 
 void CController::ClearBalls()
 {
-	UTIL_Remove( m_pBall[0] );
-	m_pBall[0] = 0;
-	UTIL_Remove( m_pBall[1] );
-	m_pBall[1] = 0;
+	UTIL_RemoveAndClean( m_pBall[0] );
+	UTIL_RemoveAndClean( m_pBall[1] );
 }
 
 void CController::UpdateOnRemove()

@@ -450,11 +450,7 @@ void CBarnacle::UpdateOnRemove()
 {
 	ReleaseVictim();
 
-	if (pTip)
-	{
-		UTIL_Remove(pTip);
-		pTip = nullptr;
-	}
+	UTIL_RemoveAndClean(pTip);
 
 	CBaseMonster::UpdateOnRemove();
 }

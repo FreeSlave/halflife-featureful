@@ -3313,11 +3313,7 @@ void CTorch::MakeGas( bool doSpark )
 void CTorch::KillGas()
 {
 	m_torchActive = false;
-	if ( m_pBeam )
-	{
-		UTIL_Remove( m_pBeam );
-		m_pBeam = NULL;
-	}
+	UTIL_RemoveAndClean(m_pBeam);
 }
 
 //=========================================================

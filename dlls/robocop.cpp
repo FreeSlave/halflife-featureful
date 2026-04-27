@@ -673,13 +673,9 @@ void CRoboCop::UpdateOnRemove()
 
 void CRoboCop::RemoveSpriteEffects()
 {
-	UTIL_Remove( m_pLaserPointer );
-	UTIL_Remove( m_pBeam );
-	UTIL_Remove( m_pBeamSpot );
-
-	m_pLaserPointer = NULL;
-	m_pBeam = NULL;
-	m_pBeamSpot = NULL;
+	UTIL_RemoveAndClean(m_pLaserPointer);
+	UTIL_RemoveAndClean(m_pBeam);
+	UTIL_RemoveAndClean(m_pBeamSpot);
 }
 
 DamageInfo CRoboCop::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)

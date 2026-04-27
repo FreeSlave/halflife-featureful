@@ -2078,11 +2078,7 @@ void CISlave::ClearBeams()
 {
 	for( int i = 0; i < ISLAVE_MAX_BEAMS; i++ )
 	{
-		if( m_pBeam[i] )
-		{
-			UTIL_Remove( m_pBeam[i] );
-			m_pBeam[i] = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam[i]);
 	}
 	m_iBeams = 0;
 	
@@ -2174,24 +2170,19 @@ CBeam* CISlave::CreateSummonBeam(const Vector& vecEnd, int attachment)
 
 void CISlave::RemoveSummonBeams()
 {
-	UTIL_Remove(m_handsBeam1);
-	m_handsBeam1 = NULL;
-	UTIL_Remove(m_handsBeam2);
-	m_handsBeam2 = NULL;
+	UTIL_RemoveAndClean(m_handsBeam1);
+	UTIL_RemoveAndClean(m_handsBeam2);
 }
 
 void CISlave::RemoveHandGlows()
 {
-	UTIL_Remove(m_handGlow1);
-	m_handGlow1 = NULL;
-	UTIL_Remove(m_handGlow2);
-	m_handGlow2 = NULL;
+	UTIL_RemoveAndClean(m_handGlow1);
+	UTIL_RemoveAndClean(m_handGlow2);
 }
 
 void CISlave::RemoveChargeToken()
 {
-	UTIL_Remove(m_chargeToken);
-	m_chargeToken = NULL;
+	UTIL_RemoveAndClean(m_chargeToken);
 }
 
 float CISlave::HealPower()

@@ -1041,11 +1041,7 @@ void CGeneWorm::DyingThink()
 		pev->renderamt -= 1;
 	}
 
-	if (m_orificeGlow)
-	{
-		UTIL_Remove(m_orificeGlow);
-		m_orificeGlow = nullptr;
-	}
+	UTIL_RemoveAndClean(m_orificeGlow);
 }
 
 Vector CGeneWorm::LookerEyeOrigin()

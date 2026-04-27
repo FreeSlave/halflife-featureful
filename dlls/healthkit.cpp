@@ -1038,8 +1038,7 @@ void CWallHealthDecay::SetNeedleController(float yaw)
 
 void CWallHealthDecay::UpdateOnRemove()
 {
-	UTIL_Remove(m_jar);
-	m_jar = NULL;
+	UTIL_RemoveAndClean(m_jar);
 	CBaseAnimating::UpdateOnRemove();
 }
 

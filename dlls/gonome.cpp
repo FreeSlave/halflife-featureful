@@ -277,11 +277,7 @@ CGonomeGuts* CGonome::GetGonomeGuts(const Vector &pos)
 
 void CGonome::ClearGuts()
 {
-	if (m_pGonomeGuts)
-	{
-		UTIL_Remove(m_pGonomeGuts);
-		m_pGonomeGuts = NULL;
-	}
+	UTIL_RemoveAndClean(m_pGonomeGuts);
 }
 
 int CGonome::LookupActivity(int activity)

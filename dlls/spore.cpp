@@ -154,11 +154,7 @@ void CSpore::IgniteThink()
 	SetThink(NULL);
 	SetTouch(NULL);
 
-	if (m_hSprite)
-	{
-		UTIL_Remove(m_hSprite);
-		m_hSprite = 0;
-	}
+	UTIL_RemoveAndClean(m_hSprite);
 
 	EmitSoundScript(impactSoundScript);
 
@@ -249,11 +245,7 @@ void CSpore::MyBounceTouch(CBaseEntity* pOther)
 void CSpore::UpdateOnRemove()
 {
 	CGrenade::UpdateOnRemove();
-	if (m_hSprite)
-	{
-		UTIL_Remove(m_hSprite);
-		m_hSprite = 0;
-	}
+	UTIL_RemoveAndClean(m_hSprite);
 }
 
 void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)

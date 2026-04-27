@@ -390,11 +390,7 @@ void CBaseTurret::Precache()
 
 void CBaseTurret::UpdateOnRemove()
 {
-	if( m_pEyeGlow )
-	{
-		UTIL_Remove( m_pEyeGlow );
-		m_pEyeGlow = 0;
-	}
+	UTIL_RemoveAndClean(m_pEyeGlow);
 	CBaseMonster::UpdateOnRemove();
 }
 

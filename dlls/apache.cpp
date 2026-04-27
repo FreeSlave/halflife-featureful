@@ -1028,11 +1028,7 @@ bool CApache::FireGun()
 	}
 	else
 	{
-		if( m_pBeam )
-		{
-			UTIL_Remove( m_pBeam );
-			m_pBeam = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam);
 	}
 	return false;
 }

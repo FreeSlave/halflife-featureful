@@ -1774,6 +1774,15 @@ void UTIL_Remove( CBaseEntity *pEntity )
 	pEntity->pev->targetname = 0;
 }
 
+void UTIL_RemoveAndClean(EHANDLE& handle)
+{
+	if (handle != 0)
+	{
+		UTIL_Remove(handle);
+		handle = 0;
+	}
+}
+
 bool UTIL_IsValidEntity( edict_t *pent )
 {
 	if( !pent || pent->free || ( pent->v.flags & FL_KILLME ) )

@@ -508,20 +508,12 @@ void CNihilanth::Precache()
 void CNihilanth::UpdateOnRemove()
 {
 	CBaseEntity::UpdateOnRemove();
- 
-	if( m_pBall )
-	{
-		UTIL_Remove( m_pBall );
-		m_pBall = 0;
-	}
+
+	UTIL_RemoveAndClean( m_pBall );
 
 	for( int i = 0; i < N_SPHERES; i++ )
 	{
-		if( CBaseEntity* pSphere = (CBaseEntity *)m_hSphere[i] )
-		{
-			UTIL_Remove( pSphere );
-			m_hSphere[i] = 0;
-		}
+		UTIL_RemoveAndClean(m_hSphere[i]);
 	}
 }
 
@@ -644,8 +636,7 @@ void CNihilanth::DyingThink()
 		}
 		else
 		{
-			UTIL_Remove( m_pBall );
-			m_pBall = NULL;
+			UTIL_RemoveAndClean( m_pBall );
 		}
 	}
 

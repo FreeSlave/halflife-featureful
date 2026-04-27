@@ -206,23 +206,9 @@ void CShock::CreateEffects()
 
 void CShock::ClearEffects()
 {
-	if (m_pBeam)
-	{
-		UTIL_Remove( m_pBeam );
-		m_pBeam = NULL;
-	}
-
-	if (m_pNoise)
-	{
-		UTIL_Remove( m_pNoise );
-		m_pNoise = NULL;
-	}
-
-	if (m_pSprite)
-	{
-		UTIL_Remove( m_pSprite );
-		m_pSprite = NULL;
-	}
+	UTIL_RemoveAndClean(m_pBeam);
+	UTIL_RemoveAndClean(m_pNoise);
+	UTIL_RemoveAndClean(m_pSprite);
 }
 
 void CShock::UpdateOnRemove()

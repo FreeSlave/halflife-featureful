@@ -33,6 +33,9 @@
 #include <cstring>
 #include <cctype>
 #include <map>
+#include <type_traits>
+
+class EHANDLE;
 
 inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin, entvars_t *ent );  // implementation later in this file
 
@@ -333,6 +336,18 @@ extern Vector		UTIL_ClampVectorToBox( const Vector &input, const Vector &clampSi
 
 extern char			*UTIL_VarArgs( const char *format, ... );
 extern void			UTIL_Remove( CBaseEntity *pEntity );
+
+template<typename T>
+void UTIL_RemoveAndClean(T *&pEntity)
+{
+	static_assert(std::is_base_of<CBaseEntity, T>::value, "Type must be derivative of CBaseEntity");
+
+	UTIL_Remove(pEntity);
+	pEntity = nullptr;
+}
+
+void UTIL_RemoveAndClean(EHANDLE& handle);
+
 extern bool			UTIL_IsValidEntity( edict_t *pent );
 extern bool			UTIL_TeamsMatch( const char *pTeamName1, const char *pTeamName2 );
 

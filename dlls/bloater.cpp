@@ -923,10 +923,8 @@ void CFloater::GibMonster()
 
 void CFloater::UpdateOnRemove()
 {
-	UTIL_Remove(m_leftGlow);
-	m_leftGlow = NULL;
-	UTIL_Remove(m_rightGlow);
-	m_rightGlow = NULL;
+	UTIL_RemoveAndClean(m_leftGlow);
+	UTIL_RemoveAndClean(m_rightGlow);
 	CBaseMonster::UpdateOnRemove();
 }
 
