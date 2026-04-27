@@ -470,8 +470,8 @@ int CBullsquid::IgnoreConditions()
 
 	if( gpGlobals->time - m_flLastHurtTime <= 20.0f )
 	{
-		// haven't been hurt in 20 seconds, so let the squid care about stink. 
-		iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
+		// haven't been hurt in 20 seconds, so let the squid care about stink.
+		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
 	if( m_hEnemy != 0 )
@@ -479,7 +479,7 @@ int CBullsquid::IgnoreConditions()
 		if( FClassnameIs( m_hEnemy->pev, "monster_headcrab" ) )
 		{
 			// (Unless after a tasty headcrab)
-			iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
+			iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 		}
 	}
 
