@@ -291,6 +291,8 @@ void CRope::UpdateOnRemove()
 	{
 		UTIL_Remove(m_Samples[i]);
 	}
+
+	CBaseDelay::UpdateOnRemove();
 }
 
 int CRope::ObjectCaps()

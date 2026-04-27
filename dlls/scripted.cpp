@@ -1091,6 +1091,8 @@ void CCineMonster::UpdateOnRemove()
 			pMonster->CineCleanup();
 		}
 	}
+
+	CBaseDelay::UpdateOnRemove();
 }
 
 bool CBaseMonster::CineCleanup()

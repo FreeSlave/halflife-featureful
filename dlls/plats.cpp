@@ -1855,6 +1855,8 @@ void CFuncTrackTrain::UpdateOnRemove()
 {
 	UTIL_Remove(m_vehicleProxy);
 	m_vehicleProxy = nullptr;
+
+	CBaseEntity::UpdateOnRemove();
 }
 
 // This class defines the volume of space that the player must stand in to control the train

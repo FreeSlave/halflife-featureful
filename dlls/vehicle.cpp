@@ -1085,6 +1085,8 @@ void CFuncVehicle::UpdateOnRemove()
 {
 	UTIL_Remove(m_vehicleProxy);
 	m_vehicleProxy = nullptr;
+
+	CBaseEntity::UpdateOnRemove();
 }
 
 LINK_ENTITY_TO_CLASS( func_vehiclecontrols, CFuncVehicleControls );

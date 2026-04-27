@@ -2048,6 +2048,7 @@ void CTriggerInOut::UpdateOnRemove()
 		pRegister->pev->nextthink = gpGlobals->time + 0.1f;
 		pRegister = pRegister->m_pNext;
 	}
+	CBaseTrigger::UpdateOnRemove();
 }
 
 void CTriggerInOut::Touch(CBaseEntity* pOther)
