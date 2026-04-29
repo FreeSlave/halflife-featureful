@@ -371,6 +371,8 @@ public:
 	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
+	bool PerceiveAsPrey(CBaseEntity* pEntity);
+
 	bool m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time.
 
 	float m_flLastHurtTime;// we keep track of this, because if something hurts a squid, it will forget about its love of headcrabs for a while.
@@ -474,13 +476,10 @@ int CBullsquid::IgnoreConditions()
 		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
-	if( m_hEnemy != 0 )
+	if (PerceiveAsPrey(m_hEnemy))
 	{
-		if( FClassnameIs( m_hEnemy->pev, "monster_headcrab" ) )
-		{
-			// (Unless after a tasty headcrab)
-			iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
-		}
+		// (Unless after a tasty headcrab)
+		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
 	return iIgnore;
@@ -492,7 +491,7 @@ int CBullsquid::IgnoreConditions()
 //=========================================================
 int CBullsquid::IRelationship( CBaseEntity *pTarget )
 {
-	if( gpGlobals->time - m_flLastHurtTime < 5.0f && IDefaultRelationship(pTarget) >= R_DL && FClassnameIs( pTarget->pev, "monster_headcrab" ) )
+	if( gpGlobals->time - m_flLastHurtTime < 5.0f && PerceiveAsPrey(pTarget) )
 	{
 		// if squid has been hurt in the last 5 seconds, and is getting relationship for a headcrab, 
 		// tell squid to disregard crab. 
@@ -1233,7 +1232,7 @@ Schedule_t *CBullsquid::GetSchedule()
 
 			if( HasConditions( bits_COND_NEW_ENEMY ) )
 			{
-				if( m_fCanThreatDisplay && IRelationship( m_hEnemy ) == R_HT )
+				if (m_fCanThreatDisplay && PerceiveAsPrey(m_hEnemy))
 				{
 					// this means squid sees a headcrab!
 					m_fCanThreatDisplay = false;// only do the headcrab dance once per lifetime.
@@ -1415,10 +1414,10 @@ MONSTERSTATE CBullsquid::GetIdealState()
 		COMBAT goes to ALERT upon death of enemy
 		*/
 		{
-			if( m_hEnemy != 0 && ( iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE ) && FClassnameIs( m_hEnemy->pev, "monster_headcrab" ) )
+			if (( iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE ) && PerceiveAsPrey(m_hEnemy))
 			{
 				// if the squid has a headcrab enemy and something hurts it, it's going to forget about the crab for a while.
-				m_hEnemy = NULL;
+				m_hEnemy = 0;
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 			}
 			break;
@@ -1430,6 +1429,19 @@ MONSTERSTATE CBullsquid::GetIdealState()
 	m_IdealMonsterState = CBaseMonster::GetIdealState();
 
 	return m_IdealMonsterState;
+}
+
+bool CBullsquid::PerceiveAsPrey(CBaseEntity *pEntity)
+{
+	if (pEntity && pEntity != this)
+	{
+		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+		if (pMonster)
+		{
+			return IDefaultRelationship(pEntity) == R_HT && pMonster->IDefaultRelationship(this) == R_FR;
+		}
+	}
+	return false;
 }
 
 class CDeadBullsquid : public CDeadMonster
