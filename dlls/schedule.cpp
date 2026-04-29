@@ -1803,7 +1803,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		if (g_modFeatures.monsters_eat_for_health)
 		{
 			ALERT(at_aiconsole, "%s eating. Current health: %d/%d\n", STRING(pev->classname), (int)pev->health, (int)pev->max_health);
-			TakeHealth(this, pev->max_health * pTask->flData, DMG_GENERIC);
+			TakeHealth(this, pev->max_health * pTask->flData, HEAL_GENERIC);
 			ALERT(at_aiconsole, "%s health after eating: %d/%d\n", STRING(pev->classname), (int)pev->health, (int)pev->max_health);
 		}
 		TaskComplete();

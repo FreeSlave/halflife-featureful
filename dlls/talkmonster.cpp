@@ -1409,9 +1409,9 @@ bool CTalkMonster::IsHeavilyWounded()
 	return pev->health <= pev->max_health * 0.5f;
 }
 
-int CTalkMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType)
+int CTalkMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int healType)
 {
-	int ret = CFollowingMonster::TakeHealth(pHealer, flHealth, bitsDamageType);
+	int ret = CFollowingMonster::TakeHealth(pHealer, flHealth, healType);
 
 	if (pHealer && pHealer->IsPlayer() && IsFriendWithPlayerBeforeProvoked())
 	{

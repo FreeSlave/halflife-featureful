@@ -137,7 +137,7 @@ public:
 	
 	// Base Monster functions
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType) override;
+	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int healType) override;
 	bool			CanBeMadeMoveAway(CBaseEntity *pPusher) override;
 	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void			OnDying(bool gibbed) override;

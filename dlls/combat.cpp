@@ -1076,7 +1076,7 @@ void CGib::StartFadeOut()
 }
 
 // take health
-int CBaseMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType )
+int CBaseMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int healType )
 {
 	if( !pev->takedamage )
 		return 0;
@@ -1085,9 +1085,9 @@ int CBaseMonster::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamag
 	// UNDONE: generic health should not heal any
 	// UNDONE: time-based damage
 
-	m_bitsDamageType &= ~( bitsDamageType & ~DMG_TIMEBASED );
+	m_bitsDamageType &= ~( healType & ~DMG_TIMEBASED );
 
-	int result = CBaseEntity::TakeHealth( pHealer, flHealth, bitsDamageType );
+	int result = CBaseEntity::TakeHealth( pHealer, flHealth, healType );
 	if (result > 0 && pHealer != this)
 	{
 		Remember(bits_MEMORY_GOT_HEALED_RECENTLY);

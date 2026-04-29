@@ -545,13 +545,13 @@ void CBasePlayer::DeathSound()
 }
 
 // override takehealth
-// bitsDamageType indicates type of damage healed. 
-int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType )
+// healType indicates type of damage healed.
+int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType )
 {
-	const int healed = CBaseMonster::TakeHealth(pHealer, (int)flHealth, bitsDamageType);
+	const int healed = CBaseMonster::TakeHealth(pHealer, (int)flHealth, healType);
 #if !CLIENT_DLL
 	CBasePlayerWeapon* pPlayerMedkit = WeaponById(WEAPON_MEDKIT);
-	if ((bitsDamageType & HEAL_CHARGE) != 0 && pPlayerMedkit) {
+	if ((healType & HEAL_CHARGE) != 0 && pPlayerMedkit) {
 		const int rest = (int)flHealth - healed;
 		if (rest > 0) {
 			const int medAmmoIndex = GetAmmoIndex(pPlayerMedkit->pszAmmo1());

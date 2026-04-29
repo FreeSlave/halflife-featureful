@@ -586,12 +586,12 @@ CBaseEntity * EHANDLE::operator -> ()
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator);
 
 // give health
-int CBaseEntity::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType )
+int CBaseEntity::TakeHealth(CBaseEntity *pHealer, float flHealth, int healType )
 {
 	if( !pev->takedamage )
 		return 0;
 
-	const bool overhealAllowed = FBitSet(bitsDamageType, HEAL_ALLOW_OVERFLOW);
+	const bool overhealAllowed = FBitSet(healType, HEAL_ALLOW_OVERFLOW);
 
 	// heal
 	if( pev->health >= pev->max_health && !overhealAllowed )

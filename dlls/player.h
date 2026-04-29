@@ -249,7 +249,7 @@ public:
 	virtual void PreThink();
 	virtual void PostThink();
 	Vector GetGunPosition() override;
-	int TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType ) override;
+	int TakeHealth(CBaseEntity *pHealer, float flHealth, int healType ) override;
 	void SetHealth(int health, bool allowOverheal = false);
 	void SetMaxHealth(int maxHealth, bool clampValue = true);
 	bool TakeArmor(CBaseEntity *pCharger, float flArmor, int flags = 0) override;

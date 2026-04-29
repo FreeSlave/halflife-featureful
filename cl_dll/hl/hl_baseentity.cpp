@@ -45,7 +45,7 @@ int PRECACHE_SOUND(const char* name) {return 0;}
 void SET_MODEL(edict_t *e, const char *m) {}
 
 // CBaseEntity Stubs
-int CBaseEntity::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) { return 1; }
+int CBaseEntity::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) { return 1; }
 TakeDamageResult CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
 CBaseEntity *CBaseEntity::GetNextTarget() { return NULL; }
 void CBaseEntity::KeyValue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
@@ -173,7 +173,7 @@ void CBaseMonster::RunAI() {}
 KilledResult CBaseMonster::Killed( entvars_t * pevInflictor, entvars_t *pevAttacker, int iGib ) { return KilledResult(); }
 void CBaseMonster::OnDying(bool gibbed) {}
 void CBaseMonster::UpdateOnRemove() {}
-int CBaseMonster::TakeHealth(CBaseEntity* pHealer, float flHealth, int bitsDamageType) { return 0; }
+int CBaseMonster::TakeHealth(CBaseEntity* pHealer, float flHealth, int healType) { return 0; }
 TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
 int CBaseMonster::Restore( class CRestore & ) { return 1; }
 int CBaseMonster::Save( class CSave & ) { return 1; }
@@ -192,7 +192,7 @@ void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, 
 
 
 void CBasePlayer::DeathSound() { }
-int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) { return 0; }
+int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) { return 0; }
 bool CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags) { return false; }
 void CBasePlayer::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) { }
 TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }

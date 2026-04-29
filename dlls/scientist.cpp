@@ -1182,7 +1182,7 @@ void CScientist::Heal()
 	if( target.IsLengthGreaterThan(100.0f) )
 		return;
 
-	m_hTargetEnt->TakeHealth(this, GetSkillValue("scientist_heal"), DMG_GENERIC );
+	m_hTargetEnt->TakeHealth(this, GetSkillValue("scientist_heal"), HEAL_GENERIC );
 	EmitSoundScript(healSoundScript);
 
 	// Don't heal again for 1 minute

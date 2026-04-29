@@ -734,10 +734,10 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 	return takeDamageResult;
 }
 
-int CBreakable::TakeHealth(CBaseEntity *pHealer, float flHealth, int bitsDamageType)
+int CBreakable::TakeHealth(CBaseEntity *pHealer, float flHealth, int healType)
 {
 	const float healthBeforeHealed = pev->health;
-	const float result = CBaseDelay::TakeHealth(pHealer, flHealth, bitsDamageType);
+	const float result = CBaseDelay::TakeHealth(pHealer, flHealth, healType);
 	if (m_switchTextureWhenDamaged)
 	{
 		if (healthBeforeHealed <= DamagedHealth() && pev->health > DamagedHealth())

@@ -2232,7 +2232,7 @@ int CISlave::HealOther(CBaseEntity *pEntity)
 		const float healAmount = HealPower();
 		if (healAmount > 0.0f)
 		{
-			result = pEntity->TakeHealth(this, HealPower(), DMG_GENERIC);
+			result = pEntity->TakeHealth(this, HealPower(), HEAL_GENERIC);
 			SpendEnergy(result);
 		}
 	}

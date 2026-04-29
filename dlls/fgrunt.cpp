@@ -3502,7 +3502,7 @@ bool CMedic::Heal()
 	if ( TargetDistance() > 100 )
 		return false;
 
-	m_flHealCharge -= m_hTargetEnt->TakeHealth( this, Q_min(10, m_flHealCharge), DMG_GENERIC );
+	m_flHealCharge -= m_hTargetEnt->TakeHealth( this, Q_min(10, m_flHealCharge), HEAL_GENERIC );
 	ALERT(at_aiconsole, "Medic grunt heal charge left: %f\n", m_flHealCharge);
 	m_fHealing = true;
 	return true;

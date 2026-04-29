@@ -3096,7 +3096,7 @@ void CItemSoda::CanTouch( CBaseEntity *pOther )
 
 	// spoit sound here
 	pOther->EmitSoundScript(GetSoundScript(drinkSoundScript));
-	pOther->TakeHealth( this, pev->health ? pev->health : GetSkillValue("soda"), DMG_GENERIC );// a bit of health.
+	pOther->TakeHealth( this, pev->health ? pev->health : GetSkillValue("soda"), HEAL_GENERIC );// a bit of health.
 
 	if( !FNullEnt( pev->owner ) )
 	{
