@@ -924,7 +924,12 @@ Schedule_t *CScientist::GetScheduleOfType( int Type )
 	case SCHED_TARGET_FACE:
 		return slSciFaceTarget;
 	case SCHED_PANIC:
+	{
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 		return slSciPanic;
+	}
 	case SCHED_TARGET_CHASE:
 		return CTalkMonster::GetScheduleOfType(SCHED_FOLLOW_CAUTIOUS);
 	case SCHED_TARGET_CHASE_SCARED:
@@ -972,6 +977,7 @@ Schedule_t *CScientist::GetSchedule()
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_HUNT:
+	{
 		if( pEnemy )
 		{
 			if( HasConditions( bits_COND_SEE_ENEMY ) )
@@ -988,6 +994,10 @@ Schedule_t *CScientist::GetSchedule()
 			// flinch if hurt
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		// Cower when you hear something scary
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
@@ -1058,7 +1068,9 @@ Schedule_t *CScientist::GetSchedule()
 		// try to say something about smells
 		TrySmellTalk();
 		break;
+	}
 	case MONSTERSTATE_COMBAT:
+	{
 		if( HasConditions( bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST ) )
 		{
 			// call base class, all code to handle dead enemies is centralized there.
@@ -1066,8 +1078,20 @@ Schedule_t *CScientist::GetSchedule()
 		}
 		if( HasConditions( bits_COND_NEW_ENEMY ) )
 			return GetScheduleOfType( SCHED_FEAR );					// Point and scream!
-		if( HasConditions( bits_COND_SEE_ENEMY | bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
+		if( HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
 			return slScientistCover;		// Take Cover
+
+		if (HasConditions(bits_COND_SEE_ENEMY))
+		{
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+			return slScientistCover;
+		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );	// Cower and panic from the scary sound!
@@ -1075,6 +1099,7 @@ Schedule_t *CScientist::GetSchedule()
 		if (!IsFollowingPlayer())
 			return slScientistCover;			// Run & Cower
 		break;
+	}
 	default:
 		break;
 	}

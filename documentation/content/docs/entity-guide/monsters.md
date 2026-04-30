@@ -39,6 +39,11 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * `Ignore move away requests` - monster will ignore others monsters' requests to move away and player's attempts to push the monster.
 * `Act ouf of PVS` monsters will look for enemies and listen to the world independently of the player's presence. By default they do so only when in player's PVS.
 
+## New common abilities
+
+* Monsters can be set to use [passive health regeneration]({{< ref "entity-templates/#passive_regeneration" >}}) or [active health regeneration]({{< ref "entity-templates/#active_regeneration" >}}) via the [entity templates]({{< ref entity-templates >}}).
+* The items dropped upon monster's death can be configured via [equipment_drop]({{< ref "entity-templates/#equipment_drop" >}}) and [loot_drop]({{< ref "entity-templates/#loot_drop" >}}) properties of [entity templates]({{< ref entity-templates >}}).
+
 ## Other features
 
 * Repel spawners (human grunts and male assassins when they come down with a rope) have options to configure the spawned monster similar to monstermaker.
@@ -168,7 +173,7 @@ Currently the following monsters are considered to be tiny creatures:
 
 Commands used for testing and debugging the monster behavior:
 
-* `impulse 103` - report AI state of the monster in front of the player.
+* `impulse 103` - report AI state of the monster in front of the player. This is now much more informative comparing to Half-Life.
 * `make_start_following` - make the monster (or monsters) start following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
 * `make_stop_following` - make the monster (or monsters) stop following the player. This applies only to monsters who are able to follow the player. The argument must be the classname or the targetname.
 * `report_ai_state` - report AI state of all monsters with the provided classname. It's like `impulse 103`, but player doesn't have to look at the monster.

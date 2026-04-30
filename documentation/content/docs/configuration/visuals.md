@@ -86,3 +86,53 @@ Visuals used by a certain entity are listed on the page for the entity. See [ent
 ### Common NPC visuals
 
 * **NPC.Rope** - the rope sprite used by *repel* entities and [Osprey]({{< ref monster_osprey >}}) when deploying new troopers.
+
+### Regeneration visuals
+
+[Passive regeneration]({{< ref "entity-templates/#passive_regeneration" >}}) and [Active regeneration]({{< ref "entity-templates/#active_regeneration" >}}) supports playing a set of visual effects.
+
+* **Regen.Sprite** - sprite effect. Played at the center of entity for the regeneration duration. Default definition uses **sprites/ballsmoke.spr** sprite.
+* **Regen.Particle** - particles emitted on each regeneration 'tick' and fly upwards. Default definition uses **sprites/glow02.spr** sprite and 1 second `"life"`.
+* **Regen.Beam** - temporary vertical beams spawned on each regenereation 'tick'. Default definition uses **sprites/laserbeam.spr** sprite and 1 second `"life"`.
+
+Passive regeneration effects:
+
+* **PassiveRegen.Sprite** - sprite effect. Derived from **Regen.Sprite**
+* **PassiveRegen.Particle** - particle effect. Derived from **Regen.Particle**
+* **PassiveRegen.Beam** - beam effect. Derived from **Regen.Beam**
+
+Active regeneration effects:
+
+* **ActiveRegen.Sprite** - sprite effect. Derived from **Regen.Sprite**
+* **ActiveRegen.Particle** - particle effect. Derived from **Regen.Particle**
+* **ActiveRegen.Beam** - beam effect. Derived from **Regen.Beam**
+
+Example:
+
+```json
+{
+    "PassiveRegen.Sprite": {
+        "color": [0, 255, 0]
+    },
+    "PassiveRegen.Particle": {
+        "color": [0, 255, 0],
+        "alpha": 150
+    },
+    "PassiveRegen.Beam": {
+        "color": [0, 255, 0],
+        "width": 12
+    },
+    "ActiveRegen.Sprite": {
+        "color": [0, 255, 255],
+    },
+    "ActiveRegen.Particle": {
+        "color": [0, 255, 255],
+        "alpha": 200,
+        "sprite": "sprites/arrow1.spr"
+    },
+    "ActiveRegen.Beam": {
+        "color": [0, 255, 255],
+        "width": 16
+    }
+}
+```

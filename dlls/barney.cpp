@@ -695,9 +695,9 @@ Schedule_t *CBarney::GetSchedule()
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		}
 
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 
 		// try to say something about smells
 		TrySmellTalk();

@@ -1412,6 +1412,72 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		});
 	});
 
+	auto updateRegeneration = [](EntTemplate::Regeneration& regen, const Value& value)
+	{
+		UpdatePropertyFromJson(regen.interval, value, "interval");
+		UpdatePropertyFromJson(regen.healthPerUpdate, value, "health_per_update");
+		UpdatePropertyFromJson(regen.healthFractionLimit, value, "health_fraction_limit");
+		UpdatePropertyFromJson(regen.playSprite, value, "play_sprite");
+		UpdatePropertyFromJson(regen.particlesPerUpdate, value, "particles_per_update");
+		UpdatePropertyFromJson(regen.particlesFadeTime, value, "particles_fade_time");
+		UpdatePropertyFromJson(regen.beamsPerUpdate, value, "beams_per_update");
+
+		HandleJSONMember(value, "resource_type", [&regen](const Value& value) {
+			decltype(EntTemplate::Regeneration::regenResourceTypes) resourceTypes;
+
+			auto handleResourceType = [&resourceTypes](const Value& item)
+			{
+				if (strcmp(item.GetString(), "standard") == 0)
+				{
+					resourceTypes.push_back(EntTemplate::Regeneration::Resource::Standard);
+				}
+				else if (strcmp(item.GetString(), "native") == 0)
+				{
+					resourceTypes.push_back(EntTemplate::Regeneration::Resource::Native);
+				}
+			};
+
+			if (value.IsArray())
+			{
+				Value::ConstArray arr = value.GetArray();
+				for (const auto& item : arr)
+				{
+					handleResourceType(item);
+				}
+			}
+			else if (value.IsString())
+			{
+				handleResourceType(value);
+			}
+
+			regen.regenResourceTypes = resourceTypes;
+		});
+	};
+
+	HandleJSONMember(value, "passive_regeneration", [&entTemplate, &updateRegeneration](const Value& value) {
+		EntTemplate::PassiveRegeneration regen = entTemplate.GetPassiveRegenerationRules();
+		updateRegeneration(regen, value);
+		UpdatePropertyFromJson(regen.delayAfterHurt, value, "delay_after_hurt");
+		entTemplate.SetPassiveRegenerationRules(regen);
+	});
+
+	HandleJSONMember(value, "active_regeneration", [&entTemplate, &updateRegeneration](const Value& value) {
+		EntTemplate::ActiveRegeneration regen = entTemplate.GetActiveRegenerationRules();
+		updateRegeneration(regen, value);
+		UpdatePropertyFromJson(regen.healthFractionCombatTrigger, value, "health_fraction_combat_trigger");
+		UpdatePropertyFromJson(regen.healthFractionNonCombatTrigger, value, "health_fraction_noncombat_trigger");
+		UpdatePropertyFromJson(regen.cooldown, value, "cooldown");
+		UpdatePropertyFromJson(regen.sequence, value, "sequence");
+		UpdatePropertyFromJson(regen.earlyFinish, value, "early_finish");
+		entTemplate.SetActiveRegenerationRules(regen);
+	});
+
+	HandleJSONMember(value, "regeneration_resource", [&entTemplate](const Value& value) {
+		float amount;
+		if (UpdatePropertyFromJson(amount, value, "amount"))
+			entTemplate.SetRegenerationResourceAmount(amount);
+	});
+
 	_entTemplates[templateName] = entTemplate;
 }
 

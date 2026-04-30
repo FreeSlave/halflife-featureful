@@ -854,6 +854,8 @@ void CBaseMonster::OnDying(bool gibbed)
 	Remember( bits_MEMORY_KILLED );
 
 	DropLoot(gibbed);
+	UTIL_RemoveAndClean(m_passiveRegenSprite);
+	UTIL_RemoveAndClean(m_activeRegenSprite);
 
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
 	CBaseEntity *pOwner = CBaseEntity::Instance( pev->owner );
@@ -1212,7 +1214,10 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 		SetNonLethalHealthThreshold();
 
 	if (ApplyDamageToHealth(flTake))
+	{
 		takeDamageResult.SetTookDamageToHealth();
+		m_lastHurtTime = gpGlobals->time;
+	}
 
 	// HACKHACK Don't kill monsters in a script.  Let them break their scripts first
 	if( m_MonsterState == MONSTERSTATE_SCRIPT )

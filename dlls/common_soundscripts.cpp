@@ -325,3 +325,12 @@ const NamedSoundScript longjumpSoundScript = {
 };
 
 }
+
+const NamedSoundScript regenUpdateSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Regen.Update"
+};
+
+const char* const passiveRegenUpdateSoundScript = "PassiveRegen.Update";
+const char* const activeRegenUpdateSoundScript = "ActiveRegen.Update";

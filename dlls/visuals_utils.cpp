@@ -1,5 +1,6 @@
 #include "visuals_utils.h"
 #include "fx_flags.h"
+#include "clamp.h"
 
 extern int gmsgSprite;
 extern int gmsgSpray;
@@ -106,7 +107,7 @@ void SendEntLight(int entIndex, const Vector& vecOrigin, const Visual* visual, i
 	MESSAGE_END();
 }
 
-void SendSprite(const Vector& vecOrigin, const Visual* visual)
+void SendSprite(const Vector& vecOrigin, const Visual* visual, const Vector& velocity, float fadeTime)
 {
 	if (!visual || !visual->modelIndex)
 		return;
@@ -120,6 +121,8 @@ void SendSprite(const Vector& vecOrigin, const Visual* visual)
 		WRITE_BYTE( visual->renderfx );
 		WRITE_SHORT( (int)RandomizeNumberFromRange(visual->framerate) * 10 );
 		WRITE_BYTE( RandomizeNumberFromRange(visual->life)*10 );
+		WRITE_VECTOR(velocity);
+		WRITE_BYTE(clamp(static_cast<int>(fadeTime * 10), 0, 255));
 	MESSAGE_END();
 }
 
@@ -272,3 +275,35 @@ const NamedVisual ropeVisual = BuildVisual("NPC.Rope")
 	.BeamFlags(BEAM_FSOLID);
 
 }
+
+const NamedVisual regenSpriteVisual = BuildVisual("Regen.Sprite")
+	.Model("sprites/ballsmoke.spr")
+	.Alpha(200)
+	.Framerate(10.0f)
+	.RenderColor(255, 255, 255)
+	.RenderMode(kRenderTransAdd)
+	.Scale(1.0f);
+
+const NamedVisual regenParticleVisual = BuildVisual("Regen.Particle")
+	.Model("sprites/glow02.spr")
+	.Alpha(255)
+	.RenderColor(255, 255, 255)
+	.RenderMode(kRenderTransAdd)
+	.Scale(0.2f)
+	.Life(1.0f);
+
+const NamedVisual regenBeamVisual = BuildVisual("Regen.Beam")
+	.Model("sprites/laserbeam.spr")
+	.Alpha(255)
+	.RenderColor(255, 255, 255)
+	.Life(1.0f)
+	.BeamWidth(12)
+	.BeamFlags(BEAM_FSHADEOUT);
+
+const NamedVisual passiveRegenSpriteVisual = BuildVisual("PassiveRegen.Sprite").Mixin(&regenSpriteVisual);
+const NamedVisual passiveRegenParticleVisual = BuildVisual("PassiveRegen.Particle").Mixin(&regenParticleVisual);
+const NamedVisual passiveRegenBeamVisual = BuildVisual("PassiveRegen.Beam").Mixin(&regenBeamVisual);
+
+const NamedVisual activeRegenSpriteVisual = BuildVisual("ActiveRegen.Sprite").Mixin(&regenSpriteVisual);
+const NamedVisual activeRegenParticleVisual = BuildVisual("ActiveRegen.Particle").Mixin(&regenParticleVisual);
+const NamedVisual activeRegenBeamVisual = BuildVisual("ActiveRegen.Beam").Mixin(&regenBeamVisual);

@@ -124,6 +124,9 @@ void CBaseEntity::UpdateOnRemove()
 
 	if( pev->globalname )
 		gGlobalState.EntitySetState( pev->globalname, GLOBAL_DEAD );
+
+	UTIL_RemoveAndClean(m_passiveRegenSprite);
+	UTIL_RemoveAndClean(m_activeRegenSprite);
 }
 
 // Convenient way to delay removing oneself

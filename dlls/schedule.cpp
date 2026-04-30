@@ -86,6 +86,7 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 		ALERT(at_aiconsole, "%s (%d): changing schedule to %s\n", STRING(pev->classname), entindex(), pNewSchedule->pName);
 	}
 
+	UTIL_RemoveAndClean(m_activeRegenSprite);
 	OnChangeSchedule( pNewSchedule );
 
 	if (m_MonsterState == MONSTERSTATE_HUNT)
@@ -799,6 +800,36 @@ void CBaseMonster::RunTask( Task_t *pTask )
 					m_movementActivity = ACT_RUN;
 				else
 					m_movementActivity = ACT_WALK;
+			}
+			break;
+		}
+	case TASK_REGENERATION:
+		{
+			RegenResult result = HandleActiveRegeneration();
+			if (m_fSequenceFinished)
+			{
+				TaskComplete();
+			}
+			else
+			{
+				switch(result)
+				{
+				case RegenResult::NotApplicaple:
+				case RegenResult::Disallowed:
+				case RegenResult::NoResource:
+				{
+					const EntTemplate* entTemplate = GetMyEntTemplate();
+					if (entTemplate)
+					{
+						const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+						if (regen.earlyFinish)
+							TaskComplete();
+					}
+					break;
+				}
+				default:
+					break;
+				}
 			}
 			break;
 		}
@@ -1950,6 +1981,11 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			}
 		}
 		break;
+	case TASK_REGENERATION:
+		{
+			m_IdealActivity = ACT_REGEN;
+			break;
+		}
 	default:
 		{
 			ALERT( at_aiconsole, "No StartTask entry for %d\n", (SHARED_TASKS)pTask->iTask );
@@ -1987,6 +2023,37 @@ Schedule_t* CBaseMonster::GetFreeroamSchedule()
 		}
 	}
 	return NULL;
+}
+
+Schedule_t* CBaseMonster::GetRegenerationSchedule()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return nullptr;
+
+	if (!IsFullyAlive() || pev->health >= pev->max_health)
+		return nullptr;
+
+	const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+	if (regen.healthPerUpdate > 0.0f && m_nextActiveRegen <= gpGlobals->time && pev->health < regen.healthFractionLimit * pev->max_health)
+	{
+		if (!HasResourceForActiveRegeneration())
+			return nullptr;
+
+		bool doTrigger = false;
+		if (m_MonsterState == MONSTERSTATE_COMBAT)
+			doTrigger = pev->health <= regen.healthFractionCombatTrigger * pev->max_health;
+		else
+			doTrigger = pev->health <= regen.healthFractionNonCombatTrigger * pev->max_health;
+
+		if (doTrigger)
+		{
+			// TODO: this should be done only if monster actually changes schedule to regen, not just on getting the schedule
+			m_nextActiveRegen = gpGlobals->time + regen.cooldown;
+			return GetScheduleOfType(SCHED_REGENERATION);
+		}
+	}
+	return nullptr;
 }
 
 Schedule_t* CBaseMonster::GetSuggestedSchedule()
@@ -2152,6 +2219,11 @@ Schedule_t *CBaseMonster::GetSchedule()
 				Schedule_t* freeroamSchedule = GetFreeroamSchedule();
 				if (freeroamSchedule)
 					return freeroamSchedule;
+
+				Schedule_t* regenSchedule = GetRegenerationSchedule();
+				if (regenSchedule)
+					return regenSchedule;
+
 				return GetScheduleOfType( SCHED_IDLE_STAND );
 			}
 			else
@@ -2183,6 +2255,11 @@ Schedule_t *CBaseMonster::GetSchedule()
 					return GetScheduleOfType( SCHED_ALERT_SMALL_FLINCH );
 				}
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if (m_activeAfterCombat == ACTIVE_ALERT_ALWAYS || (m_activeAfterCombat == ACTIVE_ALERT_DEFAULT && NpcActiveAfterCombat()))
 			{
 				if( HasConditions ( bits_COND_HEAR_SOUND ) )
@@ -2273,7 +2350,12 @@ Schedule_t *CBaseMonster::GetSchedule()
 			{
 				return GetScheduleOfType( SCHED_SMALL_FLINCH );
 			}
-			else if( !HasConditions( bits_COND_SEE_ENEMY ) )
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
+			if( !HasConditions( bits_COND_SEE_ENEMY ) )
 			{
 				// we can't see the enemy
 				if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) )

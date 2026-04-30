@@ -990,9 +990,9 @@ Schedule_t *CHAssassin::GetSchedule()
 				}
 			}
 
-			Schedule_t* followingSchedule = GetFollowingSchedule();
-			if (followingSchedule)
-				return followingSchedule;
+			Schedule_t* utilitySchedule = GetUtilitySchedule();
+			if (utilitySchedule)
+				return utilitySchedule;
 
 			if( pSound &&( pSound->m_iType & bits_SOUND_COMBAT ) )
 			{
@@ -1049,6 +1049,10 @@ Schedule_t *CHAssassin::GetSchedule()
 			{
 				m_iFrustration++;
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
 
 			// jump player!
 			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )

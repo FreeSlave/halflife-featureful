@@ -452,7 +452,7 @@ bool CSatchel::CanBeDropped()
 
 bool CSatchel::CanDeploy()
 {
-	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 ) 
+	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
 	{
 		// player is carrying some satchels
 		return true;

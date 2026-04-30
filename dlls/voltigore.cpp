@@ -931,6 +931,10 @@ Schedule_t *CVoltigore::GetSchedule()
 			return GetScheduleOfType(SCHED_WAKE_ANGRY);
 		}
 
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
+
 		if( HasConditions( bits_COND_ENEMY_OCCLUDED ) )
 		{
 			return GetScheduleOfType(SCHED_CHASE_ENEMY);
@@ -1290,6 +1294,10 @@ Schedule_t *CBabyVoltigore::GetSchedule()
 		{
 			return GetScheduleOfType(SCHED_WAKE_ANGRY);
 		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		if (HasConditions(bits_COND_CAN_MELEE_ATTACK1))
 		{

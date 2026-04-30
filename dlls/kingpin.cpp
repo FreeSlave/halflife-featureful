@@ -825,7 +825,7 @@ public:
 		pev->absmax = pev->origin + Vector( 24.0f, 24.0f, 96.0f );
 	}
 
-	float m_flLastHurtTime;
+	float m_shieldLastHurtTime;
 	float m_plasmaBallTime;
 	float m_plasmaClusterTime;
 	CSprite* m_Glows[4];
@@ -898,7 +898,7 @@ LINK_ENTITY_TO_CLASS( monster_kingpin, CKingpin )
 
 TYPEDESCRIPTION	CKingpin::m_SaveData[] =
 {
-	DEFINE_FIELD( CKingpin, m_flLastHurtTime, FIELD_TIME ),
+	DEFINE_FIELD( CKingpin, m_shieldLastHurtTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpin, m_plasmaBallTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpin, m_plasmaClusterTime, FIELD_TIME ),
 	DEFINE_ARRAY( CKingpin, m_Glows, FIELD_CLASSPTR, 4 ),
@@ -1392,7 +1392,7 @@ TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAtt
 		return takeDamageResult;
 
 	if (damageInfo.damage > 0)
-		m_flLastHurtTime = gpGlobals->time;
+		m_shieldLastHurtTime = gpGlobals->time;
 
 	DamageInfo dmgInfo = damageInfo;
 
@@ -1751,7 +1751,7 @@ void CKingpin::PrescheduleThink()
 	if (IsFullyAlive())
 	{
 		// Regen shield if did not get any damage for some amount of time
-		if (m_shieldRegenResource > 0 && gpGlobals->time - m_flLastHurtTime > KINGPIN_RECHARGE_SHIELD_DELAY && pev->armorvalue < MaximumShield())
+		if (m_shieldRegenResource > 0 && gpGlobals->time - m_shieldLastHurtTime > KINGPIN_RECHARGE_SHIELD_DELAY && pev->armorvalue < MaximumShield())
 		{
 			const float rate = KINGPIN_RECHARGE_SHIELD_RATE;
 			pev->armorvalue += rate;

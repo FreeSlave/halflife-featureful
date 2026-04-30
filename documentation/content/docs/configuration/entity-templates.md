@@ -1334,6 +1334,142 @@ Set the empty array to override the default effect flags (e.g. to remove the roc
 }
 ```
 
+### passive_regeneration
+
+Passive health regeneration happens in background no matter what the entity is currently doing. It restores health in fixed intervals by certain amount on each 'tick'.
+
+Passive regeneration is supported by all regular monsters, barnacles, turrets, and also by [breakables]({{< ref func_breakable >}}).
+
+Properties:
+
+* `"delay_after_hurt"` - delay (in seconds) before the entity starts passive regeneration after being hurt. Default value is 5. Setting to 0 will make monster regenerate right away after getting damage.
+* `"health_per_update"` - amount of health to restore per regeneration 'tick'. Default value is 0. Set the value to enable passibe regeneration.
+* `"interval"` - interval (in seconds) between regeneration 'ticks' (updates).
+* `"health_fraction_limit"` - the fraction of maximum health the entity will regenerate up to. E.g. set to 0.8 to allow passive regeneration to restore only up to 80% of entity's health. Default value is 1 (i.e. restore up to 100%).
+* `"resource_type"` - the resource type to use to restore health. Once the resource is used up, the entity won't be able to regenerate. If not set (default) the resource is not used (like if it was infinite). Possible values:
+    - `"standard"` - use the regeneration resource set by [regeneration_resource](#regeneration_resource).
+    - `"native"` - use the monster's 'native' resource. Currently only [alien slaves]({{< ref monster_alien_slave >}}) and [human medics]({{< ref monster_human_medic_ally >}}) have the native resource (energy and heal charge).
+    - The value can also be an array, e.g. `["standard", "native"]` - the regeneration will use the resources in the specified order (in this example: first spending the `standard` resource and only then spending `native` resource).
+* `"play_sprite"` - a boolean. Whether the [PassiveRegen.Sprite]({{< ref "visuals/#regeneration-visuals" >}}) is played during regeneration.
+* `"particles_per_update"` - how many [PassiveRegen.Particle]({{< ref "visuals/#regeneration-visuals" >}}) particles are emitted on each regeneration 'tick'.
+* `"particles_fade_time"` - how long it takes for particles to fade after their lifetime ends. Default value is 0.5
+* `"beams_per_update"` - how many [PassiveRegen.Beam]({{< ref "visuals/#regeneration-visuals" >}}) beams are spawned on each regeneration 'tick'.
+
+{{% details title="Example" %}}
+```json
+{
+    "monster_zombie": {
+        "passive_regeneration": {
+            "health_per_update": 6,
+            "delay_after_hurt": 0.5,
+            "play_sprite": true,
+            "particles_per_update": 2,
+            "beams_per_update": 2,
+            "resource_type": "standard"
+        },
+        "regeneration_resource": {
+            "amount": 50
+        },
+        "visuals": {
+            "PassiveRegen.Sprite": {
+                "color": [0, 255, 0]
+            },
+            "PassiveRegen.Particle": {
+                "color": [0, 255, 0],
+                "alpha": 150
+            },
+            "PassiveRegen.Beam": {
+                "color": [0, 255, 0]
+            }
+        }
+    }
+}
+```
+{{% /details %}}
+
+### active_regeneration
+
+Unlike [passive regeneration](#passive_regeneration) the active regeneration requires the monster to stop and play a sequence in order to replenish its health.
+
+Active regeneration can be used together with passive regeneration, but they won't play at the same time: the passive regeneration won't trigger during the active regeneration sequence.
+
+Active regeneration is supported by all regular land monsters (the flying and swimming monsters currently should stick to passive regeneration).
+
+Properties:
+
+* `"health_per_update"` - same as in [passive regeneration](#passive_regeneration).
+* `"interval"` - same as in [passive regeneration](#passive_regeneration).
+* `"health_fraction_limit"` - same as in [passive regeneration](#passive_regeneration).
+* `"resource_type"` - same as in [passive regeneration](#passive_regeneration).
+* `"play_sprite"` - same as in [passive regeneration](#passive_regeneration), but uses [ActiveRegen.Sprite]({{< ref "visuals/#regeneration-visuals" >}}) visual.
+* `"particles_per_update"` - same as in [passive regeneration](#passive_regeneration), but uses [ActiveRegen.Particle]({{< ref "visuals/#regeneration-visuals" >}}) visual.
+* `"particles_fade_time"` - same as in [passive regeneration](#passive_regeneration).
+* `"beams_per_update"` - same as in [passive regeneration](#passive_regeneration), but uses [ActiveRegen.Beam]({{< ref "visuals/#regeneration-visuals" >}}) visual.
+* `"health_fraction_combat_trigger"` - if monster's current health gets below this fraction of maximum health during the combat the monster will consider starting the active regeneration AI schedule. Default value is 0.6 (60%).
+* `"health_fraction_noncombat_trigger"` - if monster's current health gets below this fraction of maximum health while the monster is not in combat, the monster will consider starting the active regeneration AI schedule. Default value is 1.0 (after any damage taken).
+* `"cooldown"` - the minimum delays between active regeneration AI schedules. Default value is 5.
+* `"sequence"` - the name of sequence to use for active regeneration animation. Default is empty - the default animation for monster will be used.
+* `"early_finish"` - a boolean. Whether to interrupt the sequence when further regeneration is not required (the monster has been healed to the full health) or can't progress (e.g. no resource left). Default value is `false` (play the full animation).
+
+{{% hint info %}}
+The duration of active regeneration depends on the animation sequence used. So you must carefully choose the `"health_per_update"` and `"interval"` values to make the regeneration worth playing the sequence.
+
+By default most monsters use their `ACT_IDLE` animations during the active regeneration. The following monsters will use the `ACT_COWER` animations and fallback to `ACT_IDLE` if `ACT_COWER` is not available:
+
+* [monster_human_grunt]({{< ref monster_human_grunt >}})
+* [monster_human_grunt_ally]({{< ref monster_human_grunt_ally >}})
+* [monster_human_grunt_medic]({{< ref monster_human_medic_ally >}})
+* [monster_human_grunt_torch]({{< ref monster_human_torch_ally >}})
+* [monster_male_assassin]({{< ref monster_male_assassin >}})
+* [monster_robogrunt]({{< ref monster_robogrunt >}})
+* [monster_shocktrooper]({{< ref monster_shocktrooper >}})
+{{% /hint %}}
+
+{{% hint info %}}
+Active regeneration can be interrupted by heavy damage (what exactly monster considers to be heavy damage depends on its maximum health).
+{{% /hint %}}
+
+{{% details title="Example" %}}
+```json
+{
+    "monster_alien_grunt": {
+        "active_regeneration": {
+            "health_per_update": 10,
+            "play_sprite": true,
+            "particles_per_update": 4,
+            "beams_per_update": 4,
+            "cooldown": 8,
+            "health_fraction_combat_trigger": 0.75,
+            "sequence": "threat",
+            "early_finish": true
+        },
+        "visuals": {
+            "ActiveRegen.Sprite": {
+                "color": [0, 255, 255],
+            },
+            "ActiveRegen.Particle": {
+                "color": [0, 255, 255],
+                "alpha": 200,
+                "sprite": "sprites/arrow1.spr"
+            },
+            "ActiveRegen.Beam": {
+                "color": [0, 255, 255],
+                "width": 16
+            }
+        }
+    }
+}
+```
+{{% /details %}}
+
+### regeneration_resource
+
+An object representing the *standard* regeneration resource possibly used by [passive regeneration](#passive_regeneration) or [active regeneration](#active_regeneration).
+
+Properties:
+
+* `"amount"` - initial amount of regeneration resource. Default value is 0.
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

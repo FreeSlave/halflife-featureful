@@ -70,6 +70,7 @@ public:
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
 	void CheckAmmo() override;
 	int LookupActivity(int activity) override;
+	int LookupRegenerationActivity() override;
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
 	void DeathSound() override;

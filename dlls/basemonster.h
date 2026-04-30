@@ -251,6 +251,7 @@ public:
 	virtual Schedule_t *GetScheduleOfType( int Type );
 	virtual Schedule_t *GetSchedule();
 	Schedule_t* GetFreeroamSchedule();
+	Schedule_t* GetRegenerationSchedule();
 	Schedule_t* GetSuggestedSchedule();
 	bool SuggestSchedule(int schedule, CBaseEntity *spotEntity = 0, float minDist = 0.0f, float maxDist = 0.0f, int flags = 0);
 	float SuggestedMinDist(float defaultValue) const;

@@ -78,6 +78,22 @@ int CBaseAnimating::LookupActivity( int activity )
 	ASSERT( activity != 0 );
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
 
+	if (activity == ACT_REGEN)
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate)
+		{
+			const EntTemplate::ActiveRegeneration regen = entTemplate->GetActiveRegenerationRules();
+			if (!regen.sequence.empty())
+			{
+				int sequence = LookupSequence(regen.sequence.c_str());
+				if (sequence != -1)
+					return sequence;
+			}
+		}
+		return LookupRegenerationActivity();
+	}
+
 	return ::LookupActivity( pmodel, pev, activity );
 }
 

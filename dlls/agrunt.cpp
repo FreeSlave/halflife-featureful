@@ -1086,6 +1086,10 @@ Schedule_t *CAGrunt::GetSchedule()
 				return GetScheduleOfType( SCHED_SMALL_FLINCH );
 			}
 
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			// can attack
 			if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) && OccupySlot ( bits_SLOTS_AGRUNT_HORNET ) )
 			{
@@ -1104,9 +1108,9 @@ Schedule_t *CAGrunt::GetSchedule()
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_HUNT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 		break;
 	}
 	default:

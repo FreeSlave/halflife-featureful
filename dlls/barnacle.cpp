@@ -218,6 +218,7 @@ void CBarnacle::BarnacleThink()
 	float flLength;
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandlePassiveRegeneration();
 
 	if( m_hEnemy != 0 )
 	{

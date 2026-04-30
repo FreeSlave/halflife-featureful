@@ -253,7 +253,6 @@ public:
 	Vector DefaultMinHullSize() override { return Vector( -16.0f, -16.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 16.0f, 16.0f, 48.0f ); }
 
-	float	m_flLastHurtTime;
 	float	m_flNextSpitTime;// last time the PitDrone used the spit attack.
 	float	m_flNextHopTime;
 	int m_iInitialAmmo;
@@ -278,7 +277,6 @@ LINK_ENTITY_TO_CLASS(monster_pitdrone, CPitdrone)
 TYPEDESCRIPTION	CPitdrone::m_SaveData[] =
 {
 	DEFINE_FIELD(CPitdrone, m_iInitialAmmo, FIELD_INTEGER),
-	DEFINE_FIELD(CPitdrone, m_flLastHurtTime, FIELD_TIME),
 	DEFINE_FIELD(CPitdrone, m_flNextSpitTime, FIELD_TIME),
 	DEFINE_FIELD(CPitdrone, m_flNextHopTime, FIELD_TIME),
 };
@@ -304,7 +302,7 @@ int CPitdrone::IgnoreConditions()
 {
 	int iIgnore = CFollowingMonster::IgnoreConditions();
 
-	if( gpGlobals->time - m_flLastHurtTime <= 20 )
+	if (gpGlobals->time - m_lastHurtTime <= 20.0f)
 	{
 		// haven't been hurt in 20 seconds, so let the pitdrone care about stink.
 		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
@@ -363,7 +361,7 @@ TakeDamageResult CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAt
 {
 	// if the pitdrone is running, has an enemy, was hurt by the enemy, and isn't too close to the enemy,
 	// it will swerve. (whew).
-	if (m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3)
+	if (m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_lastHurtTime > 3)
 	{
 		if ((pev->origin - m_hEnemy->pev->origin).IsLength2DGreaterThan(PITDRONE_SPRINT_DIST))
 		{
@@ -375,8 +373,6 @@ TakeDamageResult CPitdrone::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAt
 			}
 		}
 	}
-
-	m_flLastHurtTime = gpGlobals->time;
 
 	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, info);
 }
@@ -972,9 +968,9 @@ Schedule_t *CPitdrone::GetSchedule()
 	{
 	case MONSTERSTATE_IDLE:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 		break;
 	}
 	case MONSTERSTATE_ALERT:
@@ -984,6 +980,10 @@ Schedule_t *CPitdrone::GetSchedule()
 		{
 			return GetScheduleOfType( SCHED_PDRONE_HURTHOP );
 		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		if( HasConditions( bits_COND_ENEMY_DEAD ) && pev->health < pev->max_health )
 		{
@@ -1028,6 +1028,10 @@ Schedule_t *CPitdrone::GetSchedule()
 		{
 			return GetScheduleOfType( SCHED_PDRONE_COVER_AND_RELOAD );
 		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		if (HasConditions(bits_COND_CAN_RANGE_ATTACK1))
 		{

@@ -73,4 +73,8 @@ extern const NamedSoundScript geigerSoundScript;
 extern const NamedSoundScript longjumpSoundScript;
 }
 
+extern const NamedSoundScript regenUpdateSoundScript;
+extern const char* const passiveRegenUpdateSoundScript;
+extern const char* const activeRegenUpdateSoundScript;
+
 #endif

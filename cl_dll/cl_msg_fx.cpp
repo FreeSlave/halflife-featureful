@@ -251,7 +251,7 @@ int __MsgFunc_CustomBeam( const char* pszName, int iSize, void *pbuf )
 	return 1;
 }
 
-void FX_TempSprite(Vector pos, int modelIndex, float scale, int rendermode, color24 color, int a, int renderfx, float framerate, float life)
+void FX_TempSprite(Vector pos, int modelIndex, float scale, int rendermode, color24 color, int a, int renderfx, float framerate, float life, const Vector& velocity, float fadeTime)
 {
 	model_t *pmodel;
 	if(( pmodel = gEngfuncs.pfnGetModelByIndex( modelIndex )) == NULL )
@@ -270,6 +270,13 @@ void FX_TempSprite(Vector pos, int modelIndex, float scale, int rendermode, colo
 	pTemp->entity.curstate.rendercolor = color;
 	pTemp->entity.curstate.scale = scale;
 	pTemp->entity.curstate.framerate = framerate;
+	pTemp->entity.baseline.origin = velocity;
+
+	if (fadeTime > 0.0f)
+	{
+		pTemp->flags |= FTENT_FADEOUT;
+		pTemp->fadeSpeed = 1.0f / fadeTime;
+	}
 
 	if (framerate > 0 && pmodel->numframes > 1)
 	{
@@ -305,8 +312,10 @@ int __MsgFunc_Sprite( const char* pszName, int iSize, void *pbuf )
 	int renderfx = READ_BYTE();
 	float framerate = READ_SHORT() * 0.1f;
 	float life = READ_BYTE() * 0.1f;
+	Vector velocity = READ_VECTOR();
+	float fadeTime = READ_BYTE() * 0.1f;
 
-	FX_TempSprite(pos, modelIndex, scale, rendermode, color, a, renderfx, framerate, life);
+	FX_TempSprite(pos, modelIndex, scale, rendermode, color, a, renderfx, framerate, life, velocity, fadeTime);
 
 	return 1;
 }

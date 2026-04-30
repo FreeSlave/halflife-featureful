@@ -639,6 +639,7 @@ void CBaseMonster::MonsterThink()
 
 	RunAI();
 	GlowShellUpdate();
+	HandlePassiveRegeneration();
 
 	float flInterval = StudioFrameAdvance(); // animate
 
@@ -3809,6 +3810,21 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 
 	if (FBitSet(m_afCapability, bits_CAP_SQUAD))
 		ALERT(level, "Can form squads; ");
+
+	if (m_lastHurtTime > 0.0f)
+		ALERT(level, "Time since last hurt: %g; ", gpGlobals->time - m_lastHurtTime);
+
+	if (m_passiveRegenTime > gpGlobals->time)
+		ALERT(level, "Time before passive regeneration update: %g; ", m_passiveRegenTime - gpGlobals->time);
+
+	if (m_activeRegenTime > gpGlobals->time)
+		ALERT(level, "Time before active regeneration update: %g; ", m_activeRegenTime - gpGlobals->time);
+
+	if (m_nextActiveRegen > gpGlobals->time)
+		ALERT(level, "Time before can activate regeneration: %g; ", m_nextActiveRegen - gpGlobals->time);
+
+	if (m_regenResource > 0.0f)
+		ALERT(level, "Regeneration resource: %g; ", m_regenResource);
 
 	if (shouldReportRoute)
 	{

@@ -23,6 +23,8 @@
 #include	"game.h"
 #include	"pm_shared.h"
 #include	"ent_templates.h"
+#include	"common_soundscripts.h"
+#include	"visuals_utils.h"
 #include	"studio.h"
 #include	"scriptevent.h"
 #include	"ai_debug.h"
@@ -761,6 +763,12 @@ TYPEDESCRIPTION	CBaseEntity::m_SaveData[] =
 	DEFINE_FIELD( CBaseEntity, m_displayName, FIELD_STRING ),
 
 	DEFINE_FIELD( CBaseEntity, m_lootRandomSeed, FIELD_INTEGER ),
+
+	DEFINE_FIELD( CBaseEntity, m_lastHurtTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_passiveRegenTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_activeRegenTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_nextActiveRegen, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_regenResource, FIELD_FLOAT ),
 };
 
 void CBaseEntity::KeyValue(KeyValueData* pkvd)
@@ -1278,13 +1286,16 @@ bool CBaseEntity::ShouldAutoPrecacheSounds()
 
 void CBaseEntity::SetMyHealth(const float defaultHealth)
 {
+	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (!pev->health) {
-		const EntTemplate* entTemplate = GetMyEntTemplate();
 		if (entTemplate && entTemplate->IsHealthDefined())
 			pev->health = entTemplate->Health();
 		else
 			pev->health = defaultHealth;
 	}
+
+	if (entTemplate)
+		m_regenResource = entTemplate->GetRegenerationResourceAmount();
 }
 
 const Visual* CBaseEntity::MyOwnVisual()
@@ -1323,6 +1334,50 @@ void CBaseEntity::PrecacheMyModel(const char *defaultModel)
 	const char* myModel = MyOwnModel(defaultModel);
 	if (myModel)
 		PRECACHE_MODEL(myModel);
+
+	PrecacheTemplateResources();
+}
+
+void CBaseEntity::PrecacheTemplateResources()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return;
+
+	auto preacacheRegenEffects = [this](const EntTemplate::Regeneration& regen,
+										const NamedVisual& spriteVisual,
+										const NamedVisual& particleVisual,
+										const NamedVisual& beamVisual,
+										const char* regenSoundScript)
+	{
+		if (regen.healthPerUpdate > 0.0f)
+		{
+			if (regen.playSprite)
+			{
+				RegisterVisual(spriteVisual);
+			}
+			if (regen.particlesPerUpdate > 0)
+			{
+				RegisterVisual(particleVisual);
+			}
+			if (regen.beamsPerUpdate > 0)
+			{
+				RegisterVisual(beamVisual);
+			}
+			RegisterAndPrecacheSoundScript(regenSoundScript, regenUpdateSoundScript);
+		}
+	};
+
+	preacacheRegenEffects(entTemplate->GetPassiveRegenerationRules(),
+						  passiveRegenSpriteVisual,
+						  passiveRegenParticleVisual,
+						  passiveRegenBeamVisual,
+						  passiveRegenUpdateSoundScript);
+	preacacheRegenEffects(entTemplate->GetActiveRegenerationRules(),
+						  activeRegenSpriteVisual,
+						  activeRegenParticleVisual,
+						  activeRegenBeamVisual,
+						  activeRegenUpdateSoundScript);
 }
 
 int CBaseEntity::Save( CSave &save )
@@ -2071,6 +2126,291 @@ void CBaseEntity::PrecacheEquipmentDrop()
 			}
 		}
 	}
+}
+
+static void PlayRegenerationEffects(CBaseEntity* pEntity, const EntTemplate::Regeneration &regen, const NamedVisual &regenParticle, const NamedVisual &regenBeam, const char *regenUpdateSoundScript)
+{
+	entvars_t* pev = pEntity->pev;
+
+	const Vector upVel{0, 0, 40.0f};
+	const float bottom = pev->absmin.z;
+	const float top = pev->absmax.z;
+	const float height = top - bottom;
+	const float side = pev->absmax.x - pev->absmin.x;
+	const float middleX = (pev->absmax.x + pev->absmin.x) * 0.5f;
+	const float middleY = (pev->absmax.y + pev->absmin.y) * 0.5f;
+
+	if (regen.particlesPerUpdate > 0)
+	{
+		const Visual* particleVisual = pEntity->GetVisual(regenParticle);
+
+		for (int i=0; i<regen.particlesPerUpdate; ++i)
+		{
+			const float x = middleX + RandomizeNumberFromRange(-side, side) * 0.3f;
+			const float y = middleY + RandomizeNumberFromRange(-side, side) * 0.3f;
+			const float z = bottom + RandomizeNumberFromRange(height * 0.2f, height * 0.8f);
+
+			SendSprite(Vector(x, y, z), particleVisual, upVel, regen.particlesFadeTime);
+		}
+	}
+
+	if (regen.beamsPerUpdate > 0)
+	{
+		const Visual* beamVisual = pEntity->GetVisual(regenBeam);
+
+		for (int i=0; i<regen.beamsPerUpdate; ++i)
+		{
+			const float x = middleX + RandomizeNumberFromRange(-side, side) * 0.3f;
+			const float y = middleY + RandomizeNumberFromRange(-side, side) * 0.3f;
+			const float z = bottom + RandomizeNumberFromRange(height * 0.2f, height * 0.8f);
+
+			const Vector startPos(x, y, z);
+
+			SendBeam(startPos, startPos + Vector(0,0,height * 0.6f), beamVisual);
+		}
+	}
+
+	pEntity->EmitSoundScript(regenUpdateSoundScript);
+}
+
+static float RegenResourceAmount(CBaseEntity* pEntity, const EntTemplate::Regeneration& regen)
+{
+	float resourceAvailable = 0.0f;
+	for (auto type : regen.regenResourceTypes)
+	{
+		switch(type)
+		{
+		case EntTemplate::Regeneration::Resource::Standard:
+			resourceAvailable += pEntity->m_regenResource;
+			break;
+		case EntTemplate::Regeneration::Resource::Native:
+			resourceAvailable += pEntity->GetNativeResourceAmount();
+			break;
+		}
+	}
+	return resourceAvailable;
+}
+
+static void ApplyRegenHealth(CBaseEntity* pEntity, const EntTemplate::Regeneration& regen)
+{
+	const float prevHealth = pEntity->pev->health;
+
+	float healFor = regen.healthPerUpdate;
+
+	if (!regen.regenResourceTypes.empty())
+	{
+		const float resourceAvailable = RegenResourceAmount(pEntity, regen);
+		healFor = Q_min(healFor, resourceAvailable);
+	}
+
+	const float healUpTo = regen.healthFractionLimit * pEntity->pev->max_health;
+	healFor = Q_min(healFor, healUpTo - prevHealth);
+
+	if (healFor > 0)
+	{
+		pEntity->TakeHealth(pEntity, healFor, HEAL_GENERIC);
+		//ALERT(at_console, "%s healed for %g\n", STRING(pEntity->pev->classname), pEntity->pev->health - prevHealth);
+
+		float resourceToSpend = healFor;
+		for (auto type : regen.regenResourceTypes)
+		{
+			if (resourceToSpend <= 0.0f)
+				break;
+
+			switch(type)
+			{
+			case EntTemplate::Regeneration::Resource::Standard:
+			{
+				if (pEntity->m_regenResource > resourceToSpend)
+				{
+					pEntity->m_regenResource -= resourceToSpend;
+					resourceToSpend = 0;
+				}
+				else
+				{
+					pEntity->m_regenResource = 0;
+					resourceToSpend -= pEntity->m_regenResource;
+				}
+			}
+				break;
+			case EntTemplate::Regeneration::Resource::Native:
+			{
+				const float nativeResourceAmount = pEntity->GetNativeResourceAmount();
+				if (nativeResourceAmount > resourceToSpend)
+				{
+					pEntity->SpendNativeResource(resourceToSpend);
+					resourceToSpend = 0;
+				}
+				else
+				{
+					pEntity->SpendNativeResource(nativeResourceAmount);
+					resourceToSpend -= nativeResourceAmount;
+				}
+			}
+				break;
+			}
+		}
+	}
+}
+
+RegenResult CBaseEntity::HandlePassiveRegeneration()
+{
+	auto removeRegenSprite = [this]() {
+		UTIL_RemoveAndClean(m_passiveRegenSprite);
+	};
+
+	if (!IsFullyAlive())
+	{
+		removeRegenSprite();
+		return RegenResult::NotApplicaple;
+	}
+
+	if (pev->health >= pev->max_health)
+	{
+		removeRegenSprite();
+		return RegenResult::NotApplicaple;
+	}
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return RegenResult::Disallowed;
+
+	const EntTemplate::PassiveRegeneration& regen = entTemplate->GetPassiveRegenerationRules();
+	if (regen.healthPerUpdate <= 0.0f)
+		return RegenResult::Disallowed;
+
+	if (m_lastHurtTime + regen.delayAfterHurt > gpGlobals->time)
+		return RegenResult::Delayed;
+
+	if (m_passiveRegenTime > gpGlobals->time)
+		return RegenResult::Waiting;
+
+	if (pev->health >= regen.healthFractionLimit * pev->max_health)
+	{
+		removeRegenSprite();
+		return RegenResult::NotApplicaple;
+	}
+
+	if (!regen.regenResourceTypes.empty())
+	{
+		if (RegenResourceAmount(this, regen) <= 0.0f)
+		{
+			removeRegenSprite();
+			return RegenResult::NoResource;
+		}
+	}
+
+	CBaseMonster* pMonster = MyMonsterPointer();
+	if (pMonster && pMonster->m_IdealActivity == ACT_REGEN)
+	{
+		removeRegenSprite();
+		return RegenResult::Delayed;
+	}
+
+	ApplyRegenHealth(this, regen);
+
+	m_passiveRegenTime = (m_passiveRegenTime > 0.0f && (gpGlobals->time - m_passiveRegenTime) < regen.interval ? m_passiveRegenTime : gpGlobals->time) + regen.interval;
+
+	if (regen.playSprite)
+	{
+		const Vector pos = Center();
+		if (m_passiveRegenSprite)
+		{
+			UTIL_SetOrigin(m_passiveRegenSprite->pev, pos);
+		}
+		else
+		{
+			m_passiveRegenSprite = CreateSpriteFromVisual(GetVisual(passiveRegenSpriteVisual), pos);
+			if (m_passiveRegenSprite)
+				m_passiveRegenSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
+		}
+	}
+
+	PlayRegenerationEffects(this, regen, passiveRegenParticleVisual, passiveRegenBeamVisual, passiveRegenUpdateSoundScript);
+
+	return RegenResult::Applied;
+}
+
+bool CBaseEntity::HasResourceForActiveRegeneration()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return false;
+
+	const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+	if (!regen.regenResourceTypes.empty())
+	{
+		if (RegenResourceAmount(this, regen) <= 0.0f)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+RegenResult CBaseEntity::HandleActiveRegeneration()
+{
+	auto removeRegenSprite = [this]() {
+		UTIL_RemoveAndClean(m_activeRegenSprite);
+	};
+
+	if (!IsFullyAlive())
+	{
+		removeRegenSprite();
+		return RegenResult::NotApplicaple;
+	}
+
+	if (pev->health >= pev->max_health)
+	{
+		removeRegenSprite();
+		return RegenResult::NotApplicaple;
+	}
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return RegenResult::Disallowed;
+
+	const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+	if (regen.healthPerUpdate <= 0.0f)
+		return RegenResult::Disallowed;
+
+	if (m_activeRegenTime > gpGlobals->time)
+		return RegenResult::Waiting;
+
+	if (pev->health >= regen.healthFractionLimit * pev->max_health)
+		return RegenResult::NotApplicaple;
+
+	if (!regen.regenResourceTypes.empty())
+	{
+		if (RegenResourceAmount(this, regen) <= 0.0f)
+		{
+			removeRegenSprite();
+			return RegenResult::NoResource;
+		}
+	}
+
+	ApplyRegenHealth(this, regen);
+
+	m_activeRegenTime = (m_activeRegenTime > 0.0f && (gpGlobals->time - m_activeRegenTime) < regen.interval ? m_activeRegenTime : gpGlobals->time) + regen.interval;
+
+	if (regen.playSprite)
+	{
+		const Vector pos = Center();
+		if (m_activeRegenSprite)
+		{
+			UTIL_SetOrigin(m_activeRegenSprite->pev, pos);
+		}
+		else
+		{
+			m_activeRegenSprite = CreateSpriteFromVisual(GetVisual(activeRegenSpriteVisual), pos);
+			if (m_activeRegenSprite)
+				m_activeRegenSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
+		}
+	}
+
+	PlayRegenerationEffects(this, regen, activeRegenParticleVisual, activeRegenBeamVisual, activeRegenUpdateSoundScript);
+
+	return RegenResult::Applied;
 }
 
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)

@@ -704,6 +704,19 @@ Schedule_t* CFollowingMonster::GetFollowingSchedule(bool ignoreEnemy)
 	return NULL;
 }
 
+Schedule_t* CFollowingMonster::GetUtilitySchedule()
+{
+	Schedule_t* regenSchedule = GetRegenerationSchedule();
+	if (regenSchedule)
+		return regenSchedule;
+
+	Schedule_t* followingSchedule = GetFollowingSchedule();
+	if (followingSchedule)
+		return followingSchedule;
+
+	return nullptr;
+}
+
 void CFollowingMonster::FollowerUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	if (m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY)

@@ -779,6 +779,20 @@ const char* const json_schemas::definitions = R"(
 		"type": "string",
 		"minLength": 1
 	},
+	"regen_resource_type_set": {
+		"oneOf": [
+			{
+				"type": "array",
+				"items": {
+					"enum": ["standard", "native"]
+				},
+				"uniqueItems": true
+			},
+			{
+				"enum": ["standard", "native"]
+			}
+		]
+	},
 )"
 R"(
 	"entity_template": {
@@ -1054,6 +1068,114 @@ R"(
 				"properties": {
 					"hud_sprite": {
 						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"passive_regeneration": {
+				"type": "object",
+				"properties": {
+					"interval": {
+						"type": "number",
+						"minimum": 0.1
+					},
+					"health_per_update": {
+						"type": "number",
+						"minimum": 0
+					},
+					"delay_after_hurt": {
+						"type": "number",
+						"minimum": 0
+					},
+					"health_fraction_limit": {
+						"type": "number",
+						"exclusiveMinimum": 0,
+						"maximum": 1
+					},
+					"resource_type": {
+						"$ref": "#/regen_resource_type_set"
+					},
+					"play_sprite": {
+						"type": "boolean"
+					},
+					"particles_per_update": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"particles_fade_time": {
+						"type": "number",
+						"minimum": 0
+					},
+					"beams_per_update": {
+						"type": "integer",
+						"minimum": 0
+					}
+				},
+				"additionalProperties": false
+			},
+			"active_regeneration": {
+				"type": "object",
+				"properties": {
+					"interval": {
+						"type": "number",
+						"minimum": 0.1
+					},
+					"health_per_update": {
+						"type": "number",
+						"minimum": 0
+					},
+					"health_fraction_limit": {
+						"type": "number",
+						"exclusiveMinimum": 0,
+						"maximum": 1
+					},
+					"resource_type": {
+						"$ref": "#/regen_resource_type_set"
+					},
+					"play_sprite": {
+						"type": "boolean"
+					},
+					"particles_per_update": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"particles_fade_time": {
+						"type": "number",
+						"minimum": 0
+					},
+					"beams_per_update": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"health_fraction_combat_trigger": {
+						"type": "number",
+						"exclusiveMinimum": 0,
+						"maximum": 1
+					},
+					"health_fraction_noncombat_trigger": {
+						"type": "number",
+						"exclusiveMinimum": 0,
+						"maximum": 1
+					},
+					"cooldown": {
+						"type": "number",
+						"minimum": 0
+					},
+					"sequence": {
+						"type": "string"
+					},
+					"early_finish": {
+						"type": "boolean"
+					}
+				},
+				"additionalProperties": false
+			},
+			"regeneration_resource": {
+				"type": "object",
+				"properties": {
+					"amount": {
+						"type": "number",
+						"minimum": 0
 					}
 				},
 				"additionalProperties": false

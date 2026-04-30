@@ -95,6 +95,7 @@ public:
 	bool MustDisplayHUDInfo() const override { return (pev->spawnflags & SF_BREAK_SHOW_HUD_INFO) != 0; }
 	bool IsDestroyableObstacle() override;
 
+	void EXPORT BreakableThink();
 	void EXPORT Die();
 	void DieToActivator(CBaseEntity* pActivator);
 	void UpdateOnRemove() override;

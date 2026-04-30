@@ -149,3 +149,22 @@ Soundscripts used by a certain entity are listed on the page for the entity. See
 ### Player soundscripts
 
 See [player soundscripts]({{< ref "player/#soundscripts" >}})
+
+### Regeneration soundscripts
+
+Soundscripts played by [Passive regeneration]({{< ref "entity-templates/#passive_regeneration" >}}) and [Active regeneration]({{< ref "entity-templates/#active_regeneration" >}}).
+
+* **Regen.Update** - played on each regeneration 'tick' (update). This is empty by default.
+* **PassiveRegen.Update** - passive regeneration update sound. Derived from **Regen.Update**
+* **ActiveRegen.Update** - active regeneration update sound. Derived from **Regen.Update**
+
+Example:
+
+```json
+{
+    "Regen.Update": {
+        "waves": ["items/medshot4.wav"],
+        "volume": [0.3, 0.5]
+    }
+}
+```

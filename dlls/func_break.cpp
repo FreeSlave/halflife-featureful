@@ -256,6 +256,17 @@ void CBreakable::Spawn()
 		pev->flags |= FL_WORLDBRUSH;
 
 	InitLootRandomSeed();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::PassiveRegeneration& regen = entTemplate->GetPassiveRegenerationRules();
+		if (regen.healthPerUpdate > 0.0f)
+		{
+			SetThink(&CBreakable::BreakableThink);
+			pev->nextthink = gpGlobals->time;
+		}
+	}
 }
 
 void CBreakable::Activate()
@@ -501,6 +512,8 @@ void CBreakable::Precache()
 		entityOverrides.entTemplate = m_iszSpawnObjectTemplate;
 		UTIL_PrecacheOther(STRING(m_iszSpawnObject), entityOverrides);
 	}
+
+	PrecacheTemplateResources();
 }
 
 // play shard sound when func_breakable takes damage.
@@ -796,6 +809,12 @@ void CBreakable::BreakModel(const Vector& vecSpot, const Vector& size, const Vec
 		// flags
 		WRITE_BYTE( cFlag );
 	MESSAGE_END();
+}
+
+void CBreakable::BreakableThink()
+{
+	HandlePassiveRegeneration();
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 void CBreakable::Die()

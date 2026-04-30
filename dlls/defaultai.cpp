@@ -1381,6 +1381,25 @@ Schedule_t slIdleFace[] =
 	},
 };
 
+Task_t tlRegen[] =
+{
+	{ TASK_STOP_MOVING, 0 },
+	{ TASK_REGENERATION, 0 },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE }
+};
+
+Schedule_t slRegen[] =
+{
+	{
+		tlRegen,
+		ARRAYSIZE(tlRegen),
+		bits_COND_HEAVY_DAMAGE|
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER,
+		"Regeneration"
+	}
+};
+
 Schedule_t *CBaseMonster::m_scheduleList[] =
 {
 	slIdleStand,
@@ -1433,6 +1452,7 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slRetreatFromEnemy,
 	slRetreatFromSpot,
 	slIdleFace,
+	slRegen,
 	slFail,
 	slCombatFail
 };
@@ -1707,6 +1727,10 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 	case SCHED_IDLE_FACE:
 		{
 			return slIdleFace;
+		}
+	case SCHED_REGENERATION:
+		{
+			return slRegen;
 		}
 	default:
 		{

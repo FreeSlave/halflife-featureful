@@ -494,6 +494,13 @@ public:
 		return pev->origin + gpGlobals->v_forward * dist + Vector(0,0,20);
 	}
 
+	float GetNativeResourceAmount() override {
+		return Q_max(m_freeEnergy, 0.0f);
+	}
+	void SpendNativeResource(float amount) override {
+		m_freeEnergy -= amount;
+	}
+
 	int m_iBravery;
 
 	CBeam *m_pBeam[ISLAVE_MAX_BEAMS];
@@ -1841,9 +1848,9 @@ Schedule_t *CISlave::GetSchedule()
 					return GetScheduleOfType(SCHED_ISLAVE_GIVE_CHARGE);
 			}
 		}
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 		break;
 	}
 	default:

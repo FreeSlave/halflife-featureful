@@ -286,6 +286,16 @@ public:
 	}
 };
 
+enum class RegenResult
+{
+	NotApplicaple,
+	Disallowed,
+	Delayed,
+	Waiting,
+	NoResource,
+	Applied
+};
+
 //
 // Base Entity.  All entity types derive from this
 //
@@ -479,6 +489,7 @@ public:
 	const char* MyOwnModel(const char* defaultModel);
 	void SetMyModel(const char* defaultModel);
 	void PrecacheMyModel(const char* defaultModel);
+	void PrecacheTemplateResources();
 
 	// allow engine to allocate instance data
 	void *operator new( size_t stAllocateBlock, entvars_t *pev )
@@ -687,6 +698,21 @@ public:
 	void PrecacheEquipmentDrop();
 
 	int m_lootRandomSeed;
+
+	RegenResult HandlePassiveRegeneration();
+	bool HasResourceForActiveRegeneration();
+	RegenResult HandleActiveRegeneration();
+
+	float m_lastHurtTime;
+	float m_passiveRegenTime;
+	float m_activeRegenTime;
+	float m_nextActiveRegen;
+	float m_regenResource;
+	CBaseEntity* m_passiveRegenSprite;
+	CBaseEntity* m_activeRegenSprite;
+
+	virtual float GetNativeResourceAmount() { return 0.0f; }
+	virtual void SpendNativeResource(float amount) {}
 };
 
 // Ugly technique to override base member functions
@@ -772,6 +798,7 @@ public:
 	float StudioFrameAdvance( float flInterval = 0.0 ); // accumulate animation frame time from last time called until now
 	int GetSequenceFlags();
 	virtual int LookupActivity( int activity );
+	virtual int LookupRegenerationActivity() { return LookupActivity(ACT_IDLE); }
 	int LookupActivityHeaviest( int activity );
 	int LookupSequence( const char *label );
 	void ResetSequenceInfo();

@@ -302,6 +302,42 @@ public:
 
 	typedef std::vector<std::pair<int, int>> HitGroupToBlood;
 
+	struct Regeneration
+	{
+		enum class Resource
+		{
+			Standard = 0,
+			Native,
+		};
+
+		float interval{0.5f};
+		float healthPerUpdate{0.0f};
+		float healthFractionLimit{1.0f};
+
+		bool playSprite{false};
+
+		int particlesPerUpdate{0};
+		float particlesFadeTime{0.5f};
+
+		int beamsPerUpdate{0};
+
+		fixed_vector<Resource, 2> regenResourceTypes;
+	};
+
+	struct PassiveRegeneration : public Regeneration
+	{
+		float delayAfterHurt{5.0f};
+	};
+
+	struct ActiveRegeneration : public Regeneration
+	{
+		float healthFractionCombatTrigger{0.6f};
+		float healthFractionNonCombatTrigger{1.0f};
+		float cooldown{5.0f};
+		std::string sequence;
+		bool earlyFinish{false};
+	};
+
 	const char* OwnVisualName() const;
 	void SetOwnVisualName(const std::string& name) {
 		_ownVisual = name;
@@ -550,6 +586,27 @@ public:
 	const char* GetPickupHudSprite() const {
 		return _pickupHudSprite.empty() ? nullptr : _pickupHudSprite.c_str();
 	}
+
+	const PassiveRegeneration& GetPassiveRegenerationRules() const {
+		return _passiveRegeneration;
+	}
+	void SetPassiveRegenerationRules(const PassiveRegeneration& passiveRegeneration) {
+		_passiveRegeneration = passiveRegeneration;
+	}
+
+	const ActiveRegeneration& GetActiveRegenerationRules() const {
+		return _activeRegeneration;
+	}
+	void SetActiveRegenerationRules(const ActiveRegeneration& activeRegeneration) {
+		_activeRegeneration = activeRegeneration;
+	}
+
+	float GetRegenerationResourceAmount() const {
+		return _regenResourceAmount;
+	}
+	void SetRegenerationResourceAmount(float amount) {
+		_regenResourceAmount = amount;
+	}
 private:
 	mutable std::string tempString;
 	std::map<std::string, std::string> _soundScripts;
@@ -601,6 +658,11 @@ private:
 	Projectile _projectile;
 
 	std::string _pickupHudSprite;
+
+	PassiveRegeneration _passiveRegeneration;
+	ActiveRegeneration _activeRegeneration;
+
+	float _regenResourceAmount{0.0f};
 };
 
 class EntTemplateSystem : public JSONConfig

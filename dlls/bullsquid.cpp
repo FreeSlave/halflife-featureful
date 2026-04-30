@@ -375,7 +375,6 @@ public:
 
 	bool m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time.
 
-	float m_flLastHurtTime;// we keep track of this, because if something hurts a squid, it will forget about its love of headcrabs for a while.
 	float m_flNextSpitTime;// last time the bullsquid used the spit attack.
 	float m_flNextHopTime;
 
@@ -397,7 +396,6 @@ LINK_ENTITY_TO_CLASS( monster_bullchicken, CBullsquid )
 TYPEDESCRIPTION	CBullsquid::m_SaveData[] =
 {
 	DEFINE_FIELD( CBullsquid, m_fCanThreatDisplay, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CBullsquid, m_flLastHurtTime, FIELD_TIME ),
 	DEFINE_FIELD( CBullsquid, m_flNextSpitTime, FIELD_TIME ),
 	DEFINE_FIELD( CBullsquid, m_flNextHopTime, FIELD_TIME ),
 };
@@ -470,7 +468,7 @@ int CBullsquid::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
-	if( gpGlobals->time - m_flLastHurtTime <= 20.0f )
+	if (gpGlobals->time - m_lastHurtTime <= 20.0f)
 	{
 		// haven't been hurt in 20 seconds, so let the squid care about stink.
 		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
@@ -491,7 +489,7 @@ int CBullsquid::IgnoreConditions()
 //=========================================================
 int CBullsquid::IRelationship( CBaseEntity *pTarget )
 {
-	if( gpGlobals->time - m_flLastHurtTime < 5.0f && PerceiveAsPrey(pTarget) )
+	if (gpGlobals->time - m_lastHurtTime < 5.0f && PerceiveAsPrey(pTarget))
 	{
 		// if squid has been hurt in the last 5 seconds, and is getting relationship for a headcrab, 
 		// tell squid to disregard crab. 
@@ -509,7 +507,7 @@ TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 {
 	// if the squid is running, has an enemy, was hurt by the enemy, hasn't been hurt in the last 3 seconds, and isn't too close to the enemy,
 	// it will swerve. (whew).
-	if( m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3.0f )
+	if (m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_lastHurtTime > 3.0f)
 	{
 		if( ( pev->origin - m_hEnemy->pev->origin ).IsLength2DGreaterThan(SQUID_SPRINT_DIST) )
 		{
@@ -520,12 +518,6 @@ TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 				InsertWaypoint( vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY );
 			}
 		}
-	}
-
-	if( pevAttacker && !FClassnameIs( pevAttacker, "monster_headcrab" ) )
-	{
-		// don't forget about headcrabs if it was a headcrab that hurt the squid.
-		m_flLastHurtTime = gpGlobals->time;
 	}
 
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
@@ -1243,6 +1235,10 @@ Schedule_t *CBullsquid::GetSchedule()
 					return GetScheduleOfType( SCHED_WAKE_ANGRY );
 				}
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
 
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{

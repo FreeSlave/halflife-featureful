@@ -697,6 +697,10 @@ Schedule_t *CGonome::GetSchedule()
 				return GetScheduleOfType( SCHED_WAKE_ANGRY );
 			}
 
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
 			{
 				return GetScheduleOfType( SCHED_RANGE_ATTACK1 );

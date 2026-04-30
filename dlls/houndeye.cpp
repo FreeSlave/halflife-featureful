@@ -1370,6 +1370,10 @@ Schedule_t *CHoundeye::GetSchedule()
 				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
 			}
 
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
 			{
 				if( OccupySlot( bits_SLOTS_HOUND_ATTACK ) )

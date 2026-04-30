@@ -1367,9 +1367,9 @@ Schedule_t *CGargantua::GetSchedule()
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_HUNT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 	}
 		break;
 	default:

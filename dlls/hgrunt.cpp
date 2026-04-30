@@ -1973,6 +1973,14 @@ int CHGrunt::LookupActivity(int activity)
 	}
 }
 
+int CHGrunt::LookupRegenerationActivity()
+{
+	int sequence = LookupActivity(ACT_COWER);
+	if (sequence != ACTIVITY_NOT_AVAILABLE)
+		return sequence;
+	return CFollowingMonster::LookupRegenerationActivity();
+}
+
 //=========================================================
 // Get Schedule!
 //=========================================================
@@ -2112,8 +2120,13 @@ Schedule_t *CHGrunt::GetSchedule()
 					return GetScheduleOfType( SCHED_SMALL_FLINCH );
 				}
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			// can kick
-			else if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 			{
 				return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
 			}
@@ -2174,9 +2187,9 @@ Schedule_t *CHGrunt::GetSchedule()
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_HUNT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 		break;
 	}
 	default:

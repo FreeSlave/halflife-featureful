@@ -157,6 +157,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void CheckAmmo() override;
 	int LookupActivity(int activity) override;
+	int LookupRegenerationActivity() override;
 	void RunTask( Task_t *pTask ) override;
 	void StartTask( Task_t *pTask ) override;
 	void KeyValue( KeyValueData *pkvd ) override;
@@ -337,6 +338,13 @@ public:
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	void ReportAIState(ALERT_TYPE level) override;
+
+	float GetNativeResourceAmount() override {
+		return Q_max(m_flHealCharge, 0.0f);
+	}
+	void SpendNativeResource(float amount) override {
+		m_flHealCharge -= amount;
+	}
 
 	CUSTOM_SCHEDULES
 	float m_flHealCharge;
@@ -2402,6 +2410,14 @@ int CHFGrunt::LookupActivity(int activity)
 	}
 }
 
+int CHFGrunt::LookupRegenerationActivity()
+{
+	int sequence = LookupActivity(ACT_COWER);
+	if (sequence != ACTIVITY_NOT_AVAILABLE)
+		return sequence;
+	return CTalkMonster::LookupRegenerationActivity();
+}
+
 //=========================================================
 // GetSchedule - Decides which type of schedule best suits
 // the monster's current state and conditions. Then calls
@@ -2574,8 +2590,13 @@ Schedule_t *CHFGrunt::GetSchedule()
 					return GetScheduleOfType( SCHED_SMALL_FLINCH );
 				}
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 // can kick
-			else if ( HasConditions ( bits_COND_CAN_MELEE_ATTACK1 ) )
+			if ( HasConditions ( bits_COND_CAN_MELEE_ATTACK1 ) )
 			{
 				return GetScheduleOfType ( SCHED_MELEE_ATTACK1 );
 			}
@@ -2669,9 +2690,9 @@ Schedule_t *CHFGrunt::GetSchedule()
 		if (reloadSched)
 			return reloadSched;
 
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 
 		// try to say something about smells
 		TrySmellTalk();

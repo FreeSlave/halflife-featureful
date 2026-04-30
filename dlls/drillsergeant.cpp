@@ -159,9 +159,9 @@ Schedule_t* CDrillSergeant::GetSchedule()
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_ALERT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 	}
 		break;
 	case MONSTERSTATE_COMBAT:
@@ -175,6 +175,11 @@ Schedule_t* CDrillSergeant::GetSchedule()
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );	// Cower and panic from the scary sound!
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
+
 		return GetScheduleOfType( SCHED_RETREAT_FROM_ENEMY );			// Run & Cower
 	}
 		break;
