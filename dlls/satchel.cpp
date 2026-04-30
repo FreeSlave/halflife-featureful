@@ -452,18 +452,7 @@ bool CSatchel::CanBeDropped()
 
 bool CSatchel::CanDeploy()
 {
-	if( m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] > 0 )
-	{
-		// player is carrying some satchels
-		return true;
-	}
-
-	if( m_chargeReady )
-	{
-		// player isn't carrying any satchels, but has some out
-		return true;
-	}
-	return false;
+	return m_chargeReady || CBasePlayerWeapon::CanDeploy();
 }
 
 bool CSatchel::Deploy()
