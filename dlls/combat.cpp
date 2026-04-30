@@ -561,11 +561,7 @@ void CBaseMonster::GibMonster()
 //=========================================================
 Activity CBaseMonster::GetDeathActivity()
 {
-	Activity	deathActivity;
-	bool		fTriedDirection;
-	float		flDot;
 	TraceResult	tr;
-	Vector		vecSrc;
 
 	if( pev->deadflag != DEAD_NO )
 	{
@@ -573,13 +569,16 @@ Activity CBaseMonster::GetDeathActivity()
 		return m_IdealActivity;
 	}
 
-	vecSrc = Center();
+	const Vector vecSrc = Center();
 
-	fTriedDirection = false;
-	deathActivity = ACT_DIESIMPLE;// in case we can't find any special deaths to do.
+	bool fTriedDirection = false;
+	tribool hasHeadShot;
+	tribool hasGutShot;
+	tribool hasSimple;
+	Activity deathActivity = ACT_DIESIMPLE;// in case we can't find any special deaths to do.
 
 	UTIL_MakeVectors( pev->angles );
-	flDot = DotProduct( gpGlobals->v_forward, g_vecAttackDir * -1.0f );
+	float flDot = DotProduct( gpGlobals->v_forward, g_vecAttackDir * -1.0f );
 
 	switch( m_LastHitGroup )
 	{
@@ -620,6 +619,11 @@ Activity CBaseMonster::GetDeathActivity()
 	// can we perform the prescribed death?
 	if( LookupActivity( deathActivity ) == ACTIVITY_NOT_AVAILABLE )
 	{
+		if (deathActivity == ACT_DIE_HEADSHOT)
+			hasHeadShot = false;
+		else if (deathActivity == ACT_DIE_GUTSHOT)
+			hasGutShot = false;
+
 		// no! did we fail to perform a directional death? 
 		if( fTriedDirection )
 		{
@@ -639,11 +643,56 @@ Activity CBaseMonster::GetDeathActivity()
 			}
 		}
 	}
+	else
+	{
+		if (deathActivity == ACT_DIE_HEADSHOT)
+			hasHeadShot = true;
+		else if (deathActivity == ACT_DIE_GUTSHOT)
+			hasGutShot = true;
+	}
+
+	auto getFallbackActivity = [&]() {
+		if (indeterminate(hasSimple))
+		{
+			hasSimple = LookupActivity(ACT_DIESIMPLE) != ACTIVITY_NOT_AVAILABLE;
+		}
+		if (hasSimple)
+		{
+			return ACT_DIESIMPLE;
+		}
+
+		if (indeterminate(hasGutShot))
+		{
+			hasGutShot = LookupActivity(ACT_DIE_GUTSHOT) != ACTIVITY_NOT_AVAILABLE;
+		}
+		if (hasGutShot)
+		{
+			return ACT_DIE_GUTSHOT;
+		}
+
+		if (indeterminate(hasHeadShot))
+		{
+			hasHeadShot = LookupActivity(ACT_DIE_HEADSHOT) != ACTIVITY_NOT_AVAILABLE;
+		}
+		if (hasHeadShot)
+		{
+			return ACT_DIE_HEADSHOT;
+		}
+
+		return ACT_DIESIMPLE;
+	};
 
 	if( LookupActivity( deathActivity ) == ACTIVITY_NOT_AVAILABLE )
 	{
-		// if we're still invalid, simple is our only option.
-		deathActivity = ACT_DIESIMPLE;
+		if (deathActivity == ACT_DIESIMPLE)
+			hasSimple = false;
+
+		deathActivity = getFallbackActivity();
+	}
+	else
+	{
+		if (deathActivity == ACT_DIESIMPLE)
+			hasSimple = true;
 	}
 
 	if( deathActivity == ACT_DIEFORWARD )
@@ -653,7 +702,7 @@ Activity CBaseMonster::GetDeathActivity()
 
 		if( tr.flFraction != 1.0f )
 		{
-			deathActivity = ACT_DIESIMPLE;
+			deathActivity = getFallbackActivity();
 		}
 	}
 
@@ -664,7 +713,7 @@ Activity CBaseMonster::GetDeathActivity()
 
 		if( tr.flFraction != 1.0f )
 		{
-			deathActivity = ACT_DIESIMPLE;
+			deathActivity = getFallbackActivity();
 		}
 	}
 
