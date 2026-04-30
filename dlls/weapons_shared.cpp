@@ -2623,10 +2623,16 @@ void CConfigurableWeapon::Smack()
 {
 #if !CLIENT_DLL
 	const WeaponParameters& params = MyParameters();
-	SendScreenShake(params.fire.hitShake.Get(m_swingIsAltAttack));
-
 	if (params.fire.hitDecal.Get(m_swingIsAltAttack))
 		DecalSmack(m_trHit);
+#endif
+}
+
+void CConfigurableWeapon::HitShake()
+{
+#if !CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+	SendScreenShake(params.fire.hitShake.Get(m_swingIsAltAttack));
 #endif
 }
 
@@ -2716,6 +2722,8 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 		// play thwack, smack, or dong sound
 		float flVol = 1.0f;
 		bool fHitWorld = true;
+
+		HitShake();
 
 		if( pEntity )
 		{

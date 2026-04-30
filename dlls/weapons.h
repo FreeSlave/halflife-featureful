@@ -415,6 +415,7 @@ public:
 
 	void EXPORT SwingAgain();
 	void EXPORT Smack();
+	void HitShake();
 	bool Swing(bool fFirst);
 	void BigSwing();
 
