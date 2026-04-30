@@ -30,6 +30,8 @@ short GetPackedColor(int colorIndex)
 static particle_t* AllocColoredParticle(int colorIndex)
 {
 	particle_t* p = gEngfuncs.pEfxAPI->R_AllocParticle(nullptr);
+	if (!p)
+		return nullptr;
 	p->color = colorIndex;
 	p->packedColor = GetPackedColor(colorIndex);
 	return p;
