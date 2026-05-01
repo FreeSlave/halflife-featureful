@@ -44,7 +44,7 @@ public:
 	void EXPORT BubbleThink();
 	void EXPORT BoltTouch( CBaseEntity *pOther );
 	void EXPORT ExplodeThink();
-	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) {
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 		if (params.variant)
 			pev->spawnflags |= SF_CROSSBOW_BOLT_EXPLOSIVE;

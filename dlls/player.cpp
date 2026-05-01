@@ -5726,14 +5726,14 @@ void CBasePlayer::UpdateClientData()
 
 		SendPlayerTemplateData();
 
-		for (int i=0; i<ARRAYSIZE(m_messageBoxEnts); ++i)
+		for (auto& messageBoxEnt : m_messageBoxEnts)
 		{
-			if (m_messageBoxEnts[i] != 0)
+			if (messageBoxEnt != 0)
 			{
 				MESSAGE_BEGIN(MSG_ONE, gmsgMessageBox, nullptr, pev);
 					WRITE_BYTE(1);
-					WRITE_LONG(m_messageBoxEnts[i]->entindex());
-					WRITE_STRING(STRING(m_messageBoxEnts[i]->pev->message));
+					WRITE_LONG(messageBoxEnt->entindex());
+					WRITE_STRING(STRING(messageBoxEnt->pev->message));
 				MESSAGE_END();
 			}
 		}

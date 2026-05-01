@@ -1026,7 +1026,7 @@ public:
 		return !g_modFeatures.ShouldIgnoreTinyCreatures(m_handleTinyCreatures);
 	}
 
-	int SizeForGrapple()
+	int SizeForGrapple() override
 	{
 		if (m_sizeForGrapple < 0)
 			return GRAPPLE_NOT_A_TARGET;

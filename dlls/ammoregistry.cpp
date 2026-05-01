@@ -15,7 +15,7 @@ void AmmoType::SetName(const char *ammoName)
 
 bool AmmoType::IsValid() const
 {
-	if (!name || *name == '\0')
+	if (*name == '\0')
 		return false;
 	return id > 0;
 }

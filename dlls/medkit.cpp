@@ -41,7 +41,7 @@ public:
 	void SecondaryAttack() override;
 	bool Deploy() override;
 	void Holster() override;
-	void ItemPostFrame();
+	void ItemPostFrame() override;
 	void WeaponIdle() override;
 	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 

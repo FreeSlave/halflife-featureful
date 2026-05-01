@@ -6315,7 +6315,7 @@ public:
 
 	int Save(CSave& save) override;
 	int Restore(CRestore& restore) override;
-	void SendMessages(CBaseEntity* pClient);
+	void SendMessages(CBaseEntity* pClient) override;
 
 	int m_iRadius;
 	bool m_iActive;
