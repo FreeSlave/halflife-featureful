@@ -36,7 +36,7 @@ jobs:
             mv app/build/outputs/apk/continuous/app-continuous.apk HalfLife-Featureful.apk
           else
             ./gradlew assembleDebug
-            mv app/build/outputs/apk/git/debug/app-debug.apk HalfLife-Featureful.apk
+            mv app/build/outputs/apk/debug/app-debug.apk HalfLife-Featureful.apk
           fi
         working-directory: android
       - name: Upload artifacts
