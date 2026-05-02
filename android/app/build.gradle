@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId 'com.example.hlsdk'
-        versionName '1.0'
+        versionName = '1.0-' + getGitHash()
         versionCode getBuildNum()
         minSdkVersion 3
         targetSdk 34
@@ -35,6 +35,19 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    signingConfigs {
+        debug {}
+
+        continuous {
+            if (System.getenv('KEYSTORE_FILE_PATH') != null) {
+                storeFile = file(System.getenv('KEYSTORE_FILE_PATH'))
+                storePassword = System.getenv('KEYSTORE_PASSWORD')
+                keyAlias = System.getenv('KEY_ALIAS')
+                keyPassword = System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -46,6 +59,10 @@ android {
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        create("continuous") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.continuous
         }
     }
 
@@ -70,4 +87,15 @@ static def getBuildNum() {
     int qBuildNum = releaseDate.until(now, ChronoUnit.DAYS)
     int minuteOfDay = now.getHour() * 60 + now.getMinute()
     return qBuildNum * 10000 + minuteOfDay
+}
+
+def getGitHash() {
+    Process process = new ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+            .directory(project.rootDir)
+            .redirectErrorStream(true)
+            .start()
+    InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream())
+    BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
+
+    return bufferedReader.getText().trim()
 }

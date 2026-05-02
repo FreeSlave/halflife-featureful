@@ -232,3 +232,40 @@ jobs:
           name: hlsdk-${{ needs.definitions.outputs.branch }}${{ env.vgui_artifact_suffix }}
           pattern: hlsdk-${{ needs.definitions.outputs.branch }}-*-${{ env.vgui_suffix }}
           delete-merged: true
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+      - name: Build and Sign APK
+        env:
+          KEYSTORE_FILE_PATH: ${{ github.workspace }}/signingkey.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [[ -n "${{ secrets.KEYSTORE_FILE }}" ]]; then
+            echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > ${{ env.KEYSTORE_FILE_PATH }}
+            ./gradlew assembleContinuous
+            mv app/build/outputs/apk/continuous/app-continuous.apk HalfLife-Featureful.apk
+          else
+            ./gradlew assembleDebug
+            mv app/build/outputs/apk/git/debug/app-debug.apk HalfLife-Featureful.apk
+          fi
+        working-directory: android
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hlsdk-${{ needs.definitions.outputs.branch }}-android
+          path: android/HalfLife-Featureful.apk
