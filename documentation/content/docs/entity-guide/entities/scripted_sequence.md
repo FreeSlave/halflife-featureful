@@ -49,4 +49,5 @@ bookToC: false
 * The game doesn't crash anymore if `scripted_sequence` is deleted while script is played. Instead the script gets cancelled.
 * Fixed repeatable `scripted_sequence` not properly working after it got interrupted and triggered again.
 * Fixed `scripted_sequence` being unresponsive when it has Idle Animation and Turn to Face move type
-* Barnacles can't grab victims possessed by non-interruptible scripts.
+* Barnacles can't grab victims possessed by non-interruptible scripts (this is to prevent monster forgetting about the script if it got 'barnacled').
+* Fixed monster not resetting the animation right away if the `scripted_sequence` with Idle Animation but no Action Animation has been triggered or interrupted (in Half-Life the monster may continue playing the idle animation for a while even after exiting the script).

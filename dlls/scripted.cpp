@@ -1235,7 +1235,15 @@ bool CBaseMonster::CineCleanup()
 	// set them back into a normal state
 	pev->enemy = NULL;
 	if( pev->health > 0 )
+	{
 		m_IdealMonsterState = MONSTERSTATE_IDLE; // m_previousState;
+
+		if (pOldCine && FStringNull(pOldCine->m_iszPlay) && !FStringNull(pOldCine->m_iszIdle))
+		{
+			m_IdealActivity = ACT_IDLE;
+			m_Activity = ACT_RESET;
+		}
+	}
 	else
 	{
 		// Dropping out because he got killed
