@@ -43,6 +43,7 @@ bookToC: false
 * `Remove on interruption`. This flag is useful in scripts with idle animation to ensure that the script won't be activated by some external trigger again after it was interrupted by damage dealt to the possessed monster (which could lead to weird situations like monster starting playing the idle animation again).
 * `Don't Drop to Floor` - don't try instantly dropping the monster to floor after the sequence has finished. The monster still may naturally fall due to gravity after that.
 * `Allow stuck` - allow monster being stuck after the sequence has done (if the animation included some movement, e.g. some jump/leap sequence). Otherwise in case of becoming stuck the monster will just get teleported to its position before the animation.
+* `Allow unnamed idle` - make the unnamed scripted sequence with idle animation continue playing the idle animation instead of finishing the sequence (like it does in Half-Life).
 
 ### Bugfixes
 

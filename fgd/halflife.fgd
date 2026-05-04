@@ -1216,6 +1216,7 @@
 		32768: "Remove on interruption" : 0 : "Remove scripted sequence when it's getting interrupted"
 		65536: "Don't Drop to Floor" : 0 : "Don't try instantly dropping the monster to floor after the sequence has finished (the monster still may naturally fall due to gravity after that)"
 		131072: "Allow stuck" : 0 : "Allow monster being stuck after the sequence has done (if the animation included some movement). Otherwise the monster will just get teleported to its position before the animation."
+		262144: "Allow unnamed idle" : 0 : "Make the unnamed scripted sequence with idle animation work as expected: continue playing the idle animation instead of finishing the sequence"
 	]
 	m_targetActivator(choices) : "Activator for targets" : : "Activator for Target, Fire after moving, Fire on Animation start" =
 	[

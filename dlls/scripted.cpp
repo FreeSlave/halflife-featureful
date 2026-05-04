@@ -335,7 +335,7 @@ void CCineMonster::Spawn()
 		const float delay = m_initialSearchDelay > 0.0f ? m_initialSearchDelay : 1.0f;
 		pev->nextthink = gpGlobals->time + delay;
 		// Wait to be used?
-		if (!isAutoSearch)
+		if (!isAutoSearch || (hasIdleAnim && FBitSet(pev->spawnflags, SF_SCRIPT_ALLOW_UNNAMED_IDLE)))
 			m_startTime = gpGlobals->time + (float)1E6;
 	}
 	if( ForcedNoInterruptions() )
