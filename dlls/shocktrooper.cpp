@@ -307,7 +307,7 @@ int	CShockTrooper::DefaultClassify()
 
 bool CShockTrooper::CheckRangeAttack1(float flDot, float flDist)
 {
-	return m_cAmmoLoaded >= 1 && CHGrunt::CheckRangeAttack1(flDot, flDist);
+	return (m_cClipSize <= 0 || m_cAmmoLoaded >= 1) && CHGrunt::CheckRangeAttack1(flDot, flDist);
 }
 
 bool CShockTrooper::CheckRangeAttack2( float flDot, float flDist )
@@ -397,7 +397,8 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 			ProjectileParameters params("shock_beam", vecShootOrigin, vecGunAngles, vecShootDir, this, GetProjectileOverrides());
 			CreateAndLaunchAsProjectile(params);
-			m_cAmmoLoaded--;
+			if (m_cClipSize > 0)
+				m_cAmmoLoaded--;
 			SetBlending( 0, vecGunAngles.x );
 
 			// Play fire sound.
@@ -451,7 +452,7 @@ void CShockTrooper::Spawn()
 	}
 
 	m_cClipSize = GetSkillValue("shocktrooper_maxcharge");
-
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	m_bRightClaw = false;
@@ -469,7 +470,9 @@ void CShockTrooper::MonsterThink()
 	{
 		if (m_rechargeTime < gpGlobals->time)
 		{
+			//ALERT(at_console, "%s: recharging ammo\n", STRING(pev->classname));
 			m_cAmmoLoaded++;
+			ClearConditions(bits_COND_NO_AMMO_LOADED);
 			m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 		}
 	}

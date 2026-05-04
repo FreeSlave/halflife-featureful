@@ -109,4 +109,20 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emul
 ```
 {{% /tab %}}
 
+{{% tab "Reload" %}}
+Make Barney use reload by limiting the clip size:
+
+```json
+{
+    "monster_barney": {
+        "primary_weapon": [
+            {
+                "max_clip": 17
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

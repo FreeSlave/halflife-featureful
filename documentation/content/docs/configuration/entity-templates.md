@@ -598,6 +598,63 @@ Example:
 }
 ```
 
+### primary_weapon
+
+Primary weapon parameters for monsters that use weapons (see the list below). The property is an array of objects. Each object has the following properties:
+
+* `"weapons"` - the value of the monster's `weapons` parameter to match against. This is usually a power of 2 number (1, 2, 4, 8, etc.), but in general you can think of it as of a bit flag. Optional.
+* `"max_clip"` - override the max clip. `0` means an infinite clip (no reload required). Optional. If set to non-zero and the monster doesn't have the `ACT_RELOAD` sequence the monster will perform reload without any animation, almost instantly.
+
+{{% details title="Example" %}}
+
+```json
+{
+    "monster_human_grunt": {
+        "primary_weapon": [
+            {
+                "weapons": 8,
+                "max_clip": 2
+            }
+        ]
+    },
+    "monster_barney": {
+        "primary_weapon": [
+            {
+                "max_clip": 17
+            }
+        ]
+    }
+}
+```
+
+Here we change the clip size for human grunt's shotgun (while leaving its MP5 capacity default).
+
+We also set the clip size for barney so he will use the reload animation in order to reload after depleting the clip.
+{{% /details %}}
+
+The first matching object from the array is used. The `"weapons"` match works like this:
+
+* If `"weapons"` property is missing, the match is successful.
+* If the value from `"weapons"` property equals the monster's `weapons` parameter, the match is successful.
+* If the bit AND operation of `"weapons"` property and monster's `weapons` parameter equals the latter, the match is successful.
+* Otherwise, the next item in the array is checked. If no more items left in the array, the override is not applied.
+
+Supported monsters:
+
+* [monster_barney]({{< ref monster_barney >}}) - has an infinite clip by default.
+* [monster_otis]({{< ref monster_otis >}}) - has an infinite clip by default.
+* [monster_barniel]({{< ref monster_barniel >}}) - has an infinite clip by default.
+* [monster_kate]({{< ref monster_kate >}}) - has an infinite clip by default.
+* [monster_human_grunt]({{< ref monster_human_grunt >}})
+* [monster_human_assassin]({{< ref monster_human_assassin >}}) - has an infinite clip by default and the default model lacks the `ACT_RELOAD` sequence.
+* [monster_hwgrunt]({{< ref monster_hwgrunt >}}) - has the clip of size 100 by default. Doesn't play the reload animation, rather just waits for minigun to 'cool off' for 1 second at max.
+* [monster_human_grunt_ally]({{< ref monster_human_grunt_ally >}})
+* [monster_human_grunt_medic]({{< ref monster_human_medic_ally >}})
+* [monster_human_grunt_torch]({{< ref monster_human_torch_ally >}})
+* [monster_male_assassin]({{< ref monster_male_assassin >}})
+* [monster_robogrunt]({{< ref monster_robogrunt >}})
+* [monster_shocktrooper]({{< ref monster_shocktrooper >}}) - the clip size can also be configured via the **sk_shocktrooper_maxcharge** skill variable.
+
 ### check_melee_attack1
 
 Redefines the check parameters for the monster's primary melee attack. Monsters do some checks before deciding what type of attack (if any) they want to perform, depending on the conditions like distance to the enemy.
@@ -1102,7 +1159,7 @@ Behavior details:
 
 Each array item can have the following properties:
 
-* `"weapons"` - the value of `weapons` parameter to check against. This is usually a power of 2 number (1, 2, 4, 8, etc.), but in general you can think of it as of a bit flag. This property is optional - if it's not defined, the drop is unconditional (you can also use [loot_drop](#loot_drop) for the drop that doesn't depend on the `weapons` parameter).
+* `"weapons"` - the value of the monster's `weapons` parameter to match against. This is usually a power of 2 number (1, 2, 4, 8, etc.), but in general you can think of it as of a bit flag. This property is optional - if it's not defined, the drop is unconditional (you can also use [loot_drop](#loot_drop) for the drop that doesn't depend on the `weapons` parameter).
 * `"weapons_match"` - the type of `weapons` match. Optional. Possible values:
     - `"one"` - at least one bit must match. This is the default option.
     - `"all"` - the monster's `weapons` parameter must contain all the bits from the `weapons` property of the array item.

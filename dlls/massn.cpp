@@ -170,7 +170,8 @@ void CMassn::Sniperrifle()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles(vecShootDir);
 	SetBlending(0, angDir.x);
@@ -340,6 +341,7 @@ void CMassn::Spawn()
 	{
 		m_cClipSize = MASSN_CLIP_SIZE;
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	if (m_iHead == -1) {

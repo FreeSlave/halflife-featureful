@@ -2413,6 +2413,48 @@ RegenResult CBaseEntity::HandleActiveRegeneration()
 	return RegenResult::Applied;
 }
 
+optional<int> CBaseEntity::GetClipSizeForWeapon(int weaponBit)
+{
+	optional<int> empty;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return empty;
+
+	const auto& weapons = entTemplate->GetWeaponDefinitions();
+	for (const auto& w : weapons)
+	{
+		bool ok = true;
+
+		if (w.weaponBit.has_value())
+		{
+			ok = weaponBit == *w.weaponBit || (weaponBit & *w.weaponBit) == *w.weaponBit;
+		}
+
+		if (ok)
+		{
+			return w.maxClip;
+		}
+	}
+	return empty;
+}
+
+bool CBaseEntity::UpdateClipSizeForWeapon(int &clipSize, int weaponBit)
+{
+	auto weaponClipSize = GetClipSizeForWeapon(weaponBit);
+	if (weaponClipSize.has_value())
+	{
+		clipSize = *weaponClipSize;
+		return true;
+	}
+	return false;
+}
+
+bool CBaseEntity::UpdateClipSizeForWeapon(int &clipSize)
+{
+	return UpdateClipSizeForWeapon(clipSize, pev->weapons);
+}
+
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
 {
 	auto matchClassname = [&]() -> bool {

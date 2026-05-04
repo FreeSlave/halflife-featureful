@@ -49,7 +49,6 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	int LookupActivity(int activity) override;
 	void SetActivity( Activity NewActivity ) override;
-	void CheckAmmo() override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override {
 		return false;
 	}
@@ -162,7 +161,9 @@ void CHWGrunt::Spawn()
 	m_fEnemyEluded		= false;
 
 	m_HackedGunPos = Vector( 0, 0, 55 );
-	m_cAmmoLoaded = HWGRUNT_CLIP;
+	m_cClipSize = HWGRUNT_CLIP;
+	UpdateClipSizeForWeapon(m_cClipSize);
+	m_cAmmoLoaded = m_cClipSize;
 
 	FollowingMonsterInit();
 }
@@ -282,14 +283,6 @@ void CHWGrunt::SetActivity( Activity NewActivity )
 	CFollowingMonster::SetActivity(NewActivity);
 }
 
-void CHWGrunt::CheckAmmo()
-{
-	if (m_cAmmoLoaded <= 0)
-	{
-		SetConditions(bits_COND_NO_AMMO_LOADED);
-	}
-}
-
 bool CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist <= 2048 && flDot >= 0.5 && NoFriendlyFire() )
@@ -354,11 +347,11 @@ void CHWGrunt::StartTask( Task_t *pTask )
 		break;
 	case TASK_HWGRUNT_RELOAD:
 	{
-		if (m_cAmmoLoaded >= HWGRUNT_CLIP)
+		if (m_cAmmoLoaded >= m_cClipSize)
 			TaskComplete();
 		else
 		{
-			float delay = (HWGRUNT_CLIP - m_cAmmoLoaded) / static_cast<float>(HWGRUNT_CLIP);
+			float delay = (m_cClipSize - m_cAmmoLoaded) / static_cast<float>(m_cClipSize);
 			if (delay >= 0.1f)
 			{
 				m_flWaitFinished = gpGlobals->time + delay;
@@ -469,7 +462,8 @@ void CHWGrunt::Shoot()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -477,7 +471,7 @@ void CHWGrunt::Shoot()
 
 void CHWGrunt::FinishReload()
 {
-	m_cAmmoLoaded = HWGRUNT_CLIP;
+	m_cAmmoLoaded = m_cClipSize;
 	ClearConditions( bits_COND_NO_AMMO_LOADED );
 }
 

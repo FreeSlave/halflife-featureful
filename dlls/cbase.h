@@ -713,6 +713,10 @@ public:
 
 	virtual float GetNativeResourceAmount() { return 0.0f; }
 	virtual void SpendNativeResource(float amount) {}
+
+	optional<int> GetClipSizeForWeapon(int weaponBit);
+	bool UpdateClipSizeForWeapon(int& clipSize, int weaponBit);
+	bool UpdateClipSizeForWeapon(int& clipSize);
 };
 
 // Ugly technique to override base member functions

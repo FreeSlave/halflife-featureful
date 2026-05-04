@@ -68,7 +68,6 @@ public:
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
-	void CheckAmmo() override;
 	int LookupActivity(int activity) override;
 	int LookupRegenerationActivity() override;
 	void StartTask( Task_t *pTask ) override;
@@ -127,7 +126,6 @@ public:
 	bool m_fThrowGrenade;
 	bool m_fStanding;
 	bool m_fFirstEncounter;// only put on the handsign show in the squad's first encounter.
-	int m_cClipSize;
 
 	int m_voicePitch;
 

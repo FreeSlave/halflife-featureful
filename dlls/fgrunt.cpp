@@ -119,7 +119,6 @@ enum
 	SCHED_HGRUNT_ALLY_WAIT_FACE_ENEMY,
 	SCHED_HGRUNT_ALLY_TAKECOVER_FAILED,// special schedule type that forces analysis of conditions and picks the best possible schedule to recover from this type of failure.
 	SCHED_HGRUNT_ALLY_ELOF_FAIL,
-	SCHED_HGRUNT_ALLY_RELOAD_NOT_EMPTY,
 	LAST_HGRUNT_ALLY_SCHEDULE,
 };
 
@@ -155,7 +154,6 @@ public:
 	int  DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
-	void CheckAmmo() override;
 	int LookupActivity(int activity) override;
 	int LookupRegenerationActivity() override;
 	void RunTask( Task_t *pTask ) override;
@@ -177,7 +175,6 @@ public:
 	Schedule_t *GetScheduleOfType ( int Type ) override;
 	Schedule_t *GetSchedule() override;
 	Schedule_t *PrioritizedSchedule();
-	Schedule_t *GetReloadSchedule();
 
 	void AlertSound() override;
 	void DeathSound() override;
@@ -231,7 +228,6 @@ public:
 	bool	m_fThrowGrenade;
 	bool	m_fStanding;
 	bool	m_fFirstEncounter;// only put on the handsign show in the squad's first encounter.
-	int		m_cClipSize;
 
 	int		m_iSentence;
 	int		m_iHead;
@@ -383,7 +379,6 @@ TYPEDESCRIPTION	CHFGrunt::m_SaveData[] =
 	DEFINE_FIELD( CHFGrunt, m_fThrowGrenade, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CHFGrunt, m_fStanding, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CHFGrunt, m_fFirstEncounter, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CHFGrunt, m_cClipSize, FIELD_INTEGER ),
 	DEFINE_FIELD( CHFGrunt, m_iHead, FIELD_INTEGER ),
 };
 
@@ -467,7 +462,6 @@ void CHFGrunt::SetHead(int head)
 void CHFGrunt::ReportAIState(ALERT_TYPE level)
 {
 	CTalkMonster::ReportAIState(level);
-	ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
 	ALERT(level, "Next grenade check: %g (current time is %g). ", m_flNextGrenadeCheck, gpGlobals->time);
 }
 
@@ -861,7 +855,7 @@ Task_t	tlFGruntHideReload[] =
 	{ TASK_WAIT_FOR_MOVEMENT,		(float)0					},
 	{ TASK_REMEMBER,				(float)bits_MEMORY_INCOVER	},
 	{ TASK_FACE_ENEMY,				(float)0					},
-	{ TASK_PLAY_SEQUENCE,			(float)ACT_RELOAD			},
+	{ TASK_PLAY_RELOAD,				(float)0			},
 };
 
 Schedule_t slFGruntHideReload[] =
@@ -876,25 +870,6 @@ Schedule_t slFGruntHideReload[] =
 
 		bits_SOUND_DANGER,
 		"FGruntHideReload"
-	}
-};
-
-Task_t	tlFGruntReloadNotEmpty[] =
-{
-	{ TASK_STOP_MOVING, 0 },
-	{ TASK_PLAY_SEQUENCE, float(ACT_RELOAD) },
-};
-
-Schedule_t slFGruntReloadNotEmpty[] =
-{
-	{
-		tlFGruntReloadNotEmpty,
-		ARRAYSIZE( tlFGruntReloadNotEmpty ),
-		bits_COND_HEAVY_DAMAGE |
-		bits_COND_NEW_ENEMY |
-		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER,
-		"FGruntReloadNotEmpty"
 	}
 };
 
@@ -1139,7 +1114,6 @@ DEFINE_CUSTOM_SCHEDULES( CHFGrunt )
 	slFGruntRepel,
 	slFGruntRepelAttack,
 	slFGruntRepelLand,
-	slFGruntReloadNotEmpty,
 };
 
 
@@ -1159,10 +1133,6 @@ void CHFGrunt::StartTask( Task_t *pTask )
 		// grunt no longer assumes he is covered if he moves
 		Forget( bits_MEMORY_INCOVER );
 		CTalkMonster::StartTask( pTask );
-		break;
-
-	case TASK_RELOAD:
-		m_IdealActivity = ACT_RELOAD;
 		break;
 
 	case TASK_HGRUNT_ALLY_FACE_TOSS_DIR:
@@ -1305,17 +1275,6 @@ int CHFGrunt::DefaultISoundMask()
 			bits_SOUND_GARBAGE	|
 			bits_SOUND_DANGER	|
 			bits_SOUND_PLAYER;
-}
-//=========================================================
-// CheckAmmo - overridden for the grunt because he actually
-// uses ammo! (base class doesn't)
-//=========================================================
-void CHFGrunt::CheckAmmo()
-{
-	if ( m_cClipSize > 0 && m_cAmmoLoaded <= 0 )
-	{
-		SetConditions(bits_COND_NO_AMMO_LOADED);
-	}
 }
 //=========================================================
 // Classify - indicates this monster's place in the
@@ -1653,7 +1612,8 @@ void CHFGrunt::Shoot()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -1675,7 +1635,8 @@ void CHFGrunt::Shotgun()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -1709,7 +1670,8 @@ void CHFGrunt::M249()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -1935,6 +1897,7 @@ void CHFGrunt::Spawn()
 
 	SetBodygroup( FG_HEAD_GROUP, m_iHead );
 
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded		= m_cClipSize;
 
 	TalkMonsterInit();
@@ -2264,7 +2227,7 @@ Schedule_t* CHFGrunt::GetScheduleOfType ( int Type )
 			{
 				return &slFGruntVictoryDance[ 0 ];
 			}
-			Schedule_t* reloadSched = GetReloadSchedule();
+			Schedule_t* reloadSched = GetIdleReloadSchedule();
 			if (reloadSched)
 				return reloadSched;
 			return GetScheduleOfType(SCHED_IDLE_STAND);
@@ -2313,10 +2276,6 @@ Schedule_t* CHFGrunt::GetScheduleOfType ( int Type )
 			return &slFGruntRepelLand[ 0 ];
 		}
 		break;
-	case SCHED_HGRUNT_ALLY_RELOAD_NOT_EMPTY:
-		{
-			return &slFGruntReloadNotEmpty[ 0 ];
-		}
 	default:
 		{
 			return CTalkMonster::GetScheduleOfType ( Type );
@@ -2477,19 +2436,6 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 bool CHFGrunt::CanFireWhileRappelling()
 {
 	return FBitSet(pev->weapons, FGRUNT_9MMAR|FGRUNT_M249);
-}
-
-Schedule_t *CHFGrunt::GetReloadSchedule()
-{
-	if ( HasConditions ( bits_COND_NO_AMMO_LOADED ) )
-	{
-		return GetScheduleOfType ( SCHED_RELOAD );
-	}
-	else if ( m_cClipSize > 0 && m_cAmmoLoaded <= m_cClipSize/2 )
-	{
-		return GetScheduleOfType( SCHED_HGRUNT_ALLY_RELOAD_NOT_EMPTY );
-	}
-	return NULL;
 }
 
 Schedule_t *CHFGrunt::GetSchedule()
@@ -2686,7 +2632,7 @@ Schedule_t *CHFGrunt::GetSchedule()
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		}
 
-		Schedule_t* reloadSched = GetReloadSchedule();
+		Schedule_t* reloadSched = GetIdleReloadSchedule();
 		if (reloadSched)
 			return reloadSched;
 
@@ -3034,6 +2980,7 @@ void CTorch::Spawn()
 		pev->body = TORCH_GUN_TORCH;
 	}
 	m_cClipSize = TORCH_CLIP_SIZE;
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded		= m_cClipSize;
 	m_pBeam = NULL;
 	TalkMonsterInit();
@@ -3131,7 +3078,8 @@ void CTorch::HandleAnimEvent(MonsterEvent_t *pEvent)
 		}
 		EmitSoundScript(desertEagleSoundScript, soundParams);
 		InsertAISound( bits_SOUND_COMBAT, 384, 0.3 );
-		m_cAmmoLoaded--;// take away a bullet!
+		if (m_cClipSize > 0)
+			m_cAmmoLoaded--;// take away a bullet!
 	}
 		break;
 	case HGRUNT_ALLY_AE_BURST2:
@@ -3791,6 +3739,7 @@ void CMedic::Spawn()
 	{
 		SetBodygroup( gunGroup, MEDIC_GUN_NEEDLE );
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded		= m_cClipSize;
 
 	if (m_iHead < 0 || m_iHead >= MEDIC_HEAD_COUNT) {
@@ -3974,7 +3923,8 @@ void CMedic::FirePistol(const char *shotSoundScript, float damage)
 	EmitSoundScript(shotSoundScript, soundParams);
 	InsertAISound( bits_SOUND_COMBAT, 384, 0.3f );
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 }
 
 void CMedic::StartFollowingHealTarget(CBaseEntity *pTarget)

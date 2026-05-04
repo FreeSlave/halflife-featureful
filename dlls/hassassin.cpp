@@ -327,7 +327,8 @@ void CHAssassin::Shoot()
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
 
-	m_cAmmoLoaded--;
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;
 }
 
 //=========================================================
@@ -442,6 +443,9 @@ void CHAssassin::Spawn()
 	m_iTargetRanderamt	= 20;
 	pev->renderamt		= 20;
 	pev->rendermode		= kRenderTransTexture;
+
+	UpdateClipSizeForWeapon(m_cClipSize);
+	m_cAmmoLoaded = m_cClipSize;
 
 	FollowingMonsterInit();
 }
@@ -990,6 +994,10 @@ Schedule_t *CHAssassin::GetSchedule()
 				}
 			}
 
+			Schedule_t* reloadSched = GetIdleReloadSchedule();
+			if (reloadSched)
+				return reloadSched;
+
 			Schedule_t* utilitySchedule = GetUtilitySchedule();
 			if (utilitySchedule)
 				return utilitySchedule;
@@ -1049,6 +1057,9 @@ Schedule_t *CHAssassin::GetSchedule()
 			{
 				m_iFrustration++;
 			}
+
+			if (HasConditions(bits_COND_NO_AMMO_LOADED))
+				return GetScheduleOfType(SCHED_RELOAD);
 
 			Schedule_t* regenSchedule = GetRegenerationSchedule();
 			if (regenSchedule)

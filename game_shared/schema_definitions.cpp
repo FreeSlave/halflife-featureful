@@ -948,6 +948,24 @@ R"(
 				},
 				"additionalProperties": false
 			},
+			"primary_weapon": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"weapons": {
+							"type": "integer",
+							"minimum": 0
+						},
+						"max_clip": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"additionalProperties": false
+				},
+				"minItems": 1
+			},
 			"take_damage": {
 				"type": "array",
 				"items": {

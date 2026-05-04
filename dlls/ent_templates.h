@@ -338,6 +338,12 @@ public:
 		bool earlyFinish{false};
 	};
 
+	struct WeaponDefinition
+	{
+		optional<int> weaponBit;
+		optional<int> maxClip;
+	};
+
 	const char* OwnVisualName() const;
 	void SetOwnVisualName(const std::string& name) {
 		_ownVisual = name;
@@ -607,6 +613,13 @@ public:
 	void SetRegenerationResourceAmount(float amount) {
 		_regenResourceAmount = amount;
 	}
+
+	const std::vector<WeaponDefinition>& GetWeaponDefinitions() const {
+		return _weaponsDefinitions;
+	}
+	void SetWeaponDefinitions(std::vector<WeaponDefinition>&& weaponDefinitions) {
+		_weaponsDefinitions = weaponDefinitions;
+	}
 private:
 	mutable std::string tempString;
 	std::map<std::string, std::string> _soundScripts;
@@ -663,6 +676,8 @@ private:
 	ActiveRegeneration _activeRegeneration;
 
 	float _regenResourceAmount{0.0f};
+
+	std::vector<WeaponDefinition> _weaponsDefinitions;
 };
 
 class EntTemplateSystem : public JSONConfig

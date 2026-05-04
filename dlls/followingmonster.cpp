@@ -15,6 +15,7 @@ TYPEDESCRIPTION	CFollowingMonster::m_SaveData[] =
 {
 	DEFINE_FIELD( CFollowingMonster, m_followFailPolicy, FIELD_SHORT ),
 	DEFINE_FIELD( CFollowingMonster, m_followagePolicy, FIELD_SHORT ),
+	DEFINE_FIELD( CFollowingMonster, m_cClipSize, FIELD_INTEGER ),
 };
 
 IMPLEMENT_SAVERESTORE( CFollowingMonster, CSquadMonster )
@@ -821,6 +822,37 @@ void CFollowingMonster::StopScript()
 	}
 }
 
+Schedule_t *CFollowingMonster::GetIdleReloadSchedule()
+{
+	if (HasConditions(bits_COND_NO_AMMO_LOADED))
+	{
+		return GetScheduleOfType(SCHED_RELOAD);
+	}
+	else if (m_cClipSize > 0 && m_cAmmoLoaded <= m_cClipSize/2)
+	{
+		return GetScheduleOfType(SCHED_RELOAD_NOT_EMPTY);
+	}
+	return nullptr;
+}
+
+void CFollowingMonster::CheckAmmo()
+{
+	if (m_cClipSize > 0 && m_cAmmoLoaded <= 0)
+	{
+		SetConditions(bits_COND_NO_AMMO_LOADED);
+	}
+}
+
+void CFollowingMonster::CompleteReloadTask()
+{
+	//ALERT(at_console, "CompleteReloadTask. Time: %g. Frame: %g\n", gpGlobals->time, pev->frame);
+	if (m_cClipSize > 0)
+	{
+		m_cAmmoLoaded = m_cClipSize;
+		ClearConditions(bits_COND_NO_AMMO_LOADED);
+	}
+}
+
 void CFollowingMonster::ReportAIState(ALERT_TYPE level)
 {
 	CSquadMonster::ReportAIState(level);
@@ -837,6 +869,11 @@ void CFollowingMonster::ReportAIState(ALERT_TYPE level)
 	default:
 		ALERT(level, "Regular. ");
 		break;
+	}
+
+	if (m_cClipSize > 0)
+	{
+		ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
 	}
 }
 

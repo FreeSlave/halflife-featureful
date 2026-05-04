@@ -72,4 +72,20 @@ The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emul
 ```
 {{% /tab %}}
 
+{{% tab "Reload" %}}
+Make Otis use reload by limiting the clip size:
+
+```json
+{
+    "monster_otis": {
+        "primary_weapon": [
+            {
+                "max_clip": 7
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
 {{% /tabs %}}

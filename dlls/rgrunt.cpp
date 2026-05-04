@@ -165,6 +165,7 @@ void CRGrunt::Spawn()
 	{
 		m_cClipSize = GRUNT_CLIP_SIZE;
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	CTalkMonster::g_talkWaitTime = 0;

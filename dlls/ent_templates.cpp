@@ -1478,6 +1478,21 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			entTemplate.SetRegenerationResourceAmount(amount);
 	});
 
+	HandleJSONMember(value, "primary_weapon", [&entTemplate](const Value& value) {
+		std::vector<EntTemplate::WeaponDefinition> weapons;
+
+		Value::ConstArray arr = value.GetArray();
+		for (const auto& item : arr)
+		{
+			EntTemplate::WeaponDefinition weapon;
+			UpdatePropertyFromJson(weapon.weaponBit, item, "weapons");
+			UpdatePropertyFromJson(weapon.maxClip, item, "max_clip");
+			weapons.push_back(weapon);
+		}
+
+		entTemplate.SetWeaponDefinitions(std::move(weapons));
+	});
+
 	_entTemplates[templateName] = entTemplate;
 }
 

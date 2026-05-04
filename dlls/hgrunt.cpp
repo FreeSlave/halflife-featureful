@@ -98,7 +98,6 @@ TYPEDESCRIPTION	CHGrunt::m_SaveData[] =
 	DEFINE_FIELD( CHGrunt, m_fThrowGrenade, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CHGrunt, m_fStanding, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CHGrunt, m_fFirstEncounter, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CHGrunt, m_cClipSize, FIELD_INTEGER ),
 	DEFINE_FIELD( CHGrunt, m_voicePitch, FIELD_INTEGER ),
 	//DEFINE_FIELD( CShotgun, m_iBrassShell, FIELD_INTEGER ),
 	//DEFINE_FIELD( CShotgun, m_iShotgunShell, FIELD_INTEGER ),
@@ -739,18 +738,6 @@ void CHGrunt::IdleSound()
 }
 
 //=========================================================
-// CheckAmmo - overridden for the grunt because he actually
-// uses ammo! (base class doesn't)
-//=========================================================
-void CHGrunt::CheckAmmo()
-{
-	if( m_cAmmoLoaded <= 0 )
-	{
-		SetConditions( bits_COND_NO_AMMO_LOADED );
-	}
-}
-
-//=========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
@@ -814,7 +801,8 @@ void CHGrunt::Shoot()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -836,7 +824,8 @@ void CHGrunt::Shotgun()
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
@@ -1043,6 +1032,7 @@ void CHGrunt::Spawn()
 	{
 		m_cClipSize = GRUNT_CLIP_SIZE;
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	if (m_desiredSkin == 1)
@@ -1131,9 +1121,6 @@ void CHGrunt::StartTask( Task_t *pTask )
 		// grunt no longer assumes he is covered if he moves
 		Forget( bits_MEMORY_INCOVER );
 		CFollowingMonster::StartTask( pTask );
-		break;
-	case TASK_RELOAD:
-		m_IdealActivity = ACT_RELOAD;
 		break;
 	case TASK_GRUNT_FACE_TOSS_DIR:
 		break;
@@ -1684,7 +1671,7 @@ Task_t	tlGruntHideReload[] =
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
 	{ TASK_REMEMBER, (float)bits_MEMORY_INCOVER },
 	{ TASK_FACE_ENEMY, (float)0 },
-	{ TASK_PLAY_SEQUENCE, (float)ACT_RELOAD },
+	{ TASK_PLAY_RELOAD, (float)0 },
 };
 
 Schedule_t slGruntHideReload[] =
@@ -2187,6 +2174,10 @@ Schedule_t *CHGrunt::GetSchedule()
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_HUNT:
 	{
+		Schedule_t* reloadSched = GetIdleReloadSchedule();
+		if (reloadSched)
+			return reloadSched;
+
 		Schedule_t* utilitySchedule = GetUtilitySchedule();
 		if (utilitySchedule)
 			return utilitySchedule;
@@ -2362,7 +2353,6 @@ Schedule_t *CHGrunt::GetScheduleOfType( int Type )
 void CHGrunt::ReportAIState(ALERT_TYPE level)
 {
 	CFollowingMonster::ReportAIState(level);
-	ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
 	ALERT(level, "Next grenade check: %g (current time is %g). ", m_flNextGrenadeCheck, gpGlobals->time);
 }
 

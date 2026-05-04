@@ -486,6 +486,8 @@ public:
 
 	virtual int AwakeClassify() { return Classify(); }
 
+	virtual void CompleteReloadTask() {}
+
 	//
 	// Glowshell effects
 	//

@@ -598,7 +598,7 @@ Schedule_t slArmWeapon[] =
 Task_t	tlReload[] =
 {
 	{ TASK_STOP_MOVING, 0 },
-	{ TASK_PLAY_SEQUENCE, float(ACT_RELOAD) },
+	{ TASK_PLAY_RELOAD, 0 },
 };
 
 Schedule_t slReload[] =
@@ -609,6 +609,19 @@ Schedule_t slReload[] =
 		bits_COND_HEAVY_DAMAGE,
 		0,
 		"Reload"
+	}
+};
+
+Schedule_t slReloadNotEmpty[] =
+{
+	{
+		tlReload,
+		ARRAYSIZE( tlReload ),
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NEW_ENEMY |
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER,
+		"ReloadNotEmpty"
 	}
 };
 
@@ -1421,6 +1434,7 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slStandoff,
 	slArmWeapon,
 	slReload,
+	slReloadNotEmpty,
 	slRangeAttack1,
 	slRangeAttack2,
 	slPrimaryMeleeAttack,
@@ -1604,6 +1618,10 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 	case SCHED_RELOAD:
 		{
 			return &slReload[0];
+		}
+	case SCHED_RELOAD_NOT_EMPTY:
+		{
+			return &slReloadNotEmpty[0];
 		}
 	case SCHED_ARM_WEAPON:
 		{

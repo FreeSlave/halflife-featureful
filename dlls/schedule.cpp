@@ -480,9 +480,20 @@ void CBaseMonster::RunTask( Task_t *pTask )
 		break;
 	case TASK_PLAY_SEQUENCE:
 	case TASK_PLAY_ACTIVE_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_COMPLETE:
 		{
-			if( m_fSequenceFinished )
+			if (m_fSequenceFinished)
 			{
+				TaskComplete();
+			}
+			break;
+		}
+	case TASK_PLAY_RELOAD:
+		{
+			if (m_fSequenceFinished)
+			{
+				CompleteReloadTask();
 				TaskComplete();
 			}
 			break;
@@ -943,8 +954,39 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_PLAY_SEQUENCE_FACE_ENEMY:
 	case TASK_PLAY_SEQUENCE_FACE_TARGET:
 	case TASK_PLAY_SEQUENCE:
+	case TASK_PLAY_SEQUENCE_OR_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_COMPLETE:
 		{
 			m_IdealActivity = (Activity)(int)pTask->flData;
+
+			if (pTask->iTask == TASK_PLAY_SEQUENCE_OR_IDLE)
+			{
+				if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+				{
+					m_IdealActivity = ACT_IDLE;
+				}
+			}
+			else if (pTask->iTask == TASK_PLAY_SEQUENCE_OR_COMPLETE)
+			{
+				if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+				{
+					m_IdealActivity = ACT_IDLE;
+					TaskComplete();
+				}
+			}
+
+			break;
+		}
+	case TASK_PLAY_RELOAD:
+		{
+			m_IdealActivity = ACT_RELOAD;
+
+			if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+			{
+				CompleteReloadTask();
+				m_IdealActivity = ACT_IDLE;
+				TaskComplete();
+			}
 			break;
 		}
 	case TASK_PLAY_ACTIVE_IDLE:

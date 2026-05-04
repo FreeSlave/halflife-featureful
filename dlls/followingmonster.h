@@ -121,6 +121,9 @@ public:
 	CBaseEntity* PlayerToFace();
 	void StopScript();
 
+	Schedule_t *GetIdleReloadSchedule();
+	void CheckAmmo() override;
+	void CompleteReloadTask() override;
 	void ReportAIState(ALERT_TYPE level) override;
 
 	bool CanRoamAfterCombat() override;
@@ -132,6 +135,8 @@ public:
 
 	short m_followFailPolicy;
 	short m_followagePolicy;
+
+	int m_cClipSize;
 
 	CUSTOM_SCHEDULES
 };

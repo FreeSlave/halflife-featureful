@@ -11,7 +11,7 @@ bookToC: false
 * **sk_shocktrooper_health_factor** - the factor for **sk_shocktrooper_health**. This is 2.5 by default (the value from Opposing Force). This is applied only when the monster's health is set by the skill variable. The health value override in entity properties or in entity template doesn't get multiplied.
 * **sk_shocktrooper_kick** - melee damage.
 * **sk_shocktrooper_gspeed** - the spore speed when it's thrown.
-* **sk_shocktrooper_maxcharge** - the shockrifle clip size.
+* **sk_shocktrooper_maxcharge** - the shockrifle clip size. If set to 0, the clip size is infinite.
 * **sk_shocktrooper_rchgspeed** - the time in seconds between recharging one point of shock ammo.
 * [shock_beam skill variables]({{< ref "shock_beam/#skill-variables" >}}).
 

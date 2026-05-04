@@ -362,8 +362,8 @@ void CBarney::BarneyFirePistol( const char* shotSoundScript, float flDamage )
 
 	InsertAISound( bits_SOUND_COMBAT, 384, 0.3f );
 
-	// UNDONE: Reload?
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 }
 
 //=========================================================
@@ -420,6 +420,9 @@ void CBarney::SpawnImpl(const char* modelName, float health)
 	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
 	SetMySquadCapabilities();
 	SetMyCanOpenDoors(true);
+
+	UpdateClipSizeForWeapon(m_cClipSize);
+	m_cAmmoLoaded = m_cClipSize;
 
 	TalkMonsterInit();
 }
@@ -683,6 +686,9 @@ Schedule_t *CBarney::GetSchedule()
 
 			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) && PrioritizeMeleeAttack() )
 				return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
+			if (HasConditions(bits_COND_NO_AMMO_LOADED))
+				return GetScheduleOfType(SCHED_RELOAD);
 		}
 		break;
 	case MONSTERSTATE_ALERT:	
@@ -694,6 +700,10 @@ Schedule_t *CBarney::GetSchedule()
 			// flinch if hurt
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		}
+
+		Schedule_t* reloadSched = GetIdleReloadSchedule();
+		if (reloadSched)
+			return reloadSched;
 
 		Schedule_t* utilitySchedule = GetUtilitySchedule();
 		if (utilitySchedule)
