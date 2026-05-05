@@ -230,6 +230,8 @@ int GetSequenceFlags( void *pmodel, entvars_t *pev )
 	return pseqdesc->flags;
 }
 
+extern cvar_t animevent_floorframe;
+
 int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame, int minAnimEventFrame, bool sequenceLoops)
 {
 	studiohdr_t *pstudiohdr;
@@ -251,6 +253,13 @@ int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEven
 	{
 		flStart *= ( pseqdesc->numframes - 1 ) / 256.0f;
 		flEnd *= (pseqdesc->numframes - 1) / 256.0f;
+
+		if (animevent_floorframe.value)
+		{
+			flStart = std::floor(flStart);
+			if (flStart != std::floor(flEnd))
+				flEnd = std::floor(flEnd);
+		}
 	}
 	else
 	{
@@ -263,6 +272,11 @@ int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEven
 		// Don't send client-side events to the server AI
 		if( pevent[index].event >= EVENT_CLIENT )
 			continue;
+
+		/*if (pevent[index].event >= 4 && pevent[index].event <= 6)
+		{
+			ALERT(at_console, "Frame: %d. minAnimEventFrame: %d. flStart: %g. flEnd: %g. sequenceLoops: %s\n", pevent[index].frame, minAnimEventFrame, flStart, flEnd, sequenceLoops ? "yes" : "no");
+		}*/
 
 		if( ( pevent[index].frame >= minAnimEventFrame && pevent[index].frame >= flStart && pevent[index].frame < flEnd ) ||
 			( /*( pseqdesc->flags & STUDIO_LOOPING )*/sequenceLoops && flEnd >= pseqdesc->numframes - 1 && pevent[index].frame < flEnd - pseqdesc->numframes + 1 ) )
