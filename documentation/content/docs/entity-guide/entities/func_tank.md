@@ -22,6 +22,11 @@ entityCategory: solid
     - The main tank can be a fake tank (i.e. not firing anything) used only for visuals and as the rotation reference of barrels which actually do damage.
     - You can temporarily disable certain barrels from the set via `Fire Master`.
 * `Custom player weapon volume` - the radius of AI sound produced by a player when he's firing a tank. If it's zero or omitted the default value 1000 is used. Set to negative value to disable AI sound for tank shots.
+* `Bullet gib policy`
+    - `Default` - by default gun tanks in Half-Life were set to always gib if the damage is higher than 16 and never gib otherwise.
+    - `Normal` - apply normal gib rules (gib if damage is significantly higher than the target’s health at the moment of hit, don't gib otherwise).
+    - `Never` - never gib.
+    - `Always` - always gib.
 
 {{% hint info %}}
 ![](/images/spirit.png) The tank can be controlled by [scripted_tanksequence]({{< ref scripted_tanksequence >}}).

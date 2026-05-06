@@ -3235,6 +3235,13 @@
 		2: "MP5"
 		3: "12mm"
 	]
+	bullet_gib_policy(choices) : "Bullet gib policy" =
+	[
+		0: "Default for func_tank"
+		1: "Normal"
+		2: "Never gib"
+		3: "Always gib"
+	]
 ]
 
 @SolidClass = func_tankcontrols : "Tank controls"

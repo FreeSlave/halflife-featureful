@@ -1241,10 +1241,32 @@ class CFuncTankGun : public CFuncTank
 {
 public:
 	void Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker ) override;
+	void KeyValue( KeyValueData *pkvd ) override;
+
+	enum
+	{
+		GIB_POLICY_DEFAULT,
+		GIB_POLICY_NORMAL,
+		GIB_POLICY_NEVER,
+		GIB_POLICY_ALWAYS,
+	};
+
+	int m_gibPolicy;
+
+	int	Save(CSave &save) override;
+	int	Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
 };
 
 LINK_ENTITY_TO_CLASS( func_tank, CFuncTankGun )
 LINK_ENTITY_TO_CLASS( func_tank_of, CFuncTankGun )
+
+TYPEDESCRIPTION CFuncTankGun::m_SaveData[] =
+{
+	DEFINE_FIELD(CFuncTankGun, m_gibPolicy, FIELD_INTEGER),
+};
+
+IMPLEMENT_SAVERESTORE( CFuncTankGun, CFuncTank )
 
 void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker )
 {
@@ -1281,7 +1303,30 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 							break;
 						}
 					}
-					FireBullets( 1, barrelEnd, forward, gTankSpread[m_spread], 4096, flDamage, 1, pAttacker->pev );
+					DamageInfo damageInfo{flDamage, DMG_BULLET};
+
+					switch(m_gibPolicy)
+					{
+					case GIB_POLICY_NORMAL:
+						break;
+					case GIB_POLICY_NEVER:
+						damageInfo.SetGibPolicy(GIB_NEVER);
+						break;
+					case GIB_POLICY_ALWAYS:
+						damageInfo.SetGibPolicy(GIB_ALWAYS);
+						break;
+					default:
+						if (flDamage > 16.0f)
+						{
+							damageInfo.SetGibPolicy(GIB_ALWAYS);
+						}
+						else
+						{
+							damageInfo.SetGibPolicy(GIB_NEVER);
+						}
+						break;
+					}
+					FireBullets( 1, barrelEnd, forward, gTankSpread[m_spread], 4096, damageInfo, 1, pAttacker->pev );
 					RemoveBullet();
 				}
 				else
@@ -1292,6 +1337,17 @@ void CFuncTankGun::Fire( const Vector &barrelEnd, const Vector &forward, CBaseEn
 	}
 	else
 		CFuncTank::Fire( barrelEnd, forward, pAttacker );
+}
+
+void CFuncTankGun::KeyValue( KeyValueData *pkvd )
+{
+	if (FStrEq(pkvd->szKeyName, "bullet_gib_policy"))
+	{
+		m_gibPolicy = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CFuncTank::KeyValue(pkvd);
 }
 
 class CFuncTankLaser : public CFuncTank

@@ -2154,14 +2154,8 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult& tr, const Vector& vecDir, const Vector& vecSrc, const Vector& vecEnd, const DamageInfo& damageInfo, bool decalsPredicted = false)
 {
-	CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-
-	DamageInfo dmgInfo = damageInfo;
-
-	if (FClassnameIs(pevInflictor, "func_tank") && dmgInfo.damage > 16)
-		dmgInfo.SetGibPolicy(GIB_ALWAYS);
-
-	pEntity->TraceAttack( pevInflictor, pevAttacker, dmgInfo, vecDir, &tr );
+	CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+	pEntity->TraceAttack( pevInflictor, pevAttacker, damageInfo, vecDir, &tr );
 
 	if (!decalsPredicted)
 	{
@@ -2180,7 +2174,15 @@ Go to the trouble of combining multiple pellets into a single damage call.
 This version is used by Monsters.
 ================
 */
-void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker )
+void CBaseEntity::FireBullets(unsigned int cShots, const Vector& vecSrc, const Vector& vecDirShooting, const Vector& vecSpread, float flDistance, float flDamage, int iTracerFreq, entvars_t *pevAttacker)
+{
+	DamageInfo damageInfo{flDamage, DMG_BULLET};
+	damageInfo.SetGibPolicy(GIB_NEVER);
+
+	FireBullets(cShots, vecSrc, vecDirShooting, vecSpread, flDistance, damageInfo, iTracerFreq, pevAttacker);
+}
+
+void CBaseEntity::FireBullets(unsigned int cShots, const Vector& vecSrc, const Vector& vecDirShooting, const Vector& vecSpread, float flDistance, const DamageInfo& damageInfo, int iTracerFreq, entvars_t *pevAttacker)
 {
 	static int tracerCount;
 	TraceResult tr;
@@ -2191,8 +2193,6 @@ void CBaseEntity::FireBullets( unsigned int cShots, Vector vecSrc, Vector vecDir
 		pevAttacker = pev;  // the default attacker is ourselves
 
 	ClearMultiDamage();
-	DamageInfo damageInfo{flDamage, DMG_BULLET};
-	damageInfo.SetGibPolicy(GIB_NEVER);
 
 	UTIL_MuzzleLight(vecSrc);
 
