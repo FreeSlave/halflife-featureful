@@ -220,7 +220,7 @@ const char* const json_schemas::definitions = R"(
 				"$ref": "#/attenuation"
 			},
 			"pitch": {
-				"$ref": "#/range_int"
+				"$ref": "#/range_int_non_negative"
 			}
 		},
 		"additionalProperties": false
@@ -303,7 +303,7 @@ const char* const json_schemas::definitions = R"(
 				"$ref": "#/range"
 			},
 			"radius": {
-				"$ref": "#/range_int"
+				"$ref": "#/range_int_non_negative"
 			},
 			"beamflags": {
 				"type": "array",

@@ -47,7 +47,7 @@ const char* const json_schemas::weapons = R"(
 						"$ref": "definitions.json#/attenuation"
 					},
 					"pitch": {
-						"$ref": "definitions.json#/range_int"
+						"$ref": "definitions.json#/range_int_non_negative"
 					},
 					"looped": {
 						"type": "boolean"
