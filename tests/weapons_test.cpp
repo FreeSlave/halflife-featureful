@@ -343,6 +343,7 @@ const char weaponTemplates[] = R"(
 			},
 			"kickback": 2,
 			"damage": {
+				"damage": 42,
 				"gib": "never",
 				"type": ["burn", "slash"],
 				"type_policy": "replace"
@@ -426,6 +427,10 @@ const char weaponTemplates[] = R"(
 	},
 	"weapon_projectile2": {
 		"fire": {
+			"damage": {
+				"min": 13.0,
+				"max": 26.0
+			},
 			"projectile": {
 				"fire_phase_offsets": {
 					"start_angle": 90,
@@ -738,6 +743,8 @@ TEST(Weapons, Parse) {
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.verticalBase, 2.0f);
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.lateralBase, 2.0f);
 
+		EXPECT_TRUE(fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(*fire.damageInfo.Get(false).damage, 42.0f);
 		EXPECT_TRUE(fire.damageInfo.Get(false).gibPolicy.has_value());
 		EXPECT_EQ(*fire.damageInfo.Get(false).gibPolicy, GIB_NEVER);
 		EXPECT_TRUE(fire.damageInfo.Get(false).type.has_value());
@@ -818,5 +825,8 @@ TEST(Weapons, Parse) {
 		EXPECT_NEAR(firePhases[6].up, 0, absError);
 		EXPECT_NEAR(firePhases[7].side, 10, absError);
 		EXPECT_NEAR(firePhases[7].up, 10, absError);
+
+		EXPECT_TRUE(testParams.fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(*testParams.fire.damageInfo.Get(false).damage, FloatRange(13, 26));
 	}
 }

@@ -54,8 +54,8 @@ int JSONStringSetToFlags(const rapidjson::Value& value, F f)
 	return result;
 }
 
-FloatRange FloatRangeFromJSON(const rapidjson::Value& jsonValue);
-IntRange IntRangeFromJSON(const rapidjson::Value& jsonValue);
+optional<FloatRange> FloatRangeFromJSON(const rapidjson::Value& jsonValue);
+optional<IntRange> IntRangeFromJSON(const rapidjson::Value& jsonValue);
 
 template<size_t N>
 bool UpdatePropertyFromJson(fixed_string<N>& str, const rapidjson::Value& jsonValue, const char* key)

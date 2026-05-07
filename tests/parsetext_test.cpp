@@ -71,6 +71,8 @@ TEST(ParseText, FloatRange) {
 
 	EXPECT_FALSE(ParseFloatRange("ab", floatRange));
 	EXPECT_FALSE(ParseFloatRange("0.5,ab", floatRange));
+	EXPECT_FALSE(ParseFloatRange("no comma", floatRange));
+	EXPECT_FALSE(ParseFloatRange("nocomma", floatRange));
 }
 
 TEST(ParseText, IntRange) {
@@ -89,4 +91,6 @@ TEST(ParseText, IntRange) {
 
 	EXPECT_FALSE(ParseIntRange("ab", intRange));
 	EXPECT_FALSE(ParseIntRange("27,ab", intRange));
+	EXPECT_FALSE(ParseIntRange("no comma", intRange));
+	EXPECT_FALSE(ParseIntRange("nocomma", intRange));
 }

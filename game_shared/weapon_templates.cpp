@@ -385,58 +385,31 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			auto UpdateWeaponDamageInfo = [&](DamageInfoPatch& result, const Value& value)
 			{
-				if (value.IsObject())
+				auto maybeResult = FloatRangeFromJSON(value);
+				if (maybeResult.has_value())
 				{
-					auto minIt = value.FindMember("min");
-					if (minIt != value.MemberEnd())
-					{
-						result.damage = FloatRangeFromJSON(value);
-						return;
-					}
-					else
-					{
-						UpdateDamageInfoFromJson(result, value);
-						return;
-					}
+					result.damage = *maybeResult;
 				}
-				if (value.IsNumber() || value.IsArray())
+				else if (value.IsObject())
 				{
-					result.damage = FloatRangeFromJSON(value);
+					UpdateDamageInfoFromJson(result, value);
 				}
 				else if (value.IsString())
 				{
-					const char* str = value.GetString();
-					if (strchr(str, ',') != nullptr)
-					{
-						result.damage = FloatRangeFromJSON(value);
-					}
-					else
-					{
-						result.damage = GetSkillValueRange(value.GetString());
-					}
+					result.damage = GetSkillValueRange(value.GetString());
 				}
 			};
 
 			auto ParseWeaponDamage = [&](const Value& value)
 			{
-				FloatRange result;
-				if (value.IsNumber() || value.IsArray() || value.IsObject())
-				{
-					result = FloatRangeFromJSON(value);
-				}
-				else if (value.IsString())
-				{
-					const char* str = value.GetString();
-					if (strchr(str, ',') != nullptr)
-					{
-						result = FloatRangeFromJSON(value);
-					}
-					else
-					{
-						result = GetSkillValueRange(value.GetString());
-					}
-				}
-				return result;
+				auto maybeResult = FloatRangeFromJSON(value);
+				if (maybeResult.has_value())
+					return *maybeResult;
+
+				if (value.IsString())
+					return GetSkillValueRange(value.GetString());
+
+				return FloatRange();
 			};
 
 			HandleJSONMember(value, "damage", [&](const Value& value) {

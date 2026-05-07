@@ -355,84 +355,126 @@ bool UpdatePropertyFromJson(Color3& color, const Value& jsonValue, const char* k
 	return false;
 }
 
-FloatRange FloatRangeFromJSON(const rapidjson::Value& value)
+optional<FloatRange> FloatRangeFromJSON(const Value& value)
 {
+	auto fixupRange = [](FloatRange& floatRange)
+	{
+		if (floatRange.min > floatRange.max) {
+			floatRange.min = floatRange.max;
+		}
+		return floatRange;
+	};
+
+	optional<FloatRange> emptyResult;
 	FloatRange floatRange;
 	if (value.IsNumber())
 	{
 		floatRange.min = value.GetFloat();
 		floatRange.max = floatRange.min;
+		return optional<FloatRange>(floatRange);
 	}
 	else if (value.IsObject())
 	{
-		auto minIt = value.FindMember("min");
-		auto maxIt = value.FindMember("max");
-		if (minIt != value.MemberEnd())
+		if (value.MemberCount() == 2)
 		{
-			if (minIt->value.IsFloat())
-				floatRange.min = minIt->value.GetFloat();
-		}
-		if (maxIt != value.MemberEnd())
-		{
-			if (maxIt->value.IsFloat())
-				floatRange.max = maxIt->value.GetFloat();
+			auto minIt = value.FindMember("min");
+			if (minIt == value.MemberEnd())
+				return emptyResult;
+			auto maxIt = value.FindMember("max");
+			if (maxIt == value.MemberEnd())
+				return emptyResult;
+
+			if (!minIt->value.IsNumber() || !maxIt->value.IsNumber())
+				return emptyResult;
+
+			floatRange.min = minIt->value.GetFloat();
+			floatRange.max = maxIt->value.GetFloat();
+			return optional<FloatRange>(fixupRange(floatRange));
 		}
 	}
 	else if (value.IsString())
 	{
-		ParseFloatRange(value.GetString(), floatRange);
+		if (ParseFloatRange(value.GetString(), floatRange))
+		{
+			return optional<FloatRange>(fixupRange(floatRange));
+		}
+		else
+		{
+			return emptyResult;
+		}
 	}
 	else if (value.IsArray())
 	{
 		Value::ConstArray arr = value.GetArray();
-		floatRange.min = arr[0].GetFloat();
-		floatRange.max = arr[1].GetFloat();
+		if (arr.Size() == 2 && arr[0].IsNumber() && arr[1].IsNumber())
+		{
+			floatRange.min = arr[0].GetFloat();
+			floatRange.max = arr[1].GetFloat();
+			return optional<FloatRange>(fixupRange(floatRange));
+		}
 	}
-
-	if (floatRange.min > floatRange.max) {
-		floatRange.min = floatRange.max;
-	}
-	return floatRange;
+	return emptyResult;
 }
 
-IntRange IntRangeFromJSON(const rapidjson::Value& value)
+optional<IntRange> IntRangeFromJSON(const rapidjson::Value& value)
 {
+	auto fixupRange = [](IntRange& intRange)
+	{
+		if (intRange.min > intRange.max) {
+			intRange.min = intRange.max;
+		}
+		return intRange;
+	};
+
+	optional<IntRange> emptyResult;
 	IntRange intRange;
 	if (value.IsInt())
 	{
 		intRange.min = value.GetInt();
 		intRange.max = intRange.min;
+		return optional<IntRange>(intRange);
 	}
 	else if (value.IsObject())
 	{
-		auto minIt = value.FindMember("min");
-		auto maxIt = value.FindMember("max");
-		if (minIt != value.MemberEnd())
+		if (value.MemberCount() == 2)
 		{
-			if (minIt->value.IsInt())
-				intRange.min = minIt->value.GetInt();
-		}
-		if (maxIt != value.MemberEnd())
-		{
-			if (maxIt->value.IsInt())
-				intRange.max = maxIt->value.GetInt();
+			auto minIt = value.FindMember("min");
+			if (minIt == value.MemberEnd())
+				return emptyResult;
+			auto maxIt = value.FindMember("max");
+			if (maxIt == value.MemberEnd())
+				return emptyResult;
+
+			if (!minIt->value.IsInt() || !maxIt->value.IsInt())
+				return emptyResult;
+
+			intRange.min = minIt->value.GetInt();
+			intRange.max = maxIt->value.GetInt();
+			return optional<IntRange>(fixupRange(intRange));
 		}
 	}
 	else if (value.IsString())
 	{
-		ParseIntRange(value.GetString(), intRange);
+		if (ParseIntRange(value.GetString(), intRange))
+		{
+			return optional<IntRange>(fixupRange(intRange));
+		}
+		else
+		{
+			return emptyResult;
+		}
 	}
 	else if (value.IsArray())
 	{
 		Value::ConstArray arr = value.GetArray();
-		intRange.min = arr[0].GetInt();
-		intRange.max = arr[1].GetInt();
+		if (arr.Size() == 2 && arr[0].IsInt() && arr[1].IsInt())
+		{
+			intRange.min = arr[0].GetInt();
+			intRange.max = arr[1].GetInt();
+			return optional<IntRange>(fixupRange(intRange));
+		}
 	}
-
-	if (intRange.min > intRange.max) {
-		intRange.min = intRange.max;
-	}
-	return intRange;
+	return emptyResult;
 }
 
 bool UpdatePropertyFromJson(FloatRange& floatRange, const Value& jsonValue, const char* key)
@@ -440,8 +482,12 @@ bool UpdatePropertyFromJson(FloatRange& floatRange, const Value& jsonValue, cons
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		floatRange = FloatRangeFromJSON(it->value);
-		return true;
+		optional<FloatRange> range = FloatRangeFromJSON(it->value);
+		if (range.has_value())
+		{
+			floatRange = *range;
+			return true;
+		}
 	}
 	return false;
 }
@@ -451,50 +497,12 @@ bool UpdatePropertyFromJson(IntRange& intRange, const Value& jsonValue, const ch
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		const Value& value = it->value;
-		if (value.IsInt())
+		optional<IntRange> range = IntRangeFromJSON(it->value);
+		if (range.has_value())
 		{
-			intRange.min = value.GetInt();
-			intRange.max = intRange.min;
+			intRange = *range;
+			return true;
 		}
-		else if (value.IsObject())
-		{
-			auto minIt = value.FindMember("min");
-			auto maxIt = value.FindMember("max");
-			if (minIt != value.MemberEnd())
-			{
-				if (minIt->value.IsInt())
-					intRange.min = minIt->value.GetInt();
-			}
-			if (maxIt != value.MemberEnd())
-			{
-				if (maxIt->value.IsInt())
-					intRange.max = maxIt->value.GetInt();
-			}
-		}
-		else if (value.IsString())
-		{
-			const char* str = value.GetString();
-			const char* found = strchr(str, ',');
-			intRange.min = atoi(str);
-			if (found) {
-				found++;
-				intRange.max = atoi(found);
-			} else {
-				intRange.max = intRange.min;
-			}
-		}
-		else if (value.IsArray())
-		{
-			Value::ConstArray arr = value.GetArray();
-			intRange.min = arr[0].GetInt();
-			intRange.max = arr[1].GetInt();
-		}
-
-		if (intRange.min > intRange.max) {
-			intRange.min = intRange.max;
-		}
-		return true;
 	}
 	return false;
 }
