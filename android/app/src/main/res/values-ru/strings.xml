@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="launch_button">Запустить игру!</string>
+    <string name="cmd_args_text">Аргументы командной строки</string>
+    <string name="engine_not_found_title">Движок не найден!</string>
+    <string name="engine_not_found_msg">Xash3D FWGS не установлен на вашем девайсе. Вы хотите скачать движок с GitHub?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+</resources>

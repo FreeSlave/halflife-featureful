@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="launch_button">Launch the game!</string>
+    <string name="cmd_args_text">Command-line arguments</string>
+    <string name="engine_not_found_title">Engine not found!</string>
+    <string name="engine_not_found_msg">Xash3D FWGS not installed on your device. Would you like to download it from GitHub?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+</resources>
