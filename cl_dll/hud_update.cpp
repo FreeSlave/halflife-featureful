@@ -24,6 +24,7 @@ void CL_ResetButtonBits( int bits );
 
 extern float v_idlescale;
 float in_fov;
+float g_flRenderFOV = 0;
 extern void HUD_SetCmdBits( int bits );
 
 int CHud::UpdateClientData( client_data_t *cdata, float time )
@@ -47,7 +48,7 @@ int CHud::UpdateClientData( client_data_t *cdata, float time )
 
 	Think();
 
-	cdata->fov = m_iFOV;
+	cdata->fov = g_flRenderFOV = cdata->fov + (m_iFOV - cdata->fov);
 
 	v_idlescale = m_iConcussionEffect;
 
