@@ -134,7 +134,7 @@ struct ChildrenInfo
 
 struct SkillReplacement
 {
-	enum
+	enum : short
 	{
 		STRING,
 		COMMON,
@@ -146,7 +146,7 @@ struct SkillReplacement
 	FloatRange easy{0.0f};
 	FloatRange medium{0.0f};
 	FloatRange hard{0.0f};
-	int type{STRING};
+	short type{STRING};
 };
 
 struct EntTemplate

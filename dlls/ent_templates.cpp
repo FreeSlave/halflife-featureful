@@ -1340,7 +1340,14 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			if (*skillName)
 			{
 				SkillReplacement replacement;
-				if (skillValue.IsString())
+
+				auto floatRange = FloatRangeFromJSON(skillValue);
+				if (floatRange.has_value())
+				{
+					replacement.easy = replacement.medium = replacement.hard = *floatRange;
+					replacement.type = SkillReplacement::COMMON;
+				}
+				else if (skillValue.IsString())
 				{
 					const char* str = skillValue.GetString();
 					if (*str == '*')
@@ -1355,23 +1362,20 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 						replacement.type = SkillReplacement::STRING;
 					}
 				}
-				else if (skillValue.IsNumber())
-				{
-					replacement.easy = replacement.medium = replacement.hard = skillValue.GetFloat();
-					replacement.type = SkillReplacement::COMMON;
-				}
 				else if (skillValue.IsArray())
 				{
 					Value::ConstArray arr = skillValue.GetArray();
 					if (arr.Size() == 3)
 					{
 						replacement.type = SkillReplacement::DIFFICULTIES;
-						replacement.easy = arr[0].GetFloat();
-						replacement.medium = arr[1].GetFloat();
-						replacement.hard = arr[2].GetFloat();
+						replacement.easy = FloatRangeFromJSON(arr[0]).value_or(FloatRange());
+						replacement.medium = FloatRangeFromJSON(arr[1]).value_or(FloatRange());
+						replacement.hard = FloatRangeFromJSON(arr[2]).value_or(FloatRange());
 					}
 				}
-				entTemplate.SetSkillReplacement(skillName, replacement);
+
+				if (replacement.type != SkillReplacement::STRING || !replacement.replacement.empty())
+					entTemplate.SetSkillReplacement(skillName, replacement);
 			}
 		}
 	});

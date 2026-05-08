@@ -1295,7 +1295,14 @@ An object that allows to override the skill values for the entity template. See 
             "islave_health": "barney_health",
             "islave_zap_rate": "*1.5",
             "islave_dmg_zap": 40,
-            "islave_dmg_claw": [10, 15, 20]
+            "islave_dmg_claw": [10, 15, 20],
+
+            // ranges are supported:
+            "islave_delay_zap": [
+                [0.5, 4.0],
+                [0.5, 3.5],
+                [0.5, 3.0]
+            ]
         }
     }
 }
@@ -1306,7 +1313,9 @@ Each object property represents an override. The keys are the difficulty-indepen
 * As a string - the name of another skill variable (with or without *sk_* prefix). If the replacement variable doesn't exist, the warning is printed in the console and the original is used.
 * As a string starting with `*` followed by a number - the number works as a multiplier for the original skill value.
 * As a number - the same value will be used on all difficulties.
+* As a [range]({{< ref "JSON/#range" >}}) - the same range will be used on all difficulties.
 * As an array of three numbers - values for easy, medium and hard difficulties.
+* As an array of three [ranges]({{< ref "JSON/#range" >}}) - for easy, medium and hard difficulties.
 
 {{% hint info %}}
 Skill values are replaced as whole - it's not possible to replace skill value for a specific difficulty only.

@@ -42,7 +42,8 @@ const char entities[] = R"(
 			"islave_health": 45,
 			"islave_zap_rate": [1.2, 1.3, 1.4],
 			"scientist_health": "*2",
-			"hgrunt_health": "barney_health"
+			"hgrunt_health": "barney_health",
+			"plr_9mm_bullet": [[8.0,9.0], {"min":10, "max":11}, 12]
 		}
 	}
 }
@@ -96,6 +97,8 @@ TEST(SkillData, Parse)
 	EXPECT_EQ(::GetSkillValue("islave_zap_rate", entTemplate, entTemplateName), 1.2f);
 	EXPECT_EQ(::GetSkillValue("scientist_health", entTemplate, entTemplateName), 40.0f);
 	EXPECT_EQ(::GetSkillValue("hgrunt_health", entTemplate, entTemplateName), 35.0f);
+	EXPECT_EQ(::GetSkillValue("plr_crowbar", entTemplate, entTemplateName), 10.0f);
+	EXPECT_EQ(::GetSkillValueRange("plr_9mm_bullet", entTemplate, entTemplateName), FloatRange(8.0f, 9.0f));
 
 	g_iSkillLevel = SKILL_MEDIUM;
 
@@ -111,6 +114,8 @@ TEST(SkillData, Parse)
 	EXPECT_EQ(::GetSkillValue("scientist_health"), 20.0f);
 	EXPECT_EQ(::GetSkillValue("plr_9mm_bullet"), 8.0f);
 	EXPECT_EQ(::GetSkillValue("hgrunt_gren_launch_delay"), 5.0f);
+
+	EXPECT_EQ(::GetSkillValueRange("plr_9mm_bullet", entTemplate, entTemplateName), FloatRange(10.0f, 11.0f));
 
 	g_iSkillLevel = SKILL_HARD;
 
@@ -128,4 +133,6 @@ TEST(SkillData, Parse)
 	EXPECT_EQ(::GetSkillValueRange("hgrunt_gren_launch_delay"), FloatRange(2.0f, 5.0f));
 
 	EXPECT_EQ(::GetSkillValueRange("hgrunt_gren_launch_delay"), ::GetSkillValueRange("sk_hgrunt_gren_launch_delay"));
+
+	EXPECT_EQ(::GetSkillValue("plr_9mm_bullet", entTemplate, entTemplateName), 12.0f);
 }

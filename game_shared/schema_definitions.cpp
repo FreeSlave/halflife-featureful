@@ -1056,15 +1056,25 @@ R"(
 			},
 			"skill": {
 				"type": "object",
-				"additionalProperties": {
-					"type": ["string", "number", "array"],
-					"minLength": 1,
-					"minItems": 3,
-					"maxItems": 3,
-					"items": {
-						"type": "number"
+				"patternProperties": {
+					"^[^ ]+$": {
+						"oneOf": [
+							{
+								"$ref": "#/range"
+							},
+							{
+								"type": ["string", "array"],
+								"pattern": "^[^ ]+$",
+								"minItems": 3,
+								"maxItems": 3,
+								"items": {
+									"$ref": "#/range"
+								}
+							}
+						]
 					}
-				}
+				},
+				"additionalProperties": false
 			},
 			"displayname": {
 				"type": "string"
