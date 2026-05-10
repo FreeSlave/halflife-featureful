@@ -1289,13 +1289,13 @@ void CBaseEntity::SetMyHealth(const float defaultHealth)
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (!pev->health) {
 		if (entTemplate && entTemplate->IsHealthDefined())
-			pev->health = entTemplate->Health();
+			pev->health = GetSkillValue(entTemplate->GetHealth());
 		else
 			pev->health = defaultHealth;
 	}
 
 	if (entTemplate)
-		m_regenResource = entTemplate->GetRegenerationResourceAmount();
+		m_regenResource = GetSkillValue(entTemplate->GetRegenerationResourceAmount());
 }
 
 const Visual* CBaseEntity::MyOwnVisual()
@@ -1949,6 +1949,36 @@ float CBaseEntity::GetSkillValue(const char *name)
 	const EntTemplate* ownerEntTemplate = GetOwnerEntTemplate();
 
 	return ::GetSkillValue(name, entTemplate, STRING(m_entTemplate), ownerEntTemplate, STRING(m_ownerEntTemplate));
+}
+
+FloatRange CBaseEntity::GetSkillValueRange(const SkillBasedValue &skillValue)
+{
+	if (skillValue.type == SkillBasedValue::COMMON)
+	{
+		return skillValue.medium;
+	}
+	else if (skillValue.type == SkillBasedValue::STRING)
+	{
+		if (skillValue.skillVariable.empty())
+			return FloatRange();
+
+		return GetSkillValueRange(skillValue.skillVariable.c_str());
+	}
+
+	if (g_iSkillLevel >= SKILL_HARD)
+	{
+		return skillValue.hard;
+	}
+	else if (g_iSkillLevel == SKILL_MEDIUM)
+	{
+		return skillValue.medium;
+	}
+	return skillValue.easy;
+}
+
+float CBaseEntity::GetSkillValue(const SkillBasedValue &skillValue)
+{
+	return RandomizeSkillValue(GetSkillValueRange(skillValue));
 }
 
 void CBaseEntity::InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration)

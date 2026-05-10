@@ -60,6 +60,28 @@ const char* const json_schemas::definitions = R"(
 		"minItems": 2,
 		"maxItems": 2
 	},
+	"range_positive": {
+		"type": ["object", "number", "array"],
+		"exclusiveMinimum": 0.0,
+		"properties": {
+			"min": {
+				"type": "number",
+				"exclusiveMinimum": 0.0
+			},
+			"max": {
+				"type": "number",
+				"exclusiveMinimum": 0.0
+			}
+		},
+		"required": ["min", "max"],
+		"additionalProperties": false,
+		"items": {
+			"type": "number",
+			"exclusiveMinimum": 0.0
+		},
+		"minItems": 2,
+		"maxItems": 2
+	},
 	"range_int": {
 		"type": ["string", "object", "integer", "array"],
 		"pattern": "^[0-9]+(,[0-9]+)?$",
@@ -126,6 +148,44 @@ const char* const json_schemas::definitions = R"(
 			"type": "string"
 		},
 		"uniqueItems": true
+	},
+	"skill_value_non_negative": {
+		"oneOf": [
+			{
+				"$ref": "#/range_non_negative"
+			},
+			{
+				"type": "string",
+				"pattern": "^[^ ]+$"
+			},
+			{
+				"type": "array",
+				"minItems": 3,
+				"maxItems": 3,
+				"items": {
+					"$ref": "#/range_non_negative"
+				}
+			}
+		]
+	},
+	"skill_value_positive": {
+		"oneOf": [
+			{
+				"$ref": "#/range_positive"
+			},
+			{
+				"type": "string",
+				"pattern": "^[^ ]+$"
+			},
+			{
+				"type": "array",
+				"minItems": 3,
+				"maxItems": 3,
+				"items": {
+					"$ref": "#/range_positive"
+				}
+			}
+		]
 	},
 	"object_size": {
 		"type": ["object", "string"],
@@ -854,8 +914,7 @@ R"(
 				"exclusiveMaximum": 1.0
 			},
 			"health": {
-				"type": "number",
-				"exclusiveMinimum": 0.0
+				"$ref": "#/skill_value_positive"
 			},
 			"soundscripts": {
 				"type": "object",
@@ -1202,8 +1261,7 @@ R"(
 				"type": "object",
 				"properties": {
 					"amount": {
-						"type": "number",
-						"minimum": 0
+						"$ref": "#/skill_value_positive"
 					}
 				},
 				"additionalProperties": false

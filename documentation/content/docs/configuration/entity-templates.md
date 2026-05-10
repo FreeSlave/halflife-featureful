@@ -232,12 +232,18 @@ Example:
 
 ### health
 
-Default health amount for the monster belonging to this template. Currently only constant numbers are supported (i.e. it doesn't depend on the chosen game difficulty).
+Default health amount for the monster belonging to this template. This is a [skill based value](#skill-based-value).
 
 ```json
 {
-    "template_name": {
+    "template1": {
         "health": 100
+    },
+    "template2": {
+        "health": [90, 100, 110]
+    },
+    "template3": {
+        "health": "agrunt_health"
     }
 }
 ```
@@ -1534,7 +1540,7 @@ An object representing the *standard* regeneration resource possibly used by [pa
 
 Properties:
 
-* `"amount"` - initial amount of regeneration resource. Default value is 0.
+* `"amount"` - initial amount of regeneration resource. This is a [skill based value](#skill-based-value).
 
 ## Inheriting templates
 
@@ -1577,6 +1583,16 @@ Some properties can't be extended via the entity template inheritance. E.g. [tak
 {{% /hint %}}
 
 ## Types
+
+### skill based value
+
+The value can be:
+
+* A singular number - the same value will be used on all difficulties.
+* A [range]({{< ref "JSON/#range" >}}).
+* An array of three numbers - values for easy, medium and hard difficulties.
+* An array of three [ranges]({{< ref "JSON/#range" >}}) - for easy, medium and hard difficulties.
+* A string - the name of a skill variable (with or without `sk_` prefix).
 
 ### damage_info
 

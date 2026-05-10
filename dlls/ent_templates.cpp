@@ -1040,9 +1040,11 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 	});
 
-	HandleJSONMember(value, "health", [&entTemplate](const Value& value) {
-		entTemplate.SetHealth(value.GetFloat());
-	});
+	{
+		SkillBasedValue health;
+		if (UpdatePropertyFromJson(health, value, "health"))
+			entTemplate.SetHealth(std::move(health));
+	}
 
 	HandleJSONMember(value, "field_of_view", [&entTemplate](const Value& value) {
 		if (value.IsNumber())
@@ -1477,7 +1479,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	});
 
 	HandleJSONMember(value, "regeneration_resource", [&entTemplate](const Value& value) {
-		float amount;
+		SkillBasedValue amount;
 		if (UpdatePropertyFromJson(amount, value, "amount"))
 			entTemplate.SetRegenerationResourceAmount(amount);
 	});

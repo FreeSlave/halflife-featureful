@@ -10,6 +10,7 @@
 #include "optional.h"
 #include "tribool.h"
 #include "ent_filter.h"
+#include "skillbasedvalue.h"
 
 #include <map>
 #include <string>
@@ -421,12 +422,12 @@ public:
 	}
 
 	bool IsHealthDefined() const {
-		return _health.has_value();
+		return _health.IsDefined();
 	}
-	float Health() const {
-		return _health.value_or(0.0f);
+	const SkillBasedValue& GetHealth() const {
+		return _health;
 	}
-	void SetHealth(float health) {
+	void SetHealth(SkillBasedValue&& health) {
 		_health = health;
 	}
 
@@ -607,10 +608,10 @@ public:
 		_activeRegeneration = activeRegeneration;
 	}
 
-	float GetRegenerationResourceAmount() const {
+	const SkillBasedValue& GetRegenerationResourceAmount() const {
 		return _regenResourceAmount;
 	}
-	void SetRegenerationResourceAmount(float amount) {
+	void SetRegenerationResourceAmount(const SkillBasedValue& amount) {
 		_regenResourceAmount = amount;
 	}
 
@@ -636,7 +637,7 @@ private:
 	optional<int> _classify;
 	optional<int> _bloodColor;
 	HitGroupToBlood _hitGroupToBlood;
-	optional<float> _health;
+	SkillBasedValue _health;
 	optional<float> _fieldOfView;
 	optional<ObjectSize> _size;
 	optional<ObjectSize> _collisionBox;
@@ -675,7 +676,7 @@ private:
 	PassiveRegeneration _passiveRegeneration;
 	ActiveRegeneration _activeRegeneration;
 
-	float _regenResourceAmount{0.0f};
+	SkillBasedValue _regenResourceAmount;
 
 	std::vector<WeaponDefinition> _weaponsDefinitions;
 };

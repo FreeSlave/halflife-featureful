@@ -28,6 +28,7 @@
 #include "relationship.h"
 #include "optional.h"
 #include "damageinfo.h"
+#include "skillbasedvalue.h"
 #include <type_traits>
 /*
 
@@ -685,6 +686,8 @@ public:
 
 	FloatRange GetSkillValueRange(const char* name);
 	float GetSkillValue(const char* name);
+	FloatRange GetSkillValueRange(const SkillBasedValue& skillValue);
+	float GetSkillValue(const SkillBasedValue& skillValue);
 
 	void InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration);
 	void InsertAISound(int iType, int iVolume, float flDuration);

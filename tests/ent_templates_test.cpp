@@ -270,7 +270,7 @@ TEST(EntityTemplates, Parse)
 		EXPECT_EQ(gonome->BloodColor(), BLOOD_COLOR_RED);
 
 		EXPECT_TRUE(gonome->IsHealthDefined());
-		EXPECT_EQ(gonome->Health(), 225.0f);
+		EXPECT_EQ(gonome->GetHealth().medium.min, 225.0f);
 
 		EXPECT_TRUE(gonome->IsFielfOfViewDefined());
 		EXPECT_EQ(gonome->FieldOfView(), 0.3f);
@@ -810,7 +810,7 @@ TEST(EntityTemplates, Inheritance)
 		const EntTemplate* alienSlave = es.GetTemplate("monster_alien_slave");
 		ASSERT_TRUE(alienSlave != nullptr);
 
-		EXPECT_EQ(alienSlave->Health(), 100.0f);
+		EXPECT_EQ(alienSlave->GetHealth().medium.min, 100.0f);
 
 		SquadCapabilities squadCaps = alienSlave->GetSquadCapabilities();
 		EXPECT_TRUE(squadCaps.canRecruit);
@@ -827,7 +827,7 @@ TEST(EntityTemplates, Inheritance)
 		const EntTemplate* vortAlt = es.GetTemplate("vort_alt");
 		ASSERT_TRUE(vortAlt != nullptr);
 
-		EXPECT_EQ(vortAlt->Health(), 100.0f);
+		EXPECT_EQ(vortAlt->GetHealth().medium.min, 100.0f);
 		EXPECT_EQ(vortAlt->FieldOfView(), -1.0f);
 
 		SquadCapabilities squadCaps = vortAlt->GetSquadCapabilities();

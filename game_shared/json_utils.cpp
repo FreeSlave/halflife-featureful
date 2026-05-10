@@ -533,6 +533,53 @@ bool UpdatePropertyFromJson(tribool& b, const Value& jsonValue, const char* key)
 	return false;
 }
 
+optional<SkillBasedValue> SkillBasedValueFromJSON(const Value& value)
+{
+	optional<SkillBasedValue> result;
+	SkillBasedValue skillValue;
+	auto floatRange = FloatRangeFromJSON(value);
+	if (floatRange.has_value())
+	{
+		skillValue.easy = skillValue.medium = skillValue.hard = *floatRange;
+		skillValue.type = SkillBasedValue::COMMON;
+		result = skillValue;
+	}
+	else if (value.IsString())
+	{
+		skillValue.skillVariable = value.GetString();
+		skillValue.type = SkillBasedValue::STRING;
+		result = skillValue;
+	}
+	else if (value.IsArray())
+	{
+		Value::ConstArray arr = value.GetArray();
+		if (arr.Size() == 3)
+		{
+			skillValue.type = SkillBasedValue::DIFFICULTIES;
+			skillValue.easy = FloatRangeFromJSON(arr[0]).value_or(FloatRange());
+			skillValue.medium = FloatRangeFromJSON(arr[1]).value_or(FloatRange());
+			skillValue.hard = FloatRangeFromJSON(arr[2]).value_or(FloatRange());
+			result = skillValue;
+		}
+	}
+	return result;
+}
+
+bool UpdatePropertyFromJson(SkillBasedValue& skillValue, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		optional<SkillBasedValue> skillBasedValue = SkillBasedValueFromJSON(it->value);
+		if (skillBasedValue.has_value())
+		{
+			skillValue = std::move(*skillBasedValue);
+			return true;
+		}
+	}
+	return false;
+}
+
 static bool ParseAttenuation(const char* str, float& attenuation)
 {
 	constexpr std::pair<const char*, float> attenuations[] = {
