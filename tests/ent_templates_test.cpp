@@ -353,7 +353,8 @@ TEST(EntityTemplates, Parse)
 		const DamageInfoPatch damageInfo = traceHullAttack->damageInfo;
 
 		EXPECT_TRUE(damageInfo.damage.has_value());
-		EXPECT_EQ(*damageInfo.damage, 42.0f);
+		EXPECT_EQ(damageInfo.damage->type, SkillBasedValue::COMMON);
+		EXPECT_EQ(damageInfo.damage->medium.min, 42.0f);
 
 		EXPECT_TRUE(damageInfo.type.has_value());
 		EXPECT_EQ(*damageInfo.type, DMG_ACID|DMG_POISON);

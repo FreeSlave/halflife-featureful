@@ -688,6 +688,7 @@ public:
 	float GetSkillValue(const char* name);
 	FloatRange GetSkillValueRange(const SkillBasedValue& skillValue);
 	float GetSkillValue(const SkillBasedValue& skillValue);
+	void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
 
 	void InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration);
 	void InsertAISound(int iType, int iVolume, float flDuration);

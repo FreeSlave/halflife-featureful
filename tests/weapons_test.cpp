@@ -657,7 +657,8 @@ TEST(Weapons, Parse) {
 		const WeaponParameters::Fire& fire = testParams.fire;
 
 		EXPECT_EQ(fire.fireType.Get(false), WeaponParameters::Fire::BULLETS);
-		EXPECT_EQ(fire.damageInfo.Get(false).GetDamageRange(), 13.0f);
+		ASSERT_TRUE(fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(fire.damageInfo.Get(false).damage->medium.min, 13.0f);
 		ASSERT_EQ(fire.spread.GetRuleList(false).size(), 1);
 		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().x, VECTOR_CONE_5DEGREES.x);
 		EXPECT_EQ(fire.spread.GetRuleList(false).front().GetStaticSpread().y, VECTOR_CONE_5DEGREES.y);
@@ -685,7 +686,8 @@ TEST(Weapons, Parse) {
 		EXPECT_EQ(fire.pushbackForce.Get(false), 100.0f);
 		EXPECT_TRUE(fire.pushbackVertical.Get(false));
 
-		EXPECT_EQ(fire.damageInfo.Get(true).GetDamageRange(), FloatRange(7.0f, 9.0f));
+		ASSERT_TRUE(fire.damageInfo.Get(true).damage.has_value());
+		EXPECT_EQ(fire.damageInfo.Get(true).damage->medium, FloatRange(7.0f, 9.0f));
 		ASSERT_EQ(fire.soundAdditional.Get(true).waves.size(), 1);
 		EXPECT_STREQ(fire.soundAdditional.Get(true).waves[0], "weapons/test.wav");
 		EXPECT_EQ(fire.soundAdditional.Get(true).channel, CHAN_ITEM);
@@ -743,8 +745,8 @@ TEST(Weapons, Parse) {
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.verticalBase, 2.0f);
 		EXPECT_EQ(fire.kickBack.GetRuleList(false)[0].kickBack.lateralBase, 2.0f);
 
-		EXPECT_TRUE(fire.damageInfo.Get(false).damage.has_value());
-		EXPECT_EQ(*fire.damageInfo.Get(false).damage, 42.0f);
+		ASSERT_TRUE(fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(fire.damageInfo.Get(false).damage->medium.min, 42.0f);
 		EXPECT_TRUE(fire.damageInfo.Get(false).gibPolicy.has_value());
 		EXPECT_EQ(*fire.damageInfo.Get(false).gibPolicy, GIB_NEVER);
 		EXPECT_TRUE(fire.damageInfo.Get(false).type.has_value());
@@ -785,7 +787,8 @@ TEST(Weapons, Parse) {
 		const WeaponParameters& testParams = *pTestParams;
 
 		EXPECT_EQ(testParams.fire.fireType.Get(false), WeaponParameters::Fire::PROJECTILE);
-		EXPECT_EQ(testParams.fire.damageInfo.Get(false).GetDamageRange(), FloatRange(50, 100));
+		ASSERT_TRUE(testParams.fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(testParams.fire.damageInfo.Get(false).damage->medium, FloatRange(50, 100));
 		EXPECT_EQ(testParams.fire.projectileName.Get(false), "grenade");
 		EXPECT_EQ(testParams.fire.projectileEntTemplate.Get(false), "template_name");
 		EXPECT_EQ(testParams.fire.projectileOffsetForward.Get(false), 16.0f);
@@ -826,7 +829,7 @@ TEST(Weapons, Parse) {
 		EXPECT_NEAR(firePhases[7].side, 10, absError);
 		EXPECT_NEAR(firePhases[7].up, 10, absError);
 
-		EXPECT_TRUE(testParams.fire.damageInfo.Get(false).damage.has_value());
-		EXPECT_EQ(*testParams.fire.damageInfo.Get(false).damage, FloatRange(13, 26));
+		ASSERT_TRUE(testParams.fire.damageInfo.Get(false).damage.has_value());
+		EXPECT_EQ(testParams.fire.damageInfo.Get(false).damage->medium, FloatRange(13, 26));
 	}
 }

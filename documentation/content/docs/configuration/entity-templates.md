@@ -1598,7 +1598,7 @@ The value can be:
 
 This type describes the damage data. It consists of the following properties:
 
-* `"damage"` - the amount of damage.
+* `"damage"` - the amount of damage. This is a [skill based value](#skill-based-value).
 * `"type"` - [damage type](#damage_type).
 * `"type_policy"` - how to apply the damage types defined in `"type"` property.
     - `"replace"` - set the types from the `"type"` property only. Remove the types defined by default or inherited from the base template.

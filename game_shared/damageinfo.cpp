@@ -78,38 +78,3 @@ int ParseDamageType(const char *type)
 	}
 	return -1;
 }
-
-void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo)
-{
-	if (damageInfo.damage)
-	{
-		curDamageInfo.damage = RandomizeNumberFromRange(*damageInfo.damage);
-	}
-	if (damageInfo.type)
-	{
-		if (damageInfo.typePolicy == DamageInfoPatch::ADD_DAMAGE_TYPE)
-		{
-			curDamageInfo.type |= *damageInfo.type;
-		}
-		else if (damageInfo.typePolicy == DamageInfoPatch::REPLACE_DAMAGE_TYPE)
-		{
-			curDamageInfo.type = *damageInfo.type;
-		}
-	}
-	if (!indeterminate(damageInfo.nonLethal))
-	{
-		curDamageInfo.SetNonLethal((bool)damageInfo.nonLethal);
-	}
-	if (!indeterminate(damageInfo.ignoreArmor))
-	{
-		curDamageInfo.SetIgnoreArmor((bool)damageInfo.ignoreArmor);
-	}
-	if (!indeterminate(damageInfo.noBlood))
-	{
-		curDamageInfo.SetNoBlood((bool)damageInfo.noBlood);
-	}
-	if (damageInfo.gibPolicy)
-	{
-		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;
-	}
-}

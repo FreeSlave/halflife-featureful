@@ -7,6 +7,16 @@
 
 struct SkillBasedValue
 {
+	SkillBasedValue() = default;
+	SkillBasedValue(const FloatRange& range) {
+		easy = medium = hard = range;
+		type = COMMON;
+	}
+	SkillBasedValue(float value) {
+		easy = medium = hard = value;
+		type = COMMON;
+	}
+
 	enum : short
 	{
 		STRING,

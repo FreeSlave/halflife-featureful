@@ -8,6 +8,7 @@
 #include "gib.h"
 #include "dmg_types.h"
 #include "template_property_types.h"
+#include "skillbasedvalue.h"
 
 struct DamageInfo
 {
@@ -68,17 +69,13 @@ struct DamageInfoPatch
 		ADD_DAMAGE_TYPE,
 	};
 
-	optional<FloatRange> damage;
+	optional<SkillBasedValue> damage;
 	optional<int> type;
 	int typePolicy = ADD_DAMAGE_TYPE;
 	optional<int> gibPolicy;
 	tribool nonLethal;
 	tribool ignoreArmor;
 	tribool noBlood;
-
-	inline FloatRange GetDamageRange() const {
-		return damage.has_value() ? *damage : FloatRange();
-	}
 };
 
 int ParseDamageType(const char *type);

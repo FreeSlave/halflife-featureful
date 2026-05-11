@@ -1981,6 +1981,41 @@ float CBaseEntity::GetSkillValue(const SkillBasedValue &skillValue)
 	return RandomizeSkillValue(GetSkillValueRange(skillValue));
 }
 
+void CBaseEntity::ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo)
+{
+	if (damageInfo.damage)
+	{
+		curDamageInfo.damage = GetSkillValue(*damageInfo.damage);
+	}
+	if (damageInfo.type)
+	{
+		if (damageInfo.typePolicy == DamageInfoPatch::ADD_DAMAGE_TYPE)
+		{
+			curDamageInfo.type |= *damageInfo.type;
+		}
+		else if (damageInfo.typePolicy == DamageInfoPatch::REPLACE_DAMAGE_TYPE)
+		{
+			curDamageInfo.type = *damageInfo.type;
+		}
+	}
+	if (!indeterminate(damageInfo.nonLethal))
+	{
+		curDamageInfo.SetNonLethal((bool)damageInfo.nonLethal);
+	}
+	if (!indeterminate(damageInfo.ignoreArmor))
+	{
+		curDamageInfo.SetIgnoreArmor((bool)damageInfo.ignoreArmor);
+	}
+	if (!indeterminate(damageInfo.noBlood))
+	{
+		curDamageInfo.SetNoBlood((bool)damageInfo.noBlood);
+	}
+	if (damageInfo.gibPolicy)
+	{
+		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;
+	}
+}
+
 void CBaseEntity::InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration)
 {
 	CSoundEnt::InsertSound(this, iType, vecOrigin, iVolume, flDuration);

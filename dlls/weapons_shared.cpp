@@ -1493,7 +1493,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		DamageInfoPatch damageInfo = fire.damageInfo.Get(altMode);
 		if (chargedAttack)
 		{
-			auto damageRange = damageInfo.GetDamageRange();
+			auto damageRange = damageInfo.damage.has_value() ? GetSkillValueRange(*damageInfo.damage) : FloatRange{};
 			auto damageFactorRange = fire.damageChargedFactor.Get(altMode);
 			if (damageFactorRange == 0.0f)
 				damageFactorRange = damageRange;
@@ -1757,7 +1757,7 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 				damageInfo = fire.damageInfo.main;
 			}
 		}
-		const float customDamage = RandomizeNumberFromRange(damageInfo.GetDamageRange());
+		const float customDamage = damageInfo.damage.has_value() ? GetSkillValue(*damageInfo.damage) : 0.0f;
 		if (customDamage > 0)
 			projectileParams.damageOverride = customDamage;
 		projectileParams.up = vecUp;
