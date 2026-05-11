@@ -55,6 +55,7 @@ penguin
 uzi
 minigun
 nailgun
+grenadelauncher
 
 camera
 radio
@@ -126,6 +127,8 @@ floater
 flybee
 panthereye
 robocop
+
+kingpin
 ```
 {{% /details %}}
 

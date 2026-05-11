@@ -24,7 +24,9 @@ Unlike most of other `env_` entities this is the *brush entity*.
 ### Known bugs
 
 * Reflected models don't render in Software mode.
-* Reflected models render incorrectly on Xash3D-FWGS.
+* Attached beams (like egon and shockrifle beams) may render incorrectly near the mirror.
+* The entity probably won't work correctly in multiplayer.
+* Reflected models may render incorrectly on older Xash3D-FWGS versions (the issue has been fixed on April 2, 2026).
 
 ### Parameters
 

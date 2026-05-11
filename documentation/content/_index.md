@@ -28,7 +28,7 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 * [Player inventory]({{< ref player-inventory >}}) system (for quest items).
 * [HUD scaling]({{< ref "hud#hud-scaling" >}})
 * Weather effects like [rain]({{< ref env_rain >}}) and [snow]({{< ref env_snow >}}).
-* Crossplatform (Windows and Linux). Support for GoldSource (including old pre-SDL2 versions) and Xash3D-FWGS engines. VGUI and VGUI-less builds. SDK potentially may work on mobile platforms, but it needs to be tested.
+* Support for GoldSource (including old pre-SDL2 versions) and Xash3D-FWGS engines. VGUI and VGUI-less builds. Crossplatform: Windows, Linux, and virtually any platform supported by Xash3D-FWGS (including Android).
 
 ## SDK usage in real projects
 
@@ -56,6 +56,7 @@ Throughout this wiki we use the following icons to mark if the entity, flag, par
 * ![](/images/spirit.png) - *Spirit of Half-Life* compatible flag, parameter or entity.
 * ![](/images/cstrike.png) - entity, cvar or feature from *Counter Strike*.
 * ![](/images/czeror.png) - entity or feature from *Condition Zero Deleted Scenes*.
+* ![](/images/tfc.png) - weapon or feature from *Team Fortress Classic*.
 
 Read [compatibility]({{< ref "compatibility" >}}) for more detailed overwiew.
 

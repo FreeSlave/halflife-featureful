@@ -11,10 +11,14 @@ bookToC: false
 
 {{% hint info %}}
 Set the `Delay between shots` to negative value to make `env_shooter` produce the specified number of projectiles on the same frame.
+
+Keeping it 0 will force the delay to 0.1 like in base Half-Life.
+
+If you come from Spirit of Half-Life - the delay 0 there is treated as no delay (so, it's different from Half-Life). To achieve the same functionality as in SoHL use the negative value as said above.
 {{% /hint %}}
 
 {{% hint info %}}
-To set a sprite you may need to specify the path manually instead of relying on the open file dialog in the level editor.
+To set a sprite you may need to specify the path manually instead of relying on the *open file* dialog in the level editor.
 {{% /hint %}}
 
 {{% hint info %}}
