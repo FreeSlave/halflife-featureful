@@ -165,6 +165,7 @@ extern cvar_t hevcharger_rechargetime;
 
 extern cvar_t selfgauss;
 extern cvar_t satchelfix;
+extern cvar_t tripminefix;
 extern cvar_t explosionfix;
 extern cvar_t monsteryawspeedfix;
 extern cvar_t corpsephysics;

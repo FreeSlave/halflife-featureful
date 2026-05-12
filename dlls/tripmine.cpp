@@ -48,6 +48,7 @@ class CTripmineGrenade : public CGrenade
 	void EXPORT BeamBreakThink();
 	void EXPORT DelayDeathThink();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
 
 	void EXPORT ExplodeUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void MakeBeam();
@@ -403,6 +404,17 @@ KilledResult CTripmineGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAt
 
 	EMIT_SOUND( ENT( pev ), CHAN_BODY, "common/null.wav", 0.5f, ATTN_NORM ); // shut off chargeup
 	return KilledResult();
+}
+
+bool CTripmineGrenade::HandleDoorBlockage(CBaseEntity* pDoor)
+{
+	if (tripminefix.value)
+	{
+		ExplodeUse(this, this, USE_TOGGLE, 0.0f);
+		pev->solid = SOLID_NOT;
+		return true;
+	}
+	return false;
 }
 
 void CTripmineGrenade::ExplodeUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
