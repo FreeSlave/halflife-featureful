@@ -81,6 +81,7 @@ public:
 	void Precache() override;
 	void Touch( CBaseEntity *pOther ) override;
 	void Think() override;
+	void UpdateOnRemove() override;
 
 	void LightOn();
 	void LightOff();
@@ -198,6 +199,12 @@ void CXenPLight::Touch( CBaseEntity *pOther )
 			SetActivity( ACT_CROUCH );
 		}
 	}
+}
+
+void CXenPLight::UpdateOnRemove()
+{
+	UTIL_RemoveAndClean(m_pGlow);
+	CActAnimating::UpdateOnRemove();
 }
 
 void CXenPLight::LightOn()
