@@ -441,6 +441,18 @@ public:
 	bool Deploy() override;
 	void Holster() override;
 	void WeaponIdle() override;
+#ifndef CLIENT_DLL
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override {
+		// TODO: should we do it for all weapons?
+		if (pev->solid != SOLID_TRIGGER)
+		{
+			pev->solid = SOLID_TRIGGER;
+			UTIL_SetOrigin(pev, pev->origin);
+			return true;
+		}
+		return false;
+	}
+#endif
 private:
 	unsigned short m_usTripFire;
 };
