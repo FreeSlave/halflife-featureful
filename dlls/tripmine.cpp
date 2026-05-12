@@ -277,11 +277,7 @@ void CTripmineGrenade::PowerupThink()
 
 void CTripmineGrenade::KillBeam()
 {
-	if( m_pBeam )
-	{
-		UTIL_Remove( m_pBeam );
-		m_pBeam = NULL;
-	}
+	UTIL_RemoveAndClean(m_pBeam);
 }
 
 void CTripmineGrenade::MakeBeam()

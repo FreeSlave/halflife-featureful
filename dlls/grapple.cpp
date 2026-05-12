@@ -766,11 +766,7 @@ void CBarnacleGrapple::UpdateEffect()
 void CBarnacleGrapple::DestroyEffect()
 {
 #if !CLIENT_DLL
-	if( m_pBeam )
-	{
-		UTIL_Remove( m_pBeam );
-		m_pBeam = NULL;
-	}
+	UTIL_RemoveAndClean(m_pBeam);
 
 	if( m_pTip )
 	{

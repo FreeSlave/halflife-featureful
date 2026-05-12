@@ -215,11 +215,7 @@ void CShockrifle::ClearBeams()
 
 	for( int i = 0; i < 3; i++ )
 	{
-		if( m_pBeam[i] )
-		{
-			UTIL_Remove( m_pBeam[i] );
-			m_pBeam[i] = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam[i]);
 	}
 	SetThink( NULL );
 #endif
