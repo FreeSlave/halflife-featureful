@@ -83,7 +83,7 @@ const AmmoType* AmmoRegistry::GetByName(const char *name) const
 
 const AmmoType* AmmoRegistry::GetByIndex(int id) const
 {
-	if (id > 0 && id <= MAX_AMMO_TYPES)
+	if (id > 0 && id < MAX_AMMO_TYPES)
 	{
 		const AmmoType& ammoType = ammoTypes[id-1];
 		if (ammoType.IsValid())
@@ -127,7 +127,7 @@ int AmmoRegistry::GetMaxAmmo(int index) const
 void AmmoRegistry::SetMaxAmmo(const char *name, int maxAmmo)
 {
 	int id = IndexOf(name);
-	if (id > 0 && id <= MAX_AMMO_TYPES)
+	if (id > 0 && id < MAX_AMMO_TYPES)
 	{
 		AmmoType& ammoType = ammoTypes[id-1];
 		if (ammoType.IsValid())
