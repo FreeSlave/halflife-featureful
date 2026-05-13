@@ -46,6 +46,7 @@ enum
 	SCHED_ISLAVE_COVER_AND_SUMMON_FAMILIAR = LAST_FOLLOWINGMONSTER_SCHEDULE + 1,
 	SCHED_ISLAVE_SUMMON_FAMILIAR,
 	SCHED_ISLAVE_HEAL_OR_REVIVE,
+	SCHED_ISLAVE_HEAL_OR_REVIVE_NEAR,
 	SCHED_ISLAVE_GIVE_CHARGE,
 	SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED,
 };
@@ -400,6 +401,7 @@ public:
 
 	void SpawnFamiliar(const char *entityName, const Vector& origin, int hullType);
 	void OnChangeSchedule( Schedule_t* pNewSchedule ) override;
+	Schedule_t* GetHealOrReviveSchedule();
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType( int Type ) override;
 	CUSTOM_SCHEDULES
@@ -414,7 +416,7 @@ public:
 	void ArmBeam(int side );
 	void ArmBeamMessage(int side );
 	void WackBeam( int side, CBaseEntity *pEntity );
-	CBaseEntity* ZapBeam( int side );
+	CBaseEntity* ZapBeam( int side, CBaseEntity* pWounded );
 	void BeamGlow();
 	void HandsGlowOn(int brightness = 224);
 	void HandGlowOn(CSprite* handGlow, int brightness = 224);
@@ -1159,9 +1161,11 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 					}
 				};
 
-				CBaseEntity* pZapEntity = ZapBeam( ISLAVE_LEFT_ARM );
+				CBaseEntity* pWounded = (m_hWounded != 0 && IsValidHealTarget(m_hWounded)) ? m_hWounded.Entity() : nullptr;
+
+				CBaseEntity* pZapEntity = ZapBeam( ISLAVE_LEFT_ARM, pWounded );
 				const float zapEntityHealth = pZapEntity ? pZapEntity->pev->health : 0.0f;
-				CBaseEntity* pZapEntity2 = ZapBeam( ISLAVE_RIGHT_ARM );
+				CBaseEntity* pZapEntity2 = ZapBeam( ISLAVE_RIGHT_ARM, pWounded );
 				const float zapEntity2Health = pZapEntity2 ? pZapEntity2->pev->health : 0.0f;
 				
 				EmitSoundScript(zapShootSoundScript);
@@ -1218,17 +1222,21 @@ bool CISlave::CheckRangeAttack2( float flDot, float flDist )
 		return false;
 	}
 
-	return HasFreeEnergy() && CheckHealOrReviveTargets(flDist, true);
+	if (HasFreeEnergy()) {
+		bool result = CheckHealOrReviveTargets(flDist, true);
+		m_nextHealTargetCheck = gpGlobals->time + 1.0f;
+		return result;
+	}
+	return false;
 }
 
 bool CISlave::CheckHealOrReviveTargets(float flDist, bool mustSee)
 {
 	if (m_nextHealTargetCheck >= gpGlobals->time)
 	{
-		return (m_hDead != 0 && GetSkillValue("islave_revival") > 0) || m_hWounded != 0;
+		return (m_hDead != 0 && AbleToRevive()) || m_hWounded != 0;
 	}
 
-	m_nextHealTargetCheck = gpGlobals->time + 1;
 	m_hDead = NULL;
 	m_hWounded = NULL;
 	m_hWounded2 = NULL;
@@ -1269,7 +1277,13 @@ bool CISlave::CheckHealOrReviveTargets(float flDist, bool mustSee)
 
 bool CISlave::IsValidHealTarget(CBaseEntity *pEntity)
 {
-	return pEntity != NULL && pEntity != this && pEntity->IsFullyAlive() && IsVortWounded(pEntity);
+	if (pEntity && pEntity != this && pEntity->IsFullyAlive()) {
+		if (m_MonsterState == MONSTERSTATE_COMBAT)
+			return IsVortWounded(pEntity);
+		else
+			return pEntity->pev->health <= pEntity->pev->max_health * 2 / 3;
+	}
+	return false;
 }
 
 //=========================================================
@@ -1673,6 +1687,29 @@ Schedule_t	slSlaveHealOrReviveAttack[] =
 	},
 };
 
+Task_t tlSlaveHealOrReviveAttackNear[] =
+{
+	{ TASK_SET_FAIL_SCHEDULE,		(float)SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED	},
+	{ TASK_STOP_MOVING,				0	},
+	{ TASK_FACE_TARGET,				0	},
+	{ TASK_ISLAVE_HEAL_OR_REVIVE_ATTACK,	0	}
+};
+
+Schedule_t	slSlaveHealOrReviveAttackNear[] =
+{
+	{
+		tlSlaveHealOrReviveAttackNear,
+		ARRAYSIZE ( tlSlaveHealOrReviveAttackNear ),
+		bits_COND_CAN_MELEE_ATTACK1 |
+		bits_COND_HEAR_SOUND |
+		bits_COND_NEW_ENEMY |
+		bits_COND_HEAVY_DAMAGE,
+
+		bits_SOUND_DANGER,
+		"Slave Heal or Revive Range Attack Nearby"
+	},
+};
+
 Task_t tlSlaveCoverAndSummon[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
@@ -1724,7 +1761,7 @@ Task_t tlSlaveGiveArmor[] =
 	{ TASK_ISLAVE_MAKE_CHARGE_TOKEN, (float)0 },
 	{ TASK_WAIT, 0.6f },
 	{ TASK_ISLAVE_SEND_CHARGE_TOKEN, (float)0 },
-	{ TASK_SET_SCHEDULE, (float)SCHED_IDLE_STAND }
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE }
 };
 
 Schedule_t slSlaveGiveArmor[] =
@@ -1743,6 +1780,7 @@ DEFINE_CUSTOM_SCHEDULES( CISlave )
 {
 	slSlaveAttack1,
 	slSlaveHealOrReviveAttack,
+	slSlaveHealOrReviveAttackNear,
 	slSlaveCoverAndSummon,
 	slSlaveSummon,
 	slSlaveGiveArmor
@@ -1759,6 +1797,27 @@ void CISlave::OnChangeSchedule(Schedule_t *pNewSchedule)
 	RemoveChargeToken();
 	m_clawStrikeNum = 0;
 	CFollowingMonster::OnChangeSchedule(pNewSchedule);
+}
+
+Schedule_t* CISlave::GetHealOrReviveSchedule()
+{
+	Schedule_t* schedule = nullptr;
+	if (HasFreeEnergy()) {
+		if (CheckHealOrReviveTargets(384, true))
+		{
+			SetHealTargetAsTargetEnt();
+			schedule = GetScheduleOfType(SCHED_ISLAVE_HEAL_OR_REVIVE_NEAR);
+		}
+		else if (CheckHealOrReviveTargets())
+		{
+			SetHealTargetAsTargetEnt();
+			if (CanGoToTargetEnt()) {
+				schedule = GetScheduleOfType(SCHED_ISLAVE_HEAL_OR_REVIVE);
+			}
+		}
+		m_nextHealTargetCheck = gpGlobals->time + 1.0f;
+	}
+	return schedule;
 }
 
 Schedule_t *CISlave::GetSchedule()
@@ -1830,12 +1889,11 @@ Schedule_t *CISlave::GetSchedule()
 	{
 		if( !HasConditions( bits_COND_NEW_ENEMY | bits_COND_SEE_ENEMY ) ) // ensure there's no enemy
 		{
-			if ( HasFreeEnergy() && CheckHealOrReviveTargets()) {
-				SetHealTargetAsTargetEnt();
-				if (CanGoToTargetEnt()) {
-					ALERT(at_aiconsole, "Vort gonna heal or revive friend when idle. State is %s\n", m_MonsterState == MONSTERSTATE_IDLE ? "idle" : "alert");
-					return GetScheduleOfType( SCHED_ISLAVE_HEAL_OR_REVIVE );
-				}
+			Schedule_t* healOrReviveSchedule = GetHealOrReviveSchedule();
+			if (healOrReviveSchedule)
+			{
+				ALERT(at_aiconsole, "Vort gonna heal or revive friend when in %s state\n", m_MonsterState == MONSTERSTATE_IDLE ? "idle" : "alert");
+				return healOrReviveSchedule;
 			}
 		}
 		if (HasFreeEnergy() && !HasMemory(bits_MEMORY_ISLAVE_HAS_LAUNCHED_TOKEN))
@@ -1869,18 +1927,17 @@ Schedule_t *CISlave::GetScheduleOfType( int Type )
 			return CFollowingMonster::GetScheduleOfType( SCHED_MELEE_ATTACK1 );
 		}
 	case SCHED_CHASE_ENEMY_FAILED:
-		if ( HasFreeEnergy() && CheckHealOrReviveTargets() )
 		{
-			SetHealTargetAsTargetEnt();
-			if (CanGoToTargetEnt())
+			Schedule_t* healOrReviveSchedule = GetHealOrReviveSchedule();
+			if (healOrReviveSchedule)
 			{
 				ALERT(at_aiconsole, "Vort gonna heal or revive friends after chase enemy sched fail\n");
-				return GetScheduleOfType( SCHED_ISLAVE_HEAL_OR_REVIVE );
+				return healOrReviveSchedule;
 			}
-		}
-		else if ( m_MonsterState == MONSTERSTATE_COMBAT && !HasConditions(bits_COND_ENEMY_TOOFAR) && CanSpawnFamiliar() )
-		{
-			return GetScheduleOfType( SCHED_ISLAVE_SUMMON_FAMILIAR );
+			if (m_MonsterState == MONSTERSTATE_COMBAT && !HasConditions(bits_COND_ENEMY_TOOFAR) && CanSpawnFamiliar())
+			{
+				return GetScheduleOfType( SCHED_ISLAVE_SUMMON_FAMILIAR );
+			}
 		}
 		break;
 	case SCHED_RANGE_ATTACK1:
@@ -1896,6 +1953,8 @@ Schedule_t *CISlave::GetScheduleOfType( int Type )
 		return slSlaveSummon;
 	case SCHED_ISLAVE_HEAL_OR_REVIVE:
 		return slSlaveHealOrReviveAttack;
+	case SCHED_ISLAVE_HEAL_OR_REVIVE_NEAR:
+		return slSlaveHealOrReviveAttackNear;
 	case SCHED_ISLAVE_HEAL_OR_REVIVE_FAILED:
 		return CFollowingMonster::GetScheduleOfType(SCHED_FAIL);
 	case SCHED_ISLAVE_GIVE_CHARGE:
@@ -2029,7 +2088,7 @@ void CISlave::WackBeam( int side, CBaseEntity *pEntity )
 //=========================================================
 // ZapBeam - heavy damage directly forward
 //=========================================================
-CBaseEntity *CISlave::ZapBeam( int side )
+CBaseEntity *CISlave::ZapBeam( int side, CBaseEntity* pWounded )
 {
 	Vector vecSrc, vecAim;
 	TraceResult tr;
@@ -2041,8 +2100,8 @@ CBaseEntity *CISlave::ZapBeam( int side )
 	}
 
 	vecSrc = pev->origin + gpGlobals->v_up * 36;
-	if (IsValidHealTarget(m_hWounded)) {
-		vecAim = ( ( m_hWounded->BodyTarget( vecSrc ) ) - vecSrc ).Normalize();
+	if (pWounded) {
+		vecAim = ( ( pWounded->BodyTarget( vecSrc ) ) - vecSrc ).Normalize();
 		ALERT(at_aiconsole, "Vort shoot friend on purpose to heal\n");
 	} else {
 		vecAim = ShootAtEnemy( vecSrc );
