@@ -1022,14 +1022,6 @@ template <class T> T * GetClassPtr( T *a )
 	return a;
 }
 
-typedef struct _SelAmmo
-{
-	BYTE Ammo1Type;
-	BYTE Ammo1;
-	BYTE Ammo2Type;
-	BYTE Ammo2;
-} SelAmmo;
-
 // this moved here from world.cpp, to allow classes to be derived from it
 //=======================
 // CWorld
