@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_tripmine)
 
+## Bugfixes
+
+* Fixed multiple tripmines placed on the door blocking the door movement. If tripmines have been activated before the door started moving, they will explode instead. Otherwise they will be dropped to the ground as a pickable weapon.
+
 ### New spawnflags
 
 * `Triggerable` - allows to trigger the tripmine explosion by tripmine's targetname.
