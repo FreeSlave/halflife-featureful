@@ -8936,23 +8936,24 @@ public:
 			{
 				CBaseEntity* pPlayer = UTIL_PlayerByIndex(i);
 				if (pPlayer)
-					Affect((CBasePlayer*)pPlayer, ammoType->id, m_iMaxAmmo, m_Mode);
+					Affect((CBasePlayer*)pPlayer, ammoType, m_iMaxAmmo, m_Mode);
 			}
 		}
 		else
 		{
-			CBaseEntity* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+			CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 			if (pPlayer)
 			{
-				Affect((CBasePlayer*)pPlayer, ammoType->id, m_iMaxAmmo, m_Mode);
+				Affect(pPlayer, ammoType, m_iMaxAmmo, m_Mode);
 			}
 		}
 
 		SUB_UseTargets(this);
 	}
 
-	void Affect(CBasePlayer* pPlayer, int ammoIndex, int ammoValue, int mode)
+	void Affect(CBasePlayer* pPlayer, const AmmoType* ammoType, int ammoValue, int mode)
 	{
+		const int ammoIndex = ammoType->id;
 		const int prevMaxAmmo = pPlayer->GetMaxAmmo(ammoIndex);
 		int newMaxAmmo = 0;
 
@@ -8974,7 +8975,7 @@ public:
 		default:
 			newMaxAmmo = ammoValue;
 			if (newMaxAmmo <= 0)
-				newMaxAmmo = 0;
+				newMaxAmmo = -1;
 			break;
 		}
 
@@ -8994,6 +8995,19 @@ public:
 			const int maxAmmo = pPlayer->GetMaxAmmo(ammoIndex);
 			if (pPlayer->m_rgAmmo[ammoIndex] > maxAmmo)
 				pPlayer->m_rgAmmo[ammoIndex] = maxAmmo;
+
+			if (pPlayer->m_rgAmmo[ammoIndex] == 0 && ammoType->exhaustible)
+			{
+				for (int j=0; j<MAX_WEAPONS; ++j)
+				{
+					const ItemInfo& II = CBasePlayerWeapon::ItemInfoArray[j];
+					if ((II.iFlags & ITEM_FLAG_EXHAUSTIBLE) && II.pszAmmo1 && FStrEq(ammoType->name, II.pszAmmo1)) {
+						CBasePlayerWeapon* pWeapon = pPlayer->WeaponById(j);
+						if (pWeapon)
+							pWeapon->RetireWeapon();
+					}
+				}
+			}
 		}
 	}
 

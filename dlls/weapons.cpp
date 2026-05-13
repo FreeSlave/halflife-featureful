@@ -837,11 +837,18 @@ bool CBasePlayerWeapon::IsEnabledInMod()
 
 bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 {
+	int primaryAmmoIndex = pPlayer->GetAmmoIndex(pszAmmo1());
+	if (iFlags() & ITEM_FLAG_EXHAUSTIBLE)
+	{
+		if (pPlayer->GetMaxAmmo(primaryAmmoIndex) < 1)
+			return false;
+	}
+
 	m_pPlayer = pPlayer;
 
 	pPlayer->SetWeaponBit(WeaponId());
 
-	m_iPrimaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo1() );
+	m_iPrimaryAmmoType = primaryAmmoIndex;
 	m_iSecondaryAmmoType = pPlayer->GetAmmoIndex( pszAmmo2() );
 
 	// Remove weapon's global name to avoid problems with carrying the weapon to other maps
