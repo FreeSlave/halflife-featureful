@@ -68,7 +68,7 @@ enum class ValueModifier
 	UNKNOWN,
 	SET,
 	FACTOR,
-	SUBSTRUCT,
+	SUBTRACT,
 	ADD
 };
 

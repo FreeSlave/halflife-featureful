@@ -1016,12 +1016,12 @@ bool CBasePlayerWeapon::IsUseable()
 	if( UsesSecondaryAmmo() )
 	{
 		// Player has unlimited ammo for this weapon or does not use magazines
-		if( iMaxAmmo2() == WEAPON_NOCLIP )
+		if (m_pPlayer->GetMaxAmmo(SecondaryAmmoIndex()) == WEAPON_NOCLIP)
 		{
 			return true;
 		}
 
-		if( m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] > 0 )
+		if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] > 0)
 		{
 			return true;
 		}
@@ -1337,7 +1337,7 @@ bool CConfigurableWeapon::AddToPlayer(CBasePlayer *pPlayer)
 
 			if (ammo > 0)
 			{
-				pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = Q_min(pPlayer->m_rgAmmo[PrimaryAmmoIndex()] + ammo, g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()));
+				pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = Q_min(pPlayer->m_rgAmmo[PrimaryAmmoIndex()] + ammo, pPlayer->GetMaxAmmo(PrimaryAmmoIndex()));
 			}
 		}
 	}
@@ -1656,14 +1656,8 @@ bool CWeaponBox::PackAmmo( string_t iszName, int iCount )
 		{
 			if( stricmp( ammoType->name, STRING( m_rgiszAmmo[i] ) ) == 0 )
 			{
-				int iAdd = Q_min( iCount, ammoType->maxAmmo - m_rgAmmo[i] );
-				if( iCount == 0 || iAdd > 0 )
-				{
-					m_rgAmmo[i] += iAdd;
-
-					return true;
-				}
-				return false;
+				m_rgAmmo[i] += iCount;
+				return true;
 			}
 		}
 		if( i < MAX_AMMO_TYPES )

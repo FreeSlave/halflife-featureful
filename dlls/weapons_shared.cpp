@@ -72,6 +72,18 @@ const WeaponParameters& GetWeaponParameters(int id)
 	return AccessWeaponInfo(id).params;
 }
 
+int CBasePlayer::GetMaxAmmo(int ammoIndex)
+{
+	if (ammoIndex > 0 && ammoIndex < MAX_AMMO_TYPES)
+	{
+		if (m_maxAmmoOverride[ammoIndex] > 0)
+			return m_maxAmmoOverride[ammoIndex];
+		else if (m_maxAmmoOverride[ammoIndex] < 0)
+			return 0;
+	}
+	return g_AmmoRegistry.GetMaxAmmo(ammoIndex);
+}
+
 bool ShouldMirrorViewModel(int id)
 {
 	if (id > 0 && id < MAX_WEAPONS)
@@ -2030,10 +2042,10 @@ bool CConfigurableWeapon::PerformReload()
 
 	if (CanRechargeAmmo())
 	{
-		if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()))
+		if (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= m_pPlayer->GetMaxAmmo(PrimaryAmmoIndex()))
 			return false;
 
-		while (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < g_AmmoRegistry.GetMaxAmmo(PrimaryAmmoIndex()) && m_flRechargeTime < gpGlobals->time)
+		while (m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] < m_pPlayer->GetMaxAmmo(PrimaryAmmoIndex()) && m_flRechargeTime < gpGlobals->time)
 		{
 			PlayWeaponSoundScript(params.recharge.sound.Get(altMode));
 			m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]++;

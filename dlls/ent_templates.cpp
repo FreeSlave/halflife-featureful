@@ -534,7 +534,7 @@ void EntTemplate::DamageInfoModifier::UpdateFromJSON(const Value &value)
 		}
 		else if (strncmp(str, "-", 1) == 0)
 		{
-			dmgModifier = ValueModifier::SUBSTRUCT;
+			dmgModifier = ValueModifier::SUBTRACT;
 		}
 		else if (strncmp(str, "+", 1) == 0)
 		{

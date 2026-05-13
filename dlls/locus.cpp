@@ -1343,7 +1343,7 @@ class CCalcEvalNumber : public CPointEntity
 public:
 	enum {
 		EVAL_ADD = 0,
-		EVAL_SUBSTRUCT = 1,
+		EVAL_SUBTRACT = 1,
 		EVAL_MULTIPLY = 2,
 		EVAL_DIVIDE = 3,
 		EVAL_MOD = 4,
@@ -1567,7 +1567,7 @@ bool CCalcEvalNumber::DoOperation(float& result, float* operands, int operandCou
 		case EVAL_ADD:
 			value += operand;
 			break;
-		case EVAL_SUBSTRUCT:
+		case EVAL_SUBTRACT:
 			value -= operand;
 			break;
 		case EVAL_MULTIPLY:

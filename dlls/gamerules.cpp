@@ -43,7 +43,7 @@ bool CGameRules::CanHaveAmmo(CBasePlayer *pPlayer, const char *pszAmmoName )
 	const AmmoType* ammoType = CBasePlayerWeapon::GetAmmoType(pszAmmoName);
 	if( ammoType )
 	{
-		if( pPlayer->AmmoInventory( ammoType->id ) < ammoType->maxAmmo )
+		if (pPlayer->AmmoInventory(ammoType->id) < pPlayer->GetMaxAmmo(ammoType->id))
 		{
 			// player has room for more of this type of ammo
 			return true;

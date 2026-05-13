@@ -1436,7 +1436,7 @@
 	operation(choices) : "Operation" : 0 =
 	[
 		0 : "Add"
-		1 : "Substruct"
+		1 : "Subtract"
 		2 : "Multiply"
 		3 : "Divide"
 		4 : "Mod"
@@ -3629,14 +3629,14 @@
 		0: "No change"
 		1: "Give longjump"
 	]
-	health(integer) : "Set health" : : "Prefix the value with '=' to set the health amount. The '+' prefix means to add health. The '-' prefix means to substruct health. The '<' prefix means to set health to the specified value or do nothing if it's already lower. The '>' prefix means to set the health to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
+	health(integer) : "Set health" : : "Prefix the value with '=' to set the health amount. The '+' prefix means to add health. The '-' prefix means to subtract health. The '<' prefix means to set health to the specified value or do nothing if it's already lower. The '>' prefix means to set the health to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
 	allow_overheal(choices) : "Allow OverHeal" : : "Allow overheal if new health is higher than the current max health. Don't clamp health value to the max health if the new max health is lower than the current health." =
 	[
 		0: "No"
 		1: "Yes"
 	]
 	max_health(integer): "Set max health"
-	armorvalue(integer) : "Set armor" : : "Prefix the value with '=' to set the armor amount (this allows to reset the armor to 0). The '+' prefix means to add armor. The '-' prefix means to substruct armor. The '<' prefix means to set the armor to the specified value or do nothing if it's already lower. The '>' prefix means to set the armor to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
+	armorvalue(integer) : "Set armor" : : "Prefix the value with '=' to set the armor amount (this allows to reset the armor to 0). The '+' prefix means to add armor. The '-' prefix means to subtract armor. The '<' prefix means to set the armor to the specified value or do nothing if it's already lower. The '>' prefix means to set the armor to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
 	allow_overcharge(choices) : "Allow armor OverCharge" : : "Allow armor overcharge if new armor is higher than the current max armor. Don't clamp armor value to the max armor if the new max armor is lower than the current armor." =
 	[
 		0: "No"
@@ -8795,6 +8795,56 @@
 	]
 ]
 
+@PointClass base(Targetname) color(100 100 200) = trigger_changemaxammo : "Trigger Change Max Ammo"
+[
+	target(target_destination) : "Trigger after fire"
+	spawnflags(flags) =
+	[
+		1 : "All players" : 0
+		2 : "Remove excess ammo" : 0
+	]
+
+	message(choices) : "Ammo name" : "9mm" =
+	[
+		"9mm" : "9mm bullets"
+		"buckshot" : "Shotgun shells"
+		"357" : "357 bullets"
+		"ARgrenades" : "AR Grenades"
+		"bolts" : "Crossbow bolts"
+		"rockets" : "Rockets"
+		"uranium" : "Uranium"
+		"Hand Grenade" : "Hand Grenades"
+		"Satchel Charge" : "Satchel Charges"
+		"Trip Mine" : "Trip Mines"
+		"Snarks" : "Snarks"
+		"Medicine" : "Medkit Charge"
+		"556" : "556 bullets"
+		"762" : "762 bullets"
+		"spores" : "Spores"
+		"Hornets" : "Hornets"
+		"Shocks" : "Shocks"
+		"Penguins" : "Penguins"
+		"45acp" : ".45 ACP"
+		"57mm" : "57mm"
+		"nails" : "Nails"
+		"grenades" : "Grenades (grenade launcher)"
+		"fuel" : "Fuel"
+		"cells" : "Cells"
+		"charges" : "Charges"
+		"rounds" : "Rounds"
+		"slugs" : "Slugs"
+	]
+
+	m_iMaxAmmo(integer) : "Value to use" : 100
+	m_Mode(choices) : "Change Max Ammo Mode" : 0 =
+	[
+		0 : "Set"
+		1 : "Reset to default"
+		2 : "Add"
+		3 : "Subtract"
+	]
+]
+
 @PointClass base(Targetname) color(100 100 200) = trigger_changemaxclip : "Change Max Clip for player weapon"
 [
 	message(string) : "Weapon name" : "weapon_9mmhandgun"
@@ -8803,7 +8853,7 @@
 	[
 		0 : "Set"
 		2 : "Add"
-		3 : "Substruct"
+		3 : "Subtract"
 	]
 	m_ExcessMode(choices) : "Handle ammo excess" : 0 =
 	[

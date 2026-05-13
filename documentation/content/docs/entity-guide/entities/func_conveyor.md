@@ -14,4 +14,4 @@ entityCategory: solid
 
 ### Reaction to use-type
 
-If the use-type is *Set* the reacton depends on `Use Set Policy` parameter. By default it's the same as in Half-Life (ignore the value and reverse the speed like with other use-types). This can be changed to set the passed value as a new speed or add the passed value to the current speed (use negative numbers to substract).
+If the use-type is *Set* the reacton depends on `Use Set Policy` parameter. By default it's the same as in Half-Life (ignore the value and reverse the speed like with other use-types). This can be changed to set the passed value as a new speed or add the passed value to the current speed (use negative numbers to subtract).

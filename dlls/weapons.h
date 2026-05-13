@@ -187,20 +187,10 @@ public:
 
 	int			iItemPosition() { return ItemInfoArray[ WeaponId() ].iPosition; }
 	const char	*pszAmmo1() const { return ItemInfoArray[ WeaponId() ].pszAmmo1; }
-	int			iMaxAmmo1()	{
-		if (m_iPrimaryAmmoType > 0)
-			return g_AmmoRegistry.GetMaxAmmo(m_iPrimaryAmmoType);
-		return g_AmmoRegistry.GetMaxAmmo(pszAmmo1());
-	}
 	bool UsesAmmo() const {
 		return m_iPrimaryAmmoType > 0 || pszAmmo1() != NULL;
 	}
 	const char	*pszAmmo2() const { return ItemInfoArray[ WeaponId() ].pszAmmo2; }
-	int			iMaxAmmo2()	{
-		if (m_iSecondaryAmmoType > 0)
-			return g_AmmoRegistry.GetMaxAmmo(m_iSecondaryAmmoType);
-		return g_AmmoRegistry.GetMaxAmmo(pszAmmo2());
-	}
 	bool UsesSecondaryAmmo() const {
 		return m_iSecondaryAmmoType > 0 || pszAmmo2() != NULL;
 	}

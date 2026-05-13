@@ -172,6 +172,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_ARRAY(CBasePlayer, m_messageBoxOrigins, FIELD_POSITION_VECTOR, MAX_MESSAGE_BOXES),
 	DEFINE_ARRAY(CBasePlayer, m_messageBoxDistances, FIELD_FLOAT, MAX_MESSAGE_BOXES),
 
+	DEFINE_ARRAY(CBasePlayer, m_maxAmmoOverride, FIELD_INTEGER, MAX_AMMO_TYPES),
+
 	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
@@ -243,6 +245,7 @@ int gmsgTeamNames = 0;
 int gmsgPlayMP3 = 0;
 int gmsgWeapons = 0;
 int gmsgMaxClip = 0;
+int gmsgMaxAmmo = 0;
 int gmsgItems = 0;
 
 int gmsgStatusText = 0;
@@ -366,6 +369,7 @@ void LinkUserMessages()
 	gmsgPlayMP3 = REG_USER_MSG( "PlayMP3", -1 );
 	gmsgWeapons = REG_USER_MSG( "Weapons", 8 );
 	gmsgMaxClip = REG_USER_MSG( "MaxClip", 3 );
+	gmsgMaxAmmo = REG_USER_MSG( "MaxAmmo", -1 );
 	gmsgItems = REG_USER_MSG( "Items", 4 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
@@ -556,8 +560,9 @@ int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType 
 		if (rest > 0) {
 			const int medAmmoIndex = GetAmmoIndex(pPlayerMedkit->pszAmmo1());
 			const int medAmmo = AmmoInventory(medAmmoIndex);
-			if (medAmmoIndex > 0 && medAmmo >= 0 && medAmmo < pPlayerMedkit->iMaxAmmo1()) {
-				const int toAdd = Q_min(rest, pPlayerMedkit->iMaxAmmo1() - medAmmo);
+			const int medMaxAmmo = GetMaxAmmo(pPlayerMedkit->PrimaryAmmoIndex());
+			if (medMaxAmmo > 0 && medAmmoIndex > 0 && medAmmo >= 0 && medAmmo < medMaxAmmo) {
+				const int toAdd = Q_min(rest, medMaxAmmo - medAmmo);
 				m_rgAmmo[medAmmoIndex] += toAdd;
 
 				if (flHealth > 1)
@@ -4229,6 +4234,11 @@ void CBasePlayer::Spawn()
 	m_flNextChatTime = gpGlobals->time;
 	m_fInXen = false;
 
+	for (int& maxAmmo : m_maxAmmoOverride)
+	{
+		maxAmmo = 0;
+	}
+
 	g_pGameRules->PlayerSpawn( this );
 }
 
@@ -5148,8 +5158,9 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 	}
 
 	int i = ammoType->id;
+	const int maxAmmo = GetMaxAmmo(ammoType->id);
 
-	int iAdd = Q_min( iCount, ammoType->maxAmmo - m_rgAmmo[i] );
+	int iAdd = Q_min( iCount, maxAmmo - m_rgAmmo[i] );
 	if( iAdd < 1 )
 		return i;
 
@@ -5736,6 +5747,30 @@ void CBasePlayer::UpdateClientData()
 					WRITE_STRING(STRING(messageBoxEnt->pev->message));
 				MESSAGE_END();
 			}
+		}
+
+		{
+			int overridesCount = 0;
+			for (int maxAmmo : m_maxAmmoOverride)
+			{
+				if (maxAmmo != 0)
+					overridesCount++;
+			}
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgMaxAmmo, nullptr, pev);
+
+			WRITE_BYTE(overridesCount);
+
+			for (size_t i=0; i<ARRAYSIZE(m_maxAmmoOverride); ++i)
+			{
+				if (m_maxAmmoOverride[i] != 0)
+				{
+					WRITE_BYTE(i);
+					WRITE_LONG(m_maxAmmoOverride[i]);
+				}
+			}
+
+			MESSAGE_END();
 		}
 
 		if (m_fadeStarted)
@@ -7609,7 +7644,7 @@ private:
 				return 0.0f;
 			}
 			int ammoAmount = pPlayer->AmmoInventory(ammoType->id);
-			int ammoMax = ammoType->maxAmmo;
+			int ammoMax = pPlayer->GetMaxAmmo(ammoType->id);
 
 			if (paramType == PLAYER_CALC_PARAM_AMMO_INCLUDE_CLIP)
 			{
@@ -8845,11 +8880,146 @@ void CPlayerMarker::Precache()
 	PRECACHE_MODEL("models/player.mdl");
 }
 
+#define SF_TRIGGERCHANGEMAXAMMO_ALLPLAYERS (1<<0)
+#define SF_TRIGGERCHANGEMAXAMMO_REMOVEEXCESS (1<<1)
+
+class CTriggerChangeMaxAmmo : public CPointEntity
+{
+public:
+	enum
+	{
+		CHANGEMAXAMMO_SET = 0,
+		CHANGEMAXAMMO_RESET = 1,
+		CHANGEMAXAMMO_ADD = 2,
+		CHANGEMAXAMMO_SUBTRACT = 3,
+	};
+
+	void KeyValue(KeyValueData *pkvd) override
+	{
+		if (FStrEq(pkvd->szKeyName, "m_iMaxAmmo"))
+		{
+			m_iMaxAmmo = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "m_Mode"))
+		{
+			m_Mode = (short)atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
+	{
+		if (FStringNull(pev->message))
+		{
+			ALERT(at_warning, "%s without an ammo name!\n", STRING(pev->classname));
+			return;
+		}
+		if (m_iMaxAmmo < 0)
+		{
+			ALERT(at_warning, "%s with invalid m_iMaxAmmo = %d\n", STRING(pev->classname), m_iMaxAmmo);
+			return;
+		}
+
+		const AmmoType* ammoType = g_AmmoRegistry.GetByName(STRING(pev->message));
+		if (!ammoType)
+		{
+			ALERT(at_warning, "%s: unknown ammo type: %s\n", STRING(pev->classname), STRING(pev->message));
+			return;
+		}
+
+		if (FBitSet(pev->spawnflags, SF_TRIGGERCHANGEMAXAMMO_ALLPLAYERS))
+		{
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity* pPlayer = UTIL_PlayerByIndex(i);
+				if (pPlayer)
+					Affect((CBasePlayer*)pPlayer, ammoType->id, m_iMaxAmmo, m_Mode);
+			}
+		}
+		else
+		{
+			CBaseEntity* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+			if (pPlayer)
+			{
+				Affect((CBasePlayer*)pPlayer, ammoType->id, m_iMaxAmmo, m_Mode);
+			}
+		}
+
+		SUB_UseTargets(this);
+	}
+
+	void Affect(CBasePlayer* pPlayer, int ammoIndex, int ammoValue, int mode)
+	{
+		const int prevMaxAmmo = pPlayer->GetMaxAmmo(ammoIndex);
+		int newMaxAmmo = 0;
+
+		switch(mode)
+		{
+		case CHANGEMAXAMMO_RESET:
+			newMaxAmmo = 0;
+			break;
+		case CHANGEMAXAMMO_ADD:
+			newMaxAmmo = prevMaxAmmo + ammoValue;
+			if (newMaxAmmo <= 0)
+				newMaxAmmo = -1;
+			break;
+		case CHANGEMAXAMMO_SUBTRACT:
+			newMaxAmmo = prevMaxAmmo - ammoValue;
+			if (newMaxAmmo <= 0)
+				newMaxAmmo = -1;
+			break;
+		default:
+			newMaxAmmo = ammoValue;
+			if (newMaxAmmo <= 0)
+				newMaxAmmo = 0;
+			break;
+		}
+
+		pPlayer->m_maxAmmoOverride[ammoIndex] = newMaxAmmo;
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgMaxAmmo, nullptr, pPlayer->pev);
+
+		WRITE_BYTE(1);
+
+		WRITE_BYTE(ammoIndex);
+		WRITE_LONG(newMaxAmmo);
+
+		MESSAGE_END();
+
+		if (FBitSet(pev->spawnflags, SF_TRIGGERCHANGEMAXAMMO_REMOVEEXCESS))
+		{
+			const int maxAmmo = pPlayer->GetMaxAmmo(ammoIndex);
+			if (pPlayer->m_rgAmmo[ammoIndex] > maxAmmo)
+				pPlayer->m_rgAmmo[ammoIndex] = maxAmmo;
+		}
+	}
+
+	int m_iMaxAmmo;
+	short m_Mode;
+
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
+	static	TYPEDESCRIPTION m_SaveData[];
+};
+
+LINK_ENTITY_TO_CLASS( trigger_changemaxammo, CTriggerChangeMaxAmmo )
+
+TYPEDESCRIPTION	CTriggerChangeMaxAmmo::m_SaveData[] =
+{
+	DEFINE_FIELD( CTriggerChangeMaxAmmo, m_iMaxAmmo, FIELD_INTEGER ),
+	DEFINE_FIELD( CTriggerChangeMaxAmmo, m_Mode, FIELD_SHORT ),
+};
+
+IMPLEMENT_SAVERESTORE( CTriggerChangeMaxAmmo, CPointEntity )
+
 enum
 {
 	CHANGEMAXCLIP_SET = 0,
 	CHANGEMAXCLIP_ADD = 2,
-	CHANGEMAXCLIP_SUBSTRUCT = 3,
+	CHANGEMAXCLIP_SUBTRACT = 3,
 };
 
 enum
@@ -8909,7 +9079,7 @@ public:
 		case CHANGEMAXCLIP_ADD:
 			pWeapon->m_iMaxClip += m_iMaxClip;
 			break;
-		case CHANGEMAXCLIP_SUBSTRUCT:
+		case CHANGEMAXCLIP_SUBTRACT:
 		{
 			pWeapon->m_iMaxClip -= m_iMaxClip;
 			pWeapon->m_iMaxClip = Q_max(1, pWeapon->m_iMaxClip);

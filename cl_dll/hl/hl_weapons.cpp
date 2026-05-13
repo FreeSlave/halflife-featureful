@@ -45,6 +45,11 @@ static int num_ents = 0;
 // The entity we'll use to represent the local client
 static CBasePlayer player;
 
+int GetClientMaxAmmo(int ammoIndex)
+{
+	return player.GetMaxAmmo(ammoIndex);
+}
+
 // Local version of game .dll global variables ( time, etc. )
 static globalvars_t Globals;
 
@@ -121,6 +126,26 @@ int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf)
 	{
 		pWeapon->m_iMaxClip = maxClip;
 	}
+	return 1;
+}
+
+int __MsgFunc_MaxAmmo(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+
+	const int n = READ_BYTE();
+
+	for (int i=0; i<n; ++i)
+	{
+		const int ammoIndex = READ_BYTE();
+		const int maxAmmo = READ_LONG();
+
+		if (ammoIndex > 0 && ammoIndex < MAX_AMMO_TYPES)
+		{
+			player.m_maxAmmoOverride[ammoIndex] = maxAmmo;
+		}
+	}
+
 	return 1;
 }
 
@@ -345,6 +370,11 @@ void CBasePlayer::Spawn()
 		m_pActiveItem->Deploy();
 
 	g_irunninggausspred = false;
+
+	for (int& maxAmmo : m_maxAmmoOverride)
+	{
+		maxAmmo = 0;
+	}
 }
 
 /*
@@ -495,6 +525,11 @@ void HUD_ResetClientWeaponData()
 		{
 			info.pWeapon->ResetWeaponData();
 		}
+	}
+
+	for (int& maxAmmo : player.m_maxAmmoOverride)
+	{
+		maxAmmo = 0;
 	}
 }
 

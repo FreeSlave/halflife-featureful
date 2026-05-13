@@ -2762,7 +2762,7 @@ ApplyTakeDamageModifierResult ApplyTakeDamageModifier(const EntTemplate::DamageI
 	case ValueModifier::FACTOR:
 		damageInfo.damage *= damage;
 		break;
-	case ValueModifier::SUBSTRUCT:
+	case ValueModifier::SUBTRACT:
 		damageInfo.damage -= damage;
 		break;
 	case ValueModifier::ADD:

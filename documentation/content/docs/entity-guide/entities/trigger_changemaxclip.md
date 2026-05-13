@@ -18,7 +18,7 @@ If weapon doesn't have a clip (e.g. `weapon_gauss`), nothing happens.
 * `Change Max Clip Mode` - the operation type.
     - Set - set exact max clip.
     - Add - increase the max clip.
-    - Substruct - decrease the max clip.
+    - Subtract - decrease the max clip.
 * `Handle ammo excess` - how to handle the case when the current ammo amount in the clip is bigger than the new limit.
     - Truncate - truncate to new maximum.
     - Move to ammo - move the excessive ammo to the ammo reserve.

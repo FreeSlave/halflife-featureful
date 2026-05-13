@@ -595,6 +595,9 @@ public:
 	int m_ClientToolUnalignedBits;
 	edict_t* m_UseToolTriggers[32];
 
+	int GetMaxAmmo(int ammoIndex);
+	int m_maxAmmoOverride[MAX_AMMO_TYPES];
+
 	bool m_bunnyhop;
 };
 

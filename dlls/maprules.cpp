@@ -942,7 +942,7 @@ enum
 	VALUE_SETTING_DEFAULT = 0,
 	VALUE_SETTING_SET,
 	VALUE_SETTING_ADD,
-	VALUE_SETTING_SUBSTRUCT,
+	VALUE_SETTING_SUBTRACT,
 	VALUE_SETTING_ATMAX,
 	VALUE_SETTING_ATLEAST
 };
@@ -1042,7 +1042,7 @@ static float ParseValueAndSetting(const char* value, short& setting)
 	}
 	else if (*value == '-')
 	{
-		setting = VALUE_SETTING_SUBSTRUCT;
+		setting = VALUE_SETTING_SUBTRACT;
 		++value;
 	}
 	else if (*value == '<')
@@ -1176,7 +1176,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	case VALUE_SETTING_ADD:
 		player->SetMaxHealth(player->pev->max_health + pev->max_health, clampHealthToMax);
 		break;
-	case VALUE_SETTING_SUBSTRUCT:
+	case VALUE_SETTING_SUBTRACT:
 		player->SetMaxHealth(player->pev->max_health - pev->max_health, clampHealthToMax);
 		break;
 	case VALUE_SETTING_ATMAX:
@@ -1209,7 +1209,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	case VALUE_SETTING_ADD:
 		player->SetMaxArmor(player->MaxArmor() + pev->armortype, clampArmorToMax);
 		break;
-	case VALUE_SETTING_SUBSTRUCT:
+	case VALUE_SETTING_SUBTRACT:
 		player->SetMaxArmor(player->MaxArmor() - pev->armortype, clampArmorToMax);
 		break;
 	case VALUE_SETTING_ATMAX:
@@ -1239,7 +1239,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	case VALUE_SETTING_ADD:
 		player->TakeHealth(this, (int)pev->health, m_allowOverheal ? HEAL_ALLOW_OVERFLOW : HEAL_GENERIC);
 		break;
-	case VALUE_SETTING_SUBSTRUCT:
+	case VALUE_SETTING_SUBTRACT:
 		player->TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetIgnoreArmor().SetNoPlayerPush().SetNoPunch());
 		break;
 	case VALUE_SETTING_ATMAX:
@@ -1269,7 +1269,7 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 	case VALUE_SETTING_ADD:
 		player->TakeArmor(this, pev->armorvalue, m_allowOvercharge ? GIVEARMOR_ALLOW_OVERFLOW : GIVEARMOR_GENERIC);
 		break;
-	case VALUE_SETTING_SUBSTRUCT:
+	case VALUE_SETTING_SUBTRACT:
 		player->TakeArmor(this, -pev->armorvalue, m_allowOvercharge ? GIVEARMOR_ALLOW_OVERFLOW : GIVEARMOR_GENERIC);
 		break;
 	case VALUE_SETTING_ATMAX:

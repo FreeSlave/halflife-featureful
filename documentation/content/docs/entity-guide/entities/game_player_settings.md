@@ -26,7 +26,7 @@ The `game_player_settings` without a targetname is triggered automatically when 
 {{% hint info %}}
 With `Set health`, `Set max health`, `Set armor`, `Set max armor` you can use the following value prefixes:
 * `+` - add to the current value, e.g. `+20`.
-* `-` - substruct from the current value, e.g. `-20`. The max health can't go below 1. The armor and max armor can't go below 0. Using `Set health` with substructing value may kill the player if they don't have enough health.
+* `-` - subtract from the current value, e.g. `-20`. The max health can't go below 1. The armor and max armor can't go below 0. Using `Set health` with subtracting value may kill the player if they don't have enough health.
 * `=` - set the current value, e.g. `=120`. This is the same as value without prefix, but allows to set armor or max armor to 0 (`=0`). Health and max health can't be set to 0.
 * `<` - set the specified value or do nothing if the current player's value is already lower than this value. E.g. setting `Set health` to `<80` will set the current health to 80 or leave it without a change if it's already lower.
 * `>` - set the specified value or do nothing if the current player's value is already higher than this value. E.g. setting `Set health` to `>80` will set the current health to 80 or leave it without a change if it's already higher.

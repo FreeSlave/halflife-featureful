@@ -46,6 +46,8 @@ WeaponsResource gWR;
 
 int g_weaponselect = 0;
 
+extern int GetClientMaxAmmo(int ammoIndex);
+
 void WeaponsResource::Init()
 {
 	memset( rgWeapons, 0, sizeof rgWeapons );
@@ -1027,18 +1029,18 @@ int CHudAmmo::Draw( float flTime )
 	const AmmoType* ammoType = g_AmmoRegistry.GetByIndex(m_pWeapon->iAmmoType);
 
 	int rightSideValue = 0;
-	int rightSideMaxValue = 0;
+	int rightSideMaxValue = -1;
 	if (ammoType)
 	{
 		rightSideValue = gWR.CountAmmo(pw->iAmmoType);
-		rightSideMaxValue = ammoType->maxAmmo;
+		rightSideMaxValue = GetClientMaxAmmo(ammoType->id);
 	}
 	else if (pw->iMaxClip > 0)
 	{
 		rightSideMaxValue = rightSideValue = pw->iMaxClip;
 	}
 
-	if (rightSideMaxValue > 0)
+	if (rightSideMaxValue >= 0)
 	{
 		int ammoWidths = 8;
 		int drawNumberFlag = DHN_3DIGITS;
@@ -1087,7 +1089,7 @@ int CHudAmmo::Draw( float flTime )
 		else
 		{
 			ammoWidths = 4;
-			if (ammoType && ammoType->maxAmmo >= 1000) {
+			if (ammoType && rightSideMaxValue >= 1000) {
 				ammoWidths++;
 			}
 
@@ -1110,9 +1112,11 @@ int CHudAmmo::Draw( float flTime )
 		const AmmoType* ammo2Type = g_AmmoRegistry.GetByIndex(m_pWeapon->iAmmo2Type);
 		if( ammo2Type && ( gWR.CountAmmo( pw->iAmmo2Type ) > 0 ) )
 		{
+			const int maxAmmo2 = GetClientMaxAmmo(ammo2Type->id);
+
 			int ammoWidths = 4;
 			int drawNumberFlag = DHN_3DIGITS;
-			if (ammo2Type->maxAmmo >= 1000) {
+			if (ammo2Type->maxAmmo >= maxAmmo2) {
 				ammoWidths++;
 				drawNumberFlag |= DHN_4DIGITS;
 			}
@@ -1175,7 +1179,7 @@ void DrawAmmoBar( WEAPON *p, int x, int y, int width, int height )
 		if( !gWR.CountAmmo( p->iAmmoType ) )
 			return;
 
-		float f = (float)gWR.CountAmmo( p->iAmmoType ) / (float)ammoType->maxAmmo;
+		float f = (float)gWR.CountAmmo( p->iAmmoType ) / (float)GetClientMaxAmmo(ammoType->id);
 		
 		x = DrawBar( x, y, width, height, f );
 
@@ -1183,7 +1187,7 @@ void DrawAmmoBar( WEAPON *p, int x, int y, int width, int height )
 		const AmmoType* ammo2Type = g_AmmoRegistry.GetByIndex(p->iAmmo2Type);
 		if( ammo2Type )
 		{
-			f = (float)gWR.CountAmmo( p->iAmmo2Type ) / (float)ammo2Type->maxAmmo;
+			f = (float)gWR.CountAmmo( p->iAmmo2Type ) / (float)GetClientMaxAmmo(ammo2Type->id);
 
 			x += 5; //!!!
 
