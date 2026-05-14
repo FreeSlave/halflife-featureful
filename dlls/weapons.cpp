@@ -95,24 +95,20 @@ void ApplyMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker )
 //		gMultiDamage
 void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo )
 {
-	if( !pEntity )
+	if (!pEntity)
 		return;
 
-	const int prevDamageType = gMultiDamage.damageInfo.type;
-	const float prevDamage = gMultiDamage.damageInfo.damage;
-
-	gMultiDamage.damageInfo = damageInfo;
-	gMultiDamage.damageInfo.damage = prevDamage;
-	gMultiDamage.damageInfo.type |= prevDamageType;
-
-	if( pEntity != gMultiDamage.pEntity )
+	if (pEntity == gMultiDamage.pEntity)
 	{
-		ApplyMultiDamage( pevInflictor, pevAttacker );
-		gMultiDamage.pEntity = pEntity;
-		gMultiDamage.damageInfo.damage = 0;
+		gMultiDamage.damageInfo.damage += damageInfo.damage;
+		gMultiDamage.damageInfo.type |= damageInfo.type;
 	}
-
-	gMultiDamage.damageInfo.damage += damageInfo.damage;
+	else
+	{
+		ApplyMultiDamage(pevInflictor, pevAttacker);
+		gMultiDamage.pEntity = pEntity;
+		gMultiDamage.damageInfo = damageInfo;
+	}
 }
 
 int DamageDecal( CBaseEntity *pEntity, int bitsDamageType )
