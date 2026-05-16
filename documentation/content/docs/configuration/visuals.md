@@ -136,3 +136,10 @@ Example:
     }
 }
 ```
+
+### Power shield visuals
+
+See [power shield]({{< ref "entity-templates/#power_shield" >}}).
+
+* **PowerShield.Render** - render properties to apply to the monster when the power shield takes damage. By default it has green color and `"renderfx"` is set to `"Glow Shell"`. The `"life"` tells for how long the custom render properties should linger (0.5 seconds by default). This visual doesn't use any sprite or model.
+* **PowerShield.Debris** - debris sprite or model spawned when the power shield takes damage. By default it's **sprites/flare3.spr** with scale 0.5 (the actual size will be scaled depending on the incoming damage).

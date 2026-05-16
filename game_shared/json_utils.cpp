@@ -533,22 +533,21 @@ bool UpdatePropertyFromJson(tribool& b, const Value& jsonValue, const char* key)
 	return false;
 }
 
-optional<SkillBasedValue> SkillBasedValueFromJSON(const Value& value)
+SkillBasedValue SkillBasedValueFromJSON(const Value& value)
 {
-	optional<SkillBasedValue> result;
 	SkillBasedValue skillValue;
 	auto floatRange = FloatRangeFromJSON(value);
 	if (floatRange.has_value())
 	{
 		skillValue.easy = skillValue.medium = skillValue.hard = *floatRange;
 		skillValue.type = SkillBasedValue::COMMON;
-		result = skillValue;
+		return skillValue;
 	}
 	else if (value.IsString())
 	{
 		skillValue.skillVariable = value.GetString();
 		skillValue.type = SkillBasedValue::STRING;
-		result = skillValue;
+		return skillValue;
 	}
 	else if (value.IsArray())
 	{
@@ -559,10 +558,10 @@ optional<SkillBasedValue> SkillBasedValueFromJSON(const Value& value)
 			skillValue.easy = FloatRangeFromJSON(arr[0]).value_or(FloatRange());
 			skillValue.medium = FloatRangeFromJSON(arr[1]).value_or(FloatRange());
 			skillValue.hard = FloatRangeFromJSON(arr[2]).value_or(FloatRange());
-			result = skillValue;
+			return skillValue;
 		}
 	}
-	return result;
+	return skillValue;
 }
 
 bool UpdatePropertyFromJson(SkillBasedValue& skillValue, const Value& jsonValue, const char* key)
@@ -570,10 +569,10 @@ bool UpdatePropertyFromJson(SkillBasedValue& skillValue, const Value& jsonValue,
 	auto it = jsonValue.FindMember(key);
 	if (it != jsonValue.MemberEnd())
 	{
-		optional<SkillBasedValue> skillBasedValue = SkillBasedValueFromJSON(it->value);
-		if (skillBasedValue.has_value())
+		SkillBasedValue skillBasedValue = SkillBasedValueFromJSON(it->value);
+		if (skillBasedValue.IsDefined())
 		{
-			skillValue = std::move(*skillBasedValue);
+			skillValue = std::move(skillBasedValue);
 			return true;
 		}
 	}

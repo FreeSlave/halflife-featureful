@@ -114,6 +114,7 @@ public:
 	short m_gruntMaxChildren;
 
 	float m_soundAttenuation;
+	float m_rotorVolume;
 
 	string_t m_triggerOnDeploy;
 	string_t m_triggerOnDeployGrunt;
@@ -135,12 +136,12 @@ protected:
 	void PrecacheImpl(const char* modelName, const char* tailGibs, const char* bodyGibs, const char* engineGibs);
 	virtual const char* TrooperName();
 	bool HasCustomRotorVolume() const {
-		return pev->armorvalue > 0.0f && pev->armorvalue <= 1.0f;
+		return m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f;
 	}
 	float RotorVolume() const {
 		if (HasCustomRotorVolume())
 		{
-			return pev->armorvalue;
+			return m_rotorVolume;
 		}
 		return VOL_NORM;
 	}
@@ -152,9 +153,9 @@ protected:
 	}
 	void SetRotorSoundParams(SoundScriptParamOverride& param)
 	{
-		if (pev->armorvalue > 0.0f && pev->armorvalue <= 1.0f)
+		if (HasCustomRotorVolume())
 		{
-			param.OverrideVolumeAbsolute(pev->armorvalue);
+			param.OverrideVolumeAbsolute(m_rotorVolume);
 		}
 		if (m_soundAttenuation > 0.0f)
 		{
@@ -200,7 +201,9 @@ TYPEDESCRIPTION	COsprey::m_SaveData[] =
 	DEFINE_FIELD( COsprey, m_gruntType, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_gruntNumber, FIELD_SHORT ),
 	DEFINE_FIELD( COsprey, m_gruntMaxChildren, FIELD_SHORT ),
+
 	DEFINE_FIELD( COsprey, m_soundAttenuation, FIELD_FLOAT ),
+	DEFINE_FIELD( COsprey, m_rotorVolume, FIELD_FLOAT ),
 
 	DEFINE_FIELD( COsprey, m_triggerOnDeploy, FIELD_STRING ),
 	DEFINE_FIELD( COsprey, m_triggerOnDeployGrunt, FIELD_STRING ),
@@ -321,7 +324,7 @@ void COsprey::KeyValue(KeyValueData *pkvd)
 {
 	if( FStrEq(pkvd->szKeyName, "rotorvolume" ) )
 	{
-		pev->armorvalue = atof( pkvd->szValue );
+		m_rotorVolume = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "grunttype" ) )

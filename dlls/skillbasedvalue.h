@@ -19,6 +19,7 @@ struct SkillBasedValue
 
 	enum : short
 	{
+		UNDEFINED,
 		STRING,
 		COMMON,
 		DIFFICULTIES
@@ -28,10 +29,10 @@ struct SkillBasedValue
 	FloatRange easy{0.0f};
 	FloatRange medium{0.0f};
 	FloatRange hard{0.0f};
-	short type{STRING};
+	short type{UNDEFINED};
 
 	inline bool IsDefined() const {
-		return type == COMMON || type == DIFFICULTIES || !skillVariable.empty();
+		return type == COMMON || type == DIFFICULTIES || (type == STRING && !skillVariable.empty());
 	}
 };
 #endif

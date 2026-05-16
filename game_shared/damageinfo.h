@@ -24,6 +24,7 @@ struct DamageInfo
 	bool noPunch = false; // don't make a smalle punch on player's camera
 	bool noBlood = false; // used in TraceAttack. Force not to bleed.
 	bool ignoreTransform = false;
+	bool enforceLightDamage = false;
 
 	bool mustSkip = false;
 

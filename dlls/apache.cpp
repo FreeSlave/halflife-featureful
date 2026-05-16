@@ -100,6 +100,8 @@ public:
 	int m_iDoSmokePuff;
 	CBeam *m_pBeam;
 
+	float m_rotorVolume;
+
 	bool m_iObeyTriggerMode;
 
 	static const NamedSoundScript rotorSoundScript;
@@ -119,9 +121,9 @@ protected:
 	void PrecacheImpl(const char* modelName, const char* gibModel);
 	void SetRotorVolumeOverride(SoundScriptParamOverride& param)
 	{
-		if (pev->armorvalue > 0.0f && pev->armorvalue <= 1.0f)
+		if (m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f)
 		{
-			param.OverrideVolumeAbsolute(pev->armorvalue);
+			param.OverrideVolumeAbsolute(m_rotorVolume);
 		}
 	}
 };
@@ -148,6 +150,7 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	DEFINE_FIELD( CApache, m_pBeam, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CApache, m_flGoalSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
+	DEFINE_FIELD( CApache, m_rotorVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iObeyTriggerMode, FIELD_BOOLEAN ),
 };
 
@@ -293,7 +296,7 @@ void CApache::KeyValue(KeyValueData *pkvd)
 {
 	if( FStrEq(pkvd->szKeyName, "rotorvolume" ) )
 	{
-		pev->armorvalue = atof( pkvd->szValue );
+		m_rotorVolume = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "m_iObeyTriggerMode" ) )

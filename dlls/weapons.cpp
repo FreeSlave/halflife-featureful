@@ -76,6 +76,7 @@ void ClearMultiDamage()
 {
 	gMultiDamage.pEntity = NULL;
 	gMultiDamage.damageInfo = DamageInfo{};
+	gMultiDamage.pendingDamageToShield = 0.0f;
 }
 
 //
@@ -85,10 +86,11 @@ void ClearMultiDamage()
 //		gMultiDamage
 void ApplyMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker )
 {
-	if( !gMultiDamage.pEntity )
+	if (!gMultiDamage.pEntity)
 		return;
 
-	gMultiDamage.pEntity->TakeDamage( pevInflictor, pevAttacker, gMultiDamage.damageInfo );
+	gMultiDamage.pEntity->TakeDamage(pevInflictor, pevAttacker, gMultiDamage.damageInfo);
+	ClearMultiDamage(); // make sure it won't be reapplied
 }
 
 // GLOBALS USED:

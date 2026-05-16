@@ -17,8 +17,6 @@
 #define KINGPIN_AE_PLASMA_LAUNCH 4
 #define KINGPIN_AE_PLASMA_END 5
 
-#define KINGPIN_RECHARGE_SHIELD_DELAY 3
-#define KINGPIN_RECHARGE_SHIELD_RATE 1
 #define KINGPIN_PLASMABALL_LIFETIME 4.5
 #define KINGPIN_PLASMABALL_DELAY 6
 #define KINGPIN_PLASMABALL_RADIUS 190.0f
@@ -825,7 +823,6 @@ public:
 		pev->absmax = pev->origin + Vector( 24.0f, 24.0f, 96.0f );
 	}
 
-	float m_shieldLastHurtTime;
 	float m_plasmaBallTime;
 	float m_plasmaClusterTime;
 	CSprite* m_Glows[4];
@@ -833,7 +830,16 @@ public:
 	string_t m_sTeleportTarget;
 	bool m_isTeleporting;
 	bool m_canUseSecondChance;
-	float m_shieldRegenResource;
+
+	FloatRange DefaultPowerShieldStrength() override {
+		return GetSkillValueRange("kingpin_shield");
+	}
+	FloatRange DefaultPowerShieldRegenResourceAmount() override {
+		return GetSkillValueRange("kingpin_shield_reserve");
+	}
+	const NamedVisual& PowerShieldVisual() override {
+		return shieldVisual;
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -843,8 +849,6 @@ public:
 
 	void ReportAIState(ALERT_TYPE level) override;
 protected:
-	void RenderShield();
-	void RemoveShield();
 	void UpdateGlows(int target, int speed);
 	void ClearGlows();
 	void DeathBeams(const Visual* visual);
@@ -870,7 +874,6 @@ protected:
 	static const NamedSoundScript clusterAttackSoundScript;
 
 	static const NamedVisual shieldVisual;
-	static const NamedVisual debrisVisual;
 	static const NamedVisual glowVisual;
 	static const NamedVisual teleportVisual;
 	static const NamedVisual teleportEnterVisual;
@@ -889,7 +892,6 @@ protected:
 
 	static const NamedVisual clusterBeamVisual;
 
-	const Visual* m_shieldVisual;
 	const Visual* m_shieldDebrisVisual;
 	const Visual* m_glowVisual;
 };
@@ -972,15 +974,7 @@ const NamedSoundScript CKingpin::clusterAttackSoundScript = {
 
 const NamedVisual CKingpin::shieldVisual = BuildVisual("Kingpin.Shield")
 	.RenderColor(255, 170, 255)
-	.Life(0.5f)
-	.Alpha(5)
-	.RenderFx(kRenderFxGlowShell);
-
-const NamedVisual CKingpin::debrisVisual = BuildVisual("Kingpin.ShieldDebris")
-	.Model("sprites/flare3.spr")
-	.RenderProps(kRenderGlow, Color3(225, 170, 225), 200, kRenderFxNoDissipation)
-	.Life(1)
-	.Scale(0.5f);
+	.Mixin(&powerShieldRenderVisual);
 
 const NamedVisual CKingpin::glowVisual = BuildVisual("Kingpin.Glow")
 	.Model("sprites/boss_glow.spr")
@@ -1188,9 +1182,6 @@ void CKingpin::Spawn()
 	SetMyFieldOfView(VIEW_FIELD_FULL);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 
-	m_shieldRegenResource = pev->armortype = GetSkillValue("kingpin_shield");
-	pev->armorvalue = MaximumShield();
-
 	for (size_t i=0; i<ARRAYSIZE(m_Glows); ++i)
 	{
 		m_Glows[i] = CreateSpriteFromVisual(m_glowVisual, pev->origin);
@@ -1245,8 +1236,6 @@ void CKingpin::Precache()
 	UTIL_PrecacheOther("kingpin_plasma_ball", GetProjectileOverrides());
 	UTIL_PrecacheOther("kingpin_plasma_cluster", GetProjectileOverrides());
 
-	m_shieldVisual = RegisterVisual(shieldVisual);
-	m_shieldDebrisVisual = RegisterVisual(debrisVisual);
 	m_glowVisual = RegisterVisual(glowVisual);
 }
 
@@ -1318,105 +1307,20 @@ float CKingpin::HeadHitGroupDamageMultiplier()
 		return defaultMultiplier;
 }
 
-extern int gmsgSpriteTrail;
-
 void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
 	if (m_isTeleporting || pev->takedamage == DAMAGE_NO)
 		return;
 
-	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
-
-	if (damageInfo.mustSkip)
-		return;
-
-	m_LastHitGroup = ptr->iHitgroup;
-
-	if (pev->armorvalue > 0)
-	{
-		const bool isBlast = (FBitSet(damageInfo.type, DMG_BLAST) && damageInfo.damage > 50);
-		const int count = isBlast ? 3 : 1;
-		const int randomness = isBlast ? 30 : 15;
-
-		const int deciScale = RandomizeNumberFromRange(m_shieldDebrisVisual->scale) * 10;
-
-		int scaleToSend = deciScale + int(damageInfo.damage / 8.0f);
-		scaleToSend = Q_min(scaleToSend, deciScale * 3);
-
-		if (FBitSet(damageInfo.type, DMG_BLAST))
-		{
-			// Up to 1.5x damage from blast damage to shields
-			damageInfo.damage += Q_min(damageInfo.damage * 0.5f, pev->armorvalue);
-		}
-
-		if (m_shieldDebrisVisual && m_shieldDebrisVisual->modelIndex)
-		{
-			Vector sparkOrigin = ptr->vecEndPos;
-			Vector sparkEnd = ptr->vecEndPos - vecDir * 8.0f;
-			sparkEnd.z += 8.0f;
-			MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, sparkOrigin );
-				WRITE_VECTOR( sparkOrigin );	// start
-				WRITE_VECTOR( sparkEnd );	// end
-				WRITE_SHORT( m_shieldDebrisVisual->modelIndex );	// model
-				WRITE_BYTE( count );			// count
-				WRITE_BYTE( RandomizeNumberFromRange(m_shieldDebrisVisual->life)*10 );			// life in 0.1s
-				WRITE_BYTE( scaleToSend );			// scale in 0.1
-				WRITE_BYTE( 20 );			// velocity along vector in 10's
-				WRITE_BYTE( randomness );			// randomness of velocity in 10's
-				WRITE_BYTE( m_shieldDebrisVisual->rendermode );
-				WRITE_COLOR( m_shieldDebrisVisual->rendercolor );
-				WRITE_BYTE( m_shieldDebrisVisual->renderamt );
-				WRITE_BYTE( m_shieldDebrisVisual->renderfx );
-				WRITE_BYTE( 5 ); // random extra life in 0.1s
-			MESSAGE_END();
-		}
-	}
-	else
-	{
-		ApplyHitGroupDamageMultiplier(damageInfo, ptr->iHitgroup);
-	}
-
-	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
-	// Spawn blood only if shield is dropped or gonna drop
-	if (gMultiDamage.damageInfo.damage > pev->armorvalue)
-	{
-		BloodEffect(damageInfo, vecDir, ptr);
-	}
+	CBaseMonster::TraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 }
 
 TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	TakeDamageResult takeDamageResult;
-
 	if (m_isTeleporting)
-		return takeDamageResult;
+		return TakeDamageResult{};
 
-	if (damageInfo.damage > 0)
-		m_shieldLastHurtTime = gpGlobals->time;
-
-	DamageInfo dmgInfo = damageInfo;
-
-	if (pev->armorvalue > 0)
-	{
-		pev->armorvalue -= dmgInfo.damage;
-		if (pev->armorvalue <= 0)
-		{
-			dmgInfo.damage = -pev->armorvalue;
-			pev->armorvalue = 0;
-			RemoveShield();
-		}
-		else
-		{
-			dmgInfo.damage = 0;
-			RenderShield();
-
-			ReactToDamage( pevInflictor, pevAttacker, DamageInfo{1.0f, dmgInfo.type}, takeDamageResult );
-		}
-	}
-	if (dmgInfo.damage <= 0)
-		return takeDamageResult;
-
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, dmgInfo);
+	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 KilledResult CKingpin::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
@@ -1530,7 +1434,7 @@ void CKingpin::StartTask( Task_t *pTask )
 		{
 			m_IdealActivity = ACT_DIESIMPLE;
 			m_isTeleporting = true;
-			RemoveShield();
+			RemovePowerShield();
 
 			pev->rendermode = kRenderTransAdd;
 			pev->renderfx = kRenderFxPulseFastWide;
@@ -1641,7 +1545,7 @@ void CKingpin::RunTask( Task_t *pTask )
 						{
 							ALERT(at_aiconsole, "%s used second chance. Health: %f. Armor: %f\n", STRING(pev->classname), pev->health, pev->armorvalue);
 							m_canUseSecondChance = false;
-							pev->armorvalue = MaximumShield();
+							pev->armorvalue = MaximumPowerShield();
 						}
 
 						UTIL_ScreenShake( pev->origin, 6.0f, 50.0f, 1.0f, 400 );
@@ -1750,13 +1654,6 @@ void CKingpin::PrescheduleThink()
 
 	if (IsFullyAlive())
 	{
-		// Regen shield if did not get any damage for some amount of time
-		if (m_shieldRegenResource > 0 && gpGlobals->time - m_shieldLastHurtTime > KINGPIN_RECHARGE_SHIELD_DELAY && pev->armorvalue < MaximumShield())
-		{
-			const float rate = KINGPIN_RECHARGE_SHIELD_RATE;
-			pev->armorvalue += rate;
-			m_shieldRegenResource -= rate;
-		}
 		if (!m_isTeleporting && m_canUseSecondChance &&
 				pev->health <= pev->max_health / 2 && pev->armorvalue <= MaximumShield()/4 &&
 				CanTeleportNow())
@@ -1839,28 +1736,6 @@ void CKingpin::ClearGlows()
 	}
 }
 
-void CKingpin::RenderShield()
-{
-	float fraction = pev->armorvalue / MaximumShield();
-	if (fraction > 1)
-		fraction = 1;
-	if (fraction < 0.4)
-		fraction = 0.4;
-	if (m_shieldVisual)
-	{
-		Visual visual = *m_shieldVisual;
-		visual.rendercolor.r = (int)(visual.rendercolor.r * fraction);
-		visual.rendercolor.g = (int)(visual.rendercolor.g * fraction);
-		visual.rendercolor.b = (int)(visual.rendercolor.b * fraction);
-		GlowShellOn(&visual);
-	}
-}
-
-void CKingpin::RemoveShield()
-{
-	GlowShellOff();
-}
-
 void CKingpin::DeathBeams(const Visual* visual)
 {
 	int iTimes = 0;
@@ -1904,8 +1779,6 @@ void CKingpin::ReportAIState(ALERT_TYPE level)
 		ALERT(level, "Can throw an energy ball; ");
 	if (m_plasmaClusterTime <= gpGlobals->time)
 		ALERT(level, "Can create plasma cluster; ");
-	ALERT(level, "Shield strength: %3.1f / %3.1f; ", pev->armorvalue, MaximumShield());
-	ALERT(level, "Shield regen resource: %3.1f. ", m_shieldRegenResource);
 }
 
 void CKingpin::TryMakePlasmaCluster(const Vector &pos)

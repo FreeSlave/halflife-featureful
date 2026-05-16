@@ -307,3 +307,15 @@ const NamedVisual passiveRegenBeamVisual = BuildVisual("PassiveRegen.Beam").Mixi
 const NamedVisual activeRegenSpriteVisual = BuildVisual("ActiveRegen.Sprite").Mixin(&regenSpriteVisual);
 const NamedVisual activeRegenParticleVisual = BuildVisual("ActiveRegen.Particle").Mixin(&regenParticleVisual);
 const NamedVisual activeRegenBeamVisual = BuildVisual("ActiveRegen.Beam").Mixin(&regenBeamVisual);
+
+const NamedVisual powerShieldRenderVisual = BuildVisual("PowerShield.Render")
+	.RenderColor(0, 255, 0)
+	.Life(0.5f)
+	.Alpha(10)
+	.RenderFx(kRenderFxGlowShell);
+
+const NamedVisual powerShieldDebrisVisual = BuildVisual("PowerShield.Debris")
+	.Model("sprites/flare3.spr")
+	.Alpha(200).RenderMode(kRenderGlow).RenderFx(kRenderFxNoDissipation)
+	.Life(1)
+	.Scale(0.5f);

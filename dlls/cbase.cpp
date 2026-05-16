@@ -32,6 +32,7 @@
 #include	"skill.h"
 #include	"skilldata.h"
 #include	"soundent.h"
+#include	"clamp.h"
 
 #include <algorithm>
 #include <random>
@@ -673,6 +674,23 @@ DamageInfo CBaseEntity::TransformDamageInfo(entvars_t *pevInflictor, entvars_t *
 	}
 }
 
+float CBaseEntity::TransformDamageToShield(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+		for (const EntTemplate::PowerShieldTakeDamageRule& rule : powerShield.takeDamageRules)
+		{
+			if (CheckTakeDamageConditions(rule.conditions, pevInflictor, pevAttacker, inputDamageInfo, this))
+			{
+				return inputDamageInfo.damage * rule.dmgFactor;
+			}
+		}
+	}
+	return inputDamageInfo.damage;
+}
+
 TakeDamageResult CBaseEntity::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
 	TakeDamageResult takeDamageResult;
@@ -769,6 +787,19 @@ TYPEDESCRIPTION	CBaseEntity::m_SaveData[] =
 	DEFINE_FIELD( CBaseEntity, m_activeRegenTime, FIELD_TIME ),
 	DEFINE_FIELD( CBaseEntity, m_nextActiveRegen, FIELD_TIME ),
 	DEFINE_FIELD( CBaseEntity, m_regenResource, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CBaseEntity, m_hasPowerShield, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseEntity, m_shieldLastHurtTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_shieldRegenTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_shieldRegenResource, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CBaseEntity, m_glowShellTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseEntity, m_glowShellUpdate, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CBaseEntity, m_prevRenderAmt, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseEntity, m_prevRenderColor, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseEntity, m_prevRenderFx, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseEntity, m_prevRenderMode, FIELD_SHORT ),
 };
 
 void CBaseEntity::KeyValue(KeyValueData* pkvd)
@@ -1295,7 +1326,35 @@ void CBaseEntity::SetMyHealth(const float defaultHealth)
 	}
 
 	if (entTemplate)
+	{
 		m_regenResource = GetSkillValue(entTemplate->GetRegenerationResourceAmount());
+	}
+
+	FloatRange powerShieldStrength = DefaultPowerShieldStrength();
+	if (entTemplate)
+	{
+		const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+		if (powerShield.strength.IsDefined())
+			powerShieldStrength = GetSkillValueRange(powerShield.strength);
+	}
+	if (powerShieldStrength.IsPositive())
+	{
+		pev->armorvalue = RandomizeNumberFromRange(powerShieldStrength);
+		if (pev->armorvalue > 0)
+		{
+			pev->armortype = pev->armorvalue;
+			m_hasPowerShield = true;
+		}
+
+		FloatRange powerShieldRegenResource = DefaultPowerShieldRegenResourceAmount();
+		if (entTemplate)
+		{
+			const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+			if (powerShield.reserve.IsDefined())
+				powerShieldRegenResource = GetSkillValueRange(powerShield.reserve);
+		}
+		m_shieldRegenResource = RandomizeNumberFromRange(powerShieldRegenResource);
+	}
 }
 
 const Visual* CBaseEntity::MyOwnVisual()
@@ -1342,7 +1401,22 @@ void CBaseEntity::PrecacheTemplateResources()
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (!entTemplate)
+	{
+		if (DefaultPowerShieldStrength().IsPositive())
+		{
+			m_shieldVisual = RegisterVisual(PowerShieldVisual());
+			m_shieldDebrisVisual = RegisterVisual(powerShieldDebrisVisual);
+		}
 		return;
+	}
+
+	const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+	const bool powerShieldEnabled = powerShield.strength.IsDefined() || DefaultPowerShieldStrength().IsPositive();
+	if (powerShieldEnabled)
+	{
+		m_shieldVisual = RegisterVisual(PowerShieldVisual());
+		m_shieldDebrisVisual = RegisterVisual(powerShieldDebrisVisual);
+	}
 
 	auto preacacheRegenEffects = [this](const EntTemplate::Regeneration& regen,
 										const NamedVisual& spriteVisual,
@@ -1964,16 +2038,19 @@ FloatRange CBaseEntity::GetSkillValueRange(const SkillBasedValue &skillValue)
 
 		return GetSkillValueRange(skillValue.skillVariable.c_str());
 	}
-
-	if (g_iSkillLevel >= SKILL_HARD)
+	else if (skillValue.type == SkillBasedValue::DIFFICULTIES)
 	{
-		return skillValue.hard;
+		if (g_iSkillLevel >= SKILL_HARD)
+		{
+			return skillValue.hard;
+		}
+		else if (g_iSkillLevel == SKILL_MEDIUM)
+		{
+			return skillValue.medium;
+		}
+		return skillValue.easy;
 	}
-	else if (g_iSkillLevel == SKILL_MEDIUM)
-	{
-		return skillValue.medium;
-	}
-	return skillValue.easy;
+	return FloatRange();
 }
 
 float CBaseEntity::GetSkillValue(const SkillBasedValue &skillValue)
@@ -2518,6 +2595,142 @@ bool CBaseEntity::UpdateClipSizeForWeapon(int &clipSize, int weaponBit)
 bool CBaseEntity::UpdateClipSizeForWeapon(int &clipSize)
 {
 	return UpdateClipSizeForWeapon(clipSize, pev->weapons);
+}
+
+const NamedVisual& CBaseEntity::PowerShieldVisual()
+{
+	return powerShieldRenderVisual;
+}
+
+float CBaseEntity::MaximumPowerShield()
+{
+	return m_hasPowerShield ? pev->armortype : 0.0f;
+}
+
+float CBaseEntity::PowerShieldAbsorption()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		float absorption = GetSkillValue(entTemplate->GetPowerShield().absorption);
+		if (absorption > 0.0f)
+			return clamp(absorption, 0.0f, 1.0f);
+	}
+	return 1.0f;
+}
+
+void CBaseEntity::RenderPowerShield()
+{
+	if (!m_shieldVisual)
+	{
+		ALERT(at_console, "%s: null shield visual!\n", STRING(pev->classname));
+		return;
+	}
+
+	const float maxPowerShield = MaximumPowerShield();
+
+	float fraction = pev->armorvalue / (maxPowerShield > 0.0f ? maxPowerShield : 1.0f);
+	fraction = clamp(fraction, 0.4f, 1.0f);
+
+	Visual visual = *m_shieldVisual;
+	visual.rendercolor.r = (int)(visual.rendercolor.r * fraction);
+	visual.rendercolor.g = (int)(visual.rendercolor.g * fraction);
+	visual.rendercolor.b = (int)(visual.rendercolor.b * fraction);
+	GlowShellOn(&visual);
+}
+
+void CBaseEntity::RemovePowerShield()
+{
+	GlowShellOff();
+}
+
+void CBaseEntity::HandlePowerShieldRecharge()
+{
+	if (!m_hasPowerShield)
+		return;
+
+	if (!IsFullyAlive())
+		return;
+
+	if (pev->armorvalue >= MaximumPowerShield())
+		return;
+
+	if (m_shieldRegenResource <= 0)
+		return;
+
+	if (m_shieldRegenTime > gpGlobals->time)
+		return;
+
+	EntTemplate::PowerShieldRecharge shieldRecharge;
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+		shieldRecharge = entTemplate->GetPowerShield().recharge;
+
+	if (m_shieldLastHurtTime + shieldRecharge.delayAfterHurt > gpGlobals->time)
+		return;
+
+	if (m_shieldRegenTime > gpGlobals->time)
+		return;
+
+	float rechargeValue = Q_min(shieldRecharge.strengthPerUpdate, m_shieldRegenResource);
+
+	const float maxPowerShield = MaximumPowerShield();
+	pev->armorvalue += rechargeValue;
+	if (pev->armorvalue > maxPowerShield)
+	{
+		rechargeValue -= pev->armorvalue = maxPowerShield;
+		pev->armorvalue = maxPowerShield;
+	}
+	m_shieldRegenResource -= rechargeValue;
+
+	m_shieldRegenTime = (m_shieldRegenTime > 0.0f && (gpGlobals->time - m_shieldRegenTime) < shieldRecharge.interval ? m_shieldRegenTime : gpGlobals->time) + shieldRecharge.interval;
+}
+
+void CBaseEntity::GlowShellOn(const Visual* visual)
+{
+	if (!m_glowShellUpdate)
+	{
+		m_prevRenderColor = pev->rendercolor;
+		m_prevRenderAmt = pev->renderamt;
+		m_prevRenderFx = pev->renderfx;
+		m_prevRenderMode = pev->rendermode;
+
+		if (visual->HasDefined(Visual::ALPHA_DEFINED))
+			pev->renderamt = visual->renderamt;
+		if (visual->HasDefined(Visual::COLOR_DEFINED))
+			pev->rendercolor = VectorFromColor(visual->rendercolor);
+		if (visual->HasDefined(Visual::RENDERFX_DEFINED))
+			pev->renderfx = visual->renderfx;
+		if (visual->HasDefined(Visual::RENDERMODE_DEFINED))
+			pev->rendermode = visual->rendermode;
+
+		m_glowShellUpdate = true;
+	}
+	m_glowShellTime = gpGlobals->time + RandomizeNumberFromRange(visual->life);
+}
+
+void CBaseEntity::GlowShellOff()
+{
+	if (m_glowShellUpdate)
+	{
+		pev->renderamt = m_prevRenderAmt;
+		pev->rendercolor = m_prevRenderColor;
+		pev->renderfx = m_prevRenderFx;
+		pev->rendermode = m_prevRenderMode;
+
+		m_glowShellTime = 0.0f;
+
+		m_glowShellUpdate = false;
+	}
+}
+
+void CBaseEntity::GlowShellUpdate()
+{
+	if (m_glowShellUpdate)
+	{
+		if (gpGlobals->time > m_glowShellTime || pev->deadflag == DEAD_DEAD)
+			GlowShellOff();
+	}
 }
 
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)

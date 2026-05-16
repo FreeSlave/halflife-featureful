@@ -138,14 +138,6 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_gibModel, FIELD_STRING ),
 	DEFINE_FIELD( CBaseMonster, m_reverseRelationship, FIELD_BOOLEAN ),
 
-	DEFINE_FIELD( CBaseMonster, m_glowShellTime, FIELD_TIME ),
-	DEFINE_FIELD( CBaseMonster, m_glowShellUpdate, FIELD_BOOLEAN ),
-
-	DEFINE_FIELD( CBaseMonster, m_prevRenderAmt, FIELD_INTEGER ),
-	DEFINE_FIELD( CBaseMonster, m_prevRenderColor, FIELD_VECTOR ),
-	DEFINE_FIELD( CBaseMonster, m_prevRenderFx, FIELD_SHORT ),
-	DEFINE_FIELD( CBaseMonster, m_prevRenderMode, FIELD_SHORT ),
-
 	DEFINE_FIELD( CBaseMonster, m_nextPatrolPathCheck, FIELD_TIME ),
 
 	DEFINE_FIELD( CBaseMonster, m_customSoundMask, FIELD_INTEGER ),
@@ -641,6 +633,7 @@ void CBaseMonster::MonsterThink()
 	RunAI();
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
+	HandlePowerShieldRecharge();
 
 	float flInterval = StudioFrameAdvance(); // animate
 
@@ -3828,6 +3821,21 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	if (m_regenResource > 0.0f)
 		ALERT(level, "Regeneration resource: %g; ", m_regenResource);
 
+	if (m_hasPowerShield)
+	{
+		ALERT(level, "Power shield: %g / %g; ", pev->armorvalue, MaximumPowerShield());
+		if (m_shieldRegenResource > 0.0f)
+		{
+			ALERT(level, "Power shield recharge resource: %g; ", m_shieldRegenResource);
+
+			if (m_shieldLastHurtTime > 0.0f)
+				ALERT(level, "Time since shield last hurt: %g; ", gpGlobals->time - m_shieldLastHurtTime);
+
+			if (m_shieldRegenTime > gpGlobals->time)
+				ALERT(level, "Time before shield recharge update: %g; ", m_shieldRegenTime - gpGlobals->time);
+		}
+	}
+
 	if (shouldReportRoute)
 	{
 		int iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
@@ -5030,52 +5038,6 @@ void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, 
 		schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
 	}
 	SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pSpotEntity, minDist, 256, schedFlags);
-}
-
-void CBaseMonster::GlowShellOn(const Visual* visual)
-{
-	if (!m_glowShellUpdate)
-	{
-		m_prevRenderColor = pev->rendercolor;
-		m_prevRenderAmt = pev->renderamt;
-		m_prevRenderFx = pev->renderfx;
-		m_prevRenderMode = pev->rendermode;
-
-		if (visual->HasDefined(Visual::ALPHA_DEFINED))
-			pev->renderamt = visual->renderamt;
-		if (visual->HasDefined(Visual::COLOR_DEFINED))
-			pev->rendercolor = VectorFromColor(visual->rendercolor);
-		if (visual->HasDefined(Visual::RENDERFX_DEFINED))
-			pev->renderfx = visual->renderfx;
-		if (visual->HasDefined(Visual::RENDERMODE_DEFINED))
-			pev->rendermode = visual->rendermode;
-
-		m_glowShellUpdate = true;
-	}
-	m_glowShellTime = gpGlobals->time + RandomizeNumberFromRange(visual->life);
-}
-
-void CBaseMonster::GlowShellOff()
-{
-	if (m_glowShellUpdate)
-	{
-		pev->renderamt = m_prevRenderAmt;
-		pev->rendercolor = m_prevRenderColor;
-		pev->renderfx = m_prevRenderFx;
-		pev->rendermode = m_prevRenderMode;
-
-		m_glowShellTime = 0.0f;
-
-		m_glowShellUpdate = false;
-	}
-}
-void CBaseMonster::GlowShellUpdate()
-{
-	if( m_glowShellUpdate )
-	{
-		if( gpGlobals->time > m_glowShellTime || pev->deadflag == DEAD_DEAD )
-			GlowShellOff();
-	}
 }
 
 void CDeadMonster::KeyValue( KeyValueData *pkvd )

@@ -42,4 +42,7 @@ extern const NamedVisual activeRegenSpriteVisual;
 extern const NamedVisual activeRegenParticleVisual;
 extern const NamedVisual activeRegenBeamVisual;
 
+extern const NamedVisual powerShieldRenderVisual;
+extern const NamedVisual powerShieldDebrisVisual;
+
 #endif

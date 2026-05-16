@@ -55,7 +55,7 @@ int CHudMonsterInfo::Draw(float flTime)
 	yPos += CHud::UtfText::LineHeight();
 	CHud::UtfText::DrawString(xPos, yPos, healthDisplay, r, g, b);
 
-	if (isPlayer)
+	if (isPlayer || armor > 0)
 	{
 		yPos += CHud::UtfText::LineHeight();
 		CHud::UtfText::DrawString(xPos, yPos, armorDisplay, r, g, b);
@@ -133,6 +133,11 @@ int CHudMonsterInfo::MsgFunc_MonsterInfo(const char *pszName, int iSize, void *p
 			safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d/%d", healthString, health, maxHealth);
 		else
 			safe_snprintf(healthDisplay, sizeof(healthDisplay), "%s: %d", healthString, health);
+		if (armor > 0)
+		{
+			const char* powerShieldString = gHUD.m_messageStrings.GetText("__SHOWINFO_POWERSHIELD", "Power Shield");
+			safe_snprintf(armorDisplay, sizeof(armorDisplay), "%s: %d", powerShieldString, armor);
+		}
 	}
 	else
 	{

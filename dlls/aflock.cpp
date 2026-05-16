@@ -115,6 +115,8 @@ public:
 	float m_customTurnRate;
 	float m_customCheckDist;
 
+	float m_flapSpeed;
+
 	float FlySpeed() const {
 		return m_customFlySpeed > 0 ? m_customFlySpeed : AFLOCK_FLY_SPEED;
 	}
@@ -148,6 +150,7 @@ TYPEDESCRIPTION	CFlockingFlyer::m_SaveData[] =
 	DEFINE_FIELD( CFlockingFlyer, m_customFlySpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyer, m_customTurnRate, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyer, m_customCheckDist, FIELD_FLOAT ),
+	DEFINE_FIELD( CFlockingFlyer, m_flapSpeed, FIELD_FLOAT ),
 	//DEFINE_FIELD( CFlockingFlyer, m_flFlockNextSoundTime, FIELD_TIME ),	// don't need to save
 };
 
@@ -385,8 +388,8 @@ void CFlockingFlyer::SpawnCommonCode()
 //=========================================================
 void CFlockingFlyer::BoidAdvanceFrame()
 {
-	float flapspeed = ( pev->speed - pev->armorvalue ) / AFLOCK_ACCELERATE;
-	pev->armorvalue = pev->armorvalue * 0.8f + pev->speed * 0.2f;
+	float flapspeed = ( pev->speed - m_flapSpeed ) / AFLOCK_ACCELERATE;
+	m_flapSpeed = m_flapSpeed * 0.8f + pev->speed * 0.2f;
 
 	if( flapspeed < 0.0f )
 		flapspeed = -flapspeed;

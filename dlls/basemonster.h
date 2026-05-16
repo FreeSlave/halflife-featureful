@@ -487,22 +487,6 @@ public:
 
 	virtual void CompleteReloadTask() {}
 
-	//
-	// Glowshell effects
-	//
-	void GlowShellOn( const Visual* visual );
-
-	void GlowShellOff();
-	void GlowShellUpdate();
-
-	float m_glowShellTime;
-	bool m_glowShellUpdate;
-
-	Vector m_prevRenderColor;
-	short m_prevRenderFx;
-	short m_prevRenderMode;
-	int m_prevRenderAmt;
-
 	float m_nextPatrolPathCheck;
 
 	// Custom hull sizes

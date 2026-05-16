@@ -257,15 +257,17 @@ void CBreakable::Spawn()
 
 	InitLootRandomSeed();
 
+	bool shouldSetThink = false;
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate)
 	{
 		const EntTemplate::PassiveRegeneration& regen = entTemplate->GetPassiveRegenerationRules();
-		if (regen.healthPerUpdate > 0.0f)
-		{
-			SetThink(&CBreakable::BreakableThink);
-			pev->nextthink = gpGlobals->time;
-		}
+		shouldSetThink = regen.healthPerUpdate > 0.0f;
+	}
+	if (shouldSetThink)
+	{
+		SetThink(&CBreakable::BreakableThink);
+		pev->nextthink = gpGlobals->time;
 	}
 }
 

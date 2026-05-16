@@ -24,7 +24,8 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 ### Skill variables
 
 * **sk_kingpin_health** - monster's health.
-* **sk_kingpin_shield** - maximum shiled health. This is also the amount of extra resource that's converted to the shield health when it regenerates.
+* **sk_kingpin_shield** - maximum shiled health.
+* **sk_kingpin_shield_reserve** - amount of shield extra resource that's getting converted to the shield health when it regenerates.
 * **sk_kingpin_melee** - melee damage.
 * **sk_kingpin_head** - kingpin specific headshot damage multiplier. This must be in range `(0, sk_monster_head]`, otherwise the **sk_monster_head** is used. Default value is 1.25 (kingpin's head is pretty big, thus the low multiplier)
 * See [kingpin_plasma_ball]({{< ref kingpin_plasma_ball >}}) and [kingpin_plasma_cluster]({{< ref kingpin_plasma_cluster >}}) for projectile skill variables.
@@ -54,8 +55,7 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 
 ### Visuals
 
-* **Kingpin.Shield** - the glow shell to display when the Kingpin takes damage while still having a shield.
-* **Kingpin.ShieldDebris** - the sprite that is getting shot out when the Kingpin takes directional damage while still having a shield. The actual size scales depending on the damage. The maximum is 3 times larger than the scale defined in the visual.
+* **Kingpin.Shield** - the render properties to apply when the Kingpin takes damage while still having a shield. Derived from [PowerShield.Render]({{< ref "visuals/#power-shield-visuals" >}}).
 * **Kingpin.Glow** - the eye glow sprite. Kingpin has 4 eyes attached to different attachment points.
 * **Kingpin.PlasmaClusterBeam** - beam from one of the eyes to the point where the plasma cluster is created.
 * **Kingpin.TeleportEnter** - enter teleport sprite. Derived from **Kingpin.Teleport**

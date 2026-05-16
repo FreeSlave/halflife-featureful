@@ -219,6 +219,7 @@ void CBarnacle::BarnacleThink()
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
+	HandlePowerShieldRecharge();
 
 	if( m_hEnemy != 0 )
 	{

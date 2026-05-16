@@ -1484,6 +1484,44 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			entTemplate.SetRegenerationResourceAmount(amount);
 	});
 
+	HandleJSONMember(value, "power_shield", [&entTemplate](const Value& value) {
+		EntTemplate::PowerShield powerShield = entTemplate.GetPowerShield();
+
+		UpdatePropertyFromJson(powerShield.renderShield, value, "render_shield");
+		UpdatePropertyFromJson(powerShield.renderDebris, value, "render_impact_debris");
+		UpdatePropertyFromJson(powerShield.renderParticles, value, "render_impact_particles");
+		UpdatePropertyFromJson(powerShield.absorption, value, "absorption");
+		UpdatePropertyFromJson(powerShield.strength, value, "armor");
+		UpdatePropertyFromJson(powerShield.reserve, value, "reserve");
+
+		HandleJSONMember(value, "recharge", [&powerShield](const Value& value) {
+			UpdatePropertyFromJson(powerShield.recharge.delayAfterHurt, value, "delay_after_hurt");
+			UpdatePropertyFromJson(powerShield.recharge.interval, value, "interval");
+			UpdatePropertyFromJson(powerShield.recharge.strengthPerUpdate, value, "armor_per_update");
+		});
+
+		HandleJSONMember(value, "take_damage", [&powerShield](const Value& value) {
+			std::vector<EntTemplate::PowerShieldTakeDamageRule> takeDamageRules;
+			Value::ConstArray arr = value.GetArray();
+			takeDamageRules.reserve(arr.Size());
+
+			for (auto& item : arr)
+			{
+				EntTemplate::PowerShieldTakeDamageRule rule;
+				HandleJSONMember(item, "conditions", [&rule](const Value& value) {
+					rule.conditions.UpdateFromJSON(value);
+				});
+				UpdatePropertyFromJson(rule.dmgFactor, item, "dmg_factor");
+
+				takeDamageRules.push_back(std::move(rule));
+			}
+
+			powerShield.takeDamageRules = std::move(takeDamageRules);
+		});
+
+		entTemplate.SetPowerShield(std::move(powerShield));
+	});
+
 	HandleJSONMember(value, "primary_weapon", [&entTemplate](const Value& value) {
 		std::vector<EntTemplate::WeaponDefinition> weapons;
 

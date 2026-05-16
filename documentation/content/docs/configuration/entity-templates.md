@@ -1542,6 +1542,52 @@ Properties:
 
 * `"amount"` - initial amount of regeneration resource. This is a [skill based value](#skill-based-value).
 
+### power_shield
+
+Power shield (armor) configuration for monsters. The power shield acts as an additional layer of health. It has its own visual impact effects and with full damage absorption it prevents monster from bleeding until the shield is broken.
+
+Properties:
+
+* `"armor"` - the amount of armor (strength) the power shield has (it's also the maximum shield value). This is a [skill based value](#skill-based-value). This must be higher than 0 to enable the power shield (except for [monster_kingpin]({{< ref monster_kingpin >}}) has the shield enabled by default).
+* `"absorption"` - fraction of incoming damage that the shield suffers. This is a [skill based value](#skill-based-value). Should be a value in range (0, 1]. E.g. the value 0.8 means, that in case the monster takes 100 points of damage, 80 goes to the shield and 20 goes to the health. The default value is 1.0, i.e. the shield provides full protection to the monster's health, until depleted.
+* `"render_shield"` - a boolean; whether to apply shield render properties on the monster's model when it takes damage. This is `true` by default. See [power shield visuals]({{< ref "visuals/#power-shield-visuals" >}}) (**PowerShield.Render**).
+* `"render_impact_debris"` - a boolean; whether to spawn the debris (sprite or model) at the point of impact when shield is getting damage. This is `true` by default. See [power shield visuals]({{< ref "visuals/#power-shield-visuals" >}}) to configure the debris visual. If color of **PowerShield.Debris** is not defined it will use the **PowerShield.Render** color. The actual size of the debris scales depending on the damage. The maximum is 3 times larger than the scale defined in the visual.
+* `"render_impact_particles"` - a boolean; whether to spawn a bunch of small particles at the point of impact when shield is getting damage (similar to Quake II). This is `false` by default. The number of the particles depends on the amount of damage the shield suffers (similar to blood). If you want to use this effect it's recommended to ensure the **sprites/dot_index.spr** exists in the mod resources (distributed with the sample mod). The color of particles depends on the **PowerShield.Render**.
+* `"take_damage"` - the array of rules that control how much damage the shield suffers depending on the incoming damage parameters (like type, etc.). The rule is applied *after* the [take_damage](#take_damage}) rules. Each rule is an object with following properties:
+    - `"conditions"` - same as [take_damage conditions](#conditions). Note: the passed damage value is how much damage the shield suffers (considering the absorption rate), and therefore can't surpass the current armor value.
+    - `"dmg_factor"` - the multiplier for the damage amount the shield suffers. This is 1.0 by default. Values less than 1.0 make the power shield resistant to certain attacks. Values more than 1.0 make the power shield vulnerable to certain attacks. No matter how much the damage value is altered, it won't affect how much damage goes to the monster's health if the shield gets depleted.
+* `"reserve"` - the amount of power "reserve" that can be used to restore shield after it gets damage (i.e. used for shield regeneration). This is a [skill based value](#skill-based-value). This is not defined by default, except for [monster_kingpin]({{< ref monster_kingpin >}}) who has the default power shield reserve.
+* `"recharge"` - an object that defines properties related to the shield recharging (regeneration). Properties:
+    - `"delay_after_hurt"` - delay (in seconds) before the entity starts shield regeneration after its shield took damage. Default value is 3. 
+    - `"interval"` - interval (in seconds) between shield regeneration 'ticks' (updates). Default values is 0.5.
+    - `"armor_per_update"` - amount of armor to move from `"reserve"` to the power shield armor per regeneration 'tick'. Default value is 5.
+
+Example:
+
+```json
+{
+    "monster_zombie": {
+        "power_shield": {
+            "armor": 100,
+            "absorption": 0.8,
+            "reserve": 100,
+            "render_impact_debris": false,
+            "render_impact_particles": true,
+            "recharge": {
+                "delay_after_hurt": 2.0,
+                "interval": 0.5,
+                "armor_per_update": 5
+            }
+        },
+        "visuals": {
+            "PowerShield.Render": {
+                "color": [200, 200, 0]
+            }
+        }
+    }
+}
+```
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

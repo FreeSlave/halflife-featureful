@@ -1336,6 +1336,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("kingpin_plasma_blast", "nihilanth_zap");
 	g_SkillData.ProvideFallback("kingpin_lightning", "islave_dmg_zap");
 	g_SkillData.ProvideFallback("kingpin_head", 1.25f);
+	g_SkillData.ProvideFallback("kingpin_shield_reserve", "kingpin_shield");
 
 	g_SkillData.ProvideFallback("massassin_health", "hgrunt_health");
 	g_SkillData.ProvideFallback("massassin_kick", "hgrunt_kick");

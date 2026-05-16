@@ -714,38 +714,41 @@ const char* const json_schemas::definitions = R"(
 			}
 		}
 	},
+	"take_damage_rule_conditions": {
+		"type": "object",
+		"properties": {
+			"dmg_type": {
+				"$ref": "#/string_set"
+			},
+			"dmg_type_match": {
+				"enum": ["one", "all", "none", "exact"]
+			},
+			"dmg": {
+				"$ref": "#/damage_comparator"
+			},
+			"inflictor": {
+				"$ref": "#/entity_filter"
+			},
+			"attacker": {
+				"$ref": "#/entity_filter"
+			},
+			"self": {
+				"$ref": "#/entity_filter"
+			},
+			"attack_affinity": {
+				"$ref": "#/attack_affinity"
+			},
+			"gib": {
+				"enum": ["always", "never", "normal"]
+			}
+		},
+		"additionalProperties": false
+	},
 	"take_damage_rule": {
 		"type": "object",
 		"properties": {
 			"conditions": {
-				"type": "object",
-				"properties": {
-					"dmg_type": {
-						"$ref": "#/string_set"
-					},
-					"dmg_type_match": {
-						"enum": ["one", "all", "none", "exact"]
-					},
-					"dmg": {
-						"$ref": "#/damage_comparator"
-					},
-					"inflictor": {
-						"$ref": "#/entity_filter"
-					},
-					"attacker": {
-						"$ref": "#/entity_filter"
-					},
-					"self": {
-						"$ref": "#/entity_filter"
-					},
-					"attack_affinity": {
-						"$ref": "#/attack_affinity"
-					},
-					"gib": {
-						"enum": ["always", "never", "normal"]
-					}
-				},
-				"additionalProperties": false
+				"$ref": "#/take_damage_rule_conditions"
 			},
 			"modifier": {
 				"type": "object",
@@ -1262,6 +1265,64 @@ R"(
 				"properties": {
 					"amount": {
 						"$ref": "#/skill_value_positive"
+					}
+				},
+				"additionalProperties": false
+			},
+			"power_shield": {
+				"type": "object",
+				"properties": {
+					"render_shield": {
+						"type": "boolean"
+					},
+					"render_impact_debris": {
+						"type": "boolean"
+					},
+					"render_impact_particles": {
+						"type": "boolean"
+					},
+					"absorption": {
+						"$ref": "#/skill_value_positive"
+					},
+					"armor": {
+						"$ref": "#/skill_value_non_negative"
+					},
+					"reserve": {
+						"$ref" : "#/skill_value_non_negative"
+					},
+					"recharge": {
+						"type": "object",
+						"properties": {
+							"delay_after_hurt": {
+								"type": "number",
+								"minimum": 0
+							},
+							"interval": {
+								"type": "number",
+								"minimum": 0.1
+							},
+							"armor_per_update": {
+								"type": "number",
+								"minimum": 1
+							}
+						},
+						"additionalProperties": false
+					},
+					"take_damage": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"conditions": {
+									"$ref": "#/take_damage_rule_conditions"
+								},
+								"dmg_factor": {
+									"type": "number",
+									"minimum": 0
+								}
+							},
+							"additionalProperties": false
+						}
 					}
 				},
 				"additionalProperties": false

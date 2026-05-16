@@ -2439,10 +2439,9 @@ void CBasePlayer::UpdateStatusBar()
 		{
 			const int entityIndex = ENTINDEX( pEntity->edict() );
 			int health = (int)ceil(pEntity->pev->health);
-			if (health < 0) {
-				health = 0;
-			}
-			const int armor = (int)pEntity->pev->armorvalue;
+			health = Q_max(health, 0);
+			int armor = (int)pEntity->pev->armorvalue;
+			armor = Q_max(armor, 0);
 
 			const bool isPlayer = pEntity->IsPlayer();
 			const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
@@ -2453,7 +2452,7 @@ void CBasePlayer::UpdateStatusBar()
 			if (showMonsterInfo)
 				m_lastSeenTime = gpGlobals->time;
 
-			if (showMonsterInfo && (m_lastSeenEntityIndex != entityIndex || m_lastSeenHealth != health || (m_lastSeenArmor != armor && isFriendPlayer)))
+			if (showMonsterInfo && (m_lastSeenEntityIndex != entityIndex || m_lastSeenHealth != health || m_lastSeenArmor != armor))
 			{
 				m_lastSeenEntityIndex = entityIndex;
 				m_lastSeenHealth = health;
@@ -2581,13 +2580,14 @@ void CBasePlayer::UpdateStatusBar()
 					if (health < 0 || !pEntity->IsFullyAlive()) {
 						health = 0;
 					}
-					const int armor = (int)pEntity->pev->armorvalue;
+					int armor = (int)pEntity->pev->armorvalue;
+					armor = Q_max(armor, 0);
 
 					const bool isPlayer = pEntity->IsPlayer();
 					const bool isFriendPlayer = isPlayer && g_pGameRules->PlayerRelationship(this, pEntity) == GR_TEAMMATE;
 					const bool isFriendMonster = (pMonster && pMonster->IDefaultRelationship(this) == R_AL);
 
-					if (m_lastSeenHealth != health || (m_lastSeenArmor != armor && isFriendPlayer))
+					if (m_lastSeenHealth != health || m_lastSeenArmor != armor)
 					{
 						m_lastSeenHealth = health;
 						m_lastSeenArmor = armor;

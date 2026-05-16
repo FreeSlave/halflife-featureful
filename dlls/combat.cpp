@@ -39,6 +39,7 @@
 #include "ent_templates.h"
 #include "ai_debug.h"
 #include "global_models.h"
+#include "clamp.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -1211,6 +1212,45 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 		return DeadTakeDamage( pevInflictor, pevAttacker, damageInfo );
 	}
 
+	if (pev->armorvalue > 0.0f && m_hasPowerShield && !IsPlayer())
+	{
+		const float absorption = PowerShieldAbsorption();
+		const float absorbedByShield = Q_min(pev->armorvalue, damageInfo.damage * absorption);
+
+		DamageInfo shieldDamageInfo = damageInfo;
+		shieldDamageInfo.damage = absorbedByShield;
+
+		float damageToShield = TransformDamageToShield(pevInflictor, pevAttacker, shieldDamageInfo);
+		damageToShield = Q_min(pev->armorvalue, damageToShield);
+
+		if (damageToShield > 0.0f)
+		{
+			damageInfo.enforceLightDamage = true;
+			m_shieldLastHurtTime = gpGlobals->time;
+		}
+
+		pev->armorvalue -= damageToShield;
+		damageInfo.damage -= absorbedByShield;
+
+		if (pev->armorvalue <= 0)
+		{
+			RemovePowerShield();
+		}
+		else
+		{
+			const EntTemplate* entTemplate = GetMyEntTemplate();
+			bool renderShield = true;
+			if (entTemplate)
+			{
+				const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+				renderShield = powerShield.renderShield;
+			}
+
+			if (renderShield)
+				RenderPowerShield();
+		}
+	}
+
 	PainReaction(damageInfo);
 
 	//!!!LATER - make armor consideration here!
@@ -1343,7 +1383,7 @@ void CBaseMonster::ReactToDamage( entvars_t *pevInflictor, entvars_t *pevAttacke
 		}
 
 		// add pain to the conditions
-		if( damageInfo.damage > 0.0f )
+		if (damageInfo.damage > 0.0f || damageInfo.enforceLightDamage)
 		{
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 			takeDamageResult.SetGotLightDamage();
@@ -2028,13 +2068,12 @@ DamageInfo CBaseEntity::HandleTraceAttack(entvars_t *pevInflictor, entvars_t *pe
 
 void CBaseEntity::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
-	Vector vecOrigin = ptr->vecEndPos - vecDir * 4.0f;
-
-	if( pev->takedamage )
+	if (pev->takedamage)
 	{
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		Vector vecOrigin = ptr->vecEndPos - vecDir * 4.0f;
 
 		BloodEffect(damageInfo, vecOrigin, vecDir, ptr);
+		AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
 	}
 }
 
@@ -2047,28 +2086,28 @@ void CBaseEntity::ApplyTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttack
 
 void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
 {
-	if (!damageInfo.noBlood)
+	if (damageInfo.noBlood)
+		return;
+
+	int bloodColor = BloodColor();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
 	{
-		int bloodColor = BloodColor();
+		const EntTemplate::HitGroupToBlood& hitGroupToBlood = entTemplate->GetHitGroupToBlood();
 
-		const EntTemplate* entTemplate = GetMyEntTemplate();
-		if (entTemplate)
+		for (auto p : hitGroupToBlood)
 		{
-			const EntTemplate::HitGroupToBlood& hitGroupToBlood = entTemplate->GetHitGroupToBlood();
-
-			for (auto p : hitGroupToBlood)
+			if (p.first == ptr->iHitgroup)
 			{
-				if (p.first == ptr->iHitgroup)
-				{
-					bloodColor = p.second;
-					break;
-				}
+				bloodColor = p.second;
+				break;
 			}
 		}
-
-		SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
-		TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
 	}
+
+	SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
+	TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
 }
 
 void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
@@ -2134,22 +2173,111 @@ void CBaseMonster::ApplyHitGroupDamageMultiplier(DamageInfo &damageInfo, int hit
 	}
 }
 
+extern int gmsgQ2Particles;
+extern int gmsgSpriteTrail;
+
 void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
 {
-	if (pev->takedamage)
+	if (!pev->takedamage)
+		return;
+
+	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+	if (damageInfo.mustSkip)
+		return;
+
+	float damageToShield = 0.0f;
+	float absorbedByShield = 0.0f;
+	if (m_hasPowerShield && pev->armorvalue > 0)
 	{
-		DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+		if (gMultiDamage.pEntity && gMultiDamage.pEntity != this)
+		{
+			ApplyMultiDamage(pevInflictor, pevAttacker);
+		}
 
-		if (damageInfo.mustSkip)
-			return;
+		if (pev->armorvalue > gMultiDamage.pendingDamageToShield)
+		{
+			const float absorption = PowerShieldAbsorption();
+			const float armorValue = pev->armorvalue - gMultiDamage.pendingDamageToShield;
+			absorbedByShield = Q_min(armorValue, damageInfo.damage * absorption);
 
-		m_LastHitGroup = ptr->iHitgroup;
-
-		ApplyHitGroupDamageMultiplier(damageInfo, ptr->iHitgroup);
-
-		BloodEffect(damageInfo, vecDir, ptr);
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+			DamageInfo shieldDamageInfo = damageInfo;
+			shieldDamageInfo.damage = absorbedByShield;
+			damageToShield = TransformDamageToShield(pevInflictor, pevAttacker, shieldDamageInfo);
+			damageToShield = Q_min(pev->armorvalue, damageToShield);
+			gMultiDamage.pendingDamageToShield += damageToShield;
+		}
 	}
+
+	m_LastHitGroup = ptr->iHitgroup;
+
+	ApplyHitGroupDamageMultiplier(damageInfo, ptr->iHitgroup);
+
+	if (damageToShield > 0.0f)
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		bool renderParticles = false;
+		bool renderDebris = true;
+		if (entTemplate)
+		{
+			const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+			renderParticles = powerShield.renderParticles;
+			renderDebris = powerShield.renderDebris;
+		}
+
+		DamageInfo damageInfoCopy = damageInfo;
+		damageInfoCopy.damage -= absorbedByShield;
+		BloodEffect(damageInfoCopy, vecDir, ptr);
+
+		if (renderParticles && m_shieldVisual)
+		{
+			const int count = clamp((int)damageToShield, 10, 60);
+
+			MESSAGE_BEGIN(MSG_PVS, gmsgQ2Particles, pev->origin);
+			WRITE_SHORT(count);
+			WRITE_VECTOR(ptr->vecEndPos);
+			WRITE_VECTOR(-vecDir);
+			WRITE_COLOR(m_shieldVisual->rendercolor);
+			MESSAGE_END();
+		}
+
+		if (renderDebris && m_shieldDebrisVisual && m_shieldDebrisVisual->modelIndex)
+		{
+			const bool isBlast = (FBitSet(damageInfo.type, DMG_BLAST) && damageToShield > 50);
+			const int count = isBlast ? 3 : 1;
+			const int randomness = isBlast ? 30 : 15;
+
+			const int deciScale = RandomizeNumberFromRange(m_shieldDebrisVisual->scale) * 10;
+
+			int scaleToSend = deciScale + int(damageToShield / 8.0f);
+			scaleToSend = Q_min(scaleToSend, deciScale * 3);
+
+			Color3 debrisColor = m_shieldDebrisVisual->HasDefined(Visual::COLOR_DEFINED) ? m_shieldDebrisVisual->rendercolor : (m_shieldVisual ? m_shieldVisual->rendercolor : Color3(255, 255, 255));
+
+			Vector sparkOrigin = ptr->vecEndPos;
+			Vector sparkEnd = ptr->vecEndPos - vecDir * 8.0f;
+			sparkEnd.z += 8.0f;
+			MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, sparkOrigin );
+			WRITE_VECTOR( sparkOrigin );	// start
+			WRITE_VECTOR( sparkEnd );	// end
+			WRITE_SHORT( m_shieldDebrisVisual->modelIndex );	// model
+			WRITE_BYTE( count );			// count
+			WRITE_BYTE( RandomizeNumberFromRange(m_shieldDebrisVisual->life)*10 );			// life in 0.1s
+			WRITE_BYTE( scaleToSend );			// scale in 0.1
+			WRITE_BYTE( 20 );			// velocity along vector in 10's
+			WRITE_BYTE( randomness );			// randomness of velocity in 10's
+			WRITE_BYTE( m_shieldDebrisVisual->rendermode );
+			WRITE_COLOR( debrisColor );
+			WRITE_BYTE( m_shieldDebrisVisual->renderamt );
+			WRITE_BYTE( m_shieldDebrisVisual->renderfx );
+			WRITE_BYTE( 5 ); // random extra life in 0.1s
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		BloodEffect(damageInfo, vecDir, ptr);
+	}
+	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
 }
 
 static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult& tr, const Vector& vecDir, const Vector& vecSrc, const Vector& vecEnd, const DamageInfo& damageInfo, bool decalsPredicted = false)

@@ -339,6 +339,35 @@ public:
 		bool earlyFinish{false};
 	};
 
+	struct PowerShieldTakeDamageRule
+	{
+		DamageConditions conditions;
+		float dmgFactor{1.0f};
+	};
+
+	struct PowerShieldRecharge
+	{
+		float delayAfterHurt{3.0f};
+		float interval{0.5f};
+		float strengthPerUpdate{5.0f};
+	};
+
+	struct PowerShield
+	{
+		SkillBasedValue strength;
+		SkillBasedValue absorption{1.0f};
+
+		SkillBasedValue reserve;
+
+		PowerShieldRecharge recharge;
+
+		bool renderShield{true};
+		bool renderParticles{false};
+		bool renderDebris{true};
+
+		std::vector<PowerShieldTakeDamageRule> takeDamageRules;
+	};
+
 	struct WeaponDefinition
 	{
 		optional<int> weaponBit;
@@ -615,6 +644,13 @@ public:
 		_regenResourceAmount = amount;
 	}
 
+	const PowerShield& GetPowerShield() const {
+		return _powerShield;
+	}
+	void SetPowerShield(PowerShield&& powerShield) {
+		_powerShield = powerShield;
+	}
+
 	const std::vector<WeaponDefinition>& GetWeaponDefinitions() const {
 		return _weaponsDefinitions;
 	}
@@ -677,6 +713,8 @@ private:
 	ActiveRegeneration _activeRegeneration;
 
 	SkillBasedValue _regenResourceAmount;
+
+	PowerShield _powerShield;
 
 	std::vector<WeaponDefinition> _weaponsDefinitions;
 };

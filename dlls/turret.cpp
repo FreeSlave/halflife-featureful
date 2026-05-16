@@ -573,6 +573,7 @@ void CBaseTurret::ActiveThink()
 	StudioFrameAdvance();
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
+	HandlePowerShieldRecharge();
 
 	if( ( !m_iOn ) || ( m_hEnemy == 0 ) )
 	{
@@ -935,6 +936,7 @@ void CBaseTurret::SearchThink()
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
+	HandlePowerShieldRecharge();
 
 	if( m_flSpinUpTime == 0 && m_flMaxSpin )
 		m_flSpinUpTime = gpGlobals->time + m_flMaxSpin;

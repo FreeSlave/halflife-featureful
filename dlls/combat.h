@@ -15,6 +15,7 @@ typedef struct
 {
 	CBaseEntity		*pEntity;
 	DamageInfo damageInfo;
+	float pendingDamageToShield;
 } MULTIDAMAGE;
 
 extern MULTIDAMAGE gMultiDamage;

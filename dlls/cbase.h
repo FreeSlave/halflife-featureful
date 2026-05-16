@@ -357,6 +357,7 @@ public:
 	void SendBloodEffect(const Vector& vecOrigin, const Vector& vecDir, int bloodColor, int amount, int params = 0);
 	virtual DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) { return inputDamageInfo; }
 	DamageInfo TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
+	float TransformDamageToShield(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
 	virtual TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 	virtual int TakeHealth( CBaseEntity* pHealer, float flHealth, int healType );
 	virtual bool TakeArmor( CBaseEntity* pCharger, float flArmor, int flags = 0 ) { return false; }
@@ -722,6 +723,40 @@ public:
 	optional<int> GetClipSizeForWeapon(int weaponBit);
 	bool UpdateClipSizeForWeapon(int& clipSize, int weaponBit);
 	bool UpdateClipSizeForWeapon(int& clipSize);
+
+	bool m_hasPowerShield;
+	float m_shieldLastHurtTime;
+	float m_shieldRegenTime;
+	float m_shieldRegenResource;
+	const Visual* m_shieldVisual;
+	const Visual* m_shieldDebrisVisual;
+
+	virtual FloatRange DefaultPowerShieldStrength() {
+		return 0.0f;
+	}
+	virtual FloatRange DefaultPowerShieldRegenResourceAmount() {
+		return 0.0f;
+	}
+	virtual const NamedVisual& PowerShieldVisual();
+
+	float MaximumPowerShield();
+	float PowerShieldAbsorption();
+	void RenderPowerShield();
+	void RemovePowerShield();
+
+	void HandlePowerShieldRecharge();
+
+	void GlowShellOn(const Visual* visual);
+	void GlowShellOff();
+	void GlowShellUpdate();
+
+	float m_glowShellTime;
+	bool m_glowShellUpdate;
+
+	Vector m_prevRenderColor;
+	short m_prevRenderFx;
+	short m_prevRenderMode;
+	int m_prevRenderAmt;
 };
 
 // Ugly technique to override base member functions
