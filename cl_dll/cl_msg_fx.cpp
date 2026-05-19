@@ -771,6 +771,20 @@ int __MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+int __MsgFunc_Q2Particles( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	const int count = READ_SHORT();
+	const Vector pos = READ_VECTOR();
+	const Vector dir = READ_VECTOR();
+	const color24 color = READ_COLOR();
+
+	FX_DotParticles(pos, dir, ColorRandomizer(color.r, color.g, color.b), count);
+
+	return 1;
+}
+
 void HookFXMessages()
 {
 	HOOK_MESSAGE( RandomGibs );
@@ -785,4 +799,5 @@ void HookFXMessages()
 	HOOK_MESSAGE( Blood );
 	HOOK_MESSAGE( Gunshot );
 	HOOK_MESSAGE( Particle );
+	HOOK_MESSAGE( Q2Particles );
 }

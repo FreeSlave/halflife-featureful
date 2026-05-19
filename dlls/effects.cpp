@@ -6396,3 +6396,42 @@ void CEnvMirror::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 		SendMessages(nullptr);
 	}
 }
+
+extern int gmsgQ2Particles;
+
+class CEnvSplash : public CPointEntity
+{
+public:
+	void Spawn() override
+	{
+		CPointEntity::Spawn();
+		SetMovedir(pev);
+	}
+	void KeyValue(KeyValueData* pkvd) override
+	{
+		if (FStrEq(pkvd->szKeyName, "count"))
+		{
+			pev->impulse = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+	int ParticleCount() {
+		return pev->impulse;
+	}
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override
+	{
+		if (ParticleCount() <= 0)
+			return;
+
+		MESSAGE_BEGIN(MSG_PVS, gmsgQ2Particles, pev->origin);
+		WRITE_SHORT(ParticleCount());
+		WRITE_VECTOR(pev->origin);
+		WRITE_VECTOR(pev->movedir);
+		WRITE_COLOR(pev->rendercolor);
+		MESSAGE_END();
+	}
+};
+
+LINK_ENTITY_TO_CLASS(env_splash, CEnvSplash)

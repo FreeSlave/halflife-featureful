@@ -2588,6 +2588,12 @@
 	]
 ]
 
+@PointClass base(Targetname, Angles) color(255 220 15) size(-8 -8 -8, 8 8 8) = env_splash : "Splash"
+[
+	count(integer): "Particles count per splash" : 40
+	rendercolor(color255) : "FX Color (R G B)" : "255 220 15"
+]
+
 @PointClass sprite() base(Targetname, RenderFields, Angles) size(-4 -4 -4, 4 4 4) = env_sprite : "Sprite Effect"
 [
 	framerate(string) : "Framerate" : "10.0"

@@ -18,6 +18,17 @@ extern int GetWallImpactStyle();
 
 void LoadDefaultSprites();
 
+struct ColorRandomizer
+{
+	ColorRandomizer(int r, int g, int b, int variance = 6);
+	color24 operator()() const;
+
+private:
+	color24 darkest;
+	color24 steps;
+	int myVariance;
+};
+
 void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams, bool isDirectional);
 void FX_RicochetSprite(Vector pos, model_t *pmodel, float duration, float scale);
 void FX_SparkEffect(Vector pos, const SparkEffectParams& params);
@@ -31,6 +42,7 @@ void FX_BloodLegacy(const Vector& org, const Vector& ndir, const IntRange& color
 void FX_BloodParticles(const Vector& org, const IntRange& colorRange, int count);
 void FX_QuakeParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count);
 void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count);
+void FX_DotParticles(const Vector& org, const Vector& ndir, const ColorRandomizer& colorRandomizer, int count);
 void FX_ImpactParticles(const Vector& pos, int baseColor);
 void FX_WallImpact(const Vector& pos, const Vector& dir, int particleColor, int style);
 void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int entIndex, int particleColor);

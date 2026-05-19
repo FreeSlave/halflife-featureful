@@ -58,6 +58,106 @@ void LoadDefaultSprites()
 	}
 }
 
+ColorRandomizer::ColorRandomizer(int r, int g, int b, int variance)
+{
+	constexpr int STEP = 8;
+
+	variance = clamp(variance, 0, 255 / STEP);
+
+	auto calcColorStep = [STEP](int value, int maxLum) {
+		if (maxLum == 0) {
+			return STEP;
+		}
+		int cstep = value * STEP / maxLum;
+		if (value > 0 && cstep <= 0)
+		{
+			cstep = 1;
+		}
+		return cstep;
+	};
+
+	int rgb[3] = {r, g, b};
+	int maxLum = 0;
+
+	for (int i=0; i<3; ++i)
+	{
+		if (rgb[i] > maxLum)
+			maxLum = rgb[i];
+	}
+
+	int rgbSteps[3];
+
+	for (int i=0; i<3; ++i)
+	{
+		rgbSteps[i] = calcColorStep(rgb[i], maxLum);
+	}
+
+	int maxDarkVariance = 0;
+
+	auto darken = [](int v, int i, int step) {
+		return v - i * step;
+	};
+
+	for (int j=variance; j>=1; --j)
+	{
+		int darkR = darken(rgb[0], j, rgbSteps[0]);
+		int darkG = darken(rgb[1], j, rgbSteps[1]);
+		int darkB = darken(rgb[2], j, rgbSteps[2]);
+
+		if (darkR >= 0 && darkG >= 0 && darkB >= 0)
+		{
+			maxDarkVariance = j;
+			break;
+		}
+	}
+
+	int maxLightVariance = 0;
+
+	auto lighten = [](int v, int i, int step) {
+		return v + i * step;
+	};
+
+	for (int j=variance; j>=1; --j)
+	{
+		int lightR = lighten(rgb[0], j, rgbSteps[0]);
+		int lightG = lighten(rgb[1], j, rgbSteps[1]);
+		int lightB = lighten(rgb[2], j, rgbSteps[2]);
+
+		if (lightR <= 255 && lightG <= 255 && lightB <= 255)
+		{
+			maxLightVariance = j;
+			break;
+		}
+	}
+
+	if (maxDarkVariance > variance/2)
+	{
+		maxDarkVariance = variance/2;
+	}
+	if (maxLightVariance > variance/2)
+	{
+		maxLightVariance = variance/2;
+	}
+
+	steps = {(byte)rgbSteps[0], (byte)rgbSteps[1], (byte)rgbSteps[2]};
+	variance = maxDarkVariance + maxLightVariance;
+	darkest = {
+		(byte)darken(r, maxDarkVariance, rgbSteps[0]),
+		(byte)darken(g, maxDarkVariance, rgbSteps[1]),
+		(byte)darken(b, maxDarkVariance, rgbSteps[2])
+	};
+	myVariance = variance;
+}
+
+color24 ColorRandomizer::operator()() const {
+	color24 result = darkest;
+	const int variance = Com_RandomLong(0, myVariance);
+	result.r += steps.r * variance;
+	result.g += steps.g * variance;
+	result.b += steps.b * variance;
+	return result;
+}
+
 void FX_Streaks(Vector pos, Vector dir, const StreakParams& streakParams, bool isDirectional)
 {
 	float maxLife = streakParams.maxLife;
@@ -473,8 +573,9 @@ void FX_QuakeParticles(const Vector& org, const Vector& ndir, const IntRange& co
 	}
 }
 
-// Quake 2 wall impact puffs and blood
-void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count)
+// Quake 2 wall impact puffs, blood and splashes
+template<typename R>
+void Do_DotParticles(const Vector& org, const Vector& ndir, const R& colorRandomizer, int count)
 {
 	const float clientTime = gEngfuncs.GetClientTime();
 	const Vector dir = ndir.IsZero() ? Vector() : ndir.Normalize();
@@ -495,7 +596,7 @@ void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colo
 
 		particle->m_vVelocity = velocity;
 
-		color24 rgb = Color24FromPalette(RandomizeNumberFromRange(colorRange));
+		color24 rgb = colorRandomizer();
 		particle->m_vColor[0] = rgb.r;
 		particle->m_vColor[1] = rgb.g;
 		particle->m_vColor[2] = rgb.b;
@@ -503,6 +604,16 @@ void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colo
 		particle->m_flFadeSpeed = 0;
 		particle->m_flDieTime = clientTime + Com_RandomFloat(0.6f, 0.8f);
 	}
+}
+
+void FX_DotParticles(const Vector& org, const Vector& ndir, const IntRange& colorRange, int count)
+{
+	Do_DotParticles(org, ndir, [&colorRange]() { return Color24FromPalette(RandomizeNumberFromRange(colorRange)); }, count);
+}
+
+void FX_DotParticles(const Vector& org, const Vector& ndir, const ColorRandomizer& colorRandomizer, int count)
+{
+	Do_DotParticles(org, ndir, colorRandomizer, count);
 }
 
 void FX_ImpactParticles(const Vector& pos, int baseColor)
