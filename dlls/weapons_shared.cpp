@@ -976,7 +976,7 @@ void CConfigurableWeapon::ItemPostFrame()
 
 	if (m_flPumpTime && m_flPumpTime < gpGlobals->time)
 	{
-		PlayWeaponSoundScript(params.fire.pumpSound.Get(m_inAltMode));
+		PlayWeaponSoundScript(params.fire.pumpSound.Get(m_pumpAltMode));
 		m_flPumpTime = 0;
 	}
 
@@ -1619,7 +1619,10 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	const float pumpTime = fire.pumpDelay.Get(altMode);
 	if (pumpTime)
+	{
 		m_flPumpTime = gpGlobals->time + pumpTime;
+		m_pumpAltMode = altMode;
+	}
 
 	const FloatRange weaponIdleDelayRange = fire.idleDelay.Get(altMode, lastShot);
 	const float weaponIdleDelay = RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, weaponIdleDelayRange);

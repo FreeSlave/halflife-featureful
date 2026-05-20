@@ -464,6 +464,7 @@ public:
 
 	// Shotguns
 	float m_flPumpTime;
+	bool m_pumpAltMode;
 
 	// models
 	int shellModel;
