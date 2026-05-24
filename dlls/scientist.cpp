@@ -832,7 +832,7 @@ void CScientist::CalcTotalHeadCount()
 	if (pev->modelindex)
 	{
 		// Divide by 2 to account for body variants with the needle
-		m_totalHeadCount = GetBodyCount( GET_MODEL_PTR(ENT(pev)) ) / 2;
+		m_totalHeadCount = GetOverallBodyNum( GET_MODEL_PTR(ENT(pev)) ) / 2;
 	}
 }
 

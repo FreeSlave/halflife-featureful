@@ -10,6 +10,7 @@
 #include "util_shared.h"
 #include "hl_palette.h"
 #include "particleman.h"
+#include "studio_getters.h"
 
 model_t* cl_sprite_ricochet = nullptr;
 model_t* cl_sprite_dot = nullptr;
@@ -295,10 +296,20 @@ void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, floa
 			pTemp->entity.curstate.frame = Com_RandomLong( 0, pmodel->numframes - 1 );
 		}
 
+		if (flags & SPRAY_FLAG_RANDOMBODY)
+		{
+			if (pmodel->type == mod_studio)
+			{
+				const int bodyNum = GetOverallBodyNum(pmodel->cache.data);
+				if (bodyNum > 1)
+					pTemp->entity.curstate.body = Com_RandomLong(0, bodyNum-1);
+			}
+		}
+
 		pTemp->entity.baseline.origin[0] = dir[0] + Com_RandomFloat( -noise, noise );
 		pTemp->entity.baseline.origin[1] = dir[1] + Com_RandomFloat( -noise, noise );
 		pTemp->entity.baseline.origin[2] = dir[2] + Com_RandomFloat( 0, znoise );
-		VectorScale( pTemp->entity.baseline.origin, Com_RandomFloat(( speed * 0.8f ), ( speed * 1.2f )), pTemp->entity.baseline.origin );
+		pTemp->entity.baseline.origin *= Com_RandomFloat(( speed * 0.8f ), ( speed * 1.2f ));
 	}
 }
 

@@ -796,7 +796,7 @@ R"(
 					"flags": {
 						"type": "array",
 						"items": {
-							"enum": ["collideworld", "animate", "animated", "fadeout"]
+							"enum": ["collideworld", "animate", "animated", "fadeout", "randombody"]
 						}
 					}
 				},

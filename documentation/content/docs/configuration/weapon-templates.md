@@ -1582,6 +1582,7 @@ The array of spray flags. Possible item values:
 * `"collideworld"` - whether the spray particles should collide with world.
 * `"animate"` - whether the spray particles should be animated.
 * `"fadeout"` - whether the spray particles should fade out.
+* `"randombody"` - whether the model body should be randomized (works only with .mdl).
 
 ### spread
 

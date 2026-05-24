@@ -1054,6 +1054,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						{
 							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_FADEOUT;
 						}
+						else if (strcmp(item.GetString(), "randombody") == 0)
+						{
+							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_RANDOMBODY;
+						}
 					}
 				});
 			});
