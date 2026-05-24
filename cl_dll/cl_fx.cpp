@@ -241,7 +241,7 @@ void FX_SparkShower(Vector pos, const SparkEffectParams& params)
 	pTemp->entity.curstate.fuser3 = params.sparkScaleMax;
 }
 
-void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, float noise, int rendermode, color24 color, int renderamt, int renderfx, float scale, float framerate, int flags)
+void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, float noise, int rendermode, color24 color, int renderamt, int renderfx, float scale, float framerate, int flags, const FloatRange& life)
 {
 	model_t	*pmodel = gEngfuncs.pfnGetModelByIndex(modelIndex);
 	if (!pmodel)
@@ -278,12 +278,17 @@ void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, floa
 			pTemp->fadeSpeed = 2.0f;
 		}
 
-		if(pmodel->numframes > 1 && (flags & SPRAY_FLAG_ANIMATE))
+		float lifeTime = 0.35f;
+		if (life.min > 0)
 		{
-			pTemp->die = clientTime + (pTemp->frameMax / framerate);
+			lifeTime = RandomizeNumberFromRange(life);
+			pTemp->flags |= FTENT_SPRANIMATELOOP;
 		}
-		else
-			pTemp->die = clientTime + 0.35f;
+		else if(pmodel->numframes > 1 && (flags & SPRAY_FLAG_ANIMATE) && framerate > 0.0f)
+		{
+			lifeTime = (pTemp->frameMax / framerate);
+		}
+		pTemp->die = clientTime + lifeTime;
 
 		if (pmodel->numframes > 1 && !(flags & SPRAY_FLAG_ANIMATE))
 		{
@@ -301,7 +306,7 @@ void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, floa
 {
 	FX_Spray(pos, dir, modelIndex, count, speed, noise,
 		visual.rendermode, MakeColor24(visual.rendercolor.r, visual.rendercolor.g, visual.rendercolor.b), visual.renderamt, visual.renderfx,
-		RandomizeNumberFromRange(visual.scale), RandomizeNumberFromRange(visual.framerate), flags);
+		RandomizeNumberFromRange(visual.scale), RandomizeNumberFromRange(visual.framerate), flags, visual.life);
 }
 
 void FX_BloodSpray(const Vector& org, int colorIndex, int modelIndex, float size)

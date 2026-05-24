@@ -1518,7 +1518,7 @@ For melee weapons it's a "swing" sound. See also: [hit_body_sound](#hit_body_sou
 
 ### spray
 
-Configure spray effect played upon firing a weapon. The spray is a number of sprites fired roughly in the shooting direction. This is used by [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}) by default and it's similar to the spray effect of bullsquid's spit.
+Configure spray effect played upon firing a weapon. The spray is a number of sprites (or models) fired roughly in the shooting direction. This is used by [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}) by default and it's similar to the spray effect of bullsquid's spit.
 
 ```json
 {
@@ -1558,6 +1558,10 @@ An offset object. The values are relative to the player's **origin** (not the he
 #### visual {#spray-visual}
 
 A [visual]({{< ref visuals >}}) object that defines the appearance of the spray particle.
+
+{{% hint info %}}
+If `"life"` parameter is not defined on visual or set to 0, the lifetime of sprites will depend on the framerate and the number of frames if the sprite is animated, or will be set to 0.35 seconds otherwise.
+{{% /hint %}}
 
 #### count {#spray-count}
 
