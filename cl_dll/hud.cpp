@@ -1778,6 +1778,21 @@ bool CHud::CrosshairColorable()
 	return ClientFeatureEnabled(m_pCvarCrosshairColorable, clientFeatures.crosshair_colorable.enabled_by_default);
 }
 
+extern bool ShouldHideViewModelOnZoom(int weaponId);
+
+bool CHud::ShouldHideViewModel()
+{
+	if (ShouldUseZoomedCrosshair())
+	{
+		WEAPON* curWeapon = m_Ammo.GetWeapon();
+		if (curWeapon)
+		{
+			return ShouldHideViewModelOnZoom(curWeapon->iId);
+		}
+	}
+	return false;
+}
+
 void CHud::HUDColorCmd()
 {
 	int r, g, b;

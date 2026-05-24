@@ -166,6 +166,11 @@ int __MsgFunc_ToolState(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+bool ShouldHideViewModelOnZoom(int weaponId)
+{
+	return AccessWeaponInfo(weaponId).params.altMode.hideViewModelOnZoom;
+}
+
 /*
 =====================
 CBaseEntity::Killed
@@ -700,12 +705,6 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		 !CL_IsDead() && !g_iUser1 )
 	{
 		bool viewModelIsOk = player.pev->viewmodel != 0;
-		if (!viewModelIsOk && player.m_pActiveItem)
-		{
-			const WeaponParameters& params = AccessWeaponInfo(from->client.m_iId).params;
-
-			viewModelIsOk = params.altMode.hideViewModelOnZoom && player.pev->fov != 0;
-		}
 
 		if( viewModelIsOk && player.m_flNextAttack <= 0 )
 		{

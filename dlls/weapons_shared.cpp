@@ -2491,21 +2491,6 @@ void CConfigurableWeapon::SetZoom(int fov)
 #endif
 
 	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = fov;
-
-#if !CLIENT_DLL
-	if (params.altMode.hideViewModelOnZoom)
-	{
-		if (fov)
-		{
-			m_pPlayer->pev->viewmodel = iStringNull;
-		}
-		else
-		{
-			if (FStringNull(m_pPlayer->pev->viewmodel))
-				m_pPlayer->pev->viewmodel = MAKE_STRING(params.viewModel.c_str());
-		}
-	}
-#endif
 }
 
 void CConfigurableWeapon::ResetZoom(SwitchModeReason reason)

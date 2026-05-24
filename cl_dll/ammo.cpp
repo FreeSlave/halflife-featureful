@@ -396,6 +396,8 @@ int CHudAmmo::Init()
 	gWR.Init();
 	gHR.Init();
 
+	m_pWeapon = nullptr;
+
 	return 1;
 }
 
@@ -453,6 +455,8 @@ int CHudAmmo::VidInit()
 
 	giABWidth = 10 * factor;
 	giABHeight = 2 * factor;
+
+	m_pWeapon = nullptr;
 
 	return 1;
 }

@@ -1722,7 +1722,13 @@ void CStudioModelRenderer::StudioRenderModel()
 	}
 	else
 	{
-		StudioRenderFinal();
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		{
+			if (!gHUD.ShouldHideViewModel())
+				StudioRenderFinal();
+		}
+		else
+			StudioRenderFinal();
 	}
 }
 

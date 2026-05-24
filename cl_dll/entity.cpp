@@ -687,19 +687,24 @@ void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct
 	switch( event->event )
 	{
 	case 5001:
-		gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options ) );
+		if (!gHUD.ShouldHideViewModel())
+			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options ) );
 		break;
 	case 5011:
-		gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options ) );
+		if (!gHUD.ShouldHideViewModel())
+			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options ) );
 		break;
 	case 5021:
-		gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options ) );
+		if (!gHUD.ShouldHideViewModel())
+			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options ) );
 		break;
 	case 5031:
-		gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options ) );
+		if (!gHUD.ShouldHideViewModel())
+			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options ) );
 		break;
 	case 5002:
-		gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options ), -100, 100 );
+		if (!gHUD.ShouldHideViewModel())
+			gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options ), -100, 100 );
 		break;
 	// Client side sound
 	case 5004:
@@ -710,7 +715,10 @@ void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct
 		// TODO: this is a stub for Sven Co-op specific event. Sven Co-op defines muzzle flashes in the external files
 		{
 			if (*event->options != '\0' && atoi(event->options) == 0) // check that this is not an empty string and not a number (Sven Co-op expects the file name)
-				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], 31 );
+			{
+				if (!gHUD.ShouldHideViewModel())
+					gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], 31 );
+			}
 		}
 		break;
 	default:

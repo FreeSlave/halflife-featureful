@@ -1193,6 +1193,7 @@ public:
 	bool MoveModeEnabled();
 	inline bool ShouldUseZoomedCrosshair() { return m_iFOV < 90; }
 	bool CrosshairColorable();
+	bool ShouldHideViewModel();
 private:
 	void ParseClientFeatures();
 	static bool ClientFeatureEnabled(cvar_t *cVariable, bool defaultValue);
