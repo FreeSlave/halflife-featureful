@@ -60,6 +60,7 @@ const float GARG_ATTACKDIST = 80.0f;
 #define GARG_STOMP_SPRITE_NAME		"sprites/gargeye1.spr"
 #define GARG_STOMP_BUZZ_SOUND		"weapons/mine_charge.wav"
 #define GARG_FLAME_LENGTH		330
+#define GARG_FLAME_DISTANCE_THRESHOLD	400
 #define GARG_GIB_MODEL			"models/metalplategibs.mdl"
 
 #define ATTN_GARG					(ATTN_NORM)
@@ -501,7 +502,12 @@ protected:
 	virtual void FootEffect();
 	virtual void MakeStomp(const StompParams& stompParams);
 	virtual void StompEffect();
-	virtual float FlameLength();
+	virtual float FlameLength() {
+		return GARG_FLAME_LENGTH;
+	}
+	virtual float FlameDistanceThreshold() {
+		return GARG_FLAME_DISTANCE_THRESHOLD;
+	}
 	virtual const Visual* GetWideFlameVisual();
 	virtual const Visual* GetNarrowFlameVisual();
 	virtual void BreatheSound();
@@ -1587,7 +1593,7 @@ void CGargantua::RunTask( Task_t *pTask )
 				angles = UTIL_VecToAngles( dir );
 				angles.x = -angles.x;
 				angles.y -= pev->angles.y;
-				if( dir.IsLengthGreaterThan(400) )
+				if( dir.IsLengthGreaterThan(FlameDistanceThreshold()) )
 					cancel = true;
 			}
 			if( fabs(angles.y) > 60 )
@@ -1643,11 +1649,6 @@ void CGargantua::StompEffect()
 {
 	UTIL_ScreenShake( pev->origin, 12.0, 100.0, 2.0, 1000 );
 	EmitSoundScript(stompSoundScript);
-}
-
-float CGargantua::FlameLength()
-{
-	return GARG_FLAME_LENGTH;
 }
 
 const Visual* CGargantua::GetWideFlameVisual()
@@ -2050,7 +2051,12 @@ protected:
 	void FootEffect() override;
 	void MakeStomp(const StompParams& stompParams) override;
 	void StompEffect() override;
-	float FlameLength() override;
+	float FlameLength() override {
+		return GARG_FLAME_LENGTH / 2;
+	}
+	float FlameDistanceThreshold() override {
+		return GARG_FLAME_DISTANCE_THRESHOLD / 2;
+	}
 	const Visual* GetWideFlameVisual() override;
 	const Visual* GetNarrowFlameVisual() override;
 	void BreatheSound() override;
@@ -2338,11 +2344,6 @@ void CBabyGargantua::StompEffect()
 {
 	UTIL_ScreenShake( pev->origin, 6.0, 100.0, 1.5, 600 );
 	EmitSoundScript(stompSoundScript);
-}
-
-float CBabyGargantua::FlameLength()
-{
-	return GARG_FLAME_LENGTH / 2;
 }
 
 const Visual* CBabyGargantua::GetWideFlameVisual()
