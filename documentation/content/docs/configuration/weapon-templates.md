@@ -720,7 +720,7 @@ MIN(damage + damage_charged_factor * time_since_charge_start, damage_charged_max
 
 ### cooldown_anims
 
-The array of animation indices. The random animation is picked when weapon after the weapon has fired. Used by [weapon_minigun]({{< ref weapon_minigun >}}) for spindown animation.
+The array of animation indices. The random animation is picked after the weapon has fired. Used by [weapon_minigun]({{< ref weapon_minigun >}}) for spindown animation.
 
 See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
 
