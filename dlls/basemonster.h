@@ -475,6 +475,8 @@ public:
 
 	bool IsFreeToManipulate();
 
+	bool NoFriendlyFire();
+
 	virtual bool CanRoamAfterCombat() { return true; }
 
 	bool HandleDoorBlockage(CBaseEntity* pDoor) override;

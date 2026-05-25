@@ -23,7 +23,6 @@
 #include "animation.h"
 #include "saverestore.h"
 #include "squadmonster.h"
-#include "plane.h"
 #include "game.h"
 
 //=========================================================
@@ -523,122 +522,6 @@ void CSquadMonster::StartMonster()
 			OnBecomingLeader();
 		}
 	}
-}
-
-//=========================================================
-// NoFriendlyFire - checks for possibility of friendly fire
-//
-// Builds a large box in front of the grunt and checks to see 
-// if any squad members are in that box. 
-//=========================================================
-bool CSquadMonster::NoFriendlyFire()
-{
-	//!!!BUGBUG - to fix this, the planes must be aligned to where the monster will be firing its gun, not the direction it is facing!!!
-	if( m_hEnemy != 0 )
-	{
-		UTIL_MakeVectors( UTIL_VecToAngles( m_hEnemy->Center() - pev->origin ) );
-	}
-	else
-	{
-		// if there's no enemy, pretend there's a friendly in the way, so the monster won't shoot.
-		return false;
-	}
-
-	CBaseEntity* pEnemy = m_hEnemy;
-	const Vector enemyCenter = pEnemy->Center();
-	const Vector gunPos = GetGunPosition();
-	const Vector posVecs[3] = {gunPos, gunPos + gpGlobals->v_right * pev->size.x * 1, gpGlobals->v_right * pev->size.x * (-1)};
-	const Vector enemyVec[3] = {enemyCenter, enemyCenter + gpGlobals->v_right * pEnemy->pev->size.x * 0.5, enemyCenter + gpGlobals->v_right * pEnemy->pev->size.x * -0.5};
-	for (int j=0; j<3; ++j)
-	{
-		TraceResult tr;
-		UTIL_TraceLine(posVecs[j], enemyVec[j], dont_ignore_monsters, ENT(pev), &tr);
-		if (tr.flFraction != 1.0 && tr.pHit != 0)
-		{
-			CBaseMonster* monster = GetMonsterPointer(tr.pHit);
-			if (monster != 0 && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
-			{
-				//ALERT(at_aiconsole, "%s: Ally %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(monster->pev->classname));
-				return false;
-			}
-		}
-	}
-
-	const bool inSquad = InSquad();
-	CBaseEntity* player = UTIL_PlayerByIndex(1);
-	const bool friendWithPlayer = player != 0 && IRelationship(player) == R_AL; // TODO: better check for player relationship
-	if( !inSquad && !friendWithPlayer )
-	{
-		return true;
-	}
-
-	CPlane backPlane;
-	CPlane leftPlane;
-	CPlane rightPlane;
-	CPlane frontPlane;
-
-	Vector vecLeftSide;
-	Vector vecRightSide;
-	Vector v_left;
-	Vector v_dir;
-
-	v_dir = gpGlobals->v_right * ( pev->size.x * 1.5f );
-	vecLeftSide = pev->origin - v_dir;
-		vecRightSide = pev->origin + v_dir;
-
-	v_left = gpGlobals->v_right * -1.0f;
-
-	leftPlane.InitializePlane( gpGlobals->v_right, vecLeftSide );
-	rightPlane.InitializePlane( v_left, vecRightSide );
-	backPlane.InitializePlane( gpGlobals->v_forward, pev->origin );
-	frontPlane.InitializePlane( gpGlobals->v_forward * -1, enemyCenter + gpGlobals->v_forward * pEnemy->pev->size.Length2D() / 2 );
-/*
-	ALERT( at_console, "LeftPlane: %f %f %f : %f\n", leftPlane.m_vecNormal.x, leftPlane.m_vecNormal.y, leftPlane.m_vecNormal.z, leftPlane.m_flDist );
-	ALERT( at_console, "RightPlane: %f %f %f : %f\n", rightPlane.m_vecNormal.x, rightPlane.m_vecNormal.y, rightPlane.m_vecNormal.z, rightPlane.m_flDist );
-	ALERT( at_console, "BackPlane: %f %f %f : %f\n", backPlane.m_vecNormal.x, backPlane.m_vecNormal.y, backPlane.m_vecNormal.z, backPlane.m_flDist );
-*/
-	const bool enemyIsAlive = pEnemy->IsFullyAlive();
-	if (inSquad)
-	{
-		CSquadMonster *pSquadLeader = MySquadLeader();
-		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
-		{
-			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
-			if( pMember && pMember != this )
-			{
-				if( backPlane.PointInFront( pMember->pev->origin ) &&
-					leftPlane.PointInFront( pMember->pev->origin ) &&
-					rightPlane.PointInFront( pMember->pev->origin ) )
-				{
-					// this guy is in the check volume! Don't shoot!
-					if (frontPlane.PointInFront( pMember->pev->origin ))
-						return false;
-					else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
-						return false;
-				}
-			}
-		}
-	}
-	for( int k = 1; k <= gpGlobals->maxClients; k++ )
-	{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex(k);
-		if (pPlayer && pPlayer->IsPlayer() && IRelationship(pPlayer) == R_AL)
-		{
-			if( backPlane.PointInFront( pPlayer->pev->origin ) &&
-				leftPlane.PointInFront( pPlayer->pev->origin ) &&
-				rightPlane.PointInFront( pPlayer->pev->origin ) )
-			{
-				//ALERT(at_aiconsole, "%s: Ally player at fire plane!\n", STRING(pev->classname));
-				// player is in the check volume! Don't shoot!
-				if (frontPlane.PointInFront( pPlayer->pev->origin ))
-					return false;
-				else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
-					return false;
-			}
-		}
-	}
-
-	return true;
 }
 
 //=========================================================

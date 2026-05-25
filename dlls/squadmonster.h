@@ -82,7 +82,6 @@ public:
 	void UpdateOnRemove() override;
 	void RemoveMySelfFromSquad();
 	bool OccupySlot( int iDesiredSlot );
-	bool NoFriendlyFire();
 
 	// squad functions still left in base class
 	CSquadMonster *MySquadLeader()

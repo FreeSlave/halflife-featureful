@@ -653,13 +653,13 @@ void CBaseTurret::ActiveThink()
 		fAttack = true;
 
 	// fire the gun
-	if( m_iSpin && ( ( fAttack ) || ( m_fBeserk ) ) )
+	if( m_iSpin && ( ( fAttack ) || ( m_fBeserk ) ) && NoFriendlyFire() )
 	{
 		Vector vecSrc, vecAng;
 		GetAttachment( 0, vecSrc, vecAng );
 		SetTurretAnim( TURRET_ANIM_FIRE );
 		Shoot( vecSrc, gpGlobals->v_forward );
-	} 
+	}
 	else
 	{
 		SetTurretAnim( TURRET_ANIM_SPIN );

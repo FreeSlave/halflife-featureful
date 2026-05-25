@@ -44,6 +44,7 @@
 #include "tex_materials.h"
 #include "ai_debug.h"
 #include "graphic_debug.h"
+#include "plane.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
@@ -3427,15 +3428,16 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 // Combat
 Vector CBaseMonster::GetGunPosition()
 {
-	UTIL_MakeVectors( pev->angles );
+	Vector forward, right, up;
+	UTIL_MakeVectorsPrivate(pev->angles, forward, right, up);
 
 	// Vector vecSrc = pev->origin + gpGlobals->v_forward * 10;
 	//vecSrc.z = pevShooter->absmin.z + pevShooter->size.z * 0.7;
 	//vecSrc.z = pev->origin.z + (pev->view_ofs.z - 4);
 	Vector vecSrc = pev->origin 
-					+ gpGlobals->v_forward * m_HackedGunPos.y 
-					+ gpGlobals->v_right * m_HackedGunPos.x 
-					+ gpGlobals->v_up * m_HackedGunPos.z;
+					+ forward * m_HackedGunPos.y
+					+ right * m_HackedGunPos.x
+					+ up * m_HackedGunPos.z;
 
 	return vecSrc;
 }
@@ -4416,7 +4418,11 @@ Vector CBaseMonster::ShootAtEnemy( const Vector &shootOrigin )
 		return( ( pEnemy->BodyTarget( shootOrigin ) - pEnemy->pev->origin ) + m_vecEnemyLKP - shootOrigin ).Normalize();
 	}
 	else
-		return gpGlobals->v_forward;
+	{
+		Vector forward, right, up;
+		UTIL_MakeVectorsPrivate(pev->angles, forward, right, up);
+		return forward;
+	}
 }
 
 Vector CBaseMonster::SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDeviation, float *distance)
@@ -4884,6 +4890,120 @@ bool CBaseMonster::IsFreeToManipulate()
 				  m_MonsterState == MONSTERSTATE_IDLE ||
 				  m_MonsterState == MONSTERSTATE_HUNT ||
 				  m_MonsterState == MONSTERSTATE_NONE);
+}
+
+//=========================================================
+// NoFriendlyFire - checks for possibility of friendly fire
+//
+// Builds a large box in front of the grunt and checks to see
+// if any squad members are in that box.
+//=========================================================
+bool CBaseMonster::NoFriendlyFire()
+{
+	Vector forward, right, up;
+	if (m_hEnemy != 0)
+	{
+		UTIL_MakeVectorsPrivate(UTIL_VecToAngles(m_hEnemy->Center() - pev->origin), forward, right, up);
+	}
+	else
+	{
+		return false;
+	}
+
+	CBaseEntity* pEnemy = m_hEnemy;
+	const Vector enemyCenter = pEnemy->Center();
+	const Vector gunPos = GetGunPosition();
+	const Vector posVecs[3] = {gunPos, gunPos + right * pev->size.x * 1, right * pev->size.x * (-1)};
+	const Vector enemyVec[3] = {enemyCenter, enemyCenter + right * pEnemy->pev->size.x * 0.5, enemyCenter + right * pEnemy->pev->size.x * -0.5};
+	for (int j=0; j<3; ++j)
+	{
+		TraceResult tr;
+		UTIL_TraceLine(posVecs[j], enemyVec[j], dont_ignore_monsters, ENT(pev), &tr);
+		if (tr.flFraction != 1.0 && tr.pHit != 0)
+		{
+			CBaseMonster* monster = GetMonsterPointer(tr.pHit);
+			if (monster != 0 && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
+			{
+				//ALERT(at_aiconsole, "%s: Ally %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(monster->pev->classname));
+				return false;
+			}
+		}
+	}
+
+	CSquadMonster* squadMonster = MySquadMonsterPointer();
+	const bool inSquad = squadMonster && squadMonster->InSquad();
+	CBaseEntity* player = UTIL_PlayerByIndex(1);
+	const bool friendWithPlayer = player != 0 && IRelationship(player) == R_AL; // TODO: better check for player relationship
+
+	if (!inSquad && !friendWithPlayer)
+		return true;
+
+	CPlane backPlane;
+	CPlane leftPlane;
+	CPlane rightPlane;
+	CPlane frontPlane;
+
+	Vector vecLeftSide;
+	Vector vecRightSide;
+	Vector v_left;
+	Vector v_dir;
+
+	v_dir = right * ( pev->size.x * 1.5f );
+	vecLeftSide = pev->origin - v_dir;
+	vecRightSide = pev->origin + v_dir;
+
+	v_left = right * -1.0f;
+
+	leftPlane.InitializePlane( right, vecLeftSide );
+	rightPlane.InitializePlane( v_left, vecRightSide );
+	backPlane.InitializePlane( forward, pev->origin );
+	frontPlane.InitializePlane( forward * -1, enemyCenter + forward * pEnemy->pev->size.Length2D() / 2 );
+
+	const bool enemyIsAlive = pEnemy->IsFullyAlive();
+	if (inSquad)
+	{
+		CSquadMonster *pSquadLeader = squadMonster->MySquadLeader();
+		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+		{
+			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+			if( pMember && pMember != this )
+			{
+				if( backPlane.PointInFront( pMember->pev->origin ) &&
+					leftPlane.PointInFront( pMember->pev->origin ) &&
+					rightPlane.PointInFront( pMember->pev->origin ) )
+				{
+					// this guy is in the check volume! Don't shoot!
+					if (frontPlane.PointInFront( pMember->pev->origin ))
+					{
+						ALERT(at_aiconsole, "%s: Squad member %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(pMember->pev->classname));
+						return false;
+					}
+					else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
+						return false;
+				}
+			}
+		}
+	}
+	for( int k = 1; k <= gpGlobals->maxClients; k++ )
+	{
+		CBaseEntity* pPlayer = UTIL_PlayerByIndex(k);
+		if (pPlayer && pPlayer->IsPlayer() && IRelationship(pPlayer) == R_AL)
+		{
+			if( backPlane.PointInFront( pPlayer->pev->origin ) &&
+				leftPlane.PointInFront( pPlayer->pev->origin ) &&
+				rightPlane.PointInFront( pPlayer->pev->origin ) )
+			{
+				//ALERT(at_aiconsole, "%s: Ally player at fire plane!\n", STRING(pev->classname));
+				// player is in the check volume! Don't shoot!
+				if (frontPlane.PointInFront( pPlayer->pev->origin ))
+					return false;
+				else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
+					return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
