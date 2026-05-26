@@ -1615,21 +1615,21 @@ This type describes the damage data. It consists of the following properties:
 
 A single string or an array of strings describing the damage types. Supports following values:
 - `"generic"`
-- `"crush"`
-- `"bullet"`
-- `"slash"`
-- `"burn"`
+- `"crush"` (being crushed by door, train, etc.)
+- `"bullet"` (bullet-based firearms)
+- `"slash"` (monster's melee attack)
+- `"burn"` (fire, [monster_gargantua]({{< ref monster_gargantua >}}) flames)
 - `"freeze"`
-- `"blast"`
-- `"club"`
-- `"shock"`
-- `"sonic"`
-- `"energybeam"`
+- `"blast"` (explosion, e.g. from grenades, [env_explosion]({{< ref env_explosion >}}), etc.)
+- `"club"` (player's melee weapon)
+- `"shock"` (electricity, e.g. [monster_alien_slave]({{< ref monster_alien_slave >}}) electro attack, [shock_beam]({{< ref shock_beam >}}) projectile, etc.).
+- `"sonic"` (houndeye sonic wave)
+- `"energybeam"`([monster_alien_controller]({{< ref monster_alien_controller >}}) zap ball, [weapon_egon]({{< ref weapon_egon >}}), etc.)
 - `"paralyze"`
 - `"nervegas"`
 - `"poison"`
 - `"radiation"`
-- `"acid"`
+- `"acid"` ([Big Momma's projectile]({{< ref bmortar >}}))
 - `"slowburn"`
 - `"slowfreeze"`
 
