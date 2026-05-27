@@ -1425,10 +1425,6 @@ Required sounds:
 
 Very similar to Team Fortress Classic assault cannon, but needs reloading. This doesn't impose the speed or jump penalty on the player and uses `9mm` ammo.
 
-{{% hint warning %}}
-This template is designed specifically for [weapon_minigun]({{< ref weapon_minigun >}}), it won't work properly for other weapons without modifications.
-{{% /hint %}}
-
 Required models:
 
 * **v_tfac.mdl**
