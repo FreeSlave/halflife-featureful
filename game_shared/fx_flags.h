@@ -53,6 +53,7 @@ enum
 #define SPRAY_FLAG_ANIMATE (1 << 1)
 #define SPRAY_FLAG_FADEOUT (1 << 2)
 #define SPRAY_FLAG_RANDOMBODY (1 << 3)
+#define SPRAY_FLAG_NOGRAVITY (1 << 4)
 
 enum
 {

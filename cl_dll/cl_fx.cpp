@@ -268,7 +268,8 @@ void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, floa
 		pTemp->entity.curstate.renderfx = renderfx;
 		pTemp->entity.curstate.framerate = framerate;
 
-		pTemp->flags |= FTENT_SLOWGRAVITY;
+		if (!(flags & SPRAY_FLAG_NOGRAVITY))
+			pTemp->flags |= FTENT_SLOWGRAVITY;
 		if (flags & SPRAY_FLAG_COLLIDEWORLD)
 			pTemp->flags |= FTENT_COLLIDEWORLD;
 		if (flags & SPRAY_FLAG_ANIMATE)

@@ -1058,6 +1058,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						{
 							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_RANDOMBODY;
 						}
+						else if (strcmp(item.GetString(), "nogravity") == 0)
+						{
+							fire.sprayFlags.Materialize(altMode) |= SPRAY_FLAG_NOGRAVITY;
+						}
 					}
 				});
 			});
