@@ -1189,6 +1189,48 @@ When a monster is poisoned via an arrow etc it takes all the poison damage at on
 GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
 */
+void CBaseMonster::PowerShieldTakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, DamageInfo &damageInfo)
+{
+	if (pev->armorvalue <= 0.0f || !m_hasPowerShield || IsPlayer())
+		return;
+
+	const float absorption = PowerShieldAbsorption();
+	const float absorbedByShield = Q_min(pev->armorvalue, damageInfo.damage * absorption);
+
+	DamageInfo shieldDamageInfo = damageInfo;
+	shieldDamageInfo.damage = absorbedByShield;
+
+	float damageToShield = TransformDamageToShield(pevInflictor, pevAttacker, shieldDamageInfo);
+	damageToShield = Q_min(pev->armorvalue, damageToShield);
+
+	if (damageToShield > 0.0f)
+	{
+		damageInfo.enforceLightDamage = true;
+		m_shieldLastHurtTime = gpGlobals->time;
+	}
+
+	pev->armorvalue -= damageToShield;
+	damageInfo.damage -= absorbedByShield;
+
+	if (pev->armorvalue <= 0)
+	{
+		RemovePowerShield();
+	}
+	else
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		bool renderShield = true;
+		if (entTemplate)
+		{
+			const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+			renderShield = powerShield.renderShield;
+		}
+
+		if (renderShield)
+			RenderPowerShield();
+	}
+}
+
 TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
 	TakeDamageResult takeDamageResult;
@@ -1212,44 +1254,7 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 		return DeadTakeDamage( pevInflictor, pevAttacker, damageInfo );
 	}
 
-	if (pev->armorvalue > 0.0f && m_hasPowerShield && !IsPlayer())
-	{
-		const float absorption = PowerShieldAbsorption();
-		const float absorbedByShield = Q_min(pev->armorvalue, damageInfo.damage * absorption);
-
-		DamageInfo shieldDamageInfo = damageInfo;
-		shieldDamageInfo.damage = absorbedByShield;
-
-		float damageToShield = TransformDamageToShield(pevInflictor, pevAttacker, shieldDamageInfo);
-		damageToShield = Q_min(pev->armorvalue, damageToShield);
-
-		if (damageToShield > 0.0f)
-		{
-			damageInfo.enforceLightDamage = true;
-			m_shieldLastHurtTime = gpGlobals->time;
-		}
-
-		pev->armorvalue -= damageToShield;
-		damageInfo.damage -= absorbedByShield;
-
-		if (pev->armorvalue <= 0)
-		{
-			RemovePowerShield();
-		}
-		else
-		{
-			const EntTemplate* entTemplate = GetMyEntTemplate();
-			bool renderShield = true;
-			if (entTemplate)
-			{
-				const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
-				renderShield = powerShield.renderShield;
-			}
-
-			if (renderShield)
-				RenderPowerShield();
-		}
-	}
+	PowerShieldTakeDamage(pevInflictor, pevAttacker, damageInfo);
 
 	PainReaction(damageInfo);
 
@@ -2176,17 +2181,8 @@ void CBaseMonster::ApplyHitGroupDamageMultiplier(DamageInfo &damageInfo, int hit
 extern int gmsgQ2Particles;
 extern int gmsgSpriteTrail;
 
-void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
+void CBaseMonster::PowerShieldCalcTraceDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float& damageToShield, float& absorbedByShield)
 {
-	if (!pev->takedamage)
-		return;
-
-	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
-	if (damageInfo.mustSkip)
-		return;
-
-	float damageToShield = 0.0f;
-	float absorbedByShield = 0.0f;
 	if (m_hasPowerShield && pev->armorvalue > 0)
 	{
 		if (gMultiDamage.pEntity && gMultiDamage.pEntity != this)
@@ -2207,6 +2203,78 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 			gMultiDamage.pendingDamageToShield += damageToShield;
 		}
 	}
+}
+
+void CBaseMonster::PowerShieldTraceAttackEffect(const DamageInfo& damageInfo, const Vector vecDir, const TraceResult *ptr, float damageToShield)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	bool renderParticles = false;
+	bool renderDebris = true;
+	if (entTemplate)
+	{
+		const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
+		renderParticles = powerShield.renderParticles;
+		renderDebris = powerShield.renderDebris;
+	}
+
+	if (renderParticles && m_shieldVisual)
+	{
+		const int count = clamp((int)damageToShield, 10, 60);
+
+		MESSAGE_BEGIN(MSG_PVS, gmsgQ2Particles, pev->origin);
+		WRITE_SHORT(count);
+		WRITE_VECTOR(ptr->vecEndPos);
+		WRITE_VECTOR(-vecDir);
+		WRITE_COLOR(m_shieldVisual->rendercolor);
+		MESSAGE_END();
+	}
+
+	if (renderDebris && m_shieldDebrisVisual && m_shieldDebrisVisual->modelIndex)
+	{
+		const bool isBlast = (FBitSet(damageInfo.type, DMG_BLAST) && damageToShield > 50);
+		const int count = isBlast ? 3 : 1;
+		const int randomness = isBlast ? 30 : 15;
+
+		const int deciScale = RandomizeNumberFromRange(m_shieldDebrisVisual->scale) * 10;
+
+		int scaleToSend = deciScale + int(damageToShield / 8.0f);
+		scaleToSend = Q_min(scaleToSend, deciScale * 3);
+
+		Color3 debrisColor = m_shieldDebrisVisual->HasDefined(Visual::COLOR_DEFINED) ? m_shieldDebrisVisual->rendercolor : (m_shieldVisual ? m_shieldVisual->rendercolor : Color3(255, 255, 255));
+
+		Vector sparkOrigin = ptr->vecEndPos;
+		Vector sparkEnd = ptr->vecEndPos - vecDir * 8.0f;
+		sparkEnd.z += 8.0f;
+		MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, sparkOrigin );
+		WRITE_VECTOR( sparkOrigin );	// start
+		WRITE_VECTOR( sparkEnd );	// end
+		WRITE_SHORT( m_shieldDebrisVisual->modelIndex );	// model
+		WRITE_BYTE( count );			// count
+		WRITE_BYTE( RandomizeNumberFromRange(m_shieldDebrisVisual->life)*10 );			// life in 0.1s
+		WRITE_BYTE( scaleToSend );			// scale in 0.1
+		WRITE_BYTE( 20 );			// velocity along vector in 10's
+		WRITE_BYTE( randomness );			// randomness of velocity in 10's
+		WRITE_BYTE( m_shieldDebrisVisual->rendermode );
+		WRITE_COLOR( debrisColor );
+		WRITE_BYTE( m_shieldDebrisVisual->renderamt );
+		WRITE_BYTE( m_shieldDebrisVisual->renderfx );
+		WRITE_BYTE( 5 ); // random extra life in 0.1s
+		MESSAGE_END();
+	}
+}
+
+void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
+{
+	if (!pev->takedamage)
+		return;
+
+	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+	if (damageInfo.mustSkip)
+		return;
+
+	float damageToShield = 0.0f;
+	float absorbedByShield = 0.0f;
+	PowerShieldCalcTraceDamage(pevInflictor, pevAttacker, damageInfo, damageToShield, absorbedByShield);
 
 	m_LastHitGroup = ptr->iHitgroup;
 
@@ -2214,64 +2282,10 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 	if (damageToShield > 0.0f)
 	{
-		const EntTemplate* entTemplate = GetMyEntTemplate();
-		bool renderParticles = false;
-		bool renderDebris = true;
-		if (entTemplate)
-		{
-			const EntTemplate::PowerShield& powerShield = entTemplate->GetPowerShield();
-			renderParticles = powerShield.renderParticles;
-			renderDebris = powerShield.renderDebris;
-		}
-
 		DamageInfo damageInfoCopy = damageInfo;
 		damageInfoCopy.damage -= absorbedByShield;
 		BloodEffect(damageInfoCopy, vecDir, ptr);
-
-		if (renderParticles && m_shieldVisual)
-		{
-			const int count = clamp((int)damageToShield, 10, 60);
-
-			MESSAGE_BEGIN(MSG_PVS, gmsgQ2Particles, pev->origin);
-			WRITE_SHORT(count);
-			WRITE_VECTOR(ptr->vecEndPos);
-			WRITE_VECTOR(-vecDir);
-			WRITE_COLOR(m_shieldVisual->rendercolor);
-			MESSAGE_END();
-		}
-
-		if (renderDebris && m_shieldDebrisVisual && m_shieldDebrisVisual->modelIndex)
-		{
-			const bool isBlast = (FBitSet(damageInfo.type, DMG_BLAST) && damageToShield > 50);
-			const int count = isBlast ? 3 : 1;
-			const int randomness = isBlast ? 30 : 15;
-
-			const int deciScale = RandomizeNumberFromRange(m_shieldDebrisVisual->scale) * 10;
-
-			int scaleToSend = deciScale + int(damageToShield / 8.0f);
-			scaleToSend = Q_min(scaleToSend, deciScale * 3);
-
-			Color3 debrisColor = m_shieldDebrisVisual->HasDefined(Visual::COLOR_DEFINED) ? m_shieldDebrisVisual->rendercolor : (m_shieldVisual ? m_shieldVisual->rendercolor : Color3(255, 255, 255));
-
-			Vector sparkOrigin = ptr->vecEndPos;
-			Vector sparkEnd = ptr->vecEndPos - vecDir * 8.0f;
-			sparkEnd.z += 8.0f;
-			MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, sparkOrigin );
-			WRITE_VECTOR( sparkOrigin );	// start
-			WRITE_VECTOR( sparkEnd );	// end
-			WRITE_SHORT( m_shieldDebrisVisual->modelIndex );	// model
-			WRITE_BYTE( count );			// count
-			WRITE_BYTE( RandomizeNumberFromRange(m_shieldDebrisVisual->life)*10 );			// life in 0.1s
-			WRITE_BYTE( scaleToSend );			// scale in 0.1
-			WRITE_BYTE( 20 );			// velocity along vector in 10's
-			WRITE_BYTE( randomness );			// randomness of velocity in 10's
-			WRITE_BYTE( m_shieldDebrisVisual->rendermode );
-			WRITE_COLOR( debrisColor );
-			WRITE_BYTE( m_shieldDebrisVisual->renderamt );
-			WRITE_BYTE( m_shieldDebrisVisual->renderfx );
-			WRITE_BYTE( 5 ); // random extra life in 0.1s
-			MESSAGE_END();
-		}
+		PowerShieldTraceAttackEffect(damageInfo, vecDir, ptr, damageToShield);
 	}
 	else
 	{

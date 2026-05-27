@@ -1102,14 +1102,22 @@ DamageInfo CBaseTurret::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvar
 
 void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
 {
+	if (!pev->takedamage)
+		return;
+
 	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 	if (damageInfo.mustSkip)
 		return;
 
-	if (pev->takedamage)
+	float damageToShield = 0.0f;
+	float absorbedByShield = 0.0f;
+	PowerShieldCalcTraceDamage(pevInflictor, pevAttacker, damageInfo, damageToShield, absorbedByShield);
+	if (damageToShield > 0.0f)
 	{
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		PowerShieldTraceAttackEffect(damageInfo, vecDir, ptr, damageToShield);
 	}
+
+	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
 }
 
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
@@ -1126,6 +1134,8 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 
 	if( !m_iOn )
 		dmgInfo.damage *= 0.1f;
+
+	PowerShieldTakeDamage(pevInflictor, pevAttacker, dmgInfo);
 
 	AddScoreForDamage(pevAttacker, this, dmgInfo.damage);
 
@@ -1362,6 +1372,8 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 	DamageInfo dmgInfo = TransformDamageInfo(pevInflictor, pevAttacker, damageInfo);
 	if (dmgInfo.mustSkip)
 		return takeDamageResult;
+
+	PowerShieldTakeDamage(pevInflictor, pevAttacker, dmgInfo);
 
 	AddScoreForDamage(pevAttacker, this, dmgInfo.damage);
 

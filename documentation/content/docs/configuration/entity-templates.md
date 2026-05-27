@@ -1546,6 +1546,10 @@ Properties:
 
 Power shield (armor) configuration for monsters. The power shield acts as an additional layer of health. It has its own visual impact effects and with full damage absorption it prevents monster from bleeding until the shield is broken.
 
+{{% hint warning %}}
+Power shield currently works only on monsters, but it doesn't work properly on [monster_apache]({{< ref monster_apache >}}) and [monster_osprey]({{< ref monster_osprey >}}) and probably some other special monsters.
+{{% /hint %}}
+
 Properties:
 
 * `"armor"` - the amount of armor (strength) the power shield has (it's also the maximum shield value). This is a [skill based value](#skill-based-value). This must be higher than 0 to enable the power shield (except for [monster_kingpin]({{< ref monster_kingpin >}}) has the shield enabled by default).

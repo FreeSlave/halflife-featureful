@@ -375,6 +375,8 @@ public:
 	bool GetEnemy( bool forcePopping );
 	virtual float HeadHitGroupDamageMultiplier();
 	void ApplyHitGroupDamageMultiplier(DamageInfo& damageInfo, int hitgroup);
+	void PowerShieldCalcTraceDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float& damageToShield, float& absorbedByShield);
+	void PowerShieldTraceAttackEffect(const DamageInfo& damageInfo, const Vector vecDir, const TraceResult *ptr, float damageToShield);
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 
 	// combat functions
@@ -398,6 +400,7 @@ public:
 	virtual	Vector GetGunPosition();
 
 	int TakeHealth( CBaseEntity* pHealer, float flHealth, int bitsDamageType ) override;
+	void PowerShieldTakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, DamageInfo& damageInfo);
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	void ReactToDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, TakeDamageResult& takeDamageResult);
 	void PainReaction(const DamageInfo& damageInfo);
