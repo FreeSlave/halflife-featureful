@@ -4983,7 +4983,7 @@ bool CBaseMonster::NoFriendlyFire()
 					// this guy is in the check volume! Don't shoot!
 					if (frontPlane.PointInFront( pMember->pev->origin ))
 					{
-						ALERT(at_aiconsole, "%s: Squad member %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(pMember->pev->classname));
+						//ALERT(at_aiconsole, "%s: Squad member %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(pMember->pev->classname));
 						return false;
 					}
 					else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
