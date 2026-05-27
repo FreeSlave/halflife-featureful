@@ -68,7 +68,7 @@ public:
 	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) override;
 	void DamageSound();
 
-	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag);
+	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag, float customScale = 0.0f);
 
 	bool CalcRatio(CBaseEntity* pLocus, float* outResult) override
 	{
@@ -139,6 +139,7 @@ public:
 
 	short m_targetActivator;
 	int m_iGibs;
+	float m_gibScale;
 
 	string_t m_iszWhenHit; // locus trigger
 	CPointEntity* m_pHitProxy;

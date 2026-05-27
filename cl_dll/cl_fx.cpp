@@ -721,3 +721,96 @@ void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int e
 		gEngfuncs.pEfxAPI->R_RicochetSound(pos);
 	}
 }
+
+#define SHARD_VOLUME		12.0f
+
+void FX_BreakModel(const Vector& pos, const Vector& size, const Vector& dir, float random, float life, int count, int modelIndex, char flags, float customScale)
+{
+	model_t *pmodel = gEngfuncs.pfnGetModelByIndex(modelIndex);
+	if (!pmodel)
+		return;
+
+	const char type = flags & BREAK_TYPEMASK;
+
+	if (count == 0)
+	{
+		count = (size[0] * size[1] + size[1] * size[2] + size[2] * size[0]) / (3 * SHARD_VOLUME * SHARD_VOLUME);
+	}
+	count = Q_min(count, 100);
+
+	const float clientTime = gEngfuncs.GetClientTime();
+
+	int bodyNum = 1;
+	if (pmodel->type == mod_studio)
+	{
+		bodyNum = GetOverallBodyNum(pmodel->cache.data);
+	}
+
+	for (int i = 0; i < count; i++)
+	{
+		Vector vecSpot;
+		int j = 0;
+
+		for (; j < 32; j++)
+		{
+			// fill up the box with stuff
+			vecSpot[0] = pos[0] + Com_RandomFloat( -0.5f, 0.5f ) * size[0];
+			vecSpot[1] = pos[1] + Com_RandomFloat( -0.5f, 0.5f ) * size[1];
+			vecSpot[2] = pos[2] + Com_RandomFloat( -0.5f, 0.5f ) * size[2];
+
+			if (gEngfuncs.PM_PointContents(vecSpot, nullptr) != CONTENTS_SOLID)
+				break;
+		}
+
+		if (j == 32)
+			continue;
+
+		TEMPENTITY *pTemp = gEngfuncs.pEfxAPI->CL_TempEntAlloc(vecSpot, pmodel);
+		if (!pTemp)
+			return;
+
+		// keep track of break_type, so we know how to play sound on collision
+		pTemp->hitSound = type;
+		pTemp->frameMax = pmodel->numframes - 1;
+
+		if (pmodel->type == mod_sprite)
+			pTemp->entity.curstate.frame = Com_RandomLong(0, pTemp->frameMax);
+		else if (pmodel->type == mod_studio)
+			pTemp->entity.curstate.body = Com_RandomLong(0, bodyNum-1);
+
+		pTemp->flags |= FTENT_COLLIDEWORLD | FTENT_FADEOUT | FTENT_SLOWGRAVITY;
+
+		if (Com_RandomLong( 0, 255 ) < 200)
+		{
+			pTemp->flags |= FTENT_ROTATE;
+			pTemp->entity.baseline.angles[0] = Com_RandomFloat( -256, 255 );
+			pTemp->entity.baseline.angles[1] = Com_RandomFloat( -256, 255 );
+			pTemp->entity.baseline.angles[2] = Com_RandomFloat( -256, 255 );
+		}
+
+		if (( Com_RandomLong( 0, 255 ) < 100 ) && FBitSet( flags, BREAK_SMOKE ))
+			pTemp->flags |= FTENT_SMOKETRAIL;
+
+		if(( type == BREAK_GLASS ) || FBitSet( flags, BREAK_TRANS ))
+		{
+			pTemp->entity.curstate.rendermode = kRenderTransTexture;
+			pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = 128;
+		}
+		else
+		{
+			pTemp->entity.curstate.rendermode = kRenderNormal;
+			pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = 255;
+		}
+
+		pTemp->entity.baseline.origin[0] = dir[0] + Com_RandomFloat( -random, random );
+		pTemp->entity.baseline.origin[1] = dir[1] + Com_RandomFloat( -random, random );
+		pTemp->entity.baseline.origin[2] = dir[2] + Com_RandomFloat( 0, random );
+
+		if (customScale > 0)
+			pTemp->entity.curstate.scale = customScale;
+		else
+			pTemp->entity.curstate.scale = 1.0f;
+
+		pTemp->die = clientTime + life + Com_RandomFloat( 0.0f, 1.0f );
+	}
+}

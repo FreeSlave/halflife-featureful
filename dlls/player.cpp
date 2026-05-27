@@ -264,6 +264,7 @@ int gmsgBlood = 0;
 int gmsgGunshot = 0;
 int gmsgParticleShooter = 0;
 int gmsgQ2Particles = 0;
+int gmsgBreakModel = 0;
 
 int gmsgNightvision = 0;
 
@@ -388,6 +389,7 @@ void LinkUserMessages()
 	gmsgGunshot = REG_USER_MSG( "Gunshot", 17 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
 	gmsgQ2Particles = REG_USER_MSG( "Q2Particles", 17 );
+	gmsgBreakModel = REG_USER_MSG( "BreakModel", 26 );
 
 	gmsgNightvision = REG_USER_MSG( "Nightvision", 1 );
 	gmsgMovementState = REG_USER_MSG( "MoveMode", 2 );

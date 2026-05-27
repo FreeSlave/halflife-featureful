@@ -15,8 +15,10 @@ entityCategory: solid
 * `Entity template for Spawn On Break` - set [entity template]({{< ref entity-templates >}}) for the spawn object.
 * `info_item_random entity` - name of the [info_item_random]({{< ref info_item_random >}}) entity for the item drop randomization. If this is defined the `func_breakable` will prefer using this instead of `Spawn On Break`.
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
+* `Custom gib scale` - custom gib model scale.
+* `Custom number of gibs` - custom number of gibs (by default it depends on the breakable's size).
 * ![](/images/svencoop.png) `HUD Info name` - name to display when player is looking at this breakable. Requires `Show HUD Info` spawnflag.
-* `Switch to alternate texture` - switch the textures (from `+0` to `+A` variant or vice-versa) on the brush model when half or less health has left. This allows to simulate the half-broken materials (e.g. cracked glass).
+* `Switch Texture When Damaged` - switch the textures (from `+0` to `+A` variant or vice-versa) on the brush model when half or less health has left. This allows to simulate the half-broken materials (e.g. cracked glass).
 * `Spark When Hit` - allow spark effect when the breakable is hit, even if material is not a `Computer`.
 
 {{% hint info %}}

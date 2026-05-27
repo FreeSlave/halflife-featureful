@@ -171,6 +171,11 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 		m_iGibs = atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq( pkvd->szKeyName, "gibscale") )
+	{
+		m_gibScale = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else if( FStrEq( pkvd->szKeyName, "lip" ) )
 		pkvd->fHandled = true;
 	else if( FStrEq( pkvd->szKeyName, "whenhit" ) )
@@ -211,6 +216,7 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_iszSpawnObjectTemplate, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_targetActivator, FIELD_SHORT ),
 	DEFINE_FIELD( CBreakable, m_iGibs, FIELD_INTEGER ),
+	DEFINE_FIELD( CBreakable, m_gibScale, FIELD_FLOAT ),
 	DEFINE_FIELD( CBreakable, m_iszWhenHit, FIELD_STRING ),
 	DEFINE_FIELD( CBreakable, m_pHitProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CBreakable, m_switchTextureWhenDamaged, FIELD_BOOLEAN ),
@@ -782,11 +788,11 @@ static char ExtraBreakableFlags(int spawnflags)
 	return cFlag;
 }
 
-void CBreakable::BreakModel(const Vector& vecSpot, const Vector& size, const Vector& vecVelocity, int shardModelIndex, int iGibs, char cFlag)
-{
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-		WRITE_BYTE( TE_BREAKMODEL );
+extern int gmsgBreakModel;
 
+void CBreakable::BreakModel(const Vector& vecSpot, const Vector& size, const Vector& vecVelocity, int shardModelIndex, int iGibs, char cFlag, float customScale)
+{
+	MESSAGE_BEGIN( MSG_PVS, gmsgBreakModel, vecSpot );
 		// position
 		WRITE_VECTOR( vecSpot );
 
@@ -810,6 +816,8 @@ void CBreakable::BreakModel(const Vector& vecSpot, const Vector& size, const Vec
 
 		// flags
 		WRITE_BYTE( cFlag );
+
+		WRITE_SHORT( (short)(customScale * 100) );
 	MESSAGE_END();
 }
 
@@ -861,7 +869,7 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 
 	if (m_iGibs >= 0)
 	{
-		BreakModel(vecSpot, pev->size, vecVelocity, m_idShard, m_iGibs, cFlag);
+		BreakModel(vecSpot, pev->size, vecVelocity, m_idShard, m_iGibs, cFlag, m_gibScale);
 	}
 
 	/*float size = pev->size.x;

@@ -46,5 +46,6 @@ void FX_DotParticles(const Vector& org, const Vector& ndir, const ColorRandomize
 void FX_ImpactParticles(const Vector& pos, int baseColor);
 void FX_WallImpact(const Vector& pos, const Vector& dir, int particleColor, int style);
 void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int entIndex, int particleColor);
+void FX_BreakModel(const Vector& pos, const Vector& size, const Vector& dir, float random, float life, int count, int modelIndex, char flags, float customScale);
 
 #endif

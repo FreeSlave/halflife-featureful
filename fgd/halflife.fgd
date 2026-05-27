@@ -701,6 +701,7 @@
 	]
 	delay(string) : "Delay before fire" : "0"
 	gibmodel(studio) : "Gib Model" : ""
+	gibscale(string) : "Custom gib scale"
 	m_iGibs(integer) : "Custom number of gibs"
 	spawnobject(choices) : "Spawn On Break (predefined)" : 0 =
 	[

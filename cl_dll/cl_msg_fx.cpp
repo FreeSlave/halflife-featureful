@@ -785,6 +785,24 @@ int __MsgFunc_Q2Particles( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+int __MsgFunc_BreakModel( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	const Vector pos = READ_VECTOR();
+	const Vector size = READ_VECTOR();
+	const Vector dir = READ_VECTOR();
+	const float random = READ_BYTE() * 10.0f;
+	const short modelIndex = READ_SHORT();
+	const int count = READ_BYTE();
+	const float life = READ_BYTE() * 0.1f;
+	const char flags = READ_BYTE();
+	const float scale = READ_SHORT() / 100.0f;
+
+	FX_BreakModel(pos, size, dir, random, life, count, modelIndex, flags, scale);
+	return 1;
+}
+
 void HookFXMessages()
 {
 	HOOK_MESSAGE( RandomGibs );
@@ -800,4 +818,5 @@ void HookFXMessages()
 	HOOK_MESSAGE( Gunshot );
 	HOOK_MESSAGE( Particle );
 	HOOK_MESSAGE( Q2Particles );
+	HOOK_MESSAGE( BreakModel );
 }
