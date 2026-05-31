@@ -25,6 +25,7 @@
 #include "game.h"
 #include "soundradius.h"
 #include "nodes.h"
+#include "monsters.h"
 
 #define noiseMoving noise1
 #define noiseArrived noise2
@@ -1193,6 +1194,15 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 
 	if (shouldProceed)
 		return;
+	else
+	{
+		CBaseMonster* pMonster = pOther->MyMonsterPointer();
+		if (pMonster)
+		{
+			int flags = SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_SPOT_IS_POSITION|SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE|SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT;
+			pMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pMonster, 8.0f, 128.0f, flags);
+		}
+	}
 
 	// if a door has a negative wait, it would never come back if blocked,
 	// so let it just squash the object to death real fast

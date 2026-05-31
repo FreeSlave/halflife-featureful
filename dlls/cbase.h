@@ -385,6 +385,7 @@ public:
 	virtual bool IsAlive() { return IsFullyAlive(); }
 	virtual bool IsFullyAlive() { return (pev->deadflag == DEAD_NO) && pev->health > 0; } // IsAlive returns true for DEAD_DYING monsters. Use this when checking if monster is not dead and not dying
 	virtual bool IsBSPModel() { return pev->solid == SOLID_BSP || pev->movetype == MOVETYPE_PUSHSTEP; }
+	bool IsBrushModel();
 	virtual bool ReflectGauss() { return ( IsBSPModel() && !pev->takedamage ); }
 	virtual bool HasTarget( string_t targetname ) { return FStrEq(STRING(targetname), STRING(pev->target) ); }
 	virtual bool IsInWorld();

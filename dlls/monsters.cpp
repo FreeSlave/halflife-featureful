@@ -4866,7 +4866,7 @@ bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
 	if (rel == R_AL)
 		return true;
 	CBaseMonster* pMonster = pPusher->MyMonsterPointer();
-	if (pMonster && pMonster->m_pCine)
+	if (pMonster && (pMonster->m_pCine || FBitSet(pMonster->m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING)))
 		return rel == R_NO;
 	return false;
 }
@@ -4878,7 +4878,9 @@ bool CBaseMonster::MakeMyBlockerMoveAway()
 		bool success = false;
 		CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
 		if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
-			const int flags = SUGGEST_SCHEDULE_FLAG_RUN;
+			int flags = SUGGEST_SCHEDULE_FLAG_RUN;
+			if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT))
+				flags |= SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT;
 			CBaseEntity* pGoalEntity = this;
 			if (m_hMoveGoalEnt != 0)
 				pGoalEntity = m_hMoveGoalEnt;
@@ -4890,14 +4892,24 @@ bool CBaseMonster::MakeMyBlockerMoveAway()
 	return false;
 }
 
-bool CBaseMonster::IsFreeToManipulate()
+bool CBaseMonster::IsFreeToManipulate(bool allowInCombat)
 {
-	return IsFullyAlive() && m_IdealMonsterState != MONSTERSTATE_SCRIPT &&
-			m_IdealMonsterState != MONSTERSTATE_PRONE &&
-				 (m_MonsterState == MONSTERSTATE_ALERT ||
-				  m_MonsterState == MONSTERSTATE_IDLE ||
-				  m_MonsterState == MONSTERSTATE_HUNT ||
-				  m_MonsterState == MONSTERSTATE_NONE);
+	bool isMonsterOk = IsFullyAlive() && m_IdealMonsterState != MONSTERSTATE_SCRIPT && m_IdealMonsterState != MONSTERSTATE_PRONE;
+	if (isMonsterOk)
+	{
+		switch (m_MonsterState) {
+		case MONSTERSTATE_IDLE:
+		case MONSTERSTATE_ALERT:
+		case MONSTERSTATE_HUNT:
+		case MONSTERSTATE_NONE:
+			return true;
+		case MONSTERSTATE_COMBAT:
+			return allowInCombat;
+		default:
+			return false;
+		}
+	}
+	return false;
 }
 
 //=========================================================

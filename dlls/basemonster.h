@@ -476,7 +476,7 @@ public:
 	virtual bool CanBeMadeMoveAway(CBaseEntity* pPusher);
 	bool MakeMyBlockerMoveAway();
 
-	bool IsFreeToManipulate();
+	bool IsFreeToManipulate(bool allowInCombat = false);
 
 	bool NoFriendlyFire();
 

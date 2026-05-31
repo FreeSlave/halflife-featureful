@@ -1860,6 +1860,11 @@ int CBaseEntity::IsDormant()
 	return FBitSet( pev->flags, FL_DORMANT );
 }
 
+bool CBaseEntity::IsBrushModel()
+{
+	return !FStringNull(pev->model) && *STRING(pev->model) == '*';
+}
+
 bool CBaseEntity::IsInWorld()
 {
 	// position 

@@ -1272,7 +1272,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_WAIT_FACE_ENEMY:
 		{
 			// set a future time that tells us when the wait is over.
-			m_flWaitFinished = gpGlobals->time + pTask->flData;	
+			m_flWaitFinished = gpGlobals->time + pTask->flData;
 			break;
 		}
 	case TASK_WAIT_PATROL_TURNING:
@@ -2100,7 +2100,7 @@ Schedule_t* CBaseMonster::GetRegenerationSchedule()
 
 Schedule_t* CBaseMonster::GetSuggestedSchedule()
 {
-	if (m_suggestedSchedule && IsFreeToManipulate()) {
+	if (m_suggestedSchedule && IsFreeToManipulate(FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT))) {
 		return GetScheduleOfType(m_suggestedSchedule);
 	}
 	return NULL;
@@ -2110,7 +2110,9 @@ bool CBaseMonster::SuggestSchedule(int schedule, CBaseEntity* spotEntity, float 
 {
 	Vector pos;
 	if (spotEntity) {
-		if (spotEntity->CalcPosition(NULL, &pos)) {
+		if (spotEntity->IsBrushModel()) {
+			m_suggestedScheduleOrigin = VecBModelOrigin(spotEntity->pev);
+		} else if (spotEntity->CalcPosition(NULL, &pos)) {
 			m_suggestedScheduleOrigin = pos;
 		} else {
 			if (FBitSet(flags, SUGGEST_SCHEDULE_FLAG_SPOT_IS_POSITION)) {
@@ -2150,7 +2152,10 @@ static bool CalcSuggestedSpotEntity(CBaseMonster* pMonster, CBaseEntity* pSpotEn
 {
 	if (pSpotEntity)
 	{
-		*outVec = pSpotEntity->pev->origin;
+		if (pSpotEntity->IsBrushModel())
+			*outVec = VecBModelOrigin(pSpotEntity->pev);
+		else
+			*outVec = pSpotEntity->pev->origin;
 		if (viewOffset)
 			*viewOffset = pSpotEntity->pev->view_ofs;
 		ALERT(at_aiconsole, "%s picked %s as spot for suggested schedule\n", STRING(pMonster->pev->classname), STRING(pSpotEntity->pev->classname));

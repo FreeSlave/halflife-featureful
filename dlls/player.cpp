@@ -6065,7 +6065,7 @@ void CBasePlayer::UpdateClientData()
 
 static Vector CalcHintOrigin(CBaseEntity* pEntity, CBaseEntity* pLooker, int flags)
 {
-	if (pEntity->pev->model && *STRING(pEntity->pev->model) == '*')
+	if (pEntity->IsBrushModel())
 	{
 		Vector center = pEntity->Center();
 
