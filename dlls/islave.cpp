@@ -357,6 +357,7 @@ class CISlave : public CFollowingMonster
 public:
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void KeyValue(KeyValueData* pkvd) override;
 	void UpdateOnRemove() override;
 	void SetYawSpeed() override;
@@ -590,9 +591,6 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 
 	DEFINE_FIELD( CISlave, m_clawStrikeNum, FIELD_SHORT ),
 	DEFINE_FIELD( CISlave, m_flSpawnFamiliarTime, FIELD_FLOAT ),
-
-	DEFINE_FIELD( CISlave, m_handGlow1, FIELD_CLASSPTR ),
-	DEFINE_FIELD( CISlave, m_handGlow2, FIELD_CLASSPTR ),
 
 	DEFINE_FIELD( CISlave, m_minHullSize, FIELD_VECTOR ),
 	DEFINE_FIELD( CISlave, m_maxHullSize, FIELD_VECTOR ),
@@ -1470,7 +1468,10 @@ CSprite* CISlave::CreateHandGlow(int attachment)
 {
 	CSprite* handSprite = CreateSpriteFromVisual(GetVisual(handGlowVisual), pev->origin);
 	if (handSprite)
+	{
 		handSprite->SetAttachment( edict(), attachment );
+		handSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
+	}
 	return handSprite;
 }
 
@@ -1497,10 +1498,6 @@ void CISlave::Spawn()
 	SetMyCanOpenDoors(true);
 
 	m_voicePitch		= RANDOM_LONG( 85, 110 );
-
-	m_handGlow1 = CreateHandGlow(1);
-	m_handGlow2 = CreateHandGlow(2);
-	HandsGlowOff();
 
 	FollowingMonsterInit();
 
@@ -1570,6 +1567,18 @@ void CISlave::Precache()
 	}
 
 	UTIL_PrecacheOther( "charge_token", GetProjectileOverrides() );
+}
+
+void CISlave::Activate()
+{
+	CFollowingMonster::Activate();
+
+	if (IsFullyAlive())
+	{
+		m_handGlow1 = CreateHandGlow(1);
+		m_handGlow2 = CreateHandGlow(2);
+		HandsGlowOff();
+	}
 }
 
 void CISlave::KeyValue(KeyValueData *pkvd)
@@ -2231,6 +2240,7 @@ CBeam* CISlave::CreateSummonBeam(const Vector& vecEnd, int attachment)
 
 	beam->PointEntInit(vecEnd, entindex());
 	beam->SetEndAttachment(attachment);
+	beam->pev->spawnflags |= SF_BEAM_TEMPORARY;
 	return beam;
 }
 
