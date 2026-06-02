@@ -31,12 +31,14 @@
 #define SF_BEAM_SINE			0x0400
 #define SF_BEAM_NO_PUNCH		0x1000
 #define SF_BEAM_TEMPORARY		0x8000
+#define SF_BEAM_TRANSIT			0x10000
 
 #define SF_SPRITE_STARTON		0x0001
 #define SF_SPRITE_ONCE			0x0002
 #define SF_SPRITE_ONCE_AND_REMOVE	0x0004
 #define SF_SPRITE_DONT_MESS_YAW	0x0008
 #define SF_SPRITE_TEMPORARY		0x8000
+#define SF_SPRITE_TRANSIT		0x10000
 
 class CSprite : public CPointEntity
 {
@@ -47,10 +49,14 @@ public:
 
 	int ObjectCaps() override
 	{ 
-		int flags = 0;
-		if( pev->spawnflags & SF_SPRITE_TEMPORARY )
-			flags = FCAP_DONT_SAVE;
-		return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | flags; 
+		int flags = CBaseEntity::ObjectCaps();
+		if (FBitSet(pev->spawnflags, SF_SPRITE_TEMPORARY))
+			flags |= FCAP_DONT_SAVE;
+
+		if (!FBitSet(pev->spawnflags, SF_SPRITE_TRANSIT))
+			flags &= ~FCAP_ACROSS_TRANSITION;
+
+		return flags;
 	}
 	void EXPORT AnimateThink();
 	void EXPORT ExpandThink();
@@ -144,10 +150,14 @@ public:
 	void Precache() override;
 	int ObjectCaps() override
 	{ 
-		int flags = 0;
-		if( pev->spawnflags & SF_BEAM_TEMPORARY )
-			flags = FCAP_DONT_SAVE;
-		return ( CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | flags; 
+		int flags = CBaseEntity::ObjectCaps();
+		if (FBitSet(pev->spawnflags, SF_BEAM_TEMPORARY))
+			flags |= FCAP_DONT_SAVE;
+
+		if (!FBitSet(pev->spawnflags, SF_BEAM_TRANSIT))
+			flags &= ~FCAP_ACROSS_TRANSITION;
+
+		return flags;
 	}
 
 	void EXPORT TriggerTouch( CBaseEntity *pOther );

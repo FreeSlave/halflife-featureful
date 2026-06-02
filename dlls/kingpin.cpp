@@ -587,6 +587,7 @@ void CKingpinPlasmaCluster::MakeParticleBurst()
 				if (beam)
 				{
 					beam->EntsInit(entindex(), pParticle->entindex());
+					beam->pev->spawnflags |= SF_BEAM_TRANSIT;
 					m_beams[i] = beam;
 				}
 			}
@@ -900,7 +901,6 @@ LINK_ENTITY_TO_CLASS( monster_kingpin, CKingpin )
 
 TYPEDESCRIPTION	CKingpin::m_SaveData[] =
 {
-	DEFINE_FIELD( CKingpin, m_shieldLastHurtTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpin, m_plasmaBallTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpin, m_plasmaClusterTime, FIELD_TIME ),
 	DEFINE_ARRAY( CKingpin, m_Glows, FIELD_CLASSPTR, 4 ),
@@ -908,7 +908,6 @@ TYPEDESCRIPTION	CKingpin::m_SaveData[] =
 	DEFINE_FIELD( CKingpin, m_sTeleportTarget, FIELD_STRING ),
 	DEFINE_FIELD( CKingpin, m_isTeleporting, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CKingpin, m_canUseSecondChance, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CKingpin, m_shieldRegenResource, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CKingpin, CBaseMonster )
@@ -1189,6 +1188,7 @@ void CKingpin::Spawn()
 		{
 			m_Glows[i]->SetBrightness(0);
 			m_Glows[i]->SetAttachment(edict(), i+1);
+			m_Glows[i]->pev->spawnflags |= SF_SPRITE_TRANSIT;
 		}
 	}
 
