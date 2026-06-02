@@ -163,6 +163,10 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_triggerOnDeath, FIELD_STRING ),
 
 	DEFINE_FIELD( CBaseMonster, m_clearOwnerTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CBaseMonster, m_iTargetRenderamt, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_UncloakedRenderamt, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_handledCloakingOnce, FIELD_BOOLEAN ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -634,6 +638,7 @@ void CBaseMonster::MonsterThink()
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
 	HandlePowerShieldRecharge();
+	HandleCloaking();
 
 	float flInterval = StudioFrameAdvance(); // animate
 
@@ -2602,6 +2607,8 @@ void CBaseMonster::MonsterInit()
 	SetUse( &CBaseMonster::MonsterUse );
 
 	InitLootRandomSeed();
+
+	m_UncloakedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
 }
 
 //=========================================================
@@ -3993,6 +4000,36 @@ void CBaseMonster::Activate()
 	}
 }
 
+void CBaseMonster::PrecacheEntTemplateResources()
+{
+	CBaseToggle::PrecacheEntTemplateResources();
+
+	bool canCloak = false;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Cloaking& cloaking = entTemplate->GetCloaking();
+		if (cloaking.ability.IsDefined())
+		{
+			canCloak = GetSkillValueRange(cloaking.ability).min != 0.0f;
+		}
+		else
+		{
+			canCloak = CanCloakByDefault();
+		}
+	}
+	else
+	{
+		canCloak = CanCloakByDefault();
+	}
+
+	if (canCloak)
+	{
+		RegisterAndPrecacheSoundScript(CloakingStartSoundScript());
+	}
+}
+
 void CBaseMonster::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(600.0f, params);
@@ -5050,6 +5087,240 @@ void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, 
 		schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
 	}
 	SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pSpotEntity, minDist, 256, schedFlags);
+}
+
+void CBaseMonster::HandleCloaking()
+{
+	if (m_glowShellUpdate)
+		return;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	bool canCloak = false;
+	int cloakConditions = EntTemplate::Cloaking::DefaultConditions;
+	int cloakSpeed = EntTemplate::Cloaking::DefaultCloakSpeed;
+	optional<int> uncloakSpeed;
+	int targetOpacity = 20;
+
+	if (entTemplate)
+	{
+		const EntTemplate::Cloaking& cloaking = entTemplate->GetCloaking();
+
+		if (cloaking.ability.IsDefined())
+		{
+			canCloak = GetSkillValueRange(cloaking.ability).min != 0.0f;
+		}
+		else
+		{
+			canCloak = CanCloakByDefault();
+		}
+
+		if (canCloak)
+		{
+			cloakConditions = cloaking.conditions;
+			cloakSpeed = cloaking.cloakSpeed;
+			uncloakSpeed = cloaking.uncloakSpeed;
+			if (cloaking.opacity.IsDefined())
+				targetOpacity = static_cast<int>(GetSkillValue(cloaking.opacity));
+		}
+	}
+	else
+	{
+		canCloak = CanCloakByDefault();
+	}
+
+	if (!uncloakSpeed.has_value())
+	{
+		uncloakSpeed = cloakSpeed;
+	}
+
+	if (!canCloak)
+		return;
+
+	bool passed = false;
+
+	if (pev->deadflag != DEAD_NO)
+	{
+		passed = true;
+		cloakConditions = EntTemplate::Cloaking::COND_UNCLOAK;
+	}
+
+	if (!passed)
+	{
+		auto isMoving = [this]() {
+			if (FBitSet(pev->flags, FL_SWIM|FL_FLY))
+			{
+				return pev->velocity != g_vecZero;
+			}
+			else
+			{
+				switch(m_Activity)
+				{
+				case ACT_WALK:
+				case ACT_RUN:
+				case ACT_WALK_HURT:
+				case ACT_RUN_HURT:
+				case ACT_WALK_SCARED:
+				case ACT_RUN_SCARED:
+					return true;
+				default:
+					return false;
+				}
+			}
+		};
+
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_MOVING))
+		{
+			passed = isMoving();
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_STANDING))
+		{
+			passed = !isMoving();
+		}
+	}
+
+	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_ATTACKING))
+	{
+		switch(m_Activity)
+		{
+		case ACT_MELEE_ATTACK1:
+		case ACT_MELEE_ATTACK2:
+		case ACT_RANGE_ATTACK1:
+		case ACT_RANGE_ATTACK2:
+			passed = true;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_RELOADING))
+	{
+		passed = m_Activity == ACT_RELOAD;
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_NOT_ON_GROUND))
+		{
+			passed = !FBitSet(pev->flags, FL_ONGROUND);
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_ON_GROUND))
+		{
+			passed = FBitSet(pev->flags, FL_ONGROUND);
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HAS_NO_ENEMY))
+		{
+			passed = m_hEnemy == 0;
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HAS_ENEMY))
+		{
+			passed = m_hEnemy != 0;
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_TAKE_DAMAGE))
+		{
+			passed = HasConditions(bits_COND_LIGHT_DAMAGE|bits_COND_HEAVY_DAMAGE) || (gpGlobals->time - m_lastHurtTime < 0.2f);
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HOPPING))
+		{
+			if (!FBitSet(pev->flags, FL_SWIM|FL_FLY))
+			{
+				passed = !FBitSet(pev->flags, FL_ONGROUND) && pev->velocity != g_vecZero;
+			}
+		}
+	}
+
+	tribool newCloakState;
+
+	const int perceivedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
+
+	if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_UNCLOAK))
+	{
+		if (passed)
+		{
+			if (perceivedRenderamt != m_UncloakedRenderamt)
+				newCloakState = false;
+		}
+		else
+		{
+			newCloakState = true;
+		}
+	}
+	else
+	{
+		if (passed)
+		{
+			if (perceivedRenderamt != targetOpacity)
+				newCloakState = true;
+		}
+		else
+		{
+			newCloakState = false;
+		}
+	}
+
+	if (indeterminate(newCloakState)) {
+		m_handledCloakingOnce = true;
+		return;
+	}
+
+	if (newCloakState)
+	{
+		if (perceivedRenderamt == m_UncloakedRenderamt && m_handledCloakingOnce)
+		{
+			EmitSoundScript(CloakingStartSoundScript());
+		}
+
+		m_iTargetRenderamt = targetOpacity;
+	}
+	else
+	{
+		m_iTargetRenderamt = m_UncloakedRenderamt;
+	}
+
+	m_handledCloakingOnce = true;
+
+	const int changeSpeed = newCloakState ? cloakSpeed : *uncloakSpeed;
+
+	bool renderAmtChanged = false;
+	if (m_iTargetRenderamt > perceivedRenderamt)
+	{
+		pev->renderamt = Q_min(perceivedRenderamt + changeSpeed, m_iTargetRenderamt);
+		renderAmtChanged = true;
+	}
+	else if (m_iTargetRenderamt < perceivedRenderamt)
+	{
+		pev->renderamt = Q_max(perceivedRenderamt - changeSpeed, m_iTargetRenderamt);
+		renderAmtChanged = true;
+	}
+
+	if (renderAmtChanged)
+	{
+		pev->renderamt = clamp(pev->renderamt, 0.0f, 255.0f);
+
+		//ALERT(at_console, "%s: m_iTargetRenderamt: %d. prev renderamt: %d. renderamt: %g\n", STRING(pev->classname), (int)m_iTargetRenderamt, perceivedRenderamt, pev->renderamt);
+
+		if (pev->renderamt >= 255 && pev->rendermode == kRenderTransTexture)
+			pev->rendermode = kRenderNormal;
+		else if (pev->renderamt < 255 && pev->rendermode == kRenderNormal)
+			pev->rendermode = kRenderTransTexture;
+	}
+}
+
+const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
+{
+	return cloakingStartSoundScript;
 }
 
 void CDeadMonster::KeyValue( KeyValueData *pkvd )

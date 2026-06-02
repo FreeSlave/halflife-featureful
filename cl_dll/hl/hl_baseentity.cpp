@@ -52,6 +52,7 @@ void CBaseEntity::KeyValue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 int CBaseEntity::Save( CSave &save ) { return 1; }
 int CBaseEntity::Restore( CRestore &restore ) { return 1; }
 void CBaseEntity::Activate() {}
+void CBaseEntity::PrecacheEntTemplateResources() {}
 void CBaseEntity::SetObjectCollisionBox() { }
 void CBaseEntity::SetMyObjectCollisionBox(const Vector& defaultMins, const Vector& defaultMaxs) { }
 bool CBaseEntity::IsInWorld() { return true; }
@@ -147,6 +148,7 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector& vecDir, const TraceR
 void CBaseMonster::ReportAIState( ALERT_TYPE ) { }
 void CBaseMonster::KeyValue( KeyValueData *pkvd ) { }
 void CBaseMonster::Activate() {}
+void CBaseMonster::PrecacheEntTemplateResources() {}
 void CBaseMonster::LaunchAsProjectile(const ProjectileParameters&) {}
 void CBaseMonster::DropAsAmmoEnt(int amount) {}
 bool CBaseMonster::CanPlaySequence( int interruptFlags ) { return false; }
@@ -196,7 +198,11 @@ bool CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement) { r
 bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity* pPusher) { return false; }
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
 void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run) {}
-
+const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
+{
+	static const NamedSoundScript dummy{0, {}, "Dummy"};
+	return dummy;
+}
 
 void CBasePlayer::DeathSound() { }
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) { return 0; }

@@ -320,7 +320,7 @@ public:
 	// initialization functions
 	virtual void Spawn() { return; }
 	virtual void Precache() { return; }
-	void PrecacheEntTemplateResources();
+	virtual void PrecacheEntTemplateResources();
 	void PrecacheChildren(const char* childDefaultClassname, bool reverseRelationship, Vector *vecMin = nullptr, Vector *vecMax = nullptr);
 	ChildVariantHandle SelectChildVariant(const char* childDefaultClassname);
 	void FillKeyValues(const string_t* keys, const string_t* values, int keyValueCount);
@@ -492,7 +492,7 @@ public:
 	const char* MyOwnModel(const char* defaultModel);
 	void SetMyModel(const char* defaultModel);
 	void PrecacheMyModel(const char* defaultModel);
-	void PrecacheTemplateResources();
+	void PrecacheRegenAndPowerShield();
 
 	// allow engine to allocate instance data
 	void *operator new( size_t stAllocateBlock, entvars_t *pev )

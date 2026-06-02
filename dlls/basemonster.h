@@ -157,6 +157,7 @@ public:
 
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Activate() override;
+	void PrecacheEntTemplateResources() override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void DropAsAmmoEnt(int amount) override;
 	void SetMySize(const Vector& vecMin, const Vector& vecMax);
@@ -490,6 +491,12 @@ public:
 
 	virtual void CompleteReloadTask() {}
 
+	void HandleCloaking();
+	virtual bool CanCloakByDefault() {
+		return false;
+	}
+	virtual const NamedSoundScript& CloakingStartSoundScript();
+
 	float m_nextPatrolPathCheck;
 
 	// Custom hull sizes
@@ -522,6 +529,10 @@ public:
 	string_t m_triggerOnDeath;
 
 	float m_clearOwnerTime;
+
+	short m_iTargetRenderamt;
+	short m_UncloakedRenderamt;
+	bool m_handledCloakingOnce;
 
 	const char* taskFailReason;
 };

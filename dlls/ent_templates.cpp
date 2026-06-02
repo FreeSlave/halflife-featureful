@@ -1522,6 +1522,73 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetPowerShield(std::move(powerShield));
 	});
 
+	HandleJSONMember(value, "cloaking", [&entTemplate](const Value& value) {
+		EntTemplate::Cloaking cloaking = entTemplate.GetCloaking();
+
+		UpdatePropertyFromJson(cloaking.ability, value, "ability");
+		UpdatePropertyFromJson(cloaking.opacity, value, "opacity");
+		UpdatePropertyFromJson(cloaking.cloakSpeed, value, "cloak_speed");
+		UpdatePropertyFromJson(cloaking.uncloakSpeed, value, "uncloak_speed");
+
+		auto parseConditions = [](Value::ConstArray arr) {
+			int conditions = 0;
+			for (auto& item : arr)
+			{
+				const char* str = item.GetString();
+				if (strcmp(str, "moving") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_MOVING;
+				}
+				else if (strcmp(str, "standing") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_STANDING;
+				}
+				else if (strcmp(str, "attacking") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_ATTACKING;
+				}
+				else if (strcmp(str, "reloading") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_RELOADING;
+				}
+				else if (strcmp(str, "not_on_ground") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_NOT_ON_GROUND;
+				}
+				else if (strcmp(str, "on_ground") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_ON_GROUND;
+				}
+				else if (strcmp(str, "has_no_enemy") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_HAS_NO_ENEMY;
+				}
+				else if (strcmp(str, "has_enemy") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_HAS_ENEMY;
+				}
+				else if (strcmp(str, "taking_damage") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_TAKE_DAMAGE;
+				}
+				else if (strcmp(str, "hopping") == 0)
+				{
+					conditions |= EntTemplate::Cloaking::COND_HOPPING;
+				}
+			}
+			return conditions;
+		};
+
+		HandleJSONMember(value, "uncloak_when", [&cloaking, &parseConditions](const Value& value) {
+			cloaking.conditions = parseConditions(value.GetArray()) | EntTemplate::Cloaking::COND_UNCLOAK;
+		});
+		HandleJSONMember(value, "cloak_when", [&cloaking, &parseConditions](const Value& value) {
+			cloaking.conditions = parseConditions(value.GetArray());
+		});
+
+		entTemplate.SetCloaking(std::move(cloaking));
+	});
+
 	HandleJSONMember(value, "primary_weapon", [&entTemplate](const Value& value) {
 		std::vector<EntTemplate::WeaponDefinition> weapons;
 

@@ -95,4 +95,31 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
 ```
 {{% /tab %}}
 
+{{% tab "Zombie Assassins from Delta Particles" %}}
+Zombified assassins from Delta Paricles that are cloaked while moving.
+
+```json
+{
+    "zombie_assassin": {
+        "own_visual": {
+            "model": "models/zombie_assassin.mdl"
+        },
+        "cloaking": {
+            "ability": 1,
+            "opacity": [150, 150, 70],
+            "cloak_when": ["moving"],
+            "cloak_speed": 255
+        },
+        "soundscripts": {
+            "Cloaking.Start": {
+                "waves": ["debris/beamstart1.wav"],
+                "volume": 0.2
+            }
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
 {{% /tabs %}}

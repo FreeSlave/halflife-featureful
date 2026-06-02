@@ -43,6 +43,7 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 
 * Monsters can be set to use [passive health regeneration]({{< ref "entity-templates/#passive_regeneration" >}}) or [active health regeneration]({{< ref "entity-templates/#active_regeneration" >}}) via the [entity templates]({{< ref entity-templates >}}).
 * Monsters can be set to use the [power shield]({{< ref "entity-templates/#power_shield" >}}) to have an additional layer of health with special impact effects via the [entity templates]({{< ref entity-templates >}}).
+* Most monsters can be configured to have a [cloaking]({{< ref "entity-templates/#cloaking" >}}) ability via the [entity templates]({{< ref entity-templates >}}).
 * The items dropped upon monster's death can be configured via [equipment_drop]({{< ref "entity-templates/#equipment_drop" >}}) and [loot_drop]({{< ref "entity-templates/#loot_drop" >}}) properties of [entity templates]({{< ref entity-templates >}}).
 
 ## Other features

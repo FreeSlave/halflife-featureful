@@ -1592,6 +1592,79 @@ Example:
 }
 ```
 
+### cloaking
+
+Cloaking ability (invisibility) for monsters. This makes a monster translucent under certain (configurable) conditions, similar to [monster_human_assassin]({{< ref monster_human_assassin >}}).
+
+{{% hint warning %}}
+Special monsters like turrets, aircrafts and barnacles can't currently use cloaking.
+{{% /hint %}}
+
+Technically the cloaking can make monster more visible than in the "uncloaked" state - this is up to the cloaking properties and the initial monster's render parameters. You may think of cloaking as a second visibility setting.
+
+Properties:
+
+* `"ability"` - a [skill based value](#skill-based-value). Non-zero values mean the monster can use cloaking. This allows to make this ability dependent on the difficulty level. Set it just to `1` in case you want the ability to be available on any difficulty level. Note: [monster_human_assassin]({{< ref monster_human_assassin >}}) has its own skill variable to control the cloaking ability.
+* `"opacity"` - the opacity when cloaked. This is a [skill based value](#skill-based-value). Should be a value between 0 and 255. Default value is 20.
+* `"cloak_speed"` - speed of the opacity change per 0.1 seconds. Default value is 50. To make the cloaking appear instant use some high value like 255.
+* `"uncloak_speed"` - speed of the opacity change per 0.1 seconds when uncloaking. This is optional. If not defined, the same value as in `"cloak_speed"` is used.
+* `"uncloak_when"` - array of conditions (see below). If any condition is met the monster starts uncloaking (otherwise the monster stays cloaked).
+* `"cloak_when"` - array of conditions which (see below). If any condition is met the monster starts cloaking (otherwise the monster stays uncloaked). Can't be defined together with `"uncloak_when"`.
+
+Possible conditions for `"uncloak_when"` and `"cloak_when"`:
+
+* `"moving"` - the monster is moving, i.e. walkin or running If it's a flying or swimming monster, it checks for non-zero velocity.
+* `"standing"` - the monster isn't moving on its own (but the ground monster still can have velocity due to the external force).
+* `"attacking"` - the monster is in the melee or range attack sequence.
+* `"reloading"` - the monste is playing the reload sequence.
+* `"not_on_ground"` - the monster isn't on ground.
+* `"on_ground"` - the monster is on ground.
+* `"has_no_enemy"` - the monster has no enemy.
+* `"has_enemy"` - the monster has enemy.
+* `"taking_damage"` - the monster took damage recently.
+* `"hopping"` - the ground monster is not on ground and has velocity (e.g. a leaping headcrab or a jumping assassin).
+
+By default `"uncloak_when"` is used with the following conditions: `"moving"`, `"has_no_enemy"`, `"hopping"` (this set of conditions is used by female assassin in Half-Life).
+
+{{% hint info %}}
+No matter the conditions, the monster always uncloak on dying.
+{{% /hint %}}
+
+When monster is uncloaked and starts cloaking it plays the [Cloaking.Start]({{< ref "soundscripts/#cloaking-soundscripts" >}}) soundscript (except for [monster_human_assassin]({{< ref monster_human_assassin >}}) who has its own cloaking soundscript).
+
+{{% details title="Example" %}}
+In this example we make the templates for zombie and headcrab:
+
+* Zombies cloak when they're moving and stay uncloaked otherwise. The template also defines the **Cloaking.Start** soundscript with custom properties.
+* Headcrabs are cloaked on the hard difficulty by default and uncloak on jump.
+
+```json
+{
+    "zombie_stealth": {
+        "cloaking": {
+            "ability": 1,
+            "opacity": [100, 100, 50],
+            "cloak_when": ["moving"],
+            "cloak_speed": 130
+        },
+        "soundscripts": {
+            "Cloaking.Start": {
+                "waves": ["debris/beamstart1.wav"],
+                "volume": 0.4
+            }
+        }
+    },
+    "headcrab_stealth": {
+        "cloaking": {
+            "ability": [0, 0, 1],
+            "opacity": 50,
+            "uncloak_when": ["hopping"]
+        }
+    }
+}
+```
+{{% /details %}}
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

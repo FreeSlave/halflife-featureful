@@ -77,4 +77,6 @@ extern const NamedSoundScript regenUpdateSoundScript;
 extern const char* const passiveRegenUpdateSoundScript;
 extern const char* const activeRegenUpdateSoundScript;
 
+extern const NamedSoundScript cloakingStartSoundScript;
+
 #endif

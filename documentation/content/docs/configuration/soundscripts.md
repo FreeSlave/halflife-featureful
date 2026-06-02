@@ -168,3 +168,9 @@ Example:
     }
 }
 ```
+
+### Cloaking soundscripts
+
+Soundscripts played by monster who has the [cloaking]({{< ref "entity-templates/#cloaking" >}}) ability.
+
+* **Cloaking.Start** - played when the fully uncloaked monster starts cloaking. This is empty by default. This soundscript is played on the `"static"` channel. If you choose a different channel (e.g. `"weapon"` or `"body"`), it may be interrupted and replaced by the monster's native sounds (e.g. attack and step sounds).

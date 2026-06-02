@@ -368,6 +368,33 @@ public:
 		std::vector<PowerShieldTakeDamageRule> takeDamageRules;
 	};
 
+	struct Cloaking
+	{
+		enum
+		{
+			COND_UNCLOAK = (1<<0),
+			COND_MOVING = (1<<1),
+			COND_STANDING = (1<<2),
+			COND_ATTACKING = (1<<3),
+			COND_RELOADING = (1<<4),
+			COND_NOT_ON_GROUND = (1<<5),
+			COND_ON_GROUND = (1<<6),
+			COND_HAS_NO_ENEMY = (1<<7),
+			COND_HAS_ENEMY = (1<<8),
+			COND_TAKE_DAMAGE = (1<<9),
+			COND_HOPPING = (1<<10),
+		};
+
+		static constexpr int DefaultConditions = COND_UNCLOAK|COND_MOVING|COND_HAS_NO_ENEMY|COND_HOPPING;
+		static constexpr int DefaultCloakSpeed = 50;
+
+		SkillBasedValue ability;
+		SkillBasedValue opacity;
+		int conditions{DefaultConditions};
+		int cloakSpeed{DefaultCloakSpeed};
+		optional<int> uncloakSpeed;
+	};
+
 	struct WeaponDefinition
 	{
 		optional<int> weaponBit;
@@ -651,6 +678,13 @@ public:
 		_powerShield = powerShield;
 	}
 
+	const Cloaking GetCloaking() const {
+		return _cloaking;
+	}
+	void SetCloaking(Cloaking&& cloaking) {
+		_cloaking = cloaking;
+	}
+
 	const std::vector<WeaponDefinition>& GetWeaponDefinitions() const {
 		return _weaponsDefinitions;
 	}
@@ -715,6 +749,8 @@ private:
 	SkillBasedValue _regenResourceAmount;
 
 	PowerShield _powerShield;
+
+	Cloaking _cloaking;
 
 	std::vector<WeaponDefinition> _weaponsDefinitions;
 };

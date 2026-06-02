@@ -334,3 +334,9 @@ const NamedSoundScript regenUpdateSoundScript = {
 
 const char* const passiveRegenUpdateSoundScript = "PassiveRegen.Update";
 const char* const activeRegenUpdateSoundScript = "ActiveRegen.Update";
+
+const NamedSoundScript cloakingStartSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Cloaking.Start"
+};

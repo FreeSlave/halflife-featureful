@@ -1394,10 +1394,10 @@ void CBaseEntity::PrecacheMyModel(const char *defaultModel)
 	if (myModel)
 		PRECACHE_MODEL(myModel);
 
-	PrecacheTemplateResources();
+	PrecacheRegenAndPowerShield();
 }
 
-void CBaseEntity::PrecacheTemplateResources()
+void CBaseEntity::PrecacheRegenAndPowerShield()
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (!entTemplate)

@@ -856,6 +856,18 @@ const char* const json_schemas::definitions = R"(
 			}
 		]
 	},
+	"cloak_conditions": {
+		"type": "array",
+		"items": {
+			"enum": [
+				"moving", "standing",
+				"attacking", "reloading",
+				"not_on_ground", "on_ground",
+				"has_no_enemy", "has_enemy",
+				"taking_damage", "hopping"
+			]
+		}
+	},
 )"
 R"(
 	"entity_template": {
@@ -1326,6 +1338,35 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"cloaking": {
+				"type": "object",
+				"properties": {
+					"ability": {
+						"$ref": "#/skill_value_non_negative"
+					},
+					"opacity": {
+						"$ref": "#/skill_value_non_negative"
+					},
+					"cloak_speed": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"uncloak_speed": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"uncloak_when": {
+						"$ref": "#/cloak_conditions"
+					},
+					"cloak_when": {
+						"$ref": "#/cloak_conditions"
+					}
+				},
+				"additionalProperties": false,
+				"dependencies": {
+					"uncloak_when": { "not": { "required": ["cloak_when"] } }
+				}
 			}
 		},
 		"additionalProperties": false

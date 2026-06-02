@@ -521,7 +521,7 @@ void CBreakable::Precache()
 		UTIL_PrecacheOther(STRING(m_iszSpawnObject), entityOverrides);
 	}
 
-	PrecacheTemplateResources();
+	PrecacheRegenAndPowerShield();
 }
 
 // play shard sound when func_breakable takes damage.

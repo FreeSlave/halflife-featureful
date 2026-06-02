@@ -99,6 +99,10 @@ public:
 	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
 	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
+	bool CanCloakByDefault() override {
+		return GetSkillValueRange("hassassin_cloaking").min != 0;
+	}
+
 	float m_flLastShot;
 	float m_flDiviation;
 
@@ -108,8 +112,6 @@ public:
 	float m_flNextGrenadeCheck;
 	Vector	m_vecTossVelocity;
 	bool m_fThrowGrenade;
-
-	int m_iTargetRanderamt;
 
 	int m_iFrustration;
 	float m_nextWalkFootstep;
@@ -138,7 +140,6 @@ TYPEDESCRIPTION	CHAssassin::m_SaveData[] =
 	DEFINE_FIELD( CHAssassin, m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CHAssassin, m_fThrowGrenade, FIELD_BOOLEAN ),
 
-	DEFINE_FIELD( CHAssassin, m_iTargetRanderamt, FIELD_INTEGER ),
 	DEFINE_FIELD( CHAssassin, m_iFrustration, FIELD_INTEGER ),
 };
 
@@ -439,10 +440,6 @@ void CHAssassin::Spawn()
 	pev->friction		= 1;
 
 	m_HackedGunPos		= Vector( 0, 24, 48 );
-
-	m_iTargetRanderamt	= 20;
-	pev->renderamt		= 20;
-	pev->rendermode		= kRenderTransTexture;
 
 	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
@@ -856,30 +853,6 @@ bool CHAssassin::CheckRangeAttack2( float flDot, float flDist )
 void CHAssassin::RunAI()
 {
 	CFollowingMonster::RunAI();
-
-	// always visible if moving
-	// always visible is not on hard
-	if( !GetSkillValue("hassassin_cloaking") || m_hEnemy == 0 || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || !( pev->flags & FL_ONGROUND ) )
-		m_iTargetRanderamt = 255;
-	else
-		m_iTargetRanderamt = 20;
-
-	if( pev->renderamt > m_iTargetRanderamt )
-	{
-		if( pev->renderamt == 255 )
-		{
-			EmitSoundScript(cloakSoundScript);
-		}
-
-		pev->renderamt = Q_max( pev->renderamt - 50, m_iTargetRanderamt );
-		pev->rendermode = kRenderTransTexture;
-	}
-	else if( pev->renderamt < m_iTargetRanderamt )
-	{
-		pev->renderamt = Q_min( pev->renderamt + 50, m_iTargetRanderamt );
-		if( pev->renderamt == 255 )
-			pev->rendermode = kRenderNormal;
-	}
 
 	if( m_Activity == ACT_RUN )
 	{
