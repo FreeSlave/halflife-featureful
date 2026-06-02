@@ -11,6 +11,7 @@ bookToC: false
 
 * Fixed Gargantua not using the stomp attack if he loses the sight on enemy too often.
 * Fixed Gargantua not being able to attack its enemy with stomp attack when enemy is hiding in some niche in the wall so Garg can't see it.
+* Fixed Gargantua's glowing eye not transitioning across the changelevel.
 
 ### Skill variables
 

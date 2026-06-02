@@ -459,6 +459,7 @@ public:
 	void PlayUnUseSentence() override;
 
 	void PrescheduleThink() override;
+	void OnChangeSchedule(Schedule_t *pNewSchedule) override;
 
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
@@ -473,6 +474,7 @@ public:
 	void FlameCreate();
 	void FlameUpdate();
 	void FlameControls( float angleX, float angleY );
+	void ResetFlameControls();
 	void FlameDestroy();
 	inline bool FlameIsOn() { return m_pFlame[0] != NULL; }
 
@@ -579,7 +581,6 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_FIELD( CGargantua, m_seeTime, FIELD_TIME ),
 	DEFINE_FIELD( CGargantua, m_flameTime, FIELD_TIME ),
 	DEFINE_FIELD( CGargantua, m_streakTime, FIELD_TIME ),
-	DEFINE_ARRAY( CGargantua, m_pFlame, FIELD_CLASSPTR, 4 ),
 	DEFINE_FIELD( CGargantua, m_flameX, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_stompTime, FIELD_TIME ),
@@ -858,6 +859,8 @@ void CGargantua::FlameCreate()
 			m_pFlame[i] = CreateBeamFromVisual(smallFlameVisual);
 		if( m_pFlame[i] )
 		{
+			m_pFlame[i]->pev->spawnflags |= SF_BEAM_TEMPORARY;
+
 			int attach = i%2;
 			// attachment is 0 based in GetAttachment
 			GetAttachment( attach + 1, posGun, angleGun );
@@ -891,6 +894,13 @@ void CGargantua::FlameControls( float angleX, float angleY )
 	m_flameY = UTIL_ApproachAngle( angleY, m_flameY, 8 );
 	SetBoneController( 0, m_flameY );
 	SetBoneController( 1, m_flameX );
+}
+
+void CGargantua::ResetFlameControls()
+{
+	m_flameX = m_flameY = 0;
+	SetBoneController(0, 0);
+	SetBoneController(1, 0);
 }
 
 void CGargantua::FlameUpdate()
@@ -1024,6 +1034,12 @@ void CGargantua::PrescheduleThink()
 	CFollowingMonster::PrescheduleThink();
 }
 
+void CGargantua::OnChangeSchedule(Schedule_t *pNewSchedule)
+{
+	CFollowingMonster::OnChangeSchedule(pNewSchedule);
+	ResetFlameControls();
+}
+
 //=========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
@@ -1087,8 +1103,9 @@ void CGargantua::Spawn()
 	m_pEyeGlow = CreateSpriteFromVisual(m_eyeVisual, pev->origin);
 	if (m_pEyeGlow)
 	{
-		m_pEyeGlow->SetAttachment( edict(), 1 );
+		m_pEyeGlow->SetAttachment(edict(), 1);
 		m_pEyeGlow->SetBrightness(0); // start with eye off
+		m_pEyeGlow->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 	EyeOff();
 	m_seeTime = gpGlobals->time + 5.0f;
@@ -1532,9 +1549,7 @@ void CGargantua::RunTask( Task_t *pTask )
 				{
 					FlameOffSound();
 					FlameDestroy();
-					FlameControls( 0, 0 );
-					SetBoneController( 0, 0 );
-					SetBoneController( 1, 0 );
+					ResetFlameControls();
 					m_pCine->SequenceDone( this );
 				}
 				break;
@@ -1552,9 +1567,7 @@ void CGargantua::RunTask( Task_t *pTask )
 			FlameOffSound();
 			FlameDestroy();
 			TaskComplete();
-			FlameControls( 0, 0 );
-			SetBoneController( 0, 0 );
-			SetBoneController( 1, 0 );
+			ResetFlameControls();
 		}
 		else
 		{
@@ -2245,7 +2258,6 @@ void CBabyGargantua::RunTask(Task_t *pTask)
 {
 	switch (pTask->iTask) {
 	case TASK_DIE:
-		FlameControls(0, 0);
 		CFollowingMonster::RunTask(pTask);
 		break;
 	default:
