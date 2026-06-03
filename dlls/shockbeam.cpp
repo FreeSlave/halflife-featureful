@@ -187,13 +187,17 @@ void CShock::CreateEffects()
 {
 	m_pSprite = CreateSpriteFromVisual(GetVisual(spriteVisual), pev->origin);
 	if (m_pSprite)
+	{
 		m_pSprite->SetAttachment( edict(), 0 );
+		m_pSprite->pev->spawnflags |= SF_SPRITE_TRANSIT;
+	}
 
 	m_pBeam = CreateBeamFromVisual(GetVisual(beam1Visual));
 	if (m_pBeam)
 	{
 		UTIL_SetOrigin(m_pBeam->pev, pev->origin);
 		m_pBeam->EntsInit( entindex(), entindex(), 1, 2 );
+		m_pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 
 	m_pNoise = CreateBeamFromVisual(GetVisual(beam2Visual));
@@ -201,6 +205,7 @@ void CShock::CreateEffects()
 	{
 		UTIL_SetOrigin(m_pNoise->pev, pev->origin);
 		m_pNoise->EntsInit( entindex(), entindex(), 1, 2 );
+		m_pNoise->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 }
 
