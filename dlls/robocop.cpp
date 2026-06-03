@@ -459,12 +459,14 @@ void CRoboCop::CreateLaser()
 	{
 		m_pLaserPointer->SetAttachment( edict(), 1 );
 		m_pLaserPointer->SetBrightness(0);
+		m_pLaserPointer->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 
 	m_pBeamSpot = CreateSpriteFromVisual(m_spotVisual, pev->origin);
 	if (m_pBeamSpot)
 	{
 		m_pBeamSpot->SetBrightness(0);
+		m_pBeamSpot->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 
 	m_pBeam = CreateBeamFromVisual(m_beamVisual);
@@ -473,6 +475,7 @@ void CRoboCop::CreateLaser()
 		m_pBeam->PointEntInit( pev->origin, entindex() );
 		m_pBeam->SetEndAttachment( 1 );
 		m_pBeam->SetBrightness( 0 );
+		m_pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 
 	ChangeLaserState();
