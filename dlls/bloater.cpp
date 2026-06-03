@@ -935,10 +935,16 @@ void CFloater::CreateGlows(const Visual *visual)
 
 	m_leftGlow = CreateSpriteFromVisual(visual, pev->origin);
 	if (m_leftGlow)
+	{
 		m_leftGlow->SetAttachment(edict(), 2);
+		m_leftGlow->pev->spawnflags |= SF_SPRITE_TRANSIT;
+	}
 	m_rightGlow = CreateSpriteFromVisual(visual, pev->origin);
 	if (m_rightGlow)
+	{
 		m_rightGlow->SetAttachment(edict(), 1);
+		m_rightGlow->pev->spawnflags |= SF_SPRITE_TRANSIT;
+	}
 }
 
 void CFloater::GlowUpdate()

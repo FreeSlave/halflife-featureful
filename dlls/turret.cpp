@@ -418,6 +418,7 @@ void CTurret::Spawn()
 	{
 		m_pEyeGlow->SetBrightness(0);
 		m_pEyeGlow->SetAttachment( edict(), 2 );
+		m_pEyeGlow->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 	m_eyeBrightness = 0;
 
