@@ -1360,6 +1360,8 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	int ObjectCaps() override { return CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void Blocked( CBaseEntity *pOther ) override;
+	bool ShouldCollide(CBaseEntity *pOther) override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1396,6 +1398,9 @@ public:
 	BYTE m_fireOnClosedState;
 
 	bool m_lastMovementDirection;
+	bool m_ignoreCorpses;
+	bool m_instantGibCorpses;
+	short m_handleTinyCreatures;
 };
 
 LINK_ENTITY_TO_CLASS( momentary_door, CMomentaryDoor )
@@ -1423,6 +1428,9 @@ TYPEDESCRIPTION	CMomentaryDoor::m_SaveData[] =
 	DEFINE_FIELD( CMomentaryDoor, m_fireOnClosedState, FIELD_CHARACTER ),
 
 	DEFINE_FIELD( CMomentaryDoor, m_lastMovementDirection, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CMomentaryDoor, m_ignoreCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CMomentaryDoor, m_instantGibCorpses, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CMomentaryDoor, m_handleTinyCreatures, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CMomentaryDoor, CBaseToggle )
@@ -1623,6 +1631,21 @@ void CMomentaryDoor::KeyValue( KeyValueData *pkvd )
 		m_soundRadius = (short)atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if ( FStrEq(pkvd->szKeyName, "ignore_corpses") )
+	{
+		m_ignoreCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "instant_gib_corpses") )
+	{
+		m_instantGibCorpses = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq(pkvd->szKeyName, "handle_tiny_creatures") )
+	{
+		m_handleTinyCreatures = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseToggle::KeyValue( pkvd );
 }
@@ -1682,6 +1705,30 @@ void CMomentaryDoor::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 		LinearMove( move, speed );
 		SetMoveDone( &CMomentaryDoor::MomentaryMoveDone );
 	}
+}
+
+void CMomentaryDoor::Blocked(CBaseEntity *pOther)
+{
+	const bool shouldInstaGib = (m_instantGibCorpses && pOther->IsCorpse()) || (g_modFeatures.ShouldCrushTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature());
+	if (shouldInstaGib)
+	{
+		DamageInfo damageInfo{pOther->pev->health, DMG_CRUSH};
+		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		pOther->TakeDamage(pev, pev, damageInfo);
+	}
+	else
+	{
+		pOther->HandleDoorBlockage(this);
+	}
+}
+
+bool CMomentaryDoor::ShouldCollide(CBaseEntity *pOther)
+{
+	if (m_ignoreCorpses && pOther->IsCorpse())
+		return false;
+	if (g_modFeatures.ShouldIgnoreTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature())
+		return false;
+	return true;
 }
 
 void CMomentaryDoor::MomentaryMoveDone()

@@ -17,6 +17,9 @@ A door that should be opened by [momentary_rot_button]({{< ref momentary_rot_but
 ### New parameters
 
 * `Sound Radius` - sound radius for move and stop sounds.
+* `Collision with corpses` - allows to ignore collision with dead monsters. Corpses won't block this door and won't get crushed.
+* `Instantly gib corpses` - instantly gib corpses that block the door, even if door deals 0 damage.
+* `How to handle tiny creatures` - override handling of [tiny creatures]({{< ref "monsters/#tiny-creatures" >}}).
 * `Fire On Start` - fire when the door starts moving (either direction).
 * `Fire On Start Trigger State` - use-type for `Fire On Start` target.
 * `Fire On Stop` - fire when door stops moving (even if it doesn't end up in the terminal position).
@@ -33,6 +36,10 @@ A door that should be opened by [momentary_rot_button]({{< ref momentary_rot_but
 ### Reaction to use-type
 
 Only `Set` is allowed - sets the progression to the opened state. The value is between 0 and 1.
+
+### Features
+
+* Affected by `doors_blocked_fade_corpses` server feature the same way as the [func_door]({{< ref func_door >}}).
 
 ### Calc Ratio
 

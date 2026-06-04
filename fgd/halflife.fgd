@@ -4418,7 +4418,7 @@
 	]
 ]
 
-@SolidClass base(Appearflags, Targetname, RenderFields, Global, Angles, MomentaryDoor, SoundRadius, StartStopableMomentary, OpenClosable, CustomObjectHint, ZHLT) = momentary_door : "Momentary/Continuous door"
+@SolidClass base(Appearflags, Targetname, RenderFields, Global, Angles, MomentaryDoor, SoundRadius, StartStopableMomentary, OpenClosable, CustomObjectHint, CollisionWithCorpses, InstantGibCorpses, TinyCreaturesHandling, ZHLT) = momentary_door : "Momentary/Continuous door"
 [
 	spawnflags(flags) =
 	[
