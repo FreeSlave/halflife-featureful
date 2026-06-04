@@ -8,6 +8,10 @@ entityCategory: object
 
 [TWHL](https://twhl.info/wiki/page/xen_tree)
 
+### Bugfixes
+
+* Going through the level transition and back and then attacking or touching the xen tree won't crash the game anymore.
+
 ### New parameters
 
 * `Custom model`

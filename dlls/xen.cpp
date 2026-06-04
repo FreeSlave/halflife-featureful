@@ -273,6 +273,7 @@ class CXenTreeTrigger : public CBaseEntity
 public:
 	void Touch( CBaseEntity *pOther ) override;
 	static CXenTreeTrigger *TriggerCreate( edict_t *pOwner, const Vector &position );
+	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 };
 
 LINK_ENTITY_TO_CLASS( xen_ttrigger, CXenTreeTrigger )
