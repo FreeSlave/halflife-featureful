@@ -569,6 +569,7 @@ protected:
 	const Visual* m_eyeVisual; // this is accessed quite often so cache it
 	const Visual* m_flameVisual; // this is accessed quite often so cache it
 
+	bool m_playedDeathEffect;
 	bool m_checkStompAttackOnly;
 };
 
@@ -584,6 +585,7 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_FIELD( CGargantua, m_flameX, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_stompTime, FIELD_TIME ),
+	DEFINE_FIELD( CGargantua, m_playedDeathEffect, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CGargantua, CFollowingMonster )
@@ -1455,7 +1457,11 @@ void CGargantua::StartTask( Task_t *pTask )
 		break;
 	case TASK_DIE:
 		m_flWaitFinished = gpGlobals->time + 1.6f;
-		DeathEffect();
+		if (!m_playedDeathEffect)
+		{
+			DeathEffect();
+			m_playedDeathEffect = true;
+		}
 		// FALL THROUGH
 	default: 
 		CFollowingMonster::StartTask( pTask );
