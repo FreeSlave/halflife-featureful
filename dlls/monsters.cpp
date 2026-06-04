@@ -167,6 +167,8 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_iTargetRenderamt, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_UncloakedRenderamt, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_handledCloakingOnce, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CBaseMonster, m_retreatSuggestionTime, FIELD_TIME ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -5072,6 +5074,14 @@ bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 			return true;
 		}
 	}
+
+	if (m_retreatSuggestionTime < gpGlobals->time)
+	{
+		int flags = SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_SPOT_IS_POSITION|SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE|SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT;
+		SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 8.0f, 128.0f, flags);
+		m_retreatSuggestionTime = gpGlobals->time + 0.4f;
+	}
+
 	return false;
 }
 

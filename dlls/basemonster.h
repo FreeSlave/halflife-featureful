@@ -534,6 +534,8 @@ public:
 	short m_UncloakedRenderamt;
 	bool m_handledCloakingOnce;
 
+	float m_retreatSuggestionTime;
+
 	const char* taskFailReason;
 };
 
