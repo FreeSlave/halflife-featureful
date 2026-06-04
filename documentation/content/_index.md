@@ -34,16 +34,24 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 
 Half-Life Featureful is not just SDK in vacuum. It's a result of working on the real mods.
 
+### Released projects
+
 * [Half-Life: Field Intensity](https://www.moddb.com/mods/field-intensity) uses the same codebase but versions before 1.6 were released before the feature configuration concept was introduced. Practically Field Intensity is the reason why this SDK exists. The Field Intensity 1.7 source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/field_intensity_1.7) of this repository.
 * [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) uses this codebase since version 1.3. The Induction source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/induction) of this repository along with the release of version 1.4.
-* [Half-Life: Hard Duty](https://www.moddb.com/mods/hard-duty-second-edition) - in development, demo available.
-* [The Big Boned and The Curious](https://www.moddb.com/mods/the-big-boned-and-the-curious) - in development, demo available.
-* [Half-Life: Recovery](https://www.moddb.com/mods/half-life-recovery) - in development.
-* [Half-Life: Military Duty - Operation Firestorm](https://www.moddb.com/mods/military-duty) - in development.
-* [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - in development, demo available (the mod, however, branched off to utilize its own gamecode).
-* [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - in development, demo available.
-* [Retrograde](https://www.moddb.com/mods/retrograde) - in development.
-* [Specific impulse](https://www.moddb.com/mods/specific-impulse) - in development, demo available.
+* [Christmas hikikomori](https://www.moddb.com/mods/christmas-hikikomori)
+* [Janitorial Escapism](https://www.moddb.com/mods/janitorial-escapism)
+
+### Projects in development
+
+* [Half-Life: Hard Duty](https://www.moddb.com/mods/hard-duty-second-edition) - demo available.
+* [The Big Boned and The Curious](https://www.moddb.com/mods/the-big-boned-and-the-curious) - demo available.
+* [Half-Life: Recovery](https://www.moddb.com/mods/half-life-recovery)
+* [Half-Life: Military Duty - Operation Firestorm](https://www.moddb.com/mods/military-duty)
+* [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - demo available (the mod, however, branched off to utilize its own gamecode).
+* [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - demo available.
+* [Retrograde](https://www.moddb.com/mods/retrograde)
+* [Half-Life: Sleep-Derived](https://www.moddb.com/mods/half-life-sleep-deprived)
+* [Specific impulse](https://www.moddb.com/mods/specific-impulse) - demo available.
 
 ## Compatibility with other mods and addons
 

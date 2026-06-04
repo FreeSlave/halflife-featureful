@@ -36,7 +36,7 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 
 * ![](/images/spirit.png) `Don't Drop Gun` - disables weapon and item dropping upon death (applicable to monsters who drop a gun).
 * `Non-solid corpse` - makes monster's model non-solid upon dying (useful if you want to prevent blocking doors or pushables by dead bodies).
-* `Ignore move away requests` - monster will ignore others monsters' requests to move away and player's attempts to push the monster.
+* `Ignore move away requests` - monster will ignore others monsters' requests to move away (e.g. when monster wants to get somewhere but the other monster is blocking the way) and player's attempts to push the ally monster.
 * `Act ouf of PVS` monsters will look for enemies and listen to the world independently of the player's presence. By default they do so only when in player's PVS.
 
 ## New common abilities

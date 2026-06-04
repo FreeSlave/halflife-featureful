@@ -33,6 +33,10 @@ A door that should be opened by [momentary_rot_button]({{< ref momentary_rot_but
 * `Fire On Close End` - fire when the door reached the closed state.
 * `Fire On Close End Trigger State` - use-type for `Fire On Close End` target.
 
+### Known bugs
+
+* If `Collision with corpses` is set to `Don't collide with corpses` the `momentary_door` will still get stuck if there're multiple corpses on its way.
+
 ### Reaction to use-type
 
 Only `Set` is allowed - sets the progression to the opened state. The value is between 0 and 1.

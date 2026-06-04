@@ -4,7 +4,7 @@ bookToC: false
 entityCategory: object
 ---
 
-# xen_spore
+# xen_spore_medium
 
 [TWHL](https://twhl.info/wiki/page/xen_spore_medium)
 
