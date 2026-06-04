@@ -178,6 +178,8 @@ void CGib::SpawnRandomGibs(entvars_t *pevVictim, int cGibs, const char* gibModel
 {
 	int cSplat;
 
+	CGib* prevGib = nullptr;
+
 	for( cSplat = 0; cSplat < cGibs; cSplat++ )
 	{
 		CGib *pGib = GetClassPtr( (CGib *)NULL );
@@ -231,6 +233,25 @@ void CGib::SpawnRandomGibs(entvars_t *pevVictim, int cGibs, const char* gibModel
 			UTIL_SetSize( pGib->pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 		}
 		pGib->LimitVelocity();
+
+		if (prevGib)
+		{
+			CBeam* pBeam = CBeam::BeamCreate("sprites/lgtning.spr", 40);
+			if (pBeam)
+			{
+				pBeam->pev->rendercolor = Vector(180, 16, 255);
+				pBeam->SetType(BEAM_ENTS);
+				pBeam->SetNoise(128);
+				pBeam->SetStartEntity(prevGib->entindex());
+				pBeam->SetEndEntity(pGib->entindex());
+				pBeam->LiveForTime(1.0f);
+			}
+			prevGib = nullptr;
+		}
+		else
+		{
+			prevGib = pGib;
+		}
 	}
 }
 
