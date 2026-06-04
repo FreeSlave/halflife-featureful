@@ -20,6 +20,7 @@ entityCategory: object
 
 * ![](/images/svencoop.png) `Drop to Floor`.
 * ![](/images/svencoop.png) `Non Solid`.
+* `Go across changelevel` - allow xen plant travel across level transition.
 
 ### Soundscripts
 

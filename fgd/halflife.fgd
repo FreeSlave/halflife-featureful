@@ -9802,6 +9802,7 @@
 	[
 		2 : "Drop to Floor" : 0
 		4 : "Reserved (don't use)" : 0 : "Reserved for Sven Co-op 'Face Randomly' flag"
+		8192: "Go across changelevel": 0 : "Allow travel across level transition"
 	]
 ]
 

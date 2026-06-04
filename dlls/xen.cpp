@@ -22,6 +22,7 @@
 
 #define SF_XEN_PLANT_DROP_TO_FLOOR 2
 #define SF_XEN_PLANT_NONSOLID 8
+#define SF_XEN_PLANT_TRANSIT 0x2000
 
 #define SF_XEN_PLANT_LIGHT_IGNORE_PLAYER 64
 
@@ -34,7 +35,12 @@ public:
 	void SetActivity( Activity act );
 	inline Activity	GetActivity() { return m_Activity; }
 
-	int ObjectCaps() override { return CBaseAnimating::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override {
+		int caps = CBaseAnimating::ObjectCaps();
+		if (FBitSet(pev->spawnflags, SF_XEN_PLANT_TRANSIT))
+			return caps;
+		return caps & ~FCAP_ACROSS_TRANSITION;
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -148,7 +154,11 @@ void CXenPLight::Spawn()
 		}
 		m_pGlow = CreateSpriteFromVisual(&glow, pev->origin + Vector( 0, 0, ( pev->mins.z + pev->maxs.z ) * 0.5f ));
 		if (m_pGlow)
+		{
 			m_pGlow->SetAttachment( edict(), 1 );
+			if (FBitSet(pev->spawnflags, SF_XEN_PLANT_TRANSIT))
+				m_pGlow->pev->spawnflags |= SF_SPRITE_TRANSIT;
+		}
 	}
 }
 
@@ -503,11 +513,18 @@ class CXenSporeLarge : public CXenSpore
 };
 
 // Fake collision box for big spores
-class CXenHull : public CPointEntity
+class CXenHull : public CBaseEntity
 {
 public:
 	static CXenHull	*CreateHull( CBaseEntity *source, const Vector &mins, const Vector &maxs, const Vector &offset );
 	int Classify() override { return CLASS_BARNACLE; }
+	int ObjectCaps() override
+	{
+		int caps = CBaseEntity::ObjectCaps();
+		if (FBitSet(pev->spawnflags, SF_XEN_PLANT_TRANSIT))
+			return caps;
+		return caps & ~FCAP_ACROSS_TRANSITION;
+	}
 };
 
 CXenHull *CXenHull::CreateHull( CBaseEntity *source, const Vector &mins, const Vector &maxs, const Vector &offset )
@@ -572,7 +589,11 @@ void CXenSporeLarge::Spawn()
 
 	// Rotate the leg hulls into position
 	for( int i = 0; i < (int)ARRAYSIZE( m_hullSizes ); i++ )
-		CXenHull::CreateHull( this, Vector( -12, -12, 0 ), Vector( 12, 12, 120 ), ( m_hullSizes[i].x * forward ) + ( m_hullSizes[i].y * right ) );
+	{
+		CXenHull* hull = CXenHull::CreateHull( this, Vector( -12, -12, 0 ), Vector( 12, 12, 120 ), ( m_hullSizes[i].x * forward ) + ( m_hullSizes[i].y * right ) );
+		if (hull && FBitSet(pev->spawnflags, SF_XEN_PLANT_TRANSIT))
+			hull->pev->spawnflags |= SF_XEN_PLANT_TRANSIT;
+	}
 }
 
 void CXenSpore :: Spawn()
