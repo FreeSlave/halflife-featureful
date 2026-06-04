@@ -53,10 +53,11 @@ bookToC: false
 * **Garg.FlameNarrow** - narrower part of the flame (bluish by default).
 * **Garg.FlameLight** - entity light emitted on each flame update.
 * **Garg.Stomp** - sprites emitted by the stomp attack.
+* **Garg.DeathSmoke** - a smoke effect played after Garg's death.
 
 Shared visuals:
 
-* **Garg.FlameBase** - alpha and beam scrollrate used by **Garg.FlameBig** and **Garg.FlameSmall**.
+* **Garg.FlameBase** - alpha and beam scrollrate used by **Garg.FlameWide** and **Garg.FlameNarrow**.
 
 ### Attacks
 

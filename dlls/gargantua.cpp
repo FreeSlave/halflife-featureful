@@ -537,6 +537,7 @@ protected:
 	static const NamedVisual bigFlameVisual;
 	static const NamedVisual smallFlameVisual;
 	static const NamedVisual flameLightVisual;
+	static const NamedVisual deathSmokeVisual;
 
 	virtual const char* AttackHitSound() {
 		return attackHitSoundScript;
@@ -701,6 +702,9 @@ const NamedVisual CGargantua::flameLightVisual = BuildVisual("Garg.FlameLight")
 		.RenderColor(255, 255, 255)
 		.Life(0.2f)
 		.Radius(IntRange(32, 48));
+
+const NamedVisual CGargantua::deathSmokeVisual = BuildVisual("Garg.DeathSmoke")
+		.Scale(4.6f);
 
 //=========================================================
 // AI Schedules Specific to this monster
@@ -1144,6 +1148,7 @@ void CGargantua::Precache()
 	RegisterVisual(bigFlameVisual);
 	RegisterVisual(smallFlameVisual);
 	m_flameVisual = RegisterVisual(flameLightVisual);
+	RegisterVisual(deathSmokeVisual);
 
 	UTIL_PrecacheOther("garg_stomp", GetProjectileOverrides());
 }
@@ -1221,11 +1226,24 @@ void CGargantua::DeathEffect()
 		position.z += 15;
 	}
 
-	CBaseEntity *pSmoker = CBaseEntity::Create( "env_smoker", pev->origin, g_vecZero, NULL );
-	pSmoker->pev->health = 1;	// 1 smoke balls
-	pSmoker->pev->scale = 46;	// 4.6X normal size
-	pSmoker->pev->dmg = 0;		// 0 radial distribution
-	pSmoker->pev->nextthink = gpGlobals->time + 2.5f;	// Start in 2.5 seconds
+	const Visual* smokeVisual = GetVisual(deathSmokeVisual);
+	if (smokeVisual)
+	{
+		CBaseEntity *pSmoker = CBaseEntity::CreateNoSpawn("env_smoker", pev->origin, g_vecZero);
+		if (pSmoker)
+		{
+			pSmoker->ApplyVisual(smokeVisual);
+
+			pSmoker->pev->health = 1;	// 1 smoke balls
+			pSmoker->pev->scale = pSmoker->pev->scale * 10;
+			pSmoker->pev->dmg = 0;		// 0 radial distribution
+
+			if (DispatchSpawnAutoClean(pSmoker))
+			{
+				pSmoker->pev->nextthink = gpGlobals->time + 2.5f;	// Start in 2.5 seconds
+			}
+		}
+	}
 }
 
 KilledResult CGargantua::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
