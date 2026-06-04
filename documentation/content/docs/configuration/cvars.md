@@ -121,6 +121,7 @@ Changes to the server cvars values are not saved between game launches, unlike f
     - 0 - allow kicking func_door_rotating in scripted sequences.
     - 1 - allow kicking anything (vanilla behavior).
     - 2 - allow kicking anything but only in scripted sequences.
+* `npc_idlesound_requires_pvs`. Whether monsters play idle sounds only when they're in player's potentially visible set. By default monsters play idle sounds independently of PVS.
 * `sp_allowmonsterinfo` - show monsters' display names and current health in singleplayer when player looks at the monster. Default value is 0.
     - 0 - don't show monster info.
     - 1 - show info for all monsters.

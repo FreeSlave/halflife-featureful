@@ -324,6 +324,8 @@ bool CAGrunt::ShouldSpeak()
 	return true;
 }
 
+extern cvar_t npc_idlesound_requires_pvs;
+
 //=========================================================
 // PrescheduleThink
 //=========================================================
@@ -331,7 +333,7 @@ void CAGrunt::PrescheduleThink()
 {
 	if( ShouldSpeak() )
 	{
-		if( m_flNextWordTime < gpGlobals->time )
+		if( m_flNextWordTime < gpGlobals->time && (npc_idlesound_requires_pvs.value == 0.0f || !FNullEnt(FIND_CLIENT_IN_PVS(edict()))) )
 		{
 			int num = -1;
 

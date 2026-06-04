@@ -74,6 +74,8 @@ void CBaseMonster::SetState( MONSTERSTATE State )
 	m_IdealMonsterState = State;
 }
 
+extern cvar_t npc_idlesound_requires_pvs;
+
 //=========================================================
 // RunAI
 //=========================================================
@@ -86,7 +88,8 @@ void CBaseMonster::RunAI()
 	// once we have sounds for that state.
 	if( ( m_MonsterState == MONSTERSTATE_IDLE || m_MonsterState == MONSTERSTATE_ALERT ) && RANDOM_LONG( 0, 99 ) == 0 && !( pev->spawnflags & SF_MONSTER_GAG ) )
 	{
-		IdleSound();
+		if (npc_idlesound_requires_pvs.value == 0.0f || !FNullEnt(FIND_CLIENT_IN_PVS(edict())))
+			IdleSound();
 	}
 
 	if( m_MonsterState != MONSTERSTATE_NONE &&
