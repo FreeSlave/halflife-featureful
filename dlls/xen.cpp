@@ -282,7 +282,7 @@ CXenTreeTrigger *CXenTreeTrigger::TriggerCreate( edict_t *pOwner, const Vector &
 {
 	CXenTreeTrigger *pTrigger = GetClassPtr( (CXenTreeTrigger *)NULL );
 	pTrigger->pev->origin = position;
-	pTrigger->pev->classname = MAKE_STRING( "xen_ttrigger" );
+	//pTrigger->pev->classname = MAKE_STRING( "xen_ttrigger" ); // re-create on reload
 	pTrigger->pev->solid = SOLID_TRIGGER;
 	pTrigger->pev->movetype = MOVETYPE_NONE;
 	pTrigger->pev->owner = pOwner;
@@ -307,6 +307,7 @@ class CXenTree : public CActAnimating
 public:
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void Touch( CBaseEntity *pOther ) override;
 	void Think() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
@@ -357,13 +358,6 @@ void CXenTree::Spawn()
 
 	if (FBitSet(pev->flags, FL_KILLME))
 		return;
-
-	Vector triggerPosition;
-	UTIL_MakeVectorsPrivate( pev->angles, triggerPosition, NULL, NULL );
-	triggerPosition = pev->origin + ( triggerPosition * 64 );
-	// Create the trigger
-	m_pTrigger = CXenTreeTrigger::TriggerCreate( edict(), triggerPosition );
-	UTIL_SetSize( m_pTrigger->pev, Vector( -24, -24, 0 ), Vector( 24, 24, 128 ) );
 }
 
 void CXenTree::Precache()
@@ -371,6 +365,16 @@ void CXenTree::Precache()
 	PrecacheMyModel( "models/tree.mdl" );
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
+}
+
+void CXenTree::Activate()
+{
+	Vector triggerPosition;
+	UTIL_MakeVectorsPrivate( pev->angles, triggerPosition, NULL, NULL );
+	triggerPosition = pev->origin + ( triggerPosition * 64 );
+	// Create the trigger
+	m_pTrigger = CXenTreeTrigger::TriggerCreate( edict(), triggerPosition );
+	UTIL_SetSize( m_pTrigger->pev, Vector( -24, -24, 0 ), Vector( 24, 24, 128 ) );
 }
 
 void CXenTree::Touch( CBaseEntity *pOther )

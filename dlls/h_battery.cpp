@@ -136,6 +136,7 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
 	void Off();
@@ -280,7 +281,10 @@ void CRechargeDecay::Precache()
 	RegisterAndPrecacheSoundScript(CRecharge::rechargeSoundScript);
 
 	RegisterVisual(beamVisual);
+}
 
+void CRechargeDecay::Activate()
+{
 	CreateBeam();
 	if (m_iState != Idle)
 		TurnBeamOff();
@@ -292,6 +296,8 @@ void CRechargeDecay::Precache()
 		UTIL_SetOrigin(m_glass->pev, pev->origin);
 		m_glass->pev->angles = pev->angles;
 	}
+
+	CBaseAnimating::Activate();
 }
 
 void CRechargeDecay::AnimateAndWork()

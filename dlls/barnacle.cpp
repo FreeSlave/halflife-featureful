@@ -36,6 +36,7 @@ class CBarnacle : public CBaseMonster
 public:
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void UpdateOnRemove() override;
 	bool MustAddToFullPack(unsigned char *pSet) override;
 	void ReleaseVictim();
@@ -439,13 +440,18 @@ void CBarnacle::Precache()
 	RegisterAndPrecacheSoundScript(chewSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
+}
 
+void CBarnacle::Activate()
+{
 	pTip = GetClassPtr((CPointEntity*)nullptr);
 	pTip->pev->classname = MAKE_STRING("barnacle_tip");
 	SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
 	pTip->pev->rendermode = kRenderTransAlpha;
 	pTip->pev->renderamt = 0;
 	UTIL_SetOrigin(pTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+
+	CBaseMonster::Activate();
 }
 
 void CBarnacle::UpdateOnRemove()

@@ -562,6 +562,7 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Spawn() override;
 	void Precache() override;
+	void Activate() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
 	void Off();
@@ -689,7 +690,10 @@ void CWallHealthDecay::Precache()
 	RegisterAndPrecacheSoundScript(CWallHealth::denySoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::loopingSoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::rechargeSoundScript);
+}
 
+void CWallHealthDecay::Activate()
+{
 	m_jar = GetClassPtr( (CWallHealthJarDecay *)NULL );
 	if (m_jar)
 	{
@@ -699,6 +703,8 @@ void CWallHealthDecay::Precache()
 		m_jar->pev->angles = pev->angles;
 		UpdateJar();
 	}
+
+	CBaseAnimating::Activate();
 }
 
 void CWallHealthDecay::AnimateAndWork()
