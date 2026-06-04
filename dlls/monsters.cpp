@@ -169,6 +169,8 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_handledCloakingOnce, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( CBaseMonster, m_retreatSuggestionTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CBaseMonster, m_procreator, FIELD_EHANDLE ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -5331,6 +5333,16 @@ void CBaseMonster::HandleCloaking()
 const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
 {
 	return cloakingStartSoundScript;
+}
+
+void CBaseMonster::SendDeathNotice()
+{
+	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
+	CBaseEntity *pOwner = m_procreator != 0 ? m_procreator.Entity() : CBaseEntity::OwnInstance(pev->owner);
+	if (pOwner)
+	{
+		pOwner->DeathNotice(pev);
+	}
 }
 
 void CDeadMonster::KeyValue( KeyValueData *pkvd )

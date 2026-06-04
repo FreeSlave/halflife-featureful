@@ -907,12 +907,7 @@ void CBaseMonster::OnDying(bool gibbed)
 	UTIL_RemoveAndClean(m_passiveRegenSprite);
 	UTIL_RemoveAndClean(m_activeRegenSprite);
 
-	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
-	CBaseEntity *pOwner = CBaseEntity::Instance( pev->owner );
-	if( pOwner )
-	{
-		pOwner->DeathNotice( pev );
-	}
+	SendDeathNotice();
 }
 
 void CBaseMonster::UpdateOnRemove()
@@ -921,11 +916,7 @@ void CBaseMonster::UpdateOnRemove()
 	{
 		// Only notice if did not die before removing.
 		// If monster died they already reported their death.
-		CBaseEntity *pOwner = CBaseEntity::Instance( pev->owner );
-		if( pOwner )
-		{
-			pOwner->DeathNotice( pev );
-		}
+		SendDeathNotice();
 	}
 	RemoveScheduleWatcher(entindex());
 	CBaseToggle::UpdateOnRemove();

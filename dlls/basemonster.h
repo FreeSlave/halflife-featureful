@@ -497,6 +497,8 @@ public:
 	}
 	virtual const NamedSoundScript& CloakingStartSoundScript();
 
+	void SendDeathNotice();
+
 	float m_nextPatrolPathCheck;
 
 	// Custom hull sizes
@@ -535,6 +537,8 @@ public:
 	bool m_handledCloakingOnce;
 
 	float m_retreatSuggestionTime;
+
+	EHANDLE m_procreator;
 
 	const char* taskFailReason;
 };

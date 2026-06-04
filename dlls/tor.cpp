@@ -76,6 +76,7 @@ public:
 	int LookupActivity(int activity) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void DeathNotice(entvars_t* pevChild) override;
+	void ReportAIState(ALERT_TYPE level) override;
 
 	Vector DefaultMinHullSize() override { return Vector(-24.0f, -24.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 72.0f ); }
@@ -954,7 +955,7 @@ void CTorSummonPoint::SummonThink()
 
 	ChildVariantHandle childVariant = pTor->SelectChildVariant(SUMMON_CLASSNAME);
 
-	CBaseEntity* ent = CreateNoSpawn(childVariant.classname, pev->origin, pTor->pev->angles, pOwner->edict());
+	CBaseEntity* ent = CreateNoSpawn(childVariant.classname, pev->origin, pTor->pev->angles);
 	if (!ent)
 	{
 		ALERT(at_console, "%s is going to be removed. Reason: can't spawn a child '%s'\n", childVariant.classname);
@@ -968,6 +969,7 @@ void CTorSummonPoint::SummonThink()
 	{
 		SetBits(ent->pev->spawnflags, SF_MONSTER_FALL_TO_GROUND);
 		pTor->FixChildClassify(mon);
+		mon->m_procreator = pOwner;
 	}
 
 	if (DispatchSpawnAutoClean(ent))
@@ -997,4 +999,10 @@ void CTor::DeathNotice(entvars_t* pevChild) {
 	if (m_numChildren < 0) {
 		m_numChildren = 0;
 	}
+}
+
+void CTor::ReportAIState(ALERT_TYPE level)
+{
+	CFollowingMonster::ReportAIState(level);
+	ALERT(level, "Number of children: %d. ", m_numChildren);
 }
