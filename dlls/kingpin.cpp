@@ -9,7 +9,7 @@
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
 #include	"game.h"
-#include	"mod_features.h"
+#include	"followingmonster.h"
 
 #define KINGPIN_AE_LEFT 1
 #define KINGPIN_AE_RIGHT 2
@@ -777,7 +777,7 @@ void CKingpinPlasmaCluster::MakeELight()
 #define SF_KINGPIN_ESCAPE SF_MONSTER_SPECIAL_FLAG
 #define bits_MEMORY_GOING_TO_USE_SECOND_CHANCE bits_MEMORY_CUSTOM2
 
-class CKingpin : public CBaseMonster
+class CKingpin : public CFollowingMonster
 {
 public:
 	void Spawn() override;
@@ -804,6 +804,8 @@ public:
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	void DeathSound() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
 	bool CheckRangeAttack1(float flDot, float flDist) override { return false; }
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
@@ -874,6 +876,9 @@ protected:
 	static const NamedSoundScript escapeEndSoundScript;
 	static const NamedSoundScript clusterAttackSoundScript;
 
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
+
 	static const NamedVisual shieldVisual;
 	static const NamedVisual glowVisual;
 	static const NamedVisual teleportVisual;
@@ -910,7 +915,7 @@ TYPEDESCRIPTION	CKingpin::m_SaveData[] =
 	DEFINE_FIELD( CKingpin, m_canUseSecondChance, FIELD_BOOLEAN ),
 };
 
-IMPLEMENT_SAVERESTORE( CKingpin, CBaseMonster )
+IMPLEMENT_SAVERESTORE( CKingpin, CFollowingMonster )
 
 const NamedSoundScript CKingpin::idleSoundScript = {
 	CHAN_VOICE,
@@ -969,6 +974,18 @@ const NamedSoundScript CKingpin::clusterAttackSoundScript = {
 	0.7f,
 	ATTN_NORM,
 	"Kingpin.PlasmaClusterAttack"
+};
+
+const NamedSoundScript CKingpin::useSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Kingpin.Use"
+};
+
+const NamedSoundScript CKingpin::unuseSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Kingpin.UnUse"
 };
 
 const NamedVisual CKingpin::shieldVisual = BuildVisual("Kingpin.Shield")
@@ -1077,7 +1094,7 @@ void CKingpin::KeyValue(KeyValueData *pkvd)
 		pkvd->fHandled = true;
 	}
 	else
-		CBaseMonster::KeyValue(pkvd);
+		CFollowingMonster::KeyValue(pkvd);
 }
 
 Task_t	tlKingpinTeleport[] =
@@ -1192,7 +1209,7 @@ void CKingpin::Spawn()
 		}
 	}
 
-	MonsterInit();
+	FollowingMonsterInit();
 }
 
 void CKingpin::Precache()
@@ -1222,6 +1239,9 @@ void CKingpin::Precache()
 
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
+
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
 	RegisterVisual(deathBeamVisual);
 	RegisterVisual(deathEndBeamVisual);
@@ -1292,7 +1312,7 @@ void CKingpin::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case KINGPIN_AE_PLASMA_END:
 		break;
 	default:
-		CBaseMonster::HandleAnimEvent(pEvent);
+		CFollowingMonster::HandleAnimEvent(pEvent);
 		break;
 	}
 }
@@ -1300,7 +1320,7 @@ void CKingpin::HandleAnimEvent(MonsterEvent_t *pEvent)
 float CKingpin::HeadHitGroupDamageMultiplier()
 {
 	const float kingpinMultiplier = GetSkillValue("kingpin_head");
-	const float defaultMultiplier = CBaseMonster::HeadHitGroupDamageMultiplier();
+	const float defaultMultiplier = CFollowingMonster::HeadHitGroupDamageMultiplier();
 	if (kingpinMultiplier > 0.0f)
 		return Q_min(defaultMultiplier, kingpinMultiplier);
 	else
@@ -1312,7 +1332,7 @@ void CKingpin::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	if (m_isTeleporting || pev->takedamage == DAMAGE_NO)
 		return;
 
-	CBaseMonster::TraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
 }
 
 TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
@@ -1320,20 +1340,20 @@ TakeDamageResult CKingpin::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAtt
 	if (m_isTeleporting)
 		return TakeDamageResult{};
 
-	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
+	return CFollowingMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
 }
 
 KilledResult CKingpin::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	// Never gib, always wait for death animation
-	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
+	return CFollowingMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
 void CKingpin::OnDying(bool gibbed)
 {
 	ClearPlasmaBall();
 	ClearGlows();
-	CBaseMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed);
 }
 
 void CKingpin::BecomeDead()
@@ -1346,14 +1366,14 @@ void CKingpin::UpdateOnRemove()
 {
 	ClearPlasmaBall();
 	ClearGlows();
-	CBaseMonster::UpdateOnRemove();
+	CFollowingMonster::UpdateOnRemove();
 }
 
 bool CKingpin::CheckRangeAttack2(float flDot, float flDist)
 {
 	if (m_plasmaBallTime > gpGlobals->time)
 		return false;
-	return CBaseMonster::CheckRangeAttack2(flDot, flDist);
+	return CFollowingMonster::CheckRangeAttack2(flDot, flDist);
 }
 
 Schedule_t* CKingpin::GetSchedule()
@@ -1372,7 +1392,22 @@ Schedule_t* CKingpin::GetSchedule()
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
 		}
 	}
-	return CBaseMonster::GetSchedule();
+	switch(m_MonsterState)
+	{
+	case MONSTERSTATE_IDLE:
+	case MONSTERSTATE_ALERT:
+	case MONSTERSTATE_HUNT:
+	{
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
+	}
+		break;
+	default:
+		break;
+	}
+
+	return CFollowingMonster::GetSchedule();
 }
 
 extern Schedule_t slChaseEnemyFailed[];
@@ -1422,7 +1457,7 @@ Schedule_t* CKingpin::GetScheduleOfType(int Type)
 	default:
 		break;
 	}
-	return CBaseMonster::GetScheduleOfType(Type);
+	return CFollowingMonster::GetScheduleOfType(Type);
 }
 
 void CKingpin::StartTask( Task_t *pTask )
@@ -1469,7 +1504,7 @@ void CKingpin::StartTask( Task_t *pTask )
 		m_flWaitFinished = gpGlobals->time + 2.0;
 		// FALL THROUGH
 	default:
-		CBaseMonster::StartTask( pTask );
+		CFollowingMonster::StartTask( pTask );
 		break;
 	}
 }
@@ -1609,10 +1644,10 @@ void CKingpin::RunTask( Task_t *pTask )
 			return;
 		}
 		else
-			CBaseMonster::RunTask( pTask );
+			CFollowingMonster::RunTask( pTask );
 		break;
 	default:
-		CBaseMonster::RunTask( pTask );
+		CFollowingMonster::RunTask( pTask );
 		break;
 	}
 }
@@ -1673,7 +1708,7 @@ void CKingpin::PrescheduleThink()
 		}
 	}
 
-	CBaseMonster::PrescheduleThink();
+	CFollowingMonster::PrescheduleThink();
 }
 
 void CKingpin::OnChangeSchedule(Schedule_t *pNewSchedule)
@@ -1687,7 +1722,7 @@ void CKingpin::OnChangeSchedule(Schedule_t *pNewSchedule)
 		pev->rendermode = kRenderNormal;
 		pev->renderfx = kRenderFxNone;
 	}
-	CBaseMonster::OnChangeSchedule(pNewSchedule);
+	CFollowingMonster::OnChangeSchedule(pNewSchedule);
 }
 
 void CKingpin::IdleSound()
@@ -1715,6 +1750,16 @@ void CKingpin::PainSound()
 void CKingpin::DeathSound()
 {
 	EmitSoundScript(dieSoundScript);
+}
+
+void CKingpin::PlayUseSentence()
+{
+	EmitSoundScript(useSoundScript);
+}
+
+void CKingpin::PlayUnUseSentence()
+{
+	EmitSoundScript(unuseSoundScript);
 }
 
 void CKingpin::UpdateGlows(int target, int speed)
@@ -1774,7 +1819,7 @@ Vector CKingpin::PlasmaBallPos()
 
 void CKingpin::ReportAIState(ALERT_TYPE level)
 {
-	CBaseMonster::ReportAIState(level);
+	CFollowingMonster::ReportAIState(level);
 	if (m_plasmaBallTime <= gpGlobals->time)
 		ALERT(level, "Can throw an energy ball; ");
 	if (m_plasmaClusterTime <= gpGlobals->time)

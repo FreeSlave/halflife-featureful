@@ -6481,7 +6481,7 @@
 	]
 ]
 
-@PointClass base(Monster, Sequence) size(-6 -6 0, 6 6 6) studio("models/kingpin.mdl") = monster_kingpin : "Kingpin"
+@PointClass base(Monster, FollowingMonster, Sequence) size(-6 -6 0, 6 6 6) studio("models/kingpin.mdl") = monster_kingpin : "Kingpin"
 [
 	teleport_target(string) : "Teleport target" : : "Name of targets to teleport to when can't get to enemy"
 	second_chance(choices) : "Can use second chance" =
