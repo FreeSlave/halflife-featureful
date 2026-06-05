@@ -141,6 +141,7 @@ void CSpore::Spawn()
 	CSprite* sprite = CreateSpriteFromVisual(GetVisual(spriteVisual), pev->origin);
 	if (sprite) {
 		sprite->SetAttachment(edict(), 0);
+		sprite->pev->spawnflags |= SF_SPRITE_TRANSIT;
 		m_hSprite = sprite;
 	}
 

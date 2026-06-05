@@ -213,6 +213,8 @@ void CChargedBolt::ArmBeam(int side)
 	if (!pBeam)
 	{
 		m_pBeam[m_iBeams] = pBeam = CreateBeamFromVisual(pBeamVisual);
+		if (pBeam)
+			pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 
 	if (!pBeam)
