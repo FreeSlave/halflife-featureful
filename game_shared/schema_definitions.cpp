@@ -342,25 +342,25 @@ const char* const json_schemas::definitions = R"(
 				]
 			},
 			"scale": {
-				"$ref": "#/range",
-				"minimum": 0.0
+				"$ref": "#/range_non_negative"
 			},
 			"framerate": {
-				"type": "number",
-				"minimum": 0.0
+				"$ref": "#/range_non_negative"
 			},
 			"width": {
 				"type": "integer",
 				"minimum": 1
 			},
 			"noise": {
-				"type": "integer"
+				"type": "integer",
+				"minimum": 0
 			},
 			"scrollrate": {
-				"type": "integer"
+				"type": "integer",
+				"minimum": 0
 			},
 			"life": {
-				"$ref": "#/range"
+				"$ref": "#/range_non_negative"
 			},
 			"radius": {
 				"$ref": "#/range_int_non_negative"

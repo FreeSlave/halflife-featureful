@@ -174,7 +174,7 @@ void ParseRestVisualFromJSON(Visual& visual, const Value& value)
 		visual.SetScale(scale);
 	}
 
-	float framerate;
+	FloatRange framerate;
 	if (UpdatePropertyFromJson(framerate, value, "framerate"))
 	{
 		visual.SetFramerate(framerate);
