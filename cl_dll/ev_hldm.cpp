@@ -802,6 +802,39 @@ static void EV_PerformWeaponFire(event_args_t *args)
 			FX_Spray(vecSpitPos, vecSpitDir, sprayModelIndex, sprayCount, fire.spraySpeed.Get(altMode), fire.spraySpread.Get(altMode), sprayVisual, fire.sprayFlags.Get(altMode));
 		}
 	}
+
+	WeaponParameters::ViewmodelBeamArray beamArr = fire.viewmodelBeams.Get(altMode);
+
+	for (size_t i = 0; i < beamArr.size(); ++i)
+	{
+		const WeaponParameters::ViewmodelBeam& beam = beamArr[i];
+		Visual visual = beam.visual;
+
+		if (!visual.HasModel())
+		{
+			if (i > 0)
+			{
+				visual.CompleteFrom(beamArr[0].visual);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		int startEnt = args->entindex | (beam.startAttachment << 12);
+		int endEnt = args->entindex | (beam.endAttachment << 12);
+
+		const float life = RandomizeNumberFromRange(visual.life);
+
+		gEngfuncs.pEfxAPI->R_BeamEnts(
+			startEnt, endEnt,
+			gEngfuncs.pEventAPI->EV_FindModelIndex(visual.model),
+			life > 0.0f ? life : 0.08f,
+			Q_max(visual.beamWidth, 1), visual.beamNoise * 0.01f, visual.renderamt / 255.0f,
+			visual.beamScrollRate, 0, RandomizeNumberFromRange(visual.framerate),
+			visual.rendercolor.r / 255.0f, visual.rendercolor.g / 255.0f, visual.rendercolor.b / 255.0f);
+	}
 }
 
 void EV_FireConfigurableWeapon( event_args_t *args )

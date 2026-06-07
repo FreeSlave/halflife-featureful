@@ -1066,6 +1066,29 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				});
 			});
 
+			HandleJSONMember(value, "viewmodel_beams", [&](const Value& value) {
+				Value::ConstArray arr = value.GetArray();
+				WeaponParameters::ViewmodelBeamArray beamList;
+				beamList.reserve(arr.Size());
+
+				for (const auto& item : arr)
+				{
+					WeaponParameters::ViewmodelBeam beam;
+
+					HandleJSONMember(item, "visual", [&beam, this](const Value& value) {
+						Visual visual = ParseVisualFromJSON(value, [this](const char* str){ return this->MakeConstantString(str); });
+						beam.visual = visual;
+					});
+
+					UpdatePropertyFromJson(beam.startAttachment, item, "start_attachment");
+					UpdatePropertyFromJson(beam.endAttachment, item, "end_attachment");
+
+					beamList.push_back(beam);
+				}
+
+				fire.viewmodelBeams.Materialize(altMode) = std::move(beamList);
+			});
+
 			HandleJSONMember(value, "extra_ai_sound", [&](const Value& value) {
 				HandleJSONMember(value, "type", [&](const Value& value) {
 					auto parseAISoundType = [](const char* str)

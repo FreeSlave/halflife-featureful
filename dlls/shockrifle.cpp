@@ -44,15 +44,7 @@ public:
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
 
-	void NativeAttack(bool altMode) override;
 	bool HandleAttackSubstitution(bool altMode) override;
-	void Holster() override;
-	void CreateChargeEffect();
-	void EXPORT ClearBeams();
-private:
-#if !CLIENT_DLL
-	CBeam* m_pBeam[4];
-#endif
 };
 
 LINK_WEAPON_TO_CLASS(weapon_shockrifle, CShockrifle)
@@ -63,8 +55,6 @@ void CShockrifle::Precache()
 
 	PRECACHE_SOUND("weapons/shock_discharge.wav");
 	PRECACHE_SOUND("weapons/shock_impact.wav");
-
-	PRECACHE_MODEL("sprites/lgtning.spr");
 }
 
 void CShockrifle::PrecacheDefaultModelSounds()
@@ -107,6 +97,7 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{SHOCK_IDLE1, 0.2f, 3.3f}
 	};
 
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
 	params.fire.anims = {SHOCK_FIRE};
 	params.fire.sound = {
 		CHAN_WEAPON,
@@ -132,6 +123,29 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 	params.fire.weaponVolume = QUIET_GUN_VOLUME;
 	params.fire.weaponFlash = DIM_GUN_FLASH;
 
+	WeaponParameters::ViewmodelBeam viewmodelBeam1, viewmodelBeam2, viewmodelBeam3;
+
+	Visual beamVisual;
+	beamVisual.SetModel("sprites/lgtning.spr");
+	beamVisual.SetLife(0.08f);
+	beamVisual.SetBeamWidth(1);
+	beamVisual.SetBeamNoise(75);
+	beamVisual.SetBeamScrollRate(30);
+	beamVisual.SetFramerate(10);
+	beamVisual.SetAlpha(190);
+	beamVisual.SetColor(Color3(0, 253, 253));
+
+	viewmodelBeam1.visual = beamVisual;
+	viewmodelBeam1.startAttachment = 1;
+	viewmodelBeam1.endAttachment = 2;
+
+	viewmodelBeam2.startAttachment = 1;
+	viewmodelBeam2.endAttachment = 3;
+	viewmodelBeam3.startAttachment = 1;
+	viewmodelBeam3.endAttachment = 4;
+
+	params.fire.viewmodelBeams = {viewmodelBeam1, viewmodelBeam2, viewmodelBeam3};
+
 	params.secondaryFireType = SecondaryFireType::DISABLED;
 
 	params.recharge.interval = bIsMultiplayer() ? 0.25f : 0.5f;
@@ -151,22 +165,6 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 	return params;
 }
 
-void CShockrifle::Holster()
-{
-	CConfigurableWeapon::Holster();
-	ClearBeams();
-}
-
-void CShockrifle::NativeAttack(bool altMode)
-{
-	CreateChargeEffect();
-
-	ProjectileAttack(altMode);
-
-	SetThink( &CShockrifle::ClearBeams );
-	pev->nextthink = gpGlobals->time + 0.08;
-}
-
 bool CShockrifle::HandleAttackSubstitution(bool altMode)
 {
 	if (m_pPlayer->pev->waterlevel == WL_Eyes)
@@ -181,42 +179,4 @@ bool CShockrifle::HandleAttackSubstitution(bool altMode)
 		return true;
 	}
 	return false;
-}
-
-void CShockrifle::CreateChargeEffect()
-{
-#if !CLIENT_DLL
-	if( g_pGameRules->IsMultiplayer())
-		return;
-	int iBeam = 0;
-
-	for( int i = 2; i < 5; i++)
-	{
-		if( !m_pBeam[iBeam] )
-			m_pBeam[iBeam] = CBeam::BeamCreate("sprites/lgtning.spr", 16);
-		m_pBeam[iBeam]->EntsInit( m_pPlayer->entindex(), m_pPlayer->entindex() );
-		m_pBeam[iBeam]->SetStartAttachment(1);
-		m_pBeam[iBeam]->SetEndAttachment(i);
-		m_pBeam[iBeam]->SetNoise( 75 );
-		m_pBeam[iBeam]->pev->scale= 10;
-		m_pBeam[iBeam]->SetColor( 0, 253, 253 );
-		m_pBeam[iBeam]->SetScrollRate( 30 );
-		m_pBeam[iBeam]->SetBrightness( 190 );
-		iBeam++;
-	}
-#endif
-}
-
-void CShockrifle::ClearBeams()
-{
-#if !CLIENT_DLL
-	if( g_pGameRules->IsMultiplayer())
-		return;
-
-	for( int i = 0; i < 3; i++ )
-	{
-		UTIL_RemoveAndClean(m_pBeam[i]);
-	}
-	SetThink( NULL );
-#endif
 }

@@ -819,6 +819,9 @@ void CConfigurableWeapon::Precache()
 	precacheProjectile(true);
 
 	auto precacheSprayVisual = [&params](bool altMode) {
+		if (!params.fire.sprayVisual.IsDefined(altMode))
+			return;
+
 		const Visual& sprayVisual = params.fire.sprayVisual.Get(altMode);
 		if (sprayVisual.HasModel())
 		{
@@ -827,6 +830,21 @@ void CConfigurableWeapon::Precache()
 	};
 	precacheSprayVisual(false);
 	precacheSprayVisual(true);
+
+	auto precacheViewmodelBeams = [&params](bool altMode) {
+		if (!params.fire.viewmodelBeams.IsDefined(altMode))
+			return;
+
+		for (const auto& beam : params.fire.viewmodelBeams.Get(altMode))
+		{
+			if (beam.visual.HasModel())
+			{
+				PRECACHE_MODEL(beam.visual.model);
+			}
+		}
+	};
+	precacheViewmodelBeams(false);
+	precacheViewmodelBeams(true);
 
 	PrecacheDropAmmo();
 }

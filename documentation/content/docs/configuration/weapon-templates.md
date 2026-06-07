@@ -1790,6 +1790,54 @@ The multiplier for the subsequent melee attacks (i.e. every swing after the firs
 
 Whether firing a weapon should use a secondary ammo. The only weapon that uses a secondary ammo by default is [weapon_9mmAR]({{< ref weapon_9mmAR >}}). For others you must explicitly provide `"secondary_ammo_name"`.
 
+### viewmodel_beams
+
+The beams to draw on the view model when the weapon is fired (like on [weapon_shockrifle]({{< ref weapon_shockrifle >}})).
+
+This in array of objects with following properties:
+
+* `"visual"` - a [visual]({{< ref visuals >}}) object that defines the appearance of the spray particle. Note:
+    - This is expected to have a `"life"` property defined as a positive value. Otherwise, the small life duration is still forced.
+    - If the `"sprite"` is not set, the visual will inherit properties from the first item in the array. If the first item doesn't define the sprite, the beams won't spawn.
+* `"start_attachment"` - the start attachment. This must be the value in `[1, 4]` range. This is a required property.
+* `"end_attachment"` - the start attachment. This must be the value in `[1, 4]` range. This is a required property.
+
+As an example, this is how the shockrifle beams are defined:
+
+```json
+{
+    "weapon_shockrifle": {
+        "fire": {
+            "viewmodel_beams": [
+                {
+                    "visual": {
+                        "model": "sprites/lgtning.spr",
+                        "life": 0.08,
+                        "width": 1,
+                        "noise": 75,
+                        "scrollrate": 30,
+                        "framerate": 10,
+                        "alpha": 190,
+                        "color": [0, 253, 253]
+                    },
+                    "start_attachment": 1,
+                    "end_attachment": 2
+                },
+                {
+                    "start_attachment": 1,
+                    "end_attachment": 3
+                },
+                {
+                    "start_attachment": 1,
+                    "end_attachment": 4
+                }
+            ]
+        }
+    }
+}
+
+```
+
 ### weapon_volume
 
 The volume of the fire sound as heard by AI. This is a radius in units. It also supports following string constants:

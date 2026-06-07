@@ -77,6 +77,12 @@ struct WeaponModeValue
 		}
 		return main;
 	}
+	bool IsDefined(bool altMode) const {
+		if (altMode)
+			return alt.has_value();
+		else
+			return true;
+	}
 };
 
 template<typename T>
@@ -533,6 +539,16 @@ struct WeaponParameters
 	};
 	typedef std::vector<FirePhase> FirePhaseArray;
 
+	struct ViewmodelBeam
+	{
+		Visual visual;
+		short startAttachment{0};
+		short endAttachment{0};
+		bool visualSet{false};
+	};
+
+	typedef std::vector<ViewmodelBeam> ViewmodelBeamArray;
+
 	struct Fire
 	{
 		enum Type
@@ -658,6 +674,8 @@ struct WeaponParameters
 		WeaponModeValue<ADD_VELOCITY> projectileAddCurrentVelocity{DONT_ADD_VELOCITY};
 		WeaponModeValue<float> projectileDetonationTime{0.0f};
 		WeaponModeValue<FirePhaseArray> projectileFirePhases;
+
+		WeaponModeValue<ViewmodelBeamArray> viewmodelBeams;
 	};
 
 	struct Fade

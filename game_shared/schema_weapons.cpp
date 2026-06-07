@@ -224,6 +224,11 @@ const char* const json_schemas::weapons = R"(
 		},
 		"additionalProperties": false
 	},
+	"attachment": {
+		"type": "integer",
+		"minimum": "1",
+		"maximum": "4"
+	},
 )"
 R"(
 	"fire": {
@@ -547,9 +552,7 @@ R"(
 								"type": "object",
 								"properties": {
 									"attachment": {
-										"type": "integer",
-										"minimum": "1",
-										"maximum": "4"
+										"$ref": "#/attachment"
 									}
 								},
 								"required": ["attachment"],
@@ -801,6 +804,25 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"viewmodel_beams": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"start_attachment": {
+							"$ref": "#/attachment"
+						},
+						"end_attachment": {
+							"$ref": "#/attachment"
+						},
+						"visual": {
+							"$ref": "definitions.json#/visual_object"
+						}
+					},
+					"required": ["start_attachment", "end_attachment"],
+					"additionalProperties": false
+				}
 			}
 		},
 		"additionalProperties": false
