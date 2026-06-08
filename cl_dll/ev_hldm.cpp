@@ -1670,19 +1670,45 @@ void EV_VehiclePitchAdjust( event_args_t *args )
 
 void EV_Displacer( event_args_t *args )
 {
-	int idx;
-	Vector origin;
+	int idx = args->entindex;
 
-	idx = args->entindex;
-	VectorCopy( args->origin, origin );
+	bool isSpinning = args->bparam2 != 0;
 
-	if( EV_IsLocal( idx ) )
+	if (isSpinning)
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( DISPLACER_FIRE, 0 );
-		V_PunchAxis( 0, -2.0 );
-	}
+		int iAttach = 0;
 
-	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/displacer_fire.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+		int iStartAttach, iEndAttach;
+
+		for (size_t uiIndex = 0; uiIndex < 4; ++uiIndex)
+		{
+			if (iAttach <= 2)
+			{
+				iStartAttach = iAttach++ + 2;
+				iEndAttach = iAttach % 2 + 2;
+			}
+			else
+			{
+				iStartAttach = 0;
+				iEndAttach = 0;
+			}
+
+			gEngfuncs.pEfxAPI->R_BeamEnts(
+				args->entindex | (iStartAttach << 12), args->entindex | (iEndAttach << 12),
+				gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/lgtning.spr"),
+				1,
+				1, 60 * 0.01, 190 / 255.0, 30, 0, 10,
+				96 / 255.0, 128 / 255.0, 16 / 255.0);
+		}
+	}
+	else
+	{
+		if (EV_IsLocal(idx))
+		{
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(DISPLACER_FIRE, 0);
+			V_PunchAxis(0, -2.0);
+		}
+	}
 }
 //======================
 //	    DISPLACER END

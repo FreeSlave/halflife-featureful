@@ -55,12 +55,7 @@ public:
 	void EXPORT SpinUp();
 	void EXPORT Teleport();
 	void EXPORT Displace();
-	void LightningEffect();
-	void ClearBeams();
 private:
-#if !CLIENT_DLL
-	CBeam *m_pBeam[3];
-#endif
 	int m_iFireMode;
 	unsigned short m_usDisplacer;
 };
@@ -71,7 +66,6 @@ LINK_WEAPON_TO_CLASS(weapon_displacer, CDisplacer)
 TYPEDESCRIPTION	CDisplacer::m_SaveData[] =
 {
 	DEFINE_FIELD( CDisplacer, m_iFireMode, FIELD_INTEGER ),
-	DEFINE_ARRAY( CDisplacer, m_pBeam, FIELD_CLASSPTR, 3 ),
 };
 IMPLEMENT_SAVERESTORE( CDisplacer, CConfigurableWeapon )
 #endif
@@ -167,7 +161,6 @@ void CDisplacer::Holster()
 {
 	m_fInReload = false;// cancel any reload in progress.
 
-	ClearBeams();
 	ClearSpin();
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
@@ -232,7 +225,7 @@ void CDisplacer::SpinUp()
 {
 	SendWeaponAnim( DISPLACER_SPINUP );
 
-	LightningEffect();
+	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usDisplacer, 0, g_vecZero, g_vecZero, 0, 0, 0, 0, 0, 1);
 
 	if( m_iFireMode == FIREMODE_FORWARD )
 	{
@@ -252,7 +245,6 @@ void CDisplacer::Displace()
 {
 	const WeaponParameters& params = MyParameters();
 
-	ClearBeams();
 	ClearSpin();
 
 	SendWeaponAnim( DISPLACER_FIRE );
@@ -289,7 +281,6 @@ void CDisplacer::Teleport()
 {
 	const WeaponParameters& params = MyParameters();
 
-	ClearBeams();
 	ClearSpin();
 #if !CLIENT_DLL
 	CBaseEntity *pDestination = nullptr;
@@ -364,43 +355,5 @@ void CDisplacer::Teleport()
 	}
 
 	SetThink( NULL );
-#endif
-}
-
-void CDisplacer::LightningEffect()
-{
-#if !CLIENT_DLL
-	int m_iBeams = 0;
-
-	if( g_pGameRules->IsMultiplayer())
-		return;
-
-	for( int i = 2; i < 5; ++i )
-	{
-		if( !m_pBeam[m_iBeams] )
-			m_pBeam[m_iBeams] = CBeam::BeamCreate( "sprites/lgtning.spr", 16 );
-		m_pBeam[m_iBeams]->EntsInit( m_pPlayer->entindex(), m_pPlayer->entindex() );
- 		m_pBeam[m_iBeams]->SetStartAttachment( i );
-		m_pBeam[m_iBeams]->SetEndAttachment( i == 4 ? i - 2 : i + 1 );
-		m_pBeam[m_iBeams]->SetColor( 96, 128, 16 );
-		m_pBeam[m_iBeams]->SetBrightness( 240 );
-		m_pBeam[m_iBeams]->SetNoise( 60 );
-		m_pBeam[m_iBeams]->SetScrollRate( 30 );
-		m_pBeam[m_iBeams]->pev->scale = 10;
-		m_iBeams++;
-	}
-#endif
-}
-
-void CDisplacer::ClearBeams()
-{
-#if !CLIENT_DLL
-	if( g_pGameRules->IsMultiplayer())
-		return;
-
-	for( int i = 0; i < 3; i++ )
-	{
-		UTIL_RemoveAndClean(m_pBeam[i]);
-	}
 #endif
 }
