@@ -250,6 +250,7 @@ The following weapons have only partial support for configuration:
 * [weapon_handgrenade]({{< ref weapon_handgrenade >}})
     * idle animations
     * deploy animation
+    * [projectile](#projectile) fire properties.
 * [weapon_medkit]({{< ref weapon_medkit >}})
     * idle animations
     * deploy animation
@@ -1232,7 +1233,7 @@ Custom speed for a projectile. This must be a number higher than 0. If not set, 
 
 #### time
 
-Time before detonation, in seconds. This is used by `"hand grenade"`, `"spore"` and `"spore bouncy"`.
+Time before detonation, in seconds. This is used by `"hand grenade"`, [grenaderound]({{< ref grenaderound >}}), `"spore"` and `"spore bouncy"`.
 
 ```json
 {

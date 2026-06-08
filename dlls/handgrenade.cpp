@@ -84,14 +84,12 @@ WeaponParameters CHandGrenade::GetDefaultParameters() const
 		WeaponParameters::IdleAnim{HANDGRENADE_FIDGET, 0.25f, FloatRange(75.0f / 30.0f)},
 	};
 
-	// TODO: implement later
-	/*
 	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
-
 	params.fire.projectileName = "hand grenade";
 	params.fire.projectileOffsetForward = 16.0f;
 	params.fire.projectileAddCurrentVelocity = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
-	*/
+	params.fire.projectileRespectPunchangle = true;
+	params.fire.projectileDetonationTime = 3.0f;
 
 	params.dropAmmo.classname = "weapon_handgrenade";
 
@@ -170,7 +168,12 @@ void CHandGrenade::WeaponIdle()
 
 	if( m_flStartThrow )
 	{
-		Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
+		const WeaponParameters& params = MyParameters();
+		const WeaponParameters::Fire& fire = params.fire;
+
+		Vector angThrow = m_pPlayer->pev->v_angle;
+		if (fire.projectileRespectPunchangle.Get(false))
+			angThrow += m_pPlayer->pev->punchangle;
 
 		if( angThrow.x < 0.0f )
 			angThrow.x = -10.0f + angThrow.x * ( ( 90.0f - 10.0f ) / 90.0f );
@@ -192,14 +195,47 @@ void CHandGrenade::WeaponIdle()
 		UTIL_MakeVectors( angThrow );
 
 		// alway explode 3 seconds after the pin was pulled
-		float time = m_flStartThrow - gpGlobals->time + 3.0f;
-		if( time < 0.0f )
+		float time = m_flStartThrow - gpGlobals->time + params.fire.projectileDetonationTime.Get(false);
+		if (time < 0.0f)
 			time = 0.0f;
 
 #if !CLIENT_DLL
-		const Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16.0f;
-		const Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
-		CGrenade::ShootTimed( m_pPlayer, vecSrc, vecThrow, time );
+		int projectileVariant = 0;
+		const auto& projectileName = fire.projectileName.Get(false);
+
+		if (!projectileName.empty())
+		{
+			const char* projectileStr = GetRealProjectileClassname(projectileName.c_str(), projectileVariant);
+
+			Vector vecHead = m_pPlayer->GetGunPosition();
+			Vector vecSrc = vecHead +
+							gpGlobals->v_forward * fire.projectileOffsetForward.Get(false) +
+							gpGlobals->v_right * fire.projectileOffsetSide.Get(false) +
+							gpGlobals->v_up * fire.projectileOffsetUp.Get(false);
+
+			Vector vecThrow = gpGlobals->v_forward * flVel;
+			if (params.fire.projectileAddCurrentVelocity.Get(false) != WeaponParameters::Fire::DONT_ADD_VELOCITY)
+			{
+				vecThrow += m_pPlayer->pev->velocity;
+			}
+
+			EntityOverrides entityOverrides;
+			if (!fire.projectileEntTemplate.Get(false).empty())
+			{
+				entityOverrides.entTemplate = MAKE_STRING(fire.projectileEntTemplate.Get(false).c_str());
+			}
+
+			const Vector vecAng = UTIL_VecToAngles(vecThrow);
+			const float speed = vecThrow.NormalizeInPlace();
+
+			ProjectileParameters projectileParams(projectileStr, vecSrc, vecAng, vecThrow, speed, m_pPlayer, entityOverrides);
+			projectileParams.variant = projectileVariant;
+			projectileParams.pLauncher = this;
+			projectileParams.time = time;
+			projectileParams.up = gpGlobals->v_up;
+
+			CreateAndLaunchAsProjectile(projectileParams);
+		}
 #endif
 
 		if( flVel < 500.0f )
