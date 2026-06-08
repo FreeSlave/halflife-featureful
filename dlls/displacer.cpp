@@ -166,6 +166,8 @@ void CDisplacer::Holster()
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
 	SendWeaponAnim(DISPLACER_HOLSTER);
+
+	SetThink(nullptr);
 }
 
 void CDisplacer::SecondaryAttack()
