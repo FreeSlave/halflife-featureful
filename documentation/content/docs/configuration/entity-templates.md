@@ -1382,7 +1382,7 @@ This property affects only the following items:
 
 An object that defines projectile-related properties.
 
-#### effects_flags
+#### effect_flags
 
 An array of pre-defined effect-flags recognized by the engine. Possible item values:
 
@@ -1401,6 +1401,33 @@ Set the empty array to override the default effect flags (e.g. to remove the roc
     "crossbow_bolt": {
         "projectile": {
             "effect_flags": ["rocketflare"]
+        }
+    }
+}
+```
+
+#### detonate_on_touch
+
+Whether the projectile should detonate on touch. This is applicable only to the following projectiles:
+
+* [grenade]({{< ref grenade >}}) (in the hand grenade variant)
+* [grenaderound]({{< ref grenaderound >}})
+* [spore]({{< ref spore >}}) (unless it's a spore rocket).
+
+Possible values:
+
+* `"damageable"` - detonate only when touching something that can take damage (monsters, breakables, etc.)
+* `"aimable"` - detonate only when touching something that the autoaim reacts too (monsters).
+* `"any"` - detonate on any touch.
+* `true` - same as `"any"`.
+
+For example, this will make hand grenades thrown by both player and monsters detonate on touching anything:
+
+```json
+{
+    "grenade": {
+        "projectile": {
+            "detonate_on_touch": "any"
         }
     }
 }

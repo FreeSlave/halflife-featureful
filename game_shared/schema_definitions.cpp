@@ -1161,6 +1161,9 @@ R"(
 						"items": {
 							"enum": ["rocketflare", "brightlight"]
 						}
+					},
+					"detonate_on_touch": {
+						"enum": ["damageable", "aimable", "any", true]
 					}
 				},
 				"additionalProperties": false

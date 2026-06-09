@@ -2738,6 +2738,29 @@ void CBaseEntity::GlowShellUpdate()
 	}
 }
 
+void CBaseEntity::CheckDetonationOnTouch(bool& shouldDetonate, CBaseEntity* pOther)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectileParams = entTemplate->GetProjectileParams();
+		switch(projectileParams.detonateOnTouch)
+		{
+		case EntTemplate::Projectile::DETONATE_TOUCH_ANYTHING:
+			shouldDetonate = true;
+			break;
+		case EntTemplate::Projectile::DETONATE_TOUCH_DAMAGEABLE:
+			shouldDetonate = pOther->pev->takedamage != DAMAGE_NO;
+			break;
+		case EntTemplate::Projectile::DETONATE_TOUCH_AIMABLE:
+			shouldDetonate = pOther->pev->takedamage == DAMAGE_AIM;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 bool FilterEntity(CBaseEntity* pEntity, const EntityFilter& filter, CBaseEntity* pInitiator)
 {
 	auto matchClassname = [&]() -> bool {

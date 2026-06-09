@@ -214,7 +214,10 @@ void CSpore::RocketTouch(CBaseEntity* pOther)
 
 void CSpore::MyBounceTouch(CBaseEntity* pOther)
 {
-	if (pOther->pev->takedamage == DAMAGE_NO)
+	bool shouldDetonate = pOther->pev->takedamage != DAMAGE_NO;
+	CheckDetonationOnTouch(shouldDetonate, pOther);
+
+	if (!shouldDetonate)
 	{
 		if (pOther->edict() != pev->owner)
 		{

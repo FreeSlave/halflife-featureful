@@ -252,6 +252,17 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
 	}
 
+	bool shouldDetonate = false;
+	CheckDetonationOnTouch(shouldDetonate, pOther);
+
+	if (shouldDetonate)
+	{
+		SetThink(nullptr);
+		SetTouch(nullptr);
+		Detonate();
+		return;
+	}
+
 	Vector vecTestVelocity;
 	// pev->avelocity = Vector( 300, 300, 300 );
 
@@ -612,7 +623,10 @@ void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
 
 void CGrenadeRound::GrenadeTouch(CBaseEntity* pOther)
 {
-	if (pOther->pev->takedamage == DAMAGE_AIM)
+	bool shouldDetonate = pOther->pev->takedamage == DAMAGE_AIM;
+	CheckDetonationOnTouch(shouldDetonate, pOther);
+
+	if (shouldDetonate)
 	{
 		SetThink(nullptr);
 		SetTouch(nullptr);

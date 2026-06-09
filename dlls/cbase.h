@@ -751,6 +751,8 @@ public:
 	void GlowShellOff();
 	void GlowShellUpdate();
 
+	void CheckDetonationOnTouch(bool& shouldDetonate, CBaseEntity* pOther);
+
 	float m_glowShellTime;
 	bool m_glowShellUpdate;
 

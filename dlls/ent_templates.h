@@ -200,7 +200,16 @@ public:
 
 	struct Projectile
 	{
+		enum Detonation
+		{
+			DETONATE_DEFAULT,
+			DETONATE_TOUCH_ANYTHING,
+			DETONATE_TOUCH_DAMAGEABLE,
+			DETONATE_TOUCH_AIMABLE,
+		};
+
 		optional<int> effects;
+		short detonateOnTouch{DETONATE_DEFAULT};
 	};
 
 	static EntityFilter EntityFilterFromJSON(const rapidjson::Value& value);

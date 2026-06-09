@@ -1389,7 +1389,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	}
 
 	HandleJSONMember(value, "projectile", [&entTemplate](const Value& value) {
-		EntTemplate::Projectile projectile;
+		EntTemplate::Projectile projectile = entTemplate.GetProjectileParams();
 		HandleJSONMember(value, "effect_flags", [&entTemplate, &projectile](const Value& value) {
 			int effects = 0;
 			Value::ConstArray arr = value.GetArray();
@@ -1405,6 +1405,28 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 				}
 			}
 			projectile.effects = effects;
+		});
+		HandleJSONMember(value, "detonate_on_touch", [&projectile](const Value& value) {
+			if (value.IsBool() && value.IsTrue())
+			{
+				projectile.detonateOnTouch = EntTemplate::Projectile::DETONATE_TOUCH_ANYTHING;
+			}
+			else if (value.IsString())
+			{
+				const char* str = value.GetString();
+				if (strcmp(str, "damageable") == 0)
+				{
+					projectile.detonateOnTouch = EntTemplate::Projectile::DETONATE_TOUCH_DAMAGEABLE;
+				}
+				else if (strcmp(str, "aimable") == 0)
+				{
+					projectile.detonateOnTouch = EntTemplate::Projectile::DETONATE_TOUCH_AIMABLE;
+				}
+				else if (strcmp(str, "any") == 0)
+				{
+					projectile.detonateOnTouch = EntTemplate::Projectile::DETONATE_TOUCH_ANYTHING;
+				}
+			}
 		});
 		entTemplate.SetProjectileParams(projectile);
 	});

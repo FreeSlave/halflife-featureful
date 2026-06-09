@@ -23,3 +23,23 @@ This represents either a hand grenade (timed) or an AR grenade (contact).
 
 * **HandGrenade.Model** - timed grenade model.
 * **ARGrenade.Model** - contact grenade model.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Detonate on touch" %}}
+Detonate hand grenade when it's touching something that can take damage, without waiting for timer.
+
+```json
+{
+    "grenade": {
+        "projectile": {
+            "detonate_on_touch": "damageable"
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}
