@@ -1191,7 +1191,7 @@ public:
 	color24 FlashlightColor();
 	int NVGStyle();
 	bool MoveModeEnabled();
-	inline bool ShouldUseZoomedCrosshair() { return m_iFOV < 90; }
+	inline bool ShouldUseZoomedCrosshair() { return m_inScope; }
 	bool CrosshairColorable();
 	bool ShouldHideViewModel();
 private:
@@ -1299,6 +1299,7 @@ public:
 	int m_suppressedCapabilities;
 	bool m_fPlayerDead;
 	bool m_onRope;
+	bool m_inScope;
 	int m_iIntermission;
 
 	// sprite indexes
