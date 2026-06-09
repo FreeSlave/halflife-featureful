@@ -21,15 +21,27 @@ You can take the user.scr from a sample mod. If you disabled some cvars (via **f
 
 For example, you disabled the `cl_flashlight_radius` cvar by setting `flashlight.radius.configurable` feature to `false`. To avoid user confusion this option should be deleted from Advanced settings as well.
 
+Make sure the default setting in **user.scr** matches the default value that is set by features in **featureful_client.cfg**. For example, if `weapon_wallpuff.enabled_by_default` is set to `true`, set the `cl_weapon_wallpuff` value in **user.scr** to 1.
+
+{{% hint warning %}}
+The entries in **user.scr** are getting updated with the user settings. So if you set anything to non-default values during development it will affect this file contents. We recommend to keep the separate "clean" instance of **user.scr** file with default settings somewhere else or under a different name. Before shipping the mod copy this "clean" version to the **<modfolder>/user.scr**.
+{{% /hint %}}
+
 See also: [settings.scr and user.scr on TWHL](https://twhl.info/wiki/page/settings.scr_and_user.scr)
+
+### userconfig.cfg
+
+**DO NOT** ship the custom **userconfig.cfg** with your mod unless you're absolutely have to. This file is supposed to be edited by the user, not shipped with a mod.
+
+Use **features/featureful_client.cfg** to set the default values for some custom client cvars. Use **features/featureful_exec.cfg** to set custom default values for server cvars. Use [player templates]({{< ref "player-templates" >}}) to change the default player traits like maximum speed.
 
 ### Exclude redundant files
 
 Make sure your **config.cfg** doesn't get packaged into the mod archive. The config.cfg contains user settings such as volume, keyboard, sensitivity, etc.
 
-Players have their own config.cfg file in the valve/ folder - this configuration is used automatically if the mod folder lacks its own config.cfg. It's better to prefer user settings unless there's a good reason to include custom config. One of such reasons is providing some keybinding by default (e.g. to access weapon slot 6). Sadly, there's no easy and stable way to provide only missing bindings, so you have to ship the whole config (e.g. Counter Strike and Opposing Force have additional keybindings and they provide custom config.cfg by default).
+Players have their own config.cfg file in the **valve/** folder - this configuration is used automatically if the mod folder lacks its own config.cfg. If you want to provide the default keybindings for commands that didn't exist in base Half-Life (and thus don't appear in uers's valve/config.cfg), refer to [Default keys]({{< ref "default-keys" >}}).
 
-There're several auto-generated files that you might consider to exclude just to keep the archive cleaner, but if they're kept, they're not harmful:
+There're also several auto-generated files that you might consider to exclude just to keep the archive cleaner, but if they're kept, they're not harmful:
 
 * logos/remapped.bmp
 * models/player/remapped.bmp

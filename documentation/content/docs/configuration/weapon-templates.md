@@ -258,7 +258,7 @@ The following weapons have only partial support for configuration:
 * [weapon_tripmine]({{< ref weapon_tripmine >}})
     * idle animations
     * deploy animation
-* [weapon_grapple]
+* [weapon_grapple]({{< ref weapon_grapple >}})
     * `"weapon_volume"` for `"fire"`
 
 # Weapon template properties

@@ -6,11 +6,26 @@ bookToC: false
 
 # {{% param "title" %}}
 
-Apart from [Feature configuration]({{< ref configuration >}}) the development process for the mod based on Featureful SDK is basically the same as for original Half-Life and other mods.
+Apart from [Feature configuration]({{< ref configuration >}}) the development process for the mod based on Featureful SDK is basically the same as for original Half-Life and other mods. You can use any GoldSource tools you would use for the base game.
 
-You can use any GoldSource tools you would use otherwise, with the exception of level editor: currently the FGD distributed with the sample mod is made specificially for JACK and may not work with other level editors. If there's a demand for Trenchbroom compatible FGD we will start distributing the one as well.
+{{% hint info %}}
+Most mapping or resource-handling tutorials you can find for Half-Life are probably suitable for Featureful SDK as well. Generic questions can be answered in tutorials or in community chats. We expect you to have some (at least basic) experience with Half-Life modding and mapping prior to switching or trying out the Featureful SDK, so this documentation doesn't go into details of configuring the level editor, compiling the maps, etc. - there're plenty of other resources dedicated to these matters.
+{{% /hint %}}
 
-Most mapping or resource-handling tutorials you can find for Half-Life are probably suitable for Featureful SDK as well. So please don't bother the author with generic Half-Life questions that can be answered in tutorials or in community chats. We expect you have some (at least basic) experience with Half-Life modding and mapping prior to switching or trying out the Featureful SDK, so this documentation doesn't go into details of configuring the level editor, compiling the maps, etc. - there're plenty of other resources dedicated to these matters.
+## FGD
+
+There're currently two fgds distributed with the sample mod (and in the dev-only package):
+
+* **halflife_featureful.fgd** - FGD for JACK level editor.
+* **halflife_featureful-tb.fgd** - FGD for Trenchbroom level editor.
+
+{{% hint warning %}}
+**zhlt.fgd** which is specific to vhlt/zhlt map compilers is not distributed with the Featureful SDK. Don't forget to add it to the fgd list in JACK!
+{{% /hint %}}
+
+{{% hint info %}}
+As Trenchbroom can't specify multiple fgds per profile you would need to manually add the contents of **zhlt.fgd** into **halflife_featureful-tb.fgd** in case you're using the vhlt/zhlt map compilers and want to use their special features.
+{{% /hint %}}
 
 ## Recommendations
 

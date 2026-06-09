@@ -136,7 +136,7 @@ kingpin
 
 You can edit some server-side features via **features/featureful_server.cfg**. The file provided in the mod sample directory contains comments describing the features, so we don't go into detail on each feature here.
 
-There's also a **features/featureful_exec.cfg** file which is getting executed by the engine and needs to be in the regular `.cfg` format (like server.cfg or skill.cfg). In this file you can set some cvars to values specific for your mod for features that are currently implemented as cvars only (e.g. `pushablemode` cvar).
+There's also a **features/featureful_exec.cfg** file which is getting executed by the engine and needs to be in the regular `.cfg` format (like server.cfg). In this file you can set some cvars to values specific for your mod for features that are currently implemented as cvars only (e.g. `pushablemode` cvar).
 
 Read some [recommendations]({{< ref "configuration.md/#recommendations" >}}) on configuring the mod.
 

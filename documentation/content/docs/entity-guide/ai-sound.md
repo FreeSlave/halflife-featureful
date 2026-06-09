@@ -40,7 +40,8 @@ Sounds of pending danger (e.g. something is about to explode). Produced by grena
 
 The danger sound is produced by the following entities:
 
-* [grenade]({{< ref grenade >}}) - as hand grenade hits something and 1 second before it detonates, or as AR grenade is getting launched.
+* [grenade]({{< ref grenade >}}) - as hand grenade bounces off something and 1 second before it detonates, or as AR grenade is getting launched.
+* [grenaderound]({{< ref grenaderound >}}) - as the grenade bounces off something and 1 second before it detonates.
 * [spore]({{< ref spore >}}) - as spore grenade is bouncing off something.
 * [func_mortar_field]({{< ref func_mortar_field >}}) - before the first mortar strike.
 * [mortar_shell]({{< ref mortar_shell >}}) - as it flies.
