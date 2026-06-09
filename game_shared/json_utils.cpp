@@ -13,6 +13,8 @@
 #include "rapidjson/schema.h"
 #include "rapidjson/error/en.h"
 
+#include <unordered_set>
+
 #include "json_schemas.h"
 
 using namespace rapidjson;
@@ -112,6 +114,30 @@ IRemoteSchemaDocumentProvider* GetDefinitionsProvider()
 	return provider.get();
 }
 
+static void CheckDuplicateKeys(const Value& value, const char* fileName, const std::string path = "")
+{
+	if (value.IsObject()) {
+		std::unordered_set<std::string> seenKeys;
+
+		for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it) {
+			std::string key(it->name.GetString(), it->name.GetStringLength());
+
+			if (!seenKeys.insert(key).second) {
+				g_errorCollector.AddFormattedError("%s: duplicate key \"%s\" found at '%s'\n", fileName, key.c_str(), path.empty() ? "/" : path.c_str());
+			}
+
+			if (it->value.IsObject() || it->value.IsArray())
+				CheckDuplicateKeys(it->value, fileName, path + "/" + key);
+		}
+	} else if (value.IsArray()) {
+		Value::ConstArray arr = value.GetArray();
+		for (size_t i = 0; i < arr.Size(); ++i) {
+			if (arr[i].IsObject() || arr[i].IsArray())
+				CheckDuplicateKeys(arr[i], fileName, path + "/" + std::to_string(i));
+		}
+	}
+}
+
 bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fileSize, const char *schemaText, const char* fileName)
 {
 	if (!fileName)
@@ -199,6 +225,9 @@ bool ReadJsonDocumentWithSchema(Document &document, const char *pMemFile, int fi
 
 		return false;
 	}
+
+	CheckDuplicateKeys(document, fileName);
+
 	return true;
 }
 
