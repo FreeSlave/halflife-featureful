@@ -681,7 +681,7 @@ void CCineMonster::CineThink()
 {
 	if (IsLockedByMaster() || !TryFindAndPossessEntity())
 	{
-		const float delay = m_searchDelay > 0.0f ? m_searchDelay : 0.0f;
+		const float delay = m_searchDelay > 0.0f ? m_searchDelay : 1.0f;
 		pev->nextthink = gpGlobals->time + delay;
 	}
 }
