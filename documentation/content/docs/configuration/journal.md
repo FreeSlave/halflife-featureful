@@ -4,17 +4,17 @@ title: "Journal"
 
 # {{% param "title" %}}
 
-Featureful SDK implements a simple journal window that can be used to show objectives, hints and other texts to the player. Journal consists of sections, and each section may have the header and the message text.
+Featureful SDK implements a simple journal window that can be used to show objectives, hints and other texts to the player. Journal consists of *sections*, and each section may have the *header* and the message text. The journal is designed to support the localization via the [translatable messages]({{< ref "text-messages/#translatable-messages" >}}).
 
 ![Journal window](/images/journal-window.png)
 
 Journal is currently for singleplayer only, and it can be opened by the same key that is used to show scoreboard in multiplayer.
 
-Getting a new journal record can show the notification message on the player's screen and optionally play a notification sound. Multiple notifications may render at the same time: they will appear in the delivery order.
+Getting a new journal record (see [Usage](#usage)) can show the notification message on the player's screen and optionally play a notification sound. Multiple notifications may render at the same time: they will appear in the delivery order.
 
 ## Configuration
 
-The journal sections are configured in the **journal.json** file (in the mod main directory).
+The journal look and sections are configured in the **journal.json** file (in the mod main directory).
 
 Example:
 
@@ -114,7 +114,7 @@ An optional property that lets you to configure the colors for the journal windo
 
 ## Usage
 
-For the **journal.json** example above you'll need to define [text messages]({{< ref "text-messages/#translatable-messages" >}}) for headers and journal records. Example:
+For the **journal.json** example above you'll need to define [text messages]({{< ref "text-messages/#translatable-messages" >}}) for headers and journal records. Example of **messages.en.json**:
 
 ```json
 {
@@ -140,10 +140,10 @@ To use the journal in the game you put the [game_journal]({{< ref game_journal >
 
 To update the primary objective with the example message you would set:
 
-* `Journal Section` = `primary`
-* `Journal Record` = `PRIMARY_OBJECTIVE_EXAMPLE`
+* `Journal Section` = `primary` (the section is defined in the [previous](#configuration)) example.
+* `Journal Record` = `PRIMARY_OBJECTIVE_EXAMPLE` (the id of a translatable objective message)
 
-This also will show the message `New primary objective! Press [TAB] to read` on the player's screen (in case the journal/scoreboard is bound to TAB key).
+This also will show the message `New primary objective! Press [TAB] to read` on the player's screen (in case the journal/scoreboard is bound to TAB key), using the `PRIMARY_OBJECTIVE_UPDATED1` and `PRIMARY_OBJECTIVE_UPDATED2` messages as configured in **journal.json**.
 
 To update the thoughts you would set:
 
@@ -155,3 +155,9 @@ The inventory section gets updated automatically as player receives or loses inv
 {{% hint info %}}
 If there's no record for the specified message ID the message ID will be displayed instead of text.
 {{% /hint %}}
+
+To reiterate:
+
+1. Write [configuration](#configuration) in **journal.json**.
+2. Add the message entries to **messages.en.json** (and **messages.json** for localizations).
+3. Put the [game_journal]({{< ref game_journal >}}) entity on the map. Set section to one of sections defined in **journal.json**. Set record to one of message ids from **messages.en.json**. Give the entity a targetname and trigger it to show a notification and add a record in the player's journal.

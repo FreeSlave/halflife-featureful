@@ -39,7 +39,7 @@ Use **features/featureful_client.cfg** to set the default values for some custom
 
 Make sure your **config.cfg** doesn't get packaged into the mod archive. The config.cfg contains user settings such as volume, keyboard, sensitivity, etc.
 
-Players have their own config.cfg file in the **valve/** folder - this configuration is used automatically if the mod folder lacks its own config.cfg. If you want to provide the default keybindings for commands that didn't exist in base Half-Life (and thus don't appear in uers's valve/config.cfg), refer to [Default keys]({{< ref "default-keys" >}}).
+Players have their own config.cfg file in the **valve/** folder - this configuration is used automatically if the mod folder lacks its own config.cfg. If you want to provide the default keybindings for commands that didn't exist in base Half-Life (and thus don't appear in user's valve/config.cfg), refer to [Default keys]({{< ref "default-keys" >}}).
 
 There're also several auto-generated files that you might consider to exclude just to keep the archive cleaner, but if they're kept, they're not harmful:
 
