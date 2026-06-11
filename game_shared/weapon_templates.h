@@ -12,10 +12,14 @@
 #include <map>
 #include <set>
 
+#if !CLIENT_DLL
+#include "ent_templates.h"
+#endif
+
 class WeaponTemplateSystem : public JSONConfig
 {
 public:
-	void ParseWeaponTemplate(WeaponParameters& params, const rapidjson::Value& value, const char* fileName);
+	void ParseWeaponTemplate(WeaponParameters& params, const rapidjson::Value& value, const char* fileName, const char* weaponName);
 protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;

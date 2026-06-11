@@ -46,18 +46,20 @@ const char weaponSingleTemplateSchema[] = R"(
 class WeaponSingleTemplate : public JSONConfig
 {
 public:
-	WeaponSingleTemplate(WeaponParameters* pParams, WeaponTemplateSystem* weaponTemplateSystem): _pParams(pParams), _weaponTemplateSystem(weaponTemplateSystem) {}
+	WeaponSingleTemplate(WeaponParameters* pParams, WeaponTemplateSystem* weaponTemplateSystem, const char* weaponName):
+		_pParams(pParams), _weaponTemplateSystem(weaponTemplateSystem), _weaponName(weaponName) {}
 protected:
 	const char* Schema() const override {
 		return weaponSingleTemplateSchema;
 	}
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override {
-		_weaponTemplateSystem->ParseWeaponTemplate(*_pParams, document, fileName);
+		_weaponTemplateSystem->ParseWeaponTemplate(*_pParams, document, fileName, _weaponName);
 		return true;
 	}
 
-	WeaponParameters* _pParams;
-	WeaponTemplateSystem* _weaponTemplateSystem;
+	WeaponParameters* _pParams = nullptr;
+	WeaponTemplateSystem* _weaponTemplateSystem = nullptr;
+	const char* _weaponName = nullptr;
 };
 
 static Vector ParseSpreadCone(const char* str)
@@ -189,7 +191,7 @@ void WeaponTemplateSystem::ParseWeaponSoundScript(WeaponSoundScript& soundScript
 	}
 }
 
-void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const rapidjson::Value& value, const char* fileName)
+void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const rapidjson::Value& value, const char* fileName, const char* weaponName)
 {
 	bool fromScratch = false;
 	if (UpdatePropertyFromJson(fromScratch, value, "from_scratch"))
@@ -902,6 +904,24 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			HandleJSONMember(value, "projectile", [&](const Value& value) {
 				UpdatePropertyFromJson(fire.projectileName, value, "name", altMode);
+
+				HandleJSONMember(value, "ent_template", [&](const Value& value) {
+					if (value.IsString())
+					{
+						fire.projectileEntTemplate.Materialize(altMode) = value.GetString();
+					}
+					else if (value.IsObject())
+					{
+#if !CLIENT_DLL
+						std::string entTemplateName = weaponName;
+						entTemplateName += "#";
+						entTemplateName += altMode ? "alt_fire##projectile" : "fire##projectile";
+						fire.projectileEntTemplate = entTemplateName;
+						g_EntTemplateSystem.AddTemplateFromJsonValue(fire.projectileEntTemplate.Get(altMode).c_str(), value, fileName);
+#endif
+					}
+				});
+
 				UpdatePropertyFromJson(fire.projectileEntTemplate, value, "ent_template", altMode);
 
 				HandleJSONMember(value, "offset", [&](const Value& value) {
@@ -1387,14 +1407,14 @@ bool WeaponTemplateSystem::ReadFromDocument(const Document &document, const char
 				{
 					weaponFileName += ".json";
 				}
-				WeaponSingleTemplate singleWeapon(pParams, this);
+				WeaponSingleTemplate singleWeapon(pParams, this, name);
 				const bool success = singleWeapon.ReadFromFile(weaponFileName.c_str());
 				if (!success)
 					LOG_ERROR("Failed to load %s\n", weaponFileName.c_str());
 			}
 			else
 			{
-				ParseWeaponTemplate(*pParams, value, fileName);
+				ParseWeaponTemplate(*pParams, value, fileName, name);
 			}
 		}
 		else

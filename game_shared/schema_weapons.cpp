@@ -661,7 +661,7 @@ R"(
 						"minLength": 1
 					},
 					"ent_template": {
-						"type": "string"
+						"$ref": "definitions.json#/ent_template"
 					},
 					"offset": {
 						"type": "object",

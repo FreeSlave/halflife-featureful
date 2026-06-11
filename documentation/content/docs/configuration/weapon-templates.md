@@ -1182,7 +1182,25 @@ Example: make hornetgun fire squid spits instead of hornets on primary attack.
 
 #### ent_template
 
-The name of the [entity template]({{< ref entity-templates >}}) for the projectile. This allows to configure visuals and soundscripts for the fired projectile.
+The name of the [entity template]({{< ref entity-templates >}}) for the projectile or the entity template definition object. This allows to configure visuals and soundscripts for the fired projectile.
+
+Example:
+
+```json
+{
+    "weapon_nailgun": {
+        "fire": {
+            "projectile": {
+                "ent_template": {
+                    "own_visual": {
+                        "model": "models/spike.mdl"
+                    }
+                }
+            }
+        }
+    }
+}
+```
 
 #### offset {#projectile-offset}
 

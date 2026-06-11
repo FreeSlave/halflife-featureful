@@ -759,6 +759,7 @@ Required models:
 * **g_nail.mdl**
 * **v_nail.mdl**
 * **p_nail.mdl**
+* **spike.mdl**
 
 Required sounds:
 
@@ -777,25 +778,12 @@ Required models:
 * **g_nail2.mdl**
 * **v_nail2.mdl**
 * **p_nail2.mdl**
+* **spike.mdl**
 
 Required sounds:
 
-* **weapons/spike2_dmc.wav**
+* **weapons/spike2.wav**
 {{% /details_header %}}
-
-{{% hint info %}}
-The DMC nailguns use a different model for the nails. You can copy **spike.mdl** from DMC under the **nail.mdl** name or use the following [entity template]({{< ref entity-templates >}}):
-
-```json
-{
-    "dmc_nail": {
-        "own_visual": {
-            "model": "models/spike.mdl"
-        }
-    }
-}
-```
-{{% /hint %}}
 
 ## Delta Particles
 
