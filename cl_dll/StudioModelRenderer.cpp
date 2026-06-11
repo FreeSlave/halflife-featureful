@@ -11,6 +11,11 @@
 #include "windows_lean.h"
 #include "gl_dynamic.h"
 
+#include "winsani_in.h"
+#include "Windows.h"
+#include "winsani_out.h"
+#include "GL/gl.h"
+
 #include <cstdlib>
 #include "hud.h"
 #include "cl_util.h"
@@ -40,6 +45,25 @@ extern bool ShouldMirrorCurrentViewModel();
 
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
+
+extern float g_flRenderFOV;
+
+extern Vector g_vViewOrigin;
+extern Vector g_vViewForward;
+extern Vector g_vViewRight;
+extern Vector g_vViewUp;
+
+extern cvar_t *default_fov;
+extern cvar_t *default_fov_viewmodel;
+
+inline float clampf(float val, float minVal, float maxVal)
+{
+	if(val < minVal)
+		return minVal;
+	if(val > maxVal)
+		return maxVal;
+	return val;
+}
 
 /////////////////////
 // Implementation of CStudioModelRenderer.h
@@ -1674,6 +1698,9 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	int i;
 	mstudioattachment_t *pattachment;
 
+	if(!m_pStudioHeader || !m_pCurrentEntity)
+		return;
+
 	if( m_pStudioHeader->numattachments > 4 )
 	{
 		gEngfuncs.Con_DPrintf( "Too many attachments on %s\n", m_pCurrentEntity->model->name );
@@ -1682,10 +1709,87 @@ void CStudioModelRenderer::StudioCalcAttachments()
 
 	// calculate attachment points
 	pattachment = (mstudioattachment_t *)( (byte *)m_pStudioHeader + m_pStudioHeader->attachmentindex );
+
+	// Precompute effective viewmodel FOV once per frame
+	float worldFOV = g_flRenderFOV;
+
+	float baseVMFOV = default_fov_viewmodel ? default_fov_viewmodel->value : 90.0f;
+	baseVMFOV = fmaxf(1.0f, baseVMFOV);
+
+	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
+	float zoomScale = 0.5f; // tweakable: how much viewmodel zoom reacts
+
+	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
+	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
+
+	float factor = tanf(worldFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
+
 	for( i = 0; i < m_pStudioHeader->numattachments; i++ )
 	{
 		VectorTransform( pattachment[i].org, (*m_plighttransform)[pattachment[i].bone], m_pCurrentEntity->attachment[i] );
+
+		if(m_pCurrentEntity == gEngfuncs.GetViewModel() && NeedAdjustViewmodelAdjustments())
+		{
+			// Transform to view space
+			Vector tmp = m_pCurrentEntity->attachment[i] - g_vViewOrigin;
+			Vector vTransformed(DotProduct(g_vViewRight, tmp),
+								DotProduct(g_vViewUp, tmp),
+								DotProduct(g_vViewForward, tmp)
+			);
+			// Apply scaling factor
+			vTransformed.x *= factor;
+			vTransformed.y *= factor;
+
+			// Transform back to world space
+			m_pCurrentEntity->attachment[i] = g_vViewOrigin +
+				g_vViewRight * vTransformed.x +
+				g_vViewUp * vTransformed.y +
+				g_vViewForward * vTransformed.z;
+		}
 	}
+}
+
+bool CStudioModelRenderer::NeedAdjustViewmodelAdjustments()
+{
+	return IEngineStudio.IsHardware() && default_fov_viewmodel && default_fov_viewmodel->value > 0.0f;
+}
+
+void CStudioModelRenderer::StudioAdjustViewmodelAttachments(Vector &vOrigin)
+{
+	if(!default_fov_viewmodel)
+		return;
+
+	float baseVMFOV = default_fov_viewmodel->value;
+
+	if(baseVMFOV < 1.0f)
+		baseVMFOV = 90.0f;
+
+	float worldFOV = g_flRenderFOV;
+	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
+	float zoomScale = 0.5f; // adjust how much the weapon zooms
+
+	// Effective viewmodel FOV only depends on world zoom, not default_fov
+	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
+
+	if(effectiveVMFOV < 1.0f)
+		effectiveVMFOV = 1.0f;
+	if(effectiveVMFOV > 179.0f)
+		effectiveVMFOV = 179.0f;
+
+	float factor = tanf(worldFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
+
+	Vector tmp = vOrigin - g_vViewOrigin;
+	Vector vTransformed(DotProduct(g_vViewRight, tmp),
+						DotProduct(g_vViewUp, tmp),
+						DotProduct(g_vViewForward, tmp)
+	);
+	vTransformed.x *= factor;
+	vTransformed.y *= factor;
+
+	vOrigin = g_vViewOrigin +
+		(g_vViewRight * vTransformed.x) +
+		(g_vViewUp * vTransformed.y) +
+		(g_vViewForward * vTransformed.z);
 }
 
 /*
@@ -1777,6 +1881,37 @@ void CStudioModelRenderer::StudioRenderFinal_Software()
 	IEngineStudio.RestoreRenderer();
 }
 
+void CStudioModelRenderer::SetViewmodelFovProjection(void)
+{
+	if(!IEngineStudio.IsHardware() || !default_fov_viewmodel)
+		return;
+
+	float baseVMFOV = default_fov_viewmodel->value;
+	baseVMFOV = fmaxf(1.0f, baseVMFOV);
+
+	float worldFOV = g_flRenderFOV;
+	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
+	float zoomScale = 0.5f;
+
+	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
+	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	const GLfloat _near = 3.0f;
+	const GLfloat _far = 4096.0f;
+
+	float aspect = (float)ScreenWidth / (float)ScreenHeight;
+
+	GLfloat h = tanf(effectiveVMFOV * M_PI / 360.0f) * _near;
+	GLfloat w = h * aspect;
+
+	glFrustum(-w, w, -h, h, _near, _far);
+	glMatrixMode(GL_MODELVIEW);
+}
+
 /*
 ====================
 StudioRenderFinal_Hardware
@@ -1812,7 +1947,20 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware()
 			}
 
 			IEngineStudio.GL_SetRenderMode( rendermode );
-			IEngineStudio.StudioDrawPoints();
+
+			if(m_pCurrentEntity == gEngfuncs.GetViewModel())
+			{
+				SetViewmodelFovProjection();
+				IEngineStudio.StudioDrawPoints(); // draw viewmodel
+				glMatrixMode(GL_PROJECTION);
+				glPopMatrix(); // restore world FOV
+				glMatrixMode(GL_MODELVIEW);
+			}
+			else
+			{
+				IEngineStudio.StudioDrawPoints(); // normal world entities
+			}
+
 			IEngineStudio.GL_StudioDrawShadow();
 
 			if (m_reinforceNoneCulling)

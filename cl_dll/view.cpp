@@ -24,6 +24,7 @@
 #include "shake.h"
 #include "hltv.h"
 #include "view.h"
+#include "min_and_max.h"
 
 bool g_Paused = false;
 
@@ -65,6 +66,13 @@ void VectorAngles( const float *forward, float *angles );
 
 extern engine_studio_api_t IEngineStudio;
 
+template <typename T>
+
+inline T clamp(const T &val, const T &minVal, const T &maxVal)
+{
+	return (val < minVal) ? minVal : (val > maxVal ? maxVal : val);
+}
+
 /*
 The view is allowed to move slightly from it's true position for bobbing,
 but if it exceeds 8 pixels linear distance (spherical, not box), the list of
@@ -90,6 +98,11 @@ bool v_resetCamera = true;
 
 Vector v_client_aimangles;
 Vector g_ev_punchangle;
+
+Vector g_vViewOrigin;
+Vector g_vViewForward;
+Vector g_vViewRight;
+Vector g_vViewUp;
 
 cvar_t	*scr_ofsx;
 cvar_t	*scr_ofsy;
@@ -1668,6 +1681,13 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 		V_CalcNormalRefdef( pparams );
 	}
+
+	// Save view data for viewmodel renderer
+	g_vViewOrigin = pparams->vieworg;
+	g_vViewForward = pparams->forward;
+	g_vViewRight = pparams->right;
+	g_vViewUp = pparams->up;
+
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha
 #define SF_TEST	1
