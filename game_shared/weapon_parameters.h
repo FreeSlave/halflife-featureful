@@ -544,7 +544,6 @@ struct WeaponParameters
 		Visual visual;
 		short startAttachment{0};
 		short endAttachment{0};
-		bool visualSet{false};
 	};
 
 	typedef std::vector<ViewmodelBeam> ViewmodelBeamArray;

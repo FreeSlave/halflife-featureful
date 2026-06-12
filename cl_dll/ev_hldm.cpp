@@ -803,7 +803,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		}
 	}
 
-	WeaponParameters::ViewmodelBeamArray beamArr = fire.viewmodelBeams.Get(altMode);
+	const WeaponParameters::ViewmodelBeamArray& beamArr = fire.viewmodelBeams.Get(altMode);
 
 	for (size_t i = 0; i < beamArr.size(); ++i)
 	{
