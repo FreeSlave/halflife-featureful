@@ -191,6 +191,7 @@ public:
 	float m_goalYaw;
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
+	bool m_missingSequence;
 
 	static constexpr const char* deploySoundScript = "SuitRecharge.Deploy";
 
@@ -212,6 +213,7 @@ TYPEDESCRIPTION CRechargeDecay::m_SaveData[] =
 	DEFINE_FIELD( CRechargeDecay, m_playingChargeSound, FIELD_BOOLEAN),
 	DEFINE_FIELD( CRechargeDecay, m_triggerOnFirstUse, FIELD_STRING),
 	DEFINE_FIELD( CRechargeDecay, m_triggerOnEmpty, FIELD_STRING),
+	DEFINE_FIELD( CRechargeDecay, m_missingSequence, FIELD_BOOLEAN),
 };
 
 IMPLEMENT_SAVERESTORE( CRechargeDecay, CBaseAnimating )
@@ -261,13 +263,13 @@ void CRechargeDecay::Spawn()
 
 	if (m_iJuice > 0)
 	{
-		m_iState = Still;
+		SetChargeState(Still);
 		SetThink(&CRechargeDecay::AnimateAndWork);
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 	else
 	{
-		m_iState = Inactive;
+		SetChargeState(Inactive);
 	}
 }
 
@@ -284,6 +286,8 @@ void CRechargeDecay::Precache()
 	RegisterAndPrecacheSoundScript(deploySoundScript, CRecharge::startSoundScript);
 
 	RegisterVisual(beamVisual);
+
+	UTIL_PrecacheOther("item_recharge_glass", GetProjectileOverrides());
 }
 
 void CRechargeDecay::Activate()
@@ -294,7 +298,7 @@ void CRechargeDecay::Activate()
 	m_glass = GetClassPtr( (CRechargeGlassDecay *)NULL );
 	if (m_glass)
 	{
-		m_glass->m_ownerEntTemplate = m_entTemplate;
+		m_glass->AssignEntityOverrides(GetProjectileOverrides());
 		m_glass->Spawn();
 		UTIL_SetOrigin(m_glass->pev, pev->origin);
 		m_glass->pev->angles = pev->angles;
@@ -342,7 +346,7 @@ void CRechargeDecay::SearchForPlayer()
 				TurnChargeToPlayer(pEntity->pev->origin);
 				switch (m_iState) {
 				case RetractShot:
-					if( m_fSequenceFinished )
+					if (m_fSequenceFinished || m_missingSequence)
 						SetChargeState(Idle);
 					break;
 				case RetractArm:
@@ -352,7 +356,7 @@ void CRechargeDecay::SearchForPlayer()
 					SetChargeState(Deploy);
 					break;
 				case Deploy:
-					if (m_fSequenceFinished)
+					if (m_fSequenceFinished || m_missingSequence)
 					{
 						TurnBeamOn();
 						SetChargeState(Idle);
@@ -376,7 +380,7 @@ void CRechargeDecay::SearchForPlayer()
 			SetChargeState(RetractArm);
 			break;
 		case RetractArm:
-			if (m_fSequenceFinished)
+			if (m_fSequenceFinished || m_missingSequence)
 			{
 				SetChargeState(Still);
 				SetChargeController(0);
@@ -443,7 +447,7 @@ void CRechargeDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 		EmitSoundScript(CRecharge::startSoundScript);
 		break;
 	case GiveShot:
-		if (m_fSequenceFinished)
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			SetChargeState(Healing);
 		}
@@ -514,7 +518,7 @@ void CRechargeDecay::Off()
 		SetChargeState(RetractShot);
 		break;
 	case RetractShot:
-		if (m_fSequenceFinished)
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			if (m_iJuice > 0) {
 				SetChargeState(Idle);
@@ -527,11 +531,11 @@ void CRechargeDecay::Off()
 		break;
 	case RetractArm:
 	{
-		if( m_fSequenceFinished )
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			m_currentYaw = m_goalYaw = 0;
 			SetBoneController(RECHARGER_ARM_CONTROLLER, m_currentYaw);
-			if ( m_iJuice <= 0 )
+			if (m_iJuice <= 0)
 			{
 				SetChargeState(Inactive);
 				const float rechargeTime = g_pGameRules->FlHEVChargerRechargeTime();
@@ -554,13 +558,28 @@ void CRechargeDecay::Off()
 
 void CRechargeDecay::SetMySequence(const char *sequence)
 {
-	pev->sequence = LookupSequence( sequence );
-	if (pev->sequence == -1) {
-		ALERT(at_error, "unknown sequence in %s: %s\n", STRING(pev->model), sequence);
-		pev->sequence = 0;
+	bool shouldReset = false;
+	int newSequence = LookupSequence( sequence );
+	if (newSequence == -1) {
+		m_missingSequence = true;
+		if (pev->sequence != 0)
+		{
+			pev->sequence = 0;
+			shouldReset = true;
+		}
 	}
-	pev->frame = 0;
-	ResetSequenceInfo();
+	else
+	{
+		m_missingSequence = false;
+		pev->sequence = newSequence;
+		shouldReset = true;
+	}
+
+	if (shouldReset)
+	{
+		pev->frame = 0;
+		ResetSequenceInfo();
+	}
 }
 
 void CRechargeDecay::SetChargeState(int state)

@@ -612,6 +612,7 @@ public:
 	float m_goalYaw;
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
+	bool m_missingSequence;
 
 	static constexpr const char* deploySoundScript = "WallHealth.Deploy";
 
@@ -630,6 +631,7 @@ TYPEDESCRIPTION CWallHealthDecay::m_SaveData[] =
 	DEFINE_FIELD( CWallHealthDecay, m_playingChargeSound, FIELD_BOOLEAN),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnFirstUse, FIELD_STRING),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnEmpty, FIELD_STRING),
+	DEFINE_FIELD( CWallHealthDecay, m_missingSequence, FIELD_BOOLEAN),
 };
 
 IMPLEMENT_SAVERESTORE( CWallHealthDecay, CBaseAnimating )
@@ -672,13 +674,13 @@ void CWallHealthDecay::Spawn()
 
 	if (m_iJuice > 0)
 	{
-		m_iState = Still;
+		SetNeedleState(Still);
 		SetThink(&CWallHealthDecay::AnimateAndWork);
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 	else
 	{
-		m_iState = Inactive;
+		SetNeedleState(Inactive);
 	}
 }
 
@@ -693,6 +695,8 @@ void CWallHealthDecay::Precache()
 	RegisterAndPrecacheSoundScript(CWallHealth::loopingSoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::rechargeSoundScript);
 	RegisterAndPrecacheSoundScript(deploySoundScript, CWallHealth::startSoundScript);
+
+	UTIL_PrecacheOther("item_healthcharger_jar", GetProjectileOverrides());
 }
 
 void CWallHealthDecay::Activate()
@@ -700,7 +704,7 @@ void CWallHealthDecay::Activate()
 	m_jar = GetClassPtr( (CWallHealthJarDecay *)NULL );
 	if (m_jar)
 	{
-		m_jar->m_ownerEntTemplate = m_entTemplate;
+		m_jar->AssignEntityOverrides(GetProjectileOverrides());
 		m_jar->Spawn();
 		UTIL_SetOrigin(m_jar->pev, pev->origin);
 		m_jar->pev->angles = pev->angles;
@@ -713,7 +717,7 @@ void CWallHealthDecay::Activate()
 void CWallHealthDecay::AnimateAndWork()
 {
 	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.1;
+	pev->nextthink = gpGlobals->time + 0.1f;
 
 	if (m_goalYaw < 0)
 		m_currentYaw = Q_max(m_currentYaw - 15, m_goalYaw);
@@ -750,7 +754,7 @@ void CWallHealthDecay::SearchForPlayer()
 				TurnNeedleToPlayer(pEntity->pev->origin);
 				switch (m_iState) {
 				case RetractShot:
-					if( m_fSequenceFinished )
+					if (m_fSequenceFinished || m_missingSequence)
 						SetNeedleState(Idle);
 					break;
 				case RetractArm:
@@ -760,7 +764,7 @@ void CWallHealthDecay::SearchForPlayer()
 					SetNeedleState(Deploy);
 					break;
 				case Deploy:
-					if (m_fSequenceFinished)
+					if (m_fSequenceFinished || m_missingSequence)
 					{
 						SetNeedleState(Idle);
 					}
@@ -783,7 +787,7 @@ void CWallHealthDecay::SearchForPlayer()
 			SetNeedleState(RetractArm);
 			break;
 		case RetractArm:
-			if (m_fSequenceFinished)
+			if (m_fSequenceFinished || m_missingSequence)
 			{
 				SetNeedleState(Still);
 				SetNeedleController(0);
@@ -851,7 +855,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		soundType = 1;
 		break;
 	case GiveShot:
-		if (m_fSequenceFinished)
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			SetNeedleState(Healing);
 		}
@@ -945,7 +949,7 @@ void CWallHealthDecay::Off()
 		SetNeedleState(RetractShot);
 		break;
 	case RetractShot:
-		if( m_fSequenceFinished )
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			if (m_iJuice > 0) {
 				SetNeedleState(Idle);
@@ -959,15 +963,15 @@ void CWallHealthDecay::Off()
 		break;
 	case RetractArm:
 	{
-		if( m_fSequenceFinished )
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			m_currentYaw = m_goalYaw = 0;
 			SetBoneController(0, m_currentYaw);
-			if( ( m_iJuice <= 0 ) )
+			if (m_iJuice <= 0)
 			{
 				SetNeedleState(Inactive);
 				const float rechargeTime = g_pGameRules->FlHealthChargerRechargeTime();
-				if (rechargeTime > 0 ) {
+				if (rechargeTime > 0) {
 					pev->nextthink = gpGlobals->time + rechargeTime;
 					SetThink( &CWallHealthDecay::Recharge );
 				}
@@ -986,13 +990,28 @@ void CWallHealthDecay::Off()
 
 void CWallHealthDecay::SetMySequence(const char *sequence)
 {
-	pev->sequence = LookupSequence( sequence );
-	if (pev->sequence == -1) {
-		ALERT(at_error, "unknown sequence in %s: %s\n", STRING(pev->model), sequence);
-		pev->sequence = 0;
+	bool shouldReset = false;
+	int newSequence = LookupSequence( sequence );
+	if (newSequence == -1) {
+		m_missingSequence = true;
+		if (pev->sequence != 0)
+		{
+			pev->sequence = 0;
+			shouldReset = true;
+		}
 	}
-	pev->frame = 0;
-	ResetSequenceInfo();
+	else
+	{
+		m_missingSequence = false;
+		pev->sequence = newSequence;
+		shouldReset = true;
+	}
+
+	if (shouldReset)
+	{
+		pev->frame = 0;
+		ResetSequenceInfo();
+	}
 }
 
 void CWallHealthDecay::SetNeedleState(int state)
