@@ -192,6 +192,8 @@ public:
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
 
+	static constexpr const char* deploySoundScript = "SuitRecharge.Deploy";
+
 protected:
 	void SetMySequence(const char* sequence);
 	void CreateBeam();
@@ -279,6 +281,7 @@ void CRechargeDecay::Precache()
 	RegisterAndPrecacheSoundScript(CRecharge::denySoundScript);
 	RegisterAndPrecacheSoundScript(CRecharge::loopingSoundScript);
 	RegisterAndPrecacheSoundScript(CRecharge::rechargeSoundScript);
+	RegisterAndPrecacheSoundScript(deploySoundScript, CRecharge::startSoundScript);
 
 	RegisterVisual(beamVisual);
 }
@@ -568,7 +571,7 @@ void CRechargeDecay::SetChargeState(int state)
 		SetMySequence("rest");
 		break;
 	case Deploy:
-		EmitSoundScript(CRecharge::startSoundScript);
+		EmitSoundScript(deploySoundScript);
 		SetMySequence("deploy");
 		break;
 	case Idle:

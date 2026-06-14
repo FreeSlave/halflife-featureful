@@ -613,6 +613,8 @@ public:
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
 
+	static constexpr const char* deploySoundScript = "WallHealth.Deploy";
+
 protected:
 	void SetMySequence(const char* sequence);
 };
@@ -690,6 +692,7 @@ void CWallHealthDecay::Precache()
 	RegisterAndPrecacheSoundScript(CWallHealth::denySoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::loopingSoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::rechargeSoundScript);
+	RegisterAndPrecacheSoundScript(deploySoundScript, CWallHealth::startSoundScript);
 }
 
 void CWallHealthDecay::Activate()
@@ -1000,7 +1003,7 @@ void CWallHealthDecay::SetNeedleState(int state)
 		SetMySequence("still");
 		break;
 	case Deploy:
-		EmitSoundScript(CWallHealth::startSoundScript);
+		EmitSoundScript(deploySoundScript);
 		SetMySequence("deploy");
 		break;
 	case Idle:

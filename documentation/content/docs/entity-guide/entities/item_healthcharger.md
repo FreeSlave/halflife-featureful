@@ -14,7 +14,8 @@ Same as [func_healthcharger]({{< ref "func_healthcharger/#skill-variables" >}})
 
 ### Soundscripts
 
-Same as [func_healthcharger]({{< ref "func_healthcharger/#soundscripts" >}})
+* Same as [func_healthcharger]({{< ref "func_healthcharger/#soundscripts" >}})
+* **WallHealth.Deploy** - player when the player is nearby, along with the deploy animation. Derived from **WallHealth.Start**.
 
 ### Visuals
 

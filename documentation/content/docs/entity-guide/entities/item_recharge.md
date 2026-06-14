@@ -14,7 +14,8 @@ Same as [func_recharge]({{< ref "func_recharge/#skill-variables" >}})
 
 ### Soundscripts
 
-Same as [func_recharge]({{< ref "func_recharge/#soundscripts" >}})
+* Same as [func_recharge]({{< ref "func_recharge/#soundscripts" >}})
+* **SuitRecharge.Deploy** - player when the player is nearby, along with the deploy animation. Derived from **SuitRecharge.Start**.
 
 ### Visuals
 
