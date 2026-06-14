@@ -152,7 +152,7 @@ void CDisplacerBall::ArmBeam( int iSide )
 	if( !m_pBeam[m_iBeams] )
 	{
 		m_pBeam[m_iBeams] = CreateBeamFromVisual(hitSomething ? GetVisual(hitBeamVisual) : GetVisual(armBeamVisual));
-		if (m_pBeam)
+		if (m_pBeam[m_iBeams])
 			m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 
