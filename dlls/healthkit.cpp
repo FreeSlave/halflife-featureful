@@ -22,6 +22,7 @@
 #include "gamerules.h"
 #include "wallcharger.h"
 #include "game.h"
+#include "studio.h"
 
 class CHealthKit : public CItem
 {
@@ -492,6 +493,9 @@ public:
 	void ToRest();
 
 	static const NamedVisual wallHealthTank;
+
+	float m_boneControllerStart;
+	float m_boneControllerEnd;
 };
 
 const NamedVisual CWallHealthJarDecay::wallHealthTank = BuildVisual("WallHealth.Tank")
@@ -507,6 +511,23 @@ void CWallHealthJarDecay::Spawn()
 
 	ApplyVisual(GetVisual(wallHealthTank));
 	InitBoneControllers();
+
+	void *pmodel = GET_MODEL_PTR(ENT(pev));
+	if (pmodel)
+	{
+		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
+
+		if (pstudiohdr->numbonecontrollers > 0)
+		{
+			mstudiobonecontroller_t	*pbonecontroller = (mstudiobonecontroller_t *)((byte *)pstudiohdr + pstudiohdr->bonecontrollerindex);
+			m_boneControllerStart = pbonecontroller->start;
+			m_boneControllerEnd = pbonecontroller->end;
+		}
+	}
+
+	pev->sequence = 0;
+	ResetSequenceInfo();
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 void CWallHealthJarDecay::Precache()
@@ -522,6 +543,8 @@ void CWallHealthJarDecay::Think()
 		if (pev->sequence == 2 && m_fSequenceFinished)
 		{
 			pev->sequence = 0;
+			ResetSequenceInfo();
+			pev->frame = 0;
 		}
 		else
 		{
@@ -540,7 +563,7 @@ void CWallHealthJarDecay::Update(bool slosh, float value)
 		m_fSequenceLoops = true;
 		pev->nextthink = gpGlobals->time;
 	}
-	const float jarBoneControllerValue = value * 11 - 11;
+	const float jarBoneControllerValue = m_boneControllerStart + value * std::fabs(m_boneControllerEnd - m_boneControllerStart);
 	SetBoneController(0,  jarBoneControllerValue );
 }
 
@@ -724,6 +747,7 @@ void CWallHealthDecay::AnimateAndWork()
 	else
 		m_currentYaw = Q_min(m_currentYaw + 15, m_goalYaw);
 	SetBoneController(0, m_currentYaw);
+	SetBoneController(1, m_currentYaw);
 
 	if (m_goingToOff)
 	{
@@ -967,6 +991,7 @@ void CWallHealthDecay::Off()
 		{
 			m_currentYaw = m_goalYaw = 0;
 			SetBoneController(0, m_currentYaw);
+			SetBoneController(1, m_currentYaw);
 			if (m_iJuice <= 0)
 			{
 				SetNeedleState(Inactive);

@@ -127,6 +127,7 @@ void CRechargeGlassDecay::Precache()
 
 LINK_ENTITY_TO_CLASS(item_recharge_glass, CRechargeGlassDecay)
 
+#define RECHARGER_CAM_CONTROLLER 0
 #define RECHARGER_COIL_CONTROLLER 1
 #define RECHARGER_COIL_CONTROLLER2 2
 #define RECHARGER_ARM_CONTROLLER 3
@@ -317,6 +318,7 @@ void CRechargeDecay::AnimateAndWork()
 	else
 		m_currentYaw = Q_min(m_currentYaw + 10, m_goalYaw);
 	SetBoneController(RECHARGER_ARM_CONTROLLER, m_currentYaw);
+	SetBoneController(RECHARGER_CAM_CONTROLLER, m_currentYaw);
 
 	if (m_goingToOff)
 	{
@@ -535,6 +537,7 @@ void CRechargeDecay::Off()
 		{
 			m_currentYaw = m_goalYaw = 0;
 			SetBoneController(RECHARGER_ARM_CONTROLLER, m_currentYaw);
+			SetBoneController(RECHARGER_CAM_CONTROLLER, m_currentYaw);
 			if (m_iJuice <= 0)
 			{
 				SetChargeState(Inactive);
