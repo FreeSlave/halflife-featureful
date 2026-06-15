@@ -682,8 +682,6 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.m_flNextAmmoBurn = from->client.fuser2;
 	player.m_flAmmoStartCharge = from->client.fuser3;
 
-	g_vPlayerVelocity = player.pev->velocity;
-
 	cl_entity_t *pplayer = gEngfuncs.GetLocalPlayer();
 	if (pplayer)
 	{
@@ -889,6 +887,8 @@ void _DLLEXPORT HUD_PostRunCmd( struct local_state_s *from, struct local_state_s
 	}
 #endif
 	to->client.fov = g_lastFOV;
+
+	g_vPlayerVelocity = from->client.velocity;
 
 	if( g_irunninggausspred == 1 )
 	{
