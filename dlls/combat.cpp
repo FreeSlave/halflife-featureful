@@ -2247,7 +2247,8 @@ void CBaseMonster::PowerShieldTraceAttackEffect(const DamageInfo& damageInfo, co
 		WRITE_BYTE( randomness );			// randomness of velocity in 10's
 		WRITE_BYTE( m_shieldDebrisVisual->rendermode );
 		WRITE_COLOR( debrisColor );
-		WRITE_BYTE( m_shieldDebrisVisual->renderamt );
+		WRITE_BYTE( m_shieldDebrisVisual->renderamt.min );
+		WRITE_BYTE( m_shieldDebrisVisual->renderamt.max );
 		WRITE_BYTE( m_shieldDebrisVisual->renderfx );
 		WRITE_BYTE( 5 ); // random extra life in 0.1s
 		MESSAGE_END();

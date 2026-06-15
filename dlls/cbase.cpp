@@ -1237,7 +1237,7 @@ void CBaseEntity::ApplyVisual(const Visual *visual, const char* modelOverride, i
 	if (CheckVisualDefine(visual, Visual::COLOR_DEFINED, alreadyOverriden))
 		pev->rendercolor = VectorFromColor(visual->rendercolor);
 	if (CheckVisualDefine(visual, Visual::ALPHA_DEFINED, alreadyOverriden))
-		pev->renderamt = visual->renderamt;
+		pev->renderamt = RandomizeNumberFromRange(visual->renderamt);
 	if (CheckVisualDefine(visual, Visual::RENDERFX_DEFINED, alreadyOverriden))
 		pev->renderfx = visual->renderfx;
 	if (CheckVisualDefine(visual, Visual::SCALE_DEFINED, alreadyOverriden))
@@ -2701,7 +2701,7 @@ void CBaseEntity::GlowShellOn(const Visual* visual)
 		m_prevRenderMode = pev->rendermode;
 
 		if (visual->HasDefined(Visual::ALPHA_DEFINED))
-			pev->renderamt = visual->renderamt;
+			pev->renderamt = RandomizeNumberFromRange(visual->renderamt);
 		if (visual->HasDefined(Visual::COLOR_DEFINED))
 			pev->rendercolor = VectorFromColor(visual->rendercolor);
 		if (visual->HasDefined(Visual::RENDERFX_DEFINED))

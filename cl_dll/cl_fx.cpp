@@ -242,7 +242,7 @@ void FX_SparkShower(Vector pos, const SparkEffectParams& params)
 	pTemp->entity.curstate.fuser3 = params.sparkScaleMax;
 }
 
-void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, float noise, int rendermode, color24 color, int renderamt, int renderfx, float scale, float framerate, int flags, const FloatRange& life)
+void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, float noise, int rendermode, color24 color, IntRange renderamt, int renderfx, float scale, float framerate, int flags, const FloatRange& life)
 {
 	model_t	*pmodel = gEngfuncs.pfnGetModelByIndex(modelIndex);
 	if (!pmodel)
@@ -264,7 +264,7 @@ void FX_Spray(Vector pos, Vector dir, int modelIndex, int count, int speed, floa
 		pTemp->entity.curstate.scale = scale;
 		pTemp->entity.curstate.rendermode = rendermode;
 		pTemp->entity.curstate.rendercolor = color;
-		pTemp->entity.baseline.renderamt = pTemp->entity.curstate.renderamt = renderamt;
+		pTemp->entity.baseline.renderamt = pTemp->entity.curstate.renderamt = RandomizeNumberFromRange(renderamt);
 		pTemp->entity.curstate.renderfx = renderfx;
 		pTemp->entity.curstate.framerate = framerate;
 

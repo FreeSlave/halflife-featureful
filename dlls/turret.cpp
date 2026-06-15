@@ -884,7 +884,7 @@ void CTurret::SpinDownCall()
 int CTurret::MaxEyeBrightness()
 {
 	const Visual* visual = GetVisual(glowVisual);
-	return visual->renderamt;
+	return RandomizeNumberFromRange(visual->renderamt);
 }
 
 void CBaseTurret::SetTurretAnim( TURRET_ANIM anim )

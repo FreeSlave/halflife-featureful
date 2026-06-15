@@ -527,19 +527,19 @@ end:
 	if( m_iLaserFlags & LF_ROBOCOP_LASER )
 	{
 		if( m_pLaserPointer )
-			m_pLaserPointer->SetBrightness( m_eyeVisual->renderamt * brightnessFraction );
+			m_pLaserPointer->SetBrightness( RandomizeNumberFromRange(m_eyeVisual->renderamt) * brightnessFraction );
 	}
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAM )
 	{
 		if( m_pBeam )
-			m_pBeam->SetBrightness( m_beamVisual->renderamt * brightnessFraction );
+			m_pBeam->SetBrightness( RandomizeNumberFromRange(m_beamVisual->renderamt) * brightnessFraction );
 	}
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAMSPOT )
 	{
 		if( m_pBeamSpot )
-			m_pBeamSpot->SetBrightness( m_spotVisual->renderamt * brightnessFraction );
+			m_pBeamSpot->SetBrightness( RandomizeNumberFromRange(m_spotVisual->renderamt) * brightnessFraction );
 	}
 }
 

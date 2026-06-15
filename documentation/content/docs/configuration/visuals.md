@@ -42,7 +42,7 @@ Each entry in the document may have the following properties:
 * `"sprite"` - a synonym for `model`.
 * `"rendermode"` - a render mode. Possible values: `"Normal"`, `"Color"`, `"Texture"`, `"Glow"`, `"Solid"`, `"Additive"`. As a mapper you should be familiar with render modes.
 * `"color"` - a render [color]({{< ref "JSON/#color" >}}).
-* `"alpha"` - render amount (opacity/brightness).
+* `"alpha"` - render amount (opacity/brightness). This must be a value in range `[0, 255]`. This also can be a [range_int]({{< ref "json/#range_int" >}}) where both minimum and maximum values are in range `[0, 255]`. This allows for the alpha randomization.
 * `"renderfx"` - a render special effect. Possible values: `"Normal"`, `"Constant Glow"` (can be used with `"Glow"` render mode), `"Distort"`, `"Hologram"`, `"Glow Shell"`.
 * `"scale"` - a scale of model/sprite. 1.0 is normal scale. Can be [range]({{< ref "JSON/#range" >}}).
 * `"framerate"` - the animation framerate. 0 means no animation. Animated sprites usually use 10.0 as framerate. Can be [range]({{< ref "JSON/#range" >}}).

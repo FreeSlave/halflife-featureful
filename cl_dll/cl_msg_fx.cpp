@@ -321,7 +321,7 @@ int __MsgFunc_Sprite( const char* pszName, int iSize, void *pbuf )
 }
 
 void FX_Sprite_Trail( Vector start, Vector end, int modelIndex, int count, float life, float scale, float amp,
-					  float speed, int rendermode, color24 color, int renderamt, int renderfx = kRenderFxNone, float extraLifeMax = 0.0f )
+					  float speed, int rendermode, color24 color, IntRange renderamt, int renderfx = kRenderFxNone, float extraLifeMax = 0.0f )
 {
 	Vector delta, dir;
 	model_t *pmodel;
@@ -363,7 +363,7 @@ void FX_Sprite_Trail( Vector start, Vector end, int modelIndex, int count, float
 		pTemp->entity.curstate.scale = scale;
 		pTemp->entity.curstate.rendermode = rendermode;
 		pTemp->entity.curstate.renderfx = renderfx;
-		pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = renderamt;
+		pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = RandomizeNumberFromRange(renderamt);
 		pTemp->entity.curstate.rendercolor = color;
 
 		if (pmodel->numframes > 1)
@@ -392,10 +392,11 @@ int __MsgFunc_SpriteTrail( const char* pszName, int iSize, void *pbuf )
 	float random = (float)READ_BYTE() * 10;
 	int rendermode = READ_BYTE();
 	color24 color = READ_COLOR();
-	int a = READ_BYTE();
+	int aMin = READ_BYTE();
+	int aMax = READ_BYTE();
 	int renderfx = READ_BYTE();
 	float extraLifeMax = READ_BYTE() * 0.1f;
-	FX_Sprite_Trail( pos, pos2, modelIndex, count, life, scale, random, vel, rendermode, color, a, renderfx, extraLifeMax );
+	FX_Sprite_Trail( pos, pos2, modelIndex, count, life, scale, random, vel, rendermode, color, IntRange(aMin, aMax), renderfx, extraLifeMax );
 
 	return 1;
 }
@@ -412,7 +413,8 @@ int __MsgFunc_Spray( const char* pszName, int iSize, void *pbuf )
 	int spread = READ_BYTE();
 	int rendermode = READ_BYTE();
 	color24 color = READ_COLOR();
-	int a = READ_BYTE();
+	int aMin = READ_BYTE();
+	int aMax = READ_BYTE();
 	int renderfx = READ_BYTE();
 	float scale = (float)READ_BYTE();
 	if( !scale )
@@ -422,7 +424,7 @@ int __MsgFunc_Spray( const char* pszName, int iSize, void *pbuf )
 	float framerate = READ_SHORT() * 0.1f;
 	int flags = READ_BYTE();
 
-	FX_Spray(pos, dir, modelIndex, count, speed, spread / 100.0f, rendermode, color, a, renderfx, scale, framerate, flags, FloatRange{});
+	FX_Spray(pos, dir, modelIndex, count, speed, spread / 100.0f, rendermode, color, IntRange(aMin, aMax), renderfx, scale, framerate, flags, FloatRange{});
 
 	return 1;
 }

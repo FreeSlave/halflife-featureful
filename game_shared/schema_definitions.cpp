@@ -124,6 +124,32 @@ const char* const json_schemas::definitions = R"(
 		"minItems": 2,
 		"maxItems": 2
 	},
+	"range_alpha": {
+		"type": ["string", "object", "integer", "array"],
+		"minimum": 0,
+		"pattern": "^[0-9]{1,3}(,[0-9]{1,3})?$",
+		"properties": {
+			"min": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"max": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			}
+		},
+		"required": ["min", "max"],
+		"additionalProperties": false,
+		"items": {
+			"type": "integer",
+			"minimum": 0,
+			"maximum": 255
+		},
+		"minItems": 2,
+		"maxItems": 2
+	},
 	"absolute_or_factor": {
 		"type": ["number", "string"],
 		"pattern": "^\\*[0-9]+(\\.[0-9]+)?$",
@@ -314,7 +340,7 @@ const char* const json_schemas::definitions = R"(
 				"$ref": "#/color"
 			},
 			"alpha": {
-				"$ref": "#/alpha"
+				"$ref": "#/range_alpha"
 			},
 			"renderfx": {
 				"oneOf": [

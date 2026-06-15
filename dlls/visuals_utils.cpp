@@ -20,7 +20,7 @@ CSprite* CreateSpriteFromVisual(const Visual* visual, const Vector& origin, bool
 		sprite = CSprite::SpriteCreateAndAnimate(visual->model, origin, framerate);
 	if (sprite)
 	{
-		sprite->SetTransparency(visual->rendermode, visual->rendercolor.r, visual->rendercolor.g, visual->rendercolor.b, visual->renderamt, visual->renderfx);
+		sprite->SetTransparency(visual->rendermode, visual->rendercolor.r, visual->rendercolor.g, visual->rendercolor.b, RandomizeNumberFromRange(visual->renderamt), visual->renderfx);
 		sprite->SetScale(RandomizeNumberFromRange(visual->scale));
 	}
 	return sprite;
@@ -36,7 +36,7 @@ CBeam* CreateBeamFromVisual(const Visual* visual)
 	{
 		beam->SetColor(visual->rendercolor.r, visual->rendercolor.g, visual->rendercolor.b);
 		if (visual->HasDefined(Visual::ALPHA_DEFINED))
-			beam->SetBrightness(visual->renderamt);
+			beam->SetBrightness(RandomizeNumberFromRange(visual->renderamt));
 		beam->SetWidth(visual->beamWidth);
 		beam->SetNoise(visual->beamNoise);
 		if (visual->beamScrollRate)
@@ -55,7 +55,7 @@ static void WriteBeamVisual(const Visual *visual)
 	WRITE_BYTE( visual->beamWidth );  // width
 	WRITE_BYTE( visual->beamNoise );   // noise
 	WRITE_COLOR( visual->rendercolor );
-	WRITE_BYTE( visual->renderamt );	// brightness
+	WRITE_BYTE( RandomizeNumberFromRange(visual->renderamt) );	// brightness
 	WRITE_BYTE( visual->beamScrollRate );		// speed
 }
 
@@ -65,7 +65,7 @@ static void WriteBeamFollowVisual(const Visual *visual)
 	WRITE_BYTE( (int)(10*RandomizeNumberFromRange(visual->life)) ); // life
 	WRITE_BYTE( visual->beamWidth );  // width
 	WRITE_COLOR( visual->rendercolor ); // r, g, b
-	WRITE_BYTE( visual->renderamt );	// brightness
+	WRITE_BYTE( RandomizeNumberFromRange(visual->renderamt) );	// brightness
 }
 
 void SendDynLight(const Vector& vecOrigin, const Visual* visual)
@@ -117,7 +117,7 @@ void SendSprite(const Vector& vecOrigin, const Visual* visual, const Vector& vel
 		WRITE_BYTE( RandomizeNumberFromRange(visual->scale) * 10 );				// size * 10
 		WRITE_BYTE( visual->rendermode );
 		WRITE_COLOR( visual->rendercolor );
-		WRITE_BYTE( visual->renderamt );			// brightness
+		WRITE_BYTE( RandomizeNumberFromRange(visual->renderamt) );			// brightness
 		WRITE_BYTE( visual->renderfx );
 		WRITE_SHORT( (int)RandomizeNumberFromRange(visual->framerate) * 10 );
 		WRITE_BYTE( RandomizeNumberFromRange(visual->life)*10 );
@@ -139,7 +139,8 @@ void SendSpray(const Vector& position, const Vector& direction, const Visual* vi
 		WRITE_BYTE ( noise );			// noise ( client will divide by 100 )
 		WRITE_BYTE( visual->rendermode );
 		WRITE_COLOR( visual->rendercolor );
-		WRITE_BYTE( visual->renderamt );
+		WRITE_BYTE( visual->renderamt.min );
+		WRITE_BYTE( visual->renderamt.max );
 		WRITE_BYTE( visual->renderfx );
 		WRITE_BYTE( (int)(RandomizeNumberFromRange(visual->scale) * 10) );
 		WRITE_SHORT( (int)(RandomizeNumberFromRange(visual->framerate) * 10) );
@@ -167,7 +168,7 @@ void SendSmoke(const Vector& position, const Visual* visual)
 		WRITE_SHORT( 0 );
 		WRITE_SHORT( 0 );
 		WRITE_BYTE( visual->rendermode );
-		WRITE_BYTE( visual->renderamt );
+		WRITE_BYTE( RandomizeNumberFromRange(visual->renderamt) );
 		WRITE_COLOR( visual->rendercolor );
 		WRITE_SHORT( 0 );
 	MESSAGE_END();

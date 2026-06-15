@@ -39,7 +39,7 @@ struct Visual
 	const char* model = nullptr;
 	int rendermode = kRenderNormal;
 	Color3 rendercolor;
-	int renderamt = 0;
+	IntRange renderamt{0};
 	int renderfx = kRenderFxNone;
 	FloatRange scale = 1.0f;
 	FloatRange framerate = 0.0f;
@@ -47,7 +47,7 @@ struct Visual
 	int beamNoise = 0;
 	int beamScrollRate = 0;
 	FloatRange life = 0.0f;
-	IntRange radius = 0;
+	IntRange radius{0};
 	int beamFlags = 0;
 	float decay = 0.0f;
 	int waveType = WAVETYPE_CYLINDER;
@@ -69,7 +69,7 @@ struct Visual
 		this->rendercolor = rendercolor;
 		MarkAsDefined(COLOR_DEFINED);
 	}
-	inline void SetAlpha(int alpha)
+	inline void SetAlpha(IntRange alpha)
 	{
 		this->renderamt = alpha;
 		MarkAsDefined(ALPHA_DEFINED);

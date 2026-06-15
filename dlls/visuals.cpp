@@ -95,15 +95,27 @@ const Visual* VisualSystem::ProvideDefaultVisual(const char *name, const Visual 
 	}
 }
 
-static void PrintRange(const char* name, FloatRange range)
+static void PrintRange(const char* name, IntRange range)
 {
-	if (range.max <= range.min)
+	if (range.IsProperRange())
 	{
-		LOG("%s: %g. ", name, range.min);
+		LOG("%s: %d-%d. ", name, range.min, range.max);
 	}
 	else
 	{
+		LOG("%s: %d. ", name, range.min);
+	}
+}
+
+static void PrintRange(const char* name, FloatRange range)
+{
+	if (range.IsProperRange())
+	{
 		LOG("%s: %g-%g. ", name, range.min, range.max);
+	}
+	else
+	{
+		LOG("%s: %g. ", name, range.min);
 	}
 }
 
@@ -115,9 +127,10 @@ void VisualSystem::DumpVisualImpl(const char *name, const Visual &visual) const
 
 	LOG("Rendermode: %s. Color: (%d, %d, %d). Alpha: %d. Renderfx: %s. ",
 		  RenderModeToString(visual.rendermode),
-		  visual.rendercolor.r, visual.rendercolor.g, visual.rendercolor.b,
-		  visual.renderamt,
-		  RenderFxToString(visual.renderfx));
+		  visual.rendercolor.r, visual.rendercolor.g, visual.rendercolor.b);
+
+	PrintRange("Alpha", visual.renderamt);
+	LOG("Renderfx: %s. ", RenderFxToString(visual.renderfx));
 
 	PrintRange("Scale", visual.scale);
 	PrintRange("Framerate", visual.framerate);
@@ -134,14 +147,7 @@ void VisualSystem::DumpVisualImpl(const char *name, const Visual &visual) const
 
 	if (visual.HasDefined(Visual::RADIUS_DEFINED))
 	{
-		if (visual.radius.max <= visual.radius.min)
-		{
-			LOG("Radius: %d. ", visual.radius.min);
-		}
-		else
-		{
-			LOG("Radius: %d-%d. ", visual.radius.min, visual.radius.max);
-		}
+		PrintRange("Radius", visual.radius);
 	}
 
 	if (visual.HasDefined(Visual::DECAY_DEFINED))

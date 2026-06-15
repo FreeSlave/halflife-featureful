@@ -56,6 +56,9 @@ struct NumberRange
 	constexpr inline bool IsPositive() const {
 		return min >= 0 && max > 0;
 	}
+	constexpr inline N Middle() const {
+		return IsProperRange() ? (max - min) / 2 : min;
+	}
 private:
 	constexpr inline bool IsEqual(const NumberRange<N>& o) const {
 		return min == o.min && max == o.max;

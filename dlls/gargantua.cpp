@@ -800,7 +800,7 @@ void CGargantua::EyeUpdate()
 {
 	if( m_pEyeGlow )
 	{
-		m_pEyeGlow->pev->renderamt = UTIL_Approach( m_eyeBrightness, m_pEyeGlow->pev->renderamt, m_eyeVisual->renderamt/8+1 );
+		m_pEyeGlow->pev->renderamt = UTIL_Approach( m_eyeBrightness, m_pEyeGlow->pev->renderamt, m_eyeVisual->renderamt.Middle()/8+1 );
 		if( m_pEyeGlow->pev->renderamt == 0 )
 			m_pEyeGlow->pev->effects |= EF_NODRAW;
 		else
@@ -1031,7 +1031,7 @@ void CGargantua::PrescheduleThink()
 		EyeOff();
 	}
 	else
-		EyeOn( m_eyeVisual->renderamt );
+		EyeOn( RandomizeNumberFromRange(m_eyeVisual->renderamt) );
 
 	if (HasConditions(bits_COND_NEW_ENEMY))
 		m_stompTime = gpGlobals->time + 5.0f;

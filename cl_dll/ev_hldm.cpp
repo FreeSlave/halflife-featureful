@@ -831,7 +831,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 			startEnt, endEnt,
 			gEngfuncs.pEventAPI->EV_FindModelIndex(visual.model),
 			life > 0.0f ? life : 0.08f,
-			Q_max(visual.beamWidth, 1), visual.beamNoise * 0.01f, visual.renderamt / 255.0f,
+			Q_max(visual.beamWidth, 1), visual.beamNoise * 0.01f, RandomizeNumberFromRange(visual.renderamt) / 255.0f,
 			visual.beamScrollRate, 0, RandomizeNumberFromRange(visual.framerate),
 			visual.rendercolor.r / 255.0f, visual.rendercolor.g / 255.0f, visual.rendercolor.b / 255.0f);
 	}

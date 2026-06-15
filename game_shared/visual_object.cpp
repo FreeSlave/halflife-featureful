@@ -147,7 +147,7 @@ void ParseRestVisualFromJSON(Visual& visual, const Value& value)
 		visual.SetColor(color);
 	}
 
-	int renderamt;
+	IntRange renderamt;
 	if (UpdatePropertyFromJson(renderamt, value, "alpha"))
 	{
 		visual.SetAlpha(renderamt);

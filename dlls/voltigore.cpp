@@ -237,7 +237,7 @@ void CChargedBolt::ArmBeam(int side)
 		pBeam->PointEntInit(tr.vecEndPos, entindex());
 	}
 	pBeam->SetColor(pVisualToApply->rendercolor.r, pVisualToApply->rendercolor.g, pVisualToApply->rendercolor.b);
-	pBeam->SetBrightness(pVisualToApply->renderamt);
+	pBeam->SetBrightness(RandomizeNumberFromRange(pVisualToApply->renderamt));
 	pBeam->SetWidth(pVisualToApply->beamWidth);
 	pBeam->SetNoise(pVisualToApply->beamNoise);
 	pBeam->SetScrollRate(pVisualToApply->beamScrollRate);

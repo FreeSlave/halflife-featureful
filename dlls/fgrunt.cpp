@@ -3253,7 +3253,10 @@ void CTorch::UpdateGas()
 
 		const Visual* bVisual = GetVisual(beamVisual);
 		if (bVisual)
-			m_pBeam->SetBrightness( RANDOM_LONG(bVisual->renderamt*3/4, bVisual->renderamt) );
+		{
+			int beamRenderAmt = RandomizeNumberFromRange(bVisual->renderamt);
+			m_pBeam->SetBrightness( RANDOM_LONG(beamRenderAmt*3/4, beamRenderAmt) );
+		}
 
 		SendDynLight(vecEndPos, GetVisual(dynLightVisual));
 		SendEntLight(entindex(), vecEndPos, GetVisual(entLightVisual), 3);

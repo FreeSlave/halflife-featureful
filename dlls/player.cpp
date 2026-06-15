@@ -380,8 +380,8 @@ void LinkUserMessages()
 	gmsgMuzzleLight = REG_USER_MSG( "MuzzleLight", 6 );
 	gmsgCustomBeam = REG_USER_MSG( "CustomBeam", -1 );
 	gmsgSprite = REG_USER_MSG( "Sprite", 25 );
-	gmsgSpriteTrail = REG_USER_MSG( "SpriteTrail", 26 );
-	gmsgSpray = REG_USER_MSG( "Spray", 27 );
+	gmsgSpriteTrail = REG_USER_MSG( "SpriteTrail", 27 );
+	gmsgSpray = REG_USER_MSG( "Spray", 28 );
 	gmsgStreaks = REG_USER_MSG( "Streaks", -1 );
 	gmsgSmoke = REG_USER_MSG( "Smoke", -1 );
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );

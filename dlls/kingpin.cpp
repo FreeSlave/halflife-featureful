@@ -622,8 +622,9 @@ void CKingpinPlasmaCluster::BeamDamage(float flDamage)
 				if( pHit && pHit->MyMonsterPointer() && pHit->IsFullyAlive() )
 				{
 					const Visual* visual = altColor ? GetVisual(beamAltVisual) : GetVisual(beamVisual);
+					const int beamRenderAmt = RandomizeNumberFromRange(visual->renderamt);
 
-					float damage = visual->renderamt <= 0 ? 0 : ceil(flDamage * pBeam->pev->renderamt / visual->renderamt);
+					float damage = beamRenderAmt <= 0 ? 0 : ceil(flDamage * pBeam->pev->renderamt / beamRenderAmt);
 					if (damage >= 2) {
 						TraceResult* ptr = &tr;
 						DamageInfo beamDamageInfo{damage, DMG_SHOCK};
@@ -734,13 +735,13 @@ void CKingpinPlasmaCluster::FallThink()
 		if (pParticle) {
 			const Visual* visual = altColor ? GetVisual(particleAltVisual) : GetVisual(particleVisual);
 			if (visual)
-				pParticle->pev->renderamt = coef * visual->renderamt;
+				pParticle->pev->renderamt = coef * RandomizeNumberFromRange(visual->renderamt);
 		}
 		CBeam* pBeam = m_beams[i];
 		if (pBeam && (pBeam->pev->renderamt > 0 || zapTime < gpGlobals->time)) {
 			const Visual* visual = altColor ? GetVisual(beamAltVisual) : GetVisual(beamVisual);
 			if (visual)
-				pBeam->SetBrightness(coef * visual->renderamt);
+				pBeam->SetBrightness(coef * RandomizeNumberFromRange(visual->renderamt));
 		}
 	}
 
@@ -1654,7 +1655,7 @@ void CKingpin::RunTask( Task_t *pTask )
 
 void CKingpin::PrescheduleThink()
 {
-	int glowAmtStep = (m_glowVisual->renderamt)/10 + 1;
+	int glowAmtStep = (m_glowVisual->renderamt.Middle())/10 + 1;
 	int targetGlowAmt = 0;
 
 	if (m_isTeleporting)
@@ -1663,17 +1664,17 @@ void CKingpin::PrescheduleThink()
 	}
 	else if (m_IdealMonsterState == MONSTERSTATE_ALERT || m_IdealMonsterState == MONSTERSTATE_HUNT)
 	{
-		targetGlowAmt = m_glowVisual->renderamt / 6;
+		targetGlowAmt = RandomizeNumberFromRange(m_glowVisual->renderamt) / 6;
 	}
 	else if (m_IdealMonsterState == MONSTERSTATE_COMBAT)
 	{
 		if (HasConditions(bits_COND_SEE_ENEMY))
 		{
-			targetGlowAmt = m_glowVisual->renderamt;
+			targetGlowAmt = RandomizeNumberFromRange(m_glowVisual->renderamt);
 		}
 		else
 		{
-			targetGlowAmt = m_glowVisual->renderamt / 4;
+			targetGlowAmt = RandomizeNumberFromRange(m_glowVisual->renderamt) / 4;
 		}
 	}
 	UpdateGlows(targetGlowAmt, glowAmtStep);

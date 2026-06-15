@@ -1613,11 +1613,11 @@ void CZapBallTrap::Precache()
 
 	const Visual* visual = RegisterVisual(zapBallVisual);
 	m_baseScale = RandomizeNumberFromRange(visual->scale);
-	m_baseBrightness = visual->renderamt;
+	m_baseBrightness = RandomizeNumberFromRange(visual->renderamt);
 
 	const Visual* headVisual = GetVisual(CControllerHeadBall::headBallVisual);
 	m_maxScale = RandomizeNumberFromRange(headVisual->scale);
-	m_maxBrightness = headVisual->renderamt;
+	m_maxBrightness = RandomizeNumberFromRange(headVisual->renderamt);
 
 	SetMaxFrame();
 }

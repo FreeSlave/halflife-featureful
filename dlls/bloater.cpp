@@ -200,6 +200,7 @@ public:
 	float m_targetScale;
 
 	float m_idleSoundTime;
+	int m_bloatTargetAlpha;
 
 	static float g_howlTime;
 
@@ -276,6 +277,7 @@ TYPEDESCRIPTION	CFloater::m_SaveData[] =
 	DEFINE_FIELD( CFloater, m_originalScale, FIELD_FLOAT ),
 	DEFINE_FIELD( CFloater, m_targetScale, FIELD_FLOAT ),
 	DEFINE_FIELD( CFloater, m_idleSoundTime, FIELD_TIME ),
+	DEFINE_FIELD( CFloater, m_bloatTargetAlpha, FIELD_INTEGER ),
 };
 
 IMPLEMENT_SAVERESTORE( CFloater, CBaseMonster )
@@ -427,6 +429,10 @@ void CFloater::Spawn()
 	MonsterInit();
 
 	SetUse( &CFloater::FloaterBloatUse );
+
+	const Visual* pGlowBloatingVisual = GetVisual(glowBloatingVisual);
+	if (pGlowBloatingVisual)
+		m_bloatTargetAlpha = RandomizeNumberFromRange(pGlowBloatingVisual->renderamt);
 }
 
 void CFloater::Precache()
@@ -967,12 +973,12 @@ void CFloater::GlowUpdate(CSprite* glow)
 				const float redSpeed = abs(pGlowVisual->rendercolor.r - pGlowBloatingVisual->rendercolor.r) / 8.0f;
 				const float greenSpeed = abs(pGlowVisual->rendercolor.g - pGlowBloatingVisual->rendercolor.g) / 8.0f;
 				const float blueSpeed = abs(pGlowVisual->rendercolor.b - pGlowBloatingVisual->rendercolor.b) / 8.0f;
-				const float alphaSpeed = abs(pGlowVisual->renderamt - pGlowBloatingVisual->renderamt) / 8.0f;
+				const float alphaSpeed = abs(pGlowVisual->renderamt.Middle() - pGlowBloatingVisual->renderamt.Middle()) / 8.0f;
 
 				glow->pev->rendercolor.x = UTIL_Approach(pGlowBloatingVisual->rendercolor.r, glow->pev->rendercolor.x, redSpeed);
 				glow->pev->rendercolor.y = UTIL_Approach(pGlowBloatingVisual->rendercolor.g, glow->pev->rendercolor.y, greenSpeed);
 				glow->pev->rendercolor.z = UTIL_Approach(pGlowBloatingVisual->rendercolor.b, glow->pev->rendercolor.z, blueSpeed);
-				glow->pev->renderamt = UTIL_Approach(pGlowBloatingVisual->renderamt, glow->pev->renderamt, alphaSpeed);
+				glow->pev->renderamt = UTIL_Approach(m_bloatTargetAlpha, glow->pev->renderamt, alphaSpeed);
 			}
 		}
 		UTIL_SetOrigin( glow->pev, pev->origin );

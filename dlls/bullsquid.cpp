@@ -255,7 +255,8 @@ void CSquidToxicSpit::Animate()
 				WRITE_BYTE( 20 );			// randomness of velocity in 10's
 				WRITE_BYTE( visual->rendermode );
 				WRITE_COLOR( visual->rendercolor );
-				WRITE_BYTE( visual->renderamt );
+				WRITE_BYTE( visual->renderamt.min );
+				WRITE_BYTE( visual->renderamt.max );
 				WRITE_BYTE( visual->renderfx );
 				WRITE_BYTE( 10 ); // random extra life in 0.1s
 			MESSAGE_END();
