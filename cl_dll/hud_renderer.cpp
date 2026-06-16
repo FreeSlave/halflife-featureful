@@ -253,6 +253,12 @@ void HudSpriteRenderer::SPR_DrawAdditive(HSPRITE hPic, int r, int g, int b, int 
 	SPR_DrawAdditive(frame, x, y, prc);
 }
 
+void HudSpriteRenderer::SPR_DrawAdditiveWithAlphaScale(HSPRITE hPic, int r, int g, int b, int a, int x, int y, const wrect_t *prc, int frame) {
+	ScaleColors(r, g, b, a);
+	SPR_Set(hPic, r, g, b);
+	SPR_DrawAdditive(frame, x, y, prc);
+}
+
 void HudSpriteRenderer::FillRGBA(int x, int y, int width, int height, int r, int g, int b, int a) {
 	if (IsCustomScale()) {
 		::FillRGBA(ScaleScreen(x), ScaleScreen(y), ScaleScreen(width), ScaleScreen(height), r, g, b, a);

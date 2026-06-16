@@ -89,6 +89,7 @@ int CHudHealth::VidInit()
 
 	m_HUD_dmg_bio = gHUD.GetSpriteIndex( "dmg_bio" ) + 1;
 	m_HUD_cross = gHUD.GetSpriteIndex( "cross" );
+	m_HUD_divider = gHUD.GetSpriteIndex( "divider" );
 
 	giDmgHeight = gHUD.GetSpriteRect( m_HUD_dmg_bio ).right - gHUD.GetSpriteRect( m_HUD_dmg_bio ).left;
 	giDmgWidth = gHUD.GetSpriteRect( m_HUD_dmg_bio ).bottom - gHUD.GetSpriteRect( m_HUD_dmg_bio ).top;
@@ -270,10 +271,21 @@ int CHudHealth::DrawHealth(bool drawSeparator)
 
 	if (drawSeparator)
 	{
-		int iHeight = gHUD.m_iFontHeight;
-		int iWidth = HealthWidth / 10;
 		UnpackRGB( r, g, b, gHUD.HUDColor() );
-		CHud::Renderer().FillRGBA( x, y + gHUD.m_iHudNumbersYOffset, iWidth, iHeight, r, g, b, a );
+
+		if (gHUD.clientFeatures.use_divider_sprite && m_HUD_divider != -1)
+		{
+			const wrect_t& rect = gHUD.GetSpriteRect(m_HUD_divider);
+			const int dividerY = y + gHUD.m_iHudNumbersYOffset + gHUD.m_iFontHeight / 2 - (rect.bottom - rect.top) / 2;
+			CHud::Renderer().SPR_DrawAdditiveWithAlphaScale(gHUD.GetSprite(m_HUD_divider), r, g, b, a, x, dividerY, &rect);
+		}
+		else
+		{
+			int iHeight = gHUD.m_iFontHeight;
+			int iWidth = HealthWidth / 10;
+
+			CHud::Renderer().FillRGBA( x, y + gHUD.m_iHudNumbersYOffset, iWidth, iHeight, r, g, b, a );
+		}
 	}
 
 	return x + HealthWidth / 2;

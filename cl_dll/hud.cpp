@@ -130,6 +130,9 @@ ClientFeatures::ClientFeatures()
 	bloodstream_threshold.configurable = false;
 	bloodstream_threshold.defaultValue = 90;
 
+	memset(bucket_slot_sprite, 0, sizeof (bucket_slot_sprite));
+	use_divider_sprite = false;
+
 	fullbright_textures = true;
 }
 
@@ -1110,6 +1113,7 @@ void CHud::ParseClientFeatures()
 	KeyValueDefinition<bool> booleans[] = {
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
+		{ "use_divider_sprite", clientFeatures.use_divider_sprite },
 		{ "fullbright_textures", clientFeatures.fullbright_textures },
 	};
 
@@ -1251,6 +1255,10 @@ void CHud::ParseClientFeatures()
 				else if (strcmp(keyName, "wall_puff4") == 0)
 				{
 					strncpyEnsureTermination(clientFeatures.wall_puffs[3], valueBuf);
+				}
+				else if (strcmp(keyName, "bucket_slot_sprite") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.bucket_slot_sprite, valueBuf);
 				}
 			}
 		}

@@ -432,6 +432,16 @@ int CHudAmmo::VidInit()
 	}
 	m_HUD_bucket0 = m_HUD_buckets[0];
 	m_HUD_bucket_none = gHUD.GetSpriteIndex( "bucket0" );
+	m_HUD_divider = gHUD.GetSpriteIndex( "divider" );
+
+	if (*gHUD.clientFeatures.bucket_slot_sprite)
+	{
+		m_HUD_bucketSlot = gHUD.GetSpriteIndex(gHUD.clientFeatures.bucket_slot_sprite);
+	}
+	else
+	{
+		m_HUD_bucketSlot = -1;
+	}
 
 	ghsprBuckets = gHUD.GetSprite( m_HUD_bucket0 );
 	giBucketWidth = gHUD.GetSpriteRect( m_HUD_bucket0 ).right - gHUD.GetSpriteRect( m_HUD_bucket0 ).left;
@@ -1082,7 +1092,16 @@ int CHudAmmo::Draw( float flTime )
 			UnpackRGB( r,g,b, gHUD.HUDColor() );
 
 			// draw the | bar
-			CHud::Renderer().FillRGBA( x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a );
+			if (gHUD.clientFeatures.use_divider_sprite && m_HUD_divider != -1)
+			{
+				const wrect_t& rect = gHUD.GetSpriteRect(m_HUD_divider);
+				const int dividerY = y + gHUD.m_iFontHeight / 2 - (rect.bottom - rect.top) / 2;
+				CHud::Renderer().SPR_DrawAdditiveWithAlphaScale(gHUD.GetSprite(m_HUD_divider), r, g, b, a, x, dividerY, &rect);
+			}
+			else
+			{
+				CHud::Renderer().FillRGBA(x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a);
+			}
 
 			x += iBarWidth + AmmoWidth / 2;
 
@@ -1215,6 +1234,18 @@ int CHudAmmo::SpriteIndexForSlot(int iSlot)
 		return m_HUD_bucket_none;
 	}
 	return result;
+}
+
+void CHudAmmo::DrawFillBucket(int x, int y, int r, int g, int b, int a)
+{
+	if (m_HUD_bucketSlot != -1)
+	{
+		CHud::Renderer().SPR_DrawAdditive(gHUD.GetSprite(m_HUD_bucketSlot), r, g, b, x, y, &gHUD.GetSpriteRect(m_HUD_bucketSlot));
+	}
+	else
+	{
+		CHud::Renderer().FillRGBA(x, y, giBucketWidth, giBucketHeight, r, g, b, a);
+	}
 }
 
 int CHudAmmo::DrawWList( float flTime )
@@ -1357,7 +1388,7 @@ int CHudAmmo::DrawWList( float flTime )
 					a = 96;
 				}
 
-				CHud::Renderer().FillRGBA( x, y, giBucketWidth, giBucketHeight, r, g, b, a );
+				DrawFillBucket(x, y, r, g, b, a);
 
 				y += giBucketHeight + 5;
 			}

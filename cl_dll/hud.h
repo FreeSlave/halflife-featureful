@@ -132,6 +132,7 @@ public:
 	void Reset() override;
 	int SpriteIndexForSlot(int iSlot);
 	int DrawWList( float flTime );
+	void DrawFillBucket(int x, int y, int r, int g, int b, int a);
 	int MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_AmmoList( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_WeaponList( const char *pszName, int iSize, void *pbuf );
@@ -170,6 +171,8 @@ private:
 	int m_HUD_selection;
 	int m_HUD_buckets[WEAPON_SLOTS_HARDLIMIT];
 	int m_HUD_bucket_none;
+	int m_HUD_bucketSlot;
+	int m_HUD_divider;
 
 	cvar_t* m_pCvarDrawHistoryTime;
 	cvar_t* m_pCvarHudFastSwitch;
@@ -572,6 +575,7 @@ public:
 	int m_iMaxHealth;
 	int m_HUD_dmg_bio;
 	int m_HUD_cross;
+	int m_HUD_divider;
 	float m_fAttackFront, m_fAttackRear, m_fAttackLeft, m_fAttackRight;
 	void GetHealthColor( int &r, int &g, int &b );
 	void GetPainColor( int &r, int &g, int &b );
@@ -1003,6 +1007,9 @@ struct ClientFeatures
 	ConfigurableBooleanValue bloodstream;
 	ConfigurableIntegerValue bloodstream_threshold;
 	ConfigurableIntegerValue wallimpact_style;
+
+	char bucket_slot_sprite[MAX_SPRITE_NAME_LENGTH];
+	bool use_divider_sprite;
 
 	bool fullbright_textures;
 };
