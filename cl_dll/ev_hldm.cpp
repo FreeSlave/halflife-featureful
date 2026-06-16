@@ -528,18 +528,19 @@ static void EV_StopWeaponSoundScript(int idx, const WeaponSoundScript& sound)
 }
 
 int g_iSwing;
-bool g_primaryLoopedPlaying = false;
-bool g_secondaryLoopedPlaying = false;
-bool g_primaryAdditionalLoopedPlaying = false;
-bool g_secondaryAdditionalLoopedPlaying = false;
-int g_lastFireWeaponId = 0;
 
-static void ResetLoopedPlayingVars()
+bool g_primaryLoopedPlaying[MAX_PLAYERS] = {false};
+bool g_secondaryLoopedPlaying[MAX_PLAYERS] = {false};
+bool g_primaryAdditionalLoopedPlaying[MAX_PLAYERS] = {false};
+bool g_secondaryAdditionalLoopedPlaying[MAX_PLAYERS] = {false};
+int g_lastFireWeaponId[MAX_PLAYERS] = {0};
+
+static void ResetLoopedPlayingVars(int idx)
 {
-	g_primaryLoopedPlaying = false;
-	g_secondaryLoopedPlaying = false;
-	g_primaryAdditionalLoopedPlaying = false;
-	g_secondaryAdditionalLoopedPlaying = false;
+	g_primaryLoopedPlaying[idx] = false;
+	g_secondaryLoopedPlaying[idx] = false;
+	g_primaryAdditionalLoopedPlaying[idx] = false;
+	g_secondaryAdditionalLoopedPlaying[idx] = false;
 }
 
 static float DecodePunchAngleComponent(int i)
@@ -590,10 +591,10 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	const int body = (iparam1 >> 3) & 0xF;
 	const int weaponId = iparam2 & 0x3F;
 
-	if (g_lastFireWeaponId != weaponId)
+	if (g_lastFireWeaponId[idx-1] != weaponId)
 	{
-		ResetLoopedPlayingVars();
-		g_lastFireWeaponId = weaponId;
+		ResetLoopedPlayingVars(idx - 1);
+		g_lastFireWeaponId[idx-1] = weaponId;
 	}
 
 	const WeaponParameters& params = GetWeaponParameters(weaponId);
@@ -618,7 +619,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 			}
 		}
 
-		ResetLoopedPlayingVars();
+		ResetLoopedPlayingVars(idx - 1);
 
 		return;
 	}
@@ -706,7 +707,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		}
 	}
 
-	auto CheckLoopedSounds = [&fire](int channel, bool fireMode)
+	auto CheckLoopedSounds = [&fire, idx](int channel, bool fireMode)
 	{
 		auto IsLoopingOnChannel = [](const WeaponSoundScript& sound, int channel)
 		{
@@ -717,22 +718,22 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		{
 			if (IsLoopingOnChannel(fire.sound.main, channel))
 			{
-				g_primaryLoopedPlaying = false;
+				g_primaryLoopedPlaying[idx-1] = false;
 			}
 			if (IsLoopingOnChannel(fire.soundAdditional.main, channel))
 			{
-				g_primaryAdditionalLoopedPlaying = false;
+				g_primaryAdditionalLoopedPlaying[idx-1] = false;
 			}
 		}
 		else
 		{
 			if (fire.sound.alt.has_value() && IsLoopingOnChannel(*fire.sound.alt, channel))
 			{
-				g_secondaryLoopedPlaying = false;
+				g_secondaryLoopedPlaying[idx-1] = false;
 			}
 			if (fire.soundAdditional.alt.has_value() && IsLoopingOnChannel(*fire.soundAdditional.alt, channel))
 			{
-				g_secondaryAdditionalLoopedPlaying = false;
+				g_secondaryAdditionalLoopedPlaying[idx-1] = false;
 			}
 		}
 	};
@@ -743,13 +744,13 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	{
 		if (altMode)
 		{
-			shouldPlayFireSound = !g_secondaryLoopedPlaying;
-			g_secondaryLoopedPlaying = true;
+			shouldPlayFireSound = !g_secondaryLoopedPlaying[idx-1];
+			g_secondaryLoopedPlaying[idx-1] = true;
 		}
 		else
 		{
-			shouldPlayFireSound = !g_primaryLoopedPlaying;
-			g_primaryLoopedPlaying = true;
+			shouldPlayFireSound = !g_primaryLoopedPlaying[idx-1];
+			g_primaryLoopedPlaying[idx-1] = true;
 		}
 	}
 	if (shouldPlayFireSound)
@@ -764,13 +765,13 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	{
 		if (altMode)
 		{
-			shouldPlayFireAdditionalSound = !g_secondaryAdditionalLoopedPlaying;
-			g_secondaryAdditionalLoopedPlaying = true;
+			shouldPlayFireAdditionalSound = !g_secondaryAdditionalLoopedPlaying[idx-1];
+			g_secondaryAdditionalLoopedPlaying[idx-1] = true;
 		}
 		else
 		{
-			shouldPlayFireAdditionalSound = !g_primaryAdditionalLoopedPlaying;
-			g_primaryAdditionalLoopedPlaying = true;
+			shouldPlayFireAdditionalSound = !g_primaryAdditionalLoopedPlaying[idx-1];
+			g_primaryAdditionalLoopedPlaying[idx-1] = true;
 		}
 	}
 	if (shouldPlayFireAdditionalSound)
