@@ -158,7 +158,7 @@ typedef struct cmd_function_s
 } cmd_function_t;
 
 xcommand_t originalSaveFunction = nullptr;
-xcommand_t originalAusoSaveFunction = nullptr;
+xcommand_t originalAutoSaveFunction = nullptr;
 xcommand_t originalSetVideoModeFunction = nullptr;
 bool manualSaveIsDisabled = false;
 
@@ -178,10 +178,10 @@ static void CallSaveCommand()
 
 static void CallAutoSaveCommand()
 {
-	if (originalAusoSaveFunction)
+	if (originalAutoSaveFunction)
 	{
 		gHUD.m_Message.MessageAdd("AUTOSAVE", gHUD.m_flTime, true);
-		originalAusoSaveFunction();
+		originalAutoSaveFunction();
 	}
 }
 
@@ -220,7 +220,7 @@ void HookClientCommands()
 	};
 
 	originalSaveFunction = hookCommand("save", &CallSaveCommand);
-	originalAusoSaveFunction = hookCommand("autosave", &CallAutoSaveCommand);
+	originalAutoSaveFunction = hookCommand("autosave", &CallAutoSaveCommand);
 	originalSetVideoModeFunction = hookCommand("_setvideomode", &SetVideoModeCommand);
 }
 

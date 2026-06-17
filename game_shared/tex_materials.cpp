@@ -149,7 +149,8 @@ const char materialsSchema[] = R"(
 		"impact_particle_color": {
 			"$ref": "definitions.json#/color"
 		}
-	}
+	},
+	"additionalProperties": false
 }
 )";
 

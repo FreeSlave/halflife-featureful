@@ -857,13 +857,16 @@ R"(
 	},
 	"start_reload": {
 		"type": "object",
-		"anim": {
-			"$ref": "#/anim_index_optional"
+		"properties": {
+			"anim": {
+				"$ref": "#/anim_index_optional"
+			},
+			"duration": {
+				"type": "number",
+				"minimum": 0
+			}
 		},
-		"duration": {
-			"type": "number",
-			"minimum": 0
-		}
+		"additionalProperties": false
 	},
 	"reload": {
 		"type": ["object", "null"],
@@ -920,7 +923,8 @@ R"(
 			"sound": {
 				"$ref": "#/w_soundscript"
 			}
-		}
+		},
+		"additionalProperties": false
 	},
 	"recharge": {
 		"type": "object",
@@ -939,7 +943,8 @@ R"(
 			"sound": {
 				"$ref": "#/w_soundscript"
 			}
-		}
+		},
+		"additionalProperties": false
 	},
 )"
 R"(

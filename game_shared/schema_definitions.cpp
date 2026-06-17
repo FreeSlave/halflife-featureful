@@ -591,7 +591,8 @@ const char* const json_schemas::definitions = R"(
 					"roll": {
 						"type": "number"
 					}
-				}
+				},
+				"additionalProperties": false
 			},
 			"knock": {
 				"type": "object",
@@ -608,7 +609,8 @@ const char* const json_schemas::definitions = R"(
 					"player_only": {
 						"type": "boolean"
 					}
-				}
+				},
+				"additionalProperties": false
 			},
 			"damage_info": {
 				"$ref": "#/damage_info"
@@ -648,7 +650,8 @@ const char* const json_schemas::definitions = R"(
 					"scale": {
 						"$ref": "#/range"
 					}
-				}
+				},
+				"additionalProperties": false
 			},
 			"tracer": {
 				"type": "object",
@@ -662,7 +665,8 @@ const char* const json_schemas::definitions = R"(
 					"variance": {
 						"type": "number"
 					}
-				}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false
@@ -738,7 +742,8 @@ const char* const json_schemas::definitions = R"(
 			"threshold_effects": {
 				"$ref": "#/trace_attack_effects"
 			}
-		}
+		},
+		"additionalProperties": false
 	},
 	"take_damage_rule_conditions": {
 		"type": "object",
@@ -798,7 +803,8 @@ const char* const json_schemas::definitions = R"(
 				},
 				"additionalProperties": false
 			}
-		}
+		},
+		"additionalProperties": false
 	},
 	"drop_item": {
 		"type": ["object", "string"],
@@ -1018,7 +1024,8 @@ R"(
 					"require_same_ent_template": {
 						"type": "boolean"
 					}
-				}
+				},
+				"additionalProperties": false
 			},
 			"open_door_capability": {
 				"type": "boolean"
