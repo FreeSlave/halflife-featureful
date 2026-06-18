@@ -933,6 +933,82 @@ Type of AI sound. This can be a single string value or an array. Possible values
 
 Duration of sound. This is 0.2 by default.
 
+### gunsmoke
+
+An object that defines gunsmoke properties. Weapons can spawn gun smokes upon firing if they're configured to do so.
+
+Properties:
+
+* `"attachment"` - an attachment to spawn the smoke at. This is **required** for the smoke to spawn.
+* `"policy"` - how the weapon should obey to the `cl_gunsmoke` player's settings. Possible values:
+    - `"auto"` - the smoke will spawn only if the fire type is not `"melee"` and `cl_gunsmoke` is enabled. This is the default value.
+    - `"allowed"` - same as `"auto"`, but also allowed for melee weapons.
+    - `"forced"` - the smoke will spawn independently of `cl_gunsmoke` setting.
+    - `"disallowed"` - the smoke will never spawn. Use it for `"alt_fire"` if you want to disable the gunsmoke for the secondary attack.
+* `"visual"` - a [visual]({{< ref visuals >}}) object or an array of visual objects that define the look of the smoke.
+    - If `"sprite"` is not set, the sprite will be randomized among the [wallpuff]({{< ref "visual-effects/#wallpuffs" >}}) sprites.
+    - Default color is `[30, 30, 30]`.
+    - Default scale is in between 0.5 and 0.6.
+    - Default alpha is in range `[100, 180]`.
+    - Default framerate is 35.
+    - The smoke lifetime depends on the framerate and the number of frames.
+* `"forward_speed"` - initial smoke speed (in direction of firing). Default value is 20.
+* `"start_rising_frame"` - the frame fraction at which the smoke starts loosing its forward speed and starts gaining vertical velocity. This is the value between 0 and 1 (where 0 means start rising on the first frame). Default value is 0.25.
+* `"rising_acceleration"` - how fast the smoke gains the vertical speed. Default value is 100.
+* `"interval"` - the minimum interval (in seconds) between smoke spawns. Use this to prevent spawning too much smoke on fast-firing weapons. Default value is 0.1.
+
+Example:
+
+```json
+{
+    "weapon_9mmhandgun": {
+        "fire": {
+            "gunsmoke": {
+                "visual": [
+                    {
+                        "sprite": "sprites/eexplo.spr",
+                        "color": [100, 100, 0],
+                        "framerate": 20,
+                        "scale": 0.25
+                    },
+                    {
+                        "sprite": "sprites/fexplo.spr",
+                        "color": [0, 100, 100],
+                        "framerate": 20,
+                        "scale": 0.25
+                    }
+                ],
+                "forward_speed": 100,
+                "rising_acceleration": 400
+            }
+        }
+    },
+    "weapon_357": {
+        "fire": {
+            "gunsmoke": {
+                "visual": {
+                    "color": [80, 80, 80]
+                },
+                "policy": "forced"
+            }
+        }
+    }
+}
+```
+
+{{% hint info %}}
+Weapons that have the gunsmoke attachment by default:
+
+* [weapon_9mmhandgun]({{< ref weapon_9mmhandgun >}})
+* [weapon_357]({{< ref weapon_357 >}})
+* [weapon_eagle]({{< ref weapon_eagle >}})
+* [weapon_9mmAR]({{< ref weapon_9mmAR >}})
+* [weapon_shotgun]({{< ref weapon_shotgun >}})
+* [weapon_m249]({{< ref weapon_m249 >}})
+
+While [weapon_sniperrifle]({{< ref weapon_sniperrifle >}}) has the attachment 1 it's resided on the back of the viewmodel, so the gunsmoke attachment is not set for this weapon by default.
+{{% /hint %}}
+
 ### hit_decal
 
 A boolean. Whether the melee attack should leave a decal on the wall. This is `true` by default.

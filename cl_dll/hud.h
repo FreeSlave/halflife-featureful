@@ -987,6 +987,7 @@ struct ClientFeatures
 	ConfigurableFloatValue rollangle;
 	ConfigurableBooleanValue weapon_wallpuff;
 	ConfigurableBooleanValue weapon_sparks;
+	ConfigurableBooleanValue gunsmoke;
 	ConfigurableBooleanValue muzzlelight;
 
 	ConfigurableBooleanValue crosshair_colorable;
@@ -1190,6 +1191,7 @@ public:
 	bool DrawArmorNearHealth();
 	bool WeaponWallpuffEnabled();
 	bool WeaponSparksEnabled();
+	bool GunSmokeEnabled();
 	bool MuzzleLightEnabled();
 	bool CustomFlashlightEnabled();
 	float FlashlightRadius();
@@ -1324,6 +1326,8 @@ public:
 	void LoadWallPuffSprites();
 	int wallPuffCount;
 	model_t* wallPuffs[MAX_WALLPUFF_COUNT];
+
+	model_t* GetRandomWallPuff();
 
 	bool m_bFlashlight;
 

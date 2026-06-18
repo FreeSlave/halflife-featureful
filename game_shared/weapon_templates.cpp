@@ -1109,6 +1109,55 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				fire.viewmodelBeams.Materialize(altMode) = std::move(beamList);
 			});
 
+			HandleJSONMember(value, "gunsmoke", [&](const Value& value) {
+				UpdatePropertyFromJson(fire.gunSmokeAttachment, value, "attachment", altMode);
+				UpdatePropertyFromJson(fire.gunSmokeForwardSpeed, value, "forward_speed", altMode);
+				UpdatePropertyFromJson(fire.gunSmokeRisingAcceleration, value, "rising_acceleration", altMode);
+				UpdatePropertyFromJson(fire.gunSmokeStartRisingFrame, value, "start_rising_frame", altMode);
+				UpdatePropertyFromJson(fire.gunSmokeInterval, value, "interval", altMode);
+
+				HandleJSONMember(value, "policy", [&](const Value& value) {
+					if (value.IsString())
+					{
+						const char* str = value.GetString();
+						if (strcmp(str, "auto") == 0)
+						{
+							fire.gunSmokePolicy.Materialize(altMode) = WeaponParameters::Fire::GUNSMOKE_AUTO;
+						}
+						else if (strcmp(str, "allowed") == 0)
+						{
+							fire.gunSmokePolicy.Materialize(altMode) = WeaponParameters::Fire::GUNSMOKE_ALLOWED;
+						}
+						else if (strcmp(str, "forced") == 0)
+						{
+							fire.gunSmokePolicy.Materialize(altMode) = WeaponParameters::Fire::GUNSMOKE_FORCED;
+						}
+						else if (strcmp(str, "disallowed") == 0)
+						{
+							fire.gunSmokePolicy.Materialize(altMode) = WeaponParameters::Fire::GUNSMOKE_DISALLOWED;
+						}
+					}
+				});
+
+				HandleJSONMember(value, "visual", [&](const Value& value) {
+					if (value.IsArray())
+					{
+						Value::ConstArray arr = value.GetArray();
+						std::vector<Visual> visualList;
+						visualList.reserve(arr.Size());
+						for (const auto& item : arr)
+						{
+							visualList.push_back(ParseVisualFromJSON(item, [this](const char* str){ return this->MakeConstantString(str); }));
+						}
+						fire.gunSmokeVisuals.Materialize(altMode) = std::move(visualList);
+					}
+					else if (value.IsObject())
+					{
+						fire.gunSmokeVisuals.Materialize(altMode) = {ParseVisualFromJSON(value, [this](const char* str){ return this->MakeConstantString(str); })};
+					}
+				});
+			});
+
 			HandleJSONMember(value, "extra_ai_sound", [&](const Value& value) {
 				HandleJSONMember(value, "type", [&](const Value& value) {
 					auto parseAISoundType = [](const char* str)

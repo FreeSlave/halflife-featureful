@@ -120,6 +120,8 @@ WeaponParameters CShotgun::GetDefaultParameters() const
 	params.fire.shellOffsetSide = 6;
 	params.fire.shellModel = "models/shotgunshell.mdl";
 	params.fire.shellSound = TE_BOUNCE_SHOTSHELL;
+
+	params.fire.gunSmokeAttachment = 1;
 	//
 
 	// Alt fire

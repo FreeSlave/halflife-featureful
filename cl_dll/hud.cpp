@@ -247,6 +247,7 @@ cvar_t *cl_grenadephysics = NULL;
 
 cvar_t* cl_weapon_sparks = NULL;
 cvar_t* cl_weapon_wallpuff = NULL;
+cvar_t* cl_gunsmoke = NULL;
 
 cvar_t* cl_weather = NULL;
 
@@ -843,6 +844,7 @@ void CHud::Init()
 
 	CreateBooleanCvarConditionally(cl_weapon_sparks, "cl_weapon_sparks", clientFeatures.weapon_sparks);
 	CreateBooleanCvarConditionally(cl_weapon_wallpuff, "cl_weapon_wallpuff", clientFeatures.weapon_wallpuff);
+	CreateBooleanCvarConditionally(cl_gunsmoke, "cl_gunsmoke", clientFeatures.gunsmoke);
 
 	cl_weather = CVAR_CREATE( "cl_weather", "1", FCVAR_ARCHIVE );
 
@@ -1089,6 +1091,7 @@ void CHud::ParseClientFeatures()
 		{ "viewmodel_lag.", clientFeatures.viewmodel_lag},
 		{ "weapon_wallpuff.", clientFeatures.weapon_wallpuff},
 		{ "weapon_sparks.", clientFeatures.weapon_sparks},
+		{ "gunsmoke.", clientFeatures.gunsmoke},
 		{ "muzzlelight.", clientFeatures.muzzlelight},
 		{ "movemode.", clientFeatures.movemode},
 		{ "crosshair_colorable.", clientFeatures.crosshair_colorable},
@@ -1319,6 +1322,8 @@ void CHud::LoadWallPuffSprites()
 	wallPuffCount = i;
 }
 
+extern void LoadGunSmokeSprites();
+
 void CHud::VidInit()
 {
 	static bool vidInitAtLeastOnce = false;
@@ -1451,6 +1456,7 @@ void CHud::VidInit()
 	m_HUD_number_0 = GetSpriteIndex( "number_0" );
 
 	LoadWallPuffSprites();
+	LoadGunSmokeSprites();
 
 	m_iFontHeight = m_rgrcRects[m_HUD_number_0].bottom - m_rgrcRects[m_HUD_number_0].top;
 
@@ -1729,6 +1735,11 @@ bool CHud::WeaponWallpuffEnabled()
 bool CHud::WeaponSparksEnabled()
 {
 	return ClientFeatureEnabled(cl_weapon_sparks, clientFeatures.weapon_sparks.enabled_by_default);
+}
+
+bool CHud::GunSmokeEnabled()
+{
+	return ClientFeatureEnabled(cl_gunsmoke, clientFeatures.gunsmoke.enabled_by_default);
 }
 
 bool CHud::MuzzleLightEnabled()
@@ -2152,6 +2163,15 @@ bool CHud::TopLevelWindowIsActive()
 	if (m_MOTD.m_bShow)
 		return true;
 	return false;
+}
+
+model_t* CHud::GetRandomWallPuff()
+{
+	if (gHUD.wallPuffCount > 0)
+	{
+		return gHUD.wallPuffs[Com_RandomLong(0, gHUD.wallPuffCount-1)];
+	}
+	return nullptr;
 }
 
 bool CHud::HasActiveFakeMirrors() const

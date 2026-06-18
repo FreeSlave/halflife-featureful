@@ -138,6 +138,8 @@ WeaponParameters CM249::GetDefaultParameters() const
 	params.fire.shellSound = TE_BOUNCE_SHELL;
 	params.fire.pushbackForce = 35.0f;
 	params.fire.pushbackVertical = bIsMultiplayer();
+
+	params.fire.gunSmokeAttachment = 1;
 	//
 
 	// Alt fire

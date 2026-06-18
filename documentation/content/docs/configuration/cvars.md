@@ -23,14 +23,17 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 ### Weapon effects
 
 * `cl_weapon_sparks` - whether to create sparks from the bullet impact on the walls. Similar to Counter-Strike.
-* `cl_weapon_wallpuff` - whether to create a puff from the bullet impact on the walls. Similar to Counter-Strike.
+* `cl_weapon_wallpuff` - whether to create a [wallpuff]({{< ref "visual-effects/#wallpuffs" >}}) from the bullet impact on the walls. Similar to Counter-Strike.
+* `cl_gunsmoke` - whether to create a [gunsmoke]({{< ref "visual-effects/#gunsmoke" >}}) on some weapon upon firing.
 * `cl_muzzlelight` - whether some player weapons produce a dynamic light upon firing.
-* `cl_wallimpact_style` - the style of the impact particles on the walls (usually caused by bullets).
+* `cl_wallimpact_style` - the style of the [impact particles]({{< ref "visual-effects/#wall-impact-particles" >}}) on the walls (usually caused by bullets).
     - `0` - default Half-Life style - the small particles will be flying outwards on impact.
     - `1` - particle cloud (Quake and Day One). It's recommended to have the **sprites/dot_index.spr** sprite (same as **sprites/dot.spr** but in the index-alpha texture format) present in the game files (distributed with the sample mod). If it's missing the basic engine particles will be used instead.
     - `2` - sprite particle cloud with fade effect (Quake 2). This expects the **sprites/dot_index.spr** sprite of index-alpha texture format to be present in the game files (distributed with the sample mod). If it's missing the **sprites/dot.spr** will be used in the additive mode.
 
 ### Blood effects
+
+See [blood visual effects]({{< ref "visual-effects/#blood" >}})
 
 * `cl_bloodsplatter_style` - select a blood splatter style. Possible values:
     - `0` - default sprite-based splatter and spray.

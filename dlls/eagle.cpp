@@ -118,6 +118,8 @@ WeaponParameters CEagle::GetDefaultParameters() const
 	params.fire.shellOffsetSide = 9;
 	params.fire.shellModel = "models/shell.mdl";
 	params.fire.shellSound = TE_BOUNCE_SHELL;
+
+	params.fire.gunSmokeAttachment = 1;
 	//
 
 	// Alt fire

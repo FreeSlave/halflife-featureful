@@ -53,6 +53,12 @@ void VectorAngles( const float *forward, float *angles );
 
 extern cvar_t *cl_lw;
 extern cvar_t *r_decals;
+extern Vector g_vPlayerVelocity;
+
+extern "C"
+{
+int DLLEXPORT CL_IsThirdPerson();
+}
 
 static bool DidHitSky(pmtrace_t *ptr, float *vecSrc, float *vecEnd)
 {
@@ -274,13 +280,23 @@ void EV_WallPuff_Wind( struct tempent_s *te, float frametime, float currenttime 
 
 void EV_SmokeRise( struct tempent_s *te, float frametime, float currenttime )
 {
-	if ( te->entity.curstate.frame > 7.0 )
+	if (te->entity.curstate.frame >= te->frameMax * te->entity.curstate.fuser2)
 	{
-		te->entity.baseline.origin = 0.97f * te->entity.baseline.origin;
-		te->entity.baseline.origin.z += 0.7f;
+		te->entity.baseline.origin *= 97 * frametime;
+		te->entity.baseline.origin.z += te->entity.curstate.fuser1 * frametime;
 
-		if( te->entity.baseline.origin.z > 70.0f )
-			te->entity.baseline.origin.z = 70.0f;
+		const float maxRiseSpeed = te->entity.curstate.fuser1;
+
+		if (maxRiseSpeed >= 0)
+		{
+			if (te->entity.baseline.origin.z > maxRiseSpeed)
+				te->entity.baseline.origin.z = maxRiseSpeed;
+		}
+		else
+		{
+			if (te->entity.baseline.origin.z < maxRiseSpeed)
+				te->entity.baseline.origin.z = maxRiseSpeed;
+		}
 	}
 }
 
@@ -301,60 +317,44 @@ void EV_HugWalls(TEMPENTITY *te, pmtrace_s *ptr)
 	te->entity.baseline.origin = projection * len;
 }
 
-static void EV_CreateShotSmoke(int type, Vector origin, Vector dir, int speed, float scale, int r, int g, int b, bool wind, const IntRange& wallpuffAlphaRange, Vector velocity = Vector(0,0,0), int framerate = 35)
+static TEMPENTITY* EV_CreateShotSmoke(model_t* smokeSprite, Vector origin, const Vector& dir, int speed, const Visual& visual, bool wind, Vector velocity = Vector(0,0,0))
 {
-	TEMPENTITY *te = NULL;
-	void ( *callback )( struct tempent_s *ent, float frametime, float currenttime ) = NULL;
-	model_t* wallPuffSprite = nullptr;
+	if (!smokeSprite)
+		return nullptr;
 
-	switch( type )
+	TEMPENTITY *te = gEngfuncs.pEfxAPI->CL_TempEntAlloc(origin, smokeSprite);
+	if (te)
 	{
-	case SMOKE_WALLPUFF:
-		if (gHUD.wallPuffCount <= 0)
-			return;
-		wallPuffSprite = gHUD.wallPuffs[Com_RandomLong(0, gHUD.wallPuffCount-1)];
-		break;
-	default:
-		gEngfuncs.Con_DPrintf("Unknown smoketype %d\n", type);
-		return;
-	}
-
-	if( wind )
-		callback = EV_WallPuff_Wind;
-	else
-		callback = EV_SmokeRise;
-
-
-	te = gEngfuncs.pEfxAPI->CL_TempEntAlloc( origin, wallPuffSprite );
-
-	if( te )
-	{
-		te->callback = callback;
+		te->callback = wind ? EV_WallPuff_Wind : EV_SmokeRise;
 		te->hitcallback = EV_HugWalls;
 		te->flags |= FTENT_SPRANIMATE | FTENT_COLLIDEALL | FTENT_CLIENTCUSTOM;
 
-		msprite_t* spriteDef = (msprite_t*)wallPuffSprite->cache.data;
-
-		te->entity.curstate.rendermode = spriteDef->texFormat == SPR_INDEXALPHA ? kRenderTransAlpha : kRenderTransAdd;
-		te->entity.curstate.rendercolor.r = r;
-		te->entity.curstate.rendercolor.g = g;
-		te->entity.curstate.rendercolor.b = b;
-		te->entity.curstate.renderamt = RandomizeNumberFromRange(wallpuffAlphaRange);
-		te->entity.curstate.scale = scale;
-		te->entity.baseline.origin = speed * dir;
-		te->entity.curstate.framerate = framerate;
-		te->frameMax = wallPuffSprite->numframes;
-		te->die = gEngfuncs.GetClientTime() + (float)te->frameMax / framerate;
-		te->entity.curstate.frame = 0;
-
-		if( velocity != Vector(0,0,0) )
+		if (visual.HasDefined(Visual::RENDERMODE_DEFINED))
 		{
-			velocity.x *= 0.9;
-			velocity.y *= 0.9;
-			velocity.z *= 0.5;
-			te->entity.baseline.origin = te->entity.baseline.origin + velocity;
+			te->entity.curstate.rendermode = visual.rendermode;
 		}
+		else if (smokeSprite->type == mod_sprite)
+		{
+			msprite_t* spriteDef = (msprite_t*)smokeSprite->cache.data;
+			te->entity.curstate.rendermode = spriteDef->texFormat == SPR_INDEXALPHA ? kRenderTransAlpha : kRenderTransAdd;
+		}
+		else
+		{
+			te->entity.curstate.rendermode = kRenderTransAdd;
+		}
+
+		te->entity.curstate.rendercolor.r = visual.rendercolor.r;
+		te->entity.curstate.rendercolor.g = visual.rendercolor.g;
+		te->entity.curstate.rendercolor.b = visual.rendercolor.b;
+		te->entity.curstate.renderamt = RandomizeNumberFromRange(visual.renderamt);
+		te->entity.curstate.scale = RandomizeNumberFromRange(visual.scale);
+		te->entity.baseline.origin = speed * dir + velocity;
+		te->entity.curstate.framerate = RandomizeNumberFromRange(visual.framerate);
+		te->frameMax = smokeSprite->numframes - 1;
+		te->die = gEngfuncs.GetClientTime() + (float)te->frameMax / te->entity.curstate.framerate;
+		te->entity.curstate.frame = 0;
 	}
+	return te;
 }
 
 void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, float* forward, char cTextureType = 0, bool isSky = false )
@@ -387,8 +387,13 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, float* forward, char cTextureType 
 
 		if (mData && mData->hit.allowWallpuff && gHUD.WeaponWallpuffEnabled())
 		{
-			const Color3 smoke = mData->hit.wallpuffColor;
-			EV_CreateShotSmoke(SMOKE_WALLPUFF, pTrace->endpos + pTrace->plane.normal * 5, pTrace->plane.normal, 25, 0.5f, smoke.r, smoke.g, smoke.b, true, g_MaterialRegistry.GetWallpuffAlphaRange());
+			Visual wallpuffVisual;
+			wallpuffVisual.SetAlpha(g_MaterialRegistry.GetWallpuffAlphaRange());
+			wallpuffVisual.SetColor(mData->hit.wallpuffColor);
+			wallpuffVisual.SetScale(0.5f);
+			wallpuffVisual.SetFramerate(35);
+
+			EV_CreateShotSmoke(gHUD.GetRandomWallPuff(), pTrace->endpos + pTrace->plane.normal * 5, pTrace->plane.normal, 25, wallpuffVisual, true);
 		}
 	}
 }
@@ -535,6 +540,8 @@ bool g_primaryAdditionalLoopedPlaying[MAX_PLAYERS] = {false};
 bool g_secondaryAdditionalLoopedPlaying[MAX_PLAYERS] = {false};
 int g_lastFireWeaponId[MAX_PLAYERS] = {0};
 
+float g_nextGunSmoke = 0.0f;
+
 static void ResetLoopedPlayingVars(int idx)
 {
 	g_primaryLoopedPlaying[idx] = false;
@@ -591,8 +598,10 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	const int body = (iparam1 >> 3) & 0xF;
 	const int weaponId = iparam2 & 0x3F;
 
+	bool firedDifferentWeapon = false;
 	if (g_lastFireWeaponId[idx-1] != weaponId)
 	{
+		firedDifferentWeapon = true;
 		ResetLoopedPlayingVars(idx - 1);
 		g_lastFireWeaponId[idx-1] = weaponId;
 	}
@@ -835,6 +844,68 @@ static void EV_PerformWeaponFire(event_args_t *args)
 			Q_max(visual.beamWidth, 1), visual.beamNoise * 0.01f, RandomizeNumberFromRange(visual.renderamt) / 255.0f,
 			visual.beamScrollRate, 0, RandomizeNumberFromRange(visual.framerate),
 			visual.rendercolor.r / 255.0f, visual.rendercolor.g / 255.0f, visual.rendercolor.b / 255.0f);
+	}
+
+	if (EV_IsLocal(idx) && !CL_IsThirdPerson())
+	{
+		cl_entity_t* viewModel = GetViewEntity();
+		if (viewModel && (firedDifferentWeapon || g_nextGunSmoke <= gEngfuncs.GetClientTime()))
+		{
+			short gunSmokePolicy = fire.gunSmokePolicy.Get(altMode);
+			short attachment = fire.gunSmokeAttachment.Get(altMode);
+
+			bool shouldPlaySmoke;
+			switch(gunSmokePolicy)
+			{
+			case WeaponParameters::Fire::GUNSMOKE_AUTO:
+				shouldPlaySmoke = fireType != WeaponParameters::Fire::MELEE && gHUD.GunSmokeEnabled();
+				break;
+			case WeaponParameters::Fire::GUNSMOKE_ALLOWED:
+				shouldPlaySmoke = gHUD.GunSmokeEnabled();
+				break;
+			case WeaponParameters::Fire::GUNSMOKE_FORCED:
+				shouldPlaySmoke = true;
+				break;
+			default:
+				shouldPlaySmoke = false;
+				break;
+			}
+
+			if (shouldPlaySmoke && attachment > 0)
+			{
+				Visual defaultGunSmokeVisual;
+				defaultGunSmokeVisual.SetColor(Color3(30, 30, 30));
+				defaultGunSmokeVisual.SetAlpha(IntRange(100, 180));
+				defaultGunSmokeVisual.SetScale(FloatRange{0.5f, 0.6f});
+				defaultGunSmokeVisual.SetFramerate(35);
+
+				Visual smokeVisual;
+				const auto& gunSmokeVisuals = fire.gunSmokeVisuals.Get(altMode);
+
+				if (!gunSmokeVisuals.empty())
+				{
+					smokeVisual = gunSmokeVisuals[RandomizeNumberFromRange(0, gunSmokeVisuals.size()-1)];
+				}
+
+				smokeVisual.CompleteFrom(defaultGunSmokeVisual);
+
+				model_t* spriteModel = smokeVisual.modelPtr;
+				if (!spriteModel)
+				{
+					spriteModel = gHUD.GetRandomWallPuff();
+				}
+
+				TEMPENTITY* smokeEnt = EV_CreateShotSmoke(spriteModel, viewModel->attachment[attachment-1], forward, fire.gunSmokeForwardSpeed.Get(altMode), smokeVisual, false, g_vPlayerVelocity);
+				if (smokeEnt)
+				{
+					smokeEnt->entity.curstate.fuser1 = fire.gunSmokeRisingAcceleration.Get(altMode);
+					smokeEnt->entity.curstate.fuser2 = fire.gunSmokeStartRisingFrame.Get(altMode);
+					smokeEnt->clientIndex = idx;
+
+					g_nextGunSmoke = gEngfuncs.GetClientTime() + fire.gunSmokeInterval.Get(altMode);
+				}
+			}
+		}
 	}
 }
 

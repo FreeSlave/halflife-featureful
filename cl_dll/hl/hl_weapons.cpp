@@ -536,6 +536,36 @@ void HUD_ResetClientWeaponData()
 	{
 		maxAmmo = 0;
 	}
+
+	extern float g_nextGunSmoke;
+	g_nextGunSmoke = 0.0f;
+}
+
+void LoadGunSmokeSprites()
+{
+	for (int i=0; i<MAX_WEAPONS; ++i)
+	{
+		WeaponInfo& info = AccessWeaponInfo(i);
+
+		for(Visual& visual : info.params.fire.gunSmokeVisuals.main)
+		{
+			if (visual.HasModel())
+			{
+				visual.modelPtr = const_cast<model_t*>(gEngfuncs.GetSpritePointer(gEngfuncs.pfnSPR_Load(visual.model)));
+			}
+		}
+
+		if (info.params.fire.gunSmokeVisuals.alt.has_value())
+		{
+			for(Visual& visual : *info.params.fire.gunSmokeVisuals.alt)
+			{
+				if (visual.HasModel())
+				{
+					visual.modelPtr = const_cast<model_t*>(gEngfuncs.GetSpritePointer(gEngfuncs.pfnSPR_Load(visual.model)));
+				}
+			}
+		}
+	}
 }
 
 /*

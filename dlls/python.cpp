@@ -104,6 +104,8 @@ WeaponParameters CPython::GetDefaultParameters() const
 	params.fire.weaponFlash = BRIGHT_GUN_FLASH;
 
 	params.fire.clientPunchPitch = -10.0f;
+
+	params.fire.gunSmokeAttachment = 1;
 	//
 
 	// Alt fire

@@ -8,6 +8,10 @@
 #include "json_utils.h"
 #include "logger.h"
 
+#if CLIENT_DLL
+#include "com_model.h"
+#endif
+
 struct Visual
 {
 	enum
@@ -53,6 +57,10 @@ struct Visual
 	int waveType = WAVETYPE_CYLINDER;
 
 	int modelIndex = 0;
+
+#if CLIENT_DLL
+	model_t* modelPtr = nullptr;
+#endif
 
 	inline void SetModel(const char* model)
 	{

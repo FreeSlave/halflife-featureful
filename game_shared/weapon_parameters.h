@@ -565,6 +565,14 @@ struct WeaponParameters
 			ADD_VELOCITY_PROJECTION
 		};
 
+		enum
+		{
+			GUNSMOKE_AUTO,
+			GUNSMOKE_ALLOWED,
+			GUNSMOKE_FORCED,
+			GUNSMOKE_DISALLOWED,
+		};
+
 		WeaponModeValue<Type> fireType{NATIVE};
 		WeaponModeValue<DamageInfoPatch> damageInfo;
 		WeaponModeValueNonNegative<FloatRange> damageChargedFactor{0.0f};
@@ -675,6 +683,14 @@ struct WeaponParameters
 		WeaponModeValue<FirePhaseArray> projectileFirePhases;
 
 		WeaponModeValue<ViewmodelBeamArray> viewmodelBeams;
+
+		WeaponModeValue<std::vector<Visual>> gunSmokeVisuals;
+		WeaponModeValueNonNegative<short> gunSmokePolicy{GUNSMOKE_ALLOWED};
+		WeaponModeValueNonNegative<short> gunSmokeAttachment{0};
+		WeaponModeValueNonNegative<short> gunSmokeForwardSpeed{20};
+		WeaponModeValueNonNegative<float> gunSmokeRisingAcceleration{100.0f};
+		WeaponModeValueNonNegative<float> gunSmokeStartRisingFrame{0.25f};
+		WeaponModeValueNonNegative<float> gunSmokeInterval{0.1f};
 	};
 
 	struct Fade

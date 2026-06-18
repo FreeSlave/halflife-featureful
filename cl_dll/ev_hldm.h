@@ -11,13 +11,5 @@
 
 #include "weapon_animations.h"
 
-enum
-{
-	SMOKE_WALLPUFF = 0,
-	SMOKE_RIFLE,
-	SMOKE_PISTOL,
-	SMOKE_BLACK
-};
-
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName );
 #endif // EV_HLDMH

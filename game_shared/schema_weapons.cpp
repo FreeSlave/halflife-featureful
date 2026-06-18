@@ -823,6 +823,46 @@ R"(
 					"required": ["start_attachment", "end_attachment"],
 					"additionalProperties": false
 				}
+			},
+			"gunsmoke": {
+				"type": "object",
+				"properties": {
+					"visual": {
+						"oneOf": [
+							{
+								"type": "array",
+								"items": {
+									"$ref": "definitions.json#/visual_object"
+								}
+							},
+							{
+								"$ref": "definitions.json#/visual_object"
+							}
+						]
+					},
+					"policy": {
+						"enum": ["auto", "allowed", "forced", "disallowed"]
+					},
+					"attachment": {
+						"$ref": "#/attachment"
+					},
+					"forward_speed": {
+						"type": "number"
+					},
+					"rising_acceleration": {
+						"type": "number"
+					},
+					"start_rising_frame": {
+						"type": "number",
+						"minimum": 0,
+						"maximum": 1
+					},
+					"interval": {
+						"type": "number",
+						"minimum": 0.0
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"additionalProperties": false

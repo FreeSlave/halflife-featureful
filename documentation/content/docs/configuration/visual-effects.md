@@ -11,7 +11,7 @@ While graphical improvements are far from the primary goal of the Featureful SDK
 *Wallpuffs* are small clouds of dust that play when a bullet-based weapon hits the world geometry or brush objects. This effect is similar to one used in Counter Strike, Day of Defeat and some other mods.
 
 * Wallpuffs are not enabled by default. The user can enable wallpuffs by setting the `cl_weapon_wallpuff` cvar to 1. See [CVars]({{< ref "cvars/#weapon-effects" >}}). See [Advanced settings]({{< ref "shipping-your-mod/#advanced-settings" >}}) for exposing the cvar to the settings UI.
-* To enable wallpuffs in the mod by default set the `weapon_wallpuff.enabled_by_default` feature to true in **features/featureful_client.cfg**.
+* To enable wallpuffs in the mod by default set the `weapon_wallpuff.enabled_by_default` feature to `true` in **features/featureful_client.cfg**.
 * The sprites used for wallpuffs can be configured by setting `wall_puff1`-`wall_puff4` in **features/featureful_client.cfg**, allowing for up to 4 different sprites.
 * By default the single **sprites/stmbal1.spr** sprite is used for wallpuffs (a standard resource that exists in Half-Life).
 * The wallpuff color depends on the [material]({{< ref materials >}}) the bullet hits and can be configured.
@@ -31,6 +31,16 @@ Wall impact particles spawn when the bullet-based weapon hits the world geometry
 {{< figure src="/images/wallimpact_q1.png" caption="Quake style wall impact particles" >}}
 {{< figure src="/images/wallimpact_q2.png" caption="Quake II style wall impact particles" >}}
 {{< figure src="/images/wallimpact_colored.png" caption="Custom impact particles color for wooden surfaces" >}}
+
+## Gunsmoke
+
+Gunsmoke is a cloud of dust that some weapons spawn upon firing on one of the viewmodel's attachmenets (usually the end of barrel). Whether the weapon is able to produce gunsmoke is controlled by [gunsmoke]({{< ref "weapon-templates/#gunsmoke" >}}) in weapon templates.
+
+* Gunsmoke is not enabled by default. The user can enable gunsmoke by setting the `cl_gunsmoke` cvar to 1. See [Advanced settings]({{< ref "shipping-your-mod/#advanced-settings" >}}) for exposing the cvar to the settings UI.
+* To enable gunsmoke in the mod by default set the `gunsmoke.enabled_by_default` feature to `true` in **features/featureful_client.cfg**
+* By default gunsmokes use the same sprites as [wallpuffs](#wallpuffs).
+
+{{< figure src="/images/gunsmoke.png" caption="Gunsmoke example" >}}
 
 ## Blood
 
