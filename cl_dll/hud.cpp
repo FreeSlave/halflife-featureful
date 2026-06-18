@@ -797,7 +797,7 @@ void CHud::Init()
 	ParseClientFeatures();
 	ParseModConfigs();
 
-	CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE );
+	m_pCvarZoomSensitivityRatio = CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE );
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_satchelcontrol = CVAR_CREATE( "_satctrl", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_grenadephysics = CVAR_CREATE( "_grenphys", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
@@ -1640,7 +1640,7 @@ int CHud::MsgFunc_SetFOV( const char *pszName,  int iSize, void *pbuf )
 	else
 	{  
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * m_pCvarZoomSensitivityRatio->value;
 	}
 
 	return 1;

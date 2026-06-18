@@ -78,7 +78,7 @@ void CHud::Think()
 	else
 	{
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * m_pCvarZoomSensitivityRatio->value;
 	}
 
 	// think about default fov

@@ -1094,6 +1094,7 @@ public:
 	int		m_iMaxRes;
 	int		m_iHudNumbersYOffset;
 	cvar_t  *m_pCvarDeveloper;
+	cvar_t  *m_pCvarZoomSensitivityRatio;
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
 	cvar_t	*m_pCvarShowPos;
