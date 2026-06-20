@@ -86,6 +86,8 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 
 #define WEAPON_IS_ONTARGET 0x40
 
+#define MAX_FIRED_SHOT_TRACK 0xF
+
 struct ItemInfo
 {
 	int		iSlot = 0;
@@ -379,6 +381,7 @@ public:
 	void Reload() override;
 	void SendIdleAnimation();
 	void WeaponIdle() override;
+	bool CanHolster() override;
 	void Holster() override;
 	int ViewModelBody() override;
 	void SetBody(int body);

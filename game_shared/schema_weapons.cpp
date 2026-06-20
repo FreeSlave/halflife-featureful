@@ -1243,6 +1243,9 @@ R"(
 					"attract_rockets": {
 						"type": "boolean"
 					},
+					"check_active_rockets": {
+						"type": "boolean"
+					},
 					"scale": {
 						"type": "number",
 						"exclusiveMinimum": 0

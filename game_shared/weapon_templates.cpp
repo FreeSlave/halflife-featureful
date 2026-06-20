@@ -1395,6 +1395,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	HandleJSONMember(value, "laser_spot", [&](const Value& value) {
 		UpdatePropertyFromJson(params.startLaserSpot, value, "start_on");
 		UpdatePropertyFromJson(params.laserSpotAttractRockets, value, "attract_rockets");
+		UpdatePropertyFromJson(params.laserSpotCheckActiveRockets, value, "check_active_rockets");
 		UpdatePropertyFromJson(params.laserSpotScale, value, "scale");
 
 		HandleJSONMember(value, "activation_sound", [&](const Value& value) {

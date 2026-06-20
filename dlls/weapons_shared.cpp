@@ -1096,10 +1096,7 @@ void CConfigurableWeapon::UpdateInaccuracy()
 	{
 		m_bDelayFire = false;
 
-		if (m_iShotsFired > 15)
-		{
-			m_iShotsFired = 15;
-		}
+		m_iShotsFired = Q_min(m_iShotsFired, MAX_FIRED_SHOT_TRACK);
 		m_flDecreaseShotsFired = gpGlobals->time + 0.4f;
 	}
 
@@ -2066,6 +2063,13 @@ bool CConfigurableWeapon::PerformReload()
 		return false;
 
 	const WeaponParameters& params = MyParameters();
+
+	if (m_bLaserActive && params.laserSpotCheckActiveRockets && m_cActiveRockets > 0)
+	{
+		// no reloading when there are active missiles tracking the designator.
+		return false;
+	}
+
 	const bool altMode = InAltMode();
 
 	if (CanRechargeAmmo())
@@ -2367,6 +2371,18 @@ void CConfigurableWeapon::WeaponIdle()
 	SendIdleAnimation();
 }
 
+bool CConfigurableWeapon::CanHolster()
+{
+	const WeaponParameters& params = MyParameters();
+
+	if (m_bLaserActive && params.laserSpotCheckActiveRockets && m_cActiveRockets > 0)
+	{
+		// can't put away while guiding a missile.
+		return false;
+	}
+	return true;
+}
+
 void CConfigurableWeapon::Holster()
 {
 	if (m_pPlayer->m_flEjectBrass != 0.0f)
@@ -2584,14 +2600,17 @@ void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
 
 	data.iuser2 |= chargeFlags << 4;
 
-	data.iuser3 = m_iShotsFired & 0xFF;
+	data.iuser3 = m_iShotsFired & 0xF;
 
 	if (m_burstTime != 0.0f)
 	{
 		data.iuser1 |= WEAPONDATA_BURSTING;
-		data.iuser3 |= (m_burstShotsFired & 0xF) << 8;
+		data.iuser3 |= (m_burstShotsFired & 0xF) << 4;
 		data.fuser2 = gpGlobals->time - m_burstTime;
 	}
+
+	if (m_cActiveRockets > 0)
+		data.iuser3 |= (1<<8);
 
 	data.fuser3 = m_flInaccuracy;
 }
@@ -2619,14 +2638,14 @@ void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
 	m_chargingAltFire = FBitSet(chargeFlags, WEAPONCHARGE_ALTMODE);
 	m_shouldPlayCooldown = FBitSet(chargeFlags, WEAPONCHARGE_SHOULD_COOLDOWN);
 
-	m_iShotsFired = data.iuser3 & 0xFF;
+	m_iShotsFired = data.iuser3 & 0xF;
 
 	if (FBitSet(data.iuser1, WEAPONDATA_BURSTING))
 	{
 		if (m_burstTime == 0.0f)
 		{
 			// in case of save-restore, set these on client
-			m_burstShotsFired = (data.iuser3 >> 8) & 0xF;
+			m_burstShotsFired = (data.iuser3 >> 4) & 0xF;
 			m_burstTime = gpGlobals->time - data.fuser2;
 		}
 	}
@@ -2634,6 +2653,11 @@ void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
 	{
 		ResetBurst();
 	}
+
+	if ((data.iuser3 >> 8) & 1)
+		m_cActiveRockets = 1;
+	else
+		m_cActiveRockets = 0;
 
 	m_flInaccuracy = data.fuser3;
 }

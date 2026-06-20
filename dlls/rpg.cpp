@@ -25,14 +25,8 @@ class CRpg : public CConfigurableWeapon
 {
 public:
 	int WeaponId() const override { return WEAPON_RPG; }
-	void Reload() override;
 	bool GetItemInfo(ItemInfo *p) override;
 	WeaponParameters GetDefaultParameters() const override;
-
-	bool CanHolster() override;
-
-	void GetWeaponData(weapon_data_t& data) override;
-	void SetWeaponData(const weapon_data_t& data) override;
 };
 
 #if !CLIENT_DLL
@@ -363,17 +357,6 @@ enum rpg_e
 
 LINK_WEAPON_TO_CLASS( weapon_rpg, CRpg )
 
-void CRpg::Reload()
-{
-	if( m_cActiveRockets && m_bLaserActive )
-	{
-		// no reloading when there are active missiles tracking the designator.
-		return;
-	}
-
-	PerformReload();
-}
-
 bool CRpg::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 3;
@@ -464,6 +447,7 @@ WeaponParameters CRpg::GetDefaultParameters() const
 	params.altMode.toggleLaserSpot = true;
 	params.startLaserSpot = true;
 	params.laserSpotAttractRockets = true;
+	params.laserSpotCheckActiveRockets = true;
 
 	params.holster.animIndex = RPG_HOLSTER1;
 	params.holster.attackDelay = 0.5f;
@@ -471,26 +455,4 @@ WeaponParameters CRpg::GetDefaultParameters() const
 	params.dropAmmo.classname = "ammo_rpgclip";
 
 	return params;
-}
-
-bool CRpg::CanHolster()
-{
-	if( m_bLaserActive && m_cActiveRockets )
-	{
-		// can't put away while guiding a missile.
-		return false;
-	}
-	return true;
-}
-
-void CRpg::GetWeaponData(weapon_data_t& data)
-{
-	CConfigurableWeapon::GetWeaponData(data);
-	data.iuser3 |= (m_cActiveRockets & 0xF) << 12;
-}
-
-void CRpg::SetWeaponData(const weapon_data_t& data)
-{
-	CConfigurableWeapon::SetWeaponData(data);
-	m_cActiveRockets = (data.iuser3 >> 12) & 0xF;
 }

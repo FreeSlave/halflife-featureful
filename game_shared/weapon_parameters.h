@@ -768,6 +768,7 @@ struct WeaponParameters
 
 	bool startLaserSpot = false;
 	bool laserSpotAttractRockets = false;
+	bool laserSpotCheckActiveRockets = false;
 	float laserSpotScale = 1.0f;
 	WeaponSoundScript activateLaserSpotSound{CHAN_WEAPON};
 	WeaponSoundScript deactivateLaserSpotSound{CHAN_WEAPON};

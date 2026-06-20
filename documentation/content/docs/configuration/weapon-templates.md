@@ -537,6 +537,7 @@ If not defined the [idle](#idle) options are used. Some weapons define this by d
 * [weapon_9mmhandgun]({{< ref weapon_9mmhandgun >}}) defines it as empty array to prevent playing idle animations after firing the last shot.
 * [weapon_eagle]({{< ref weapon_eagle >}}) defines it as empty array to prevent playing idle animations after firing the last shot.
 * [weapon_crossbow]({{< ref weapon_crossbow >}}) defines a different set of idle animations for empty clip.
+* [weapon_rpg]({{< ref weapon_rpg >}}) defines custom idle animation to play after the last shot.
 
 Set `null` to remove the native weapon rules.
 
@@ -555,6 +556,7 @@ Same as [idle](#idle), but when weapon is in alternative mode.
 If not defined the [idle](#idle) options are used. Some weapons define this by default:
 
 * [weapon_eagle]({{< ref weapon_eagle >}}) uses different set of animations when the laser spot is on.
+* [weapon_rpg]({{< ref weapon_rpg >}}) defines custom idle array array to include the fidget animation when the laser spot is disabled.
 
 Set `null` to remove the native weapon rules.
 
@@ -565,6 +567,7 @@ Same as [idle](#idle), but when weapon is in alternative mode and weapon clip is
 If not defined the [alt_idle](#alt_idle) or [idle_empty](#idle_empty) options are used (depending on which are defined). Some weapons define this by default:
 
 * [weapon_eagle]({{< ref weapon_eagle >}}) defines it as empty array to prevent playing idle animations after firing the last shot.
+* [weapon_rpg]({{< ref weapon_rpg >}}) defines custom idle animation array (including fidget animation) to play after the last shot.
 
 Set `null` to remove the native weapon rules.
 
@@ -1989,6 +1992,10 @@ A boolean defining whether the laser spot is turned on by default, in the primar
 ### attract_rockets
 
 A boolean defining whether laser spot attracts [rockets]({{< ref rpg_rocket >}}).
+
+### check_active_rockets
+
+A boolean defining whether the weapon can't be reloaded or switched by a fastswitch while the laser spot is active and there're active [rockets]({{< ref rpg_rocket >}}) launched by this weapon. This is used by [weapon_rpg]({{< ref weapon_rpg >}}).
 
 ### scale
 
