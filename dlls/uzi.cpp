@@ -126,5 +126,5 @@ WeaponParameters CUzi::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_9mmclip";
 
-	return params;
+	return std::move(params);
 }

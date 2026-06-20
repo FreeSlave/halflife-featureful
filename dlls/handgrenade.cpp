@@ -93,7 +93,7 @@ WeaponParameters CHandGrenade::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "weapon_handgrenade";
 
-	return params;
+	return std::move(params);
 }
 
 bool CHandGrenade::Deploy()

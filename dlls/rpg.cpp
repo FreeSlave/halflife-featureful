@@ -454,5 +454,5 @@ WeaponParameters CRpg::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_rpgclip";
 
-	return params;
+	return std::move(params);
 }

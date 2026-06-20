@@ -168,5 +168,5 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_556";
 
-	return params;
+	return std::move(params);
 }

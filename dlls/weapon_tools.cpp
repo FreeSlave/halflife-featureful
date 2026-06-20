@@ -58,7 +58,7 @@ WeaponParameters CCameraRadio::GetDefaultParameters() const
 	params.toolIcon = "icon_camera";
 	params.toolTriggerDelay = 1.8f;
 
-	return params;
+	return std::move(params);
 }
 
 enum radio_e
@@ -114,7 +114,7 @@ WeaponParameters CToolRadio::GetDefaultParameters() const
 
 	params.toolIcon = "icon_radio";
 
-	return params;
+	return std::move(params);
 }
 
 enum satchel_radio_e
@@ -169,5 +169,5 @@ WeaponParameters CWeaponTool::GetDefaultParameters() const
 
 	params.toolIcon = "icon_radio";
 
-	return params;
+	return std::move(params);
 }

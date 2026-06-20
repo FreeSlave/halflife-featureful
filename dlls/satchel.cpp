@@ -434,7 +434,7 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "weapon_satchel";
 
-	return params;
+	return std::move(params);
 }
 
 //=========================================================

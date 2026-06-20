@@ -147,5 +147,5 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	params.holster.animIndex = PIPEWRENCH_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
-	return params;
+	return std::move(params);
 }

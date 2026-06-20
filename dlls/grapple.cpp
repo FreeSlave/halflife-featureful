@@ -352,7 +352,7 @@ WeaponParameters CBarnacleGrapple::GetDefaultParameters() const
 
 	params.fire.weaponVolume = 450;
 
-	return params;
+	return std::move(params);
 }
 
 bool CBarnacleGrapple::AddToPlayer( CBasePlayer* pPlayer )

@@ -129,5 +129,5 @@ WeaponParameters CHgun::GetDefaultParameters() const
 	params.holster.animIndex = HGUN_DOWN;
 	params.holster.attackDelay = 0.5f;
 
-	return params;
+	return std::move(params);
 }

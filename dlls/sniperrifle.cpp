@@ -143,5 +143,5 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_762";
 
-	return params;
+	return std::move(params);
 }

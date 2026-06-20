@@ -648,7 +648,7 @@ WeaponParameters CSqueak::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "weapon_snark";
 
-	return params;
+	return std::move(params);
 }
 
 bool CSqueak::Deploy()
@@ -842,7 +842,7 @@ WeaponParameters CPenguin::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "weapon_penguin";
 
-	return params;
+	return std::move(params);
 }
 
 const char* CPenguin::GrenadeName() const

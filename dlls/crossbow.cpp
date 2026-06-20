@@ -399,7 +399,7 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_crossbow";
 
-	return params;
+	return std::move(params);
 }
 
 int CCrossbow::GetPlaybackEvent(bool altModeFire) const

@@ -171,7 +171,7 @@ WeaponParameters CMedkit::GetDefaultParameters() const
 		params.recharge.interval = ::GetSkillValue("plr_medkittime");
 	}
 
-	return params;
+	return std::move(params);
 }
 
 bool CMedkit::Deploy()

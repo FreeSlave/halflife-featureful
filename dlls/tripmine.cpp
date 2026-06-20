@@ -530,7 +530,7 @@ WeaponParameters CTripmine::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "weapon_tripmine";
 
-	return params;
+	return std::move(params);
 }
 
 bool CTripmine::Deploy()

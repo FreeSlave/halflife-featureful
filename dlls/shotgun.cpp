@@ -181,5 +181,5 @@ WeaponParameters CShotgun::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_buckshot";
 
-	return params;
+	return std::move(params);
 }

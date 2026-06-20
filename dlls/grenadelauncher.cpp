@@ -102,5 +102,5 @@ WeaponParameters CGrenadeLauncher::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_grenadeclip";
 
-	return params;
+	return std::move(params);
 }

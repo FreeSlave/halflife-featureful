@@ -3245,7 +3245,7 @@ public:
 			IntRange(98, 101)
 		};
 
-		return params;
+		return std::move(params);
 	}
 };
 
@@ -3327,7 +3327,7 @@ public:
 		params.reload.idleDelay = FloatRange(10.0f, 15.0f);
 		params.reload.animIndex.mainEmptied = PISTOL_RELOAD;
 
-		return params;
+		return std::move(params);
 	}
 };
 
@@ -3419,7 +3419,7 @@ public:
 		params.reload.animIndex = SMG_RELOAD;
 		params.reload.duration = 1.5f;
 
-		return params;
+		return std::move(params);
 	}
 };
 
@@ -3567,7 +3567,7 @@ public:
 		params.endReload.idleDelay = 1.5f;
 		params.endReload.attackDelay = 0.0f;
 
-		return params;
+		return std::move(params);
 	}
 };
 
@@ -3650,7 +3650,7 @@ public:
 		params.reload.animIndex = SNIPER2_RELOAD3;
 		params.reload.duration = 80.0f / 34.0f;
 
-		return params;
+		return std::move(params);
 	}
 };
 

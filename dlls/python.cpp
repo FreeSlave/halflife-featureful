@@ -123,7 +123,7 @@ WeaponParameters CPython::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_357";
 
-	return params;
+	return std::move(params);
 }
 
 void CPython::Spawn()

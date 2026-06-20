@@ -162,7 +162,7 @@ WeaponParameters CShockrifle::GetDefaultParameters() const
 	params.holster.animIndex = SHOCK_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
-	return params;
+	return std::move(params);
 }
 
 bool CShockrifle::HandleAttackSubstitution(bool altMode)

@@ -170,5 +170,5 @@ WeaponParameters CMP5::GetDefaultParameters() const
 	params.dropAmmo.classname = "ammo_9mmAR";
 	params.dropAmmoSecondary.classname = "ammo_ARgrenades";
 
-	return params;
+	return std::move(params);
 }

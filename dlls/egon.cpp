@@ -169,7 +169,7 @@ WeaponParameters CEgon::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_gaussclip";
 
-	return params;
+	return std::move(params);
 }
 
 #define EGON_PULSE_INTERVAL		0.1

@@ -159,7 +159,7 @@ WeaponParameters CGauss::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_gaussclip";
 
-	return params;
+	return std::move(params);
 }
 
 bool CGauss::Deploy()

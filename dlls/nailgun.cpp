@@ -194,5 +194,5 @@ WeaponParameters CNailgun::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_nails";
 
-	return params;
+	return std::move(params);
 }

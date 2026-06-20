@@ -107,5 +107,5 @@ WeaponParameters CCrowbar::GetDefaultParameters() const
 	params.holster.animIndex = CROWBAR_HOLSTER;
 	params.holster.attackDelay = 0.5f;
 
-	return params;
+	return std::move(params);
 }

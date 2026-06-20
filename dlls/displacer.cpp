@@ -133,7 +133,7 @@ WeaponParameters CDisplacer::GetDefaultParameters() const
 
 	params.dropAmmo.classname = "ammo_gaussclip";
 
-	return params;
+	return std::move(params);
 }
 
 void CDisplacer::Precache()

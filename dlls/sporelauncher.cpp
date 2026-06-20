@@ -170,5 +170,5 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	params.endReload.idleDelay = 0.8f;
 	params.endReload.attackDelay = 0.0f;
 
-	return params;
+	return std::move(params);
 }
