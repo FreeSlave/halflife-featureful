@@ -1348,23 +1348,14 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		return;
 	}
 
+	bool triggerTool = false;
+
 	if (params.toolIndex >= 0)
 	{
 		const int toolBit = 1<<params.toolIndex;
 		if (FBitSet(m_pPlayer->m_ToolStateBits, toolBit) && !FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
 		{
-#if !CLIENT_DLL
-			if (params.toolTriggerDelay > 0.0f)
-			{
-				m_toolTriggerTime = gpGlobals->time + params.toolTriggerDelay;
-			}
-			else
-			{
-				CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
-				if (triggerEnt)
-					triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
-			}
-#endif
+			triggerTool = true;
 		}
 		else
 		{
@@ -1440,6 +1431,22 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		if (HandleAttackSubstitution(altMode))
 			return;
+	}
+
+	if (triggerTool)
+	{
+#if !CLIENT_DLL
+		if (params.toolTriggerDelay > 0.0f)
+		{
+			m_toolTriggerTime = gpGlobals->time + params.toolTriggerDelay;
+		}
+		else
+		{
+			CBaseEntity* triggerEnt = CBaseEntity::OwnInstance(m_pPlayer->m_UseToolTriggers[params.toolIndex]);
+			if (triggerEnt)
+				triggerEnt->Use(m_pPlayer, m_pPlayer, USE_TOGGLE, 0.0f);
+		}
+#endif
 	}
 
 	m_shouldPlayCooldown = true;
