@@ -18,6 +18,19 @@ const char* const json_schemas::definitions = R"(
 		"minItems": 3,
 		"maxItems": 3
 	},
+	"tracer_color": {
+		"enum": [
+			"None", "none",
+			"White", "white",
+			"Red", "red",
+			"Green", "green",
+			"Blue", "blue",
+			"Default", "default",
+			"Golden", "golden", "Yellow", "yellow",
+			"Orange", "orange",
+			"Purple", "purple"
+		]
+	},
 	"range": {
 		"type": ["string", "object", "number", "array"],
 		"pattern": "^[0-9]+(\\.[0-9]+)?(,[0-9]+(\\.[0-9]+)?)?$",
@@ -1197,6 +1210,19 @@ R"(
 					},
 					"detonate_on_touch": {
 						"enum": ["damageable", "aimable", "any", true]
+					},
+					"tracer": {
+						"type": "object",
+						"properties": {
+							"color": {
+								"$ref": "#/tracer_color"
+							},
+							"scale": {
+								"type": "number",
+								"exclusiveMinimuim": 0
+							}
+						},
+						"additionalProperties": false
 					}
 				},
 				"additionalProperties": false

@@ -15,6 +15,7 @@
 #include "hl_palette.h"
 
 #include "eventscripts.h"
+#include "pm_defs.h"
 
 #include "fx_flags.h"
 #include "particleman.h"
@@ -811,6 +812,36 @@ int __MsgFunc_BreakModel( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+int __MsgFunc_TracerShot( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	Vector pos = READ_VECTOR();
+	Vector velocity = READ_VECTOR();
+	int tracerColor = READ_BYTE();
+	float tracerScale = READ_BYTE() * 0.1f;
+	int clientIndex = READ_BYTE();
+
+	Vector forward = velocity;
+	float speed = forward.NormalizeInPlace();
+
+	Vector vecSrc = pos;
+	Vector vecEnd = vecSrc + forward * 4096.0f;
+
+	pmtrace_t tr;
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers(clientIndex - 1);
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(pos, vecEnd, PM_STUDIO_BOX, -1, &tr);
+
+	Vector delta = tr.endpos - pos;
+
+	gEngfuncs.pEfxAPI->R_UserTracerParticle(vecSrc, velocity, delta.Length() / speed, tracerColor, tracerScale, clientIndex, nullptr);
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	return 1;
+}
+
 void HookFXMessages()
 {
 	HOOK_MESSAGE( RandomGibs );
@@ -827,4 +858,5 @@ void HookFXMessages()
 	HOOK_MESSAGE( Particle );
 	HOOK_MESSAGE( Q2Particles );
 	HOOK_MESSAGE( BreakModel );
+	HOOK_MESSAGE( TracerShot );
 }

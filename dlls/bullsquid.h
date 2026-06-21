@@ -39,6 +39,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	int Save(CSave &save) override;
 	int Restore(CRestore &restore) override;
@@ -70,6 +73,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;

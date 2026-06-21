@@ -1428,6 +1428,16 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 				}
 			}
 		});
+		HandleJSONMember(value, "tracer", [&projectile](const Value& value) {
+			HandleJSONMember(value, "color", [&projectile](const Value& value) {
+				if (value.IsString())
+				{
+					const char* name = value.GetString();
+					projectile.tracerColor = ParseTracerColor(name);
+				}
+			});
+			UpdatePropertyFromJson(projectile.tracerScale, value, "scale");
+		});
 		entTemplate.SetProjectileParams(projectile);
 	});
 

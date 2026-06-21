@@ -31,6 +31,9 @@ public:
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 	static const NamedVisual modelVisual;
 	static const NamedSoundScript hitBodySoundScript;
 	static const NamedSoundScript hitWallSoundScript;
@@ -122,6 +125,7 @@ void CNail::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(1000.0f, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 }
 
 #endif

@@ -52,6 +52,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	void ArmBeam(int side);
 
@@ -170,6 +173,7 @@ void CChargedBolt::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(CHARGEDBOLT_SPEED, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 
 	SetTouch(&CChargedBolt::ChargedBoltTouch);
 	SetThink(&CChargedBolt::FlyThink);

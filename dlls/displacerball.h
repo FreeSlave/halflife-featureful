@@ -20,6 +20,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	void EXPORT BallTouch(CBaseEntity *pOther);
 	void EXPORT ExplodeThink();

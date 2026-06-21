@@ -685,6 +685,7 @@ public:
 	virtual void PrepareAsAmmoEnt(int amount) {}
 	virtual void DropAsAmmoEnt(int amount) {}
 	void SetMyProjectileEffectFlags(int defaultEffects = 0);
+	void SendProjectileTracer(CBaseEntity* pClient = nullptr);
 
 	FloatRange GetSkillValueRange(const char* name);
 	float GetSkillValue(const char* name);

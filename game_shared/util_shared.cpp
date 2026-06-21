@@ -4,6 +4,7 @@
 #include "const_render.h"
 #include <cmath>
 #include <cstdlib>
+#include <utility>
 
 static unsigned int glSeed = 0;
 
@@ -267,6 +268,30 @@ const char* RenderFxToString(int renderfx)
 	case kRenderFxGlowShell:	return "Glow Shell";
 	default: return "Unknown";
 	}
+}
+
+int ParseTracerColor(const char *name)
+{
+	constexpr std::pair<const char*, int> colors[] = {
+		{"white", 0},
+		{"red", 1},
+		{"green", 2},
+		{"blue", 3},
+		{"default", 4},
+		{"golden", 5},
+		{"yellow", 5},
+		{"orange", 6},
+		{"purple", 7},
+	};
+
+	for (auto& p : colors)
+	{
+		if (stricmp(name, p.first) == 0)
+		{
+			return p.second;
+		}
+	}
+	return -1;
 }
 
 float RandomizeNumberFromRange(const FloatRange& r)

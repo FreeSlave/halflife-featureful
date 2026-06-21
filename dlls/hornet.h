@@ -55,6 +55,10 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		if (m_pfnThink == &CHornet::StartDart)
+			SendProjectileTracer(pClient);
+	}
 
 	void IgniteTrail();
 	void EXPORT StartTrack();

@@ -35,6 +35,10 @@ public:
 
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		if (m_SporeType == ROCKET)
+			SendProjectileTracer(pClient);
+	}
 
 	static const NamedSoundScript bounceSoundScript;
 	static const NamedSoundScript impactSoundScript;

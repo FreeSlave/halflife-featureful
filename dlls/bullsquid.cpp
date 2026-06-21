@@ -147,6 +147,7 @@ void CSquidSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 	SetThink(&CSquidSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
@@ -315,6 +316,7 @@ void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SQUIDSPIT_TOXIC_SPIT, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 	SetThink(&CSquidToxicSpit::Animate);
 	pev->nextthink = gpGlobals->time + 0.1f;
 }

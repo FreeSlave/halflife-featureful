@@ -176,6 +176,7 @@ void CDisplacerBall::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(DISPLACERBALL_SPEED, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 }
 
 void CDisplacerBall::SelfCreate(entvars_t *pevOwner,Vector vecStart)

@@ -1433,6 +1433,45 @@ For example, this will make hand grenades thrown by both player and monsters det
 }
 ```
 
+#### tracer
+
+This object defines tracer effect that travels with a projectile (like the one that is used in Engineer's railgun tracers in Team Fortress Classic).
+
+{{% hint warning %}}
+As tracer actually travels independent of the projectile, to avoid confusion this works only with projectiles that fly straight.
+{{% /hint %}}
+
+{{% hint warning %}}
+Another known bug is related to the fact that entities halve their vertical velocity upon entering water, while tracers don't. This can lead to the visual inconsistencies between the projectile and the tracer.
+{{% /hint %}}
+
+{{% hint warning %}}
+The tracer will travel in front of the projectile which may look weird. So until it's fixed it's better to use tracers with invisible projectiles.
+{{% /hint %}}
+
+Properties:
+
+* `"color"` - [tracer_color](#tracer_color). Default value is no tracer.
+* `"scale"` - the scale of the tracer length. Default value is 1. The actual length in units depends on the engine renderer and the projectile speed.
+
+```json
+{
+    "nail": {
+        "visuals": {
+            "Nail.Model": {
+                "rendermode": "texture",
+                "alpha": 0
+            }
+        },
+        "projectile": {
+            "tracer": {
+                "color": "green"
+            }
+        }
+    }
+}
+```
+
 ### passive_regeneration
 
 Passive health regeneration happens in background no matter what the entity is currently doing. It restores health in fixed intervals by certain amount on each 'tick'.
@@ -1819,6 +1858,20 @@ Standard hitgroup names used by various objects:
 * `"right leg"` (7)
 
 Custom hitgroups must be referred by a number (e.g. armor hitgroup is usually implemented via hitgroup 10).
+
+### tracer_color
+
+The tracer particles support only a handful of colors defined by the renderer in the engine. Possible values:
+
+* `"none"` - no tracer
+* `"white"`
+* `"red"`
+* `"green"`
+* `"blue"`
+* `"default"` - default color for bullet tracers (depends on the `tracerred`, `tracergreen` and `tracerblue` console variables).
+* `"golden"` or `"yellow"`
+* `"orange"`
+* `"purple"`
 
 ## Known issues
 

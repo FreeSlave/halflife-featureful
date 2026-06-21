@@ -50,6 +50,9 @@ public:
 			pev->spawnflags |= SF_CROSSBOW_BOLT_EXPLOSIVE;
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	static const NamedSoundScript boltHitBody;
 	static const NamedSoundScript boltHitWorld;
@@ -88,6 +91,7 @@ void CCrossbowBolt::LaunchAsProjectile(const ProjectileParameters& params)
 
 	LaunchAsProjectileImpl(defaultSpeed, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 	pev->speed = pev->velocity.Length();
 	pev->avelocity.z = 10.0f;
 }

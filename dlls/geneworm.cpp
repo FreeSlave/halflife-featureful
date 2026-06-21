@@ -70,6 +70,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	int Save(CSave &save) override;
 	int Restore(CRestore &restore) override;
@@ -218,6 +221,9 @@ void CGeneWormCloud::LaunchAsProjectile(const ProjectileParameters& params)
 	UTIL_SetOrigin(pev, pev->origin);
 
 	TurnOn();
+
+	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 
 	SetTouch(&CGeneWormCloud::CloudTouch);
 	m_bLaunched = true;

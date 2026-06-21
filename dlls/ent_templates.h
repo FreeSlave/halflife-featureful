@@ -210,6 +210,9 @@ public:
 
 		optional<int> effects;
 		short detonateOnTouch{DETONATE_DEFAULT};
+
+		short tracerColor{-1};
+		float tracerScale{1.0f};
 	};
 
 	static EntityFilter EntityFilterFromJSON(const rapidjson::Value& value);

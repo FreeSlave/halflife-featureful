@@ -205,7 +205,10 @@ void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
 	LaunchAsProjectileImpl(defaultSpeed, params);
 	SetMyProjectileEffectFlags();
 	if (params.variant == DART)
-		SetThink( &CHornet::StartDart );
+	{
+		SetThink(&CHornet::StartDart);
+		SendProjectileTracer();
+	}
 }
 
 //=========================================================

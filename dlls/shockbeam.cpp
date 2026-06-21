@@ -226,5 +226,6 @@ void CShock::LaunchAsProjectile(const ProjectileParameters& params)
 {
 	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 	pev->nextthink = gpGlobals->time;
 }

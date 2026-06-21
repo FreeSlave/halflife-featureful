@@ -53,6 +53,9 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
 	static const NamedSoundScript hitWorldSoundScript;
 	static const NamedSoundScript hitBodySoundScript;
@@ -158,6 +161,7 @@ void CPitdroneSpike::LaunchAsProjectile(const ProjectileParameters &params)
 {
 	LaunchAsProjectileImpl(PITDRONE_SPIKE_SPEED, params);
 	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 
 	SetThink(&CPitdroneSpike::StartTrail);
 	pev->nextthink = gpGlobals->time;

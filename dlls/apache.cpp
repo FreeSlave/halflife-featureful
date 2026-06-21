@@ -1168,6 +1168,10 @@ public:
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		if (m_pfnThink == &CApacheHVR::AccelerateThink)
+			SendProjectileTracer(pClient);
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1246,6 +1250,7 @@ void CApacheHVR::IgniteThink()
 
 	// pev->movetype = MOVETYPE_FLY;
 	SetMyProjectileEffectFlags(EF_LIGHT);
+	SendProjectileTracer();
 
 	// make rocket sound
 	EmitSoundScript(rpgSoundScript);

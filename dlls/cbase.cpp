@@ -2014,6 +2014,41 @@ void CBaseEntity::SetMyProjectileEffectFlags(int defaultEffects)
 	pev->effects |= defaultEffects;
 }
 
+void CBaseEntity::SendProjectileTracer(CBaseEntity* pClient)
+{
+	extern int gmsgTracerShot;
+
+	if (pev->velocity.IsLengthLessThanOrEqual(0.0f))
+		return;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectileParams = entTemplate->GetProjectileParams();
+		if (projectileParams.tracerColor >= 0)
+		{
+			int clientIndex = 0;
+			CBaseEntity* pOwner = CBaseEntity::OwnInstance(pev->owner);
+			if (pOwner && pOwner->IsPlayer())
+			{
+				clientIndex = pOwner->entindex();
+			}
+
+			int scaleToSend = projectileParams.tracerScale * 10;
+			scaleToSend = clamp(scaleToSend, 0, 255);
+			const int msgType = pClient ? MSG_ONE : MSG_ALL;
+
+			MESSAGE_BEGIN(msgType, gmsgTracerShot, nullptr, pClient ? pClient->edict() : nullptr);
+			WRITE_VECTOR(pev->origin);
+			WRITE_VECTOR(pev->velocity);
+			WRITE_BYTE(projectileParams.tracerColor);
+			WRITE_BYTE(scaleToSend);
+			WRITE_BYTE(clientIndex);
+			MESSAGE_END();
+		}
+	}
+}
+
 FloatRange CBaseEntity::GetSkillValueRange(const char *name)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
