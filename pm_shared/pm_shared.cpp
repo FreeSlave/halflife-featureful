@@ -2194,6 +2194,8 @@ void PM_NoClip()
 {
 	int i;
 	Vector wishvel;
+	Vector wishdir;
+	float wishspeed;
 	float fmove, smove;
 	//float currentspeed, addspeed, accelspeed;
 
@@ -2210,11 +2212,41 @@ void PM_NoClip()
 	}
 	wishvel[2] += pmove->cmd.upmove;
 
-	VectorMA (pmove->origin, pmove->frametime, wishvel, pmove->origin );
+	VectorCopy(wishvel, wishdir);
+	wishspeed = VectorNormalize(wishdir);
 
-	// Zero out the velocity so that we don't accumulate a huge downward velocity from
-	// gravity, etc.
-	VectorClear( pmove->velocity );
+	// Source-style noclip: accelerate toward wish direction
+	const float noclip_speed = 960.0f;	// tune: top speed
+	const float noclip_accel = 6.0f;	// tune: acceleration
+	const float noclip_friction = 4.0f; // tune: drag when not pressing
+
+	// Apply friction
+	float speed = Length(pmove->velocity);
+	if(speed > 0.0f)
+	{
+		float drop = speed * noclip_friction * pmove->frametime;
+		float newspeed = Q_max(speed - drop, 0.0f);
+		VectorScale(pmove->velocity, newspeed / speed, pmove->velocity);
+	}
+
+	// Cap wishspeed and scale at 2x maxspeed
+	float targetSpeed = pmove->maxspeed * 3.0f;
+	if(wishspeed > 0.0f)
+		wishspeed = targetSpeed;
+
+	// Accelerate
+	float currentspeed = DotProduct(pmove->velocity, wishdir);
+	float addspeed = wishspeed - currentspeed;
+	if(addspeed > 0.0f)
+	{
+		float accelspeed = noclip_accel * noclip_speed * pmove->frametime;
+		if(accelspeed > addspeed)
+			accelspeed = addspeed;
+		for(i = 0; i < 3; i++)
+			pmove->velocity[i] += accelspeed * wishdir[i];
+	}
+
+	VectorMA(pmove->origin, pmove->frametime, pmove->velocity, pmove->origin);
 }
 
 // Only allow bunny jumping up to 1.7x server / player maxspeed setting
