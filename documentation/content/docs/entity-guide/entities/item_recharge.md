@@ -40,7 +40,7 @@ The default model of the suit charger is **models/hev.mdl**. It's expected to ha
     - **prep_charge** - the arm is deployed but is not being used yet.
     - **charge_idle** - continuous use.
 
-{{% hint detail %}}
+{{% hint info %}}
 All bone controllers and all the sequences are optional. If some sequence is missing it resets to the first sequence (index 0) in the model.
 {{% /hint %}}
 

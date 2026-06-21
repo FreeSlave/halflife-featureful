@@ -1050,6 +1050,14 @@ Full written configurations for some standard Half-Life weapons are stored in th
 ```
 {{% /details_header %}}
 
+{{% details_header title="RPG" %}}
+```json
+{
+    "weapon_rifle2": "hl/rpg"
+}
+```
+{{% /details_header %}}
+
 {{% details_header title="Hornetgun" %}}
 ```json
 {
@@ -1118,7 +1126,8 @@ The templates for Poke646 weapons are stored in the **templates/weapons/poke646/
 ```json
 {
     "weapon_pistol": "poke646/bradnailer",
-    "weapon_nailgun": "poke646/nailgun"
+    "weapon_nailgun": "poke646/nailgun",
+    "weapon_shotgun": "poke646/shotgun"
 }
 ```
 {{% /details %}}
@@ -1150,13 +1159,32 @@ Required sounds:
 
 Required models:
 
+* **w_shotgun.mdl**
+* **v_shotgun.mdl**
+* **p_shotgun.mdl**
+
+Required sounds:
+
+* **weapons/nailgun.wav**
+{{% /details_header %}}
+
+{{% details_header title="Shotgun" %}}
+```json
+{
+    "weapon_shotgun": "poke646/shotgun"
+}
+```
+
+Required models:
+
 * **w_nailgun.mdl**
 * **v_nailgun.mdl**
 * **p_nailgun.mdl**
 
 Required sounds:
 
-* **weapons/nailgun.wav**
+* **weapons/dbarrel1.wav**
+* **weapons/scock1.wav**
 {{% /details_header %}}
 
 ## Sven Co-op
@@ -1208,6 +1236,7 @@ The templates for Team Fortress Classic weapons are stored in the **templates/we
     "weapon_shotgun2": "tfc/supershotgun",
     "weapon_smg": "tfc/nailgun",
     "weapon_smg2": "tfc/supernailgun",
+    "weapon_pistol": "tfc/railgun",
     "weapon_rifle": "tfc/autorifle",
     "weapon_sniperrifle": "tfc/sniperrifle",
     "weapon_minigun": "tfc/assaultcannon"
@@ -1303,6 +1332,26 @@ Required sounds:
 
 {{% /details_header %}}
 
+{{% details_header title="Railgun" %}}
+```json
+{
+    "weapon_pistol": "tfc/railgun"
+}
+```
+
+A weapon used by Engineer class. It uses `nails` ammo.
+
+Required models:
+
+* **v_tfc_railgun.mdl**
+* **p_railgun.mdl** (in TFC it exists under **p_9mmhandgun.mdl** name)
+
+Required sounds:
+
+* **weapons/railgun.wav**
+
+{{% /details_header %}}
+
 {{% details_header title="Autorifle" %}}
 ```json
 {
@@ -1373,6 +1422,30 @@ Required sounds:
 * **weapons/asscan1.wav**
 * **weapons/asscan2.wav**
 * **weapons/asscan3.wav**
+
+{{% /details_header %}}
+
+{{% details_header title="Grenade Launcher" %}}
+```json
+{
+    "weapon_rifle2": "tfc/grenadelauncher"
+}
+```
+
+A weapon used by the Demoman class. It uses `grenades` ammo.
+
+{{% hint info %}}
+This is basically the same as [weapon_grenadelauncher]({{< ref weapon_grenadelauncher >}}) that is already implemented in Featureful SDK. This weapon template preset can be used as a reference.
+{{% /hint %}}
+
+Required models:
+
+* **v_glauncher.mdl**
+* **p_glauncher.mdl** (in TFC it exists under **v_tfgl.mdl** name)
+
+Required sounds:
+
+* **weapons/glauncher.wav** (this is a Half-Life sound)
 
 {{% /details_header %}}
 

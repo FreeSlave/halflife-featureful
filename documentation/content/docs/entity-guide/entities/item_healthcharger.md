@@ -38,7 +38,7 @@ The default model of the health charger is **models/health_charger_body.mdl**. I
     - **shot_idle** - continuous use.
     - **inactive** - depleted.
 
-{{% hint detail %}}
+{{% hint info %}}
 All bone controllers and all the sequences are optional. If some sequence is missing it resets to the first sequence (index 0) in the model.
 {{% /hint %}}
 

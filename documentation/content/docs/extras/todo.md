@@ -31,7 +31,6 @@ This is the list of features that would be nice to have in our codebase. You are
 ### Monster configuration
 
 * Configuration of monster's weapon (e.g. let barneys wield shotguns, let human grunts wield sniper rifles, etc.). This should allow to implement variety of human-like npcs via entity templates, e.g. HEV scientists from Sweet Half-Life.
-* Configuration of monster's dropped items.
 * The option to turn off certain attacks for monsters (e.g. to make melee-only alien grunts).
 
 ## Weapons
@@ -40,7 +39,6 @@ This is the list of features that would be nice to have in our codebase. You are
 
 * ![](/images/svencoop.png) weapon_uziakimbo
 * ![](/images/tfc.png) TFC Flamethrower
-* ![](/images/tfc.png) TFC Engineer's blaster (railgun)
 * DMC/Quake lightning gun
 * ![](/images/decay.png) Vortigaunt hands
 * ![](/images/cstrike.png) flash grenade - should also make monsters temporarily blind
@@ -60,7 +58,6 @@ This is the list of features that would be nice to have in our codebase. You are
 ### Weapon configuration
 
 * Support for holster animations.
-* Configuration of some visual effects on view models (e.g. beams on shockrifle and displacer).
 
 ## Player upgrades/effects
 
