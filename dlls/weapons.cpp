@@ -121,7 +121,7 @@ int DamageDecal( CBaseEntity *pEntity, int bitsDamageType )
 	return pEntity->DamageDecal( bitsDamageType );
 }
 
-void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType)
+void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType, int ricochetSoundChance)
 {
 	// Is the entity valid
 	if (!UTIL_IsValidEntity(tr.pHit))
@@ -130,7 +130,7 @@ void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureTyp
 	if (VARS(tr.pHit)->solid == SOLID_BSP || VARS(tr.pHit)->movetype == MOVETYPE_PUSHSTEP)
 	{
 		CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
-		UTIL_GunshotDecalTrace(tr, vecDir, DamageDecal(pEntity, DMG_BULLET), chTextureType);
+		UTIL_GunshotDecalTrace(tr, vecDir, DamageDecal(pEntity, DMG_BULLET), chTextureType, ricochetSoundChance);
 	}
 }
 

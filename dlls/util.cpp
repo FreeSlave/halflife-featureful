@@ -1500,7 +1500,7 @@ void UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber
 	MESSAGE_END();
 }
 
-void UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumber, char chTextureType)
+void UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumber, char chTextureType, int ricochetSoundChance)
 {
 	extern int gmsgGunshot;
 
@@ -1520,6 +1520,7 @@ void UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int dec
 		WRITE_SHORT((short)ENTINDEX(tr.pHit));
 		WRITE_SHORT(index);
 		WRITE_BYTE(chTextureType);
+		WRITE_BYTE(ricochetSoundChance);
 	MESSAGE_END();
 }
 

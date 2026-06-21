@@ -695,6 +695,7 @@ int __MsgFunc_Gunshot( const char *pszName, int iSize, void *pbuf )
 	int entIndex = READ_SHORT();
 	int decalIndex = READ_SHORT();
 	char cTextureType = READ_BYTE();
+	int ricochetSoundChance = READ_BYTE();
 
 	const MaterialData* mData = g_MaterialRegistry.GetMaterialDataWithFallback(cTextureType);
 	int impactParticleColorIndex = g_MaterialRegistry.GetDefaultImpactParticleColorIndex();
@@ -704,6 +705,11 @@ int __MsgFunc_Gunshot( const char *pszName, int iSize, void *pbuf )
 	}
 
 	FX_GunshotDecal(pos, dir, decalIndex, entIndex, impactParticleColorIndex);
+
+	if (ricochetSoundChance > 0 && ricochetSoundChance <= Com_RandomLong(1, 100))
+	{
+		gEngfuncs.pEfxAPI->R_RicochetSound(pos);
+	}
 
 	return 1;
 }

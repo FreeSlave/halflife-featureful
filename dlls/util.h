@@ -324,7 +324,7 @@ extern bool			UTIL_ShouldShowBlood( int bloodColor );
 extern void			UTIL_BloodDecalTrace( const TraceResult *pTrace, int bloodColor );
 extern void			UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber );
 extern void			UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber, bool bIsCustom );
-extern void			UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumberm, char chTextureType);
+extern void			UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumberm, char chTextureType, int ricochetSoundChance = 50);
 extern void			UTIL_Sparks( const Vector &position );
 extern void			UTIL_SparkShower( const Vector &position, const SparkEffectParams& params );
 extern void			UTIL_Ricochet( const Vector &position, float scale );

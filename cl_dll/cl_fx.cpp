@@ -715,11 +715,6 @@ void FX_GunshotDecal(const Vector& pos, const Vector& dir, int decalIndex, int e
 	gEngfuncs.pEfxAPI->R_DecalShoot(gEngfuncs.pEfxAPI->Draw_DecalIndex(decalIndex), entIndex, 0, Vector(pos), 0);
 
 	FX_WallImpact(pos, -dir, particleColor, GetWallImpactStyle());
-
-	if (Com_RandomLong(0, 1))
-	{
-		gEngfuncs.pEfxAPI->R_RicochetSound(pos);
-	}
 }
 
 #define SHARD_VOLUME		12.0f

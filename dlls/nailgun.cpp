@@ -96,7 +96,7 @@ void CNail::NailTouch(CBaseEntity *pOther)
 	const Vector& vecDir = pev->velocity.Normalize();
 
 	char chTextureType = TEXTURETYPE_Trace(tr, tr.vecEndPos - vecDir, tr.vecEndPos + vecDir);
-	DecalGunshot(tr, vecDir, chTextureType);
+	DecalGunshot(tr, vecDir, chTextureType, 0);
 
 	if (pOther->pev->takedamage)
 	{

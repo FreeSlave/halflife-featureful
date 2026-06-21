@@ -386,7 +386,7 @@ void LinkUserMessages()
 	gmsgSmoke = REG_USER_MSG( "Smoke", -1 );
 	gmsgSparkShower = REG_USER_MSG( "SparkShower", 20 );
 	gmsgBlood = REG_USER_MSG( "Blood", 22 );
-	gmsgGunshot = REG_USER_MSG( "Gunshot", 17 );
+	gmsgGunshot = REG_USER_MSG( "Gunshot", 18 );
 	gmsgParticleShooter = REG_USER_MSG( "Particle", 27 );
 	gmsgQ2Particles = REG_USER_MSG( "Q2Particles", 17 );
 	gmsgBreakModel = REG_USER_MSG( "BreakModel", 26 );
