@@ -2069,7 +2069,7 @@
 @SolidClass base(Targetname) = env_mirror : "Mirror" : "Fake mirror that reflects only models"
 [
 	radius(integer) : "Radius" : 330
-	spawnflag(flags) =
+	spawnflags(flags) =
 	[
 		1 : "Draw Player" : 1
 	]
