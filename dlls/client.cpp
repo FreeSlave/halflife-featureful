@@ -869,6 +869,24 @@ void ClientCommand( edict_t *pEntity )
 			}
 		}
 	}
+	else if ( FStrEq(pcmd, "noclip_fast" ) )
+	{
+		if (CanRunCheatCommand(pev))
+		{
+			if (pev->movetype != MOVETYPE_NOCLIP)
+			{
+				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "noclip ON\n");
+				pev->movetype = MOVETYPE_NOCLIP;
+				g_engfuncs.pfnSetPhysicsKeyValue( pEntity, "ncf", "1" );
+			}
+			else
+			{
+				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "noclip OFF\n");
+				pev->movetype = MOVETYPE_WALK;
+				g_engfuncs.pfnSetPhysicsKeyValue( pEntity, "ncf", "0" );
+			}
+		}
+	}
 	else if( g_pGameRules->ClientCommand( GetClassPtr( (CBasePlayer *)pev ), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

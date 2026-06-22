@@ -949,6 +949,7 @@ void CHud::Init()
 	gEngfuncs.pfnAddCommand("buddha", nullptr);
 	gEngfuncs.pfnAddCommand("ent_remove_all", nullptr);
 	gEngfuncs.pfnAddCommand("ent_remove", nullptr);
+	gEngfuncs.pfnAddCommand("noclip_fast", nullptr);
 
 	MsgFunc_ResetHUD( 0, 0, NULL );
 	ClientCmd( "richpresence_gamemode\n" );

@@ -40,6 +40,7 @@ To launch the game in the developer mode with cheats enabled add `-dev +develope
 Featureful SDK introduces some new console commands designed to aid the developer with debugging. Some require `sv_cheats` to be enabled.
 
 * `buddha` - Alternative to `god`. Player can take damage, but their health never gets lower than 1hp.
+* `noclip_fast` - alternative to `noclip`. Player is much faster in noclip, similar to how it works in Source.
 * `fire` - trigger entity(-ies) by name (the first argument) or the entity in front of the player (if the argument is not provided). The special name `!cross` means the entity in front of the player. The second (optional) argument is either `on`, `off` or `set` allows to change the input trigger type. If the second argument is `set`, the third argument is expected which is a number to set (can be used to set the value for `game_counter`, etc.). Note: the player is passed as an *activator*.
 * `ent_remove` - remove one entity by entity index, targetname or classname. Same as in [Source](https://developer.valvesoftware.com/wiki/Ent_remove).
 * `ent_remove_all` - remove all entities by the specified targetname or classname. Same as in [Source](https://developer.valvesoftware.com/wiki/Ent_remove_all).
