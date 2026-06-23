@@ -258,7 +258,7 @@ void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 
 	m_SporeType = static_cast<SporeType>(params.variant);
 
-	if (!params.time)
+	if (!params.time.has_value())
 	{
 		switch (m_SporeType) {
 		case GRENADE_THROWN:
@@ -270,7 +270,7 @@ void CSpore::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 		}
 	}
 	else
-		m_flExploDelay = params.time;
+		m_flExploDelay = *params.time;
 }
 
 void CSpore::LaunchAsProjectile(const ProjectileParameters& params)

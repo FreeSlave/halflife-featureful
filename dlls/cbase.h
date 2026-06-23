@@ -240,7 +240,7 @@ struct ProjectileParameters
 	EntityOverrides entityOverrides{};
 	float speedOverride{0.0f};
 	CBaseEntity* pLauncher = nullptr;
-	float time{0.0f};
+	optional<float> time{0.0f};
 	float damageOverride{0.0f};
 	Vector up{0.0f, 0.0f, 1.0f};
 };

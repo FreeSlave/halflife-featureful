@@ -1369,7 +1369,14 @@ Custom speed for a projectile. This must be a number higher than 0. If not set, 
 
 #### time
 
-Time before detonation, in seconds. This is used by `"hand grenade"`, [grenaderound]({{< ref grenaderound >}}), `"spore"` and `"spore bouncy"`.
+Time before detonation after launching the projectile, in seconds. This is currently used only by the following projectiles:
+
+* `"hand grenade"`
+* [grenaderound]({{< ref grenaderound >}})
+* [spore]({{< ref spore >}})
+* `"spore bouncy"`
+
+Don't set this property for other projectile types!
 
 ```json
 {
@@ -1383,6 +1390,14 @@ Time before detonation, in seconds. This is used by `"hand grenade"`, [grenadero
     }
 }
 ```
+
+#### cooked
+
+A boolean - whether the remaining detonation [time](#time) depends on the duration of attack charge (if [charge_per_fire](#charge_per_fire) is set). The longer the charge duration the less the detonation time becomes (but can't become less than 0). Use this property for primed grenades.
+
+#### time_min
+
+For [cooked](#cooked) projectiles this is the minimum time before detonation. Set it to prevent immediate detonation if the attack was charged for too long.
 
 #### add_player_velocity
 

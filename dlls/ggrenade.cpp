@@ -433,10 +433,10 @@ void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
 
 		SetTouch( &CGrenade::BounceTouch );	// Bounce if touched
 
-		pev->dmgtime = gpGlobals->time + params.time;
+		pev->dmgtime = gpGlobals->time + params.time.value_or(0.0f);
 		SetThink( &CGrenade::TumbleThink );
 		pev->nextthink = gpGlobals->time + 0.1f;
-		if( params.time < 0.1f )
+		if( params.time.value_or(0.0f) < 0.1f )
 		{
 			pev->nextthink = gpGlobals->time;
 			pev->velocity = Vector( 0, 0, 0 );
@@ -610,7 +610,7 @@ void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
 	pev->avelocity = Vector(300, 300, 300);
 	pev->friction = 0.5f;
 
-	const float time = params.time ? params.time : 2.5f;
+	const float time = params.time.has_value() ? *params.time : 2.5f;
 	pev->dmgtime = gpGlobals->time + time;
 
 	SetMyProjectileEffectFlags();

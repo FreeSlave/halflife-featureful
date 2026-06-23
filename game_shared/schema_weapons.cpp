@@ -710,6 +710,13 @@ R"(
 						"type": "number",
 						"minimum": 0
 					},
+					"cooked": {
+						"type": "boolean"
+					},
+					"time_min": {
+						"type": "number",
+						"minimum": 0
+					},
 					"fire_phase_offsets": {
 						"oneOf": [
 							{

@@ -944,7 +944,12 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				UpdatePropertyFromJson(fire.projectileRespectPunchangle, value, "respect_punchangle", altMode);
 				UpdatePropertyFromJson(fire.projectileAdjustToCross, value, "adjust_to_cross", altMode);
 				UpdatePropertyFromJson(fire.projectileSpeed, value, "speed", altMode);
-				UpdatePropertyFromJson(fire.projectileDetonationTime, value, "time", altMode);
+				if (UpdatePropertyFromJson(fire.projectileDetonationTime, value, "time", altMode))
+				{
+					fire.projectileDetonationTimeSet.Materialize(altMode) = true;
+				}
+				UpdatePropertyFromJson(fire.projectileDetonationCooked, value, "cooked", altMode);
+				UpdatePropertyFromJson(fire.projectileDetonationTimeMin, value, "time_min", altMode);
 
 				HandleJSONMember(value, "add_player_velocity", [&](const Value& value) {
 					if (value.IsBool())

@@ -1810,7 +1810,22 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 			projectileParams.speedOverride = customSpeed;
 		projectileParams.variant = projectileVariant;
 		projectileParams.pLauncher = this;
-		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+
+		if (fire.projectileDetonationTimeSet.Get(altMode))
+		{
+			projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+			if (fire.chargePerFire.Get(altMode))
+			{
+				*projectileParams.time -= gpGlobals->time - m_chargeStartTime;
+				projectileParams.time = Q_max(*projectileParams.time, 0.0f);
+			}
+			const float timeMin = fire.projectileDetonationTimeMin.Get(altMode);
+			if (*projectileParams.time < timeMin)
+			{
+				projectileParams.time = timeMin;
+			}
+		}
+
 		DamageInfoPatch damageInfo;
 		if (allowInheritance)
 		{
