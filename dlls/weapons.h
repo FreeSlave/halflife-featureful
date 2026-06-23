@@ -453,6 +453,7 @@ public:
 	float m_flInaccuracy;
 	float m_flLastFire;
 	float m_flDecreaseShotsFired;
+	bool m_semiautoFired;
 
 	// Laser
 	CLaserSpot *m_pLaser;

@@ -1108,19 +1108,16 @@ void CConfigurableWeapon::UpdateInaccuracy()
 	const bool semiAuto = altMode ? (fire.semiAuto.alt.has_value() ? *fire.semiAuto.alt : false) : fire.semiAuto.main;
 	if (semiAuto)
 	{
-		m_iShotsFired = 0;
+		m_semiautoFired = false;
 	}
-	else
+	if (m_iShotsFired > 0 && m_flDecreaseShotsFired < gpGlobals->time)
 	{
-		if (m_iShotsFired > 0 && m_flDecreaseShotsFired < gpGlobals->time)
-		{
-			m_flDecreaseShotsFired = gpGlobals->time + 0.0225f;
-			m_iShotsFired--;
+		m_flDecreaseShotsFired = gpGlobals->time + 0.0225f;
+		m_iShotsFired--;
 
-			if (m_iShotsFired == 0)
-			{
-				m_flInaccuracy = fire.spread.GetDefaultInaccuracy(altMode);
-			}
+		if (m_iShotsFired == 0)
+		{
+			m_flInaccuracy = fire.spread.GetDefaultInaccuracy(altMode);
 		}
 	}
 }
@@ -1282,7 +1279,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	const bool semiAuto = altMode ? (fire.semiAuto.alt.has_value() ? *fire.semiAuto.alt : false) : fire.semiAuto.main;
 	if (semiAuto)
 	{
-		if (m_iShotsFired >= 1)
+		if (m_semiautoFired)
 			return;
 	}
 
@@ -1640,6 +1637,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	m_lastShotWasInAltMode = altMode;
 	m_bDelayFire = true;
 	m_iShotsFired++;
+	if (semiAuto)
+		m_semiautoFired = true;
 	m_flInaccuracy = fire.spread.GetNewInaccuracy(altMode, m_flInaccuracy, m_iShotsFired, m_flLastFire, gpGlobals->time);
 	m_flLastFire = gpGlobals->time;
 
