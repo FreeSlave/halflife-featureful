@@ -472,7 +472,18 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 				WeaponSoundScript& soundScript = fire.chargeSound.Materialize(altMode);
 				ParseWeaponSoundScript(soundScript, value);
 			});
-			UpdatePropertyFromJson(fire.chargedAttack, value, "charged_attack", altMode);
+			UpdatePropertyFromJson(fire.allowHolsterDuringCharge, value, "charge_allow_holster", altMode);
+			UpdatePropertyFromJson(fire.chargeAmmoCheck, value, "charge_ammo_check", altMode);
+			UpdatePropertyFromJson(fire.chargeUnderwaterCheck, value, "charge_underwater_check", altMode);
+
+			bool chargedAttack;
+			if (UpdatePropertyFromJson(chargedAttack, value, "charged_attack"))
+			{
+				fire.chargePerFire.Materialize(altMode) = chargedAttack;
+				fire.chargeDamage.Materialize(altMode) = chargedAttack;
+			}
+			UpdatePropertyFromJson(fire.chargePerFire, value, "charge_per_fire", altMode);
+			UpdatePropertyFromJson(fire.chargeDamage, value, "charge_damage", altMode);
 			UpdatePropertyFromJson(fire.laserSpotOnCharge, value, "laser_spot_on_charge", altMode);
 
 			HandleJSONMember(value, "cooldown_anims", [&](const Value& value) {

@@ -1287,13 +1287,92 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 
 	const auto fireType = fire.fireType.Get(altMode);
+	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
+	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
+	const bool allowUnderwater = fire.allowUnderwater.Get(altMode);
 
-	const float chargeTime = fire.chargeTime.Get(m_chargingAttack ? m_chargingAltFire : altMode);
-	const bool chargedAttack = fire.chargedAttack.Get(altMode);
+	const bool cooldownAltMode = m_chargingAttack ? m_chargingAltFire : altMode;
+	const float chargeTime = fire.chargeTime.Get(cooldownAltMode);
+	const bool chargedAttack = fire.chargePerFire.Get(altMode);
+
+	auto checkUnderwater = [this, &fire, allowUnderwater, cooldownAltMode]() {
+		if (m_pPlayer->pev->waterlevel == WL_Eyes && !allowUnderwater)
+		{
+			PlayEmptySound(cooldownAltMode);
+			m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayUnderwater.Get(cooldownAltMode));
+			PerformCooldown(cooldownAltMode);
+			return false;
+		}
+		return true;
+	};
+
+	auto checkAmmo = [this, &params, cooldownAltMode, ammoPerFire, useSecondaryAmmo]() {
+		if (ammoPerFire > 0)
+		{
+			if (useSecondaryAmmo)
+			{
+				if (m_iSecondaryAmmoType > 0)
+				{
+					if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
+					{
+						PlayEmptySound(cooldownAltMode);
+						PerformCooldown(cooldownAltMode);
+						return false;
+					}
+				}
+			}
+			else
+			{
+				if (UsesAmmo() || UsesClip())
+				{
+					if (!HasAmmoToFire(ammoPerFire))
+					{
+						if (params.reloadAutostart)
+						{
+							Reload();
+							if (!HasAmmoToFire(ammoPerFire))
+								PlayEmptySound(cooldownAltMode);
+						}
+						else
+						{
+							if (m_fFireOnEmpty)
+							{
+								PlayEmptySound(cooldownAltMode);
+								m_flNextPrimaryAttack = GetNextAttackDelay(params.fire.delayAfterEmpty.Get(cooldownAltMode));
+							}
+						}
+						PerformCooldown(cooldownAltMode);
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	};
 
 	if ((chargeTime > 0.0f || chargedAttack)
 		&& fireType != WeaponParameters::Fire::MELEE) // charged melee attacks are handled differently
 	{
+		const bool doChecks = !m_chargingAttack || (m_chargingAttack && ((chargedAttack && m_fInAttack != 2) || !chargedAttack));
+		if (doChecks)
+		{
+			if (fire.chargeUnderwaterCheck.Get(altMode))
+			{
+				if (!checkUnderwater())
+				{
+					return;
+				}
+			}
+
+			if (fire.chargeAmmoCheck.Get(altMode))
+			{
+				if (!checkAmmo())
+				{
+					return;
+				}
+			}
+		}
+
 		if (!m_chargingAttack)
 		{
 			m_chargingAltFire = altMode;
@@ -1336,12 +1415,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 	}
 
-	const bool allowUnderwater = fire.allowUnderwater.Get(altMode);
-
-	if (m_pPlayer->pev->waterlevel == WL_Eyes && !allowUnderwater)
+	if (!checkUnderwater())
 	{
-		PlayEmptySound(altMode);
-		m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayUnderwater.Get(altMode));
 		return;
 	}
 
@@ -1362,61 +1437,25 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 	}
 
-	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
-	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
-
 	bool lastShot = false;
 
-	if (ammoPerFire > 0)
+	if (checkAmmo())
 	{
-		if (useSecondaryAmmo)
+		if (HandleAttackSubstitution(altMode))
+			return;
+
+		if (ammoPerFire > 0)
 		{
-			if (m_iSecondaryAmmoType > 0)
+			if (useSecondaryAmmo)
 			{
-				if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] < ammoPerFire)
-				{
-					PlayEmptySound(altMode);
-					PerformCooldown(altMode);
-					return;
-				}
-
-				if (HandleAttackSubstitution(altMode))
-					return;
-
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] -= ammoPerFire;
 				m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] = Q_max(0, m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]);
 
 				if (m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] == 0)
 					lastShot = true;
 			}
-		}
-		else
-		{
-			if (UsesAmmo() || UsesClip())
+			else
 			{
-				if (!HasAmmoToFire(ammoPerFire))
-				{
-					if (params.reloadAutostart)
-					{
-						Reload();
-						if (!HasAmmoToFire(ammoPerFire))
-							PlayEmptySound(altMode);
-					}
-					else
-					{
-						if (m_fFireOnEmpty)
-						{
-							PlayEmptySound(altMode);
-							m_flNextPrimaryAttack = GetNextAttackDelay(fire.delayAfterEmpty.Get(altMode));
-						}
-					}
-					PerformCooldown(altMode);
-					return;
-				}
-
-				if (HandleAttackSubstitution(altMode))
-					return;
-
 				SpendAmmo(ammoPerFire);
 				UpdateRechargeTime(altMode);
 				lastShot = Emptied();
@@ -1425,10 +1464,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 	}
 	else
-	{
-		if (HandleAttackSubstitution(altMode))
-			return;
-	}
+		return;
 
 	if (triggerTool)
 	{
@@ -1525,7 +1561,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		vecSpread = GetSpread(altMode);
 
 		DamageInfoPatch damageInfo = fire.damageInfo.Get(altMode);
-		if (chargedAttack)
+		if (chargedAttack && fire.chargeDamage.Get(altMode))
 		{
 			auto damageRange = damageInfo.damage.has_value() ? GetSkillValueRange(*damageInfo.damage) : FloatRange{};
 			auto damageFactorRange = fire.damageChargedFactor.Get(altMode);
@@ -1572,7 +1608,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 	else if (fireType == WeaponParameters::Fire::MELEE)
 	{
-		if (chargedAttack)
+		if (chargedAttack && fire.chargeDamage.Get(altMode))
 		{
 			if (m_iSwingMode != 1)
 			{
@@ -2341,18 +2377,13 @@ void CConfigurableWeapon::WeaponIdle()
 		if (CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()) || CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()))
 		{
 			const bool chargedAttackAlt = m_chargingAltFire;
-			const bool chargedAttack = params.fire.chargedAttack.Get(chargedAttackAlt);
+			const bool chargedAttack = params.fire.chargePerFire.Get(chargedAttackAlt);
 			if (chargedAttack)
 			{
-				const int buttonToCheck = params.secondaryFireType == SecondaryFireType::SWITCH_MODE ? IN_ATTACK : (chargedAttackAlt ? IN_ATTACK2 : IN_ATTACK);
-				const bool chargeAttackReleased = FBitSet(m_pPlayer->m_afButtonReleased, buttonToCheck);
-				if (chargeAttackReleased)
-				{
-					m_fInAttack = 2;
-					PerformWeaponFire(chargedAttackAlt);
-					SetChargingAttack(false);
-					m_fInAttack = 0;
-				}
+				m_fInAttack = 2;
+				PerformWeaponFire(chargedAttackAlt);
+				SetChargingAttack(false);
+				m_fInAttack = 0;
 			}
 			else
 				SetChargingAttack(false);
@@ -2378,6 +2409,10 @@ bool CConfigurableWeapon::CanHolster()
 	if (m_bLaserActive && params.laserSpotCheckActiveRockets && m_cActiveRockets > 0)
 	{
 		// can't put away while guiding a missile.
+		return false;
+	}
+	if (m_chargingAttack && !params.fire.allowHolsterDuringCharge.Get(m_chargingAltFire))
+	{
 		return false;
 	}
 	return true;

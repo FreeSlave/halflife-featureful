@@ -602,7 +602,7 @@ The attack type. Current supported values are:
 
 ### allow_underwater
 
-A boolean defining whether the weapon can fire underwater.
+A boolean defining whether the weapon can fire underwater. Default value is `true`.
 
 ### ammo_per_fire
 
@@ -694,25 +694,33 @@ The array of animation indices. The random animation is picked when weapon is ch
 
 See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
 
-### charge_sound
+### charge_per_fire
 
-[Weapon soundscript](#weapon-soundscript) to play on charging the attack. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
+A boolean - whether each weapon fire needs to be charged rather than performing sustained fire once the [charge_time](#charge_time) has passed. Default value is `false`.
 
-### charge_time
+* Behavior when `false`:
+    - Player starts pressing the attack button and the weapon starts charging, playing one of the [charge_anims](#charge_anims).
+    - Player might stop pressing the attack button, effectively cancelling the attack - then the weapon goes to [cooldown](#cooldown_anims).
+    - After [charge_time](#charge_time) has passed the weapon starts firing regularily (as if it didn't have the charge fire configured) with [cycle_time](#cycle_time) periods.
+    - When player stops pressing the attack button or the weapon is out of ammo, it goes to [cooldown](#cooldown_anims).
+* Behavior when `true`:
+    - Player starts pressing the attack button and the weapon starts charging, playing one of the [charge_anims](#charge_anims). So, same as with `false`.
+    - Player can't cancel the attack just by stopping pressing the attack button (player still can cancel the attack by switching to another weapon).
+    - After [charge_time](#charge_time) has passed the weapon becomes ready to fire and it fires once the player stops pressing the attack button. The player can hold the attack button for longer than the [charge_time](#charge_time) to postpone the charged attack.
+    - After firing a weapon it goes to [cooldown](#cooldown_anims).
 
-The time in seconds after the weapon starts firing after initial charge. Used by [weapon_minigun]({{< ref weapon_minigun >}}). This is also the minimum charge time for the winding attack of melee weapons (e.g. [weapon_pipewrench]({{< ref weapon_pipewrench >}})).
+### charge_damage
 
-### charged_attack
+A boolean - whether the output damage scales depending on the charge duration - the longer player charges the attack the more damage it will deal. Default value is `false`. This must be used with [charge_per_fire](#charge_per_fire) set to `true`.
 
-A boolean - whether the attack is charged. I.e. the longer it's charged the more damage it will deal. This is used by [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}) secondary attacks.
+This is used by [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}) secondary attacks.
 
 {{% hint warning %}}
-Currently the charged attack is implemented for the `"melee"` and `"bullet"` fire types only.
+Currently the charged damage is implemented for the `"melee"` and `"bullet"` fire types only. Projectile's damage won't scale.
 {{% /hint %}}
 
 The charged attack expects the following properties to be defined:
 
-* [charge_time](#charge_time)
 * [damage_charged_factor](#damage_charged_factor)
 * [damage_charged_max](#damage_charged_max)
 
@@ -721,6 +729,37 @@ The resulting damage is calculated by formula:
 ```
 MIN(damage + damage_charged_factor * time_since_charge_start, damage_charged_max)
 ```
+
+### charge_sound
+
+[Weapon soundscript](#weapon-soundscript) to play on charging the attack. Used by [weapon_minigun]({{< ref weapon_minigun >}}).
+
+### charge_time
+
+The time in seconds after the weapon starts firing after initial charge.
+
+* Used by [weapon_minigun]({{< ref weapon_minigun >}}) for a spinup time.
+* This is the minimum charge time for the winding attack of melee weapons (e.g. [weapon_pipewrench]({{< ref weapon_pipewrench >}})).
+
+This can be 0 allowing for almost immediate fire (e.g. for Team Fortress Classic sniperrifle).
+
+### charge_allow_holster
+
+A boolean - whether the fast switch is allowed while the weapon attack is being charged. Default value is `true`.
+
+### charge_ammo_check
+
+A boolean - whether the ammo must be checked before and during the charging attack. Default value is `true`. Setting this to `false` allows weapon to recognize it doesn't have enough ammo to fire after the charge time has passed. This is set to `false` in [weapon_minigun]({{< ref weapon_minigun >}}) - player can start spinning it without ammo.
+
+### charge_underwater_check
+
+A boolean - whether the underwater check (if [allow_underwater](#allow_underwater) is `false`) should be done before and during the charging attack. Default value is `true`.
+
+### charged_attack
+
+{{% hint warning %}}
+This property is deprecated. Setting it to `true` has the same effect as setting both [charge_per_fire](#charge_per_fire) and [charge_damage](#charge_damage) to `true`.
+{{% /hint %}}
 
 ### cooldown_anims
 
@@ -833,11 +872,11 @@ If damage is not provided the default value for the projectile will be used.
 
 ### damage_charged_factor
 
-The amount of damage added to the [charged attack](#charged_attack) per second. If it's not defined or 0, the [damage](#damage) will be used instead.
+If [charge_damage](#charge_damage) is set to `true` this is the amount of damage added per second during charging. If it's not defined or 0, the [damage](#damage) will be used instead.
 
 ### damage_charged_max
 
-The maximum damage the [charged attack](#charged_attack) can reach. If it's not defined or 0, the [damage](#damage) multiplied by 2 will be used instead.
+If [charge_damage](#charge_damage) is set to `true` this is the maximum damage the charged attack can reach. If it's not defined or 0, the [damage](#damage) multiplied by 2 will be used instead.
 
 ### delay_after_empty
 

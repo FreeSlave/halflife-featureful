@@ -274,6 +274,21 @@ R"(
 			"charge_sound": {
 				"$ref": "#/w_soundscript"
 			},
+			"charge_allow_holster": {
+				"type": "boolean"
+			},
+			"charge_ammo_check": {
+				"type": "boolean"
+			},
+			"charge_underwater_check": {
+				"type": "boolean"
+			},
+			"charge_per_fire": {
+				"type": "boolean"
+			},
+			"charge_damage": {
+				"type": "boolean"
+			},
 			"charged_attack": {
 				"type": "boolean"
 			},

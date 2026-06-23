@@ -583,7 +583,11 @@ struct WeaponParameters
 		WeaponModeValue<FireAnimArray> hitAnims;
 		WeaponModeValue<FireAnimArray> chargeAnims;
 		WeaponModeValueNonNegative<float> chargeTime{0.0f};
-		WeaponModeValue<bool> chargedAttack{false};
+		WeaponModeValue<bool> chargeAmmoCheck{true};
+		WeaponModeValue<bool> chargeUnderwaterCheck{true};
+		WeaponModeValue<bool> chargePerFire{false};
+		WeaponModeValue<bool> chargeDamage{false};
+		WeaponModeValue<bool> allowHolsterDuringCharge{true};
 		WeaponModeValue<bool> laserSpotOnCharge{false};
 		WeaponModeValue<FireAnimArray> cooldownAnims;
 		WeaponModeValueNonNegative<float> cooldownTime{0.5f};

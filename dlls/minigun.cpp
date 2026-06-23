@@ -63,6 +63,8 @@ WeaponParameters CMinigun::GetDefaultParameters() const
 	// Primary fire
 	params.fire.chargeAnims.main = {MINIGUN_SPINUP};
 	params.fire.chargeTime = 1.0f;
+	params.fire.chargeAmmoCheck = false;
+	params.fire.chargeUnderwaterCheck = false;
 	params.fire.chargeSound = {
 		CHAN_WEAPON,
 		{"hassault/hw_spinup.wav"},
