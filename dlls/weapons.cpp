@@ -294,13 +294,13 @@ void RegisterAmmoTypes()
 	g_AmmoRegistry.Register("uranium", URANIUM_MAX_CARRY);
 	g_AmmoRegistry.Register("rockets", ROCKET_MAX_CARRY);
 	g_AmmoRegistry.Register("bolts", BOLT_MAX_CARRY);
-	g_AmmoRegistry.Register("Trip Mine", TRIPMINE_MAX_CARRY, true);
-	g_AmmoRegistry.Register("Satchel Charge", SATCHEL_MAX_CARRY, true);
-	g_AmmoRegistry.Register("Hand Grenade", HANDGRENADE_MAX_CARRY, true);
-	g_AmmoRegistry.Register("Snarks", SNARK_MAX_CARRY, true);
+	g_AmmoRegistry.Register("Trip Mine", TRIPMINE_MAX_CARRY);
+	g_AmmoRegistry.Register("Satchel Charge", SATCHEL_MAX_CARRY);
+	g_AmmoRegistry.Register("Hand Grenade", HANDGRENADE_MAX_CARRY);
+	g_AmmoRegistry.Register("Snarks", SNARK_MAX_CARRY);
 	g_AmmoRegistry.Register("Hornets", HORNET_MAX_CARRY);
 	g_AmmoRegistry.Register("Medicine", MEDKIT_MAX_CARRY);
-	g_AmmoRegistry.Register("Penguins", PENGUIN_MAX_CARRY, true);
+	g_AmmoRegistry.Register("Penguins", PENGUIN_MAX_CARRY);
 	g_AmmoRegistry.Register("556", _556_MAX_CARRY);
 	g_AmmoRegistry.Register("762", _762_MAX_CARRY);
 	g_AmmoRegistry.Register("Shocks", SHOCK_MAX_CARRY);
@@ -836,7 +836,7 @@ bool CBasePlayerWeapon::IsEnabledInMod()
 bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 {
 	int primaryAmmoIndex = pPlayer->GetAmmoIndex(pszAmmo1());
-	if (iFlags() & ITEM_FLAG_EXHAUSTIBLE)
+	if (IsExhaustible())
 	{
 		if (pPlayer->GetMaxAmmo(primaryAmmoIndex) < 1)
 			return false;
@@ -1320,7 +1320,7 @@ bool CConfigurableWeapon::AddToPlayer(CBasePlayer *pPlayer)
 {
 	const WeaponParameters& params = MyParameters();
 	bool result;
-	if (iFlags() & ITEM_FLAG_EXHAUSTIBLE)
+	if (IsExhaustible())
 	{
 		result = CBasePlayerWeapon::AddToPlayer(pPlayer);
 	}

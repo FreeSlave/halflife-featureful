@@ -1273,6 +1273,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	});
 
 	UpdatePropertyFromJson(params.preventJump, value, "prevent_jump");
+	UpdatePropertyFromJson(params.exhausitble, value, "exhaustible");
 	UpdatePropertyFromJson(params.primaryFirePrioritized, value, "prioritize_primary_attack");
 	UpdatePropertyFromJson(params.sharedChargeAndCooldown, value, "shared_charge_and_cooldown");
 	UpdatePropertyFromJson(params.viewModelBody, value, "viewmodel_body", false);

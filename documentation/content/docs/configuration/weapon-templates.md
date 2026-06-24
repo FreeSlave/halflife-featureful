@@ -404,6 +404,18 @@ An array of sounds used in the view model animation events (event 5004). These s
 
 Setting the `"model_sounds"` to the empty array disables the weapon precaching its default model sounds.
 
+## exhaustible
+
+A boolean - whether the weapon is getting removed from player when it's out of primary ammo. Used by by hand grenades, tripmines, etc.
+
+{{% hint info %}}
+Exhaustible weapons are also automatically given to a player when they get the corresponding ammo - from ammo items, [weaponbox]({{< ref weaponbox >}}), [game_player_settings]({{< ref game_player_settings >}}) or other means.
+
+If several exhaustible weapons use the same ammo type the player will be given all of these weapons.
+
+When player is out of ammo for an exhaustible weapon, other exhaustible weapons that use the same ammo are getting removed as well.
+{{% /hint %}}
+
 ## from_scratch
 
 A boolean defining whether the weapon configuration should start from scratch, i.e. from the default weapon template which doesn't have any attacks set. This preserves only the following properties:

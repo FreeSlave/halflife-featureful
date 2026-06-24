@@ -58,7 +58,6 @@ bool CHandGrenade::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 4;
 	p->iPosition = 0;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 
 	return true;
 }
@@ -92,6 +91,7 @@ WeaponParameters CHandGrenade::GetDefaultParameters() const
 	params.fire.projectileDetonationTime = 3.0f;
 
 	params.dropAmmo.classname = "weapon_handgrenade";
+	params.exhausitble = true;
 
 	return std::move(params);
 }

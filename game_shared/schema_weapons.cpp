@@ -1172,6 +1172,9 @@ R"(
 			"prevent_jump": {
 				"type": "boolean"
 			},
+			"exhaustible": {
+				"type": "boolean"
+			},
 			"shared_charge_and_cooldown": {
 				"type": "boolean"
 			},

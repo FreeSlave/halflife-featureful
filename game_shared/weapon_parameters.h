@@ -808,6 +808,7 @@ struct WeaponParameters
 
 	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
 	bool preventJump{false};
+	bool exhausitble{false};
 
 	DropAmmoEnt dropAmmo;
 	DropAmmoEnt dropAmmoSecondary;

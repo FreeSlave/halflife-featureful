@@ -19,7 +19,7 @@ class AmmoRegistry
 {
 public:
 	AmmoRegistry() : lastAmmoIndex(0) {}
-	int Register(const char* name, int maxAmmo, bool exhaustible = false);
+	int Register(const char* name, int maxAmmo);
 	void RegisterOnClient(const char* name, int maxAmmo, int index, bool exhaustible);
 	const AmmoType *GetByName(const char* name) const;
 	const AmmoType *GetByIndex(int id) const;
@@ -27,6 +27,8 @@ public:
 	int GetMaxAmmo(const char* name) const;
 	int GetMaxAmmo(int index) const;
 	void SetMaxAmmo(const char* name, int maxAmmo);
+	void ResetExhaustible();
+	void SetExhaustible(const char* name, bool exhaustible);
 	void ReportRegisteredTypes() const;
 private:
 	void ReportRegisteredType(const AmmoType &ammoType) const;

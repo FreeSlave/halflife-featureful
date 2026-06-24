@@ -579,6 +579,12 @@ bool CBasePlayerWeapon::Emptied()
 	return false;
 }
 
+bool CBasePlayerWeapon::IsExhaustible() const
+{
+	const WeaponParameters& params = MyParameters();
+	return params.exhausitble && !params.ammoName.empty();
+}
+
 void CBasePlayerWeapon::PlayWeaponSoundScript(const WeaponSoundScript& soundScript, float volumeFactor)
 {
 	const char* soundWave = soundScript.Wave();
@@ -1723,6 +1729,11 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	if (mustResetZoom)
 		ResetZoom(SwitchModeReason::Forced);
+
+	if (lastShot && !useSecondaryAmmo && IsExhaustible())
+	{
+		RetireWeapon();
+	}
 }
 
 void CConfigurableWeapon::ProjectileAttack(bool altMode)
@@ -1970,6 +1981,11 @@ void CConfigurableWeapon::FireRemaining()
 	{
 		ResetBurst();
 		UpdateRechargeTime(altMode);
+	}
+
+	if (!useSecondaryAmmo && IsExhaustible() && !HasAmmoToFire())
+	{
+		RetireWeapon();
 	}
 }
 
@@ -2462,7 +2478,11 @@ void CConfigurableWeapon::Holster()
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + params.holster.attackDelay;
 	const float idleDelay = RandomizeNumberFromRange_Shared(m_pPlayer->random_seed, params.holster.idleDelay);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + idleDelay;
-	SendWeaponAnim(params.holster.animIndex.Get(m_inAltMode, Emptied()));
+
+	const bool mustDestroy = IsExhaustible() && !HasAmmoToFire();
+
+	if (!mustDestroy)
+		SendWeaponAnim(params.holster.animIndex.Get(m_inAltMode, Emptied()));
 
 	ResetZoom(SwitchModeReason::Holster);
 	m_pPlayer->m_bResumeZoom = false;
@@ -2475,9 +2495,19 @@ void CConfigurableWeapon::Holster()
 	}
 #endif
 
-	if (CanRechargeAmmo() && !HasAmmoToFire())
+	if (!mustDestroy && CanRechargeAmmo() && !HasAmmoToFire())
 	{
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
+	}
+
+	if (mustDestroy)
+	{
+		m_pPlayer->ClearWeaponBit(WeaponId());
+		DestroyItem();
+	}
+	if (IsExhaustible())
+	{
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0f, ATTN_NORM);
 	}
 }
 

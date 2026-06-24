@@ -80,8 +80,6 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 #define ITEM_FLAG_SELECTONEMPTY		1
 #define ITEM_FLAG_NOAUTORELOAD		2
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY	4
-#define ITEM_FLAG_LIMITINWORLD		8
-#define ITEM_FLAG_EXHAUSTIBLE		16 // A player can totally exhaust their ammo supply and lose this weapon
 #define ITEM_FLAG_NOAUTOSWITCHTO	32
 
 #define WEAPON_IS_ONTARGET 0x40
@@ -340,6 +338,7 @@ public:
 	bool InAltMode() const {
 		return m_inAltMode;
 	}
+	bool IsExhaustible() const;
 
 	void PlayWeaponSoundScript(const WeaponSoundScript& soundScript, float volumeFactor = 1.0f);
 	void SetWorldModelProps();

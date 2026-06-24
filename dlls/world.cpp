@@ -554,6 +554,17 @@ void CWorld::Precache()
 		ParseModConfigs();
 	}
 	SetWeaponParameters();
+
+	g_AmmoRegistry.ResetExhaustible();
+	for(int i=1; i<MAX_WEAPONS; ++i)
+	{
+		const WeaponParameters& params = GetWeaponParameters(i);
+		if (params.exhausitble && !params.ammoName.empty())
+		{
+			g_AmmoRegistry.SetExhaustible(params.ammoName.c_str(), true);
+		}
+	}
+
 	worldInitAtLeastOnce = true;
 
 	//!!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here 

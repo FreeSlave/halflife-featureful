@@ -173,7 +173,7 @@ bool HLGetNextBestWeapon(CBasePlayer *pPlayer, CBasePlayerWeapon *pCurrentWeapon
 //=========================================================
 bool CHalfLifeRules::GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerWeapon *pCurrentWeapon )
 {
-	if( pCurrentWeapon && FBitSet( pCurrentWeapon->iFlags(), ITEM_FLAG_EXHAUSTIBLE ))
+	if (pCurrentWeapon && pCurrentWeapon->IsExhaustible())
 		return HLGetNextBestWeapon( pPlayer, pCurrentWeapon );
 	return false;
 }

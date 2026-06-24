@@ -20,7 +20,7 @@ bool AmmoType::IsValid() const
 	return id > 0;
 }
 
-int AmmoRegistry::Register(const char *name, int maxAmmo, bool exhaustible)
+int AmmoRegistry::Register(const char *name, int maxAmmo)
 {
 	if (!name)
 		return -1;
@@ -29,7 +29,7 @@ int AmmoRegistry::Register(const char *name, int maxAmmo, bool exhaustible)
 	if (index > 0)
 	{
 		const AmmoType* type = GetByIndex(index);
-		if (type->maxAmmo != maxAmmo || type->exhaustible != exhaustible)
+		if (type->maxAmmo != maxAmmo)
 		{
 			LOG_ERROR("Trying to re-register ammo '%s' with different parameters\n", name);
 		}
@@ -52,7 +52,6 @@ int AmmoRegistry::Register(const char *name, int maxAmmo, bool exhaustible)
 	type.id = lastAmmoIndex;
 	type.SetName(name);
 	type.maxAmmo = maxAmmo;
-	type.exhaustible = exhaustible;
 
 	return type.id;
 }
@@ -133,6 +132,27 @@ void AmmoRegistry::SetMaxAmmo(const char *name, int maxAmmo)
 		if (ammoType.IsValid())
 		{
 			ammoType.maxAmmo = maxAmmo;
+		}
+	}
+}
+
+void AmmoRegistry::ResetExhaustible()
+{
+	for (AmmoType& ammoType : ammoTypes)
+	{
+		ammoType.exhaustible = false;
+	}
+}
+
+void AmmoRegistry::SetExhaustible(const char* name, bool exhaustible)
+{
+	int id = IndexOf(name);
+	if (id > 0 && id < MAX_AMMO_TYPES)
+	{
+		AmmoType& ammoType = ammoTypes[id-1];
+		if (ammoType.IsValid())
+		{
+			ammoType.exhaustible = exhaustible;
 		}
 	}
 }

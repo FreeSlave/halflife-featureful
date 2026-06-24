@@ -5139,9 +5139,25 @@ bool CBasePlayer::RemovePlayerItem( CBasePlayerWeapon *pItem, bool bCallHolster 
 	if( m_pLastItem == pItem )
 		m_pLastItem = NULL;
 
-	if (WeaponById(pItem->WeaponId()))
+	const int weaponId = pItem->WeaponId();
+	if (WeaponById(weaponId))
 	{
-		m_rgpPlayerWeapons[pItem->WeaponId()-1] = NULL;
+		m_rgpPlayerWeapons[weaponId-1] = nullptr;
+		if (pItem->IsExhaustible())
+		{
+			for (int i=0; i<MAX_WEAPONS; ++i)
+			{
+				if (i != weaponId)
+				{
+					CBasePlayerWeapon* pOtherWeapon = WeaponById(i);
+					if (pOtherWeapon && pOtherWeapon->IsExhaustible() && pOtherWeapon->PrimaryAmmoIndex() == pItem->PrimaryAmmoIndex())
+					{
+						ClearWeaponBit(i);
+						RemovePlayerItem(pOtherWeapon, false);
+					}
+				}
+			}
+		}
 		return true;
 	}
 	return false;
@@ -5173,13 +5189,18 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 	bool addedAsWeapon = false;
 	if (ammoType->exhaustible)
 	{
+		int ammoLeft = iAdd;
+
 		for (int j=0; j<MAX_WEAPONS; ++j) {
-			const ItemInfo& II = CBasePlayerWeapon::ItemInfoArray[j];
-			if ((II.iFlags & ITEM_FLAG_EXHAUSTIBLE) && II.pszAmmo1 && FStrEq(szName, II.pszAmmo1)) {
+			const WeaponInfo& weaponInfo = AccessWeaponInfo(j);
+			const WeaponParameters& params = weaponInfo.params;
+
+			if (params.exhausitble && !params.ammoName.empty() && params.ammoName == szName)
+			{
 				// we found a weapon that uses this ammo type
 
-				const int weaponId = II.iId;
-				const char* weaponName = II.pszName;
+				const int weaponId = weaponInfo.id;
+				const char* weaponName = weaponInfo.classname;
 
 				if (!HasWeaponBit(weaponId)) {
 					// player does not have this weapon
@@ -5189,7 +5210,8 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 						CBasePlayerWeapon* weapon = pCreated->MyWeaponPointer();
 						if (weapon) {
 							weapon->pev->spawnflags |= SF_NORESPAWN;
-							weapon->m_iDefaultAmmo = iAdd;
+							weapon->m_iDefaultAmmo = ammoLeft;
+							ammoLeft = 0;
 							if (AddPlayerItem(weapon)) {
 								addedAsWeapon = true;
 							}
@@ -5203,8 +5225,6 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 						UTIL_Remove(pCreated);
 					}
 				}
-
-				break;
 			}
 		}
 	}
@@ -5240,9 +5260,9 @@ void CBasePlayer::RemoveAmmo(int iAmount, const char *szName)
 	{
 		for (int j=0; j<MAX_WEAPONS; ++j)
 		{
-			const ItemInfo& II = CBasePlayerWeapon::ItemInfoArray[j];
-			if ((II.iFlags & ITEM_FLAG_EXHAUSTIBLE) && II.pszAmmo1 && FStrEq(szName, II.pszAmmo1)) {
-				// we found a weapon that uses this ammo type
+			const WeaponParameters& params = GetWeaponParameters(j);
+			if (params.exhausitble && !params.ammoName.empty() && params.ammoName == szName)
+			{
 				CBasePlayerWeapon* pWeapon = WeaponById(j);
 				if (pWeapon)
 					pWeapon->RetireWeapon();
@@ -6574,7 +6594,7 @@ void CBasePlayer::DropPlayerItemImpl(CBasePlayerWeapon *pWeapon, int dropType, f
 	if( iAmmoIndex > 0 )
 	{
 		// this weapon weapon uses ammo, so pack an appropriate amount.
-		if( pWeapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE )
+		if (pWeapon->IsExhaustible())
 		{
 			// pack up all the ammo, this weapon is its own ammo type
 			pWeaponBox->PackAmmo( MAKE_STRING( pWeapon->pszAmmo1() ), m_rgAmmo[iAmmoIndex] );
@@ -9005,8 +9025,9 @@ public:
 			{
 				for (int j=0; j<MAX_WEAPONS; ++j)
 				{
-					const ItemInfo& II = CBasePlayerWeapon::ItemInfoArray[j];
-					if ((II.iFlags & ITEM_FLAG_EXHAUSTIBLE) && II.pszAmmo1 && FStrEq(ammoType->name, II.pszAmmo1)) {
+					const WeaponParameters& params = GetWeaponParameters(j);
+					if (params.exhausitble && !params.ammoName.empty() && params.ammoName == ammoType->name)
+					{
 						CBasePlayerWeapon* pWeapon = pPlayer->WeaponById(j);
 						if (pWeapon)
 							pWeapon->RetireWeapon();

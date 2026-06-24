@@ -1092,7 +1092,7 @@ float CHalfLifeMultiplay::FlWeaponRespawnTime( CBasePlayerWeapon *pWeapon )
 	if( weaponstay.value > 0 )
 	{
 		// make sure it's only certain weapons
-		if( !(pWeapon->iFlags() & ITEM_FLAG_LIMITINWORLD ) )
+		if (!pWeapon->IsExhaustible())
 		{
 			return gpGlobals->time + 0;		// weapon respawns almost instantly
 		}
@@ -1112,7 +1112,7 @@ float CHalfLifeMultiplay::FlWeaponRespawnTime( CBasePlayerWeapon *pWeapon )
 //=========================================================
 float CHalfLifeMultiplay::FlWeaponTryRespawn( CBasePlayerWeapon *pWeapon )
 {
-	if( pWeapon && pWeapon->WeaponId() && ( pWeapon->iFlags() & ITEM_FLAG_LIMITINWORLD ) )
+	if( pWeapon && pWeapon->WeaponId() && pWeapon->IsExhaustible())
 	{
 		if( NUMBER_OF_ENTITIES() < ( gpGlobals->maxEntities - ENTITY_INTOLERANCE ) )
 			return 0;
@@ -1145,7 +1145,7 @@ int CHalfLifeMultiplay::WeaponShouldRespawn( CBasePlayerWeapon *pWeapon )
 	}
 
 	if ( weapon_respawndelay.value == -1 ) {
-		if (weaponstay.value > 0 && !(pWeapon->iFlags() & ITEM_FLAG_LIMITINWORLD )) {
+		if (weaponstay.value > 0 && !pWeapon->IsExhaustible()) {
 			return GR_WEAPON_RESPAWN_YES;
 		}
 		return GR_WEAPON_RESPAWN_NO;
@@ -1162,7 +1162,7 @@ bool CHalfLifeMultiplay::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerWea
 {
 	if( weaponstay.value > 0 )
 	{
-		if( (pItem->iFlags() & ITEM_FLAG_LIMITINWORLD) || (pItem->pev->spawnflags & SF_NORESPAWN) )
+		if (pItem->IsExhaustible() || (pItem->pev->spawnflags & SF_NORESPAWN) )
 			return CGameRules::CanHavePlayerItem( pPlayer, pItem );
 
 		// check if the player already has this weapon

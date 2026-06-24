@@ -497,7 +497,6 @@ bool CTripmine::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 4;
 	p->iPosition = 2;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 
 	return true;
 }
@@ -529,6 +528,7 @@ WeaponParameters CTripmine::GetDefaultParameters() const
 	params.holster.attackDelay = 0.5f;
 
 	params.dropAmmo.classname = "weapon_tripmine";
+	params.exhausitble = true;
 
 	return std::move(params);
 }

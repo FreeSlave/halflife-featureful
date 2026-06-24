@@ -625,7 +625,6 @@ bool CSqueak::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 4;
 	p->iPosition = PositionInSlot();
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 
 	return true;
 }
@@ -647,6 +646,7 @@ WeaponParameters CSqueak::GetDefaultParameters() const
 	params.worldModelSequence = 1;
 
 	params.dropAmmo.classname = "weapon_snark";
+	params.exhausitble = true;
 
 	return std::move(params);
 }
@@ -841,6 +841,7 @@ WeaponParameters CPenguin::GetDefaultParameters() const
 	params.worldModelSequence = 1;
 
 	params.dropAmmo.classname = "weapon_penguin";
+	params.exhausitble = true;
 
 	return std::move(params);
 }

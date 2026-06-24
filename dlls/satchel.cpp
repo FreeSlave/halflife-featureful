@@ -408,7 +408,7 @@ bool CSatchel::GetItemInfo( ItemInfo *p )
 {
 	p->iSlot = 4;
 	p->iPosition = 1;
-	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = ITEM_FLAG_SELECTONEMPTY;
 
 	return true;
 }
@@ -433,6 +433,7 @@ WeaponParameters CSatchel::GetDefaultParameters() const
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 
 	params.dropAmmo.classname = "weapon_satchel";
+	params.exhausitble = true;
 
 	return std::move(params);
 }
