@@ -121,6 +121,13 @@ int CHudMessageBox::MsgFunc_MessageBox(const char *pszName,  int iSize, void *pb
 
 	data.messageBoxId = messageBoxId;
 	const char* messageId = READ_STRING();
+
+	if (!messageId || !*messageId)
+	{
+		gEngfuncs.Con_Printf("Got MessageBox message, but the message id is empty!\n");
+		return 1;
+	}
+
 	data.message = gHUD.m_messageStrings.GetText(messageId, messageId);
 
 	const WindowGeometry geometry = GetWindowGeometry();

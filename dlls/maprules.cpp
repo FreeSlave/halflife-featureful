@@ -1561,6 +1561,13 @@ class CGameMessageBox : public CPointEntity
 			}
 		}
 
+		const char* messageId = STRING(pev->message);
+		if (!messageId || !*messageId)
+		{
+			ALERT(at_console, "%s: message is empty\n", STRING(pev->classname));
+			return;
+		}
+
 		if (pPlayer->AddMessageBox(this, origin, distance))
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgMessageBox, nullptr, pPlayer->pev);
