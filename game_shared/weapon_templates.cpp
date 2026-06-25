@@ -479,10 +479,10 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			bool chargedAttack;
 			if (UpdatePropertyFromJson(chargedAttack, value, "charged_attack"))
 			{
-				fire.chargePerFire.Materialize(altMode) = chargedAttack;
+				fire.chargeEachFire.Materialize(altMode) = chargedAttack;
 				fire.chargeDamage.Materialize(altMode) = chargedAttack;
 			}
-			UpdatePropertyFromJson(fire.chargePerFire, value, "charge_per_fire", altMode);
+			UpdatePropertyFromJson(fire.chargeEachFire, value, "charge_each_fire", altMode);
 			UpdatePropertyFromJson(fire.chargeDamage, value, "charge_damage", altMode);
 			UpdatePropertyFromJson(fire.laserSpotOnCharge, value, "laser_spot_on_charge", altMode);
 
@@ -1057,6 +1057,42 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						}
 						fire.projectileFirePhases.Materialize(altMode) = std::move(firePhases);
 					}
+				});
+
+				HandleJSONMember(value, "grenade_physics", [&](const Value& value) {
+					if (value.IsBool())
+					{
+						bool b = value.GetBool();
+						fire.projectileGrenadePhysics.Materialize(altMode) = b ? WeaponParameters::Fire::GRENADEPHYS_AUTO : WeaponParameters::Fire::GRENADEPHYS_NO;
+					}
+					else if (value.IsString())
+					{
+						const char* str = value.GetString();
+						if (strcmp(str, "auto") == 0)
+						{
+							fire.projectileGrenadePhysics.Materialize(altMode) = WeaponParameters::Fire::GRENADEPHYS_AUTO;
+						}
+						else if (strcmp(str, "classic") == 0)
+						{
+							fire.projectileGrenadePhysics.Materialize(altMode) = WeaponParameters::Fire::GRENADEPHYS_CLASSIC;
+						}
+						else if (strcmp(str, "anniversary") == 0)
+						{
+							fire.projectileGrenadePhysics.Materialize(altMode) = WeaponParameters::Fire::GRENADEPHYS_ANNIVERSARY;
+						}
+					}
+				});
+
+				HandleJSONMember(value, "far_throw_anims", [&](const Value& value) {
+					Value::ConstArray animArr = value.GetArray();
+					auto& v = fire.projectileFarThrowAnims.Materialize(altMode);
+					HandleFireAnimArray(animArr, v);
+				});
+
+				HandleJSONMember(value, "farthest_throw_anims", [&](const Value& value) {
+					Value::ConstArray animArr = value.GetArray();
+					auto& v = fire.projectileFarthestThrowAnims.Materialize(altMode);
+					HandleFireAnimArray(animArr, v);
 				});
 			});
 

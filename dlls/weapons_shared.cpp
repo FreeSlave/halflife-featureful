@@ -1296,7 +1296,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	const bool cooldownAltMode = m_chargingAttack ? m_chargingAltFire : altMode;
 	const float chargeTime = fire.chargeTime.Get(cooldownAltMode);
-	const bool chargedAttack = fire.chargePerFire.Get(altMode);
+	const bool chargedAttack = fire.chargeEachFire.Get(altMode);
 
 	auto checkUnderwater = [this, &fire, allowUnderwater, cooldownAltMode]() {
 		if (m_pPlayer->pev->waterlevel == WL_Eyes && !allowUnderwater)
@@ -1738,130 +1738,182 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 void CConfigurableWeapon::ProjectileAttack(bool altMode)
 {
-#if !CLIENT_DLL
 	const WeaponParameters& params = MyParameters();
 	const WeaponParameters::Fire& fire = params.fire;
 
-	int projectileVariant = 0;
 	const auto& projectileName = fire.projectileName.Get(altMode);
-	if (!projectileName.empty())
-	{
-		const char* projectileStr = GetRealProjectileClassname(projectileName.c_str(), projectileVariant);
+	if (projectileName.empty())
+		return;
 
-		Vector vecHead = m_pPlayer->GetGunPosition();
-		Vector aimAngles = m_pPlayer->pev->v_angle;
-		if (fire.projectileRespectPunchangle.Get(altMode))
-			aimAngles += m_pPlayer->pev->punchangle;
+	const bool allowInheritance = !altMode || (fire.projectileName.Get(false) == fire.projectileName.Get(true) && fire.projectileEntTemplate.Get(false) == fire.projectileEntTemplate.Get(true));
+	float customSpeed = allowInheritance ? fire.projectileSpeed.Get(altMode) : (altMode ? fire.projectileSpeed.alt : fire.projectileSpeed.main);
+
+	Vector aimAngles = m_pPlayer->pev->v_angle;
+	if (fire.projectileRespectPunchangle.Get(altMode))
+		aimAngles += m_pPlayer->pev->punchangle;
+
+	const short grenadePhys = allowInheritance ? fire.projectileGrenadePhysics.Get(altMode) : (fire.projectileGrenadePhysics.IsDefined(altMode) ? fire.projectileGrenadePhysics.Get(altMode) : WeaponParameters::Fire::GRENADEPHYS_NO);
+	if (grenadePhys)
+	{
+		if (aimAngles.x < 0.0f)
+			aimAngles.x = -10.0f + aimAngles.x * ( ( 90.0f - 10.0f ) / 90.0f );
+		else
+			aimAngles.x = -10.0f + aimAngles.x * ( ( 90.0f + 10.0f ) / 90.0f );
+
+		UTIL_MakeVectors(aimAngles);
+	}
+	else
+	{
 		UTIL_MakeVectors(aimAngles);
 		aimAngles.x = -aimAngles.x;
-		const Vector vecUp = gpGlobals->v_up;
+	}
 
-		Vector vecDir = gpGlobals->v_forward;
-		Vector vecSrc = vecHead +
-						gpGlobals->v_forward * fire.projectileOffsetForward.Get(altMode) +
-						gpGlobals->v_right * fire.projectileOffsetSide.Get(altMode) +
-						gpGlobals->v_up * fire.projectileOffsetUp.Get(altMode);
-
-		Vector vecShift{};
-
-		const auto& firePhases = fire.projectileFirePhases.Get(altMode);
-		if (!firePhases.empty())
+	float grenadeVel = 0.0f;
+	float maxGrenadeVel = customSpeed <= 0.0f ? 500.0f : customSpeed;
+	if (grenadePhys)
+	{
+		float velMultiplier = 4.0f;
+		if (grenadePhys == WeaponParameters::Fire::GRENADEPHYS_ANNIVERSARY || (grenadePhys == WeaponParameters::Fire::GRENADEPHYS_AUTO && PreferNewGrenadePhysics()))
 		{
-			m_iFirePhase = Q_min((int)firePhases.size()-1, m_iFirePhase); // just in case
-
-			vecShift += gpGlobals->v_up * firePhases[m_iFirePhase].up;
-			vecShift += gpGlobals->v_right * firePhases[m_iFirePhase].side;
-
-			m_iFirePhase++;
-			if (m_iFirePhase == firePhases.size())
-				m_iFirePhase = 0;
+			if (customSpeed <= 0.0f)
+				maxGrenadeVel = 1000.0f;
+			velMultiplier = 6.5f;
 		}
 
-		vecSrc += vecShift;
-		vecHead += vecShift;
+		grenadeVel = (90.0f - aimAngles.x) * velMultiplier;
+		if (grenadeVel > maxGrenadeVel)
+			grenadeVel = maxGrenadeVel;
+	}
 
-		Vector vecAngles = aimAngles;
-		if (fire.projectileAdjustToCross.Get(altMode))
+#if !CLIENT_DLL
+	int projectileVariant = 0;
+	const char* projectileStr = GetRealProjectileClassname(projectileName.c_str(), projectileVariant);
+
+	Vector vecHead = m_pPlayer->GetGunPosition();
+
+	const Vector vecUp = gpGlobals->v_up;
+
+	Vector vecDir = gpGlobals->v_forward;
+	Vector vecSrc = vecHead +
+					gpGlobals->v_forward * fire.projectileOffsetForward.Get(altMode) +
+					gpGlobals->v_right * fire.projectileOffsetSide.Get(altMode) +
+					gpGlobals->v_up * fire.projectileOffsetUp.Get(altMode);
+
+	if (grenadePhys)
+	{
+		if (params.fire.projectileAddCurrentVelocity.Get(false) != WeaponParameters::Fire::DONT_ADD_VELOCITY)
 		{
-			TraceResult tr;
-			UTIL_TraceLine(vecHead, vecHead + vecDir * 4096, dont_ignore_monsters, edict(), &tr);
-			vecDir = (tr.vecEndPos - vecSrc).Normalize();
-		}
-
-		const Vector vecSpread = GetSpread(altMode);
-		if (vecSpread != g_vecZero)
-		{
-			float x, y;
-			do {
-				x = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
-				y = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
-			}
-			while( x * x + y * y > 1.0f );
-
-			vecDir += x * vecSpread.x * gpGlobals->v_right;
-			vecDir += y * vecSpread.y * gpGlobals->v_up;
-		}
-
-		if (fire.projectileAdjustToCross.Get(altMode))
-		{
-			vecAngles = UTIL_VecToAngles(vecDir);
-			//vecAngles.x = -vecAngles.x;
-		}
-
-		EntityOverrides entityOverrides;
-		if (!fire.projectileEntTemplate.Get(altMode).empty())
-		{
-			entityOverrides.entTemplate = MAKE_STRING(fire.projectileEntTemplate.Get(altMode).c_str());
-		}
-		ProjectileParameters projectileParams(projectileStr, vecSrc, vecAngles, vecDir, m_pPlayer, entityOverrides);
-		const bool allowInheritance = !altMode || (fire.projectileName.Get(false) == fire.projectileName.Get(true) && fire.projectileEntTemplate.Get(false) == fire.projectileEntTemplate.Get(true));
-		const float customSpeed = allowInheritance ? fire.projectileSpeed.Get(altMode) : (altMode ? fire.projectileSpeed.alt : fire.projectileSpeed.main);
-		if (customSpeed > 0)
-			projectileParams.speedOverride = customSpeed;
-		projectileParams.variant = projectileVariant;
-		projectileParams.pLauncher = this;
-
-		if (fire.projectileDetonationTimeSet.Get(altMode))
-		{
-			projectileParams.time = fire.projectileDetonationTime.Get(altMode);
-			if (fire.chargePerFire.Get(altMode))
-			{
-				*projectileParams.time -= gpGlobals->time - m_chargeStartTime;
-				projectileParams.time = Q_max(*projectileParams.time, 0.0f);
-			}
-			const float timeMin = fire.projectileDetonationTimeMin.Get(altMode);
-			if (*projectileParams.time < timeMin)
-			{
-				projectileParams.time = timeMin;
-			}
-		}
-
-		DamageInfoPatch damageInfo;
-		if (allowInheritance)
-		{
-			damageInfo = fire.damageInfo.Get(altMode);
+			Vector vecThrow = vecDir * grenadeVel + m_pPlayer->pev->velocity;
+			customSpeed = vecThrow.NormalizeInPlace();
+			vecDir = vecThrow;
 		}
 		else
 		{
-			if (altMode)
+			customSpeed = grenadeVel;
+		}
+	}
+
+	Vector vecShift{};
+
+	const auto& firePhases = fire.projectileFirePhases.Get(altMode);
+	if (!firePhases.empty())
+	{
+		m_iFirePhase = Q_min((int)firePhases.size()-1, m_iFirePhase); // just in case
+
+		vecShift += gpGlobals->v_up * firePhases[m_iFirePhase].up;
+		vecShift += gpGlobals->v_right * firePhases[m_iFirePhase].side;
+
+		m_iFirePhase++;
+		if (m_iFirePhase == firePhases.size())
+			m_iFirePhase = 0;
+	}
+
+	vecSrc += vecShift;
+	vecHead += vecShift;
+
+	Vector vecAngles = aimAngles;
+	if (!grenadePhys && fire.projectileAdjustToCross.Get(altMode))
+	{
+		TraceResult tr;
+		UTIL_TraceLine(vecHead, vecHead + vecDir * 4096, dont_ignore_monsters, edict(), &tr);
+		vecDir = (tr.vecEndPos - vecSrc).Normalize();
+	}
+
+	const Vector vecSpread = GetSpread(altMode);
+	if (vecSpread != g_vecZero)
+	{
+		float x, y;
+		do {
+			x = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
+			y = RANDOM_FLOAT( -0.5f, 0.5f ) + RANDOM_FLOAT( -0.5, 0.5f );
+		}
+		while( x * x + y * y > 1.0f );
+
+		vecDir += x * vecSpread.x * gpGlobals->v_right;
+		vecDir += y * vecSpread.y * gpGlobals->v_up;
+	}
+
+	if (fire.projectileAdjustToCross.Get(altMode))
+	{
+		vecAngles = UTIL_VecToAngles(vecDir);
+		//vecAngles.x = -vecAngles.x;
+	}
+
+	EntityOverrides entityOverrides;
+	if (!fire.projectileEntTemplate.Get(altMode).empty())
+	{
+		entityOverrides.entTemplate = MAKE_STRING(fire.projectileEntTemplate.Get(altMode).c_str());
+	}
+	ProjectileParameters projectileParams(projectileStr, vecSrc, vecAngles, vecDir, m_pPlayer, entityOverrides);
+
+	if (customSpeed > 0)
+		projectileParams.speedOverride = customSpeed;
+	projectileParams.variant = projectileVariant;
+	projectileParams.pLauncher = this;
+
+	if (fire.projectileDetonationTimeSet.Get(altMode))
+	{
+		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+		if (fire.chargeEachFire.Get(altMode) && fire.projectileDetonationCooked.Get(altMode))
+		{
+			*projectileParams.time -= gpGlobals->time - m_chargeStartTime;
+			projectileParams.time = Q_max(*projectileParams.time, 0.0f);
+		}
+		const float timeMin = fire.projectileDetonationTimeMin.Get(altMode);
+		if (*projectileParams.time < timeMin)
+		{
+			projectileParams.time = timeMin;
+		}
+	}
+
+	DamageInfoPatch damageInfo;
+	if (allowInheritance)
+	{
+		damageInfo = fire.damageInfo.Get(altMode);
+	}
+	else
+	{
+		if (altMode)
+		{
+			if (fire.damageInfo.alt.has_value())
 			{
-				if (fire.damageInfo.alt.has_value())
-				{
-					damageInfo = *fire.damageInfo.alt;
-				}
-			}
-			else
-			{
-				damageInfo = fire.damageInfo.main;
+				damageInfo = *fire.damageInfo.alt;
 			}
 		}
-		const float customDamage = damageInfo.damage.has_value() ? GetSkillValue(*damageInfo.damage) : 0.0f;
-		if (customDamage > 0)
-			projectileParams.damageOverride = customDamage;
-		projectileParams.up = vecUp;
-		CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);
+		else
+		{
+			damageInfo = fire.damageInfo.main;
+		}
+	}
+	const float customDamage = damageInfo.damage.has_value() ? GetSkillValue(*damageInfo.damage) : 0.0f;
+	if (customDamage > 0)
+		projectileParams.damageOverride = customDamage;
+	projectileParams.up = vecUp;
+	CBaseEntity* pProjectile = CreateAndLaunchAsProjectile(projectileParams);
 
-		if (pProjectile)
+	if (pProjectile)
+	{
+		if (!grenadePhys)
 		{
 			const auto addVelocity = fire.projectileAddCurrentVelocity.Get(altMode);
 			switch(addVelocity)
@@ -1878,6 +1930,40 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 		}
 	}
 #endif
+
+	if (grenadePhys)
+	{
+		auto sendFireAnim = [this](const WeaponParameters::FireAnimArray& anims) {
+			if (anims.size())
+			{
+				if (anims.size() == 1)
+				{
+					SendWeaponAnim(anims.front());
+				}
+				else
+				{
+					int animIndex = UTIL_SharedRandomLong(m_pPlayer->random_seed, 0, anims.size() - 1);
+					SendWeaponAnim(animIndex);
+				}
+			}
+		};
+
+		const auto& farAnims = fire.projectileFarThrowAnims.Get(altMode);
+		const auto& farthestAnims = fire.projectileFarthestThrowAnims.Get(altMode);
+
+		if (grenadeVel >= maxGrenadeVel && farthestAnims.size())
+		{
+			sendFireAnim(farthestAnims);
+		}
+		else if (grenadeVel >= maxGrenadeVel * 0.5f && farAnims.size())
+		{
+			sendFireAnim(farAnims);
+		}
+		else
+		{
+			sendFireAnim(fire.anims.Get(altMode, Emptied()));
+		}
+	}
 }
 
 void CConfigurableWeapon::FireRemaining()
@@ -2407,7 +2493,7 @@ void CConfigurableWeapon::WeaponIdle()
 		if (CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()) || CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()))
 		{
 			const bool chargedAttackAlt = m_chargingAltFire;
-			const bool chargedAttack = params.fire.chargePerFire.Get(chargedAttackAlt);
+			const bool chargedAttack = params.fire.chargeEachFire.Get(chargedAttackAlt);
 			if (chargedAttack)
 			{
 				m_fInAttack = 2;
@@ -3254,6 +3340,20 @@ int CConfigurableWeapon::PackIParam2()
 void CConfigurableWeapon::PrecacheCommonEvent()
 {
 	m_usFire = PRECACHE_EVENT(1, "events/glock1.sc");
+}
+
+bool CConfigurableWeapon::PreferNewGrenadePhysics()
+{
+#if CLIENT_DLL
+	extern cvar_t *cl_grenadephysics;
+	if (cl_grenadephysics)
+		return (int)cl_grenadephysics->value != 0;
+	return false;
+#else
+	if (m_pPlayer)
+		return m_pPlayer->m_iPreferNewGrenadePhysics != 0;
+	return false;
+#endif
 }
 
 class CGenericConfigurableWeapon : public CConfigurableWeapon {};

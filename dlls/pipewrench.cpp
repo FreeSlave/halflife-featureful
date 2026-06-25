@@ -113,7 +113,7 @@ WeaponParameters CPipeWrench::GetDefaultParameters() const
 	params.fire.damageInfo.Materialize(true).damage = ::GetSkillValueRange("plr_pipewrench_wind_base");
 	params.fire.damageChargedFactor.alt = ::GetSkillValueRange("plr_pipewrench_wind_factor");
 	params.fire.damageChargedMax.alt = ::GetSkillValueRange("plr_pipewrench_wind_max");
-	params.fire.chargePerFire.alt = true;
+	params.fire.chargeEachFire.alt = true;
 	params.fire.chargeDamage.alt = true;
 	params.fire.anims.alt = {PIPEWRENCH_ATTACKBIGMISS};
 	params.fire.chargeAnims.alt = {PIPEWRENCH_ATTACKBIGWIND};

@@ -283,7 +283,7 @@ R"(
 			"charge_underwater_check": {
 				"type": "boolean"
 			},
-			"charge_per_fire": {
+			"charge_each_fire": {
 				"type": "boolean"
 			},
 			"charge_damage": {
@@ -759,6 +759,15 @@ R"(
 								"additionalProperties": false
 							}
 						]
+					},
+					"grenade_physics": {
+						"enum": [false, true, "auto", "classic", "anniversary"]
+					},
+					"far_throw_anims": {
+						"$ref": "#/anim_array"
+					},
+					"farthest_throw_anims": {
+						"$ref": "#/anim_array"
 					}
 				},
 				"additionalProperties": false

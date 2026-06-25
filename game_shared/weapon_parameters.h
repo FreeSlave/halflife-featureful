@@ -107,6 +107,12 @@ struct WeaponModeValueNonNegative
 	T& Materialize(bool altMode) {
 		return altMode ? alt : main;
 	}
+	bool IsDefined(bool altMode) const {
+		if (altMode)
+			return alt >= 0;
+		else
+			return true;
+	}
 };
 
 template<>
@@ -573,6 +579,14 @@ struct WeaponParameters
 			GUNSMOKE_DISALLOWED,
 		};
 
+		enum
+		{
+			GRENADEPHYS_NO,
+			GRENADEPHYS_AUTO,
+			GRENADEPHYS_CLASSIC,
+			GRENADEPHYS_ANNIVERSARY
+		};
+
 		WeaponModeValue<Type> fireType{NATIVE};
 		WeaponModeValue<DamageInfoPatch> damageInfo;
 		WeaponModeValueNonNegative<FloatRange> damageChargedFactor{0.0f};
@@ -585,7 +599,7 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<float> chargeTime{0.0f};
 		WeaponModeValue<bool> chargeAmmoCheck{true};
 		WeaponModeValue<bool> chargeUnderwaterCheck{true};
-		WeaponModeValue<bool> chargePerFire{false};
+		WeaponModeValue<bool> chargeEachFire{false};
 		WeaponModeValue<bool> chargeDamage{false};
 		WeaponModeValue<bool> allowHolsterDuringCharge{true};
 		WeaponModeValue<bool> laserSpotOnCharge{false};
@@ -688,6 +702,9 @@ struct WeaponParameters
 		WeaponModeValue<bool> projectileDetonationCooked{false};
 		WeaponModeValue<float> projectileDetonationTimeMin{0.0f};
 		WeaponModeValue<FirePhaseArray> projectileFirePhases;
+		WeaponModeValueNonNegative<short> projectileGrenadePhysics{GRENADEPHYS_NO};
+		WeaponModeValue<FireAnimArray> projectileFarThrowAnims;
+		WeaponModeValue<FireAnimArray> projectileFarthestThrowAnims;
 
 		WeaponModeValue<ViewmodelBeamArray> viewmodelBeams;
 

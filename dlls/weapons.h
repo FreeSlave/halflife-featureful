@@ -433,6 +433,7 @@ public:
 	int PackIParam1(bool altMode, bool emptied);
 	int PackIParam2();
 	void PrecacheCommonEvent();
+	bool PreferNewGrenadePhysics();
 
 	bool m_wasEmptyReload;
 	bool m_switchingBody;

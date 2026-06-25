@@ -112,7 +112,7 @@ WeaponParameters CKnife::GetDefaultParameters() const
 	params.fire.damageInfo.Materialize(true).damage = ::GetSkillValueRange("plr_knife_stab_base");
 	params.fire.damageChargedFactor.alt = ::GetSkillValueRange("plr_knife_stab_factor");
 	params.fire.damageChargedMax.alt = ::GetSkillValueRange("plr_knife_stab_max");
-	params.fire.chargePerFire.alt = true;
+	params.fire.chargeEachFire.alt = true;
 	params.fire.chargeDamage.alt = true;
 	params.fire.anims.alt = {KNIFE_STAB};
 	params.fire.hitAnims.alt = WeaponParameters::FireAnimArray{};

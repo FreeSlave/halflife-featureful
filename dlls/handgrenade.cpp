@@ -46,7 +46,6 @@ public:
 	bool CanHolster() override;
 	void Holster() override;
 	void WeaponIdle() override;
-	bool PreferNewPhysics();
 
 	void GetWeaponData(weapon_data_t& data) override;
 	void SetWeaponData(const weapon_data_t& data) override;
@@ -144,20 +143,6 @@ void CHandGrenade::PrimaryAttack()
 	}
 }
 
-bool CHandGrenade::PreferNewPhysics()
-{
-#if CLIENT_DLL
-	extern cvar_t *cl_grenadephysics;
-	if (cl_grenadephysics)
-		return (int)cl_grenadephysics->value != 0;
-	return false;
-#else
-	if (m_pPlayer)
-		return m_pPlayer->m_iPreferNewGrenadePhysics != 0;
-	return false;
-#endif
-}
-
 void CHandGrenade::WeaponIdle()
 {
 	if( m_flReleaseThrow == 0.0f && m_flStartThrow )
@@ -182,7 +167,7 @@ void CHandGrenade::WeaponIdle()
 
 		float maxVel = 500.0f;
 		float velVultiplier = 4.0f;
-		if (PreferNewPhysics())
+		if (PreferNewGrenadePhysics())
 		{
 			maxVel = 1000.0f;
 			velVultiplier = 6.5f;

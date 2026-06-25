@@ -669,9 +669,13 @@ static void EV_PerformWeaponFire(event_args_t *args)
 		if (fire.muzzleFlash.Get(altMode))
 			EV_MuzzleFlash();
 
-		const int fireAnim = SelectFireAnimation(params, altMode, empty);
-		if (fireAnim >= 0)
-			gEngfuncs.pEventAPI->EV_WeaponAnimation(fireAnim, body);
+		const bool playFireAnim = fireType == WeaponParameters::Fire::PROJECTILE ? !fire.projectileGrenadePhysics.Get(altMode) : true;
+		if (playFireAnim)
+		{
+			const int fireAnim = SelectFireAnimation(params, altMode, empty);
+			if (fireAnim >= 0)
+				gEngfuncs.pEventAPI->EV_WeaponAnimation(fireAnim, body);
+		}
 
 		const float punchX = RandomizeNumberFromRange(fire.clientPunchPitch.Get(altMode));
 		if (punchX)

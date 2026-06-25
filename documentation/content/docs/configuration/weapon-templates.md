@@ -706,7 +706,7 @@ The array of animation indices. The random animation is picked when weapon is ch
 
 See also: [shared_charge_and_cooldown](#shared_charge_and_cooldown).
 
-### charge_per_fire
+### charge_each_fire
 
 A boolean - whether each weapon fire needs to be charged rather than performing sustained fire once the [charge_time](#charge_time) has passed. Default value is `false`.
 
@@ -723,7 +723,7 @@ A boolean - whether each weapon fire needs to be charged rather than performing 
 
 ### charge_damage
 
-A boolean - whether the output damage scales depending on the charge duration - the longer player charges the attack the more damage it will deal. Default value is `false`. This must be used with [charge_per_fire](#charge_per_fire) set to `true`.
+A boolean - whether the output damage scales depending on the charge duration - the longer player charges the attack the more damage it will deal. Default value is `false`. This must be used with [charge_each_fire](#charge_each_fire) set to `true`.
 
 This is used by [weapon_pipewrench]({{< ref weapon_pipewrench >}}) and [weapon_knife]({{< ref weapon_knife >}}) secondary attacks.
 
@@ -770,7 +770,7 @@ A boolean - whether the underwater check (if [allow_underwater](#allow_underwate
 ### charged_attack
 
 {{% hint warning %}}
-This property is deprecated. Setting it to `true` has the same effect as setting both [charge_per_fire](#charge_per_fire) and [charge_damage](#charge_damage) to `true`.
+This property is deprecated. Setting it to `true` has the same effect as setting both [charge_each_fire](#charge_each_fire) and [charge_damage](#charge_damage) to `true`.
 {{% /hint %}}
 
 ### cooldown_anims
@@ -1377,7 +1377,9 @@ A boolean - whether the current player's punchangle should be accounted for when
 
 #### speed
 
-Custom speed for a projectile. This must be a number higher than 0. If not set, the default speed is used (depends on the projectile type). The secondary attack inherits the custom speed only if it uses the projectile of the same name and entity template.
+Custom speed for a projectile. This must be a number higher than 0. If not set, the default speed is used (depends on the projectile type or [grenade_physics](#grenade_physics) property). The secondary attack inherits the custom speed only if it uses the projectile of the same name and entity template.
+
+For projectiles with [grenade_physics](#grenade_physics) this is the maximum throw speed.
 
 #### time
 
@@ -1405,7 +1407,7 @@ Don't set this property for other projectile types!
 
 #### cooked
 
-A boolean - whether the remaining detonation [time](#time) depends on the duration of attack charge (if [charge_per_fire](#charge_per_fire) is set). The longer the charge duration the less the detonation time becomes (but can't become less than 0). Use this property for primed grenades.
+A boolean - whether the remaining detonation [time](#time) depends on the duration of attack charge (if [charge_each_fire](#charge_each_fire) is set). The longer the charge duration the less the detonation time becomes (but can't become less than 0). Use this property for primed grenades.
 
 #### time_min
 
@@ -1502,6 +1504,25 @@ Example: hornetgun's fire phase offsets defined as an object:
     }
 }
 ```
+
+#### grenade_physics
+
+The type of grenade physics to apply to the projectile. This means the grenade velocity will depend on the player view camera angle - if player looks up the grenade will get higher velocity.
+
+Possible values:
+
+* `false` - don't apply grenade physics (launch projectil as usual). This is the default value.
+* `true` or `"auto"` - apply grenade physics. Choose between 'classic' and 'anniversary' grenade throwing depending on the settings.
+* `"classic"` - apply grenade physics, force classic (pre-anniversary) style. Default max velocity is 500.
+* `"anniversary"` - apply grenade physics, force HL-25 anniversary style. Default max velocity is 1000. It also scales velocity with the view camera angle stronger than the classic style.
+
+#### far_throw_anims
+
+An array of animation indices to choose from for far grenade throw. If this is empty the regular fire anims are used. This is used only if [grenade_physics](#grenade_physics) is enabled.
+
+#### farthest_throw_anims
+
+An array of animation indices to choose from for farthest grenade throw. If this is empty the [far_throw_anims](#far_throw_anims) are used. with fallback to regular fire anims if it's empty as well). This is used only if [grenade_physics](#grenade_physics) is enabled.
 
 ### pump_delay
 
