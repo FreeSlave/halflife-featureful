@@ -192,6 +192,7 @@ The following weapons can utilize the weapon configuration to the full potential
 * [weapon_crowbar]({{< ref weapon_crowbar >}})
 * [weapon_crossbow]({{< ref weapon_crossbow >}})
 * [weapon_eagle]({{< ref weapon_eagle >}})
+* [weapon_handgrenade]({{< ref weapon_handgrenade >}})
 * [weapon_hornetgun]({{< ref weapon_hornetgun >}})
 * [weapon_m249]({{< ref weapon_m249 >}})
 * [weapon_pipewrench]({{< ref weapon_pipewrench >}})
@@ -247,10 +248,6 @@ The following weapons have only partial support for configuration:
     * `"client_punch_yaw"`
     * `"secondary_attack"` can be set to `"disabled"` to disable spinning attack.
     * `"reload"` (in case the weapon is configured to have a clip)
-* [weapon_handgrenade]({{< ref weapon_handgrenade >}})
-    * idle animations
-    * deploy animation
-    * [projectile](#projectile) fire properties.
 * [weapon_medkit]({{< ref weapon_medkit >}})
     * idle animations
     * deploy animation

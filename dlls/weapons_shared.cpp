@@ -929,6 +929,7 @@ bool CConfigurableWeapon::PerformDeploy()
 
 		SetChargingAttack(false);
 		m_shouldPlayCooldown = false;
+		m_shouldPlayCooldownAfterFire = false;
 		m_chargingAltFire = false;
 
 		if (!m_playedFirstDeploy && params.startInAltMode && !m_inAltMode)
@@ -1200,7 +1201,13 @@ bool CConfigurableWeapon::PerformCooldown(bool altMode)
 		}
 
 		PlayWeaponSoundScript(params.fire.cooldownSound.Get(altMode));
-		if (SelectAndSendFireAnimation(params.fire.cooldownAnims.Get(altMode)))
+
+		if (params.fire.chargeEachFire.Get(altMode) && !params.fire.cooldownAnims.Get(altMode).empty())
+		{
+			m_shouldPlayCooldownAfterFire = true;
+			return true;
+		}
+		else if (SelectAndSendFireAnimation(params.fire.cooldownAnims.Get(altMode)))
 		{
 			m_flTimeWeaponIdle = Q_max(UTIL_WeaponTimeBase() + params.fire.cooldownTime.Get(altMode), m_flTimeWeaponIdle);
 			return true;
@@ -1669,7 +1676,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		m_primaryFireEndTime = gpGlobals->time + flCycleTime;
 	}
 
-	if (ammoPerFire > 0)
+	if (ammoPerFire > 0 && !params.exhausitble)
 	{
 		if (useSecondaryAmmo)
 			CheckOutOfSecondaryAmmo();
@@ -1732,6 +1739,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 
 	if (lastShot && !useSecondaryAmmo && IsExhaustible())
 	{
+		SetChargingAttack(false);
 		RetireWeapon();
 	}
 }
@@ -1871,9 +1879,10 @@ void CConfigurableWeapon::ProjectileAttack(bool altMode)
 	projectileParams.variant = projectileVariant;
 	projectileParams.pLauncher = this;
 
-	if (fire.projectileDetonationTimeSet.Get(altMode))
+	const float detonationTime = fire.projectileDetonationTime.Get(altMode);
+	if (detonationTime >= 0.0f)
 	{
-		projectileParams.time = fire.projectileDetonationTime.Get(altMode);
+		projectileParams.time = detonationTime;
 		if (fire.chargeEachFire.Get(altMode) && fire.projectileDetonationCooked.Get(altMode))
 		{
 			*projectileParams.time -= gpGlobals->time - m_chargeStartTime;
@@ -2512,6 +2521,16 @@ void CConfigurableWeapon::WeaponIdle()
 	if (PerformCooldown(m_chargingAltFire))
 		return;
 
+	if (m_shouldPlayCooldownAfterFire && m_flNextPrimaryAttack <= UTIL_WeaponTimeBase())
+	{
+		m_shouldPlayCooldownAfterFire = false;
+		if (SelectAndSendFireAnimation(params.fire.cooldownAnims.Get(m_lastShotWasInAltMode)))
+		{
+			m_flTimeWeaponIdle = Q_max(UTIL_WeaponTimeBase() + params.fire.cooldownTime.Get(m_lastShotWasInAltMode), m_flTimeWeaponIdle);
+			return;
+		}
+	}
+
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
 
@@ -2730,6 +2749,7 @@ enum
 	WEAPONCHARGE_CHARGING = (1<<0),
 	WEAPONCHARGE_ALTMODE = (1<<1),
 	WEAPONCHARGE_SHOULD_COOLDOWN = (1<<2),
+	WEAPONCHARGE_SHOULD_COOLDOWN_AFTER_FIRE = (1<<3),
 };
 
 void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
@@ -2762,6 +2782,8 @@ void CConfigurableWeapon::GetWeaponData(weapon_data_t& data)
 		chargeFlags |= WEAPONCHARGE_ALTMODE;
 	if (m_shouldPlayCooldown)
 		chargeFlags |= WEAPONCHARGE_SHOULD_COOLDOWN;
+	if (m_shouldPlayCooldownAfterFire)
+		chargeFlags |= WEAPONCHARGE_SHOULD_COOLDOWN_AFTER_FIRE;
 
 	data.iuser2 |= chargeFlags << 4;
 
@@ -2802,6 +2824,7 @@ void CConfigurableWeapon::SetWeaponData(const weapon_data_t& data)
 	m_chargingAttack = FBitSet(chargeFlags, WEAPONCHARGE_CHARGING);
 	m_chargingAltFire = FBitSet(chargeFlags, WEAPONCHARGE_ALTMODE);
 	m_shouldPlayCooldown = FBitSet(chargeFlags, WEAPONCHARGE_SHOULD_COOLDOWN);
+	m_shouldPlayCooldownAfterFire = FBitSet(chargeFlags, WEAPONCHARGE_SHOULD_COOLDOWN_AFTER_FIRE);
 
 	m_iShotsFired = data.iuser3 & 0xF;
 

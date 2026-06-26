@@ -219,9 +219,7 @@ public:
 
 	virtual void UpdateItemInfo() {}	// updates HUD state
 
-	//Special stuff for grenades and satchels.
-	float m_flStartThrow;
-	float m_flReleaseThrow;
+	//Special stuff for satchels.
 	int m_chargeReady;
 	int m_fInAttack;
 
@@ -489,6 +487,7 @@ public:
 	bool m_chargingAttack;
 	bool m_chargingAltFire;
 	bool m_shouldPlayCooldown;
+	bool m_shouldPlayCooldownAfterFire;
 	float m_chargeStartTime;
 
 	// tool
