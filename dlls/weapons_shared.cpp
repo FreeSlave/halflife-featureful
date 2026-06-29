@@ -2894,7 +2894,7 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-	Vector vecEnd = vecSrc + gpGlobals->v_forward * 32.0f;
+	Vector vecEnd = vecSrc + gpGlobals->v_forward * fire.meleeDistance.Get(altMode);
 
 	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
 
@@ -3046,7 +3046,7 @@ void CConfigurableWeapon::BigSwing()
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector vecSrc	= m_pPlayer->GetGunPosition();
-	Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32.0f;
+	Vector vecEnd	= vecSrc + gpGlobals->v_forward * fire.meleeDistance.Get(altMode);
 
 	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
 

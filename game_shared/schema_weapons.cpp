@@ -533,6 +533,10 @@ R"(
 				"minimum": 0.0,
 				"maximum": 1.0
 			},
+			"melee_distance": {
+				"type": "integer",
+				"minimum": 0
+			},
 			"client_punch_pitch": {
 				"$ref": "definitions.json#/range"
 			},

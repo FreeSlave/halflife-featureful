@@ -644,6 +644,7 @@ struct WeaponParameters
 
 		WeaponModeValueNonNegative<short> bulletDistance{8192};
 		WeaponModeValueNonNegative<float> rangeModifier{1.0f};
+		WeaponModeValueNonNegative<short> meleeDistance{32};
 
 		WeaponModeValue<FloatRange> clientPunchPitch;
 		WeaponModeValue<FloatRange> clientPunchYaw;

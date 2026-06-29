@@ -769,6 +769,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			UpdatePropertyFromJson(fire.bulletDistance, value, "bullet_distance", altMode);
 			UpdatePropertyFromJson(fire.rangeModifier, value, "range_modifier", altMode);
+			UpdatePropertyFromJson(fire.meleeDistance, value, "melee_distance", altMode);
 
 			UpdatePropertyFromJson(fire.clientPunchPitch, value, "client_punch_pitch", altMode);
 			UpdatePropertyFromJson(fire.clientPunchYaw, value, "client_punch_yaw", altMode);

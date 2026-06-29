@@ -670,7 +670,9 @@ The number of bullets (pellets) fired per shot (on the same frame). Each bullet/
 
 ### bullet_distance
 
-The distance of trace checks when detecting whether the bullet hit something. This is usually 8192, but set to 2048 for shotguns.
+The distance (integer number) of trace checks when detecting whether the bullet hit something. This is usually 8192, but set to 2048 for shotguns.
+
+See also: [melee_distance](#melee_distance)
 
 ### burst
 
@@ -1207,6 +1209,10 @@ A boolean - whether the laser spot is drawn while the [charged_attack](#charged_
 ### laser_suspend_time
 
 Hide the laser spot (if there's any) for the specified amount of time (in seconds) upon firing.
+
+### melee_distance
+
+Trace check distance (integer number) for melee attacks. Default value is 32.
 
 ### muzzleflash
 
