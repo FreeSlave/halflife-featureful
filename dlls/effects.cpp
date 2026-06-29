@@ -1863,7 +1863,7 @@ CBaseEntity *CGibShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 	pGib->pev->velocity = vecVel;
 	pGib->m_ownerEntTemplate = m_entTemplate;
 
-	pGib->Spawn( "models/hgibs.mdl" );
+	pGib->SpawnGib( "models/hgibs.mdl" );
 	pGib->m_lifeTime = lifeTime;
 	pGib->m_bloodColor = BLOOD_COLOR_RED;
 
@@ -2121,7 +2121,7 @@ CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 		pGib->pev->velocity = vecVel;
 		pGib->m_ownerEntTemplate = m_entTemplate;
 
-		pGib->Spawn( STRING( pev->model ) );
+		pGib->SpawnGib( STRING( pev->model ) );
 		if (m_iPhysics) // sticky gib
 		{
 			pGib->pev->movetype = MOVETYPE_TOSS;

@@ -47,6 +47,7 @@ extern DLL_GLOBAL Vector		g_vecAttackDir;
 #define	HUMAN_GIB_COUNT			6
 #define ALIEN_GIB_COUNT			4
 
+LINK_ENTITY_TO_CLASS( gib, CGib )
 
 // HACKHACK -- The gib velocity equations don't work
 void CGib::LimitVelocity()
@@ -65,7 +66,7 @@ void CGib::SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs )
 	{
 		CGib *pGib = GetClassPtr( (CGib *)NULL );
 
-		pGib->Spawn( "models/stickygib.mdl" );
+		pGib->SpawnGib( "models/stickygib.mdl" );
 		pGib->pev->body = RANDOM_LONG( 0, 2 );
 
 		if( pevVictim )
@@ -123,7 +124,7 @@ void CGib::SpawnHeadGib( entvars_t *pevVictim, const Visual* visual )
 {
 	CGib *pGib = GetClassPtr( (CGib *)NULL );
 
-	pGib->Spawn( "models/hgibs.mdl", visual );// throw one head
+	pGib->SpawnGib( "models/hgibs.mdl", visual );// throw one head
 
 	pGib->pev->body = 0;
 
@@ -181,7 +182,7 @@ void CGib::SpawnRandomGibs(entvars_t *pevVictim, int cGibs, const char* gibModel
 	for( cSplat = 0; cSplat < cGibs; cSplat++ )
 	{
 		CGib *pGib = GetClassPtr( (CGib *)NULL );
-		pGib->Spawn( gibModel, visual );
+		pGib->SpawnGib( gibModel, visual );
 		if (gibBodiesNum <= 0)
 		{
 			gibBodiesNum = MODEL_FRAMES(pGib->pev->modelindex);
@@ -391,6 +392,20 @@ void CGib::EmitMaterialSound(CBaseEntity *pEntity, int material, float volume)
 	default:
 		break;
 	}
+}
+
+void CGib::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(350.0f, params);
+
+	pev->nextthink = gpGlobals->time + 4.0f;
+	m_lifeTime = 25;
+	m_bornTime = gpGlobals->time;
+	SetThink(&CGib::WaitTillLand);
+	SetTouch(&CGib::BounceGibTouch);
+
+	pev->avelocity.x = RANDOM_FLOAT(100.0f, 200.0f);
+	pev->avelocity.y = RANDOM_FLOAT(100.0f, 300.0f);
 }
 
 enum
@@ -1062,7 +1077,24 @@ void CGib::StickyGibTouch( CBaseEntity *pOther )
 //
 // Throw a chunk
 //
-void CGib::Spawn( const char *szGibModel, const Visual* visual )
+void CGib::Spawn()
+{
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->friction = 0.55f; // deading the bounce a bit
+	pev->solid = SOLID_BBOX;
+
+	ApplyVisualWithOwn(nullptr);
+	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
+
+	m_material = matNone;
+}
+
+void CGib::Precache()
+{
+	PrecacheMyModel(nullptr);
+}
+
+void CGib::SpawnGib( const char *szGibModel, const Visual* visual )
 {
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->friction = 0.55f; // deading the bounce a bit

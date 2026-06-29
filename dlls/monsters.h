@@ -168,7 +168,9 @@ enum
 class CGib : public CBaseEntity
 {
 public:
-	void Spawn( const char *szGibModel, const Visual* visual = nullptr );
+	void Spawn();
+	void Precache();
+	void SpawnGib( const char *szGibModel, const Visual* visual = nullptr );
 	void FinalizeGibSpawn();
 	void EXPORT BounceGibTouch( CBaseEntity *pOther );
 	void EXPORT StickyGibTouch( CBaseEntity *pOther );
@@ -177,6 +179,7 @@ public:
 	void LimitVelocity();
 
 	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_DONT_SAVE; }
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	static void SpawnHeadGib( entvars_t *pevVictim, const Visual* visual = nullptr );
 	static void SpawnHumanGibs(entvars_t *pevVictim, int cGibs = 4, const Visual* visual = nullptr );
 	static void SpawnRandomGibs( entvars_t *pevVictim, int cGibs, const char* gibModel, int gibBodiesNum = 0, int startGibIndex = 0, const Visual* visual = nullptr );

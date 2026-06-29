@@ -1512,7 +1512,7 @@ void CGargantua::RunTask( Task_t *pTask )
 			{
 				CGib *pGib = GetClassPtr( (CGib *)NULL );
 
-				pGib->Spawn( gibModel, gibVisual );
+				pGib->SpawnGib( gibModel, gibVisual );
 
 				int bodyPart = 0;
 				if( parts > 1 )
