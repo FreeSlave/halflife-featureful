@@ -34,7 +34,10 @@ The templates for CS weapons are stored in the **templates/weapons/cs/** directo
     "weapon_rifle": "cs/m4a1",
     "weapon_rifle2": "cs/famas",
     "weapon_shotgun2": "cs/xm1014",
-    "weapon_sniperrifle2": "cs/g3sg1"
+    "weapon_sniperrifle2": "cs/g3sg1",
+    "weapon_m249": "cs/m249",
+    "weapon_knife": "cs/knife",
+    "weapon_handgrenade": "cs/hegrenade"
 }
 ```
 
@@ -111,6 +114,7 @@ Required models:
 * **w_glock18.mdl**
 * **v_glock18.mdl**
 * **p_glock18.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -147,6 +151,7 @@ Required models:
 * **w_usp.mdl**
 * **v_usp.mdl**
 * **p_usp.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -177,6 +182,7 @@ Required models:
 * **w_deagle.mdl**
 * **v_deagle.mdl**
 * **p_deagle.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -204,6 +210,7 @@ Required models:
 * **w_fiveseven.mdl**
 * **v_fiveseven.mdl**
 * **p_fiveseven.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -231,6 +238,7 @@ Required models:
 * **w_p228.mdl**
 * **v_p228.mdl**
 * **p_p228.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -259,6 +267,7 @@ Required models:
 * **w_mac10.mdl**
 * **v_mac10.mdl**
 * **p_mac10.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -289,6 +298,7 @@ Required models:
 * **w_tmp.mdl**
 * **v_tmp.mdl**
 * **p_tmp.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -308,6 +318,7 @@ Required models:
 * **w_mp5.mdl**
 * **v_mp5.mdl**
 * **p_mp5.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -334,6 +345,7 @@ Required models:
 * **w_ump45.mdl**
 * **v_ump45.mdl**
 * **p_ump45.mdl**
+* **pshell.mdl**
 
 Required sounds:
 
@@ -363,6 +375,7 @@ Required models:
 * **w_p90.mdl**
 * **v_p90.mdl**
 * **p_p90.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -391,6 +404,7 @@ Required models:
 * **w_famas.mdl**
 * **v_famas.mdl**
 * **p_famas.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -441,6 +455,7 @@ Required models:
 * **w_aug.mdl**
 * **v_aug.mdl**
 * **p_aug.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -464,6 +479,7 @@ Required models:
 * **w_galil.mdl**
 * **v_galil.mdl**
 * **p_galil.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -490,6 +506,7 @@ Required models:
 * **w_ak47.mdl**
 * **v_ak47.mdl**
 * **p_ak47.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -512,6 +529,7 @@ Required models:
 * **w_sg552.mdl**
 * **v_sg552.mdl**
 * **p_sg552.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -580,6 +598,7 @@ Required models:
 * **w_scout.mdl**
 * **v_scout.mdl**
 * **p_scout.mdl**
+* **rshell_big.mdl**
 
 Required sounds:
 
@@ -606,6 +625,7 @@ Required models:
 * **w_awp.mdl**
 * **v_awp.mdl**
 * **p_awp.mdl**
+* **rshell_big.mdl**
 
 Required sounds:
 
@@ -631,6 +651,7 @@ Required models:
 * **w_sg550.mdl**
 * **v_sg550.mdl**
 * **p_sg550.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -653,6 +674,7 @@ Required models:
 * **w_g3sg1.mdl**
 * **v_g3sg1.mdl**
 * **p_g3sg1.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -677,6 +699,7 @@ Required models:
 * **w_m249.mdl**
 * **v_m249.mdl**
 * **p_m249.mdl**
+* **rshell.mdl**
 
 Required sounds:
 
@@ -687,6 +710,55 @@ Required sounds:
 * **weapons/m249_chain.wav**
 * **weapons/m249_coverup.wav**
 * **weapons/m249_coverdown.wav**
+{{% /details_header %}}
+
+### Melee
+
+{{% details_header title="Knife" %}}
+```json
+{
+    "weapon_knife": "cs/knife"
+}
+```
+
+Required models:
+
+* **w_knife.mdl**. Note: **w_knife.mdl** in CS is actually the old (pre-1.6) knife `p_` model. You need to make a proper `w_` model if you're going to put knife as a pickup item in the world.
+* **v_knife.mdl**
+* **p_knife.mdl**
+
+Required sounds:
+
+* **weapons/knife_deploy1.wav**
+* **weapons/knife_slash1.wav**
+* **weapons/knife_slash2.wav**
+* **weapons/knife_hit1.wav**
+* **weapons/knife_hit2.wav**
+* **weapons/knife_hit3.wav**
+* **weapons/knife_hit4.wav**
+* **weapons/knife_hitwall1.wav**
+* **weapons/knife_stab.wav**
+{{% /details_header %}}
+
+### Grenades
+
+{{% details_header title="HEGrenade" %}}
+```json
+{
+    "weapon_handgrenade": "cs/hegrenade"
+}
+```
+
+Required models:
+
+* **w_hegrenade.mdl**
+* **v_hegrenade.mdl**
+* **p_hegrenade.mdl**
+
+Required sounds:
+
+* **weapons/pinpull.wav**
+* **weapons/he_bounce-1.wav**
 {{% /details_header %}}
 
 ## Deathmatch Classic
