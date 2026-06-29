@@ -168,8 +168,8 @@ enum
 class CGib : public CBaseEntity
 {
 public:
-	void Spawn();
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 	void SpawnGib( const char *szGibModel, const Visual* visual = nullptr );
 	void FinalizeGibSpawn();
 	void EXPORT BounceGibTouch( CBaseEntity *pOther );
