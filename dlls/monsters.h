@@ -178,7 +178,7 @@ public:
 	void EXPORT StartFadeOut ();
 	void LimitVelocity();
 
-	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ) | FCAP_DONT_SAVE; }
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	static void SpawnHeadGib( entvars_t *pevVictim, const Visual* visual = nullptr );
 	static void SpawnHumanGibs(entvars_t *pevVictim, int cGibs = 4, const Visual* visual = nullptr );
@@ -201,6 +201,10 @@ public:
 	int m_material;
 	float m_lifeTime;
 	float m_bornTime;
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
 };
 
 void AddScoreForDamage(entvars_t *pevAttacker, CBaseEntity* victim, const float damage);

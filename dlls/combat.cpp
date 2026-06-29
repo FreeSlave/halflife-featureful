@@ -49,6 +49,17 @@ extern DLL_GLOBAL Vector		g_vecAttackDir;
 
 LINK_ENTITY_TO_CLASS( gib, CGib )
 
+TYPEDESCRIPTION	CGib::m_SaveData[] =
+{
+	DEFINE_FIELD( CGib, m_bloodColor, FIELD_INTEGER ),
+	DEFINE_FIELD( CGib, m_cBloodDecals, FIELD_INTEGER ),
+	DEFINE_FIELD( CGib, m_material, FIELD_INTEGER ),
+	DEFINE_FIELD( CGib, m_lifeTime, FIELD_FLOAT ),
+	DEFINE_FIELD( CGib, m_bornTime, FIELD_TIME ),
+};
+
+IMPLEMENT_SAVERESTORE( CGib, CBaseEntity )
+
 // HACKHACK -- The gib velocity equations don't work
 void CGib::LimitVelocity()
 {
@@ -1092,6 +1103,7 @@ void CGib::Spawn()
 void CGib::Precache()
 {
 	PrecacheMyModel(nullptr);
+	PrecacheMaterialSounds(this, m_material);
 }
 
 void CGib::SpawnGib( const char *szGibModel, const Visual* visual )
