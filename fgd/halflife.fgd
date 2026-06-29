@@ -3899,6 +3899,13 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	weapon_throwable(choices) : "Throwable (custom)" =
+	[
+		-1: "Remove"
+		0: "No change"
+		1: "Give"
+		2: "Give (allow duplicate)"
+	]
 ]
 
 @PointClass base(Targetname, Targetx) = game_team_master : "Team based master/relay"
@@ -4050,6 +4057,7 @@
 	weapon_rifle2(string) : "Rifle 2 (custom) chance"
 	weapon_shotgun2(string) : "Shotgun 2 (custom) chance"
 	weapon_sniperrifle2(string) : "Sniperrifle 2 (custom) chance"
+	weapon_throwable(string) : "Throwable (custom) chance"
 	spawnflags(Flags) =
 	[
 		64 : "Predetermined" : 0
@@ -9778,6 +9786,7 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_rifle2 : "Generic configurable rifle" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_shotgun2 : "Generic configurable shotgun" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_sniperrifle2 : "Generic configurable sniper rifle" []
+@PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_throwable : "Generic configurable throwable weapon" []
 
 @PointClass base(Pickup) = world_items : "World Items"
 [

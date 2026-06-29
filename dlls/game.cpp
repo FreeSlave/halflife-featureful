@@ -308,6 +308,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("rifle2", WEAPON_RIFLE2),
 		WeaponNameAndId("shotgun2", WEAPON_SHOTGUN2),
 		WeaponNameAndId("sniperrifle2", WEAPON_SNIPERRIFLE2),
+		WeaponNameAndId("throwable", WEAPON_THROWABLE),
 		WeaponNameAndId("camera", WEAPON_CAMERA),
 		WeaponNameAndId("radio", WEAPON_RADIO),
 		WeaponNameAndId("tool", WEAPON_TOOL),

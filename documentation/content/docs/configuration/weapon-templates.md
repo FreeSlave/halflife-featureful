@@ -215,6 +215,7 @@ Some weapon classnames have been added specifically to be configured (so the dev
 * [weapon_rifle2]({{< ref weapon_rifle2 >}})
 * [weapon_shotgun2]({{< ref weapon_shotgun2 >}})
 * [weapon_sniperrifle2]({{< ref weapon_sniperrifle2 >}})
+* [weapon_throwable]({{< ref weapon_throwable >}})
 * [weapon_tool]({{< ref weapon_tool >}})
 
 {{% hint info %}}

@@ -47,6 +47,8 @@
 #define WEAPON_SHOTGUN2			56
 #define WEAPON_SNIPERRIFLE2		57
 
+#define WEAPON_THROWABLE		58
+
 #define WEAPON_CAMERA			60
 #define WEAPON_RADIO			61
 

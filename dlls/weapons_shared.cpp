@@ -3856,6 +3856,75 @@ public:
 	}
 };
 
+enum handgrenade_e
+{
+	HANDGRENADE_IDLE = 0,
+	HANDGRENADE_FIDGET,
+	HANDGRENADE_PINPULL,
+	HANDGRENADE_THROW1,
+	HANDGRENADE_THROW2,
+	HANDGRENADE_THROW3,
+	HANDGRENADE_HOLSTER,
+	HANDGRENADE_DRAW
+};
+
+class CThrowable : public CGenericConfigurableWeapon
+{
+public:
+	int WeaponId() const override {
+		return WEAPON_THROWABLE;
+	}
+	bool GetItemInfo(ItemInfo *p) override {
+		p->iSlot = 4;
+		p->iPosition = 5;
+		return true;
+	}
+	WeaponParameters GetDefaultParameters() const override
+	{
+		WeaponParameters params;
+
+		params.initialAmmoAmount = 5;
+		params.maxClip = WEAPON_NOCLIP;
+		params.ammoName = "Hand Grenade";
+
+		params.worldModel = "models/w_grenade.mdl";
+		params.viewModel = "models/v_grenade.mdl";
+		params.playerModel = "models/p_grenade.mdl";
+		params.playerAnimExt = "crowbar";
+		params.priority = 5;
+
+		params.deploy.animIndex = HANDGRENADE_DRAW;
+
+		params.idleAnims.main = WeaponParameters::IdleAnimArray{
+			WeaponParameters::IdleAnim{HANDGRENADE_IDLE, 0.75f, FloatRange(10.0f, 15.0f)},
+			WeaponParameters::IdleAnim{HANDGRENADE_FIDGET, 0.25f, FloatRange(75.0f / 30.0f)},
+		};
+
+		params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+		params.fire.anims = {HANDGRENADE_THROW1};
+		params.fire.cycleTime = 0.5f;
+		params.fire.idleDelay = 0.5f;
+		params.fire.chargeAnims = {HANDGRENADE_PINPULL};
+		params.fire.chargeTime = 0.5f;
+		params.fire.chargeEachFire = true;
+		params.fire.cooldownAnims = {HANDGRENADE_DRAW};
+		params.fire.cooldownTime = 0.5f;
+		params.fire.projectileName = "hand grenade";
+		params.fire.projectileOffsetForward = 16.0f;
+		params.fire.projectileAddCurrentVelocity = WeaponParameters::Fire::ADD_VELOCITY_ABSOLUTE;
+		params.fire.projectileRespectPunchangle = true;
+		params.fire.projectileDetonationTime = 2.0f;
+		params.fire.projectileGrenadePhysics = WeaponParameters::Fire::GRENADEPHYS_AUTO;
+
+		params.holster.animIndex = HANDGRENADE_HOLSTER;
+		params.holster.attackDelay = 0.5f;
+
+		params.exhausitble = true;
+
+		return std::move(params);
+	}
+};
+
 LINK_WEAPON_TO_CLASS(weapon_melee, CMelee)
 LINK_WEAPON_TO_CLASS(weapon_pistol, CPistol)
 LINK_WEAPON_TO_CLASS(weapon_pistol2, CPistol2)
@@ -3865,3 +3934,4 @@ LINK_WEAPON_TO_CLASS(weapon_rifle, CRifle)
 LINK_WEAPON_TO_CLASS(weapon_rifle2, CRifle2)
 LINK_WEAPON_TO_CLASS(weapon_shotgun2, CShotgun2)
 LINK_WEAPON_TO_CLASS(weapon_sniperrifle2, CSniperRifle2)
+LINK_WEAPON_TO_CLASS(weapon_throwable, CThrowable)
