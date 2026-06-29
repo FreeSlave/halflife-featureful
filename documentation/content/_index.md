@@ -12,7 +12,7 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 
 * All Opposing Force monsters and weapons are implemented, as well as other opfor-specific entities (excluding CTF-related). Some Sven Co-op monsters are included as well.
 * Some of Spirit of Half-Life features merged into the codebase, e.g. the [locus system]({{< ref locus-system >}}).
-* Model-based health and HEV chargers and eye scanner from PS2 version of Half-Life are implemented.
+* Model-based [health]({{< ref item_healthcharger >}}) and [HEV]({{< ref item_recharge >}}) chargers and [eye scanner]({{< ref item_eyescanner >}}) from PS2 version of Half-Life are implemented.
 * Introduced many new entities and additional parameters for standard Half-Life entities. Timers, trigger randomizers. Alternatives to `multisource` that can be used as [master entities]({{< ref master-entities >}}). Useful properties for [monstermaker]({{< ref monstermaker >}}), [scripted_sequence]({{< ref scripted_sequence >}}) and [scripted_sentence]({{< ref scripted_sentence >}}).
 * Precise configuration of some [behavior aspects and properties of monsters]({{< ref "monsters#new-common-features" >}}).
 * Improvements to [monsters]({{< ref monsters >}}) AI and new abilities for standard monsters.
@@ -25,6 +25,7 @@ Read how to [base the mod on Featureful SDK]({{< ref "getting-started" >}}).
 * Configurable [warpball effects]({{< ref warpball-templates >}}) for monstermakers.
 * [Subtitles]({{< ref subtitles >}}) system.
 * [Journal]({{< ref journal >}}) system (for objectives information, etc.)
+* Simple [Message boxes]({{< ref "message-boxes" >}}).
 * [Player inventory]({{< ref player-inventory >}}) system (for quest items).
 * [HUD scaling]({{< ref "hud#hud-scaling" >}})
 * Weather effects like [rain]({{< ref env_rain >}}) and [snow]({{< ref env_snow >}}).
@@ -51,6 +52,7 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - demo available.
 * [Retrograde](https://www.moddb.com/mods/retrograde)
 * [Half-Life: Sleep-Derived](https://www.moddb.com/mods/half-life-sleep-deprived)
+* [Half-Life: Static Interference](https://www.moddb.com/mods/half-life-static-interference) - demo avaialble.
 * [Specific impulse](https://www.moddb.com/mods/specific-impulse) - demo available.
 
 ## Compatibility with other mods and addons

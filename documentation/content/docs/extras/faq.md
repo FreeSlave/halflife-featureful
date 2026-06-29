@@ -28,6 +28,14 @@ The mods [Field Intensity](https://www.moddb.com/mods/field-intensity) and [Half
 
 Very likely yes. It's been a long time since I tested it though, so you're welcome to try and report any discovered issues.
 
+### Can I play other mods using Featureful SDK?
+
+The primary goal of Featureful SDK is to provide a base for *new* mods in development, not to run old mods.
+
+You should be able to play mappacks and any mods that don't have code changes (i.e. they use vanilla Half-Life game libraries) and also mods for Opposing Force (with the proper configuration).
+
+Everything else will require porting by hand as code modifications usually mean the mod has custom logic that can't be handled/interpreted by Featureful SDK. The porting process may include manual map changes (through the `ripent`, `bspguy` or similar software) and resource changes. You may have some success with porting certain mods but ultimately some mods are deemed to be impossible to port properly without introducing the modifications to the Featureful SDK codebase.
+
 ### Can I fork the repository and make my own changes to the codebase?
 
 Yes. But in this case you become fully responsible for the code maintenance. Sometimes I make pretty big changes to the codebase that could become hard to merge if you made your own modifications and now want to merge with the upstream. Also most online tutorials won't work because they're written for vanilla HLSDK and the Featureful codebase is quite different.
@@ -48,7 +56,7 @@ It's to increase the portability of produced binaries among custom Xash3D versio
 
 ### Does it work on Android?
 
-It hasn't been tested on Anrdoid yet. Once it's tested we'll start making Android releases as well.
+The releases include the **apk** for Android launcher. The application allows to set a game directory so in theory it can be used to play the clean (i.e. without code changes) featureful-based mod that didn't have an official release on Android.
 
 ### What are `[LP]`, `[LE]`, etc. in entity parameter names?
 

@@ -21,7 +21,6 @@ This is the list of features that would be nice to have in our codebase. You are
 
 ### Monster's abilities
 
-* Support for security guards reload (in Half-Life they never need to reload).
 * ![](/images/svencoop.png) Ability of scientists and medics to revive allies (including player).
 * ![](/images/svencoop.png) Alien grunts throwing snark nests.
 * The ability for blackops assassins to throw flash grenades.
@@ -69,7 +68,6 @@ Status effects like burning, frozen, electrified, stunned, poisoned, "silenced" 
 
 ## New entities
 
-* ![](/images/spirit.png) env_beamtrail
 * ![](/images/spirit.png) env_elight
 * ![](/images/tfc.png) Dispenser - entity that gives player ammo and armor on touch.
 
