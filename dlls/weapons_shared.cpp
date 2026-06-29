@@ -2148,7 +2148,28 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 	const int animIndex = params.altMode.animIndex.Get(m_inAltMode);
 	if (animIndex >= 0)
 	{
-		SendWeaponAnim(animIndex);
+		bool playSwitchAnim = true;
+
+		if (reason == SwitchModeReason::Reload)
+		{
+			const int animIndex = params.reload.animIndex.Get(m_inAltMode, Emptied());
+			if (animIndex >= 0)
+			{
+				// prefer reload animation to the switch mode animation
+				playSwitchAnim = false;
+			}
+		}
+
+		if (playSwitchAnim)
+		{
+			if (reason == SwitchModeReason::Regular && params.manualReload && m_fInSpecialReload)
+			{
+				m_fInSpecialReload = 0;
+				m_shouldRestartReloading = false;
+			}
+
+			SendWeaponAnim(animIndex);
+		}
 	}
 
 	const float attackDelay = params.altMode.attackDelay.Get(m_inAltMode);
