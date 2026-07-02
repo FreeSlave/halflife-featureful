@@ -49,6 +49,8 @@ public:
 	float m_customFlySpeed;
 	float m_customTurnRate;
 	float m_customCheckDist;
+	float m_customTooCloseDist;
+	float m_customTooFarDist;
 };
 
 TYPEDESCRIPTION	CFlockingFlyerFlock::m_SaveData[] =
@@ -58,6 +60,8 @@ TYPEDESCRIPTION	CFlockingFlyerFlock::m_SaveData[] =
 	DEFINE_FIELD( CFlockingFlyerFlock, m_customFlySpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyerFlock, m_customTurnRate, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyerFlock, m_customCheckDist, FIELD_FLOAT ),
+	DEFINE_FIELD( CFlockingFlyerFlock, m_customTooCloseDist, FIELD_FLOAT ),
+	DEFINE_FIELD( CFlockingFlyerFlock, m_customTooFarDist, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CFlockingFlyerFlock, CBaseMonster )
@@ -114,6 +118,8 @@ public:
 	float m_customFlySpeed;
 	float m_customTurnRate;
 	float m_customCheckDist;
+	float m_customTooCloseDist;
+	float m_customTooFarDist;
 
 	float m_flapSpeed;
 
@@ -125,6 +131,14 @@ public:
 	}
 	float CheckDist() const {
 		return m_customCheckDist > 0 ? m_customCheckDist : AFLOCK_CHECK_DIST;
+	}
+	float TooCloseDist() const {
+		return m_customTooCloseDist > 0 ? m_customTooCloseDist : AFLOCK_TOO_CLOSE;
+	}
+	float TooFarDist() const {
+		const float farDist = m_customTooFarDist > 0 ? m_customTooFarDist : AFLOCK_TOO_FAR;
+		const float closeDist = TooCloseDist();
+		return farDist <= closeDist ? closeDist + 5.0f : farDist;
 	}
 
 	static const NamedSoundScript idleSoundScript;
@@ -151,6 +165,8 @@ TYPEDESCRIPTION	CFlockingFlyer::m_SaveData[] =
 	DEFINE_FIELD( CFlockingFlyer, m_customTurnRate, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyer, m_customCheckDist, FIELD_FLOAT ),
 	DEFINE_FIELD( CFlockingFlyer, m_flapSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFlockingFlyer, m_customTooCloseDist, FIELD_FLOAT ),
+	DEFINE_FIELD( CFlockingFlyer, m_customTooFarDist, FIELD_FLOAT ),
 	//DEFINE_FIELD( CFlockingFlyer, m_flFlockNextSoundTime, FIELD_TIME ),	// don't need to save
 };
 
@@ -195,6 +211,16 @@ void CFlockingFlyerFlock::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "checkDist" ) )
 	{
 		m_customCheckDist = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "tooCloseDist" ) )
+	{
+		m_customTooCloseDist = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "tooFarDist" ) )
+	{
+		m_customTooFarDist = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else
@@ -258,6 +284,8 @@ void CFlockingFlyerFlock::SpawnFlock()
 		pBoid->m_customFlySpeed = m_customFlySpeed;
 		pBoid->m_customTurnRate = m_customTurnRate;
 		pBoid->m_customCheckDist = m_customCheckDist;
+		pBoid->m_customTooCloseDist = m_customTooCloseDist;
+		pBoid->m_customTooFarDist = m_customTooFarDist;
 		pBoid->SpawnCommonCode();
 		pBoid->pev->flags &= ~FL_ONGROUND;
 		pBoid->pev->velocity = g_vecZero;
@@ -503,7 +531,7 @@ void CFlockingFlyer::SpreadFlock()
 	CFlockingFlyer *pList = m_pSquadLeader;
 	while( pList )
 	{
-		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(AFLOCK_TOO_CLOSE) )
+		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(TooCloseDist()) )
 		{
 			// push the other away
 			const Vector vecDir = (pList->pev->origin - pev->origin).Normalize();
@@ -529,7 +557,7 @@ void CFlockingFlyer::SpreadFlock2()
 	CFlockingFlyer *pList = m_pSquadLeader;
 	while( pList )
 	{
-		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(AFLOCK_TOO_CLOSE) )
+		if( pList != this && ( pev->origin - pList->pev->origin ).IsLengthLessThanOrEqual(TooCloseDist()) )
 		{
 			const Vector vecDir = (pev->origin - pList->pev->origin).Normalize();
 
@@ -735,13 +763,13 @@ void CFlockingFlyer::FlockFollowerThink()
 	if( FInViewCone ( m_pSquadLeader ) )
 	{
 		// if we're too far away, speed up
-		if( flDistToLeader > AFLOCK_TOO_FAR )
+		if( flDistToLeader > TooFarDist() )
 		{
 			m_flGoalSpeed = m_pSquadLeader->pev->velocity.Length() * 1.5f;
 		}
 
 		// if we're too close, slow down
-		else if( flDistToLeader < AFLOCK_TOO_CLOSE )
+		else if( flDistToLeader < TooCloseDist() )
 		{
 			m_flGoalSpeed = m_pSquadLeader->pev->velocity.Length() * 0.5f;
 		}
@@ -757,7 +785,7 @@ void CFlockingFlyer::FlockFollowerThink()
 	pev->speed = pev->velocity.NormalizeInPlace();
 
 	// if we are too far from leader, average a vector towards it into our current velocity
-	if( flDistToLeader > AFLOCK_TOO_FAR )
+	if( flDistToLeader > TooFarDist() )
 	{
 		pev->velocity = (pev->velocity + vecDirToLeader) * 0.5f;
 	}

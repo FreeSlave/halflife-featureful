@@ -5328,6 +5328,8 @@
 	flySpeed(string) : "Custom Fly Speed" : : "Default is 125. Average speed of the flyer"
 	turnRate(string) : "Custom Turn Rate" : : "Default is 75. How fast flyers turn"
 	checkDist(string) : "Custom Check Distance" : : "Default is 192. How far flyers check to not collide with the walls"
+	tooCloseDist(string) : "Custom Too Close Distance" : : "Default is 100. The minimum distance the flyers should maintain between each other"
+	tooFarDist(string) : "Custom Too Far Distance" : : "Default is 256. The maximum distance the flyers should maintain between each other"
 ]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio() = monster_furniture : "Monster Furniture"
 [
