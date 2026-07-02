@@ -124,6 +124,8 @@ public:
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_assassin, CHAssassin )
@@ -181,14 +183,28 @@ const NamedSoundScript CHAssassin::dieSoundScript = {
 	"HAssassin.Die"
 };
 
+const NamedSoundScript CHAssassin::useSoundScript = {
+	CHAN_VOICE,
+	{"HA_OK"},
+	"HAssassin.Use"
+};
+
+const NamedSoundScript CHAssassin::unuseSoundScript = {
+	CHAN_VOICE,
+	{"HA_WAIT"},
+	"HAssassin.UnUse"
+};
+
 void CHAssassin::PlayUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "HA_OK", 0.6, ATTN_NORM, 0, 90 );
+	EmitSoundScript(useSoundScript);
+	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_OK", 0.6, ATTN_NORM, 0, 90 );
 }
 
 void CHAssassin::PlayUnUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "HA_WAIT", 0.6, ATTN_NORM, 0, 90 );
+	EmitSoundScript(unuseSoundScript);
+	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_WAIT", 0.6, ATTN_NORM, 0, 90 );
 }
 
 //=========================================================
@@ -461,6 +477,8 @@ void CHAssassin::Precache()
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
 	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 
