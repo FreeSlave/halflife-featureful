@@ -99,8 +99,11 @@ public:
 	
 	// Base entity functions
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
-	int BloodColor() override { return DONT_BLEED; }
-	bool HasAlienGibs() override {return true;}
+	bool HasAlienGibs() override {
+		if (BloodColor() == DONT_BLEED)
+			return true;
+		return CBaseMonster::HasAlienGibs();
+	}
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void Activate() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
@@ -198,6 +201,7 @@ void CLeech::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
 	SetBits( pev->flags, FL_SWIM );
+	SetMyBloodColor(DONT_BLEED);
 	SetMyHealth( GetSkillValue("leech_health") );
 
 	SetMyFieldOfView(-0.5);
