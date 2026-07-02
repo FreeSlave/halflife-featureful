@@ -7020,6 +7020,26 @@
 	]
 ]
 
+@PointClass base(DeadMonster) studio("models/w_shock_rifle.mdl") = monster_shockroach : "Shock Roach"
+[
+	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+	[
+		0 : "idle1"
+		1 : "idle2"
+		2 : "idle3"
+		3 : "walk"
+		4 : "run"
+		5 : "angry"
+		6 : "flinch"
+		7 : "dieback"
+		8 : "180_left"
+		9 : "180_right"
+		10 : "jump"
+		11 : "jump_variation1"
+		12 : "jump_variation2"
+	]
+]
+
 @PointClass base(DeadMonster) studio("models/w_shock_rifle.mdl") = monster_shockroach_dead : "Dead Shock Roach"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 7 =
