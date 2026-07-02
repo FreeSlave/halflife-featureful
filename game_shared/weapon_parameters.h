@@ -715,6 +715,8 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<float> gunSmokeRisingAcceleration{100.0f};
 		WeaponModeValueNonNegative<float> gunSmokeStartRisingFrame{0.25f};
 		WeaponModeValueNonNegative<float> gunSmokeInterval{0.1f};
+
+		WeaponModeValueEmptyAwareNonNegative<float> switchModeDelay{0.0f};
 	};
 
 	struct Fade

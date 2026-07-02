@@ -1666,6 +1666,12 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	{
 		m_flNextSecondaryAttack = Q_max(m_flNextPrimaryAttack, m_flNextSecondaryAttack);
 	}
+	else if (params.secondaryFireType == SecondaryFireType::SWITCH_MODE)
+	{
+		const float switchModeDelay = fire.switchModeDelay.Get(altMode, lastShot);
+		if (switchModeDelay > 0.0f)
+			m_flNextSecondaryAttack = Q_max(m_flNextSecondaryAttack, switchModeDelay + UTIL_WeaponTimeBase());
+	}
 
 	if (altMode)
 	{

@@ -898,6 +898,14 @@ R"(
 					}
 				},
 				"additionalProperties": false
+			},
+			"switch_mode_delay": {
+				"type": "number",
+				"minimum": 0
+			},
+			"switch_mode_delay_empty": {
+				"type": "number",
+				"minimum": 0
 			}
 		},
 		"additionalProperties": false

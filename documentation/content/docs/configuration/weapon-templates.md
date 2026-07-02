@@ -1975,6 +1975,14 @@ The multiplier for the subsequent melee attacks (i.e. every swing after the firs
 
 [weapon_knife]({{< ref weapon_knife >}}) uses the value 1.0 by default.
 
+### switch_mode_delay
+
+A delay between the fire and the time when the weapon mode can be switched to a different mode. This is used only is [secondary_attack](#secondary_attack) is set to `"switch_mode"`.
+
+### switch_mode_delay_empty
+
+Same as [switch_mode_delay](#switch_mode_delay) but this is a delay after the last shot. If not defined the value from `switch_mode_delay` is used.
+
 ### use_secondary_ammo
 
 Whether firing a weapon should use a secondary ammo. The only weapon that uses a secondary ammo by default is [weapon_9mmAR]({{< ref weapon_9mmAR >}}). For others you must explicitly provide `"secondary_ammo_name"`.

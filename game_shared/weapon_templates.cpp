@@ -701,6 +701,9 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			UpdatePropertyFromJson(fire.useSecondaryAmmo, value, "use_secondary_ammo", altMode);
 			UpdatePropertyFromJson(fire.muzzleFlash, value, "muzzleflash", altMode);
 
+			UpdatePropertyFromJson(fire.switchModeDelay, value, "switch_mode_delay", altMode, false);
+			UpdatePropertyFromJson(fire.switchModeDelay, value, "switch_mode_delay_empty", altMode, true);
+
 			HandleJSONMember(value, "autoaim", [&](const Value& value) {
 				if (value.IsNumber())
 				{
