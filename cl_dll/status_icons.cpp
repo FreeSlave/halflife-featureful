@@ -28,13 +28,19 @@
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon )
 DECLARE_MESSAGE( m_StatusIcons, Inventory )
+DECLARE_MESSAGE( m_StatusIcons, Antidotes )
 
 int CHudStatusIcons::Init()
 {
 	HOOK_MESSAGE( StatusIcon );
 	HOOK_MESSAGE( Inventory );
+	HOOK_MESSAGE( Antidotes );
 
 	gHUD.AddHudElem( this );
+
+	m_antidote.itemName = "item_antidote";
+	m_antidote.showInJournal = false;
+	m_antidote.showCountWhenOne = true;
 
 	Reset();
 
@@ -43,6 +49,11 @@ int CHudStatusIcons::Init()
 
 int CHudStatusIcons::VidInit()
 {
+	m_antidote.count = 0;
+
+	int antidoteIndex = gHUD.GetSpriteIndex("item_antidote");
+	m_antidote.spr = gHUD.GetSprite(antidoteIndex);
+	m_antidote.rc = gHUD.GetSpriteRect(antidoteIndex);
 	return 1;
 }
 
@@ -114,86 +125,90 @@ int CHudStatusIcons::Draw( float flTime )
 	int itemsDrawnAsStatusIcons = 0;
 	const int textLineHeight = CHud::AdditiveText::LineHeight();
 
+	auto drawItem = [&](const inventory_t& item)
+	{
+		if (!item.spr)
+			return;
+
+		int r = item.r;
+		int g = item.g;
+		int b = item.b;
+		if (r == 0 && g == 0 && b == 0)
+			UnpackRGB(r, g, b, gHUD.HUDColor());
+
+		int rText = r;
+		int gText = g;
+		int bText = b;
+		ScaleColors(rText, gText, bText, gHUD.m_inventorySpec.TextAlpha());
+
+		int alpha = item.a;
+		if (alpha <= 0)
+		{
+			alpha = gHUD.m_inventorySpec.DefaultSpriteAlpha();
+		}
+		ScaleColors(r, g, b, alpha);
+
+		int place = item.position == INVENTORY_PLACE_DEFAULT ? INVENTORY_PLACE_TOP_LEFT : item.position;
+
+		const int height = item.rc.bottom - item.rc.top;
+		const int width = item.rc.right - item.rc.left;
+		const int heightInScreenSpace = renderer.ScaleScreen(height);
+		const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
+		int yAdditionalShift = 0;
+		if (textLineHeight > heightInScreenSpace)
+		{
+			yAdditionalShift = renderer.UnscaleScreen(textLineHeight - heightInScreenSpace);
+		}
+
+		if (place == INVENTORY_PLACE_TOP_RIGHT)
+		{
+			int xItem = gHUD.m_Flash.RightmostCoordinate() - width;
+			if (item.ShouldShowCount())
+			{
+				char buf[BUF_FOR_SHORT_SIZE];
+				FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
+				xItem -= renderer.UnscaleScreen(CHud::AdditiveText::LineWidth(buf));
+				CHud::AdditiveText::DrawString(renderer.ScaleScreen(xItem + width), renderer.ScaleScreen(yTopRight) + textYShift, ScreenWidth, buf, rText, gText, bText);
+			}
+
+			renderer.SPR_DrawAdditive(item.spr, r, g, b, xItem, yTopRight, &item.rc);
+			yTopRight += height + topRightIconGap + yAdditionalShift;
+		}
+		else if (place == INVENTORY_PLACE_TOP_LEFT)
+		{
+			renderer.SPR_DrawAdditive(item.spr, r, g, b, xIcons, yIcons, &item.rc);
+			if (item.ShouldShowCount())
+			{
+				char buf[BUF_FOR_SHORT_SIZE];
+				FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
+				CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, rText, gText, bText);
+			}
+			yIcons += height + statusIconGap + yAdditionalShift;
+			itemsDrawnAsStatusIcons++;
+		}
+		else if (place == INVENTORY_PLACE_BOTTOM_CENTER)
+		{
+			const int yCenterBottom = renderer.PerceviedScreenHeight() - gHUD.m_iFontHeight / 2 - height;
+			renderer.SPR_DrawAdditive(item.spr, r, g, b, xCenterBottom, yCenterBottom, &item.rc);
+			xCenterBottom += width;
+
+			if (item.ShouldShowCount())
+			{
+				char buf[BUF_FOR_SHORT_SIZE];
+				FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
+				CHud::AdditiveText::DrawString(renderer.ScaleScreen(xCenterBottom), renderer.ScaleScreen(yCenterBottom) + textYShift, ScreenWidth, buf, rText, gText, bText);
+				xCenterBottom += renderer.UnscaleScreen(CHud::AdditiveText::LineWidth(buf));
+			}
+
+			xCenterBottom += bottomIconGap;
+		}
+	};
+
+	if (m_antidote.count > 0)
+		drawItem(m_antidote);
 	for (i=0; i<MAX_INVENTORY_ITEMS; ++i)
 	{
-		const inventory_t& item = m_InventoryList[i];
-		if (item.spr)
-		{
-			int r = item.r;
-			int g = item.g;
-			int b = item.b;
-			if (r == 0 && g == 0 && b == 0)
-				UnpackRGB(r, g, b, gHUD.HUDColor());
-
-			int rText = r;
-			int gText = g;
-			int bText = b;
-			ScaleColors(rText, gText, bText, gHUD.m_inventorySpec.TextAlpha());
-
-			int alpha = item.a;
-			if (alpha <= 0)
-			{
-				alpha = gHUD.m_inventorySpec.DefaultSpriteAlpha();
-			}
-			ScaleColors(r, g, b, alpha);
-
-			int place = item.position == INVENTORY_PLACE_DEFAULT ? INVENTORY_PLACE_TOP_LEFT : item.position;
-
-			const int height = item.rc.bottom - item.rc.top;
-			const int width = item.rc.right - item.rc.left;
-			const int heightInScreenSpace = renderer.ScaleScreen(height);
-			const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
-			int yAdditionalShift = 0;
-			if (textLineHeight > heightInScreenSpace)
-			{
-				yAdditionalShift = renderer.UnscaleScreen(textLineHeight - heightInScreenSpace);
-			}
-
-			if (place == INVENTORY_PLACE_TOP_RIGHT)
-			{
-				int xItem = gHUD.m_Flash.RightmostCoordinate() - width;
-				if (item.ShouldShowCount())
-				{
-					char buf[BUF_FOR_SHORT_SIZE];
-					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
-					xItem -= renderer.UnscaleScreen(CHud::AdditiveText::LineWidth(buf));
-					CHud::AdditiveText::DrawString(renderer.ScaleScreen(xItem + width), renderer.ScaleScreen(yTopRight) + textYShift, ScreenWidth, buf, rText, gText, bText);
-				}
-
-				renderer.SPR_DrawAdditive(item.spr, r, g, b, xItem, yTopRight, &item.rc);
-				yTopRight += height + topRightIconGap + yAdditionalShift;
-			}
-			else if (place == INVENTORY_PLACE_TOP_LEFT)
-			{
-				if (!drawStatusIcons)
-					continue;
-				renderer.SPR_DrawAdditive(item.spr, r, g, b, xIcons, yIcons, &item.rc);
-				if (item.ShouldShowCount())
-				{
-					char buf[BUF_FOR_SHORT_SIZE];
-					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
-					CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, rText, gText, bText);
-				}
-				yIcons += height + statusIconGap + yAdditionalShift;
-				itemsDrawnAsStatusIcons++;
-			}
-			else if (place == INVENTORY_PLACE_BOTTOM_CENTER)
-			{
-				const int yCenterBottom = renderer.PerceviedScreenHeight() - gHUD.m_iFontHeight / 2 - height;
-				renderer.SPR_DrawAdditive(item.spr, r, g, b, xCenterBottom, yCenterBottom, &item.rc);
-				xCenterBottom += width;
-
-				if (item.ShouldShowCount())
-				{
-					char buf[BUF_FOR_SHORT_SIZE];
-					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
-					CHud::AdditiveText::DrawString(renderer.ScaleScreen(xCenterBottom), renderer.ScaleScreen(yCenterBottom) + textYShift, ScreenWidth, buf, rText, gText, bText);
-					xCenterBottom += renderer.UnscaleScreen(CHud::AdditiveText::LineWidth(buf));
-				}
-
-				xCenterBottom += bottomIconGap;
-			}
-		}
+		drawItem(m_InventoryList[i]);
 	}
 
 	if (!drawStatusIcons)
@@ -404,4 +419,18 @@ void CHudStatusIcons::DisableIcon(const char *pszIconName)
 			return;
 		}
 	}
+}
+
+int CHudStatusIcons::MsgFunc_Antidotes(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+
+	int count = READ_SHORT();
+
+	m_antidote.count = count;
+
+	if (count > 0)
+		m_iFlags |= HUD_ACTIVE;
+
+	return 1;
 }

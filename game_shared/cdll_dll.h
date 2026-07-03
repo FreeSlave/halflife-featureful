@@ -22,8 +22,6 @@
 #include "common_limits.h"
 #include "player_items.h"
 
-#define MAX_ITEMS				5	// hard coded item types
-
 #define	HIDEHUD_WEAPONS		( 1<<0 )
 #define	HIDEHUD_FLASHLIGHT	( 1<<1 )
 #define	HIDEHUD_ALL		( 1<<2 )

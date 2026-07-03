@@ -12,6 +12,7 @@ entityCategory: pickup
 
 * Stops poison faster.
 * If `item_antidote` is defined in **hud.txt** it will be used to show the antidote in pickup history.
+* If `item_antidote` is defined in **hud.txt** the antidote sprite along with the current count will be shown in HUD, among [player inventory items]({{< ref "player-inventory" >}}).
 
 ### New parameters
 

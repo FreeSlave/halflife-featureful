@@ -158,7 +158,9 @@ public:
 
 	float				m_flFallVelocity;
 
-	int					m_rgItems[MAX_ITEMS];
+	int					m_antidotes;
+	int					m_iClientAntidotes;
+
 	bool				m_fKnownItem;		// True when a new item needs to be added
 	int					m_fNewAmmo;			// True when a new item has been added
 

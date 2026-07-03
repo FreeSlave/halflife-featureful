@@ -721,7 +721,7 @@ class CItemAntidote : public CItem
 		}
 		pPlayer->SetSuitUpdate( "!HEV_DET4", false, SUIT_NEXT_IN_1MIN );
 
-		pPlayer->m_rgItems[ITEM_ANTIDOTE] += 1;
+		pPlayer->m_antidotes += 1;
 
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
@@ -775,7 +775,6 @@ class CItemSecurity : public CItem
 		{
 			return false;
 		}
-		pPlayer->m_rgItems[ITEM_SECURITY] += 1;
 
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );

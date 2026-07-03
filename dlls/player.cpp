@@ -84,7 +84,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_afButtonPressed, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_afButtonReleased, FIELD_INTEGER ),
 
-	DEFINE_ARRAY( CBasePlayer, m_rgItems, FIELD_INTEGER, MAX_ITEMS ),
+	DEFINE_FIELD( CBasePlayer, m_antidotes, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_afPhysicsFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBasePlayer, m_flTimeStepSound, FIELD_TIME ),
@@ -246,6 +246,7 @@ int gmsgWeapons = 0;
 int gmsgMaxClip = 0;
 int gmsgMaxAmmo = 0;
 int gmsgItems = 0;
+int gmsgAntidotes = 0;
 
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0;
@@ -372,6 +373,7 @@ void LinkUserMessages()
 	gmsgMaxClip = REG_USER_MSG( "MaxClip", 3 );
 	gmsgMaxAmmo = REG_USER_MSG( "MaxAmmo", -1 );
 	gmsgItems = REG_USER_MSG( "Items", 4 );
+	gmsgAntidotes = REG_USER_MSG( "Antidotes", 2 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
 	gmsgStatusValue = REG_USER_MSG( "StatusValue", 3 );
@@ -3355,10 +3357,10 @@ void CBasePlayer::CheckTimeBasedDamage()
 				if( ( ( i == itbd_NerveGas ) ) ||
 					( ( i == itbd_Poison ) ) )
 				{
-					if( m_rgItems[ITEM_ANTIDOTE] )
+					if( m_antidotes > 0 )
 					{
 						m_rgbTimeBasedDamage[i] = 0;
-						m_rgItems[ITEM_ANTIDOTE]--;
+						m_antidotes--;
 						SetSuitUpdate( "!HEV_HEAL4", false, SUIT_REPEAT_OK );
 					}
 				}
@@ -4226,6 +4228,7 @@ void CBasePlayer::Spawn()
 	m_pClientActiveItem = NULL;
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
+	m_iClientAntidotes = -1;
 
 	// reset all ammo values to 0
 	for( int i = 0; i < MAX_AMMO_TYPES; i++ )
@@ -4262,6 +4265,7 @@ void CBasePlayer::Precache()
 
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
+	m_iClientAntidotes = -1;
 
 	m_flFlashLightTime = 1;
 
@@ -4762,6 +4766,7 @@ void CBasePlayer::ForceClientDllUpdate()
 	m_iClientMaxHealth = -1;
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
+	m_iClientAntidotes = -1;
 	m_iClientHideHUD = -1;	// Vit_amiN: forcing to update
 	m_iClientFOV = -1;	// Vit_amiN: force client weapons to be sent
 	m_ClientSndRoomtype = -1;
@@ -5530,6 +5535,13 @@ void CBasePlayer::UpdateClientData()
 		MESSAGE_BEGIN( MSG_ONE, gmsgBattery, NULL, pev );
 			WRITE_SHORT( (int)pev->armorvalue );
 			WRITE_SHORT( maxArmor );
+		MESSAGE_END();
+	}
+
+	if (m_antidotes != m_iClientAntidotes)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgAntidotes, NULL, pev);
+			WRITE_SHORT(m_antidotes);
 		MESSAGE_END();
 	}
 

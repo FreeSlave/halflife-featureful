@@ -797,6 +797,7 @@ public:
 	int Draw( float flTime ) override;
 	int MsgFunc_StatusIcon( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Inventory( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_Antidotes( const char *pszName, int iSize, void *pbuf );
 
 	void EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, bool allowDuplicate = false);
 	void DisableIcon(const char *pszIconName);
@@ -811,6 +812,7 @@ private:
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
 public:
+	inventory_t m_antidote;
 	inventory_t m_InventoryList[MAX_INVENTORY_ITEMS];
 };
 
