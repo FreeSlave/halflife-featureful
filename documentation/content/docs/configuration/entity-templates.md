@@ -965,7 +965,7 @@ The trace attack rules provided in the entity template completely replace the "n
 
 Has same properties as conditions of [take_damage](#take_damage), but also has hitgroup related checks:
 
-* `"hitgroup"` - a single entry or array of hitgroups to test against. Entries can be be numbers representing the hitgroup value in the model (e.g. stomach hitgroup has a number 3) or they can be strings corresponding to the [standard hitgroups](#hitgroup).
+* `"hitgroup"` - a single entry or array of hitgroups to test against. Entries can be numbers representing the hitgroup value in the model (e.g. stomach hitgroup has a number 3) or they can be strings corresponding to the [standard hitgroups](#hitgroup).
 * `"invert_hitgroup_check"` - a boolean. Whether to invert the hitgroup check, i.e. instead of testing whether the hitgroup is from specified the set, test that the hitgroup is not in the set.
 
 #### modifier

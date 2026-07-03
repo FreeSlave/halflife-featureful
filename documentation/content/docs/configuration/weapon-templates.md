@@ -207,6 +207,7 @@ The following weapons can utilize the weapon configuration to the full potential
 
 Some weapon classnames have been added specifically to be configured (so the developer can configure their own guns). These weapons are as well fully configurable:
 
+* [weapon_melee]({{< ref weapon_melee >}})
 * [weapon_pistol]({{< ref weapon_pistol >}})
 * [weapon_pistol2]({{< ref weapon_pistol2 >}})
 * [weapon_smg]({{< ref weapon_smg >}})

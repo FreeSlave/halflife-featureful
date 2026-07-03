@@ -11,7 +11,7 @@ Generic weapon meant to be configured via [Weapon templates]({{< ref weapon-temp
 By default it uses the same model and primary attack as [weapon_crowbar]({{< ref weapon_crowbar >}}).
 
 {{% hint info %}}
-Don't forget to include **sprites/weapon_crowbar.txt** in your mod files.
+Don't forget to include **sprites/weapon_melee.txt** in your mod files.
 
 Also enable `melee` in **features/featureful_weapons.cfg**.
 
