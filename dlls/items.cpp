@@ -710,6 +710,8 @@ class CItemAntidote : public CItem
 		PrecacheMyModel( "models/w_antidote.mdl" );
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
+		else
+			RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
@@ -723,14 +725,24 @@ class CItemAntidote : public CItem
 
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
+		else
+			EmitSoundScript(pickupSoundScript);
 
 		NotifyPickup(pPlayer, pev->classname);
 
 		return true;
 	}
+
+	static const NamedSoundScript pickupSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( item_antidote, CItemAntidote )
+
+const NamedSoundScript CItemAntidote::pickupSoundScript = {
+	CHAN_ITEM,
+	{},
+	"Antidote.Pickup"
+};
 
 class CItemSecurity : public CItem
 {
