@@ -769,17 +769,20 @@ private:
 
 struct inventory_t
 {
-	inventory_t(): itemName(), spr(0), count(0), showInJournal(false) {}
 	std::string itemName;
-	HSPRITE spr;
+	HSPRITE spr{0};
 	wrect_t rc;
-	unsigned char r, g, b, a;
-	int position;
-	int count;
-	bool showInJournal;
+	unsigned char r{0}, g{0}, b{0}, a{0};
+	int position{INVENTORY_PLACE_DEFAULT};
+	int count{0};
+	bool showInJournal{true};
+	bool showCountWhenOne{false};
 
 	bool CanRender() const {
 		return !itemName.empty() && spr;
+	}
+	bool ShouldShowCount() const {
+		return count > 1 || showCountWhenOne;
 	}
 };
 

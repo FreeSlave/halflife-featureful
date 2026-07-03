@@ -265,7 +265,7 @@ int CHudJournal::Draw(float flTime)
 							renderer.SPR_DrawAdditive(item.spr, r, g, b, renderer.UnscaleScreen(xsprites), renderer.UnscaleScreen(ytext), &item.rc);
 							xsprites += renderer.ScaleScreen(item.rc.right - item.rc.left);
 
-							if (item.count > 1)
+							if (item.ShouldShowCount())
 							{
 								const int textLineHeight = CHud::AdditiveText::LineHeight();
 								const int height = item.rc.bottom - item.rc.top;

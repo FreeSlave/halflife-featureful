@@ -91,18 +91,18 @@ Example:
 
 ```json
 {
-    "default_sprite_alpha": 225,
+    "sprite_alpha": 225,
     "text_alpha": 200,
     "items": {
         "battery_blue": {
             "sprite": "item_battery",
             "position": "bottom",
-            "color": "0 100 255"
+            "color": [0, 100, 255]
         },
         "battery_red": {
             "sprite": "item_battery",
             "position": "bottom",
-            "color": "255 0 0"
+            "color": [255, 0, 0]
         },
         "longjump": {
             "sprite": "item_longjump",
@@ -117,15 +117,29 @@ Example:
 }
 ```
 
-This example defines the default sprite alpha (opacity), the text alpha (opacity for item counts) render parameters for 4 items.
+The object can have the following properties:
+
+* `"sprite_alpha"` - alpha value for sprites. This also can go by the `"default_sprite_alpha"` name. Default value is 175.
+* `"text_alpha"` - alpha value for text (used to show the count of items). Default value is 225.
+* `"items"` - an array of inventory item HUD definitions.
+
+Each entry in `"items"` array is an object that can have the following properties:
 
 * `"sprite"` property should refer to the name from the **sprites/hud.txt**.
 * `"color"` defines sprite [color]({{< ref "JSON/#color" >}}) in HUD. When omitted it will use the client's main HUD color.
-* `"position"` can be `"topleft"`, `"topright"`, `"bottom"` and `"hide"`. The `"topleft"` is the default position. The `"topright"` means that the item icon will be displayed on the right side under the flashlight (or under the move mode if it's enabled). The `"bottom"` means that the item icon will be displayed on the bottom center. The `"hide"` means to not show the item on the main HUD (but still show in the [journal]({{< ref journal >}}) if it has the inventory section).
-* `"show_in_history"` allows to configure whether the icon should appear in the pickup history (along with picked up items, ammo and weapons). This is true by default.
-* `"show_in_journal"` - whether to show the item in the [journal]({{< ref journal >}}) inventory section. This is true by default.
+* `"alpha"` - custom alpha value for this item. This will override the top-level `"sprite_alpha"`.
+* `"position"` defines the item icon position in the HUD and can be one of the following values:
+    - `"topleft"` - the default position. The item icon will be displayed on the top-left corner of the screen.
+    - `"topright"` - the item icon will be displayed on the right side under the flashlight (or under the move mode if it's enabled).
+    - `"bottom"` - the item icon will be displayed on the bottom center (not recommended if your mod features the controllable trains as the train control sprite will be intermingle with the item icons).
+    - `"hide"` - don't show the item on the main HUD (but still show in the [journal]({{< ref journal >}}) if it has the inventory section).
+* `"show_in_history"` allows to configure whether the icon should appear in the pickup history (along with picked up items, ammo and weapons). This is `true` by default.
+* `"show_in_journal"` - whether to show the item in the [journal]({{< ref journal >}}) inventory section. This is `true` by default.
+* `"show_count_when_one"` - whether to show the item count next to the icon when player has only one item of this type. This is `false` by default.
 
+{{% hint info %}}
 If the map utilizes some inventory item that is not defined in the **sprites/hud_inventory.json** the game will try to find a HUD sprite by the item name and show it with default parameters (e.g. the item named `item_helmet` will use `item_helmet` as a HUD sprite and will render with a player's HUD color).
+{{% /hint %}}
 
 If the player has several duplicates of the same item it will be shown as a number next to the item icon.
 

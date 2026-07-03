@@ -13,6 +13,7 @@ const char hudInventorySchema[] = R"(
 	"type": "object",
 	"properties": {
 		"default_sprite_alpha": "definitions.json#/alpha",
+		"sprite_alpha": "definitions.json#/alpha",
 		"text_alpha": "definitions.json#/alpha",
 		"items": {
 			"additionalProperties": {
@@ -36,6 +37,9 @@ const char hudInventorySchema[] = R"(
 					},
 					"show_in_journal": {
 						"type": "boolean"
+					},
+					"show_count_when_one": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false
@@ -44,13 +48,6 @@ const char hudInventorySchema[] = R"(
 	}
 }
 )";
-
-InventoryItemHudSpec::InventoryItemHudSpec(): packedColor(0), alpha(0), position(INVENTORY_PLACE_DEFAULT), colorDefined(false), showInHistory(true), showInJournal{true}
-{
-	spriteName[0] = '\0';
-}
-
-InventoryHudSpec::InventoryHudSpec(): defaultSpriteAlpha(175), textAlpha(225) {}
 
 const char* InventoryHudSpec::Schema() const
 {
@@ -73,11 +70,11 @@ bool InventoryHudSpec::ReadFromDocument(const rapidjson::Document& document, con
 			HandleJSONMember(value, "sprite", [&item](const Value& value) {
 				if (value.IsNull())
 				{
-					strncpyEnsureTermination(item.spriteName, item.itemName.c_str());
+					item.spriteName = item.itemName.c_str();
 				}
 				else
 				{
-					strncpyEnsureTermination(item.spriteName, value.GetString());
+					item.spriteName = value.GetString();
 				}
 			});
 
@@ -91,6 +88,7 @@ bool InventoryHudSpec::ReadFromDocument(const rapidjson::Document& document, con
 			UpdatePropertyFromJson(item.alpha, value, "alpha");
 			UpdatePropertyFromJson(item.showInHistory, value, "show_in_history");
 			UpdatePropertyFromJson(item.showInJournal, value, "show_in_journal");
+			UpdatePropertyFromJson(item.showCountWhenOne, value, "show_count_when_one");
 
 			HandleJSONMember(value, "position", [&item](const Value& value) {
 				const char* positionStr = value.GetString();
@@ -121,6 +119,7 @@ bool InventoryHudSpec::ReadFromDocument(const rapidjson::Document& document, con
 	}
 
 	UpdatePropertyFromJson(defaultSpriteAlpha, document, "default_sprite_alpha");
+	UpdatePropertyFromJson(defaultSpriteAlpha, document, "sprite_alpha");
 	UpdatePropertyFromJson(textAlpha, document, "text_alpha");
 
 	return true;

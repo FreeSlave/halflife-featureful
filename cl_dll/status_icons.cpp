@@ -99,7 +99,7 @@ int CHudStatusIcons::Draw( float flTime )
 		const inventory_t& item = m_InventoryList[i];
 		if (item.spr && item.position == INVENTORY_PLACE_BOTTOM_CENTER)
 		{
-			bottomWidth += item.rc.right - item.rc.left + ItemNumberSuffixWidth(item.count);
+			bottomWidth += item.rc.right - item.rc.left + item.ShouldShowCount() ? ItemNumberSuffixWidth(item.count) : 0;
 			bottomItemCount++;
 		}
 	}
@@ -152,7 +152,7 @@ int CHudStatusIcons::Draw( float flTime )
 			if (place == INVENTORY_PLACE_TOP_RIGHT)
 			{
 				int xItem = gHUD.m_Flash.RightmostCoordinate() - width;
-				if (item.count > 1)
+				if (item.ShouldShowCount())
 				{
 					char buf[BUF_FOR_SHORT_SIZE];
 					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
@@ -168,7 +168,7 @@ int CHudStatusIcons::Draw( float flTime )
 				if (!drawStatusIcons)
 					continue;
 				renderer.SPR_DrawAdditive(item.spr, r, g, b, xIcons, yIcons, &item.rc);
-				if (item.count > 1)
+				if (item.ShouldShowCount())
 				{
 					char buf[BUF_FOR_SHORT_SIZE];
 					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
@@ -183,7 +183,7 @@ int CHudStatusIcons::Draw( float flTime )
 				renderer.SPR_DrawAdditive(item.spr, r, g, b, xCenterBottom, yCenterBottom, &item.rc);
 				xCenterBottom += width;
 
-				if (item.count > 1)
+				if (item.ShouldShowCount())
 				{
 					char buf[BUF_FOR_SHORT_SIZE];
 					FillCharBufWithNumberSuffix(buf, sizeof(buf), item.count);
@@ -291,8 +291,8 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 	const char* spriteName = itemName;
 	if (itemSpec)
 	{
-		if (*itemSpec->spriteName)
-			spriteName = itemSpec->spriteName;
+		if (!itemSpec->spriteName.empty())
+			spriteName = itemSpec->spriteName.c_str();
 	}
 
 	int spr_index = gHUD.GetSpriteIndex(spriteName);
@@ -324,13 +324,7 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 		item.a = itemSpec->alpha;
 		item.position = itemSpec->position;
 		item.showInJournal = itemSpec->showInJournal;
-	}
-	else
-	{
-		item.r = item.g = item.b = 0;
-		item.a = 0;
-		item.position = INVENTORY_PLACE_DEFAULT;
-		item.showInJournal = true;
+		item.showCountWhenOne = itemSpec->showCountWhenOne;
 	}
 
 	item.spr = gHUD.GetSprite( spr_index );
