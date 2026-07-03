@@ -231,7 +231,7 @@ void CSquidToxicSpit::Animate()
 		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
 			if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
 				if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor());
+					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor());
 				}
 			}
 		}
@@ -297,7 +297,7 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
 			const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
 			if (poisonDamage > 0)
-				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor() );
+				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor() );
 			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}

@@ -539,6 +539,12 @@ const char* const json_schemas::definitions = R"(
 			},
 			"gib": {
 				"enum": ["always", "never", "normal"]
+			},
+			"timed_nonlethal": {
+				"type": "boolean"
+			},
+			"timed_ignore_armor": {
+				"type": "boolean"
 			}
 		},
 		"additionalProperties": false

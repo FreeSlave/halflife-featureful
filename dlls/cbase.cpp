@@ -2127,6 +2127,14 @@ void CBaseEntity::ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageIn
 	{
 		curDamageInfo.SetNoBlood((bool)damageInfo.noBlood);
 	}
+	if (!indeterminate(damageInfo.timedNonLethal))
+	{
+		curDamageInfo.SetTimedNonLethal((bool)damageInfo.timedNonLethal);
+	}
+	if (!indeterminate(damageInfo.timedIgnoreArmor))
+	{
+		curDamageInfo.SetTimedIgnoreArmor((bool)damageInfo.timedIgnoreArmor);
+	}
 	if (damageInfo.gibPolicy)
 	{
 		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;

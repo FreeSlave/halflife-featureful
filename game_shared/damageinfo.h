@@ -20,6 +20,7 @@ struct DamageInfo
 	bool nonLethal = false; // this damage shouldn't kill player or monster
 	bool timedNonLethal = false;
 	bool ignoreArmor = false; // ignore player's armor, deal damage to health only
+	bool timedIgnoreArmor = false;
 	bool noPlayerPush = false; // don't push player
 	bool noPunch = false; // don't make a smalle punch on player's camera
 	bool noBlood = false; // used in TraceAttack. Force not to bleed.
@@ -42,6 +43,10 @@ struct DamageInfo
 	}
 	DamageInfo& SetIgnoreArmor(bool enable = true) {
 		ignoreArmor = enable;
+		return *this;
+	}
+	DamageInfo& SetTimedIgnoreArmor(bool enable = true) {
+		timedIgnoreArmor = enable;
 		return *this;
 	}
 	DamageInfo& SetNoPlayerPush(bool enable = true) {
@@ -77,6 +82,8 @@ struct DamageInfoPatch
 	tribool nonLethal;
 	tribool ignoreArmor;
 	tribool noBlood;
+	tribool timedNonLethal;
+	tribool timedIgnoreArmor;
 };
 
 int ParseDamageType(const char *type);

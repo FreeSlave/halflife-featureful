@@ -1587,7 +1587,7 @@ void CTriggerHurt::DoDamage(CBaseEntity *pTarget, float fldmg)
 		}
 
 		if (pev->spawnflags & SF_TRIGGER_HURT_IGNORE_ARMOR)
-			damageInfo.SetIgnoreArmor();
+			damageInfo.SetIgnoreArmor().SetTimedIgnoreArmor();
 		if (pev->spawnflags & SF_TRIGGER_HURT_NO_PUNCH)
 			damageInfo.SetNoPunch();
 
@@ -6743,7 +6743,7 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 			break;
 		}
 		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_IGNORE_ARMOR)
-			damageInfo.SetIgnoreArmor();
+			damageInfo.SetIgnoreArmor().SetTimedIgnoreArmor();
 		if (pev->spawnflags & SF_TRIGGER_HURT_REMOTE_NO_PUNCH)
 			damageInfo.SetNoPunch();
 		damageInfo.noPlayerPush = true;

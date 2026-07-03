@@ -744,7 +744,7 @@ static BYTE TBDModFromDmgInfo(const DamageInfo& damageInfo)
 	{
 		result |= DMG_TIMED_MOD_NONLETHAL;
 	}
-	if (damageInfo.ignoreArmor)
+	if (damageInfo.timedIgnoreArmor)
 	{
 		result |= DMG_TIMED_MOD_IGNORE_ARMOR;
 	}

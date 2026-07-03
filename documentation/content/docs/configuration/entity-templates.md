@@ -1799,6 +1799,8 @@ This type describes the damage data. It consists of the following properties:
     - `"always"` - always gib.
     - `"never"` - never gib.
     - `"normal"` - gib if damage is significantly higher than the target's health at the moment of hit.
+* `"timed_nonlethal"` - whether the time-based damage (e.g. from poison) is non lethal. It can do damage, but can't kill.
+* `"timed_ignore_armor"` - whether the time-based damage (e.g. from poison) ignores armor.
 
 ### damage_type
 
