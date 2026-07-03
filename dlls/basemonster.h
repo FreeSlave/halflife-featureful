@@ -124,6 +124,7 @@ public:
 
 	int m_bitsDamageType;	// what types of damage has monster (player) taken
 	BYTE m_rgbTimeBasedDamage[CDMG_TIMEBASED];
+	float m_tbdNext[CDMG_TIMEBASED];
 										// time based damage counters, decr. 1 per 2 seconds
 	int m_bloodColor;		// color of blood particless
 

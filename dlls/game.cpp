@@ -31,6 +31,7 @@
 #include "ent_templates.h"
 #include "player_templates.h"
 #include "followers.h"
+#include "time_based_damage.h"
 #include "savetitles.h"
 #include "objecthint_spec.h"
 #include "vcs_info.h"
@@ -1497,6 +1498,10 @@ void ParseModConfigs()
 	FollowersDescription followersDescription;
 	followersDescription.ReadFromFile("features/followers.json");
 	g_FollowersDescription = std::move(followersDescription);
+
+	TimeBasedDamageDescription timeDamageDescription;
+	timeDamageDescription.ReadFromFile("features/time_based_damage.json");
+	g_timeBasedDamageDescription = std::move(timeDamageDescription);
 
 	auto finish = std::chrono::steady_clock::now();
 	unsigned int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();

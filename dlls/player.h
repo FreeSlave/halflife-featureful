@@ -180,7 +180,6 @@ public:
 	int					m_rgiSuitNoRepeat[CSUITNOREPEAT];		// suit sentence no repeat list
 	float				m_rgflSuitNoRepeatTime[CSUITNOREPEAT];	// how long to wait before allowing repeat
 	int					m_lastDamageAmount;		// Last damage taken
-	float				m_tbdPrev;				// Time-based damage timer
 
 	float				m_flgeigerRange;		// range to nearest radiation source
 	float				m_flgeigerDelay;		// delay per update of range msg to client

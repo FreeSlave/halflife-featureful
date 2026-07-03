@@ -188,6 +188,7 @@ set (SVDLL_SOURCES
 	talkmonster.cpp
 	teamplay_gamerules.cpp
 	tentacle.cpp
+	time_based_damage.cpp
 	tor.cpp
 	triggers.cpp
 	tripmine.cpp

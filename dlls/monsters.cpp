@@ -120,6 +120,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_flNextAttack, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_bitsDamageType, FIELD_INTEGER ),
 	DEFINE_ARRAY( CBaseMonster, m_rgbTimeBasedDamage, FIELD_CHARACTER, CDMG_TIMEBASED ),
+	DEFINE_ARRAY( CBaseMonster, m_tbdNext, FIELD_TIME, CDMG_TIMEBASED ),
 	DEFINE_FIELD( CBaseMonster, m_bloodColor, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_failSchedule, FIELD_INTEGER ),
 

@@ -41,6 +41,7 @@
 #include "color_utils.h"
 #include "inventory.h"
 #include "followers.h"
+#include "time_based_damage.h"
 #include "common_soundscripts.h"
 #include "error_collector.h"
 #include "spritehint_flags.h"
@@ -118,7 +119,6 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_iWeaponFlash, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_fLongJump, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBasePlayer, m_fInitHUD, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CBasePlayer, m_tbdPrev, FIELD_TIME ),
 
 	DEFINE_FIELD( CBasePlayer, m_hTankControls, FIELD_EHANDLE ),
 	DEFINE_FIELD( CBasePlayer, m_hViewEntity, FIELD_EHANDLE ),
@@ -3263,121 +3263,113 @@ void CBasePlayer::HandleRopePhysics(CRope *pRope)
 // This routine will detect the initial on value of the m_bitsDamageType
 // and init the appropriate counter.  Only processes damage every second.
 
-//#define PARALYZE_DURATION		30		// number of 2 second intervals to take damage
-//#define PARALYZE_DAMAGE		0.0		// damage to take each 2 second interval
-
-//#define NERVEGAS_DURATION		16
-//#define NERVEGAS_DAMAGE		5.0
-
-//#define POISON_DURATION		25
-//#define POISON_DAMAGE			2.0
-
-//#define RADIATION_DURATION		50
-//#define RADIATION_DAMAGE		1.0
-
-//#define ACID_DURATION			10
-//#define ACID_DAMAGE			5.0
-
-//#define SLOWBURN_DURATION		2
-//#define SLOWBURN_DAMAGE		1.0
-
-//#define SLOWFREEZE_DURATION		1.0
-//#define SLOWFREEZE_DAMAGE		3.0
-
 void CBasePlayer::CheckTimeBasedDamage() 
 {
-	int i;
-	BYTE bDuration = 0;
-
-	//static float gtbdPrev = 0.0;
-
-	if( !( m_bitsDamageType & DMG_TIMEBASED ) )
+	if (!FBitSet(m_bitsDamageType, DMG_TIMEBASED))
 		return;
 
-	// only check for time based damage approx. every 2 seconds
-	if( fabs( gpGlobals->time - m_tbdPrev ) < 2.0f )
-		return;
-
-	m_tbdPrev = gpGlobals->time;
-
-	for( i = 0; i < CDMG_TIMEBASED; i++ )
+	for (int i = 0; i < CDMG_TIMEBASED; i++)
 	{
+		if (m_tbdNext[i] >= gpGlobals->time)
+			continue;
+
+		const int bitsDamagType = DMG_PARALYZE << i;
+
 		// make sure bit is set for damage type
-		if( m_bitsDamageType & ( DMG_PARALYZE << i ) )
+		if (!FBitSet(m_bitsDamageType, bitsDamagType))
+			continue;
+
+		auto getTimeBasedDamageInfo = [](int i)
 		{
-			switch( i )
+			switch(i)
 			{
 			case itbd_Paralyze:
-				// UNDONE - flag movement as half-speed
-				bDuration = PARALYZE_DURATION;
-				break;
+				return g_timeBasedDamageDescription.paralyze;
 			case itbd_NerveGas:
-				//TakeDamage( pev, pev, NERVEGAS_DAMAGE, DMG_GENERIC );
-				bDuration = NERVEGAS_DURATION;
-				break;
+				return g_timeBasedDamageDescription.nerveGas;
 			case itbd_Poison:
-				TakeDamage( pev, pev, UpdatedDamageInfoeFromTBDMod(DamageInfo(POISON_DAMAGE, DMG_GENERIC), m_timeBasedDmgModifiers[i]) );
-				bDuration = POISON_DURATION;
-				break;
+				return g_timeBasedDamageDescription.poison;
 			case itbd_Radiation:
-				//TakeDamage( pev, pev, RADIATION_DAMAGE, DMG_GENERIC );
-				bDuration = RADIATION_DURATION;
-				break;
-			case itbd_DrownRecover:
+				return g_timeBasedDamageDescription.radiation;
+			case itbd_Acid:
+				return g_timeBasedDamageDescription.acid;
+			case itbd_SlowBurn:
+				return g_timeBasedDamageDescription.slowBurn;
+			case itbd_SlowFreeze:
+				return g_timeBasedDamageDescription.slowFreeze;
+			default:
+				return TimeBasedDamageInfo{};
+			}
+		};
+
+		TimeBasedDamageInfo tbdInfo = getTimeBasedDamageInfo(i);
+
+		bool applyNow = true;
+		m_tbdNext[i] = gpGlobals->time + tbdInfo.interval;
+
+		// first time taking this damage type - init damage duration
+		if (m_rgbTimeBasedDamage[i] == 0)
+		{
+			int bDuration = 0;
+			if (i == itbd_DrownRecover)
+			{
+				bDuration = 5; // get up to 5*10 = 50 points back
+			}
+			else
+			{
+				bDuration = tbdInfo.tickCount;
+			}
+			m_rgbTimeBasedDamage[i] = (BYTE)clamp(bDuration, 0, 255);
+
+			if (tbdInfo.firstDelay > 0.0f)
+			{
+				applyNow = false;
+				m_tbdNext[i] = gpGlobals->time + tbdInfo.firstDelay;
+			}
+		}
+
+		if (m_rgbTimeBasedDamage[i] > 0 && applyNow)
+		{
+			if (i == itbd_DrownRecover)
+			{
 				// NOTE: this hack is actually used to RESTORE health
 				// after the player has been drowning and finally takes a breath
-				if( m_idrowndmg > m_idrownrestored )
+				if (m_idrowndmg > m_idrownrestored)
 				{
 					int idif = Q_min( m_idrowndmg - m_idrownrestored, 10 );
-
 					TakeHealth( this, idif, DMG_GENERIC );
 					m_idrownrestored += idif;
 				}
-				bDuration = 4;	// get up to 5*10 = 50 points back
-				break;
-			case itbd_Acid:
-				//TakeDamage( pev, pev, ACID_DAMAGE, DMG_GENERIC );
-				bDuration = ACID_DURATION;
-				break;
-			case itbd_SlowBurn:
-				//TakeDamage( pev, pev, SLOWBURN_DAMAGE, DMG_GENERIC );
-				bDuration = SLOWBURN_DURATION;
-				break;
-			case itbd_SlowFreeze:
-				//TakeDamage( pev, pev, SLOWFREEZE_DAMAGE, DMG_GENERIC );
-				bDuration = SLOWFREEZE_DURATION;
-				break;
-			default:
-				bDuration = 0;
-			}
-
-			if( m_rgbTimeBasedDamage[i] )
-			{
-				// use up an antitoxin on poison or nervegas after a few seconds of damage					
-				if( ( ( i == itbd_NerveGas ) ) ||
-					( ( i == itbd_Poison ) ) )
-				{
-					if( m_antidotes > 0 )
-					{
-						m_rgbTimeBasedDamage[i] = 0;
-						m_antidotes--;
-						SetSuitUpdate( "!HEV_HEAL4", false, SUIT_REPEAT_OK );
-					}
-				}
-
-				// decrement damage duration, detect when done.
-				if( !m_rgbTimeBasedDamage[i] || --m_rgbTimeBasedDamage[i] == 0 )
-				{
-					m_rgbTimeBasedDamage[i] = 0;
-					m_timeBasedDmgModifiers[i] = 0;
-
-					// if we're done, clear damage bits
-					m_bitsDamageType &= ~( DMG_PARALYZE << i );	
-				}
 			}
 			else
-				// first time taking this damage type - init damage duration
-				m_rgbTimeBasedDamage[i] = bDuration;
+			{
+				const float damage = tbdInfo.damagePerTick;
+				if (damage > 0)
+				{
+					TakeDamage(pev, pev, UpdatedDamageInfoeFromTBDMod(DamageInfo(damage, DMG_GENERIC), m_timeBasedDmgModifiers[i]));
+				}
+			}
+
+			--m_rgbTimeBasedDamage[i];
+
+			if ((i == itbd_NerveGas || i == itbd_Poison) && m_rgbTimeBasedDamage[i] > 0)
+			{
+				if (m_antidotes > 0)
+				{
+					m_rgbTimeBasedDamage[i] = 0;
+					m_antidotes--;
+					SetSuitUpdate("!HEV_HEAL4", false, SUIT_REPEAT_OK);
+				}
+			}
+		}
+
+		// decrement damage duration, detect when done.
+		if (m_rgbTimeBasedDamage[i] == 0)
+		{
+			m_timeBasedDmgModifiers[i] = 0;
+
+			// if we're done, clear damage bits
+			ClearBits(m_bitsDamageType, bitsDamagType);
 		}
 	}
 }
