@@ -545,6 +545,9 @@ const char* const json_schemas::definitions = R"(
 			},
 			"timed_ignore_armor": {
 				"type": "boolean"
+			},
+			"ignore_powershield": {
+				"type": "boolean"
 			}
 		},
 		"additionalProperties": false

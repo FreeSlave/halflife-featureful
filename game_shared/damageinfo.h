@@ -95,6 +95,7 @@ struct DamageInfoPatch
 	tribool noBlood;
 	tribool timedNonLethal;
 	tribool timedIgnoreArmor;
+	tribool ignorePowerShield;
 };
 
 int ParseDamageType(const char *type);

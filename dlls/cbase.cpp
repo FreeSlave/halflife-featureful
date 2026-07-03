@@ -2135,6 +2135,10 @@ void CBaseEntity::ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageIn
 	{
 		curDamageInfo.SetTimedIgnoreArmor((bool)damageInfo.timedIgnoreArmor);
 	}
+	if (!indeterminate(damageInfo.ignorePowerShield))
+	{
+		curDamageInfo.SetIgnorePowerShield((bool)damageInfo.ignorePowerShield);
+	}
 	if (damageInfo.gibPolicy)
 	{
 		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;
