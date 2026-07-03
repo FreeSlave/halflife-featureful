@@ -936,7 +936,7 @@ void CShockRoach::MonsterThink()
 		// die when ready
 		if (lifeTime >= (m_flDie - m_flBirthTime))
 		{
-			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER).SetIgnoreTransform());
+			TakeDamage(pev, pev, DamageInfo(pev->health, DMG_GENERIC).SetGibPolicy(GIB_NEVER).SetMakePureDamageToHealth());
 		}
 	}
 	CHeadCrab::MonsterThink();

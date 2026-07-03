@@ -1243,7 +1243,7 @@ void CPushable::Move( CBaseEntity *pOther, int push )
 	const bool shouldInstaGib = (m_instantGibCorpses && pOther->IsCorpse()) || (g_modFeatures.ShouldCrushTinyCreatures(m_handleTinyCreatures) && pOther->IsTinyCreature());
 	if (shouldInstaGib)
 	{
-		pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health + 1, DMG_CRUSH).SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS));
+		pOther->TakeDamage(pev, pev, DamageInfo(pOther->pev->health + 1, DMG_CRUSH).SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS));
 	}
 
 	if( pOther->IsPlayer() )

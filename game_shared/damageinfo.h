@@ -26,6 +26,7 @@ struct DamageInfo
 	bool noBlood = false; // used in TraceAttack. Force not to bleed.
 	bool ignoreTransform = false;
 	bool enforceLightDamage = false;
+	bool ignorePowerShield = false;
 
 	bool mustSkip = false;
 
@@ -63,6 +64,16 @@ struct DamageInfo
 	}
 	DamageInfo& SetIgnoreTransform(bool enable = true) {
 		ignoreTransform = enable;
+		return *this;
+	}
+	DamageInfo& SetIgnorePowerShield(bool enable = true) {
+		ignorePowerShield = enable;
+		return *this;
+	}
+	DamageInfo& SetMakePureDamageToHealth() {
+		SetIgnoreArmor();
+		SetIgnoreTransform();
+		SetIgnorePowerShield();
 		return *this;
 	}
 };

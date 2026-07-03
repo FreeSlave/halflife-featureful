@@ -5366,18 +5366,15 @@ void CTriggerKillMonster::KillMonster(CBaseEntity *pEntity)
 	CBaseMonster* pMonster = pEntity->MyMonsterPointer();
 	if (pMonster && pMonster->IsFullyAlive())
 	{
-		switch (RANDOM_LONG(0,4)) {
+		switch (RANDOM_LONG(0,3)) {
 		case 0:
 			pMonster->m_LastHitGroup = HITGROUP_GENERIC;
 			break;
 		case 1:
-			pMonster->m_LastHitGroup = HITGROUP_STOMACH;
+			pMonster->m_LastHitGroup = HITGROUP_CHEST;
 			break;
 		case 2:
 			pMonster->m_LastHitGroup = HITGROUP_STOMACH;
-			break;
-		case 3:
-			pMonster->m_LastHitGroup = HITGROUP_GENERIC;
 			break;
 		default:
 			break;
@@ -5385,7 +5382,7 @@ void CTriggerKillMonster::KillMonster(CBaseEntity *pEntity)
 		DamageInfo damageInfo{pMonster->pev->health, DMG_GENERIC};
 		if (pev->spawnflags & SF_KILLMONSTER_GIBALWAYS)
 			damageInfo.SetGibPolicy(GIB_ALWAYS);
-		damageInfo.SetIgnoreTransform();
+		damageInfo.SetMakePureDamageToHealth();
 		pMonster->TakeDamage(pev, pev, damageInfo );
 	}
 }
@@ -6756,18 +6753,11 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 		entvars_t* pevAttacker = pActivator != 0 ? pActivator->pev : pev;
 		if (FBitSet(pev->spawnflags, SF_TRIGGER_HURT_REMOTE_INSTANT_KILL))
 		{
-			if (pTarget->IsPlayer())
-			{
-				CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pTarget);
-				damageInfo.damage = pTarget->pev->health + pTarget->pev->armorvalue * pPlayer->ArmorStrength();
-				pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
-			}
-			else
-			{
-				damageInfo.damage = pTarget->pev->health;
+			damageInfo.damage = pTarget->pev->health;
+			damageInfo.SetMakePureDamageToHealth();
+			if (!pTarget->IsPlayer())
 				damageInfo.SetGibPolicy(GIB_ALWAYS);
-				pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
-			}
+			pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);
 		}
 		else
 		{

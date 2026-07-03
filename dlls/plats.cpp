@@ -708,7 +708,7 @@ void CFuncPlat::Blocked( CBaseEntity *pOther )
 	if (shouldInstaGib)
 	{
 		damageInfo.damage = pOther->pev->health + 1;
-		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		damageInfo.SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS);
 	}
 
 	pOther->TakeDamage( pev, pev, damageInfo );
@@ -922,7 +922,7 @@ void CFuncTrain::Blocked( CBaseEntity *pOther )
 		if (shouldInstaGib)
 		{
 			damageInfo.damage = pOther->pev->health + 1;
-			damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+			damageInfo.SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS);
 		}
 		pOther->TakeDamage( pev, pev, damageInfo );
 	}
@@ -1282,7 +1282,7 @@ void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 	if (shouldInstaGib)
 	{
 		damageInfo.damage = pOther->pev->health + 1;
-		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		damageInfo.SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS);
 	}
 
 	pOther->TakeDamage( pev, pev, damageInfo );

@@ -1226,7 +1226,7 @@ GLOBALS ASSUMED SET:  g_iSkillLevel
 */
 void CBaseMonster::PowerShieldTakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, DamageInfo &damageInfo)
 {
-	if (pev->armorvalue <= 0.0f || !m_hasPowerShield || IsPlayer())
+	if (pev->armorvalue <= 0.0f || !m_hasPowerShield || damageInfo.ignorePowerShield || IsPlayer())
 		return;
 
 	const float absorption = PowerShieldAbsorption();
@@ -2218,7 +2218,7 @@ extern int gmsgSpriteTrail;
 
 void CBaseMonster::PowerShieldCalcTraceDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float& damageToShield, float& absorbedByShield)
 {
-	if (m_hasPowerShield && pev->armorvalue > 0)
+	if (m_hasPowerShield && pev->armorvalue > 0 && !damageInfo.ignorePowerShield)
 	{
 		if (gMultiDamage.pEntity && gMultiDamage.pEntity != this)
 		{

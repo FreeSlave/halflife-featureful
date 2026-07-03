@@ -1163,7 +1163,7 @@ void CBaseDoor::Blocked( CBaseEntity *pOther )
 		if (shouldInstaGib)
 		{
 			damageInfo.damage = pOther->pev->health + 1;
-			damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+			damageInfo.SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS);
 		}
 
 		pOther->TakeDamage( pev, pev, damageInfo );
@@ -1704,7 +1704,7 @@ void CMomentaryDoor::Blocked(CBaseEntity *pOther)
 	if (shouldInstaGib)
 	{
 		DamageInfo damageInfo{pOther->pev->health, DMG_CRUSH};
-		damageInfo.SetIgnoreTransform().SetGibPolicy(GIB_ALWAYS);
+		damageInfo.SetMakePureDamageToHealth().SetGibPolicy(GIB_ALWAYS);
 		pOther->TakeDamage(pev, pev, damageInfo);
 	}
 	else
