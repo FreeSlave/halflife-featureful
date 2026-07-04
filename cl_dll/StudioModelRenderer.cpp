@@ -1705,7 +1705,7 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	baseVMFOV = fmaxf(1.0f, baseVMFOV);
 
 	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
-	float zoomScale = 0.5f; // tweakable: how much viewmodel zoom reacts
+	float zoomScale = 0.82f; // tweakable: how much viewmodel zoom reacts
 
 	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
 	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
@@ -1754,7 +1754,7 @@ void CStudioModelRenderer::StudioAdjustViewmodelAttachments(Vector &vOrigin)
 
 	float worldFOV = g_flRenderFOV;
 	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
-	float zoomScale = 0.5f; // adjust how much the weapon zooms
+	float zoomScale = 0.82f; // adjust how much the weapon zooms
 
 	// Effective viewmodel FOV only depends on world zoom, not default_fov
 	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
@@ -1879,7 +1879,7 @@ void CStudioModelRenderer::SetViewmodelFovProjection(void)
 
 	float worldFOV = g_flRenderFOV;
 	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
-	float zoomScale = 0.5f;
+	float zoomScale = 0.82f;
 
 	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
 	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
