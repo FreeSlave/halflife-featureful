@@ -3382,6 +3382,7 @@ void CBasePlayer::CheckTimeBasedDamage()
 					m_antidotes--;
 					m_antidoteProtectionTime = gpGlobals->time + GetSkillValue("antidote_time");
 					SetSuitUpdate("!HEV_HEAL4", false, SUIT_REPEAT_OK);
+					EmitSoundScript(Player::antidoteSoundScript);
 				}
 			}
 		}

@@ -324,6 +324,12 @@ const NamedSoundScript longjumpSoundScript = {
 	"Player.LongJump"
 };
 
+const NamedSoundScript antidoteSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Player.AntidoteUse"
+};
+
 }
 
 const NamedSoundScript regenUpdateSoundScript = {

@@ -28,3 +28,4 @@ The player can carry many antidotes (there's currently no limit on maximum antid
 ### Soundscripts
 
 * **Antidote.Pickup** - the antidote is getting picked up. Empty by default.
+* [Player.AntidoteUse]({{< ref "player/#soundscripts" >}})
