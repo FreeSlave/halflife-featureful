@@ -23,7 +23,7 @@ The player can carry many antidotes (there's currently no limit on maximum antid
 
 ### Skill variables
 
-* `antidote_time` - how long the player will be protected from getting the time based effect from the subsequent toxic attacks after the antidote has been applied. This is 10 seconds by default.
+* **sk_antidote_time** - how long the player will be protected from getting the time based effect from the subsequent toxic attacks after the antidote has been applied. This is 10 seconds by default.
 
 ### Soundscripts
 

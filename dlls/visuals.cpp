@@ -125,7 +125,7 @@ void VisualSystem::DumpVisualImpl(const char *name, const Visual &visual) const
 
 	LOG("Model/Sprite: \"%s\"\n", visual.model ? visual.model : "");
 
-	LOG("Rendermode: %s. Color: (%d, %d, %d). Alpha: %d. Renderfx: %s. ",
+	LOG("Rendermode: %s. Color: (%d, %d, %d). ",
 		  RenderModeToString(visual.rendermode),
 		  visual.rendercolor.r, visual.rendercolor.g, visual.rendercolor.b);
 
