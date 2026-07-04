@@ -3268,15 +3268,22 @@ void CBasePlayer::CheckTimeBasedDamage()
 	if (!FBitSet(m_bitsDamageType, DMG_TIMEBASED))
 		return;
 
+	auto clearDamageType = [this](int i)
+	{
+		m_rgbTimeBasedDamage[i] = 0;
+		m_timeBasedDmgModifiers[i] = 0;
+		ClearBits(m_bitsDamageType, DMG_PARALYZE << i);
+	};
+
 	for (int i = 0; i < CDMG_TIMEBASED; i++)
 	{
 		if (m_tbdNext[i] >= gpGlobals->time)
 			continue;
 
-		const int bitsDamagType = DMG_PARALYZE << i;
+		const int bitsDamageType = DMG_PARALYZE << i;
 
 		// make sure bit is set for damage type
-		if (!FBitSet(m_bitsDamageType, bitsDamagType))
+		if (!FBitSet(m_bitsDamageType, bitsDamageType))
 			continue;
 
 		auto getTimeBasedDamageInfo = [](int i)
@@ -3351,25 +3358,24 @@ void CBasePlayer::CheckTimeBasedDamage()
 			}
 
 			--m_rgbTimeBasedDamage[i];
+		}
 
-			if ((i == itbd_NerveGas || i == itbd_Poison) && m_rgbTimeBasedDamage[i] > 0)
+		if (m_rgbTimeBasedDamage[i] == 0)
+		{
+			clearDamageType(i);
+		}
+		else
+		{
+			if ((i == itbd_NerveGas || i == itbd_Poison) && tbdInfo.damagePerTick > 0)
 			{
 				if (m_antidotes > 0)
 				{
-					m_rgbTimeBasedDamage[i] = 0;
+					clearDamageType(itbd_NerveGas);
+					clearDamageType(itbd_Poison);
 					m_antidotes--;
 					SetSuitUpdate("!HEV_HEAL4", false, SUIT_REPEAT_OK);
 				}
 			}
-		}
-
-		// decrement damage duration, detect when done.
-		if (m_rgbTimeBasedDamage[i] == 0)
-		{
-			m_timeBasedDmgModifiers[i] = 0;
-
-			// if we're done, clear damage bits
-			ClearBits(m_bitsDamageType, bitsDamagType);
 		}
 	}
 }
