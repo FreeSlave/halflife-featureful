@@ -76,8 +76,6 @@ static void FillCharBufWithNumberSuffix(char* buf, int size, int count)
 
 static int ItemNumberSuffixWidth(int count)
 {
-	if (count <= 1)
-		return 0;
 	char buf[BUF_FOR_SHORT_SIZE];
 	FillCharBufWithNumberSuffix(buf, sizeof(buf), count);
 	return CHud::AdditiveText::LineWidth(buf);
@@ -110,7 +108,7 @@ int CHudStatusIcons::Draw( float flTime )
 		const inventory_t& item = m_InventoryList[i];
 		if (item.spr && item.position == INVENTORY_PLACE_BOTTOM_CENTER)
 		{
-			bottomWidth += item.rc.right - item.rc.left + item.ShouldShowCount() ? ItemNumberSuffixWidth(item.count) : 0;
+			bottomWidth += item.rc.right - item.rc.left + (item.ShouldShowCount() ? ItemNumberSuffixWidth(item.count) : 0);
 			bottomItemCount++;
 		}
 	}
