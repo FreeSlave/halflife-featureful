@@ -12,6 +12,7 @@ enum
 	SCHED_MOVE_AWAY_FOLLOW,	// same, but follow afterward
 	SCHED_MOVE_AWAY_FAIL,	// Turn back toward player
 	SCHED_TARGET_REACHED, // Schedule to set after reaching a followed target, gives a chance to do something else besides facing a target again
+	SCHED_TARGET_FACE_CHECK_JUMP,
 	SCHED_FOLLOW_FAILED,
 	SCHED_FOLLOW_NEAREST,
 	SCHED_CANT_FOLLOW,
