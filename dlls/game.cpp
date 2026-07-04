@@ -1430,6 +1430,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("flashlight_charge_time", 20.0f);
 
 	g_SkillData.ProvideFallback("plr_armor_strength", 2.0f);
+
+	g_SkillData.ProvideFallback("antidote_time", 10.0f);
 }
 
 void ParseSkillCfg(const char* fileName)

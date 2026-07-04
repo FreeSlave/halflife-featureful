@@ -86,6 +86,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_afButtonReleased, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBasePlayer, m_antidotes, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayer, m_antidoteProtectionTime, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayer, m_afPhysicsFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBasePlayer, m_flTimeStepSound, FIELD_TIME ),
@@ -3280,10 +3281,8 @@ void CBasePlayer::CheckTimeBasedDamage()
 		if (m_tbdNext[i] >= gpGlobals->time)
 			continue;
 
-		const int bitsDamageType = DMG_PARALYZE << i;
-
 		// make sure bit is set for damage type
-		if (!FBitSet(m_bitsDamageType, bitsDamageType))
+		if (!FBitSet(m_bitsDamageType, DMG_PARALYZE << i))
 			continue;
 
 		auto getTimeBasedDamageInfo = [](int i)
@@ -3310,6 +3309,14 @@ void CBasePlayer::CheckTimeBasedDamage()
 		};
 
 		TimeBasedDamageInfo tbdInfo = getTimeBasedDamageInfo(i);
+
+		const bool protectedByAntidote = i == itbd_NerveGas || i == itbd_Poison;
+
+		if (protectedByAntidote && m_antidoteProtectionTime >= gpGlobals->time)
+		{
+			clearDamageType(i);
+			continue;
+		}
 
 		bool applyNow = true;
 		m_tbdNext[i] = gpGlobals->time + tbdInfo.interval;
@@ -3366,13 +3373,14 @@ void CBasePlayer::CheckTimeBasedDamage()
 		}
 		else
 		{
-			if ((i == itbd_NerveGas || i == itbd_Poison) && tbdInfo.damagePerTick > 0)
+			if (protectedByAntidote && tbdInfo.damagePerTick > 0)
 			{
 				if (m_antidotes > 0)
 				{
 					clearDamageType(itbd_NerveGas);
 					clearDamageType(itbd_Poison);
 					m_antidotes--;
+					m_antidoteProtectionTime = gpGlobals->time + GetSkillValue("antidote_time");
 					SetSuitUpdate("!HEV_HEAL4", false, SUIT_REPEAT_OK);
 				}
 			}
