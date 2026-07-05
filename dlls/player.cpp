@@ -3574,7 +3574,7 @@ void CBasePlayer::CheckSuitUpdate()
 // seconds, then we won't repeat playback of this word or sentence
 // for at least that number of seconds.
 
-void CBasePlayer::SetSuitUpdate(const char *name, int iNoRepeatTime )
+void CBasePlayer::SetSuitUpdate(const char *name, float iNoRepeatTime)
 {
 	int i;
 	int isentence;
@@ -3643,7 +3643,7 @@ void CBasePlayer::SetSuitUpdate(const char *name, int iNoRepeatTime )
 	}
 
 	// sentence is not in norepeat list, save if norepeat time was given
-	if( iNoRepeatTime )
+	if( iNoRepeatTime > 0.0f )
 	{
 		if( iempty < 0 )
 			iempty = RANDOM_LONG( 0, CSUITNOREPEAT - 1 ); // pick random slot to take over
@@ -8343,7 +8343,7 @@ public:
 		const char* message = STRING(pev->message);
 		if (FBitSet(pev->spawnflags, SF_PLAYER_HEVSENTENCE_QUEUE))
 		{
-			int noRepeat = pev->impulse;
+			float noRepeat = pev->health;
 			pPlayer->SetSuitUpdate(message, noRepeat);
 		}
 		else
@@ -8362,7 +8362,7 @@ public:
 	{
 		if (FStrEq(pkvd->szKeyName, "norepeat"))
 		{
-			pev->impulse = atoi( pkvd->szValue );
+			pev->health = atoi( pkvd->szValue );
 			pkvd->fHandled = true;
 		}
 		else

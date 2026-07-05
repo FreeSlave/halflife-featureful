@@ -223,7 +223,7 @@ int  CBasePlayer::Classify() { return 0; }
 void CBasePlayer::PreThink() { }
 void CBasePlayer::CheckTimeBasedDamage()  { }
 void CBasePlayer::CheckSuitUpdate() { }
-void CBasePlayer::SetSuitUpdate( const char *name, int iNoRepeatTime ) { }
+void CBasePlayer::SetSuitUpdate( const char *name, float iNoRepeatTime ) { }
 void CBasePlayer::PostThink() { }
 void CBasePlayer::Precache() { }
 int CBasePlayer::Save( CSave &save ) { return 0; }
