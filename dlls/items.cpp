@@ -500,6 +500,9 @@ void CItem::TouchOrUse(CBaseEntity *pOther)
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
+	if (pPlayer->pev->deadflag != DEAD_NO)
+		return;
+
 	// ok, a player is touching this item, but can he have it?
 	if (!pPlayer->CanHaveItem(this) || !g_pGameRules->CanHaveItem( pPlayer, this ))
 	{
@@ -510,7 +513,7 @@ void CItem::TouchOrUse(CBaseEntity *pOther)
 	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
 		return;
 
-	if( MyTouch( pPlayer ) )
+	if (MyTouch(pPlayer))
 	{
 		SUB_UseTargets( pOther );
 		SetTouch( NULL );
@@ -635,11 +638,6 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
-		if( pPlayer->pev->deadflag != DEAD_NO )
-		{
-			return false;
-		}
-
 		if( ( pPlayer->pev->armorvalue < pPlayer->MaxArmor() ) && pPlayer->HasSuit() )
 		{
 			pPlayer->TakeArmor(this, pev->health > 0 ? pev->health : DefaultCapacity());
@@ -715,10 +713,6 @@ class CItemAntidote : public CItem
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
-		if( pPlayer->pev->deadflag != DEAD_NO )
-		{
-			return false;
-		}
 		pPlayer->SetSuitUpdate( "!HEV_DET4", false, SUIT_NEXT_IN_1MIN );
 
 		pPlayer->m_antidotes += 1;
@@ -771,11 +765,6 @@ class CItemSecurity : public CItem
 
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
-		if( pPlayer->pev->deadflag != DEAD_NO )
-		{
-			return false;
-		}
-
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
 		NotifyPickup(pPlayer, pev->netname);
@@ -842,11 +831,6 @@ public:
 
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
-		if( pPlayer->pev->deadflag != DEAD_NO )
-		{
-			return false;
-		}
-
 		if (!FStringNull(pev->netname))
 		{
 			const int result = pPlayer->GiveInventoryItem(pev->netname, pev->impulse > 0 ? pev->impulse : 1);

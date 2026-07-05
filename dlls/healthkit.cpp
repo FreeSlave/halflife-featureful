@@ -60,11 +60,6 @@ void CHealthKit::Precache()
 
 bool CHealthKit::MyTouch( CBasePlayer *pPlayer )
 {
-	if( pPlayer->pev->deadflag != DEAD_NO )
-	{
-		return false;
-	}
-
 	const bool healed = pPlayer->pev->health < pPlayer->pev->max_health;
 	if( pPlayer->TakeHealth( this, pev->health > 0 ? pev->health : DefaultCapacity(), HEAL_CHARGE ) )
 	{
