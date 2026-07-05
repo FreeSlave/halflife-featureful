@@ -1735,7 +1735,7 @@ void V_Init()
 	cl_bobup = gEngfuncs.pfnRegisterVariable( "cl_bobup","0.5", 0 );
 	cl_waterdist = gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );
 	cl_chasedist = gEngfuncs.pfnRegisterVariable( "cl_chasedist","112", 0 );
-	cl_steady_uncrouch = gEngfuncs.pfnRegisterVariable( "cl_steady_uncrouch","1", 0 );
+	cl_steady_uncrouch = gEngfuncs.pfnRegisterVariable( "cl_steady_uncrouch","1", FCVAR_ARCHIVE );
 }
 
 //#define TRACE_TEST	1
