@@ -994,7 +994,7 @@ An object that defines gunsmoke properties. Weapons can spawn gun smokes upon fi
 
 Properties:
 
-* `"attachment"` - an attachment to spawn the smoke at. This is **required** for the smoke to spawn.
+* `"attachment"` - an attachment (a value in range `[1, 4]`) to spawn the smoke at. This is **required** for the smoke to spawn.
 * `"policy"` - how the weapon should obey to the `cl_gunsmoke` player's settings. Possible values:
     - `"auto"` - the smoke will spawn only if the fire type is not `"melee"` and `cl_gunsmoke` is enabled. This is the default value.
     - `"allowed"` - same as `"auto"`, but also allowed for melee weapons.
@@ -1019,6 +1019,7 @@ Example:
     "weapon_9mmhandgun": {
         "fire": {
             "gunsmoke": {
+                "attachment": 1,
                 "visual": [
                     {
                         "sprite": "sprites/eexplo.spr",
@@ -1041,6 +1042,7 @@ Example:
     "weapon_357": {
         "fire": {
             "gunsmoke": {
+                "attachment": 1,
                 "visual": {
                     "color": [80, 80, 80]
                 },
