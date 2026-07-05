@@ -402,7 +402,7 @@ public:
 
 	bool CanPlaySuitSentences();
 	void CheckSuitUpdate();
-	void SetSuitUpdate( const char *name, bool fgroup, int iNoRepeat );
+	void SetSuitUpdate( const char *name, int iNoRepeat );
 	void UpdateGeigerCounter();
 	void CheckTimeBasedDamage();
 

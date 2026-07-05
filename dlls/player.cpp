@@ -886,16 +886,16 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		if( bitsDamage & DMG_CLUB )
 		{
 			if( fmajor )
-				SetSuitUpdate( "!HEV_DMG4", false, SUIT_NEXT_IN_30SEC );	// minor fracture
+				SetSuitUpdate( "!HEV_DMG4", SUIT_NEXT_IN_30SEC );	// minor fracture
 			bitsDamage &= ~DMG_CLUB;
 			ffound = true;
 		}
 		if( bitsDamage & ( DMG_FALL | DMG_CRUSH ) )
 		{
 			if( fmajor )
-				SetSuitUpdate( "!HEV_DMG5", false, SUIT_NEXT_IN_30SEC );	// major fracture
+				SetSuitUpdate( "!HEV_DMG5", SUIT_NEXT_IN_30SEC );	// major fracture
 			else
-				SetSuitUpdate( "!HEV_DMG4", false, SUIT_NEXT_IN_30SEC );	// minor fracture
+				SetSuitUpdate( "!HEV_DMG4", SUIT_NEXT_IN_30SEC );	// minor fracture
 
 			bitsDamage &= ~( DMG_FALL | DMG_CRUSH );
 			ffound = true;
@@ -904,7 +904,7 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		if( bitsDamage & DMG_BULLET )
 		{
 			if( m_lastDamageAmount > 5 )
-				SetSuitUpdate( "!HEV_DMG6", false, SUIT_NEXT_IN_30SEC );	// blood loss detected
+				SetSuitUpdate( "!HEV_DMG6", SUIT_NEXT_IN_30SEC );	// blood loss detected
 			//else
 			//	SetSuitUpdate( "!HEV_DMG0", false, SUIT_NEXT_IN_30SEC );	// minor laceration
 
@@ -915,9 +915,9 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		if( bitsDamage & DMG_SLASH )
 		{
 			if( fmajor )
-				SetSuitUpdate( "!HEV_DMG1", false, SUIT_NEXT_IN_30SEC );	// major laceration
+				SetSuitUpdate( "!HEV_DMG1", SUIT_NEXT_IN_30SEC );	// major laceration
 			else
-				SetSuitUpdate( "!HEV_DMG0", false, SUIT_NEXT_IN_30SEC );	// minor laceration
+				SetSuitUpdate( "!HEV_DMG0", SUIT_NEXT_IN_30SEC );	// minor laceration
 
 			bitsDamage &= ~DMG_SLASH;
 			ffound = true;
@@ -926,35 +926,35 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		if( bitsDamage & DMG_SONIC )
 		{
 			if( fmajor )
-				SetSuitUpdate( "!HEV_DMG2", false, SUIT_NEXT_IN_1MIN );	// internal bleeding
+				SetSuitUpdate( "!HEV_DMG2", SUIT_NEXT_IN_1MIN );	// internal bleeding
 			bitsDamage &= ~DMG_SONIC;
 			ffound = true;
 		}
 
 		if( bitsDamage & ( DMG_POISON | DMG_PARALYZE ) )
 		{
-			SetSuitUpdate( "!HEV_DMG3", false, SUIT_NEXT_IN_1MIN );	// blood toxins detected
+			SetSuitUpdate( "!HEV_DMG3", SUIT_NEXT_IN_1MIN );	// blood toxins detected
 			bitsDamage &= ~( DMG_POISON | DMG_PARALYZE );
 			ffound = true;
 		}
 
 		if( bitsDamage & DMG_ACID )
 		{
-			SetSuitUpdate( "!HEV_DET1", false, SUIT_NEXT_IN_1MIN );	// hazardous chemicals detected
+			SetSuitUpdate( "!HEV_DET1", SUIT_NEXT_IN_1MIN );	// hazardous chemicals detected
 			bitsDamage &= ~DMG_ACID;
 			ffound = true;
 		}
 
 		if( bitsDamage & DMG_NERVEGAS )
 		{
-			SetSuitUpdate( "!HEV_DET0", false, SUIT_NEXT_IN_1MIN );	// biohazard detected
+			SetSuitUpdate( "!HEV_DET0", SUIT_NEXT_IN_1MIN );	// biohazard detected
 			bitsDamage &= ~DMG_NERVEGAS;
 			ffound = true;
 		}
 
 		if( bitsDamage & DMG_RADIATION )
 		{
-			SetSuitUpdate( "!HEV_DET2", false, SUIT_NEXT_IN_1MIN );	// radiation detected
+			SetSuitUpdate( "!HEV_DET2", SUIT_NEXT_IN_1MIN );	// radiation detected
 			bitsDamage &= ~DMG_RADIATION;
 			ffound = true;
 		}
@@ -972,23 +972,23 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	{
 		// first time we take major damage...
 		// turn automedic on if not on
-		SetSuitUpdate( "!HEV_MED1", false, SUIT_NEXT_IN_30MIN );	// automedic on
+		SetSuitUpdate( "!HEV_MED1", SUIT_NEXT_IN_30MIN );	// automedic on
 
 		// give morphine shot if not given recently
-		SetSuitUpdate( "!HEV_HEAL7", false, SUIT_NEXT_IN_30MIN );	// morphine shot
+		SetSuitUpdate( "!HEV_HEAL7", SUIT_NEXT_IN_30MIN );	// morphine shot
 	}
 
 	if( fTookDamage && !ftrivial && fcritical && flHealthPrev < 75 )
 	{
 		// already took major damage, now it's critical...
 		if( pev->health < 6 )
-			SetSuitUpdate( "!HEV_HLTH3", false, SUIT_NEXT_IN_10MIN );	// near death
+			SetSuitUpdate( "!HEV_HLTH3", SUIT_NEXT_IN_10MIN );	// near death
 		else if( pev->health < 20 )
-			SetSuitUpdate( "!HEV_HLTH2", false, SUIT_NEXT_IN_10MIN );	// health critical
+			SetSuitUpdate( "!HEV_HLTH2", SUIT_NEXT_IN_10MIN );	// health critical
 
 		// give critical health warnings
 		if( !RANDOM_LONG( 0, 3 ) && flHealthPrev < 50 )
-			SetSuitUpdate( "!HEV_DMG7", false, SUIT_NEXT_IN_5MIN ); //seek medical attention
+			SetSuitUpdate( "!HEV_DMG7", SUIT_NEXT_IN_5MIN ); //seek medical attention
 	}
 
 	// if we're taking time based damage, warn about its continuing effects
@@ -997,10 +997,10 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		if( flHealthPrev < 50 )
 		{
 			if( !RANDOM_LONG( 0, 3 ) )
-				SetSuitUpdate( "!HEV_DMG7", false, SUIT_NEXT_IN_5MIN ); //seek medical attention
+				SetSuitUpdate( "!HEV_DMG7", SUIT_NEXT_IN_5MIN ); //seek medical attention
 		}
 		else
-			SetSuitUpdate( "!HEV_HLTH1", false, SUIT_NEXT_IN_10MIN );	// health dropping
+			SetSuitUpdate( "!HEV_HLTH1", SUIT_NEXT_IN_10MIN );	// health dropping
 	}
 
 	if (takeDamageResult.TookDamageToHealth() && pAttacker != NULL)
@@ -1310,7 +1310,7 @@ KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 		pev->velocity.z += RANDOM_FLOAT( 0, 300 );
 
 	// clear out the suit message cache so we don't keep chattering
-	SetSuitUpdate( NULL, false, 0 );
+	SetSuitUpdate( NULL, 0 );
 
 	// send "health" update message to zero
 	m_iClientHealth = 0;
@@ -1867,7 +1867,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	ReleaseTank();
 
 	// clear out the suit message cache so we don't keep chattering
-	SetSuitUpdate( NULL, false, 0 );
+	SetSuitUpdate( NULL, 0 );
 
 	// Tell Ammo Hud that the player is dead
 	SendCurWeaponDead();
@@ -3381,7 +3381,7 @@ void CBasePlayer::CheckTimeBasedDamage()
 					clearDamageType(itbd_Poison);
 					m_antidotes--;
 					m_antidoteProtectionTime = gpGlobals->time + GetSkillValue("antidote_time");
-					SetSuitUpdate("!HEV_HEAL4", false, SUIT_REPEAT_OK);
+					SetSuitUpdate("!HEV_HEAL4", SUIT_REPEAT_OK);
 					EmitSoundScript(Player::antidoteSoundScript);
 				}
 			}
@@ -3574,7 +3574,7 @@ void CBasePlayer::CheckSuitUpdate()
 // seconds, then we won't repeat playback of this word or sentence
 // for at least that number of seconds.
 
-void CBasePlayer::SetSuitUpdate(const char *name, bool fgroup, int iNoRepeatTime )
+void CBasePlayer::SetSuitUpdate(const char *name, int iNoRepeatTime )
 {
 	int i;
 	int isentence;
@@ -3600,6 +3600,8 @@ void CBasePlayer::SetSuitUpdate(const char *name, bool fgroup, int iNoRepeatTime
 			m_rgSuitPlayList[i] = 0;
 		return;
 	}
+
+	const bool fgroup = *name != '!';
 
 	// get sentence or group number
 	if( !fgroup )
@@ -8334,7 +8336,7 @@ public:
 
 		if (FStringNull(pev->message))
 		{
-			pPlayer->SetSuitUpdate(nullptr, false, 0);
+			pPlayer->SetSuitUpdate(nullptr, 0);
 			return;
 		}
 
@@ -8342,14 +8344,7 @@ public:
 		if (FBitSet(pev->spawnflags, SF_PLAYER_HEVSENTENCE_QUEUE))
 		{
 			int noRepeat = pev->impulse;
-			if (*message == '!')
-			{
-				pPlayer->SetSuitUpdate(message, false, noRepeat);
-			}
-			else
-			{
-				pPlayer->SetSuitUpdate(message, true, noRepeat);
-			}
+			pPlayer->SetSuitUpdate(message, noRepeat);
 		}
 		else
 		{
