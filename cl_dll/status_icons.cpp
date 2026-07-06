@@ -29,18 +29,24 @@
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon )
 DECLARE_MESSAGE( m_StatusIcons, Inventory )
 DECLARE_MESSAGE( m_StatusIcons, Antidotes )
+DECLARE_MESSAGE( m_StatusIcons, Radcans )
 
 int CHudStatusIcons::Init()
 {
 	HOOK_MESSAGE( StatusIcon );
 	HOOK_MESSAGE( Inventory );
 	HOOK_MESSAGE( Antidotes );
+	HOOK_MESSAGE( Radcans );
 
 	gHUD.AddHudElem( this );
 
 	m_antidote.itemName = "item_antidote";
 	m_antidote.showInJournal = false;
 	m_antidote.showCountWhenOne = true;
+
+	m_radcan.itemName = "item_radiation";
+	m_radcan.showInJournal = false;
+	m_radcan.showCountWhenOne = true;
 
 	Reset();
 
@@ -50,10 +56,16 @@ int CHudStatusIcons::Init()
 int CHudStatusIcons::VidInit()
 {
 	m_antidote.count = 0;
+	m_radcan.count = 0;
 
 	int antidoteIndex = gHUD.GetSpriteIndex("item_antidote");
 	m_antidote.spr = gHUD.GetSprite(antidoteIndex);
 	m_antidote.rc = gHUD.GetSpriteRect(antidoteIndex);
+
+	int radcanIndex = gHUD.GetSpriteIndex("item_radiation");
+	m_radcan.spr = gHUD.GetSprite(radcanIndex);
+	m_radcan.rc = gHUD.GetSpriteRect(radcanIndex);
+
 	return 1;
 }
 
@@ -204,6 +216,8 @@ int CHudStatusIcons::Draw( float flTime )
 
 	if (m_antidote.count > 0)
 		drawItem(m_antidote);
+	if (m_radcan.count > 0)
+		drawItem(m_radcan);
 	for (i=0; i<MAX_INVENTORY_ITEMS; ++i)
 	{
 		drawItem(m_InventoryList[i]);
@@ -426,6 +440,20 @@ int CHudStatusIcons::MsgFunc_Antidotes(const char *pszName, int iSize, void *pbu
 	int count = READ_SHORT();
 
 	m_antidote.count = count;
+
+	if (count > 0)
+		m_iFlags |= HUD_ACTIVE;
+
+	return 1;
+}
+
+int CHudStatusIcons::MsgFunc_Radcans(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+
+	int count = READ_SHORT();
+
+	m_radcan.count = count;
 
 	if (count > 0)
 		m_iFlags |= HUD_ACTIVE;

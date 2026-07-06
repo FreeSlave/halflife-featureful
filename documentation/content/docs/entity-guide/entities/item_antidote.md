@@ -17,6 +17,8 @@ When `item_antidote` is picked up the suit plays the `!HEV_DET4` sentence.
 When `item_antidote` is getting used the suit plays the `!HEV_HEAL4` sentence.
 {{% /hint %}}
 
+See also: [item_radiation]({{< ref item_radiation >}})
+
 ### Changes
 
 * Stops poison/nervegas time based effect faster.

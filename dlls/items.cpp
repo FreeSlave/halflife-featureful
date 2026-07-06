@@ -697,6 +697,7 @@ LINK_ENTITY_TO_CLASS( item_helmet, CItemHelmet )
 
 class CItemAntidote : public CItem
 {
+public:
 	void Spawn() override
 	{
 		Precache();
@@ -736,6 +737,44 @@ const NamedSoundScript CItemAntidote::pickupSoundScript = {
 	CHAN_ITEM,
 	{},
 	"Antidote.Pickup"
+};
+
+class CItemRadiation : public CItem
+{
+public:
+	void Spawn() override
+	{
+		Precache();
+		SetMyModel( "models/w_rad.mdl" );
+		CItem::Spawn();
+	}
+	void Precache() override
+	{
+		PrecacheMyModel( "models/w_rad.mdl" );
+		RegisterAndPrecacheSoundScript(pickupSoundScript);
+	}
+	bool MyTouch( CBasePlayer *pPlayer ) override
+	{
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
+
+		pPlayer->m_radcans += 1;
+
+		EmitSoundScript(pickupSoundScript);
+
+		NotifyPickup(pPlayer, pev->classname);
+
+		return true;
+	}
+
+	static const NamedSoundScript pickupSoundScript;
+};
+
+LINK_ENTITY_TO_CLASS( item_radiation, CItemRadiation )
+
+const NamedSoundScript CItemRadiation::pickupSoundScript = {
+	CHAN_ITEM,
+	{},
+	"Antirad.Pickup"
 };
 
 class CItemSecurity : public CItem

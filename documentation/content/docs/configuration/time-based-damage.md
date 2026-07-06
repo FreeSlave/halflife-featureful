@@ -69,6 +69,7 @@ The top-level object `"types"` have properties named after the damage types. Eac
 The time based damage can be stopped sooner by some entities.
 
 * [item_antidote]({{< ref item_antidote >}}) stops time based damage caused by `"poison"` and `"nervegas"` damage types.
+* [item_radiation]({{< ref item_radiation >}}) stops time based damage caused by `"radiation"` damage type.
 {{% /hint %}}
 
 {{% hint warning %}}

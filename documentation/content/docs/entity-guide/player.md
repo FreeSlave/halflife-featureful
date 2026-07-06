@@ -55,6 +55,7 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.Geiger** - geiger counter sounds played when player is close to the radioactive [trigger_hurt]({{< ref trigger_hurt >}}).
 * **Player.LongJump** - long jump sound. This is empty by default.
 * **Player.AntidoteUse** - played when [item_antidote]({{< ref item_antidote >}}) is used.
+* **Player.AntiradUse** - played when [item_radiation]({{< ref item_radiation >}}) is used.
 * **SprayCan.Paint** - player paints a spray on the wall. It's actually played on the entity created temporarily, not on the player.
 
 Example:

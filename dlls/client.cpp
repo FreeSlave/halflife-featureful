@@ -1233,6 +1233,7 @@ void ClientPrecache()
 		pWorld->RegisterAndPrecacheSoundScript(Player::longjumpSoundScript);
 
 		pWorld->RegisterAndPrecacheSoundScript(Player::antidoteSoundScript);
+		pWorld->RegisterAndPrecacheSoundScript(Player::antiradSoundScript);
 	};
 
 	PrecachePlayerSoundScripts(pWorld);

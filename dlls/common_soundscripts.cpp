@@ -330,6 +330,12 @@ const NamedSoundScript antidoteSoundScript = {
 	"Player.AntidoteUse"
 };
 
+const NamedSoundScript antiradSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Player.AntiradUse"
+};
+
 }
 
 const NamedSoundScript regenUpdateSoundScript = {

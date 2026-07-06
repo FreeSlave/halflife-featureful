@@ -4146,7 +4146,7 @@
 ]
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_antidote.mdl") = item_antidote : "Poison antidote"
 [
-	noise(sound) : "Pickup sound" : "items/gunpickup4.wav"
+	noise(sound) : "Pickup sound"
 ]
 @BaseClass size(-16 -16 0, 16 16 36) base(Item) = ArmorItem
 [
@@ -4186,6 +4186,7 @@
 	message(string) : "Message Name (titles.txt)" : : "Message from titles.txt to show on pickup"
 	noise(sound) : "Pickup sound" : : "Custom sound to play on pickup"
 ]
+@PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_rad.mdl") = item_radiation : "Radiation canister" []
 @PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_security.mdl") = item_security : "Security card"
 [
 	message(string) : "Message Name (titles.txt)" : : "Message from titles.txt to show on pickup"

@@ -87,6 +87,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 
 	DEFINE_FIELD( CBasePlayer, m_antidotes, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_antidoteProtectionTime, FIELD_TIME ),
+	DEFINE_FIELD( CBasePlayer, m_radcans, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayer, m_radiationProtectionTime, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayer, m_afPhysicsFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBasePlayer, m_flTimeStepSound, FIELD_TIME ),
@@ -248,6 +250,7 @@ int gmsgMaxClip = 0;
 int gmsgMaxAmmo = 0;
 int gmsgItems = 0;
 int gmsgAntidotes = 0;
+int gmsgRadcans = 0;
 
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0;
@@ -375,6 +378,7 @@ void LinkUserMessages()
 	gmsgMaxAmmo = REG_USER_MSG( "MaxAmmo", -1 );
 	gmsgItems = REG_USER_MSG( "Items", 4 );
 	gmsgAntidotes = REG_USER_MSG( "Antidotes", 2 );
+	gmsgRadcans = REG_USER_MSG( "Radcans", 2 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
 	gmsgStatusValue = REG_USER_MSG( "StatusValue", 3 );
@@ -3311,8 +3315,15 @@ void CBasePlayer::CheckTimeBasedDamage()
 		TimeBasedDamageInfo tbdInfo = getTimeBasedDamageInfo(i);
 
 		const bool protectedByAntidote = i == itbd_NerveGas || i == itbd_Poison;
+		const bool protectedByRadcan = i == itbd_Radiation;
 
 		if (protectedByAntidote && m_antidoteProtectionTime >= gpGlobals->time)
+		{
+			clearDamageType(i);
+			continue;
+		}
+
+		if (protectedByRadcan && m_radiationProtectionTime >= gpGlobals->time)
 		{
 			clearDamageType(i);
 			continue;
@@ -3383,6 +3394,17 @@ void CBasePlayer::CheckTimeBasedDamage()
 					m_antidoteProtectionTime = gpGlobals->time + GetSkillValue("antidote_time");
 					SetSuitUpdate("!HEV_HEAL4", SUIT_REPEAT_OK);
 					EmitSoundScript(Player::antidoteSoundScript);
+				}
+			}
+			else if (protectedByRadcan && tbdInfo.damagePerTick > 0)
+			{
+				if (m_radcans > 0)
+				{
+					clearDamageType(itbd_Radiation);
+					m_radcans--;
+					m_radiationProtectionTime = gpGlobals->time + GetSkillValue("antirad_time");
+					SetSuitUpdate("!HEV_HEAL5", SUIT_REPEAT_OK);
+					EmitSoundScript(Player::antiradSoundScript);
 				}
 			}
 		}
@@ -4254,6 +4276,7 @@ void CBasePlayer::Spawn()
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
 	m_iClientAntidotes = -1;
+	m_iClientRadcans = -1;
 
 	// reset all ammo values to 0
 	for( int i = 0; i < MAX_AMMO_TYPES; i++ )
@@ -4291,6 +4314,7 @@ void CBasePlayer::Precache()
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
 	m_iClientAntidotes = -1;
+	m_iClientRadcans = -1;
 
 	m_flFlashLightTime = 1;
 
@@ -4792,6 +4816,7 @@ void CBasePlayer::ForceClientDllUpdate()
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
 	m_iClientAntidotes = -1;
+	m_iClientRadcans = -1;
 	m_iClientHideHUD = -1;	// Vit_amiN: forcing to update
 	m_iClientFOV = -1;	// Vit_amiN: force client weapons to be sent
 	m_ClientSndRoomtype = -1;
@@ -5571,8 +5596,17 @@ void CBasePlayer::UpdateClientData()
 
 	if (m_antidotes != m_iClientAntidotes)
 	{
+		m_iClientAntidotes = m_antidotes;
 		MESSAGE_BEGIN(MSG_ONE, gmsgAntidotes, NULL, pev);
 			WRITE_SHORT(m_antidotes);
+		MESSAGE_END();
+	}
+
+	if (m_radcans != m_iClientRadcans)
+	{
+		m_iClientRadcans = m_radcans;
+		MESSAGE_BEGIN(MSG_ONE, gmsgRadcans, NULL, pev);
+			WRITE_SHORT(m_radcans);
 		MESSAGE_END();
 	}
 

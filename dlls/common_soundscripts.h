@@ -72,6 +72,7 @@ extern const NamedSoundScript deathUnderwaterSoundScript;
 extern const NamedSoundScript geigerSoundScript;
 extern const NamedSoundScript longjumpSoundScript;
 extern const NamedSoundScript antidoteSoundScript;
+extern const NamedSoundScript antiradSoundScript;
 }
 
 extern const NamedSoundScript regenUpdateSoundScript;

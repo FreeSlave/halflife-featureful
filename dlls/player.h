@@ -162,6 +162,10 @@ public:
 	int					m_iClientAntidotes;
 	float				m_antidoteProtectionTime;
 
+	int					m_radcans;
+	int					m_iClientRadcans;
+	float				m_radiationProtectionTime;
+
 	bool				m_fKnownItem;		// True when a new item needs to be added
 	int					m_fNewAmmo;			// True when a new item has been added
 
