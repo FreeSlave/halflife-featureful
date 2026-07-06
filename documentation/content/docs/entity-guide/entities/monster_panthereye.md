@@ -3,7 +3,7 @@ bookHidden: true
 bookToC: false
 ---
 
-# monster_panthereye
+# ![](/images/alpha.png) monster_panthereye
 
 An alien creature cut from Half-Life.
 

@@ -4,7 +4,7 @@ bookToC: false
 entityCategory: pickup
 ---
 
-# item_adrenaline
+# ![](/images/alpha.png) item_adrenaline
 
 Adrenaline canister/syringe is a pickable item that is used automatically to revive the player in 3 seconds after his death.
 

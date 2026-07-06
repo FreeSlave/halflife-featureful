@@ -4,7 +4,7 @@ bookToC: false
 entityCategory: pickup
 ---
 
-# item_radiation
+# ![](/images/alpha.png) item_radiation
 
 Radiation canister (or antirad) is a pickable item that is used automatically upon the player getting the [time based damage]({{< ref "time-based-damage" >}}) effect from radiation and also gives temporary immunity against the subsequent time based damage (but doesn't protect from the impact damage).
 The player can carry many radiation canisters (there's currently no limit on maximum canisters carried).

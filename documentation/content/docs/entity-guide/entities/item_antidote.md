@@ -4,7 +4,7 @@ bookToC: false
 entityCategory: pickup
 ---
 
-# item_antidote
+# ![](/images/alpha.png) item_antidote
 
 [TWHL](https://twhl.info/wiki/page/item_antidote)
 

@@ -64,6 +64,7 @@ Throughout this wiki we use the following icons to mark if the entity, flag, par
 * ![](/images/decay.png) - Entities from *Decay* and PS2 version of Half-Life.
 * ![](/images/svencoop.png) - *Sven Co-op* compatible (or implemented in similar fashion) entity, parameter, cvar or feature.
 * ![](/images/spirit.png) - *Spirit of Half-Life* compatible flag, parameter or entity.
+* ![](/images/alpha.png) - a feature or entity planned for Half-Life but cut from or left unimplemented in the retail version.
 * ![](/images/cstrike.png) - entity, cvar or feature from *Counter Strike*.
 * ![](/images/czeror.png) - entity or feature from *Condition Zero Deleted Scenes*.
 * ![](/images/tfc.png) - weapon or feature from *Team Fortress Classic*.
