@@ -61,6 +61,17 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 
 ## Following monsters features
 
+Following monsters are monsters who can follow the player upon being 'used'. Most humanoid monsters automatically become following monsters if they're set to be player's allies.
+
+* New parameter `Follow fail policy` that configures what the following monster should do if can't build a path to the player, with the following options:
+    - `Default for monster` - behavior depends on the monster. Most monsters will just stop for a few seconds. Scientists will refuse continuing following altogether.
+    - `Regular fail` - the monster will wait for a few seconds, then try again.
+    - `Stop following` - the monster will stop following once he can't build a path to the player. Talkmonsters will play their *stop* sentence (e.g. `SC_STOP`).
+    - `Try nearest path` - the monster will try to go to the node nearest to the player.
+* New parameter `Followage policy`, with the following options:
+    - `Regular` - the monster will start and stop following when player press *+use* key on them as usual.
+    - `Scripted only` - the monster won't react to the *+use* key, but still can be made following via the [scripted_following]({{< ref scripted_following >}}) entity.
+    - `Scripted only, decline use` - the monster won't change its following state by the player's request. Pressing *+use* on the monster will make the monster play its decline following voice line if there's one (e.g. `SC_POK` for scientists by default).
 * ![](/images/svencoop.png) Many monsters who are by default player's enemies can be used to follow a player when set to be a player ally (similar to scientists and security guards in Half-Life).
 * ![](/images/spirit.png) Ally monsters can be 'locked' by master, so they decline following even if they are not pre-disaster.
 * ![](/images/opfor.png) Opposing Force soldiers following the player will attack player's attacker.
@@ -69,7 +80,7 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 
 ## Talkmonster features
 
-Talkmonsters are monsters who talk to each other and a player and can follow the player upon using. This includes allies from Half-Life and Opposing Force.
+Talkmonsters are the following monsters who can also talk to each other and to the player. This includes allies from Half-Life and Opposing Force.
 
 * ![](/images/opfor.png) New parameter `Suspicious` to make a monster pre-provoked towards the player.
 * ![](/images/spirit.png) New parameter `Refusal Sentence` to substitute the default decline following sentence (when player uses a pre-disaster monster)
