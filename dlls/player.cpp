@@ -5209,20 +5209,22 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 			const WeaponInfo& weaponInfo = AccessWeaponInfo(j);
 			const WeaponParameters& params = weaponInfo.params;
 
-			if (params.exhausitble && !params.ammoName.empty() && params.ammoName == szName)
+			if (g_modFeatures.IsWeaponEnabled(weaponInfo.id) && params.exhausitble && !params.ammoName.empty() && params.ammoName == szName)
 			{
 				// we found a weapon that uses this ammo type
 
 				const int weaponId = weaponInfo.id;
 				const char* weaponName = weaponInfo.classname;
 
-				if (!HasWeaponBit(weaponId)) {
+				if (!HasWeaponBit(weaponId))
+				{
 					// player does not have this weapon
 					CBaseEntity* pCreated = Create(weaponName, pev->origin, pev->angles);
 					if (pCreated)
 					{
 						CBasePlayerWeapon* weapon = pCreated->MyWeaponPointer();
-						if (weapon) {
+						if (weapon)
+						{
 							weapon->pev->spawnflags |= SF_NORESPAWN;
 							weapon->m_iDefaultAmmo = ammoLeft;
 							ammoLeft = 0;
@@ -5232,11 +5234,15 @@ int CBasePlayer::GiveAmmo(int iCount, const char *szName)
 							else
 								UTIL_Remove(weapon);
 						}
+						else
+						{
+							ALERT(at_console, "GiveAmmo: expected weapon, but created entity '%s' is not a weapon\n", weaponName);
+							UTIL_Remove(pCreated);
+						}
 					}
 					else
 					{
-						ALERT(at_console, "GiveAmmo: expected weapon, but created entity is not a weapon\n");
-						UTIL_Remove(pCreated);
+						ALERT(at_console, "GiveAmmo: couldn't create entity '%s'\n", weaponName);
 					}
 				}
 			}
