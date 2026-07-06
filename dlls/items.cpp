@@ -735,7 +735,7 @@ LINK_ENTITY_TO_CLASS( item_antidote, CItemAntidote )
 
 const NamedSoundScript CItemAntidote::pickupSoundScript = {
 	CHAN_ITEM,
-	{},
+	{"items/gunpickup4.wav"},
 	"Antidote.Pickup"
 };
 
@@ -773,7 +773,7 @@ LINK_ENTITY_TO_CLASS( item_radiation, CItemRadiation )
 
 const NamedSoundScript CItemRadiation::pickupSoundScript = {
 	CHAN_ITEM,
-	{},
+	{"items/gunpickup4.wav"},
 	"Antirad.Pickup"
 };
 
@@ -811,7 +811,7 @@ LINK_ENTITY_TO_CLASS( item_adrenaline, CItemAdrenaline )
 
 const NamedSoundScript CItemAdrenaline::pickupSoundScript = {
 	CHAN_ITEM,
-	{},
+	{"items/gunpickup4.wav"},
 	"Adrenaline.Pickup"
 };
 

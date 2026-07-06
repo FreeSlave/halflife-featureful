@@ -30,5 +30,5 @@ See also: [item_antidote]({{< ref item_antidote >}})
 
 ### Soundscripts
 
-* **Antirad.Pickup** - the radiation canister is getting picked up. Empty by default.
+* **Antirad.Pickup** - the radiation canister is getting picked up.
 * [Player.AntiradUse]({{< ref "player/#soundscripts" >}})

@@ -12,7 +12,7 @@ Antidote (also known as antitoxin) is a pickable item that is used automatically
 The player can carry many antidotes (there's currently no limit on maximum antidotes carried).
 
 {{% hint info %}}
-When `item_antidote` is picked up the suit plays the `!HEV_DET4` sentence.
+When `item_antidote` is picked up the suit plays the `!HEV_DET4` sentence. This can be configured via the [entity templates]({{< ref "entity-templates/#pickup" >}}).
 
 When `item_antidote` is getting used the suit plays the `!HEV_HEAL4` sentence.
 {{% /hint %}}
@@ -35,5 +35,29 @@ See also: [item_radiation]({{< ref item_radiation >}})
 
 ### Soundscripts
 
-* **Antidote.Pickup** - the antidote is getting picked up. Empty by default.
+* **Antidote.Pickup** - the antidote is getting picked up.
 * [Player.AntidoteUse]({{< ref "player/#soundscripts" >}})
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Custom pickup sentence" %}}
+```json
+{
+    "item_antidote": {
+        "pickup": {
+            "suit_sentence": "!HEV_ANTIDOTE"
+        }
+    }
+}
+```
+
+Possible **sentences.txt** entry:
+
+```
+HEV_ANTIDOTE fvox/blip blip blip, antitoxin_shot(e50), acquired
+```
+{{% /tab %}}
+
+{{% /tabs %}}
