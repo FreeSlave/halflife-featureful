@@ -4140,6 +4140,7 @@
 // items
 //
 
+@PointClass size(-16 -16 0, 16 16 36) base(Item) studio("models/w_adrenaline.mdl") = item_adrenaline : "Adrenaline" []
 @PointClass size(-16 -16 0, 16 16 36) base(Targetname, Appearflags, Angles, Global, Scalable, EntityTemplate) studio("models/w_oxygen.mdl") = item_airtank : "Oxygen tank"
 [
 	model(studio) : "Custom Model"

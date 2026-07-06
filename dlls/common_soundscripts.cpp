@@ -336,6 +336,12 @@ const NamedSoundScript antiradSoundScript = {
 	"Player.AntiradUse"
 };
 
+const NamedSoundScript adrenalineSoundScript = {
+	CHAN_STATIC,
+	{},
+	"Player.AdrenalineUse"
+};
+
 }
 
 const NamedSoundScript regenUpdateSoundScript = {

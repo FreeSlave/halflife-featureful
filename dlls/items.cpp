@@ -777,6 +777,44 @@ const NamedSoundScript CItemRadiation::pickupSoundScript = {
 	"Antirad.Pickup"
 };
 
+class CItemAdrenaline : public CItem
+{
+public:
+	void Spawn() override
+	{
+		Precache();
+		SetMyModel( "models/w_adrenaline.mdl" );
+		CItem::Spawn();
+	}
+	void Precache() override
+	{
+		PrecacheMyModel( "models/w_adrenaline.mdl" );
+		RegisterAndPrecacheSoundScript(pickupSoundScript);
+	}
+	bool MyTouch( CBasePlayer *pPlayer ) override
+	{
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
+
+		pPlayer->m_adrenalines += 1;
+
+		EmitSoundScript(pickupSoundScript);
+
+		NotifyPickup(pPlayer, pev->classname);
+
+		return true;
+	}
+
+	static const NamedSoundScript pickupSoundScript;
+};
+
+LINK_ENTITY_TO_CLASS( item_adrenaline, CItemAdrenaline )
+
+const NamedSoundScript CItemAdrenaline::pickupSoundScript = {
+	CHAN_ITEM,
+	{},
+	"Adrenaline.Pickup"
+};
+
 class CItemSecurity : public CItem
 {
 	void Spawn() override

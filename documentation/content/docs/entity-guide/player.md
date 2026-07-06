@@ -56,6 +56,7 @@ In original Half-Life entities named `game_playerdie` are triggered only in mult
 * **Player.LongJump** - long jump sound. This is empty by default.
 * **Player.AntidoteUse** - played when [item_antidote]({{< ref item_antidote >}}) is used.
 * **Player.AntiradUse** - played when [item_radiation]({{< ref item_radiation >}}) is used.
+* **Player.AdrenalineUse** - played when player is revived by [item_adrenaline]({{< ref item_adrenaline >}}).
 * **SprayCan.Paint** - player paints a spray on the wall. It's actually played on the entity created temporarily, not on the player.
 
 Example:

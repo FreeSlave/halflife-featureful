@@ -89,6 +89,10 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_antidoteProtectionTime, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayer, m_radcans, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_radiationProtectionTime, FIELD_TIME ),
+	DEFINE_FIELD( CBasePlayer, m_adrenalines, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayer, m_flNextRevive, FIELD_TIME ),
+	DEFINE_FIELD( CBasePlayer, m_preventAdrenalineRevival, FIELD_BOOLEAN ),
+
 	DEFINE_FIELD( CBasePlayer, m_afPhysicsFlags, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CBasePlayer, m_flTimeStepSound, FIELD_TIME ),
@@ -251,6 +255,7 @@ int gmsgMaxAmmo = 0;
 int gmsgItems = 0;
 int gmsgAntidotes = 0;
 int gmsgRadcans = 0;
+int gmsgAdrenalines = 0;
 
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0;
@@ -379,6 +384,7 @@ void LinkUserMessages()
 	gmsgItems = REG_USER_MSG( "Items", 4 );
 	gmsgAntidotes = REG_USER_MSG( "Antidotes", 2 );
 	gmsgRadcans = REG_USER_MSG( "Radcans", 2 );
+	gmsgAdrenalines = REG_USER_MSG( "Adrenalines", 2 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
 	gmsgStatusValue = REG_USER_MSG( "StatusValue", 3 );
@@ -1335,27 +1341,40 @@ KilledResult CBasePlayer::Killed( entvars_t *pevInflictor, entvars_t *pevAttacke
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
 
-	RemoveAllInventoryItems();
+	if (FBitSet(m_bitsDamageType, DMG_DROWN|DMG_FALL))
+	{
+		m_preventAdrenalineRevival = true;
+	}
 
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
 	// UTIL_ScreenFade( edict(), Vector( 128, 0, 0 ), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
 
-	if( g_pGameRules->IsMultiplayer())
-		pev->solid = SOLID_NOT;
-
 	if( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS )
 	{
+		RemoveAllInventoryItems();
 		pev->solid = SOLID_NOT;
 		GibMonster();	// This clears pev->model
 		pev->effects |= EF_NODRAW;
+		m_preventAdrenalineRevival = true;
 		return killedResult.SetGibbed();
 	}
+
+	if ((m_preventAdrenalineRevival || m_adrenalines <= 0) && g_pGameRules->IsMultiplayer())
+		pev->solid = SOLID_NOT;
 
 	DeathSound();
 
 	pev->angles.x = 0;
 	pev->angles.z = 0;
 
+	if (!m_preventAdrenalineRevival && m_adrenalines > 0)
+	{
+		SetSuitUpdate("!HEV_HEAL9", SUIT_REPEAT_OK);
+		m_flNextRevive = gpGlobals->time + 3.0f;
+		return killedResult;
+	}
+
+	RemoveAllInventoryItems();
 	SetThink( &CBasePlayer::PlayerDeathThink );
 	pev->nextthink = gpGlobals->time + 0.1f;
 	return killedResult;
@@ -1689,6 +1708,10 @@ void CBasePlayer::PlayerDeathThink()
 		else    
 			pev->velocity = flForward * pev->velocity.Normalize();
 	}
+
+	m_antidotes = 0;
+	m_radcans = 0;
+	m_adrenalines = 0;
 
 	if( HasWeapons() )
 	{
@@ -2886,8 +2909,32 @@ void CBasePlayer::PreThink()
 
 	if( pev->deadflag >= DEAD_DYING )
 	{
-		PlayerDeathThink();
-		return;
+		if (!m_preventAdrenalineRevival && m_adrenalines > 0)
+		{
+			if (m_flNextRevive <= gpGlobals->time)
+			{
+				pev->deadflag = DEAD_NO;
+				pev->health = static_cast<int>(pev->max_health * 0.25f);
+				pev->health = Q_max(pev->health, 1.0f);
+
+				m_adrenalines--;
+				EmitSoundScript(Player::adrenalineSoundScript);
+
+				pev->movetype = MOVETYPE_WALK;
+				pev->fov = m_iFOV;
+				pev->view_ofs = VEC_VIEW;
+
+				if (m_pActiveItem)
+					m_pActiveItem->Deploy();
+
+				m_flNextRevive = 0.0f;
+			}
+		}
+		else
+		{
+			PlayerDeathThink();
+			return;
+		}
 	}
 
 	// So the correct flags get sent to client asap.
@@ -4273,10 +4320,7 @@ void CBasePlayer::Spawn()
 	m_iClientHideHUD = -1;  // force this to be recalculated
 	m_fWeapon = false;
 	m_pClientActiveItem = NULL;
-	m_iClientBattery = -1;
-	m_iClientMaxBattery = -1;
-	m_iClientAntidotes = -1;
-	m_iClientRadcans = -1;
+	MarkClientValuesForUpdate();
 
 	// reset all ammo values to 0
 	for( int i = 0; i < MAX_AMMO_TYPES; i++ )
@@ -4311,10 +4355,7 @@ void CBasePlayer::Precache()
 
 	m_bitsHUDDamage = -1;
 
-	m_iClientBattery = -1;
-	m_iClientMaxBattery = -1;
-	m_iClientAntidotes = -1;
-	m_iClientRadcans = -1;
+	MarkClientValuesForUpdate();
 
 	m_flFlashLightTime = 1;
 
@@ -4809,14 +4850,20 @@ so that the client side .dll can behave correctly.
 Reset stuff so that the state is transmitted.
 ===============
 */
-void CBasePlayer::ForceClientDllUpdate()
+void CBasePlayer::MarkClientValuesForUpdate()
 {
-	m_iClientHealth = -1;
-	m_iClientMaxHealth = -1;
 	m_iClientBattery = -1;
 	m_iClientMaxBattery = -1;
 	m_iClientAntidotes = -1;
 	m_iClientRadcans = -1;
+	m_iClientAdrenalines = -1;
+}
+
+void CBasePlayer::ForceClientDllUpdate()
+{
+	m_iClientHealth = -1;
+	m_iClientMaxHealth = -1;
+	MarkClientValuesForUpdate();
 	m_iClientHideHUD = -1;	// Vit_amiN: forcing to update
 	m_iClientFOV = -1;	// Vit_amiN: force client weapons to be sent
 	m_ClientSndRoomtype = -1;
@@ -5594,21 +5641,20 @@ void CBasePlayer::UpdateClientData()
 		MESSAGE_END();
 	}
 
-	if (m_antidotes != m_iClientAntidotes)
+	auto updateCanisterCount = [this](int msgId, int count, int& clientKnownCount)
 	{
-		m_iClientAntidotes = m_antidotes;
-		MESSAGE_BEGIN(MSG_ONE, gmsgAntidotes, NULL, pev);
-			WRITE_SHORT(m_antidotes);
-		MESSAGE_END();
-	}
+		if (count != clientKnownCount)
+		{
+			clientKnownCount = count;
+			MESSAGE_BEGIN(MSG_ONE, msgId, NULL, pev);
+				WRITE_SHORT(count);
+			MESSAGE_END();
+		}
+	};
 
-	if (m_radcans != m_iClientRadcans)
-	{
-		m_iClientRadcans = m_radcans;
-		MESSAGE_BEGIN(MSG_ONE, gmsgRadcans, NULL, pev);
-			WRITE_SHORT(m_radcans);
-		MESSAGE_END();
-	}
+	updateCanisterCount(gmsgAntidotes, m_antidotes, m_iClientAntidotes);
+	updateCanisterCount(gmsgRadcans, m_radcans, m_iClientRadcans);
+	updateCanisterCount(gmsgAdrenalines, m_adrenalines, m_iClientAdrenalines);
 
 	if (m_WeaponBits != m_ClientWeaponBits)
 	{

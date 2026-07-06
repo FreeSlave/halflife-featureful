@@ -166,6 +166,11 @@ public:
 	int					m_iClientRadcans;
 	float				m_radiationProtectionTime;
 
+	int					m_adrenalines;
+	int					m_iClientAdrenalines;
+	float				m_flNextRevive;
+	bool				m_preventAdrenalineRevival;
+
 	bool				m_fKnownItem;		// True when a new item needs to be added
 	int					m_fNewAmmo;			// True when a new item has been added
 
@@ -424,6 +429,7 @@ public:
 	Vector GetAutoaimVectorFromPoint( const Vector& vecSrc,float flDelta  );
 	Vector AutoaimDeflection( const Vector &vecSrc, float flDist, float flDelta  );
 
+	void MarkClientValuesForUpdate();
 	void ForceClientDllUpdate();  // Forces all client .dll specific data to be resent to client.
 
 	void DeathMessage( entvars_t *pevKiller );

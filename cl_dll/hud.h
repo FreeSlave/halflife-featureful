@@ -797,8 +797,10 @@ public:
 	int Draw( float flTime ) override;
 	int MsgFunc_StatusIcon( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Inventory( const char *pszName, int iSize, void *pbuf );
+	int HandleCanisterItemMessage( const char *pszName, int iSize, void *pbuf, inventory_t& item );
 	int MsgFunc_Antidotes( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Radcans( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_Adrenalines( const char *pszName, int iSize, void *pbuf );
 
 	void EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, bool allowDuplicate = false);
 	void DisableIcon(const char *pszIconName);
@@ -815,6 +817,7 @@ private:
 public:
 	inventory_t m_antidote;
 	inventory_t m_radcan;
+	inventory_t m_adrenaline;
 	inventory_t m_InventoryList[MAX_INVENTORY_ITEMS];
 };
 

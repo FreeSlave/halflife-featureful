@@ -30,6 +30,7 @@ DECLARE_MESSAGE( m_StatusIcons, StatusIcon )
 DECLARE_MESSAGE( m_StatusIcons, Inventory )
 DECLARE_MESSAGE( m_StatusIcons, Antidotes )
 DECLARE_MESSAGE( m_StatusIcons, Radcans )
+DECLARE_MESSAGE( m_StatusIcons, Adrenalines )
 
 int CHudStatusIcons::Init()
 {
@@ -37,6 +38,7 @@ int CHudStatusIcons::Init()
 	HOOK_MESSAGE( Inventory );
 	HOOK_MESSAGE( Antidotes );
 	HOOK_MESSAGE( Radcans );
+	HOOK_MESSAGE( Adrenalines );
 
 	gHUD.AddHudElem( this );
 
@@ -48,6 +50,10 @@ int CHudStatusIcons::Init()
 	m_radcan.showInJournal = false;
 	m_radcan.showCountWhenOne = true;
 
+	m_adrenaline.itemName = "item_adrenaline";
+	m_adrenaline.showInJournal = false;
+	m_adrenaline.showCountWhenOne = true;
+
 	Reset();
 
 	return 1;
@@ -57,6 +63,7 @@ int CHudStatusIcons::VidInit()
 {
 	m_antidote.count = 0;
 	m_radcan.count = 0;
+	m_adrenaline.count = 0;
 
 	int antidoteIndex = gHUD.GetSpriteIndex("item_antidote");
 	m_antidote.spr = gHUD.GetSprite(antidoteIndex);
@@ -65,6 +72,10 @@ int CHudStatusIcons::VidInit()
 	int radcanIndex = gHUD.GetSpriteIndex("item_radiation");
 	m_radcan.spr = gHUD.GetSprite(radcanIndex);
 	m_radcan.rc = gHUD.GetSpriteRect(radcanIndex);
+
+	int adrenalineIndex = gHUD.GetSpriteIndex("item_adrenaline");
+	m_adrenaline.spr = gHUD.GetSprite(adrenalineIndex);
+	m_adrenaline.rc = gHUD.GetSpriteRect(adrenalineIndex);
 
 	return 1;
 }
@@ -218,6 +229,8 @@ int CHudStatusIcons::Draw( float flTime )
 		drawItem(m_antidote);
 	if (m_radcan.count > 0)
 		drawItem(m_radcan);
+	if (m_adrenaline.count > 0)
+		drawItem(m_adrenaline);
 	for (i=0; i<MAX_INVENTORY_ITEMS; ++i)
 	{
 		drawItem(m_InventoryList[i]);
@@ -433,13 +446,12 @@ void CHudStatusIcons::DisableIcon(const char *pszIconName)
 	}
 }
 
-int CHudStatusIcons::MsgFunc_Antidotes(const char *pszName, int iSize, void *pbuf)
+int CHudStatusIcons::HandleCanisterItemMessage(const char *pszName, int iSize, void *pbuf, inventory_t &item)
 {
 	BEGIN_READ( pbuf, iSize );
 
 	int count = READ_SHORT();
-
-	m_antidote.count = count;
+	item.count = count;
 
 	if (count > 0)
 		m_iFlags |= HUD_ACTIVE;
@@ -447,16 +459,17 @@ int CHudStatusIcons::MsgFunc_Antidotes(const char *pszName, int iSize, void *pbu
 	return 1;
 }
 
+int CHudStatusIcons::MsgFunc_Antidotes(const char *pszName, int iSize, void *pbuf)
+{
+	return HandleCanisterItemMessage(pszName, iSize, pbuf, m_antidote);
+}
+
 int CHudStatusIcons::MsgFunc_Radcans(const char *pszName, int iSize, void *pbuf)
 {
-	BEGIN_READ( pbuf, iSize );
+	return HandleCanisterItemMessage(pszName, iSize, pbuf, m_radcan);
+}
 
-	int count = READ_SHORT();
-
-	m_radcan.count = count;
-
-	if (count > 0)
-		m_iFlags |= HUD_ACTIVE;
-
-	return 1;
+int CHudStatusIcons::MsgFunc_Adrenalines(const char *pszName, int iSize, void *pbuf)
+{
+	return HandleCanisterItemMessage(pszName, iSize, pbuf, m_adrenaline);
 }
