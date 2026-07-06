@@ -8,8 +8,14 @@ entityCategory: pickup
 
 [TWHL](https://twhl.info/wiki/page/item_antidote)
 
-Antidote is a pickable item that is used automatically upon the player getting the [time based damage]({{< ref "time-based-damage" >}}) effect from poison and nervegas and also gives temporary immunity against the subsequent time based damage (but doesn't protect from the impact damage).
+Antidote (also known as antitoxin) is a pickable item that is used automatically upon the player getting the [time based damage]({{< ref "time-based-damage" >}}) effect from poison and nervegas and also gives temporary immunity against the subsequent time based damage (but doesn't protect from the impact damage).
 The player can carry many antidotes (there's currently no limit on maximum antidotes carried).
+
+{{% hint info %}}
+When `item_antidote` is picked up the suit plays the `!HEV_DET4` sentence.
+
+When `item_antidote` is getting used the suit plays the `!HEV_HEAL4` sentence.
+{{% /hint %}}
 
 ### Changes
 

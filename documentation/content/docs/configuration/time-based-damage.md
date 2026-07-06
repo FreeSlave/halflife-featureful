@@ -61,9 +61,15 @@ For example this is the definition of time based damage values as left in code b
 The top-level object `"types"` have properties named after the damage types. Each of such objects can have the following properties:
 
 * `"damage_per_tick"` - how much damage the one 'tick' of the time based damage deals. By default this is 2 for `"poison"` and 0 for everything else.
-* `"tick_count"` - how many times to do damage. By default this is set to 6 for `"poison"` so the full dose of the time based damage is `2 * 6 = 12` by default. For other types it's set to 3 by default.
+* `"tick_count"` - how many times to do damage. This is set to 3 for all types, except for `"poison"` which has it set to 6, so the full dose of the time based damage applied by poison is `2 * 6 = 12` by default.
 * `"interval"` - delay (in seconds) between damage 'ticks'. This is 2 seconds by default for all damage types.
 * `"first_delay"` - delay before the portion of `"damage_per_tick"` is dealt after the initial impact. This is 0 by default which means the first timed based damage is dealt right after the initial impact.
+
+{{% hint info %}}
+The time based damage can be stopped sooner by some entities.
+
+* [item_antidote]({{< ref item_antidote >}}) stops time based damage caused by `"poison"` and `"nervegas"` damage types.
+{{% /hint %}}
 
 {{% hint warning %}}
 The `"paralyze"` damage type is not drawn in HUD.

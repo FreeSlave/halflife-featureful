@@ -8,6 +8,10 @@ entityCategory: pickup
 
 [TWHL](https://twhl.info/wiki/page/item_security)
 
+{{% hint warning %}}
+This entity is left for compatibility with existing maps. For quest items prefer using [item_pickup]({{< ref item_pickup >}}).
+{{% /hint %}}
+
 ### New parameters
 
 * `Message` - show message from titles.txt on pickup.
