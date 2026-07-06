@@ -1440,16 +1440,12 @@ int SENTENCEG_GetIndex( const char *szgroupname )
 
 int SENTENCEG_PlayRndI( edict_t *entity, int isentenceg, float volume, float attenuation, int flags, int pitch )
 {
-	char name[64];
-	int ipick;
-
 	if( !fSentencesInit )
 		return -1;
 
-	name[0] = 0;
-
-	ipick = USENTENCEG_Pick( isentenceg, name );
-	if( ipick > 0 )
+	char name[64] = {0};
+	int ipick = USENTENCEG_Pick( isentenceg, name );
+	if( ipick >= 0 && name[0] )
 		EMIT_SOUND_DYN( entity, CHAN_VOICE, name, volume, attenuation, flags, pitch );
 	return ipick;
 }
@@ -1458,16 +1454,10 @@ int SENTENCEG_PlayRndI( edict_t *entity, int isentenceg, float volume, float att
 
 static int SENTENCEG_PlayRndSzImpl( edict_t *entity, const char *szgroupname, float volume, float attenuation, int flags, int pitch, int channel = 0, bool subtitle = false, int holdTime = 0 )
 {
-	char name[64];
-	int ipick;
-	int isentenceg;
-
 	if( !fSentencesInit )
 		return -1;
 
-	name[0] = 0;
-
-	isentenceg = SENTENCEG_GetIndex( szgroupname );
+	int isentenceg = SENTENCEG_GetIndex( szgroupname );
 	if( isentenceg < 0 )
 	{
 		if (!FBitSet(flags, SND_DONT_REPORT_MISSING))
@@ -1475,7 +1465,8 @@ static int SENTENCEG_PlayRndSzImpl( edict_t *entity, const char *szgroupname, fl
 		return -1;
 	}
 
-	ipick = USENTENCEG_Pick( isentenceg, name );
+	char name[64] = {0};
+	int ipick = USENTENCEG_Pick( isentenceg, name );
 	if( ipick >= 0 && name[0] )
 	{
 		ClearBits(flags, SND_DONT_REPORT_MISSING);
