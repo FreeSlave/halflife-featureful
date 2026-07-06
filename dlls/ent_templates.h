@@ -10,6 +10,7 @@
 #include "optional.h"
 #include "tribool.h"
 #include "ent_filter.h"
+#include "sentences.h"
 #include "skillbasedvalue.h"
 
 #include <map>
@@ -662,6 +663,19 @@ public:
 		return _pickupHudSprite.empty() ? nullptr : _pickupHudSprite.c_str();
 	}
 
+	void SetPickupSuitSentence(const char* name) {
+		_pickupSuitSentence = name;
+	}
+	const char* GetPickupSuitSentence() const {
+		return _pickupSuitSentence.empty() ? nullptr : _pickupSuitSentence.c_str();
+	}
+	void SetPickupSuitSentenceInterval(float value) {
+		_pickupSuitSentenceInterval = value;
+	}
+	float GetPickupSuitSentenceInterval() const {
+		return _pickupSuitSentenceInterval;
+	}
+
 	const PassiveRegeneration& GetPassiveRegenerationRules() const {
 		return _passiveRegeneration;
 	}
@@ -754,6 +768,9 @@ private:
 	Projectile _projectile;
 
 	std::string _pickupHudSprite;
+
+	fixed_string<CBSENTENCENAME_MAX + 1> _pickupSuitSentence;
+	float _pickupSuitSentenceInterval{-1.0f};
 
 	PassiveRegeneration _passiveRegeneration;
 	ActiveRegeneration _activeRegeneration;

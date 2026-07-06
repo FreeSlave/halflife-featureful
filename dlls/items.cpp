@@ -713,7 +713,7 @@ class CItemAntidote : public CItem
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
-		pPlayer->SetSuitUpdate( "!HEV_DET4", SUIT_NEXT_IN_1MIN );
+		pPlayer->SetPickupSuitUpdate(this, "!HEV_DET4", SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_antidotes += 1;
 
@@ -765,6 +765,8 @@ class CItemSecurity : public CItem
 
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
+
 		if (!FStringNull(pev->noise))
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
 		NotifyPickup(pPlayer, pev->netname);
@@ -856,6 +858,8 @@ public:
 
 		if (!FStringNull(pev->message))
 			UTIL_ShowMessage( STRING( pev->message ), pPlayer );
+
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_REPEAT_OK);
 
 		return true;
 	}

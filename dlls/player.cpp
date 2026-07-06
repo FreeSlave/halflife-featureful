@@ -3666,6 +3666,22 @@ void CBasePlayer::SetSuitUpdate(const char *name, float iNoRepeatTime)
 	}
 }
 
+void CBasePlayer::SetPickupSuitUpdate(CBaseEntity *pPickupEntity, const char *name, float iNoRepeat)
+{
+	const EntTemplate* entTemplate = pPickupEntity->GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const char* overrideSentence = entTemplate->GetPickupSuitSentence();
+		if (overrideSentence)
+			name = overrideSentence;
+		float overrideInterval = entTemplate->GetPickupSuitSentenceInterval();
+		if (overrideInterval >= 0.0f)
+			iNoRepeat = overrideInterval;
+	}
+	if (name && *name)
+		SetSuitUpdate(name, iNoRepeat);
+}
+
 /*
 ================
 CheckPowerups

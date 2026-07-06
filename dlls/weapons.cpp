@@ -853,6 +853,8 @@ bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 	pev->globalname = iStringNull;
 	m_iClientMaxClip = 0;
 
+	pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_30MIN);
+
 	return AddWeapon();
 }
 

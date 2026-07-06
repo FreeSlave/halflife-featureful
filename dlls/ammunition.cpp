@@ -114,6 +114,8 @@ void CBasePlayerAmmo::TouchOrUse( CBaseEntity *pOther )
 
 	if( AddAmmo( pOther ) )
 	{
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_5MIN);
+
 		SUB_UseTargets( pOther );
 
 		if( g_pGameRules->AmmoShouldRespawn( this ) == GR_AMMO_RESPAWN_YES )

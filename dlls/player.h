@@ -403,6 +403,7 @@ public:
 	bool CanPlaySuitSentences();
 	void CheckSuitUpdate();
 	void SetSuitUpdate( const char *name, float iNoRepeat );
+	void SetPickupSuitUpdate( CBaseEntity* pPickupEntity, const char *name, float iNoRepeat );
 	void UpdateGeigerCounter();
 	void CheckTimeBasedDamage();
 

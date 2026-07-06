@@ -1378,6 +1378,46 @@ This property affects only the following items:
 }
 ```
 
+#### suit_sentence
+
+The sentence to play by HEV suit on the item pickup. This can be a sentence group or a specific sentence (denoted with `!` at the start).
+
+This property affects only the following items:
+
+* [ammo entities]({{< ref ammo-entities >}})
+* [item_antidote]({{< ref item_antidote >}}) - uses `!HEV_DET4` by default.
+* [item_pickup]({{< ref item_pickup >}})
+* [item_security]({{< ref item_security >}})
+* `weapon_` entities - the sentence is played only on the first pickup, if the player didn't have a weapon prior.
+
+```json
+{
+    "item_antidote": {
+        "pickup": {
+            "suit_sentence": "!HEV_ANTIDOTE"
+        }
+    },
+    "weapon_9mmhandgun": {
+        "pickup": {
+            "suit_sentence": "!HEV_PISTOL"
+        }
+    },
+    "ammo_9mmclip": {
+        "pickup": {
+            "suit_sentence": "!HEV_9MM"
+        }
+    },
+}
+```
+
+#### suit_sentence_interval
+
+The minimum interval between repeating the same sentence. This is used to prevent HEV suit spamming voice lines on each new pickup. The default value depends on the item type:
+
+* [ammo entities]({{< ref ammo-entities >}}) - 300 (5 minutes)
+* [item_antidote]({{< ref item_antidote >}}), [item_pickup]({{< ref item_pickup >}}) and [item_security]({{< ref item_security >}}) - 60 (1 minute).
+* `weapon_` entities - 1800 (30 minutes).
+
 ### projectile
 
 An object that defines projectile-related properties.

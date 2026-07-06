@@ -1241,6 +1241,13 @@ R"(
 				"properties": {
 					"hud_sprite": {
 						"type": "string"
+					},
+					"suit_sentence": {
+						"type": "string"
+					},
+					"suit_sentence_interval": {
+						"type": "number",
+						"minimum": 0
 					}
 				},
 				"additionalProperties": false

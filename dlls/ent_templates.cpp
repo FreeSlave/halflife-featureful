@@ -1448,6 +1448,16 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 				entTemplate.SetPickupHudSprite(value.GetString());
 			}
 		});
+		HandleJSONMember(value, "suit_sentence", [&entTemplate](const Value& value) {
+			if (value.IsString())
+			{
+				entTemplate.SetPickupSuitSentence(value.GetString());
+			}
+		});
+
+		float suitSentenceInterval;
+		if (UpdatePropertyFromJson(suitSentenceInterval, value, "suit_sentence_interval"))
+			entTemplate.SetPickupSuitSentenceInterval(suitSentenceInterval);
 	});
 
 	auto updateRegeneration = [](EntTemplate::Regeneration& regen, const Value& value)
