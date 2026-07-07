@@ -82,6 +82,9 @@ ammo!spores 8
     - `flashlight`
     - `nvg` or `nightvision`
     - `nothing`
+* `item_antidote` - give player a number of [antidotes]({{< ref item_antidote >}}).
+* `item_radiation` - give player a number of [radiation canisters]({{< ref item_radiation >}}).
+* `item_adrenaline` - give player a number of [adrenaline]({{< ref item_adrenaline >}}).
 
 Example:
 

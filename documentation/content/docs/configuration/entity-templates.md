@@ -1386,7 +1386,9 @@ This property affects only the following items:
 
 * [ammo entities]({{< ref ammo-entities >}})
 * [item_antidote]({{< ref item_antidote >}}) - uses `!HEV_DET4` by default.
+* [item_adrenaline]({{< ref item_adrenaline >}})
 * [item_pickup]({{< ref item_pickup >}})
+* [item_radiation]({{< ref item_radiation >}})
 * [item_security]({{< ref item_security >}})
 * `weapon_` entities - the sentence is played only on the first pickup, if the player didn't have a weapon prior.
 
