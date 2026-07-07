@@ -22,9 +22,12 @@ The `game_player_settings` without a targetname is triggered automatically when 
 * `Set armor` - set current player's armor.
 * `Allow armor OverCharge` - whether the new armor value can exceed the maximum player's armor value.
 * `Set max armor` - set player's maximum armor. If the new armor health is less than previous one, the current armor will be clamped to the new maximum (unless `Allow armor OverCharge` is set).
+* `Set anditotes` - set the current number of [antidotes canisters]({{< ref item_antidote >}}).
+* `Set radiation canisters` - set the current number of [radiation canisters]({{< ref item_radiation >}}).
+* `Set adrenalines` - set the current number of [adrenaline canisters]({{< ref item_adrenaline >}}).
 
 {{% hint info %}}
-With `Set health`, `Set max health`, `Set armor`, `Set max armor` you can use the following value prefixes:
+With `Set health`, `Set max health`, `Set armor`, `Set max armor`, `Set anditotes`, `Set radiation canisters` and `Set adrenalines` you can use the following value prefixes:
 * `+` - add to the current value, e.g. `+20`.
 * `-` - subtract from the current value, e.g. `-20`. The max health can't go below 1. The armor and max armor can't go below 0. Using `Set health` with subtracting value may kill the player if they don't have enough health.
 * `=` - set the current value, e.g. `=120`. This is the same as value without prefix, but allows to set armor or max armor to 0 (`=0`). Health and max health can't be set to 0.

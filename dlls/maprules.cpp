@@ -1004,6 +1004,14 @@ private:
 	short m_armorSetting;
 	short m_maxHealthSetting;
 	short m_maxArmorSetting;
+
+	int m_antidotes;
+	int m_radcans;
+	int m_adrenalines;
+
+	short m_antidoteSetting;
+	short m_radcanSetting;
+	short m_adrenalineSetting;
 };
 
 LINK_ENTITY_TO_CLASS( game_player_settings, CGamePlayerSettings )
@@ -1024,59 +1032,85 @@ TYPEDESCRIPTION	CGamePlayerSettings::m_SaveData[] =
 	DEFINE_FIELD( CGamePlayerSettings, m_armorSetting, FIELD_SHORT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_maxHealthSetting, FIELD_SHORT ),
 	DEFINE_FIELD( CGamePlayerSettings, m_maxArmorSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_antidotes, FIELD_INTEGER ),
+	DEFINE_FIELD( CGamePlayerSettings, m_radcans, FIELD_INTEGER ),
+	DEFINE_FIELD( CGamePlayerSettings, m_adrenalines, FIELD_INTEGER ),
+	DEFINE_FIELD( CGamePlayerSettings, m_antidoteSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_radcanSetting, FIELD_SHORT ),
+	DEFINE_FIELD( CGamePlayerSettings, m_adrenalineSetting, FIELD_SHORT ),
 };
 
 IMPLEMENT_SAVERESTORE( CGamePlayerSettings, CRulePointEntity )
 
-static float ParseValueAndSetting(const char* value, short& setting)
+template<typename T>
+T stringToNumber(const char* str)
 {
-	if (*value == '=')
+	static_assert(sizeof(T) == 0, "unsupported return type");
+	return T{};
+}
+
+template<>
+float stringToNumber<float>(const char* str)
+{
+	return atof(str);
+}
+
+template<>
+int stringToNumber<int>(const char* str)
+{
+	return atoi(str);
+}
+
+template<typename T>
+void ParseValueAndSetting(T& value, short& setting, const char* str)
+{
+	if (*str == '=')
 	{
 		setting = VALUE_SETTING_SET;
-		++value;
+		++str;
 	}
-	else if (*value == '+')
+	else if (*str == '+')
 	{
 		setting = VALUE_SETTING_ADD;
-		++value;
+		++str;
 	}
-	else if (*value == '-')
+	else if (*str == '-')
 	{
 		setting = VALUE_SETTING_SUBTRACT;
-		++value;
+		++str;
 	}
-	else if (*value == '<')
+	else if (*str == '<')
 	{
 		setting = VALUE_SETTING_ATMAX;
-		++value;
+		++str;
 	}
-	else if (*value == '>')
+	else if (*str == '>')
 	{
 		setting = VALUE_SETTING_ATLEAST;
-		++value;
+		++str;
 	}
 	else
 	{
 		setting = VALUE_SETTING_DEFAULT;
 	}
-	return atof(value);
+	value = stringToNumber<T>(str);
 }
 
 void CGamePlayerSettings::PreEntvarsKeyvalue( KeyValueData* pkvd )
 {
 	if (FStrEq(pkvd->szKeyName, "health"))
 	{
-		pev->health = ParseValueAndSetting(pkvd->szValue, m_healthSetting);
+		ParseValueAndSetting(pev->health, m_healthSetting, pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "max_health"))
 	{
-		pev->max_health = ParseValueAndSetting(pkvd->szValue, m_maxHealthSetting);
+		ParseValueAndSetting(pev->max_health, m_maxHealthSetting, pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "armorvalue"))
 	{
-		pev->armorvalue = ParseValueAndSetting(pkvd->szValue, m_armorSetting);
+		ParseValueAndSetting(pev->armorvalue, m_armorSetting, pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else
@@ -1119,7 +1153,8 @@ void CGamePlayerSettings::KeyValue(KeyValueData *pkvd)
 	}
 	else if (FStrEq(pkvd->szKeyName, "max_armor"))
 	{
-		pev->armortype = (int)ParseValueAndSetting(pkvd->szValue, m_maxArmorSetting);
+		ParseValueAndSetting(pev->armortype, m_maxArmorSetting, pkvd->szValue);
+		pev->armortype = (int)pev->armortype;
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "allow_overheal"))
@@ -1130,6 +1165,21 @@ void CGamePlayerSettings::KeyValue(KeyValueData *pkvd)
 	else if (FStrEq(pkvd->szKeyName, "allow_overcharge"))
 	{
 		m_allowOvercharge = atoi(pkvd->szValue) != 0;
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "antidotes"))
+	{
+		ParseValueAndSetting(m_antidotes, m_antidoteSetting, pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "radcans"))
+	{
+		ParseValueAndSetting(m_radcans, m_radcanSetting, pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "adrenalines"))
+	{
+		ParseValueAndSetting(m_adrenalines, m_adrenalineSetting, pkvd->szValue);
 		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "armor_strength"))
@@ -1343,6 +1393,45 @@ void CGamePlayerSettings::EquipPlayer(CBaseEntity *pPlayer)
 		player->SetNVGOnly();
 		break;
 	}
+
+	auto setCanisters = [](int& canisters, int count, short setting)
+	{
+		switch (setting) {
+		case VALUE_SETTING_SET:
+			canisters = count;
+			break;
+		case VALUE_SETTING_ADD:
+			canisters += count;
+			break;
+		case VALUE_SETTING_SUBTRACT:
+			canisters -= count;
+			break;
+		case VALUE_SETTING_ATMAX:
+			if (canisters > count)
+			{
+				canisters = count;
+			}
+			break;
+		case VALUE_SETTING_ATLEAST:
+			if (canisters < count)
+			{
+				canisters = count;
+			}
+			break;
+		default:
+			if (count > 0)
+			{
+				canisters = count;
+			}
+			break;
+		}
+		if (canisters < 0)
+			canisters = 0;
+	};
+
+	setCanisters(player->m_antidotes, m_antidotes, m_antidoteSetting);
+	setCanisters(player->m_radcans, m_radcans, m_radcanSetting);
+	setCanisters(player->m_adrenalines, m_adrenalines, m_adrenalineSetting);
 
 	// Check this before giving ammo as player can get exhaustible weapon along with ammo.
 	const bool hadWeapons = player->m_pActiveItem != NULL;

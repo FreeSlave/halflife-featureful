@@ -215,6 +215,10 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 		if (mapConfig.starthealth > 0)
 			pPlayer->SetHealth(mapConfig.starthealth);
 
+		pPlayer->m_antidotes = mapConfig.antidotes;
+		pPlayer->m_radcans = mapConfig.radcans;
+		pPlayer->m_adrenalines = mapConfig.adrenalines;
+
 		if (mapConfig.longjump)
 		{
 			pPlayer->SetLongjump(true);

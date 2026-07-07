@@ -27,6 +27,14 @@ const char* FixedAmmoName(const char* ammoName)
 
 bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 {
+	auto atoiAtLeast1 = [](const char* str)
+	{
+		int result = atoi(str);
+		if (result < 1)
+			result = 1;
+		return result;
+	};
+
 	int filePos = 0;
 	char buffer[512];
 	memset( buffer, 0, sizeof(buffer) );
@@ -61,9 +69,7 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 			if (mapConfig.pickupEnts.size() < MAPCONFIG_MAX_PICKUP_ENTS)
 			{
 				string_t entName = ALLOC_STRING(key);
-				int count = atoi(value);
-				if (count <= 0)
-					count = 1;
+				int count = atoiAtLeast1(value);
 				mapConfig.pickupEnts.push_back(MapConfig::PickupEnt{entName, count});
 			}
 		}
@@ -86,9 +92,7 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 			if (*inventoryItemName)
 			{
 				string_t itemName = ALLOC_STRING(inventoryItemName);
-				int count = atoi(value);
-				if (count <= 0)
-					count = 1;
+				int count = atoiAtLeast1(value);
 				mapConfig.inventory.push_back(MapConfig::PickupEnt{itemName, count});
 			}
 		}
@@ -133,6 +137,18 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 			{
 				mapConfig.suitLogon = SuitNoLogon;
 			}
+		}
+		else if (strcmp(key, "item_antidote") == 0)
+		{
+			mapConfig.antidotes = atoiAtLeast1(value);
+		}
+		else if (strcmp(key, "item_radiation") == 0)
+		{
+			mapConfig.radcans = atoiAtLeast1(value);
+		}
+		else if (strcmp(key, "item_adrenaline") == 0)
+		{
+			mapConfig.adrenalines = atoiAtLeast1(value);
 		}
 		else if (strcmp(key, "item_longjump") == 0)
 		{

@@ -3636,20 +3636,20 @@
 		0: "No change"
 		1: "Give longjump"
 	]
-	health(integer) : "Set health" : : "Prefix the value with '=' to set the health amount. The '+' prefix means to add health. The '-' prefix means to subtract health. The '<' prefix means to set health to the specified value or do nothing if it's already lower. The '>' prefix means to set the health to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
+	health(string) : "Set health" : : "Prefix the value with '=' to set the health amount. The '+' prefix means to add health. The '-' prefix means to subtract health. The '<' prefix means to set health to the specified value or do nothing if it's already lower. The '>' prefix means to set the health to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
 	allow_overheal(choices) : "Allow OverHeal" : : "Allow overheal if new health is higher than the current max health. Don't clamp health value to the max health if the new max health is lower than the current health." =
 	[
 		0: "No"
 		1: "Yes"
 	]
-	max_health(integer): "Set max health"
-	armorvalue(integer) : "Set armor" : : "Prefix the value with '=' to set the armor amount (this allows to reset the armor to 0). The '+' prefix means to add armor. The '-' prefix means to subtract armor. The '<' prefix means to set the armor to the specified value or do nothing if it's already lower. The '>' prefix means to set the armor to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
+	max_health(string): "Set max health"
+	armorvalue(string) : "Set armor" : : "Prefix the value with '=' to set the armor amount (this allows to reset the armor to 0). The '+' prefix means to add armor. The '-' prefix means to subtract armor. The '<' prefix means to set the armor to the specified value or do nothing if it's already lower. The '>' prefix means to set the armor to the specified value or do nothing if it's already higher. If no prefix is given, set the specified amount if it's a positive value."
 	allow_overcharge(choices) : "Allow armor OverCharge" : : "Allow armor overcharge if new armor is higher than the current max armor. Don't clamp armor value to the max armor if the new max armor is lower than the current armor." =
 	[
 		0: "No"
 		1: "Yes"
 	]
-	max_armor(integer): "Set max armor"
+	max_armor(string): "Set max armor"
 	armor_strength(string): "Customize armor strength" : : "Armor strength multiplier relative to health strength"
 	weapon_crowbar(choices) : "Crowbar" =
 	[
@@ -3906,6 +3906,9 @@
 		1: "Give"
 		2: "Give (allow duplicate)"
 	]
+	antidotes(string): "Set antidotes"
+	radcans(string): "Set radiation canisters"
+	adrenalines(string): "Set adrenalines"
 ]
 
 @PointClass base(Targetname, Targetx) = game_team_master : "Team based master/relay"

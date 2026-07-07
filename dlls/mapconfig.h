@@ -68,6 +68,10 @@ struct MapConfig
 
 	char deployWeapon[64];
 
+	int antidotes;
+	int radcans;
+	int adrenalines;
+
 	bool longjump;
 
 	bool valid;
