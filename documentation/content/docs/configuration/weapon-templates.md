@@ -2524,7 +2524,14 @@ This makes `weapon_357` show the body `1` if the current clip has from 4 to 6 am
 
 Zoom (scope) related properties.
 
-Note: it expects the `"secondary_attack"` to be set to `"switch_mode"`.
+{{% hint info %}}
+It expects the `"secondary_attack"` to be set to `"switch_mode"`.
+{{% /hint %}}
+
+{{% hint info %}}
+The weapon will automatically unscope on reload or holster.
+This will also set the weapon to the primary mode without any delays.
+{{% /hint %}}
 
 ### fov
 

@@ -18,7 +18,7 @@ If not stated otherwise, the weapon template can be applied to any fully configu
 
 The templates for CS weapons are stored in the **templates/weapons/cs/** directory. They include almost every CS firearm (except for dual berretas).
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 
 ```json
 {
@@ -765,7 +765,7 @@ Required sounds:
 
 The templates for Deathmatch Classic weapons are stored in the **templates/weapons/dmc/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_shotgun": "dmc/shotgun",
@@ -861,7 +861,7 @@ Required sounds:
 
 The templates for Delta Particles weapons are stored in the **templates/weapons/dp/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_9mmhandgun": "dp/glock",
@@ -1194,7 +1194,7 @@ Full written configurations for some standard Opposing Force weapons are stored 
 
 The templates for Poke646 weapons are stored in the **templates/weapons/poke646/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_pistol": "poke646/bradnailer",
@@ -1301,7 +1301,7 @@ This weapon template uses the same model and sound paths as a Half-Life shotgun 
 
 The templates for Team Fortress Classic weapons are stored in the **templates/weapons/tfc/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_shotgun": "tfc/shotgun",
