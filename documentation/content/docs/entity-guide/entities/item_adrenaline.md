@@ -8,6 +8,8 @@ entityCategory: pickup
 
 Adrenaline canister/syringe is a pickable item that is used automatically to revive the player in 3 seconds after his death.
 
+The limit on the number of adrenalines the player can carry is configured in [templates/inventory.json]({{< ref "player-inventory" >}}). By default there's no limit.
+
 {{% hint info %}}
 Adrenaline can't revive the player if he drowned, died from the fall damage or was gibbed.
 {{% /hint %}}

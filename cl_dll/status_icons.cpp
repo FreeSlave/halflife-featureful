@@ -61,21 +61,26 @@ int CHudStatusIcons::Init()
 
 int CHudStatusIcons::VidInit()
 {
-	m_antidote.count = 0;
-	m_radcan.count = 0;
-	m_adrenaline.count = 0;
+	auto reInitSpecialItem =[](inventory_t& item, const InventoryItemHudSpec& itemSpec)
+	{
+		item.count = 0;
 
-	int antidoteIndex = gHUD.GetSpriteIndex("item_antidote");
-	m_antidote.spr = gHUD.GetSprite(antidoteIndex);
-	m_antidote.rc = gHUD.GetSpriteRect(antidoteIndex);
+		int sprIndex = gHUD.GetSpriteIndex(itemSpec.spriteName.empty() ? item.itemName.c_str() : itemSpec.spriteName.c_str());
+		item.spr = gHUD.GetSprite(sprIndex);
+		item.rc = gHUD.GetSpriteRect(sprIndex);
 
-	int radcanIndex = gHUD.GetSpriteIndex("item_radiation");
-	m_radcan.spr = gHUD.GetSprite(radcanIndex);
-	m_radcan.rc = gHUD.GetSpriteRect(radcanIndex);
+		int r, g, b;
+		UnpackRGB(r, g, b, itemSpec.packedColor);
+		item.r = r;
+		item.g = g;
+		item.b = b;
+		item.a = itemSpec.alpha;
+		item.position = itemSpec.position;
+	};
 
-	int adrenalineIndex = gHUD.GetSpriteIndex("item_adrenaline");
-	m_adrenaline.spr = gHUD.GetSprite(adrenalineIndex);
-	m_adrenaline.rc = gHUD.GetSpriteRect(adrenalineIndex);
+	reInitSpecialItem(m_antidote, gHUD.m_inventorySpec.GetAntidoteSpec());
+	reInitSpecialItem(m_radcan, gHUD.m_inventorySpec.GetRadcanSpec());
+	reInitSpecialItem(m_adrenaline, gHUD.m_inventorySpec.GetAdrenalineSpec());
 
 	return 1;
 }

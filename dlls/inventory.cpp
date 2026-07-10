@@ -10,6 +10,18 @@ using namespace rapidjson;
 const char inventorySpecSchema[] = R"(
 {
 	"type": "object",
+	"definitions": {
+		"special_item": {
+			"type": "object",
+			"properties": {
+				"max_count": {
+					"type": "integer",
+					"minimum": 0
+				}
+			},
+			"additionalProperties": false
+		}
+	},
 	"properties": {
 		"items": {
 			"additionalProperties": {
@@ -25,6 +37,21 @@ const char inventorySpecSchema[] = R"(
 				},
 				"additionalProperties": false
 			}
+		},
+		"special_items": {
+			"type": "object",
+			"properties": {
+				"item_antidote": {
+					"$ref": "#/definitions/special_item"
+				},
+				"item_radiation": {
+					"$ref": "#/definitions/special_item"
+				},
+				"item_adrenaline": {
+					"$ref": "#/definitions/special_item"
+				}
+			},
+			"additionalProperties": false
 		}
 	}
 }
@@ -45,8 +72,6 @@ struct InventoryItemCompare
 		return strcmp(lhs.itemName.c_str(), rhs.itemName.c_str()) < 0;
 	}
 };
-
-InventoryItemSpec::InventoryItemSpec(): maxCount(0) {}
 
 const char* InventorySpec::Schema() const
 {
@@ -85,6 +110,22 @@ bool InventorySpec::ReadFromDocument(const rapidjson::Document& document, const 
 			inventory.push_back(item);
 		}
 	}
+	HandleJSONMember(document, "special_items", [this](const Value& value) {
+		auto parseSpecialItemSpec = [](InventoryItemSpec& item, const Value& value)
+		{
+			UpdatePropertyFromJson(item.maxCount, value, "max_count");
+		};
+
+		HandleJSONMember(value, "item_antidote", [this, &parseSpecialItemSpec](const Value& value) {
+			parseSpecialItemSpec(antidote, value);
+		});
+		HandleJSONMember(value, "item_radiation", [this, &parseSpecialItemSpec](const Value& value) {
+			parseSpecialItemSpec(radiation, value);
+		});
+		HandleJSONMember(value, "item_adrenaline", [this, &parseSpecialItemSpec](const Value& value) {
+			parseSpecialItemSpec(adrenaline, value);
+		});
+	});
 	std::sort(inventory.begin(), inventory.end(), InventoryItemCompare());
 
 	return true;

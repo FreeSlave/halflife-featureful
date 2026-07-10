@@ -714,6 +714,10 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetAntidoteSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_antidotes >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, "!HEV_DET4", SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_antidotes += 1;
@@ -755,6 +759,10 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetRadcanSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_radcans >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_radcans += 1;
@@ -793,6 +801,10 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetAdrenalineSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_adrenalines >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_adrenalines += 1;

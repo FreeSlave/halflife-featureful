@@ -8,9 +8,8 @@
 
 struct InventoryItemSpec
 {
-	InventoryItemSpec();
 	std::string itemName;
-	int maxCount;
+	int maxCount{0};
 	std::string pickupEntTemplateName;
 };
 
@@ -24,8 +23,20 @@ public:
 		_entTemplateSystem = entTemplateSystem;
 	}
 	const InventoryItemSpec* GetInventoryItemSpec(const char* itemName);
+	const InventoryItemSpec& GetAntidoteSpec() const {
+		return antidote;
+	}
+	const InventoryItemSpec& GetRadcanSpec() const {
+		return radiation;
+	}
+	const InventoryItemSpec& GetAdrenalineSpec() const {
+		return adrenaline;
+	}
 private:
 	std::vector<InventoryItemSpec> inventory;
+	InventoryItemSpec antidote;
+	InventoryItemSpec radiation;
+	InventoryItemSpec adrenaline;
 	EntTemplateSystem* _entTemplateSystem = nullptr;
 };
 

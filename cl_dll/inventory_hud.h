@@ -20,7 +20,6 @@ struct InventoryItemHudSpec
 	int packedColor{0};
 	int alpha{0};
 	int position{INVENTORY_PLACE_DEFAULT};
-	bool colorDefined{false};
 	bool showInHistory{true};
 	bool showInJournal{true};
 	bool showCountWhenOne{false};
@@ -36,8 +35,21 @@ public:
 
 	int DefaultSpriteAlpha() const { return defaultSpriteAlpha; }
 	int TextAlpha() const { return textAlpha; }
+
+	const InventoryItemHudSpec& GetAntidoteSpec() const {
+		return antidote;
+	}
+	const InventoryItemHudSpec& GetRadcanSpec() const {
+		return radiation;
+	}
+	const InventoryItemHudSpec& GetAdrenalineSpec() const {
+		return adrenaline;
+	}
 private:
 	std::vector<InventoryItemHudSpec> inventory;
+	InventoryItemHudSpec antidote;
+	InventoryItemHudSpec radiation;
+	InventoryItemHudSpec adrenaline;
 	int defaultSpriteAlpha{175};
 	int textAlpha{225};
 };
