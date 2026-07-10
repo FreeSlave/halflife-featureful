@@ -4732,6 +4732,10 @@
 		5 : "chewcycle"
 		6 : "death"
 	]
+	spawnflags(Flags) =
+	[
+		1048576: "Act out of PVS" : 0 : "Act as usual even if there're no players in the PVS"
+	]
 ]
 @PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/barney.mdl") = monster_barney : "Barney"
 [

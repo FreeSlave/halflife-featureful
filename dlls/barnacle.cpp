@@ -312,11 +312,14 @@ void CBarnacle::BarnacleThink()
 	{
 		// barnacle has no prey right now, so just idle and check to see if anything is touching the tongue.
 		// If idle and no nearby client, don't think so often
-		if( FNullEnt(FIND_CLIENT_IN_PVS(edict())) &&
-			(!m_pTongueTip || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueTip->edict()))) &&
-			(!m_pTongueMiddle || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueMiddle->edict())))
-			)
-			pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1.0f, 1.5f );	// Stagger a bit to keep barnacles from thinking on the same frame
+		if (!FBitSet(pev->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS))
+		{
+			if (FNullEnt(FIND_CLIENT_IN_PVS(edict())) &&
+				(!m_pTongueTip || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueTip->edict()))) &&
+				(!m_pTongueMiddle || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueMiddle->edict())))
+				)
+				pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1.0f, 1.5f );	// Stagger a bit to keep barnacles from thinking on the same frame
+		}
 
 		if( m_fSequenceFinished )
 		{
