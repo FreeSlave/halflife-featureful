@@ -51,7 +51,7 @@ extern Vector g_vViewUp;
 // Viewmodel FOV
 // Credits: SmileyAG (Bugfixed HL-Rebased)
 extern cvar_t *default_fov;
-extern cvar_t *default_fov_viewmodel;
+extern cvar_t *cl_viewmodel_fov;
 
 /////////////////////
 // Implementation of CStudioModelRenderer.h
@@ -1686,9 +1686,6 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	int i;
 	mstudioattachment_t *pattachment;
 
-	if( !m_pStudioHeader || !m_pCurrentEntity )
-		return;
-
 	if( m_pStudioHeader->numattachments > 4 )
 	{
 		gEngfuncs.Con_DPrintf( "Too many attachments on %s\n", m_pCurrentEntity->model->name );
@@ -1698,73 +1695,47 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	// calculate attachment points
 	pattachment = (mstudioattachment_t *)( (byte *)m_pStudioHeader + m_pStudioHeader->attachmentindex );
 
-	// Precompute effective viewmodel FOV once per frame
-	float worldFOV = g_flRenderFOV;
-
-	float baseVMFOV = default_fov_viewmodel ? default_fov_viewmodel->value : 90.0f;
-	baseVMFOV = fmaxf(1.0f, baseVMFOV);
-
-	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
-	float zoomScale = 0.82f; // tweakable: how much viewmodel zoom reacts
-
-	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
-	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
-
-	float factor = tanf(worldFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
-
 	for( i = 0; i < m_pStudioHeader->numattachments; i++ )
 	{
 		VectorTransform( pattachment[i].org, (*m_plighttransform)[pattachment[i].bone], m_pCurrentEntity->attachment[i] );
 
 		if(m_pCurrentEntity == gEngfuncs.GetViewModel() && NeedAdjustViewmodelAdjustments())
 		{
-			// Transform to view space
-			Vector tmp = m_pCurrentEntity->attachment[i] - g_vViewOrigin;
-			Vector vTransformed(DotProduct(g_vViewRight, tmp),
-								DotProduct(g_vViewUp, tmp),
-								DotProduct(g_vViewForward, tmp)
-			);
-			// Apply scaling factor
-			vTransformed.x *= factor;
-			vTransformed.y *= factor;
-
-			// Transform back to world space
-			m_pCurrentEntity->attachment[i] = g_vViewOrigin +
-				g_vViewRight * vTransformed.x +
-				g_vViewUp * vTransformed.y +
-				g_vViewForward * vTransformed.z;
+			StudioAdjustViewmodelAttachments(m_pCurrentEntity->attachment[i]);
 		}
 	}
 }
 
 bool CStudioModelRenderer::NeedAdjustViewmodelAdjustments()
 {
-	return IEngineStudio.IsHardware() && default_fov_viewmodel && default_fov_viewmodel->value > 0.0f;
+#if OPENGL_AVAILABLE
+	return IEngineStudio.IsHardware() && !IsAnyXash() && GL_glMatrixMode != nullptr &&
+		cl_viewmodel_fov && cl_viewmodel_fov->value >= 1.0f &&
+		cl_viewmodel_fov->value <= 179.0f;
+#else
+	return false;
+#endif
 }
 
-void CStudioModelRenderer::StudioAdjustViewmodelAttachments(Vector &vOrigin)
+float CStudioModelRenderer::EffectiveViewmodelFOV()
 {
-	if(!default_fov_viewmodel)
-		return;
-
-	float baseVMFOV = default_fov_viewmodel->value;
-
-	if(baseVMFOV < 1.0f)
-		baseVMFOV = 90.0f;
+	float baseVMFOV = cl_viewmodel_fov->value;
 
 	float worldFOV = g_flRenderFOV;
-	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
+	float baseWorldFOV = default_fov->value;
 	float zoomScale = 0.82f; // adjust how much the weapon zooms
 
 	// Effective viewmodel FOV only depends on world zoom, not default_fov
 	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
+	effectiveVMFOV = clamp(effectiveVMFOV, 1.0f, 179.0f);
 
-	if(effectiveVMFOV < 1.0f)
-		effectiveVMFOV = 1.0f;
-	if(effectiveVMFOV > 179.0f)
-		effectiveVMFOV = 179.0f;
+	return effectiveVMFOV;
+}
 
-	float factor = tanf(worldFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
+void CStudioModelRenderer::StudioAdjustViewmodelAttachments(Vector &vOrigin)
+{
+	const float effectiveVMFOV = EffectiveViewmodelFOV();
+	const float factor = tanf(g_flRenderFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
 
 	Vector tmp = vOrigin - g_vViewOrigin;
 	Vector vTransformed(DotProduct(g_vViewRight, tmp),
@@ -1871,33 +1842,33 @@ void CStudioModelRenderer::StudioRenderFinal_Software()
 
 void CStudioModelRenderer::SetViewmodelFovProjection(void)
 {
-	if(!IEngineStudio.IsHardware() || !default_fov_viewmodel)
-		return;
+#if OPENGL_AVAILABLE
+	const float effectiveVMFOV = EffectiveViewmodelFOV();
 
-	float baseVMFOV = default_fov_viewmodel->value;
-	baseVMFOV = fmaxf(1.0f, baseVMFOV);
-
-	float worldFOV = g_flRenderFOV;
-	float baseWorldFOV = default_fov ? default_fov->value : 90.0f;
-	float zoomScale = 0.82f;
-
-	float effectiveVMFOV = baseVMFOV - (baseWorldFOV - worldFOV) * zoomScale;
-	effectiveVMFOV = fmaxf(1.0f, fminf(effectiveVMFOV, 179.0f));
-
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
+	GL_glMatrixMode(GL_PROJECTION);
+	GL_glPushMatrix();
+	GL_glLoadIdentity();
 
 	const GLfloat _near = 3.0f;
 	const GLfloat _far = 4096.0f;
 
-	float aspect = (float)ScreenWidth / (float)ScreenHeight;
+	const float aspect = (float)ScreenWidth / (float)ScreenHeight;
 
-	GLfloat h = tanf(effectiveVMFOV * M_PI / 360.0f) * _near;
-	GLfloat w = h * aspect;
+	const GLfloat h = tanf(effectiveVMFOV * M_PI_F / 360.0f) * _near / aspect;
+	const GLfloat w = h * aspect;
 
-	glFrustum(-w, w, -h, h, _near, _far);
-	glMatrixMode(GL_MODELVIEW);
+	GL_glFrustum(-w, w, -h, h, _near, _far);
+	GL_glMatrixMode(GL_MODELVIEW);
+#endif
+}
+
+void CStudioModelRenderer::RestoreViewmodelFovProjection()
+{
+#if OPENGL_AVAILABLE
+	GL_glMatrixMode(GL_PROJECTION);
+	GL_glPopMatrix();
+	GL_glMatrixMode(GL_MODELVIEW);
+#endif
 }
 
 /*
@@ -1935,17 +1906,15 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware()
 			}
 
 			IEngineStudio.GL_SetRenderMode( rendermode );
-			if(m_pCurrentEntity == gEngfuncs.GetViewModel())
+			if(m_pCurrentEntity == gEngfuncs.GetViewModel() && NeedAdjustViewmodelAdjustments())
 			{
 				SetViewmodelFovProjection();
-				IEngineStudio.StudioDrawPoints(); // draw viewmodel
-				glMatrixMode(GL_PROJECTION);
-				glPopMatrix(); // restore world FOV
-				glMatrixMode(GL_MODELVIEW);
+				IEngineStudio.StudioDrawPoints();
+				RestoreViewmodelFovProjection();
 			}
 			else
 			{
-				IEngineStudio.StudioDrawPoints(); // normal world entities
+				IEngineStudio.StudioDrawPoints();
 			}
 			IEngineStudio.GL_StudioDrawShadow();
 

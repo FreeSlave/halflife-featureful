@@ -50,6 +50,7 @@
 
 #include "environment.h"
 
+#include "arraysize.h"
 #include "cmdkeys.h"
 #include "keydefs.h"
 #include "logger.h"
@@ -77,13 +78,39 @@ extern engine_studio_api_t IEngineStudio;
 #include "hud_renderer.h"
 
 #if OPENGL_AVAILABLE
-GLAPI_glFogi GL_glFogi = nullptr;
+decltype(&glFogi) GL_glFogi = nullptr;
 
-GLAPI_glPixelStorei GL_glPixelStorei = nullptr;
-GLAPI_glGenTextures GL_glGenTextures = nullptr;
-GLAPI_glBindTexture GL_glBindTexture = nullptr;
-GLAPI_glTexImage2D GL_glTexImage2D = nullptr;
-GLAPI_glTexParameteri GL_glTexParameteri = nullptr;
+decltype(&glPixelStorei) GL_glPixelStorei = nullptr;
+decltype(&glGenTextures) GL_glGenTextures = nullptr;
+decltype(&glBindTexture) GL_glBindTexture = nullptr;
+decltype(&glTexImage2D) GL_glTexImage2D = nullptr;
+decltype(&glTexParameteri) GL_glTexParameteri = nullptr;
+
+decltype(&glMatrixMode) GL_glMatrixMode = nullptr;
+decltype(&glLoadIdentity) GL_glLoadIdentity = nullptr;
+decltype(&glPushMatrix) GL_glPushMatrix = nullptr;
+decltype(&glPopMatrix) GL_glPopMatrix = nullptr;
+decltype(&glFrustum) GL_glFrustum = nullptr;
+
+struct OpenGLFunction
+{
+	void** ppfnFunc;
+	const char* name;
+};
+
+static OpenGLFunction openglFunctions[] = {
+	{(void**)&GL_glFogi, "glFogi"},
+	{(void**)&GL_glPixelStorei, "glPixelStorei"},
+	{(void**)&GL_glGenTextures, "glGenTextures"},
+	{(void**)&GL_glBindTexture, "glBindTexture"},
+	{(void**)&GL_glTexImage2D, "glTexImage2D"},
+	{(void**)&GL_glTexParameteri, "glTexParameteri"},
+	{(void**)&GL_glMatrixMode, "glMatrixMode"},
+	{(void**)&GL_glLoadIdentity, "glLoadIdentity"},
+	{(void**)&GL_glPushMatrix, "glPushMatrix"},
+	{(void**)&GL_glPopMatrix, "glPopMatrix"},
+	{(void**)&GL_glFrustum, "glFrustum"}
+};
 
 #ifdef _WIN32
 HMODULE libOpenGL = NULL;
@@ -125,7 +152,10 @@ void UnloadOpenGL()
 		dlclose(libOpenGL);
 		libOpenGL = NULL;
 	}
-	GL_glFogi = NULL;
+
+	for (size_t j=0; j<ARRAYSIZE(openglFunctions); ++j) {
+		*(openglFunctions[j].ppfnFunc) = nullptr;
+	}
 }
 
 void* LoadLibFunc(void* lib, const char *name)
@@ -655,13 +685,9 @@ int DLLEXPORT HUD_VidInit()
 				gEngfuncs.Con_DPrintf("Failed to load OpenGL: %s. Trying to use OpenGL from engine anyway\n", dlerror());
 #endif
 			{
-				GL_glFogi = (GLAPI_glFogi)LoadLibFunc(libOpenGL, "glFogi");
-
-				GL_glPixelStorei = (GLAPI_glPixelStorei)LoadLibFunc(libOpenGL, "glPixelStorei");
-				GL_glGenTextures = (GLAPI_glGenTextures)LoadLibFunc(libOpenGL, "glGenTextures");
-				GL_glBindTexture = (GLAPI_glBindTexture)LoadLibFunc(libOpenGL, "glBindTexture");
-				GL_glTexImage2D = (GLAPI_glTexImage2D)LoadLibFunc(libOpenGL, "glTexImage2D");
-				GL_glTexParameteri = (GLAPI_glTexParameteri)LoadLibFunc(libOpenGL, "glTexParameteri");
+				for (size_t j=0; j<ARRAYSIZE(openglFunctions); ++j) {
+					*(openglFunctions[j].ppfnFunc) = LoadLibFunc(libOpenGL, openglFunctions[j].name);
+				}
 			}
 
 			if (GL_glFogi)

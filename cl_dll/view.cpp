@@ -24,7 +24,6 @@
 #include "shake.h"
 #include "hltv.h"
 #include "view.h"
-#include "min_and_max.h"
 
 bool g_Paused = false;
 

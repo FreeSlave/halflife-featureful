@@ -13,6 +13,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 
 * `cl_viewbob` - disable (0) or enable (1) weapon bobbing. The latter is the same as in HL Anniversary version.
 * `cl_rollangle` - angle of view rolling when player goes sideways. Set to 0 to disable viewroll.
+* `cl_viewmodel_fov` - custom viewmodel fov independent of the player's `default_fov`. Values lower than 1 and higher than 179 are invalid - the viewmodel will be drawn as usual. The default value is 0 (i.e. custom viewmodel fov is disabled). This won't work in software renderer. This is also currently disabled in Xash3D.
 * `cl_viewmodel_lag` - disable (0) or enable (1) the view model lag (also known as weapon lag). When enabled, it makes the weapon 'lag' behind the player's camera rotation simulating the fact that the head and body turn faster than the hands. You could have noticed this effect in Half-Life 2.
 * `cl_steady_uncrouch` - disable (0) or enable (1) steady (i.e. not instant) camera movement when player stops crouching. This is set to 1 by default.
 

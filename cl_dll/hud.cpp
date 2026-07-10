@@ -274,7 +274,7 @@ cvar_t *cl_wallimpact_style = NULL;
 cvar_t *hud_scale = NULL;
 cvar_t *hud_sprite_offset = NULL;
 
-cvar_t *default_fov_viewmodel = NULL;
+cvar_t *cl_viewmodel_fov = NULL;
 cvar_t *default_fov = NULL;
 
 void ShutdownInput();
@@ -805,7 +805,7 @@ void CHud::Init()
 	cl_satchelcontrol = CVAR_CREATE( "_satctrl", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_grenadephysics = CVAR_CREATE( "_grenphys", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	default_fov = CVAR_CREATE( "default_fov", "90", FCVAR_ARCHIVE );
-	default_fov_viewmodel = CVAR_CREATE( "default_fov_viewmodel", "74", FCVAR_ARCHIVE );
+	cl_viewmodel_fov = CVAR_CREATE( "cl_viewmodel_fov", "0", FCVAR_ARCHIVE );
 	m_pCvarStealMouse = CVAR_CREATE( "hud_capturemouse", "1", FCVAR_ARCHIVE );
 	m_pCvarDraw = CVAR_CREATE( "hud_draw", "1", FCVAR_ARCHIVE );
 
