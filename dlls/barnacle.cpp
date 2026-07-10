@@ -63,7 +63,8 @@ public:
 	bool m_fTongueExtended;
 	bool m_fLiftingPrey;
 	float m_flTongueAdj;
-	CPointEntity* pTip;
+	CPointEntity* m_pTongueTip;
+	CPointEntity* m_pTongueMiddle;
 
 	static const NamedSoundScript biteSoundScript;
 	static const NamedSoundScript chewSoundScript;
@@ -311,7 +312,10 @@ void CBarnacle::BarnacleThink()
 	{
 		// barnacle has no prey right now, so just idle and check to see if anything is touching the tongue.
 		// If idle and no nearby client, don't think so often
-		if( FNullEnt( FIND_CLIENT_IN_PVS( edict() ) ) )
+		if( FNullEnt(FIND_CLIENT_IN_PVS(edict())) &&
+			(!m_pTongueTip || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueTip->edict()))) &&
+			(!m_pTongueMiddle || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueMiddle->edict())))
+			)
 			pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1.0f, 1.5f );	// Stagger a bit to keep barnacles from thinking on the same frame
 
 		if( m_fSequenceFinished )
@@ -377,8 +381,10 @@ void CBarnacle::BarnacleThink()
 	SetBoneController( 0, -( m_flAltitude + m_flTongueAdj ) );
 	StudioFrameAdvance( 0.1f );
 
-	if (pTip)
-		UTIL_SetOrigin(pTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+	if (m_pTongueTip)
+		UTIL_SetOrigin(m_pTongueTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+	if (m_pTongueMiddle)
+		UTIL_SetOrigin(m_pTongueMiddle->pev, pev->origin - Vector(0, 0, m_flAltitude * 0.5f));
 }
 
 //=========================================================
@@ -444,11 +450,19 @@ void CBarnacle::Precache()
 
 void CBarnacle::Activate()
 {
-	pTip = GetClassPtr((CPointEntity*)nullptr);
-	SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
-	pTip->pev->rendermode = kRenderTransAlpha;
-	pTip->pev->renderamt = 0;
-	UTIL_SetOrigin(pTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+	auto makeTip = []() {
+		CPointEntity* pTip = GetClassPtr((CPointEntity*)nullptr);
+		SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
+		pTip->pev->rendermode = kRenderTransAlpha;
+		pTip->pev->renderamt = 0;
+		return pTip;
+	};
+
+	m_pTongueTip = makeTip();
+	UTIL_SetOrigin(m_pTongueTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
+
+	m_pTongueMiddle = makeTip();
+	UTIL_SetOrigin(m_pTongueMiddle->pev, pev->origin - Vector(0, 0, m_flAltitude * 0.5f));
 
 	CBaseMonster::Activate();
 }
@@ -457,16 +471,17 @@ void CBarnacle::UpdateOnRemove()
 {
 	ReleaseVictim();
 
-	UTIL_RemoveAndClean(pTip);
+	UTIL_RemoveAndClean(m_pTongueTip);
+	UTIL_RemoveAndClean(m_pTongueMiddle);
 
 	CBaseMonster::UpdateOnRemove();
 }
 
 bool CBarnacle::MustAddToFullPack(unsigned char *pSet)
 {
-	if (pTip)
-		return ENGINE_CHECK_VISIBILITY(pTip->edict(), pSet) != 0;
-	return CBaseMonster::MustAddToFullPack(pSet);
+	return (m_pTongueTip && ENGINE_CHECK_VISIBILITY(m_pTongueTip->edict(), pSet) != 0) ||
+		   (m_pTongueMiddle && ENGINE_CHECK_VISIBILITY(m_pTongueMiddle->edict(), pSet) != 0) ||
+		   CBaseMonster::MustAddToFullPack(pSet);
 }
 
 void CBarnacle::ReleaseVictim()
