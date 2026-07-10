@@ -8,6 +8,7 @@ extern "C"
 
 extern const char *g_VCSInfo_Commit;
 extern const char *g_VCSInfo_Branch;
+extern const char *g_VCSInfo_CommitDate;
 
 #ifdef __cplusplus
 }

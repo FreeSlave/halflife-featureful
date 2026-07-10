@@ -682,6 +682,7 @@ void ReadAmmoAmounts()
 }
 
 static cvar_t build_commit = { "sv_game_build_commit", g_VCSInfo_Commit };
+static cvar_t build_commit_date = { "sv_game_build_commit_date", g_VCSInfo_CommitDate };
 static cvar_t build_branch = { "sv_game_build_branch", g_VCSInfo_Branch };
 
 cvar_t displaysoundlist = {"displaysoundlist","0"};
@@ -1580,6 +1581,7 @@ void GameDLLInit()
 	violence_agibs = CVAR_GET_POINTER( "violence_agibs" );
 
 	CVAR_REGISTER( &build_commit );
+	CVAR_REGISTER( &build_commit_date );
 	CVAR_REGISTER( &build_branch );
 
 	CVAR_REGISTER( &displaysoundlist );
