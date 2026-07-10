@@ -3,17 +3,6 @@
 #include "weapons.h"
 #include "parsetext.h"
 
-MapConfig::MapConfig() :
-	playerTemplate(iStringNull),
-	starthealth(0), startarmor(0),
-	maxhealth(0),
-	nomedkit(false), nosuit(false),
-	suitLogon(SuitNoLogon), suit_light(SUIT_LIGHT_DEFAULT), longjump(false),
-	valid(false)
-{
-	deployWeapon[0] = '\0';
-}
-
 const char* FixedAmmoName(const char* ammoName)
 {
 	if (stricmp(ammoName, "Hand_Grenade") == 0)
@@ -98,7 +87,7 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		}
 		else if (strcmp(key, "deploy") == 0)
 		{
-			strncpyEnsureTermination(mapConfig.deployWeapon, value);
+			mapConfig.deployWeapon = value;
 		}
 		else if (strcmp(key, "nomedkit") == 0)
 		{
