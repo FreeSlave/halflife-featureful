@@ -445,7 +445,6 @@ void CBarnacle::Precache()
 void CBarnacle::Activate()
 {
 	pTip = GetClassPtr((CPointEntity*)nullptr);
-	pTip->pev->classname = MAKE_STRING("barnacle_tip");
 	SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
 	pTip->pev->rendermode = kRenderTransAlpha;
 	pTip->pev->renderamt = 0;
