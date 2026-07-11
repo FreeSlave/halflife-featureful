@@ -4256,6 +4256,7 @@
 	locked_target(target_destination) : "Locked target"
 	delay(string) : "Delay before trigger" : : "Delay before triggering unlocked or locked target"
 	unlockersname(string) : "Unlockers name"
+	model(studio) : "Custom Model"
 	noise(sound) : "Custom Granted Sound"
 	noise1(sound) : "Custom Denied Sound"
 	noise2(sound) : "Custom Beeping Sound"

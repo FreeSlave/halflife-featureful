@@ -1258,6 +1258,7 @@ public:
 	int ObjectCaps() override { return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE; }
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	int LookupActivity(int activity) override;
 	void SetActivity(Activity NewActivity);
 
 	int Save( CSave &save ) override;
@@ -1309,11 +1310,41 @@ IMPLEMENT_SAVERESTORE( CEyeScanner, CBaseAnimating )
 
 LINK_ENTITY_TO_CLASS( item_eyescanner, CEyeScanner )
 
+int CEyeScanner::LookupActivity(int activity)
+{
+	int foundSequence = CBaseAnimating::LookupActivity(activity);
+
+	if (foundSequence == ACTIVITY_NOT_AVAILABLE)
+	{
+		const char* animTry = nullptr;
+
+		switch(activity)
+		{
+		case ACT_CROUCHIDLE:
+			animTry = "idle_closed";
+			break;
+		case ACT_IDLE:
+			animTry = "idle_open";
+			break;
+		case ACT_STAND:
+			animTry = "activate";
+			break;
+		case ACT_CROUCH:
+			animTry = "deactivate";
+			break;
+		}
+
+		if (animTry)
+		{
+			foundSequence = LookupSequence(animTry);
+		}
+	}
+	return foundSequence;
+}
+
 void CEyeScanner::SetActivity( Activity NewActivity )
 {
-	int iSequence;
-
-	iSequence = LookupActivity( NewActivity );
+	int iSequence = LookupActivity( NewActivity );
 
 	// Set to the desired anim, or default anim if the desired is not present
 	if( iSequence > ACTIVITY_NOT_AVAILABLE )
@@ -1388,7 +1419,7 @@ void CEyeScanner::Spawn()
 	pev->weapons = 0;
 	m_willUnlock = false;
 
-	SET_MODEL(ENT(pev), "models/EYE_SCANNER.mdl");
+	SetMyModel("models/EYE_SCANNER.mdl");
 	const float yCos = fabs(cos(pev->angles.y * M_PI_F / 180.0f));
 	const float ySin = fabs(sin(pev->angles.y * M_PI_F / 180.0f));
 	UTIL_SetSize(pev, Vector(-10-ySin*6, -10-yCos*6, 32), Vector(10+ySin*6, 10+yCos*6, 72));
@@ -1399,7 +1430,7 @@ void CEyeScanner::Spawn()
 
 void CEyeScanner::Precache()
 {
-	PRECACHE_MODEL("models/EYE_SCANNER.mdl");
+	PrecacheMyModel("models/EYE_SCANNER.mdl");
 	PRECACHE_SOUND(GrantedSound());
 	PRECACHE_SOUND(DeniedSound());
 	PRECACHE_SOUND(BeepSound());
