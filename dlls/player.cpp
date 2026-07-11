@@ -2914,7 +2914,7 @@ void CBasePlayer::PreThink()
 			if (m_flNextRevive <= gpGlobals->time)
 			{
 				pev->deadflag = DEAD_NO;
-				pev->health = static_cast<int>(pev->max_health * 0.25f);
+				pev->health = static_cast<int>(GetSkillValue("adrenaline_health"));
 				pev->health = Q_max(pev->health, 1.0f);
 
 				m_adrenalines--;

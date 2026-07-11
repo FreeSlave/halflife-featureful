@@ -1434,6 +1434,7 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("antidote_time", 10.0f);
 	g_SkillData.ProvideFallback("antirad_time", 10.0f);
+	g_SkillData.ProvideFallback("adrenaline_health", 25.0f);
 }
 
 void ParseSkillCfg(const char* fileName)
