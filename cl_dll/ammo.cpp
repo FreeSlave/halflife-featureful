@@ -1337,11 +1337,20 @@ int CHudAmmo::DrawWList( float flTime )
 
 				UnpackRGB( r, g, b, gHUD.HUDColor() );
 
+				const auto& selectionRect = gHUD.GetSpriteRect(m_HUD_selection);
+				bool hasDrawnSprite = false;
+
 				// if active, then we must have ammo.
 				if( gpActiveSel == p )
 				{
-					CHud::Renderer().SPR_DrawAdditive( p->hActive, r, g, b, x, y, &p->rcActive );
-					CHud::Renderer().SPR_DrawAdditive( gHUD.GetSprite( m_HUD_selection ), r, g, b, x, y, &gHUD.GetSpriteRect( m_HUD_selection ) );
+					if (p->hActive)
+					{
+						CHud::Renderer().SPR_DrawAdditive( p->hActive, r, g, b, x, y, &p->rcActive );
+						hasDrawnSprite = true;
+					}
+					else
+						CHud::Renderer().FillRGBA(x, y, selectionRect.right - selectionRect.left, selectionRect.bottom - selectionRect.top, r, g, b, 80);
+					CHud::Renderer().SPR_DrawAdditive( gHUD.GetSprite( m_HUD_selection ), r, g, b, x, y, &selectionRect );
 				}
 				else
 				{
@@ -1354,13 +1363,24 @@ int CHudAmmo::DrawWList( float flTime )
 						ScaleColors( r, g, b, 128 );
 					}
 
-					CHud::Renderer().SPR_DrawAdditive( p->hInactive, r, g, b, x, y, &p->rcInactive );
+					if (p->hInactive)
+					{
+						CHud::Renderer().SPR_DrawAdditive( p->hInactive, r, g, b, x, y, &p->rcInactive );
+						hasDrawnSprite = true;
+					}
+					else
+						CHud::Renderer().FillRGBA(x, y, selectionRect.right - selectionRect.left, selectionRect.bottom - selectionRect.top, r, g, b, 80);
 				}
 
 				// Draw Ammo Bar
 				DrawAmmoBar( p, x + giABWidth / 2, y, giABWidth, giABHeight );
 				
-				y += p->rcActive.bottom - p->rcActive.top + 5;
+				int height = p->rcActive.bottom - p->rcActive.top;
+				if (!hasDrawnSprite)
+				{
+					height = selectionRect.bottom - selectionRect.top;
+				}
+				y += height + 5;
 			}
 
 			x += iWidth + 5;
