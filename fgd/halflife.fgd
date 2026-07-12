@@ -8440,6 +8440,12 @@
 		1 : "Move to stash"
 		2 : "Store a copy"
 	]
+	special_item_policy(choices) : "Special items (canisters) policy" = 
+	[
+		0 : "Don't stash"
+		1 : "Move to stash"
+		2 : "Store a copy"
+	]
 	trigger_on_stash(target_destination) : "Fire on Stash"
 	trigger_on_unstash(target_destination) : "Fire on Unstash"
 	spawnflags(Flags) =

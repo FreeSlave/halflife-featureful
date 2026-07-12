@@ -8711,6 +8711,11 @@ public:
 			m_inventoryPolicy = (short)atoi(pkvd->szValue);
 			pkvd->fHandled = true;
 		}
+		else if (FStrEq(pkvd->szKeyName, "special_item_policy"))
+		{
+			m_specialItemPolicy = (short)atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
 		else if (FStrEq(pkvd->szKeyName, "trigger_on_stash"))
 		{
 			m_triggerOnStash = ALLOC_STRING(pkvd->szValue);
@@ -8793,6 +8798,19 @@ public:
 			{
 				pPlayer->RemoveAllInventoryItems();
 			}
+		}
+
+		if (m_specialItemPolicy > 0)
+		{
+			m_antidotes = pPlayer->m_antidotes;
+			m_radcans = pPlayer->m_radcans;
+			m_adrenalines = pPlayer->m_adrenalines;
+		}
+		if (m_specialItemPolicy == PLAYER_STASH_STASH)
+		{
+			pPlayer->m_antidotes = 0;
+			pPlayer->m_radcans = 0;
+			pPlayer->m_adrenalines = 0;
 		}
 
 		if (m_weaponsPolicy > 0)
@@ -8884,6 +8902,17 @@ public:
 			}
 		}
 
+		if (m_specialItemPolicy > 0)
+		{
+			pPlayer->m_antidotes += m_antidotes;
+			pPlayer->m_radcans += m_radcans;
+			pPlayer->m_adrenalines += m_adrenalines;
+
+			m_antidotes = 0;
+			m_radcans = 0;
+			m_adrenalines = 0;
+		}
+
 		if (m_weaponsPolicy > 0)
 		{
 			for(int i = 0; i < MAX_AMMO_TYPES; i++)
@@ -8944,6 +8973,11 @@ private:
 	string_t m_inventoryItems[MAX_INVENTORY_ITEMS];
 	short m_inventoryItemCounts[MAX_INVENTORY_ITEMS];
 
+	short m_specialItemPolicy;
+	int m_antidotes;
+	int m_radcans;
+	int m_adrenalines;
+
 	string_t m_triggerOnStash;
 	string_t m_triggerOnUnstash;
 };
@@ -8964,6 +8998,10 @@ TYPEDESCRIPTION	CPlayerStash::m_SaveData[] =
 	DEFINE_FIELD(CPlayerStash, m_inventoryPolicy, FIELD_SHORT),
 	DEFINE_ARRAY(CPlayerStash, m_inventoryItems, FIELD_STRING, MAX_INVENTORY_ITEMS),
 	DEFINE_ARRAY(CPlayerStash, m_inventoryItemCounts, FIELD_SHORT, MAX_INVENTORY_ITEMS),
+	DEFINE_FIELD(CPlayerStash, m_specialItemPolicy, FIELD_SHORT),
+	DEFINE_FIELD(CPlayerStash, m_antidotes, FIELD_INTEGER),
+	DEFINE_FIELD(CPlayerStash, m_radcans, FIELD_INTEGER),
+	DEFINE_FIELD(CPlayerStash, m_adrenalines, FIELD_INTEGER),
 	DEFINE_FIELD(CPlayerStash, m_triggerOnStash, FIELD_STRING),
 	DEFINE_FIELD(CPlayerStash, m_triggerOnUnstash, FIELD_STRING),
 };
