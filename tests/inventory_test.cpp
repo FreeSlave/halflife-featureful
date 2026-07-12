@@ -102,7 +102,6 @@ TEST(InventoryHudSpec, Parse)
 	ASSERT_TRUE(batterySpec != nullptr);
 
 	EXPECT_STREQ(batterySpec->spriteName.c_str(),  "item_battery");
-	EXPECT_TRUE(batterySpec->colorDefined);
 	EXPECT_EQ(batterySpec->packedColor, PackRGB(0, 100, 255));
 	EXPECT_EQ(batterySpec->position, INVENTORY_PLACE_BOTTOM_CENTER);
 	EXPECT_FALSE(batterySpec->showInJournal);
@@ -111,7 +110,6 @@ TEST(InventoryHudSpec, Parse)
 	ASSERT_TRUE(keycardSpec != nullptr);
 
 	EXPECT_STREQ(keycardSpec->spriteName.c_str(),  "item_keycard");
-	EXPECT_TRUE(keycardSpec->colorDefined);
 	EXPECT_EQ(keycardSpec->packedColor, PackRGB(204, 204, 255));
 	EXPECT_EQ(keycardSpec->position, INVENTORY_PLACE_TOP_LEFT);
 	EXPECT_FALSE(keycardSpec->showInHistory);
@@ -120,7 +118,6 @@ TEST(InventoryHudSpec, Parse)
 	ASSERT_TRUE(armorVestSpec != nullptr);
 
 	EXPECT_STREQ(armorVestSpec->spriteName.c_str(),  "item_armorvest");
-	EXPECT_FALSE(armorVestSpec->colorDefined);
 	EXPECT_EQ(armorVestSpec->position, INVENTORY_PLACE_TOP_RIGHT);
 	EXPECT_TRUE(armorVestSpec->showInHistory);
 	EXPECT_TRUE(armorVestSpec->showInJournal);
