@@ -101,8 +101,6 @@ struct DropItemSet
 {
 	std::vector<DropItemInfo> items;
 	float maxWeight = 0.0f;
-
-	static DropItemSet FromJSON(const rapidjson::Value& value);
 };
 
 struct EquipmentItem
@@ -802,7 +800,7 @@ protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
-	void AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate);
+	void AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate, const char* fileName);
 	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
 	std::string _temp;
 

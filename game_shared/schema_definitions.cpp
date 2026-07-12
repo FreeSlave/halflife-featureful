@@ -835,7 +835,7 @@ const char* const json_schemas::definitions = R"(
 				"type": "string"
 			},
 			"ent_template": {
-				"type": "string"
+				"$ref": "#/entity_template"
 			},
 			"pickup_name": {
 				"type": "string"
@@ -931,10 +931,10 @@ R"(
 				"type": "string"
 			},
 			"own_visual": {
-				"$ref": "#/visual"
+				"$ref": "#/visual_object"
 			},
 			"gib_visual": {
-				"$ref": "#/visual"
+				"$ref": "#/visual_object"
 			},
 			"size": {
 				"$ref": "#/object_size"
@@ -1145,7 +1145,7 @@ R"(
 							"minLength": 1
 						},
 						"ent_template": {
-							"type": "string"
+							"$ref": "#/entity_template"
 						},
 						"at_position": {
 							"enum": ["gun", "body"]
