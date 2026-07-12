@@ -796,12 +796,20 @@ public:
 	const EntTemplate* GetTemplate(const char* name);
 	void EnsureVisualReplacementForTemplate(const char* templateName, const char* visualName);
 	void EnsureSoundScriptReplacementForTemplate(const char* templateName, const char* soundScriptName);
+
+	typedef std::map<std::string, EntTemplate, CaseInsensitiveCompare> EntityTemplateMap;
+	EntityTemplateMap::const_iterator EntityTemplatesBegin() const {
+		return _entTemplates.cbegin();
+	}
+	EntityTemplateMap::const_iterator EntityTemplatesEnd() const {
+		return _entTemplates.cend();
+	}
 protected:
 	const char* Schema() const override;
 	bool ReadFromDocument(const rapidjson::Document& document, const char* fileName) override;
 private:
 	void AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate, const char* fileName);
-	std::map<std::string, EntTemplate, CaseInsensitiveCompare> _entTemplates;
+	EntityTemplateMap _entTemplates;
 	std::string _temp;
 
 	SoundScriptSystem* _soundScriptSystem = nullptr;

@@ -1029,6 +1029,14 @@ void ReportVisuals()
 		g_VisualSystem.DumpVisuals();
 }
 
+void ListEntityTemplates()
+{
+	for (auto it = g_EntTemplateSystem.EntityTemplatesBegin(); it != g_EntTemplateSystem.EntityTemplatesEnd(); ++it)
+	{
+		ALERT(at_console, "%s\n", it->first.c_str());
+	}
+}
+
 void ReportWarpballTemplates()
 {
 	g_WarpballCatalog.DumpWarpballTemplates();
@@ -1708,6 +1716,7 @@ void GameDLLInit()
 	g_engfuncs.pfnAddServerCommand("dump_precached_sounds", ReportPrecachedSounds);
 	g_engfuncs.pfnAddServerCommand("dump_soundscripts", ReportSoundScripts);
 	g_engfuncs.pfnAddServerCommand("dump_visuals", ReportVisuals);
+	g_engfuncs.pfnAddServerCommand("dump_entity_templates", ListEntityTemplates);
 	g_engfuncs.pfnAddServerCommand("dump_materials", ReportMaterials);
 	g_engfuncs.pfnAddServerCommand("force_schedule_fail", ForceScheduleFail);
 	g_engfuncs.pfnAddServerCommand("get_skill_for_entity_template", PrintSkillReplacementForEntTemplate);
