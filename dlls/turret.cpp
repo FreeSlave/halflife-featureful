@@ -65,7 +65,6 @@ public:
 	int DefaultClassify() override;
 	int AwakeClassify() override;
 
-	int BloodColor() override { return DONT_BLEED; }
 	void GibMonster() override {}	// UNDONE: Throw turret gibs?
 
 	// Think functions
@@ -344,6 +343,7 @@ void CBaseTurret::KeyValue( KeyValueData *pkvd )
 
 void CBaseTurret::SpawnHelper()
 {
+	SetMyBloodColor(DONT_BLEED);
 	pev->max_health = pev->health;
 	pev->nextthink		= gpGlobals->time + 1;
 	pev->movetype		= MOVETYPE_FLY;
@@ -1148,6 +1148,7 @@ void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
+	BloodEffect(damageInfo, vecDir, ptr);
 }
 
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
