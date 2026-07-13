@@ -55,15 +55,20 @@ void SetBarneyHead(CBaseEntity* pEntity, int head)
 		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
 		if (pstudiohdr->numbodyparts > BARNEY_HEAD_GROUP)
 		{
-			if (head < 0)
+			// check if gun body group is actually a gun body group
+			const int gunCount = GetBodygroupNumModels(pmodel, BARNEY_GUN_GROUP);
+			if (gunCount > 1)
 			{
-				int headCount = GetBodygroupNumModels(pmodel, BARNEY_HEAD_GROUP);
-				if (headCount > 1)
-					head = RANDOM_LONG(0, headCount - 1);
-				else
-					head = 0;
+				if (head < 0)
+				{
+					int headCount = GetBodygroupNumModels(pmodel, BARNEY_HEAD_GROUP);
+					if (headCount > 1)
+						head = RANDOM_LONG(0, headCount - 1);
+					else
+						head = 0;
+				}
+				SetBodygroup(pmodel, pEntity->pev, BARNEY_HEAD_GROUP, head);
 			}
-			SetBodygroup(pmodel, pEntity->pev, BARNEY_HEAD_GROUP, head);
 		}
 	}
 }
@@ -444,11 +449,21 @@ void CBarney::SetGunState(int gunState)
 	if (pmodel)
 	{
 		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
-		if (pstudiohdr->numbodyparts > BARNEY_GUN_GROUP)
+
+		bool setViaBodyGroup = false;
+
+		// Find the first body part with multiple number of submodels - this is most probably the gun group
+		for (int iGroup = 0; iGroup<pstudiohdr->numbodyparts; ++iGroup)
 		{
-			::SetBodygroup(pmodel, pev, BARNEY_GUN_GROUP, gunState);
+			mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)( (byte *)pstudiohdr + pstudiohdr->bodypartindex ) + iGroup;
+			if (pbodypart->nummodels > 1)
+			{
+				::SetBodygroup(pmodel, pev, iGroup, gunState);
+				setViaBodyGroup = true;
+				break;
+			}
 		}
-		else
+		if (!setViaBodyGroup)
 		{
 			pev->body = gunState;
 		}
