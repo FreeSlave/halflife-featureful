@@ -16,7 +16,7 @@ If not stated otherwise, the weapon template can be applied to any fully configu
 
 ## Counter Strike
 
-The templates for CS weapons are stored in the **templates/weapons/cs/** directory. They include almost every CS firearm (except for dual berretas).
+The templates for CS weapons are stored in the **templates/weapons/cs/** directory.
 
 {{% details "Example of templates/weapons.json" open %}}
 
@@ -40,6 +40,19 @@ The templates for CS weapons are stored in the **templates/weapons/cs/** directo
     "weapon_handgrenade": "cs/hegrenade"
 }
 ```
+
+{{% /details %}}
+
+{{% details "Currently missing weapons" %}}
+
+{{% hint warning %}}
+The following CS weapons are not implemented yet:
+* Dual Berettas
+* C4
+* Flashbang
+* Smoke grenade
+* Any combination with a tactical shield
+{{% /hint %}}
 
 {{% /details %}}
 

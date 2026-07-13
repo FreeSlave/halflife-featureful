@@ -332,7 +332,7 @@ Possible values for blood colors:
 * `"darkblue"`
 * `"bluish"` - bluish/navy
 
-If it's an object, it have the following properties:
+If it's an object, it has the following properties:
 
 * `"color"` - same as a string form. Just the blood color.
 * `"by_hitgroup"` - an array that allows to set different blood colors depending on the hitbox type that was hit. Each item in the array is an object of the following properties:
