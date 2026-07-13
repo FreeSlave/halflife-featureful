@@ -493,9 +493,12 @@ public:
 	virtual void CompleteReloadTask() {}
 
 	void HandleCloaking();
+	void InitUncloakedRenderamt();
 	virtual bool CanCloakByDefault() {
 		return false;
 	}
+	virtual bool IsMovingCloakWise();
+	virtual bool IsAttackingCloakWise();
 	virtual const NamedSoundScript& CloakingStartSoundScript();
 
 	void SendDeathNotice();

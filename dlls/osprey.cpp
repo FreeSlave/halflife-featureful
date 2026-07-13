@@ -75,6 +75,13 @@ public:
 	void ShowDamage();
 	void Update();
 
+	bool IsMovingCloakWise() {
+		return m_pfnThink == &COsprey::FlyThink;
+	}
+	bool IsAttackingCloakWise() {
+		return m_pfnThink == &COsprey::HoverThink || m_pfnThink == &COsprey::DeployThink;
+	}
+
 	CBaseEntity *m_pGoalEnt;
 	Vector m_vel1;
 	Vector m_vel2;
@@ -293,6 +300,8 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	m_pos2 = pev->origin;
 	m_ang2 = pev->angles;
 	m_vel2 = pev->velocity;
+
+	InitUncloakedRenderamt();
 }
 
 void COsprey::Precache()
@@ -1189,6 +1198,7 @@ void COsprey::Update()
 	ShowDamage();
 	FCheckAITrigger();
 	GlowShellUpdate();
+	HandleCloaking();
 }
 
 TakeDamageResult COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)

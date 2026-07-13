@@ -1712,10 +1712,6 @@ Example:
 
 Cloaking ability (invisibility) for monsters. This makes a monster translucent under certain (configurable) conditions, similar to [monster_human_assassin]({{< ref monster_human_assassin >}}).
 
-{{% hint warning %}}
-Special monsters like turrets, aircrafts and barnacles can't currently use cloaking.
-{{% /hint %}}
-
 Technically the cloaking can make monster more visible than in the "uncloaked" state - this is up to the cloaking properties and the initial monster's render parameters. You may think of cloaking as a second visibility setting.
 
 Properties:

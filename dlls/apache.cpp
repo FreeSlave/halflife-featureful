@@ -54,6 +54,14 @@ public:
 	{
 		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
 	}
+	bool IsMovingCloakWise() {
+		return pev->velocity != g_vecZero;
+	}
+	bool IsAttackingCloakWise() {
+		bool result = m_attackedRecently;
+		m_attackedRecently = false;
+		return result;
+	}
 
 	void EXPORT HuntThink();
 	void EXPORT FlyTouch( CBaseEntity *pOther );
@@ -103,6 +111,7 @@ public:
 	float m_rotorVolume;
 
 	bool m_iObeyTriggerMode;
+	bool m_attackedRecently;
 
 	static const NamedSoundScript rotorSoundScript;
 	static const NamedSoundScript fireGunSoundScript;
@@ -152,6 +161,7 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
 	DEFINE_FIELD( CApache, m_rotorVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iObeyTriggerMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CApache, m_attackedRecently, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CApache, CBaseMonster )
@@ -256,6 +266,7 @@ void CApache::SpawnImpl(const char *modelName)
 	m_iRockets = 10;
 
 	InitLootRandomSeed();
+	InitUncloakedRenderamt();
 }
 
 void CApache::Precache()
@@ -314,6 +325,7 @@ void CApache::NullThink()
 	FCheckAITrigger();
 	pev->nextthink = gpGlobals->time + 0.5f;
 	GlowShellUpdate();
+	HandleCloaking();
 	ShowDamage();
 }
 
@@ -377,6 +389,7 @@ void CApache::DyingThink()
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	pev->avelocity = pev->avelocity * 1.02f;
 
@@ -559,6 +572,7 @@ void CApache::HuntThink()
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	ShowDamage();
 
@@ -957,6 +971,7 @@ void CApache::FireRocket()
 
 		side = - side;
 	}
+	m_attackedRecently = true;
 }
 
 bool CApache::FireGun()
@@ -1027,6 +1042,7 @@ bool CApache::FireGun()
 			m_pBeam->SetStartPos( tr.vecEndPos );
 		}
 #endif
+		m_attackedRecently = true;
 		return true;
 	}
 	else

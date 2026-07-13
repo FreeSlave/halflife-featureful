@@ -47,6 +47,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void EXPORT BarnacleThink();
 	void EXPORT WaitTillDead();
+	bool IsAttackingCloakWise() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	void PainSound() override;
@@ -194,6 +195,8 @@ void CBarnacle::Spawn()
 
 	pev->max_health = pev->health;
 	UTIL_SetOrigin( pev, pev->origin );
+
+	InitUncloakedRenderamt();
 }
 
 DamageInfo CBarnacle::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
@@ -222,6 +225,7 @@ void CBarnacle::BarnacleThink()
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
 	HandlePowerShieldRecharge();
+	HandleCloaking();
 
 	if( m_hEnemy != 0 )
 	{
@@ -390,6 +394,11 @@ void CBarnacle::BarnacleThink()
 		UTIL_SetOrigin(m_pTongueMiddle->pev, pev->origin - Vector(0, 0, m_flAltitude * 0.5f));
 }
 
+bool CBarnacle::IsAttackingCloakWise()
+{
+	return m_hEnemy != 0;
+}
+
 //=========================================================
 // Killed.
 //=========================================================
@@ -400,6 +409,7 @@ KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, 
 
 	pev->solid = SOLID_NOT;
 	pev->takedamage = DAMAGE_NO;
+	pev->deadflag = DEAD_DEAD;
 
 	ReleaseVictim();
 
@@ -421,6 +431,7 @@ void CBarnacle::WaitTillDead()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	float flInterval = StudioFrameAdvance( 0.1f );
 	DispatchAnimEvents( flInterval );

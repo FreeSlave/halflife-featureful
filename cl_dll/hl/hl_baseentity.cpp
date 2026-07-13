@@ -203,6 +203,8 @@ const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
 	static const NamedSoundScript dummy{0, {}, "Dummy"};
 	return dummy;
 }
+bool CBaseMonster::IsMovingCloakWise() { return false; }
+bool CBaseMonster::IsAttackingCloakWise() { return false; }
 
 void CBasePlayer::DeathSound() { }
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) { return 0; }

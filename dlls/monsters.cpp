@@ -2612,8 +2612,7 @@ void CBaseMonster::MonsterInit()
 	SetUse( &CBaseMonster::MonsterUse );
 
 	InitLootRandomSeed();
-
-	m_UncloakedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
+	InitUncloakedRenderamt();
 }
 
 //=========================================================
@@ -5159,51 +5158,20 @@ void CBaseMonster::HandleCloaking()
 
 	if (!passed)
 	{
-		auto isMoving = [this]() {
-			if (FBitSet(pev->flags, FL_SWIM|FL_FLY))
-			{
-				return pev->velocity != g_vecZero;
-			}
-			else
-			{
-				switch(m_Activity)
-				{
-				case ACT_WALK:
-				case ACT_RUN:
-				case ACT_WALK_HURT:
-				case ACT_RUN_HURT:
-				case ACT_WALK_SCARED:
-				case ACT_RUN_SCARED:
-					return true;
-				default:
-					return false;
-				}
-			}
-		};
-
 		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_MOVING))
 		{
-			passed = isMoving();
+			passed = IsMovingCloakWise();
 		}
 		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_STANDING))
 		{
-			passed = !isMoving();
+			passed = !IsMovingCloakWise();
 		}
 	}
 
 	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_ATTACKING))
 	{
-		switch(m_Activity)
-		{
-		case ACT_MELEE_ATTACK1:
-		case ACT_MELEE_ATTACK2:
-		case ACT_RANGE_ATTACK1:
-		case ACT_RANGE_ATTACK2:
+		if (IsAttackingCloakWise())
 			passed = true;
-			break;
-		default:
-			break;
-		}
 	}
 
 	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_RELOADING))
@@ -5328,6 +5296,48 @@ void CBaseMonster::HandleCloaking()
 			pev->rendermode = kRenderNormal;
 		else if (pev->renderamt < 255 && pev->rendermode == kRenderNormal)
 			pev->rendermode = kRenderTransTexture;
+	}
+}
+
+void CBaseMonster::InitUncloakedRenderamt()
+{
+	m_UncloakedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
+}
+
+bool CBaseMonster::IsMovingCloakWise()
+{
+	if (FBitSet(pev->flags, FL_SWIM|FL_FLY))
+	{
+		return pev->velocity != g_vecZero || IsMoving();
+	}
+	else
+	{
+		switch(m_Activity)
+		{
+		case ACT_WALK:
+		case ACT_RUN:
+		case ACT_WALK_HURT:
+		case ACT_RUN_HURT:
+		case ACT_WALK_SCARED:
+		case ACT_RUN_SCARED:
+			return true;
+		default:
+			return false;
+		}
+	}
+}
+
+bool CBaseMonster::IsAttackingCloakWise()
+{
+	switch(m_Activity)
+	{
+	case ACT_MELEE_ATTACK1:
+	case ACT_MELEE_ATTACK2:
+	case ACT_RANGE_ATTACK1:
+	case ACT_RANGE_ATTACK2:
+		return true;
+	default:
+		return false;
 	}
 }
 

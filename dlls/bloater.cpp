@@ -193,6 +193,10 @@ public:
 	void MakeProvoked(bool alertOthers = true);
 	void AlertOthers();
 
+	bool IsAttackingCloakWise() {
+		return Bloating();
+	}
+
 	CSprite* m_leftGlow;
 	CSprite* m_rightGlow;
 	float m_nextPainTime;
