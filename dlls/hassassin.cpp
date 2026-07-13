@@ -43,6 +43,7 @@ enum
 	SCHED_ASSASSIN_JUMP_ATTACK,	// fly through the air and shoot
 	SCHED_ASSASSIN_JUMP_LAND, // hit and run away
 	SCHED_ASSASSIN_JUMP_FOLLOWING,
+	SCHED_ASSASSIN_JUMP_CHASE,
 };
 
 //=========================================================
@@ -133,6 +134,8 @@ public:
 		return result.speed / jumpHeight;
 	}
 	std::pair<Vector, int> CalcMonsterJump(const Vector& vecTarget, float maximumHeight, float maximumDistance);
+	bool FindJumpToSpot(const Vector& vecTarget);
+	bool FindJumpToEntity(CBaseEntity* pEntity);
 	bool FindFollowJump();
 
 	float m_flLastShot;
@@ -688,6 +691,7 @@ Schedule_t slAssassinHide[] =
 //=========================================================
 Task_t tlAssassinHunt[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_CHASE_ENEMY_FAILED },
 	{ TASK_GET_PATH_TO_ENEMY, (float)0 },
 	{ TASK_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
@@ -796,6 +800,24 @@ Schedule_t slAssassinJumpFollowing[] =
 	},
 };
 
+Task_t tlAssassinJumpChase[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_PLAY_SEQUENCE, (float)ACT_HOP },
+	{ TASK_ASSASSIN_FALL_TO_GROUND, (float)0 },
+};
+
+Schedule_t slAssassinJumpChase[] =
+{
+	{
+		tlAssassinJumpChase,
+		ARRAYSIZE( tlAssassinJumpChase ),
+		0,
+		0,
+		"AssassinJumpChase"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CHAssassin )
 {
 	slAssassinFail,
@@ -809,6 +831,7 @@ DEFINE_CUSTOM_SCHEDULES( CHAssassin )
 	slAssassinJumpAttack,
 	slAssassinJumpLand,
 	slAssassinJumpFollowing,
+	slAssassinJumpChase,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHAssassin, CFollowingMonster )
@@ -1149,7 +1172,7 @@ Schedule_t *CHAssassin::GetSchedule()
 				return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
 			}
 
-			if( HasConditions( bits_COND_SEE_ENEMY ) )
+			if( HasConditions( bits_COND_SEE_ENEMY ) && !FacingIdeal() )
 			{
 				// ALERT( at_console, "face\n" );
 				return GetScheduleOfType( SCHED_COMBAT_FACE );
@@ -1163,7 +1186,10 @@ Schedule_t *CHAssassin::GetSchedule()
 			}
 
 			// ALERT( at_console, "stand\n" );
-			return GetScheduleOfType( SCHED_ALERT_STAND );
+			if (!HasConditions(bits_COND_ENEMY_TOOFAR))
+				return GetScheduleOfType( SCHED_ALERT_STAND );
+			else
+				return GetScheduleOfType( SCHED_CHASE_ENEMY );
 		}
 		break;
 	default:
@@ -1223,6 +1249,8 @@ Schedule_t *CHAssassin::GetScheduleOfType( int Type )
 		return slAssassinJumpLand;
 	case SCHED_ASSASSIN_JUMP_FOLLOWING:
 		return slAssassinJumpFollowing;
+	case SCHED_ASSASSIN_JUMP_CHASE:
+		return slAssassinJumpChase;
 	case SCHED_FOLLOW_FAILED:
 	{
 		FOLLOW_FAIL_POLICY failPolicy = FollowFailPolicy();
@@ -1271,6 +1299,14 @@ Schedule_t *CHAssassin::GetScheduleOfType( int Type )
 			}
 		}
 		return GetScheduleOfType(SCHED_TARGET_FACE);
+	}
+	case SCHED_CHASE_ENEMY_FAILED:
+	{
+		if (m_flNextJump <= gpGlobals->time && FindJumpToEntity(m_hEnemy))
+		{
+			m_flNextJump = gpGlobals->time + 1.0f;
+			return GetScheduleOfType(SCHED_ASSASSIN_JUMP_CHASE);
+		}
 	}
 	}
 
@@ -1322,12 +1358,26 @@ std::pair<Vector, int> CHAssassin::CalcMonsterJump(const Vector &vecTarget, floa
 			return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_SOLID);
 		}
 
-		const Vector bottom = TraceBottom(vecChosenDest, edict());
-		const float bottomZ = bottom.z;
-		if (bottomZ + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+		Vector bottom = TraceBottom(vecChosenDest, edict());
+		if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
 		{
 			//DrawBeamLine(vecChosenDest, bottom, Color3(255, 100, 50));
-			return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+			const Vector2D halfHorizontalShift = horizontalShift * 0.5f;
+			vecChosenDest.x = pev->origin.x + halfHorizontalShift.x;
+			vecChosenDest.y = pev->origin.y + halfHorizontalShift.y;
+
+			if (UTIL_PointContents(vecChosenDest) == CONTENTS_SOLID)
+			{
+				return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+			}
+			else
+			{
+				bottom = TraceBottom(vecChosenDest, edict());
+				if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+				{
+					return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+				}
+			}
 		}
 	}
 
@@ -1373,14 +1423,9 @@ std::pair<Vector, int> CHAssassin::CalcMonsterJump(const Vector &vecTarget, floa
 	}
 }
 
-bool CHAssassin::FindFollowJump()
+bool CHAssassin::FindJumpToSpot(const Vector& vecTarget)
 {
-	CBaseEntity* pLeader = FollowedPlayer();
-	if (!pLeader)
-		return false;
-
 	const float horizontalJumpDistance = 360.0f;
-	const Vector vecTarget(pLeader->pev->origin.x, pLeader->pev->origin.y, pLeader->pev->absmin.z + 1.0f);
 
 	const Vector2D vec2DDist = (vecTarget - pev->origin).Make2D();
 	const float dist2DSqr = vec2DDist.LengthSqr();
@@ -1492,6 +1537,20 @@ bool CHAssassin::FindFollowJump()
 	}
 
 	return false;
+}
+
+bool CHAssassin::FindJumpToEntity(CBaseEntity* pEntity)
+{
+	if (!pEntity)
+		return false;
+
+	const Vector vecTarget(pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->absmin.z + 1.0f);
+	return FindJumpToSpot(vecTarget);
+}
+
+bool CHAssassin::FindFollowJump()
+{
+	return CHAssassin::FindJumpToEntity(FollowedPlayer());
 }
 
 class CDeadHAssassin : public CDeadMonster
