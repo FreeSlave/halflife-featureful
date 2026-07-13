@@ -578,11 +578,11 @@ KilledResult CTalkMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	return CFollowingMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
-void CTalkMonster::OnDying(bool gibbed)
+void CTalkMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	// Don't finish that sentence
 	StopTalking();
-	CFollowingMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 void CTalkMonster::StartMonster()

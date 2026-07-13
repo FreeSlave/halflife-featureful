@@ -114,7 +114,7 @@ public:
 	void IdleSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	CUSTOM_SCHEDULES
 
 	int Save( CSave &save ) override;
@@ -269,7 +269,7 @@ void CHAssassin::PainSound()
 	EmitSoundScript(painSoundScript);
 }
 
-void CHAssassin::OnDying(bool gibbed)
+void CHAssassin::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 #if FEATURE_HASSSASSIN_DROP_AMMO || FEATURE_MONSTERS_DROP_HANDGRENADES
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) )
@@ -293,7 +293,7 @@ void CHAssassin::OnDying(bool gibbed)
 #endif
 	}
 #endif
-	CFollowingMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 //=========================================================

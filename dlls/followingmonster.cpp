@@ -253,11 +253,11 @@ void CFollowingMonster::Touch( CBaseEntity *pOther )
 	}
 }
 
-void CFollowingMonster::OnDying(bool gibbed)
+void CFollowingMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearFollowedPlayer();
 	SetUse( NULL );
-	CSquadMonster::OnDying(gibbed);
+	CSquadMonster::OnDying(gibbed, pKiller);
 }
 
 int CFollowingMonster::ObjectCaps()

@@ -140,7 +140,7 @@ public:
 	int 			TakeHealth(CBaseEntity* pHealer, float flHealth, int healType) override;
 	bool			CanBeMadeMoveAway(CBaseEntity *pPusher) override;
 	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void			OnDying(bool gibbed) override;
+	void			OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void			StartMonster() override;
 	int				IRelationship ( CBaseEntity *pTarget ) override;
 	bool			IsFriendWithPlayerBeforeProvoked();

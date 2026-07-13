@@ -360,7 +360,7 @@ public:
 	virtual void DeathGibThink();
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType(int Type) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void UpdateOnRemove() override;
 	const char* DefaultGibModel() override {
 		return "models/vgibs.mdl";
@@ -1025,10 +1025,10 @@ void CVoltigore::StartTask(Task_t *pTask)
 	}
 }
 
-void CVoltigore::OnDying(bool gibbed)
+void CVoltigore::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearBeams();
-	CSquadMonster::OnDying(gibbed);
+	CSquadMonster::OnDying(gibbed, pKiller);
 }
 
 void CVoltigore::UpdateOnRemove()

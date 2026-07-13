@@ -396,7 +396,7 @@ void CBarnacle::BarnacleThink()
 KilledResult CBarnacle::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	if (!HasMemory(bits_MEMORY_KILLED))
-		OnDying(false);
+		OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 
 	pev->solid = SOLID_NOT;
 	pev->takedamage = DAMAGE_NO;

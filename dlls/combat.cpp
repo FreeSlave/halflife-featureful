@@ -899,8 +899,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	SetConditions( bits_COND_LIGHT_DAMAGE );
 
 	const bool shouldGib = ShouldGibMonster( iGib );
-	OnDying(shouldGib);
-	TriggerOnDeath(CBaseEntity::OwnInstance(pevAttacker));
+	OnDying(shouldGib, CBaseEntity::OwnInstance(pevAttacker));
 
 	if (shouldGib)
 	{
@@ -923,7 +922,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	return killedResult;
 }
 
-void CBaseMonster::OnDying(bool gibbed)
+void CBaseMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if (!g_modFeatures.dying_monsters_block_player)
 		MarkAsNonBlockerForPlayer();
@@ -934,6 +933,8 @@ void CBaseMonster::OnDying(bool gibbed)
 	UTIL_RemoveAndClean(m_activeRegenSprite);
 
 	SendDeathNotice();
+
+	TriggerOnDeath(pKiller);
 }
 
 void CBaseMonster::UpdateOnRemove()

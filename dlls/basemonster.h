@@ -386,7 +386,7 @@ public:
 	virtual Activity GetDeathActivity();
 	Activity GetSmallFlinchActivity();
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	virtual void OnDying(bool gibbed);
+	virtual void OnDying(bool gibbed, CBaseEntity* pKiller);
 	virtual void GibMonster();
 	void UpdateOnRemove() override;
 	bool ShouldGibMonster( int iGib );

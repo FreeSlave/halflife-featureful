@@ -212,7 +212,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 
 	InsertAISound( bits_SOUND_WORLD, 128, 1 );
 
-	OnDying(true);
+	OnDying(true, CBaseEntity::OwnInstance(pevAttacker));
 	UTIL_Remove( this );
 	return KilledResult();
 }

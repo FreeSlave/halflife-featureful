@@ -78,7 +78,7 @@ public:
 	void StartMonster() override;
 	void VacateSlot();
 	void ScheduleChange() override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void UpdateOnRemove() override;
 	void RemoveMySelfFromSquad();
 	bool OccupySlot( int iDesiredSlot );

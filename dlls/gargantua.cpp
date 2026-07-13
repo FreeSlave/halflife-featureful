@@ -464,7 +464,7 @@ public:
 	PainSoundRule DefaultPainSoundRule() override;
 	void PainSound() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void DeathEffect();
 
 	void EyeOff();
@@ -1251,11 +1251,11 @@ KilledResult CGargantua::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker
 	return CFollowingMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
-void CGargantua::OnDying(bool gibbed)
+void CGargantua::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	EyeOff();
 	UTIL_RemoveAndClean(m_pEyeGlow);
-	CFollowingMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 bool CGargantua::FVisible( CBaseEntity *pEntity, CBaseEntity** ppSightBlocker )

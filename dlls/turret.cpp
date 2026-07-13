@@ -1168,7 +1168,7 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		takeDamageResult.SetKilledResult(KilledResult());
 		if (ShouldFadeOnDeath())
 			pev->spawnflags |= SF_MONSTER_FADECORPSE;
-		OnDying(false);
+		OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);
@@ -1400,7 +1400,7 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 		takeDamageResult.SetKilledResult(KilledResult());
 		if (ShouldFadeOnDeath())
 			pev->spawnflags |= SF_MONSTER_FADECORPSE;
-		OnDying(false);
+		OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);

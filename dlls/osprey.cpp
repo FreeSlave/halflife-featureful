@@ -956,7 +956,7 @@ KilledResult COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	pev->deadflag = DEAD_DYING;
 
 	m_startTime = gpGlobals->time + 4.0f;
-	OnDying(false);
+	OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 	return KilledResult();
 }
 
