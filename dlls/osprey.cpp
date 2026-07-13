@@ -48,7 +48,6 @@ public:
 	void KeyValue(KeyValueData* pkvd) override;
 	const char* DefaultDisplayName() override { return "Osprey"; }
 	int DefaultClassify() override { return CLASS_MACHINE; }
-	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	Vector DefaultMinHullSize() override { return Vector( -400, -400, -100 ); }
@@ -278,6 +277,7 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	pev->takedamage = DAMAGE_YES;
 	m_flRightHealth = 200;
 	m_flLeftHealth = 200;
+	SetMyBloodColor(DONT_BLEED);
 	SetMyHealth( defaultHealth );
 	pev->max_health = pev->health;
 
@@ -1180,6 +1180,7 @@ void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	{
 		// ALERT( at_console, "%.0f\n", flDamage );
 		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		BloodEffect(damageInfo, vecDir, ptr);
 	}
 	else
 	{

@@ -2125,10 +2125,10 @@ void CBaseEntity::ApplyTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttack
 	ApplyMultiDamage(pevInflictor, pevAttacker);
 }
 
-void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
+bool CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
 {
 	if (damageInfo.noBlood)
-		return;
+		return false;
 
 	int bloodColor = BloodColor();
 
@@ -2147,16 +2147,17 @@ void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOri
 		}
 	}
 
-	SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
+	bool result = SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
 	TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
+	return result;
 }
 
-void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
+bool CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
 {
 	extern int gmsgBlood;
 
 	if (bloodColor < 0 || amount <= 0 || !UTIL_ShouldShowBlood(bloodColor))
-		return;
+		return false;
 
 	//ALERT(at_console, "Dir: %g, %g, %g\n", vecDir.x, vecDir.y, vecDir.z);
 
@@ -2176,6 +2177,8 @@ void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir,
 	WRITE_BYTE(bloodColor);
 	WRITE_SHORT(amount);
 	MESSAGE_END();
+
+	return true;
 }
 
 //=========================================================

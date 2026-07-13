@@ -44,7 +44,6 @@ public:
 	bool HasFlesh() override { return false; }
 	const char* DefaultDisplayName() override { return "Apache"; }
 	const char* ReverseRelationshipModel() override { return "models/apachef.mdl"; }
-	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster() override;
 
@@ -239,6 +238,7 @@ void CApache::SpawnImpl(const char *modelName)
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
+	SetMyBloodColor(DONT_BLEED);
 	SetMyHealth( GetSkillValue("apache_health") );
 	pev->max_health = pev->health;
 
@@ -1154,15 +1154,17 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 		return;
 
 	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
-	if (pev->takedamage)
-	{
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+	if (!pev->takedamage)
+		return;
 
-		// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
-		if( MustDoSmoke(damageInfo, ptr) )
-		{
-			m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
-		}
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+
+	BloodEffect(damageInfo, vecDir, ptr);
+
+	// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
+	if( MustDoSmoke(damageInfo, ptr) )
+	{
+		m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
 	}
 }
 
