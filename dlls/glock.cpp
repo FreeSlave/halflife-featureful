@@ -133,10 +133,10 @@ WeaponParameters CGlock::GetDefaultParameters() const
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 
-	params.reload.animIndex = GLOCK_RELOAD_NOT_EMPTY;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(GLOCK_RELOAD_NOT_EMPTY)};
 	params.reload.duration = 1.5f;
 	params.reload.idleDelay = FloatRange(10.0f, 15.0f);
-	params.reload.animIndex.mainEmptied = GLOCK_RELOAD;
+	params.reload.animIndex.mainEmptied = {WeaponParameters::ReloadAnim(GLOCK_RELOAD)};
 
 	params.dropAmmo.classname = "ammo_9mmclip";
 

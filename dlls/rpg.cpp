@@ -437,7 +437,7 @@ WeaponParameters CRpg::GetDefaultParameters() const
 		PITCH_NORM
 	};
 
-	params.reload.animIndex = RPG_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(RPG_RELOAD)};
 	params.reload.duration = 2.0f;
 	params.reload.idleDelay = FloatRange(10, 15);
 	params.reload.suspendLaserSpotTime = 2.1f;

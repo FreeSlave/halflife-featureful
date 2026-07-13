@@ -2158,8 +2158,7 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 
 		if (reason == SwitchModeReason::Reload)
 		{
-			const int animIndex = params.reload.animIndex.Get(m_inAltMode, Emptied());
-			if (animIndex >= 0)
+			if (!params.reload.animIndex.Get(m_inAltMode, Emptied()).empty())
 			{
 				// prefer reload animation to the switch mode animation
 				playSwitchAnim = false;
@@ -2241,6 +2240,36 @@ void CConfigurableWeapon::SecondaryAttack()
 		SwitchMode();
 		break;
 	}
+}
+
+int CConfigurableWeapon::GetReloadAnim(const WeaponParameters::ReloadAnimArray& arr)
+{
+	if (arr.empty())
+		return -1;
+
+	if (arr.size() > 1)
+	{
+		float chanceSum = 0.0f;
+		for (const WeaponParameters::ReloadAnim& anim : arr)
+		{
+			chanceSum += anim.chance;
+		}
+		const float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0.0f, chanceSum);
+		float curSum = 0.0f;
+		for (const WeaponParameters::ReloadAnim& anim : arr)
+		{
+			curSum += anim.chance;
+			if (flRand <= curSum)
+			{
+				return anim.animIndex;
+			}
+		}
+	}
+	else
+	{
+		return arr[0].animIndex;
+	}
+	return -1;
 }
 
 bool CConfigurableWeapon::PerformReload()
@@ -2339,14 +2368,13 @@ bool CConfigurableWeapon::PerformReload()
 			// was waiting for gun to move to side
 			m_fInSpecialReload = 2;
 
-			const int animIndex = reload.animIndex.Get(altMode, empty);
-
 			ResetZoom(SwitchModeReason::Reload);
 
 			PlayWeaponSoundScript(reload.sound.Get(altMode, empty));
 
-			if (animIndex >= 0)
-				SendWeaponAnim(animIndex);
+			const int reloadAnimIndex = GetReloadAnim(reload.animIndex.Get(altMode, empty));
+			if (reloadAnimIndex >= 0)
+				SendWeaponAnim(reloadAnimIndex);
 
 			const float attackDelay = reload.duration.Get(altMode, empty);
 			if (attackDelay)
@@ -2367,7 +2395,7 @@ bool CConfigurableWeapon::PerformReload()
 		}
 	}
 
-	const int animIndex = reload.animIndex.Get(altMode, empty);
+	const int animIndex = GetReloadAnim(reload.animIndex.Get(altMode, empty));
 
 	const float reloadDuration = reload.duration.Get(altMode, empty);
 	bool result = DefaultClipReload(animIndex, reloadDuration, ViewModelBody());
@@ -3551,10 +3579,10 @@ public:
 		params.fire.shellModel = "models/shell.mdl";
 		params.fire.shellSound = TE_BOUNCE_SHELL;
 
-		params.reload.animIndex = PISTOL_RELOAD_NOT_EMPTY;
+		params.reload.animIndex = {WeaponParameters::ReloadAnim(PISTOL_RELOAD_NOT_EMPTY)};
 		params.reload.duration = 1.5f;
 		params.reload.idleDelay = FloatRange(10.0f, 15.0f);
-		params.reload.animIndex.mainEmptied = PISTOL_RELOAD;
+		params.reload.animIndex.mainEmptied = {WeaponParameters::ReloadAnim(PISTOL_RELOAD)};
 
 		return std::move(params);
 	}
@@ -3645,7 +3673,7 @@ public:
 		params.fire.shellModel = "models/shell.mdl";
 		params.fire.shellSound = TE_BOUNCE_SHELL;
 
-		params.reload.animIndex = SMG_RELOAD;
+		params.reload.animIndex = {WeaponParameters::ReloadAnim(SMG_RELOAD)};
 		params.reload.duration = 1.5f;
 
 		return std::move(params);
@@ -3780,7 +3808,7 @@ public:
 		params.reloadAutostart = true;
 		params.manualReload = true;
 
-		params.reload.animIndex = SHOTGUN2_RELOAD;
+		params.reload.animIndex = {WeaponParameters::ReloadAnim(SHOTGUN2_RELOAD)};
 		params.reload.idleDelay = 0.5f;
 		params.reload.duration = 0.0f;
 		params.reload.sound = {
@@ -3876,7 +3904,7 @@ public:
 		params.altMode.zoomSound.waves = {"weapons/sniper_zoom.wav"};
 		//
 
-		params.reload.animIndex = SNIPER2_RELOAD3;
+		params.reload.animIndex = {WeaponParameters::ReloadAnim(SNIPER2_RELOAD3)};
 		params.reload.duration = 80.0f / 34.0f;
 
 		return std::move(params);

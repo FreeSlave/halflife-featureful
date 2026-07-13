@@ -386,7 +386,7 @@ WeaponParameters CCrossbow::GetDefaultParameters() const
 	params.altMode.attackDelay = 1.0f;
 	params.secondaryFireType = SecondaryFireType::SWITCH_MODE;
 
-	params.reload.animIndex = CROSSBOW_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(CROSSBOW_RELOAD)};
 	params.reload.duration = 4.5f;
 	params.reload.sound = {
 		CHAN_ITEM,

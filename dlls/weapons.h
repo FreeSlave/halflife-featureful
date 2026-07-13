@@ -374,6 +374,7 @@ public:
 	void PrimaryAttack() override;
 	void SwitchMode(SwitchModeReason reason = SwitchModeReason::Regular);
 	void SecondaryAttack() override;
+	int GetReloadAnim(const WeaponParameters::ReloadAnimArray& arr);
 	bool PerformReload();
 	void Reload() override;
 	void SendIdleAnimation();

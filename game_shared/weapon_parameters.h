@@ -502,9 +502,18 @@ struct WeaponParameters
 		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_AUTO};
 	};
 
+	struct ReloadAnim
+	{
+		ReloadAnim(): animIndex(0), chance(1.0f) {}
+		ReloadAnim(int anim): animIndex(anim), chance(1.0f) {}
+		int animIndex;
+		float chance;
+	};
+	typedef fixed_vector<ReloadAnim, 3> ReloadAnimArray;
+
 	struct Reload
 	{
-		WeaponModeValueEmptyAwareNonNegative<short> animIndex{-1};
+		WeaponModeValueEmptyAware<ReloadAnimArray> animIndex;
 		WeaponModeValueEmptyAwareNonNegative<float> duration{1.5f};
 		WeaponModeValueEmptyAwareNonNegative<float> attackDelay{0.0f};
 		WeaponModeValueEmptyAwareNonNegative<FloatRange> idleDelay{3.0f};

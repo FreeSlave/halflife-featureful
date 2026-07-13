@@ -164,7 +164,7 @@ WeaponParameters CMP5::GetDefaultParameters() const
 
 	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 
-	params.reload.animIndex = MP5_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(MP5_RELOAD)};
 	params.reload.duration = 1.5f;
 
 	params.dropAmmo.classname = "ammo_9mmAR";

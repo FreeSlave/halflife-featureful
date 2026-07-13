@@ -146,7 +146,7 @@ WeaponParameters CM249::GetDefaultParameters() const
 	params.secondaryFireType = SecondaryFireType::DISABLED;
 	//
 
-	params.reload.animIndex = M249_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(M249_RELOAD)};
 	params.reload.duration = 1.33f;
 	params.reload.idleDelay = 3.78f;
 

@@ -156,7 +156,7 @@ WeaponParameters CShotgun::GetDefaultParameters() const
 	params.reloadAutostart = true;
 	params.manualReload = true;
 
-	params.reload.animIndex = SHOTGUN_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(SHOTGUN_RELOAD)};
 	params.reload.idleDelay = 0.5f;
 	params.reload.duration = 0.0f;
 	params.reload.sound = {

@@ -127,10 +127,10 @@ WeaponParameters CSniperrifle::GetDefaultParameters() const
 	params.altMode.zoomSound.waves = {"weapons/sniper_zoom.wav"};
 	//
 
-	params.reload.animIndex = SNIPER_RELOAD3;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(SNIPER_RELOAD3)};
 	params.reload.duration = 80.0f / 34.0f;
 
-	params.reload.animIndex.mainEmptied = SNIPER_RELOAD1;
+	params.reload.animIndex.mainEmptied = {WeaponParameters::ReloadAnim(SNIPER_RELOAD1)};
 	params.reload.duration.mainEmptied = 80.0f / 34.0f;
 	params.reload.idleDelay.mainEmptied = 80.0f / 34.0f;
 
