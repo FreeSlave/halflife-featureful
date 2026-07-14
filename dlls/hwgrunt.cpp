@@ -72,6 +72,9 @@ public:
 	void Shoot();
 	void FinishReload();
 
+	void PrescheduleThink() override;
+	bool ShouldAnticipateLanding();
+
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType( int Type ) override;
 	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
@@ -663,15 +666,58 @@ DEFINE_CUSTOM_SCHEDULES( CHWGrunt )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHWGrunt, CFollowingMonster )
 
+//=========================================================
+// ShouldAnticipateLanding - traces down to the ground to
+// determine whether impact is imminent, so the landing anim
+// can be triggered before FL_ONGROUND is actually set by
+// the physics.
+//=========================================================
+bool CHWGrunt::ShouldAnticipateLanding()
+{
+	if( m_MonsterState == MONSTERSTATE_PRONE )
+		return false;
+
+	if( pev->velocity.z >= 0 )
+		return false; // still ascending/stationary, not falling
+
+	TraceResult tr;
+	UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, RAPPEL_LANDING_TRACE_DIST ),
+	                dont_ignore_monsters, ignore_glass, ENT( pev ), &tr );
+
+	float flDistToGround = pev->origin.z - tr.vecEndPos.z;
+
+	return flDistToGround <= 64.0f; // bigger margin for hwgrunt
+}
+
+//=========================================================
+// PrescheduleThink - this function runs after conditions
+// are collected and before scheduling code is run.
+//=========================================================
+void CHWGrunt::PrescheduleThink()
+{
+	// Force an immediate reschedule as soon as landing is imminent or has
+	// occurred, instead of waiting for a break condition of the repel
+	// schedule to trigger by chance (ACT_GLIDE loops and never finishes
+	// TASK_PLAY_SEQUENCE on its own).
+	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE
+	    && ( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() ) )
+	{
+		ClearSchedule();
+	}
+
+	CFollowingMonster::PrescheduleThink();
+}
+
 Schedule_t *CHWGrunt::GetSchedule()
 {
 	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling.
 	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
 	{
-		if( pev->flags & FL_ONGROUND )
+		if( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() )
 		{
-			// just landed
+			// just landed (or about to)
 			pev->movetype = MOVETYPE_STEP;
+			pev->velocity.z = 0; // avoid a slight residual slide if we cut before the actual impact
 			return GetScheduleOfType( SCHED_HWGRUNT_REPEL_LAND );
 		}
 		else
