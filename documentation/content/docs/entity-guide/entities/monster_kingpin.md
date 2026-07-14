@@ -44,6 +44,8 @@ Kingpin's behavior is based on one from Sven Co-op (the compatible model is expe
 * **Kingpin.Alert** - alert sounds.
 * **Kingpin.Pain** - pain sounds.
 * **Kingpin.Die** - death sounds.
+* **Kingpin.Use** - start following the ally player. Empty by default.
+* **Kingpin.UnUse** - stop following the ally player. Empty by default.
 * **Kingpin.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **Kingpin.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
 * **Kingpin.PlasmaClusterAttack** - Kingpin creates a plasma cluster.

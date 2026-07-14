@@ -529,6 +529,8 @@ protected:
 	static const NamedSoundScript attackSoundScript;
 	static const NamedSoundScript stompSoundScript;
 	static const NamedSoundScript breathSoundScript;
+	static constexpr const char* useSoundScript = "Garg.Use";
+	static constexpr const char* unuseSoundScript = "Garg.UnUse";
 
 	static const char *pRicSounds[];
 
@@ -1141,6 +1143,8 @@ void CGargantua::Precache()
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(stompSoundScript);
 	RegisterAndPrecacheSoundScript(breathSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 
 	PRECACHE_SOUND_ARRAY( pRicSounds );
 
@@ -1722,13 +1726,13 @@ Vector CGargantua::StompAttackStartVec()
 void CGargantua::PlayUseSentence()
 {
 	m_breatheTime = gpGlobals->time + 1.5;
-	EmitSoundScript(idleSoundScript);
+	EmitSoundScript(useSoundScript);
 }
 
 void CGargantua::PlayUnUseSentence()
 {
 	m_breatheTime = gpGlobals->time + 1.5;
-	EmitSoundScript(alertSoundScript);
+	EmitSoundScript(unuseSoundScript);
 }
 
 #define SF_SMOKER_ACTIVE 1
@@ -2114,6 +2118,8 @@ protected:
 	static const NamedSoundScript attackSoundScript;
 	static const NamedSoundScript stompSoundScript;
 	static const NamedSoundScript breathSoundScript;
+	static constexpr const char* useSoundScript = "BabyGarg.Use";
+	static constexpr const char* unuseSoundScript = "BabyGarg.UnUse";
 
 	static const NamedVisual eyeVisual;
 	static const NamedVisual bigFlameVisual;
@@ -2257,6 +2263,8 @@ void CBabyGargantua::Precache()
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(stompSoundScript);
 	RegisterAndPrecacheSoundScript(breathSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 
 	m_eyeVisual = RegisterVisual(eyeVisual);
 	RegisterVisual(bigFlameVisual);
@@ -2434,11 +2442,11 @@ void CBabyGargantua::SetYawSpeed()
 void CBabyGargantua::PlayUseSentence()
 {
 	m_breatheTime = gpGlobals->time + 1.5;
-	EmitSoundScript(idleSoundScript);
+	EmitSoundScript(useSoundScript);
 }
 
 void CBabyGargantua::PlayUnUseSentence()
 {
 	m_breatheTime = gpGlobals->time + 1.5;
-	EmitSoundScript(alertSoundScript);
+	EmitSoundScript(unuseSoundScript);
 }
