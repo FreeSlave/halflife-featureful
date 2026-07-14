@@ -123,7 +123,6 @@ const NamedVisual CTripmineGrenade::beamVisual = BuildVisual("Tripmine.Beam")
 		.BeamScrollRate(255);
 
 const NamedVisual CTripmineGrenade::glowVisual = BuildVisual("Tripmine.Glow")
-		.Model("sprites/glow04.spr")
 		.RenderColor(0, 214, 198)
 		.RenderMode(kRenderGlow)
 		.RenderFx(kRenderFxNoDissipation)
@@ -316,7 +315,7 @@ void CTripmineGrenade::MakeBeam()
 	m_pBeam->PointEntInit( vecTmpEnd, entindex() );
 
 	const Visual *glowVis = GetVisual(glowVisual);
-	m_pGlow = CreateSpriteFromVisual(glowVis, vecTmpEnd, false);
+	m_pGlow = CreateSpriteFromVisual(glowVis, vecTmpEnd);
 	if(m_pGlow)
 		m_pGlow->pev->spawnflags |= SF_SPRITE_TEMPORARY;
 }
