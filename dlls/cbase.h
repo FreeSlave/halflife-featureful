@@ -449,6 +449,7 @@ public:
 	const SoundScript* GetSoundScript(const char* name);
 	bool EmitSoundScript(const SoundScript* soundScript, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScript(const char* name, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
+	bool EmitSoundScriptWithOptionalSampleOverride(const char* name, string_t sample, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const SoundScript* soundScript, int sampleIndex, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const SoundScript* soundScript, const char* sample, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const char* name, int sampleIndex, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);

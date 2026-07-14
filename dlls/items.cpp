@@ -722,10 +722,7 @@ public:
 
 		pPlayer->m_antidotes += 1;
 
-		if (!FStringNull(pev->noise))
-			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
-		else
-			EmitSoundScript(pickupSoundScript);
+		EmitSoundScriptWithOptionalSampleOverride(pickupSoundScript, pev->noise);
 
 		NotifyPickup(pPlayer, pev->classname);
 
@@ -1266,17 +1263,13 @@ public:
 
 	static TYPEDESCRIPTION m_SaveData[];
 
-	const char* GrantedSound() {
-		return pev->noise ? STRING(pev->noise) : "buttons/blip2.wav";
-	}
-	const char* DeniedSound() {
-		return pev->noise1 ? STRING(pev->noise1) : "buttons/button11.wav";
-	}
-	const char* BeepSound() {
-		return pev->noise2 ? STRING(pev->noise2) : "buttons/blip1.wav";
-	}
-
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+
+	static const NamedSoundScript grantedSoundScript;
+	static const NamedSoundScript deniedSoundScript;
+	static const NamedSoundScript beepSoundScript;
+	static const NamedSoundScript grantedSentenceSoundScript;
+	static const NamedSoundScript deniedSentenceSoundScript;
 
 	string_t m_unlockedTarget;
 	string_t m_lockedTarget;
@@ -1309,6 +1302,36 @@ TYPEDESCRIPTION CEyeScanner::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CEyeScanner, CBaseAnimating )
 
 LINK_ENTITY_TO_CLASS( item_eyescanner, CEyeScanner )
+
+const NamedSoundScript CEyeScanner::grantedSoundScript = {
+	CHAN_ITEM,
+	{"buttons/blip2.wav"},
+	"EyeScanner.Granted"
+};
+
+const NamedSoundScript CEyeScanner::deniedSoundScript = {
+	CHAN_ITEM,
+	{"buttons/button11.wav"},
+	"EyeScanner.Denied"
+};
+
+const NamedSoundScript CEyeScanner::beepSoundScript = {
+	CHAN_BODY,
+	{"buttons/blip1.wav"},
+	"EyeScanner.Beep"
+};
+
+const NamedSoundScript CEyeScanner::grantedSentenceSoundScript = {
+	CHAN_VOICE,
+	{},
+	"EyeScanner.GrantedSentence"
+};
+
+const NamedSoundScript CEyeScanner::deniedSentenceSoundScript = {
+	CHAN_VOICE,
+	{},
+	"EyeScanner.DeniedSentence"
+};
 
 int CEyeScanner::LookupActivity(int activity)
 {
@@ -1431,9 +1454,19 @@ void CEyeScanner::Spawn()
 void CEyeScanner::Precache()
 {
 	PrecacheMyModel("models/EYE_SCANNER.mdl");
-	PRECACHE_SOUND(GrantedSound());
-	PRECACHE_SOUND(DeniedSound());
-	PRECACHE_SOUND(BeepSound());
+
+	RegisterAndPrecacheSoundScript(grantedSoundScript);
+	RegisterAndPrecacheSoundScript(deniedSoundScript);
+	RegisterAndPrecacheSoundScript(beepSoundScript);
+	RegisterAndPrecacheSoundScript(grantedSentenceSoundScript);
+	RegisterAndPrecacheSoundScript(deniedSentenceSoundScript);
+
+	if (!FStringNull(pev->noise))
+		PRECACHE_SOUND(STRING(pev->noise));
+	if (!FStringNull(pev->noise1))
+		PRECACHE_SOUND(STRING(pev->noise1));
+	if (!FStringNull(pev->noise2))
+		PRECACHE_SOUND(STRING(pev->noise2));
 
 	SetActivity( m_Activity );
 }
@@ -1442,7 +1475,7 @@ void CEyeScanner::PlayBeep()
 {
 	pev->skin = pev->weapons % 3 + 1;
 	pev->weapons++;
-	EMIT_SOUND( ENT(pev), CHAN_BODY, BeepSound(), 1, ATTN_NORM );
+	EmitSoundScriptWithOptionalSampleOverride(beepSoundScript, pev->noise2);
 }
 
 void CEyeScanner::WaitForSequenceEnd()
@@ -1469,13 +1502,19 @@ void CEyeScanner::Think()
 	{
 		m_wasUnlocked = m_willUnlock;
 		if (m_willUnlock) {
-			EMIT_SOUND( ENT(pev), CHAN_ITEM, GrantedSound(), 1.0f, ATTN_NORM );
+			EmitSoundScriptWithOptionalSampleOverride(grantedSoundScript, pev->noise);
 			DelayedUse( m_flDelay, this, this, USE_TOGGLE, m_unlockedTarget );
 		} else {
-			EMIT_SOUND( ENT(pev), CHAN_ITEM, DeniedSound(), 1.0f, ATTN_NORM );
+			EmitSoundScriptWithOptionalSampleOverride(deniedSoundScript, pev->noise1);
 			DelayedUse( m_flDelay, this, this, USE_TOGGLE, m_lockedTarget );
 		}
-		m_playSentenceTime = gpGlobals->time + m_sentenceDelay;
+
+		float sentenceDelay;
+		if (m_sentenceDelay > 0.0f)
+			sentenceDelay = m_sentenceDelay;
+		else
+			sentenceDelay = GetSkillValue("eyescanner_sentence_delay");
+		m_playSentenceTime = gpGlobals->time + sentenceDelay;
 		m_willUnlock = false;
 		m_fireTime = 0;
 		pev->skin = 0;
@@ -1485,13 +1524,9 @@ void CEyeScanner::Think()
 	}
 	if (m_playSentenceTime != 0 && m_playSentenceTime <= gpGlobals->time) {
 		if (m_wasUnlocked) {
-			if (!FStringNull(m_grantedSentence)) {
-				EMIT_SOUND( ENT(pev), CHAN_VOICE, STRING(m_grantedSentence), 1.0f, ATTN_NORM );
-			}
+			EmitSoundScriptWithOptionalSampleOverride(grantedSentenceSoundScript, m_grantedSentence);
 		} else {
-			if (!FStringNull(m_deniedSentence)) {
-				EMIT_SOUND( ENT(pev), CHAN_VOICE, STRING(m_deniedSentence), 1.0f, ATTN_NORM );
-			}
+			EmitSoundScriptWithOptionalSampleOverride(deniedSentenceSoundScript, m_deniedSentence);
 		}
 		m_playSentenceTime = 0;
 	}
