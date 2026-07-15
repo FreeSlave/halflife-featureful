@@ -139,7 +139,7 @@ public:
 	void RunTask(Task_t* pTask) override;
 
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void UpdateOnRemove() override;
 
 	void UnlockPlayer();
@@ -232,11 +232,11 @@ TYPEDESCRIPTION	CGonome::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CGonome, CBaseMonster )
 
-void CGonome::OnDying(bool gibbed)
+void CGonome::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearGuts();
 	UnlockPlayer();
-	CBaseMonster::OnDying(gibbed);
+	CBaseMonster::OnDying(gibbed, pKiller);
 }
 
 void CGonome::UpdateOnRemove()

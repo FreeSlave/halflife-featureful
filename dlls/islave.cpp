@@ -385,7 +385,7 @@ public:
 	void PlayUnUseSentence() override;
 	bool EmitSoundScriptTalk(const char* name);
 
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void DeathNotice( entvars_t* pevChild ) override
 	{
 		Forget(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE);
@@ -881,12 +881,12 @@ int CISlave::DefaultISoundMask()
 		bits_SOUND_PLAYER;
 }
 
-void CISlave::OnDying(bool gibbed)
+void CISlave::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearBeams();
 	RemoveHandGlows();
 	RemoveChargeToken();
-	CFollowingMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 //=========================================================

@@ -330,7 +330,22 @@ const char weaponTemplates[] = R"(
 		},
 		"manual_reload": true,
 		"reload_autostart": true,
-		"start_in_alt_mode": true
+		"start_in_alt_mode": true,
+		"reload": {
+			"anim": [12,13]
+		},
+		"reload_empty": {
+			"anim": [
+				{
+					"anim": 14,
+					"chance": 0.75,
+				},
+				{
+					"anim": 15,
+					"chance": 0.25
+				}
+			]
+		}
 	},
 	"weapon_test2": {
 		"fire": {
@@ -582,9 +597,9 @@ TEST(Weapons, Parse) {
 		EXPECT_FALSE(fire.semiAuto.Get(true));
 
 		auto& reload = glockParams.reload;
-		EXPECT_EQ(reload.animIndex.Get(false, false), 7);
+		EXPECT_EQ(reload.animIndex.Get(false, false)[0].animIndex, 7);
 		EXPECT_EQ(reload.duration.Get(false, false), 2.2f);
-		EXPECT_EQ(reload.animIndex.Get(false, true), 12);
+		EXPECT_EQ(reload.animIndex.Get(false, true)[0].animIndex, 12);
 
 		EXPECT_TRUE(glockParams.mirrorViewModel);
 
@@ -702,6 +717,14 @@ TEST(Weapons, Parse) {
 		EXPECT_TRUE(testParams.manualReload);
 		EXPECT_TRUE(testParams.reloadAutostart);
 		EXPECT_TRUE(testParams.startInAltMode);
+
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, false)[0].animIndex, 12);
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, false)[1].animIndex, 13);
+
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, true)[0].animIndex, 14);
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, true)[0].chance, 0.75f);
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, true)[1].animIndex, 15);
+		EXPECT_EQ(testParams.reload.animIndex.Get(false, true)[1].chance, 0.25f);
 
 		EXPECT_EQ(testParams.altMode.zoomFOV, 30);
 		ASSERT_EQ(testParams.altMode.zoomSound.waves.size(), 1);

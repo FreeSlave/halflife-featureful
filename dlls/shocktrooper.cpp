@@ -136,6 +136,9 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript fireSoundScript;
 
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
+
 	static const NamedVisual muzzleFlashVisual;
 };
 
@@ -173,6 +176,18 @@ const NamedSoundScript CShockTrooper::fireSoundScript = {
 	CHAN_WEAPON,
 	{"weapons/shock_fire.wav"},
 	"ShockTrooper.Fire"
+};
+
+const NamedSoundScript CShockTrooper::useSoundScript = {
+	CHAN_VOICE,
+	{"ST_IDLE"},
+	"ShockTrooper.Use"
+};
+
+const NamedSoundScript CShockTrooper::unuseSoundScript = {
+	CHAN_VOICE,
+	{"ST_ALERT"},
+	"ShockTrooper.UnUse"
 };
 
 const NamedVisual CShockTrooper::muzzleFlashVisual = BuildVisual("ShockTrooper.MuzzleFlash")
@@ -509,6 +524,8 @@ void CShockTrooper::Precache()
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(fireSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
@@ -594,12 +611,12 @@ void CShockTrooper::DropShockRoach(bool gibbed)
 
 void CShockTrooper::PlayUseSentence()
 {
-	PlaySentenceGroup("ST_IDLE");
+	PlaySentenceSoundScript(useSoundScript);
 }
 
 void CShockTrooper::PlayUnUseSentence()
 {
-	PlaySentenceGroup("ST_ALERT");
+	PlaySentenceSoundScript(unuseSoundScript);
 }
 
 class CDeadStrooper : public CDeadMonster

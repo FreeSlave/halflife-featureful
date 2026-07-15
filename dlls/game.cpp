@@ -682,6 +682,7 @@ void ReadAmmoAmounts()
 }
 
 static cvar_t build_commit = { "sv_game_build_commit", g_VCSInfo_Commit };
+static cvar_t build_commit_date = { "sv_game_build_commit_date", g_VCSInfo_CommitDate };
 static cvar_t build_branch = { "sv_game_build_branch", g_VCSInfo_Branch };
 
 cvar_t displaysoundlist = {"displaysoundlist","0"};
@@ -1026,6 +1027,14 @@ void ReportVisuals()
 	}
 	else
 		g_VisualSystem.DumpVisuals();
+}
+
+void ListEntityTemplates()
+{
+	for (auto it = g_EntTemplateSystem.EntityTemplatesBegin(); it != g_EntTemplateSystem.EntityTemplatesEnd(); ++it)
+	{
+		ALERT(at_console, "%s\n", it->first.c_str());
+	}
 }
 
 void ReportWarpballTemplates()
@@ -1433,6 +1442,9 @@ void ProvideSkillFallbacks()
 
 	g_SkillData.ProvideFallback("antidote_time", 10.0f);
 	g_SkillData.ProvideFallback("antirad_time", 10.0f);
+	g_SkillData.ProvideFallback("adrenaline_health", 25.0f);
+
+	g_SkillData.ProvideFallback("eyescanner_sentence_delay", 0.0f);
 }
 
 void ParseSkillCfg(const char* fileName)
@@ -1580,6 +1592,7 @@ void GameDLLInit()
 	violence_agibs = CVAR_GET_POINTER( "violence_agibs" );
 
 	CVAR_REGISTER( &build_commit );
+	CVAR_REGISTER( &build_commit_date );
 	CVAR_REGISTER( &build_branch );
 
 	CVAR_REGISTER( &displaysoundlist );
@@ -1705,6 +1718,7 @@ void GameDLLInit()
 	g_engfuncs.pfnAddServerCommand("dump_precached_sounds", ReportPrecachedSounds);
 	g_engfuncs.pfnAddServerCommand("dump_soundscripts", ReportSoundScripts);
 	g_engfuncs.pfnAddServerCommand("dump_visuals", ReportVisuals);
+	g_engfuncs.pfnAddServerCommand("dump_entity_templates", ListEntityTemplates);
 	g_engfuncs.pfnAddServerCommand("dump_materials", ReportMaterials);
 	g_engfuncs.pfnAddServerCommand("force_schedule_fail", ForceScheduleFail);
 	g_engfuncs.pfnAddServerCommand("get_skill_for_entity_template", PrintSkillReplacementForEntTemplate);

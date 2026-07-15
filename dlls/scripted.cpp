@@ -1129,7 +1129,7 @@ bool CBaseMonster::CineCleanup()
 		pev->deadflag = DEAD_DEAD;
 		UTIL_SetSize( pev, pev->mins, Vector( pev->maxs.x, pev->maxs.y, pev->mins.z + 2 ) );
 
-		OnDying(false);
+		OnDying(false, nullptr);
 		if( pOldCine && FBitSet( pOldCine->pev->spawnflags, SF_SCRIPT_LEAVECORPSE ) )
 		{
 			SetUse( NULL );
@@ -1249,7 +1249,7 @@ bool CBaseMonster::CineCleanup()
 		// Dropping out because he got killed
 		// Now we call OnDying instead
 		m_IdealMonsterState = MONSTERSTATE_DEAD;
-		OnDying(false);
+		OnDying(false, nullptr);
 		SetConditions( bits_COND_LIGHT_DAMAGE );
 		pev->deadflag = DEAD_DYING;
 		FCheckAITrigger();

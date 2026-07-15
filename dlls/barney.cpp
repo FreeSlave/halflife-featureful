@@ -55,15 +55,20 @@ void SetBarneyHead(CBaseEntity* pEntity, int head)
 		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
 		if (pstudiohdr->numbodyparts > BARNEY_HEAD_GROUP)
 		{
-			if (head < 0)
+			// check if gun body group is actually a gun body group
+			const int gunCount = GetBodygroupNumModels(pmodel, BARNEY_GUN_GROUP);
+			if (gunCount > 1)
 			{
-				int headCount = GetBodygroupNumModels(pmodel, BARNEY_HEAD_GROUP);
-				if (headCount > 1)
-					head = RANDOM_LONG(0, headCount - 1);
-				else
-					head = 0;
+				if (head < 0)
+				{
+					int headCount = GetBodygroupNumModels(pmodel, BARNEY_HEAD_GROUP);
+					if (headCount > 1)
+						head = RANDOM_LONG(0, headCount - 1);
+					else
+						head = 0;
+				}
+				SetBodygroup(pmodel, pEntity->pev, BARNEY_HEAD_GROUP, head);
 			}
-			SetBodygroup(pmodel, pEntity->pev, BARNEY_HEAD_GROUP, head);
 		}
 	}
 }
@@ -103,7 +108,7 @@ public:
 	const char* DefaultSentenceGroup(int group) override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -444,11 +449,21 @@ void CBarney::SetGunState(int gunState)
 	if (pmodel)
 	{
 		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
-		if (pstudiohdr->numbodyparts > BARNEY_GUN_GROUP)
+
+		bool setViaBodyGroup = false;
+
+		// Find the first body part with multiple number of submodels - this is most probably the gun group
+		for (int iGroup = 0; iGroup<pstudiohdr->numbodyparts; ++iGroup)
 		{
-			::SetBodygroup(pmodel, pev, BARNEY_GUN_GROUP, gunState);
+			mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)( (byte *)pstudiohdr + pstudiohdr->bodypartindex ) + iGroup;
+			if (pbodypart->nummodels > 1)
+			{
+				::SetBodygroup(pmodel, pev, iGroup, gunState);
+				setViaBodyGroup = true;
+				break;
+			}
 		}
-		else
+		if (!setViaBodyGroup)
 		{
 			pev->body = gunState;
 		}
@@ -598,7 +613,7 @@ DamageInfo CBarney::DefaultHandleTraceAttackImpl(entvars_t *pevInflictor, entvar
 	return damageInfo;
 }
 
-void CBarney::OnDying(bool gibbed)
+void CBarney::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && HasGun() )
 	{
@@ -617,7 +632,7 @@ void CBarney::OnDying(bool gibbed)
 				DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
 		}
 	}
-	CTalkMonster::OnDying(gibbed);
+	CTalkMonster::OnDying(gibbed, pKiller);
 }
 
 //=========================================================
@@ -794,7 +809,7 @@ public:
 	const char* ReverseRelationshipModel() override { return "models/otisf.mdl"; }
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
@@ -917,7 +932,7 @@ void COtis::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
-void COtis::OnDying(bool gibbed)
+void COtis::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if ( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && !HasMemory(bits_OTIS_DROPPED_GUN) )
 	{
@@ -937,7 +952,7 @@ void COtis::OnDying(bool gibbed)
 			DropItem( g_modFeatures.DesertEagleDropName(), vecGunPos, vecGunAngles );
 		}
 	}
-	CTalkMonster::OnDying(gibbed);
+	CTalkMonster::OnDying(gibbed, pKiller);
 }
 
 void COtis::CacheGunGroupModels()
@@ -994,7 +1009,7 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript firePistolSoundScript;
 
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_barniel, CBarniel )
@@ -1100,7 +1115,7 @@ void CBarniel::PainSound()
 	EmitSoundScriptTalk(painSoundScript);
 }
 
-void CBarniel::OnDying(bool gibbed)
+void CBarniel::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && HasGun() )
 	{
@@ -1115,7 +1130,7 @@ void CBarniel::OnDying(bool gibbed)
 			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
 		}
 	}
-	CTalkMonster::OnDying(gibbed);
+	CTalkMonster::OnDying(gibbed, pKiller);
 }
 
 class CDeadBarniel : public CDeadBarney
@@ -1164,7 +1179,7 @@ public:
 	void PainSound() override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
@@ -1376,7 +1391,7 @@ void CKate::PainSound()
 	EmitSoundScriptTalk(painSoundScript);
 }
 
-void CKate::OnDying(bool gibbed)
+void CKate::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && HasGun() )
 	{
@@ -1391,7 +1406,7 @@ void CKate::OnDying(bool gibbed)
 			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
 		}
 	}
-	CTalkMonster::OnDying(gibbed);
+	CTalkMonster::OnDying(gibbed, pKiller);
 }
 
 DamageInfo CKate::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)

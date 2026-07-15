@@ -76,6 +76,8 @@ public:
 
 	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 
+	bool IsAttackingCloakWise();
+
 	int Level( float dz );
 	int MyLevel();
 	float MyHeight();
@@ -339,6 +341,8 @@ void CTentacle::Spawn()
 
 	// SetThink( &Test );
 	UTIL_SetOrigin( pev, pev->origin );
+
+	InitUncloakedRenderamt();
 }
 
 void CTentacle::Precache()
@@ -378,6 +382,20 @@ void CTentacle::KeyValue( KeyValueData *pkvd )
 	}
 	else
 		CBaseMonster::KeyValue( pkvd );
+}
+
+bool CTentacle::IsAttackingCloakWise()
+{
+	switch(m_iGoalAnim)
+	{
+	case TENTACLE_ANIM_Floor_Strike:
+	case TENTACLE_ANIM_Lev1_Strike:
+	case TENTACLE_ANIM_Lev2_Strike:
+	case TENTACLE_ANIM_Lev3_Strike:
+		return true;
+	default:
+		return false;
+	}
 }
 
 int CTentacle::Level( float dz )
@@ -509,6 +527,7 @@ void CTentacle::Cycle()
 	// ALERT( at_console, "%s %.2f %d %d\n", STRING( pev->targetname ), pev->origin.z, m_MonsterState, m_IdealMonsterState );
 	pev->nextthink = gpGlobals-> time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	// ALERT( at_console, "%s %d %d %d %f %f\n", STRING( pev->targetname ), pev->sequence, m_iGoalAnim, m_iDir, pev->framerate, pev->health );
 
@@ -768,6 +787,7 @@ void CTentacle::DieThink()
 {
 	pev->nextthink = gpGlobals-> time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	DispatchAnimEvents();
 	StudioFrameAdvance();

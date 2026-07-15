@@ -134,12 +134,12 @@ WeaponParameters CEagle::GetDefaultParameters() const
 	params.altMode.attackDelay = 0.5f;
 	params.altMode.toggleLaserSpot = true;
 
-	params.reload.animIndex = EAGLE_RELOAD_NOT_EMPTY;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(EAGLE_RELOAD_NOT_EMPTY)};
 	params.reload.duration = 1.5f;
 	params.reload.idleDelay = FloatRange(10.0f, 15.0f);
 	params.reload.suspendLaserSpotTime = 1.6f;
 
-	params.reload.animIndex.mainEmptied = EAGLE_RELOAD;
+	params.reload.animIndex.mainEmptied = {WeaponParameters::ReloadAnim(EAGLE_RELOAD)};
 
 	params.holster.animIndex = EAGLE_HOLSTER;
 	params.holster.attackDelay = 0.5f;

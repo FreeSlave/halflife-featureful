@@ -38,24 +38,22 @@ struct MapConfig
 		fixed_string<MAPCONFIG_ENTRY_LENGTH> value;
 	};
 
-	MapConfig();
-
 	fixed_vector<PickupEnt, MAPCONFIG_MAX_PICKUP_ENTS> pickupEnts;
 	fixed_vector<AmmoQuantity, MAX_AMMO_TYPES> ammo;
 	fixed_vector<PickupEnt, MAX_INVENTORY_ITEMS> inventory;
 
 	fixed_vector<OverrideCvar, MAPCONFIG_MAX_OVERRIDE_CVARS> overrideCvars;
 
-	string_t playerTemplate;
-	int starthealth;
-	int startarmor;
-	int maxhealth;
+	string_t playerTemplate{0};
+	int starthealth{0};
+	int startarmor{0};
+	int maxhealth{0};
 	optional<int> maxarmor;
 
-	bool nomedkit; // for co-op
+	bool nomedkit{false}; // for co-op
 
-	bool nosuit;
-	short suitLogon;
+	bool nosuit{false};
+	short suitLogon{SuitNoLogon};
 
 	enum
 	{
@@ -64,17 +62,17 @@ struct MapConfig
 		SUIT_LIGHT_FLASHLIGHT,
 		SUIT_LIGHT_NVG,
 	};
-	int suit_light;
+	int suit_light{SUIT_LIGHT_DEFAULT};
 
-	char deployWeapon[64];
+	fixed_string<64> deployWeapon;
 
-	int antidotes;
-	int radcans;
-	int adrenalines;
+	int antidotes{0};
+	int radcans{0};
+	int adrenalines{0};
 
-	bool longjump;
+	bool longjump{false};
 
-	bool valid;
+	bool valid{false};
 };
 
 bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize);

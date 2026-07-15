@@ -40,10 +40,10 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void SetYawSpeed() override;
-	void EXPORT MonsterThink() override;
+	void MonsterThink() override;
 	void Move( float flInterval ) override;
 	void PickNewDest( int iCondition );
-	void EXPORT Touch( CBaseEntity *pOther ) override;
+	void Touch( CBaseEntity *pOther ) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	float m_flLastLightLevel;
@@ -212,7 +212,7 @@ KilledResult CRoach::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 
 	InsertAISound( bits_SOUND_WORLD, 128, 1 );
 
-	OnDying(true);
+	OnDying(true, CBaseEntity::OwnInstance(pevAttacker));
 	UTIL_Remove( this );
 	return KilledResult();
 }
@@ -324,6 +324,8 @@ void CRoach::MonsterThink()
 	{
 		Move( flInterval );
 	}
+
+	HandleCloaking();
 }
 
 //=========================================================

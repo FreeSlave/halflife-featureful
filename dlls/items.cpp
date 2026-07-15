@@ -714,14 +714,15 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetAntidoteSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_antidotes >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, "!HEV_DET4", SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_antidotes += 1;
 
-		if (!FStringNull(pev->noise))
-			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING(pev->noise), 1, ATTN_NORM );
-		else
-			EmitSoundScript(pickupSoundScript);
+		EmitSoundScriptWithOptionalSampleOverride(pickupSoundScript, pev->noise);
 
 		NotifyPickup(pPlayer, pev->classname);
 
@@ -755,6 +756,10 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetRadcanSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_radcans >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_radcans += 1;
@@ -793,6 +798,10 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
+		const int maxCount = g_InventorySpec.GetAdrenalineSpec().maxCount;
+		if (maxCount > 0 && pPlayer->m_adrenalines >= maxCount)
+			return false;
+
 		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_1MIN);
 
 		pPlayer->m_adrenalines += 1;
@@ -1246,6 +1255,7 @@ public:
 	int ObjectCaps() override { return CBaseAnimating::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE; }
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	int LookupActivity(int activity) override;
 	void SetActivity(Activity NewActivity);
 
 	int Save( CSave &save ) override;
@@ -1253,17 +1263,13 @@ public:
 
 	static TYPEDESCRIPTION m_SaveData[];
 
-	const char* GrantedSound() {
-		return pev->noise ? STRING(pev->noise) : "buttons/blip2.wav";
-	}
-	const char* DeniedSound() {
-		return pev->noise1 ? STRING(pev->noise1) : "buttons/button11.wav";
-	}
-	const char* BeepSound() {
-		return pev->noise2 ? STRING(pev->noise2) : "buttons/blip1.wav";
-	}
-
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+
+	static const NamedSoundScript grantedSoundScript;
+	static const NamedSoundScript deniedSoundScript;
+	static const NamedSoundScript beepSoundScript;
+	static const NamedSoundScript grantedSentenceSoundScript;
+	static const NamedSoundScript deniedSentenceSoundScript;
 
 	string_t m_unlockedTarget;
 	string_t m_lockedTarget;
@@ -1297,11 +1303,71 @@ IMPLEMENT_SAVERESTORE( CEyeScanner, CBaseAnimating )
 
 LINK_ENTITY_TO_CLASS( item_eyescanner, CEyeScanner )
 
+const NamedSoundScript CEyeScanner::grantedSoundScript = {
+	CHAN_ITEM,
+	{"buttons/blip2.wav"},
+	"EyeScanner.Granted"
+};
+
+const NamedSoundScript CEyeScanner::deniedSoundScript = {
+	CHAN_ITEM,
+	{"buttons/button11.wav"},
+	"EyeScanner.Denied"
+};
+
+const NamedSoundScript CEyeScanner::beepSoundScript = {
+	CHAN_BODY,
+	{"buttons/blip1.wav"},
+	"EyeScanner.Beep"
+};
+
+const NamedSoundScript CEyeScanner::grantedSentenceSoundScript = {
+	CHAN_VOICE,
+	{},
+	"EyeScanner.GrantedSentence"
+};
+
+const NamedSoundScript CEyeScanner::deniedSentenceSoundScript = {
+	CHAN_VOICE,
+	{},
+	"EyeScanner.DeniedSentence"
+};
+
+int CEyeScanner::LookupActivity(int activity)
+{
+	int foundSequence = CBaseAnimating::LookupActivity(activity);
+
+	if (foundSequence == ACTIVITY_NOT_AVAILABLE)
+	{
+		const char* animTry = nullptr;
+
+		switch(activity)
+		{
+		case ACT_CROUCHIDLE:
+			animTry = "idle_closed";
+			break;
+		case ACT_IDLE:
+			animTry = "idle_open";
+			break;
+		case ACT_STAND:
+			animTry = "activate";
+			break;
+		case ACT_CROUCH:
+			animTry = "deactivate";
+			break;
+		}
+
+		if (animTry)
+		{
+			foundSequence = LookupSequence(animTry);
+		}
+	}
+	return foundSequence;
+}
+
 void CEyeScanner::SetActivity( Activity NewActivity )
 {
-	int iSequence;
-
-	iSequence = LookupActivity( NewActivity );
+	int iSequence = LookupActivity( NewActivity );
 
 	// Set to the desired anim, or default anim if the desired is not present
 	if( iSequence > ACTIVITY_NOT_AVAILABLE )
@@ -1376,7 +1442,7 @@ void CEyeScanner::Spawn()
 	pev->weapons = 0;
 	m_willUnlock = false;
 
-	SET_MODEL(ENT(pev), "models/EYE_SCANNER.mdl");
+	SetMyModel("models/EYE_SCANNER.mdl");
 	const float yCos = fabs(cos(pev->angles.y * M_PI_F / 180.0f));
 	const float ySin = fabs(sin(pev->angles.y * M_PI_F / 180.0f));
 	UTIL_SetSize(pev, Vector(-10-ySin*6, -10-yCos*6, 32), Vector(10+ySin*6, 10+yCos*6, 72));
@@ -1387,10 +1453,20 @@ void CEyeScanner::Spawn()
 
 void CEyeScanner::Precache()
 {
-	PRECACHE_MODEL("models/EYE_SCANNER.mdl");
-	PRECACHE_SOUND(GrantedSound());
-	PRECACHE_SOUND(DeniedSound());
-	PRECACHE_SOUND(BeepSound());
+	PrecacheMyModel("models/EYE_SCANNER.mdl");
+
+	RegisterAndPrecacheSoundScript(grantedSoundScript);
+	RegisterAndPrecacheSoundScript(deniedSoundScript);
+	RegisterAndPrecacheSoundScript(beepSoundScript);
+	RegisterAndPrecacheSoundScript(grantedSentenceSoundScript);
+	RegisterAndPrecacheSoundScript(deniedSentenceSoundScript);
+
+	if (!FStringNull(pev->noise))
+		PRECACHE_SOUND(STRING(pev->noise));
+	if (!FStringNull(pev->noise1))
+		PRECACHE_SOUND(STRING(pev->noise1));
+	if (!FStringNull(pev->noise2))
+		PRECACHE_SOUND(STRING(pev->noise2));
 
 	SetActivity( m_Activity );
 }
@@ -1399,7 +1475,7 @@ void CEyeScanner::PlayBeep()
 {
 	pev->skin = pev->weapons % 3 + 1;
 	pev->weapons++;
-	EMIT_SOUND( ENT(pev), CHAN_BODY, BeepSound(), 1, ATTN_NORM );
+	EmitSoundScriptWithOptionalSampleOverride(beepSoundScript, pev->noise2);
 }
 
 void CEyeScanner::WaitForSequenceEnd()
@@ -1426,13 +1502,19 @@ void CEyeScanner::Think()
 	{
 		m_wasUnlocked = m_willUnlock;
 		if (m_willUnlock) {
-			EMIT_SOUND( ENT(pev), CHAN_ITEM, GrantedSound(), 1.0f, ATTN_NORM );
+			EmitSoundScriptWithOptionalSampleOverride(grantedSoundScript, pev->noise);
 			DelayedUse( m_flDelay, this, this, USE_TOGGLE, m_unlockedTarget );
 		} else {
-			EMIT_SOUND( ENT(pev), CHAN_ITEM, DeniedSound(), 1.0f, ATTN_NORM );
+			EmitSoundScriptWithOptionalSampleOverride(deniedSoundScript, pev->noise1);
 			DelayedUse( m_flDelay, this, this, USE_TOGGLE, m_lockedTarget );
 		}
-		m_playSentenceTime = gpGlobals->time + m_sentenceDelay;
+
+		float sentenceDelay;
+		if (m_sentenceDelay > 0.0f)
+			sentenceDelay = m_sentenceDelay;
+		else
+			sentenceDelay = GetSkillValue("eyescanner_sentence_delay");
+		m_playSentenceTime = gpGlobals->time + sentenceDelay;
 		m_willUnlock = false;
 		m_fireTime = 0;
 		pev->skin = 0;
@@ -1442,13 +1524,9 @@ void CEyeScanner::Think()
 	}
 	if (m_playSentenceTime != 0 && m_playSentenceTime <= gpGlobals->time) {
 		if (m_wasUnlocked) {
-			if (!FStringNull(m_grantedSentence)) {
-				EMIT_SOUND( ENT(pev), CHAN_VOICE, STRING(m_grantedSentence), 1.0f, ATTN_NORM );
-			}
+			EmitSoundScriptWithOptionalSampleOverride(grantedSentenceSoundScript, m_grantedSentence);
 		} else {
-			if (!FStringNull(m_deniedSentence)) {
-				EMIT_SOUND( ENT(pev), CHAN_VOICE, STRING(m_deniedSentence), 1.0f, ATTN_NORM );
-			}
+			EmitSoundScriptWithOptionalSampleOverride(deniedSentenceSoundScript, m_deniedSentence);
 		}
 		m_playSentenceTime = 0;
 	}

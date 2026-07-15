@@ -4256,6 +4256,7 @@
 	locked_target(target_destination) : "Locked target"
 	delay(string) : "Delay before trigger" : : "Delay before triggering unlocked or locked target"
 	unlockersname(string) : "Unlockers name"
+	model(studio) : "Custom Model"
 	noise(sound) : "Custom Granted Sound"
 	noise1(sound) : "Custom Denied Sound"
 	noise2(sound) : "Custom Beeping Sound"
@@ -4731,6 +4732,10 @@
 		4 : "attack1"
 		5 : "chewcycle"
 		6 : "death"
+	]
+	spawnflags(Flags) =
+	[
+		1048576: "Act out of PVS" : 0 : "Act as usual even if there're no players in the PVS"
 	]
 ]
 @PointClass base(Monster,TalkMonster, Sequence) size(-16 -16 0, 16 16 72) studio("models/barney.mdl") = monster_barney : "Barney"
@@ -8430,6 +8435,12 @@
 		2 : "Store a copy"
 	]
 	inventory_policy(choices) : "Inventory items policy" = 
+	[
+		0 : "Don't stash"
+		1 : "Move to stash"
+		2 : "Store a copy"
+	]
+	special_item_policy(choices) : "Special items (canisters) policy" = 
 	[
 		0 : "Don't stash"
 		1 : "Move to stash"

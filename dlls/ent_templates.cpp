@@ -73,52 +73,6 @@ static std::pair<ValueComparison, float> ParseValueComparison(const char* str)
 	return std::make_pair(ValueComparison::UNKNOWN, 0.0f);
 }
 
-DropItemSet DropItemSet::FromJSON(const Value &value)
-{
-	DropItemSet result;
-
-	auto readItemList = [](const Value& value) {
-		std::vector<DropItemInfo> items;
-		Value::ConstArray arr = value.GetArray();
-		items.reserve(arr.Size());
-
-		for (auto& item : arr)
-		{
-			DropItemInfo itemInfo;
-
-			if (item.IsString())
-			{
-				itemInfo.classname = item.GetString();
-			}
-			else
-			{
-				UpdatePropertyFromJson(itemInfo.classname, item, "classname");
-				UpdatePropertyFromJson(itemInfo.entTemplate, item, "ent_template");
-				UpdatePropertyFromJson(itemInfo.pickupName, item, "pickup_name");
-				UpdatePropertyFromJson(itemInfo.chance, item, "chance");
-				UpdatePropertyFromJson(itemInfo.weight, item, "weight");
-			}
-			items.push_back(std::move(itemInfo));
-		}
-
-		return std::move(items);
-	};
-
-	if (value.IsArray())
-	{
-		result.items = readItemList(value);
-	}
-	else
-	{
-		HandleJSONMember(value, "items", [&result, &readItemList](const Value& value) {
-			result.items = readItemList(value);
-		});
-		UpdatePropertyFromJson(result.maxWeight, value, "max_weight");
-	}
-
-	return result;
-}
-
 ChildVariant ChildVariant::FromJSON(const rapidjson::Value& value)
 {
 	ChildVariant result;
@@ -828,7 +782,7 @@ bool EntTemplateSystem::AddTemplateFromJsonValue(const Value& allTemplatesJsonVa
 		}
 	}
 
-	AddTemplateFromJsonValueImpl(templateName, value, entTemplate);
+	AddTemplateFromJsonValueImpl(templateName, value, entTemplate, fileName);
 	return true;
 }
 
@@ -851,10 +805,10 @@ void EntTemplateSystem::AddTemplateFromJsonValue(const char* name, const rapidjs
 		}
 	});
 
-	AddTemplateFromJsonValueImpl(templateName, value, entTemplate);
+	AddTemplateFromJsonValueImpl(templateName, value, entTemplate, fileName);
 }
 
-void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate)
+void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& templateName, const rapidjson::Value& value, EntTemplate& entTemplate, const char* fileName)
 {
 	HandleJSONMember(value, "own_visual", [&entTemplate, &templateName, this](const Value& value) {
 		if (value.IsString())
@@ -1269,13 +1223,74 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetTraceAttackRules(std::move(traceAttackRules));
 	});
 
-	HandleJSONMember(value, "loot_drop", [&entTemplate](const Value& value) {
-		entTemplate.SetLootDrop(DropItemSet::FromJSON(value));
+	HandleJSONMember(value, "loot_drop", [&entTemplate, &templateName, this, fileName](const Value& value) {
+		DropItemSet result;
+
+		auto readItemList = [&](const Value& value) {
+			std::vector<DropItemInfo> items;
+			Value::ConstArray arr = value.GetArray();
+			items.reserve(arr.Size());
+
+			size_t i=0;
+			for (auto& item : arr)
+			{
+				DropItemInfo itemInfo;
+
+				if (item.IsString())
+				{
+					itemInfo.classname = item.GetString();
+				}
+				else
+				{
+					UpdatePropertyFromJson(itemInfo.classname, item, "classname");
+					UpdatePropertyFromJson(itemInfo.entTemplate, item, "ent_template");
+					UpdatePropertyFromJson(itemInfo.pickupName, item, "pickup_name");
+					UpdatePropertyFromJson(itemInfo.chance, item, "chance");
+					UpdatePropertyFromJson(itemInfo.weight, item, "weight");
+
+					{
+						auto it = item.FindMember("ent_template");
+						if (it != item.MemberEnd())
+						{
+							if (it->value.IsString())
+							{
+								itemInfo.entTemplate = it->value.GetString();
+							}
+							else if (it->value.IsObject())
+							{
+								itemInfo.entTemplate = templateName + "#loot_drop#" + std::to_string(i) + "#ent_template";
+								AddTemplateFromJsonValue(itemInfo.entTemplate.c_str(), it->value, fileName);
+							}
+						}
+					}
+				}
+				items.push_back(std::move(itemInfo));
+				++i;
+			}
+
+			return std::move(items);
+		};
+
+		if (value.IsArray())
+		{
+			result.items = readItemList(value);
+		}
+		else
+		{
+			HandleJSONMember(value, "items", [&result, &readItemList](const Value& value) {
+				result.items = readItemList(value);
+			});
+			UpdatePropertyFromJson(result.maxWeight, value, "max_weight");
+		}
+
+		entTemplate.SetLootDrop(std::move(result));
 	});
 
-	HandleJSONMember(value, "equipment_drop", [&entTemplate](const Value& value) {
+	HandleJSONMember(value, "equipment_drop", [&entTemplate, &templateName, this, fileName](const Value& value) {
 		Value::ConstArray arr = value.GetArray();
 		std::vector<EquipmentItem> equipmentDrop;
+
+		size_t i=0;
 		for (auto& item : arr)
 		{
 			EquipmentItem equipment;
@@ -1288,7 +1303,22 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			});
 
 			UpdatePropertyFromJson(equipment.classname, item, "classname");
-			UpdatePropertyFromJson(equipment.entTemplate, item, "ent_template");
+
+			{
+				auto it = item.FindMember("ent_template");
+				if (it != item.MemberEnd())
+				{
+					if (it->value.IsString())
+					{
+						equipment.entTemplate = it->value.GetString();
+					}
+					else if (it->value.IsObject())
+					{
+						equipment.entTemplate = templateName + "#equipment_drop#" + std::to_string(i) + "#ent_template";
+						AddTemplateFromJsonValue(equipment.entTemplate.c_str(), it->value, fileName);
+					}
+				}
+			}
 
 			HandleJSONMember(item, "at_position", [&equipment](const Value& value) {
 				const char* str = value.GetString();
@@ -1298,7 +1328,8 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 					equipment.position = EquipmentItem::POS_BODY;
 			});
 
-			equipmentDrop.push_back(equipment);
+			equipmentDrop.push_back(std::move(equipment));
+			++i;
 		}
 		entTemplate.SetEquipmentDrop(std::move(equipmentDrop));
 	});

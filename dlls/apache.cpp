@@ -44,7 +44,6 @@ public:
 	bool HasFlesh() override { return false; }
 	const char* DefaultDisplayName() override { return "Apache"; }
 	const char* ReverseRelationshipModel() override { return "models/apachef.mdl"; }
-	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster() override;
 
@@ -53,6 +52,14 @@ public:
 	void SetObjectCollisionBox() override
 	{
 		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
+	}
+	bool IsMovingCloakWise() {
+		return pev->velocity != g_vecZero;
+	}
+	bool IsAttackingCloakWise() {
+		bool result = m_attackedRecently;
+		m_attackedRecently = false;
+		return result;
 	}
 
 	void EXPORT HuntThink();
@@ -103,6 +110,7 @@ public:
 	float m_rotorVolume;
 
 	bool m_iObeyTriggerMode;
+	bool m_attackedRecently;
 
 	static const NamedSoundScript rotorSoundScript;
 	static const NamedSoundScript fireGunSoundScript;
@@ -152,6 +160,7 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
 	DEFINE_FIELD( CApache, m_rotorVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iObeyTriggerMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CApache, m_attackedRecently, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CApache, CBaseMonster )
@@ -229,6 +238,7 @@ void CApache::SpawnImpl(const char *modelName)
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
+	SetMyBloodColor(DONT_BLEED);
 	SetMyHealth( GetSkillValue("apache_health") );
 	pev->max_health = pev->health;
 
@@ -256,6 +266,7 @@ void CApache::SpawnImpl(const char *modelName)
 	m_iRockets = 10;
 
 	InitLootRandomSeed();
+	InitUncloakedRenderamt();
 }
 
 void CApache::Precache()
@@ -314,6 +325,7 @@ void CApache::NullThink()
 	FCheckAITrigger();
 	pev->nextthink = gpGlobals->time + 0.5f;
 	GlowShellUpdate();
+	HandleCloaking();
 	ShowDamage();
 }
 
@@ -368,7 +380,7 @@ KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	{
 		m_flNextRocket = gpGlobals->time + 15.0f;
 	}
-	OnDying(false);
+	OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 	return KilledResult();
 }
 
@@ -377,6 +389,7 @@ void CApache::DyingThink()
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	pev->avelocity = pev->avelocity * 1.02f;
 
@@ -559,6 +572,7 @@ void CApache::HuntThink()
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	ShowDamage();
 
@@ -957,6 +971,7 @@ void CApache::FireRocket()
 
 		side = - side;
 	}
+	m_attackedRecently = true;
 }
 
 bool CApache::FireGun()
@@ -1027,6 +1042,7 @@ bool CApache::FireGun()
 			m_pBeam->SetStartPos( tr.vecEndPos );
 		}
 #endif
+		m_attackedRecently = true;
 		return true;
 	}
 	else
@@ -1138,15 +1154,17 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 		return;
 
 	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
-	if (pev->takedamage)
-	{
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+	if (!pev->takedamage)
+		return;
 
-		// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
-		if( MustDoSmoke(damageInfo, ptr) )
-		{
-			m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
-		}
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+
+	BloodEffect(damageInfo, vecDir, ptr);
+
+	// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
+	if( MustDoSmoke(damageInfo, ptr) )
+	{
+		m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
 	}
 }
 

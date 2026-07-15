@@ -37,6 +37,8 @@ The skill variable names might be confusing as pitdrones don't bite and don't ha
 * **PitDrone.Die** - death sounds.
 * **PitDrone.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
 * **PitDrone.AttackHit** - hitting something when attacking with both claws.
+* **PitDrone.Use** - start following the ally player. Derived from **PitDrone.Idle**
+* **PitDrone.UnUse** - stop following the ally player. Derived from **PitDrone.Alert**, but with a normal pitch.
 * **PitDrone.SpikeHitWorld** - when spike hits the world. Emitted from the spike projectile.
 * **PitDrone.SpikeHitBody** - when spike hits someone. Emitted from the spike projectile.
 

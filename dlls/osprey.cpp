@@ -48,7 +48,6 @@ public:
 	void KeyValue(KeyValueData* pkvd) override;
 	const char* DefaultDisplayName() override { return "Osprey"; }
 	int DefaultClassify() override { return CLASS_MACHINE; }
-	int BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
 	Vector DefaultMinHullSize() override { return Vector( -400, -400, -100 ); }
@@ -74,6 +73,13 @@ public:
 	void ReportAIState(ALERT_TYPE level) override;
 	void ShowDamage();
 	void Update();
+
+	bool IsMovingCloakWise() {
+		return m_pfnThink == &COsprey::FlyThink;
+	}
+	bool IsAttackingCloakWise() {
+		return m_pfnThink == &COsprey::HoverThink || m_pfnThink == &COsprey::DeployThink;
+	}
 
 	CBaseEntity *m_pGoalEnt;
 	Vector m_vel1;
@@ -271,6 +277,7 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	pev->takedamage = DAMAGE_YES;
 	m_flRightHealth = 200;
 	m_flLeftHealth = 200;
+	SetMyBloodColor(DONT_BLEED);
 	SetMyHealth( defaultHealth );
 	pev->max_health = pev->health;
 
@@ -293,6 +300,8 @@ void COsprey::SpawnImpl(const char* modelName, const float defaultHealth)
 	m_pos2 = pev->origin;
 	m_ang2 = pev->angles;
 	m_vel2 = pev->velocity;
+
+	InitUncloakedRenderamt();
 }
 
 void COsprey::Precache()
@@ -956,7 +965,7 @@ KilledResult COsprey::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	pev->deadflag = DEAD_DYING;
 
 	m_startTime = gpGlobals->time + 4.0f;
-	OnDying(false);
+	OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 	return KilledResult();
 }
 
@@ -1171,6 +1180,7 @@ void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	{
 		// ALERT( at_console, "%.0f\n", flDamage );
 		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		BloodEffect(damageInfo, vecDir, ptr);
 	}
 	else
 	{
@@ -1189,6 +1199,7 @@ void COsprey::Update()
 	ShowDamage();
 	FCheckAITrigger();
 	GlowShellUpdate();
+	HandleCloaking();
 }
 
 TakeDamageResult COsprey::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo)

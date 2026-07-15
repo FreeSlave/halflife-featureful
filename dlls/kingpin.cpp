@@ -795,7 +795,7 @@ public:
 	float MaximumShield() const { return pev->armortype; }
 
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void BecomeDead() override;
 	void UpdateOnRemove() override;
 	int DefaultGibCount() override { return 10; }
@@ -1350,11 +1350,11 @@ KilledResult CKingpin::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, i
 	return CFollowingMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
-void CKingpin::OnDying(bool gibbed)
+void CKingpin::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearPlasmaBall();
 	ClearGlows();
-	CFollowingMonster::OnDying(gibbed);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 void CKingpin::BecomeDead()

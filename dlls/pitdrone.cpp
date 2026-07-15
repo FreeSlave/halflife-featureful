@@ -268,6 +268,8 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static constexpr const char* attackMissSoundScript = "PitDrone.AttackMiss";
 	static const NamedSoundScript attackHitSoundScript;
+	static constexpr const char* useSoundScript = "PitDrone.Use";
+	static constexpr const char* unuseSoundScript = "PitDrone.UnUse";
 
 	static const NamedVisual tinySpitVisual;
 
@@ -647,6 +649,12 @@ void CPitdrone::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
 	RegisterAndPrecacheSoundScript(attackHitSoundScript);
+
+	SoundScriptParamOverride soundScriptOverride;
+	soundScriptOverride.OverrideAttenuationAbsolute(ATTN_NORM);
+	soundScriptOverride.OverridePitchAbsolute(PITCH_NORM);
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript, soundScriptOverride);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript, soundScriptOverride);
 
 	if (!ShouldAutoPrecacheSounds())
 	{
@@ -1148,12 +1156,12 @@ void CPitdrone::RunTask(Task_t *pTask)
 
 void CPitdrone::PlayUseSentence()
 {
-	EmitSoundScript(idleSoundScript);
+	EmitSoundScript(useSoundScript);
 }
 
 void CPitdrone::PlayUnUseSentence()
 {
-	EmitSoundScript(alertSoundScript);
+	EmitSoundScript(unuseSoundScript);
 }
 
 class CDeadPitdrone : public CDeadMonster

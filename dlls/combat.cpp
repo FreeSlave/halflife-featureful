@@ -899,8 +899,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	SetConditions( bits_COND_LIGHT_DAMAGE );
 
 	const bool shouldGib = ShouldGibMonster( iGib );
-	OnDying(shouldGib);
-	TriggerOnDeath(CBaseEntity::OwnInstance(pevAttacker));
+	OnDying(shouldGib, CBaseEntity::OwnInstance(pevAttacker));
 
 	if (shouldGib)
 	{
@@ -923,7 +922,7 @@ KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttack
 	return killedResult;
 }
 
-void CBaseMonster::OnDying(bool gibbed)
+void CBaseMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	if (!g_modFeatures.dying_monsters_block_player)
 		MarkAsNonBlockerForPlayer();
@@ -934,6 +933,8 @@ void CBaseMonster::OnDying(bool gibbed)
 	UTIL_RemoveAndClean(m_activeRegenSprite);
 
 	SendDeathNotice();
+
+	TriggerOnDeath(pKiller);
 }
 
 void CBaseMonster::UpdateOnRemove()
@@ -2133,10 +2134,10 @@ void CBaseEntity::ApplyTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttack
 	ApplyMultiDamage(pevInflictor, pevAttacker);
 }
 
-void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
+bool CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOrigin, const Vector &vecDir, const TraceResult *ptr)
 {
 	if (damageInfo.noBlood)
-		return;
+		return false;
 
 	int bloodColor = BloodColor();
 
@@ -2155,16 +2156,17 @@ void CBaseEntity::BloodEffect(const DamageInfo &damageInfo, const Vector &vecOri
 		}
 	}
 
-	SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
+	bool result = SendBloodEffect(vecOrigin, -vecDir, bloodColor, (int)damageInfo.damage);
 	TraceBleed(damageInfo.damage, vecDir, ptr, damageInfo.type, bloodColor);
+	return result;
 }
 
-void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
+bool CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir, int bloodColor, int amount, int params)
 {
 	extern int gmsgBlood;
 
 	if (bloodColor < 0 || amount <= 0 || !UTIL_ShouldShowBlood(bloodColor))
-		return;
+		return false;
 
 	//ALERT(at_console, "Dir: %g, %g, %g\n", vecDir.x, vecDir.y, vecDir.z);
 
@@ -2184,6 +2186,8 @@ void CBaseEntity::SendBloodEffect(const Vector &vecOrigin, const Vector &vecDir,
 	WRITE_BYTE(bloodColor);
 	WRITE_SHORT(amount);
 	MESSAGE_END();
+
+	return true;
 }
 
 //=========================================================

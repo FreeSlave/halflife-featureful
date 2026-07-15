@@ -45,6 +45,8 @@ bookToC: false
 * **Garg.Attack** - flame attack sound.
 * **Garg.StompSound** - stomp launch sound.
 * **Garg.Breath** - played on the event 6 in some idle sequences.
+* **Garg.Use** - start following the ally player. Derived from **Garg.Idle**
+* **Garg.UnUse** - stop following the ally player. Derived from **Garg.Alert**
 
 ### Visuals
 

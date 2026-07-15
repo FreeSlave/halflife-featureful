@@ -488,7 +488,7 @@ If some option is not defined the value from [alt_deploy](#alt_deploy) or [deplo
 
 Customize weapon idle animations.
 
-Can be defined in two ways: either array (if multiple animations are used) or single object (for single idle animation).
+Can be defined in two ways: either array (if multiple animations are used) or single object (for single idle animation). Maximum 5 elements are allowed in the array.
 
 ```json
 {
@@ -627,7 +627,7 @@ For example shotgun uses one shell (ammo) to fire multiple pellets (bullets).
 
 ### anims
 
-The array of animation indices. The random animation is picked when weapon is firing.
+The array of animation indices. The random animation is picked when weapon is firing. Maximum 4 elements are allowed in the array.
 
 ### anims_last_shot
 
@@ -2236,7 +2236,36 @@ An object defining weapon reload options.
 
 ### anim
 
-Index of reload animation.
+Reload animatin can be defined in various forms:
+
+* An integer - index of reload animation.
+* Array of indices - to support multiple reload animations (they are still expected to have the same duration). In this form all animations have the same chance to play. Maximum 3 elements are allowed in the array.
+* Array of objects with properties `"anim"` and `"chance"` (both required) where `"anim"` is an animation index and `"chance"` is a probability of animation relative to the sum of all chances. Use this form when need custom animation chances. Maximum 3 elements are allowed in the array.
+
+```json
+{
+    "weapon_9mmAR": {
+        "reload": {
+            "anim": 3
+        }
+    },
+    "weapon_9mmhandgun": {
+        "reload": {
+            "anim": [
+                {
+                    "anim": 6,
+                    "chance": 1.5
+                },
+                {
+                    "anim": 7,
+                    "chance": 0.5
+                }
+            ]
+        },
+        "reload_empty": [5, 8]
+    }
+}
+```
 
 ### duration
 
@@ -2524,7 +2553,14 @@ This makes `weapon_357` show the body `1` if the current clip has from 4 to 6 am
 
 Zoom (scope) related properties.
 
-Note: it expects the `"secondary_attack"` to be set to `"switch_mode"`.
+{{% hint info %}}
+It expects the `"secondary_attack"` to be set to `"switch_mode"`.
+{{% /hint %}}
+
+{{% hint info %}}
+The weapon will automatically unscope on reload or holster.
+This will also set the weapon to the primary mode without any delays.
+{{% /hint %}}
 
 ### fov
 

@@ -955,7 +955,23 @@ R"(
 		"type": ["object", "null"],
 		"properties": {
 			"anim": {
-				"$ref": "#/anim_index_optional"
+				"type": ["integer", "array"],
+				"minimum": -1,
+				"items": {
+					"type": ["integer", "object"],
+					"minimum": 0,
+					"properties": {
+						"anim": {
+							"$ref": "anim_index"
+						},
+						"chance": {
+							"type": "number",
+							"exclusiveMinimum": 0
+						}
+					},
+					"required": ["anim", "chance"],
+					"additionalProperties": false
+				}
 			},
 			"duration": {
 				"type": "number",

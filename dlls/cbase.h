@@ -350,11 +350,11 @@ public:
 	virtual DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr) { return inputDamageInfo; }
 	virtual void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr);
 	void ApplyTraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr );
-	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, const TraceResult* ptr);
-	void BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, const TraceResult* ptr) {
-		BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
+	bool BloodEffect(const DamageInfo& damageInfo, const Vector& vecOrigin, const Vector& vecDir, const TraceResult* ptr);
+	bool BloodEffect(const DamageInfo& damageInfo, const Vector& vecDir, const TraceResult* ptr) {
+		return BloodEffect(damageInfo, ptr->vecEndPos, vecDir, ptr);
 	}
-	void SendBloodEffect(const Vector& vecOrigin, const Vector& vecDir, int bloodColor, int amount, int params = 0);
+	bool SendBloodEffect(const Vector& vecOrigin, const Vector& vecDir, int bloodColor, int amount, int params = 0);
 	virtual DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) { return inputDamageInfo; }
 	DamageInfo TransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
 	float TransformDamageToShield(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo);
@@ -449,6 +449,7 @@ public:
 	const SoundScript* GetSoundScript(const char* name);
 	bool EmitSoundScript(const SoundScript* soundScript, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScript(const char* name, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
+	bool EmitSoundScriptWithOptionalSampleOverride(const char* name, string_t sample, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const SoundScript* soundScript, int sampleIndex, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const SoundScript* soundScript, const char* sample, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);
 	bool EmitSoundScriptSelectedSample(const char* name, int sampleIndex, const SoundScriptParamOverride paramsOverride = SoundScriptParamOverride(), int flags = 0);

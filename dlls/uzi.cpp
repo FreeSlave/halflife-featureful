@@ -121,7 +121,7 @@ WeaponParameters CUzi::GetDefaultParameters() const
 	params.secondaryFireType = SecondaryFireType::DISABLED;
 	//
 
-	params.reload.animIndex = UZI_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(UZI_RELOAD)};
 	params.reload.duration = 2.5f;
 
 	params.dropAmmo.classname = "ammo_9mmclip";

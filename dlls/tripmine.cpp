@@ -61,6 +61,7 @@ class CTripmineGrenade : public CGrenade
 
 	EHANDLE m_hOwner;
 	CBeam *m_pBeam;
+	CSprite *m_pGlow;
 	Vector m_posOwner;
 	Vector m_angleOwner;
 	edict_t *m_pRealOwner;// tracelines don't hit PEV->OWNER, which means a player couldn't detonate his own trip mine, so we store the owner here.
@@ -70,6 +71,7 @@ class CTripmineGrenade : public CGrenade
 	static const NamedSoundScript chargeSoundScript;
 
 	static const NamedVisual beamVisual;
+	static const NamedVisual glowVisual;
 };
 
 LINK_ENTITY_TO_CLASS( monster_tripmine, CTripmineGrenade )
@@ -119,6 +121,13 @@ const NamedVisual CTripmineGrenade::beamVisual = BuildVisual("Tripmine.Beam")
 		.Alpha(64)
 		.BeamWidth(10)
 		.BeamScrollRate(255);
+
+const NamedVisual CTripmineGrenade::glowVisual = BuildVisual("Tripmine.Glow")
+		.RenderColor(0, 214, 198)
+		.RenderMode(kRenderGlow)
+		.RenderFx(kRenderFxNoDissipation)
+		.Alpha(220)
+		.Scale(0.3f);
 
 void CTripmineGrenade::Spawn()
 {
@@ -192,6 +201,7 @@ void CTripmineGrenade::Precache()
 	RegisterAndPrecacheSoundScript(activateSoundScript);
 	RegisterAndPrecacheSoundScript(chargeSoundScript);
 	RegisterVisual(beamVisual);
+	RegisterVisual(glowVisual);
 }
 
 void CTripmineGrenade::UpdateOnRemove()
@@ -278,6 +288,7 @@ void CTripmineGrenade::PowerupThink()
 void CTripmineGrenade::KillBeam()
 {
 	UTIL_RemoveAndClean(m_pBeam);
+	UTIL_RemoveAndClean(m_pGlow);
 }
 
 void CTripmineGrenade::MakeBeam()
@@ -302,6 +313,11 @@ void CTripmineGrenade::MakeBeam()
 	//Mark as temporary so the beam will be recreated on save game load and level transitions.
 	m_pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
 	m_pBeam->PointEntInit( vecTmpEnd, entindex() );
+
+	const Visual *glowVis = GetVisual(glowVisual);
+	m_pGlow = CreateSpriteFromVisual(glowVis, vecTmpEnd);
+	if(m_pGlow)
+		m_pGlow->pev->spawnflags |= SF_SPRITE_TEMPORARY;
 }
 
 void CTripmineGrenade::BeamBreakThink()

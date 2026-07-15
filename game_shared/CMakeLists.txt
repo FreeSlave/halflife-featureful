@@ -11,6 +11,11 @@ execute_process(COMMAND "git" "rev-parse" "--abbrev-ref" "HEAD"
 	OUTPUT_VARIABLE GIT_BRANCH
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+execute_process(COMMAND "git" "log" "-1" "--date=short" "--pretty=format:%ad"
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	OUTPUT_VARIABLE GIT_COMMIT_DATE
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 if(GIT_VERSION)
 	add_definitions(-DXASH_BUILD_COMMIT="${GIT_VERSION}")
 endif()
@@ -19,6 +24,9 @@ if(GIT_BRANCH)
 	add_definitions(-DXASH_BUILD_BRANCH="${GIT_BRANCH}")
 endif()
 
+if(GIT_COMMIT_DATE)
+	add_definitions(-DXASH_BUILD_COMMIT_DATE="${GIT_COMMIT_DATE}")
+endif()
 
 include_directories(.)
 add_library(vcs_info STATIC vcs_info.c)

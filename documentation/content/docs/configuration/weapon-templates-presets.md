@@ -16,9 +16,9 @@ If not stated otherwise, the weapon template can be applied to any fully configu
 
 ## Counter Strike
 
-The templates for CS weapons are stored in the **templates/weapons/cs/** directory. They include almost every CS firearm (except for dual berretas).
+The templates for CS weapons are stored in the **templates/weapons/cs/** directory.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 
 ```json
 {
@@ -40,6 +40,19 @@ The templates for CS weapons are stored in the **templates/weapons/cs/** directo
     "weapon_handgrenade": "cs/hegrenade"
 }
 ```
+
+{{% /details %}}
+
+{{% details "Currently missing weapons" %}}
+
+{{% hint warning %}}
+The following CS weapons are not implemented yet:
+* Dual Berettas
+* C4
+* Flashbang
+* Smoke grenade
+* Any combination with a tactical shield
+{{% /hint %}}
 
 {{% /details %}}
 
@@ -765,7 +778,7 @@ Required sounds:
 
 The templates for Deathmatch Classic weapons are stored in the **templates/weapons/dmc/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_shotgun": "dmc/shotgun",
@@ -861,7 +874,7 @@ Required sounds:
 
 The templates for Delta Particles weapons are stored in the **templates/weapons/dp/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_9mmhandgun": "dp/glock",
@@ -1194,7 +1207,7 @@ Full written configurations for some standard Opposing Force weapons are stored 
 
 The templates for Poke646 weapons are stored in the **templates/weapons/poke646/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_pistol": "poke646/bradnailer",
@@ -1301,7 +1314,7 @@ This weapon template uses the same model and sound paths as a Half-Life shotgun 
 
 The templates for Team Fortress Classic weapons are stored in the **templates/weapons/tfc/** directory. Not all weapons are implemented yet.
 
-{{% details "Example" open %}}
+{{% details "Example of templates/weapons.json" open %}}
 ```json
 {
     "weapon_shotgun": "tfc/shotgun",

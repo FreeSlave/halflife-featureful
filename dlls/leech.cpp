@@ -460,6 +460,8 @@ void CLeech::DeadThink()
 			pev->velocity.y = 0.0f;
 		}
 	}
+
+	HandleCloaking();
 }
 
 void CLeech::UpdateMotion()
@@ -686,16 +688,14 @@ void CLeech::SwimThink()
 	}
 	pev->ideal_yaw = m_flTurning + targetYaw;
 	UpdateMotion();
+	HandleCloaking();
 }
 
 KilledResult CLeech::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	Vector vecSplatDir;
-	TraceResult tr;
-
 	//ALERT(at_aiconsole, "Leech: killed\n");
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
-	OnDying(false);
+	OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 
 	// When we hit the ground, play the "death_end" activity
 	if( pev->waterlevel )
@@ -717,6 +717,7 @@ KilledResult CLeech::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, in
 	pev->movetype = MOVETYPE_TOSS;
 	pev->takedamage = DAMAGE_NO;
 	SetThink( &CLeech::DeadThink );
+	pev->deadflag = DEAD_DEAD;
 	DeathSound();
 	return KilledResult();
 }

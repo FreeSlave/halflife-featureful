@@ -6,12 +6,21 @@ title: "Player inventory"
 
 The inventory is a part of player's data. Each inventory item has a name and the associated item count and can be rendered in HUD as a sprite.
 
-Inventory items don't affect the gameplay on their own. It's just a tool for the level designer to introduce the custom player resource. Such examples include security cards and other quest items which usefullness is fully defined by the mapper.
+Currently the inventory items don't affect the gameplay on their own (except for [special items](#special-items)). It's just a tool for the level designer to introduce the custom player resource. Such examples include security cards and other quest items which usefullness is fully defined by the mapper.
+
+To define and use an inventory item, do the following:
+
+* [Define](#defining-inventory-items) the item in the **templates/inventory.json** (optional).
+* Define [HUD-related](#hud) properties for the item in **sprites/hud_inventory.json** (optional).
+* Add sprite entry to the **sprites/hud.txt** (optional) (don't forget to increase the number at the start of the file!).
+* Use [player_inventory]({{< ref player_inventory >}}) or [item_pickup]({{< ref item_pickup >}}) to give the item to player in game.
+* Use [player_hasinventory]({{< ref player_hasinventory >}}) as a master to lock door/button/trigger until the player obtains the item.
+* Use [player_inventory]({{< ref player_inventory >}}) to remove the item from player once it's not needed anymore.
 
 ![Inventory HUD](/images/player-inventory-hud.png)
 
 {{% hint warning %}}
-The current system is designed with only singleplayer in mind. There's no way for a player to drop an item, there's no way to check if the player who carries the item has left the game, etc.
+The current system is designed with only singleplayer in mind. There's no way for a player to drop an item, there's no way to check if the player who carries the item has left the game (disconnected), etc.
 {{% /hint %}}
 
 ## Defining inventory items
@@ -69,19 +78,45 @@ Example:
                 }
             }
         }
+    },
+    "special_items": {
+        "item_antidote": {
+            "max_count": 3
+        },
+        "item_radiation": {
+            "max_count": 2
+        },
+        "item_adrenaline": {
+            "max_count": 1
+        }
     }
 }
 ```
 
-This example defines 4 inventory items. The `max_count` defines how many duplicates of the item player normally is allowed to obtain. By default the max count is unlimited. It's not required to define the inventory item in the **templates/inventory.json** but it's the only way to set the max count limit per item.
+This example defines 4 inventory items.
 
-The `pickup_template` allows to define the [Entity template]({{< ref entity-templates >}}) that will be used by [item_pickup]({{< ref item_pickup >}}) with specified `Inventory item` type. It's useful if you want to ensure a uniform look and pickup sound for all items of the same type. This also allows to change the look and sound without editing maps in the mod.
+The document can have the following properties:
+
+### items
+
+A dictionary of inventory item game-logic definitions.
+
+* The `max_count` proprerty defines how many duplicates of the item player normally is allowed to obtain. By default the max count is unlimited. It's not required to define the inventory item in the **templates/inventory.json** but it's the only way to set the max count limit per item.
+* The `pickup_template` proprerty allows to define the [Entity template]({{< ref entity-templates >}}) that will be used by [item_pickup]({{< ref item_pickup >}}) with a specified `Inventory item` type. It's useful if you want to ensure a uniform look and pickup sound for all items of the same type. This also allows to change the look and sound without editing maps in the mod.
 
 In the example above inventory items `battery_blue` and `battery_red` are set to have the `models/w_battery.mdl` model and specific render effect, so mapper doesn't need to specify the model and the render effect for each [item_pickup]({{< ref item_pickup >}}) when they want to place these items on the map.
 
 {{% hint warning %}}
-Currently the maximum number of *different* items player can carry at the same time is 16.
+Currently the maximum number of *different* inventory items player can carry at the same time is 16.
 {{% /hint %}}
+
+### special_items
+
+Game-logic definitions for [special items](#special-items).
+
+This supports a restricted list of items. Each definition can have the following properties:
+
+* `max_count` - how many items of such type the player can carry.
 
 ## HUD
 
@@ -113,17 +148,48 @@ Example:
             "sprite": "item_security",
             "position": "topright"
         }
+    },
+    "special_items": {
+        "item_antidote": {
+            "sprite": "dmg_bio",
+            "position": "topright",
+            "color": [0, 255, 255]
+        },
+        "item_radiation": {
+            "position": "topright",
+            "color": [255, 255, 0]
+        },
+        "item_adrenaline": {
+            "position": "topright",
+            "color": [255, 0, 0]
+        }
     }
 }
 ```
 
-The object can have the following properties:
+{{% hint warning %}}
+The `security_card` in the example above refers to the `item_security` sprite entry that doesn't exist in **sprites/hud.txt** by default (neither in base Half-Life nor in the sample mod). This is just an example. You'll need to add such definition by yourself.
 
-* `"sprite_alpha"` - alpha value for sprites. This also can go by the `"default_sprite_alpha"` name. Default value is 175.
-* `"text_alpha"` - alpha value for text (used to show the count of items). Default value is 225.
-* `"items"` - an array of inventory item HUD definitions.
+The keycard sprite used in the example picture is taken from the ETC2 mod.
+{{% /hint %}}
 
-Each entry in `"items"` array is an object that can have the following properties:
+The document can have the following properties:
+
+### sprite_alpha
+
+An alpha value for sprites. Default value is 175.
+
+{{% hint info %}}
+This also can go by the `"default_sprite_alpha"` name
+{{% /hint %}}
+
+### text_alpha
+
+An alpha value for text (used to show the count of items). Default value is 225.
+
+### items
+
+A dictionary of inventory item HUD definitions. Each entry in the `"items"` dictionary is an object that can have the following properties:
 
 * `"sprite"` property should refer to the name from the **sprites/hud.txt**.
 * `"color"` defines sprite [color]({{< ref "JSON/#color" >}}) in HUD. When omitted it will use the client's main HUD color.
@@ -143,6 +209,16 @@ If the map utilizes some inventory item that is not defined in the **sprites/hud
 
 If the player has several duplicates of the same item it will be shown as a number next to the item icon.
 
+### special_items
+
+HUD definitions for [special items](#special-items).
+
+This supports a restricted list of items. The items can have the same properties as ones in `"items"` dictionary, but the following properties will be ignored:
+
+* `"show_in_history"` - special items are always shown in history.
+* `"show_in_journal"` - special items are never shown in journal.
+* `"show_count_when_one"` - special items always show their count.
+
 ## Controlling the player's inventory
 
 The [player_inventory]({{< ref player_inventory >}}) allows to add or remove inventory items for the player.
@@ -152,6 +228,18 @@ The [item_pickup]({{< ref item_pickup >}}) allows to put an item in the world. S
 The [player_hasinventory]({{< ref player_hasinventory >}}) allows to check if the player has at least one item of the specified type.
 
 The [player_calc_ratio]({{< ref player_calc_ratio >}}) with type `Inventory item count` allows to track the number of item duplicates the player carries (and use it in `trigger_compare`).
+
+## Special items
+
+Special items are shown in HUD along with inventory items, but are handled differently (they can't be manipulated via `player_inventory` or checked via `player_hasinventory`). Special items include:
+
+* [item_antidote]({{< ref item_antidote >}})
+* [item_radiation]({{< ref item_radiation >}})
+* [item_adrenaline]({{< ref item_adrenaline >}})
+
+{{% hint info %}}
+In HUD special items are always shown before the inventory items.
+{{% /hint %}}
 
 ## Developer commands
 

@@ -711,7 +711,7 @@ public:
 	bool ShouldFadeOnDeath() override;
 	bool IsStillSpawning();
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
-	void OnDying(bool gibbed) override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void ReportAIState(ALERT_TYPE level) override;
 
 	Vector DefaultMinHullSize() override { return Vector( -12.0f, -12.0f, 0.0f ); }
@@ -1024,10 +1024,10 @@ TakeDamageResult CShockRoach::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
-void CShockRoach::OnDying(bool gibbed)
+void CShockRoach::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	SetUse(NULL);
-	CHeadCrab::OnDying(gibbed);
+	CHeadCrab::OnDying(gibbed, pKiller);
 }
 
 void CShockRoach::ReportAIState(ALERT_TYPE level)

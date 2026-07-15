@@ -114,7 +114,7 @@ WeaponParameters CPython::GetDefaultParameters() const
 	params.altMode.attackDelay = 0.5f;
 	//
 
-	params.reload.animIndex = PYTHON_RELOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(PYTHON_RELOAD)};
 	params.reload.duration = 2.0f;
 
 	params.holster.animIndex = PYTHON_HOLSTER;

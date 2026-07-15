@@ -116,10 +116,10 @@ void CSquadMonster::ScheduleChange ()
 	VacateSlot();
 }
 
-void CSquadMonster::OnDying(bool gibbed)
+void CSquadMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	RemoveMySelfFromSquad();
-	CBaseMonster::OnDying(gibbed);
+	CBaseMonster::OnDying(gibbed, pKiller);
 }
 
 void CSquadMonster::UpdateOnRemove()

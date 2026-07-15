@@ -29,3 +29,14 @@ bookToC: false
 ### Visuals
 
 * **Tripmine.Beam** - the tripmine beam.
+* **Tripmine.Glow** - the sprite at the end of the tripmine beam. This doesn't have a sprite defined by default.
+
+To enable glow specify the sprite for the [visual]({{< ref visuals >}}):
+
+```json
+{
+    "Tripmine.Glow": {
+        "sprite": "sprites/glow04.spr"
+    }
+}
+```

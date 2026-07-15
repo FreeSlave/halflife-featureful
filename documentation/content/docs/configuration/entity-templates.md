@@ -332,7 +332,7 @@ Possible values for blood colors:
 * `"darkblue"`
 * `"bluish"` - bluish/navy
 
-If it's an object, it have the following properties:
+If it's an object, it has the following properties:
 
 * `"color"` - same as a string form. Just the blood color.
 * `"by_hitgroup"` - an array that allows to set different blood colors depending on the hitbox type that was hit. Each item in the array is an object of the following properties:
@@ -1172,7 +1172,7 @@ Each array item can have the following properties:
     - `"none"` - none of the bits must match.
     - `"exact"` - the exact equality is expected. Use this if you want to check for the `0` value.
 * `"classname"` - the classname of the dropped item. This is a required property.
-* `"ent_template"` - the entity template for the dropped item. Optional.
+* `"ent_template"` - the entity template name or the in-place entity template definition for the dropped item. Optional.
 * `"at_position"` - the position to spawn the dropped item at. Optional. Possible values:
     - `"gun"` - at gun position (depends on the monster's usually an attachment on the hand). This is the default value.
     - `"body"` - at *body* position, usually somewhere between the monster's center and the head. This suits for non-weapon drops (otherwise it would look weird to drop an item from the same place as a weapon).
@@ -1202,6 +1202,14 @@ Array example:
                 "ent_template": "custom_healthkit",
             },
             {
+                "classname": "item_battery",
+                "ent_template": {
+                    "own_visual": {
+                        "model": "models/w_custom_battery.mdl"
+                    }
+                }
+            },
+            {
                 "classname": "item_pickup",
                 "pickup_name": "battery_blue",
                 "chance": 0.5
@@ -1211,10 +1219,10 @@ Array example:
 }
 ```
 
-This defines 3 items which may drop from zombie upon its death. Each entry can have following properties:
+This defines 4 items which may drop from zombie upon its death. Each entry can have following properties:
 
 * `"classname"` - the entity classname to spawn.
-* `"ent_template"` - the entity template name to apply to the spawned item (e.g. if you want items with custom models to be dropped).
+* `"ent_template"` - the entity template name or the in-place entity template definition to apply to the spawned item (e.g. if you want items with custom models to be dropped).
 * `"pickup_name"` - the [Player Inventory]({{< ref player-inventory >}}) item name. This applied only if the classname is [item_pickup]({{< ref item_pickup >}}).
 * `"chance"` - the chance of drop, the number between 0 and 1, where 1 equals 100% chance of drop (this is a default value).
 * `"weight"` - if maximum weight is defined (see below), whether the item will drop depends on the weight of other items. Default weight is 1.
@@ -1703,10 +1711,6 @@ Example:
 ### cloaking
 
 Cloaking ability (invisibility) for monsters. This makes a monster translucent under certain (configurable) conditions, similar to [monster_human_assassin]({{< ref monster_human_assassin >}}).
-
-{{% hint warning %}}
-Special monsters like turrets, aircrafts and barnacles can't currently use cloaking.
-{{% /hint %}}
 
 Technically the cloaking can make monster more visible than in the "uncloaked" state - this is up to the cloaking properties and the initial monster's render parameters. You may think of cloaking as a second visibility setting.
 

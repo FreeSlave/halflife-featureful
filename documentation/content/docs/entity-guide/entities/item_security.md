@@ -9,7 +9,7 @@ entityCategory: pickup
 [TWHL](https://twhl.info/wiki/page/item_security)
 
 {{% hint warning %}}
-This entity is left for compatibility with existing maps. For quest items prefer using [item_pickup]({{< ref item_pickup >}}).
+This entity is left for compatibility with existing Half-Life maps/mappacks that may have used it. For quest items prefer using [item_pickup]({{< ref item_pickup >}}).
 {{% /hint %}}
 
 ### New parameters

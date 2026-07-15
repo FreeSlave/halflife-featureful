@@ -65,7 +65,6 @@ public:
 	int DefaultClassify() override;
 	int AwakeClassify() override;
 
-	int BloodColor() override { return DONT_BLEED; }
 	void GibMonster() override {}	// UNDONE: Throw turret gibs?
 
 	// Think functions
@@ -73,6 +72,13 @@ public:
 	void EXPORT SearchThink();
 	void EXPORT AutoSearchThink();
 	void EXPORT TurretDeath();
+	void EXPORT IdleThink();
+
+	bool IsAttackingCloakWise() {
+		bool result = m_attackedRecently;
+		m_attackedRecently = false;
+		return result;
+	}
 
 	virtual void EXPORT SpinDownCall() { m_iSpin = false; }
 	virtual void EXPORT SpinUpCall() { m_iSpin = true; }
@@ -121,6 +127,7 @@ public:
 	bool m_fBeserk;			// Sometimes this bitch will just freak out
 	bool m_iAutoStart;		// true if the turret auto deploys when a target
 						// enters its range
+	bool m_attackedRecently;
 
 	Vector m_vecLastSight;
 	float m_flLastSight;	// Last time we saw a target
@@ -160,6 +167,7 @@ TYPEDESCRIPTION	CBaseTurret::m_SaveData[] =
 	DEFINE_FIELD( CBaseTurret, m_iOn, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseTurret, m_fBeserk, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseTurret, m_iAutoStart, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseTurret, m_attackedRecently, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( CBaseTurret, m_vecLastSight, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CBaseTurret, m_flLastSight, FIELD_TIME ),
@@ -335,6 +343,7 @@ void CBaseTurret::KeyValue( KeyValueData *pkvd )
 
 void CBaseTurret::SpawnHelper()
 {
+	SetMyBloodColor(DONT_BLEED);
 	pev->max_health = pev->health;
 	pev->nextthink		= gpGlobals->time + 1;
 	pev->movetype		= MOVETYPE_FLY;
@@ -361,6 +370,7 @@ void CBaseTurret::SpawnHelper()
 	// m_flSightRange = TURRET_RANGE;
 
 	InitLootRandomSeed();
+	InitUncloakedRenderamt();
 }
 
 void CBaseTurret::SetOrientation()
@@ -422,7 +432,7 @@ void CTurret::Spawn()
 	}
 	m_eyeBrightness = 0;
 
-	pev->nextthink = gpGlobals->time + 0.3f; 
+	pev->nextthink = gpGlobals->time + 0.3f;
 }
 
 void CTurret::Precache()
@@ -492,7 +502,10 @@ void CBaseTurret::Initialize()
 		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 	else
-		SetThink( &CBaseEntity::SUB_DoNothing );
+	{
+		SetThink( &CBaseTurret::IdleThink );
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
 }
 
 void CBaseTurret::TurretUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
@@ -575,6 +588,7 @@ void CBaseTurret::ActiveThink()
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
 	HandlePowerShieldRecharge();
+	HandleCloaking();
 
 	if( ( !m_iOn ) || ( m_hEnemy == 0 ) )
 	{
@@ -661,6 +675,7 @@ void CBaseTurret::ActiveThink()
 		GetAttachment( 0, vecSrc, vecAng );
 		SetTurretAnim( TURRET_ANIM_FIRE );
 		Shoot( vecSrc, gpGlobals->v_forward );
+		m_attackedRecently = true;
 	}
 	else
 	{
@@ -785,6 +800,7 @@ void CBaseTurret::Retire()
 
 	StudioFrameAdvance();
 	GlowShellUpdate();
+	HandleCloaking();
 
 	EyeOff();
 
@@ -814,7 +830,10 @@ void CBaseTurret::Retire()
 				pev->nextthink = gpGlobals->time + 0.1f;
 			}
 			else
-				SetThink( &CBaseEntity::SUB_DoNothing );
+			{
+				SetThink( &CBaseTurret::IdleThink );
+				pev->nextthink = gpGlobals->time + 0.1f;
+			}
 		}
 	}
 	else
@@ -938,6 +957,7 @@ void CBaseTurret::SearchThink()
 	GlowShellUpdate();
 	HandlePassiveRegeneration();
 	HandlePowerShieldRecharge();
+	HandleCloaking();
 
 	if( m_flSpinUpTime == 0 && m_flMaxSpin )
 		m_flSpinUpTime = gpGlobals->time + m_flMaxSpin;
@@ -1000,6 +1020,7 @@ void CBaseTurret::AutoSearchThink()
 
 	pev->nextthink = gpGlobals->time + 0.3f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	// If we have a target and we're still healthy
 	if( m_hEnemy != 0 )
@@ -1027,6 +1048,7 @@ void CBaseTurret::TurretDeath()
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	if( pev->deadflag != DEAD_DEAD )
 	{
@@ -1084,6 +1106,13 @@ void CBaseTurret::TurretDeath()
 	}
 }
 
+void CBaseTurret::IdleThink()
+{
+	pev->nextthink = gpGlobals->time + 0.1f;
+	GlowShellUpdate();
+	HandleCloaking();
+}
+
 DamageInfo CBaseTurret::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
 	DamageInfo damageInfo = inputDamageInfo;
@@ -1119,6 +1148,7 @@ void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
+	BloodEffect(damageInfo, vecDir, ptr);
 }
 
 // take damage. bitsDamageType indicates type of damage sustained, ie: DMG_BULLET
@@ -1168,7 +1198,7 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 		takeDamageResult.SetKilledResult(KilledResult());
 		if (ShouldFadeOnDeath())
 			pev->spawnflags |= SF_MONSTER_FADECORPSE;
-		OnDying(false);
+		OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);
@@ -1400,7 +1430,7 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 		takeDamageResult.SetKilledResult(KilledResult());
 		if (ShouldFadeOnDeath())
 			pev->spawnflags |= SF_MONSTER_FADECORPSE;
-		OnDying(false);
+		OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
 		return takeDamageResult;
 	} else {
 		SetConditions(bits_COND_LIGHT_DAMAGE);

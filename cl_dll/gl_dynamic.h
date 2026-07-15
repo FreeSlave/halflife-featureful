@@ -29,27 +29,21 @@
 #include <GL/gl.h>
 #endif //__APPLE__
 
-typedef void (APIENTRY *GLAPI_glFogi)(GLenum pname, GLint param);
-
-typedef void (APIENTRY *GLAPI_glPixelStorei)(GLenum pname, GLint param);
-typedef void (APIENTRY *GLAPI_glGenTextures)(GLsizei n, GLuint *textures);
-typedef void (APIENTRY *GLAPI_glBindTexture)(GLenum target, GLuint texture);
-typedef void (APIENTRY *GLAPI_glTexImage2D)(GLenum target, GLint level,
-										   GLint internalFormat,
-										   GLsizei width, GLsizei height,
-										   GLint border, GLenum format, GLenum type,
-										   const GLvoid *pixels);
-typedef void (APIENTRY *GLAPI_glTexParameteri)(GLenum target, GLenum pname, GLint param);
-
 // For fog
-extern GLAPI_glFogi GL_glFogi;
+extern decltype(&glFogi) GL_glFogi;
 
 // For fullbright textures on models
-extern GLAPI_glPixelStorei GL_glPixelStorei;
-extern GLAPI_glGenTextures GL_glGenTextures;
-extern GLAPI_glBindTexture GL_glBindTexture;
-extern GLAPI_glTexImage2D GL_glTexImage2D;
-extern GLAPI_glTexParameteri GL_glTexParameteri;
+extern decltype(&glPixelStorei) GL_glPixelStorei;
+extern decltype(&glGenTextures) GL_glGenTextures;
+extern decltype(&glBindTexture) GL_glBindTexture;
+extern decltype(&glTexImage2D) GL_glTexImage2D;
+extern decltype(&glTexParameteri) GL_glTexParameteri;
+
+extern decltype(&glMatrixMode) GL_glMatrixMode;
+extern decltype(&glLoadIdentity) GL_glLoadIdentity;
+extern decltype(&glPushMatrix) GL_glPushMatrix;
+extern decltype(&glPopMatrix) GL_glPopMatrix;
+extern decltype(&glFrustum) GL_glFrustum;
 
 #endif
 

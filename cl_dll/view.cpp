@@ -91,6 +91,11 @@ bool v_resetCamera = true;
 Vector v_client_aimangles;
 Vector g_ev_punchangle;
 
+Vector g_vViewOrigin;
+Vector g_vViewForward;
+Vector g_vViewRight;
+Vector g_vViewUp;
+
 cvar_t	*scr_ofsx;
 cvar_t	*scr_ofsy;
 cvar_t	*scr_ofsz;
@@ -1668,6 +1673,13 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 		V_CalcNormalRefdef( pparams );
 	}
+
+	// Save view data for viewmodel renderer
+	g_vViewOrigin = pparams->vieworg;
+	g_vViewForward = pparams->forward;
+	g_vViewRight = pparams->right;
+	g_vViewUp = pparams->up;
+
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha
 #define SF_TEST	1

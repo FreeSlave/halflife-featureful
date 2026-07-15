@@ -53,6 +53,13 @@ public:
 	// Find final attachment points
 	virtual void StudioCalcAttachments();
 	
+	// Returns whether StudioAdjustViewmodelAttachments needs to be called for the viewmodel
+	static bool NeedAdjustViewmodelAdjustments();
+	static float EffectiveViewmodelFOV();
+
+	// Reprojects attachments of the viewmodel if FOV is changed
+	void StudioAdjustViewmodelAttachments(Vector &vOrigin);
+
 	// Save bone matrices and names
 	virtual void StudioSaveBones();
 
@@ -102,6 +109,10 @@ public:
 
 	// Process movement of player
 	virtual void StudioProcessGait( entity_state_t *pplayer );
+
+	// Calculate the viewmodel fov and set the OpenGL projection matrix
+	static void SetViewmodelFovProjection();
+	static void RestoreViewmodelFovProjection();
 
 public:
 

@@ -154,7 +154,7 @@ WeaponParameters CSporelauncher::GetDefaultParameters() const
 	params.reloadAutostart = true;
 	params.manualReload = true;
 
-	params.reload.animIndex = SPLAUNCHER_RELOAD_LOAD;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(SPLAUNCHER_RELOAD_LOAD)};
 	params.reload.idleDelay = 1.0f;
 	params.reload.duration = 0.0f;
 	params.reload.sound = {

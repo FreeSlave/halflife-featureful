@@ -1354,7 +1354,48 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			}
 			else
 			{
-				UpdatePropertyFromJson(reload.animIndex, value, "anim", altMode, emptied);
+				HandleJSONMember(value, "anim", [&reload, altMode, emptied](const Value& value) {
+					if (value.IsInt())
+					{
+						int index = value.GetInt();
+						if (index < 0)
+						{
+							if (!altMode && !emptied)
+							{
+								reload.animIndex.main.clear();
+							}
+							else
+							{
+								reload.animIndex.Reset(altMode, emptied);
+							}
+						}
+						else
+						{
+							reload.animIndex.Materialize(altMode, emptied) = {WeaponParameters::ReloadAnim(index)};
+						}
+					}
+					else if (value.IsArray())
+					{
+						Value::ConstArray arr = value.GetArray();
+						WeaponParameters::ReloadAnimArray reloadAnimArr;
+						for (const Value& item : arr)
+						{
+							if (item.IsInt())
+							{
+								reloadAnimArr.push_back(WeaponParameters::ReloadAnim(item.GetInt()));
+							}
+							else if (item.IsObject())
+							{
+								WeaponParameters::ReloadAnim reloadAnim;
+								UpdatePropertyFromJson(reloadAnim.animIndex, item, "anim");
+								UpdatePropertyFromJson(reloadAnim.chance, item, "chance");
+								reloadAnimArr.push_back(reloadAnim);
+							}
+						}
+						reload.animIndex.Materialize(altMode, emptied) = reloadAnimArr;
+					}
+				});
+
 				UpdatePropertyFromJson(reload.duration, value, "duration", altMode, emptied);
 				UpdatePropertyFromJson(reload.attackDelay, value, "attack_delay", altMode, emptied);
 				UpdatePropertyFromJson(reload.idleDelay, value, "idle_delay", altMode, emptied);

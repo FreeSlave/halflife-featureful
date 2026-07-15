@@ -224,7 +224,7 @@ bool CGameRules::EquipPlayerFromMapConfig(CBasePlayer *pPlayer, const MapConfig 
 			pPlayer->SetLongjump(true);
 		}
 
-		CBasePlayerWeapon* pWeaponToDeploy = *mapConfig.deployWeapon ? pPlayer->GetWeaponByName(mapConfig.deployWeapon) : nullptr;
+		CBasePlayerWeapon* pWeaponToDeploy = !mapConfig.deployWeapon.empty() ? pPlayer->GetWeaponByName(mapConfig.deployWeapon.c_str()) : nullptr;
 		if (pWeaponToDeploy)
 		{
 			if (pWeaponToDeploy != pPlayer->m_pActiveItem)

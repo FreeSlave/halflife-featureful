@@ -35,6 +35,8 @@ bookToC: false
 * **BabyGarg.Attack** - occasional roar played on the flame attack.
 * **BabyGarg.StompSound** - stomp launch sound.
 * **BabyGarg.Breath** - played on the event 6 in some idle sequences.
+* **BabyGarg.Use** - start following the ally player. Derived from **BabyGarg.Idle**
+* **BabyGarg.UnUse** - stop following the ally player. Derived from **BabyGarg.Alert**
 
 ### Visuals
 

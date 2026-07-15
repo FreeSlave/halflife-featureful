@@ -940,6 +940,18 @@ bool CBaseEntity::EmitSoundScript(const char *name, const SoundScriptParamOverri
 	return false;
 }
 
+bool CBaseEntity::EmitSoundScriptWithOptionalSampleOverride(const char *name, string_t sample, const SoundScriptParamOverride paramsOverride, int flags)
+{
+	if (!FStringNull(sample))
+	{
+		return EmitSoundScriptSelectedSample(name, STRING(sample), paramsOverride, flags);
+	}
+	else
+	{
+		return EmitSoundScript(name, paramsOverride, flags);
+	}
+}
+
 bool CBaseEntity::EmitSoundScriptSelectedSample(const SoundScript* soundScript, int sampleIndex, const SoundScriptParamOverride paramsOverride, int flags)
 {
 	if (soundScript)

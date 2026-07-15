@@ -180,7 +180,7 @@ Schedule_t *CBaseMonster::ScheduleFromName( const char *pName ) { return NULL;}
 void CBaseMonster::BecomeDead() {}
 void CBaseMonster::RunAI() {}
 KilledResult CBaseMonster::Killed( entvars_t * pevInflictor, entvars_t *pevAttacker, int iGib ) { return KilledResult(); }
-void CBaseMonster::OnDying(bool gibbed) {}
+void CBaseMonster::OnDying(bool gibbed, CBaseEntity* pKiller) {}
 void CBaseMonster::UpdateOnRemove() {}
 int CBaseMonster::TakeHealth(CBaseEntity* pHealer, float flHealth, int healType) { return 0; }
 TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) { return TakeDamageResult(); }
@@ -203,6 +203,8 @@ const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
 	static const NamedSoundScript dummy{0, {}, "Dummy"};
 	return dummy;
 }
+bool CBaseMonster::IsMovingCloakWise() { return false; }
+bool CBaseMonster::IsAttackingCloakWise() { return false; }
 
 void CBasePlayer::DeathSound() { }
 int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) { return 0; }

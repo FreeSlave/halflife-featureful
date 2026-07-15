@@ -40,8 +40,8 @@ bookToC: false
 * **HGrunt.9MM** - burst MP5 shot. Derived from **NPC.9MM**
 * **HGrunt.GrenadeLaunch** - MP5 grenade launch. Derived from **NPC.GrenadeLaunch**
 * **HGrunt.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
-* **HGrunt.Use** - start following the ally player.
-* **HGrunt.UnUse** - stop following the ally player.
+* **HGrunt.Use** - start following the ally player. By default it uses the following sentences: `["!HG_ANSWER0", "!HG_ANSWER1", "!HG_ANSWER2"]`.
+* **HGrunt.UnUse** - stop following the ally player. By default it uses the following sentences: `["!HG_ANSWER5", "!HG_QUEST4"]`.
 
 ### Attacks
 
