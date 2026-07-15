@@ -2056,8 +2056,17 @@ static void PlayTraceAttackEffects(CBaseEntity* pEntity, const EntTemplate::Trac
 	}
 }
 
+extern int gmsgShowDamage;
+
 DamageInfo CBaseEntity::HandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
+	// show attack results first
+	MESSAGE_BEGIN(MSG_ONE, gmsgShowDamage, ptr->vecEndPos, pevAttacker);
+	WRITE_VECTOR(ptr->vecEndPos);
+	WRITE_LONG(inputDamageInfo.damage);
+	MESSAGE_END();
+	// end of show attack results first
+
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate && entTemplate->HasCustomTraceAttackRules())
 	{
