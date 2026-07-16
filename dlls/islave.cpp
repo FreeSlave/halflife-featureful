@@ -1106,7 +1106,10 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 				::RadiusDamage(this, pev->origin, pev, pev, DamageInfo{GetSkillValue("islave_dmg_coil"), DMG_SHOCK},
 							   ISLAVE_COIL_ATTACK_RADIUS,
 							   RADIUSDAMAGE_SPOT_IS_TARGET_CENTER,
-							   [this](CBaseEntity* pEntity) {
+							   [this](CBaseEntity* pEntity)
+				{
+					if (pEntity == this)
+						return false;
 					const int rel = IRelationship(pEntity);
 					if (rel == R_AL)
 					{
