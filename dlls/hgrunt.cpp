@@ -1904,29 +1904,7 @@ Task_t tlGruntRepelLand[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
 	{ TASK_PLAY_SEQUENCE, (float)ACT_LAND },
-	{ TASK_GET_PATH_TO_LASTPOSITION, (float)0 },
-	{ TASK_RUN_PATH, (float)0 },
-	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
-	{ TASK_CLEAR_LASTPOSITION, (float)0 },
 };
-
-Schedule_t slGruntRepelLand[] =
-{
-	{
-		tlGruntRepelLand,
-		ARRAYSIZE( tlGruntRepelLand ),
-		bits_COND_SEE_ENEMY |
-		bits_COND_NEW_ENEMY |
-		bits_COND_LIGHT_DAMAGE |
-		bits_COND_HEAVY_DAMAGE |
-		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER |
-		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER_IF_NOT_ALLY,
-		"Repel Land"
-	},
-};
-
 
 DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 {
@@ -1950,7 +1928,6 @@ DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 	slGruntRangeAttack2,
 	slGruntRepel,
 	slGruntRepelAttack,
-	slGruntRepelLand,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHGrunt, CFollowingMonster )
@@ -2018,7 +1995,7 @@ Schedule_t *CHGrunt::GetSchedule()
 			// just landed (or about to)
 			pev->movetype = MOVETYPE_STEP;
 			pev->velocity.z = 0; // avoid a slight residual slide if we cut before the actual impact
-			return GetScheduleOfType( SCHED_GRUNT_REPEL_LAND );
+			return GetScheduleOfType( SCHED_REPEL_LAND );
 		}
 		else
 		{
@@ -2373,10 +2350,6 @@ Schedule_t *CHGrunt::GetScheduleOfType( int Type )
 				pev->velocity.z -= 32;
 			return &slGruntRepelAttack[0];
 		}
-	case SCHED_GRUNT_REPEL_LAND:
-		{
-			return &slGruntRepelLand[0];
-		}
 	default:
 		{
 			return CFollowingMonster::GetScheduleOfType( Type );
@@ -2512,8 +2485,6 @@ void CHGruntRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 		pGrunt->pev->movetype = MOVETYPE_FLY;
 		pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
 		pGrunt->SetActivity( ACT_GLIDE );
-		// UNDONE: position?
-		pGrunt->m_vecLastPosition = tr.vecEndPos;
 
 		CBeam *pBeam = CreateBeamFromVisual(GetVisual(NPC::ropeVisual));
 		if (pBeam)

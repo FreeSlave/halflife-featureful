@@ -95,6 +95,7 @@ bool FBoxVisible( entvars_t *pevLooker, entvars_t *pevTarget, Vector &vecTargetO
 #define bits_MEMORY_SHOULD_GO_TO_LKP	( 1 << 10 )
 #define bits_MEMORY_BLOCKER_IS_ENEMY	( 1 << 11 )
 #define bits_MEMORY_GOT_HEALED_RECENTLY	( 1 << 12 )
+#define bits_MEMORY_SPAWNED_FROM_AIRCRAFT	( 1 << 13 )
 #define bits_MEMORY_CUSTOM5				( 1 << 27 )	// Monster-specific memory
 #define bits_MEMORY_CUSTOM4				( 1 << 28 )	// Monster-specific memory
 #define bits_MEMORY_CUSTOM3				( 1 << 29 )	// Monster-specific memory

@@ -678,6 +678,7 @@ CBaseMonster *COsprey::MakeGrunt( const Vector& vecSrc )
 							pGrunt->m_vecLastPosition = tr.vecEndPos + Vector(RANDOM_FLOAT(-128, 128), RANDOM_FLOAT(-128, 128), 0.0f);
 						else
 							pGrunt->m_vecLastPosition = m_vecOrigin[i];
+						pGrunt->Remember(bits_MEMORY_SPAWNED_FROM_AIRCRAFT);
 						m_hGrunt[i] = pGrunt;
 					}
 

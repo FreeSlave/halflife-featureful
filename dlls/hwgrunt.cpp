@@ -24,7 +24,6 @@ enum
 	SCHED_HWGRUNT_SUPPRESSING_FIRE,
 	SCHED_HWGRUNT_REPEL,
 	SCHED_HWGRUNT_REPEL_ATTACK,
-	SCHED_HWGRUNT_REPEL_LAND,
 };
 
 enum
@@ -625,43 +624,12 @@ Schedule_t	slHWGruntRepel[] =
 	},
 };
 
-//=========================================================
-// repel land
-//=========================================================
-Task_t tlHWGruntRepelLand[] =
-{
-	{ TASK_STOP_MOVING, (float)0 },
-	{ TASK_PLAY_SEQUENCE, (float)ACT_LAND },
-	{ TASK_GET_PATH_TO_LASTPOSITION, (float)0 },
-	{ TASK_RUN_PATH, (float)0 },
-	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
-	{ TASK_CLEAR_LASTPOSITION, (float)0 },
-};
-
-Schedule_t slHWGruntRepelLand[] =
-{
-	{
-		tlHWGruntRepelLand,
-		ARRAYSIZE( tlHWGruntRepelLand ),
-		bits_COND_SEE_ENEMY |
-		bits_COND_NEW_ENEMY |
-		bits_COND_LIGHT_DAMAGE |
-		bits_COND_HEAVY_DAMAGE |
-		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER |
-		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER_IF_NOT_ALLY,
-		"Repel Land"
-	},
-};
-
 DEFINE_CUSTOM_SCHEDULES( CHWGrunt )
 {
 	slHWGruntStartRangeAttack,
 	slHWGruntContinueRangeAttack,
 	slHWGruntSpindown,
 	slHWGruntRepel,
-	slHWGruntRepelLand,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHWGrunt, CFollowingMonster )
@@ -718,7 +686,7 @@ Schedule_t *CHWGrunt::GetSchedule()
 			// just landed (or about to)
 			pev->movetype = MOVETYPE_STEP;
 			pev->velocity.z = 0; // avoid a slight residual slide if we cut before the actual impact
-			return GetScheduleOfType( SCHED_HWGRUNT_REPEL_LAND );
+			return GetScheduleOfType( SCHED_REPEL_LAND );
 		}
 		else
 		{
@@ -778,10 +746,6 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 			if( pev->velocity.z > -128 )
 				pev->velocity.z -= 32;
 			return &slHWGruntRepel[0];
-		}
-	case SCHED_HWGRUNT_REPEL_LAND:
-		{
-			return &slHWGruntRepelLand[0];
 		}
 	default:
 		{

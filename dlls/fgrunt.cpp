@@ -115,7 +115,6 @@ enum
 	SCHED_HGRUNT_ALLY_FOUND_ENEMY,
 	SCHED_HGRUNT_ALLY_REPEL,
 	SCHED_HGRUNT_ALLY_REPEL_ATTACK,
-	SCHED_HGRUNT_ALLY_REPEL_LAND,
 	SCHED_HGRUNT_ALLY_WAIT_FACE_ENEMY,
 	SCHED_HGRUNT_ALLY_TAKECOVER_FAILED,// special schedule type that forces analysis of conditions and picks the best possible schedule to recover from this type of failure.
 	SCHED_HGRUNT_ALLY_ELOF_FAIL,
@@ -1061,37 +1060,6 @@ Schedule_t	slFGruntRepelAttack[] =
 	},
 };
 
-//=========================================================
-// repel land
-//=========================================================
-Task_t	tlFGruntRepelLand[] =
-{
-	{ TASK_STOP_MOVING,			(float)0		},
-	{ TASK_PLAY_SEQUENCE,		(float)ACT_LAND	},
-	{ TASK_GET_PATH_TO_LASTPOSITION,(float)0				},
-	{ TASK_RUN_PATH,				(float)0				},
-	{ TASK_WAIT_FOR_MOVEMENT,		(float)0				},
-	{ TASK_CLEAR_LASTPOSITION,		(float)0				},
-};
-
-Schedule_t	slFGruntRepelLand[] =
-{
-	{
-		tlFGruntRepelLand,
-		ARRAYSIZE ( tlFGruntRepelLand ),
-		bits_COND_SEE_ENEMY			|
-		bits_COND_NEW_ENEMY			|
-		bits_COND_LIGHT_DAMAGE		|
-		bits_COND_HEAVY_DAMAGE		|
-		bits_COND_HEAR_SOUND,
-
-		bits_SOUND_DANGER			|
-		bits_SOUND_COMBAT			|
-		bits_SOUND_PLAYER_IF_NOT_ALLY,
-		"Repel Land"
-	},
-};
-
 DEFINE_CUSTOM_SCHEDULES( CHFGrunt )
 {
 	slFGruntFail,
@@ -1114,7 +1082,6 @@ DEFINE_CUSTOM_SCHEDULES( CHFGrunt )
 	slFGruntRangeAttack2,
 	slFGruntRepel,
 	slFGruntRepelAttack,
-	slFGruntRepelLand,
 };
 
 
@@ -2300,11 +2267,6 @@ Schedule_t* CHFGrunt::GetScheduleOfType ( int Type )
 			return &slFGruntRepelAttack[ 0 ];
 		}
 		break;
-	case SCHED_HGRUNT_ALLY_REPEL_LAND:
-		{
-			return &slFGruntRepelLand[ 0 ];
-		}
-		break;
 	default:
 		{
 			return CTalkMonster::GetScheduleOfType ( Type );
@@ -2421,7 +2383,7 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 		{
 			// just landed
 			pev->movetype = MOVETYPE_STEP;
-			return GetScheduleOfType ( SCHED_HGRUNT_ALLY_REPEL_LAND );
+			return GetScheduleOfType ( SCHED_REPEL_LAND );
 		}
 		else
 		{

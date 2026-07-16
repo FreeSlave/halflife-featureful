@@ -1413,6 +1413,59 @@ Schedule_t slRegen[] =
 	}
 };
 
+//=========================================================
+// repel land
+//=========================================================
+Task_t tlRepelLand[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_PLAY_SEQUENCE, (float)ACT_LAND },
+};
+
+Schedule_t slRepelLand[] =
+{
+	{
+		tlRepelLand,
+		ARRAYSIZE( tlRepelLand ),
+		bits_COND_SEE_ENEMY |
+		bits_COND_NEW_ENEMY |
+		bits_COND_LIGHT_DAMAGE |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER |
+		bits_SOUND_COMBAT |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
+		"Repel Land"
+	},
+};
+
+Task_t tlRepelLandAndMove[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_PLAY_SEQUENCE, (float)ACT_LAND },
+	{ TASK_GET_PATH_TO_LASTPOSITION, (float)0 },
+	{ TASK_RUN_PATH, (float)0 },
+	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
+	{ TASK_CLEAR_LASTPOSITION, (float)0 },
+};
+
+Schedule_t slRepelLandAndMove[] =
+{
+	{
+		tlRepelLandAndMove,
+		ARRAYSIZE( tlRepelLandAndMove ),
+		bits_COND_SEE_ENEMY |
+		bits_COND_NEW_ENEMY |
+		bits_COND_LIGHT_DAMAGE |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER |
+		bits_SOUND_COMBAT |
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
+		"Repel Land And Move"
+	},
+};
+
 Schedule_t *CBaseMonster::m_scheduleList[] =
 {
 	slIdleStand,
@@ -1467,6 +1520,8 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slRetreatFromSpot,
 	slIdleFace,
 	slRegen,
+	slRepelLand,
+	slRepelLandAndMove,
 	slFail,
 	slCombatFail
 };
@@ -1749,6 +1804,13 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 	case SCHED_REGENERATION:
 		{
 			return slRegen;
+		}
+	case SCHED_REPEL_LAND:
+		{
+			if (HasMemory(bits_MEMORY_SPAWNED_FROM_AIRCRAFT))
+				return slRepelLandAndMove;
+			else
+				return slRepelLand;
 		}
 	default:
 		{

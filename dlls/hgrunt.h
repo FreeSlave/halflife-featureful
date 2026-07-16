@@ -21,7 +21,6 @@ enum
 	SCHED_GRUNT_FOUND_ENEMY,
 	SCHED_GRUNT_REPEL,
 	SCHED_GRUNT_REPEL_ATTACK,
-	SCHED_GRUNT_REPEL_LAND,
 	SCHED_GRUNT_WAIT_FACE_ENEMY,
 	SCHED_GRUNT_TAKECOVER_FAILED,// special schedule type that forces analysis of conditions and picks the best possible schedule to recover from this type of failure.
 	SCHED_GRUNT_ELOF_FAIL
