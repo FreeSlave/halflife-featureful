@@ -1796,7 +1796,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 		if (params.punchAngle.y)
 			pHurt->pev->punchangle.y = params.punchAngle.y;
 		if (params.punchAngle.z)
-			pHurt->pev->punchangle.y = params.punchAngle.z;
+			pHurt->pev->punchangle.z = params.punchAngle.z;
 
 		bool applyKnock = false;
 		if (params.knockPlayerOnly)

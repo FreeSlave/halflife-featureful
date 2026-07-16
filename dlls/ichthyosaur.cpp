@@ -462,7 +462,7 @@ void CIchthyosaur::HandleAnimEvent( MonsterEvent_t *pEvent )
 					if (params.punchAngle.y)
 						pHurt->pev->punchangle.y = params.punchAngle.y;
 					if (params.punchAngle.z)
-						pHurt->pev->punchangle.y = params.punchAngle.z;
+						pHurt->pev->punchangle.z = params.punchAngle.z;
 
 
 					const bool applyKnock = params.knockPlayerOnly ? pHurt->IsPlayer() : FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT);
