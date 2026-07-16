@@ -167,6 +167,7 @@ public:
 	int TalkFriendCategory() override { return TALK_FRIEND_SOLDIER; }
 	void PlayCallForMedic() override;
 	void PrescheduleThink() override;
+	bool ShouldAnticipateLanding();
 	Vector GetGunPosition() override;
 	void Shoot();
 	void Shotgun();
@@ -1331,6 +1332,28 @@ void CHFGrunt::SetYawSpeed()
 	pev->yaw_speed = ys;
 }
 
+//=========================================================
+// ShouldAnticipateLanding - traces down to the ground to
+// determine whether impact is imminent, so the landing anim
+// can be triggered before FL_ONGROUND is actually set by
+// the physics.
+//=========================================================
+bool CHFGrunt::ShouldAnticipateLanding()
+{
+	if ( m_MonsterState == MONSTERSTATE_PRONE )
+		return false;
+
+	if ( pev->velocity.z >= 0 )
+		return false; // still ascending/stationary, not falling
+
+	TraceResult tr;
+	UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, RAPPEL_LANDING_TRACE_DIST ),
+	                dont_ignore_monsters, ignore_glass, ENT( pev ), &tr );
+
+	float flDistToGround = pev->origin.z - tr.vecEndPos.z;
+
+	return flDistToGround <= RAPPEL_LANDING_ANTICIPATION;
+}
 
 //=========================================================
 // PrescheduleThink - this function runs after conditions
@@ -1338,6 +1361,12 @@ void CHFGrunt::SetYawSpeed()
 //=========================================================
 void CHFGrunt::PrescheduleThink()
 {
+	if ( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE
+	     && ( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() ) )
+	{
+		ClearSchedule();
+	}
+
 	if ( InSquad() && m_hEnemy != 0 )
 	{
 		if ( HasConditions ( bits_COND_SEE_ENEMY ) )
@@ -2388,7 +2417,7 @@ Schedule_t* CHFGrunt::PrioritizedSchedule()
 	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling.
 	if ( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
 	{
-		if (pev->flags & FL_ONGROUND)
+		if ( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() )
 		{
 			// just landed
 			pev->movetype = MOVETYPE_STEP;

@@ -6,6 +6,9 @@
 #include	"monsters.h"
 #include	"followingmonster.h"
 
+#define RAPPEL_LANDING_TRACE_DIST			4096.0f
+#define RAPPEL_LANDING_ANTICIPATION			24.0f
+
 //=========================================================
 // monster-specific schedule types
 //=========================================================
@@ -80,6 +83,7 @@ public:
 	void Shoot();
 	void Shotgun();
 	void PrescheduleThink() override;
+	bool ShouldAnticipateLanding();
 	void GibMonster() override;
 	virtual void SpeakSentence();
 	bool PlayGruntSentence(int sentence, int flags = 0);
