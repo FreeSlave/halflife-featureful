@@ -162,7 +162,6 @@ public:
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
 	bool CheckRangeAttack2( float flDot, float flDist ) override;
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
-	int MaxFollowers() override { return -1; }
 	int TalkFriendCategory() override { return TALK_FRIEND_SOLDIER; }
 	void PlayCallForMedic() override;
 	void PrescheduleThink() override;

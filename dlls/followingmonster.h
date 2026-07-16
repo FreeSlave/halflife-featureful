@@ -93,7 +93,7 @@ public:
 	virtual void StartFollowing( CBaseEntity *pLeader, bool saySentence = true );
 	virtual void DeclineFollowing( CBaseEntity* pCaller ) {}
 	virtual void LimitFollowers( CBaseEntity *pPlayer, int maxFollowers );
-	virtual int MaxFollowers() { return 3; }
+	virtual int MaxFollowers() { return -1; }
 
 	CFollowingMonster* MyFollowingMonsterPointer() override { return this; }
 	virtual bool InScriptedSentence();
