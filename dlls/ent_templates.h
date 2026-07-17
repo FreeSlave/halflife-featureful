@@ -224,15 +224,28 @@ public:
 		optional<float> dot;
 	};
 
+	struct PunchAngle
+	{
+		optional<float> pitch;
+		optional<float> yaw;
+		optional<float> roll;
+
+		void UpdateVector(Vector& vec) const
+		{
+			if (pitch) {
+				vec.x = *pitch;
+			}
+			if (yaw) {
+				vec.y = *yaw;
+			}
+			if (roll) {
+				vec.z = *roll;
+			}
+		}
+	};
+
 	struct TraceHullAttack
 	{
-		struct PunchAngle
-		{
-			optional<float> pitch;
-			optional<float> yaw;
-			optional<float> roll;
-		};
-
 		struct Knock
 		{
 			optional<float> forward;
@@ -253,10 +266,17 @@ public:
 		std::string missSoundScript;
 	};
 
-	struct TouchAttack
+	struct LeapAttack
 	{
 		DamageInfoPatch damageInfo;
+		PunchAngle punchAngle;
 		tribool spawnBlood;
+		float maxJumpDistance{0.0f};
+		float maxJumpHeight{0.0f};
+		optional<int> animationEvent;
+		optional<float> startFrameFraction;
+		tribool setTouchEarly;
+		tribool allowHitOnGround;
 	};
 
 	struct TraceAttackRule
@@ -592,11 +612,11 @@ public:
 		_traceHullAttacks[eventIndex] = attack;
 	}
 
-	TouchAttack GetTouchAttack() const {
-		return _touchAttack;
+	const LeapAttack& GetLeapAttack() const {
+		return _leapAttack;
 	}
-	void SetTouchAttack(const TouchAttack& touchAttack) {
-		_touchAttack = touchAttack;
+	void SetLeapAttack(const LeapAttack& leapAttack) {
+		_leapAttack = leapAttack;
 	}
 
 	std::pair<std::vector<TraceAttackRule>::const_iterator, std::vector<TraceAttackRule>::const_iterator> TraceAttackRulesRange() const;
@@ -744,7 +764,7 @@ private:
 	CheckMeleeAttack _checkMeleeAttack1;
 	CheckMeleeAttack _checkMeleeAttack2;
 	std::map<int, TraceHullAttack> _traceHullAttacks;
-	TouchAttack _touchAttack;
+	LeapAttack _leapAttack;
 
 	std::vector<TraceAttackRule> _traceAttackRules;
 	bool _traceAttackRulesDefined = false;

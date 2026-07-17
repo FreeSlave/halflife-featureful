@@ -47,9 +47,32 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	Schedule_t* GetScheduleOfType(int Type) override;
 	void OnChangeSchedule(Schedule_t *pNewSchedule) override;
+	void StartTask(Task_t *pTask) override;
 	void RunTask(Task_t *pTask) override;
 
-	void EXPORT LeapTouch ( CBaseEntity *pOther );
+	LeapAttackStartParams GetDefaultLeapAttackStart() override {
+		LeapAttackStartParams params;
+		params.startFrameFraction = 120.0f / 255.0f;
+		return params;
+	}
+	LeapAttackJumpParams GetDefaultLeapAttackJump() override {
+		LeapAttackJumpParams params;
+		params.delay = 3.5f;
+		return params;
+	}
+	LeapAttackImpactParams GetDefaultLeapAttackImpact() override {
+		LeapAttackImpactParams params;
+		params.damageInfo = DamageInfo(GetSkillValue("panthereye_dmg_claw"), DMG_SLASH);
+		params.punchAngle = Vector(5.0f, 0.0f, 15.0f);
+		params.slowAfter = true;
+		return params;
+	}
+	void PlayLeapAttackSound() override {
+		EmitSoundScript(leapAttackSoundScript);
+	}
+	void PlayLeapAttackHitSound() override {
+		EmitSoundScript(attackHitSoundScript);
+	}
 
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckMeleeAttack2( float flDot, float flDist ) override {return false;}
@@ -72,6 +95,7 @@ public:
 	static const NamedSoundScript painSoundScript;
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript attackSoundScript;
+	static constexpr const char* leapAttackSoundScript = "PantherEye.LeapAttack";
 
 	void IdleSound() override {
 		EmitSoundScript(idleSoundScript);
@@ -90,8 +114,6 @@ public:
 	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
-
-	bool m_leaping;
 };
 
 LINK_ENTITY_TO_CLASS( monster_panthereye, CPantherEye );
@@ -169,6 +191,7 @@ void CPantherEye::Precache()
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(attackSoundScript);
+	RegisterAndPrecacheSoundScript(leapAttackSoundScript, attackSoundScript);
 }
 
 bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
@@ -180,7 +203,7 @@ bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
 
 bool CPantherEye::CheckRangeAttack1( float flDot, float flDist )
 {
-	return FBitSet(pev->flags, FL_ONGROUND) && flDist > 80.0f && flDist <= 256 && flDot >= 0.65f && m_flNextAttack <= gpGlobals->time;
+	return FBitSet(pev->flags, FL_ONGROUND) && flDist > 80.0f && flDist <= 256 && flDot >= 0.65f && m_flNextLeapAttack <= gpGlobals->time;
 }
 
 void CPantherEye::PerformStrike(const TraceHullAttackParams& params)
@@ -277,6 +300,17 @@ void CPantherEye::OnChangeSchedule(Schedule_t *pNewSchedule)
 	m_leaping = false;
 }
 
+void CPantherEye::StartTask(Task_t *pTask)
+{
+	CSquadMonster::StartTask(pTask);
+
+	if (pTask->iTask == TASK_RANGE_ATTACK1)
+	{
+		if (GetLeapAttackStart().setTouchEarly)
+			SetLeapAttackTouch();
+	}
+}
+
 void CPantherEye::RunTask(Task_t *pTask)
 {
 	CSquadMonster::RunTask(pTask);
@@ -288,85 +322,11 @@ void CPantherEye::RunTask(Task_t *pTask)
 			SetTouch(nullptr);
 			m_leaping = false;
 		}
-		else if (!m_leaping && pev->frame >= 120.0f)
+		else if (!m_leaping && ReadyToLaunchLeapAttackAtCurrentFrame())
 		{
-			SetTouch(&CPantherEye::LeapTouch);
+			SetLeapAttackTouch();
 			m_leaping = true;
-
-			ClearBits( pev->flags, FL_ONGROUND );
-
-			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );// take him off ground so engine doesn't instantly reset onground
-			UTIL_MakeVectors( pev->angles );
-
-			Vector vecJumpDir;
-			if( m_hEnemy != 0 )
-			{
-				float gravity = g_psv_gravity->value;
-				if( gravity <= 1 )
-					gravity = 1;
-
-				// How fast does the panther need to travel to reach that height given gravity?
-				float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
-				height = clamp(height, 16.0f, 120.0f);
-				float speed = sqrt( 2 * gravity * height );
-				float time = speed / gravity;
-
-				// Scale the sideways velocity to get there at the right time
-				vecJumpDir = m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin;
-				vecJumpDir *= ( 1.0f / time );
-
-				// Speed to offset gravity at the desired height
-				vecJumpDir.z = speed;
-
-				// Don't jump too far/fast
-				float distance = vecJumpDir.Length();
-
-				if( distance > 650.0f )
-				{
-					vecJumpDir *= ( 650.0f / distance );
-				}
-			}
-			else
-			{
-				// jump hop, don't care where
-				vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * 350.0f;
-			}
-
-			pev->velocity = vecJumpDir;
-
-			EmitSoundScript(attackSoundScript);
-			m_flNextAttack = gpGlobals->time + 3.5f;
+			LaunchLeapAttack();
 		}
 	}
-}
-
-void CPantherEye::LeapTouch( CBaseEntity *pOther )
-{
-	if (!pOther->pev->takedamage)
-	{
-		return;
-	}
-
-	if (pOther->Classify() == Classify())
-	{
-		return;
-	}
-
-	EmitSoundScript(attackHitSoundScript);
-
-	TouchAttackParams params;
-	params.damageInfo = DamageInfo(GetSkillValue("panthereye_dmg_claw"), DMG_SLASH);
-	SetTouchAttackFromTemplate(params);
-	PerformTouchAttack(params, pOther);
-
-	if (pOther->IsPlayer())
-	{
-		pOther->pev->punchangle.x = 5.0f;
-		pOther->pev->punchangle.z = RANDOM_LONG(0, 1) ? 15.0f : -15.0f;
-	}
-
-	pev->velocity.x *= 0.5f;
-	pev->velocity.y *= 0.5f;
-
-	SetTouch(nullptr);
 }

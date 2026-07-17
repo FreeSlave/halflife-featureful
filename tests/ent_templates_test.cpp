@@ -149,10 +149,18 @@ const char entities[] = R"(
 		]
 	},
 	"monster_headcrab": {
-		"touch_attack": {
+		"leap_attack": {
 			"damage_info": {
 				"type": "poison"
-			}
+			},
+			"punchangle": {
+				"pitch": 5.0,
+				"yaw": 4.0,
+				"roll": 6.0
+			},
+			"spawn_blood": true,
+			"max_jump_distance": 700,
+			"max_jump_height": 160
 		}
 	},
 	"monster_human_grunt": {
@@ -432,9 +440,22 @@ TEST(EntityTemplates, Parse)
 	{
 		const EntTemplate* headcrab = es.GetTemplate("monster_headcrab");
 		ASSERT_TRUE(headcrab != nullptr);
-		const EntTemplate::TouchAttack touchAttack = headcrab->GetTouchAttack();
-		EXPECT_TRUE(touchAttack.damageInfo.type.has_value());
-		EXPECT_EQ(*touchAttack.damageInfo.type, DMG_POISON);
+		const EntTemplate::LeapAttack leapAttack = headcrab->GetLeapAttack();
+		EXPECT_TRUE(leapAttack.damageInfo.type.has_value());
+		EXPECT_EQ(*leapAttack.damageInfo.type, DMG_POISON);
+
+		ASSERT_TRUE(leapAttack.punchAngle.pitch.has_value());
+		EXPECT_EQ(*leapAttack.punchAngle.pitch, 5.0f);
+		ASSERT_TRUE(leapAttack.punchAngle.yaw.has_value());
+		EXPECT_EQ(*leapAttack.punchAngle.yaw, 4.0f);
+		ASSERT_TRUE(leapAttack.punchAngle.roll.has_value());
+		EXPECT_EQ(*leapAttack.punchAngle.roll, 6.0f);
+
+		EXPECT_TRUE(!indeterminate(leapAttack.spawnBlood));
+		EXPECT_TRUE((bool)leapAttack.spawnBlood);
+
+		EXPECT_EQ(leapAttack.maxJumpDistance, 700.0f);
+		EXPECT_EQ(leapAttack.maxJumpHeight, 160.0f);
 	}
 
 	{

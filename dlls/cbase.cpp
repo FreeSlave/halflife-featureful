@@ -2157,6 +2157,16 @@ void CBaseEntity::ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageIn
 	}
 }
 
+void CBaseEntity::ApplyPunchAngle(const Vector &punchAngle)
+{
+	if (punchAngle.x)
+		pev->punchangle.x = punchAngle.x;
+	if (punchAngle.y)
+		pev->punchangle.y = punchAngle.y;
+	if (punchAngle.z)
+		pev->punchangle.z = punchAngle.z;
+}
+
 void CBaseEntity::InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration)
 {
 	CSoundEnt::InsertSound(this, iType, vecOrigin, iVolume, flDuration);

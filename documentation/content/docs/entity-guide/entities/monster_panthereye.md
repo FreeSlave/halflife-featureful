@@ -10,7 +10,7 @@ An alien creature cut from Half-Life.
 ### Skill variables
 
 * **sk_panthereye_health** - monster's health.
-* **sk_panthereye_dmg_claw** - melee damage.
+* **sk_panthereye_dmg_claw** - melee damage (and also default damage for leap attack hit).
 
 ### Default classification
 
@@ -29,6 +29,7 @@ An alien creature cut from Half-Life.
 * **PantherEye.Attack** - roar on melee attack.
 * **PantherEye.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **PantherEye.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
+* **PantherEye.LeapAttack** - leap attack. Derived from **PantherEye.Attack**
 
 ### Attacks
 
@@ -48,7 +49,7 @@ Note: each event deals the same amount of damage defined by the **sk_panthereye_
 {{% tabs %}}
 
 {{% tab "Melee attack settings" %}}
-The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate the monster's native ones. Could be used as a starting point for further changes.
 
 ```json
 {
@@ -94,6 +95,24 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
                     "up": 50
                 }
             }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Leap attack settings" %}}
+The [leap attack]({{< ref "entity-templates/#leap_attack" >}}) properties that emulate the monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_panthereye": {
+        "leap_attack": {
+            "punchangle": {
+                "pitch": 5,
+                "roll": 15
+            },
+            "start_frame_fraction": 0.47
         }
     }
 }

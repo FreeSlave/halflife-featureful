@@ -786,19 +786,34 @@ In this example we also set the trace hull attack on event 3 to have acid and po
 You can create your own trace hull attacks without relying on the ones that are supported in the monster's code. Events with numbers in the `[20-999]` range should be safe to use for any monster. In this case the attack won't have any defined knock punch or damage, so you'll need to provide them. You'll also probably want to provide hit and miss soundscripts to play depending on the hit result. You can add unconditionally played sounds to the animation via events (see [model animation events]({{< ref "model-animation-events" >}})) and precache them via [precached_sounds](#precached_sounds) or [autoprecache_sounds](#autoprecache_sounds).
 {{% /hint %}}
 
-### touch_attack
+### leap_attack
 
-The object that redefines the parameters for the monster's touch attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}), [shockroaches]({{< ref monster_shockroach >}}) and [monster_panthereye]({{< ref monster_panthereye >}}).
+The object that redefines the parameters for the monster's leap attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}), [babycrabs]({{< ref monster_babycrab >}}), [shockroaches]({{< ref monster_shockroach >}}) and [panthereye]({{< ref monster_panthereye >}}).
+
+{{% hint info %}}
+This used to be called `"touch_attack"`. The old name is still supported but using of the new one is encouraged.
+{{% /hint %}}
 
 {{% details title="Example" %}}
 
 ```json
 {
     "monster_headcrab": {
-        "touch_attack": {
+        "leap_attack": {
             "damage_info": {
                 "type": "poison"
             },
+            "punchangle": {
+                "pitch": 2,
+                "roll": 7
+            },
+            "spawn_blood": true
+        }
+    },
+    "monster_panthereye": {
+        "leap_attack": {
+            "max_jump_distance": 800,
+            "max_jump_height": 200,
             "spawn_blood": true
         }
     }
@@ -809,7 +824,17 @@ The object that redefines the parameters for the monster's touch attack. Current
 Properties:
 
 * `"damage_info"` - [damage info](#damage_info) type. This allows to change the damage type of the attack and other damage characteristics.
-* `"spawn_blood"` - a boolean denoting whether the touch attack should make the hit target bleed (if it can) if damage has been dealt.
+* `"punchangle"` - punch angle applied to the player's camera. This is an object with following properties:
+    - `"pitch"` - pitch value.
+    - `"yaw"` - yaw value.
+    - `"roll"`- roll value.
+* `"spawn_blood"` - a boolean denoting whether the touch attack should make the hit target bleed (if it can bleed) if damage has been dealt. Default value is `false`.
+* `"max_jump_distance"` - how far the monster can jump. Default value is 650.
+* `"max_jump_height"` - how far the monster can jump. Default value is 120.
+* `"animation_event"` - the animation event that actually launches the monster into the leap attack. Headcrabs, babycrabs and shockroaches set it to 2 by default. The panthereyes use other means to determine the start of the jump (see below). The animation event must be the part of the sequence used to perform a jump. The event mustn't be used by other sequences.
+* `"start_frame_fraction"` - a fraction of animation where to actually start the jump. This must be the value between 0 and 1. This is an alternative to `"animation_event"` (these properties can't be defined together), for cases when editing the model events is not an option. E.g. the [panthereye]({{< ref monster_panthereye >}}) sets it to 0.47 by default.
+* `"set_touch_early"` - a boolen: whether the touch function is set at the start of the attack animation, rather than at the moment of actual jump start. This is rather technical and you probably don't need to worry about this option. This is `true` for headcrabs, babycrabs and shockroaches, and `false` for panthereyes.
+* `"allow_hit_on_ground"` - a boolean: whether the leap attach still can do damage when the monster is already on ground. This is rather technical and you probably don't need to worry about this options. This is `false` for headcrabs, babycrabs and shockroaches, and `true` for panthereyes.
 
 ### take_damage
 

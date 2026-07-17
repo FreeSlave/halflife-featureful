@@ -82,7 +82,6 @@ public:
 	void RunTask ( Task_t *pTask ) override;
 	void StartTask ( Task_t *pTask ) override;
 	void SetYawSpeed () override;
-	void EXPORT LeapTouch ( CBaseEntity *pOther );
 	Vector Center() override;
 	Vector BodyTarget( const Vector &posSrc ) override;
 	void PainSound() override;
@@ -92,14 +91,37 @@ public:
 	void PrescheduleThink() override;
 	int  DefaultClassify () override;
 	const char* DefaultDisplayName() override { return "Headcrab"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
 	bool CheckRangeAttack2 ( float flDot, float flDist ) override;
 	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
 	virtual float GetDamageAmount() { return GetSkillValue("headcrab_dmg_bite"); }
 
+	void OnChangeSchedule(Schedule_t *pNewSchedule) override {
+		CBaseMonster::OnChangeSchedule(pNewSchedule);
+		m_leaping = false;
+	}
 	Schedule_t* GetScheduleOfType ( int Type ) override;
+
 	virtual Schedule_t* GetLeapAttackSchedule();
+	LeapAttackStartParams GetDefaultLeapAttackStart() override {
+		LeapAttackStartParams params;
+		params.animationEvent = HC_AE_JUMPATTACK;
+		params.setTouchEarly = true;
+		return params;
+	}
+	LeapAttackImpactParams GetDefaultLeapAttackImpact() override {
+		LeapAttackImpactParams params;
+		params.damageInfo = DamageInfo(GetDamageAmount(), DMG_SLASH);
+		params.allowHitOnGround = false;
+		return params;
+	}
+	void PlayLeapAttackSound() override {
+		if (RANDOM_LONG(0,2) != 0)
+			EmitSoundScript(attackSoundScript);
+	}
+	void PlayLeapAttackHitSound() override {
+		EmitSoundScript(biteSoundScript);
+	}
 
 	CUSTOM_SCHEDULES
 
@@ -123,9 +145,6 @@ protected:
 	}
 	virtual void LeapSound() {
 		EmitSoundScript(leapSoundScript);
-	}
-	virtual void BiteSound() {
-		EmitSoundScript(biteSoundScript);
 	}
 };
 
@@ -252,67 +271,6 @@ void CHeadCrab::SetYawSpeed()
 }
 
 //=========================================================
-// HandleAnimEvent - catches the monster-specific messages
-// that occur when tagged animation frames are played.
-//=========================================================
-void CHeadCrab::HandleAnimEvent( MonsterEvent_t *pEvent )
-{
-	switch( pEvent->event )
-	{
-		case HC_AE_JUMPATTACK:
-		{
-			ClearBits( pev->flags, FL_ONGROUND );
-
-			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );// take him off ground so engine doesn't instantly reset onground 
-			UTIL_MakeVectors( pev->angles );
-
-			Vector vecJumpDir;
-			if( m_hEnemy != 0 )
-			{
-				float gravity = g_psv_gravity->value;
-				if( gravity <= 1 )
-					gravity = 1;
-
-				// How fast does the headcrab need to travel to reach that height given gravity?
-				float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
-				height = clamp(height, 16.0f, 120.0f);
-				float speed = sqrt( 2 * gravity * height );
-				float time = speed / gravity;
-
-				// Scale the sideways velocity to get there at the right time
-				vecJumpDir = m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin;
-				vecJumpDir *= ( 1.0f / time );
-
-				// Speed to offset gravity at the desired height
-				vecJumpDir.z = speed;
-
-				// Don't jump too far/fast
-				float distance = vecJumpDir.Length();
-
-				if( distance > 650.0f )
-				{
-					vecJumpDir *= ( 650.0f / distance );
-				}
-			}
-			else
-			{
-				// jump hop, don't care where
-				vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * 350.0f;
-			}
-
-			AttackSound();
-
-			pev->velocity = vecJumpDir;
-			m_flNextAttack = gpGlobals->time + 2.0f;
-		}
-		break;
-		default:
-			CBaseMonster::HandleAnimEvent( pEvent );
-			break;
-	}
-}
-
-//=========================================================
 // Spawn
 //=========================================================
 void CHeadCrab::Spawn()
@@ -366,11 +324,18 @@ void CHeadCrab::RunTask( Task_t *pTask )
 	case TASK_RANGE_ATTACK1:
 	case TASK_RANGE_ATTACK2:
 		{
-			if( m_fSequenceFinished )
+			if (m_fSequenceFinished)
 			{
 				TaskComplete();
-				SetTouch( NULL );
+				SetTouch(nullptr);
 				m_IdealActivity = ACT_IDLE;
+				m_leaping = false;
+			}
+			else if (!m_leaping && ReadyToLaunchLeapAttackAtCurrentFrame())
+			{
+				SetLeapAttackTouch();
+				m_leaping = true;
+				LaunchLeapAttack();
 			}
 			break;
 		}
@@ -379,36 +344,6 @@ void CHeadCrab::RunTask( Task_t *pTask )
 			CBaseMonster::RunTask( pTask );
 		}
 	}
-}
-
-//=========================================================
-// LeapTouch - this is the headcrab's touch function when it
-// is in the air
-//=========================================================
-void CHeadCrab::LeapTouch( CBaseEntity *pOther )
-{
-	if( !pOther->pev->takedamage )
-	{
-		return;
-	}
-
-	if( pOther->Classify() == Classify() )
-	{
-		return;
-	}
-
-	// Don't hit if back on ground
-	if( !FBitSet( pev->flags, FL_ONGROUND ) )
-	{
-		BiteSound();
-
-		TouchAttackParams params;
-		params.damageInfo = DamageInfo(GetDamageAmount(), DMG_SLASH);
-		SetTouchAttackFromTemplate(params);
-		PerformTouchAttack(params, pOther);
-	}
-
-	SetTouch( NULL );
 }
 
 //=========================================================
@@ -431,7 +366,9 @@ void CHeadCrab::StartTask( Task_t *pTask )
 		{
 			LeapSound();
 			m_IdealActivity = ACT_RANGE_ATTACK1;
-			SetTouch( &CHeadCrab::LeapTouch );
+
+			if (GetLeapAttackStart().setTouchEarly)
+				SetLeapAttackTouch();
 			break;
 		}
 	default:
@@ -596,17 +533,17 @@ public:
 	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
-protected:
-	void AttackSound() override
-	{
-		if( RANDOM_LONG(0,2) != 0 )
+
+	void PlayLeapAttackSound() override {
+		if (RANDOM_LONG(0,2) != 0)
 			EmitSoundScript(attackSoundScript);
 	}
+	void PlayLeapAttackHitSound() override {
+		EmitSoundScript(biteSoundScript);
+	}
+protected:
 	void LeapSound() override {
 		EmitSoundScript(leapSoundScript);
-	}
-	void BiteSound() override {
-		EmitSoundScript(biteSoundScript);
 	}
 };
 
@@ -693,7 +630,7 @@ public:
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shockroach"); }
 	const char* DefaultDisplayName() override { return "Shock Roach"; }
 	float GetDamageAmount() override { return GetSkillValue("shockroach_dmg_bite"); }
-	void EXPORT LeapTouch(CBaseEntity *pOther);
+	void LeapAttackTouch(CBaseEntity *pOther);
 	bool TryGiveAsWeapon(CBaseEntity* pOther);
 	void EXPORT RoachUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	int ObjectCaps() override {
@@ -706,8 +643,15 @@ public:
 	void DeathSound() override;
 	void IdleSound() override;
 	void AlertSound() override;
+	void PlayLeapAttackHitSound() override {
+		EmitSoundScript(biteSoundScript);
+	}
+	void PlayLeapAttackSound() override {
+		if (RANDOM_LONG(0,2) != 0)
+			EmitSoundScript(attackSoundScript);
+	}
+
 	void MonsterThink() override;
-	void StartTask(Task_t* pTask) override;
 	bool ShouldFadeOnDeath() override;
 	bool IsStillSpawning();
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
@@ -734,7 +678,9 @@ public:
 	bool m_fRoachSolid;
 
 protected:
-	void AttackSound() override;
+	void LeapSound() override {
+		EmitSoundScript(leapSoundScript);
+	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_shockroach, CShockRoach)
@@ -867,32 +813,12 @@ void CShockRoach::Precache()
 // LeapTouch - this is the headcrab's touch function when it
 // is in the air
 //=========================================================
-void CShockRoach::LeapTouch(CBaseEntity *pOther)
+void CShockRoach::LeapAttackTouch(CBaseEntity *pOther)
 {
-	if (!pOther->pev->takedamage)
-	{
+	if (TryGiveAsWeapon(pOther))
 		return;
-	}
 
-	if (pOther->Classify() == Classify())
-	{
-		return;
-	}
-
-	if (!TryGiveAsWeapon(pOther))
-	{
-		if (!FBitSet(pev->flags, FL_ONGROUND))
-		{
-			EmitSoundScript(biteSoundScript);
-
-			TouchAttackParams params;
-			params.damageInfo = DamageInfo(GetDamageAmount(), DMG_SLASH);
-			SetTouchAttackFromTemplate(params);
-			PerformTouchAttack(params, pOther);
-		}
-	}
-
-	SetTouch(NULL);
+	CHeadCrab::LeapAttackTouch(pOther);
 }
 
 bool CShockRoach::TryGiveAsWeapon(CBaseEntity *pOther)
@@ -902,6 +828,8 @@ bool CShockRoach::TryGiveAsWeapon(CBaseEntity *pOther)
 		CBasePlayer* pPlayer = (CBasePlayer*)(pOther);
 		if (!pPlayer->HasWeaponBit(WEAPON_SHOCKRIFLE)) {
 			pPlayer->GiveNamedItem("weapon_shockrifle");
+			SetTouch(nullptr);
+			SetUse(nullptr);
 			UTIL_Remove(this);
 			return true;
 		}
@@ -911,10 +839,7 @@ bool CShockRoach::TryGiveAsWeapon(CBaseEntity *pOther)
 
 void CShockRoach::RoachUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 {
-	if (TryGiveAsWeapon(pCaller)) {
-		SetTouch(NULL);
-		SetUse(NULL);
-	}
+	TryGiveAsWeapon(pCaller);
 }
 //=========================================================
 // PrescheduleThink
@@ -974,34 +899,11 @@ void CShockRoach::DeathSound()
 	EmitSoundScript(dieSoundScript);
 }
 
-
-void CShockRoach::StartTask(Task_t *pTask)
-{
-	switch (pTask->iTask)
-	{
-	case TASK_RANGE_ATTACK1:
-	{
-		EmitSoundScript(leapSoundScript);
-		m_IdealActivity = ACT_RANGE_ATTACK1;
-		SetTouch(&CShockRoach::LeapTouch);
-		break;
-	}
-	default:
-		CHeadCrab::StartTask(pTask);
-	}
-}
-
 bool CShockRoach::ShouldFadeOnDeath()
 {
 	if( ( pev->spawnflags & SF_MONSTER_FADECORPSE ) || (!FNullEnt( pev->owner ) && !HasMemory(bits_MEMORY_SHOCKTROOPER_IS_OWNER)) )
 		return true;
 	return false;
-}
-
-void CShockRoach::AttackSound()
-{
-	if ( RANDOM_LONG(0, 2) != 0 )
-		EmitSoundScript(attackSoundScript);
 }
 
 bool CShockRoach::IsStillSpawning()

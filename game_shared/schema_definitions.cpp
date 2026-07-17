@@ -591,6 +591,21 @@ const char* const json_schemas::definitions = R"(
 		},
 		"additionalProperties": false
 	},
+	"punchangle": {
+		"type": "object",
+		"properties": {
+			"pitch": {
+				"type": "number"
+			},
+			"yaw": {
+				"type": "number"
+			},
+			"roll": {
+				"type": "number"
+			}
+		},
+		"additionalProperties": false
+	},
 	"trace_hull_attack": {
 		"type": "object",
 		"properties": {
@@ -602,19 +617,7 @@ const char* const json_schemas::definitions = R"(
 				"$ref": "#/absolute_or_factor"
 			},
 			"punchangle": {
-				"type": "object",
-				"properties": {
-					"pitch": {
-						"type": "number"
-					},
-					"yaw": {
-						"type": "number"
-					},
-					"roll": {
-						"type": "number"
-					}
-				},
-				"additionalProperties": false
+				"$ref": "#/punchangle"
 			},
 			"knock": {
 				"type": "object",
@@ -922,6 +925,47 @@ const char* const json_schemas::definitions = R"(
 			]
 		}
 	},
+	"leap_attack": {
+		"type": "object",
+		"properties": {
+			"damage_info": {
+				"$ref": "#/damage_info"
+			},
+			"punchangle": {
+				"$ref": "#/punchangle"
+			},
+			"spawn_blood": {
+				"type": "boolean"
+			},
+			"max_jump_distance": {
+				"type": "number",
+				"minimum": 8
+			},
+			"max_jump_height": {
+				"type": "number",
+				"minimum": 8
+			},
+			"animation_event": {
+				"type": "integer",
+				"minimum": 0
+			},
+			"start_frame_fraction": {
+				"type": "number",
+				"minimum": 0,
+				"exclusiveMaximum": 1
+			},
+			"set_touch_early": {
+				"type": "boolean"
+			},
+			"allow_hit_on_ground": {
+				"type": "boolean"
+			}
+		},
+		"additionalProperties": false,
+		"dependencies": {
+			"start_frame_fraction": { "not": { "required": ["animation_event"] } }
+		}
+	},
 )"
 R"(
 	"entity_template": {
@@ -1066,16 +1110,10 @@ R"(
 				"additionalProperties": false
 			},
 			"touch_attack": {
-				"type": "object",
-				"properties": {
-					"damage_info": {
-						"$ref": "#/damage_info"
-					},
-					"spawn_blood": {
-						"type": "boolean"
-					}
-				},
-				"additionalProperties": false
+				"$ref": "#/leap_attack"
+			},
+			"leap_attack": {
+				"$ref": "#/leap_attack"
 			},
 			"primary_weapon": {
 				"type": "array",
@@ -1447,7 +1485,10 @@ R"(
 				}
 			}
 		},
-		"additionalProperties": false
+		"additionalProperties": false,
+		"dependencies": {
+			"leap_attack": { "not": { "required": ["touch_attack"] } }
+		}
 	}
 }
 )";

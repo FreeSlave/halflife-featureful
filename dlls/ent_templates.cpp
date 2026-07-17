@@ -1185,17 +1185,34 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		}
 	});
 
-	HandleJSONMember(value, "touch_attack", [&entTemplate, this](const Value& value) {
-		auto touchAttack = entTemplate.GetTouchAttack();
+	auto handleLeapAttack = [&entTemplate, this](const Value& value)
+	{
+		auto leapAttack = entTemplate.GetLeapAttack();
 
-		HandleJSONMember(value, "damage_info", [&touchAttack](const Value& value) {
-			UpdateDamageInfoFromJson(touchAttack.damageInfo, value);
+		HandleJSONMember(value, "damage_info", [&leapAttack](const Value& value) {
+			UpdateDamageInfoFromJson(leapAttack.damageInfo, value);
 		});
 
-		UpdatePropertyFromJson(touchAttack.spawnBlood, value, "spawn_blood");
+		UpdatePropertyFromJson(leapAttack.spawnBlood, value, "spawn_blood");
 
-		entTemplate.SetTouchAttack(touchAttack);
-	});
+		HandleJSONMember(value, "punchangle", [&leapAttack](const Value& value) {
+			UpdatePropertyFromJson(leapAttack.punchAngle.pitch, value, "pitch");
+			UpdatePropertyFromJson(leapAttack.punchAngle.yaw, value, "yaw");
+			UpdatePropertyFromJson(leapAttack.punchAngle.roll, value, "roll");
+		});
+
+		UpdatePropertyFromJson(leapAttack.maxJumpDistance, value, "max_jump_distance");
+		UpdatePropertyFromJson(leapAttack.maxJumpHeight, value, "max_jump_height");
+		UpdatePropertyFromJson(leapAttack.animationEvent, value, "animation_event");
+		UpdatePropertyFromJson(leapAttack.startFrameFraction, value, "start_frame_fraction");
+		UpdatePropertyFromJson(leapAttack.setTouchEarly, value, "set_touch_early");
+		UpdatePropertyFromJson(leapAttack.allowHitOnGround, value, "allow_hit_on_ground");
+
+		entTemplate.SetLeapAttack(leapAttack);
+	};
+
+	HandleJSONMember(value, "touch_attack", handleLeapAttack); // old name
+	HandleJSONMember(value, "leap_attack", handleLeapAttack);
 
 	HandleJSONMember(value, "take_damage", [&entTemplate](const Value& value) {
 		std::vector<EntTemplate::TakeDamageRule> takeDamageRules;

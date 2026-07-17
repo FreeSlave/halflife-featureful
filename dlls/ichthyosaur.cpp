@@ -457,13 +457,7 @@ void CIchthyosaur::HandleAnimEvent( MonsterEvent_t *pEvent )
 					params.damageInfo.type = DMG_SLASH;
 					SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-					if (params.punchAngle.x)
-						pHurt->pev->punchangle.x = params.punchAngle.x;
-					if (params.punchAngle.y)
-						pHurt->pev->punchangle.y = params.punchAngle.y;
-					if (params.punchAngle.z)
-						pHurt->pev->punchangle.z = params.punchAngle.z;
-
+					pHurt->ApplyPunchAngle(params.punchAngle);
 
 					const bool applyKnock = params.knockPlayerOnly ? pHurt->IsPlayer() : FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT);
 					if (applyKnock)

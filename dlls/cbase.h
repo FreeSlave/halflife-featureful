@@ -693,6 +693,7 @@ public:
 	FloatRange GetSkillValueRange(const SkillBasedValue& skillValue);
 	float GetSkillValue(const SkillBasedValue& skillValue);
 	void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
+	void ApplyPunchAngle(const Vector& punchAngle);
 
 	void InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration);
 	void InsertAISound(int iType, int iVolume, float flDuration);

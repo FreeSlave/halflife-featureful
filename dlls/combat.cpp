@@ -1542,21 +1542,133 @@ void CBaseMonster::RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars
 	::RadiusDamage( vecSrc, pevInflictor, pevAttacker, damageInfo, damageInfo.damage * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, iClassIgnore );
 }
 
-void CBaseMonster::SetTouchAttackFromTemplate(TouchAttackParams& params)
+void CBaseMonster::SetLeapAttackTouch()
+{
+	SetTouch(&CBaseMonster::CallLeapAttackTouch);
+}
+
+LeapAttackStartParams CBaseMonster::GetLeapAttackStart()
+{
+	LeapAttackStartParams params = GetDefaultLeapAttackStart();
+	SetLeapAttackStartFromTemplate(params);
+	return params;
+}
+
+bool CBaseMonster::ReadyToLaunchLeapAttackAtCurrentFrame()
+{
+	LeapAttackStartParams params = GetLeapAttackStart();
+	return params.animationEvent < 0 && pev->frame / 255.0f >= params.startFrameFraction;
+}
+
+void CBaseMonster::SetLeapAttackStartFromTemplate(LeapAttackStartParams &params)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate)
 	{
-		const EntTemplate::TouchAttack attack = entTemplate->GetTouchAttack();
-		ApplyDamageInfoPatch(params.damageInfo, attack.damageInfo);
-		if (!indeterminate(attack.spawnBlood))
+		const EntTemplate::LeapAttack& attack = entTemplate->GetLeapAttack();
+		if (attack.animationEvent.has_value())
 		{
-			params.spawnBlood = (bool)attack.spawnBlood;
+			params.animationEvent = *attack.animationEvent;
+		}
+		else if (attack.startFrameFraction.has_value())
+		{
+			params.startFrameFraction = *attack.startFrameFraction;
+			params.animationEvent = -1;
+		}
+		if (!indeterminate(attack.setTouchEarly))
+		{
+			params.setTouchEarly = (bool)attack.setTouchEarly;
 		}
 	}
 }
 
-void CBaseMonster::PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther)
+void CBaseMonster::SetLeapAttackJumpFromTemplate(LeapAttackJumpParams& params)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::LeapAttack& attack = entTemplate->GetLeapAttack();
+		if (attack.maxJumpDistance > 0.0f)
+			params.maxJumpDistance = attack.maxJumpDistance;
+		if (attack.maxJumpHeight > 0.0f)
+			params.maxJumpHeight = attack.maxJumpHeight;
+	}
+}
+
+void CBaseMonster::LaunchLeapAttack(const LeapAttackJumpParams& params)
+{
+	ClearBits(pev->flags, FL_ONGROUND);
+
+	UTIL_SetOrigin(pev, pev->origin + Vector( 0, 0, 1 ));
+	UTIL_MakeVectors(pev->angles);
+
+	Vector vecJumpDir;
+	if (m_hEnemy != 0)
+	{
+		float gravity = g_psv_gravity->value;
+		if (gravity <= 1)
+			gravity = 1;
+
+		// How fast does the headcrab need to travel to reach that height given gravity?
+		float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
+		height = clamp(height, 16.0f, params.maxJumpHeight);
+		float speed = sqrt( 2 * gravity * height );
+		float time = speed / gravity;
+
+		// Scale the sideways velocity to get there at the right time
+		vecJumpDir = m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin;
+		vecJumpDir *= ( 1.0f / time );
+
+		// Speed to offset gravity at the desired height
+		vecJumpDir.z = speed;
+
+		// Don't jump too far/fast
+		float distance = vecJumpDir.Length();
+
+		if (distance > params.maxJumpDistance)
+		{
+			vecJumpDir *= params.maxJumpDistance / distance;
+		}
+	}
+	else
+	{
+		// jump hop, don't care where
+		vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * params.maxJumpDistance * (7.0f / 13.0f);
+	}
+
+	pev->velocity = vecJumpDir;
+
+	m_flNextLeapAttack = gpGlobals->time + params.delay;
+	PlayLeapAttackSound();
+}
+
+void CBaseMonster::LaunchLeapAttack()
+{
+	LeapAttackJumpParams jumpParams = GetDefaultLeapAttackJump();
+	SetLeapAttackJumpFromTemplate(jumpParams);
+	LaunchLeapAttack(jumpParams);
+}
+
+void CBaseMonster::SetLeapAttackImpactFromTemplate(LeapAttackImpactParams& params)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::LeapAttack& attack = entTemplate->GetLeapAttack();
+		ApplyDamageInfoPatch(params.damageInfo, attack.damageInfo);
+		attack.punchAngle.UpdateVector(params.punchAngle);
+		if (!indeterminate(attack.spawnBlood))
+		{
+			params.spawnBlood = (bool)attack.spawnBlood;
+		}
+		if (!indeterminate(attack.allowHitOnGround))
+		{
+			params.allowHitOnGround = (bool)attack.allowHitOnGround;
+		}
+	}
+}
+
+void CBaseMonster::ApplyLeapAttackImpact(const LeapAttackImpactParams& params, CBaseEntity* pOther)
 {
 	TakeDamageResult takeDamageResult = pOther->TakeDamage(pev, pev, params.damageInfo);
 
@@ -1584,6 +1696,45 @@ void CBaseMonster::PerformTouchAttack(const TouchAttackParams& params, CBaseEnti
 			}
 		}
 	}
+	if (pOther->IsPlayer())
+	{
+		if (params.punchAngle.x)
+			pOther->pev->punchangle.x = params.punchAngle.x;
+		if (params.punchAngle.y)
+			pOther->pev->punchangle.y = RANDOM_LONG(0, 1) ? params.punchAngle.y : -params.punchAngle.y;
+		if (params.punchAngle.z)
+			pOther->pev->punchangle.z =  RANDOM_LONG(0, 1) ? params.punchAngle.z : -params.punchAngle.z;
+	}
+}
+
+void CBaseMonster::LeapAttackTouch(CBaseEntity* pOther)
+{
+	if (!pOther->pev->takedamage)
+	{
+		return;
+	}
+
+	if (pOther->Classify() == Classify())
+	{
+		return;
+	}
+
+	LeapAttackImpactParams params = GetDefaultLeapAttackImpact();
+	SetLeapAttackImpactFromTemplate(params);
+
+	if (params.allowHitOnGround || !FBitSet(pev->flags, FL_ONGROUND))
+	{
+		PlayLeapAttackHitSound();
+		ApplyLeapAttackImpact(params, pOther);
+	}
+
+	if (params.slowAfter)
+	{
+		pev->velocity.x *= 0.5f;
+		pev->velocity.y *= 0.5f;
+	}
+
+	SetTouch(nullptr);
 }
 
 //=========================================================
@@ -1617,21 +1768,7 @@ bool CBaseMonster::SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHul
 					params.height = *attack->height;
 			}
 
-			{
-				const EntTemplate::TraceHullAttack::PunchAngle& punchAngle = attack->punchAngle;
-				if (punchAngle.pitch)
-				{
-					params.punchAngle.x = *punchAngle.pitch;
-				}
-				if (punchAngle.yaw)
-				{
-					params.punchAngle.y = *punchAngle.yaw;
-				}
-				if (punchAngle.roll)
-				{
-					params.punchAngle.z = *punchAngle.roll;
-				}
-			}
+			attack->punchAngle.UpdateVector(params.punchAngle);
 
 			{
 				const EntTemplate::TraceHullAttack::Knock& knock = attack->knock;
@@ -1791,12 +1928,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 			}
 		}
 
-		if (params.punchAngle.x)
-			pHurt->pev->punchangle.x = params.punchAngle.x;
-		if (params.punchAngle.y)
-			pHurt->pev->punchangle.y = params.punchAngle.y;
-		if (params.punchAngle.z)
-			pHurt->pev->punchangle.z = params.punchAngle.z;
+		pHurt->ApplyPunchAngle(params.punchAngle);
 
 		bool applyKnock = false;
 		if (params.knockPlayerOnly)

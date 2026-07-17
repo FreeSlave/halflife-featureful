@@ -138,6 +138,8 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_iClass, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_gibModel, FIELD_STRING ),
 	DEFINE_FIELD( CBaseMonster, m_reverseRelationship, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_leaping, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flNextLeapAttack, FIELD_TIME ),
 
 	DEFINE_FIELD( CBaseMonster, m_nextPatrolPathCheck, FIELD_TIME ),
 
@@ -3422,7 +3424,15 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 			}
 			else
 			{
-				ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+				if (GetLeapAttackStart().animationEvent == pEvent->event)
+				{
+					SetLeapAttackTouch();
+					LaunchLeapAttack();
+				}
+				else
+				{
+					ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+				}
 			}
 		}
 		break;

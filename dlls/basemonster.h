@@ -33,7 +33,7 @@ struct TraceHullAttackParams
 {
 	float distance = 70.0f;
 	optional<float> height;
-	Vector punchAngle = g_vecZero;
+	Vector punchAngle{};
 	float knockForward = 0.0f;
 	float knockRight = 0.0f;
 	float knockUp = 0.0f;
@@ -50,10 +50,27 @@ struct TraceHullAttackParams
 	const char* missSoundScript = nullptr;
 };
 
-struct TouchAttackParams
+struct LeapAttackStartParams
+{
+	int animationEvent{-1};
+	float startFrameFraction{0.0f};
+	bool setTouchEarly{false};
+};
+
+struct LeapAttackJumpParams
+{
+	float maxJumpDistance{650.0f};
+	float maxJumpHeight{120.0f};
+	float delay{0.0f};
+};
+
+struct LeapAttackImpactParams
 {
 	DamageInfo damageInfo{0.0f, DMG_SLASH};
-	bool spawnBlood = false;
+	Vector punchAngle;
+	bool spawnBlood{false};
+	bool allowHitOnGround{true};
+	bool slowAfter{false};
 };
 
 //
@@ -149,6 +166,8 @@ public:
 	string_t m_gibModel;
 
 	bool m_reverseRelationship;
+	bool m_leaping;
+	float m_flNextLeapAttack;
 
 	float m_flLastYawTime;
 
@@ -358,8 +377,41 @@ public:
 	bool FShouldEat();// see if a monster is 'hungry'
 	void Eat( float flFullDuration );// make the monster 'full' for a while.
 
-	void SetTouchAttackFromTemplate(TouchAttackParams& params);
-	void PerformTouchAttack(const TouchAttackParams& params, CBaseEntity* pOther);
+	//
+	// Leap attack related
+	//
+	virtual LeapAttackStartParams GetDefaultLeapAttackStart() {
+		return LeapAttackStartParams{};
+	}
+	virtual LeapAttackJumpParams GetDefaultLeapAttackJump() {
+		return LeapAttackJumpParams{};
+	}
+	virtual LeapAttackImpactParams GetDefaultLeapAttackImpact() {
+		return LeapAttackImpactParams{};
+	}
+	void SetLeapAttackTouch();
+	virtual void PlayLeapAttackSound() {}
+	virtual void PlayLeapAttackHitSound() {}
+
+	LeapAttackStartParams GetLeapAttackStart();
+	bool ReadyToLaunchLeapAttackAtCurrentFrame();
+	void SetLeapAttackStartFromTemplate(LeapAttackStartParams& params);
+
+	void SetLeapAttackJumpFromTemplate(LeapAttackJumpParams& params);
+	void LaunchLeapAttack(const LeapAttackJumpParams& params);
+	void LaunchLeapAttack();
+
+	void SetLeapAttackImpactFromTemplate(LeapAttackImpactParams& params);
+	void ApplyLeapAttackImpact(const LeapAttackImpactParams& params, CBaseEntity* pOther);
+
+	void EXPORT CallLeapAttackTouch(CBaseEntity* pOther) {
+		LeapAttackTouch(pOther);
+	}
+	virtual void LeapAttackTouch(CBaseEntity* pOther);
+	//
+	// Leap attack related end
+	//
+
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
 	std::pair<TraceResult, Vector> CheckTraceHullAttack(const TraceHullAttackParams& params, float height, const Vector& aimAngles);
 	CBaseEntity* PerformTraceHullAttack(const TraceHullAttackParams& params);
