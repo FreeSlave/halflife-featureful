@@ -193,7 +193,7 @@ public:
 	void MakeProvoked(bool alertOthers = true);
 	void AlertOthers();
 
-	bool IsAttackingCloakWise() {
+	bool IsAttackingCloakWise() override {
 		return Bloating();
 	}
 

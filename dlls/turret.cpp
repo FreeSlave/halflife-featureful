@@ -74,7 +74,7 @@ public:
 	void EXPORT TurretDeath();
 	void EXPORT IdleThink();
 
-	bool IsAttackingCloakWise() {
+	bool IsAttackingCloakWise() override {
 		bool result = m_attackedRecently;
 		m_attackedRecently = false;
 		return result;

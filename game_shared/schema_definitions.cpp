@@ -831,6 +831,8 @@ const char* const json_schemas::definitions = R"(
 		},
 		"additionalProperties": false
 	},
+)"
+R"(
 	"drop_item": {
 		"type": ["object", "string"],
 		"properties": {

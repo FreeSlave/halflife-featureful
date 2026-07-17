@@ -53,10 +53,10 @@ public:
 	{
 		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
 	}
-	bool IsMovingCloakWise() {
+	bool IsMovingCloakWise() override {
 		return pev->velocity != g_vecZero;
 	}
-	bool IsAttackingCloakWise() {
+	bool IsAttackingCloakWise() override {
 		bool result = m_attackedRecently;
 		m_attackedRecently = false;
 		return result;

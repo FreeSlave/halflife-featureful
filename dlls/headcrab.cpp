@@ -630,7 +630,7 @@ public:
 	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shockroach"); }
 	const char* DefaultDisplayName() override { return "Shock Roach"; }
 	float GetDamageAmount() override { return GetSkillValue("shockroach_dmg_bite"); }
-	void LeapAttackTouch(CBaseEntity *pOther);
+	void LeapAttackTouch(CBaseEntity *pOther) override;
 	bool TryGiveAsWeapon(CBaseEntity* pOther);
 	void EXPORT RoachUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	int ObjectCaps() override {

@@ -76,7 +76,7 @@ public:
 
 	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 
-	bool IsAttackingCloakWise();
+	bool IsAttackingCloakWise() override;
 
 	int Level( float dz );
 	int MyLevel();

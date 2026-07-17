@@ -74,10 +74,10 @@ public:
 	void ShowDamage();
 	void Update();
 
-	bool IsMovingCloakWise() {
+	bool IsMovingCloakWise() override {
 		return m_pfnThink == &COsprey::FlyThink;
 	}
-	bool IsAttackingCloakWise() {
+	bool IsAttackingCloakWise() override {
 		return m_pfnThink == &COsprey::HoverThink || m_pfnThink == &COsprey::DeployThink;
 	}
 
