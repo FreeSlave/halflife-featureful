@@ -38,7 +38,7 @@ struct SquadCapabilities
 
 struct PainSoundRule
 {
-	FloatRange delay = 0.0f;
+	FloatRange delay = 0.25f;
 	float chance = 1.0f;
 	float lowerBound = 0.0f;
 	bool allowWhenDying = false;

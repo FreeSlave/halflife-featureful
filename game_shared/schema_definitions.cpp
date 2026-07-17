@@ -1207,7 +1207,7 @@ R"(
 				"type": "object",
 				"properties": {
 					"delay": {
-						"$ref": "#/range"
+						"$ref": "#/range_non_negative"
 					},
 					"chance": {
 						"$ref": "#/chance"
