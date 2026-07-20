@@ -33,9 +33,6 @@ void CHudErrorCollection::Reset()
 
 int CHudErrorCollection::Draw(float flTime)
 {
-	if (!gHUD.IsDeveloperModeOn())
-		return 1;
-
 	const bool shouldShowDeprecations = m_pCvarShowDeprecations && m_pCvarShowDeprecations->value && !m_deprecationMessages.empty();
 
 	if (m_serverErrorString.empty() && m_clientErrorString.empty() && !shouldShowDeprecations)
