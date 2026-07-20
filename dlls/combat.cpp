@@ -40,6 +40,7 @@
 #include "ai_debug.h"
 #include "global_models.h"
 #include "clamp.h"
+#include "combattext.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -984,6 +985,54 @@ void CBaseEntity::SUB_FadeOut()
 	}
 }
 
+extern int gmsgCombatText;
+
+bool CBaseEntity::ApplyDamageToHealth(float flDamage, entvars_t *pevAttacker)
+{
+	BeforeApplyDamageToHealth(flDamage);
+
+	if (pevAttacker && pevAttacker != pev && FBitSet(pevAttacker->flags, FL_CLIENT))
+	{
+		Vector pos;
+		int textType = COMBATTEXT_NORMAL;
+		if (gMultiDamage.pEntity == this)
+		{
+			pos = gMultiDamage.hitPos;
+			if (gMultiDamage.critical)
+				textType = COMBATTEXT_CRITICAL;
+		}
+		else
+		{
+			pos = Center();
+		}
+		MESSAGE_BEGIN(MSG_ONE, gmsgCombatText, pos, pevAttacker);
+		WRITE_VECTOR(pos);
+		WRITE_LONG(flDamage * 100);
+		WRITE_BYTE(textType);
+		MESSAGE_END();
+	}
+
+	const float healthBeforeDamage = pev->health;
+
+	// do the damage
+	pev->health -= flDamage;
+
+	if (m_healthMinThreshold > 0 && pev->health < m_healthMinThreshold)
+	{
+		if (IsPlayer())
+		{
+			pev->health = Q_max((int)m_healthMinThreshold, 1);
+		}
+		else
+		{
+			pev->health = Q_max(m_healthMinThreshold, 1.0f);
+			pev->health = Q_min(healthBeforeDamage, pev->health);
+		}
+		m_healthMinThreshold = 0.0f;
+	}
+	return pev->health < healthBeforeDamage;
+}
+
 //=========================================================
 // WaitTillLand - in order to emit their meaty scent from
 // the proper location, gibs should wait until they stop 
@@ -1243,6 +1292,24 @@ void CBaseMonster::PowerShieldTakeDamage(entvars_t *pevInflictor, entvars_t *pev
 	{
 		damageInfo.enforceLightDamage = true;
 		m_shieldLastHurtTime = gpGlobals->time;
+
+		if (pevAttacker && pevAttacker != pev && FBitSet(pevAttacker->flags, FL_CLIENT))
+		{
+			Vector pos;
+			if (gMultiDamage.pEntity == this)
+			{
+				pos = gMultiDamage.hitPos;
+			}
+			else
+			{
+				pos = Center();
+			}
+			MESSAGE_BEGIN(MSG_ONE, gmsgCombatText, pos, pevAttacker);
+			WRITE_VECTOR(pos);
+			WRITE_LONG(damageToShield * 100);
+			WRITE_BYTE(COMBATTEXT_POWERSHIELD);
+			MESSAGE_END();
+		}
 	}
 
 	pev->armorvalue -= damageToShield;
@@ -1343,7 +1410,7 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 	if ((m_MonsterState == MONSTERSTATE_SCRIPT && takeDamagePolicy == SCRIPT_TAKE_DAMAGE_POLICY_NONLETHAL) || damageInfo.nonLethal)
 		SetNonLethalHealthThreshold();
 
-	if (ApplyDamageToHealth(flTake))
+	if (ApplyDamageToHealth(flTake, pevAttacker))
 	{
 		takeDamageResult.SetTookDamageToHealth();
 		m_lastHurtTime = gpGlobals->time;
@@ -2189,17 +2256,8 @@ static void PlayTraceAttackEffects(CBaseEntity* pEntity, const EntTemplate::Trac
 	}
 }
 
-extern int gmsgShowDamage;
-
 DamageInfo CBaseEntity::HandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr)
 {
-	// show attack results first
-	MESSAGE_BEGIN(MSG_ONE, gmsgShowDamage, ptr->vecEndPos, pevAttacker);
-	WRITE_VECTOR(ptr->vecEndPos);
-	WRITE_LONG(inputDamageInfo.damage);
-	MESSAGE_END();
-	// end of show attack results first
-
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate && entTemplate->HasCustomTraceAttackRules())
 	{
@@ -2255,7 +2313,7 @@ void CBaseEntity::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, c
 		Vector vecOrigin = ptr->vecEndPos - vecDir * 4.0f;
 
 		BloodEffect(damageInfo, vecOrigin, vecDir, ptr);
-		AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
+		AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo, ptr);
 	}
 }
 
@@ -2332,29 +2390,38 @@ float CBaseMonster::HeadHitGroupDamageMultiplier()
 
 void CBaseMonster::ApplyHitGroupDamageMultiplier(DamageInfo &damageInfo, int hitgroup)
 {
+	optional<float> factor;
+
 	switch(hitgroup)
 	{
 	case HITGROUP_GENERIC:
 		break;
 	case HITGROUP_HEAD:
-		damageInfo.damage *= HeadHitGroupDamageMultiplier();
+		factor = HeadHitGroupDamageMultiplier();
 		break;
 	case HITGROUP_CHEST:
-		damageInfo.damage *= GetSkillValue("monster_chest");
+		factor = GetSkillValue("monster_chest");
 		break;
 	case HITGROUP_STOMACH:
-		damageInfo.damage *= GetSkillValue("monster_stomach");
+		factor = GetSkillValue("monster_stomach");
 		break;
 	case HITGROUP_LEFTARM:
 	case HITGROUP_RIGHTARM:
-		damageInfo.damage *= GetSkillValue("monster_arm");
+		factor = GetSkillValue("monster_arm");
 		break;
 	case HITGROUP_LEFTLEG:
 	case HITGROUP_RIGHTLEG:
-		damageInfo.damage *= GetSkillValue("monster_leg");
+		factor = GetSkillValue("monster_leg");
 		break;
 	default:
 		break;
+	}
+
+	if (factor.has_value())
+	{
+		damageInfo.damage *= *factor;
+		if (*factor >= 2.0f)
+			gMultiDamage.critical = true;
 	}
 }
 
@@ -2472,7 +2539,7 @@ void CBaseMonster::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	{
 		BloodEffect(damageInfo, vecDir, ptr);
 	}
-	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
+	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo, ptr);
 }
 
 static void DoBulletTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult& tr, const Vector& vecDir, const Vector& vecSrc, const Vector& vecEnd, const DamageInfo& damageInfo, bool decalsPredicted = false)

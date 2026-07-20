@@ -115,6 +115,7 @@ set (CLDLL_SOURCES
 	hl_palette.cpp
 	hud.cpp
 	hud_caption.cpp
+	hud_combattext.cpp
 	hud_error_collection.cpp
 	hud_journal.cpp
 	hud_messagebox.cpp

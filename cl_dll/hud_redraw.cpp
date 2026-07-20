@@ -520,6 +520,13 @@ int CHud::ConsoleText::DrawNumberString(int xpos, int ypos, int iMinX, int iNumb
 	return DrawStringReverse( xpos, ypos, iMinX, szString, r, g, b );
 }
 
+int CHud::ConsoleText::DrawFloatNumberString(int xpos, int ypos, int iMinX, float number, int r, int g, int b)
+{
+	char szString[32];
+	sprintf( szString, "%g", number );
+	return DrawStringReverse( xpos, ypos, iMinX, szString, r, g, b );
+}
+
 int CHud::ConsoleText::DrawStringReverse(int x, int ypos, int iMinX, const char *szString, int r, int g, int b, int length)
 {
 	x -= LineWidth(szString, length);

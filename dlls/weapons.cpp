@@ -74,9 +74,11 @@ Collects multiple small damages into a single damage
 //
 void ClearMultiDamage()
 {
-	gMultiDamage.pEntity = NULL;
+	gMultiDamage.pEntity = nullptr;
 	gMultiDamage.damageInfo = DamageInfo{};
 	gMultiDamage.pendingDamageToShield = 0.0f;
+	gMultiDamage.hitPos = Vector{};
+	gMultiDamage.critical = false;
 }
 
 //
@@ -95,7 +97,7 @@ void ApplyMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker )
 
 // GLOBALS USED:
 //		gMultiDamage
-void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo )
+void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo, const TraceResult* ptr )
 {
 	if (!pEntity)
 		return;
@@ -110,6 +112,7 @@ void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntit
 		ApplyMultiDamage(pevInflictor, pevAttacker);
 		gMultiDamage.pEntity = pEntity;
 		gMultiDamage.damageInfo = damageInfo;
+		gMultiDamage.hitPos = ptr->vecEndPos;
 	}
 }
 

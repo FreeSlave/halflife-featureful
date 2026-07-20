@@ -762,27 +762,30 @@ private:
 	bool isMachine;
 };
 
-#define MAX_DAM_INFO 5
-
-struct DamageInfo_t
-{
-	const DamageInfo_t* info;
-	Vector pos;
-	float timeLeft;
-	float damage;
-};
-
-class CHudDamageInfo : public CHudBase
+class CHudCombatText : public CHudBase
 {
 public:
 	int Init() override;
 	int VidInit() override;
 	int Draw(float flTime) override;
 	void Reset() override;
-	int MsgFunc_ShowDamage(const char *pszName, int iSize, void *pbuf);
+	int MsgFunc_CombatText(const char *pszName, int iSize, void *pbuf);
 
-	int digit_count;
-	DamageInfo_t info[MAX_DAM_INFO];
+private:
+	struct CombatText
+	{
+		Vector pos;
+		float startTime{0.0f};
+		float damage{0.0f};
+		int type{0};
+	};
+
+	cvar_t* hud_combattext;
+	cvar_t* hud_combattext_time;
+	cvar_t* hud_combattext_speed;
+
+	int lastSlot;
+	CombatText texts[8];
 };
 
 //
@@ -1163,6 +1166,7 @@ public:
 		static int DrawString( int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length = -1 );
 		static int DrawString( int xpos, int ypos, const char *szString, int r, int g, int b, int length = -1 );
 		static int DrawNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
+		static int DrawFloatNumberString( int xpos, int ypos, int iMinX, float number, int r, int g, int b );
 		static int DrawStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b, int length = -1 );
 		static int LineWidth( const char *szString, int length = -1 );
 		static int WidestCharacterWidth();
@@ -1298,7 +1302,7 @@ public:
 	CHudMonsterInfo		m_MonsterInfo;
 	CHudMeter	m_Meter;
 	CHudMessageBox	m_MessageBox;
-	CHudDamageInfo	m_DamageInfo;
+	CHudCombatText	m_CombatText;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();

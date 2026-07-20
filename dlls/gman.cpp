@@ -232,7 +232,7 @@ TakeDamageResult CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttac
 void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
 }
 
 void CGMan::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )

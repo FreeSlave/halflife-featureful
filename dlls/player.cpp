@@ -306,9 +306,9 @@ int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
 
 int gmsgMessageBox = 0;
+int gmsgCombatText = 0;
 
 int gmsgMirror = 0;
-int gmsgShowDamage = 0;
 
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
@@ -434,8 +434,8 @@ void LinkUserMessages()
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
 
 	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
+	gmsgCombatText = REG_USER_MSG("CombatText", 11);
 	gmsgMirror = REG_USER_MSG("Mirror", 10);
-	gmsgShowDamage = REG_USER_MSG("ShowDamage", 10);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -715,33 +715,42 @@ void CBasePlayer::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	{
 		m_LastHitGroup = ptr->iHitgroup;
 
+		optional<float> factor;
+
 		switch( ptr->iHitgroup )
 		{
 		case HITGROUP_GENERIC:
 			break;
 		case HITGROUP_HEAD:
-			dmgInfo.damage *= GetSkillValue("player_head");
+			factor = GetSkillValue("player_head");
 			break;
 		case HITGROUP_CHEST:
-			dmgInfo.damage *= GetSkillValue("player_chest");
+			factor = GetSkillValue("player_chest");
 			break;
 		case HITGROUP_STOMACH:
-			dmgInfo.damage *= GetSkillValue("player_stomach");
+			factor = GetSkillValue("player_stomach");
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
-			dmgInfo.damage *= GetSkillValue("player_arm");
+			factor = GetSkillValue("player_arm");
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
-			dmgInfo.damage *= GetSkillValue("player_leg");
+			factor = GetSkillValue("player_leg");
 			break;
 		default:
 			break;
 		}
 
+		if (factor.has_value())
+		{
+			dmgInfo.damage *= *factor;
+			if (*factor >= 2.0f)
+				gMultiDamage.critical = true;
+		}
+
 		BloodEffect(dmgInfo, vecDir, ptr);
-		AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo );
+		AddMultiDamage( pevInflictor, pevAttacker, this, dmgInfo, ptr );
 	}
 }
 

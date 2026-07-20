@@ -1345,7 +1345,7 @@ void CNihilanth::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, c
 	}
 
 	// SpawnBlood( ptr->vecEndPos, BloodColor(), flDamage * 5.0 );// a little surface blood.
-	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
 }
 
 CBaseEntity *CNihilanth::RandomTargetname( const char *szName )

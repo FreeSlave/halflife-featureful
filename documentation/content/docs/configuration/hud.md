@@ -54,3 +54,11 @@ The speedometer can be useful for debugging and for speedrunning.
 
 * `hud_speedometer` - shows the player speed (this doesn't include the vertical velocity).
 * `hud_speedometer_below_cross` - shows the speedometer under the crosshair.
+
+### Combat text
+
+Combat text is damage numbers that appear when the player deals damage to something, similar to how it's implemented in some other games. This can be used for debugging.
+
+* `hud_combattext` - whether to show a combat text.
+* `hud_combattext_time` - how long the combat text is shown.
+* `hud_combattext_speed` - floating speed.

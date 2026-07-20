@@ -1180,7 +1180,7 @@ void COsprey::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	if( damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 || ptr->iHitgroup == 3 )
 	{
 		// ALERT( at_console, "%.0f\n", flDamage );
-		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+		AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
 		BloodEffect(damageInfo, vecDir, ptr);
 	}
 	else

@@ -16,13 +16,15 @@ typedef struct
 	CBaseEntity		*pEntity;
 	DamageInfo damageInfo;
 	float pendingDamageToShield;
+	Vector hitPos;
+	bool critical;
 } MULTIDAMAGE;
 
 extern MULTIDAMAGE gMultiDamage;
 
 extern void ClearMultiDamage();
-extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
-extern void AddMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo);
+extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker);
+extern void AddMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, CBaseEntity *pEntity, const DamageInfo& damageInfo, const TraceResult* ptr);
 
 extern void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType, int ricochetSoundChance = 50);
 extern void DecalSmack(const TraceResult& tr);

@@ -1157,7 +1157,7 @@ void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, cons
 	if (!pev->takedamage)
 		return;
 
-	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo );
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
 
 	BloodEffect(damageInfo, vecDir, ptr);
 

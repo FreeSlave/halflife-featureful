@@ -1147,7 +1147,7 @@ void CBaseTurret::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		PowerShieldTraceAttackEffect(damageInfo, vecDir, ptr, damageToShield);
 	}
 
-	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo);
+	AddMultiDamage(pevInflictor, pevAttacker, this, damageInfo, ptr);
 	BloodEffect(damageInfo, vecDir, ptr);
 }
 
@@ -1173,7 +1173,7 @@ TakeDamageResult CBaseTurret::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	if (damageInfo.nonLethal)
 		SetNonLethalHealthThreshold();
 
-	if (ApplyDamageToHealth(dmgInfo.damage))
+	if (ApplyDamageToHealth(dmgInfo.damage, pevAttacker))
 		takeDamageResult.SetTookDamageToHealth();
 
 	if( pev->health <= 0 )
@@ -1411,7 +1411,7 @@ TakeDamageResult CSentry::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAtt
 	if (dmgInfo.nonLethal)
 		SetNonLethalHealthThreshold();
 
-	if (ApplyDamageToHealth(dmgInfo.damage))
+	if (ApplyDamageToHealth(dmgInfo.damage, pevAttacker))
 		takeDamageResult.SetTookDamageToHealth();
 
 	if( pev->health <= 0 )

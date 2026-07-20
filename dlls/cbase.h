@@ -655,7 +655,7 @@ public:
 	virtual bool HandleDoorBlockage(CBaseEntity* pDoor) { return false; }
 
 	virtual void BeforeApplyDamageToHealth(float flDamage) {}
-	bool ApplyDamageToHealth(float flDamage);
+	bool ApplyDamageToHealth(float flDamage, entvars_t *pevAttacker);
 	void SetNonLethalHealthThreshold();
 	float m_healthMinThreshold;
 
