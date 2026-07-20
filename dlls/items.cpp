@@ -1257,6 +1257,7 @@ public:
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	int LookupActivity(int activity) override;
 	void SetActivity(Activity NewActivity);
+	void SetSequenceBox();
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1391,6 +1392,77 @@ void CEyeScanner::SetActivity( Activity NewActivity )
 	m_Activity = NewActivity;
 }
 
+void CEyeScanner::SetSequenceBox()
+{
+	Vector mins, maxs;
+
+	// Get sequence bbox
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		// expand box for rotation
+		// find min / max for rotations
+		float yaw = pev->angles.y * (M_PI_F / 180.0f);
+
+		Vector xvector, yvector;
+		xvector.x = cos(yaw);
+		xvector.y = sin(yaw);
+		yvector.x = -sin(yaw);
+		yvector.y = cos(yaw);
+		Vector bounds[2];
+
+		bounds[0] = mins;
+		bounds[1] = maxs;
+
+		Vector rmin(9999, 9999, 9999);
+		Vector rmax(-9999, -9999, -9999);
+		Vector base, transformed;
+
+		for (int i = 0; i <= 1; i++)
+		{
+			base.x = bounds[i].x;
+			for (int j = 0; j <= 1; j++)
+			{
+				base.y = bounds[j].y;
+				for (int k = 0; k <= 1; k++)
+				{
+					base.z = bounds[k].z;
+
+					// transform the point
+					transformed.x = xvector.x*base.x + yvector.x*base.y;
+					transformed.y = xvector.y*base.x + yvector.y*base.y;
+					transformed.z = base.z;
+
+					if (transformed.x < rmin.x)
+						rmin.x = transformed.x;
+					if (transformed.x > rmax.x)
+						rmax.x = transformed.x;
+					if (transformed.y < rmin.y)
+						rmin.y = transformed.y;
+					if (transformed.y > rmax.y)
+						rmax.y = transformed.y;
+					if (transformed.z < rmin.z)
+						rmin.z = transformed.z;
+					if (transformed.z > rmax.z)
+						rmax.z = transformed.z;
+				}
+			}
+		}
+
+		const float minSide = 10.0f;
+		if (rmin.x > -minSide)
+			rmin.x = -minSide;
+		if (rmin.y > -minSide)
+			rmin.y = -minSide;
+
+		if (rmax.x < minSide)
+			rmax.x = minSide;
+		if (rmax.y < minSide)
+			rmax.y = minSide;
+
+		UTIL_SetSize(pev, rmin, rmax);
+	}
+}
+
 void CEyeScanner::KeyValue(KeyValueData *pkvd)
 {
 	if (FStrEq(pkvd->szKeyName, "unlocked_target"))
@@ -1443,12 +1515,13 @@ void CEyeScanner::Spawn()
 	m_willUnlock = false;
 
 	SetMyModel("models/EYE_SCANNER.mdl");
-	const float yCos = fabs(cos(pev->angles.y * M_PI_F / 180.0f));
-	const float ySin = fabs(sin(pev->angles.y * M_PI_F / 180.0f));
-	UTIL_SetSize(pev, Vector(-10-ySin*6, -10-yCos*6, 32), Vector(10+ySin*6, 10+yCos*6, 72));
+	SetSequenceBox();
 	UTIL_SetOrigin(pev, pev->origin);
 	SetActivity(ACT_CROUCHIDLE);
 	ResetSequenceInfo();
+
+	/*ALERT(at_console, "%s: yaw %g; mins: %g, %g, %g; maxs: %g, %g, %g\n",
+		  STRING(pev->classname), pev->angles.y, pev->mins.x, pev->mins.y, pev->mins.z, pev->maxs.x, pev->maxs.y, pev->maxs.z);*/
 }
 
 void CEyeScanner::Precache()
