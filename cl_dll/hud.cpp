@@ -934,6 +934,7 @@ void CHud::Init()
 	m_MonsterInfo.Init();
 	m_Meter.Init();
 	m_MessageBox.Init();
+	m_DamageInfo.Init();
 
 	hudRenderer.Init();
 
@@ -1495,6 +1496,7 @@ void CHud::VidInit()
 	m_MonsterInfo.VidInit();
 	m_Meter.VidInit();
 	m_MessageBox.VidInit();
+	m_DamageInfo.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));

@@ -762,6 +762,29 @@ private:
 	bool isMachine;
 };
 
+#define MAX_DAM_INFO 5
+
+struct DamageInfo_t
+{
+	const DamageInfo_t* info;
+	Vector pos;
+	float timeLeft;
+	float damage;
+};
+
+class CHudDamageInfo : public CHudBase
+{
+public:
+	int Init() override;
+	int VidInit() override;
+	int Draw(float flTime) override;
+	void Reset() override;
+	int MsgFunc_ShowDamage(const char *pszName, int iSize, void *pbuf);
+
+	int digit_count;
+	DamageInfo_t info[MAX_DAM_INFO];
+};
+
 //
 //-----------------------------------------------------
 //
@@ -1275,6 +1298,7 @@ public:
 	CHudMonsterInfo		m_MonsterInfo;
 	CHudMeter	m_Meter;
 	CHudMessageBox	m_MessageBox;
+	CHudDamageInfo	m_DamageInfo;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();

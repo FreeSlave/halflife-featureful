@@ -308,6 +308,7 @@ int gmsgToolState = 0;
 int gmsgMessageBox = 0;
 
 int gmsgMirror = 0;
+int gmsgShowDamage = 0;
 
 static CFollowingMonster* CanRecruit(CBaseEntity* pFriend, CBasePlayer* player)
 {
@@ -434,6 +435,7 @@ void LinkUserMessages()
 
 	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
 	gmsgMirror = REG_USER_MSG("Mirror", 10);
+	gmsgShowDamage = REG_USER_MSG("ShowDamage", 10);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
