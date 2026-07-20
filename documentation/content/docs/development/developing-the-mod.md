@@ -33,7 +33,7 @@ During development it's recommended to launch your mod in the developer mode to 
 
 It's also recommended to launch the mod with cheats enabled, so all the developer commands work.
 
-To launch the game in the developer mode with cheats enabled add `-dev +developer 1 +sv_cheats 1` to your mod launch options. Set `+developer 2` to see more diagnostic messages (mostly related to monsters AI). Levels 3 and 4 will give even more diagnostic messages.
+To launch the game in the developer mode with cheats enabled add `-dev +developer 2 +sv_cheats 1` to your mod launch options (either in the mod properties on Steam or in the desktop shortcut - depending on how you launch the mod).
 
 ## Developer console commands
 
