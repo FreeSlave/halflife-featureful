@@ -892,6 +892,7 @@ bool CConfigurableWeapon::PerformDeploy()
 		if (animIndex >= 0)
 		{
 			m_switchingMode = false;
+			PrintSwitchMessage(m_inAltMode);
 			m_inAltMode = !m_inAltMode;
 		}
 	}
@@ -1077,6 +1078,7 @@ void CConfigurableWeapon::ItemPostFrame()
 			m_pPlayer->m_flNextAttack = Q_max(UTIL_WeaponTimeBase() + animDuration, m_pPlayer->m_flNextAttack);
 		}
 
+		PrintSwitchMessage(m_inAltMode);
 		m_inAltMode = !m_inAltMode;
 	}
 
@@ -2112,6 +2114,19 @@ void CConfigurableWeapon::PrimaryAttack()
 	PerformWeaponFire(InAltMode());
 }
 
+void CConfigurableWeapon::PrintSwitchMessage(bool prevMode)
+{
+	const WeaponParameters& params = MyParameters();
+	if (params.altMode.printMessage.IsDefined(prevMode))
+	{
+		const auto& str = params.altMode.printMessage.Get(prevMode);
+		if (!str.empty())
+		{
+			ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, str.c_str());
+		}
+	}
+}
+
 void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 {
 	const WeaponParameters& params = MyParameters();
@@ -2204,7 +2219,10 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 	}
 
 	if (!modeSwitchDelay)
+	{
+		PrintSwitchMessage(m_inAltMode);
 		m_inAltMode = !m_inAltMode;
+	}
 	else
 		m_switchingMode = true;
 

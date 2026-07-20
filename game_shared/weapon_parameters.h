@@ -759,6 +759,8 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<float> modeDelay{0.0f};
 		WeaponModeValueNonNegative<short> endAnimIndex{-1};
 		WeaponModeValueNonNegative<float> endAnimDuration{0.0f};
+
+		WeaponModeValue<std::string> printMessage;
 	};
 
 	struct Recharge

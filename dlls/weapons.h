@@ -372,6 +372,7 @@ public:
 	void ResetBurst();
 	void ResetInaccuracy();
 	void PrimaryAttack() override;
+	void PrintSwitchMessage(bool prevMode);
 	void SwitchMode(SwitchModeReason reason = SwitchModeReason::Regular);
 	void SecondaryAttack() override;
 	int GetReloadAnim(const WeaponParameters::ReloadAnimArray& arr);

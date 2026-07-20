@@ -2469,6 +2469,23 @@ The index animation to play after the mode has been switched. This will play onl
 
 If `"end_anim"` is defined, this is the delay before the weapon becomes usable (usually this should be the animation duration).
 
+### print_message
+
+The string to display on the fire mode switch (like it's done for Glock and FAMAS in Counter Strike). If the string starts with `#` symbol it will search the entry in **titles.txt** and in [translatable messages]({{< ref "text-messages/#translatable-messages" >}}).
+
+```json
+{
+    "weapon_9mmhandgun": {
+        "switch_mode": {
+            "print_message": "#Switch_To_BurstFire"
+        },
+        "switch_mode_back": {
+            "print_message": "#Switch_To_SemiAuto"
+        }
+    }
+}
+```
+
 ## switch_mode_back
 
 Same as [switch_mode](#switch_mode), but when switching back from alterantive mode to the primary mode. If some settings are omitted, the ones from `"switch_mode"` are used.

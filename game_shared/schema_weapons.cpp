@@ -934,6 +934,9 @@ R"(
 			"end_anim_duration": {
 				"type": "number",
 				"minimum": 0
+			},
+			"print_message": {
+				"type": "string"
 			}
 		},
 		"additionalProperties": false

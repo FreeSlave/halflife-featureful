@@ -111,7 +111,12 @@ const char *CHudTextMessage::LookupString( const char *msg, int *msg_dest )
 		client_textmessage_t *clmsg = TextMessageGet( msg + 1 );
 
 		if( !clmsg || !(clmsg->pMessage) )
+		{
+			const char* str = gHUD.m_messageStrings.GetText(msg+1);
+			if (str)
+				return str;
 			return msg; // lookup failed, so return the original string
+		}
 
 		if( msg_dest )
 		{

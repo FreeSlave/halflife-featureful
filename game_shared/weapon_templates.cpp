@@ -1258,6 +1258,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			UpdatePropertyFromJson(mode.modeDelay, value, "mode_switch_delay", switchBack);
 			UpdatePropertyFromJson(mode.endAnimIndex, value, "end_anim", switchBack);
 			UpdatePropertyFromJson(mode.endAnimDuration, value, "end_anim_duration", switchBack);
+			UpdatePropertyFromJson(mode.printMessage, value, "print_message", switchBack);
 		});
 	};
 
