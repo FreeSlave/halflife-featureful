@@ -7521,7 +7521,7 @@ void CBasePlayer::MakeStopFollowing(CFollowingMonster *pMonster)
 
 bool CBasePlayer::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked() && !g_modFeatures.FixPlayerAndCorpseCollisionBug())
+	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked() && (!g_modFeatures.FixPlayerAndCorpseCollisionBug() || !g_hasCorrectShouldCollide))
 	{
 		Vector mins = pev->absmin;
 		Vector maxs = pev->absmax;
