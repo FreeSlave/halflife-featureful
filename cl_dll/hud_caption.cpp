@@ -19,6 +19,22 @@ Caption_t::Caption_t(const char *captionName): profile(NULL), delay(0.0f), durat
 	strncpyEnsureTermination(name, captionName);
 }
 
+struct CaptionCompare
+{
+	bool operator ()(const Caption_t& lhs, const char* rhs)
+	{
+		return stricmp(lhs.name, rhs) < 0;
+	}
+	bool operator ()(const char* lhs, const Caption_t& rhs)
+	{
+		return stricmp(lhs, rhs.name) < 0;
+	}
+	bool operator ()(const Caption_t& lhs, const Caption_t& rhs)
+	{
+		return stricmp(lhs.name, rhs.name) < 0;
+	}
+};
+
 DECLARE_MESSAGE( m_Caption, Caption )
 
 DECLARE_COMMAND( m_Caption, DumpCaptions )
@@ -529,9 +545,7 @@ bool CHudCaption::ParseCaptionsFile()
 			}
 		}
 	}
-	std::sort(captions.begin(), captions.end(), [](const Caption_t& a, const Caption_t& b) {
-		return strcmp(a.name, b.name) < 0;
-	});
+	std::sort(captions.begin(), captions.end(), CaptionCompare());
 
 	gEngfuncs.COM_FreeFile(pfile);
 	return true;
@@ -585,18 +599,6 @@ bool CHudCaption::ParseFloatParameter(char* pfile, int& currentTokenStart, unsig
 	}
 	return true;
 }
-
-struct CaptionCompare
-{
-	bool operator ()(const Caption_t& lhs, const char* rhs)
-	{
-		return stricmp(lhs.name, rhs) < 0;
-	}
-	bool operator ()(const char* lhs, const Caption_t& rhs)
-	{
-		return stricmp(lhs, rhs.name) < 0;
-	}
-};
 
 const Caption_t* CHudCaption::CaptionLookup(const char *name)
 {
