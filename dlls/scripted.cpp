@@ -1350,6 +1350,9 @@ private:
 	short m_applySearchRadius;
 	string_t m_searchOrigin;
 	short m_allowUse;
+
+	string_t m_fireAfter;
+	float m_fireAfterDelay;
 };
 
 #define SF_SENTENCE_ONCE	0x0001
@@ -1388,6 +1391,8 @@ TYPEDESCRIPTION	CScriptedSentence::m_SaveData[] =
 	DEFINE_FIELD( CScriptedSentence, m_applySearchRadius, FIELD_SHORT ),
 	DEFINE_FIELD( CScriptedSentence, m_searchOrigin, FIELD_STRING ),
 	DEFINE_FIELD( CScriptedSentence, m_allowUse, FIELD_SHORT ),
+	DEFINE_FIELD( CScriptedSentence, m_fireAfter, FIELD_STRING ),
+	DEFINE_FIELD( CScriptedSentence, m_fireAfterDelay, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CScriptedSentence, CBaseDelay )
@@ -1474,6 +1479,16 @@ void CScriptedSentence::KeyValue( KeyValueData *pkvd )
 	else if ( FStrEq( pkvd->szKeyName, "allow_use" ) )
 	{
 		m_allowUse = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "fire_after" ) )
+	{
+		m_fireAfter = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "fire_after_delay" ) )
+	{
+		m_fireAfterDelay = atof( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else
@@ -1757,6 +1772,7 @@ bool CScriptedSentence::StartSentence( CBaseToggle *pTarget )
 		pActivator = m_hActivator;
 	}
 	SUB_UseTargets( pActivator );
+	DelayedUse(m_flDuration + m_fireAfterDelay + 0.025f, pActivator, this, USE_TOGGLE, m_fireAfter);
 
 	if (pListener)
 	{

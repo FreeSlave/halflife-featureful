@@ -20,6 +20,8 @@ bookToC: false
 * More options for `Sound Radius` parameter.
 * `Target's Activator` - allows to set activator to either script itself or the speaking monster when triggering the script target.
 * `Allow use during speech` - allow monster start or stop following the player when `+use` is pressed while the monster is speaking its scripted sentence.
+* `Fire after Sentence Time` - a target to trigger after the Sentence Time has passed. This can be especially useful for chained sentence calls - start the next sentence right after the previous has finished. This way you don't need to sync `Sentence Time` and `Delay before trigger` if you were using the `Target` for chained calls.
+* `Delay for Fire after Sentence Time` - extra delay before firing the target after the sentence time has passed.
 
 ### New spawnflags
 

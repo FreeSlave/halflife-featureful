@@ -8516,8 +8516,11 @@
 	]
 ]
 
-@PointClass base(Targetname, Targetx) size(-16 -16 0, 16 16 72) color(255 0 255) = scripted_sentence : "Scripted Sentence"
+@PointClass base(Targetname) size(-16 -16 0, 16 16 72) color(255 0 255) = scripted_sentence : "Scripted Sentence"
 [
+	target(target_destination) : "Target (at sentence start)"
+	delay(string) : "Delay before trigger (at sentence start)" : "0"
+	killtarget(target_destination) : "KillTarget (at sentence start)"
 	spawnflags(Flags) =
 	[
 		1 : "Fire Once" 	: 1
@@ -8533,6 +8536,8 @@
 	sentence(string) : "Sentence Name" : ""
 	entity(string) : "Speaker Type [LE]"
 	duration(string) : "Sentence Time" : "3"
+	fire_after(string) : "Fire after Sentence Time"
+	fire_after_delay(string) : "Delay for Fire after Sentence Time"
 	radius(integer) : "Search Radius" : 512
 	refire(string) : "Delay Before Refire" : "3"
 	listener(string) : "Listener Type [LE]"
