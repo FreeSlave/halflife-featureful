@@ -35,6 +35,7 @@
 #include <random>
 
 bool g_fIsXash3D = false;
+bool g_hasCorrectShouldCollide = false;
 
 void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
 
@@ -122,6 +123,8 @@ void GameDLLShutdown()
 
 int ShouldCollide(edict_t *pentTouched, edict_t *pentOther)
 {
+	if (!g_hasCorrectShouldCollide)
+		return 1;
 	if (!FNullEnt(pentTouched) && !FNullEnt(pentOther))
 	{
 		CBaseEntity* pTouched = CBaseEntity::Instance(pentTouched);
@@ -190,12 +193,37 @@ int GetNewDLLFunctions(NEW_DLL_FUNCTIONS* pFunctionTable, int* interfaceVersion)
 
 	ALERT(at_console, "Set new functions!\n");
 	memcpy(pFunctionTable, &gNewDLLFunctions, sizeof(gNewDLLFunctions));
+
+	int protocolVersion;
+	int exeBuild;
+	const char *versionString = g_engfuncs.pfnCVarGetString("sv_version");
+	if (versionString)
+	{
+		const char *protocolVersionString = strchr(versionString, ',');
+		if (protocolVersionString)
+		{
+			if (sscanf(protocolVersionString, ",%d,%d", &protocolVersion, &exeBuild) == 2)
+			{
+				g_hasCorrectShouldCollide = exeBuild >= 8384;
+			}
+			else
+			{
+				ALERT(at_warning, "Error parsing engine version string\n");
+			}
+		}
+		else
+		{
+			ALERT(at_warning, "Couldn't detect version string: bad sv_version!\n");
+		}
+	}
+
 	return 1;
 }
 
 int Server_GetPhysicsInterface( int version, server_physics_api_t *api, physics_interface_t *interface )
 {
 	g_fIsXash3D = true;
+	g_hasCorrectShouldCollide = true;
 	return 0; // do not tell engine to init physics interface, as we're not using it
 }
 

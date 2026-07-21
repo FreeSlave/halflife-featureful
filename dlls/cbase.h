@@ -94,6 +94,7 @@ typedef void *server_physics_api_t;
 typedef void *physics_interface_t;
 extern "C" EXPORT int Server_GetPhysicsInterface( int version, server_physics_api_t *api, physics_interface_t *interface );
 extern bool g_fIsXash3D;
+extern bool g_hasCorrectShouldCollide;
 
 extern int DispatchSpawn( edict_t *pent );
 CBaseEntity* DispatchSpawnAutoClean(CBaseEntity* pEntity);
