@@ -157,6 +157,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Android")
 	endif()
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "iOS" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+	set(CMAKE_CXX_STANDARD 14)
+endif()
+
 # Xash3D FWGS Library Naming Scheme compliance
 # see documentation: https://github.com/FWGS/xash3d-fwgs/blob/master/Documentation/extensions/library-naming.md
 include(LibraryNaming)
