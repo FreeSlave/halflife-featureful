@@ -162,6 +162,7 @@ public:
 	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : GetSkillValue("suitcharger")); }
 
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -255,7 +256,10 @@ void CRechargeDecay::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 
 	SetMyModel("models/hev.mdl");
-	UTIL_SetSize(pev, Vector(-12, -16, 0), Vector(12, 16, 48));
+	if (!SetSequenceSafeBox(0.0f, 8.0f))
+	{
+		UTIL_SetSize(pev, Vector(-8, -8, 0), Vector(8, 8, 48));
+	}
 	UTIL_SetOrigin(pev, pev->origin);
 	pev->skin = 0;
 
@@ -668,6 +672,16 @@ bool CRechargeDecay::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 	{
 		CBasePlayer* p = (CBasePlayer*)pPlayer;
 		return p->CanHaveItem(this);
+	}
+	return false;
+}
+
+bool CRechargeDecay::HandleDoorBlockage(CBaseEntity *pDoor)
+{
+	if (pev->maxs.x >= 4.0f)
+	{
+		UTIL_SetSize(pev, Vector(pev->mins.x * 0.5f, pev->mins.y * 0.5f, pev->mins.z), Vector(pev->maxs.x * 0.5f, pev->maxs.y * 0.5f, pev->maxs.z));
+		return true;
 	}
 	return false;
 }

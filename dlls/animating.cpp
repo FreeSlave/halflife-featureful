@@ -357,3 +357,92 @@ void CBaseAnimating::SetSequenceBox()
 		UTIL_SetSize( pev, rmin, rmax );
 	}
 }
+
+bool CBaseAnimating::SetSequenceSafeBox(float minHalfSide, float forcedHalfSide)
+{
+	Vector mins, maxs;
+
+	// Get sequence bbox
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		if (forcedHalfSide > 0.0f)
+		{
+			mins.x = mins.y = -forcedHalfSide;
+			maxs.x = maxs.y = forcedHalfSide;
+		}
+
+		// expand box for rotation
+		// find min / max for rotations
+		float yaw = pev->angles.y * (M_PI_F / 180.0f);
+
+		Vector xvector, yvector;
+		xvector.x = cos(yaw);
+		xvector.y = sin(yaw);
+		yvector.x = -sin(yaw);
+		yvector.y = cos(yaw);
+		Vector bounds[2];
+
+		bounds[0] = mins;
+		bounds[1] = maxs;
+
+		Vector rmin(9999, 9999, 9999);
+		Vector rmax(-9999, -9999, -9999);
+		Vector base, transformed;
+
+		for (int i = 0; i <= 1; i++)
+		{
+			base.x = bounds[i].x;
+			for (int j = 0; j <= 1; j++)
+			{
+				base.y = bounds[j].y;
+				for (int k = 0; k <= 1; k++)
+				{
+					base.z = bounds[k].z;
+
+					// transform the point
+					transformed.x = xvector.x*base.x + yvector.x*base.y;
+					transformed.y = xvector.y*base.x + yvector.y*base.y;
+					transformed.z = base.z;
+
+					if (transformed.x < rmin.x)
+						rmin.x = transformed.x;
+					if (transformed.x > rmax.x)
+						rmax.x = transformed.x;
+					if (transformed.y < rmin.y)
+						rmin.y = transformed.y;
+					if (transformed.y > rmax.y)
+						rmax.y = transformed.y;
+					if (transformed.z < rmin.z)
+						rmin.z = transformed.z;
+					if (transformed.z > rmax.z)
+						rmax.z = transformed.z;
+				}
+			}
+		}
+
+		if (minHalfSide > 0.0f)
+		{
+			if (rmin.x > -minHalfSide)
+				rmin.x = -minHalfSide;
+			if (rmin.y > -minHalfSide)
+				rmin.y = -minHalfSide;
+
+			if (rmax.x < minHalfSide)
+				rmax.x = minHalfSide;
+			if (rmax.y < minHalfSide)
+				rmax.y = minHalfSide;
+		}
+
+		rmin.x = std::round(rmin.x);
+		rmin.y = std::round(rmin.y);
+		rmin.z = std::round(rmin.z);
+		rmax.x = std::round(rmax.x);
+		rmax.y = std::round(rmax.y);
+		rmax.z = std::round(rmax.z);
+
+		//ALERT(at_console, "Setting %s size to (%g, %g, %g) - (%g, %g, %g)\n", STRING(pev->classname), rmin.x, rmin.y, rmin.z, rmax.x, rmax.y, rmax.z);
+		UTIL_SetSize(pev, rmin, rmax);
+		return true;
+	}
+	return false;
+}
