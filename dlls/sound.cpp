@@ -1866,6 +1866,9 @@ float TEXTURETYPE_PlaySound(const TraceResult &tr, const Vector& vecSrc, const V
 	if (ignoreFlesh && chTextureType == g_MaterialRegistry.FleshMaterial())
 		return 0.0f;
 
+	if (chTextureType == 0)
+		chTextureType = g_MaterialRegistry.DefaultMaterial();
+
 	return TEXTURETYPE_PlaySound(tr, chTextureType);
 }
 
