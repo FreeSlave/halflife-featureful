@@ -166,9 +166,9 @@
 	]
 	movetype(choices) : "Gravity Setting" =
 	[
-		-1: "Unmoveable"
+		-1: "Unmoveable, no collisions"
 		0: "Fall to the ground (default)"
-		5: "Hover in the air"
+		5: "Hover in the air, can touch triggers"
 		8: "Hover in the air, ignore brush collision"
 	]
 	master(string) : "Master" : : "Block picking up until master is activated"
@@ -4245,6 +4245,11 @@
 	TriggerOnFirstUse(target_destination) : "Trigger On First Use"
 	CustomJuice(integer) : "Custom Juice Amount"
 	model(studio) : "Custom Model"
+	collision_type(choices) : "Collision type" =
+	[
+		0: "Approximate. Arm interpolation"
+		1: "Accurate. No arm interpolation"
+	]
 ]
 
 @PointClass size(-12 -16 0, 12 16 36) base(ItemRecharger, EntityTemplate, CustomObjectHint, Global) studio("models/health_charger_body.mdl") = item_healthcharger : "Wall Health Kit" []

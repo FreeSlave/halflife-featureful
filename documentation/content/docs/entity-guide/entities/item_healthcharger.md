@@ -8,6 +8,12 @@ entityCategory: object
 
 Model-based health charger from PS2 version of Half-Life.
 
+### Parameters
+
+* `Collision type`
+    - `Approximate. Arm interpolation` - use approximate collision to avoid blocking doors.
+    - `Accurate. No arm interpolation` - use more accurate collision, but lose the bone controller interpolation (the arm following the player won't be smooth). Good option when the custom model without an arm is used.
+
 ### Skill variables
 
 Same as [func_healthcharger]({{< ref "func_healthcharger/#skill-variables" >}})

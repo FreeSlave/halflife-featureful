@@ -4,6 +4,12 @@
 
 #include "cbase.h"
 
+enum
+{
+	PS2CHARGER_COLLISION_APPROXIMATE = 0,
+	PS2CHARGER_COLLISION_ACCURATE = 1
+};
+
 class CBasePlayer;
 
 class CWallCharger : public CBaseEntity

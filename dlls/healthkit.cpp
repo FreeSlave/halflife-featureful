@@ -631,6 +631,7 @@ public:
 	float m_goalYaw;
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
+	int m_collisionType;
 	bool m_missingSequence;
 
 	static constexpr const char* deploySoundScript = "WallHealth.Deploy";
@@ -650,6 +651,7 @@ TYPEDESCRIPTION CWallHealthDecay::m_SaveData[] =
 	DEFINE_FIELD( CWallHealthDecay, m_playingChargeSound, FIELD_BOOLEAN),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnFirstUse, FIELD_STRING),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnEmpty, FIELD_STRING),
+	DEFINE_FIELD( CWallHealthDecay, m_collisionType, FIELD_INTEGER),
 	DEFINE_FIELD( CWallHealthDecay, m_missingSequence, FIELD_BOOLEAN),
 };
 
@@ -672,6 +674,11 @@ void CWallHealthDecay::KeyValue( KeyValueData *pkvd )
 		m_triggerOnFirstUse = ALLOC_STRING( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "collision_type" ) )
+	{
+		m_collisionType = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseAnimating::KeyValue( pkvd );
 }
@@ -683,12 +690,27 @@ void CWallHealthDecay::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
+	if (m_collisionType == PS2CHARGER_COLLISION_ACCURATE)
+	{
+		pev->movetype = MOVETYPE_NONE;
+	}
 
 	SetMyModel("models/health_charger_body.mdl");
-	if (!SetSequenceSafeBox(0.0f, 8.0f))
+
+	bool setSafeBox = false;
+	if (m_collisionType == PS2CHARGER_COLLISION_ACCURATE)
+	{
+		setSafeBox = SetSequenceSafeBox(1.0f);
+	}
+	else
+	{
+		setSafeBox = SetSequenceSafeBox(0.0f, 8.0f);
+	}
+	if (!setSafeBox)
 	{
 		UTIL_SetSize(pev, Vector(-8, -8, 0), Vector(8, 8, 48));
 	}
+
 	UTIL_SetOrigin(pev, pev->origin);
 	pev->skin = 0;
 
@@ -1116,9 +1138,10 @@ bool CWallHealthDecay::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 
 bool CWallHealthDecay::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-	if (pev->maxs.x >= 4.0f)
+	if (pev->maxs.x >= 4.0f && m_collisionType != PS2CHARGER_COLLISION_ACCURATE)
 	{
 		UTIL_SetSize(pev, Vector(pev->mins.x * 0.5f, pev->mins.y * 0.5f, pev->mins.z), Vector(pev->maxs.x * 0.5f, pev->maxs.y * 0.5f, pev->maxs.z));
+		ALERT(at_console, "%s is blocking the door. Shrinking to (%g, %g, %g) - (%g, %g, %g)\n", STRING(pev->classname), pev->mins.x, pev->mins.y, pev->mins.z, pev->maxs.x, pev->maxs.y, pev->maxs.z);
 		return true;
 	}
 	return false;
