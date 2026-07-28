@@ -4264,6 +4264,10 @@
 	denied_sentence(string) : "Denied sentence"
 	sentence_delay(string) : "Sentence delay" : : "Delay between sound and sentence"
 	//reset_delay(integer) : "Reset delay"
+	spawnflags(Flags) =
+	[
+		4 : "Solid" : 0
+	]
 ]
 
 @PointClass base(Weapon, Targetx) size(-16 -16 0, 16 16 36) studio("models/nuke_case.mdl") = item_nuclearbomb : "Nuclear Bomb"

@@ -12,6 +12,8 @@ When scanner receives the use input (e.g. gets fired by a trigger or directly us
 
 If scanner gets input by the unlocker entity while it's in the active state caused by the input from something else, it will grant access. This makes sure that if player used the scanner right before the monster started its scripted sequence the retinal scanner will grant access, so the scripted input won't be lost due to the player's action.
 
+The retinal scanner is non-solid by default. You're supposed to place an invisible `func_wall` for collision (recommended width is 8 units) or set the `Solid` spawnflag.
+
 ### Parameters
 
 * `Unlocker's name` - a targetname or a classname of the entity which will be perceieved as unlocker by the retinal scanner. When getting a use input the `item_eyescanner` checks the activator. If activator is empty, the caller is used instead. If this parameter is empty, non-player activator will be unlocker. Put `player` as a parameter value to allow players to get access granted on this retinal scanner.
@@ -23,6 +25,10 @@ If scanner gets input by the unlocker entity while it's in the active state caus
 * `Granted sentence` - replacement for samples of **EyeScanner.GrantedSentence**.
 * `Denied sentence` - replacement for samples of **EyeScanner.DeniedSentence**.
 * `Sentence delay` - custom delay before **EyeScanner.GrantedSentence** or **EyeScanner.DeniedSentence** is played.
+
+### Spawnflags
+
+* `Solid` - make the eye scanner solid.
 
 ### Skill variables
 

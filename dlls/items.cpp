@@ -1243,6 +1243,8 @@ void CItemGeneric::SequenceThink()
 	}
 }
 
+#define SF_EYESCANNER_SOLID 4
+
 class CEyeScanner : public CBaseAnimating
 {
 public:
@@ -1435,7 +1437,16 @@ void CEyeScanner::KeyValue(KeyValueData *pkvd)
 void CEyeScanner::Spawn()
 {
 	Precache();
-	pev->solid = SOLID_NOT;
+
+	//SetBits(pev->spawnflags, SF_EYESCANNER_SOLID);
+	if (FBitSet(pev->spawnflags, SF_EYESCANNER_SOLID))
+	{
+		pev->solid = SOLID_SLIDEBOX;
+	}
+	else
+	{
+		pev->solid = SOLID_NOT;
+	}
 	pev->movetype = MOVETYPE_NONE;
 	pev->takedamage = DAMAGE_NO;
 	pev->health = 1;
@@ -1443,7 +1454,14 @@ void CEyeScanner::Spawn()
 	m_willUnlock = false;
 
 	SetMyModel("models/EYE_SCANNER.mdl");
-	SetSequenceSafeBox(10.0f);
+	if (FBitSet(pev->spawnflags, SF_EYESCANNER_SOLID))
+	{
+		SetSequenceSafeBox(1.0f, 0.0f);
+	}
+	else
+	{
+		SetSequenceSafeBox(10.0f);
+	}
 	UTIL_SetOrigin(pev, pev->origin);
 	SetActivity(ACT_CROUCHIDLE);
 	ResetSequenceInfo();
