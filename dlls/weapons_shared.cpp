@@ -16,6 +16,7 @@
 #include "ggrenade.h"
 #include "spore.h"
 #include "skill.h"
+#include "tex_materials.h"
 #endif
 
 WeaponInfo& AccessWeaponInfo(int id)
@@ -2951,6 +2952,29 @@ void CConfigurableWeapon::SwingAgain()
 	Swing(false);
 }
 
+void CConfigurableWeapon::DoHitWorld(const TraceResult &tr, const Vector &vecSrc, const Vector &vecEnd, bool altMode)
+{
+#if !CLIENT_DLL
+	const WeaponParameters& params = MyParameters();
+
+	float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
+
+	if( g_pGameRules->IsMultiplayer() )
+	{
+		// override the volume here, cause we don't play texture sounds in multiplayer,
+		// and fvolbar is going to be 0 from the above call.
+
+		fvolbar = 1.0f;
+	}
+
+	// also play crowbar strike
+	PlayWeaponSoundScript(params.fire.hitWallSound.Get(altMode), fvolbar);
+
+	// delay the decal a bit
+	m_trHit = tr;
+#endif
+}
+
 bool CConfigurableWeapon::Swing(bool fFirst)
 {
 	const WeaponParameters& params = MyParameters();
@@ -3057,7 +3081,14 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 			}
 			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, damageInfo, gpGlobals->v_forward, &tr );
 
-			if( pEntity->HasFlesh() )
+			bool hasFlesh;
+			const EntTemplate* entTemplate = pEntity->GetMyEntTemplate();
+			if (entTemplate && entTemplate->IsMaterialDefined())
+				hasFlesh = entTemplate->GetMaterial() == g_MaterialRegistry.FleshMaterial();
+			else
+				hasFlesh = pEntity->HasFlesh();
+
+			if (hasFlesh)
 			{
 				// play thwack or smack sound
 				PlayWeaponSoundScript(params.fire.hitBodySound.Get(altMode));
@@ -3079,23 +3110,9 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 		// play texture hit sound
 		// UNDONE: Calculate the correct point of intersection when we hit with the hull instead of the line
 
-		if( fHitWorld )
+		if (fHitWorld)
 		{
-			float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
-
-			if( g_pGameRules->IsMultiplayer() )
-			{
-				// override the volume here, cause we don't play texture sounds in multiplayer,
-				// and fvolbar is going to be 0 from the above call.
-
-				fvolbar = 1.0f;
-			}
-
-			// also play crowbar strike
-			PlayWeaponSoundScript(params.fire.hitWallSound.Get(altMode), fvolbar);
-
-			// delay the decal a bit
-			m_trHit = tr;
+			DoHitWorld(tr, vecSrc, vecEnd, altMode);
 		}
 
 		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );
@@ -3199,7 +3216,14 @@ void CConfigurableWeapon::BigSwing()
 
 		if (pEntity)
 		{
-			if (pEntity->HasFlesh())
+			bool hasFlesh;
+			const EntTemplate* entTemplate = pEntity->GetMyEntTemplate();
+			if (entTemplate && entTemplate->IsMaterialDefined())
+				hasFlesh = entTemplate->GetMaterial() == g_MaterialRegistry.FleshMaterial();
+			else
+				hasFlesh = pEntity->HasFlesh();
+
+			if (hasFlesh)
 			{
 				// play thwack or smack sound
 				PlayWeaponSoundScript(params.fire.hitBodySound.Get(altMode));
@@ -3215,22 +3239,9 @@ void CConfigurableWeapon::BigSwing()
 		}
 
 		// play texture hit sound
-		if( fHitWorld )
+		if (fHitWorld)
 		{
-			float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
-
-			if ( g_pGameRules->IsMultiplayer() )
-			{
-				// override the volume here, cause we don't play texture sounds in multiplayer,
-				// and fvolbar is going to be 0 from the above call.
-
-				fvolbar = 1.0f;
-			}
-
-			PlayWeaponSoundScript(params.fire.hitWallSound.Get(altMode), fvolbar);
-
-			// delay the decal a bit
-			m_trHit = tr;
+			DoHitWorld(tr, vecSrc, vecEnd, altMode);
 		}
 
 		m_pPlayer->m_iWeaponVolume = (int)( flVol * fire.wallHitVolume.Get(altMode) );

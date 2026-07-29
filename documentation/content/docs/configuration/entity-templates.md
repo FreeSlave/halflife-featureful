@@ -385,6 +385,24 @@ One of the predefined presets can be used instead:
 }
 ```
 
+### material
+
+The one-letter string of the [material]({{< ref materials >}}) name. The hit sounds on the entity will be played based on the material type. By default entities are perceived to be of the default material.
+
+```json
+{
+    "item_recharge": {
+        "material": "M"
+    },
+    "monster_sentry": {
+        "material": "Y"
+    },
+    "monster_bullchicken": {
+        "material": "W"
+    }
+}
+```
+
 ### visuals
 
 The object consisting of the entries of the [visual]({{< ref visuals >}}) replacements. The entry key must be the name of the existing visual, used by a monster (consult the monster's entity page, e.g. [monster_bullchicken]({{< ref "monster_bullchicken/#visuals" >}})). The entry value should be either the name of the replacement visual from *templates/visuals.json* or the object defining the replacement visual.

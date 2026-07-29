@@ -1796,23 +1796,29 @@ char TEXTURETYPE_Trace(const TraceResult& tr, Vector vecSrc, Vector vecEnd)
 
 	CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
 
-	if( pEntity && pEntity->HasFlesh() )
-		return g_MaterialRegistry.FleshMaterial();
-	else
+	if (pEntity)
 	{
-		const char* pTextureName;
+		const EntTemplate* entTemplate = pEntity->GetMyEntTemplate();
+		const char redefinedMaterial = (entTemplate && entTemplate->IsMaterialDefined()) ? entTemplate->GetMaterial() : pEntity->DefaultRedefinedMaterial();
 
-		if (pEntity)
-			pTextureName = TRACE_TEXTURE( ENT( pEntity->pev ), vecSrc, vecEnd );
-		else
-			pTextureName = TRACE_TEXTURE( ENT( 0 ), vecSrc, vecEnd );
+		if (redefinedMaterial)
+			return redefinedMaterial;
 
-		if (pTextureName)
-		{
-			GetStrippedTextureName(szbuffer, pTextureName);
+		if (pEntity->HasFlesh())
+			return g_MaterialRegistry.FleshMaterial();
+	}
 
-			return TEXTURETYPE_Find( szbuffer );
-		}
+	const char* pTextureName;
+	if (pEntity)
+		pTextureName = TRACE_TEXTURE( ENT( pEntity->pev ), vecSrc, vecEnd );
+	else
+		pTextureName = TRACE_TEXTURE( ENT( 0 ), vecSrc, vecEnd );
+
+	if (pTextureName)
+	{
+		GetStrippedTextureName(szbuffer, pTextureName);
+
+		return TEXTURETYPE_Find( szbuffer );
 	}
 	return 0;
 }

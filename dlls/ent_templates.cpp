@@ -1073,6 +1073,15 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			LOG_WARNING("Unknown grapple target type '%s'\n", targetType);
 	});
 
+	HandleJSONMember(value, "material", [&entTemplate](const Value& value) {
+		if (value.IsString())
+		{
+			const char* str = value.GetString();
+			if (str)
+				entTemplate.SetMaterial(str[0]);
+		}
+	});
+
 	HandleJSONMember(value, "speech_prefix", [&entTemplate](const Value& value) {
 		entTemplate.SetSpeechPrefix(value.GetString());
 	});

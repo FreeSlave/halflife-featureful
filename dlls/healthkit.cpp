@@ -23,6 +23,7 @@
 #include "wallcharger.h"
 #include "game.h"
 #include "studio.h"
+#include "pm_materials.h"
 
 class CHealthKit : public CItem
 {
@@ -595,6 +596,9 @@ public:
 	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : GetSkillValue("healthcharger")); }
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
+	char DefaultRedefinedMaterial() override {
+		return CHAR_TEX_COMPUTER;
+	}
 
 	bool AllowNoSuit(CBasePlayer* pPlayer) {
 		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))

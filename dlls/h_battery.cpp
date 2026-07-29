@@ -31,6 +31,7 @@
 #include "wallcharger.h"
 #include "player.h"
 #include "visuals_utils.h"
+#include "tex_materials.h"
 
 class CRecharge : public CWallCharger
 {

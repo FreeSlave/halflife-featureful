@@ -565,6 +565,16 @@ public:
 		_sizeForGrapple = sizeForGrapple;
 	}
 
+	bool IsMaterialDefined() const {
+		return _material.has_value();
+	}
+	char GetMaterial() const {
+		return _material.value_or(0);
+	}
+	void SetMaterial(char m) {
+		_material = m;
+	}
+
 	const char* SpeechPrefix() const;
 	void SetSpeechPrefix(const std::string& speechPrefix) {
 		_speechPrefix = speechPrefix;
@@ -756,6 +766,7 @@ private:
 	optional<ObjectSize> _size;
 	optional<ObjectSize> _collisionBox;
 	optional<short> _sizeForGrapple;
+	optional<char> _material;
 
 	std::string _speechPrefix;
 	SquadCapabilities _squadCapabilities;

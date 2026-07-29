@@ -648,6 +648,7 @@ public:
 
 	virtual bool IsAlienMonster() { return false; }
 	virtual bool HasFlesh() { return DefaultClassify() != CLASS_NONE && DefaultClassify() != CLASS_MACHINE; }
+	virtual char DefaultRedefinedMaterial() { return 0; }
 	virtual float InputByMonster(CBaseMonster* pMonster) { return 0.0f; }
 	virtual NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) { return NLE_PROHIBIT; }
 	virtual bool IsDestroyableObstacle() { return false; }

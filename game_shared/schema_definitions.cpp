@@ -1070,6 +1070,11 @@ R"(
 			"size_for_grapple": {
 				"type": "string"
 			},
+			"material": {
+				"type": "string",
+				"minLength": 1,
+				"maxLength": 1
+			},
 			"speech_prefix": {
 				"type": "string",
 				"minLength": 1
