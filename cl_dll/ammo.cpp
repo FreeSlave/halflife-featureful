@@ -1122,8 +1122,11 @@ int CHudAmmo::Draw( float flTime )
 		}
 
 		// Draw the ammo Icon
-		int iOffset = ( m_pWeapon->rcAmmo.bottom - m_pWeapon->rcAmmo.top ) / 8;
-		CHud::Renderer().SPR_DrawAdditive( m_pWeapon->hAmmo, r, g, b, x, y - iOffset, &m_pWeapon->rcAmmo );
+		if (m_pWeapon->hAmmo)
+		{
+			int iOffset = ( m_pWeapon->rcAmmo.bottom - m_pWeapon->rcAmmo.top ) / 8;
+			CHud::Renderer().SPR_DrawAdditive( m_pWeapon->hAmmo, r, g, b, x, y - iOffset, &m_pWeapon->rcAmmo );
+		}
 	}
 
 	// Does weapon have seconday ammo?
