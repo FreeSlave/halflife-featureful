@@ -138,6 +138,7 @@ Changes to the server cvars values are not saved between game launches, unlike f
 
 * `mp_allowdropammo` - whether the ammo drop via the `dropammo` and `dropammo2` commands are allowed in multiplayer. The default value is 1.
 * `sp_allowdropammo` - whether the ammo drop via the `dropammo` and `dropammo2` commands are allowed in singleplayer. The default value is 0.
+* `mp_playtexturesounds` - whether the material-specific hit sounds should be played in multiplayer for melee hits. The default value is 1. Note: in Half-Life they didn't play in multiplayer (set `mp_playtexturesounds` to 0 to retain this behavior).
 
 ### Speedrunning and movement
 

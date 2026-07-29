@@ -737,6 +737,7 @@ cvar_t npc_dropweapons = { "npc_dropweapons", "1", FCVAR_SERVER };
 cvar_t dmgperscore = { "mp_dmgperscore", "0", FCVAR_SERVER };
 cvar_t allydmgpenalty = { "mp_allydmgpenalty", "2", FCVAR_SERVER };
 cvar_t npckill = { "mp_npckill", "1", FCVAR_SERVER };
+cvar_t mp_playtexturesounds = { "mp_playtexturesounds", "1", FCVAR_SERVER };
 
 cvar_t sv_bunnyhop		= { "sv_bunnyhop", "0", FCVAR_SERVER };
 
@@ -1669,6 +1670,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &dmgperscore );
 	CVAR_REGISTER( &allydmgpenalty );
 	CVAR_REGISTER( &npckill );
+	CVAR_REGISTER( &mp_playtexturesounds );
 
 	CVAR_REGISTER( &sv_bunnyhop );
 

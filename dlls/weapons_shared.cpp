@@ -2959,10 +2959,10 @@ void CConfigurableWeapon::DoHitWorld(const TraceResult &tr, const Vector &vecSrc
 
 	float fvolbar = TEXTURETYPE_PlaySound(tr, vecSrc, vecSrc + (vecEnd - vecSrc)*2.0f, true);
 
-	if( g_pGameRules->IsMultiplayer() )
+	if (!g_pGameRules->PlayTextureSounds())
 	{
-		// override the volume here, cause we don't play texture sounds in multiplayer,
-		// and fvolbar is going to be 0 from the above call.
+		// override the volume here, cause if we don't play texture sounds
+		// fvolbar is going to be 0 from the above call.
 
 		fvolbar = 1.0f;
 	}

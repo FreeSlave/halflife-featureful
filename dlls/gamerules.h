@@ -368,7 +368,7 @@ public:
 	const char *GetTeamID( CBaseEntity *pEntity ) override {return "";}
 	int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget ) override;
 
-	bool PlayTextureSounds() override { return false; }
+	bool PlayTextureSounds() override;
 	bool PlayFootstepSounds( CBasePlayer *pl, float fvol ) override;
 
 	// Monsters

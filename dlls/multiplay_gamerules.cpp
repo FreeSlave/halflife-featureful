@@ -1305,6 +1305,11 @@ int CHalfLifeMultiplay::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *p
 	return GR_NOTTEAMMATE;
 }
 
+bool CHalfLifeMultiplay::PlayTextureSounds()
+{
+	return mp_playtexturesounds.value != 0.0f;
+}
+
 bool CHalfLifeMultiplay::PlayFootstepSounds( CBasePlayer *pl, float fvol )
 {
 	if( g_footsteps && g_footsteps->value == 0 )
