@@ -1246,6 +1246,13 @@ void CBasePlayer::RemoveAllItems( int stripFlags )
 		SetLongjump(false);
 	}
 
+	if (FBitSet(stripFlags, STRIP_INVENTORY)) {
+		RemoveAllInventoryItems();
+	}
+	if (FBitSet(stripFlags, STRIP_CANISTERS)) {
+		RemoveCanisters();
+	}
+
 	RemoveAllAmmo();
 
 	if( satchelfix.value )
@@ -1720,9 +1727,7 @@ void CBasePlayer::PlayerDeathThink()
 			pev->velocity = flForward * pev->velocity.Normalize();
 	}
 
-	m_antidotes = 0;
-	m_radcans = 0;
-	m_adrenalines = 0;
+	RemoveCanisters();
 
 	if( HasWeapons() )
 	{
@@ -7226,6 +7231,13 @@ int CBasePlayer::InventoryItemIndex(string_t item)
 	return -1;
 }
 
+void CBasePlayer::RemoveCanisters()
+{
+	m_antidotes = 0;
+	m_radcans = 0;
+	m_adrenalines = 0;
+}
+
 void CBasePlayer::NotifyPickup(const char *pickupName)
 {
 	if (m_hidePickups)
@@ -8819,9 +8831,7 @@ public:
 		}
 		if (m_specialItemPolicy == PLAYER_STASH_STASH)
 		{
-			pPlayer->m_antidotes = 0;
-			pPlayer->m_radcans = 0;
-			pPlayer->m_adrenalines = 0;
+			pPlayer->RemoveCanisters();
 		}
 
 		if (m_weaponsPolicy > 0)

@@ -46,7 +46,9 @@ enum
 #define STRIP_SUIT 1
 #define STRIP_SUITLIGHT 2
 #define STRIP_LONGJUMP 4
-#define STRIP_ALL_ITEMS (STRIP_SUIT | STRIP_SUITLIGHT | STRIP_LONGJUMP)
+#define STRIP_INVENTORY 8
+#define STRIP_CANISTERS 16
+#define STRIP_ALL_ITEMS (STRIP_SUIT | STRIP_SUITLIGHT | STRIP_LONGJUMP | STRIP_INVENTORY | STRIP_CANISTERS)
 
 #define SF_DISPLACER_TARGET_DISABLED 1
 
@@ -554,6 +556,8 @@ public:
 	void RemoveAllInventoryItems();
 	bool HasInventoryItem(string_t item);
 	int InventoryItemIndex(string_t item);
+
+	void RemoveCanisters();
 
 	EHANDLE m_camera;
 	int m_cameraFlags;

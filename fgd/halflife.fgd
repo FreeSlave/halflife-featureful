@@ -8475,6 +8475,8 @@
 		1 : "Remove suit" : 0 : "Remove player's suit. The flashlight or nvg will be removed only if suit comes with one of them by default. Otherwise the 'Remove flashlight/nvg' flag should be checked too"
 		2 : "Remove flashlight/nvg" : 0 : "Remove flashlight or nvg."
 		4 : "Remove longjump" : 0
+		8 : "Remove inventory items" : 0
+		16 : "Remove canisters (antidote, etc.)": 0
 	]
 	noise(sound) : "Sound on trigger" : : "This will be played on player's item sound channel"
 ]
