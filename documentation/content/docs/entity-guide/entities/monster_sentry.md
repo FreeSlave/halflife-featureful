@@ -15,6 +15,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_sentry_health** - monster's health.
+* **sk_sentry_searchtime** - search time before the turret is deactivated. Default value is 15.
 * **sk_9mmAR_bullet** - bullet damage.
 
 ### Default classification

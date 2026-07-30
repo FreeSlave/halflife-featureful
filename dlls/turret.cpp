@@ -107,6 +107,13 @@ public:
 	void SetTurretAnim( TURRET_ANIM anim );
 	int MoveTurret();
 	virtual void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) { }
+	virtual float DefaultSearchTime() = 0;
+	float SearchTime()
+	{
+		if (m_flMaxWait > 0.0f)
+			return m_flMaxWait;
+		return DefaultSearchTime();
+	}
 
 	void SetEnemy(CBaseEntity* enemy);
 
@@ -239,6 +246,9 @@ public:
 	void SpinUpCall() override;
 	void SpinDownCall() override;
 	int MaxEyeBrightness() override;
+	float DefaultSearchTime() {
+		return GetSkillValue("turret_searchtime");
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -302,6 +312,9 @@ public:
 	// other functions
 	const char* DefaultDisplayName() override { return "Mini-Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
+	float DefaultSearchTime() {
+		return GetSkillValue("miniturret_searchtime");
+	}
 
 	static constexpr const char* shootSoundScript = "MiniTurret.Shoot";
 };
@@ -482,8 +495,6 @@ void CBaseTurret::Initialize()
 
 	if( m_iBaseTurnRate == 0 )
 		m_iBaseTurnRate = TURRET_TURNRATE;
-	if( m_flMaxWait == 0 )
-		m_flMaxWait = TURRET_MAXWAIT;
 	m_flStartYaw = pev->angles.y;
 
 	m_vecGoalAngles.x = 0;
@@ -497,7 +508,7 @@ void CBaseTurret::Initialize()
 
 	if( m_iAutoStart )
 	{
-		m_flLastSight = gpGlobals->time + m_flMaxWait;
+		m_flLastSight = gpGlobals->time + SearchTime();
 		SetThink( &CBaseTurret::AutoSearchThink );
 		pev->nextthink = gpGlobals->time + 0.1f;
 	}
@@ -593,7 +604,7 @@ void CBaseTurret::ActiveThink()
 	if( ( !m_iOn ) || ( m_hEnemy == 0 ) )
 	{
 		m_hEnemy = NULL;
-		m_flLastSight = gpGlobals->time + m_flMaxWait;
+		m_flLastSight = gpGlobals->time + SearchTime();
 		SetThink( &CBaseTurret::SearchThink );
 		return;
 	}
@@ -610,7 +621,7 @@ void CBaseTurret::ActiveThink()
 			if( gpGlobals->time > m_flLastSight )
 			{
 				m_hEnemy = NULL;
-				m_flLastSight = gpGlobals->time + m_flMaxWait;
+				m_flLastSight = gpGlobals->time + SearchTime();
 				SetThink( &CBaseTurret::SearchThink );
 				return;
 			}
@@ -639,7 +650,7 @@ void CBaseTurret::ActiveThink()
 			if( gpGlobals->time > m_flLastSight )
 			{
 				m_hEnemy = NULL;
-				m_flLastSight = gpGlobals->time + m_flMaxWait;
+				m_flLastSight = gpGlobals->time + SearchTime();
 				SetThink( &CBaseTurret::SearchThink );
 				return;
 			}
@@ -787,7 +798,7 @@ void CBaseTurret::Deploy()
 		SetThink( &CBaseTurret::SearchThink );
 	}
 
-	m_flLastSight = gpGlobals->time + m_flMaxWait;
+	m_flLastSight = gpGlobals->time + SearchTime();
 }
 
 void CBaseTurret::Retire()
@@ -1341,6 +1352,9 @@ public:
 	// other functions
 	const char* DefaultDisplayName() override { return "Sentry Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
+	float DefaultSearchTime() {
+		return GetSkillValue("sentry_searchtime");
+	}
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 	void EXPORT SentryTouch( CBaseEntity *pOther );
 	void EXPORT SentryDeath();
@@ -1364,8 +1378,6 @@ void CSentry::Spawn()
 	SetMyHealth( GetSkillValue("sentry_health") );
 	m_HackedGunPos = Vector( 0, 0, 48 );
 	pev->view_ofs.z = 48;
-	if (!g_modFeatures.sentry_retract)
-		m_flMaxWait = 1E6;
 	m_flMaxSpin = 1E6;
 
 	CBaseTurret::SpawnHelper();

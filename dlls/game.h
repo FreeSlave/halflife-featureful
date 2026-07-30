@@ -100,8 +100,6 @@ struct ModFeatures
 
 	int scientist_random_heads;
 
-	bool sentry_retract;
-
 	bool bigmomma_wait_fix;
 	bool bigmomma_lastnode_fix;
 

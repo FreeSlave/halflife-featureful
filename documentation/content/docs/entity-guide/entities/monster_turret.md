@@ -15,6 +15,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_turret_health** - monster's health.
+* **sk_turret_searchtime** - search time before the turret is deactivated. Default value is 15.
 * **sk_12mm_bullet** - bullet damage.
 
 ### Default classification

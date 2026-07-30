@@ -102,8 +102,6 @@ ModFeatures::ModFeatures()
 
 	scientist_random_heads =  4;
 
-	sentry_retract = true;
-
 	bigmomma_wait_fix = false;
 	bigmomma_lastnode_fix = false;
 
@@ -153,7 +151,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(racex_dislike_alien_military),
 		KEY_VALUE_DEF(racex_dislike_gargs),
 		KEY_VALUE_DEF(racex_dislike_alien_monsters),
-		KEY_VALUE_DEF(sentry_retract),
 		KEY_VALUE_DEF(bigmomma_wait_fix),
 		KEY_VALUE_DEF(bigmomma_lastnode_fix),
 		KEY_VALUE_DEF(doors_open_in_move_direction),
@@ -1369,6 +1366,10 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("tentacle_health", 75.0f);
 	g_SkillData.ProvideFallback("tentacle_dmg_hit", 200.0f);
 	g_SkillData.ProvideFallback("tentacle_dmg_tap", 20.0f);
+
+	g_SkillData.ProvideFallback("turret_searchtime", 15.0f);
+	g_SkillData.ProvideFallback("miniturret_searchtime", 15.0f);
+	g_SkillData.ProvideFallback("sentry_searchtime", 15.0f);
 
 	g_SkillData.ProvideFallback("shocktrooper_health_factor", 2.5f);
 	g_SkillData.ProvideFallback("voltigore_dmg_explode", "voltigore_dmg_beam");

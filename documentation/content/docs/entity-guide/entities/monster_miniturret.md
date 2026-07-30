@@ -15,6 +15,7 @@ bookToC: false
 ### Skill variables
 
 * **sk_miniturret_health** - monster's health.
+* **sk_miniturret_searchtime** - search time before the turret is deactivated. Default value is 15.
 * **sk_9mm_bullet** - bullet damage.
 
 ### Default classification
