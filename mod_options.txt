@@ -1,12 +1,8 @@
 CLIENT_WEAPONS=ON # Client local weapons prediction
 
-<<<<<<< HEAD
 GAMEDIR=intense_force # Gamedir path
-=======
-GAMEDIR=featureful # Gamedir path
 
 # keys below must match liblist.gam/gameinfo.txt
->>>>>>> featureful
 SERVER_INSTALL_DIR=dlls # Where put server dll
 CLIENT_INSTALL_DIR=cl_dlls # Where put client dll 
 SERVER_LIBRARY_NAME=hl # Library name for PC platforms
