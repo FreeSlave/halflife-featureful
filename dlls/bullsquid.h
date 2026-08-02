@@ -16,10 +16,13 @@
 // bullsquid - big, spotty tentacle-mouthed meanie.
 //=========================================================
 
+#pragma once
 #ifndef BULLSQUID_H
 #define BULLSQUID_H
 
 #include "monsters.h"
+
+#define SQUIDSPIT_SPEED 900.0f
 
 //=========================================================
 // Bullsquid's spit projectile
@@ -27,44 +30,65 @@
 class CSquidSpit : public CBaseEntity
 {
 public:
-	void Spawn(void);
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
-	static void Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity);
-	static float SpitSpeed() { return 900.0f; }
-	void Touch(CBaseEntity *pOther);
-	void EXPORT Animate(void);
+	void Touch(CBaseEntity *pOther) override;
+	void EXPORT Animate();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
-	virtual int		Save(CSave &save);
-	virtual int		Restore(CRestore &restore);
-	static	TYPEDESCRIPTION m_SaveData[];
+	int Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
 	int  m_maxFrame;
-	
+
+	static constexpr const char* spitTouchSoundScript = "Bullsquid.SpitTouch";
+	static constexpr const char* spitHitSoundScript = "Bullsquid.SpitHit";
+
+	static const NamedVisual spitVisual;
+	static const NamedVisual fleckVisual;
 protected:
-	void SpawnHelper(const char* className);
+	void SpawnHelper(const char* className, const char* spitVisualName);
 };
+
+#define SQUIDSPIT_TOXIC_SPIT 600.0f
 
 class CSquidToxicSpit : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Precache();
+	void Spawn() override;
+	void Precache() override;
 
-	static void Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
-	static float SpitSpeed() { return 600.0f; }
-	void Touch( CBaseEntity *pOther );
-	void EXPORT Animate( void );
+	void Touch( CBaseEntity *pOther ) override;
+	void EXPORT Animate();
 	CBaseMonster* GetSpitOwner();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		SendProjectileTracer(pClient);
+	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_maxFrame;
 
-	int m_iImpactSprite;
-	int m_iFleckSprite;
+	static const NamedSoundScript acidSoundScript;
+	static const NamedSoundScript spithitSoundScript;
+
+	static const NamedVisual toxicSpitVisual;
+	static const NamedVisual fleckVisual;
+	static const NamedVisual particleVisual;
 };
 
 #endif // BULLSQUID_H

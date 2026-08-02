@@ -23,63 +23,48 @@
 #include "parsemsg.h"
 #include "dlight.h"
 #include "r_efx.h"
-#include "mod_features.h"
+#include "clamp.h"
+#include "lerp.h"
 
-#include <string.h>
-#include <stdio.h>
-
-#if FEATURE_CS_NIGHTVISION
 extern cvar_t *cl_nvgradius_cs;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 extern cvar_t *cl_nvgradius_of;
-#endif
+extern cvar_t *cl_nvgfadetime;
 
 DECLARE_MESSAGE( m_Nightvision, Nightvision )
 
 #define NIGHTVISION_SPRITE_NAME "sprites/of_nv_b.spr"
 
-int CHudNightvision::Init(void)
+int CHudNightvision::Init()
 {
-	m_fOn = 0;
+	m_fOn = false;
+	m_progress = 0.0f;
 
 	HOOK_MESSAGE(Nightvision);
 
 	m_iFlags |= HUD_ACTIVE;
 
-#if FEATURE_CS_NIGHTVISION
-	m_pLightCS = 0;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
-	m_pLightOF = 0;
-#endif
+	m_pLightCS = nullptr;
+	m_pLightOF = nullptr;
 
 	//gHUD.AddHudElem(this);
 
 	return 1;
 }
 
-void CHudNightvision::Reset(void)
+void CHudNightvision::Reset()
 {
-	m_fOn = 0;
+	m_fOn = false;
 }
 
-int CHudNightvision::VidInit(void)
+int CHudNightvision::VidInit()
 {
-#if FEATURE_OPFOR_NIGHTVISION
 	if (gHUD.clientFeatures.nvgstyle.configurable || gHUD.clientFeatures.nvgstyle.defaultValue == 0)
 	{
-		m_hSprite = LoadSprite(NIGHTVISION_SPRITE_NAME);
-
-		// Get the number of frames available in this sprite.
+		m_hSprite = SPR_Load(NIGHTVISION_SPRITE_NAME);
 		m_nFrameCount = SPR_Frames(m_hSprite);
 	}
 
-	// current frame.
 	m_iFrame = 0;
-#endif
 	return 1;
 }
 
@@ -87,11 +72,7 @@ int CHudNightvision::VidInit(void)
 int CHudNightvision::MsgFunc_Nightvision(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
-	m_fOn = READ_BYTE();
-	if (!m_fOn) {
-		RemoveCSdlight();
-		RemoveOFdlight();
-	}
+	m_fOn = READ_BYTE() != 0;
 
 	return 1;
 }
@@ -110,49 +91,107 @@ int CHudNightvision::Draw(float flTime)
 	if (!gHUD.HasNVG())
 		return 1;
 
-	if (m_fOn) {
-		int nvgStyle = gHUD.NVGStyle();
-		if (nvgStyle == 0)
-		{
-			RemoveCSdlight();
-			DrawOpforNVG(flTime);
-		}
-		else
-		{
-			RemoveOFdlight();
-			DrawCSNVG(flTime);
-		}
+	const int nvgStyle = gHUD.NVGStyle();
+	if (nvgStyle == 0)
+	{
+		RemoveCSdlight();
+		DrawOpforNVG(flTime);
+	}
+	else
+	{
+		RemoveOFdlight();
+		DrawCSNVG(flTime);
 	}
 	return 1;
 }
 
 void CHudNightvision::DrawCSNVG(float flTime)
 {
-#if FEATURE_CS_NIGHTVISION
+	const float fadeTime = NvgFadeTime();
+	if (fadeTime <= 0.0f && !IsOn())
+	{
+		RemoveCSdlight();
+		return;
+	}
+
 	const NVGFeatures& nvg_cs = gHUD.clientFeatures.nvg_cs;
+	int nvgAlpha = nvg_cs.layer_alpha;
+	float nvgRadius = CSNvgRadius();
+
+	if (fadeTime > 0.0f)
+	{
+		const float delta = gHUD.m_flTimeDelta / fadeTime;
+
+		if (IsOn())
+			m_progress += delta;
+		else
+			m_progress -= delta;
+		m_progress = clamp(m_progress, 0.0f, 1.0f);
+
+		if (m_progress == 0.0f)
+		{
+			RemoveCSdlight();
+			return;
+		}
+
+		nvgAlpha = lerp(0.0f, (float)nvgAlpha, m_progress);
+		nvgRadius = lerp(0.0f, nvgRadius, m_progress);
+	}
+	else
+		m_progress = 1.0f;
+
 	int r, g, b;
 	UnpackRGB(r, g, b, nvg_cs.layer_color);
-	gEngfuncs.pfnFillRGBABlend(0, 0, ScreenWidth, ScreenHeight, r, g, b, nvg_cs.layer_alpha);
 
-	if( !m_pLightCS || m_pLightCS->die < flTime )
+	gEngfuncs.pfnFillRGBABlend(0, 0, ScreenWidth, ScreenHeight, r, g, b, nvgAlpha);
+
+	if (!m_pLightCS || m_pLightCS->die < flTime)
 	{
 		UnpackRGB(r, g, b, gHUD.clientFeatures.nvg_cs.light_color);
 		m_pLightCS = MakeDynLight(flTime, r, g, b);
 	}
-	UpdateDynLight( m_pLightCS, CSNvgRadius(), gHUD.m_vecOrigin );
-#endif
+	UpdateDynLight(m_pLightCS, nvgRadius, gHUD.m_vecOrigin);
 }
 
 void CHudNightvision::DrawOpforNVG(float flTime)
 {
-#if FEATURE_OPFOR_NIGHTVISION
-	int r, g, b, x, y;
+	const float fadeTime = NvgFadeTime();
+	if (fadeTime <= 0.0f && !IsOn())
+	{
+		RemoveOFdlight();
+		return;
+	}
 
 	const NVGFeatures& nvg_opfor = gHUD.clientFeatures.nvg_opfor;
-	UnpackRGB(r, g, b, nvg_opfor.layer_color);
-	int a = nvg_opfor.layer_alpha;
+	int nvgAlpha = nvg_opfor.layer_alpha;
+	float nvgRadius = OpforNvgRadius();
 
-	ScaleColors(r, g, b, a);
+	if (fadeTime > 0.0f)
+	{
+		const float delta = gHUD.m_flTimeDelta / fadeTime;
+
+		if (IsOn())
+			m_progress += delta;
+		else
+			m_progress -= delta;
+		m_progress = clamp(m_progress, 0.0f, 1.0f);
+
+		if (m_progress == 0.0f)
+		{
+			RemoveOFdlight();
+			return;
+		}
+
+		nvgAlpha = lerp(0.0f, (float)nvgAlpha, m_progress);
+		nvgRadius = lerp(0.0f, nvgRadius, m_progress);
+	}
+	else
+		m_progress = 1.0f;
+
+	int r, g, b, x, y;
+
+	UnpackRGB(r, g, b, nvg_opfor.layer_color);
+	ScaleColors(r, g, b, nvgAlpha);
 
 	// Top left of the screen.
 	x = y = 0;
@@ -184,13 +223,12 @@ void CHudNightvision::DrawOpforNVG(float flTime)
 	// Increase sprite frame.
 	m_iFrame++;
 
-	if( !m_pLightOF || m_pLightOF->die < flTime )
+	if (!m_pLightOF || m_pLightOF->die < flTime)
 	{
 		UnpackRGB(r, g, b, gHUD.clientFeatures.nvg_opfor.light_color);
 		m_pLightOF = MakeDynLight(flTime, r, g, b);
 	}
-	UpdateDynLight( m_pLightOF, OpforNvgRadius(), gHUD.m_vecOrigin + Vector(0.0f, 0.0f, 32.0f ) );
-#endif
+	UpdateDynLight(m_pLightOF, nvgRadius, gHUD.m_vecOrigin + Vector(0.0f, 0.0f, 32.0f));
 }
 
 dlight_t* CHudNightvision::MakeDynLight(float flTime, int r, int g, int b)
@@ -208,7 +246,7 @@ dlight_t* CHudNightvision::MakeDynLight(float flTime, int r, int g, int b)
 
 void CHudNightvision::UpdateDynLight(dlight_t *dynLight, float radius, const Vector &origin)
 {
-	if( dynLight )
+	if (dynLight)
 	{
 		dynLight->origin = origin;
 		dynLight->radius = radius;
@@ -217,53 +255,43 @@ void CHudNightvision::UpdateDynLight(dlight_t *dynLight, float radius, const Vec
 
 void CHudNightvision::RemoveCSdlight()
 {
-#if FEATURE_CS_NIGHTVISION
-	if( m_pLightCS )
+	if (m_pLightCS)
 	{
 		m_pLightCS->die = 0;
-		m_pLightCS = NULL;
+		m_pLightCS = nullptr;
 	}
-#endif
 }
 
 void CHudNightvision::RemoveOFdlight()
 {
-#if FEATURE_OPFOR_NIGHTVISION
-	if( m_pLightOF )
+	if (m_pLightOF)
 	{
 		m_pLightOF->die = 0;
-		m_pLightOF = NULL;
+		m_pLightOF = nullptr;
 	}
-#endif
 }
 
-#if FEATURE_CS_NIGHTVISION
 float CHudNightvision::CSNvgRadius()
 {
 	const NVGFeatures& nvg = gHUD.clientFeatures.nvg_cs;
-	float radius = cl_nvgradius_cs && cl_nvgradius_cs->value > 0.0f ? cl_nvgradius_cs->value : nvg.radius.defaultValue;
-	if (radius < nvg.radius.minValue)
-		return nvg.radius.minValue;
-	else if (radius > nvg.radius.maxValue)
-		return nvg.radius.minValue;
-	return radius;
+	const float radius = cl_nvgradius_cs && cl_nvgradius_cs->value > 0.0f ? cl_nvgradius_cs->value : nvg.radius.defaultValue;
+	return clamp(radius, (float)nvg.radius.minValue, (float)nvg.radius.maxValue);
 }
-#endif
 
-#if FEATURE_OPFOR_NIGHTVISION
 float CHudNightvision::OpforNvgRadius()
 {
 	const NVGFeatures& nvg = gHUD.clientFeatures.nvg_opfor;
-	float radius = cl_nvgradius_of && cl_nvgradius_of->value > 0.0f ? cl_nvgradius_of->value : nvg.radius.defaultValue;
-	if (radius < nvg.radius.minValue)
-		return nvg.radius.minValue;
-	else if (radius > nvg.radius.maxValue)
-		return nvg.radius.minValue;
-	return radius;
+	const float radius = cl_nvgradius_of && cl_nvgradius_of->value > 0.0f ? cl_nvgradius_of->value : nvg.radius.defaultValue;
+	return clamp(radius, (float)nvg.radius.minValue, (float)nvg.radius.maxValue);
 }
-#endif
 
-bool CHudNightvision::IsOn()
+float CHudNightvision::NvgFadeTime()
+{
+	const float fadeTime = cl_nvgfadetime ? cl_nvgfadetime->value : gHUD.clientFeatures.nvg_fade_time.defaultValue;
+	return clamp(fadeTime, 0.0f, 2.0f);
+}
+
+bool CHudNightvision::IsOn() const
 {
 	return m_fOn;
 }

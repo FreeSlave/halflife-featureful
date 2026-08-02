@@ -1,0 +1,10 @@
+.details-heading {
+  display: inline;
+}
+figcaption {
+  font: italic smaller sans-serif;
+  text-align: center;
+}
+figure {
+  display: inline-block;
+}

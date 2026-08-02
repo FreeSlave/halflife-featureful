@@ -25,7 +25,6 @@
 #include	"scripted.h"
 #include	"animation.h"
 #include	"soundent.h"
-#include	"mod_features.h"
 #include	"game.h"
 
 #define FEATURE_SCIENTIST_PLFEAR 0
@@ -88,61 +87,61 @@ enum
 class CScientist : public CTalkMonster
 {
 public:
-	int GetDefaultVoicePitch();
-	void Spawn( void );
-	void Precache( void );
+	int GetDefaultVoicePitch() override;
+	void Spawn() override;
+	void Precache() override;
 	void CalcTotalHeadCount();
 
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Scientist"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void RunTask( Task_t *pTask );
-	void StartTask( Task_t *pTask );
-	int DefaultToleranceLevel() { return TOLERANCE_ZERO; }
-	void SetActivity( Activity newActivity );
-	Activity GetStoppedActivity( void );
-	int DefaultISoundMask( void );
-	void DeclineFollowing( CBaseEntity* pCaller );
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Scientist"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ZERO; }
+	void SetActivity( Activity newActivity ) override;
+	Activity GetStoppedActivity() override;
+	int DefaultISoundMask() override;
+	void DeclineFollowing( CBaseEntity* pCaller ) override;
 
-	float CoverRadius( void ) {
+	float CoverRadius() override {
 		if (!IsFollowingPlayer())
 			return 1200; // Need more room for cover because scientists want to get far away!
 		return CTalkMonster::CoverRadius(); // Don't run too far when following the player
 	}
-	BOOL DisregardEnemy( CBaseEntity *pEnemy ) { return !pEnemy->IsAlive() || ( gpGlobals->time - m_fearTime ) > 15; }
+	bool DisregardEnemy( CBaseEntity *pEnemy ) { return !pEnemy->IsAlive() || ( gpGlobals->time - m_fearTime ) > 15; }
 	bool CanTolerateWhileFollowing( CBaseEntity* pEnemy );
 
-	virtual BOOL	CanHeal( void );
-	void StartFollowingHealTarget(CBaseEntity* pTarget);
-	bool ReadyToHeal();
-	void Heal( void );
-	void Scream( void );
+	virtual bool AbleToHeal() { return true; }
+	bool CanHeal();
+	void StartFollowingHealTarget(CBaseEntity* pTarget) override;
+	bool ReadyToHeal() override;
+	void Heal();
+	void Scream();
 
 	// Override these to set behavior
-	Schedule_t *GetScheduleOfType( int Type );
-	Schedule_t *GetSchedule( void );
-	MONSTERSTATE GetIdealState( void );
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	Schedule_t *GetSchedule() override;
+	MONSTERSTATE GetIdealState() override;
 
-	virtual FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() {
+	FOLLOW_FAIL_POLICY DefaultFollowFailPolicy() override {
 		return FOLLOW_FAIL_STOP;
 	}
 
-	void DeathSound( void );
-	void PainSound( void );
-	virtual void PlayPainSound();
+	void DeathSound() override;
+	void PainSound() override;
 
-	const char* DefaultSentenceGroup(int group);
+	const char* DefaultSentenceGroup(int group) override;
 
-	int FollowerType() { return FOLLOWER_TYPE_SCIENTIST; }
+	int FollowerType() override { return FOLLOWER_TYPE_SCIENTIST; }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CUSTOM_SCHEDULES
 
-	void ReportAIState(ALERT_TYPE level);
+	void ReportAIState(ALERT_TYPE level) override;
 	virtual int RandomHeadCount() {
 		return g_modFeatures.scientist_random_heads;
 	}
@@ -150,14 +149,16 @@ public:
 		return m_totalHeadCount > 0 ? m_totalHeadCount : 4;
 	}
 	bool NeedleIsEquiped() {
-		return pev->body >= TotalHeadCount();
+		return AbleToHeal() && pev->body >= TotalHeadCount();
 	}
+
+	static const NamedSoundScript painSoundScript;
+	static constexpr const char* dieSoundScript = "Scientist.Die";
+	static const NamedSoundScript healSoundScript;
 
 protected:
 	void SciSpawnHelper(const char* modelName, float health);
-	void PrecacheSounds();
 
-	float m_painTime;
 	float m_healTime;
 	float m_fearTime;
 
@@ -169,12 +170,25 @@ LINK_ENTITY_TO_CLASS( monster_scientist, CScientist )
 
 TYPEDESCRIPTION	CScientist::m_SaveData[] =
 {
-	DEFINE_FIELD( CScientist, m_painTime, FIELD_TIME ),
 	DEFINE_FIELD( CScientist, m_healTime, FIELD_TIME ),
 	DEFINE_FIELD( CScientist, m_fearTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CScientist, CTalkMonster )
+
+const NamedSoundScript CScientist::painSoundScript = {
+	CHAN_VOICE,
+	{"scientist/sci_pain1.wav", "scientist/sci_pain2.wav", "scientist/sci_pain3.wav", "scientist/sci_pain4.wav", "scientist/sci_pain5.wav"},
+	"Scientist.Pain"
+};
+
+const NamedSoundScript CScientist::healSoundScript = {
+	CHAN_WEAPON,
+	{"items/medshot4.wav"},
+	0.75f,
+	ATTN_STATIC,
+	"Scientist.Heal"
+};
 
 //=========================================================
 // AI Schedules Specific to this monster
@@ -456,7 +470,7 @@ void CScientist::DeclineFollowing(CBaseEntity *pCaller )
 	CTalkMonster::DeclineFollowing(pCaller);
 }
 
-void CScientist::Scream( void )
+void CScientist::Scream()
 {
 	if( FOkToSpeak(SPEAK_DISREGARD_ENEMY|SPEAK_DISREGARD_OTHER_SPEAKING) )
 	{
@@ -465,7 +479,7 @@ void CScientist::Scream( void )
 	}
 }
 
-Activity CScientist::GetStoppedActivity( void )
+Activity CScientist::GetStoppedActivity()
 { 
 	if( m_hEnemy != 0 ) 
 		return ACT_EXCITED;
@@ -530,7 +544,7 @@ void CScientist::StartTask( Task_t *pTask )
 				TaskFail("no target ent");
 			else
 			{
-				if( ( m_hTargetEnt->pev->origin - pev->origin ).Length() < 1.0f )
+				if( ( m_hTargetEnt->pev->origin - pev->origin ).IsLengthLessThan(1.0f) )
 				{
 					TaskComplete();
 				}
@@ -598,7 +612,7 @@ void CScientist::RunTask( Task_t *pTask )
 
 				distance = ( m_vecMoveGoal - pev->origin ).Length2D();
 				// Re-evaluate when you think your finished, or the target has moved too far
-				if( ( distance < pTask->flData ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).Length() > pTask->flData * 0.5f )
+				if( ( distance < pTask->flData ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).IsLengthGreaterThan(pTask->flData * 0.5f) )
 				{
 					m_vecMoveGoal = m_hTargetEnt->pev->origin;
 					distance = ( m_vecMoveGoal - pev->origin ).Length2D();
@@ -659,7 +673,7 @@ void CScientist::RunTask( Task_t *pTask )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CScientist::DefaultClassify( void )
+int CScientist::DefaultClassify()
 {
 	return CLASS_HUMAN_PASSIVE;
 }
@@ -668,7 +682,7 @@ int CScientist::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CScientist::SetYawSpeed( void )
+void CScientist::SetYawSpeed()
 {
 	int ys;
 
@@ -741,7 +755,7 @@ void CScientist::SciSpawnHelper(const char* modelName, float health)
 	Precache();
 
 	SetMyModel( modelName );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
@@ -753,7 +767,9 @@ void CScientist::SciSpawnHelper(const char* modelName, float health)
 
 	//m_flDistTooFar = 256.0;
 
-	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE;
+	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 }
 
 int CScientist::GetDefaultVoicePitch()
@@ -777,7 +793,7 @@ int CScientist::GetDefaultVoicePitch()
 
 void CScientist::Spawn()
 {
-	SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth);
+	SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health"));
 	CalcTotalHeadCount();
 
 	// White hands
@@ -793,11 +809,14 @@ void CScientist::Spawn()
 //=========================================================
 // Precache - precaches all resources this monster needs
 //=========================================================
-void CScientist::Precache( void )
+void CScientist::Precache()
 {
 	PrecacheMyModel( "models/scientist.mdl" );
-	PrecacheSounds();
-	PRECACHE_SOUND( "items/medshot4.wav" );
+	PrecacheMyGibModel();
+
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript, painSoundScript);
+	RegisterAndPrecacheSoundScript(healSoundScript);
 
 	// every new scientist must call this, otherwise
 	// when a level is loaded, nobody will talk (time is reset to 0)
@@ -815,17 +834,8 @@ void CScientist::CalcTotalHeadCount()
 	if (pev->modelindex)
 	{
 		// Divide by 2 to account for body variants with the needle
-		m_totalHeadCount = GetBodyCount( GET_MODEL_PTR(ENT(pev)) ) / 2;
+		m_totalHeadCount = GetOverallBodyNum( GET_MODEL_PTR(ENT(pev)) ) / 2;
 	}
-}
-
-void CScientist::PrecacheSounds()
-{
-	PRECACHE_SOUND( "scientist/sci_pain1.wav" );
-	PRECACHE_SOUND( "scientist/sci_pain2.wav" );
-	PRECACHE_SOUND( "scientist/sci_pain3.wav" );
-	PRECACHE_SOUND( "scientist/sci_pain4.wav" );
-	PRECACHE_SOUND( "scientist/sci_pain5.wav" );
 }
 
 const char* CScientist::DefaultSentenceGroup(int group)
@@ -869,12 +879,13 @@ const char* CScientist::DefaultSentenceGroup(int group)
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CScientist::DefaultISoundMask( void )
+int CScientist::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
 			bits_SOUND_CARCASS |
 			bits_SOUND_MEAT |
+			bits_SOUND_GARBAGE |
 			bits_SOUND_DANGER |
 			bits_SOUND_PLAYER;
 }
@@ -882,44 +893,17 @@ int CScientist::DefaultISoundMask( void )
 //=========================================================
 // PainSound
 //=========================================================
-void CScientist::PainSound( void )
+void CScientist::PainSound()
 {
-	if( gpGlobals->time < m_painTime )
-		return;
-
-	m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5f, 0.75f );
-
-	PlayPainSound();
-}
-
-void CScientist::PlayPainSound()
-{
-	switch( RANDOM_LONG( 0, 4 ) )
-	{
-	case 0:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "scientist/sci_pain1.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 1:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "scientist/sci_pain2.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 2:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "scientist/sci_pain3.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 3:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "scientist/sci_pain4.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 4:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "scientist/sci_pain5.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	}
+	EmitSoundScriptTalk(painSoundScript);
 }
 
 //=========================================================
 // DeathSound 
 //=========================================================
-void CScientist::DeathSound( void )
+void CScientist::DeathSound()
 {
-	PlayPainSound();
+	EmitSoundScriptTalk(dieSoundScript);
 }
 
 void CScientist::SetActivity( Activity newActivity )
@@ -942,7 +926,12 @@ Schedule_t *CScientist::GetScheduleOfType( int Type )
 	case SCHED_TARGET_FACE:
 		return slSciFaceTarget;
 	case SCHED_PANIC:
+	{
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 		return slSciPanic;
+	}
 	case SCHED_TARGET_CHASE:
 		return CTalkMonster::GetScheduleOfType(SCHED_FOLLOW_CAUTIOUS);
 	case SCHED_TARGET_CHASE_SCARED:
@@ -965,7 +954,7 @@ Schedule_t *CScientist::GetScheduleOfType( int Type )
 	return CTalkMonster::GetScheduleOfType( Type );
 }
 
-Schedule_t *CScientist::GetSchedule( void )
+Schedule_t *CScientist::GetSchedule()
 {
 	// so we don't keep calling through the EHANDLE stuff
 	CBaseEntity *pEnemy = m_hEnemy;
@@ -990,6 +979,7 @@ Schedule_t *CScientist::GetSchedule( void )
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_HUNT:
+	{
 		if( pEnemy )
 		{
 			if( HasConditions( bits_COND_SEE_ENEMY ) )
@@ -1006,6 +996,10 @@ Schedule_t *CScientist::GetSchedule( void )
 			// flinch if hurt
 			return GetScheduleOfType( SCHED_SMALL_FLINCH );
 		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		// Cower when you hear something scary
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
@@ -1029,7 +1023,7 @@ Schedule_t *CScientist::GetSchedule( void )
 			if( !FollowedPlayer()->IsAlive() )
 			{
 				// UNDONE: Comment about the recently dead player here?
-				StopFollowing( FALSE, false );
+				StopFollowing( false, false );
 				break;
 			}
 
@@ -1076,7 +1070,9 @@ Schedule_t *CScientist::GetSchedule( void )
 		// try to say something about smells
 		TrySmellTalk();
 		break;
+	}
 	case MONSTERSTATE_COMBAT:
+	{
 		if( HasConditions( bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST ) )
 		{
 			// call base class, all code to handle dead enemies is centralized there.
@@ -1084,8 +1080,20 @@ Schedule_t *CScientist::GetSchedule( void )
 		}
 		if( HasConditions( bits_COND_NEW_ENEMY ) )
 			return GetScheduleOfType( SCHED_FEAR );					// Point and scream!
-		if( HasConditions( bits_COND_SEE_ENEMY | bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
+		if( HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
 			return slScientistCover;		// Take Cover
+
+		if (HasConditions(bits_COND_SEE_ENEMY))
+		{
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+			return slScientistCover;
+		}
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
 
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );	// Cower and panic from the scary sound!
@@ -1093,6 +1101,7 @@ Schedule_t *CScientist::GetSchedule( void )
 		if (!IsFollowingPlayer())
 			return slScientistCover;			// Run & Cower
 		break;
+	}
 	default:
 		break;
 	}
@@ -1110,7 +1119,7 @@ bool CScientist::CanTolerateWhileFollowing(CBaseEntity *pEnemy)
 	return false;
 }
 
-MONSTERSTATE CScientist::GetIdealState( void )
+MONSTERSTATE CScientist::GetIdealState()
 {
 	switch( m_MonsterState )
 	{
@@ -1133,7 +1142,7 @@ MONSTERSTATE CScientist::GetIdealState( void )
 		{
 			// Stop following if you take damage
 			if( IsFollowingPlayer() )
-				StopFollowing( TRUE, false );
+				StopFollowing( true, false );
 		}
 		break;
 	case MONSTERSTATE_COMBAT:
@@ -1141,18 +1150,17 @@ MONSTERSTATE CScientist::GetIdealState( void )
 			CBaseEntity *pEnemy = m_hEnemy;
 			if( pEnemy != NULL )
 			{
-				if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
-				{
-					// Strip enemy when going to alert
-					m_IdealMonsterState = MONSTERSTATE_ALERT;
-					m_hEnemy = 0;
-					return m_IdealMonsterState;
-				}
-
 				if( HasConditions( bits_COND_SEE_ENEMY ) )
 				{
 					m_fearTime = gpGlobals->time;
 					m_IdealMonsterState = MONSTERSTATE_COMBAT;
+					return m_IdealMonsterState;
+				}
+				else if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
+				{
+					// Strip enemy when going to alert
+					m_IdealMonsterState = MONSTERSTATE_ALERT;
+					m_hEnemy = 0;
 					return m_IdealMonsterState;
 				}
 			}
@@ -1165,14 +1173,16 @@ MONSTERSTATE CScientist::GetIdealState( void )
 	return CTalkMonster::GetIdealState();
 }
 
-BOOL CScientist::CanHeal( void )
-{ 
+bool CScientist::CanHeal()
+{
+	if (!AbleToHeal())
+		return false;
 	if( ( m_healTime > gpGlobals->time ) || ( m_hTargetEnt == 0 ) || ( !m_hTargetEnt->IsFullyAlive() ) ||
 			( m_hTargetEnt->IsPlayer() ? m_hTargetEnt->pev->health > ( m_hTargetEnt->pev->max_health * 0.5f ) :
 			  m_hTargetEnt->pev->health >= m_hTargetEnt->pev->max_health ) )
-		return FALSE;
+		return false;
 
-	return TRUE;
+	return true;
 }
 
 extern int gmsgRemoveFollower;
@@ -1197,35 +1207,43 @@ void CScientist::StartFollowingHealTarget(CBaseEntity *pTarget)
 
 bool CScientist::ReadyToHeal()
 {
-	return AbleToFollow() && ( m_healTime <= gpGlobals->time ) && m_pSchedule != slHeal;
+	return AbleToHeal() && AbleToFollow() && ( m_healTime <= gpGlobals->time ) && m_pSchedule != slHeal;
 }
 
-void CScientist::Heal( void )
+void CScientist::Heal()
 {
 	if( !CanHeal() )
 		return;
 
 	Vector target = m_hTargetEnt->pev->origin - pev->origin;
-	if( target.Length() > 100.0f )
+	if( target.IsLengthGreaterThan(100.0f) )
 		return;
 
-	m_hTargetEnt->TakeHealth(this, gSkillData.scientistHeal, DMG_GENERIC );
-	EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "items/medshot4.wav", 0.75, ATTN_NORM );
+	m_hTargetEnt->TakeHealth(this, GetSkillValue("scientist_heal"), HEAL_GENERIC );
+	EmitSoundScript(healSoundScript);
 
 	// Don't heal again for 1 minute
-	m_healTime = gpGlobals->time + gSkillData.scientistHealTime;
+	m_healTime = gpGlobals->time + GetSkillValue("scientist_heal_time");
 }
 
 void CScientist::ReportAIState(ALERT_TYPE level)
 {
 	CTalkMonster::ReportAIState(level);
-	if (m_healTime <= gpGlobals->time)
+	if (AbleToHeal())
 	{
-		ALERT(level, "Can heal now. ");
+		ALERT(level, "Is able to heal. ");
+		if (m_healTime <= gpGlobals->time)
+		{
+			ALERT(level, "Can heal now. ");
+		}
+		else
+		{
+			ALERT(level, "Can heal in %3.1f seconds. ", m_healTime - gpGlobals->time);
+		}
 	}
 	else
 	{
-		ALERT(level, "Can heal in %3.1f seconds. ", (double)(m_healTime - gpGlobals->time));
+		ALERT(level, "Is not able to heal. ");
 	}
 }
 
@@ -1235,10 +1253,11 @@ void CScientist::ReportAIState(ALERT_TYPE level)
 class CDeadScientist : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	int	DefaultClassify ( void ) { return	CLASS_HUMAN_PASSIVE; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/scientist.mdl"; }
+	int	DefaultClassify() override { return	CLASS_HUMAN_PASSIVE; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[7];
 };
 const char *CDeadScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3" };
@@ -1253,9 +1272,9 @@ LINK_ENTITY_TO_CLASS( monster_scientist_dead, CDeadScientist )
 //
 // ********** DeadScientist SPAWN **********
 //
-void CDeadScientist :: Spawn( )
+void CDeadScientist::Spawn()
 {
-	SpawnHelper("models/scientist.mdl");
+	SpawnHelper();
 
 	if ( pev->body == -1 )
 	{// -1 chooses a random head
@@ -1277,22 +1296,22 @@ void CDeadScientist :: Spawn( )
 class CSittingScientist : public CScientist // kdb: changed from public CBaseMonster so he can speak
 {
 public:
-	void Spawn( void );
-	void Precache( void );
+	void Spawn() override;
+	void Precache() override;
 
-	void EXPORT SittingThink( void );
-	int DefaultClassify( void );
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void EXPORT SittingThink();
+	int DefaultClassify() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual bool SetAnswerQuestion( CTalkMonster *pSpeaker );
+	bool SetAnswerQuestion( CTalkMonster *pSpeaker ) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_FIXED; }
-	Vector DefaultMinHullSize() { return Vector(-14.0f, -14.0f, 0.0f); }
-	Vector DefaultMaxHullSize() { return Vector(14.0f, 14.0f, 36.0f); }
+	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
+	Vector DefaultMinHullSize() override { return Vector(-14.0f, -14.0f, 0.0f); }
+	Vector DefaultMaxHullSize() override { return Vector(14.0f, 14.0f, 36.0f); }
 
-	int FIdleSpeak( void );
+	bool FIdleSpeak();
 	int m_baseSequence;	
 	int m_headTurn;
 	float m_flResponseDelay;
@@ -1332,7 +1351,7 @@ void CSittingScientist::SciSpawnHelper(const char* modelName)
 	Precache();
 	InitBoneControllers();
 
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	if (FBitSet(pev->spawnflags, SF_SCI_SITTING_DONT_DROP))
@@ -1370,7 +1389,7 @@ void CSittingScientist::SciSpawnHelper(const char* modelName)
 		DROP_TO_FLOOR( ENT( pev ) );
 }
 
-void CSittingScientist::Spawn( )
+void CSittingScientist::Spawn()
 {
 	SciSpawnHelper("models/scientist.mdl");
 	CalcTotalHeadCount();
@@ -1379,7 +1398,7 @@ void CSittingScientist::Spawn( )
 		pev->skin = 1;
 }
 
-void CSittingScientist::Precache( void )
+void CSittingScientist::Precache()
 {
 	m_baseSequence = LookupSequence( "sitlookleft" );
 	TalkInit();
@@ -1390,7 +1409,7 @@ void CSittingScientist::Precache( void )
 //=========================================================
 // ID as a passive human
 //=========================================================
-int CSittingScientist::DefaultClassify( void )
+int CSittingScientist::DefaultClassify()
 {
 	return CLASS_HUMAN_PASSIVE;
 }
@@ -1398,7 +1417,7 @@ int CSittingScientist::DefaultClassify( void )
 //=========================================================
 // sit, do stuff
 //=========================================================
-void CSittingScientist::SittingThink( void )
+void CSittingScientist::SittingThink()
 {
 	CBaseEntity *pent;
 
@@ -1407,7 +1426,7 @@ void CSittingScientist::SittingThink( void )
 	// try to greet player
 	if( FIdleHello() )
 	{
-		pent = FindNearestFriend( TRUE );
+		pent = FindNearestFriend( true );
 		if( pent )
 		{
 			float yaw = VecToYaw( pent->pev->origin - pev->origin ) - pev->angles.y;
@@ -1446,9 +1465,9 @@ void CSittingScientist::SittingThink( void )
 			// turn towards player or nearest friend and speak
 
 			if( !FBitSet( m_bitsSaid, bit_saidHelloPlayer ) )
-				pent = FindNearestFriend( TRUE );
+				pent = FindNearestFriend( true );
 			else
-				pent = FindNearestFriend( FALSE );
+				pent = FindNearestFriend( false );
 
 			if( !FIdleSpeak() || !pent )
 			{
@@ -1492,7 +1511,7 @@ void CSittingScientist::SittingThink( void )
 			pev->sequence = m_baseSequence + SITTING_ANIM_sitscared;
 		}
 
-		ResetSequenceInfo( );
+		ResetSequenceInfo();
 		pev->frame = 0;
 		SetBoneController( 0, m_headTurn );
 	}
@@ -1511,16 +1530,16 @@ bool CSittingScientist::SetAnswerQuestion( CTalkMonster *pSpeaker )
 // FIdleSpeak
 // ask question of nearby friend, or make statement
 //=========================================================
-int CSittingScientist::FIdleSpeak( void )
+bool CSittingScientist::FIdleSpeak()
 { 
 	// try to start a conversation, or make statement
 	if( !FOkToSpeak() )
-		return FALSE;
+		return false;
 
 	// if there is a friend nearby to speak to, play sentence, set friend's response time, return
 
 	// try to talk to any standing or sitting scientists nearby
-	CBaseEntity *pFriend = FindNearestFriend( FALSE );
+	CBaseEntity *pFriend = FindNearestFriend( false );
 
 	if( pFriend && RANDOM_LONG( 0, 1 ) )
 	{
@@ -1534,26 +1553,25 @@ int CSittingScientist::FIdleSpeak( void )
 				pTalkMonster->m_flStopTalkTime = m_flStopTalkTime;
 		}
 		IdleHeadTurn( pFriend->pev->origin );
-		return TRUE;
+		return true;
 	}
 
 	// otherwise, play an idle statement
 	if( RANDOM_LONG( 0, 1 ) )
 	{
 		PlaySentence( SentenceGroup(TLK_PIDLE), RANDOM_FLOAT( 4.8, 5.2 ), VOL_NORM, ATTN_IDLE);
-		return TRUE;
+		return true;
 	}
 
 	// never spoke
 	CTalkMonster::g_talkWaitTime = 0;
-	return FALSE;
+	return false;
 }
 
-#if FEATURE_CLEANSUIT_SCIENTIST
 class CCleansuitScientist : public CScientist
 {
 public:
-	int GetDefaultVoicePitch()
+	int GetDefaultVoicePitch() override
 	{
 		switch( pev->body )
 		{
@@ -1568,20 +1586,36 @@ public:
 			return 100;
 		}
 	}
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
-	const char* DefaultDisplayName() { return "Cleansuit Scientist"; }
-	BOOL CanHeal();
-	bool ReadyToHeal() {return false;}
-	void ReportAIState(ALERT_TYPE level);
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	const char* DefaultDisplayName() override { return "Cleansuit Scientist"; }
+	bool AbleToHeal() override { return false; }
+	void ReportAIState(ALERT_TYPE level) override;
+
+	static constexpr const char* painSoundScript = "CleansuitScientist.Pain";
+	static constexpr const char* dieSoundScript = "CleansuitScientist.Die";
+
+	void PainSound() override {
+		EmitSoundScriptTalk(painSoundScript);
+	}
+	void DeathSound() override {
+		EmitSoundScriptTalk(dieSoundScript);
+	}
 };
 
 LINK_ENTITY_TO_CLASS( monster_cleansuit_scientist, CCleansuitScientist )
 
 void CCleansuitScientist::Spawn()
 {
-	SciSpawnHelper("models/cleansuit_scientist.mdl", gSkillData.cleansuitScientistHealth);
+	// White hands
+	pev->skin = 0;
+
+	// Luther is black, make his hands black
+	if( pev->body == HEAD_LUTHER )
+		pev->skin = 1;
+
+	SciSpawnHelper("models/cleansuit_scientist.mdl", GetSkillValue("cleansuit_scientist_health"));
 
 	// White hands
 	pev->skin = 0;
@@ -1596,15 +1630,14 @@ void CCleansuitScientist::Spawn()
 void CCleansuitScientist::Precache()
 {
 	PrecacheMyModel("models/cleansuit_scientist.mdl");
-	PrecacheSounds();
+	PrecacheMyGibModel();
+
+	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript, CScientist::dieSoundScript, CScientist::painSoundScript);
+
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
-}
-
-BOOL CCleansuitScientist::CanHeal()
-{
-	return FALSE;
 }
 
 void CCleansuitScientist::ReportAIState(ALERT_TYPE level)
@@ -1615,11 +1648,12 @@ void CCleansuitScientist::ReportAIState(ALERT_TYPE level)
 class CDeadCleansuitScientist : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
-	int	DefaultClassify ( void ) { return	CLASS_HUMAN_PASSIVE; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/cleansuit_scientist.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	int	DefaultClassify() override { return	CLASS_HUMAN_PASSIVE; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[9];
 };
 const char *CDeadCleansuitScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3", "scientist_deadpose1", "dead_against_wall" };
@@ -1631,9 +1665,9 @@ const char* CDeadCleansuitScientist::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_cleansuit_scientist_dead, CDeadCleansuitScientist )
 
-void CDeadCleansuitScientist::Spawn( )
+void CDeadCleansuitScientist::Spawn()
 {
-	SpawnHelper("models/cleansuit_scientist.mdl");
+	SpawnHelper();
 	if ( pev->body == -1 ) {
 		pev->body = RANDOM_LONG(0, g_modFeatures.scientist_random_heads-1);
 	}
@@ -1643,8 +1677,8 @@ void CDeadCleansuitScientist::Spawn( )
 class CSittingCleansuitScientist : public CSittingScientist
 {
 public:
-	void Spawn();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
+	void Spawn() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
 };
 
 void CSittingCleansuitScientist::Spawn()
@@ -1653,38 +1687,48 @@ void CSittingCleansuitScientist::Spawn()
 }
 
 LINK_ENTITY_TO_CLASS( monster_sitting_cleansuit_scientist, CSittingCleansuitScientist )
-#endif
-
-#if FEATURE_ROSENBERG
 
 #define FEATURE_ROSENBERG_DECAY 0
 
 class CRosenberg : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() { return 100; }
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("rosenberg"); }
-	const char* DefaultDisplayName() { return "Dr. Rosenberg"; }
-	const char* DefaultSentenceGroup(int group);
-	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
-	void PlayPainSound();
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("rosenberg"); }
+	const char* DefaultDisplayName() override { return "Dr. Rosenberg"; }
+	const char* DefaultSentenceGroup(int group) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }
+	void PainSound() override;
+	void DeathSound() override;
 
 #if FEATURE_ROSENBERG_DECAY
-	BOOL CanHeal() { return false; }
-	bool ReadyToHeal() {return false; }
+	bool AbleToHeal() override { return false; }
 #endif
+
+	static const NamedSoundScript painSoundScript;
+	static constexpr const char* dieSoundScript = "Rosenberg.Die";
 };
 
 LINK_ENTITY_TO_CLASS( monster_rosenberg, CRosenberg )
+
+const NamedSoundScript CRosenberg::painSoundScript = {
+	CHAN_VOICE,
+	{
+		"rosenberg/ro_pain0.wav", "rosenberg/ro_pain1.wav", "rosenberg/ro_pain2.wav",
+		"rosenberg/ro_pain3.wav", "rosenberg/ro_pain4.wav", "rosenberg/ro_pain5.wav",
+		"rosenberg/ro_pain6.wav", "rosenberg/ro_pain7.wav", "rosenberg/ro_pain8.wav"
+	},
+	"Rosenberg.Pain"
+};
 
 void CRosenberg::Spawn()
 {
 #if FEATURE_ROSENBERG_DECAY
 	SciSpawnHelper("models/scientist_rosenberg.mdl", gSkillData.scientistHealth * 2);
 #else
-	SciSpawnHelper("models/scientist.mdl", gSkillData.scientistHealth * 2);
+	SciSpawnHelper("models/scientist.mdl", GetSkillValue("scientist_health") * 2);
 	CalcTotalHeadCount();
 	pev->body = 3;
 #endif
@@ -1699,20 +1743,15 @@ void CRosenberg::Precache()
 	PrecacheMyModel("models/scientist.mdl");
 	CalcTotalHeadCount();
 #endif
-	PRECACHE_SOUND( "rosenberg/ro_pain0.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain1.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain2.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain3.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain4.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain5.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain6.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain7.wav" );
-	PRECACHE_SOUND( "rosenberg/ro_pain8.wav" );
+	PrecacheMyGibModel();
 
-	PRECACHE_SOUND( "items/medshot4.wav" );
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript, painSoundScript);
+	RegisterAndPrecacheSoundScript(CScientist::healSoundScript);
 
 	TalkInit();
 	CTalkMonster::Precache();
+	RegisterTalkMonster();
 }
 
 const char* CRosenberg::DefaultSentenceGroup(int group)
@@ -1751,197 +1790,110 @@ const char* CRosenberg::DefaultSentenceGroup(int group)
 	}
 }
 
-void CRosenberg::PlayPainSound()
+void CRosenberg::PainSound()
 {
-	const char* painSound = NULL;
-	switch( RANDOM_LONG( 0, 8 ) )
-	{
-	case 0:
-		painSound ="rosenberg/ro_pain0.wav";
-		break;
-	case 1:
-		painSound ="rosenberg/ro_pain1.wav";
-		break;
-	case 2:
-		painSound ="rosenberg/ro_pain2.wav";
-		break;
-	case 3:
-		painSound ="rosenberg/ro_pain3.wav";
-		break;
-	case 4:
-		painSound ="rosenberg/ro_pain4.wav";
-		break;
-	case 5:
-		painSound ="rosenberg/ro_pain5.wav";
-		break;
-	case 6:
-		painSound ="rosenberg/ro_pain6.wav";
-		break;
-	case 7:
-		painSound ="rosenberg/ro_pain7.wav";
-		break;
-	case 8:
-		painSound ="rosenberg/ro_pain8.wav";
-		break;
-	}
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, painSound, 1, ATTN_NORM, 0, GetVoicePitch() );
+	EmitSoundScriptTalk(painSoundScript);
 }
 
-#endif
+void CRosenberg::DeathSound()
+{
+	EmitSoundScriptTalk(dieSoundScript);
+}
 
-#if FEATURE_GUS
-class CGus : public CScientist
+class CCivilian : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() {
-		if (pev->body)
-			return 95;
-		else
-			return 100;
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override
+	{
+		SciSpawnHelper("models/scientist.mdl", GetSkillValue("civilian_health"));
+		TalkMonsterInit();
 	}
-	void Spawn();
-	void Precache();
-	const char* DefaultDisplayName() { return "Construction Worker"; }
-	BOOL CanHeal();
-	bool ReadyToHeal() {return false;}
-	void ReportAIState(ALERT_TYPE level);
-	int RandomHeadCount() {
-		return 2;
+	void Precache() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override {
+		CTalkMonster::HandleAnimEvent(pEvent);
 	}
-	int TotalHeadCount() {
-		return 2;
+	const char* DefaultDisplayName() override { return "Civilian"; }
+	bool AbleToHeal() override { return false; }
+
+	static constexpr const char* painSoundScript = "Civilian.Pain";
+	static constexpr const char* dieSoundScript = "Civilian.Die";
+
+	void PainSound() override {
+		EmitSoundScriptTalk(painSoundScript);
+	}
+	void DeathSound() override {
+		EmitSoundScriptTalk(dieSoundScript);
 	}
 };
 
-LINK_ENTITY_TO_CLASS( monster_gus, CGus )
+LINK_ENTITY_TO_CLASS( monster_civilian, CCivilian )
 
-void CGus::Spawn()
+void CCivilian::Precache()
 {
-	SciSpawnHelper("models/gus.mdl", gSkillData.scientistHealth);
-	TalkMonsterInit();
-}
+	PrecacheMyModel("models/scientist.mdl");
+	PrecacheMyGibModel();
 
-void CGus::Precache()
-{
-	PrecacheMyModel("models/gus.mdl");
-	PrecacheSounds();
+	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript, CScientist::dieSoundScript, CScientist::painSoundScript);
+
 	TalkInit();
 	CTalkMonster::Precache();
 	RegisterTalkMonster();
 }
 
-BOOL CGus::CanHeal()
-{
-	return FALSE;
-}
-
-void CGus::ReportAIState(ALERT_TYPE level)
-{
-	CTalkMonster::ReportAIState(level);
-}
-
-//=========================================================
-// Dead Worker PROP
-//=========================================================
-class CDeadWorker : public CDeadMonster
-{
-public:
-	void Spawn( void );
-	int	DefaultClassify ( void ) { return	CLASS_HUMAN_PASSIVE; }
-
-	const char* getPos(int pos) const;
-	static const char *m_szPoses[6];
-};
-const char *CDeadWorker::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_table1", "dead_table2", "dead_table3" };
-
-const char* CDeadWorker::getPos(int pos) const
-{
-	return m_szPoses[pos % ARRAYSIZE(m_szPoses)];
-}
-
-LINK_ENTITY_TO_CLASS( monster_worker_dead, CDeadWorker )
-
-void CDeadWorker :: Spawn( )
-{
-	SpawnHelper("models/worker.mdl");
-	MonsterInitDead();
-}
-
-class CDeadGus : public CDeadWorker
-{
-	void Spawn( void );
-};
-
-LINK_ENTITY_TO_CLASS( monster_gus_dead, CDeadGus )
-
-void CDeadGus :: Spawn( )
-{
-	SpawnHelper("models/gus.mdl");
-	if (pev->body == -1)
-	{
-		pev->body = RANDOM_LONG(0,1);
-	}
-	MonsterInitDead();
-}
-#endif
-
-#if FEATURE_KELLER
 class CKeller : public CScientist
 {
 public:
-	int GetDefaultVoicePitch() { return 100; }
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("keller"); }
-	const char* DefaultDisplayName() { return "Richard Keller"; }
-	const char* DefaultSentenceGroup(int group);
-	int DefaultToleranceLevel() { return TOLERANCE_ABSOLUTE; }
-	void PainSound();
-	void DeathSound();
+	int GetDefaultVoicePitch() override { return 100; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("keller"); }
+	const char* DefaultDisplayName() override { return "Richard Keller"; }
+	const char* DefaultSentenceGroup(int group) override;
+	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }
+	void PainSound() override;
+	void DeathSound() override;
 
-	BOOL CanHeal() { return false; }
-	bool ReadyToHeal() { return false; }
+	bool AbleToHeal() override { return false; }
 
-protected:
-	static const char* pPainSounds[];
-	static const char* pDeathSounds[];
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( monster_wheelchair, CKeller )
 
-const char* CKeller::pPainSounds[] =
-{
-	"keller/dk_pain1.wav",
-	"keller/dk_pain2.wav",
-	"keller/dk_pain3.wav",
-	"keller/dk_pain4.wav",
-	"keller/dk_pain5.wav",
-	"keller/dk_pain6.wav",
-	"keller/dk_pain7.wav",
+const NamedSoundScript CKeller::painSoundScript = {
+	CHAN_VOICE,
+	{
+		"keller/dk_pain1.wav", "keller/dk_pain2.wav", "keller/dk_pain3.wav", "keller/dk_pain4.wav",
+		"keller/dk_pain5.wav", "keller/dk_pain6.wav", "keller/dk_pain7.wav"
+	},
+	"Keller.Pain"
 };
 
-const char* CKeller::pDeathSounds[] =
-{
-	"keller/dk_die1.wav",
-	"keller/dk_die2.wav",
-	"keller/dk_die3.wav",
-	"keller/dk_die4.wav",
-	"keller/dk_die5.wav",
-	"keller/dk_die6.wav",
-	"keller/dk_die7.wav",
+const NamedSoundScript CKeller::dieSoundScript = {
+	CHAN_VOICE,
+	{
+		"keller/dk_die1.wav", "keller/dk_die2.wav", "keller/dk_die3.wav", "keller/dk_die4.wav",
+		"keller/dk_die5.wav", "keller/dk_die6.wav", "keller/dk_die7.wav"
+	},
+	"Keller.Die"
 };
 
 void CKeller::Spawn()
 {
-	SciSpawnHelper("models/wheelchair_sci.mdl", gSkillData.scientistHealth * 2);
+	SciSpawnHelper("models/wheelchair_sci.mdl", GetSkillValue("scientist_health") * 2);
 	TalkMonsterInit();
 }
 
 void CKeller::Precache()
 {
 	PrecacheMyModel("models/wheelchair_sci.mdl");
-	PRECACHE_SOUND_ARRAY( pPainSounds );
-	PRECACHE_SOUND_ARRAY( pDeathSounds );
+	PrecacheMyGibModel();
+
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
 
 	PRECACHE_SOUND( "wheelchair/wheelchair_jog.wav" );
 	PRECACHE_SOUND( "wheelchair/wheelchair_run.wav" );
@@ -1949,6 +1901,7 @@ void CKeller::Precache()
 
 	TalkInit();
 	CTalkMonster::Precache();
+	RegisterTalkMonster();
 }
 
 const char* CKeller::DefaultSentenceGroup(int group)
@@ -1989,16 +1942,10 @@ const char* CKeller::DefaultSentenceGroup(int group)
 
 void CKeller::PainSound()
 {
-	if( gpGlobals->time < m_painTime )
-		return;
-
-	m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5, 0.75 );
-
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pPainSounds ), 1, ATTN_NORM, 0, GetVoicePitch() );
+	EmitSoundScriptTalk(painSoundScript);
 }
 
 void CKeller::DeathSound()
 {
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pDeathSounds ), 1, ATTN_NORM, 0, GetVoicePitch() );
+	EmitSoundScriptTalk(dieSoundScript);
 }
-#endif

@@ -22,23 +22,27 @@
 class CFlyingMonster : public CBaseMonster
 {
 public:
-	int 		CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );// check validity of a straight move through space
-	int FTriangulate(const Vector &vecStart, const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector *pApexes, int n = 1, int tries = 8);
-	Activity	GetStoppedActivity( void );
-	void		Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	void		Stop( void );
-	float		ChangeYaw( int speed );
-	void		HandleAnimEvent( MonsterEvent_t *pEvent );
-	void		MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void		Move( float flInterval = 0.1 );
-	BOOL		ShouldAdvanceRoute( float flWaypointDist );
+	int 		CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist ) override;// check validity of a straight move through space
+	Activity	GetStoppedActivity() override;
+	KilledResult	Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	void		Stop() override;
+	float		ChangeYaw( int yawSpeed ) override;
+	void		HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	void		MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void		Move( float flInterval = 0.1 ) override;
+	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 
 	inline void	SetFlyingMomentum( float momentum ) { m_momentum = momentum; }
 	inline void	SetFlyingFlapSound( const char *pFlapSound ) { m_pFlapSound = pFlapSound; }
 	inline void	SetFlyingSpeed( float speed ) { m_flightSpeed = speed; }
 	float		CeilingZ( const Vector &position );
 	float		FloorZ( const Vector &position );
-	BOOL		ProbeZ( const Vector &position, const Vector &probe, float *pFraction );
+	bool		ProbeZ( const Vector &position, const Vector &probe, float *pFraction );
+	Vector	DoProbe(const Vector &Probe, const Vector& myVelocity);
+	void	FlyAwayFromGround();
+	Vector	GetSteeringVector(const Vector& start, float probeLength, const Vector& myVelocity);
+	Vector	SetFlyVelocityWithSteer(const Vector& myVelocity, const Vector& SteeringVector);
+	void	SmoothAngles(const Vector& myVelocity);
 
 	// UNDONE:  Save/restore this stuff!!!
 protected:
@@ -47,5 +51,6 @@ protected:
 	float		m_stopTime;			// Last time we stopped (to avoid switching states too soon)
 	float		m_momentum;			// Weight for desired vs. momentum velocity
 	const char	*m_pFlapSound;
+	float		m_flLastZYawTime;	// Last frame time Z was changed when yaw was changed
 };
 #endif //FLYINGMONSTER_H

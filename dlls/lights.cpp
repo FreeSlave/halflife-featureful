@@ -24,15 +24,17 @@
 #include "util.h"
 #include "cbase.h"
 
+#define SF_LIGHT_START_OFF		1
+
 class CLight : public CPointEntity
 {
 public:
-	virtual void KeyValue( KeyValueData* pkvd ); 
-	virtual void Spawn( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData* pkvd ) override;
+	void Spawn() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -59,17 +61,17 @@ void CLight::KeyValue( KeyValueData* pkvd )
 	if( FStrEq(pkvd->szKeyName, "style" ) )
 	{
 		m_iStyle = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "pitch" ) )
 	{
 		pev->angles.x = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "pattern" ) )
 	{
 		m_iszPattern = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 	{
@@ -77,14 +79,7 @@ void CLight::KeyValue( KeyValueData* pkvd )
 	}
 }
 
-/*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) LIGHT_START_OFF
-Non-displayed light.
-Default light value is 300
-Default style is 0
-If targeted, it will toggle between on or off.
-*/
-
-void CLight::Spawn( void )
+void CLight::Spawn()
 {
 	if( FStringNull( pev->targetname ) )
 	{
@@ -136,8 +131,8 @@ LINK_ENTITY_TO_CLASS( light_spot, CLight )
 class CEnvLight : public CLight
 {
 public:
-	void KeyValue( KeyValueData* pkvd ); 
-	void Spawn( void );
+	void KeyValue( KeyValueData* pkvd ) override;
+	void Spawn() override;
 };
 
 LINK_ENTITY_TO_CLASS( light_environment, CEnvLight )
@@ -166,7 +161,7 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 		g = (int)( pow( g / 114.0f, 0.6f ) * 264.0f );
 		b = (int)( pow( b / 114.0f, 0.6f ) * 264.0f );
 
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 		sprintf( szColor, "%d", r );
 		CVAR_SET_STRING( "sv_skycolor_r", szColor );
 		sprintf( szColor, "%d", g );
@@ -180,7 +175,7 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 	}
 }
 
-void CEnvLight::Spawn( void )
+void CEnvLight::Spawn()
 {
 	char szVector[64];
 	UTIL_MakeAimVectors( pev->angles );

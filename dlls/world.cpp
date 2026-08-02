@@ -34,16 +34,21 @@
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
 #include "game.h"
-#include "parsetext.h"
+#include "savetitles.h"
+#include "string_utils.h"
+#include "common_soundscripts.h"
+#include "objecthint_spec.h"
+#include "warpball.h"
+#include "error_collector.h"
 
 extern CSoundEnt *pSoundEnt;
 
 extern CBaseEntity				*g_pLastSpawn;
 DLL_GLOBAL edict_t				*g_pBodyQueueHead;
 CGlobalState					gGlobalState;
-extern DLL_GLOBAL int				gDisplayTitle;
+extern DLL_GLOBAL bool				gDisplayTitle;
 
-extern void W_Precache( void );
+extern void W_Precache( CBaseEntity* pWorld );
 
 //
 // This must match the list in util.h
@@ -115,16 +120,16 @@ BODY QUE
 class CDecal : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void KeyValue( KeyValueData *pkvd );
-	void EXPORT StaticDecal( void );
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void EXPORT StaticDecal();
 	void EXPORT TriggerDecal( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 };
 
 LINK_ENTITY_TO_CLASS( infodecal, CDecal )
 
 // UNDONE:  These won't get sent to joining players in multi-player
-void CDecal::Spawn( void )
+void CDecal::Spawn()
 {
 	if( pev->skin < 0 || ( gpGlobals->deathmatch && FBitSet( pev->spawnflags, SF_DECAL_NOTINDEATHMATCH ) ) )
 	{
@@ -157,9 +162,7 @@ void CDecal::TriggerDecal( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BSPDECAL );
-		WRITE_COORD( pev->origin.x );
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z );
+		WRITE_VECTOR( pev->origin );
 		WRITE_SHORT( (int)pev->skin );
 		entityIndex = (short)ENTINDEX( trace.pHit );
 		WRITE_SHORT( entityIndex );
@@ -171,7 +174,7 @@ void CDecal::TriggerDecal( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CDecal::StaticDecal( void )
+void CDecal::StaticDecal()
 {
 	TraceResult trace;
 	int entityIndex, modelIndex;
@@ -207,12 +210,12 @@ void CDecal::KeyValue( KeyValueData *pkvd )
 // Body queue class here.... It's really just CBaseEntity
 class CCorpse : public CBaseEntity
 {
-	virtual int ObjectCaps( void ) { return FCAP_DONT_SAVE; }	
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 };
 
 LINK_ENTITY_TO_CLASS( bodyque, CCorpse )
 
-static void InitBodyQue( void )
+static void InitBodyQue()
 {
 	string_t istrClassname = MAKE_STRING( "bodyque" );
 
@@ -236,7 +239,7 @@ static void InitBodyQue( void )
 //
 void CopyToBodyQue( entvars_t *pev ) 
 {
-	if( pev->effects & EF_NODRAW )
+	if( ( pev->effects & EF_NODRAW ) || !pev->modelindex )
 		return;
 
 	entvars_t *pevHead = VARS( g_pBodyQueueHead );
@@ -266,12 +269,12 @@ void CopyToBodyQue( entvars_t *pev )
 	g_pBodyQueueHead = pevHead->owner;
 }
 
-CGlobalState::CGlobalState( void )
+CGlobalState::CGlobalState()
 {
 	Reset();
 }
 
-void CGlobalState::Reset( void )
+void CGlobalState::Reset()
 {
 	m_pList = NULL; 
 	m_listCount = 0;
@@ -306,7 +309,7 @@ globalentity_t *CGlobalState::Find( string_t globalname )
 
 // This is available all the time now on impulse 104, remove later
 //#if _DEBUG
-void CGlobalState::DumpGlobals( void )
+void CGlobalState::DumpGlobals()
 {
 	static const char *estates[] = { "Off", "On", "Dead" };
 	globalentity_t *pTest;
@@ -329,8 +332,8 @@ void CGlobalState::EntityAdd(const char* globalname, string_t mapName, GLOBALEST
 	ASSERT( pNewEntity != NULL );
 	pNewEntity->pNext = m_pList;
 	m_pList = pNewEntity;
-	strncpyEnsureTermination( pNewEntity->name, globalname, sizeof(pNewEntity->name) );
-	strncpyEnsureTermination( pNewEntity->levelName, STRING( mapName ), sizeof(pNewEntity->levelName) );
+	strncpyEnsureTermination( pNewEntity->name, globalname );
+	strncpyEnsureTermination( pNewEntity->levelName, STRING( mapName ) );
 	pNewEntity->state = state;
 	pNewEntity->value = value;
 	m_listCount++;
@@ -474,7 +477,7 @@ void CGlobalState::EntityUpdate( string_t globalname, string_t mapname )
 		strcpy( pEnt->levelName, STRING( mapname ) );
 }
 
-void CGlobalState::ClearStates( void )
+void CGlobalState::ClearStates()
 {
 	globalentity_t *pFree = m_pList;
 	while( pFree )
@@ -498,10 +501,10 @@ void RestoreGlobalState( SAVERESTOREDATA *pSaveData )
 	gGlobalState.Restore( restoreHelper );
 }
 
-void ResetGlobalState( void )
+void ResetGlobalState()
 {
 	gGlobalState.ClearStates();
-	gInitHUD = TRUE;	// Init the HUD on a new game / load game
+	gInitHUD = true;	// Init the HUD on a new game / load game
 }
 
 // moved CWorld class definition to cbase.h
@@ -513,18 +516,19 @@ void ResetGlobalState( void )
 
 LINK_ENTITY_TO_CLASS( worldspawn, CWorld )
 
-extern DLL_GLOBAL BOOL		g_fGameOver;
+extern DLL_GLOBAL bool		g_fGameOver;
 
-void CWorld::Spawn( void )
+void CWorld::Spawn()
 {
-	g_fGameOver = FALSE;
+	g_fGameOver = false;
 	Precache();
+	AddMapBSPAsPrecachedModel();
 }
 
-int CWorld::wallPuffsIndices[] = {0,0,0,0};
-
-void CWorld::Precache( void )
+void CWorld::Precache()
 {
+	static bool worldInitAtLeastOnce = false;
+
 	g_pLastSpawn = NULL;
 #if 1
 	CVAR_SET_STRING( "sv_gravity", "800" ); // 67ft/sec
@@ -543,6 +547,25 @@ void CWorld::Precache( void )
 	}
 
 	g_pGameRules = InstallGameRules();
+
+	if (IsDeveloperModeOn() && worldInitAtLeastOnce)
+	{
+		ALERT(at_console, "Re-parsing mod server configs\n");
+		ParseModConfigs();
+	}
+	SetWeaponParameters();
+
+	g_AmmoRegistry.ResetExhaustible();
+	for(int i=1; i<MAX_WEAPONS; ++i)
+	{
+		const WeaponParameters& params = GetWeaponParameters(i);
+		if (params.exhausitble && !params.ammoName.empty())
+		{
+			g_AmmoRegistry.SetExhaustible(params.ammoName.c_str(), true);
+		}
+	}
+
+	worldInitAtLeastOnce = true;
 
 	//!!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here 
 
@@ -567,47 +590,32 @@ void CWorld::Precache( void )
 
 	// the area based ambient sounds MUST be the first precache_sounds
 	// player precaches
-	W_Precache();				// get weapon precaches
+	W_Precache(this);				// get weapon precaches
 
 	ClientPrecache();
+
+	RegisterAndPrecacheSoundScript(NPC::bodySplatSoundScript);
 
 	// sounds used from C physics code
 	PRECACHE_SOUND( "common/null.wav" );// clears sound channels
 
-	PRECACHE_SOUND( "items/suitchargeok1.wav" );//!!! temporary sound for respawning weapons.
-	PRECACHE_SOUND( "items/gunpickup2.wav" );// player picks up a gun.
+	RegisterAndPrecacheSoundScript(Items::pickupSoundScript);
+	RegisterAndPrecacheSoundScript(Items::materializeSoundScript);
+	RegisterAndPrecacheSoundScript(Items::ammoPickupSoundScript);
+	RegisterAndPrecacheSoundScript(Items::weaponPickupSoundScript, Items::pickupSoundScript);
 
-	PRECACHE_SOUND( "common/bodydrop3.wav" );// dead bodies hitting the ground (animation events)
-	PRECACHE_SOUND( "common/bodydrop4.wav" );
+	// dead bodies hitting the ground (animation events)
+	RegisterAndPrecacheSoundScript(NPC::bodyDropHeavySoundScript);
+	RegisterAndPrecacheSoundScript(NPC::bodyDropLightSoundScript);
 	
-	g_Language = (int)CVAR_GET_FLOAT( "sv_language" );
-	if( g_Language == LANGUAGE_GERMAN )
-	{
-		PRECACHE_MODEL( "models/germangibs.mdl" );
-	}
-	else
-	{
-		PRECACHE_MODEL( "models/hgibs.mdl" );
-		PRECACHE_MODEL( "models/agibs.mdl" );
-	}
+	PRECACHE_MODEL( "models/hgibs.mdl" );
+	PRECACHE_MODEL( "models/agibs.mdl" );
 
 	PRECACHE_SOUND( "weapons/ric1.wav" );
 	PRECACHE_SOUND( "weapons/ric2.wav" );
 	PRECACHE_SOUND( "weapons/ric3.wav" );
 	PRECACHE_SOUND( "weapons/ric4.wav" );
 	PRECACHE_SOUND( "weapons/ric5.wav" );
-
-	const char* wallPuffs[ARRAYSIZE(wallPuffsIndices)] = {
-		g_modFeatures.wall_puff1,
-		g_modFeatures.wall_puff2,
-		g_modFeatures.wall_puff3,
-		g_modFeatures.wall_puff4,
-	};
-	for (int wi = 0; wi < ARRAYSIZE(wallPuffsIndices); ++wi)
-	{
-		if (*wallPuffs[wi])
-			wallPuffsIndices[wi] = PRECACHE_MODEL(wallPuffs[wi]);
-	}
 
 	//
 	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
@@ -659,7 +667,7 @@ void CWorld::Precache( void )
 	// 63 testing
 	LIGHT_STYLE( 63, "a" );
 
-	const int decalCount = g_modFeatures.opfor_decals ? (int)ARRAYSIZE( gDecals ) : DECAL_BASE_COUNT;
+	const int decalCount = (int)ARRAYSIZE( gDecals );
 
 	for( int i = 0; i < decalCount; i++ )
 		gDecals[i].index = DECAL_INDEX( gDecals[i].name );
@@ -718,9 +726,9 @@ void CWorld::Precache( void )
 	pev->spawnflags &= ~SF_WORLD_DARK;		// g-cont. don't apply fade after save\restore
 
 	if( pev->spawnflags & SF_WORLD_TITLE )
-		gDisplayTitle = TRUE;		// display the game title if this key is set
+		gDisplayTitle = true;		// display the game title if this key is set
 	else
-		gDisplayTitle = FALSE;
+		gDisplayTitle = false;
 
 	pev->spawnflags &= ~SF_WORLD_TITLE;		// g-cont. don't show logo after save\restore
 
@@ -743,35 +751,35 @@ void CWorld::KeyValue( KeyValueData *pkvd )
 	{
 		// Sent over net now.
 		CVAR_SET_STRING( "sv_skyname", pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "sounds" ) )
 	{
 		gpGlobals->cdAudioTrack = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "WaveHeight" ) )
 	{
 		// Sent over net now.
 		pev->scale = atof( pkvd->szValue ) * ( 1.0f / 8.0f );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "MaxRange" ) )
 	{
 		pev->speed = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "chaptertitle" ) )
 	{
 		pev->netname = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "startdark" ) )
 	{
 		// UNDONE: This is a gross hack!!! The CVAR is NOT sent over the client/sever link
 		// but it will work for single player
 		int flag = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 		if( flag )
 			pev->spawnflags |= SF_WORLD_DARK;
 	}
@@ -780,19 +788,19 @@ void CWorld::KeyValue( KeyValueData *pkvd )
 		// Single player only.  Clear save directory if set
 		if( atoi( pkvd->szValue ) )
 			CVAR_SET_FLOAT( "sv_newunit", 1 );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "gametitle" ) )
 	{
 		if( atoi( pkvd->szValue ) )
 			pev->spawnflags |= SF_WORLD_TITLE;
 
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "mapteams" ) )
 	{
 		pev->team = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "defaultteam" ) )
 	{
@@ -800,7 +808,7 @@ void CWorld::KeyValue( KeyValueData *pkvd )
 		{
 			pev->spawnflags |= SF_WORLD_FORCETEAM;
 		}
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "freeroam" ) )
 	{
@@ -808,91 +816,12 @@ void CWorld::KeyValue( KeyValueData *pkvd )
 		{
 			pev->spawnflags |= SF_WORLD_FREEROAM;
 		}
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
 
-
-struct TitleCommet
-{
-	const char *mapname;
-	const char *titlename;
-};
-
-TitleCommet gTitleComments[] =
-{
-	// default Half-Life map titles
-	// ordering is important
-	// strings hw.so| grep T0A0TITLE -B 50 -A 150
-	{ "T0A0", "#T0A0TITLE" },
-	{ "C0A0", "#C0A0TITLE" },
-	{ "C1A0", "#C0A1TITLE" },
-	{ "C1A1", "#C1A1TITLE" },
-	{ "C1A2", "#C1A2TITLE" },
-	{ "C1A3", "#C1A3TITLE" },
-	{ "C1A4", "#C1A4TITLE" },
-	{ "C2A1", "#C2A1TITLE" },
-	{ "C2A2", "#C2A2TITLE" },
-	{ "C2A3", "#C2A3TITLE" },
-	{ "C2A4D", "#C2A4TITLE2" },
-	{ "C2A4E", "#C2A4TITLE2" },
-	{ "C2A4F", "#C2A4TITLE2" },
-	{ "C2A4G", "#C2A4TITLE2" },
-	{ "C2A4", "#C2A4TITLE1" },
-	{ "C2A5", "#C2A5TITLE" },
-	{ "C3A1", "#C3A1TITLE" },
-	{ "C3A2", "#C3A2TITLE" },
-	{ "C4A1A", "#C4A1ATITLE" },
-	{ "C4A1B", "#C4A1ATITLE" },
-	{ "C4A1C", "#C4A1ATITLE" },
-	{ "C4A1D", "#C4A1ATITLE" },
-	{ "C4A1E", "#C4A1ATITLE" },
-	{ "C4A1", "#C4A1TITLE" },
-	{ "C4A2", "#C4A2TITLE" },
-	{ "C4A3", "#C4A3TITLE" },
-	{ "C5A1", "#C5TITLE" },
-	{ "OFBOOT", "#OF_BOOT0TITLE" },
-	{ "OF0A", "#OF1A1TITLE" },
-	{ "OF1A1", "#OF1A3TITLE" },
-	{ "OF1A2", "#OF1A3TITLE" },
-	{ "OF1A3", "#OF1A3TITLE" },
-	{ "OF1A4", "#OF1A3TITLE" },
-	{ "OF1A", "#OF1A5TITLE" },
-	{ "OF2A1", "#OF2A1TITLE" },
-	{ "OF2A2", "#OF2A1TITLE" },
-	{ "OF2A3", "#OF2A1TITLE" },
-	{ "OF2A", "#OF2A4TITLE" },
-	{ "OF3A1", "#OF3A1TITLE" },
-	{ "OF3A2", "#OF3A1TITLE" },
-	{ "OF3A", "#OF3A3TITLE" },
-	{ "OF4A1", "#OF4A1TITLE" },
-	{ "OF4A2", "#OF4A1TITLE" },
-	{ "OF4A3", "#OF4A1TITLE" },
-	{ "OF4A", "#OF4A4TITLE" },
-	{ "OF5A", "#OF5A1TITLE" },
-	{ "OF6A1", "#OF6A1TITLE" },
-	{ "OF6A2", "#OF6A1TITLE" },
-	{ "OF6A3", "#OF6A1TITLE" },
-	{ "OF6A4b", "#OF6A4TITLE" },
-	{ "OF6A4", "#OF6A4TITLE" },
-	{ "OF6A5", "#OF6A4TITLE" },
-	{ "OF6A", "#OF6A4TITLE" },
-	{ "OF7A", "#OF7A0TITLE" },
-	{ "ba_tram", "#BA_TRAMTITLE" },
-	{ "ba_security", "#BA_SECURITYTITLE" },
-	{ "ba_main", "#BA_SECURITYTITLE" },
-	{ "ba_elevator", "#BA_SECURITYTITLE" },
-	{ "ba_canal", "#BA_CANALSTITLE" },
-	{ "ba_yard", "#BA_YARDTITLE" },
-	{ "ba_xen", "#BA_XENTITLE" },
-	{ "ba_hazard", "#BA_HAZARD" },
-	{ "ba_power", "#BA_POWERTITLE" },
-	{ "ba_teleport1", "#BA_POWERTITLE" },
-	{ "ba_teleport", "#BA_TELEPORTTITLE" },
-	{ "ba_outro", "#BA_OUTRO" },
-};
 
 /*
 =============
@@ -902,23 +831,11 @@ Exporting this allows to replace the engine function.
 */
 extern "C" EXPORT void SV_SaveGameComment( char *text, int maxlength )
 {
-	const char *pName = NULL;
-
 	text[0] = '\0'; // clear
 
-	unsigned long i;
 	const char *mapname = STRING( gpGlobals->mapname );
 
-	for( i = 0; i < ARRAYSIZE( gTitleComments ); i++ )
-	{
-		// compare if strings are equal at beginning
-		int len = strlen( gTitleComments[i].mapname );
-		if( !strnicmp( mapname, gTitleComments[i].mapname, len ))
-		{
-			pName = gTitleComments[i].titlename;
-			break;
-		}
-	}
+	const char *pName = GetSaveTitleForMap(mapname);
 
 	if( !pName )
 	{
@@ -936,5 +853,5 @@ extern "C" EXPORT void SV_SaveGameComment( char *text, int maxlength )
 		}
 	}
 
-	_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(gpGlobals->time / 60.0 ), (int)fmod( gpGlobals->time, 60.0 ));
+	safe_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(gpGlobals->time / 60.0 ), (int)fmod( gpGlobals->time, 60.0 ));
 }

@@ -28,14 +28,17 @@
 #include	"scripted.h"
 #include	"game.h"
 #include	"bullsquid.h"
+#include	"common_soundscripts.h"
+#include	"visuals_utils.h"
+
+const NamedVisual sharedTinySpitVisual = BuildVisual("Bullsquid.TinySpitBase")
+		.Model("sprites/tinyspit.spr");
 
 // Slow big poisonous ball as alternative range attack for bullsquid
 #define FEATURE_BULLSQUID_TOXICSPIT 1
 
 #define		SQUID_SPRINT_DIST	256.0f // how close the squid has to get before starting to sprint and refusing to swerve
 
-int iSquidSpitSprite;
-	
 //=========================================================
 // monster-specific schedule types
 //=========================================================
@@ -70,86 +73,56 @@ TYPEDESCRIPTION	CSquidSpit::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CSquidSpit, CBaseEntity )
 
-void CSquidSpit::Spawn( void )
+
+const NamedVisual CSquidSpit::spitVisual = BuildVisual::Animated("Bullsquid.Spit")
+		.Model("sprites/bigspit.spr")
+		.RenderMode(kRenderTransAlpha)
+		.Alpha(255)
+		.Scale(0.5f);
+
+const NamedVisual CSquidSpit::fleckVisual = BuildVisual::Spray("Bullsquid.Fleck").Mixin(&sharedTinySpitVisual);
+
+void CSquidSpit::Spawn()
 {
-	SpawnHelper("squidspit");
+	SpawnHelper("squidspit", spitVisual);
+	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_spit"));
 }
 
 void CSquidSpit::Precache()
 {
-	PRECACHE_MODEL( "sprites/bigspit.spr" );
-	PRECACHE_SOUND( "bullchicken/bc_acid1.wav" );
-
-	PRECACHE_SOUND( "bullchicken/bc_spithit1.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_spithit2.wav" );
-
-	iSquidSpitSprite = PRECACHE_MODEL( "sprites/tinyspit.spr" );// client side spittle.
+	RegisterVisualAsMineOwn(spitVisual);
+	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
+	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
+	RegisterVisual(fleckVisual);// client side spittle.
 }
 
-void CSquidSpit::SpawnHelper(const char *className)
+void CSquidSpit::SpawnHelper(const char *className, const char* spitVisualName)
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
 	pev->classname = MAKE_STRING( className );
-
 	pev->solid = SOLID_BBOX;
-	pev->rendermode = kRenderTransAlpha;
-	pev->renderamt = 255;
 
-	SET_MODEL( ENT( pev ), "sprites/bigspit.spr" );
+	ApplyVisualWithOwn(GetVisual(spitVisualName));
 	pev->frame = 0;
-	pev->scale = 0.5f;
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 }
 
-void CSquidSpit::Animate( void )
+void CSquidSpit::Animate()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
-
-	if( pev->frame++ )
-	{
-		if( pev->frame > m_maxFrame )
-		{
-			pev->frame = 0;
-		}
-	}
-}
-
-void CSquidSpit::Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity )
-{
-	CSquidSpit *pSpit = GetClassPtr( (CSquidSpit *)NULL );
-	pSpit->Spawn();
-
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->owner = ENT( pevOwner );
-
-	pSpit->SetThink( &CSquidSpit::Animate );
-	pSpit->pev->nextthink = gpGlobals->time + 0.1f;
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 }
 
 void CSquidSpit::Touch( CBaseEntity *pOther )
 {
 	TraceResult tr;
-	int iPitch;
 
-	// splat sound
-	iPitch = RANDOM_FLOAT( 90.0f, 110.0f );
-
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "bullchicken/bc_acid1.wav", 1, ATTN_NORM, 0, iPitch );
-
-	switch( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_spithit1.wav", 1, ATTN_NORM, 0, iPitch );
-		break;
-	case 1:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_spithit2.wav", 1, ATTN_NORM, 0, iPitch );
-		break;
-	}
+	EmitSoundScript(spitTouchSoundScript);
+	EmitSoundScript(spitHitSoundScript);
 
 	if( !pOther->pev->takedamage )
 	{
@@ -157,30 +130,26 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 		UTIL_TraceLine( pev->origin, pev->origin + pev->velocity * 10, dont_ignore_monsters, ENT( pev ), &tr );
 		UTIL_DecalTrace( &tr, DECAL_SPIT1 + RANDOM_LONG( 0, 1 ) );
 
-		// make some flecks
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos );
-			WRITE_BYTE( TE_SPRITE_SPRAY );
-			WRITE_COORD( tr.vecEndPos.x );	// pos
-			WRITE_COORD( tr.vecEndPos.y );
-			WRITE_COORD( tr.vecEndPos.z );
-			WRITE_COORD( tr.vecPlaneNormal.x );	// dir
-			WRITE_COORD( tr.vecPlaneNormal.y );
-			WRITE_COORD( tr.vecPlaneNormal.z );
-			WRITE_SHORT( iSquidSpitSprite );	// model
-			WRITE_BYTE( 5 );			// count
-			WRITE_BYTE( 30 );			// speed
-			WRITE_BYTE( 80 );			// noise ( client will divide by 100 )
-		MESSAGE_END();
+		SendSpray(tr.vecEndPos, tr.vecPlaneNormal, GetVisual(fleckVisual), 5, 30, 80);
 	}
 	else
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgSpit, DMG_GENERIC );
+		pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_GENERIC) );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time;
+}
+
+void CSquidSpit::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SQUIDSPIT_SPEED, params);
+	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
+	SetThink(&CSquidSpit::Animate);
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 // Bullsquid big slow poisonous spit
@@ -194,125 +163,119 @@ TYPEDESCRIPTION	CSquidToxicSpit::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CSquidToxicSpit, CBaseEntity )
 
-void CSquidToxicSpit::Spawn( void )
+const NamedSoundScript CSquidToxicSpit::acidSoundScript = {
+	CHAN_VOICE,
+	{"bullchicken/bc_acid2.wav"},
+	IntRange(90, 110),
+	"Bullsquid.ToxicSpitTouch"
+};
+
+const NamedSoundScript CSquidToxicSpit::spithitSoundScript = {
+	CHAN_WEAPON,
+	{"bullchicken/bc_spithit2.wav", "bullchicken/bc_spithit3.wav"},
+	IntRange(90, 110),
+	"Bullsquid.ToxicSpitHit"
+};
+
+const NamedVisual CSquidToxicSpit::toxicSpitVisual = BuildVisual::Animated("Bullsquid.ToxicSpit")
+		.Model("sprites/cnt1.spr")
+		.RenderProps(kRenderTransAdd, Color3(110, 120, 0), 228)
+		.Scale(0.8f);
+
+const NamedVisual CSquidToxicSpit::fleckVisual = BuildVisual::Spray("Bullsquid.ToxicFleck").Mixin(&sharedTinySpitVisual);
+
+const NamedVisual CSquidToxicSpit::particleVisual = BuildVisual("Bullsquid.ToxicParticle")
+		.Model("sprites/glow01.spr")
+		.RenderProps(kRenderGlow, Color3(80, 160, 0), 255, kRenderFxNoDissipation)
+		.Scale(0.3f)
+		.Life(0.1f);
+
+void CSquidToxicSpit::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
-	pev->classname = MAKE_STRING( "bigsquidspit" );
-
+	pev->classname = MAKE_STRING( "squidtoxicspit" );
 	pev->solid = SOLID_BBOX;
-	pev->rendermode = kRenderTransAdd;
-	pev->renderamt = 228;
-	pev->rendercolor.x = 110;
-	pev->rendercolor.y = 120;
-	pev->rendercolor.z = 0;
 
-	SET_MODEL( ENT( pev ), "sprites/cnt1.spr" );
+	ApplyVisualWithOwn(GetVisual(toxicSpitVisual));
 	pev->frame = 0;
-	pev->scale = 0.8;
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
+
+	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_toxic_impact"));
 }
 
 void CSquidToxicSpit::Precache()
 {
-	PRECACHE_MODEL( "sprites/cnt1.spr" );
-	PRECACHE_SOUND( "bullchicken/bc_acid2.wav" );
+	RegisterVisualAsMineOwn(toxicSpitVisual);
 
-	PRECACHE_SOUND( "bullchicken/bc_spithit2.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_spithit3.wav" );
+	RegisterAndPrecacheSoundScript(acidSoundScript);
+	RegisterAndPrecacheSoundScript(spithitSoundScript);
 
-	m_iImpactSprite = PRECACHE_MODEL( "sprites/tinyspit.spr" );
-	m_iFleckSprite = PRECACHE_MODEL( "sprites/glow01.spr" );
+	RegisterVisual(fleckVisual);
+	RegisterVisual(particleVisual);
 }
 
 extern int gmsgSpriteTrail;
 
-void CSquidToxicSpit::Animate( void )
+void CSquidToxicSpit::Animate()
 {
 	CBaseEntity* pEntity = NULL;
 	CBaseMonster* spitOwner = GetSpitOwner();
-	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
-		if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
-			if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-				pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, gSkillData.bullsquidDmgToxicPoison, DMG_POISON | DMG_TIMEDNONLETHAL | DMG_IGNORE_ARMOR);
+
+	const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
+	if (poisonDamage > 0.0f)
+	{
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
+			if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
+				if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
+					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor());
+				}
 			}
 		}
 	}
 
 	if (pev->dmgtime < gpGlobals->time)
 	{
-		const Vector end = pev->origin + pev->velocity.Normalize() * 16.0f;
+		Vector end = pev->origin + pev->velocity.Normalize() * 16.0f;
+		end.z += 16.0f;
 
-		// make some flecks
-		MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, pev->origin );
-			WRITE_COORD( pev->origin.x );	// start
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			WRITE_COORD( end.x );	// end
-			WRITE_COORD( end.y );
-			WRITE_COORD( end.z + 16.0f );
-			WRITE_SHORT( m_iFleckSprite );	// model
-			WRITE_BYTE( 3 );			// count
-			WRITE_BYTE( 1 );			// life in 0.1s
-			WRITE_BYTE( 3 );			// scale in 0.1
-			WRITE_BYTE( 20 );			// velocity along vector in 10's
-			WRITE_BYTE( 20 );			// randomness of velocity in 10's
-			WRITE_BYTE( 80 );
-			WRITE_BYTE( 160 );
-			WRITE_BYTE( 0 );
-			WRITE_BYTE( 255 );
-			WRITE_BYTE( 10 ); // random extra life in 0.1s
-		MESSAGE_END();
+		const Visual* visual = GetVisual(particleVisual);
+		if (visual->modelIndex)
+		{
+			MESSAGE_BEGIN( MSG_PVS, gmsgSpriteTrail, pev->origin );
+				WRITE_VECTOR( pev->origin );	// start
+				WRITE_VECTOR( end );	// end
+				WRITE_SHORT( visual->modelIndex );	// model
+				WRITE_BYTE( 3 );			// count
+				WRITE_BYTE( RandomizeNumberFromRange(visual->life)*10 );			// life in 0.1s
+				WRITE_BYTE( (int)(RandomizeNumberFromRange(visual->scale) * 10) );			// scale in 0.1
+				WRITE_BYTE( 20 );			// velocity along vector in 10's
+				WRITE_BYTE( 20 );			// randomness of velocity in 10's
+				WRITE_BYTE( visual->rendermode );
+				WRITE_COLOR( visual->rendercolor );
+				WRITE_BYTE( visual->renderamt.min );
+				WRITE_BYTE( visual->renderamt.max );
+				WRITE_BYTE( visual->renderfx );
+				WRITE_BYTE( 10 ); // random extra life in 0.1s
+			MESSAGE_END();
+		}
 
 		pev->dmgtime = gpGlobals->time + 0.2f;
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1;
-
-	if( pev->frame++ )
-	{
-		if( pev->frame > m_maxFrame )
-		{
-			pev->frame = 0;
-		}
-	}
-}
-
-void CSquidToxicSpit::Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity )
-{
-	CSquidToxicSpit *pSpit = GetClassPtr( (CSquidToxicSpit *)NULL );
-	pSpit->Spawn();
-
-	UTIL_SetOrigin( pSpit->pev, vecStart );
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->owner = ENT( pevOwner );
-
-	pSpit->SetThink( &CSquidToxicSpit::Animate );
-	pSpit->pev->nextthink = gpGlobals->time + 0.1;
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 }
 
 void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 {
 	TraceResult tr;
-	int iPitch;
 
-	// splat sound
-	iPitch = RANDOM_FLOAT( 90, 110 );
-
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "bullchicken/bc_acid2.wav", 1, ATTN_NORM, 0, iPitch );
-
-	switch( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_spithit2.wav", 1, ATTN_NORM, 0, iPitch );
-		break;
-	case 1:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_spithit3.wav", 1, ATTN_NORM, 0, iPitch );
-		break;
-	}
+	EmitSoundScript(acidSoundScript);
+	EmitSoundScript(spithitSoundScript);
 
 	if( !pOther->pev->takedamage )
 	{
@@ -320,20 +283,7 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		UTIL_TraceLine( pev->origin, pev->origin + pev->velocity * 10, dont_ignore_monsters, ENT( pev ), &tr );
 		UTIL_DecalTrace( &tr, DECAL_SPIT1 + RANDOM_LONG( 0, 1 ) );
 
-		// make some flecks
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos );
-			WRITE_BYTE( TE_SPRITE_SPRAY );
-			WRITE_COORD( tr.vecEndPos.x );	// pos
-			WRITE_COORD( tr.vecEndPos.y );
-			WRITE_COORD( tr.vecEndPos.z );
-			WRITE_COORD( tr.vecPlaneNormal.x );	// dir
-			WRITE_COORD( tr.vecPlaneNormal.y );
-			WRITE_COORD( tr.vecPlaneNormal.z );
-			WRITE_SHORT( m_iImpactSprite );	// model
-			WRITE_BYTE( 8 );			// count
-			WRITE_BYTE( 15 );			// speed
-			WRITE_BYTE( 100 );			// noise ( client will divide by 100 )
-		MESSAGE_END();
+		SendSpray(tr.vecEndPos, tr.vecPlaneNormal, GetVisual(fleckVisual), 8, 15, 100);
 	}
 	else if (pev->owner == pOther->edict())
 	{
@@ -345,8 +295,10 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		CBaseMonster* spitOwner = GetSpitOwner();
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
-			pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgToxicImpact, DMG_ACID );
-			pOther->TakeDamage( pev, pevAttacker, gSkillData.bullsquidDmgToxicPoison, DMG_POISON | DMG_TIMEDNONLETHAL | DMG_IGNORE_ARMOR);
+			const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
+			if (poisonDamage > 0)
+				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor() );
+			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
 		}
 	}
 
@@ -358,6 +310,15 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 	if (!FNullEnt(pev->owner))
 		return GetMonsterPointer(pev->owner);
 	return 0;
+}
+
+void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SQUIDSPIT_TOXIC_SPIT, params);
+	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
+	SetThink(&CSquidToxicSpit::Animate);
+	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
 //=========================================================
@@ -376,54 +337,61 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 class CBullsquid : public CBaseMonster
 {
 public:
-	virtual void Spawn(void);
-	virtual void Precache(void);
-	void SetYawSpeed(void);
-	int  DefaultISoundMask(void);
-	virtual int  DefaultClassify(void);
-	const char* DefaultDisplayName() { return "Bullsquid"; }
-	virtual void HandleAnimEvent(MonsterEvent_t *pEvent);
-	virtual void IdleSound(void);
-	virtual void PainSound(void);
-	virtual void DeathSound(void);
-	virtual void AlertSound(void);
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int  DefaultISoundMask() override;
+	int  DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Bullsquid"; }
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
+	void IdleSound() override;
+	void PainSound() override;
+	void DeathSound() override;
+	void AlertSound() override;
 	virtual void AttackSound(bool bigSpit);
-	virtual void StartTask(Task_t *pTask);
-	void RunTask(Task_t *pTask);
-	virtual BOOL CheckMeleeAttack1(float flDot, float flDist);
-	virtual BOOL CheckMeleeAttack2(float flDot, float flDist);
-	virtual BOOL CheckRangeAttack1(float flDot, float flDist);
-	virtual void RunAI(void);
-	BOOL FValidateHintType(short sHint);
-	Schedule_t *GetSchedule(void);
-	Schedule_t *GetScheduleOfType(int Type);
-	virtual int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
-	virtual int IRelationship(CBaseEntity *pTarget);
-	virtual int IgnoreConditions(void);
-	MONSTERSTATE GetIdealState(void);
+	void StartTask(Task_t *pTask) override;
+	void RunTask(Task_t *pTask) override;
+	bool CheckMeleeAttack1(float flDot, float flDist) override;
+	bool CheckMeleeAttack2(float flDot, float flDist) override;
+	bool CheckRangeAttack1(float flDot, float flDist) override;
+	void RunAI() override;
+	bool FValidateHintType(short sHint) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType(int Type) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	int IRelationship(CBaseEntity *pTarget) override;
+	int IgnoreConditions() override;
+	MONSTERSTATE GetIdealState() override;
 
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 
 	CUSTOM_SCHEDULES
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
-	BOOL m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time. 
+	bool PerceiveAsPrey(CBaseEntity* pEntity);
 
-	float m_flLastHurtTime;// we keep track of this, because if something hurts a squid, it will forget about its love of headcrabs for a while.
+	bool m_fCanThreatDisplay;// this is so the squid only does the "I see a headcrab!" dance one time.
+
 	float m_flNextSpitTime;// last time the bullsquid used the spit attack.
 	float m_flNextHopTime;
 
-	static const char *pIdleSounds[];
-	static const char *pAlertSounds[];
-	static const char *pPainSounds[];
-	static const char *pDieSounds[];
-	static const char *pAttackGrowlSounds[];
+	static const NamedSoundScript idleSoundScript;
+	static const NamedSoundScript alertSoundScript;
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript attackGrowlSoundScript;
+	static const NamedSoundScript attackSoundScript;
+	static const NamedSoundScript attackToxicSoundScript;
+	static const NamedSoundScript biteSoundScript;
+
+	static const NamedVisual tinySpitVisual;
+	static const NamedVisual toxicTinySpitVisual;
 };
 
 LINK_ENTITY_TO_CLASS( monster_bullchicken, CBullsquid )
@@ -431,70 +399,88 @@ LINK_ENTITY_TO_CLASS( monster_bullchicken, CBullsquid )
 TYPEDESCRIPTION	CBullsquid::m_SaveData[] =
 {
 	DEFINE_FIELD( CBullsquid, m_fCanThreatDisplay, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CBullsquid, m_flLastHurtTime, FIELD_TIME ),
 	DEFINE_FIELD( CBullsquid, m_flNextSpitTime, FIELD_TIME ),
 	DEFINE_FIELD( CBullsquid, m_flNextHopTime, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CBullsquid, CBaseMonster )
 
-const char *CBullsquid::pIdleSounds[] =
-{
-	"bullchicken/bc_idle1.wav",
-	"bullchicken/bc_idle2.wav",
-	"bullchicken/bc_idle3.wav",
-	"bullchicken/bc_idle4.wav",
-	"bullchicken/bc_idle5.wav",
+#define SQUID_ATTN_IDLE	1.5f
+
+const NamedSoundScript CBullsquid::idleSoundScript = {
+	CHAN_VOICE,
+	{"bullchicken/bc_idle1.wav", "bullchicken/bc_idle2.wav", "bullchicken/bc_idle3.wav", "bullchicken/bc_idle4.wav", "bullchicken/bc_idle5.wav"},
+	1.0f,
+	SQUID_ATTN_IDLE,
+	"Bullsquid.Idle"
 };
 
-const char *CBullsquid::pAlertSounds[] =
-{
-	"bullchicken/bc_idle1.wav",
-	"bullchicken/bc_idle2.wav",
+const NamedSoundScript CBullsquid::alertSoundScript = {
+	CHAN_VOICE,
+	{ "bullchicken/bc_idle1.wav", "bullchicken/bc_idle2.wav" },
+	IntRange(140, 160),
+	"Bullsquid.Alert"
 };
 
-const char *CBullsquid::pPainSounds[] =
-{
-	"bullchicken/bc_pain1.wav",
-	"bullchicken/bc_pain2.wav",
-	"bullchicken/bc_pain3.wav",
-	"bullchicken/bc_pain4.wav",
+const NamedSoundScript CBullsquid::painSoundScript = {
+	CHAN_VOICE,
+	{"bullchicken/bc_pain1.wav", "bullchicken/bc_pain2.wav", "bullchicken/bc_pain3.wav", "bullchicken/bc_pain4.wav"},
+	IntRange(85, 120),
+	"Bullsquid.Pain"
 };
 
-const char *CBullsquid::pDieSounds[] =
-{
-	"bullchicken/bc_die1.wav",
-	"bullchicken/bc_die2.wav",
-	"bullchicken/bc_die3.wav",
+const NamedSoundScript CBullsquid::dieSoundScript = {
+	CHAN_VOICE,
+	{"bullchicken/bc_die1.wav", "bullchicken/bc_die2.wav", "bullchicken/bc_die3.wav"},
+	"Bullsquid.Die"
 };
 
-const char *CBullsquid::pAttackGrowlSounds[] =
-{
-	"bullchicken/bc_attackgrowl.wav",
-	"bullchicken/bc_attackgrowl2.wav",
-	"bullchicken/bc_attackgrowl3.wav",
+const NamedSoundScript CBullsquid::attackGrowlSoundScript = {
+	CHAN_VOICE,
+	{"bullchicken/bc_attackgrowl.wav", "bullchicken/bc_attackgrowl2.wav", "bullchicken/bc_attackgrowl3.wav"},
+	"Bullsquid.Growl"
 };
+
+const NamedSoundScript CBullsquid::attackSoundScript = {
+	CHAN_WEAPON,
+	{"bullchicken/bc_attack2.wav", "bullchicken/bc_attack3.wav"},
+	"Bullsquid.Attack"
+};
+
+const NamedSoundScript CBullsquid::attackToxicSoundScript = {
+	CHAN_WEAPON,
+	{"bullchicken/bc_attack1.wav"},
+	"Bullsquid.AttackToxic"
+};
+
+const NamedSoundScript CBullsquid::biteSoundScript = {
+	CHAN_WEAPON,
+	{"bullchicken/bc_bite2.wav", "bullchicken/bc_bite3.wav"},
+	IntRange(90, 110),
+	"Bullsquid.Bite"
+};
+
+const NamedVisual CBullsquid::tinySpitVisual = BuildVisual::Spray("Bullsquid.TinySpit").Mixin(&sharedTinySpitVisual);
+
+const NamedVisual CBullsquid::toxicTinySpitVisual = BuildVisual::Spray("Bullsquid.ToxicTinySpit").Mixin(&sharedTinySpitVisual);
 
 //=========================================================
 // IgnoreConditions 
 //=========================================================
-int CBullsquid::IgnoreConditions( void )
+int CBullsquid::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
-	if( gpGlobals->time - m_flLastHurtTime <= 20.0f )
+	if (gpGlobals->time - m_lastHurtTime <= 20.0f)
 	{
-		// haven't been hurt in 20 seconds, so let the squid care about stink. 
-		iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
+		// haven't been hurt in 20 seconds, so let the squid care about stink.
+		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
-	if( m_hEnemy != 0 )
+	if (PerceiveAsPrey(m_hEnemy))
 	{
-		if( FClassnameIs( m_hEnemy->pev, "monster_headcrab" ) )
-		{
-			// (Unless after a tasty headcrab)
-			iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
-		}
+		// (Unless after a tasty headcrab)
+		iIgnore |= bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
 	return iIgnore;
@@ -506,7 +492,7 @@ int CBullsquid::IgnoreConditions( void )
 //=========================================================
 int CBullsquid::IRelationship( CBaseEntity *pTarget )
 {
-	if( gpGlobals->time - m_flLastHurtTime < 5.0f && IDefaultRelationship(pTarget) >= R_DL && FClassnameIs( pTarget->pev, "monster_headcrab" ) )
+	if (gpGlobals->time - m_lastHurtTime < 5.0f && PerceiveAsPrey(pTarget))
 	{
 		// if squid has been hurt in the last 5 seconds, and is getting relationship for a headcrab, 
 		// tell squid to disregard crab. 
@@ -520,21 +506,16 @@ int CBullsquid::IRelationship( CBaseEntity *pTarget )
 // TakeDamage - overridden for bullsquid so we can keep track
 // of how much time has passed since it was last injured
 //=========================================================
-int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	float flDist;
-	Vector vecApex;
-
 	// if the squid is running, has an enemy, was hurt by the enemy, hasn't been hurt in the last 3 seconds, and isn't too close to the enemy,
 	// it will swerve. (whew).
-	if( m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3.0f )
+	if (m_hEnemy != 0 && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_lastHurtTime > 3.0f)
 	{
-		flDist = ( pev->origin - m_hEnemy->pev->origin ).Length2D();
-
-		if( flDist > SQUID_SPRINT_DIST )
+		if( ( pev->origin - m_hEnemy->pev->origin ).IsLength2DGreaterThan(SQUID_SPRINT_DIST) )
 		{
-			flDist = ( pev->origin - m_Route[m_iRouteIndex].vecLocation ).Length2D();// reusing flDist.
-
+			float flDist = ( pev->origin - m_Route[m_iRouteIndex].vecLocation ).Length2D();
+			Vector vecApex;
 			if( FTriangulate( pev->origin, m_Route[m_iRouteIndex].vecLocation, flDist * 0.5f, m_hEnemy, &vecApex ) )
 			{
 				InsertWaypoint( vecApex, bits_MF_TO_DETOUR | bits_MF_DONT_SIMPLIFY );
@@ -542,24 +523,18 @@ int CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		}
 	}
 
-	if( pevAttacker && !FClassnameIs( pevAttacker, "monster_headcrab" ) )
-	{
-		// don't forget about headcrabs if it was a headcrab that hurt the squid.
-		m_flLastHurtTime = gpGlobals->time;
-	}
-
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
 //=========================================================
 // CheckRangeAttack1
 //=========================================================
-BOOL CBullsquid::CheckRangeAttack1( float flDot, float flDist )
+bool CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( IsMoving() && flDist >= 512.0f )
 	{
 		// squid will far too far behind if he stops running to spit at this distance from the enemy.
-		return FALSE;
+		return false;
 	}
 
 	if( flDist > 64.0f && flDist <= 784.0f && flDot >= 0.5f && gpGlobals->time >= m_flNextSpitTime )
@@ -569,7 +544,7 @@ BOOL CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 			if( fabs( pev->origin.z - m_hEnemy->pev->origin.z ) > 256.0f )
 			{
 				// don't try to spit at someone up really high or down really low.
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -584,23 +559,21 @@ BOOL CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 			m_flNextSpitTime = gpGlobals->time + 0.5f;
 		}
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // CheckMeleeAttack1 - bullsquid is a big guy, so has a longer
 // melee range than most monsters. This is the tailwhip attack
 //=========================================================
-BOOL CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
+bool CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
 {
-	if( m_hEnemy->pev->health <= gSkillData.bullsquidDmgWhip && flDist <= 85.0f && flDot >= 0.7f )
-	{
-		return TRUE;
-	}
-	return FALSE;
+	CheckMeleeAttackParams params;
+	params.distance = 85.0f;
+	return m_hEnemy->pev->health <= GetSkillValue("bullsquid_dmg_whip") && CheckMeleeAttackImpl(flDot, flDist, params, false);
 }
 
 //=========================================================
@@ -609,19 +582,17 @@ BOOL CBullsquid::CheckMeleeAttack1( float flDot, float flDist )
 // this attack will not be performed if the tailwhip attack
 // is valid.
 //=========================================================
-BOOL CBullsquid::CheckMeleeAttack2( float flDot, float flDist )
+bool CBullsquid::CheckMeleeAttack2( float flDot, float flDist )
 {
-	if( flDist <= 85.0f && flDot >= 0.7f && !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )		// The player & bullsquid can be as much as their bboxes 
-	{										// apart (48 * sqrt(3)) and he can still attack (85 is a little more than 48*sqrt(3))
-		return TRUE;
-	}
-	return FALSE;
+	CheckMeleeAttackParams params;
+	params.distance = 85.0f;
+	return !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) && CheckMeleeAttackImpl(flDot, flDist, params, true);
 }
 
 //=========================================================
 //  FValidateHintType 
 //=========================================================
-BOOL CBullsquid::FValidateHintType( short sHint )
+bool CBullsquid::FValidateHintType( short sHint )
 {
 	size_t i;
 
@@ -634,12 +605,12 @@ BOOL CBullsquid::FValidateHintType( short sHint )
 	{
 		if( sSquidHints[i] == sHint )
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
 	ALERT( at_aiconsole, "%s couldn't validate hint type\n", STRING(pev->classname) );
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -647,7 +618,7 @@ BOOL CBullsquid::FValidateHintType( short sHint )
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CBullsquid::DefaultISoundMask( void )
+int CBullsquid::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -661,7 +632,7 @@ int CBullsquid::DefaultISoundMask( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CBullsquid::DefaultClassify( void )
+int CBullsquid::DefaultClassify()
 {
 	return CLASS_ALIEN_PREDATOR;
 }
@@ -669,35 +640,33 @@ int CBullsquid::DefaultClassify( void )
 //=========================================================
 // IdleSound 
 //=========================================================
-#define SQUID_ATTN_IDLE	(float)1.5
-void CBullsquid::IdleSound( void )
+
+void CBullsquid::IdleSound()
 {
-	EMIT_SOUND( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY(pIdleSounds), 1, SQUID_ATTN_IDLE );
+	EmitSoundScript(idleSoundScript);
 }
 
 //=========================================================
 // PainSound 
 //=========================================================
-void CBullsquid::PainSound( void )
+void CBullsquid::PainSound()
 {
-	int iPitch = RANDOM_LONG( 85, 120 );
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY(pPainSounds), 1, ATTN_NORM, 0, iPitch );
+	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================
 // AlertSound
 //=========================================================
-void CBullsquid::AlertSound( void )
+void CBullsquid::AlertSound()
 {
-	int iPitch = RANDOM_LONG( 140, 160 );
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY(pAlertSounds), 1, ATTN_NORM, 0, iPitch );
+	EmitSoundScript(alertSoundScript);
 }
 
 //=========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CBullsquid::SetYawSpeed( void )
+void CBullsquid::SetYawSpeed()
 {
 	int ys = 0;
 
@@ -740,18 +709,14 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				const Vector vecSpitOffset = ( gpGlobals->v_right * 8.0f + gpGlobals->v_forward * 37.0f + gpGlobals->v_up * 23.0f );
 				const Vector vecSpitOrigin = ( pev->origin + vecSpitOffset );
 
-				float dirRandomDeviation = 0.05f;
-				if (g_iSkillLevel == SKILL_HARD)
-					dirRandomDeviation = 0.01f;
-				else if (g_iSkillLevel == SKILL_MEDIUM)
-					dirRandomDeviation = 0.03f;
+				float dirRandomDeviation = GetSkillValue("bullsquid_spit_inaccuracy") * 0.01f;
 				float distanceToEnemy;
 
 				const Vector vecSpitDir = SpitAtEnemy(vecSpitOrigin, dirRandomDeviation, &distanceToEnemy);
 
 				bool toxicSpit = false;
 #if FEATURE_BULLSQUID_TOXICSPIT
-				if (gSkillData.bullsquidToxicity > 0.0f && RANDOM_LONG(0,1))
+				if (GetSkillValue("bullsquid_toxicity") > 0.0f && RANDOM_LONG(0,1))
 				{
 					if (distanceToEnemy < 400) {
 						toxicSpit = true;
@@ -762,59 +727,38 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				// do stuff for this event.
 				AttackSound(toxicSpit);
 
+				const Visual* visual = toxicSpit ? GetVisual(toxicTinySpitVisual) : GetVisual(tinySpitVisual);
 				// spew the spittle temporary ents.
-				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpitOrigin );
-					WRITE_BYTE( TE_SPRITE_SPRAY );
-					WRITE_COORD( vecSpitOrigin.x );	// pos
-					WRITE_COORD( vecSpitOrigin.y );
-					WRITE_COORD( vecSpitOrigin.z );
-					WRITE_COORD( vecSpitDir.x );	// dir
-					WRITE_COORD( vecSpitDir.y );	
-					WRITE_COORD( vecSpitDir.z );	
-					WRITE_SHORT( iSquidSpitSprite );	// model
-					WRITE_BYTE( 15 );			// count
-					WRITE_BYTE( 210 );			// speed
-					WRITE_BYTE( 25 );			// noise ( client will divide by 100 )
-				MESSAGE_END();
+				SendSpray(vecSpitOrigin, vecSpitDir, visual, 15, 210, 25);
 
-				if (toxicSpit) {
-					CSquidToxicSpit::Shoot(pev, vecSpitOrigin, vecSpitDir * CSquidToxicSpit::SpitSpeed());
-				} else {
-					CSquidSpit::Shoot( pev, vecSpitOrigin, vecSpitDir * CSquidSpit::SpitSpeed() );
-				}
+				ProjectileParameters params(toxicSpit ? "squidtoxicspit" : "squidspit", vecSpitOrigin, UTIL_VecToAngles(vecSpitDir), vecSpitDir, this, GetProjectileOverrides());
+				CreateAndLaunchAsProjectile(params);
 			}
 			break;
 		case BSQUID_AE_BITE:
 			{
 				// SOUND HERE!
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.bullsquidDmgBite, DMG_SLASH );
+				TraceHullAttackParams params;
+				params.knockForward = -100.0f;
+				params.knockUp = 100.0f;
+				params.damageInfo.damage = GetSkillValue("bullsquid_dmg_bite");
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				if( pHurt )
-				{
-					if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-					{
-						//pHurt->pev->punchangle.z = -15;
-						//pHurt->pev->punchangle.x = -45;
-						pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 100.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100.0f;
-					}
-				}
+				PerformTraceHullAttack(params);
 			}
 			break;
 		case BSQUID_AE_TAILWHIP:
 			{
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.bullsquidDmgWhip, DMG_CLUB | DMG_ALWAYSGIB );
+				TraceHullAttackParams params;
+				params.punchAngle = Vector(20.0f, 0.0f, -20.0f);
+				params.knockRight = 200.0f;
+				params.knockUp = 100.0f;
+				params.damageInfo.damage = GetSkillValue("bullsquid_dmg_whip");
+				params.damageInfo.type = DMG_CLUB;
+				params.damageInfo.SetGibPolicy(GIB_ALWAYS);
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				if( pHurt ) 
-				{
-					if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-					{
-						pHurt->pev->punchangle.z = -20.0f;
-						pHurt->pev->punchangle.x = 20.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * 200.0f;
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100.0f;
-					}
-				}
+				PerformTraceHullAttack(params);
 			}
 			break;
 		case BSQUID_AE_BLINK:
@@ -840,37 +784,25 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		case BSQUID_AE_THROW:
 			{
-				int iPitch;
+				// squid throws its prey IF the prey is a client.
+				TraceHullAttackParams params;
+				params.knockPlayerOnly = true;
+				params.knockForward = 300.0f;
+				params.knockUp = 300.0f;
+				params.useAimVectors = false;
+				params.hitSoundScript = biteSoundScript; // croonchy bite sound
+				SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
 
-				// squid throws its prey IF the prey is a client. 
-				CBaseEntity *pHurt = CheckTraceHullAttack( 70, 0, 0 );
+				CBaseEntity *pHurt = PerformTraceHullAttack( params );
 
 				if( pHurt )
 				{
-					// croonchy bite sound
-					iPitch = RANDOM_FLOAT( 90.0f, 110.0f );
-					switch( RANDOM_LONG( 0, 1 ) )
-					{
-					case 0:
-						EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_bite2.wav", 1.0f, ATTN_NORM, 0, iPitch );
-						break;
-					case 1:
-						EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_bite3.wav", 1.0f, ATTN_NORM, 0, iPitch );
-						break;
-					}
-
 					//pHurt->pev->punchangle.x = RANDOM_LONG( 0, 34 ) - 5;
 					//pHurt->pev->punchangle.z = RANDOM_LONG( 0, 49 ) - 25;
 					//pHurt->pev->punchangle.y = RANDOM_LONG( 0, 89 ) - 45;
 		
 					// screeshake transforms the viewmodel as well as the viewangle. No problems with seeing the ends of the viewmodels.
 					UTIL_ScreenShake( pHurt->pev->origin, 25.0f, 1.5f, 0.7f, 2.0f );
-
-					if( pHurt->IsPlayer() )
-					{
-						UTIL_MakeVectors( pev->angles );
-						pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 300.0f + gpGlobals->v_up * 300.0f;
-					}
 				}
 			}
 			break;
@@ -887,17 +819,18 @@ void CBullsquid::Spawn()
 	Precache();
 
 	SetMyModel( "models/bullsquid.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	pev->effects = 0;
-	SetMyHealth( gSkillData.bullsquidHealth );
+	SetMyHealth( GetSkillValue("bullsquid_health") );
 	SetMyFieldOfView(0.2f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
+	SetMyCanOpenDoors(false);
 
-	m_fCanThreatDisplay = TRUE;
+	m_fCanThreatDisplay = true;
 	m_flNextSpitTime = gpGlobals->time;
 
 	MonsterInit();
@@ -909,34 +842,35 @@ void CBullsquid::Spawn()
 void CBullsquid::Precache()
 {
 	PrecacheMyModel( "models/bullsquid.mdl" );
+	PrecacheMyGibModel();
 
-	UTIL_PrecacheOther("squidspit");
+	UTIL_PrecacheOther("squidspit", GetProjectileOverrides());
 #if FEATURE_BULLSQUID_TOXICSPIT
-	UTIL_PrecacheOther("squidtoxicspit"); // toxic spit projectile
+	UTIL_PrecacheOther("squidtoxicspit", GetProjectileOverrides()); // toxic spit projectile
 #endif
 
-	PRECACHE_SOUND( "zombie/claw_miss2.wav" );// because we use the basemonster SWIPE animation event
+	RegisterVisual(tinySpitVisual);
+	RegisterVisual(toxicTinySpitVisual);
 
-	PRECACHE_SOUND( "bullchicken/bc_attack1.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_attack2.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_attack3.wav" );
+	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);// because we use the basemonster SWIPE animation event
 
-	PRECACHE_SOUND_ARRAY(pIdleSounds);
-	PRECACHE_SOUND_ARRAY(pAlertSounds);
-	PRECACHE_SOUND_ARRAY(pPainSounds);
-	PRECACHE_SOUND_ARRAY(pDieSounds);
-	PRECACHE_SOUND_ARRAY(pAttackGrowlSounds);
+	RegisterAndPrecacheSoundScript(idleSoundScript);
+	RegisterAndPrecacheSoundScript(alertSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(attackGrowlSoundScript);
 
-	PRECACHE_SOUND( "bullchicken/bc_bite2.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_bite3.wav" );
+	RegisterAndPrecacheSoundScript(attackSoundScript);
+	RegisterAndPrecacheSoundScript(attackToxicSoundScript);
+	RegisterAndPrecacheSoundScript(biteSoundScript);
 }
 
 //=========================================================
 // DeathSound
 //=========================================================
-void CBullsquid::DeathSound( void )
+void CBullsquid::DeathSound()
 {
-	EMIT_SOUND( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY(pDieSounds), 1, ATTN_NORM );
+	EmitSoundScript(dieSoundScript);
 }
 
 //=========================================================
@@ -945,17 +879,9 @@ void CBullsquid::DeathSound( void )
 void CBullsquid::AttackSound( bool bigSpit )
 {
 	if (bigSpit) {
-		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_attack1.wav", 1, ATTN_NORM );
+		EmitSoundScript(attackToxicSoundScript);
 	} else {
-		switch( RANDOM_LONG( 0, 1 ) )
-		{
-		case 0:
-			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_attack2.wav", 1, ATTN_NORM );
-			break;
-		case 1:
-			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "bullchicken/bc_attack3.wav", 1, ATTN_NORM );
-			break;
-		}
+		EmitSoundScript(attackSoundScript);
 	}
 }
 
@@ -963,7 +889,7 @@ void CBullsquid::AttackSound( bool bigSpit )
 // RunAI - overridden for bullsquid because there are things
 // that need to be checked every think.
 //========================================================
-void CBullsquid::RunAI( void )
+void CBullsquid::RunAI()
 {
 	// first, do base class stuff
 	CBaseMonster::RunAI();
@@ -982,7 +908,7 @@ void CBullsquid::RunAI( void )
 	if( m_hEnemy != 0 && m_Activity == ACT_RUN )
 	{
 		// chasing enemy. Sprint for last bit
-		if( ( pev->origin - m_hEnemy->pev->origin).Length2D() < SQUID_SPRINT_DIST )
+		if( ( pev->origin - m_hEnemy->pev->origin).IsLength2DLessThan(SQUID_SPRINT_DIST) )
 		{
 			pev->framerate = 1.25f;
 		}
@@ -1251,7 +1177,7 @@ IMPLEMENT_CUSTOM_SCHEDULES( CBullsquid, CBaseMonster )
 //=========================================================
 // GetSchedule 
 //=========================================================
-Schedule_t *CBullsquid::GetSchedule( void )
+Schedule_t *CBullsquid::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -1269,9 +1195,7 @@ Schedule_t *CBullsquid::GetSchedule( void )
 
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 				
 				if( pSound && ( !FInViewCone( &pSound->m_vecOrigin ) || !FVisible( pSound->m_vecOrigin ) ) )
 				{
@@ -1286,9 +1210,7 @@ Schedule_t *CBullsquid::GetSchedule( void )
 			if( HasConditions( bits_COND_SMELL ) )
 			{
 				// there's something stinky. 
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 				if( pSound )
 					return GetScheduleOfType( SCHED_SQUID_WALLOW );
 			}
@@ -1305,10 +1227,10 @@ Schedule_t *CBullsquid::GetSchedule( void )
 
 			if( HasConditions( bits_COND_NEW_ENEMY ) )
 			{
-				if( m_fCanThreatDisplay && IRelationship( m_hEnemy ) == R_HT )
+				if (m_fCanThreatDisplay && PerceiveAsPrey(m_hEnemy))
 				{
 					// this means squid sees a headcrab!
-					m_fCanThreatDisplay = FALSE;// only do the headcrab dance once per lifetime.
+					m_fCanThreatDisplay = false;// only do the headcrab dance once per lifetime.
 					return GetScheduleOfType( SCHED_SQUID_SEECRAB );
 				}
 				else
@@ -1317,11 +1239,13 @@ Schedule_t *CBullsquid::GetSchedule( void )
 				}
 			}
 
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{
-				CSound *pSound;
-
-				pSound = PBestScent();
+				CSound *pSound = PBestScent();
 
 				if( pSound && ( !FInViewCone( &pSound->m_vecOrigin ) || !FVisible( pSound->m_vecOrigin ) ) )
 				{
@@ -1407,7 +1331,7 @@ void CBullsquid::StartTask( Task_t *pTask )
 	{
 	case TASK_MELEE_ATTACK2:
 		{
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY(pAttackGrowlSounds), 1, ATTN_NORM );
+			EmitSoundScript(attackGrowlSoundScript);
 			CBaseMonster::StartTask( pTask );
 			break;
 		}
@@ -1477,11 +1401,9 @@ void CBullsquid::RunTask( Task_t *pTask )
 // the feature that makes it lose interest in headcrabs for 
 // a while if something injures it. 
 //=========================================================
-MONSTERSTATE CBullsquid::GetIdealState( void )
+MONSTERSTATE CBullsquid::GetIdealState()
 {
-	int iConditions;
-
-	iConditions = IScheduleFlags();
+	int iConditions = IScheduleFlags();
 
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )
@@ -1491,10 +1413,10 @@ MONSTERSTATE CBullsquid::GetIdealState( void )
 		COMBAT goes to ALERT upon death of enemy
 		*/
 		{
-			if( m_hEnemy != 0 && ( iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE ) && FClassnameIs( m_hEnemy->pev, "monster_headcrab" ) )
+			if (( iConditions & bits_COND_LIGHT_DAMAGE || iConditions & bits_COND_HEAVY_DAMAGE ) && PerceiveAsPrey(m_hEnemy))
 			{
 				// if the squid has a headcrab enemy and something hurts it, it's going to forget about the crab for a while.
-				m_hEnemy = NULL;
+				m_hEnemy = 0;
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 			}
 			break;
@@ -1508,13 +1430,27 @@ MONSTERSTATE CBullsquid::GetIdealState( void )
 	return m_IdealMonsterState;
 }
 
+bool CBullsquid::PerceiveAsPrey(CBaseEntity *pEntity)
+{
+	if (pEntity && pEntity != this)
+	{
+		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
+		if (pMonster)
+		{
+			return IDefaultRelationship(pEntity) == R_HT && pMonster->IDefaultRelationship(this) == R_FR;
+		}
+	}
+	return false;
+}
+
 class CDeadBullsquid : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/bullsquid.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CDeadBullsquid::getPos(int pos) const
@@ -1524,9 +1460,9 @@ const char* CDeadBullsquid::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_bullchicken_dead, CDeadBullsquid )
 
-void CDeadBullsquid :: Spawn( )
+void CDeadBullsquid::Spawn()
 {
-	SpawnHelper("models/bullsquid.mdl", BLOOD_COLOR_YELLOW, gSkillData.bullsquidHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("bullsquid_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }

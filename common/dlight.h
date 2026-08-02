@@ -16,9 +16,12 @@
 #if !defined(DLIGHT_H)
 #define DLIGHT_H
 
+#include "common_types.h"
+#include "vector.h"
+
 typedef struct dlight_s
 {
-	vec3_t		origin;
+	Vector		origin;
 	float		radius;
 	color24		color;
 	float		die;	// stop lighting after this time

@@ -20,16 +20,12 @@
 #define AMMOHISTORY_H
 
 #include "ammo.h"
+#include "bucket_preferences.h"
+
+#include <cstdint>
 
 // this is the max number of items in each bucket
-#define MAX_WEAPON_POSITIONS		8
-
-struct BucketPreference
-{
-	char szName[MAX_WEAPON_NAME];
-	int iPreferredSlot;
-	int iPreferredSlotPos;
-};
+#define MAX_WEAPON_POSITIONS		10
 
 class WeaponsResource
 {
@@ -42,14 +38,14 @@ private:
 	int			riAmmo[MAX_AMMO_TYPES];					// count of each ammo type
 
 	WEAPON*	weaponTable[WEAPON_SLOTS_HARDLIMIT][MAX_WEAPON_POSITIONS + 1]; // Unlike rgSlots this is always filled with registered weapons
-	BucketPreference bucketPreferences[MAX_WEAPONS];
+	BucketPreferenceSet bucketPreferences;
 public:
-	void Init( void );
+	void Init();
 
-	void Reset( void );
+	void Reset();
 
 ///// WEAPON /////
-	int			iOldWeaponBits;
+	std::uint64_t iOldWeaponBits;
 
 	WEAPON *GetWeapon( int iId ) { return &rgWeapons[iId]; }
 	void AddWeapon( WEAPON *wp );
@@ -64,7 +60,7 @@ public:
 		rgSlots[wp->iSlot][wp->iSlotPos] = NULL;
 	}
 
-	void DropAllWeapons( void )
+	void DropAllWeapons()
 	{
 		for( int i = 0; i < MAX_WEAPONS; i++ )
 		{
@@ -76,12 +72,12 @@ public:
 	WEAPON* GetWeaponSlot( int slot, int pos ) { return rgSlots[slot][pos]; }
 
 	void LoadWeaponSprites( WEAPON* wp );
-	void LoadAllWeaponSprites( void );
+	void LoadAllWeaponSprites();
 	WEAPON* GetFirstPos( int iSlot );
 	void SelectSlot( int iSlot, int fAdvance, int iDirection );
 	WEAPON* GetNextActivePos( int iSlot, int iSlotPos );
 
-	int HasAmmo( WEAPON *p );
+	bool HasAmmo( WEAPON *p );
 
 ///// AMMO /////
 	AMMO GetAmmo( int iId ) { return iId; }
@@ -113,29 +109,33 @@ private:
 		float DisplayTime;  // the time at which this item should be removed from the history
 		int iCount;
 		int iId;
+		int packedColor;
 	};
 
 	HIST_ITEM rgAmmoHistory[MAX_HISTORY];
 
+	void ScaleColorsAccordingToDisplayTime(float displayTime, float flTime, int& r, int& g, int& b);
+
 public:
 
-	void Init( void )
+	void Init()
 	{
 		Reset();
 	}
 
-	void Reset( void )
+	void Reset()
 	{
 		memset( rgAmmoHistory, 0, sizeof rgAmmoHistory );
+		iCurrentHistorySlot = 0;
 	}
 
 	int iHistoryGap;
 	int iCurrentHistorySlot;
 
 	void AddToHistory( int iType, int iId, int iCount = 0 );
-	void AddToHistory( int iType, const char *szName, int iCount = 0 );
+	void AddToHistory(int iType, const char *szName, int iCount = 0, int packedColor = 0);
 
-	void CheckClearHistory( void );
+	void CheckClearHistory();
 	int DrawAmmoHistory( float flTime );
 };
 

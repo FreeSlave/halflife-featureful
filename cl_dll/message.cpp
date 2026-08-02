@@ -20,9 +20,8 @@
 
 #include "hud.h"
 #include "cl_util.h"
-#include <string.h>
-#include <stdio.h>
 #include "parsemsg.h"
+#include "unicode.h"
 
 DECLARE_MESSAGE( m_Message, HudText )
 DECLARE_MESSAGE( m_Message, GameTitle )
@@ -32,7 +31,7 @@ client_textmessage_t	g_pCustomMessage;
 const char *g_pCustomName = "Custom";
 char g_pCustomText[1024];
 
-int CHudMessage::Init( void )
+int CHudMessage::Init()
 {
 	HOOK_MESSAGE( HudText );
 	HOOK_MESSAGE( GameTitle );
@@ -44,21 +43,18 @@ int CHudMessage::Init( void )
 	return 1;
 }
 
-int CHudMessage::VidInit( void )
+int CHudMessage::VidInit()
 {
 	m_HUD_title_half = gHUD.GetSpriteIndex( "title_half" );
 	m_HUD_title_life = gHUD.GetSpriteIndex( "title_life" );
 
-	if (gHUD.clientFeatures.opfor_title)
-	{
-		m_HUD_title_opposing = gHUD.GetSpriteIndex( "title_opposing" );
-		m_HUD_title_force = gHUD.GetSpriteIndex( "title_force" );
-	}
+	m_HUD_title_opposing = gHUD.GetSpriteIndex( "title_opposing" );
+	m_HUD_title_force = gHUD.GetSpriteIndex( "title_force" );
 
 	return 1;
 }
 
-void CHudMessage::Reset( void )
+void CHudMessage::Reset()
 {
  	memset( m_pMessages, 0, sizeof(m_pMessages[0]) * maxHUDMessages );
 	memset( m_startTime, 0, sizeof(m_startTime[0]) * maxHUDMessages );
@@ -140,21 +136,32 @@ int CHudMessage::YPosition( float y, int height )
 	return yPos;
 }
 
-void CHudMessage::MessageScanNextChar( void )
+void CHudMessage::MessageScanNextChar()
+{
+	SetColorParams(false);
+
+	if( m_parms.pMessage->effect == 1 && m_parms.charTime != 0 )
+	{
+		if( m_parms.x >= 0 && m_parms.y >= 0 && ( m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text] ) <= ScreenWidth )
+			TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2 );
+	}
+}
+
+void CHudMessage::SetColorParams(bool consoleFont)
 {
 	int srcRed, srcGreen, srcBlue, destRed = 0, destGreen = 0, destBlue = 0;
-	int blend;
+	int blend = 0;	// Pure source
 
 	srcRed = m_parms.pMessage->r1;
 	srcGreen = m_parms.pMessage->g1;
 	srcBlue = m_parms.pMessage->b1;
-	blend = 0;	// Pure source
 
 	switch( m_parms.pMessage->effect )
 	{
 	// Fade-in / Fade-out
 	case 0:
 	case 1:
+	default:
 		destRed = destGreen = destBlue = 0;
 		blend = m_parms.fadeBlend;
 		break;
@@ -164,6 +171,13 @@ void CHudMessage::MessageScanNextChar( void )
 		{
 			srcRed = srcGreen = srcBlue = 0;
 			blend = 0;	// pure source
+			if (consoleFont)
+			{
+				blend = 160;
+				destRed = m_parms.pMessage->r2;
+				destGreen = m_parms.pMessage->g2;
+				destBlue = m_parms.pMessage->b2;
+			}
 		}
 		else
 		{
@@ -193,24 +207,24 @@ void CHudMessage::MessageScanNextChar( void )
 	else if( blend < 0 )
 		blend = 0;
 
+	if (consoleFont && blend > 96)
+	{
+		blend = 96;
+	}
+
 	m_parms.r = ( ( srcRed * ( 255 - blend ) ) + ( destRed * blend ) ) >> 8;
 	m_parms.g = ( ( srcGreen * (255 - blend ) ) + ( destGreen * blend ) ) >> 8;
 	m_parms.b = ( ( srcBlue * ( 255 - blend ) ) + ( destBlue * blend ) ) >> 8;
-
-	if( m_parms.pMessage->effect == 1 && m_parms.charTime != 0 )
-	{
-		if( m_parms.x >= 0 && m_parms.y >= 0 && ( m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text] ) <= ScreenWidth )
-			TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2 );
-	}
 }
 
-void CHudMessage::MessageScanStart( void )
+void CHudMessage::MessageScanStart()
 {
 	switch( m_parms.pMessage->effect )
 	{
 	// Fade-in / out with flicker
 	case 1:
 	case 0:
+	default:
 		m_parms.fadeTime = m_parms.pMessage->fadein + m_parms.pMessage->holdtime;
 		
 
@@ -250,6 +264,8 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	const char *pText;
 	const char *pLineStart;
 
+	bool useConsoleFont = (pMessage->r1 == 0 && pMessage->g1 == 0 && pMessage->b1 == 0) || (pMessage->effect == 3);
+
 	pText = pMessage->pMessage;
 	// Count lines
 	m_parms.lines = 1;
@@ -258,30 +274,71 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 	length = 0;
 	width = 0;
 	m_parms.totalWidth = 0;
+	m_parms.totalHeight = 0;
+
+	char consoleStringBuf[512] = {0};
+	unsigned int consoleBufIndex = 0;
+
+	if (!useConsoleFont)
+	{
+		const char* pCheck = pText;
+		while(*pCheck)
+		{
+			if (*pCheck > 127 || *pCheck < 0)
+			{
+				useConsoleFont = Q_UnicodeValidate(pCheck);
+				break;
+			}
+			pCheck++;
+		}
+	}
+
 	while( *pText )
 	{
 		if( *pText == '\n' )
 		{
 			m_parms.lines++;
+			if (useConsoleFont)
+			{
+				consoleStringBuf[consoleBufIndex] = '\0';
+				consoleBufIndex = 0;
+
+				int height;
+				gEngfuncs.pfnDrawConsoleStringLen( consoleStringBuf, &width, &height );
+				m_parms.totalHeight += height;
+			}
 			if( width > m_parms.totalWidth )
 				m_parms.totalWidth = width;
 			width = 0;
 		}
 		else
-			width += gHUD.m_scrinfo.charWidths[(unsigned char)*pText];
+		{
+			if (useConsoleFont) {
+				if (consoleBufIndex < sizeof(consoleStringBuf)-1)
+					consoleStringBuf[consoleBufIndex++] = *pText;
+			} else {
+				width += gHUD.m_scrinfo.charWidths[(unsigned char)*pText];
+			}
+		}
 		pText++;
 		length++;
 	}
 	m_parms.length = length;
-	m_parms.totalHeight = ( m_parms.lines * gHUD.m_scrinfo.iCharHeight );
+
+	if (!useConsoleFont)
+	{
+		m_parms.totalHeight = ( m_parms.lines * gHUD.m_scrinfo.iCharHeight );
+	}
 
 	m_parms.y = YPosition( pMessage->y, m_parms.totalHeight );
 	pText = pMessage->pMessage;
 
 	m_parms.charTime = 0;
 
-	MessageScanStart();
+	if (!useConsoleFont)
+		MessageScanStart();
 
+	consoleBufIndex = 0;
 	for( i = 0; i < m_parms.lines; i++ )
 	{
 		m_parms.lineLength = 0;
@@ -290,26 +347,52 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 		while( *pText && *pText != '\n' )
 		{
 			unsigned char c = *pText;
-			m_parms.width += gHUD.m_scrinfo.charWidths[c];
+			if (useConsoleFont)
+			{
+				if (consoleBufIndex < sizeof(consoleStringBuf)-1)
+					consoleStringBuf[consoleBufIndex++] = *pText;
+			}
+			else
+			{
+				m_parms.width += gHUD.m_scrinfo.charWidths[c];
+			}
 			m_parms.lineLength++;
 			pText++;
 		}
 		pText++;		// Skip LF
 
-		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
+		int strHeight;
+		if (useConsoleFont) {
+			consoleStringBuf[consoleBufIndex] = '\0';
+			consoleBufIndex = 0;
 
-		for( j = 0; j < m_parms.lineLength; j++ )
-		{
-			m_parms.text = (unsigned char)pLineStart[j];
-			int next = m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text];
-			MessageScanNextChar();
-
-			if( m_parms.x >= 0 && m_parms.y >= 0 && next <= ScreenWidth )
-				TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.r, m_parms.g, m_parms.b );
-			m_parms.x = next;
+			int strLength;
+			gEngfuncs.pfnDrawConsoleStringLen( consoleStringBuf, &strLength, &strHeight );
+			m_parms.width = strLength;
+		} else {
+			strHeight = gHUD.m_scrinfo.iCharHeight;
 		}
 
-		m_parms.y += gHUD.m_scrinfo.iCharHeight;
+		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
+
+		if (useConsoleFont) {
+			SetColorParams(true);
+			gEngfuncs.pfnDrawSetTextColor(m_parms.r/255.0f, m_parms.g/255.0f, m_parms.b/255.0f);
+			gEngfuncs.pfnDrawConsoleString(m_parms.x, m_parms.y, consoleStringBuf);
+		} else {
+			for( j = 0; j < m_parms.lineLength; j++ )
+			{
+				m_parms.text = (unsigned char)pLineStart[j];
+				int next = m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text];
+				MessageScanNextChar();
+
+				if( m_parms.x >= 0 && m_parms.y >= 0 && next <= ScreenWidth )
+					TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.r, m_parms.g, m_parms.b );
+				m_parms.x = next;
+			}
+		}
+
+		m_parms.y += strHeight;
 	}
 }
 
@@ -349,7 +432,7 @@ int CHudMessage::Draw( float fTime )
 			SPR_Set( gHUD.GetSprite( m_HUD_title_life ), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1 );
 			SPR_DrawAdditive( 0, x + halfWidth, y, &gHUD.GetSpriteRect( m_HUD_title_life ) );
 
-			if (gHUD.clientFeatures.opfor_title && m_HUD_title_opposing >= 0 && m_HUD_title_force >= 0)
+			if (m_HUD_title_opposing >= 0 && m_HUD_title_force >= 0)
 			{
 				y += fullHeight;
 
@@ -389,6 +472,7 @@ int CHudMessage::Draw( float fTime )
 			{
 			case 0:
 			case 1:
+			default:
 				endTime = m_startTime[i] + pMessage->fadein + pMessage->fadeout + pMessage->holdtime;
 				break;
 
@@ -427,7 +511,7 @@ int CHudMessage::Draw( float fTime )
 	return 1;
 }
 
-void CHudMessage::MessageAdd( const char *pName, float time )
+void CHudMessage::MessageAdd( const char *pName, float time, bool skipMissing )
 {
 	int i, j;
 	client_textmessage_t *tempMessage;
@@ -441,6 +525,10 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 				tempMessage = TextMessageGet( pName + 1 );
 			else
 				tempMessage = TextMessageGet( pName );
+
+			if (skipMissing && !tempMessage)
+				return;
+
 			// If we couldnt find it in the titles.txt, just create it
 			if( !tempMessage )
 			{
@@ -457,7 +545,7 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 				g_pCustomMessage.fxtime = 0.25f;
 				g_pCustomMessage.holdtime = 5;
 				g_pCustomMessage.pName = g_pCustomName;
-				strcpy( g_pCustomText, pName );
+				strncpyEnsureTermination( g_pCustomText, pName );
 				g_pCustomMessage.pMessage = g_pCustomText;
 
 				tempMessage = &g_pCustomMessage;
@@ -486,6 +574,14 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 
 			m_pMessages[i] = tempMessage;
 			m_startTime[i] = time;
+
+			// Remember the time -- to fix up level transitions
+			m_parms.time = gHUD.m_flTime;
+
+			// Turn on drawing
+			if (!(m_iFlags & HUD_ACTIVE))
+				m_iFlags |= HUD_ACTIVE;
+
 			return;
 		}
 	}
@@ -495,16 +591,10 @@ int CHudMessage::MsgFunc_HudText( const char *pszName,  int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 
-	char *pString = READ_STRING();
+	const char *pString = READ_STRING();
+	const bool skipMissing = READ_BYTE() != 0;
 
-	MessageAdd( pString, gHUD.m_flTime );
-
-	// Remember the time -- to fix up level transitions
-	m_parms.time = gHUD.m_flTime;
-
-	// Turn on drawing
-	if( !( m_iFlags & HUD_ACTIVE ) )
-		m_iFlags |= HUD_ACTIVE;
+	MessageAdd( pString, gHUD.m_flTime, skipMissing );
 
 	return 1;
 }

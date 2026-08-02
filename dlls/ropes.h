@@ -33,230 +33,76 @@ class CRope : public CBaseDelay
 {
 public:
 	CRope();
-	virtual void KeyValue( KeyValueData* pkvd );
+	void KeyValue( KeyValueData* pkvd ) override;
 
-	virtual void Precache();
+	void Precache() override;
 
-	virtual void Spawn();
-	void Activate();
+	void Spawn() override;
+	void Activate() override;
+	void UpdateOnRemove() override;
 
-	int ObjectCaps();
+	int ObjectCaps() override;
 
 	void InitRope();
 	void EXPORT RopeThink();
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	/**
-	*	Initializes the rope simulation data.
-	*/
 	void InitializeRopeSim();
-
-	/**
-	*	Runs simulation on the samples.
-	*/
 	void RunSimOnSamples();
-
-	/**
-	*	Computes forces on the given sample list.
-	*	@param pSystem List of sample data. m_NumSamples Elements large.
-	*/
 	void ComputeForces( RopeSampleData* pSystem );
-
-	/**
-	*	Computes forces on the given sample list.
-	*	@param pSystem List of samples. m_NumSamples Elements large.
-	*/
 	void ComputeForces( CRopeSample** ppSystem );
-
-	/**
-	*	Computes forces for the given sample data.
-	*	@param data Sample data.
-	*/
 	void ComputeSampleForce( RopeSampleData& data );
-
-	/**
-	*	Computes spring force for the given sample datas.
-	*	@param first First sample.
-	*	@param second Second sample.
-	*	@param spring Spring.
-	*/
 	void ComputeSpringForce(RopeSampleData& first, RopeSampleData& second);
-
-	/**
-	*	Runs RK4 integration.
-	*	@param flDeltaTime Delta between previous and current time.
-	*	@param ppSampleSource Previous sample state.
-	*	@param ppSampleTarget Next sample state.
-	*/
 	void RK4Integrate(const float flDeltaTime);
-
-	/**
-	*	Traces model positions and angles and corrects them.
-	*	@param ppPrimarySegs Visible segments.
-	*	@param ppHiddenSegs hidden segments.
-	*/
 	void TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSegs );
-
-	/**
-	*	Traces model positions and angles, makes visible segments visible and hidden segments hidden.
-	*/
 	void SetRopeSegments( const int uiNumSegments,
 						  CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSegs );
 
-	/**
-	*	Moves the attached object up.
-	*	@param flDeltaTime Time between previous and current movement.
-	*	@return true if the object is still on the rope, false otherwise.
-	*/
 	bool MoveUp( const float flDeltaTime );
-
-	/**
-	*	Moves the attached object down.
-	*	@param flDeltaTime Time between previous and current movement.
-	*	@return true if the object is still on the rope, false otherwise.
-	*/
 	bool MoveDown( const float flDeltaTime );
 
-	/**
-	*	@return The attached object's velocity.
-	*/
 	Vector GetAttachedObjectsVelocity() const;
-
-	/**
-	*	Applies force from the player. Only applies if there is currently an object attached to the rope.
-	*	@param vecForce Force.
-	*/
 	void ApplyForceFromPlayer( const Vector& vecForce );
-
-	/**
-	*	Applies force to a specific segment.
-	*	@param vecForce Force.
-	*	@param uiSegment Segment index.
-	*/
 	void ApplyForceToSegment( const Vector& vecForce, const int uiSegment );
-
-	/**
-	*	Attached an object to the given segment.
-	*/
 	void AttachObjectToSegment( CRopeSegment* pSegment );
-
-	/**
-	*	Detaches an attached object.
-	*/
 	void DetachObject(float delay = 2.0f);
-
-	/**
-	*	@return Whether an object is attached.
-	*/
 	bool IsObjectAttached() const { return mObjectAttached; }
-
-	/**
-	*	@return Whether this rope allows attachments.
-	*/
 	bool IsAcceptingAttachment() const;
 
-	/**
-	*	@return The number of segments.
-	*/
 	int GetNumSegments() const { return m_iSegments; }
-
-	/**
-	*	@return The segments.
-	*/
 	CRopeSegment** GetSegments() { return seg; }
-
-	/**
-	*	@return The alternative segments.
-	*/
 	CRopeSegment** GetAltSegments() { return altseg; }
 
-	/**
-	*	@return The toggle value.
-	*/
 	bool GetToggleValue() const { return m_bToggle; }
 
-	/**
-	*	@return Whether this rope is allowed to make sounds.
-	*/
 	bool IsSoundAllowed() const { return m_bMakeSound; }
-
-	/**
-	*	Sets whether this rope is allowed to make sounds.
-	*/
 	void SetSoundAllowed( const bool bAllowed )
 	{
 		m_bMakeSound = bAllowed;
 	}
 
-	/**
-	*	@return Whether this rope should creak.
-	*/
 	bool ShouldCreak() const;
-
-	/**
-	*	Plays a creak sound.
-	*/
 	void Creak();
 
-	/**
-	*	@return The body model name.
-	*/
 	string_t GetBodyModel() const { return mBodyModel; }
-
-	/**
-	*	@return The ending model name.
-	*/
 	string_t GetEndingModel() const { return mEndingModel; }
 
-	/**
-	*	@return Segment length for the given segment.
-	*/
 	float GetSegmentLength( int uiSegmentIndex ) const;
-
-	/**
-	*	@return Total rope length.
-	*/
 	float GetRopeLength() const;
-
-	/**
-	*	@return The rope's origin.
-	*/
 	Vector GetRopeOrigin() const;
 
-	/**
-	*	@return Whether the given segment index is valid.
-	*/
 	bool IsValidSegmentIndex( const int uiSegment ) const;
-
-	/**
-	*	@return The origin of the given segment.
-	*/
 	Vector GetSegmentOrigin( const int uiSegment ) const;
-
-	/**
-	*	@return The attachment point of the given segment.
-	*/
 	Vector GetSegmentAttachmentPoint( const int uiSegment ) const;
-
-	/**
-	*	@param pSegment Segment.
-	*	Sets the attached object segment.
-	*/
 	void SetAttachedObjectsSegment( CRopeSegment* pSegment );
-
-	/**
-	*	@param uiSegmentIndex Segment index.
-	*	@return The segment direction normal from its origin.
-	*/
 	Vector GetSegmentDirFromOrigin( const int uiSegmentIndex ) const;
-
-	/**
-	*	@return The attached object position.
-	*/
 	Vector GetAttachedObjectsPosition() const;
+
+	static const NamedSoundScript grabSoundScript;
+	static const NamedSoundScript creakSoundScript;
 
 private:
 	int m_iSegments;
@@ -276,10 +122,6 @@ private:
 	CRopeSample* m_Samples[ MAX_SAMPLES ];
 
 	int m_NumSamples;
-
-	bool mSpringsInitialized;
-
-	int m_BeamOffset;
 
 	bool mObjectAttached;
 

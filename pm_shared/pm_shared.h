@@ -16,9 +16,12 @@
 #if !defined(PM_SHARED_H)
 #define PM_SHARED_H
 
+#include <set>
+
 void PM_Init( struct playermove_s *ppmove );
 void PM_Move( struct playermove_s *ppmove, int server );
-char PM_FindTextureType( char *name );
+char PM_FindTextureType( const char* name );
+std::set<char> PM_GetPossibleMaterials();
 
 // Spectator Movement modes (stored in pev->iuser1, so the physics code can get at them)
 #define OBS_NONE			0

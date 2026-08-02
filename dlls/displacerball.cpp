@@ -1,15 +1,16 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "weapons.h"
+#include "combat.h"
+#include "effects.h"
 #include "monsters.h"
 #include "player.h"
 #include "gamerules.h"
 #include "shake.h"
 #include "displacerball.h"
 #include "scripted.h"
+#include "visuals_utils.h"
 
-#if FEATURE_DISPLACER
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
 LINK_ENTITY_TO_CLASS(displacer_ball, CDisplacerBall)
@@ -19,56 +20,113 @@ TYPEDESCRIPTION	CDisplacerBall::m_SaveData[] =
 	DEFINE_FIELD(CDisplacerBall, m_iBeams, FIELD_INTEGER),
 	DEFINE_ARRAY(CDisplacerBall, m_pBeam, FIELD_CLASSPTR, 8),
 	DEFINE_FIELD(CDisplacerBall, m_hDisplacedTarget, FIELD_EHANDLE),
+	DEFINE_FIELD(CDisplacerBall, m_maxFrame, FIELD_INTEGER),
+	DEFINE_FIELD(CDisplacerBall, m_lastTime, FIELD_TIME),
 };
 
 IMPLEMENT_SAVERESTORE(CDisplacerBall, CBaseEntity);
 
-void CDisplacerBall::Spawn(void)
+const NamedVisual CDisplacerBall::spriteVisual = BuildVisual("DisplacerBall.Sprite")
+		.Model("sprites/exit1.spr")
+		.Alpha(255)
+		.RenderMode(kRenderTransAdd)
+		.Scale(0.75f);
+
+const NamedVisual CDisplacerBall::armBeamVisual = BuildVisual("DisplacerBall.ArmBeam")
+		.Model("sprites/lgtning.spr")
+		.BeamParams(30, 80)
+		.RenderColor(96, 128, 16)
+		.Alpha(255);
+
+const NamedVisual CDisplacerBall::hitBeamVisual = BuildVisual("DisplacerBall.HitBeam")
+		.Model("sprites/lgtning.spr")
+		.BeamParams(30, 10)
+		.RenderColor(255, 255, 255)
+		.Alpha(255);
+
+const NamedVisual CDisplacerBall::ringVisual = BuildVisual("DisplacerBall.Ring")
+		.Model("sprites/disp_ring.spr")
+		.Life(0.3f)
+		.BeamParams(36, 0)
+		.RenderColor(255, 255, 255)
+		.Alpha(255)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
+
+const NamedVisual CDisplacerBall::lightVisual = BuildVisual("DisplacerBall.Light")
+		.Radius(160)
+		.RenderColor(255, 180, 96)
+		.Life(1.0f)
+		.Decay(100.0f);
+
+const NamedSoundScript CDisplacerBall::impactSoundScript = {
+	CHAN_WEAPON,
+	{"weapons/displacer_impact.wav"},
+	FloatRange(0.8f, 0.9f),
+	ATTN_NORM,
+	"DisplacerBall.Impact"
+};
+
+const NamedSoundScript CDisplacerBall::explodeSoundScript = {
+	CHAN_WEAPON,
+	{"weapons/displacer_teleport.wav"},
+	FloatRange(0.8f, 0.9f),
+	ATTN_NORM,
+	"DisplacerBall.Explode"
+};
+
+void CDisplacerBall::Spawn()
 {
 	Precache();
 	pev->classname = MAKE_STRING("displacer_ball");
 
 	pev->movetype = MOVETYPE_FLY;
-
 	pev->solid = SOLID_BBOX;
-	pev->rendermode = kRenderTransAdd;
-	pev->renderamt = 255;
 
-	SET_MODEL(ENT(pev), "sprites/exit1.spr");
+	ApplyVisualWithOwn(GetVisual(spriteVisual));
+
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 
 	pev->frame = 0;
-	pev->scale = 0.75f;
+	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
+	m_lastTime = gpGlobals->time;
 
 	SetTouch(&CDisplacerBall::BallTouch);
 	SetThink(&CDisplacerBall::FlyThink);
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	m_iBeams = 0;
+
+	SetDefaultProjectileDamage(GetSkillValue("plr_displacer_other"));
 }
 
 void CDisplacerBall::Precache()
 {
-	PRECACHE_MODEL("sprites/exit1.spr");
-	PRECACHE_MODEL("sprites/lgtning.spr");
-	m_iTrail = PRECACHE_MODEL("sprites/disp_ring.spr");
+	RegisterVisualAsMineOwn(spriteVisual);
+	RegisterVisual(armBeamVisual);
+	RegisterVisual(hitBeamVisual);
+	RegisterVisual(ringVisual);
+	RegisterVisual(lightVisual);
 
-	PRECACHE_SOUND("weapons/displacer_impact.wav");
-	PRECACHE_SOUND("weapons/displacer_teleport.wav");
+	RegisterAndPrecacheSoundScript(impactSoundScript);
+	RegisterAndPrecacheSoundScript(explodeSoundScript);
+
+	PRECACHE_SOUND("weapons/displacer_self.wav");
 }
 
 void CDisplacerBall::FlyThink()
 {
-	ArmBeam( -1 );
-	ArmBeam( 1 );
-	pev->nextthink = gpGlobals->time + 0.05;
+	ArmBeam(-1);
+	ArmBeam(1);
+	pev->nextthink = gpGlobals->time + 0.05f;
+
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate, &m_lastTime);
 }
 
 void CDisplacerBall::ArmBeam( int iSide )
 {
 	//This method is identical to the Alien Slave's ArmBeam, except it treats m_pBeam as a circular buffer.
-	if( m_iBeams > 7 )
+	if( m_iBeams >= static_cast<int>(ARRAYSIZE(m_pBeam)) )
 		m_iBeams = 0;
 
 	TraceResult tr;
@@ -87,49 +145,38 @@ void CDisplacerBall::ArmBeam( int iSide )
 	if( flDist == 1.0 )
 		return;
 
-	// The beam might already exist if we've created all beams before.
-	if( !m_pBeam[ m_iBeams ] )
-		m_pBeam[ m_iBeams ] = CBeam::BeamCreate( "sprites/lgtning.spr", 30 );
+	CBaseEntity* pHit = Instance( tr.pHit );
+	const bool hitSomething = pHit && pHit->pev->takedamage != DAMAGE_NO;
 
-	if( !m_pBeam[ m_iBeams ] )
+	// The beam might already exist if we've created all beams before.
+	if( !m_pBeam[m_iBeams] )
+	{
+		m_pBeam[m_iBeams] = CreateBeamFromVisual(hitSomething ? GetVisual(hitBeamVisual) : GetVisual(armBeamVisual));
+		if (m_pBeam[m_iBeams])
+			m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TRANSIT;
+	}
+
+	if( !m_pBeam[m_iBeams] )
 		return;
 
-	CBaseEntity* pHit = Instance( tr.pHit );
-
-	entvars_t *pevOwner;
-	if ( pev->owner )
-		pevOwner = VARS( pev->owner );
-	else
-		pevOwner = NULL;
-
-	if( pHit && pHit->pev->takedamage != DAMAGE_NO )
+	if( hitSomething )
 	{
 		//Beam hit something, deal radius damage to it
-		m_pBeam[ m_iBeams ]->EntsInit( pHit->entindex(), entindex() );
-		m_pBeam[ m_iBeams ]->SetColor( 255, 255, 255 );
-		m_pBeam[ m_iBeams ]->SetBrightness( 255 );
-		m_pBeam[ m_iBeams ]->SetNoise( 10 );
-
-		RadiusDamage( tr.vecEndPos, pev, pevOwner, 25, 15, CLASS_NONE, DMG_ENERGYBEAM );
+		m_pBeam[m_iBeams]->EntsInit( pHit->entindex(), entindex() );
+		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), DamageInfo{GetSkillValue("displacer_beam_dmg"), DMG_ENERGYBEAM}, GetSkillValue("displacer_beam_radius"), CLASS_NONE );
 	}
 	else
 	{
-		m_pBeam[ m_iBeams ]->PointEntInit( tr.vecEndPos, entindex() );
-		m_pBeam[ m_iBeams ]->SetColor( 96, 128, 16 );
-		m_pBeam[ m_iBeams ]->SetBrightness( 255 );
-		m_pBeam[ m_iBeams ]->SetNoise( 80 );
+		m_pBeam[m_iBeams]->PointEntInit( tr.vecEndPos, entindex() );
 	}
 	m_iBeams++;
 }
 
-void CDisplacerBall::Shoot(entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, Vector vecAngles )
+void CDisplacerBall::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	CDisplacerBall *pSpit = GetClassPtr((CDisplacerBall *)NULL);
-	pSpit->Spawn();
-	UTIL_SetOrigin(pSpit->pev, vecStart);
-	pSpit->pev->velocity = vecVelocity;
-	pSpit->pev->angles = vecAngles;
-	pSpit->pev->owner = ENT(pevOwner);
+	LaunchAsProjectileImpl(DISPLACERBALL_SPEED, params);
+	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
 }
 
 void CDisplacerBall::SelfCreate(entvars_t *pevOwner,Vector vecStart)
@@ -150,12 +197,9 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 {
 	pev->velocity = g_vecZero;
 
-	TraceResult tr;
-	Vector vecSpot;
-	Vector vecSrc;
 	CBaseEntity *pTarget = NULL;
 
-	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/displacer_impact.wav", 0.9f, ATTN_NORM);
+	EmitSoundScript(impactSoundScript);
 
 	if( ( g_pGameRules->IsMultiplayer() && !g_pGameRules->IsCoOp() ) && pOther->IsPlayer() )
 	{
@@ -183,7 +227,7 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 
 			pPlayer->pev->v_angle = pTarget->pev->angles;
 
-			pPlayer->pev->fixangle = TRUE;
+			pPlayer->pev->fixangle = 1;
 
 			pPlayer->pev->velocity = pOther->pev->basevelocity = g_vecZero;
 		}
@@ -224,33 +268,14 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 	pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.2f : 0.5f );
 }
 
-void CDisplacerBall::Circle( void )
+void CDisplacerBall::Circle()
 {
-	// portal circle
-	MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pev->origin);
-		WRITE_BYTE(TE_BEAMCYLINDER);
-		WRITE_COORD(pev->origin.x);
-		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z);
-		WRITE_COORD(pev->origin.x);
-		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z + 800.0f); // reach damage radius over .2 seconds
-		WRITE_SHORT(m_iTrail);
-		WRITE_BYTE(0); // startframe
-		WRITE_BYTE(0); // framerate
-		WRITE_BYTE(3); // life
-		WRITE_BYTE(16);  // width
-		WRITE_BYTE(0);   // noise
-		WRITE_BYTE(255);   // r, g, b
-		WRITE_BYTE(255);   // r, g, b
-		WRITE_BYTE(255);   // r, g, b
-		WRITE_BYTE(255); // brightness
-		WRITE_BYTE(0);		// speed
-	MESSAGE_END();
-	UTIL_DynamicLight( pev->origin, 160.0f, 255, 180, 96, 1.0f, 100.0f );
+	SendBeamWave(pev->origin, 800.0f, GetVisual(ringVisual), MSG_PAS, pev->origin);
+
+	SendDynLight(pev->origin, GetVisual(lightVisual));
 }
 
-void CDisplacerBall::KillThink( void )
+void CDisplacerBall::KillThink()
 {
 	CBaseEntity* pTarget = m_hDisplacedTarget;
 	if (pTarget)
@@ -265,31 +290,26 @@ void CDisplacerBall::KillThink( void )
 	pev->nextthink = gpGlobals->time + 0.2f;
 }
 
-void CDisplacerBall::ExplodeThink( void )
+void CDisplacerBall::ExplodeThink()
 {
 	ClearBeams();
 
 	pev->effects |= EF_NODRAW;
 
-	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/displacer_teleport.wav", VOL_NORM, ATTN_NORM);
+	EmitSoundScript(explodeSoundScript);
 
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;
 
-	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, gSkillData.plrDmgDisplacer, gSkillData.plrDisplacerRadius, CLASS_NONE, DMG_ALWAYSGIB | DMG_BLAST );
+	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), GetSkillValue("plr_displacer_radius"), CLASS_NONE );
 
 	UTIL_Remove( this );
 }
 
-void CDisplacerBall::ClearBeams( void )
+void CDisplacerBall::ClearBeams()
 {
 	for( int i = 0;i < 8; i++ )
 	{
-		if( m_pBeam[i] )
-		{
-			UTIL_Remove( m_pBeam[i] );
-			m_pBeam[i] = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam[i]);
 	}
 }
-#endif

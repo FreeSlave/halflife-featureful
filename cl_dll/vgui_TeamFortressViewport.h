@@ -31,8 +31,10 @@
 // custom scheme handling
 #include "vgui_SchemeManager.h"
 
+#include "string_utils.h"
+
 #define TF_DEFS_ONLY
-#define PC_LASTCLASS 10
+#define PC_LASTCLASS 12
 #define PC_UNDEFINED 0
 #define MENU_DEFAULT				1
 #define MENU_TEAM 					2
@@ -180,7 +182,7 @@ private:
 
 	SchemeHandle_t m_hTextScheme;
 
-	void RecalculateText( void );
+	void RecalculateText();
 
 public:
 	bool	m_bNoHighlight;
@@ -190,7 +192,7 @@ public:
 	CommandButton( const char* text,int x,int y,int wide,int tall, bool bNoHighlight = false);
 	CommandButton( int iPlayerClass, const char* text,int x,int y,int wide,int tall, bool bFlat );
 
-	void Init( void );
+	void Init();
 
 	// Menu Handling
 	void AddSubMenu( CCommandMenu *pNewMenu );
@@ -199,7 +201,7 @@ public:
 		m_pSubLabel = pSubLabel;
 	}
 
-	virtual int IsNotValid( void )
+	virtual int IsNotValid()
 	{
 		return false;
 	}
@@ -208,7 +210,7 @@ public:
 	int GetPlayerClass() { return m_iPlayerClass; };
 	CCommandMenu *GetSubMenu() { return m_pSubMenu; };
 
-	CCommandMenu *getParentMenu( void );
+	CCommandMenu *getParentMenu();
 	void setParentMenu( CCommandMenu *pParentMenu );
 
 	// Overloaded vgui functions
@@ -216,11 +218,11 @@ public:
 	virtual void setText( const char *text );
 	virtual void paintBackground();
 
-	void cursorEntered( void );
-	void cursorExited( void );
+	void cursorEntered();
+	void cursorExited();
 
 	void setBoundKey( char boundKey );
-	char getBoundKey( void );
+	char getBoundKey();
 };
 
 class ColorButton : public CommandButton
@@ -246,7 +248,7 @@ public:
 	virtual void paintBackground()
 	{
 		int r, g, b, a;
-		Color bgcolor;
+		//Color bgcolor;
 
 		if( isArmed() )
 		{
@@ -408,9 +410,9 @@ public:
 	int		 GetNumButtons() { return m_iButtons; };
 	CommandButton	*FindButtonWithSubmenu( CCommandMenu *pSubMenu );
 
-	void		 ClearButtonsOfArmedState( void );
+	void		 ClearButtonsOfArmedState();
 
-	void		RemoveAllButtons(void);
+	void		RemoveAllButtons();
 
 
 	bool		 KeyInput( int keyNum );
@@ -507,18 +509,17 @@ private:
 	int			 m_iUser3;
 
 	// VGUI Menus
-	void		 CreateTeamMenu( void );
-	CMenuPanel*	 ShowTeamMenu( void );
-	void		 CreateClassMenu( void );
-	CMenuPanel*	 ShowClassMenu( void );
-	void		 CreateSpectatorMenu( void );
+	void		 CreateTeamMenu();
+	CMenuPanel*	 ShowTeamMenu();
+	void		 CreateClassMenu();
+	CMenuPanel*	 ShowClassMenu();
+	void		 CreateSpectatorMenu();
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
 
 	// MOTD
-	int		m_iGotAllMOTD;
-	char	m_szMOTD[ MAX_MOTD_LENGTH ];
+	bool		m_iGotAllMOTD;
 
 	//  Command Menu Team buttons
 	CommandButton *m_pTeamButtons[6];
@@ -547,39 +548,37 @@ private:
 
 public:
 	TeamFortressViewport(int x,int y,int wide,int tall);
-	void Initialize( void );
+	void Initialize();
 
 	int		CreateCommandMenu( const char * menuFile, int direction, int yOffset, bool flatDesign, float flButtonSizeX, float flButtonSizeY, int xOffset );
-	void	CreateScoreBoard( void );
+	void	CreateScoreBoard();
 	CommandButton * CreateCustomButton( char *pButtonText, char * pButtonName, int  iYOffset );
 	CCommandMenu *	CreateDisguiseSubmenu( CommandButton *pButton, CCommandMenu *pParentMenu, const char *commandText, int iYOffset, int iXOffset = 0 );
 
-	void UpdateCursorState( void );
+	void UpdateCursorState();
 	void UpdateCommandMenu(int menuIndex);
-	void UpdateOnPlayerInfo( void );
-	void UpdateHighlights( void );
-	void UpdateSpectatorPanel( void );
+	void UpdateOnPlayerInfo();
+	void UpdateHighlights();
+	void UpdateSpectatorPanel();
 
 	int	 KeyInput( int down, int keynum, const char *pszCurrentBinding );
-	void InputPlayerSpecial( void );
-	void GetAllPlayersInfo( void );
-	void DeathMsg( int killer, int victim );
+	void InputPlayerSpecial();
 
 	void ShowCommandMenu(int menuIndex);
-	void InputSignalHideCommandMenu( void );
-	void HideCommandMenu( void );
+	void InputSignalHideCommandMenu();
+	void HideCommandMenu();
 	void SetCurrentCommandMenu( CCommandMenu *pNewMenu );
 	void SetCurrentMenu( CMenuPanel *pMenu );
 
-	void ShowScoreBoard( void );
-	void HideScoreBoard( void );
-	bool IsScoreBoardVisible( void );
+	void ShowScoreBoard();
+	void HideScoreBoard();
+	bool IsScoreBoardVisible();
 
-	bool AllowedToPrintText( void );
+	bool AllowedToPrintText();
 
 	void ShowVGUIMenu( int iMenu );
-	void HideVGUIMenu( void );
-	void HideTopMenu( void );
+	void HideVGUIMenu();
+	void HideTopMenu();
 
 	CMenuPanel* CreateTextWindow( int iTextToShow );
 
@@ -601,13 +600,11 @@ public:
 	int MsgFunc_Feign(const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Detpack(const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_VGUIMenu(const char *pszName, int iSize, void *pbuf );
+	void ShowMOTD();
 	int MsgFunc_MOTD( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_BuildSt( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_RandomPC( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_ServerName( const char *pszName, int iSize, void *pbuf );
-	int MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbuf );
-	int MsgFunc_TeamScore( const char *pszName, int iSize, void *pbuf );
-	int MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Spectator( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_AllowSpec( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_SpecFade( const char *pszName, int iSize, void *pbuf );	
@@ -616,10 +613,10 @@ public:
 	// Input
 	bool SlotInput( int iSlot );
 
-	virtual void paintBackground();
+	void paintBackground() override;
 
-	CSchemeManager *GetSchemeManager( void ) { return &m_SchemeManager; }
-	ScorePanel *GetScoreBoard( void ) { return m_pScoreBoard; }
+	CSchemeManager *GetSchemeManager() { return &m_SchemeManager; }
+	ScorePanel *GetScoreBoard() { return m_pScoreBoard; }
 
 	void *operator new( size_t stAllocateBlock );
 
@@ -649,15 +646,13 @@ protected:
 public:
 	CMenuHandler_StringCommand( const char *pszCommand )
 	{
-		strncpy( m_pszCommand, pszCommand, MAX_COMMAND_SIZE - 1 );
-		m_pszCommand[MAX_COMMAND_SIZE - 1] = '\0';
+		strncpyEnsureTermination( m_pszCommand, pszCommand );
 		m_iCloseVGUIMenu = false;
 	}
 
 	CMenuHandler_StringCommand( const char *pszCommand, int iClose )
 	{
-		strncpy( m_pszCommand, pszCommand, MAX_COMMAND_SIZE - 1 );
-		m_pszCommand[MAX_COMMAND_SIZE - 1] = '\0';
+		strncpyEnsureTermination( m_pszCommand, pszCommand );
 		m_iCloseVGUIMenu = true;
 	}
 
@@ -846,8 +841,7 @@ protected:
 public:
 	CMenuHandler_SpectateFollow( char *player )
 	{
-		strncpy( m_szplayer, player, MAX_COMMAND_SIZE - 1 );
-		m_szplayer[MAX_COMMAND_SIZE-1] = '\0';
+		strncpyEnsureTermination( m_szplayer, player );
 	}
 
 	virtual void actionPerformed(Panel* panel)
@@ -1245,7 +1239,7 @@ public:
 	virtual void keyReleased( KeyCode code, Panel *panel ) {};
 	virtual void keyFocusTicked( Panel *panel) {};
 
-	virtual void paint( void )
+	virtual void paint()
 	{
 		if( !m_cvar )
 		{
@@ -1324,7 +1318,7 @@ public:
 		}
 	}
 
-	virtual void paint( void )
+	virtual void paint()
 	{
 		if( isArmed() )
 		{ 
@@ -1506,7 +1500,7 @@ public:
 		m_iRemoveMe = iRemoveMe;
 	}
 
-	virtual void Reset( void )
+	virtual void Reset()
 	{
 		m_pNextMenu = NULL;
 		m_iIsActive = false;
@@ -1531,7 +1525,7 @@ public:
 		m_iIsActive = iState;
 	}
 
-	virtual void Open( void )
+	virtual void Open()
 	{
 		setVisible( true );
 
@@ -1539,7 +1533,7 @@ public:
 		m_flOpenTime = gHUD.m_flTime;
 	}
 
-	virtual void Close( void )
+	virtual void Close()
 	{
 		setVisible( false );
 		m_iIsActive = false;
@@ -1571,8 +1565,8 @@ private:
 public:
 	CTFScrollButton( int iArrow, const char *text, int x, int y, int wide, int tall );
 
-	virtual void paint( void );
-	virtual void paintBackground( void );
+	virtual void paint();
+	virtual void paintBackground();
 };
 
 // Custom drawn slider bar
@@ -1583,7 +1577,7 @@ public:
 	{
 	};
 
-	virtual void paintBackground( void );
+	virtual void paintBackground();
 };
 
 // Custom drawn scrollpanel
@@ -1616,12 +1610,12 @@ public:
 	CClassMenuPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
 
 	virtual bool SlotInput( int iSlot );
-	virtual void Open( void );
-	virtual void Update( void );
+	virtual void Open();
+	virtual void Update();
 	virtual void SetActiveInfo( int iInput );
-	virtual void Initialize( void );
+	virtual void Initialize();
 
-	virtual void Reset( void )
+	virtual void Reset()
 	{
 		CMenuPanel::Reset();
 		m_iCurrentInfo = 0;
@@ -1647,14 +1641,14 @@ public:
 	CTeamMenuPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
 
 	virtual bool SlotInput( int iSlot );
-	virtual void Open( void );
-	virtual void Update( void );
+	virtual void Open();
+	virtual void Update();
 	virtual void SetActiveInfo( int iInput );
-	virtual void paintBackground( void );
+	virtual void paintBackground();
 
-	virtual void Initialize( void );
+	virtual void Initialize();
 
-	virtual void Reset( void )
+	virtual void Reset()
 	{
 		CMenuPanel::Reset();
 		m_iCurrentInfo = 0;

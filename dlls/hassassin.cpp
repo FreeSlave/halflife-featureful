@@ -23,11 +23,13 @@
 #include	"monsters.h"
 #include	"schedule.h"
 #include	"followingmonster.h"
-#include	"weapons.h"
+#include	"combat.h"
+#include	"ggrenade.h"
 #include	"soundent.h"
 #include	"scripted.h"
 #include	"game.h"
 #include	"gamerules.h"
+#include	"graphic_debug.h"
 
 #define FEATURE_HASSSASSIN_DROP_AMMO 0
 
@@ -39,7 +41,9 @@ enum
 	SCHED_ASSASSIN_EXPOSED = LAST_FOLLOWINGMONSTER_SCHEDULE + 1,// cover was blown.
 	SCHED_ASSASSIN_JUMP,	// fly through the air
 	SCHED_ASSASSIN_JUMP_ATTACK,	// fly through the air and shoot
-	SCHED_ASSASSIN_JUMP_LAND // hit and run away
+	SCHED_ASSASSIN_JUMP_LAND, // hit and run away
+	SCHED_ASSASSIN_JUMP_FOLLOWING,
+	SCHED_ASSASSIN_JUMP_CHASE,
 };
 
 //=========================================================
@@ -48,7 +52,8 @@ enum
 
 enum
 {
-	TASK_ASSASSIN_FALL_TO_GROUND = LAST_FOLLOWINGMONSTER_TASK + 1 // falling and waiting to hit ground
+	TASK_ASSASSIN_FALL_TO_GROUND = LAST_FOLLOWINGMONSTER_TASK + 1, // falling and waiting to hit ground
+	TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING
 };
 
 //=========================================================
@@ -60,41 +65,78 @@ enum
 
 #define bits_MEMORY_BADJUMP		( bits_MEMORY_CUSTOM1 )
 
+#define HASSASSIN_JUMP_HEIGHT 160.0f
+
+struct LaunchToHeightResult
+{
+	float height;
+	float gravity;
+	float time;
+	float speed;
+};
+
+LaunchToHeightResult CalcLaunchToHeight(float height)
+{
+	LaunchToHeightResult result;
+	result.height = height;
+	result.gravity = g_psv_gravity->value;
+	if (result.gravity <= 1)
+		result.gravity = 1;
+	result.time = sqrt(height * 2.0f / result.gravity);
+	result.speed = result.gravity * result.time;
+	return result;
+}
+
 class CHAssassin : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed ( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Female Assassin"; }
-	const char* ReverseRelationshipModel() { return "models/hassassinf.mdl"; }
-	int DefaultISoundMask( void);
-	void Shoot( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	BOOL CheckMeleeAttack1( float flDot, float flDist );	// jump
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Female Assassin"; }
+	const char* ReverseRelationshipModel() override { return "models/hassassinf.mdl"; }
+	int DefaultISoundMask() override;
+	void Shoot();
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	bool CheckMeleeAttack1( float flDot, float flDist ) override;	// jump
 	// BOOL CheckMeleeAttack2( float flDot, float flDist );
-	BOOL CheckRangeAttack1( float flDot, float flDist );	// shoot
-	BOOL CheckRangeAttack2( float flDot, float flDist );	// throw grenade
-	void StartTask( Task_t *pTask );
-	void RunAI( void );
-	void RunTask( Task_t *pTask );
-	void PlayUseSentence();
-	void PlayUnUseSentence();
-	void DeathSound( void );
-	void IdleSound( void );
-	void OnDying();
+	bool CheckRangeAttack1( float flDot, float flDist ) override;	// shoot
+	bool CheckRangeAttack2( float flDot, float flDist ) override;	// throw grenade
+	void StartTask( Task_t *pTask ) override;
+	void RunAI() override;
+	void RunTask( Task_t *pTask ) override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
+	void DeathSound() override;
+	void IdleSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	CUSTOM_SCHEDULES
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
+
+	bool CanCloakByDefault() override {
+		return GetSkillValueRange("hassassin_cloaking").min != 0;
+	}
+	float JumpSpeedFactor(float jumpHeight = HASSASSIN_JUMP_HEIGHT) const
+	{
+		auto result = CalcLaunchToHeight(jumpHeight);
+		return result.speed / jumpHeight;
+	}
+	std::pair<Vector, int> CalcMonsterJump(const Vector& vecTarget, float maximumHeight, float maximumDistance);
+	bool FindJumpToSpot(const Vector& vecTarget);
+	bool FindJumpToEntity(CBaseEntity* pEntity);
+	bool FindFollowJump();
 
 	float m_flLastShot;
 	float m_flDiviation;
@@ -104,13 +146,21 @@ public:
 
 	float m_flNextGrenadeCheck;
 	Vector	m_vecTossVelocity;
-	BOOL m_fThrowGrenade;
-
-	int m_iTargetRanderamt;
+	bool m_fThrowGrenade;
 
 	int m_iFrustration;
+	float m_nextWalkFootstep;
 
 	int m_iShell;
+
+	static const NamedSoundScript shotSoundScript;
+	static const NamedSoundScript cloakSoundScript;
+	static const NamedSoundScript footstepSoundScript;
+
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_assassin, CHAssassin )
@@ -127,37 +177,99 @@ TYPEDESCRIPTION	CHAssassin::m_SaveData[] =
 	DEFINE_FIELD( CHAssassin, m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CHAssassin, m_fThrowGrenade, FIELD_BOOLEAN ),
 
-	DEFINE_FIELD( CHAssassin, m_iTargetRanderamt, FIELD_INTEGER ),
 	DEFINE_FIELD( CHAssassin, m_iFrustration, FIELD_INTEGER ),
 };
 
 IMPLEMENT_SAVERESTORE( CHAssassin, CFollowingMonster )
 
+const NamedSoundScript CHAssassin::shotSoundScript = {
+	CHAN_WEAPON,
+	{"weapons/pl_gun1.wav", "weapons/pl_gun2.wav"},
+	FloatRange(0.6f, 0.8f),
+	ATTN_NORM,
+	"HAssassin.Shot"
+};
+
+const NamedSoundScript CHAssassin::footstepSoundScript = {
+	CHAN_BODY,
+	{"player/pl_step1.wav", "player/pl_step2.wav", "player/pl_step3.wav", "player/pl_step4.wav"},
+	0.5f,
+	ATTN_NORM,
+	"HAssassin.Footstep"
+};
+
+const NamedSoundScript CHAssassin::cloakSoundScript = {
+	CHAN_BODY,
+	{"debris/beamstart1.wav"},
+	0.2f,
+	ATTN_NORM,
+	"HAssassin.Cloak"
+};
+
+const NamedSoundScript CHAssassin::painSoundScript = {
+	CHAN_VOICE,
+	{},
+	"HAssassin.Pain"
+};
+
+const NamedSoundScript CHAssassin::dieSoundScript = {
+	CHAN_VOICE,
+	{},
+	"HAssassin.Die"
+};
+
+const NamedSoundScript CHAssassin::useSoundScript = {
+	CHAN_VOICE,
+	{"HA_OK"},
+	"HAssassin.Use"
+};
+
+const NamedSoundScript CHAssassin::unuseSoundScript = {
+	CHAN_VOICE,
+	{"HA_WAIT"},
+	"HAssassin.UnUse"
+};
+
 void CHAssassin::PlayUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "HA_OK", 0.6, ATTN_NORM, 0, 90 );
+	EmitSoundScript(useSoundScript);
+	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_OK", 0.6, ATTN_NORM, 0, 90 );
 }
 
 void CHAssassin::PlayUnUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "HA_WAIT", 0.6, ATTN_NORM, 0, 90 );
+	EmitSoundScript(unuseSoundScript);
+	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_WAIT", 0.6, ATTN_NORM, 0, 90 );
 }
 
 //=========================================================
 // DieSound
 //=========================================================
-void CHAssassin::DeathSound( void )
+void CHAssassin::DeathSound()
 {
+	EmitSoundScript(dieSoundScript);
 }
 
 //=========================================================
 // IdleSound
 //=========================================================
-void CHAssassin::IdleSound( void )
+void CHAssassin::IdleSound()
 {
 }
 
-void CHAssassin::OnDying()
+PainSoundRule CHAssassin::DefaultPainSoundRule()
+{
+	PainSoundRule rule;
+	rule.delay = 1.0f;
+	return rule;
+}
+
+void CHAssassin::PainSound()
+{
+	EmitSoundScript(painSoundScript);
+}
+
+void CHAssassin::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 #if FEATURE_HASSSASSIN_DROP_AMMO || FEATURE_MONSTERS_DROP_HANDGRENADES
 	if( g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) )
@@ -181,14 +293,14 @@ void CHAssassin::OnDying()
 #endif
 	}
 #endif
-	CFollowingMonster::OnDying();
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 //=========================================================
 // ISoundMask - returns a bit mask indicating which types
 // of sounds this monster regards. 
 //=========================================================
-int CHAssassin::DefaultISoundMask( void ) 
+int CHAssassin::DefaultISoundMask() 
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -200,7 +312,7 @@ int CHAssassin::DefaultISoundMask( void )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CHAssassin::DefaultClassify( void )
+int CHAssassin::DefaultClassify()
 {
 	if (g_modFeatures.blackops_classify)
 		return CLASS_HUMAN_BLACKOPS;
@@ -211,7 +323,7 @@ int CHAssassin::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CHAssassin::SetYawSpeed( void )
+void CHAssassin::SetYawSpeed()
 {
 	int ys;
 
@@ -232,7 +344,7 @@ void CHAssassin::SetYawSpeed( void )
 //=========================================================
 // Shoot
 //=========================================================
-void CHAssassin::Shoot( void )
+void CHAssassin::Shoot()
 {
 	if( m_hEnemy == 0 && !m_pCine )
 	{
@@ -257,25 +369,18 @@ void CHAssassin::Shoot( void )
 	UTIL_MakeVectors( pev->angles );
 
 	Vector vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT( 40, 90 ) + gpGlobals->v_up * RANDOM_FLOAT( 75, 200 ) + gpGlobals->v_forward * RANDOM_FLOAT( -40, 40 );
-	EjectBrass( pev->origin + gpGlobals->v_up * 32 + gpGlobals->v_forward * 12, vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHELL ); 
-	FireBullets( 1, vecShootOrigin, vecShootDir, Vector( m_flDiviation, m_flDiviation, m_flDiviation ), 2048, BULLET_MONSTER_9MM ); // shoot +-8 degrees
+	EjectBrass( pev->origin + gpGlobals->v_up * 32 + gpGlobals->v_forward * 12, vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHELL );
+	FireBullets( 1, vecShootOrigin, vecShootDir, Vector( m_flDiviation, m_flDiviation, m_flDiviation ), 2048, GetSkillValue("9mm_bullet") ); // shoot +-8 degrees
 
-	switch( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:
-		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/pl_gun1.wav", RANDOM_FLOAT( 0.6f, 0.8f ), ATTN_NORM );
-		break;
-	case 1:
-		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/pl_gun2.wav", RANDOM_FLOAT( 0.6f, 0.8f ), ATTN_NORM );
-		break;
-	}
+	EmitSoundScript(shotSoundScript);
 
 	pev->effects |= EF_MUZZLEFLASH;
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
 
-	m_cAmmoLoaded--;
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;
 }
 
 //=========================================================
@@ -289,6 +394,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 	case ASSASSIN_AE_SHOOT1:
+		ReportFireAnimEvent(pEvent->event);
 		Shoot();
 		break;
 	case ASSASSIN_AE_TOSS1:
@@ -301,7 +407,7 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				Vector vecToss;
 				if (m_pCine->PreciseAttack() && m_hTargetEnt != 0)
 				{
-					vecToss = VecCheckToss( pev, vecGunPosition, m_hTargetEnt->pev->origin, 0.5 );
+					vecToss = VecCheckToss( pev, vecGunPosition, m_hTargetEnt->pev->origin, 0.5f, 0.0f );
 					//if (vecToss != g_vecZero)
 					//	ALERT(at_console,"Assassin %s throws precise grenade\n",STRING(pev->targetname));
 				}
@@ -309,15 +415,15 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				{
 					//ALERT(at_console,"Assassin %s throws nonprecise grenade\n",STRING(pev->targetname));
 					// what speed would be best to use, here? Borrowing the hgrunt grenade speed seems silly...
-					vecToss = ((gpGlobals->v_forward*0.5)+(gpGlobals->v_up*0.5)).Normalize()*gSkillData.hgruntGrenadeSpeed;
+					vecToss = ((gpGlobals->v_forward*0.5)+(gpGlobals->v_up*0.5)).Normalize()*GetSkillValue("hgrunt_gspeed");
 				}
-				CGrenade::ShootTimed( pev, vecGunPosition, vecToss, 2.0 );
+				CGrenade::ShootTimed( this, vecGunPosition, vecToss, 2.0f, GetProjectileOverrides() );
 			}
 			else
-				CGrenade::ShootTimed( pev, vecGunPosition, m_vecTossVelocity, 2.0 );
+				CGrenade::ShootTimed( this, vecGunPosition, m_vecTossVelocity, 2.0f, GetProjectileOverrides() );
 
 			m_flNextGrenadeCheck = gpGlobals->time + 6.0f;// wait six seconds before even looking again to see if a grenade can be thrown.
-			m_fThrowGrenade = FALSE;
+			m_fThrowGrenade = false;
 			// !!!LATER - when in a group, only try to throw grenade if ordered.
 		}
 		break;
@@ -332,9 +438,8 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				pev->velocity = g_vecZero;
 				if (m_pCine->PreciseAttack() && m_hTargetEnt != 0)
 				{
-					Vector vecTemp = m_hTargetEnt->pev->origin;
-					vecTemp.y = vecTemp.y + 50; // put her feet on the target.
-					pev->velocity = VecCheckToss( pev, pev->origin, vecTemp, 0.5 );
+					const Vector vecToReach = m_hTargetEnt->pev->origin + Vector(0, 0, 50);
+					pev->velocity = VecCheckToss(pev, pev->origin, vecToReach);
 					//if (pev->velocity != g_vecZero)
 					//	ALERT(at_console,"Precise jump for assassin %s\n",STRING(pev->targetname));
 					//else
@@ -343,13 +448,10 @@ void CHAssassin::HandleAnimEvent( MonsterEvent_t *pEvent )
 				if (pev->velocity == g_vecZero)
 				{ // just jump, it doesn't matter where to.
 					//ALERT(at_console,"Nonprecise jump for assassin %s\n",STRING(pev->targetname));
-					float flGravity = g_psv_gravity->value;
-					float time = sqrt( 160 / (0.5f * flGravity));
-					float speed = flGravity * time / 160;
 					UTIL_MakeVectors(pev->angles);
 					Vector vecDest = pev->origin + (gpGlobals->v_forward * 32);
-					vecDest.z += 160; // don't forget to jump into the air, now...
-					pev->velocity= (vecDest - pev->origin) * speed;
+					vecDest.z += HASSASSIN_JUMP_HEIGHT; // don't forget to jump into the air, now...
+					pev->velocity = (vecDest - pev->origin) * JumpSpeedFactor();
 				}
 			}
 			else
@@ -371,23 +473,24 @@ void CHAssassin::Spawn()
 	Precache();
 
 	SetMyModel( "models/hassassin.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
 	pev->effects		= 0;
-	SetMyHealth( gSkillData.hassassinHealth );
+	SetMyHealth( GetSkillValue("hassassin_health") );
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability		= bits_CAP_MELEE_ATTACK1 | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_MELEE_ATTACK1;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 	pev->friction		= 1;
 
 	m_HackedGunPos		= Vector( 0, 24, 48 );
 
-	m_iTargetRanderamt	= 20;
-	pev->renderamt		= 20;
-	pev->rendermode		= kRenderTransTexture;
+	UpdateClipSizeForWeapon(m_cClipSize);
+	m_cAmmoLoaded = m_cClipSize;
 
 	FollowingMonsterInit();
 }
@@ -398,11 +501,18 @@ void CHAssassin::Spawn()
 void CHAssassin::Precache()
 {
 	PrecacheMyModel( "models/hassassin.mdl" );
+	PrecacheMyGibModel();
 
-	PRECACHE_SOUND( "weapons/pl_gun1.wav" );
-	PRECACHE_SOUND( "weapons/pl_gun2.wav" );
+	RegisterAndPrecacheSoundScript(shotSoundScript);
+	RegisterAndPrecacheSoundScript(footstepSoundScript);
+	RegisterAndPrecacheSoundScript(cloakSoundScript);
 
-	PRECACHE_SOUND( "debris/beamstart1.wav" );
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
+
+	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 
 	m_iShell = PRECACHE_MODEL( "models/shell.mdl" );// brass shell
 }	
@@ -436,7 +546,7 @@ Schedule_t slAssassinFail[] =
 		bits_COND_CAN_MELEE_ATTACK1 |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER |
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"AssassinFail"
 	},
 };
@@ -470,7 +580,7 @@ Schedule_t slAssassinExposed[] =
 Task_t	tlAssassinTakeCoverFromEnemy[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
-	{ TASK_WAIT, (float)0.2 },
+	{ TASK_WAIT, (float)0.1 },
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_RANGE_ATTACK1 },
 	{ TASK_FIND_COVER_FROM_ENEMY, (float)0 },
 	{ TASK_RUN_PATH, (float)0 },
@@ -499,7 +609,7 @@ Schedule_t slAssassinTakeCoverFromEnemy[] =
 Task_t tlAssassinTakeCoverFromEnemy2[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
-	{ TASK_WAIT, (float)0.2 },
+	{ TASK_WAIT, (float)0.1 },
 	{ TASK_FACE_ENEMY, (float)0 },
 	{ TASK_RANGE_ATTACK1, (float)0 },
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_RANGE_ATTACK2 },
@@ -581,6 +691,7 @@ Schedule_t slAssassinHide[] =
 //=========================================================
 Task_t tlAssassinHunt[] =
 {
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_CHASE_ENEMY_FAILED },
 	{ TASK_GET_PATH_TO_ENEMY, (float)0 },
 	{ TASK_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
@@ -671,6 +782,42 @@ Schedule_t slAssassinJumpLand[] =
 	},
 };
 
+Task_t tlAssassinJumpFollowing[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_PLAY_SEQUENCE, (float)ACT_HOP },
+	{ TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING, (float)0 },
+};
+
+Schedule_t slAssassinJumpFollowing[] =
+{
+	{
+		tlAssassinJumpFollowing,
+		ARRAYSIZE( tlAssassinJumpFollowing ),
+		0,
+		0,
+		"AssassinJumpFollowing"
+	},
+};
+
+Task_t tlAssassinJumpChase[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_PLAY_SEQUENCE, (float)ACT_HOP },
+	{ TASK_ASSASSIN_FALL_TO_GROUND, (float)0 },
+};
+
+Schedule_t slAssassinJumpChase[] =
+{
+	{
+		tlAssassinJumpChase,
+		ARRAYSIZE( tlAssassinJumpChase ),
+		0,
+		0,
+		"AssassinJumpChase"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CHAssassin )
 {
 	slAssassinFail,
@@ -683,6 +830,8 @@ DEFINE_CUSTOM_SCHEDULES( CHAssassin )
 	slAssassinJump,
 	slAssassinJumpAttack,
 	slAssassinJumpLand,
+	slAssassinJumpFollowing,
+	slAssassinJumpChase,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHAssassin, CFollowingMonster )
@@ -690,39 +839,35 @@ IMPLEMENT_CUSTOM_SCHEDULES( CHAssassin, CFollowingMonster )
 //=========================================================
 // CheckMeleeAttack1 - jump like crazy if the enemy gets too close. 
 //=========================================================
-BOOL CHAssassin::CheckMeleeAttack1( float flDot, float flDist )
+bool CHAssassin::CheckMeleeAttack1( float flDot, float flDist )
 {
 	if( m_flNextJump < gpGlobals->time && ( flDist <= 128.0f || HasMemory( bits_MEMORY_BADJUMP ) ) && m_hEnemy != 0 )
 	{
 		TraceResult tr;
 
-		Vector vecDest = pev->origin + Vector( RANDOM_FLOAT( -64, 64), RANDOM_FLOAT( -64, 64 ), 160 );
+		Vector vecDest = pev->origin + Vector( RANDOM_FLOAT( -64, 64), RANDOM_FLOAT( -64, 64 ), HASSASSIN_JUMP_HEIGHT );
 
 		UTIL_TraceHull( pev->origin + Vector( 0, 0, 36 ), vecDest + Vector( 0, 0, 36 ), dont_ignore_monsters, human_hull, ENT( pev ), &tr );
 
 		if( tr.fStartSolid || tr.flFraction < 1.0f )
 		{
-			return FALSE;
+			return false;
 		}
 
-		float flGravity = g_psv_gravity->value;
+		m_vecJumpVelocity = ( vecDest - pev->origin ) * JumpSpeedFactor();
 
-		float time = sqrt( 160.0f / ( 0.5f * flGravity ) );
-		float speed = flGravity * time / 160.0f;
-		m_vecJumpVelocity = ( vecDest - pev->origin ) * speed;
-
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // CheckRangeAttack1  - drop a cap in their ass
 //
 //=========================================================
-BOOL CHAssassin::CheckRangeAttack1( float flDot, float flDist )
+bool CHAssassin::CheckRangeAttack1( float flDot, float flDist )
 {
-	if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist > 64 && flDist <= 2048 /* && flDot >= 0.5 */ /* && NoFriendlyFire() */ )
+	if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist > 64 && flDist <= 2048 /* && flDot >= 0.5 */ && NoFriendlyFire() )
 	{
 		TraceResult tr;
 
@@ -733,30 +878,44 @@ BOOL CHAssassin::CheckRangeAttack1( float flDot, float flDist )
 
 		if( tr.flFraction == 1 || tr.pHit == m_hEnemy->edict() )
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // CheckRangeAttack2 - toss grenade is enemy gets in the way and is too close. 
 //=========================================================
-BOOL CHAssassin::CheckRangeAttack2( float flDot, float flDist )
+bool CHAssassin::CheckRangeAttack2( float flDot, float flDist )
 {
-	m_fThrowGrenade = FALSE;
+	m_fThrowGrenade = false;
 	if( !FBitSet( m_hEnemy->pev->flags, FL_ONGROUND ) )
 	{
 		// don't throw grenades at anything that isn't on the ground!
-		return FALSE;
+		return false;
 	}
 
 	// don't get grenade happy unless the player starts to piss you off
 	if( m_iFrustration <= 2 )
-		return FALSE;
+		return false;
 
 	if( m_flNextGrenadeCheck < gpGlobals->time && !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist <= 512 /* && flDot >= 0.5 */ /* && NoFriendlyFire() */ )
 	{
+		Vector vecTarget = m_vecEnemyLKP;
+		if (AllyMonsterInRange( vecTarget, 256 ))
+		{
+			m_flNextGrenadeCheck = gpGlobals->time + 1.0f;
+			return m_fThrowGrenade;
+		}
+
+		// Originally assassins didn't have this check.
+		if( ( vecTarget - pev->origin ).IsLength2DLessThanOrEqual(128.0f) )
+		{
+			m_flNextGrenadeCheck = gpGlobals->time + 0.5f;
+			return m_fThrowGrenade;
+		}
+
 		Vector vecToss = VecCheckThrow( pev, GetGunPosition(), m_hEnemy->Center(), flDist, 0.5 ); // use dist as speed to get there in 1 second
 
 		if( vecToss != g_vecZero )
@@ -764,67 +923,37 @@ BOOL CHAssassin::CheckRangeAttack2( float flDot, float flDist )
 			m_vecTossVelocity = vecToss;
 
 			// throw a hand grenade
-			m_fThrowGrenade = TRUE;
+			m_fThrowGrenade = true;
 
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // RunAI
 //=========================================================
-void CHAssassin::RunAI( void )
+void CHAssassin::RunAI()
 {
 	CFollowingMonster::RunAI();
 
-	// always visible if moving
-	// always visible is not on hard
-	if( !gSkillData.hassassinCloaking || m_hEnemy == 0 || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || !( pev->flags & FL_ONGROUND ) )
-		m_iTargetRanderamt = 255;
-	else
-		m_iTargetRanderamt = 20;
-
-	if( pev->renderamt > m_iTargetRanderamt )
-	{
-		if( pev->renderamt == 255 )
-		{
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "debris/beamstart1.wav", 0.2, ATTN_NORM );
-		}
-
-		pev->renderamt = Q_max( pev->renderamt - 50, m_iTargetRanderamt );
-		pev->rendermode = kRenderTransTexture;
-	}
-	else if( pev->renderamt < m_iTargetRanderamt )
-	{
-		pev->renderamt = Q_min( pev->renderamt + 50, m_iTargetRanderamt );
-		if( pev->renderamt == 255 )
-			pev->rendermode = kRenderNormal;
-	}
-
-	if( m_Activity == ACT_RUN || m_Activity == ACT_WALK )
+	if( m_Activity == ACT_RUN )
 	{
 		static int iStep = 0;
 		iStep = !iStep;
 		if( iStep )
 		{
-			switch( RANDOM_LONG( 0, 3 ) )
-			{
-			case 0:
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "player/pl_step1.wav", 0.5, ATTN_NORM );
-				break;
-			case 1:
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "player/pl_step3.wav", 0.5, ATTN_NORM );
-				break;
-			case 2:
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "player/pl_step2.wav", 0.5, ATTN_NORM );
-				break;
-			case 3:
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "player/pl_step4.wav", 0.5, ATTN_NORM );
-				break;
-			}
+			EmitSoundScript(footstepSoundScript);
+		}
+	}
+	else if (m_Activity == ACT_WALK)
+	{
+		if (m_nextWalkFootstep <= gpGlobals->time)
+		{
+			EmitSoundScript(footstepSoundScript);
+			m_nextWalkFootstep = gpGlobals->time + 0.58f;
 		}
 	}
 }
@@ -847,6 +976,7 @@ void CHAssassin::StartTask( Task_t *pTask )
 		}
 		break;
 	case TASK_ASSASSIN_FALL_TO_GROUND:
+	case TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING:
 		break;
 	default:
 		CFollowingMonster::StartTask( pTask );
@@ -862,7 +992,20 @@ void CHAssassin::RunTask( Task_t *pTask )
 	switch( pTask->iTask )
 	{
 	case TASK_ASSASSIN_FALL_TO_GROUND:
-		MakeIdealYaw( m_vecEnemyLKP );
+	case TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING:
+	{
+		if (pTask->iTask == TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING)
+		{
+			CBaseEntity* pLeader = FollowedPlayer();
+			if (pLeader)
+			{
+				MakeIdealYaw(pLeader->pev->origin);
+			}
+		}
+		else
+		{
+			MakeIdealYaw( m_vecEnemyLKP );
+		}
 		ChangeYaw( pev->yaw_speed );
 
 		if( m_fSequenceFinished )
@@ -871,7 +1014,7 @@ void CHAssassin::RunTask( Task_t *pTask )
 			{
 				pev->sequence = LookupSequence( "fly_up" );
 			}
-			else if( HasConditions( bits_COND_SEE_ENEMY ) )
+			else if( HasConditions( bits_COND_SEE_ENEMY ) && pTask->iTask != TASK_ASSASSIN_FALL_TO_GROUND_FOLLOWING )
 			{
 				pev->sequence = LookupSequence( "fly_attack" );
 				pev->frame = 0;
@@ -890,6 +1033,7 @@ void CHAssassin::RunTask( Task_t *pTask )
 			// ALERT( at_console, "on ground\n" );
 			TaskComplete();
 		}
+	}
 		break;
 	default: 
 		CFollowingMonster::RunTask( pTask );
@@ -903,7 +1047,7 @@ void CHAssassin::RunTask( Task_t *pTask )
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CHAssassin::GetSchedule( void )
+Schedule_t *CHAssassin::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -911,6 +1055,10 @@ Schedule_t *CHAssassin::GetSchedule( void )
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_HUNT:
 		{
+			if (pev->movetype == MOVETYPE_TOSS && FBitSet(pev->flags, FL_ONGROUND))
+			{
+				pev->movetype = MOVETYPE_STEP;
+			}
 			CSound *pSound = NULL;
 			if( HasConditions( bits_COND_HEAR_SOUND ) )
 			{
@@ -923,9 +1071,13 @@ Schedule_t *CHAssassin::GetSchedule( void )
 				}
 			}
 
-			Schedule_t* followingSchedule = GetFollowingSchedule();
-			if (followingSchedule)
-				return followingSchedule;
+			Schedule_t* reloadSched = GetIdleReloadSchedule();
+			if (reloadSched)
+				return reloadSched;
+
+			Schedule_t* utilitySchedule = GetUtilitySchedule();
+			if (utilitySchedule)
+				return utilitySchedule;
 
 			if( pSound &&( pSound->m_iType & bits_SOUND_COMBAT ) )
 			{
@@ -965,8 +1117,7 @@ Schedule_t *CHAssassin::GetSchedule( void )
 
 			if( HasConditions( bits_COND_HEAR_SOUND ) )
 			{
-				CSound *pSound;
-				pSound = PBestSound();
+				CSound *pSound = PBestSound();
 
 				ASSERT( pSound != NULL );
 				if( pSound && ( pSound->m_iType & bits_SOUND_DANGER ) )
@@ -983,6 +1134,13 @@ Schedule_t *CHAssassin::GetSchedule( void )
 			{
 				m_iFrustration++;
 			}
+
+			if (HasConditions(bits_COND_NO_AMMO_LOADED))
+				return GetScheduleOfType(SCHED_RELOAD);
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
 
 			// jump player!
 			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
@@ -1014,7 +1172,7 @@ Schedule_t *CHAssassin::GetSchedule( void )
 				return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
 			}
 
-			if( HasConditions( bits_COND_SEE_ENEMY ) )
+			if( HasConditions( bits_COND_SEE_ENEMY ) && !FacingIdeal() )
 			{
 				// ALERT( at_console, "face\n" );
 				return GetScheduleOfType( SCHED_COMBAT_FACE );
@@ -1028,7 +1186,10 @@ Schedule_t *CHAssassin::GetSchedule( void )
 			}
 
 			// ALERT( at_console, "stand\n" );
-			return GetScheduleOfType( SCHED_ALERT_STAND );
+			if (!HasConditions(bits_COND_ENEMY_TOOFAR))
+				return GetScheduleOfType( SCHED_ALERT_STAND );
+			else
+				return GetScheduleOfType( SCHED_CHASE_ENEMY );
 		}
 		break;
 	default:
@@ -1086,22 +1247,324 @@ Schedule_t *CHAssassin::GetScheduleOfType( int Type )
 		return slAssassinJumpAttack;
 	case SCHED_ASSASSIN_JUMP_LAND:
 		return slAssassinJumpLand;
+	case SCHED_ASSASSIN_JUMP_FOLLOWING:
+		return slAssassinJumpFollowing;
+	case SCHED_ASSASSIN_JUMP_CHASE:
+		return slAssassinJumpChase;
+	case SCHED_FOLLOW_FAILED:
+	{
+		FOLLOW_FAIL_POLICY failPolicy = FollowFailPolicy();
+		if (failPolicy == FOLLOW_FAIL_STOP)
+		{
+			return GetScheduleOfType(SCHED_CANT_FOLLOW);
+		}
+		else if (failPolicy == FOLLOW_FAIL_TRY_NEAREST)
+		{
+			MakeMyBlockerMoveAway();
+			if (m_flNextJump <= gpGlobals->time && FindFollowJump())
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				return GetScheduleOfType(SCHED_ASSASSIN_JUMP_FOLLOWING);
+			}
+			return GetScheduleOfType(SCHED_FOLLOW_NEAREST);
+		}
+		else
+		{
+			MakeMyBlockerMoveAway();
+			if (m_flNextJump <= gpGlobals->time && FindFollowJump())
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				return GetScheduleOfType(SCHED_ASSASSIN_JUMP_FOLLOWING);
+			}
+			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
+		}
+	}
+	case SCHED_FOLLOW_NEAREST_FAILED:
+	{
+		if (m_flNextJump <= gpGlobals->time && FindFollowJump())
+		{
+			m_flNextJump = gpGlobals->time + 0.5f;
+			return GetScheduleOfType(SCHED_ASSASSIN_JUMP_FOLLOWING);
+		}
+		return CFollowingMonster::GetScheduleOfType(SCHED_FOLLOW_NEAREST_FAILED);
+	}
+	case SCHED_TARGET_FACE_CHECK_JUMP:
+	{
+		if (NpcFollowNearest() && m_hTargetEnt != 0 && (m_hTargetEnt->pev->origin - pev->origin).IsLength2DGreaterThanOrEqual(128.0f))
+		{
+			if (m_flNextJump <= gpGlobals->time && FindFollowJump())
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				return GetScheduleOfType(SCHED_ASSASSIN_JUMP_FOLLOWING);
+			}
+		}
+		return GetScheduleOfType(SCHED_TARGET_FACE);
+	}
+	case SCHED_CHASE_ENEMY_FAILED:
+	{
+		if (m_flNextJump <= gpGlobals->time && FindJumpToEntity(m_hEnemy))
+		{
+			m_flNextJump = gpGlobals->time + 1.0f;
+			return GetScheduleOfType(SCHED_ASSASSIN_JUMP_CHASE);
+		}
+	}
 	}
 
 	return CFollowingMonster::GetScheduleOfType( Type );
 }
 
+static Vector TraceBottom(const Vector& pos, edict_t* pIgnore, float deepness = 500)
+{
+	TraceResult tr;
+	UTIL_TraceLine(pos, pos - Vector(0,0,deepness), ignore_monsters, pIgnore, &tr);
+	return tr.vecEndPos;
+}
+
+enum
+{
+	MONSTERJUMP_OK = 0,
+	MONSTERJUMP_CLOSE_IN_2D,
+	MONSTERJUMP_TOOFAR_SOLID,
+	MONSTERJUMP_TOOFAR_TOODEEP,
+	MONSTERJUMP_TOOHIGH,
+	MONSTERJUMP_NO_TRACE_TO_APEX
+};
+
+std::pair<Vector, int> CHAssassin::CalcMonsterJump(const Vector &vecTarget, float maximumHeight, float maximumDistance)
+{
+	const float myHeight = pev->size.z;
+	const float halfMyHeight = myHeight * 0.5f;
+	const Vector halfMyHeightVec(0.0f, 0.0f, halfMyHeight);
+	Vector vecChosenDest = vecTarget;
+
+	const Vector2D vec2DDist = (vecChosenDest - pev->origin).Make2D();
+	const float dist2DSqr = vec2DDist.LengthSqr();
+	const bool isTooFar = dist2DSqr > maximumDistance * maximumDistance;
+	const bool isTooCloseIn2D = dist2DSqr < 48.0f * 48.0f;
+	if (isTooCloseIn2D)
+	{
+		return std::make_pair(g_vecZero, MONSTERJUMP_CLOSE_IN_2D);
+	}
+
+	// Can't jump that far. Just jump to get closer
+	if (isTooFar)
+	{
+		const Vector2D horizontalShift = vec2DDist.Normalize() * maximumDistance;
+		vecChosenDest.x = pev->origin.x + horizontalShift.x;
+		vecChosenDest.y = pev->origin.y + horizontalShift.y;
+
+		if (UTIL_PointContents(vecChosenDest) == CONTENTS_SOLID)
+		{
+			return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_SOLID);
+		}
+
+		Vector bottom = TraceBottom(vecChosenDest, edict());
+		if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+		{
+			//DrawBeamLine(vecChosenDest, bottom, Color3(255, 100, 50));
+			const Vector2D halfHorizontalShift = horizontalShift * 0.5f;
+			vecChosenDest.x = pev->origin.x + halfHorizontalShift.x;
+			vecChosenDest.y = pev->origin.y + halfHorizontalShift.y;
+
+			if (UTIL_PointContents(vecChosenDest) == CONTENTS_SOLID)
+			{
+				return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+			}
+			else
+			{
+				bottom = TraceBottom(vecChosenDest, edict());
+				if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+				{
+					return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+				}
+			}
+		}
+	}
+
+	Vector midPoint = (vecChosenDest + pev->origin) * 0.5f;
+
+	TraceResult mindpointTr;
+	UTIL_TraceLine(midPoint, midPoint + Vector(0,0,Q_max(500.0f, maximumHeight + myHeight)), ignore_monsters, edict(), &mindpointTr);
+	const float ceilingZ = mindpointTr.vecEndPos.z;
+
+	const float jumpMinZ = Q_max(vecChosenDest.z, pev->origin.z) + halfMyHeight * 0.5f;
+	const float jumpMaxZ = Q_max(ceilingZ - myHeight, jumpMinZ);
+
+	if (jumpMinZ - pev->origin.z > maximumHeight)
+	{
+		return std::make_pair(g_vecZero, MONSTERJUMP_TOOHIGH);
+	}
+
+	Vector vecApex = midPoint;
+	vecApex.z = Q_min(pev->origin.z + maximumHeight, jumpMaxZ);
+
+	const Vector vecTraceHullStart = pev->origin + halfMyHeightVec;
+	const Vector vectraceHullEnd = vecApex + halfMyHeightVec;
+
+	TraceResult tr;
+	UTIL_TraceHull(vecTraceHullStart, vectraceHullEnd, dont_ignore_monsters, human_hull, edict(), &tr );
+
+	if (!tr.fStartSolid && tr.flFraction == 1.0f)
+	{
+		//DrawBeamLine(vecTraceHullStart, vectraceHullEnd, Color3(0, 255, 0));
+
+		auto launchCalcResult = CalcLaunchToHeight(vecApex.z - pev->origin.z);
+
+		Vector velocity;
+		velocity.x = (vecApex.x - pev->origin.x) / launchCalcResult.time;
+		velocity.y = (vecApex.y - pev->origin.y) / launchCalcResult.time;
+		velocity.z = launchCalcResult.speed;
+		return std::make_pair(velocity, MONSTERJUMP_OK);
+	}
+	else
+	{
+		//DrawBeamLine(vecTraceHullStart, vectraceHullEnd, Color3(255, 0, 0));
+		return std::make_pair(g_vecZero, MONSTERJUMP_NO_TRACE_TO_APEX);
+	}
+}
+
+bool CHAssassin::FindJumpToSpot(const Vector& vecTarget)
+{
+	const float horizontalJumpDistance = 360.0f;
+
+	const Vector2D vec2DDist = (vecTarget - pev->origin).Make2D();
+	const float dist2DSqr = vec2DDist.LengthSqr();
+	const bool isTooCloseIn2D = dist2DSqr < 48.0f * 48.0f;
+
+	if (isTooCloseIn2D)
+	{
+		if (std::fabs(pev->origin.z - vecTarget.z) <= pev->size.z)
+		{
+			// Refuse early
+			//ALERT(at_console, "%s: already is close to the target\n", STRING(pev->classname));
+			return false;
+		}
+		if (pev->origin.z < vecTarget.z)
+		{
+			// The target is on top. Can't handle it for now
+			return false;
+		}
+
+		// The target is underneath. Try jump off to it
+		const std::pair<float, float> directions[] = {
+			{1, 0},
+			{-1, 0},
+			{0, 1},
+			{0, -1}
+		};
+
+		const float spotOffset = Q_min(128.0f, horizontalJumpDistance);
+
+		const size_t indexShift = RANDOM_LONG(0, ARRAYSIZE(directions)-1);
+
+		for (size_t i=0; i<ARRAYSIZE(directions); ++i)
+		{
+			size_t j = (i + indexShift) % ARRAYSIZE(directions);
+			const auto& randomDir = directions[j];
+
+			Vector vecSpot = pev->origin + Vector(randomDir.first * spotOffset, randomDir.second * spotOffset, 0.0f);
+			vecSpot.z = vecTarget.z;
+
+			auto jumpResult = CalcMonsterJump(vecSpot, HASSASSIN_JUMP_HEIGHT, horizontalJumpDistance);
+			if (jumpResult.first != g_vecZero)
+			{
+				m_vecJumpVelocity = jumpResult.first;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//TODO: calculate this depending on the monster and player geometry?
+	const FloatRange baseOffsetRange(45.0f, 50.0f); // don't jump right onto the target
+
+	const Vector2D vecTarget2D = vecTarget.Make2D();
+	const Vector2D vecToTarget = vecTarget2D - pev->origin.Make2D();
+	const Vector2D dirToTarget = vecToTarget.Normalize();
+	const Vector2D inFrontOfTarget = vecTarget2D - dirToTarget * RandomizeNumberFromRange(baseOffsetRange);
+	const Vector2D toRightFromTarget = vecTarget2D + Vector2D(dirToTarget.y, -dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
+	const Vector2D toLeftFromTarget = vecTarget2D + Vector2D(-dirToTarget.y, dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
+
+	const Vector possibleTargets[] = {
+		Vector(inFrontOfTarget, vecTarget.z),
+		Vector(toRightFromTarget, vecTarget.z),
+		Vector(toLeftFromTarget, vecTarget.z)
+	};
+
+	const size_t indexShift = RANDOM_LONG(0, ARRAYSIZE(possibleTargets)-1);
+
+	for (size_t i=0; i<ARRAYSIZE(possibleTargets); ++i)
+	{
+		size_t j = (i + indexShift) % ARRAYSIZE(possibleTargets);
+
+		const Vector& vecPossibleTarget = possibleTargets[j];
+		const Vector bottom = TraceBottom(vecPossibleTarget, edict());
+
+		if (bottom.z + 8.0f < Q_min(pev->origin.z, vecPossibleTarget.z))
+		{
+			continue;
+		}
+
+		auto jumpResult = CalcMonsterJump(vecPossibleTarget, HASSASSIN_JUMP_HEIGHT, horizontalJumpDistance);
+		if (jumpResult.first != g_vecZero)
+		{
+			m_vecJumpVelocity = jumpResult.first;
+			//ALERT(at_console, "%s: vertical jump velocity: %g; horizontal jump velocity: %g\n", STRING(pev->classname), m_vecJumpVelocity.z, m_vecJumpVelocity.Make2D().Length());
+			return true;
+		}
+		else
+		{
+			/*switch(jumpResult.second)
+			{
+			case MONSTERJUMP_CLOSE_IN_2D:
+				ALERT(at_console, "%s can't make jump: is already too close\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOFAR_SOLID:
+				ALERT(at_console, "%s can't make jump: the target is to far and the new selected point is in solid volume\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOFAR_TOODEEP:
+				ALERT(at_console, "%s can't make jump: new selected point is too deep\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOHIGH:
+				ALERT(at_console, "%s can't make jump: too high!\n", STRING(pev->classname));
+				break;
+			default:
+				ALERT(at_console, "%s can't make jump: can't calculate jump\n", STRING(pev->classname));
+				break;
+			}*/
+		}
+	}
+
+	return false;
+}
+
+bool CHAssassin::FindJumpToEntity(CBaseEntity* pEntity)
+{
+	if (!pEntity)
+		return false;
+
+	const Vector vecTarget(pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->absmin.z + 1.0f);
+	return FindJumpToSpot(vecTarget);
+}
+
+bool CHAssassin::FindFollowJump()
+{
+	return CHAssassin::FindJumpToEntity(FollowedPlayer());
+}
+
 class CDeadHAssassin : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	int	DefaultClassify ( void )
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/hassassin.mdl"; }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CLASS_HUMAN_MILITARY;
 	}
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
 
@@ -1116,7 +1579,7 @@ LINK_ENTITY_TO_CLASS( monster_human_assassin_dead, CDeadHAssassin )
 
 void CDeadHAssassin::Spawn()
 {
-	SpawnHelper("models/hassassin.mdl");
+	SpawnHelper();
 	MonsterInitDead();
 	pev->frame = 255;
 }

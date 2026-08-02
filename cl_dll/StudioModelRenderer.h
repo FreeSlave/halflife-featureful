@@ -9,6 +9,13 @@
 #if !defined ( STUDIOMODELRENDERER_H )
 #define STUDIOMODELRENDERER_H
 
+#include "com_model.h"
+#include "entity_state.h"
+#include "fixed_string.h"
+#include "icase_compare.h"
+#include "fake_mirror.h"
+#include <set>
+
 /*
 ====================
 CStudioModelRenderer
@@ -19,11 +26,11 @@ class CStudioModelRenderer
 {
 public:
 	// Construction/Destruction
-	CStudioModelRenderer( void );
-	virtual ~CStudioModelRenderer( void );
+	CStudioModelRenderer();
+	virtual ~CStudioModelRenderer();
 
 	// Initialization
-	virtual void Init( void );
+	virtual void Init();
 
 public:
 	// Public Interfaces
@@ -41,19 +48,26 @@ public:
 	virtual void StudioSetUpTransform( int trivial_accept );
 
 	// Set up model bone positions
-	virtual void StudioSetupBones( void );	
+	virtual void StudioSetupBones();	
 
 	// Find final attachment points
-	virtual void StudioCalcAttachments( void );
+	virtual void StudioCalcAttachments();
 	
+	// Returns whether StudioAdjustViewmodelAttachments needs to be called for the viewmodel
+	static bool NeedAdjustViewmodelAdjustments();
+	static float EffectiveViewmodelFOV();
+
+	// Reprojects attachments of the viewmodel if FOV is changed
+	void StudioAdjustViewmodelAttachments(Vector &vOrigin);
+
 	// Save bone matrices and names
-	virtual void StudioSaveBones( void );
+	virtual void StudioSaveBones();
 
 	// Merge cached bones with current bones for model
 	virtual void StudioMergeBones( model_t *m_pSubModel );
 
 	// Determine interpolation fraction
-	virtual float StudioEstimateInterpolant( void );
+	virtual float StudioEstimateInterpolant();
 
 	// Determine current frame for rendering
 	virtual float StudioEstimateFrame( mstudioseqdesc_t *pseqdesc );
@@ -77,14 +91,14 @@ public:
 	virtual void StudioCalcRotations( float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc, mstudioanim_t *panim, float f );
 
 	// Send bones and verts to renderer
-	virtual void StudioRenderModel( void );
+	virtual void StudioRenderModel();
 
 	// Finalize rendering
-	virtual void StudioRenderFinal( void );
+	virtual void StudioRenderFinal();
 	
 	// GL&D3D vs. Software renderer finishing functions
-	virtual void StudioRenderFinal_Software( void );
-	virtual void StudioRenderFinal_Hardware( void );
+	virtual void StudioRenderFinal_Software();
+	virtual void StudioRenderFinal_Hardware();
 
 	// Player specific data
 	// Determine pitch and blending amounts for players
@@ -95,6 +109,10 @@ public:
 
 	// Process movement of player
 	virtual void StudioProcessGait( entity_state_t *pplayer );
+
+	// Calculate the viewmodel fov and set the OpenGL projection matrix
+	static void SetViewmodelFovProjection();
+	static void RestoreViewmodelFovProjection();
 
 public:
 
@@ -182,6 +200,31 @@ public:
 	// Concatenated bone and light transforms
 	float			(*m_pbonetransform)[MAXSTUDIOBONES][3][4];
 	float			(*m_plighttransform)[MAXSTUDIOBONES][3][4];
+
+	bool StudioGetFullbright(model_s* pmodel);
+
+	void StudioRenderEntity(bool fullbright = false);
+	void StudioCacheFullbrightNames();
+
+	bool HasFullbrightSupportInEngine();
+
+	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szCheckedModels;
+	std::set<fixed_string<sizeof(model_t::name)>, CaseInsensitiveCompare> m_szFullBrightModels;
+
+	void HandleGaitsequence(entity_state_t *pplayer, const FakeMirror* mirror = nullptr);
+	void HandleStudioEvents();
+	void HandlePlayerModel(entity_state_t *pplayer, alight_t& lighting, Vector& dir);
+	void SetRemapColors();
+	void SetRemapColorsForPlayer();
+	void SetupLighting(alight_t& lighting);
+	void MirrorRotationMatrix(const FakeMirror& mirror, bool player = false);
+	bool CanRenderReflections();
+
+	// Mirror stuff
+	size_t mirror_id;
+	bool b_PlayerMarkerParsed;
+	bool m_reinforceNoneCulling;
+	int m_nCachedFrameCount;
 };
 
 #endif // STUDIOMODELRENDERER_H

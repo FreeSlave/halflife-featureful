@@ -19,12 +19,10 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "nodes.h"
 #include "monsters.h"
 #include "animation.h"
 #include "saverestore.h"
 #include "squadmonster.h"
-#include "plane.h"
 #include "game.h"
 
 //=========================================================
@@ -48,7 +46,7 @@ IMPLEMENT_SAVERESTORE( CSquadMonster, CBaseMonster )
 // OccupySlot - if any slots of the passed slots are 
 // available, the monster will be assigned to one.
 //=========================================================
-BOOL CSquadMonster::OccupySlot( int iDesiredSlots )
+bool CSquadMonster::OccupySlot( int iDesiredSlots )
 {
 	int i;
 	int iMask;
@@ -56,7 +54,7 @@ BOOL CSquadMonster::OccupySlot( int iDesiredSlots )
 
 	if( !InSquad() )
 	{
-		return TRUE;
+		return true;
 	}
 
 	if( SquadEnemySplit() )
@@ -65,7 +63,7 @@ BOOL CSquadMonster::OccupySlot( int iDesiredSlots )
 		// so that a squad member doesn't get stranded unable to engage his enemy because
 		// all of the attack slots are taken by squad members fighting other enemies.
 		m_iMySlot = bits_SLOT_SQUAD_SPLIT;
-		return TRUE;
+		return true;
 	}
 
 	CSquadMonster *pSquadLeader = MySquadLeader();
@@ -73,7 +71,7 @@ BOOL CSquadMonster::OccupySlot( int iDesiredSlots )
 	if( !( iDesiredSlots ^ pSquadLeader->m_afSquadSlots ) )
 	{
 		// none of the desired slots are available. 
-		return FALSE;
+		return false;
 	}
 
 	iSquadSlots = pSquadLeader->m_afSquadSlots;
@@ -89,12 +87,12 @@ BOOL CSquadMonster::OccupySlot( int iDesiredSlots )
 				pSquadLeader->m_afSquadSlots |= iMask;
 				m_iMySlot = iMask;
 				//ALERT( at_aiconsole, "Took slot %d - %d\n", i, m_hSquadLeader->m_afSquadSlots );
-				return TRUE;
+				return true;
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -113,12 +111,24 @@ void CSquadMonster::VacateSlot()
 //=========================================================
 // ScheduleChange
 //=========================================================
-void CSquadMonster::ScheduleChange ( void )
+void CSquadMonster::ScheduleChange ()
 {
 	VacateSlot();
 }
 
-void CSquadMonster::OnDying()
+void CSquadMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
+{
+	RemoveMySelfFromSquad();
+	CBaseMonster::OnDying(gibbed, pKiller);
+}
+
+void CSquadMonster::UpdateOnRemove()
+{
+	RemoveMySelfFromSquad();
+	CBaseMonster::UpdateOnRemove();
+}
+
+void CSquadMonster::RemoveMySelfFromSquad()
 {
 	VacateSlot();
 
@@ -132,9 +142,9 @@ void CSquadMonster::OnDying()
 			if( pSquadMember && pSquadMember != this )
 			{
 				if (pSquadMember->m_IdealMonsterState == pSquadMember->m_MonsterState &&
-						pSquadMember->IsFullyAlive() &&
-						pSquadMember->m_hEnemy == 0 && (pSquadMember->m_MonsterState == MONSTERSTATE_IDLE ||
-									   pSquadMember->m_MonsterState == MONSTERSTATE_ALERT))
+					pSquadMember->IsFullyAlive() &&
+					pSquadMember->m_hEnemy == 0 && (pSquadMember->m_MonsterState == MONSTERSTATE_IDLE ||
+													pSquadMember->m_MonsterState == MONSTERSTATE_ALERT))
 				{
 					pSquadMember->m_IdealMonsterState = MONSTERSTATE_HUNT;
 					pSquadMember->m_vecEnemyLKP = pev->origin;
@@ -145,7 +155,6 @@ void CSquadMonster::OnDying()
 
 		pSquadLeader->SquadRemove( this );
 	}
-	CBaseMonster::OnDying();
 }
 
 // These functions are still awaiting conversion to CSquadMonster 
@@ -239,7 +248,7 @@ void CSquadMonster::SquadRemove( CSquadMonster *pRemove )
 // SquadAdd(), add pAdd to my squad
 //
 //=========================================================
-BOOL CSquadMonster::SquadAdd( CSquadMonster *pAdd )
+bool CSquadMonster::SquadAdd( CSquadMonster *pAdd )
 {
 	ASSERT( pAdd != NULL );
 	ASSERT( !pAdd->InSquad() );
@@ -251,10 +260,10 @@ BOOL CSquadMonster::SquadAdd( CSquadMonster *pAdd )
 		{
 			m_hSquadMember[i] = pAdd;
 			pAdd->m_hSquadLeader = this;
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 	// should complain here
 }
 
@@ -265,7 +274,7 @@ BOOL CSquadMonster::SquadAdd( CSquadMonster *pAdd )
 // members who don't have current info.
 //
 //=========================================================
-void CSquadMonster::SquadPasteEnemyInfo( void )
+void CSquadMonster::SquadPasteEnemyInfo()
 {
 	CSquadMonster *pSquadLeader = MySquadLeader();
 	if( pSquadLeader )
@@ -283,7 +292,7 @@ void CSquadMonster::SquadPasteEnemyInfo( void )
 // so the most recent data is always available here.
 //
 //=========================================================
-void CSquadMonster::SquadCopyEnemyInfo( void )
+void CSquadMonster::SquadCopyEnemyInfo()
 {
 	CSquadMonster *pSquadLeader = MySquadLeader();
 	if( pSquadLeader )
@@ -343,7 +352,7 @@ void CSquadMonster::SquadMakeEnemy( CBaseEntity *pEnemy )
 // callable from leaders & followers
 //
 //=========================================================
-int CSquadMonster::SquadCount( void )
+int CSquadMonster::SquadCount()
 {
 	if( !InSquad() )
 		return 0;
@@ -393,7 +402,8 @@ int CSquadMonster::SquadRecruit( int searchRadius, int maxMembers )
 
 			if( pRecruit )
 			{
-				if( !pRecruit->InSquad() && pRecruit->Classify() == iMyClass && pRecruit != this )
+				const int rel = pRecruit->IRelationship(this);
+				if( !pRecruit->InSquad() && (rel == R_AL || rel == R_NO) && pRecruit != this && (FBitSet(m_afCapability, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY) || pRecruit->Classify() == iMyClass) )
 				{
 					// minimum protection here against user error.in worldcraft. 
 					if( !SquadAdd( pRecruit ) )
@@ -413,10 +423,12 @@ int CSquadMonster::SquadRecruit( int searchRadius, int maxMembers )
 
 			if( pRecruit && pRecruit != this && pRecruit->IsFullyAlive() && !pRecruit->m_pCine && !FBitSet(pRecruit->pev->spawnflags, SF_MONSTER_PRISONER) )
 			{
+				const int rel = pRecruit->IRelationship(this);
 				// Can we recruit this guy?
-				if( !pRecruit->InSquad() && pRecruit->Classify() == iMyClass &&
-				   ( ( DefaultClassify() != CLASS_ALIEN_MONSTER ) || FStrEq( STRING( pev->classname ), STRING( pRecruit->pev->classname ) ) ) &&
-				    FStringNull( pRecruit->pev->netname ) )
+				if( !pRecruit->InSquad() && (rel == R_AL || rel == R_NO) && FStringNull(pRecruit->pev->netname) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_DENY) &&
+					(FBitSet(m_afCapability, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY) || pRecruit->Classify() == iMyClass) &&
+					((!FBitSet(m_afCapability, bits_CAP_SQUAD_SAME_CLASSNAME) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_SAME_CLASSNAME)) || FStrEq( STRING( pev->classname ), STRING( pRecruit->pev->classname ) )) &&
+					((!FBitSet(m_afCapability, bits_CAP_SQUAD_SAME_TEMPLATE) && !FBitSet(pRecruit->m_afCapability, bits_CAP_SQUAD_SAME_TEMPLATE)) || FStrEq(m_entTemplate, pRecruit->m_entTemplate)) )
 				{
 					TraceResult tr;
 					UTIL_TraceLine( pev->origin + pev->view_ofs, pRecruit->pev->origin + pev->view_ofs, ignore_monsters, pRecruit->edict(), &tr );// try to hit recruit with a traceline.
@@ -444,24 +456,31 @@ int CSquadMonster::SquadRecruit( int searchRadius, int maxMembers )
 //=========================================================
 // CheckEnemy
 //=========================================================
-int CSquadMonster::CheckEnemy( CBaseEntity *pEnemy )
+bool CSquadMonster::CheckEnemy( CBaseEntity *pEnemy )
 {
-	int iUpdatedLKP;
-
-	iUpdatedLKP = CBaseMonster::CheckEnemy( pEnemy );
+	bool iUpdatedLKP = CBaseMonster::CheckEnemy( pEnemy );
 
 	// communicate with squad members about the enemy IF this individual has the same enemy as the squad leader.
-	if( InSquad() && pEnemy == MySquadLeader()->m_hEnemy )
+	if( InSquad() )
 	{
-		if( iUpdatedLKP )
+		CSquadMonster* pLeader = MySquadLeader();
+		if (pEnemy == pLeader->m_hEnemy)
 		{
-			// have new enemy information, so paste to the squad.
-			SquadPasteEnemyInfo();
+			if( iUpdatedLKP )
+			{
+				// have new enemy information, so paste to the squad.
+				SquadPasteEnemyInfo();
+			}
+			else
+			{
+				// enemy unseen, copy from the squad knowledge.
+				SquadCopyEnemyInfo();
+			}
 		}
-		else
+		else if (pLeader->m_hEnemy == 0 && m_hEnemy->IsFullyAlive())
 		{
-			// enemy unseen, copy from the squad knowledge.
-			SquadCopyEnemyInfo();
+			// Leader doesn't have enemy! Probably was busy with something when squad member saw the new enemy.
+			SquadMakeEnemy(m_hEnemy);
 		}
 	}
 
@@ -471,11 +490,11 @@ int CSquadMonster::CheckEnemy( CBaseEntity *pEnemy )
 //=========================================================
 // StartMonster
 //=========================================================
-void CSquadMonster::StartMonster( void )
+void CSquadMonster::StartMonster()
 {
 	CBaseMonster::StartMonster();
 
-	if( ( m_afCapability & bits_CAP_SQUAD ) && !InSquad() )
+	if( ( FBitSet(m_afCapability, bits_CAP_SQUAD) ) && !InSquad() )
 	{
 		if( !FStringNull( pev->netname ) )
 		{
@@ -494,140 +513,23 @@ void CSquadMonster::StartMonster( void )
 		// try to form squads now.
 		int iSquadSize = SquadRecruit( 1024, 4 );
 
-		if( iSquadSize )
+		if( iSquadSize > 1 )
 		{
 			ALERT( at_aiconsole, "Squad of %d monsters formed. Leader is %s\n", iSquadSize, STRING( pev->classname ) );
 		}
 
-		if( IsLeader() && FClassnameIs( pev, "monster_human_grunt" ) )
+		if( IsLeader() )
 		{
-			SetBodygroup( 1, 1 ); // UNDONE: truly ugly hack
-			pev->skin = 0;
+			OnBecomingLeader();
 		}
 	}
-}
-
-//=========================================================
-// NoFriendlyFire - checks for possibility of friendly fire
-//
-// Builds a large box in front of the grunt and checks to see 
-// if any squad members are in that box. 
-//=========================================================
-BOOL CSquadMonster::NoFriendlyFire( void )
-{
-	//!!!BUGBUG - to fix this, the planes must be aligned to where the monster will be firing its gun, not the direction it is facing!!!
-	if( m_hEnemy != 0 )
-	{
-		UTIL_MakeVectors( UTIL_VecToAngles( m_hEnemy->Center() - pev->origin ) );
-	}
-	else
-	{
-		// if there's no enemy, pretend there's a friendly in the way, so the monster won't shoot.
-		return FALSE;
-	}
-
-	CBaseEntity* pEnemy = m_hEnemy;
-	const Vector enemyCenter = pEnemy->Center();
-	const Vector gunPos = GetGunPosition();
-	const Vector posVecs[3] = {gunPos, gunPos + gpGlobals->v_right * pev->size.x * 1, gpGlobals->v_right * pev->size.x * (-1)};
-	const Vector enemyVec[3] = {enemyCenter, enemyCenter + gpGlobals->v_right * pEnemy->pev->size.x * 0.5, enemyCenter + gpGlobals->v_right * pEnemy->pev->size.x * -0.5};
-	for (int j=0; j<3; ++j)
-	{
-		TraceResult tr;
-		UTIL_TraceLine(posVecs[j], enemyVec[j], dont_ignore_monsters, ENT(pev), &tr);
-		if (tr.flFraction != 1.0 && tr.pHit != 0)
-		{
-			CBaseMonster* monster = GetMonsterPointer(tr.pHit);
-			if (monster != 0 && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
-			{
-				//ALERT(at_aiconsole, "%s: Ally %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(monster->pev->classname));
-				return FALSE;
-			}
-		}
-	}
-
-	const bool inSquad = InSquad();
-	CBaseEntity* player = UTIL_PlayerByIndex(1);
-	const bool friendWithPlayer = player != 0 && IRelationship(player) == R_AL; // TODO: better check for player relationship
-	if( !inSquad && !friendWithPlayer )
-	{
-		return TRUE;
-	}
-
-	CPlane backPlane;
-	CPlane leftPlane;
-	CPlane rightPlane;
-	CPlane frontPlane;
-
-	Vector vecLeftSide;
-	Vector vecRightSide;
-	Vector v_left;
-	Vector v_dir;
-
-	v_dir = gpGlobals->v_right * ( pev->size.x * 1.5f );
-	vecLeftSide = pev->origin - v_dir;
-		vecRightSide = pev->origin + v_dir;
-
-	v_left = gpGlobals->v_right * -1.0f;
-
-	leftPlane.InitializePlane( gpGlobals->v_right, vecLeftSide );
-	rightPlane.InitializePlane( v_left, vecRightSide );
-	backPlane.InitializePlane( gpGlobals->v_forward, pev->origin );
-	frontPlane.InitializePlane( gpGlobals->v_forward * -1, enemyCenter + gpGlobals->v_forward * pEnemy->pev->size.Length2D() / 2 );
-/*
-	ALERT( at_console, "LeftPlane: %f %f %f : %f\n", leftPlane.m_vecNormal.x, leftPlane.m_vecNormal.y, leftPlane.m_vecNormal.z, leftPlane.m_flDist );
-	ALERT( at_console, "RightPlane: %f %f %f : %f\n", rightPlane.m_vecNormal.x, rightPlane.m_vecNormal.y, rightPlane.m_vecNormal.z, rightPlane.m_flDist );
-	ALERT( at_console, "BackPlane: %f %f %f : %f\n", backPlane.m_vecNormal.x, backPlane.m_vecNormal.y, backPlane.m_vecNormal.z, backPlane.m_flDist );
-*/
-	const bool enemyIsAlive = pEnemy->IsFullyAlive();
-	if (inSquad)
-	{
-		CSquadMonster *pSquadLeader = MySquadLeader();
-		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
-		{
-			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
-			if( pMember && pMember != this )
-			{
-				if( backPlane.PointInFront( pMember->pev->origin ) &&
-					leftPlane.PointInFront( pMember->pev->origin ) &&
-					rightPlane.PointInFront( pMember->pev->origin ) )
-				{
-					// this guy is in the check volume! Don't shoot!
-					if (frontPlane.PointInFront( pMember->pev->origin ))
-						return FALSE;
-					else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
-						return FALSE;
-				}
-			}
-		}
-	}
-	for( int k = 1; k <= gpGlobals->maxClients; k++ )
-	{
-		CBaseEntity* pPlayer = UTIL_PlayerByIndex(k);
-		if (pPlayer && pPlayer->IsPlayer() && IRelationship(pPlayer) == R_AL)
-		{
-			if( backPlane.PointInFront( pPlayer->pev->origin ) &&
-				leftPlane.PointInFront( pPlayer->pev->origin ) &&
-				rightPlane.PointInFront( pPlayer->pev->origin ) )
-			{
-				//ALERT(at_aiconsole, "%s: Ally player at fire plane!\n", STRING(pev->classname));
-				// player is in the check volume! Don't shoot!
-				if (frontPlane.PointInFront( pPlayer->pev->origin ))
-					return FALSE;
-				else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
-					return FALSE;
-			}
-		}
-	}
-
-	return TRUE;
 }
 
 //=========================================================
 // GetIdealState - surveys the Conditions information available
 // and finds the best new state for a monster.
 //=========================================================
-MONSTERSTATE CSquadMonster::GetIdealState ( void )
+MONSTERSTATE CSquadMonster::GetIdealState ()
 {
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )
@@ -652,30 +554,30 @@ MONSTERSTATE CSquadMonster::GetIdealState ( void )
 // cover location is a good one to move to. (currently based
 // on proximity to others in the squad)
 //=========================================================
-BOOL CSquadMonster::FValidateCover( const Vector &vecCoverLocation )
+bool CSquadMonster::FValidateCover( const Vector &vecCoverLocation )
 {
 	if( !InSquad() )
 	{
-		return TRUE;
+		return true;
 	}
 
 	if( AllyMonsterInRange( vecCoverLocation, 128 ) )
 	{
 		// another squad member is too close to this piece of cover.
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //=========================================================
-// SquadEnemySplit- returns TRUE if not all squad members
+// SquadEnemySplit- returns true if not all squad members
 // are fighting the same enemy. 
 //=========================================================
-BOOL CSquadMonster::SquadEnemySplit( void )
+bool CSquadMonster::SquadEnemySplit()
 {
 	if( !InSquad() )
-		return FALSE;
+		return false;
 
 	CSquadMonster *pSquadLeader = MySquadLeader();
 	CBaseEntity *pEnemy = pSquadLeader->m_hEnemy;
@@ -685,17 +587,17 @@ BOOL CSquadMonster::SquadEnemySplit( void )
 		CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
 		if( pMember != NULL && pMember->m_hEnemy != 0 && pMember->m_hEnemy != pEnemy )
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // SquadMemberInRange - determines whether or not squad members
 // or ally monsters are in the chosen location.
 //=========================================================
-BOOL CSquadMonster::AllyMonsterInRange( const Vector &vecLocation, float flDist )
+bool CSquadMonster::AllyMonsterInRange( const Vector &vecLocation, float flDist )
 {
 	if( InSquad() )
 	{
@@ -704,8 +606,8 @@ BOOL CSquadMonster::AllyMonsterInRange( const Vector &vecLocation, float flDist 
 		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
 		{
 			CSquadMonster *pSquadMember = pSquadLeader->MySquadMember( i );
-			if( pSquadMember && ( vecLocation - pSquadMember->pev->origin ).Length2D() <= flDist )
-				return TRUE;
+			if( pSquadMember && ( vecLocation - pSquadMember->pev->origin ).IsLength2DLessThanOrEqual(flDist) )
+				return true;
 		}
 	}
 	CBaseEntity* pEntity = NULL;
@@ -715,11 +617,11 @@ BOOL CSquadMonster::AllyMonsterInRange( const Vector &vecLocation, float flDist 
 		if (monster != 0 && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
 		{
 			ALERT(at_aiconsole, "%s: Ally %s at search radius.\n", STRING(pev->classname), STRING(monster->pev->classname));
-			return TRUE;
+			return true;
 		}
 
 	}
-	return FALSE;
+	return false;
 }
 
 extern Schedule_t slChaseEnemyFailed[];
@@ -783,5 +685,8 @@ void CSquadMonster::ReportAIState(ALERT_TYPE level)
 			CSquadMonster* myLeader = MySquadLeader();
 			ALERT( level, "My Squad Leader: '%s'. ", FStringNull(myLeader->pev->targetname) ? STRING(myLeader->pev->classname) : STRING(myLeader->pev->targetname) );
 		}
+
+		if (m_iMySlot)
+			ALERT(level, "My squad slot: %d. ", m_iMySlot);
 	}
 }

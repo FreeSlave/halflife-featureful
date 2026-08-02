@@ -15,15 +15,14 @@
 //
 // cl_util.h
 //
+#pragma once
 #if !defined(CL_UTIL_H)
 #define CL_UTIL_H
+#include <cassert>
+#include "cl_dll.h"
 #include "exportdef.h"
 #include "cvardef.h"
-
-#if !defined(TRUE)
-#define TRUE 1
-#define FALSE 0
-#endif
+#include "color_utils.h"
 
 // Macros to hook function calls into the HUD object
 
@@ -35,9 +34,9 @@
 						}
 
 #define HOOK_COMMAND(x, y) gEngfuncs.pfnAddCommand( x, __CmdFunc_##y );
-#define DECLARE_COMMAND(y, x) void __CmdFunc_##x( void ) \
+#define DECLARE_COMMAND(y, x) void __CmdFunc_##x() \
 							{ \
-								gHUD.y.UserCmd_##x( ); \
+								gHUD.y.UserCmd_##x(); \
 							}
 
 inline float CVAR_GET_FLOAT( const char *x ) {	return gEngfuncs.pfnGetCvarFloat( (char*)x ); }
@@ -82,6 +81,8 @@ inline void FillRGBA(int x, int y, int width, int height, int r, int g, int b, i
 // Use this to set any co-ords in 640x480 space
 #define XRES(x)		( (int)( float(x) * ( (float)ScreenWidth / 640.0f ) + 0.5f ) )
 #define YRES(y)		( (int)( float(y) * ( (float)ScreenHeight / 480.0f ) + 0.5f ) )
+#define XRES_HD(x)      ( (int)( float(x) * Q_max(1.f, (float)ScreenWidth / 1280.f )))
+#define YRES_HD(y)	( (int)( float(y) * Q_max(1.f, (float)ScreenHeight / 720.f )))
 
 // use this to project world coordinates to screen coordinates
 #define XPROJECT(x)	( ( 1.0f + (x) ) * ScreenWidth * 0.5f )
@@ -152,41 +153,30 @@ inline void CenterPrint( const char *string )
 inline void PlaySound( const char *szSound, float vol ) { gEngfuncs.pfnPlaySoundByName( szSound, vol ); }
 inline void PlaySound( int iSound, float vol ) { gEngfuncs.pfnPlaySoundByIndex( iSound, vol ); }
 
-#define Q_max(a, b)  (((a) > (b)) ? (a) : (b))
-#define Q_min(a, b)  (((a) < (b)) ? (a) : (b))
-#define fabs(x)	   ((x) > 0 ? (x) : 0 - (x))
+#include "min_and_max.h"
+
+int GetSpriteRes( int width, int height );
 
 void ScaleColors( int &r, int &g, int &b, int a );
 
-#define DotProduct(x, y) ((x)[0] * (y)[0] + (x)[1] * (y)[1] + (x)[2] * (y)[2])
-#define VectorSubtract(a, b, c) { (c)[0] = (a)[0] - (b)[0]; (c)[1] = (a)[1] - (b)[1]; (c)[2] = (a)[2] - (b)[2]; }
-#define VectorAdd(a, b, c) { (c)[0] = (a)[0] + (b)[0]; (c)[1] = (a)[1] + (b)[1]; (c)[2] = (a)[2] + (b)[2]; }
-#define VectorCopy(a, b) { (b)[0] = (a)[0]; (b)[1] = (a)[1]; (b)[2] = (a)[2]; }
-inline void VectorClear( float *a ) { a[0] = 0.0; a[1] = 0.0; a[2] = 0.0; }
 float Length( const float *v );
 void VectorMA( const float *veca, float scale, const float *vecb, float *vecc );
 void VectorScale( const float *in, float scale, float *out );
 float VectorNormalize( float *v );
 void VectorInverse( float *v );
 
-// extern vec3_t vec3_origin;
-extern float vec3_origin[3];
+float UTIL_ApproachAngle( float target, float value, float speed );
 
 // disable 'possible loss of data converting float to int' warning message
 #pragma warning( disable: 4244 )
 // disable 'truncation from 'const double' to 'float' warning message
 #pragma warning( disable: 4305 )
 
-inline void UnpackRGB( int &r, int &g, int &b, unsigned long ulRGB )\
-{\
-	r = ( ulRGB & 0xFF0000 ) >> 16;\
-	g = ( ulRGB & 0xFF00 ) >> 8;\
-	b = ulRGB & 0xFF;\
-}
-
 HSPRITE LoadSprite( const char *pszName );
 
 bool HUD_MessageBox( const char *msg );
+bool IsAnyXash();
 bool IsXashFWGS();
-void ShutdownInput( void );
+bool LibrarySideFullbrightSupportIsOn();
+void ShutdownInput();
 #endif

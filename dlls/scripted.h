@@ -36,7 +36,10 @@
 #define SF_SCRIPT_TRY_ONCE	4096
 #define SF_SCRIPT_DONT_RESET_HEAD	8192
 #define SF_SCRIPT_FORCE_IDLE_LOOPING 16384
-#define SF_REMOVE_ON_INTERRUPTION	32768
+#define SF_SCRIPT_REMOVE_ON_INTERRUPTION	32768
+#define SF_SCRIPT_DONT_DROP_TO_FLOOR	65536
+#define SF_SCRIPT_ALLOW_STUCK	131072
+#define SF_SCRIPT_ALLOW_UNNAMED_IDLE	262144
 
 #define SCRIPT_BREAK_CONDITIONS		(bits_COND_LIGHT_DAMAGE|bits_COND_HEAVY_DAMAGE)
 
@@ -123,65 +126,62 @@ enum
 class CCineMonster : public CBaseDelay
 {
 public:
-	void Spawn( void );
-	virtual void KeyValue( KeyValueData *pkvd );
-	virtual void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual void Blocked( CBaseEntity *pOther );
-	virtual void Touch( CBaseEntity *pOther );
-	virtual int	 ObjectCaps( void ) { return (CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
-	virtual void Activate( void );
-	virtual void UpdateOnRemove();
-	BOOL IsLockedByMaster() {
-		if( m_sMaster && !UTIL_IsMasterTriggered( m_sMaster, m_hActivator ) )
-			return TRUE;
-		else
-			return FALSE;
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void Blocked( CBaseEntity *pOther ) override;
+	void Touch( CBaseEntity *pOther ) override;
+	int	 ObjectCaps() override { return (CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	void Activate() override;
+	void UpdateOnRemove() override;
+	bool IsLockedByMaster() override {
+		return m_sMaster && !UTIL_IsMasterTriggered( m_sMaster, m_hActivator );
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-	
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	// void EXPORT CineSpawnThink( void );
-	void EXPORT CineThink( void );
-	void Pain( void );
-	void Die( void );
+	// void EXPORT CineSpawnThink();
+	void EXPORT CineThink();
+	void Pain();
+	void Die();
 	void DelayStart( int state );
-	CBaseMonster *FindEntity( void );
+	CBaseMonster *FindEntity();
 	bool TryFindAndPossessEntity();
 	bool MayReportInappropriateTarget(int checkFail);
 	bool IsAppropriateTarget(CBaseMonster* pTarget, int interruptFlags, bool shouldCheckRadius, int* pCheckFail = 0);
 	bool AcceptedFollowingState(CBaseMonster* pMonster);
-	virtual void PossessEntity( void );
+	virtual void PossessEntity();
 
-	inline bool IsAction( void ) { return FClassnameIs(pev, "scripted_action"); }; //LRC
+	inline bool IsAction() { return FClassnameIs(pev, "scripted_action"); } //LRC
 
 	//LRC: Should the monster do a precise attack for this scripted_action?
 	// (Do a precise attack if we'll be turning to face the target, but we haven't just walked to the target.)
-	bool PreciseAttack( void )
+	bool PreciseAttack()
 	{
-	//	if (m_fTurnType != 1) { ALERT(at_console,"preciseattack fails check 1\n"); return FALSE; }
-	//	if (m_fMoveTo == 0) { ALERT(at_console,"preciseattack fails check 2\n"); return FALSE; }
-	//	if (m_fMoveTo != 5 && m_iszAttack == 0) { ALERT(at_console,"preciseattack fails check 3\n"); return FALSE; }
+	//	if (m_fTurnType != 1) { ALERT(at_console,"preciseattack fails check 1\n"); return false; }
+	//	if (m_fMoveTo == 0) { ALERT(at_console,"preciseattack fails check 2\n"); return false; }
+	//	if (m_fMoveTo != 5 && m_iszAttack == 0) { ALERT(at_console,"preciseattack fails check 3\n"); return false; }
 	//	ALERT(at_console,"preciseattack passes!\n");
-	//	return TRUE;
+	//	return true;
 		return m_fTurnType == SCRIPT_TURN_FACE && ( m_fMoveTo == SCRIPT_MOVE_FACE || (m_fMoveTo != SCRIPT_MOVE_NO && !FStrEq(STRING(m_iszAttack), STRING(m_iszMoveTarget)) ));
-	};
+	}
 
 
 	void ReleaseEntity( CBaseMonster *pEntity );
 	void CancelScript( int cancellationReason = SCRIPT_CANCELLATION_REASON_GENERIC );
-	virtual BOOL StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL completeOnEmpty );
-	virtual BOOL FCanOverrideState ( void );
+	void FireOnAnimStart(CBaseMonster *pTarget);
+	virtual bool StartSequence( CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty );
+	virtual bool FCanOverrideState ();
 	void SequenceDone ( CBaseMonster *pMonster );
 	virtual void FixScriptMonsterSchedule( CBaseMonster *pMonster );
 	bool ForcedNoInterruptions();
-	BOOL	CanInterrupt( void );
+	bool	CanInterrupt();
 	bool	CanInterruptByPlayerCall();
 	bool	CanInterruptByBarnacle();
-	void	AllowInterrupt( BOOL fAllow );
-	int		IgnoreConditions( void );
+	void	AllowInterrupt( bool fAllow );
+	int		IgnoreConditions();
 	virtual bool	ShouldResetOnGroundFlag();
 	void OnMoveFail();
 	bool MoveFailAttemptsExceeded() const;
@@ -212,8 +212,8 @@ public:
 	int	m_saved_solid;
 	int m_saved_effects;
 	//Vector m_vecOrigOrigin;
-	BOOL m_interruptable;
-	BOOL m_firedOnAnimStart;
+	bool m_interruptable;
+	bool m_firedOnAnimStart;
 	string_t m_iszFireOnAnimStart;
 	string_t m_iszFireOnPossessed;
 	short m_targetActivator;
@@ -231,6 +231,10 @@ public:
 	short m_takeDamagePolicy;
 
 	string_t m_sMaster;
+	float m_playFramerate;
+
+	float m_initialSearchDelay;
+	float m_searchDelay;
 
 	bool m_cantFindReported; // no need to save
 	bool m_cantPlayReported;
@@ -238,7 +242,7 @@ public:
 
 class CCineAI : public CCineMonster
 {
-	BOOL FCanOverrideState ( void );
-	bool ShouldResetOnGroundFlag();
+	bool FCanOverrideState () override;
+	bool ShouldResetOnGroundFlag() override;
 };
 #endif //SCRIPTED_H

@@ -15,7 +15,6 @@
 
 // Triangle rendering apis are in gEngfuncs.pTriAPI
 
-#include "const.h"
 #include "entity_state.h"
 #include "cl_entity.h"
 #include "triangleapi.h"
@@ -24,9 +23,16 @@ int g_iWaterLevel;
 
 extern "C"
 {
-	void DLLEXPORT HUD_DrawNormalTriangles( void );
-	void DLLEXPORT HUD_DrawTransparentTriangles( void );
+	void DLLEXPORT HUD_DrawNormalTriangles();
+	void DLLEXPORT HUD_DrawTransparentTriangles();
 }
+
+void CacheFullbrightModels();
+bool m_bCacheFullbrightModels = true;
+
+#include "com_model.h"
+#include "particleman.h"
+#include "environment.h"
 
 //#define TEST_IT	1
 #if TEST_IT
@@ -38,7 +44,7 @@ Draw_Triangles
 Example routine.  Draws a sprite offset from the player origin.
 =================
 */
-void Draw_Triangles( void )
+void Draw_Triangles()
 {
 	cl_entity_t *player;
 	vec3_t org;
@@ -111,7 +117,7 @@ static void RenderFogImpl(short r, short g, short b, float startDist, float endD
 	float fogColor[] = {(float)r, (float)g, (float)b};
 	gEngfuncs.pTriAPI->Fog ( fogColor, startDist, endDist, 1 );
 
-#ifdef CLDLL_FOG
+#if OPENGL_AVAILABLE
 	int glFogType = 0;
 
 	switch (type) {
@@ -135,10 +141,10 @@ static void RenderFogImpl(short r, short g, short b, float startDist, float endD
 #endif
 }
 
-void RenderFog ( void )
+void RenderFog ()
 {
 	const FogProperties& fog = gHUD.fog;
-	bool bFog = g_iWaterLevel < 3 && (fog.endDist > 0 || fog.density > 0);
+	bool bFog = g_iWaterLevel < WL_Eyes && (fog.endDist > 0 || fog.density > 0);
 	if (bFog)
 	{
 		RenderFogImpl(fog.r,fog.g,fog.b, fog.startDist, fog.endDist, fog.affectSkybox, fog.density, fog.type);
@@ -157,7 +163,7 @@ HUD_DrawNormalTriangles
 Non-transparent triangles-- add them here
 =================
 */
-void DLLEXPORT HUD_DrawNormalTriangles( void )
+void DLLEXPORT HUD_DrawNormalTriangles()
 {
 	gHUD.m_Spectator.DrawOverview();
 #if TEST_IT
@@ -172,9 +178,21 @@ HUD_DrawTransparentTriangles
 Render any triangles with transparent rendermode needs here
 =================
 */
-void DLLEXPORT HUD_DrawTransparentTriangles( void )
+void DLLEXPORT HUD_DrawTransparentTriangles()
 {
 #if TEST_IT
 //	Draw_Triangles();
 #endif
+
+	if (m_bCacheFullbrightModels)
+	{
+		CacheFullbrightModels();
+		m_bCacheFullbrightModels = false;
+	}
+
+	if ( g_pParticleMan )
+	{
+		g_pParticleMan->Update();
+		g_Environment.Update();
+	}
 }

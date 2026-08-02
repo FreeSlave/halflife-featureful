@@ -1,0 +1,6 @@
+{{ partial "docs/inject/toc-before" . }}
+{{ $tocStartLevel := default 2 .Params.toc_start_level  }}
+{{ $tocEndLevel := default 4 .Params.toc_end_level  }}
+{{ $tocOrdered := false  }}
+{{ .Fragments.ToHTML $tocStartLevel $tocEndLevel $tocOrdered | safeHTML }}
+{{ partial "docs/inject/toc-after" . }}

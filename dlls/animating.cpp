@@ -64,7 +64,7 @@ float CBaseAnimating::StudioFrameAdvance( float flInterval )
 			pev->frame -= (int)( pev->frame / 256.0f ) * 256.0f;
 		else
 			pev->frame = ( pev->frame < 0.0f ) ? 0.0f : 255.0f;
-		m_fSequenceFinished = TRUE;	// just in case it wasn't caught in GetEvents
+		m_fSequenceFinished = true;	// just in case it wasn't caught in GetEvents
 	}
 
 	return flInterval;
@@ -77,6 +77,22 @@ int CBaseAnimating::LookupActivity( int activity )
 {
 	ASSERT( activity != 0 );
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
+
+	if (activity == ACT_REGEN)
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate)
+		{
+			const EntTemplate::ActiveRegeneration regen = entTemplate->GetActiveRegenerationRules();
+			if (!regen.sequence.empty())
+			{
+				int sequence = LookupSequence(regen.sequence.c_str());
+				if (sequence != -1)
+					return sequence;
+			}
+		}
+		return LookupRegenerationActivity();
+	}
 
 	return ::LookupActivity( pmodel, pev, activity );
 }
@@ -113,14 +129,14 @@ void CBaseAnimating::ResetSequenceInfo()
 	m_fSequenceLoops = ( ( GetSequenceFlags() & STUDIO_LOOPING ) != 0 );
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0;
-	m_fSequenceFinished = FALSE;
+	m_fSequenceFinished = false;
 	m_flLastEventCheck = gpGlobals->time;
 	m_minAnimEventFrame = 0;
 }
 
 //=========================================================
 //=========================================================
-BOOL CBaseAnimating::GetSequenceFlags()
+int CBaseAnimating::GetSequenceFlags()
 {
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
 
@@ -130,10 +146,11 @@ BOOL CBaseAnimating::GetSequenceFlags()
 //=========================================================
 // DispatchAnimEvents
 //=========================================================
+extern cvar_t animeventfix;
+extern cvar_t anim_dispatch_fix;
+
 void CBaseAnimating::DispatchAnimEvents( float flInterval )
 {
-	extern cvar_t animeventfix;
-
 	MonsterEvent_t	event;
 
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
@@ -144,23 +161,44 @@ void CBaseAnimating::DispatchAnimEvents( float flInterval )
 		return;
 	}
 
-	// FIXME: I have to do this or some events get missed, and this is probably causing the problem below
-	flInterval = 0.1f;
+	float flStart, flEnd;
+	if (anim_dispatch_fix.value)
+	{
+		// TODO: untested. Is it better?
+		flStart = m_flLastEventCheck;
+		flEnd = pev->frame;
 
-	// FIX: this still sometimes hits events twice
-	float flStart = pev->frame + ( m_flLastEventCheck - pev->animtime ) * m_flFrameRate * pev->framerate;
-	float flEnd = pev->frame + flInterval * m_flFrameRate * pev->framerate;
-	m_flLastEventCheck = pev->animtime + flInterval;
+		if ( !m_fSequenceLoops && m_fSequenceFinished )
+		{
+			// This magic number here is necessary to fix
+			// events on last frame getting skipped.
+			// To do so we go slightly further in the animation range so monster catches it before current think is over
+			// Valve sets flEnd to 1.01 here
+			// so we do the same but in Goldsrc's frame cycle range
+			flEnd = 258.5f;
+		}
+		m_flLastEventCheck = flEnd;
+	}
+	else
+	{
+		// FIXME: I have to do this or some events get missed, and this is probably causing the problem below
+		flInterval = 0.1f;
 
-	m_fSequenceFinished = FALSE;
-	if( flEnd >= 256.0f || flEnd <= 0.0f )
-		m_fSequenceFinished = TRUE;
+		// FIX: this still sometimes hits events twice
+		flStart = pev->frame + ( m_flLastEventCheck - pev->animtime ) * m_flFrameRate * pev->framerate;
+		flEnd = pev->frame + flInterval * m_flFrameRate * pev->framerate;
+		m_flLastEventCheck = pev->animtime + flInterval;
+
+		m_fSequenceFinished = false;
+		if( flEnd >= 256.0f || flEnd <= 0.0f )
+			m_fSequenceFinished = true;
+	}
 
 	int index = 0;
 
 	int latestAnimEventFrame = 0;
 	bool handledEvent = false;
-	while( ( index = GetAnimationEvent( pmodel, pev, &event, flStart, flEnd, index, latestAnimEventFrame, m_minAnimEventFrame ) ) != 0 )
+	while( ( index = GetAnimationEvent( pmodel, pev, &event, flStart, flEnd, index, latestAnimEventFrame, m_minAnimEventFrame, m_fSequenceLoops ) ) != 0 )
 	{
 		handledEvent = true;
 		HandleAnimEvent( &event );
@@ -182,7 +220,7 @@ float CBaseAnimating::SetBoneController( int iController, float flValue )
 
 //=========================================================
 //=========================================================
-void CBaseAnimating::InitBoneControllers( void )
+void CBaseAnimating::InitBoneControllers()
 {
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
 
@@ -259,7 +297,7 @@ int CBaseAnimating::ExtractBbox( int sequence, float *mins, float *maxs )
 //=========================================================
 //=========================================================
 
-void CBaseAnimating::SetSequenceBox( void )
+void CBaseAnimating::SetSequenceBox()
 {
 	Vector mins, maxs;
 
@@ -318,4 +356,93 @@ void CBaseAnimating::SetSequenceBox( void )
 		rmax.z = rmin.z + 1.0f;
 		UTIL_SetSize( pev, rmin, rmax );
 	}
+}
+
+bool CBaseAnimating::SetSequenceSafeBox(float minHalfSide, float forcedHalfSide)
+{
+	Vector mins, maxs;
+
+	// Get sequence bbox
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		if (forcedHalfSide > 0.0f)
+		{
+			mins.x = mins.y = -forcedHalfSide;
+			maxs.x = maxs.y = forcedHalfSide;
+		}
+
+		// expand box for rotation
+		// find min / max for rotations
+		float yaw = pev->angles.y * (M_PI_F / 180.0f);
+
+		Vector xvector, yvector;
+		xvector.x = cos(yaw);
+		xvector.y = sin(yaw);
+		yvector.x = -sin(yaw);
+		yvector.y = cos(yaw);
+		Vector bounds[2];
+
+		bounds[0] = mins;
+		bounds[1] = maxs;
+
+		Vector rmin(9999, 9999, 9999);
+		Vector rmax(-9999, -9999, -9999);
+		Vector base, transformed;
+
+		for (int i = 0; i <= 1; i++)
+		{
+			base.x = bounds[i].x;
+			for (int j = 0; j <= 1; j++)
+			{
+				base.y = bounds[j].y;
+				for (int k = 0; k <= 1; k++)
+				{
+					base.z = bounds[k].z;
+
+					// transform the point
+					transformed.x = xvector.x*base.x + yvector.x*base.y;
+					transformed.y = xvector.y*base.x + yvector.y*base.y;
+					transformed.z = base.z;
+
+					if (transformed.x < rmin.x)
+						rmin.x = transformed.x;
+					if (transformed.x > rmax.x)
+						rmax.x = transformed.x;
+					if (transformed.y < rmin.y)
+						rmin.y = transformed.y;
+					if (transformed.y > rmax.y)
+						rmax.y = transformed.y;
+					if (transformed.z < rmin.z)
+						rmin.z = transformed.z;
+					if (transformed.z > rmax.z)
+						rmax.z = transformed.z;
+				}
+			}
+		}
+
+		if (minHalfSide > 0.0f)
+		{
+			if (rmin.x > -minHalfSide)
+				rmin.x = -minHalfSide;
+			if (rmin.y > -minHalfSide)
+				rmin.y = -minHalfSide;
+
+			if (rmax.x < minHalfSide)
+				rmax.x = minHalfSide;
+			if (rmax.y < minHalfSide)
+				rmax.y = minHalfSide;
+		}
+
+		rmin.x = std::round(rmin.x);
+		rmin.y = std::round(rmin.y);
+		rmin.z = std::round(rmin.z);
+		rmax.x = std::round(rmax.x);
+		rmax.y = std::round(rmax.y);
+		rmax.z = std::round(rmax.z);
+
+		//ALERT(at_console, "Setting %s size to (%g, %g, %g) - (%g, %g, %g)\n", STRING(pev->classname), rmin.x, rmin.y, rmin.z, rmax.x, rmax.y, rmax.z);
+		UTIL_SetSize(pev, rmin, rmax);
+		return true;
+	}
+	return false;
 }

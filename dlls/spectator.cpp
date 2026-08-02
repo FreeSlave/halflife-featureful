@@ -32,7 +32,7 @@ SpectatorConnect
 called when a spectator connects to a server
 ============
 */
-void CBaseSpectator::SpectatorConnect( void )
+void CBaseSpectator::SpectatorConnect()
 {
 	pev->flags = FL_SPECTATOR;
 	pev->solid = SOLID_NOT;
@@ -48,7 +48,7 @@ SpectatorDisconnect
 called when a spectator disconnects from a server
 ============
 */
-void CBaseSpectator::SpectatorDisconnect( void )
+void CBaseSpectator::SpectatorDisconnect()
 {
 }
 
@@ -59,12 +59,12 @@ SpectatorImpulseCommand
 Called by SpectatorThink if the spectator entered an impulse
 ================
 */
-void CBaseSpectator::SpectatorImpulseCommand( void )
+void CBaseSpectator::SpectatorImpulseCommand()
 {
 	static edict_t *pGoal = NULL;
 	edict_t *pPreviousGoal;
 	edict_t *pCurrentGoal;
-	BOOL bFound;
+	bool bFound;
 
 	switch( pev->impulse )
 	{
@@ -77,7 +77,7 @@ void CBaseSpectator::SpectatorImpulseCommand( void )
 		// Start at the current goal, skip the world, and stop if we looped
 		//  back around
 
-		bFound = FALSE;
+		bFound = false;
 		while( 1 )
 		{
 			pCurrentGoal = FIND_ENTITY_BY_CLASSNAME( pCurrentGoal, "info_player_deathmatch" );
@@ -90,7 +90,7 @@ void CBaseSpectator::SpectatorImpulseCommand( void )
 			// Found a non-world entity, set success, otherwise, look for the next one.
 			if( !FNullEnt( pCurrentGoal ) )
 			{
-				bFound = TRUE;
+				bFound = true;
 				break;
 			}
 		}
@@ -101,7 +101,7 @@ void CBaseSpectator::SpectatorImpulseCommand( void )
 		pGoal = pCurrentGoal;
 		UTIL_SetOrigin( pev, pGoal->v.origin );
 		pev->angles = pGoal->v.angles;
-		pev->fixangle = FALSE;
+		pev->fixangle = 0;
 		break;
 	default:
 		ALERT( at_console, "Unknown spectator impulse\n" );
@@ -118,7 +118,7 @@ SpectatorThink
 Called every frame after physics are run
 ================
 */
-void CBaseSpectator::SpectatorThink( void )
+void CBaseSpectator::SpectatorThink()
 {
 	if( !( pev->flags & FL_SPECTATOR ) )
 	{

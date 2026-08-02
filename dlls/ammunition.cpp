@@ -7,11 +7,13 @@
 #include "weapons.h"
 #include "game.h"
 #include "gamerules.h"
+#include "ammo_amounts.h"
+#include "common_soundscripts.h"
 
-void CBasePlayerAmmo::Spawn( void )
+void CBasePlayerAmmo::Spawn()
 {
 	Precache();
-	SET_MODEL( ENT( pev ), pev->model ? STRING(pev->model) : MyModel() );
+	SetMyModel(MyModel());
 
 	if (pev->movetype < 0)
 		pev->movetype = MOVETYPE_NONE;
@@ -38,13 +40,13 @@ void CBasePlayerAmmo::Spawn( void )
 		UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 16 ) );
 	UTIL_SetOrigin( pev, pev->origin );
 
-	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+	SetTouchAndUse();
 }
 
 void CBasePlayerAmmo::Precache()
 {
-	PRECACHE_MODEL( pev->model ? STRING(pev->model) : MyModel() );
-	PRECACHE_SOUND( AMMO_PICKUP_SOUND );
+	PrecacheMyModel(MyModel());
+	RegisterAndPrecacheSoundScript(Items::ammoPickupSoundScript);
 }
 
 void CBasePlayerAmmo::KeyValue(KeyValueData *pkvd)
@@ -52,7 +54,7 @@ void CBasePlayerAmmo::KeyValue(KeyValueData *pkvd)
 	if (FStrEq(pkvd->szKeyName, "ammo_amount"))
 	{
 		SetCustomAmount(atoi(pkvd->szValue));
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CPickup::KeyValue(pkvd);
@@ -70,7 +72,7 @@ float CBasePlayerAmmo::MyRespawnTime()
 
 void CBasePlayerAmmo::OnMaterialize()
 {
-	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+	SetTouchAndUse();
 	SetThink( NULL );
 }
 
@@ -78,33 +80,42 @@ void CBasePlayerAmmo::DefaultTouch( CBaseEntity *pOther )
 {
 	if (IsPickableByTouch()) {
 		//Prevent dropped ammo from touching at the same time
-		if( pev->bInDuck && !( pev->flags & FL_ONGROUND ) )
+		if (FBitSet(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL) && !FBitSet(pev->flags, FL_ONGROUND))
 		{
 			return;
 		}
-		pev->bInDuck = 0;
+		ClearBits(pev->spawnflags, SF_ITEM_WAIT_FOR_FALL);
 		TouchOrUse(pOther);
 	}
 }
 
-void CBasePlayerAmmo::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+void CBasePlayerAmmo::DefaultUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	if (IsPickableByUse() && !(pev->effects & EF_NODRAW) ) {
 		TouchOrUse(pCaller);
 	}
 }
 
-extern int gEvilImpulse101;
+extern bool gEvilImpulse101;
 
 void CBasePlayerAmmo::TouchOrUse( CBaseEntity *pOther )
 {
-	if( !pOther->IsPlayer() || !pOther->IsAlive() )
+	if( !pOther->IsPlayer() || !pOther->IsAlive() || IsPlayerBusting( pOther ) )
 	{
 		return;
 	}
 
+	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
+	if (!pPlayer->CanHaveItem(this))
+		return;
+
+	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
+		return;
+
 	if( AddAmmo( pOther ) )
 	{
+		pPlayer->SetPickupSuitUpdate(this, nullptr, SUIT_NEXT_IN_5MIN);
+
 		SUB_UseTargets( pOther );
 
 		if( g_pGameRules->AmmoShouldRespawn( this ) == GR_AMMO_RESPAWN_YES )
@@ -113,17 +124,15 @@ void CBasePlayerAmmo::TouchOrUse( CBaseEntity *pOther )
 		}
 		else
 		{
-			SetTouch( NULL );
-			SetThink( &CBaseEntity::SUB_Remove );
-			pev->nextthink = gpGlobals->time + 0.1f;
+			ClearTouchAndUse();
+			RemoveMyself();
 		}
 	}
 	else if( gEvilImpulse101 )
 	{
 		// evil impulse 101 hack, kill always
-		SetTouch( NULL );
-		SetThink( &CBaseEntity::SUB_Remove );
-		pev->nextthink = gpGlobals->time + 0.1f;
+		ClearTouchAndUse();
+		RemoveMyself();
 	}
 }
 
@@ -131,21 +140,26 @@ bool CBasePlayerAmmo::AddAmmo(CBaseEntity *pOther)
 {
 	const char* ammoName = AmmoName();
 	if (!ammoName)
-		return FALSE;
+		return false;
 
 	const int amount = MyAmount();
 
-	if ( pOther->GiveAmmo( amount, ammoName ) != -1 )
+	if ( pOther->GiveAmmo( amount, ammoName ) > 0 )
 	{
-		EMIT_SOUND( ENT( pev ), CHAN_ITEM, AMMO_PICKUP_SOUND, 1, ATTN_NORM );
-		return TRUE;
+		EmitSoundScript(Items::ammoPickupSoundScript);
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 int CBasePlayerAmmo::MyAmount()
 {
-	return pev->impulse > 0 ? pev->impulse : DefaultAmount();
+	if (pev->impulse > 0)
+		return pev->impulse;
+	const int amount = g_AmmoAmounts.AmountForAmmoEnt(STRING(pev->classname));
+	if (amount >= 0)
+		return amount;
+	return DefaultAmount();
 }
 
 void CBasePlayerAmmo::SetCustomAmount(int amount)
@@ -154,18 +168,42 @@ void CBasePlayerAmmo::SetCustomAmount(int amount)
 		pev->impulse = amount;
 }
 
+void CBasePlayerAmmo::SetTouchAndUse()
+{
+	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+	SetUse( &CBasePlayerAmmo::DefaultUse );
+}
+
+void CBasePlayerAmmo::ClearTouchAndUse()
+{
+	SetTouch( NULL );
+	SetUse( NULL );
+}
+
+void CBasePlayerAmmo::RemoveMyself()
+{
+	SetThink( &CBaseEntity::SUB_Remove );
+	pev->nextthink = gpGlobals->time + 0.1f;
+}
+
+void CBasePlayerAmmo::DropAsAmmoEnt(int amount)
+{
+	SetCustomAmount(amount);
+	pev->spawnflags |= SF_ITEM_WAIT_FOR_FALL;
+}
+
 // Ammo entities
 
 
 class CGlockAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_9mmclip.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_GLOCKCLIP_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "9mm";
 	}
 };
@@ -175,13 +213,13 @@ LINK_ENTITY_TO_CLASS( ammo_9mmclip, CGlockAmmo )
 
 class CPythonAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_357ammobox.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_357BOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "357";
 	}
 };
@@ -190,13 +228,13 @@ LINK_ENTITY_TO_CLASS( ammo_357, CPythonAmmo )
 
 class CMP5AmmoClip : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_9mmARclip.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_MP5CLIP_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "9mm";
 	}
 };
@@ -206,13 +244,13 @@ LINK_ENTITY_TO_CLASS( ammo_9mmAR, CMP5AmmoClip )
 
 class CMP5Chainammo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_chainammo.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_CHAINBOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "9mm";
 	}
 };
@@ -221,13 +259,13 @@ LINK_ENTITY_TO_CLASS( ammo_9mmbox, CMP5Chainammo )
 
 class CMP5AmmoGrenade : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_ARgrenade.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_M203BOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "ARgrenades";
 	}
 };
@@ -237,13 +275,13 @@ LINK_ENTITY_TO_CLASS( ammo_ARgrenades, CMP5AmmoGrenade )
 
 class CShotgunAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_shotbox.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_BUCKSHOTBOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "buckshot";
 	}
 };
@@ -252,13 +290,13 @@ LINK_ENTITY_TO_CLASS( ammo_buckshot, CShotgunAmmo )
 
 class CCrossbowAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_crossbow_clip.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_CROSSBOWCLIP_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "bolts";
 	}
 };
@@ -267,16 +305,12 @@ LINK_ENTITY_TO_CLASS( ammo_crossbow, CCrossbowAmmo )
 
 class CRpgAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_rpgammo.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		int iGive;
-#ifdef CLIENT_DLL
 	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
 		{
 			// hand out more ammo per rocket in multiplayer.
 			iGive = AMMO_RPGCLIP_GIVE * 2;
@@ -287,7 +321,7 @@ class CRpgAmmo : public CBasePlayerAmmo
 		}
 		return iGive;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "rockets";
 	}
 };
@@ -296,26 +330,26 @@ LINK_ENTITY_TO_CLASS( ammo_rpgclip, CRpgAmmo )
 
 class CGaussAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_gaussammo.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_URANIUMBOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "uranium";
 	}
 };
 
 class CEgonAmmo : public CBasePlayerAmmo
 {
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_chainammo.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_URANIUMBOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "uranium";
 	}
 };
@@ -324,41 +358,172 @@ LINK_ENTITY_TO_CLASS( ammo_egonclip, CEgonAmmo )
 
 LINK_ENTITY_TO_CLASS( ammo_gaussclip, CGaussAmmo )
 
-#if FEATURE_SNIPERRIFLE
 class CSniperrifleAmmo : public CBasePlayerAmmo
 {
-	bool IsEnabledInMod() {
-		return g_modFeatures.IsWeaponEnabled(WEAPON_SNIPERRIFLE);
+	bool IsEnabledInMod() override {
+		return g_modFeatures.ammo762IsUsed;
 	}
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_m40a1clip.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_762BOX_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "762";
 	}
 };
 LINK_ENTITY_TO_CLASS( ammo_762, CSniperrifleAmmo )
-#endif
 
-#if FEATURE_M249
 class CM249AmmoClip : public CBasePlayerAmmo
 {
-	bool IsEnabledInMod() {
-		return g_modFeatures.IsWeaponEnabled(WEAPON_M249);
+	bool IsEnabledInMod() override {
+		return g_modFeatures.ammo556IsUsed;
 	}
-	const char* MyModel() {
+	const char* MyModel() override {
 		return "models/w_saw_clip.mdl";
 	}
-	int DefaultAmount() {
+	int DefaultAmount() override {
 		return AMMO_556CLIP_GIVE;
 	}
-	const char* AmmoName() {
+	const char* AmmoName() override {
 		return "556";
 	}
 };
 
 LINK_ENTITY_TO_CLASS(ammo_556, CM249AmmoClip)
-#endif
+
+class C45ACPAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "45acp";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_45acp, C45ACPAmmoClip )
+
+class C57MMAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "57mm";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_57mm, C57MMAmmoClip )
+
+class CNailsAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "nails";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_nails, CNailsAmmoClip )
+
+class CGrenadeAmmoClip : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_ARgrenade.mdl";
+	}
+	int DefaultAmount() override {
+		return 6;
+	}
+	const char* AmmoName() override {
+		return "grenades";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_grenadeclip, CGrenadeAmmoClip )
+
+class CFuelAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 20;
+	}
+	const char* AmmoName() override {
+		return "fuel";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_fuel, CFuelAmmo )
+
+class CCellsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 20;
+	}
+	const char* AmmoName() override {
+		return "cells";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_cells, CCellsAmmo )
+
+class CChargesAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_gaussammo.mdl";
+	}
+	int DefaultAmount() override {
+		return 5;
+	}
+	const char* AmmoName() override {
+		return "charges";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_charges, CChargesAmmo )
+
+class CRoundsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_9mmARclip.mdl";
+	}
+	int DefaultAmount() override {
+		return 30;
+	}
+	const char* AmmoName() override {
+		return "rounds";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_rounds, CRoundsAmmo )
+
+class CSlugsAmmo : public CBasePlayerAmmo
+{
+	const char* MyModel() override {
+		return "models/w_shotbox.mdl";
+	}
+	int DefaultAmount() override {
+		return 10;
+	}
+	const char* AmmoName() override {
+		return "slugs";
+	}
+};
+
+LINK_ENTITY_TO_CLASS( ammo_slugs, CSlugsAmmo )

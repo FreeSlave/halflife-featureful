@@ -16,13 +16,10 @@
 #if !defined(ANIMATION_H)
 #define ANIMATION_H
 
-#include "extdll.h"
+#include "monsterevent.h"
+#include "studio_getters.h"
 
 #define ACTIVITY_NOT_AVAILABLE		-1
-
-#if !defined(MONSTEREVENT_H)
-#include "monsterevent.h"
-#endif
 
 extern int IsSoundEvent( int eventNumber );
 
@@ -39,10 +36,8 @@ void SequencePrecache( void *pmodel, const char *pSequenceName );
 int FindTransition( void *pmodel, int iEndingAnim, int iGoalAnim, int *piDir );
 void SetBodygroup( void *pmodel, entvars_t *pev, int iGroup, int iValue );
 int GetBodygroup( void *pmodel, entvars_t *pev, int iGroup );
-int GetBodyCount( void *pmodel );
-int GetBodygroupNumModels( void *pmodel, int iGroup );
 
-int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame , int minAnimEventFrame);
+int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame, int minAnimEventFrame, bool sequenceLoops);
 int ExtractBbox( void *pmodel, int sequence, float *mins, float *maxs );
 
 // From /engine/studio.h

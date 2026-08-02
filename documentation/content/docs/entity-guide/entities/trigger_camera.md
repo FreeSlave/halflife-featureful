@@ -1,0 +1,32 @@
+---
+bookHidden: true
+bookToC: false
+---
+
+# trigger_camera
+
+[TWHL](https://twhl.info/wiki/page/trigger_camera)
+
+### New parameters
+
+* `Stop by player input` - allow player to press '+use' in order to stop watching at the camera. Note: the `Freeze Player` spawnflag prevents any player's input. You may use the [player_capabilities]({{< ref player_capabilities >}}) disabling the movement and jump on camera activation and enabling them again via the `Target when turned off`.
+* ![](/images/svencoop.png) `Target when turned off` - fire a target when the camera gets turned off when either the hold time expires or the camera is turned off by a trigger or a player's input (if `Stop by player input` is enabled).
+
+### New spawnflags
+
+* ![](/images/svencoop.png) `Player Invulnerable` - make player invulnerable to attacks while they're using the camera.
+* ![](/images/svencoop.png) `Ignore Hold Time` - ignore hold time, turn off only when re-triggered.
+* `Alive player only` - prevent camera activating on the dead player (which is possible in Half-Life).
+* `Don't fire look target` - prevent firing the entity the camera looks at (we keep this weird behavior from Half-Life by default in order to maintain compatibility).
+* `Don't slow down if not Freeze Player` - in Half-Life `trigger_camera` slows down its movement if `Freeze Player` spawnflag is not set. It's unknown why it's coded this way. Tick this flag to prevent such behavior.
+* `Don't skip the first path corner` - in Half-Life `trigger_camera` actually skips moving to the first path corner path. Tick this flag to fix this behavior.
+* `Instant Turn` - instantly turn to the target on activation. By default camera starts at its angle (as it's set in the editor) and then gradually turns to the target. Set this spawnflag when such behavior is not desired.
+
+### Bugfixes
+
+* The camera view is getting restored when the saved game is loaded.
+* When `trigger_camera` is removed from the map, the player gets their view reset and gains the control back (if `Freeze Player` was set).
+
+### Notes
+
+* If player gets across the level transition while the camera with `Freeze Player` spawnflag is active (e.g. if `trigger_changelevel` gets triggered) the player will stay frozen in the next level. To make sure the player doesn't stay frozen use [trigger_playerfreeze]({{< ref trigger_playerfreeze >}}) with 'Unfreeze' use type.

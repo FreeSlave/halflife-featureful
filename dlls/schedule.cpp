@@ -28,26 +28,24 @@
 #include "soundent.h"
 #include "gamerules.h"
 #include "game.h"
+#include "ai_debug.h"
+
+extern cvar_t npc_lateral_retreat;
 
 //=========================================================
-// FHaveSchedule - Returns TRUE if monster's m_pSchedule
+// FHaveSchedule - Returns true if monster's m_pSchedule
 // is anything other than NULL.
 //=========================================================
-BOOL CBaseMonster::FHaveSchedule( void )
+bool CBaseMonster::FHaveSchedule()
 {
-	if( m_pSchedule == NULL )
-	{
-		return FALSE;
-	}
-
-	return TRUE;
+	return m_pSchedule != nullptr;
 }
 
 //=========================================================
 // ClearSchedule - blanks out the caller's schedule pointer
 // and index.
 //=========================================================
-void CBaseMonster::ClearSchedule( void )
+void CBaseMonster::ClearSchedule()
 {
 	m_iTaskStatus = TASKSTATUS_NEW;
 	m_pSchedule = NULL;
@@ -57,19 +55,13 @@ void CBaseMonster::ClearSchedule( void )
 }
 
 //=========================================================
-// FScheduleDone - Returns TRUE if the caller is on the
+// FScheduleDone - Returns true if the caller is on the
 // last task in the schedule
 //=========================================================
-BOOL CBaseMonster::FScheduleDone( void )
+bool CBaseMonster::FScheduleDone()
 {
 	ASSERT( m_pSchedule != NULL );
-
-	if( m_iScheduleIndex == m_pSchedule->cTasks )
-	{
-		return TRUE;
-	}
-
-	return FALSE;
+	return m_iScheduleIndex == m_pSchedule->cTasks;
 }
 
 //=========================================================
@@ -83,12 +75,20 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 
 	if (isSuggested) {
 		m_suggestedSchedule = SCHED_NONE; // don't loop
+		m_suggestedScheduleFlags |= SUGGEST_SCHEDULE_FLAG_PLAYING;
 	} else {
 		// clear overrides
 		ClearSuggestedSchedule();
 	}
 
+	if (ShouldReportAIChange(entindex()))
+	{
+		ALERT(at_aiconsole, "%s (%d): changing schedule to %s\n", STRING(pev->classname), entindex(), pNewSchedule->pName);
+	}
+
+	UTIL_RemoveAndClean(m_activeRegenSprite);
 	OnChangeSchedule( pNewSchedule );
+
 	if (m_MonsterState == MONSTERSTATE_HUNT)
 	{
 		m_huntActivitiesCount++;
@@ -152,7 +152,7 @@ void CBaseMonster::ChangeSchedule( Schedule_t *pNewSchedule, bool isSuggested )
 //=========================================================
 // NextScheduledTask - increments the ScheduleIndex
 //=========================================================
-void CBaseMonster::NextScheduledTask( void )
+void CBaseMonster::NextScheduledTask()
 {
 	ASSERT( m_pSchedule != NULL );
 
@@ -172,7 +172,7 @@ void CBaseMonster::NextScheduledTask( void )
 // bits that are currently set and also set in the current
 // schedule's Interrupt mask.
 //=========================================================
-int CBaseMonster::IScheduleFlags( void )
+int CBaseMonster::IScheduleFlags()
 {
 	if( !m_pSchedule )
 	{
@@ -183,17 +183,50 @@ int CBaseMonster::IScheduleFlags( void )
 	return m_afConditions & m_pSchedule->iInterruptMask;
 }
 
+static const std::pair<int, const char*> g_ConditionsNames[] = {
+	{bits_COND_NO_AMMO_LOADED, "No ammo loaded"},
+	{bits_COND_SEE_HATE, "Sees someone who they hate"},
+	{bits_COND_SEE_FEAR, "Sees someone who they fear"},
+	{bits_COND_SEE_DISLIKE, "Sees someone who they dislike"},
+	{bits_COND_SEE_ENEMY, "Sees enemy"},
+	{bits_COND_ENEMY_OCCLUDED, "Enemy is occluded"},
+	{bits_COND_SMELL_FOOD, "Smells food"},
+	{bits_COND_ENEMY_TOOFAR, "Enemy is too far"},
+	{bits_COND_LIGHT_DAMAGE, "Got light damage"},
+	{bits_COND_HEAVY_DAMAGE, "Got heavy damage"},
+	{bits_COND_CAN_RANGE_ATTACK1, "Can Range Attack 1"},
+	{bits_COND_CAN_MELEE_ATTACK1, "Can Melee Attack 1"},
+	{bits_COND_CAN_RANGE_ATTACK2, "Can Range Attack 2"},
+	{bits_COND_CAN_MELEE_ATTACK2, "Can Melee Attack 2"},
+	{bits_COND_PROVOKED, "Provoked"},
+	{bits_COND_NEW_ENEMY, "New enemy"},
+	{bits_COND_HEAR_SOUND, "Hears sound"},
+	{bits_COND_SMELL, "Smells something"},
+	{bits_COND_ENEMY_FACING_ME, "Enemy is facing me"},
+	{bits_COND_ENEMY_DEAD, "Enemy is dead"},
+	{bits_COND_SEE_CLIENT, "Sees a player"},
+	{bits_COND_SEE_NEMESIS, "Sees nemesis"},
+	{bits_COND_ENEMY_LOST, "Enemy is lost"},
+	{bits_COND_SCHEDULE_SUGGESTED, "Schedule is suggested"},
+	{bits_COND_CLIENT_PUSH, "Player is trying to push me"},
+	{bits_COND_NOFIRE, "Stop possible friendly fire"},
+	{bits_COND_SPECIAL1, "Special condition 1"},
+	{bits_COND_SPECIAL2, "Special conditlion 2"},
+	{bits_COND_TASK_FAILED, "Task failed"},
+	{bits_COND_SCHEDULE_DONE, "Schedule done"},
+};
+
 //=========================================================
-// FScheduleValid - returns TRUE as long as the current
+// FScheduleValid - returns true as long as the current
 // schedule is still the proper schedule to be executing,
 // taking into account all conditions
 //=========================================================
-BOOL CBaseMonster::FScheduleValid( void )
+bool CBaseMonster::FScheduleValid()
 {
 	if( m_pSchedule == NULL )
 	{
 		// schedule is empty, and therefore not valid.
-		return FALSE;
+		return false;
 	}
 
 	if( HasConditions( bits_COND_SCHEDULE_DONE | bits_COND_TASK_FAILED ) )
@@ -210,16 +243,50 @@ BOOL CBaseMonster::FScheduleValid( void )
 		}
 #endif // DEBUG
 		// some task failed, or the schedule is done
-		return FALSE;
+		return false;
 	}
 	else if ( HasConditions( m_pSchedule->iInterruptMask ) )
 	{
+		if (ShouldReportAIChange(entindex()))
+		{
+			ALERT(at_console, "%s (%d): schedule %s has been interrupted at task #%d. Conditions: ",
+				STRING(pev->classname), entindex(), m_pSchedule->pName, m_iScheduleIndex);
+			const int conditions = m_afConditions & m_pSchedule->iInterruptMask;
+			for (const auto& condition : g_ConditionsNames)
+			{
+				if (FBitSet(conditions, condition.first))
+				{
+					ALERT(at_console, "%s; ", condition.second);
+				}
+			}
+			if (FBitSet(conditions, bits_COND_HEAR_SOUND|bits_COND_SMELL|bits_COND_SMELL_FOOD))
+			{
+				CSound *pSound = PBestSound();
+				if (pSound)
+				{
+					const int soundMask = pSound->m_iType & m_pSchedule->iSoundMask;
+					if (soundMask)
+					{
+						ALERT(at_console, "Sounds/smells: ");
+						for (const auto& sound : g_SoundNames)
+						{
+							if (FBitSet(soundMask, sound.first))
+							{
+								ALERT(at_console, "%s; ", sound.second);
+							}
+						}
+					}
+				}
+				ALERT(at_console, "\n");
+			}
+		}
+
 		// some condition has interrupted the schedule
 		taskFailReason = "interrupted";
-		return FALSE;
+		return false;
 	}
 	
-	return TRUE;
+	return true;
 }
 
 bool CBaseMonster::ShouldGetIdealState()
@@ -264,7 +331,9 @@ bool CBaseMonster::ShouldGetIdealState()
 // ensures that the monster leaves this function with a valid
 // schedule!
 //=========================================================
-void CBaseMonster::MaintainSchedule( void )
+extern cvar_t npc_run_task_instant;
+
+void CBaseMonster::MaintainSchedule()
 {
 	Schedule_t *pNewSchedule;
 	int i;
@@ -302,7 +371,7 @@ void CBaseMonster::MaintainSchedule( void )
 				else
 					pNewSchedule = GetScheduleOfType( SCHED_FAIL );
 
-				ChangeSchedule( pNewSchedule );
+				ChangeSchedule( pNewSchedule, FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ON_FAIL) );
 			}
 			else
 			{
@@ -338,10 +407,24 @@ void CBaseMonster::MaintainSchedule( void )
 		}
 
 		if( !TaskIsComplete() && m_iTaskStatus != TASKSTATUS_NEW )
-			break;
+		{
+			if ( npc_run_task_instant.value && TaskIsRunning() && !HasConditions( bits_COND_TASK_FAILED ) )
+			{
+				Task_t *pTask = GetTask();
+				ASSERT( pTask != NULL );
+				RunTask( pTask );
+
+				if ( !TaskIsComplete() )
+					break;
+			}
+			else
+			{
+				break;
+			}
+		}
 	}
 
-	if( TaskIsRunning() )
+	if( !npc_run_task_instant.value && TaskIsRunning() )
 	{
 		Task_t *pTask = GetTask();
 		ASSERT( pTask != NULL );
@@ -356,6 +439,8 @@ void CBaseMonster::MaintainSchedule( void )
 		SetActivity( m_IdealActivity );
 	}
 }
+
+extern cvar_t anim_attack_reset_fix;
 
 //=========================================================
 // RunTask 
@@ -395,9 +480,20 @@ void CBaseMonster::RunTask( Task_t *pTask )
 		break;
 	case TASK_PLAY_SEQUENCE:
 	case TASK_PLAY_ACTIVE_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_COMPLETE:
 		{
-			if( m_fSequenceFinished )
+			if (m_fSequenceFinished)
 			{
+				TaskComplete();
+			}
+			break;
+		}
+	case TASK_PLAY_RELOAD:
+		{
+			if (m_fSequenceFinished)
+			{
+				CompleteReloadTask();
 				TaskComplete();
 			}
 			break;
@@ -487,7 +583,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				{
 					distance = ( m_vecMoveGoal - pev->origin ).Length2D();
 					// Re-evaluate when you think your finished, or the target has moved too far
-					if( ( distance < checkDistance ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).Length() > pTask->flData * 0.5f )
+					if( ( distance < checkDistance ) || ( m_vecMoveGoal - m_hTargetEnt->pev->origin ).IsLengthGreaterThan(pTask->flData * 0.5f) )
 					{
 						m_vecMoveGoal = m_hTargetEnt->pev->origin;
 						distance = ( m_vecMoveGoal - pev->origin ).Length2D();
@@ -552,7 +648,8 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				else
 				{
 					// body is gonna be around for a while, so have it stink for a bit.
-					CSoundEnt::InsertSound( bits_SOUND_CARCASS, pev->origin, 384, 30 );
+					if (BloodColor() != DONT_BLEED)
+						InsertAISound( bits_SOUND_CARCASS, 384, 30 );
 				}
 			}
 			break;
@@ -566,6 +663,8 @@ void CBaseMonster::RunTask( Task_t *pTask )
 			if( m_fSequenceFinished )
 			{
 				m_Activity = ACT_RESET;
+				if (anim_attack_reset_fix.value)
+					m_IdealActivity = ACT_RESET;
 				TaskComplete();
 			}
 			break;
@@ -584,6 +683,8 @@ void CBaseMonster::RunTask( Task_t *pTask )
 			if( m_fSequenceFinished )
 			{
 				m_Activity = ACT_RESET;
+				if (anim_attack_reset_fix.value)
+					m_IdealActivity = ACT_RESET;
 				TaskComplete();
 			}
 			break;
@@ -603,8 +704,10 @@ void CBaseMonster::RunTask( Task_t *pTask )
 				if( m_pCine->m_iDelay <= 0 && gpGlobals->time >= m_pCine->m_startTime )
 				{
 					TaskComplete();
+					bool startedSequence = false;
 					if (m_pCine->IsAction())
 					{
+						bool tryFireOnAnimStart = true;
 						switch( m_pCine->m_fAction )
 						{
 						case SCRIPT_ACT_RANGE_ATTACK:
@@ -631,21 +734,27 @@ void CBaseMonster::RunTask( Task_t *pTask )
 						case SCRIPT_ACT_JUMP:
 							m_IdealActivity = ACT_HOP;
 							break;
+						default:
+							tryFireOnAnimStart = false;
+							break;
 						}
+						if (tryFireOnAnimStart)
+							m_pCine->FireOnAnimStart(this);
 					}
 					else
 					{
-						m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszPlay, TRUE );
+						startedSequence = m_pCine->StartSequence( this, m_pCine->m_iszPlay, true );
 						if( m_fSequenceFinished )
 							ClearSchedule();
 					}
-					pev->framerate = 1.0;
+					if (!startedSequence)
+						pev->framerate = 1.0f; // TODO: not sure if this is needed at all. Just preserving the original behavior
 					//ALERT( at_aiconsole, "Script %s has begun for %s\n", STRING( m_pCine->m_iszPlay ), STRING( pev->classname ) );
 				}
 				else if ( FBitSet(m_pCine->pev->spawnflags, SF_SCRIPT_FORCE_IDLE_LOOPING) && !FStringNull( m_pCine->m_iszIdle) && !m_pCine->IsAction() )
 				{
 					if ( m_fSequenceFinished )
-						m_pCine->StartSequence( this, m_pCine->m_iszIdle, FALSE );
+						m_pCine->StartSequence( this, m_pCine->m_iszIdle, false );
 				}
 			}
 			break;
@@ -705,6 +814,36 @@ void CBaseMonster::RunTask( Task_t *pTask )
 			}
 			break;
 		}
+	case TASK_REGENERATION:
+		{
+			RegenResult result = HandleActiveRegeneration();
+			if (m_fSequenceFinished)
+			{
+				TaskComplete();
+			}
+			else
+			{
+				switch(result)
+				{
+				case RegenResult::NotApplicaple:
+				case RegenResult::Disallowed:
+				case RegenResult::NoResource:
+				{
+					const EntTemplate* entTemplate = GetMyEntTemplate();
+					if (entTemplate)
+					{
+						const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+						if (regen.earlyFinish)
+							TaskComplete();
+					}
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			break;
+		}
 	}
 }
 
@@ -713,7 +852,7 @@ void CBaseMonster::RunTask( Task_t *pTask )
 // the monster is facing and determines whether or not to
 // select one of the 180 turn animations.
 //=========================================================
-void CBaseMonster::SetTurnActivity( void )
+void CBaseMonster::SetTurnActivity()
 {
 	float flYD;
 	flYD = FlYawDiff();
@@ -815,8 +954,39 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_PLAY_SEQUENCE_FACE_ENEMY:
 	case TASK_PLAY_SEQUENCE_FACE_TARGET:
 	case TASK_PLAY_SEQUENCE:
+	case TASK_PLAY_SEQUENCE_OR_IDLE:
+	case TASK_PLAY_SEQUENCE_OR_COMPLETE:
 		{
 			m_IdealActivity = (Activity)(int)pTask->flData;
+
+			if (pTask->iTask == TASK_PLAY_SEQUENCE_OR_IDLE)
+			{
+				if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+				{
+					m_IdealActivity = ACT_IDLE;
+				}
+			}
+			else if (pTask->iTask == TASK_PLAY_SEQUENCE_OR_COMPLETE)
+			{
+				if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+				{
+					m_IdealActivity = ACT_IDLE;
+					TaskComplete();
+				}
+			}
+
+			break;
+		}
+	case TASK_PLAY_RELOAD:
+		{
+			m_IdealActivity = ACT_RELOAD;
+
+			if (LookupActivity(m_IdealActivity) == ACTIVITY_NOT_AVAILABLE)
+			{
+				CompleteReloadTask();
+				m_IdealActivity = ACT_IDLE;
+				TaskComplete();
+			}
 			break;
 		}
 	case TASK_PLAY_ACTIVE_IDLE:
@@ -1061,7 +1231,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_FACE_ENEMY:
 		{
 			MakeIdealYaw( m_vecEnemyLKP );
-			SetTurnActivity(); 
+			SetTurnActivity();
 			break;
 		}
 	case TASK_FACE_SCHEDULED:
@@ -1102,7 +1272,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_WAIT_FACE_ENEMY:
 		{
 			// set a future time that tells us when the wait is over.
-			m_flWaitFinished = gpGlobals->time + pTask->flData;	
+			m_flWaitFinished = gpGlobals->time + pTask->flData;
 			break;
 		}
 	case TASK_WAIT_PATROL_TURNING:
@@ -1122,7 +1292,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		{
 			if ( m_hTargetEnt == 0 )
 				TaskFail("no target ent");
-			else if( ( m_hTargetEnt->pev->origin - pev->origin ).Length() < 1 )
+			else if( ( m_hTargetEnt->pev->origin - pev->origin ).IsLengthLessThan(1) )
 				TaskComplete();
 			else
 			{
@@ -1141,7 +1311,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 
 			if ( pGoalEnt == 0 )
 				TaskFail("no move target ent");
-			else if( ( pGoalEnt->pev->origin - pev->origin ).Length() < 1 )
+			else if( ( pGoalEnt->pev->origin - pev->origin ).IsLengthLessThan(1) )
 				TaskComplete();
 			else
 			{
@@ -1193,7 +1363,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 
 			if ( pGoalEnt == 0 )
 				TaskFail("no move target ent");
-			else if( ( pGoalEnt->pev->origin - pev->origin ).Length2D() <= radius )
+			else if( ( pGoalEnt->pev->origin - pev->origin ).IsLength2DLessThanOrEqual(radius) )
 				TaskComplete();
 			else
 			{
@@ -1209,6 +1379,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				{
 					if( pGoalEnt == 0 || !MoveToLocationClosest( newActivity, 2, pGoalEnt->pev->origin ) )
 					{
+						HandleBlocker(CBaseEntity::Instance( gpGlobals->trace_ent ), false);
 						TaskFail("failed to reach move target ent");
 						RouteClear();
 					}
@@ -1295,7 +1466,12 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				return;
 			}
 
-			if( BuildRoute( pEnemy->pev->origin, bits_MF_TO_ENEMY, pEnemy ) )
+			int routeFlags = bits_MF_TO_ENEMY;
+			if (NpcGetToEnemyNearest() && WantsToGetCloseToEnemy() && !HasConditions(bits_COND_CAN_RANGE_ATTACK1|bits_COND_CAN_RANGE_ATTACK2))
+			{
+				routeFlags |= bits_MF_NEAREST_PATH;
+			}
+			if( BuildRoute( pEnemy->pev->origin, routeFlags, pEnemy ) )
 			{
 				TaskComplete();
 			}
@@ -1408,9 +1584,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		}
 	case TASK_GET_PATH_TO_BESTSCENT:
 		{
-			CSound *pScent;
-
-			pScent = PBestScent();
+			CSound *pScent = PBestScent();
 
 			if( pScent && MoveToLocation( m_movementActivity, 2, pScent->m_vecOrigin ) )
 			{
@@ -1580,7 +1754,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		{
 			if( m_pCine && m_pCine->m_iszIdle && !m_pCine->IsAction() )
 			{
-				m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszIdle, FALSE );
+				m_pCine->StartSequence( (CBaseMonster *)this, m_pCine->m_iszIdle, false );
 				if( FStrEq( STRING( m_pCine->m_iszIdle ), STRING( m_pCine->m_iszPlay ) ) )
 				{
 					pev->framerate = 0;
@@ -1701,9 +1875,9 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_GET_HEALTH_FROM_FOOD:
 		if (g_modFeatures.monsters_eat_for_health)
 		{
-			ALERT(at_aiconsole, "%s eating. Current health: %d/%d\n", STRING(pev->classname), (int)pev->health, (int)pev->max_health);
-			TakeHealth(this, pev->max_health * pTask->flData, DMG_GENERIC);
-			ALERT(at_aiconsole, "%s health after eating: %d/%d\n", STRING(pev->classname), (int)pev->health, (int)pev->max_health);
+			const float prevHealth = pev->health;
+			TakeHealth(this, pev->max_health * pTask->flData, HEAL_GENERIC);
+			ALERT(at_aiconsole, "%s eating. Health before: %g/%g. Health after: %g/%g\n", STRING(pev->classname), prevHealth, pev->max_health, pev->health, pev->max_health);
 		}
 		TaskComplete();
 		break;
@@ -1722,7 +1896,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 					CNode &node = WorldGraph.Node( nodeNumber );
 
 					// Don't go to the node if already is close enough
-					if ((node.m_vecOrigin - pev->origin).Length() < 16.0f)
+					if ((node.m_vecOrigin - pev->origin).IsLengthLessThan(16.0f))
 						continue;
 
 					TraceResult tr;
@@ -1767,6 +1941,11 @@ void CBaseMonster::StartTask( Task_t *pTask )
 				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 				TaskComplete();
 			}
+			else if( npc_lateral_retreat.value != 0 && FindLateralSpotAway( pevThreat->origin, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), FINDSPOTAWAY_CHECK_SPOT|FINDSPOTAWAY_RUN ) )
+			{
+				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+				TaskComplete();
+			}
 			else
 			{
 				TaskFail("no spot found");
@@ -1778,30 +1957,64 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			Vector vecSpot;
 			if (CalcSuggestedSpot(&vecSpot))
 			{
-				const int moveFlag = FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_RUN) ? FINDSPOTAWAY_RUN : FINDSPOTAWAY_WALK;
-				if ( FindStraightSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ) )
+				int moveFlag = FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_RUN) ? FINDSPOTAWAY_RUN : FINDSPOTAWAY_WALK;
+				if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE))
+					moveFlag |= FINDSPOTAWAY_DONT_AVOID_THREAT_NODE;
+
+				fixed_vector<CBaseEntity*, 3> pBlockers;
+
+				auto addBlocker = [this, &pBlockers](const char* context) {
+					CBaseEntity* pBlocker = CBaseEntity::Instance(gpGlobals->trace_ent);
+					if (pBlocker->entindex() != 0)
+					{
+						pBlockers.push_back(pBlocker);
+						//ALERT(at_aiconsole, "%s:  %s blocker is %s\n", STRING(pev->classname), context, STRING(pBlocker->pev->classname));
+					}
+				};
+
+				if (FindSpotAway( vecSpot, SuggestedMinDist(64), SuggestedMaxDist(784), moveFlag ))
 				{
 					m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 					TaskComplete();
 				}
 				else
 				{
-					HandleBlocker(CBaseEntity::Instance( gpGlobals->trace_ent ), false);
+					addBlocker("FindSpotAway");
+				}
 
-					if( FindLateralSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ) )
-					{
-						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
-						TaskComplete();
-					}
-					else if ( FindSpotAway( vecSpot, SuggestedMinDist(64), SuggestedMaxDist(784), moveFlag ) )
+				if (!TaskIsComplete())
+				{
+					if (FindStraightSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ))
 					{
 						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
 						TaskComplete();
 					}
 					else
 					{
-						TaskFail("no spot found");
+						addBlocker("FindStraightSpotAway");
 					}
+				}
+
+				if (!TaskIsComplete())
+				{
+					if (FindLateralSpotAway( vecSpot, SuggestedMinDist(COVER_DELTA), SuggestedMaxDist(COVER_DELTA * COVER_CHECKS), moveFlag ))
+					{
+						m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+						TaskComplete();
+					}
+					else
+					{
+						addBlocker("FindLateralSpotAway");
+					}
+				}
+
+				if (!TaskIsComplete()) {
+					for (auto pBlocker : pBlockers)
+					{
+						if (HandleBlocker(pBlocker, false))
+							break;
+					}
+					TaskFail("no spot found");
 				}
 			}
 			else
@@ -1810,6 +2023,11 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			}
 		}
 		break;
+	case TASK_REGENERATION:
+		{
+			m_IdealActivity = ACT_REGEN;
+			break;
+		}
 	default:
 		{
 			ALERT( at_aiconsole, "No StartTask entry for %d\n", (SHARED_TASKS)pTask->iTask );
@@ -1822,7 +2040,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 // GetTask - returns a pointer to the current 
 // scheduled task. NULL if there's a problem.
 //=========================================================
-Task_t *CBaseMonster::GetTask( void )
+Task_t *CBaseMonster::GetTask()
 {
 	if( m_iScheduleIndex < 0 || m_iScheduleIndex >= m_pSchedule->cTasks )
 	{
@@ -1849,9 +2067,40 @@ Schedule_t* CBaseMonster::GetFreeroamSchedule()
 	return NULL;
 }
 
+Schedule_t* CBaseMonster::GetRegenerationSchedule()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (!entTemplate)
+		return nullptr;
+
+	if (!IsFullyAlive() || pev->health >= pev->max_health)
+		return nullptr;
+
+	const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
+	if (regen.healthPerUpdate > 0.0f && m_nextActiveRegen <= gpGlobals->time && pev->health < regen.healthFractionLimit * pev->max_health)
+	{
+		if (!HasResourceForActiveRegeneration())
+			return nullptr;
+
+		bool doTrigger = false;
+		if (m_MonsterState == MONSTERSTATE_COMBAT)
+			doTrigger = pev->health <= regen.healthFractionCombatTrigger * pev->max_health;
+		else
+			doTrigger = pev->health <= regen.healthFractionNonCombatTrigger * pev->max_health;
+
+		if (doTrigger)
+		{
+			// TODO: this should be done only if monster actually changes schedule to regen, not just on getting the schedule
+			m_nextActiveRegen = gpGlobals->time + regen.cooldown;
+			return GetScheduleOfType(SCHED_REGENERATION);
+		}
+	}
+	return nullptr;
+}
+
 Schedule_t* CBaseMonster::GetSuggestedSchedule()
 {
-	if (m_suggestedSchedule && IsFreeToManipulate()) {
+	if (m_suggestedSchedule && IsFreeToManipulate(FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT))) {
 		return GetScheduleOfType(m_suggestedSchedule);
 	}
 	return NULL;
@@ -1861,7 +2110,9 @@ bool CBaseMonster::SuggestSchedule(int schedule, CBaseEntity* spotEntity, float 
 {
 	Vector pos;
 	if (spotEntity) {
-		if (spotEntity->CalcPosition(NULL, &pos)) {
+		if (spotEntity->IsBrushModel()) {
+			m_suggestedScheduleOrigin = VecBModelOrigin(spotEntity->pev);
+		} else if (spotEntity->CalcPosition(NULL, &pos)) {
 			m_suggestedScheduleOrigin = pos;
 		} else {
 			if (FBitSet(flags, SUGGEST_SCHEDULE_FLAG_SPOT_IS_POSITION)) {
@@ -1885,19 +2136,26 @@ bool CBaseMonster::SuggestSchedule(int schedule, CBaseEntity* spotEntity, float 
 
 float CBaseMonster::SuggestedMinDist(float defaultValue) const
 {
-	return m_suggestedScheduleMinDist > 0 ? m_suggestedScheduleMinDist: defaultValue;
+	if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING) && m_suggestedScheduleMinDist > 0)
+		return m_suggestedScheduleMinDist;
+	return defaultValue;
 }
 
 float CBaseMonster::SuggestedMaxDist(float defaultValue) const
 {
-	return m_suggestedScheduleMaxDist > 0 ? m_suggestedScheduleMaxDist: defaultValue;
+	if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING) && m_suggestedScheduleMaxDist > 0)
+		return m_suggestedScheduleMaxDist;
+	return defaultValue;
 }
 
 static bool CalcSuggestedSpotEntity(CBaseMonster* pMonster, CBaseEntity* pSpotEntity, Vector *outVec, Vector* viewOffset)
 {
 	if (pSpotEntity)
 	{
-		*outVec = pSpotEntity->pev->origin;
+		if (pSpotEntity->IsBrushModel())
+			*outVec = VecBModelOrigin(pSpotEntity->pev);
+		else
+			*outVec = pSpotEntity->pev->origin;
 		if (viewOffset)
 			*viewOffset = pSpotEntity->pev->view_ofs;
 		ALERT(at_aiconsole, "%s picked %s as spot for suggested schedule\n", STRING(pMonster->pev->classname), STRING(pSpotEntity->pev->classname));
@@ -1955,6 +2213,7 @@ Activity CBaseMonster::GetSuggestedMovementActivity(Activity defaultActivity)
 
 void CBaseMonster::ClearSuggestedSchedule()
 {
+	m_suggestedSchedule = SCHED_NONE;
 	m_suggestedScheduleEntity = 0;
 	m_suggestedScheduleOrigin = g_vecZero;
 	m_suggestedScheduleMinDist = 0.0f;
@@ -1968,7 +2227,7 @@ void CBaseMonster::ClearSuggestedSchedule()
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CBaseMonster::GetSchedule( void )
+Schedule_t *CBaseMonster::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -2007,6 +2266,11 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 				Schedule_t* freeroamSchedule = GetFreeroamSchedule();
 				if (freeroamSchedule)
 					return freeroamSchedule;
+
+				Schedule_t* regenSchedule = GetRegenerationSchedule();
+				if (regenSchedule)
+					return regenSchedule;
+
 				return GetScheduleOfType( SCHED_IDLE_STAND );
 			}
 			else
@@ -2038,6 +2302,11 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 					return GetScheduleOfType( SCHED_ALERT_SMALL_FLINCH );
 				}
 			}
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if (m_activeAfterCombat == ACTIVE_ALERT_ALWAYS || (m_activeAfterCombat == ACTIVE_ALERT_DEFAULT && NpcActiveAfterCombat()))
 			{
 				if( HasConditions ( bits_COND_HEAR_SOUND ) )
@@ -2048,9 +2317,9 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 						if (pSound)
 						{
 							const int type = pSound->m_iType;
-							const bool isCombat = (type & bits_SOUND_COMBAT);
-							const bool isDanger = (type & bits_SOUND_DANGER);
-							const bool isPlayer = (type & bits_SOUND_PLAYER);
+							const bool isCombat = FBitSet(type, bits_SOUND_COMBAT);
+							const bool isDanger = FBitSet(type, bits_SOUND_DANGER);
+							const bool isPlayer = FBitSet(type, bits_SOUND_PLAYER);
 							if (isCombat && // it's combat sound
 									!isDanger && // but not danger
 									( !isPlayer || IDefaultRelationship(CLASS_PLAYER) != R_AL )) // and it's not combat sound produced by ally player
@@ -2128,7 +2397,12 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 			{
 				return GetScheduleOfType( SCHED_SMALL_FLINCH );
 			}
-			else if( !HasConditions( bits_COND_SEE_ENEMY ) )
+
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
+			if( !HasConditions( bits_COND_SEE_ENEMY ) )
 			{
 				// we can't see the enemy
 				if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) )
@@ -2203,9 +2477,9 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 				if (pSound)
 				{
 					const int type = pSound->m_iType;
-					const bool isCombat = (type & bits_SOUND_COMBAT);
-					const bool isDanger = (type & bits_SOUND_DANGER);
-					const bool isPlayer = (type & bits_SOUND_PLAYER);
+					const bool isCombat = FBitSet(type, bits_SOUND_COMBAT);
+					const bool isDanger = FBitSet(type, bits_SOUND_DANGER);
+					const bool isPlayer = FBitSet(type, bits_SOUND_PLAYER);
 					if (isCombat && // it's combat sound
 							!isDanger && // but not danger
 							( !isPlayer || IDefaultRelationship(CLASS_PLAYER) != R_AL )) // and it's not combat sound produced by ally player

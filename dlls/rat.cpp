@@ -29,12 +29,12 @@
 class CRat : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_SMALL; }
-	bool IsDisplaceable() { return true; }
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	int DefaultSizeForGrapple() override { return GRAPPLE_SMALL; }
+	bool IsDisplaceable() override { return true; }
 };
 
 LINK_ENTITY_TO_CLASS( monster_rat, CRat )
@@ -43,7 +43,7 @@ LINK_ENTITY_TO_CLASS( monster_rat, CRat )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CRat::DefaultClassify( void )
+int CRat::DefaultClassify()
 {
 	return CLASS_INSECT;
 }
@@ -52,7 +52,7 @@ int CRat::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CRat::SetYawSpeed( void )
+void CRat::SetYawSpeed()
 {
 	int ys;
 
@@ -94,6 +94,7 @@ void CRat::Spawn()
 void CRat::Precache()
 {
 	PrecacheMyModel( "models/bigrat.mdl" );
+	PrecacheMyGibModel();
 }
 
 //=========================================================

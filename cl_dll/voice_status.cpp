@@ -8,9 +8,9 @@
 #include "hud.h"
 
 #include "cl_util.h"
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstring>
+#include <cstdio>
 #include "parsemsg.h"
 #include "demo.h"
 #include "demo_api.h"
@@ -293,7 +293,7 @@ int CVoiceStatus::VidInit()
 	}
 
 	m_VoiceHeadModel = gEngfuncs.pfnSPR_Load("sprites/voiceicon.spr");
-	return TRUE;
+	return 1;
 }
 
 
@@ -444,8 +444,7 @@ void CVoiceStatus::UpdateSpeakerStatus( int entindex, qboolean bTalking )
 						gEngfuncs.pfnGetPlayerInfo( entindex, &info );
 
 						char paddedName[512];
-						_snprintf( paddedName, sizeof( paddedName ) - 1, "%s   ", info.name );
-						paddedName[sizeof(paddedName) - 1] = '\0';
+						safe_snprintf( paddedName, sizeof( paddedName ), "%s   ", info.name );
 
 						int color[3];
 						m_pHelper->GetPlayerTextColor( entindex, color );

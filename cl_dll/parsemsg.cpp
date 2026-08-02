@@ -16,8 +16,8 @@
 //  parsemsg.cpp
 //
 
-typedef unsigned char byte;
-#define true 1
+#include "parsemsg.h"
+#include "vector.h"
 
 static byte *gpBuf;
 static int giSize;
@@ -32,13 +32,13 @@ void BEGIN_READ( void *buf, int size )
 	gpBuf = (byte*)buf;
 }
 
-int READ_CHAR( void )
+int READ_CHAR()
 {
 	int c;
 
 	if( giRead + 1 > giSize )
 	{
-		giBadRead = true;
+		giBadRead = 1;
 		return -1;
 	}
 
@@ -48,13 +48,13 @@ int READ_CHAR( void )
 	return c;
 }
 
-int READ_BYTE( void )
+int READ_BYTE()
 {
 	int c;
 
 	if( giRead + 1 > giSize )
 	{
-		giBadRead = true;
+		giBadRead = 1;
 		return -1;
 	}
 		
@@ -64,13 +64,13 @@ int READ_BYTE( void )
 	return c;
 }
 
-int READ_SHORT( void )
+int READ_SHORT()
 {
 	int c;
 
 	if( giRead + 2 > giSize )
 	{
-		giBadRead = true;
+		giBadRead = 1;
 		return -1;
 	}
 
@@ -81,18 +81,18 @@ int READ_SHORT( void )
 	return c;
 }
 
-int READ_WORD( void )
+int READ_WORD()
 {
 	return READ_SHORT();
 }
 
-int READ_LONG( void )
+int READ_LONG()
 {
 	int c;
 
 	if( giRead + 4 > giSize )
 	{
-		giBadRead = true;
+		giBadRead = 1;
 		return -1;
 	}
 
@@ -103,7 +103,7 @@ int READ_LONG( void )
 	return c;
 }
 
-float READ_FLOAT( void )
+float READ_FLOAT()
 {
 	union
 	{
@@ -123,14 +123,14 @@ float READ_FLOAT( void )
 	return dat.f;
 }
 
-char* READ_STRING( void )
+char* READ_STRING()
 {
 	static char	string[2048];
-	int		l, c;
+	int		c;
 
 	string[0] = 0;
 
-	l = 0;
+	unsigned int l = 0;
 	do
 	{
 		if( giRead+1 > giSize )
@@ -141,24 +141,42 @@ char* READ_STRING( void )
 			break;
 		string[l] = c;
 		l++;
-	}while( l < sizeof(string) - 1 );
+	} while( l < sizeof(string) - 1 );
 
 	string[l] = 0;
 
 	return string;
 }
 
-float READ_COORD( void )
+float READ_COORD()
 {
 	return (float)( READ_SHORT() * ( 1.0 / 8 ) );
 }
 
-float READ_ANGLE( void )
+Vector READ_VECTOR()
+{
+	Vector vec;
+	vec.x = READ_COORD();
+	vec.y = READ_COORD();
+	vec.z = READ_COORD();
+	return vec;
+}
+
+float READ_ANGLE()
 {
 	return (float)( READ_CHAR() * ( 360.0 / 256 ) );
 }
 
-float READ_HIRESANGLE( void )
+float READ_HIRESANGLE()
 {
 	return (float)( READ_SHORT() * ( 360.0 / 65536 ) );
+}
+
+color24 READ_COLOR()
+{
+	color24 color;
+	color.r = READ_BYTE();
+	color.g = READ_BYTE();
+	color.b = READ_BYTE();
+	return color;
 }

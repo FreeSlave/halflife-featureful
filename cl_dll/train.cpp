@@ -20,13 +20,11 @@
 
 #include "hud.h"
 #include "cl_util.h"
-#include <string.h>
-#include <stdio.h>
 #include "parsemsg.h"
 
 DECLARE_MESSAGE( m_Train, Train )
 
-int CHudTrain::Init( void )
+int CHudTrain::Init()
 {
 	HOOK_MESSAGE( Train );
 
@@ -37,7 +35,7 @@ int CHudTrain::Init( void )
 	return 1;
 }
 
-int CHudTrain::VidInit( void )
+int CHudTrain::VidInit()
 {
 	m_hSprite = 0;
 
@@ -52,15 +50,13 @@ int CHudTrain::Draw( float fTime )
 	if( m_iPos )
 	{
 		int r, g, b, x, y;
-
 		UnpackRGB( r, g, b, gHUD.HUDColor() );
-		CHud::Renderer().SPR_Set( m_hSprite, r, g, b );
 
 		// This should show up to the right and part way up the armor number
 		y = CHud::Renderer().PerceviedScreenHeight() - SPR_Height( m_hSprite, 0 ) - gHUD.m_iFontHeight;
 		x = (CHud::Renderer().PerceviedScreenWidth() - SPR_Width( m_hSprite, 0 )) / 2;
 
-		CHud::Renderer().SPR_DrawAdditive( m_iPos - 1, x, y, NULL );
+		CHud::Renderer().SPR_DrawAdditive( m_hSprite, r, g, b, x, y, NULL, m_iPos - 1 );
 	}
 
 	return 1;

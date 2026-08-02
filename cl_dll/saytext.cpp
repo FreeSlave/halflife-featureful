@@ -21,9 +21,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-
-#include <string.h>
-#include <stdio.h>
+#include "string_utils.h"
 
 #if USE_VGUI
 #include "vgui_TeamFortressViewport.h"
@@ -37,7 +35,6 @@ extern float *GetClientColor( int clientIndex );
 // allow 20 pixels on either side of the text
 #define MAX_LINE_WIDTH  ( ScreenWidth - 40 )
 #define LINE_START  10
-static float SCROLL_SPEED = 5;
 
 static char g_szLineBuffer[MAX_LINES + 1][MAX_CHARS_PER_LINE];
 static float *g_pflNameColors[MAX_LINES + 1];
@@ -49,7 +46,7 @@ static int line_height = 0;
 
 DECLARE_MESSAGE( m_SayText, SayText )
 
-int CHudSayText::Init( void )
+int CHudSayText::Init()
 {
 	gHUD.AddHudElem( this );
 
@@ -65,19 +62,19 @@ int CHudSayText::Init( void )
 	return 1;
 }
 
-void CHudSayText::InitHUDData( void )
+void CHudSayText::InitHUDData()
 {
 	memset( g_szLineBuffer, 0, sizeof g_szLineBuffer );
 	memset( g_pflNameColors, 0, sizeof g_pflNameColors );
 	memset( g_iNameLengths, 0, sizeof g_iNameLengths );
 }
 
-int CHudSayText::VidInit( void )
+int CHudSayText::VidInit()
 {
 	return 1;
 }
 
-int ScrollTextUp( void )
+int ScrollTextUp()
 {
 	ConsolePrint( g_szLineBuffer[0] ); // move the first line into the console buffer
 	g_szLineBuffer[MAX_LINES][0] = 0;
@@ -100,7 +97,7 @@ int CHudSayText::Draw( float flTime )
 	int y = Y_START;
 
 #if USE_VGUI
-	if( ( gViewPort && gViewPort->AllowedToPrintText() == FALSE ) )
+	if( ( gViewPort && !gViewPort->AllowedToPrintText() ) )
 		return 1;
 #endif
 	if ( !m_HUD_saytext->value )
@@ -134,9 +131,8 @@ int CHudSayText::Draw( float flTime )
 				static char buf[MAX_PLAYER_NAME_LENGTH + 32];
 
 				// draw the first x characters in the player color
-				strncpy( buf, g_szLineBuffer[i], Q_min(g_iNameLengths[i], MAX_PLAYER_NAME_LENGTH + 31 ) );
-				buf[Q_min( g_iNameLengths[i], MAX_PLAYER_NAME_LENGTH + 31 )] = 0;
-				gEngfuncs.pfnDrawSetTextColor( g_pflNameColors[i][0], g_pflNameColors[i][1], g_pflNameColors[i][2] );
+				strncpyEnsureTermination( buf, g_szLineBuffer[i], Q_min(g_iNameLengths[i] + 1, MAX_PLAYER_NAME_LENGTH + 32 ) );
+				DrawSetTextColor( g_pflNameColors[i][0], g_pflNameColors[i][1], g_pflNameColors[i][2] );
 				int x = DrawConsoleString( LINE_START, y, buf );
 
 				// color is reset after each string draw
@@ -168,7 +164,7 @@ int CHudSayText::MsgFunc_SayText( const char *pszName, int iSize, void *pbuf )
 void CHudSayText::SayTextPrint( const char *pszBuf, int iBufSize, int clientIndex )
 {
 #if USE_VGUI
-	if( gViewPort && gViewPort->AllowedToPrintText() == FALSE )
+	if( gViewPort && !gViewPort->AllowedToPrintText() )
 	{
 		// Print it straight to the console
 		ConsolePrint( pszBuf );
@@ -211,7 +207,7 @@ void CHudSayText::SayTextPrint( const char *pszBuf, int iBufSize, int clientInde
 		}
 	}
 
-	strncpy( g_szLineBuffer[i], pszBuf, Q_max( iBufSize - 1, MAX_CHARS_PER_LINE - 1 ) );
+	strncpyEnsureTermination( g_szLineBuffer[i], pszBuf, Q_max( iBufSize, MAX_CHARS_PER_LINE ) );
 
 	// make sure the text fits in one line
 	EnsureTextFitsInOneLineAndWrapIfHaveTo( i );

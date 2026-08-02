@@ -16,95 +16,54 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "monsters.h"
+#include "skill.h"
 #include "weapons.h"
 #include "player.h"
-#include "gamerules.h"
 #include "mod_features.h"
-#ifndef CLIENT_DLL
+#if !CLIENT_DLL
 #include "shockbeam.h"
-#include "game.h"
+#include "gamerules.h"
 #endif
 
-#if FEATURE_SHOCKRIFLE
-
-LINK_ENTITY_TO_CLASS(weapon_shockrifle, CShockrifle)
-
-void CShockrifle::Spawn()
+enum shockrifle_e
 {
-	Precache();
-	m_iId = WEAPON_SHOCKRIFLE;
-	SET_MODEL(ENT(pev), MyWModel());
+	SHOCK_IDLE1 = 0,
+	SHOCK_FIRE,
+	SHOCK_DRAW,
+	SHOCK_HOLSTER,
+	SHOCK_IDLE3
+};
 
-	InitDefaultAmmo(SHOCKRIFLE_DEFAULT_GIVE);
-	m_iFirePhase = 0;
-
-	FallInit();// get ready to fall down.
-
-	pev->sequence = 0;
-	pev->animtime = gpGlobals->time;
-	pev->framerate = 1.0f;
-}
-
-
-void CShockrifle::Precache(void)
+class CShockrifle : public CConfigurableWeapon
 {
-	PRECACHE_MODEL("models/v_shock.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PRECACHE_MODEL("models/p_shock.mdl");
+public:
+	void Precache() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_SHOCKRIFLE; }
+
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+
+	bool HandleAttackSubstitution(bool altMode) override;
+};
+
+LINK_WEAPON_TO_CLASS(weapon_shockrifle, CShockrifle)
+
+void CShockrifle::Precache()
+{
+	CConfigurableWeapon::Precache();
 
 	PRECACHE_SOUND("weapons/shock_discharge.wav");
-	PRECACHE_SOUND("weapons/shock_draw.wav");
-	PRECACHE_SOUND("weapons/shock_fire.wav");
 	PRECACHE_SOUND("weapons/shock_impact.wav");
-	PRECACHE_SOUND("weapons/shock_recharge.wav");
-
-	PRECACHE_MODEL("sprites/lgtning.spr");
-	PRECACHE_MODEL("sprites/flare3.spr");
-
-	m_usShockFire = PRECACHE_EVENT(1, "events/shock.sc");
-
-	UTIL_PrecacheOther("shock_beam");
 }
 
-bool CShockrifle::IsEnabledInMod()
+void CShockrifle::PrecacheDefaultModelSounds()
 {
-#ifndef CLIENT_DLL
-	return g_modFeatures.IsWeaponEnabled(WEAPON_SHOCKRIFLE);
-#else
-	return true;
-#endif
+	PRECACHE_SOUND("weapons/shock_draw.wav");
 }
 
-int CShockrifle::AddToPlayer(CBasePlayer *pPlayer)
+bool CShockrifle::GetItemInfo(ItemInfo *p)
 {
-	if (CBasePlayerWeapon::AddToPlayer(pPlayer))
-	{
-
-#ifndef CLIENT_DLL
-		if (g_pGameRules->IsMultiplayer())
-		{
-			// in multiplayer, all hivehands come full.
-			pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = SHOCK_MAX_CARRY;
-		}
-#endif
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev);
-		WRITE_BYTE(m_iId);
-		MESSAGE_END();
-		return TRUE;
-	}
-	return FALSE;
-}
-
-int CShockrifle::GetItemInfo(ItemInfo *p)
-{
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "Shocks";
-	p->iMaxAmmo1 = SHOCK_MAX_CARRY;
-	p->pszAmmo2 = NULL;
-	p->iMaxAmmo2 = -1;
-	p->iMaxClip = WEAPON_NOCLIP;
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 6;
 	p->iPosition = 1;
@@ -112,193 +71,112 @@ int CShockrifle::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 4;
 #endif
-	p->iId = WEAPON_SHOCKRIFLE;
-	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	p->iWeight = HORNETGUN_WEIGHT;
-	p->pszAmmoEntity = NULL;
-	p->iDropAmmo = 0;
 
-	return 1;
+	return true;
 }
 
-BOOL CShockrifle::Deploy()
+WeaponParameters CShockrifle::GetDefaultParameters() const
 {
-#ifdef CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
-		m_flRechargeTime = gpGlobals->time + 0.25;
-	else
-		m_flRechargeTime = gpGlobals->time + 0.5;
+	WeaponParameters params;
 
-	return DefaultDeploy("models/v_shock.mdl", "models/p_shock.mdl", SHOCK_DRAW, "bow");
+	params.initialAmmoAmount = 10;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Shocks";
+
+	params.worldModel = "models/w_shock_rifle.mdl";
+	params.viewModel = "models/v_shock.mdl";
+	params.playerModel = "models/p_shock.mdl";
+	params.playerAnimExt = "bow";
+	params.priority = 15;
+	params.worldModelAnimated = true;
+
+	params.deploy.animIndex = SHOCK_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{SHOCK_IDLE3, 0.8f, 3.3f},
+		WeaponParameters::IdleAnim{SHOCK_IDLE1, 0.2f, 3.3f}
+	};
+
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+	params.fire.anims = {SHOCK_FIRE};
+	params.fire.sound = {
+		CHAN_WEAPON,
+		{"weapons/shock_fire.wav"},
+		1.0f,
+		ATTN_NORM,
+		PITCH_NORM
+	};
+	params.fire.useStandardEmptySound = false;
+
+	params.fire.projectileName = "shock_beam";
+	params.fire.projectileOffsetForward = 8.0f;
+	params.fire.projectileOffsetSide = 9.0f;
+	params.fire.projectileOffsetUp = -7.0f;
+	params.fire.projectileRespectPunchangle = true;
+	params.fire.projectileAdjustToCross = true;
+
+	params.fire.cycleTime = bIsMultiplayer() ? 0.1f : 0.2f;
+	params.fire.idleDelay = 0.33f;
+	params.fire.allowUnderwater = true;
+	params.fire.autoAimDegree = AUTOAIM_10DEGREES;
+
+	params.fire.weaponVolume = QUIET_GUN_VOLUME;
+	params.fire.weaponFlash = DIM_GUN_FLASH;
+
+	WeaponParameters::ViewmodelBeam viewmodelBeam1, viewmodelBeam2, viewmodelBeam3;
+
+	Visual beamVisual;
+	beamVisual.SetModel("sprites/lgtning.spr");
+	beamVisual.SetLife(0.08f);
+	beamVisual.SetBeamWidth(1);
+	beamVisual.SetBeamNoise(75);
+	beamVisual.SetBeamScrollRate(30);
+	beamVisual.SetFramerate(10);
+	beamVisual.SetAlpha(190);
+	beamVisual.SetColor(Color3(0, 253, 253));
+
+	viewmodelBeam1.visual = beamVisual;
+	viewmodelBeam1.startAttachment = 1;
+	viewmodelBeam1.endAttachment = 2;
+
+	viewmodelBeam2.startAttachment = 1;
+	viewmodelBeam2.endAttachment = 3;
+	viewmodelBeam3.startAttachment = 1;
+	viewmodelBeam3.endAttachment = 4;
+
+	params.fire.viewmodelBeams = {viewmodelBeam1, viewmodelBeam2, viewmodelBeam3};
+
+	params.secondaryFireType = SecondaryFireType::DISABLED;
+
+	params.recharge.interval = bIsMultiplayer() ? 0.25f : 0.5f;
+	params.recharge.delayAfterFire = 1.0f;
+	params.recharge.onlyWhenDeployed = true;
+	params.recharge.sound = {
+		CHAN_WEAPON,
+		{"weapons/shock_recharge.wav"},
+		1.0f,
+		ATTN_NORM,
+		PITCH_NORM
+	};
+
+	params.holster.animIndex = SHOCK_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+
+	return std::move(params);
 }
 
-void CShockrifle::Holster()
+bool CShockrifle::HandleAttackSubstitution(bool altMode)
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim(SHOCK_HOLSTER);
-	ClearBeams();
-
-	//!!!HACKHACK - can't select shockrifle if it's empty! no way to get ammo for it, either.
-	if( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
+	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
-		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
-	}
-}
-
-void CShockrifle::PrimaryAttack()
-{
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		return;
-
-	if (m_pPlayer->pev->waterlevel == 3)
-	{
-#ifndef CLIENT_DLL
-		int attenuation = 150 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
-		int dmg = 100 * m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+#if !CLIENT_DLL
+		const float dmg = GetSkillValue("plr_shockroach_discharge_factor") * m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
+		const float radius = 1.5f * dmg;
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_discharge.wav", VOL_NORM, ATTN_NORM);
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
-		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, dmg, attenuation, CLASS_NONE, DMG_SHOCK | DMG_ALWAYSGIB );
+		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 0;
+		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );
 #endif
-		return;
+		return true;
 	}
-
-	CreateChargeEffect();
-
-#ifndef CLIENT_DLL
-	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-
-	UTIL_MakeVectors(anglesAim);
-	anglesAim.x = -anglesAim.x;
-
-	const Vector vecSrc =
-		m_pPlayer->GetGunPosition() +
-		gpGlobals->v_forward * 8 +
-		gpGlobals->v_right * 9 +
-		gpGlobals->v_up * -7;
-
-	m_pPlayer->GetAutoaimVectorFromPoint(vecSrc, AUTOAIM_10DEGREES);
-
-	CShock::Shoot(m_pPlayer->pev, anglesAim, vecSrc, gpGlobals->v_forward * CShock::ShockSpeed());
-
-	m_flRechargeTime = gpGlobals->time + 1.0f;
-#endif
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
-
-
-	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usShockFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, 0, 0, 0, 0);
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
-#ifdef CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
-	else
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.2);
-
-	SetThink( &CShockrifle::ClearBeams );
-	pev->nextthink = gpGlobals->time + 0.08;
-
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.33;
+	return false;
 }
-
-void CShockrifle::SecondaryAttack( void )
-{
-	CBasePlayerWeapon::SecondaryAttack();
-}
-
-void CShockrifle::Reload(void)
-{
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= SHOCK_MAX_CARRY)
-		return;
-
-	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < SHOCK_MAX_CARRY && m_flRechargeTime < gpGlobals->time)
-	{
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/shock_recharge.wav", 1, ATTN_NORM);
-
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
-#ifndef CLIENT_DLL
-		if( g_pGameRules->IsMultiplayer() )
-			m_flRechargeTime += 0.25;
-		else
-			m_flRechargeTime += 0.5;
-#endif
-	}
-}
-
-
-void CShockrifle::WeaponIdle(void)
-{
-	Reload();
-
-	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
-
-	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
-		return;
-
-	float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0, 1);
-	if (flRand <= 0.8) {
-		SendWeaponAnim(SHOCK_IDLE3);
-	} else {
-		SendWeaponAnim(SHOCK_IDLE1);
-	}
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.3f;
-}
-
-void CShockrifle::CreateChargeEffect( void )
-{
-#ifndef CLIENT_DLL
-	if( g_pGameRules->IsMultiplayer())
-		return;
-	int iBeam = 0;
-
-	for( int i = 2; i < 5; i++)
-	{
-		if( !m_pBeam[iBeam] )
-			m_pBeam[iBeam] = CBeam::BeamCreate("sprites/lgtning.spr", 16);
-		m_pBeam[iBeam]->EntsInit( m_pPlayer->entindex(), m_pPlayer->entindex() );
-		m_pBeam[iBeam]->SetStartAttachment(1);
-		m_pBeam[iBeam]->SetEndAttachment(i);
-		m_pBeam[iBeam]->SetNoise( 75 );
-		m_pBeam[iBeam]->pev->scale= 10;
-		m_pBeam[iBeam]->SetColor( 0, 253, 253 );
-		m_pBeam[iBeam]->SetScrollRate( 30 );
-		m_pBeam[iBeam]->SetBrightness( 190 );
-		iBeam++;
-	}
-#endif
-}
-
-void CShockrifle::ClearBeams( void )
-{
-#ifndef CLIENT_DLL
-	if( g_pGameRules->IsMultiplayer())
-		return;
-
-	for( int i = 0; i < 3; i++ )
-	{
-		if( m_pBeam[i] )
-		{
-			UTIL_Remove( m_pBeam[i] );
-			m_pBeam[i] = NULL;
-		}
-	}
-	SetThink( NULL );
-#endif
-}
-#endif

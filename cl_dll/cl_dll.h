@@ -29,27 +29,22 @@
 #if !defined(CL_DLL_H)
 #define CL_DLL_H
 #include "build.h"
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef float vec_t;
 // redefine
 //typedef int ( *pfnUserMsgHook )( const char *pszName, int iSize, void *pbuf );
 
-#include "util_vector.h"
+#include "mathlib.h"
 
 #include "../engine/cdll_int.h"
-#include "../dlls/cdll_dll.h"
+#include "cdll_dll.h"
 
 #if !XASH_WIN32
 #define _cdecl
 #endif
 #include "exportdef.h"
 #include <cstring>
-#if HAVE_CMATH
 #include <cmath>
-#else
-#include <math.h>
-#endif
+
+#include "safe_snprintf.h"
 
 extern cl_enginefunc_t gEngfuncs;
 #include "../engine/mobility_int.h"

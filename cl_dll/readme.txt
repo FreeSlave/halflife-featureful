@@ -44,16 +44,16 @@ Drawing functions:
 		Creates a clipping rectangle.  No pixels will be drawn outside the specified area.  Will
 		stay in effect until either the next frame,  or SPR_DisableScissor is called.
 
-	void  SPR_DisableScissor( void );
+	void  SPR_DisableScissor();
 		Disables the effect of an SPR_EnableScissor call.
 
-	int	 IsHighRes( void );
+	int	 IsHighRes();
 		returns 1 if the res mode is 640x480 or higher;  0 otherwise.
 
-	int	 ScreenWidth( void );
+	int	 ScreenWidth();
 		returns the screen width, in pixels.
 
-	int	 ScreenHeight( void );
+	int	 ScreenHeight();
 		returns the screen height, in pixels.
 
 // Sound functions

@@ -16,79 +16,41 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "monsters.h"
+#include "skill.h"
 #include "weapons.h"
 #include "player.h"
-#include "gamerules.h"
+#include "mod_features.h"
+#include "fx_flags.h"
 #ifndef CLIENT_DLL
 #include "spore.h"
-#include "game.h"
 #endif
 
-#if FEATURE_SPORELAUNCHER
-
-LINK_ENTITY_TO_CLASS(weapon_sporelauncher, CSporelauncher)
-
-void CSporelauncher::Spawn()
+enum sporelauncher_e
 {
-	Precache();
-	m_iId = WEAPON_SPORELAUNCHER;
-	SET_MODEL(ENT(pev), MyWModel());
+	SPLAUNCHER_IDLE = 0,
+	SPLAUNCHER_FIDGET,
+	SPLAUNCHER_RELOAD_REACH,
+	SPLAUNCHER_RELOAD_LOAD,
+	SPLAUNCHER_RELOAD_AIM,
+	SPLAUNCHER_FIRE,
+	SPLAUNCHER_HOLSTER1,
+	SPLAUNCHER_DRAW1,
+	SPLAUNCHER_IDLE2
+};
 
-	InitDefaultAmmo(SPORELAUNCHER_DEFAULT_GIVE);
-
-	pev->animtime = gpGlobals->time;
-	pev->framerate = 1.0f;
-
-	FallInit();// get ready to fall
-}
-
-
-void CSporelauncher::Precache(void)
+class CSporelauncher : public CConfigurableWeapon
 {
-	PRECACHE_MODEL("models/v_spore_launcher.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PRECACHE_MODEL("models/p_spore_launcher.mdl");
+public:
+	int WeaponId() const override { return WEAPON_SPORELAUNCHER; }
 
-	PRECACHE_SOUND("weapons/splauncher_altfire.wav");
-	PRECACHE_SOUND("weapons/splauncher_bounce.wav");
-	PRECACHE_SOUND("weapons/splauncher_fire.wav");
-	PRECACHE_SOUND("weapons/splauncher_impact.wav");
-	PRECACHE_SOUND("weapons/splauncher_pet.wav");
-	PRECACHE_SOUND("weapons/splauncher_reload.wav");
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
 
-	PRECACHE_SOUND("items/9mmclip1.wav");
+LINK_WEAPON_TO_CLASS(weapon_sporelauncher, CSporelauncher)
 
-	PRECACHE_MODEL("sprites/bigspit.spr");
-	m_iSquidSpitSprite = PRECACHE_MODEL("sprites/tinyspit.spr");
-	UTIL_PrecacheOther("spore");
-
-	m_usSporeFire = PRECACHE_EVENT(1, "events/spore.sc");
-}
-
-bool CSporelauncher::IsEnabledInMod()
+bool CSporelauncher::GetItemInfo(ItemInfo *p)
 {
-#ifndef CLIENT_DLL
-	return g_modFeatures.IsWeaponEnabled(WEAPON_SPORELAUNCHER);
-#else
-	return true;
-#endif
-}
-
-int CSporelauncher::AddToPlayer(CBasePlayer *pPlayer)
-{
-	return AddToPlayerDefault(pPlayer);
-}
-
-
-int CSporelauncher::GetItemInfo(ItemInfo *p)
-{
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "spores";
-	p->iMaxAmmo1 = SPORE_MAX_CARRY;
-	p->pszAmmo2 = NULL;
-	p->iMaxAmmo2 = -1;
-	p->iMaxClip = SPORELAUNCHER_MAX_CLIP;
 #if FEATURE_OPFOR_WEAPON_SLOTS
 	p->iSlot = 6;
 	p->iPosition = 0;
@@ -96,242 +58,117 @@ int CSporelauncher::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 5;
 #endif
-	p->iFlags = 0;
-	p->iId = WEAPON_SPORELAUNCHER;
-	p->iWeight = SPORELAUNCHER_WEIGHT;
-	p->pszAmmoEntity = NULL;
-	p->iDropAmmo = 0;
 
-	return 1;
+	return true;
 }
 
-
-
-BOOL CSporelauncher::Deploy()
+WeaponParameters CSporelauncher::GetDefaultParameters() const
 {
-	return DefaultDeploy("models/v_spore_launcher.mdl", "models/p_spore_launcher.mdl", SPLAUNCHER_DRAW1, "rpg");
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 5;
+	params.maxClip = 5;
+	params.ammoName = "spores";
+
+	params.worldModel = "models/w_spore_launcher.mdl";
+	params.viewModel = "models/v_spore_launcher.mdl";
+	params.playerModel = "models/p_spore_launcher.mdl";
+	params.playerAnimExt = "rpg";
+	params.priority = 20;
+	params.worldModelAnimated = true;
+
+	params.deploy.animIndex = SPLAUNCHER_DRAW1;
+
+	WeaponSoundScript fidgetSoundScript(CHAN_ITEM, {"weapons/splauncher_pet.wav"}, 0.7f, ATTN_NORM, 100);
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{SPLAUNCHER_IDLE, 0.75f, 2.0f},
+		WeaponParameters::IdleAnim{SPLAUNCHER_IDLE2, 0.20f, 4.0f},
+		WeaponParameters::IdleAnim{SPLAUNCHER_FIDGET, 0.05f, 4.0f, fidgetSoundScript}
+	};
+
+	// Primary fire
+	params.fire.fireType = WeaponParameters::Fire::PROJECTILE;
+	params.fire.anims = {SPLAUNCHER_FIRE};
+
+	params.fire.projectileName = "spore rocket";
+	params.fire.projectileOffsetForward = 16.0f;
+	params.fire.projectileOffsetSide = 8.0f;
+	params.fire.projectileOffsetUp = -8.0f;
+	params.fire.projectileRespectPunchangle = false;
+	params.fire.projectileAdjustToCross = true;
+
+	params.fire.sound = {
+		CHAN_WEAPON,
+		{"weapons/splauncher_fire.wav"},
+		0.9f,
+		ATTN_NORM,
+		100
+	};
+	params.fire.useStandardEmptySound = false;
+
+	params.fire.cycleTime = 0.5f;
+	params.fire.idleDelay = 0.5f;
+	params.fire.allowUnderwater = true;
+
+	params.fire.autoAimDegree = AUTOAIM_10DEGREES;
+	params.fire.weaponVolume = LOUD_GUN_VOLUME;
+	params.fire.weaponFlash = BRIGHT_GUN_FLASH;
+
+	params.fire.clientPunchPitch = -3.0f;
+
+	params.fire.sprayOffsetUp = -20.0f;
+	params.fire.sprayOffsetSide = 8.0f;
+	params.fire.sprayOffsetForward = 16.0f;
+
+	Visual sprayVisual;
+	sprayVisual.SetModel("sprites/tinyspit.spr");
+	sprayVisual.SetAlpha(255);
+	sprayVisual.SetRenderMode(kRenderTransAlpha);
+	sprayVisual.SetFramerate(0.5f);
+	sprayVisual.SetRenderFx(kRenderFxNoDissipation);
+
+	params.fire.sprayVisual = sprayVisual;
+	params.fire.sprayCount = 8;
+	params.fire.spraySpeed = 210;
+	params.fire.spraySpread = 0.25f;
+	params.fire.sprayFlags = SPRAY_FLAG_FADEOUT;
+	//
+
+	// Alt fire
+	params.fire.projectileName.alt = "spore bouncy";
+	params.fire.sound.alt = {
+		CHAN_WEAPON,
+		{"weapons/splauncher_altfire.wav"},
+		0.9f,
+		ATTN_NORM,
+		100
+	};
+	//
+
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	params.startReload.animIndex = SPLAUNCHER_RELOAD_REACH;
+	params.startReload.duration = 0.7f;
+
+	params.reloadAutostart = true;
+	params.manualReload = true;
+
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(SPLAUNCHER_RELOAD_LOAD)};
+	params.reload.idleDelay = 1.0f;
+	params.reload.duration = 0.0f;
+	params.reload.sound = {
+		CHAN_ITEM,
+		{"weapons/splauncher_reload.wav"},
+		0.7f,
+		ATTN_NORM,
+		100
+	};
+	params.reload.waitForRecoil = true;
+
+	params.endReload.animIndex = SPLAUNCHER_RELOAD_AIM;
+	params.endReload.idleDelay = 0.8f;
+	params.endReload.attackDelay = 0.0f;
+
+	return std::move(params);
 }
-
-void CSporelauncher::PrimaryAttack()
-{
-	if (m_iClip <= 0)
-		return;
-
-	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
-
-	m_iClip--;
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-
-	// m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
-
-#ifndef CLIENT_DLL
-		Vector vecAngles = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		CSpore::ShootContact( m_pPlayer, vecSrc, vecAngles, gpGlobals->v_forward * CSpore::SporeRocketSpeed() );
-#endif
-
-	PLAYBACK_EVENT_FULL(
-		flags,
-		m_pPlayer->edict(),
-		m_usSporeFire,
-		0.0,
-		g_vecZero,
-		g_vecZero,
-		vecSrc.x,
-		vecSrc.y,
-		(int)vecSrc.z,
-		m_iSquidSpitSprite,
-		0,
-		TRUE);
-
-
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
-
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
-
-#if 1
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-#endif
-
-	if (m_iClip != 0)
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
-	else
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75;
-	m_fInSpecialReload = 0;
-}
-
-
-void CSporelauncher::SecondaryAttack(void)
-{
-	if (m_iClip <= 0)
-		return;
-
-	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
-
-	m_iClip--;
-
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-	//m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
-
-#ifndef CLIENT_DLL
-	Vector vecAngles = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-	CSpore::ShootTimed(m_pPlayer, vecSrc, vecAngles, m_pPlayer->pev->velocity + gpGlobals->v_forward * CSpore::SporeGrenadeSpeed());
-#endif
-
-	PLAYBACK_EVENT_FULL(
-		flags,
-		m_pPlayer->edict(),
-		m_usSporeFire,
-		0.0,
-		g_vecZero,
-		g_vecZero,
-		vecSrc.x,
-		vecSrc.y,
-		(int)vecSrc.z,
-		m_iSquidSpitSprite,
-		0,
-		0);
-
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
-
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
-
-#if 1
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-#endif
-
-	if (m_iClip != 0)
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
-	else
-		m_flTimeWeaponIdle = 1.5;
-
-	m_fInSpecialReload = 0;
-
-}
-
-
-void CSporelauncher::Reload(void)
-{
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == SPORELAUNCHER_MAX_CLIP)
-		return;
-
-	// don't reload until recoil is done
-	if (m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
-		return;
-
-	// check to see if we're ready to reload
-	if (m_fInSpecialReload == 0)
-	{
-		SendWeaponAnim(SPLAUNCHER_RELOAD_REACH);
-		m_fInSpecialReload = 1;
-		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.7;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.7;
-		m_flNextPrimaryAttack = GetNextAttackDelay(1.0);
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
-		return;
-	}
-	else if (m_fInSpecialReload == 1)
-	{
-		if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
-			return;
-		// was waiting for gun to move to side
-		m_fInSpecialReload = 2;
-
-		// Play reload sound.
-		EMIT_SOUND(m_pPlayer->edict(), CHAN_ITEM, "weapons/splauncher_reload.wav", 0.7f, ATTN_NORM);
-
-		SendWeaponAnim(SPLAUNCHER_RELOAD_LOAD);
-
-		m_flNextReload = UTIL_WeaponTimeBase() + 1.0;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
-	}
-	else
-	{
-		// Add them to the clip
-		m_iClip += 1;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 1;
-		m_fInSpecialReload = 1;
-	}
-}
-
-
-void CSporelauncher::WeaponIdle(void)
-{
-	ResetEmptySound();
-
-	m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
-
-	if (m_flTimeWeaponIdle <  UTIL_WeaponTimeBase())
-	{
-		if (m_iClip == 0 && m_fInSpecialReload == 0 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
-		{
-			Reload();
-		}
-		else if (m_fInSpecialReload != 0)
-		{
-			if (m_iClip != SPORELAUNCHER_DEFAULT_GIVE && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
-			{
-				Reload();
-			}
-			else
-			{
-				// reload debounce has timed out
-				SendWeaponAnim(SPLAUNCHER_RELOAD_AIM);
-
-				m_fInSpecialReload = 0;
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.8;
-			}
-		}
-		else
-		{
-			int iAnim;
-			float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0, 1);
-			if (flRand <= 0.75f)
-			{
-				iAnim = SPLAUNCHER_IDLE;
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0f;
-			}
-			else if (flRand <= 0.95f)
-			{
-				iAnim = SPLAUNCHER_IDLE2;
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 4.0f;
-			} else {
-				iAnim = SPLAUNCHER_FIDGET;
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 4.0f;
-				EMIT_SOUND(m_pPlayer->edict(), CHAN_ITEM, "weapons/splauncher_pet.wav", 0.7f, ATTN_NORM);
-			}
-
-			SendWeaponAnim(iAnim);
-		}
-	}
-}
-#endif

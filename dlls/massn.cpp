@@ -1,18 +1,18 @@
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
-#include	"weapons.h"
+#include	"combat.h"
+#include	"ggrenade.h"
 #include	"talkmonster.h"
 #include	"soundent.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"gamerules.h"
 #include	"game.h"
 #include	"shake.h"
+#include	"common_soundscripts.h"
+#include	"global_models.h"
 
-#if FEATURE_MASSN
-
-extern BOOL g_hasFlashbangModel;
+extern bool g_hasFlashbangModel;
 
 class CFlashGrenade : public CBaseMonster
 {
@@ -92,7 +92,7 @@ void CFlashGrenade::BounceTouch( CBaseEntity *pOther )
 		if( pevOwner && pOther->pev->takedamage )
 		{
 			TraceResult tr = UTIL_GetGlobalTrace();
-			pOther->ApplyTraceAttack( pev, pevOwner, 1, gpGlobals->v_forward, &tr, DMG_CLUB );
+			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo{1, DMG_CLUB}, gpGlobals->v_forward, &tr );
 		}
 		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
 	}
@@ -167,9 +167,9 @@ void CFlashGrenade::Detonate( void )
 	pev->velocity = g_vecZero;
 
 	const Vector white = Vector(255, 255, 255);
-	const float fadeTime = gSkillData.massnFlashFadeTime;
-	const float holdTime = gSkillData.massnFlashHoldTime;
-	const float flashRadius = gSkillData.massnFlashRadius;
+	const float fadeTime = GetSkillValue("massassin_flash_fadetime");
+	const float holdTime = GetSkillValue("massassin_flash_holdtime");
+	const float flashRadius = GetSkillValue("massassin_flash_radius");
 
 	for( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
@@ -317,67 +317,115 @@ enum
 class CMassn : public CHGrunt
 {
 public:
-	const char* DefaultDisplayName() { return "Male Assassin"; }
-	const char* ReverseRelationshipModel() { return "models/massnf.mdl"; }
-	void KeyValue(KeyValueData* pkvd);
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	const char* DefaultDisplayName() override { return "Male Assassin"; }
+	const char* ReverseRelationshipModel() override { return "models/massnf.mdl"; }
+	void KeyValue(KeyValueData* pkvd) override;
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	bool CanThrowFlashGrenade();
-	BOOL CheckRangeAttack2(float flDot, float flDist);
-	void Sniperrifle(void);
-	void GibMonster();
-	void PlayUseSentence();
-	void PlayUnUseSentence();
-	int	DefaultClassify ( void )
+	bool CheckRangeAttack2(float flDot, float flDist) override;
+	void Sniperrifle();
+	void GibMonster() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CHGrunt::DefaultClassify();
 	}
 
-	BOOL FOkToSpeak(void);
+	bool FOkToSpeak() override;
 
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	void MonsterInit();
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	void MonsterInit() override;
 
-	void DeathSound(void);
-	void PainSound(void);
-	void IdleSound(void);
+	void DeathSound() override;
+	void PainSound() override;
+	void IdleSound() override;
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
+		return inputDamageInfo;
+	}
 
-	void SetHead(int head);
+	void SetHead(int head) override;
 
-	void DropMyItems(BOOL isGibbed);
+	void DropMyItems(bool isGibbed);
 
 	int m_iHead;
+
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
+
+	static constexpr const char* reloadSoundScript = "Massn.Reload";
+	static constexpr const char* burst9mmSoundScript = "Massn.9MM";
+	static constexpr const char* grenadeLaunchSoundScript = "Massn.GrenadeLaunch";
+	static constexpr const char* sniperSoundScript = "Massn.Sniper";
+
+protected:
+	void PlayFirstBurstSounds() override {
+		EmitSoundScript(burst9mmSoundScript);
+	}
+	void PlayReloadSound() override {
+		EmitSoundScript(reloadSoundScript);
+	}
+	void PlayGrenadeLaunchSound() override {
+		EmitSoundScript(grenadeLaunchSoundScript);
+	}
+	void PlayShogtunSound() override {
+		EmitSoundScript(shotgunSoundScript);
+	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_male_assassin, CMassn)
 
+const NamedSoundScript CMassn::painSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.Pain"
+};
+
+const NamedSoundScript CMassn::dieSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.Die"
+};
+
+const NamedSoundScript CMassn::useSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.Use"
+};
+
+const NamedSoundScript CMassn::unuseSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.UnUse"
+};
+
 void CMassn::PlayUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "BA_OK", SentenceVolume(), SentenceAttn(), 0, 85 );
-	JustSpoke();
+	PlaySentenceSoundScript(useSoundScript);
 }
 
 void CMassn::PlayUnUseSentence()
 {
-	SENTENCEG_PlayRndSz( ENT( pev ), "BA_WAIT", SentenceVolume(), SentenceAttn(), 0, 85 );
-	JustSpoke();
+	PlaySentenceSoundScript(unuseSoundScript);
 }
 
-BOOL CMassn::FOkToSpeak(void)
+bool CMassn::FOkToSpeak()
 {
-	return FALSE;
+	return false;
 }
 
-void CMassn::IdleSound(void)
+void CMassn::IdleSound()
 {
 }
 
-void CMassn::Sniperrifle(void)
+void CMassn::Sniperrifle()
 {
 	Vector vecShootOrigin = GetGunPosition();
 	Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
@@ -386,11 +434,12 @@ void CMassn::Sniperrifle(void)
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_1DEGREES, 2048, BULLET_MONSTER_762, 1);
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_1DEGREES, 2048, GetSkillValue("762_bullet"), 1);
 
 	pev->effects |= EF_MUZZLEFLASH;
 
-	m_cAmmoLoaded--;// take away a bullet!
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;// take away a bullet!
 
 	Vector angDir = UTIL_VecToAngles(vecShootDir);
 	SetBlending(0, angDir.x);
@@ -399,17 +448,17 @@ void CMassn::Sniperrifle(void)
 //=========================================================
 // GibMonster - make gun fly through the air.
 //=========================================================
-void CMassn::GibMonster( void )
+void CMassn::GibMonster()
 {
 	if( GetBodygroup( MASSN_GUN_GROUP ) != MASSN_GUN_NONE )
 	{
-		DropMyItems(TRUE);
+		DropMyItems(true);
 	}
 
 	CBaseMonster::GibMonster();
 }
 
-void CMassn::DropMyItems(BOOL isGibbed)
+void CMassn::DropMyItems(bool isGibbed)
 {
 	if (g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
 	{
@@ -417,28 +466,34 @@ void CMassn::DropMyItems(BOOL isGibbed)
 		Vector vecGunAngles;
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
+		FixupDropItemPosition(vecGunPos);
+
 		if (!isGibbed) {
 			SetBodygroup( MASSN_GUN_GROUP, MASSN_GUN_NONE );
 		}
-		if( FBitSet( pev->weapons, MASSN_SNIPERRIFLE ) ) {
-			DropMyItem( "weapon_sniperrifle", vecGunPos, vecGunAngles, isGibbed );
-		} else if ( FBitSet( pev->weapons, MASSN_9MMAR ) ) {
-			DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
-		}
-		if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
-			DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-		}
-#if FEATURE_MONSTERS_DROP_HANDGRENADES
-		if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
-			CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
-			if (pGrenadeEnt)
-			{
-				CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
-				if (pGrenadeWeap)
-					pGrenadeWeap->m_iDefaultAmmo = 1;
+
+		if (!DropEquipment(vecGunPos, vecGunAngles, isGibbed))
+		{
+			if( FBitSet( pev->weapons, MASSN_SNIPERRIFLE ) ) {
+				DropMyItem( "weapon_sniperrifle", vecGunPos, vecGunAngles, isGibbed );
+			} else if ( FBitSet( pev->weapons, MASSN_9MMAR ) ) {
+				DropMyItem( "weapon_9mmAR", vecGunPos, vecGunAngles, isGibbed );
 			}
-		}
+			if( FBitSet( pev->weapons, MASSN_GRENADELAUNCHER ) ) {
+				DropMyItem( "ammo_ARgrenades", isGibbed ? vecGunPos : BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+			}
+#if FEATURE_MONSTERS_DROP_HANDGRENADES
+			if ( FBitSet (pev->weapons, MASSN_HANDGRENADE ) ) {
+				CBaseEntity* pGrenadeEnt = DropMyItem( "weapon_handgrenade", BodyTarget( pev->origin ), vecGunAngles, isGibbed );
+				if (pGrenadeEnt)
+				{
+					CBasePlayerWeapon* pGrenadeWeap = pGrenadeEnt->MyWeaponPointer();
+					if (pGrenadeWeap)
+						pGrenadeWeap->m_iDefaultAmmo = 1;
+				}
+			}
 #endif
+		}
 	}
 	pev->weapons = 0;
 }
@@ -448,7 +503,7 @@ void CMassn::KeyValue(KeyValueData *pkvd)
 	if( FStrEq(pkvd->szKeyName, "head" ) )
 	{
 		m_iHead = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CFollowingMonster::KeyValue( pkvd );
@@ -465,24 +520,24 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 	case MASSN_AE_DROP_GUN:
 	{
 		if(GetBodygroup(MASSN_GUN_GROUP) != MASSN_GUN_NONE)
-			DropMyItems(FALSE);
+			DropMyItems(false);
 	}
 	break;
 
-
 	case MASSN_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		if (FBitSet(pev->weapons, MASSN_9MMAR))
 		{
 			Shoot();
 			PlayFirstBurstSounds();
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3);
+			InsertAISound(bits_SOUND_COMBAT, 384, 0.3);
 		}
 		else if (FBitSet(pev->weapons, MASSN_SNIPERRIFLE))
 		{
 			Sniperrifle();
-			EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/sniper_fire.wav", 1, 0.4);
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 512, 0.3);
+			EmitSoundScript(sniperSoundScript);
+			InsertAISound(bits_SOUND_COMBAT, 512, 0.3);
 
 			Vector vecGunPos;
 			Vector vecGunAngles;
@@ -491,9 +546,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecGunPos );
 				WRITE_BYTE( TE_ELIGHT );
 				WRITE_SHORT( entindex() + 0x1000 );		// entity, attachment
-				WRITE_COORD( vecGunPos.x );		// origin
-				WRITE_COORD( vecGunPos.y );
-				WRITE_COORD( vecGunPos.z );
+				WRITE_VECTOR( vecGunPos );		// origin
 				WRITE_COORD( 24 );	// radius
 				WRITE_BYTE( 255 );	// R
 				WRITE_BYTE( 255 );	// G
@@ -508,7 +561,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case MASSN_AE_KICK:
 	{
-		PerformKick(gSkillData.massnDmgKick);
+		PerformKick(pEvent->event, GetSkillValue("massassin_kick"));
 	}
 	break;
 
@@ -533,7 +586,7 @@ void CMassn::HandleAnimEvent(MonsterEvent_t *pEvent)
 			{
 				CFlashGrenade::ShootTimed( pev, GetGunPosition(), m_vecTossVelocity, 2.8f );
 
-				m_fThrowGrenade = FALSE;
+				m_fThrowGrenade = false;
 				m_flNextGrenadeCheck = gpGlobals->time + 5;
 			}
 			else
@@ -558,16 +611,16 @@ bool CMassn::CanThrowFlashGrenade()
 // CheckRangeAttack2 - this checks the Grunt's grenade
 // attack.
 //=========================================================
-BOOL CMassn::CheckRangeAttack2( float flDot, float flDist )
+bool CMassn::CheckRangeAttack2( float flDot, float flDist )
 {
 	const bool canThrowHandGrenade = FBitSet(pev->weapons, MASSN_HANDGRENADE);
 	const bool canThrowFlashGrenade = CanThrowFlashGrenade();
 	const bool canLaunchGrenade = FBitSet(pev->weapons, MASSN_GRENADELAUNCHER);
 	if( !canThrowHandGrenade && !canThrowFlashGrenade && !canLaunchGrenade )
 	{
-		return FALSE;
+		return false;
 	}
-	return CheckRangeAttack2Impl(gSkillData.massnGrenadeSpeed, flDot, flDist, canLaunchGrenade);
+	return CheckRangeAttack2Impl(GetSkillValue("massassin_gspeed"), flDot, flDist, FBitSet(pev->weapons, MASSN_GRENADELAUNCHER));
 }
 
 //=========================================================
@@ -575,7 +628,7 @@ BOOL CMassn::CheckRangeAttack2( float flDot, float flDist )
 //=========================================================
 void CMassn::Spawn()
 {
-	SpawnHelper("models/massn.mdl", gSkillData.massnHealth);
+	SpawnHelper("models/massn.mdl", GetSkillValue("massassin_health"));
 
 	if (pev->weapons == 0)
 	{
@@ -592,6 +645,7 @@ void CMassn::Spawn()
 	{
 		m_cClipSize = MASSN_CLIP_SIZE;
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	if (g_hasFlashbangModel && !FBitSet(pev->weapons, MASSN_GRENADELAUNCHER|MASSN_SNIPERRIFLE))
@@ -599,7 +653,7 @@ void CMassn::Spawn()
 		pev->weapons |= MASSN_FLASHGRENADE;
 	}
 
-	if (m_iHead == -1 || m_iHead >= MASSN_HEAD_COUNT) {
+	if (m_iHead == -1) {
 		m_iHead = RANDOM_LONG(MASSN_HEAD_WHITE, MASSN_HEAD_BLACK); // never random night googles
 	}
 	SetBodygroup(MASSN_HEAD_GROUP, m_iHead);
@@ -625,31 +679,37 @@ void CMassn::Precache()
 	if (g_hasFlashbangModel)
 		UTIL_PrecacheOther("fgrenade");
 
-	PRECACHE_SOUND("weapons/sniper_fire.wav");
+	// Note: these are optional
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
+	RegisterAndPrecacheSoundScript(reloadSoundScript, NPC::reloadSoundScript);
+	RegisterAndPrecacheSoundScript(burst9mmSoundScript, NPC::burst9mmSoundScript);
+	RegisterAndPrecacheSoundScript(grenadeLaunchSoundScript, NPC::grenadeLaunchSoundScript);
+	RegisterAndPrecacheSoundScript(sniperSoundScript, NPC::sniperSoundScript);
+
+	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
+
+	m_voicePitch = 100;
 	m_iBrassShell = PRECACHE_MODEL("models/shell.mdl");// brass shell
 }
 
 //=========================================================
 // PainSound
 //=========================================================
-void CMassn::PainSound(void)
+void CMassn::PainSound()
 {
+	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================
 // DeathSound
 //=========================================================
-void CMassn::DeathSound(void)
+void CMassn::DeathSound()
 {
-}
-
-//=========================================================
-// TraceAttack - reimplemented in male assassin because they never have helmets
-//=========================================================
-void CMassn::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
-{
-	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	EmitSoundScript(dieSoundScript);
 }
 
 void CMassn::SetHead(int head)
@@ -665,15 +725,15 @@ void CMassn::SetHead(int head)
 class CAssassinRepel : public CHGruntRepel
 {
 public:
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	void KeyValue(KeyValueData* pkvd);
-	const char* TrooperName() {
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	void KeyValue(KeyValueData* pkvd) override;
+	const char* TrooperName() override {
 		return "monster_male_assassin";
 	}
-	void PrepareBeforeSpawn(CBaseEntity* pEntity);
+	void PrepareBeforeSpawn(CBaseEntity* pEntity) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int head;
@@ -693,7 +753,7 @@ void CAssassinRepel::KeyValue(KeyValueData *pkvd)
 	if( FStrEq(pkvd->szKeyName, "head" ) )
 	{
 		head = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CHGruntRepel::KeyValue( pkvd );
@@ -708,17 +768,18 @@ void CAssassinRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CDeadMassn : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
-	int	DefaultClassify ( void )
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/massn.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
 		return CLASS_HUMAN_MILITARY;
 	}
 
-	void KeyValue( KeyValueData *pkvd );
-	const char* getPos(int pos) const;
+	void KeyValue( KeyValueData *pkvd ) override;
+	const char* getPos(int pos) const override;
 
 	int	m_iHead;
 	static const char *m_szPoses[3];
@@ -736,7 +797,7 @@ void CDeadMassn::KeyValue( KeyValueData *pkvd )
 	if (FStrEq(pkvd->szKeyName, "head"))
 	{
 		m_iHead = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CDeadMonster::KeyValue( pkvd );
@@ -745,9 +806,9 @@ void CDeadMassn::KeyValue( KeyValueData *pkvd )
 LINK_ENTITY_TO_CLASS( monster_male_assassin_dead, CDeadMassn )
 LINK_ENTITY_TO_CLASS( monster_massassin_dead, CDeadMassn )
 
-void CDeadMassn::Spawn( )
+void CDeadMassn::Spawn()
 {
-	SpawnHelper("models/massn.mdl");
+	SpawnHelper();
 
 	if ( pev->weapons <= 0 )
 	{
@@ -762,7 +823,7 @@ void CDeadMassn::Spawn( )
 		SetBodygroup(MASSN_GUN_GROUP, MASSN_GUN_SNIPERRIFLE);
 	}
 
-	if ( m_iHead < 0 || m_iHead >= MASSN_HEAD_COUNT ) {
+	if (m_iHead < 0) {
 		m_iHead = RANDOM_LONG(MASSN_HEAD_WHITE, MASSN_HEAD_BLACK);  // never random night googles
 	}
 
@@ -770,5 +831,3 @@ void CDeadMassn::Spawn( )
 
 	MonsterInitDead();
 }
-
-#endif

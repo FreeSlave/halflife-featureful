@@ -20,7 +20,7 @@ typedef struct
 {
 	int event;
 	char *options;
-}MonsterEvent_t;
+} MonsterEvent_t;
 
 #define EVENT_SPECIFIC			0
 #define EVENT_SCRIPTED			1000
@@ -29,6 +29,7 @@ typedef struct
 
 #define MONSTER_EVENT_BODYDROP_LIGHT	2001
 #define MONSTER_EVENT_BODYDROP_HEAVY	2002
+#define MONSTER_EVENT_MATERIAL_FOOTSTEP 2003
 
 #define MONSTER_EVENT_SWISHSOUND	2010
 #endif //MONSTEREVENT_H

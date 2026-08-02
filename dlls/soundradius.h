@@ -2,8 +2,6 @@
 #ifndef SOUNDRADIUS_H
 #define SOUNDRADIUS_H
 
-#include "const.h"
-
 enum
 {
 	SOUND_RADIUS_SMALL = -2,

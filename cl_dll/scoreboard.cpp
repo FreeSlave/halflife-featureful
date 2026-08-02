@@ -21,10 +21,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-#include "triangleapi.h"
-
-#include <string.h>
-#include <stdio.h>
+#include "string_utils.h"
 
 cvar_t *cl_scoreboard_bg;
 cvar_t *cl_showpacketloss;
@@ -37,25 +34,13 @@ cvar_t *cl_showpacketloss;
 DECLARE_COMMAND( m_Scoreboard, ShowScores )
 DECLARE_COMMAND( m_Scoreboard, HideScores )
 
-#if !USE_VGUI || USE_NOVGUI_SCOREBOARD
-DECLARE_MESSAGE( m_Scoreboard, ScoreInfo )
-DECLARE_MESSAGE( m_Scoreboard, TeamInfo )
-DECLARE_MESSAGE( m_Scoreboard, TeamScore )
-#endif
-
-int CHudScoreboard::Init( void )
+int CHudScoreboard::Init()
 {
 	gHUD.AddHudElem( this );
 
 	// Hook messages & commands here
 	// HOOK_COMMAND( "+showscores", ShowScores );
 	// HOOK_COMMAND( "-showscores", HideScores );
-
-#if !USE_VGUI || USE_NOVGUI_SCOREBOARD
-	HOOK_MESSAGE( ScoreInfo );
-	HOOK_MESSAGE( TeamScore );
-	HOOK_MESSAGE( TeamInfo );
-#endif
 
 	InitHUDData();
 
@@ -65,13 +50,13 @@ int CHudScoreboard::Init( void )
 	return 1;
 }
 
-int CHudScoreboard::VidInit( void )
+int CHudScoreboard::VidInit()
 {
 	// Load sprites here
 	return 1;
 }
 
-void CHudScoreboard::InitHUDData( void )
+void CHudScoreboard::InitHUDData()
 {
 	memset( g_PlayerExtraInfo, 0, sizeof g_PlayerExtraInfo );
 	m_iLastKilledBy = 0;
@@ -112,16 +97,19 @@ int SCOREBOARD_WIDTH = 320;
 
 int CHudScoreboard::Draw( float fTime )
 {
-	int i, j, can_show_packetloss = 0;
+	int can_show_packetloss = 0;
 	int FAR_RIGHT;
-	gHUD.m_iNoConsolePrint &= ~( 1 << 0 );
 
-	if( !m_iShowscoresHeld && gHUD.m_Health.m_iHealth > 0 && !gHUD.m_iIntermission )
+	bool showToDead = !gHUD.UseVguiScoreBoard();
+
+	if( !m_iShowscoresHeld && (showToDead ? gHUD.m_Health.m_iHealth > 0 : true) && !gHUD.m_iIntermission )
 		return 1;
-	
-	gHUD.m_iNoConsolePrint |= 1 << 0;
+#if USE_VGUI
+	if (gViewPort && gViewPort->IsScoreBoardVisible())
+		return 1;
+#endif
 
-	GetAllPlayersInfo();
+	gHUD.GetAllPlayersInfo();
 
 	//  Packetloss removed on Kelly 'shipping nazi' Bailey's orders
 	if( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
@@ -185,80 +173,12 @@ int CHudScoreboard::Draw( float fTime )
 		return 1;
 	}
 
-	// clear out team scores
-	for( i = 1; i <= m_iNumTeams; i++ )
-	{
-		if( !g_TeamInfo[i].scores_overriden )
-			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = 0;
-		g_TeamInfo[i].ping = g_TeamInfo[i].packetloss = 0;
-	}
-
-	// recalc the team scores, then draw them
-	for( i = 1; i < MAX_PLAYERS; i++ )
-	{
-		//if( g_PlayerInfoList[i].name == NULL )
-		//	continue; // empty player slot, skip
-
-		if( g_PlayerExtraInfo[i].teamname[0] == 0 )
-			continue; // skip over players who are not in a team
-
-		// find what team this player is in
-		for( j = 1; j <= m_iNumTeams; j++ )
-		{
-			if( !stricmp( g_PlayerExtraInfo[i].teamname, g_TeamInfo[j].name ) )
-				break;
-		}
-		if( j > m_iNumTeams )  // player is not in a team, skip to the next guy
-			continue;
-
-		if( !g_TeamInfo[j].scores_overriden )
-		{
-			g_TeamInfo[j].frags += g_PlayerExtraInfo[i].frags;
-			g_TeamInfo[j].deaths += g_PlayerExtraInfo[i].deaths;
-		}
-
-		g_TeamInfo[j].ping += g_PlayerInfoList[i].ping;
-		g_TeamInfo[j].packetloss += g_PlayerInfoList[i].packetloss;
-
-		if( g_PlayerInfoList[i].thisplayer )
-			g_TeamInfo[j].ownteam = TRUE;
-		else
-			g_TeamInfo[j].ownteam = FALSE;
-	}
-
-	// find team ping/packetloss averages
-	for( i = 1; i <= m_iNumTeams; i++ )
-	{
-		g_TeamInfo[i].already_drawn = FALSE;
-
-		if( g_TeamInfo[i].players > 0 )
-		{
-			g_TeamInfo[i].ping /= g_TeamInfo[i].players;  // use the average ping of all the players in the team as the teams ping
-			g_TeamInfo[i].packetloss /= g_TeamInfo[i].players;  // use the average ping of all the players in the team as the teams ping
-		}
-	}
+	UpdateTeams();
 
 	// Draw the teams
 	while( 1 )
 	{
-		int highest_frags = -99999; int lowest_deaths = 99999;
-		int best_team = 0;
-
-		for( i = 1; i <= m_iNumTeams; i++ )
-		{
-			if( g_TeamInfo[i].players < 0 )
-				continue;
-
-			if( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].frags >= highest_frags )
-			{
-				if( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].deaths < lowest_deaths )
-				{
-					best_team = i;
-					lowest_deaths = g_TeamInfo[i].deaths;
-					highest_frags = g_TeamInfo[i].frags;
-				}
-			}
-		}
+		int best_team = BestTeam();
 
 		// draw the best team on the scoreboard
 		if( !best_team )
@@ -320,7 +240,7 @@ int CHudScoreboard::Draw( float fTime )
 			CHud::UtfText::DrawString( xpos, ypos, xpos+50, buf, r, g, b );
 		}
 
-		team_info->already_drawn = TRUE;  // set the already_drawn to be TRUE, so this team won't get drawn again
+		team_info->already_drawn = true;  // set the already_drawn to be TRUE, so this team won't get drawn again
 		list_slot++;
 
 		// draw all the players that belong to this team, indented slightly
@@ -475,17 +395,6 @@ int CHudScoreboard::DrawPlayers( int xpos_rel, float list_slot, int nameoffset, 
 	return list_slot;
 }
 
-void CHudScoreboard::GetAllPlayersInfo( void )
-{
-	for( int i = 1; i < MAX_PLAYERS; i++ )
-	{
-		GetPlayerInfo( i, &g_PlayerInfoList[i] );
-
-		if( g_PlayerInfoList[i].thisplayer )
-			m_iPlayerNum = i;  // !!!HACK: this should be initialized elsewhere... maybe gotten from the engine
-	}
-}
-
 int CHudScoreboard::MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbuf )
 {
 	m_iFlags |= HUD_ACTIVE;
@@ -504,8 +413,12 @@ int CHudScoreboard::MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbu
 		g_PlayerExtraInfo[cl].playerclass = playerclass;
 		g_PlayerExtraInfo[cl].teamnumber = teamnumber;
 
+		//Dont go bellow 0!
+		if( g_PlayerExtraInfo[cl].teamnumber < 0 )
+			g_PlayerExtraInfo[cl].teamnumber = 0;
 #if USE_VGUI
-		gViewPort->UpdateOnPlayerInfo();
+		if (gHUD.UseVguiScoreBoard() && gViewPort)
+			gViewPort->UpdateOnPlayerInfo();
 #endif
 	}
 
@@ -518,16 +431,78 @@ int CHudScoreboard::MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbu
 //		string: client team name
 int CHudScoreboard::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf )
 {
-	int i, j;
 	BEGIN_READ( pbuf, iSize );
 	short cl = READ_BYTE();
 
 	if( cl > 0 && cl <= MAX_PLAYERS )
 	{
 		// set the players team
-		strncpy( g_PlayerExtraInfo[cl].teamname, READ_STRING(), MAX_TEAM_NAME - 1 );
+		strncpyEnsureTermination( g_PlayerExtraInfo[cl].teamname, READ_STRING() );
 	}
 
+	RebuildTeams();
+
+	return 1;
+}
+
+// Message handler for TeamScore message
+// accepts three values:
+//		string: team name
+//		short: teams kills
+//		short: teams deaths 
+// if this message is never received, then scores will simply be the combined totals of the players.
+int CHudScoreboard::MsgFunc_TeamScore( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	char *TeamName = READ_STRING();
+	int i;
+
+	// find the team matching the name
+	for( i = 1; i <= m_iNumTeams; i++ )
+	{
+		if( !stricmp( TeamName, g_TeamInfo[i].name ) )
+			break;
+	}
+	if( i > m_iNumTeams )
+		return 1;
+
+	// use this new score data instead of combined player scores
+	g_TeamInfo[i].scores_overriden = true;
+	g_TeamInfo[i].frags = READ_SHORT();
+	g_TeamInfo[i].deaths = READ_SHORT();
+
+	return 1;
+}
+
+void CHudScoreboard::DeathMsg( int killer, int victim )
+{
+	// if we were the one killed,  or the world killed us, set the scoreboard to indicate suicide
+	if( victim == m_iPlayerNum || killer == 0 )
+	{
+		m_iLastKilledBy = killer ? killer : m_iPlayerNum;
+		m_fLastKillTime = gHUD.m_flTime + 10;	// display who we were killed by for 10 seconds
+
+		if( killer == m_iPlayerNum )
+			m_iLastKilledBy = m_iPlayerNum;
+	}
+}
+
+void CHudScoreboard::UserCmd_ShowScores()
+{
+	m_iShowscoresHeld = true;
+}
+
+void CHudScoreboard::UserCmd_HideScores()
+{
+	m_iShowscoresHeld = false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Recalculate the existing teams in the match
+//-----------------------------------------------------------------------------
+void CHudScoreboard::RebuildTeams()
+{
+	int i, j;
 	// rebuild the list of teams
 	// clear out player counts from teams
 	for( i = 1; i <= m_iNumTeams; i++ )
@@ -536,7 +511,7 @@ int CHudScoreboard::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf
 	}
 
 	// rebuild the team list
-	GetAllPlayersInfo();
+	gHUD.GetAllPlayersInfo();
 	m_iNumTeams = 0;
 	for( i = 1; i < MAX_PLAYERS; i++ )
 	{
@@ -567,7 +542,7 @@ int CHudScoreboard::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf
 			}
 			m_iNumTeams = Q_max( j, m_iNumTeams );
 
-			strncpy( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname, MAX_TEAM_NAME - 1 );
+			strncpyEnsureTermination( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname );
 			g_TeamInfo[j].players = 0;
 		}
 
@@ -580,58 +555,88 @@ int CHudScoreboard::MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf
 		if( g_TeamInfo[i].players < 1 )
 			memset( &g_TeamInfo[i], 0, sizeof(team_info_t) );
 	}
-
-	return 1;
 }
 
-// Message handler for TeamScore message
-// accepts three values:
-//		string: team name
-//		short: teams kills
-//		short: teams deaths 
-// if this message is never received, then scores will simply be the combined totals of the players.
-int CHudScoreboard::MsgFunc_TeamScore( const char *pszName, int iSize, void *pbuf )
+void CHudScoreboard::UpdateTeams()
 {
-	BEGIN_READ( pbuf, iSize );
-	char *TeamName = READ_STRING();
-	int i;
-
-	// find the team matching the name
+	int i, j;
+	// clear out team scores
 	for( i = 1; i <= m_iNumTeams; i++ )
 	{
-		if( !stricmp( TeamName, g_TeamInfo[i].name ) )
-			break;
+		if( !g_TeamInfo[i].scores_overriden )
+			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = 0;
+		g_TeamInfo[i].ping = g_TeamInfo[i].packetloss = 0;
 	}
-	if( i > m_iNumTeams )
-		return 1;
 
-	// use this new score data instead of combined player scores
-	g_TeamInfo[i].scores_overriden = TRUE;
-	g_TeamInfo[i].frags = READ_SHORT();
-	g_TeamInfo[i].deaths = READ_SHORT();
-
-	return 1;
-}
-
-void CHudScoreboard::DeathMsg( int killer, int victim )
-{
-	// if we were the one killed,  or the world killed us, set the scoreboard to indicate suicide
-	if( victim == m_iPlayerNum || killer == 0 )
+	// recalc the team scores, then draw them
+	for( i = 1; i < MAX_PLAYERS; i++ )
 	{
-		m_iLastKilledBy = killer ? killer : m_iPlayerNum;
-		m_fLastKillTime = gHUD.m_flTime + 10;	// display who we were killed by for 10 seconds
+		if( g_PlayerInfoList[i].name == NULL )
+			continue; // empty player slot, skip
 
-		if( killer == m_iPlayerNum )
-			m_iLastKilledBy = m_iPlayerNum;
+		if( g_PlayerExtraInfo[i].teamname[0] == 0 )
+			continue; // skip over players who are not in a team
+
+		// find what team this player is in
+		for( j = 1; j <= m_iNumTeams; j++ )
+		{
+			if( !stricmp( g_PlayerExtraInfo[i].teamname, g_TeamInfo[j].name ) )
+				break;
+		}
+		if( j > m_iNumTeams )  // player is not in a team, skip to the next guy
+			continue;
+
+		if( !g_TeamInfo[j].scores_overriden )
+		{
+			g_TeamInfo[j].frags += g_PlayerExtraInfo[i].frags;
+			g_TeamInfo[j].deaths += g_PlayerExtraInfo[i].deaths;
+		}
+
+		g_TeamInfo[j].ping += g_PlayerInfoList[i].ping;
+		g_TeamInfo[j].packetloss += g_PlayerInfoList[i].packetloss;
+
+		if( g_PlayerInfoList[i].thisplayer )
+			g_TeamInfo[j].ownteam = true;
+		else
+			g_TeamInfo[j].ownteam = false;
+
+		// Set the team's number (used for team colors)
+		g_TeamInfo[j].teamnumber = g_PlayerExtraInfo[i].teamnumber;
+	}
+
+	// find team ping/packetloss averages
+	for( i = 1; i <= m_iNumTeams; i++ )
+	{
+		g_TeamInfo[i].already_drawn = false;
+
+		if( g_TeamInfo[i].players > 0 )
+		{
+			g_TeamInfo[i].ping /= g_TeamInfo[i].players;  // use the average ping of all the players in the team as the teams ping
+			g_TeamInfo[i].packetloss /= g_TeamInfo[i].players;  // use the average ping of all the players in the team as the teams ping
+		}
 	}
 }
 
-void CHudScoreboard::UserCmd_ShowScores( void )
+int CHudScoreboard::BestTeam()
 {
-	m_iShowscoresHeld = TRUE;
-}
+	int highest_frags = -99999; int lowest_deaths = 99999;
+	int best_team = 0;
 
-void CHudScoreboard::UserCmd_HideScores( void )
-{
-	m_iShowscoresHeld = FALSE;
+	for( int i = 1; i <= m_iNumTeams; i++ )
+	{
+		if( g_TeamInfo[i].players < 0 )
+			continue;
+
+		if( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].frags >= highest_frags )
+		{
+			if( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].deaths < lowest_deaths )
+			{
+				best_team = i;
+				lowest_deaths = g_TeamInfo[i].deaths;
+				highest_frags = g_TeamInfo[i].frags;
+			}
+		}
+	}
+
+	return best_team;
 }

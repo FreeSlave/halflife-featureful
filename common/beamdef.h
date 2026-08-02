@@ -16,6 +16,8 @@
 #if !defined(BEAMDEF_H)
 #define BEAMDEF_H
 
+#include "vector.h"
+
 #define FBEAM_STARTENTITY		0x00000001
 #define FBEAM_ENDENTITY		0x00000002
 #define FBEAM_FADEIN		0x00000004
@@ -35,9 +37,9 @@ struct beam_s
 	BEAM		*next;
 	int		type;
 	int		flags;
-	vec3_t		source;
-	vec3_t		target;
-	vec3_t		delta;
+	Vector		source;
+	Vector		target;
+	Vector		delta;
 	float		t;		// 0 .. 1 over lifetime of beam
 	float		freq;
 	float		die;

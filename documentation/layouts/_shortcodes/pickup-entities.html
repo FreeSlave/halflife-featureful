@@ -1,0 +1,10 @@
+{{ $pages := where (where .Site.RegularPages "Type" "docs") "File.Dir" "docs/entity-guide/entities/" -}}
+{{ range sort $pages "File.BaseFileName" -}}
+{{ $baseName := .Title -}}
+{{ if eq $baseName "" -}}
+{{ $baseName = .File.BaseFileName -}}
+{{ end -}}
+{{ if eq .Params.entityCategory "pickup" -}}
+  - [ {{ $baseName }} ]( {{ .Path }} )
+{{ end -}}
+{{ end }}

@@ -1,0 +1,147 @@
+---
+bookHidden: true
+bookToC: false
+---
+
+# ![](/images/opfor.png) monster_gonome
+
+### Changes
+
+* Restores health when eating.
+
+### Skill variables
+
+* **sk_gonome_health** - monster's health.
+* **sk_gonome_dmg_one_slash** - melee damage.
+* **sk_gonome_dmg_guts** - guts projectile damage.
+* **sk_gonome_dmg_one_bite** - mouth bite damage.
+* **sk_gonome_lock_player** - whether Gonome can temporarily lock (freeze) the player with bite attack. Default value is 0 (disabled). When enabled, this ability can conflict with usage of [trigger_playerfreeze]({{< ref trigger_playerfreeze >}}) entity, so use it with care.
+
+### Default classification
+
+`Alien Monster`
+
+### Default display name
+
+`Gonome`
+
+### Soundscripts
+
+* **Gonome.Idle** - idle sounds.
+* **Gonome.Alert** - alert sounds.
+* **Gonome.Pain** - pain sounds.
+* **Gonome.Die** - death sounds.
+* **Gonome.Bite** - bite sounds on mouth attack.
+* **Gonome.Melee1** - right arm melee attack.
+* **Gonome.Melee2** - left arm melee attack.
+* **Gonome.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
+* **Gonome.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
+* **Gonome.SpitTouch** - one of the sounds played when the guts projectile hits something. Emitted from the guts projectile. Derived from **NPC.SpitTouch**
+* **Gonome.SpitHit** - one of the sounds played when the guts projectile hits something. Emitted from the guts projectile. Derived from **NPC.SpitHit**
+
+### Visuals
+
+* **Gonome.Guts** - guts projectile visual.
+
+### Attacks
+
+* *Melee Attack 1* - melee, including bite attack.
+* *Range Attack 1* - throw gonome guts.
+
+### Animation events
+
+* `1` - trace hull attack with right arm. Deals **sk_gonome_dmg_one_slash** damage. Plays **Gonome.AttackHit** or **Gonome.AttackMiss** soundscripts.
+* `2` - trace hull attack with left arm. Deals **sk_gonome_dmg_one_slash** damage. Plays **Gonome.AttackHit** or **Gonome.AttackMiss** soundscripts.
+* `3` - create a gut projectile.
+* `4` - launch a gut projectile.
+* `19` - `22` - bite trace hull attack. Deal **sk_gonome_dmg_one_bite** damage per bite. Plays **Gonome.Bite** soundscript on hit.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Precache step sounds" %}}
+The gonome model refers to nonexistent step sounds in animation events. Even if you provide the needed sounds in the mod resources, they still won't play because they're not precached in the code. Use this template to force precaching of step sounds.
+```json
+{
+    "monster_gonome": {
+        "precached_sounds": ["gonome/gonome_step1.wav", "gonome/gonome_step2.wav", "gonome/gonome_step3.wav", "gonome/gonome_step4.wav"]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_gonome": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "1": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": -9
+                },
+                "knock": {
+                    "right": -25
+                }
+            },
+            "2": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5,
+                    "roll": 9
+                },
+                "knock": {
+                    "right": 25
+                }
+            },
+            "19": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "20": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "21": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 9
+                },
+                "knock": {
+                    "forward": -25
+                }
+            },
+            "22": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 15
+                },
+                "knock": {
+                    "forward": -75
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

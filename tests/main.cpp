@@ -1,0 +1,219 @@
+#include <gtest/gtest.h>
+
+#include "clamp.h"
+#include "min_and_max.h"
+#include "optional.h"
+#include "random_utils.h"
+#include "string_utils.h"
+#include "template_property_types.h"
+#include "tribool.h"
+
+TEST(Clamp, Cases) {
+	EXPECT_EQ(clamp(4, 1, 5), 4);
+	EXPECT_EQ(clamp(0, 1, 5), 1);
+	EXPECT_EQ(clamp(6, 1, 5), 5);
+	EXPECT_EQ(clamp(-6, -5, 0), -5);
+	EXPECT_EQ(clamp(1, -5, 0), 0);
+}
+
+TEST(MinAndMax, Cases) {
+	EXPECT_EQ(Q_min(4, 6), 4);
+	EXPECT_EQ(Q_min(3.0f, 6), 3);
+	EXPECT_EQ(Q_min(2, 2), 2);
+	EXPECT_EQ(Q_max(4, 6), 6);
+	EXPECT_EQ(Q_max(3.0f, 6), 6);
+	EXPECT_EQ(Q_max(2, 2), 2);
+}
+
+TEST(StrncpyEnsureTermination, BufferIsEnough) {
+	char buf[14];
+	strncpyEnsureTermination(buf, "Hello, World!");
+	EXPECT_STREQ(buf, "Hello, World!");
+}
+
+TEST(StrncpyEnsureTermination, StringLongerThanBuffer) {
+	char buf[12];
+	strncpyEnsureTermination(buf, "Hello, World!");
+	EXPECT_STREQ(buf, "Hello, Worl");
+}
+
+TEST(StrcatEnsureTermination, BufferIsEnough) {
+	char buf[14] = "Hello";
+	strcatEnsureTermination(buf, ", World!");
+	EXPECT_STREQ(buf, "Hello, World!");
+}
+
+TEST(StrcatEnsureTermination, StringLongerThanBuffer) {
+	char buf[12] = "Hello";
+	strcatEnsureTermination(buf, ", World!");
+	EXPECT_STREQ(buf, "Hello, Worl");
+}
+
+TEST(NumberRange, Equal) {
+	IntRange r{13, 42};
+	IntRange s = 7;
+
+	EXPECT_EQ(r, IntRange(13, 42));
+	EXPECT_EQ(r.min, 13);
+	EXPECT_EQ(r.max, 42);
+
+	EXPECT_EQ(s, 7);
+	EXPECT_EQ(s.min, 7);
+	EXPECT_EQ(s.max, 7);
+
+	FloatRange f{0.25f, 1.4f};
+	FloatRange m{0.75f};
+	EXPECT_EQ(f, FloatRange(0.25f, 1.4f));
+	EXPECT_EQ(f.min, 0.25f);
+	EXPECT_EQ(f.max, 1.4f);
+
+	EXPECT_EQ(m, 0.75f);
+	EXPECT_EQ(m.min, 0.75f);
+	EXPECT_EQ(m.max, 0.75f);
+}
+
+TEST(NumberRange, Multiply) {
+	FloatRange f{0.4f, 1.2f};
+	f *= 2;
+	EXPECT_EQ(f.min, 0.8f);
+	EXPECT_EQ(f.max, 2.4f);
+
+	FloatRange m = f * 0.5f;
+	EXPECT_EQ(m.min, 0.4f);
+	EXPECT_EQ(m.max, 1.2f);
+
+	IntRange r{2, 5};
+	r *= 2;
+	EXPECT_EQ(r.min, 4);
+	EXPECT_EQ(r.max, 10);
+
+	FloatRange rf = r * 0.5f;
+	EXPECT_EQ(rf.min, 2.0f);
+	EXPECT_EQ(rf.max, 5.0f);
+}
+
+TEST(NumberRange, Sum) {
+	FloatRange s1 = 5.0f;
+	FloatRange s2 = 6.0f;
+
+	FloatRange sSum = RangeSum(s1, s2);
+	EXPECT_EQ(sSum.min, 11.0f);
+	EXPECT_LE(sSum.max, sSum.min);
+
+	FloatRange r1{4.0, 6.0f};
+	FloatRange rsSum = RangeSum(r1, s2);
+	EXPECT_EQ(rsSum.min, 10.0f);
+	EXPECT_EQ(rsSum.max, 12.0f);
+
+	EXPECT_EQ(rsSum, RangeSum(s2, r1));
+
+	FloatRange r2{2.0, 3.0f};
+	FloatRange rSum = RangeSum(r1, r2);
+	EXPECT_EQ(rSum.min, 6.0f);
+	EXPECT_EQ(rSum.max, 9.0f);
+
+	EXPECT_EQ(rSum, RangeSum(r2, r1));
+}
+
+TEST(Random, Int) {
+	for (int i=0; i<10; ++i) {
+		const int low = i;
+		const int high = i + 20;
+
+		const int val = RandomInt(low, high);
+		EXPECT_TRUE(val >= low);
+		EXPECT_TRUE(val <= high);
+	}
+}
+
+TEST(Random, Float) {
+	for (int i=0; i<10; ++i) {
+		const float low = 0.0f;
+		const float high = 1.0f;
+
+		const float val = RandomFloat(low, high);
+		EXPECT_TRUE(val >= low);
+		EXPECT_TRUE(val <= high);
+	}
+}
+
+TEST(Tribool, Test)
+{
+	tribool u;
+	EXPECT_TRUE(indeterminate(u));
+	EXPECT_FALSE((bool)u);
+
+	u = true;
+	EXPECT_TRUE(u);
+	EXPECT_TRUE(u == true);
+	u = false;
+	EXPECT_FALSE(u);
+	EXPECT_TRUE(u == false);
+
+	u = indeterminate;
+	EXPECT_TRUE(indeterminate(u));
+
+	tribool t{true};
+	tribool f{false};
+	EXPECT_TRUE(t);
+	EXPECT_FALSE(!t);
+	EXPECT_FALSE(f);
+	EXPECT_TRUE(!f);
+}
+
+TEST(Optional, Test)
+{
+	optional<int> oi;
+	EXPECT_FALSE(oi);
+	EXPECT_TRUE(!oi);
+
+	oi = 42;
+	EXPECT_TRUE(oi);
+	EXPECT_FALSE(!oi);
+	EXPECT_EQ(*oi, 42);
+
+	optional<int> oi2 = oi;
+	EXPECT_TRUE(oi2);
+	EXPECT_FALSE(!oi2);
+	EXPECT_EQ(*oi2, 42);
+
+	oi2 = 13;
+	oi = oi2;
+	EXPECT_EQ(*oi, 13);
+
+	oi.reset();
+	EXPECT_FALSE(oi.has_value());
+
+	oi2 = optional<int>();
+	EXPECT_FALSE(oi2.has_value());
+
+	optional<std::string> os;
+	EXPECT_FALSE(os);
+	EXPECT_TRUE(!os);
+
+	os = "Hello";
+	EXPECT_TRUE(os);
+	EXPECT_FALSE(!os);
+
+	EXPECT_EQ(*os, "Hello");
+
+	optional<std::string> os2{"World"};
+	os = os2;
+	EXPECT_EQ(*os, "World");
+	EXPECT_EQ(*os2, "World");
+	os2.reset();
+	EXPECT_FALSE(os2.has_value());
+
+	optional<float> of;
+	EXPECT_FALSE(of.has_value());
+	EXPECT_EQ(of.value_or(4.5f), 4.5f);
+	of = 6.9f;
+	EXPECT_TRUE(of.has_value());
+	EXPECT_EQ(of.value_or(0.0f), 6.9f);
+}
+
+int main(int argc, char **argv)
+{
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}

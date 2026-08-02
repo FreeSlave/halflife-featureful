@@ -230,7 +230,9 @@ int GetSequenceFlags( void *pmodel, entvars_t *pev )
 	return pseqdesc->flags;
 }
 
-int GetAnimationEvent( void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame, int minAnimEventFrame )
+extern cvar_t animevent_floorframe;
+
+int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEvent, float flStart, float flEnd, int index, int& latestAnimEventFrame, int minAnimEventFrame, bool sequenceLoops)
 {
 	studiohdr_t *pstudiohdr;
 
@@ -251,6 +253,13 @@ int GetAnimationEvent( void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEve
 	{
 		flStart *= ( pseqdesc->numframes - 1 ) / 256.0f;
 		flEnd *= (pseqdesc->numframes - 1) / 256.0f;
+
+		if (animevent_floorframe.value)
+		{
+			flStart = std::floor(flStart);
+			if (flStart != std::floor(flEnd))
+				flEnd = std::floor(flEnd);
+		}
 	}
 	else
 	{
@@ -264,8 +273,13 @@ int GetAnimationEvent( void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEve
 		if( pevent[index].event >= EVENT_CLIENT )
 			continue;
 
+		/*if (pevent[index].event >= 4 && pevent[index].event <= 6)
+		{
+			ALERT(at_console, "Frame: %d. minAnimEventFrame: %d. flStart: %g. flEnd: %g. sequenceLoops: %s\n", pevent[index].frame, minAnimEventFrame, flStart, flEnd, sequenceLoops ? "yes" : "no");
+		}*/
+
 		if( ( pevent[index].frame >= minAnimEventFrame && pevent[index].frame >= flStart && pevent[index].frame < flEnd ) ||
-			( ( pseqdesc->flags & STUDIO_LOOPING ) && flEnd >= pseqdesc->numframes - 1 && pevent[index].frame < flEnd - pseqdesc->numframes + 1 ) )
+			( /*( pseqdesc->flags & STUDIO_LOOPING )*/sequenceLoops && flEnd >= pseqdesc->numframes - 1 && pevent[index].frame < flEnd - pseqdesc->numframes + 1 ) )
 		{
 			pMonsterEvent->event = pevent[index].event;
 			pMonsterEvent->options = pevent[index].options;
@@ -439,7 +453,7 @@ int FindTransition( void *pmodel, int iEndingAnim, int iGoalAnim, int *piDir )
 		}
 	}
 
-	ALERT( at_console, "error in transition graph" );
+	ALERT( at_console, "error in transition graph\n" );
 	return iGoalAnim;
 }
 
@@ -483,33 +497,4 @@ int GetBodygroup( void *pmodel, entvars_t *pev, int iGroup )
 	int iCurrent = ( pev->body / pbodypart->base ) % pbodypart->nummodels;
 
 	return iCurrent;
-}
-
-int GetBodyCount( void *pmodel )
-{
-	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
-	if( !pstudiohdr )
-		return 0;
-
-	int bodiesNum = 1;
-	mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)( (byte *)pstudiohdr + pstudiohdr->bodypartindex );
-
-	for (int j=0; j<pstudiohdr->numbodyparts; ++j)
-	{
-		bodiesNum = bodiesNum * pbodypart[j].nummodels;
-	}
-	return bodiesNum;
-}
-
-int GetBodygroupNumModels(void *pmodel , int iGroup)
-{
-	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
-	if( !pstudiohdr )
-		return 0;
-
-	if( iGroup > pstudiohdr->numbodyparts )
-		return 0;
-
-	mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)( (byte *)pstudiohdr + pstudiohdr->bodypartindex ) + iGroup;
-	return pbodypart->nummodels;
 }

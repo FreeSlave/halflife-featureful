@@ -15,43 +15,69 @@ on:
         options:
         - 'OFF'
         - 'ON'
+      steamrt_snapshot:
+        type: string
+        description: SteamRT Snapshot
+        default: 'latest-steam-client-general-availability'
 jobs:
+  definitions:
+    runs-on: ubuntu-latest
+
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.branch }}
+      gamedir: ${{ steps.extract_gamedir.outputs.gamedir }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: mod_options.txt
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '_')" >> $GITHUB_OUTPUT
+        id: extract_branch
+      - name: Extract gamedir
+        shell: bash
+        run: echo "gamedir=$(grep mod_options.txt -Ee 'GAMEDIR=[a-z]+' | cut -d '=' -f 2 | cut -d' ' -f 1)" >> $GITHUB_OUTPUT
+        id: extract_gamedir
   build:
     runs-on: ${{ matrix.os }}
+    needs: [definitions]
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             cc: gcc
             cxx: g++
-          - os: windows-2019
+          - os: windows-latest
             cc: cl
             cxx: cl
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
+      fgd_name: "halflife_featureful.fgd"
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
     - name: Checkout steam-runtime
       if: startsWith(matrix.os, 'ubuntu')
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: ValveSoftware/steam-runtime
         path: steam-runtime
     - name: Cache steam-runtime
       if: startsWith(matrix.os, 'ubuntu')
       id: cache-steam-runtime
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: com.valvesoftware.SteamRuntime.Sdk-i386-scout-sysroot.tar.gz
-        key: ${{ runner.os }}-steam-runtime
+        key: steam-runtime-${{ github.event.inputs.steamrt_snapshot }}
     - name: Download steam-runtime
       if: startsWith(matrix.os, 'ubuntu') && steps.cache-steam-runtime.outputs.cache-hit != 'true'
-      run: wget --no-verbose https://repo.steampowered.com/steamrt-images-scout/snapshots/0.20210610.0/com.valvesoftware.SteamRuntime.Sdk-i386-scout-sysroot.tar.gz
+      run: wget --no-verbose https://repo.steampowered.com/steamrt-images-scout/snapshots/${{ github.event.inputs.steamrt_snapshot }}/com.valvesoftware.SteamRuntime.Sdk-i386-scout-sysroot.tar.gz
     - name: Install steam runtime
       if: startsWith(matrix.os, 'ubuntu')
       run: |
@@ -64,55 +90,55 @@ jobs:
       run: |
         mkdir -p build/cl_dll
         cp vgui_support/vgui-dev/lib/vgui.so build/cl_dll
+        cp vgui_support/vgui-dev/lib/vgui.so build
     - name: Build on Linux
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-        schroot --chroot steamrt_scout_i386 -- cmake -B build -S . -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-undefined" -DCMAKE_BUILD_TYPE=${{ github.event.inputs.buildtype }} -DCMAKE_INSTALL_PREFIX="$PWD/dist" -DUSE_VGUI=${{ github.event.inputs.usevgui }}
+        schroot --chroot steamrt_scout_i386 -- cmake -GNinja -B build -S . -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-undefined" -DCMAKE_BUILD_TYPE=${{ github.event.inputs.buildtype }} -DCMAKE_INSTALL_PREFIX="$PWD/dist" -DUSE_VGUI=${{ github.event.inputs.usevgui }}
         schroot --chroot steamrt_scout_i386 -- cmake --build build --target all
         schroot --chroot steamrt_scout_i386 -- cmake --build build --target install
 
-    - name: Add msbuild to PATH
+    - name: Set developer command prompt for Windows x86
       if: startsWith(matrix.os, 'windows')
-      uses: microsoft/setup-msbuild@v1.1
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
     - name: Build on Windows
       if: startsWith(matrix.os, 'windows')
       run: |
-        cmake -G "Visual Studio 16 2019" -A Win32 -B build -DCMAKE_INSTALL_PREFIX="dist" -DUSE_VGUI=${{ github.event.inputs.usevgui }}
-        msbuild -verbosity:normal /property:Configuration=${{ github.event.inputs.buildtype }} build/INSTALL.vcxproj
+        cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=${{ github.event.inputs.buildtype }} -DCMAKE_INSTALL_PREFIX="dist" -DUSE_VGUI=${{ github.event.inputs.usevgui }}
+        cmake --build build --target all
+        cmake --build build --target install
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "branch=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '_')" >> $GITHUB_OUTPUT
-      id: extract_branch
-    - name: Extract gamedir
-      shell: bash
-      run: echo "gamedir=$(grep build/CMakeCache.txt -Ee 'GAMEDIR:STRING=[a-z]+' | cut -d '=' -f 2)" >> $GITHUB_OUTPUT
-      id: extract_gamedir
     - name: Copy fgd to dist dir
-      if: ${{ (startsWith(matrix.os, 'ubuntu') && startsWith(matrix.cc, 'gcc')) || startsWith(matrix.os, 'windows') }}
       run: |
-        cp fgd/halflife.fgd dist/${{ steps.extract_gamedir.outputs.gamedir }}/halflife_featureful.fgd
-        cp -r features/ dist/${{ steps.extract_gamedir.outputs.gamedir }}/
+        cp fgd/halflife.fgd dist/${{ needs.definitions.outputs.gamedir }}/${{ env.fgd_name }}
+        cp -r features/ dist/${{ needs.definitions.outputs.gamedir }}/
     - name: Copy pdbs to dist dir
       if: ${{ startsWith(matrix.os, 'windows') && github.event.inputs.buildtype == 'Debug' }}
       run: |
-        copy build/cl_dll/Debug/client.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/cl_dlls/
-        copy build/dlls/Debug/hl.pdb dist/${{ steps.extract_gamedir.outputs.gamedir }}/dlls/
-    - name: Delete .lib files from dist
-      if: startsWith(matrix.os, 'windows')
-      run: |
-        Remove-Item -Force -Path dist/${{ steps.extract_gamedir.outputs.gamedir }}/cl_dlls/client.lib
-        Remove-Item -Force -Path dist/${{ steps.extract_gamedir.outputs.gamedir }}/dlls/hl.lib
+        copy build/cl_dll/client.pdb dist/${{ needs.definitions.outputs.gamedir }}/cl_dlls/
+        copy build/dlls/hl.pdb dist/${{ needs.definitions.outputs.gamedir }}/dlls/
     - name: Upload linux artifact
       if: startsWith(matrix.os, 'ubuntu')
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: hlsdk-${{ steps.extract_branch.outputs.branch }}-linux
-        path: dist/${{ steps.extract_gamedir.outputs.gamedir }}
+        name: hlsdk-${{ needs.definitions.outputs.branch }}-linux
+        path: dist/${{ needs.definitions.outputs.gamedir }}
     - name: Upload windows artifact
       if: startsWith(matrix.os, 'windows')
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: hlsdk-${{ steps.extract_branch.outputs.branch }}-windows
-        path: dist/${{ steps.extract_gamedir.outputs.gamedir }}
+        name: hlsdk-${{ needs.definitions.outputs.branch }}-windows
+        path: dist/${{ needs.definitions.outputs.gamedir }}
 
+  merge:
+    runs-on: ubuntu-latest
+    needs: [definitions, build]
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: hlsdk-${{ needs.definitions.outputs.branch }}
+          pattern: hlsdk-${{ needs.definitions.outputs.branch }}-*
+          delete-merged: true

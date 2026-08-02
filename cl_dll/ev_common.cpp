@@ -16,7 +16,6 @@
 
 #include "hud.h"
 #include "cl_util.h"
-#include "const.h"
 #include "entity_state.h"
 #include "cl_entity.h"
 
@@ -25,6 +24,7 @@
 #include "eventscripts.h"
 #include "event_api.h"
 #include "pm_shared.h"
+#include "util_shared.h"
 
 #define IS_FIRSTPERSON_SPEC ( g_iUser1 == OBS_IN_EYE || ( g_iUser1 && ( gHUD.m_Spectator.m_pip->value == INSET_IN_EYE ) ) )
 /*
@@ -46,7 +46,7 @@ GetViewEntity
 Return's the current weapon/view model
 =================
 */
-struct cl_entity_s *GetViewEntity( void )
+struct cl_entity_s *GetViewEntity()
 {
 	return gEngfuncs.GetViewModel();
 }
@@ -70,12 +70,9 @@ EV_IsPlayer
 Is the entity's index in the player range?
 =================
 */
-qboolean EV_IsPlayer( int idx )
+bool EV_IsPlayer(int idx)
 {
-	if( idx >= 1 && idx <= gEngfuncs.GetMaxClients() )
-		return true;
-
-	return false;
+	return idx >= 1 && idx <= gEngfuncs.GetMaxClients();
 }
 
 /*
@@ -85,7 +82,7 @@ EV_IsLocal
 Is the entity == the local player
 =================
 */
-qboolean EV_IsLocal( int idx )
+bool EV_IsLocal( int idx )
 {
 	// check if we are in some way in first person spec mode
 	if( IS_FIRSTPERSON_SPEC )
@@ -101,14 +98,11 @@ EV_GetGunPosition
 Figure out the height of the gun
 =================
 */
-void EV_GetGunPosition( event_args_t *args, float *pos, float *origin )
+Vector EV_GetGunPosition(event_args_t *args, const Vector& origin)
 {
-	int idx;
-	vec3_t view_ofs;
+	int idx = args->entindex;
+	Vector view_ofs{};
 
-	idx = args->entindex;
-
-	VectorClear( view_ofs );
 	view_ofs[2] = DEFAULT_VIEWHEIGHT;
 
 	if( EV_IsPlayer( idx ) )
@@ -125,7 +119,7 @@ void EV_GetGunPosition( event_args_t *args, float *pos, float *origin )
 		}
 	}
 
-	VectorAdd( origin, view_ofs, pos );
+	return origin + view_ofs;
 }
 
 /*
@@ -137,7 +131,7 @@ Bullet shell casings
 */
 void EV_EjectBrass( float *origin, float *velocity, float rotation, int model, int soundtype )
 {
-	vec3_t endpos;
+	Vector endpos;
 	VectorClear( endpos );
 	endpos[1] = rotation;
 	gEngfuncs.pEfxAPI->R_TempModel( origin, velocity, endpos, 2.5, model, soundtype );
@@ -150,15 +144,11 @@ EV_GetDefaultShellInfo
 Determine where to eject shells from
 =================
 */
-void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity, float *ShellVelocity, float *ShellOrigin, float *forward, float *right, float *up, float forwardScale, float upScale, float rightScale )
+void EV_GetDefaultShellInfo( const struct event_args_s *args, const ShellInfoParams& infoParams, float *ShellVelocity, float *ShellOrigin )
 {
-	int i;
-	vec3_t view_ofs;
-	float fR, fU;
+	Vector view_ofs;
 
-	int idx;
-
-	idx = args->entindex;
+	int idx = args->entindex;
 
 	VectorClear( view_ofs );
 	view_ofs[2] = DEFAULT_VIEWHEIGHT;
@@ -175,13 +165,24 @@ void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity,
 		}
 	}
 
-	fR = gEngfuncs.pfnRandomFloat( 50, 70 );
-	fU = gEngfuncs.pfnRandomFloat( 100, 150 );
+	const float fR = RandomizeNumberFromRange(infoParams.sideFactor);
+	const float fU = RandomizeNumberFromRange(infoParams.upFactor);
+	const float fF = RandomizeNumberFromRange(infoParams.forwardFactor);
 
-	for( i = 0; i < 3; i++ )
+	for( int i = 0; i < 3; i++ )
 	{
-		ShellVelocity[i] = velocity[i] + right[i] * fR + up[i] * fU + forward[i] * 25;
-		ShellOrigin[i] = origin[i] + view_ofs[i] + up[i] * upScale + forward[i] * forwardScale + right[i] * rightScale;
+		ShellVelocity[i] = infoParams.velocity[i] + infoParams.right[i] * fR + infoParams.up[i] * fU + infoParams.forward[i] * fF;
+
+		if (infoParams.attachment > 0 && infoParams.attachment <= 4)
+		{
+			cl_entity_t *ent = GetViewEntity();
+			if (ent)
+				ShellOrigin[i] = ent->attachment[infoParams.attachment - 1][i];
+		}
+		else
+		{
+			ShellOrigin[i] = infoParams.origin[i] + view_ofs[i] + infoParams.up[i] * infoParams.upScale + infoParams.forward[i] * infoParams.forwardScale + infoParams.right[i] * infoParams.rightScale;
+		}
 	}
 }
 
@@ -192,7 +193,7 @@ EV_MuzzleFlash
 Flag weapon/view model for muzzle flash
 =================
 */
-void EV_MuzzleFlash( void )
+void EV_MuzzleFlash()
 {
 	// Add muzzle flash to current weapon model
 	cl_entity_t *ent = GetViewEntity();

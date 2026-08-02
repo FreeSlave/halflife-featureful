@@ -19,20 +19,54 @@
 #include "monsters.h"
 #include "weapons.h"
 #include "player.h"
-#include "gamerules.h"
-#ifndef CLIENT_DLL
+#if !CLIENT_DLL
 #include "game.h"
+#include "gamerules.h"
 #endif
 
-#if FEATURE_MEDKIT
+class CMedkit : public CConfigurableWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Precache() override;
+	int WeaponId() const override { return WEAPON_MEDKIT; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
 
-LINK_ENTITY_TO_CLASS(weapon_medkit, CMedkit)
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	bool Deploy() override;
+	void Holster() override;
+	void ItemPostFrame() override;
+	void WeaponIdle() override;
+	CBaseEntity* FindHealTarget(bool increasedRadius = false);
 
-void FindHullIntersection(const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity);
+	float	m_flSoundDelay;
+	bool	m_secondaryAttack;
+
+private:
+	unsigned short m_usMedkitFire;
+};
+
+LINK_WEAPON_TO_CLASS(weapon_medkit, CMedkit)
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION	CMedkit::m_SaveData[] =
+{
+	DEFINE_FIELD( CMedkit, m_flSoundDelay, FIELD_TIME ),
+	DEFINE_FIELD( CMedkit, m_secondaryAttack, FIELD_BOOLEAN ),
+};
+
+IMPLEMENT_SAVERESTORE( CMedkit, CConfigurableWeapon )
+#endif
 
 CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 {
-#ifndef CLIENT_DLL
+#if !CLIENT_DLL
 	TraceResult tr;
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
@@ -51,7 +85,7 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 			if( !pHit || pHit->IsBSPModel() )
 			{
-				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer );
 			}
 		}
 	}
@@ -66,7 +100,7 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 			else
 			{
 				CBaseMonster* monster = pEntity->MyMonsterPointer();
-				if (monster && monster->IDefaultRelationship(m_pPlayer) == R_AL) {
+				if (monster && monster->IDefaultRelationship(m_pPlayer) == R_AL && monster->HasFlesh()) {
 					foundTarget = pEntity;
 				}
 			}
@@ -78,27 +112,9 @@ CBaseEntity* CMedkit::FindHealTarget(bool increasedRadius)
 	return NULL;
 }
 
-void CMedkit::Spawn()
+void CMedkit::Precache()
 {
-	Precache();
-	m_iId = WEAPON_MEDKIT;
-	SET_MODEL(ENT(pev), MyWModel());
-
-	InitDefaultAmmo(MEDKIT_DEFAULT_GIVE);
-	m_secondaryAttack = FALSE;
-	m_flSoundDelay = 0;
-
-	FallInit();// get ready to fall down.
-}
-
-
-void CMedkit::Precache(void)
-{
-	PRECACHE_MODEL("models/v_medkit.mdl");
-	PRECACHE_MODEL(MyWModel());
-	PRECACHE_MODEL("models/p_medkit.mdl");
-
-	PRECACHE_SOUND("items/9mmclip1.wav");
+	CConfigurableWeapon::Precache();
 
 	PRECACHE_SOUND("items/medshot4.wav");
 	PRECACHE_SOUND("items/medshot5.wav");
@@ -107,76 +123,87 @@ void CMedkit::Precache(void)
 	m_usMedkitFire = PRECACHE_EVENT(1, "events/medkit.sc");
 }
 
-bool CMedkit::IsEnabledInMod()
+bool CMedkit::GetItemInfo(ItemInfo *p)
 {
-#ifndef CLIENT_DLL
-	return g_modFeatures.IsWeaponEnabled(WEAPON_MEDKIT);
-#else
-	return true;
-#endif
-}
-
-int CMedkit::GetItemInfo(ItemInfo *p)
-{
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "Medicine";
-	p->iMaxAmmo1 = MEDKIT_MAX_CARRY;
-	p->pszAmmo2 = NULL;
-	p->iMaxAmmo2 = -1;
-	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 4;
-	p->iId = WEAPON_MEDKIT;
-	p->iWeight = MEDKIT_WEIGHT;
 
-	if (CanRecharge()) {
-		p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
-	} else {
-		p->iFlags = ITEM_FLAG_NOAUTORELOAD;
+	return true;
+}
+
+WeaponParameters CMedkit::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.initialAmmoAmount = 50;
+	params.maxClip = WEAPON_NOCLIP;
+	params.ammoName = "Medicine";
+
+	params.worldModel = "models/w_medkit.mdl";
+	params.viewModel = "models/v_medkit.mdl";
+	params.playerModel = "models/p_medkit.mdl";
+	params.playerAnimExt = "trip";
+	params.priority = -1;
+
+	params.deploy.animIndex = MEDKIT_DRAW;
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{MEDKIT_LONGIDLE, 0.75f, 72.0f / 30.0f},
+		WeaponParameters::IdleAnim{MEDKIT_IDLE, 0.25f, 36.0f / 30.0f}
+	};
+
+	params.fire.emptySound.main = {
+		CHAN_WEAPON,
+		{"items/medshotno1.wav"},
+		1.0f,
+		ATTN_NORM,
+		PITCH_NORM
+	};
+	params.fire.useStandardEmptySound.main = false;
+
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
+
+	params.holster.animIndex = MEDKIT_HOLSTER;
+	params.holster.attackDelay = 0.5f;
+
+	if (bIsMultiplayer())
+	{
+		params.recharge.interval = ::GetSkillValue("plr_medkittime");
 	}
 
-	return 1;
+	return std::move(params);
 }
 
-int CMedkit::AddToPlayer(CBasePlayer *pPlayer)
-{
-	return AddToPlayerDefault(pPlayer);
-}
-
-BOOL CMedkit::Deploy()
+bool CMedkit::Deploy()
 {
 	m_flSoundDelay = 0;
-	return DefaultDeploy("models/v_medkit.mdl", "models/p_medkit.mdl", MEDKIT_DRAW, "trip");
+	return PerformDeploy();
 }
 
 void CMedkit::Holster()
 {
 	m_flSoundDelay = 0;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-
-	//HACKHACK - can't select medkit if it's empty! no way to get ammo for it, either
-	if( CanRecharge() && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) {
-		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 1;
-	}
-
-	SendWeaponAnim(MEDKIT_HOLSTER);
+	CConfigurableWeapon::Holster();
 }
 
-void CMedkit::PrimaryAttack(void)
+void CMedkit::PrimaryAttack()
 {
-	Reload();
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
 
 	CBaseEntity* healTarget;
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && (healTarget = FindHealTarget()) ) {
+	if (HasAmmoToFire() && (healTarget = FindHealTarget()) ) {
 		//
 	} else {
-		PlayEmptySound();
+		PlayEmptySound(false);
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.8;
 		return;
 	}
 
-	m_secondaryAttack = FALSE;
-	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usMedkitFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0, 0, 0, 0);
+	m_secondaryAttack = false;
+	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usMedkitFire, 0.0, g_vecZero, g_vecZero, 0, 0, 0, 0, 0, 0);
 	float delay = GetNextAttackDelay(2);
 	if (delay < UTIL_WeaponTimeBase())
 		delay = UTIL_WeaponTimeBase() + 2;
@@ -187,17 +214,20 @@ void CMedkit::PrimaryAttack(void)
 
 void CMedkit::SecondaryAttack()
 {
-	Reload();
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
 
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] == 0 || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
-		PlayEmptySound();
+	if (!HasAmmoToFire() || m_pPlayer->pev->health >= m_pPlayer->pev->max_health) {
+		PlayEmptySound(true);
 		m_flNextSecondaryAttack = GetNextAttackDelay(0.8);
 		return;
 	}
 
-	m_secondaryAttack = TRUE;
+	m_secondaryAttack = true;
 
-	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usMedkitFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 1, 0.0, 0, 0.0);
+	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usMedkitFire, 0.0, g_vecZero, g_vecZero, 0, 0, 1, 0.0, 0, 0.0);
 	float delay = GetNextAttackDelay(3);
 	if (delay < UTIL_WeaponTimeBase())
 		delay = UTIL_WeaponTimeBase() + 3;
@@ -206,29 +236,25 @@ void CMedkit::SecondaryAttack()
 	m_flSoundDelay = gpGlobals->time + 1;
 }
 
-void CMedkit::Reload( void )
+void CMedkit::ItemPostFrame()
 {
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= MEDKIT_MAX_CARRY )
-		return;
-	if( CanRecharge() && m_flRechargeTime < gpGlobals->time )
+	if (HasAmmoToFire() && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
 	{
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
-		m_flRechargeTime = gpGlobals->time + gSkillData.plrMedkitTime;
-	}
-}
-
-void CMedkit::WeaponIdle(void)
-{
-	Reload();
-	ResetEmptySound();
-
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 && m_flSoundDelay != 0 && m_flSoundDelay <= gpGlobals->time)
-	{
-		const int maxHeal = Q_min((int)gSkillData.plrDmgMedkit, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+		const float medkitShot = GetSkillValue("plr_medkitshot");
+		int maxHeal = (int)medkitShot;
+		if (UsesClip())
+		{
+			maxHeal = Q_min(maxHeal, m_iClip);
+		}
+		else if (UsesAmmo())
+		{
+			maxHeal = Q_min(maxHeal, m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]);
+		}
 		if (m_secondaryAttack) {
 			const int diff = (int)ceil(m_pPlayer->pev->max_health - m_pPlayer->pev->health);
-			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
-			EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot5.wav", 1.0, ATTN_NORM, 0, 100);
+			const int healResult = m_pPlayer->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), HEAL_GENERIC);
+			SpendAmmo(healResult);
+			EMIT_SOUND_DYN(m_pPlayer->edict(), CHAN_WEAPON, "items/medshot5.wav", 1.0, ATTN_NORM, 0, 100);
 		} else {
 			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 
@@ -236,58 +262,28 @@ void CMedkit::WeaponIdle(void)
 
 			if (healTarget) {
 				const int diff = (int)ceil(healTarget->pev->max_health - healTarget->pev->health);
-				const int healResult = healTarget->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), DMG_GENERIC);
-				m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= healResult;
-				EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "items/medshot4.wav", 1.0, ATTN_NORM, 0, 100);
+				const int healResult = healTarget->TakeHealth(m_pPlayer, Q_min(maxHeal, diff), HEAL_GENERIC);
+				SpendAmmo(healResult);
+				EMIT_SOUND_DYN(m_pPlayer->edict(), CHAN_WEAPON, "items/medshot4.wav", 1.0, ATTN_NORM, 0, 100);
 			}
 		}
 		m_flSoundDelay = 0;
 	}
 
+	CBasePlayerWeapon::ItemPostFrame();
+}
+
+void CMedkit::WeaponIdle()
+{
+	if (CanRechargeAmmo())
+	{
+		Reload();
+	}
+
+	ResetEmptySound();
+
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
 
-	int iAnim;
-	float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0.0, 1.0);
-
-	if (flRand <= 0.75)
-	{
-		iAnim = MEDKIT_LONGIDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 72.0 / 30.0;
-	}
-	else
-	{
-		iAnim = MEDKIT_IDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 36.0 / 30.0;
-	}
-
-	SendWeaponAnim(iAnim);
+	SendIdleAnimation();
 }
-
-BOOL CMedkit::PlayEmptySound(void)
-{
-	if (m_iPlayEmptySound)
-	{
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "items/medshotno1.wav", 1.0, ATTN_NORM);
-		m_iPlayEmptySound = 0;
-		return 0;
-	}
-	return 0;
-}
-
-bool CMedkit::CanRecharge()
-{
-#if CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		return gSkillData.plrMedkitTime != 0;
-	}
-	else
-	{
-		return false;
-	}
-}
-#endif

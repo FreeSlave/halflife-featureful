@@ -1,15 +1,14 @@
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
-#include	"weapons.h"
+#include	"combat.h"
+#include	"global_models.h"
 #include	"talkmonster.h"
 #include	"soundent.h"
 #include	"decals.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
 #include	"game.h"
-
-#if FEATURE_ROBOGRUNT
+#include	"common_soundscripts.h"
 
 #define	GRUNT_CLIP_SIZE					36
 
@@ -26,46 +25,72 @@
 class CRGrunt : public CHGrunt
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("robogrunt"); }
-	int DefaultClassify() { return CLASS_MACHINE; }
-	const char* DefaultDisplayName() { return "Robo Grunt"; }
-	const char* ReverseRelationshipModel() { return "models/rgruntf.mdl"; }
-	void RunAI();
-	void StartTask( Task_t* pTask );
-	void RunTask( Task_t* pTask );
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("robogrunt"); }
+	int DefaultClassify() override { return CLASS_MACHINE; }
+	const char* DefaultDisplayName() override { return "Robo Grunt"; }
+	const char* ReverseRelationshipModel() override { return "models/rgruntf.mdl"; }
+	void RunAI() override;
+	void StartTask( Task_t* pTask ) override;
+	void RunTask( Task_t* pTask ) override;
 	void EXPORT Spark();
 	void EXPORT Explode();
 
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	void DeathSound(void);
-	void PainSound(void);
+	void DeathSound() override;
+	void PainSound() override;
 
-	const char* DefaultGibModel() {
+	const char* DefaultGibModel() override {
 		return "models/computergibs.mdl";
 	}
 
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	void BecomeDead();
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	void BecomeDead() override;
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 
 	float m_flSparkTime;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
+
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript painSoundScript;
+	static constexpr const char* sparkSoundScript = "RGrunt.Spark";
+
+	static constexpr const char* reloadSoundScript = "RGrunt.Reload";
+	static constexpr const char* burst9mmSoundScript = "RGrunt.9MM";
+	static constexpr const char* grenadeLaunchSoundScript = "RGrunt.GrenadeLaunch";
+	static constexpr const char* shotgunSoundScript = "RGrunt.Shotgun";
+
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
 
 protected:
 	static const char *pRoboSentences[HGRUNT_SENT_COUNT];
-	virtual const char* SentenceByNumber(int sentence);
-	bool AlertSentenceIsForPlayerOnly() {
+	const char* SentenceByNumber(int sentence) override;
+	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}
 
 	void DoSpark(const Vector& sparkLocation, float flVolume);
+
+	void PlayFirstBurstSounds() override {
+		EmitSoundScript(burst9mmSoundScript);
+	}
+	void PlayReloadSound() override {
+		EmitSoundScript(reloadSoundScript);
+	}
+	void PlayGrenadeLaunchSound() override {
+		EmitSoundScript(grenadeLaunchSoundScript);
+	}
+	void PlayShogtunSound() override {
+		EmitSoundScript(shotgunSoundScript);
+	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_robogrunt, CRGrunt)
@@ -94,6 +119,30 @@ const char *CRGrunt::pRoboSentences[] =
 	"RB_HOSTILE",
 };
 
+const NamedSoundScript CRGrunt::dieSoundScript = {
+	CHAN_VOICE,
+	{"turret/tu_die.wav", "turret/tu_die2.wav", "turret/tu_die3.wav"},
+	"RGrunt.Die"
+};
+
+const NamedSoundScript CRGrunt::painSoundScript = {
+	CHAN_VOICE,
+	{},
+	"RGrunt.Pain"
+};
+
+const NamedSoundScript CRGrunt::useSoundScript = {
+	CHAN_VOICE,
+	{"buttons/button3.wav"},
+	"RGrunt.Use"
+};
+
+const NamedSoundScript CRGrunt::unuseSoundScript = {
+	CHAN_VOICE,
+	{"buttons/button2.wav"},
+	"RGrunt.UnUse"
+};
+
 const char* CRGrunt::SentenceByNumber(int sentence)
 {
 	return pRoboSentences[sentence];
@@ -101,7 +150,7 @@ const char* CRGrunt::SentenceByNumber(int sentence)
 
 void CRGrunt::Spawn()
 {
-	SpawnHelper("models/rgrunt.mdl", gSkillData.hgruntHealth, DONT_BLEED);
+	SpawnHelper("models/rgrunt.mdl", GetSkillValue("hgrunt_health"), DONT_BLEED);
 	if( pev->weapons == 0 )
 	{
 		pev->weapons = HGRUNT_9MMAR | HGRUNT_HANDGRENADE;
@@ -116,6 +165,7 @@ void CRGrunt::Spawn()
 	{
 		m_cClipSize = GRUNT_CLIP_SIZE;
 	}
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
 	CTalkMonster::g_talkWaitTime = 0;
@@ -125,21 +175,26 @@ void CRGrunt::Spawn()
 
 void CRGrunt::Precache()
 {
-	PrecacheHelper("models/rgrunt.mdl");
-	PRECACHE_MODEL("models/computergibs.mdl");
-	PRECACHE_SOUND( "turret/tu_die.wav" );
-	PRECACHE_SOUND( "turret/tu_die2.wav" );
-	PRECACHE_SOUND( "turret/tu_die3.wav" );
+	PrecacheMyModel("models/rgrunt.mdl");
+	PrecacheMyGibModel(DefaultGibModel());
+	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
-	PRECACHE_SOUND( "buttons/spark1.wav" );
-	PRECACHE_SOUND( "buttons/spark2.wav" );
-	PRECACHE_SOUND( "buttons/spark3.wav" );
-	PRECACHE_SOUND( "buttons/spark4.wav" );
-	PRECACHE_SOUND( "buttons/spark5.wav" );
-	PRECACHE_SOUND( "buttons/spark6.wav" );
+	PrecacheEquipmentDrop();
 
-	PRECACHE_SOUND( "buttons/button2.wav" );
-	PRECACHE_SOUND( "buttons/button3.wav" );
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
+
+	SoundScriptParamOverride param;
+	param.OverrideChannel(CHAN_BODY);
+	RegisterAndPrecacheSoundScript(sparkSoundScript, ::sparkBaseSoundScript, param);
+
+	RegisterAndPrecacheSoundScript(reloadSoundScript, NPC::reloadSoundScript);
+	RegisterAndPrecacheSoundScript(burst9mmSoundScript, NPC::burst9mmSoundScript);
+	RegisterAndPrecacheSoundScript(grenadeLaunchSoundScript, NPC::grenadeLaunchSoundScript);
+	RegisterAndPrecacheSoundScript(shotgunSoundScript, NPC::shotgunSoundScript);
+
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
 	m_voicePitch = 115;
 
@@ -149,34 +204,24 @@ void CRGrunt::Precache()
 
 void CRGrunt::PlayUseSentence()
 {
-	EMIT_SOUND( edict(), CHAN_VOICE, "buttons/button3.wav", SentenceVolume(), SentenceAttn() );
-	JustSpoke();
+	if (EmitSoundScript(useSoundScript))
+		JustSpoke();
 }
 
 void CRGrunt::PlayUnUseSentence()
 {
-	EMIT_SOUND( edict(), CHAN_VOICE, "buttons/button2.wav", SentenceVolume(), SentenceAttn() );
-	JustSpoke();
+	if (EmitSoundScript(unuseSoundScript))
+		JustSpoke();
 }
 
 void CRGrunt::DeathSound()
 {
-	switch (RANDOM_LONG(0,2))
-	{
-	case 0:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "turret/tu_die.wav", 1.0, ATTN_NORM );
-		break;
-	case 1:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "turret/tu_die2.wav", 1.0, ATTN_NORM );
-		break;
-	case 2:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "turret/tu_die3.wav", 1.0, ATTN_NORM );
-		break;
-	}
+	EmitSoundScript(dieSoundScript);
 }
 
 void CRGrunt::PainSound()
 {
+	EmitSoundScript(painSoundScript);
 }
 
 void CRGrunt::RunAI()
@@ -205,7 +250,7 @@ void CRGrunt::StartTask(Task_t *pTask)
 	{
 	case TASK_DIE:
 	{
-		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, 400, 2 );
+		InsertAISound( bits_SOUND_DANGER, 400, 2 );
 
 		if( UTIL_PointContents( pev->origin ) == CONTENTS_WATER )
 		{
@@ -215,9 +260,7 @@ void CRGrunt::StartTask(Task_t *pTask)
 		{
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 				WRITE_BYTE( TE_SMOKE );
-				WRITE_COORD( pev->origin.x );
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
+				WRITE_VECTOR( pev->origin );
 				WRITE_SHORT( g_sModelIndexSmoke );
 				WRITE_BYTE( 25 ); // scale * 10
 				WRITE_BYTE( 10 ); // framerate
@@ -275,14 +318,12 @@ void CRGrunt::Explode()
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, -32 ), ignore_monsters, ENT( pev ), & tr );
 
-	pev->dmg = gSkillData.rgruntExplode;
+	pev->dmg = GetSkillValue("rgrunt_explode");
 	int iContents = UTIL_PointContents( pev->origin );
 
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z );
+		WRITE_VECTOR( pev->origin );	// Send to PAS because of the sound
 		if( iContents != CONTENTS_WATER )
 		{
 			WRITE_SHORT( g_sModelIndexFireball );
@@ -296,9 +337,9 @@ void CRGrunt::Explode()
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
 
-	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+	InsertAISound( bits_SOUND_COMBAT, NORMAL_EXPLOSION_VOLUME, 3.0 );
 
-	RadiusDamage( pev, pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	RadiusDamage( pev, pev, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
 
 	if( RANDOM_LONG(0,1) )
 	{
@@ -309,15 +350,15 @@ void CRGrunt::Explode()
 		UTIL_DecalTrace( &tr, DECAL_SCORCH2 );
 	}
 
-	CGib::SpawnRandomGibs( pev, GibCount(), GibModel() );
+	CGib::SpawnRandomGibs( pev, GibCount(), GibModel(), MyGibVisual() );
 
 	SetThink( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time;
 }
 
-void CRGrunt::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CRGrunt::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
-	CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, GIB_NEVER );
 }
 
 void CRGrunt::BecomeDead()
@@ -328,55 +369,46 @@ void CRGrunt::BecomeDead()
 
 #define ROBOGRUNT_DAMAGE (DMG_ENERGYBEAM|DMG_CRUSH|DMG_MORTAR|DMG_BLAST|DMG_SHOCK|DMG_FREEZE|DMG_ACID)
 
-void CRGrunt::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+DamageInfo CRGrunt::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
 {
-	if ((bitsDamageType & ROBOGRUNT_DAMAGE) == 0)
+	DamageInfo damageInfo = inputDamageInfo;
+	if ((damageInfo.type & ROBOGRUNT_DAMAGE) == 0)
+	{
+		damageInfo.damage *= 0.2f;
+	}
+	return damageInfo;
+}
+
+DamageInfo CRGrunt::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
+{
+	DamageInfo damageInfo = inputDamageInfo;
+	if ((damageInfo.type & ROBOGRUNT_DAMAGE) == 0)
 	{
 		if( pev->dmgtime != gpGlobals->time || (RANDOM_LONG( 0, 10 ) < 1 ) )
 		{
 			UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT( 1, 2 ) );
 			pev->dmgtime = gpGlobals->time;
 		}
-		flDamage *= 0.2;
 	}
-	CSquadMonster::TraceAttack( pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+	return damageInfo;
 }
 
 void CRGrunt::DoSpark(const Vector &sparkLocation, float flVolume)
 {
 	UTIL_Sparks( sparkLocation );
 
-	switch( RANDOM_LONG( 0, 5 ) )
-	{
-		case 0:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark1.wav", flVolume, ATTN_NORM );
-			break;
-		case 1:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark2.wav", flVolume, ATTN_NORM );
-			break;
-		case 2:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark3.wav", flVolume, ATTN_NORM );
-			break;
-		case 3:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark4.wav", flVolume, ATTN_NORM );
-			break;
-		case 4:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark5.wav", flVolume, ATTN_NORM );
-			break;
-		case 5:
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "buttons/spark6.wav", flVolume, ATTN_NORM );
-			break;
-	}
+	SoundScriptParamOverride param;
+	param.OverrideVolumeRelative(flVolume);
+
+	EmitSoundScript(sparkSoundScript, param);
 }
 
 class CRGruntRepel : public CHGruntRepel
 {
 public:
-	const char* TrooperName() {
+	const char* TrooperName() override {
 		return "monster_robogrunt";
 	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_robogrunt_repel, CRGruntRepel)
-
-#endif

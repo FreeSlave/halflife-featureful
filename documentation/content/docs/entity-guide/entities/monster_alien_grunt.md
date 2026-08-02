@@ -1,0 +1,202 @@
+---
+bookHidden: true
+bookToC: false
+---
+
+# monster_alien_grunt
+
+[TWHL](https://twhl.info/wiki/page/monster_alien_grunt)
+
+### Changes
+
+* Restores health when eating.
+* Hitting the alien grunt's head now counts as a headshot (in original Half-Life it counts as regular shot). The damage multiplier is controlled by **sk_agrunt_head** skill variable.
+
+### Skill variables
+
+* **sk_agrunt_health** - monster's health.
+* **sk_agrunt_dmg_punch** - melee damage.
+* **sk_agrunt_head** - alien grunt specific headshot damage multiplier. This must be in range `(0, sk_monster_head]`, otherwise the **sk_monster_head** is used. Default value is 1.5.
+* [hornet skill variables]({{< ref "hornet/#skill-variables" >}}).
+
+### Default classification
+
+`Alien Military`
+
+### Default display name
+
+`Alien Grunt`
+
+### Soundscripts
+
+* **AlienGrunt.Idle** - idle speaking sounds. Alien grunts speak phrases consisting of short words.
+* **AlienGrunt.Alert** - alert sounds.
+* **AlienGrunt.Pain** - pain sounds.
+* **AlienGrunt.Die** - death sounds.
+* **AlienGrunt.Attack** - played on melee attack.
+* **AlienGrunt.LeftFoot** - left footstep.
+* **AlienGrunt.RightFoot** - right footstep.
+* **AlienGrunt.Fire** - firing a hornet.
+* **AlienGrunt.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
+* **AlienGrunt.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
+* **AlienGrunt.Use** - start following the ally player. Derived from **AlienGrunt.Idle**
+* **AlienGrunt.UnUse** - stop following the ally player. Derived from **AlienGrunt.Alert**
+* [hornet soundscripts]({{< ref "hornet/#soundscripts" >}}).
+
+### Visuals
+
+* **AlienGrunt.MuzzleFlash** - temporary flash sprite played when firing a hornet.
+* [hornet visuals]({{< ref "hornet/#visuals" >}}).
+
+### Attacks
+
+* *Melee Attack 1* - melee.
+* *Range Attack 1* - fire hornets.
+
+### Animation events
+
+* `1` - `5` - spawn a [hornet]({{< ref hornet >}}) projectile, with **AlienGrunt.MuzzleFlash** visual and **AlienGrunt.Fire** soundscript.
+* `10` - play **AlienGrunt.LeftFoot** soundscript.
+* `11` - play **AlienGrunt.RightFoot** soundscript.
+* `12` - trace hull attack with left arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.
+* `13` - trace hull attack with right arm. Deals **sk_agrunt_dmg_punch** damage. Plays **AlienGrunt.AttackHit** or **AlienGrunt.AttackMiss** soundscripts.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Let alien grunts open doors" %}}
+*In Half-Life alien grunts can't open doors.*
+```json
+{
+    "monster_alien_grunt": {
+        "open_door_capability": true
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Cyber Franklin from They Hunger" %}}
+In order to make this work correctly some adjustments to the model are needed:
+
+* For events with id 6 change the id to 2 - for proper number of shots fired during the animation.
+* For events with id 3 change the id to 12 or 13 - for proper melee attacks.
+
+```json
+{
+    "cyberfranklin": {
+        "own_visual": {
+            "model": "models/franklin2.mdl"
+        },
+        "health": 600,
+        "blood": "red",
+        "field_of_view": -1,
+        "size": "human",
+        "collision_box": "human",
+        "soundscripts": {
+            "AlienGrunt.Idle": {
+                "waves": []
+            },
+            "AlienGrunt.Alert": {
+                "waves": ["franklin/alert1.wav"]
+            },
+            "AlienGrunt.Attack": {
+                "waves": ["franklin/attack1.wav"]
+            },
+            "AlienGrunt.Pain": {
+                "waves": ["franklin/pain1.wav", "franklin/pain2.wav"]
+            },
+            "AlienGrunt.Die": {
+                "waves": ["franklin/death1.wav", "franklin/death2.wav", "franklin/death3.wav"]
+            },
+        },
+        "precached_sounds": ["franklin/franklin_step.wav", "player/pl_tile1.wav"]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_grunt": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "hitgroup": 10,
+                    "dmg_type": ["bullet", "slash", "club"]
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.1,
+                    "hitgroup": "generic",
+                    "no_blood": true
+                },
+                "effects": {
+                    "ricochet": {
+                        "certain_on_new_frame": true,
+                        "chance": 0.1,
+                        "scale": [1.0, 2.0]
+                    },
+                    "tracer": {
+                        "chance": 0.5,
+                        "variance": 0.3
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_alien_grunt": {
+        "check_melee_attack1": {
+            "distance": 100,
+            "dot": 0.6
+        },
+        "trace_hull_attacks": {
+            "12": {
+                "distance": 100,
+                "punchangle": {
+                    "pitch": 8,
+                    "yaw": -25
+                },
+                "knock": {
+                    "right": 250,
+                    "player_only": true
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            },
+            "13": {
+                "distance": 100,
+                "punchangle": {
+                    "pitch": 8,
+                    "yaw": 25
+                },
+                "knock": {
+                    "right": -250,
+                    "player_only": true
+                },
+                "spawn_blood": true,
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

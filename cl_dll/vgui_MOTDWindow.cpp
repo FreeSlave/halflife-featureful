@@ -26,7 +26,6 @@
 #include "cl_util.h"
 #include "camera.h"
 #include "kbutton.h"
-#include "const.h"
 
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"

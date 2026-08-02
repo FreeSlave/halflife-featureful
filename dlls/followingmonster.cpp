@@ -15,6 +15,7 @@ TYPEDESCRIPTION	CFollowingMonster::m_SaveData[] =
 {
 	DEFINE_FIELD( CFollowingMonster, m_followFailPolicy, FIELD_SHORT ),
 	DEFINE_FIELD( CFollowingMonster, m_followagePolicy, FIELD_SHORT ),
+	DEFINE_FIELD( CFollowingMonster, m_cClipSize, FIELD_INTEGER ),
 };
 
 IMPLEMENT_SAVERESTORE( CFollowingMonster, CSquadMonster )
@@ -23,7 +24,7 @@ Task_t tlFollow[] =
 {
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_FOLLOW_FAILED },
 	{ TASK_MOVE_NEAREST_TO_TARGET_RANGE, (float)128.0f },	// Move within 128 of target ent (client)
-	{ TASK_SET_SCHEDULE, (float)SCHED_TARGET_REACHED },
+	{ TASK_SET_SCHEDULE, (float)SCHED_TARGET_FACE_CHECK_JUMP },
 };
 
 Schedule_t slFollow[] =
@@ -67,7 +68,7 @@ Schedule_t slFollowCautious[] =
 
 Task_t tlFollowTargetNearest[] =
 {
-	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_FAIL_PVS_INDEPENDENT },
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_FOLLOW_NEAREST_FAILED },
 	{ TASK_GET_NEAREST_PATH_TO_TARGET, 64.0f },
 	{ TASK_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
@@ -233,18 +234,12 @@ DEFINE_CUSTOM_SCHEDULES( CFollowingMonster )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CFollowingMonster, CSquadMonster )
 
-bool CFollowingMonster::CanBePushed(CBaseEntity *pPusher)
-{
-	// Ignore if pissed at player
-	return !FBitSet(pev->spawnflags, SF_MONSTER_IGNORE_PLAYER_PUSH) && IRelationship(pPusher) == R_AL;
-}
-
 void CFollowingMonster::Touch( CBaseEntity *pOther )
 {
 	// Did the player touch me?
 	if( pOther->IsPlayer() )
 	{
-		if( !CanBePushed(pOther) )
+		if( !CanBeMadeMoveAway(pOther) )
 			return;
 
 		// Heuristic for determining if the player is pushing me away
@@ -258,17 +253,17 @@ void CFollowingMonster::Touch( CBaseEntity *pOther )
 	}
 }
 
-void CFollowingMonster::OnDying()
+void CFollowingMonster::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearFollowedPlayer();
 	SetUse( NULL );
-	CSquadMonster::OnDying();
+	CSquadMonster::OnDying(gibbed, pKiller);
 }
 
 int CFollowingMonster::ObjectCaps()
 {
 	int caps = CSquadMonster::ObjectCaps();
-	if (m_afCapability & bits_CAP_USABLE)
+	if ((m_afCapability & bits_CAP_USABLE) && IsFullyAlive())
 	{
 		caps |= FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 	}
@@ -280,12 +275,12 @@ void CFollowingMonster::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "followfailpolicy" ) )
 	{
 		m_followFailPolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "followage_policy" ) )
 	{
 		m_followagePolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CSquadMonster::KeyValue( pkvd );
@@ -299,26 +294,16 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 		return slMoveAway;
 	case SCHED_MOVE_AWAY_FOLLOW:
 		return slMoveAwayFollow;
-	case SCHED_RETREAT_FROM_SPOT_FAILED:
 	case SCHED_MOVE_AWAY_FAIL:
-		if (m_lastMoveBlocker != 0)
-		{
-			CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
-			if (blockerMonster) {
-				CFollowingMonster* followingMonster = blockerMonster->MyFollowingMonsterPointer();
-				if (followingMonster && followingMonster->CanBePushed(this)) {
-					followingMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 256.0f);
-				}
-			}
-			m_lastMoveBlocker = 0;
-		}
-		if (Type == SCHED_MOVE_AWAY_FAIL)
-			return slMoveAwayFail;
-		else
-			return CSquadMonster::GetScheduleOfType(Type);
+	{
+		MakeMyBlockerMoveAway();
+		return slMoveAwayFail;
+	}
 	case SCHED_TARGET_FACE:
 	case SCHED_TARGET_REACHED:
 		return slFaceTarget;
+	case SCHED_TARGET_FACE_CHECK_JUMP:
+		return GetScheduleOfType(SCHED_TARGET_FACE);
 	case SCHED_TARGET_CHASE:
 	case SCHED_FOLLOW:
 		return slFollow;
@@ -335,11 +320,30 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 		}
 		else if (failPolicy == FOLLOW_FAIL_TRY_NEAREST)
 		{
+			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FOLLOW_NEAREST);
 		}
 		else
 		{
+			MakeMyBlockerMoveAway();
 			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
+		}
+	}
+	case SCHED_FOLLOW_NEAREST_FAILED:
+	{
+		if (m_hTargetEnt != 0 && FVisible(m_hTargetEnt))
+		{
+			if (RANDOM_LONG(0, 1) == 1)
+			{
+				SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_WALK|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
+				return GetScheduleOfType(m_suggestedSchedule);
+			}
+			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
+		}
+		else
+		{
+			SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 0.0f, 64.0f, SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_ON_FAIL);
+			return GetScheduleOfType(m_suggestedSchedule);
 		}
 	}
 	case SCHED_CANT_FOLLOW:
@@ -485,7 +489,7 @@ void CFollowingMonster::StartTask( Task_t *pTask )
 		}
 		break;
 	case TASK_CANT_FOLLOW:
-		StopFollowing( FALSE, false );
+		StopFollowing( false, false );
 		TaskComplete();
 		break;
 	default:
@@ -523,13 +527,23 @@ void CFollowingMonster::RunTask( Task_t *pTask )
 	case TASK_MOVE_AWAY_PATH:
 	case TASK_MOVE_AWAY_PATH_RUNNING:
 		{
-			float distance = ( m_vecLastPosition - pev->origin ).Length2D();
-
 			// Walk path until far enough away
-			if( distance > pTask->flData || MovementIsComplete() )
+			if( ( m_vecLastPosition - pev->origin ).IsLength2DGreaterThan(pTask->flData) || MovementIsComplete() )
 			{
 				TaskComplete();
 				//RouteClear();		Called by TASK_STOP_MOVING
+			}
+		}
+		break;
+	case TASK_WAIT_PVS:
+		{
+			if ( IsFollowingPlayer() )
+			{
+				TaskComplete();
+			}
+			else
+			{
+				CSquadMonster::RunTask( pTask );
 			}
 		}
 		break;
@@ -543,7 +557,7 @@ void CFollowingMonster::PrescheduleThink()
 {
 	if (IsFollowingPlayer() && ShouldDeclineFollowing())
 	{
-		StopFollowing(TRUE, false);
+		StopFollowing(true, false);
 	}
 	CSquadMonster::PrescheduleThink();
 }
@@ -575,7 +589,7 @@ void CFollowingMonster::IdleHeadTurn( Vector &vecFriend )
 	}
 }
 
-void CFollowingMonster::StopFollowing(BOOL clearSchedule , bool saySentence)
+void CFollowingMonster::StopFollowing(bool clearSchedule , bool saySentence)
 {
 	if( IsFollowingPlayer() )
 	{
@@ -614,32 +628,32 @@ void CFollowingMonster::LimitFollowers( CBaseEntity *pPlayer, int maxFollowers )
 	return;
 }
 
-BOOL CFollowingMonster::CanFollow( void )
+bool CFollowingMonster::CanFollow()
 {
 	return AbleToFollow() && !IsFollowingPlayer();
 }
 
-BOOL CFollowingMonster::AbleToFollow()
+bool CFollowingMonster::AbleToFollow()
 {
 	if( m_MonsterState == MONSTERSTATE_SCRIPT || m_IdealMonsterState == MONSTERSTATE_SCRIPT )
 	{
 		if( !m_pCine )
-			return FALSE;
+			return false;
 		if( !m_pCine->CanInterruptByPlayerCall() )
-			return FALSE;
+			return false;
 	}
 
 	if( !IsFullyAlive() )
-		return FALSE;
-	return TRUE;
+		return false;
+	return true;
 }
 
-BOOL CFollowingMonster::IsFollowingPlayer(CBaseEntity *pLeader)
+bool CFollowingMonster::IsFollowingPlayer(CBaseEntity *pLeader)
 {
 	return FollowedPlayer() == pLeader;
 }
 
-BOOL CFollowingMonster::IsFollowingPlayer()
+bool CFollowingMonster::IsFollowingPlayer()
 {
 	return FollowedPlayer() != 0;
 }
@@ -661,6 +675,11 @@ bool CFollowingMonster::InScriptedSentence()
 	return false;
 }
 
+bool CFollowingMonster::AllowUseDuringScriptedSentence()
+{
+	return false;
+}
+
 Schedule_t* CFollowingMonster::GetFollowingSchedule(bool ignoreEnemy)
 {
 	if( (ignoreEnemy || m_hEnemy == 0 || !m_hEnemy->IsFullyAlive()) && IsFollowingPlayer() )
@@ -668,7 +687,7 @@ Schedule_t* CFollowingMonster::GetFollowingSchedule(bool ignoreEnemy)
 		if( !FollowedPlayer()->IsAlive() )
 		{
 			// UNDONE: Comment about the recently dead player here?
-			StopFollowing( FALSE, false );
+			StopFollowing( false, false );
 			return NULL;
 		}
 		else
@@ -688,6 +707,19 @@ Schedule_t* CFollowingMonster::GetFollowingSchedule(bool ignoreEnemy)
 	return NULL;
 }
 
+Schedule_t* CFollowingMonster::GetUtilitySchedule()
+{
+	Schedule_t* regenSchedule = GetRegenerationSchedule();
+	if (regenSchedule)
+		return regenSchedule;
+
+	Schedule_t* followingSchedule = GetFollowingSchedule();
+	if (followingSchedule)
+		return followingSchedule;
+
+	return nullptr;
+}
+
 void CFollowingMonster::FollowerUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	if (m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY)
@@ -700,7 +732,11 @@ void CFollowingMonster::FollowerUse( CBaseEntity *pActivator, CBaseEntity *pCall
 		}
 		return;
 	}
-	DoFollowerUse(pCaller, true, USE_TOGGLE);
+	int result = DoFollowerUse(pCaller, true, USE_TOGGLE);
+	if (result == FOLLOWING_NOTREADY && AllowUseDuringScriptedSentence())
+	{
+		DoFollowerUse(pCaller, false, USE_TOGGLE, true);
+	}
 }
 
 bool CFollowingMonster::ShouldDeclineFollowing()
@@ -716,8 +752,15 @@ bool CFollowingMonster::ShouldDiscardFollowing(CBaseEntity *pCaller)
 
 int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE_TYPE useType, bool ignoreScriptedSentence)
 {
+	if (!IsFullyAlive())
+	{
+		return FOLLOWING_DEAD;
+	}
 	if( pCaller != NULL && pCaller->IsPlayer() )
 	{
+		if (!AbleToFollow())
+			return FOLLOWING_BUSYINSCRIPT;
+
 		if (!ignoreScriptedSentence && InScriptedSentence())
 			return FOLLOWING_NOTREADY;
 
@@ -731,9 +774,6 @@ int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE
 				DeclineFollowing(pCaller);
 			return FOLLOWING_DECLINED;
 		}
-
-		if (!AbleToFollow())
-			return FOLLOWING_NOTALLOWED;
 
 		const bool isFollowing = IsFollowingPlayer();
 		if (isFollowing && useType == USE_ON)
@@ -761,19 +801,16 @@ int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE
 		}
 		if (isFollowing && (useType == USE_TOGGLE || useType == USE_OFF))
 		{
-			StopFollowing( TRUE, saySentence );
+			StopFollowing( true, saySentence );
 			return FOLLOWING_STOPPED;
 		}
 	}
-	return FOLLOWING_NOTALLOWED;
+	return FOLLOWING_INVALID;
 }
 
 CBaseEntity* CFollowingMonster::PlayerToFace()
 {
-	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(FollowedPlayer());
-	if (pPlayer && pPlayer->IsAlive())
-		return pPlayer;
-	return 0;
+	return g_pGameRules->EffectiveAlivePlayer(FollowedPlayer());
 }
 
 void CFollowingMonster::StopScript()
@@ -784,6 +821,37 @@ void CFollowingMonster::StopScript()
 		if (m_pCine) { // in case it was not cleared out for some reason
 			CineCleanup();
 		}
+	}
+}
+
+Schedule_t *CFollowingMonster::GetIdleReloadSchedule()
+{
+	if (HasConditions(bits_COND_NO_AMMO_LOADED))
+	{
+		return GetScheduleOfType(SCHED_RELOAD);
+	}
+	else if (m_cClipSize > 0 && m_cAmmoLoaded <= m_cClipSize/2)
+	{
+		return GetScheduleOfType(SCHED_RELOAD_NOT_EMPTY);
+	}
+	return nullptr;
+}
+
+void CFollowingMonster::CheckAmmo()
+{
+	if (m_cClipSize > 0 && m_cAmmoLoaded <= 0)
+	{
+		SetConditions(bits_COND_NO_AMMO_LOADED);
+	}
+}
+
+void CFollowingMonster::CompleteReloadTask()
+{
+	//ALERT(at_console, "CompleteReloadTask. Time: %g. Frame: %g\n", gpGlobals->time, pev->frame);
+	if (m_cClipSize > 0)
+	{
+		m_cAmmoLoaded = m_cClipSize;
+		ClearConditions(bits_COND_NO_AMMO_LOADED);
 	}
 }
 
@@ -804,22 +872,10 @@ void CFollowingMonster::ReportAIState(ALERT_TYPE level)
 		ALERT(level, "Regular. ");
 		break;
 	}
-}
 
-void CFollowingMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
-{
-	if (!pBlocker)
-		return;
-
-	//ALERT(at_console, "%s's blocker is %s\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
-
-	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
-	if (blockerMonster) {
-		CFollowingMonster* followingMonster = blockerMonster->MyFollowingMonsterPointer();
-		if (followingMonster && followingMonster->CanBePushed(this)) {
-			//ALERT(at_console, "%s sets %s as blocker\n", STRING(pev->classname), STRING(pBlocker->pev->classname));
-			m_lastMoveBlocker = pBlocker;
-		}
+	if (m_cClipSize > 0)
+	{
+		ALERT(level, "Ammo loaded: %d / %d. ", m_cAmmoLoaded, m_cClipSize);
 	}
 }
 
@@ -828,4 +884,17 @@ bool CFollowingMonster::CanRoamAfterCombat()
 	if (IsFollowingPlayer())
 		return false;
 	return CSquadMonster::CanRoamAfterCombat();
+}
+
+bool CFollowingMonster::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if (!(m_afCapability & bits_CAP_USABLE))
+		return false;
+	if (ShouldDiscardFollowing(pPlayer))
+		return false;
+	if (ShouldDeclineFollowing())
+		return false;
+	if (m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY || m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY_DECLINE_USE)
+		return false;
+	return true;
 }

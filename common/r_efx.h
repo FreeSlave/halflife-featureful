@@ -16,25 +16,11 @@
 #if !defined(R_EFX_H)
 #define R_EFX_H
 
-// particle_t
-#if !defined( PARTICLEDEFH )  
 #include "particledef.h"
-#endif
-
-// BEAM
-#if !defined( BEAMDEFH )
 #include "beamdef.h"
-#endif
-
-// dlight_t
-#if !defined ( DLIGHTH )
 #include "dlight.h"
-#endif
-
-// cl_entity_t
-#if !defined( CL_ENTITYH )
 #include "cl_entity.h"
-#endif
+#include "com_model.h"
 
 /*
 // FOR REFERENCE, These are the built-in tracer colors.  Note, color 4 is the one
@@ -104,7 +90,7 @@ typedef struct tempent_s
 					// if COLLIDEALL, this is the index of the client to ignore
 					// TENTS with FTENT_PLYRATTACHMENT MUST set the clientindex! 
 
-	vec3_t		tentOffset;	// if attached, client origin + tentOffset = tent origin.
+	Vector		tentOffset;	// if attached, client origin + tentOffset = tent origin.
 	cl_entity_t	entity;
 
 	// baseline.origin		- velocity
@@ -143,7 +129,7 @@ struct efx_api_s
 	void		(*R_ParticleLine)( float *start, float *end, unsigned char r, unsigned char g, unsigned char b, float life );
 	void		(*R_PlayerSprites)( int client, int modelIndex, int count, int size );
 	void		(*R_Projectile)( float *origin, float *velocity, int modelIndex, int life, int owner, void (*hitcallback)( struct tempent_s *ent, struct pmtrace_s *ptr ) );
-	void		(*R_RicochetSound)( float *pos );
+	void		(*R_RicochetSound)( const float *pos );
 	void		(*R_RicochetSprite)( float *pos, struct model_s *pmodel, float duration, float scale );
 	void		(*R_RocketFlare)( float *pos );
 	void		(*R_RocketTrail)( float *start, float *end, int type );
@@ -166,7 +152,7 @@ struct efx_api_s
 	void		(*R_TempSphereModel)( float *pos, float speed, float life, int count, int modelIndex );
 	TEMPENTITY	*(*R_TempModel)( float *pos, float *dir, float *angles, float life, int modelIndex, int soundtype );
 	TEMPENTITY	*(*R_DefaultSprite)( float *pos, int spriteIndex, float framerate );
-	TEMPENTITY	*(*R_TempSprite)( float *pos, float *dir, float scale, int modelIndex, int rendermode, int renderfx, float a, float life, int flags );
+	TEMPENTITY	*(*R_TempSprite)( float *pos, const float *dir, float scale, int modelIndex, int rendermode, int renderfx, float a, float life, int flags );
 	int		(*Draw_DecalIndex)( int id );
 	int		(*Draw_DecalIndexFromName)( char *name );
 	void		(*R_DecalShoot)( int textureIndex, int entity, int modelIndex, float *position, int flags );

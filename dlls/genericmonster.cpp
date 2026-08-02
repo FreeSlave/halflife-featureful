@@ -32,23 +32,23 @@
 class CGenericMonster : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int DefaultISoundMask( void );
-	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int DefaultISoundMask() override;
+	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 	void IdleHeadTurn( Vector &vecFriend );
-	void MonsterThink();
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	void MonsterThink() override;
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 private:
 	float m_talkTime;
 	EHANDLE m_hTalkTarget;
@@ -73,7 +73,7 @@ IMPLEMENT_SAVERESTORE( CGenericMonster, CBaseMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CGenericMonster::DefaultClassify( void )
+int CGenericMonster::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY;
 }
@@ -82,7 +82,7 @@ int CGenericMonster::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGenericMonster::SetYawSpeed( void )
+void CGenericMonster::SetYawSpeed()
 {
 	int ys;
 
@@ -114,7 +114,7 @@ void CGenericMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 //=========================================================
 // ISoundMask - generic monster can't hear.
 //=========================================================
-int CGenericMonster::DefaultISoundMask( void )
+int CGenericMonster::DefaultISoundMask()
 {
 	return 0;
 }
@@ -126,13 +126,10 @@ void CGenericMonster::Spawn()
 {
 	Precache();
 
+	SetMyModel(nullptr);
 	if (FStringNull(pev->model))
 	{
 		ALERT(at_console, "Spawning monster_generic without model!\n");
-	}
-	else
-	{
-		SET_MODEL( ENT( pev ), STRING( pev->model ) );
 	}
 /*
 	if( FStrEq( STRING( pev->model ), "models/player.mdl" ) )
@@ -143,7 +140,7 @@ void CGenericMonster::Spawn()
 	if( FStrEq( STRING( pev->model ), "models/player.mdl" ) || FStrEq( STRING( pev->model ), "models/holo.mdl" ) )
 		SetMySize( VEC_HULL_MIN, VEC_HULL_MAX );
 	else
-		SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+		SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
@@ -158,6 +155,7 @@ void CGenericMonster::Spawn()
 	{
 		m_afCapability = bits_CAP_TURN_HEAD;
 	}
+	SetMyCanOpenDoors(false);
 
 	m_flIdealYaw = m_flCurrentYaw = 0;
 
@@ -173,13 +171,11 @@ void CGenericMonster::Spawn()
 //=========================================================
 void CGenericMonster::Precache()
 {
-	if (!FStringNull(pev->model))
-		PRECACHE_MODEL( STRING( pev->model ) );
-	if (!FStringNull(m_gibModel))
-		PRECACHE_MODEL( STRING(m_gibModel) );
+	PrecacheMyModel(nullptr);
+	PrecacheMyGibModel();
 }
 
-void CGenericMonster::PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener )
+void CGenericMonster::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )
 {
 	m_talkTime = gpGlobals->time + duration;
 	PlaySentence( pszSentence, duration, volume, attenuation, true );
@@ -237,41 +233,37 @@ void CGenericMonster::MonsterThink()
 	CBaseMonster::MonsterThink();
 }
 
-void CGenericMonster::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
+KilledResult CGenericMonster::Killed(entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib)
 {
 	SentenceStop();
-	CBaseMonster::Killed(pevInflictor, pevAttacker, iGib);
+	return CBaseMonster::Killed(pevInflictor, pevAttacker, iGib);
 }
 
 class CDeadGenericMonster : public CBaseMonster
 {
 public:
-	void Precache();
-	void Spawn();
-	void KeyValue( KeyValueData *pkvd );
-	int DefaultClassify() { return CLASS_HUMAN_PASSIVE; }
+	void Precache() override;
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	int DefaultClassify() override { return CLASS_HUMAN_PASSIVE; }
+	bool ShouldCollide(CBaseEntity* pOther) override;
 };
 
 LINK_ENTITY_TO_CLASS( monster_generic_dead, CDeadGenericMonster )
 
 void CDeadGenericMonster::Precache()
 {
-	if (!FStringNull(pev->model))
-		PRECACHE_MODEL( STRING( pev->model ) );
-	if (!FStringNull(m_gibModel))
-		PRECACHE_MODEL( STRING(m_gibModel) );
+	PrecacheMyModel(nullptr);
+	PrecacheMyGibModel();
 }
 
 void CDeadGenericMonster::Spawn()
 {
 	Precache();
+	SetMyModel(nullptr);
 	if (FStringNull(pev->model))
 	{
 		ALERT(at_console, "Spawning monster_generic_dead without model!\n");
-	}
-	else
-	{
-		SET_MODEL( ENT( pev ), STRING( pev->model ) );
 	}
 
 	pev->effects &= EF_INVLIGHT;
@@ -304,7 +296,7 @@ void CDeadGenericMonster::Spawn()
 		pev->sequence = LookupSequence( STRING(pev->netname) );
 		if (pev->sequence == -1)
 		{
-			ALERT ( at_console, "%s with bad pose (no %s animation in %s)\n", STRING(pev->classname), STRING(pev->netname), STRING(pev->model) );
+			ALERT ( at_console, "%s with bad pose (no '%s' animation in %s)\n", STRING(pev->classname), STRING(pev->netname), STRING(pev->model) );
 		}
 	}
 
@@ -324,10 +316,15 @@ void CDeadGenericMonster::KeyValue( KeyValueData *pkvd )
 	if (FStrEq(pkvd->szKeyName, "pose"))
 	{
 		pev->netname = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseMonster::KeyValue( pkvd );
+}
+
+bool CDeadGenericMonster::ShouldCollide(CBaseEntity* pOther)
+{
+	return pOther->ShouldCollideWithCorpses();
 }
 
 //=========================================================
@@ -337,10 +334,10 @@ void CDeadGenericMonster::KeyValue( KeyValueData *pkvd )
 class CLoader : public CGenericMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify() {return CLASS_NONE;}
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override {return CLASS_NONE;}
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 };
 
 LINK_ENTITY_TO_CLASS(monster_op4loader, CLoader)
@@ -373,9 +370,10 @@ void CLoader::Spawn()
 void CLoader::Precache()
 {
 	PrecacheMyModel("models/loader.mdl");
+	PrecacheMyGibModel();
 }
 
-void CLoader::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CLoader::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)
 {
 	UTIL_Ricochet( ptr->vecEndPos, RANDOM_FLOAT(1.0,2.0) );
 }

@@ -5,7 +5,7 @@
 // $NoKeywords: $
 //=============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include "vgui_ControlConfigPanel.h"
 #include <VGUI_HeaderPanel.h>
 #include <VGUI_TablePanel.h>

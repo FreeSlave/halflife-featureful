@@ -16,15 +16,36 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "monsters.h"
+#include "skill.h"
 #include "weapons.h"
-#include "nodes.h"
 #include "player.h"
-#include "soundent.h"
-#include "gamerules.h"
+#include "mod_features.h"
+#include "soundent_bits.h"
+
+enum mp5_e
+{
+	MP5_LONGIDLE = 0,
+	MP5_IDLE1,
+	MP5_LAUNCH,
+	MP5_RELOAD,
+	MP5_DEPLOY,
+	MP5_FIRE1,
+	MP5_FIRE2,
+	MP5_FIRE3
+};
+
+class CMP5 : public CConfigurableWeapon
+{
+public:
+	void Spawn() override;
+	void PrecacheDefaultModelSounds() override;
+	int WeaponId() const override { return WEAPON_MP5; }
+	bool GetItemInfo(ItemInfo *p) override;
+	WeaponParameters GetDefaultParameters() const override;
+};
 
 LINK_ENTITY_TO_CLASS( weapon_mp5, CMP5 )
-LINK_ENTITY_TO_CLASS( weapon_9mmAR, CMP5 )
+LINK_WEAPON_TO_CLASS( weapon_9mmAR, CMP5 )
 
 //=========================================================
 //=========================================================
@@ -32,226 +53,122 @@ LINK_ENTITY_TO_CLASS( weapon_9mmAR, CMP5 )
 void CMP5::Spawn()
 {
 	pev->classname = MAKE_STRING( "weapon_9mmAR" ); // hack to allow for old names
-	Precache();
-	SET_MODEL( ENT( pev ), MyWModel() );
-	m_iId = WEAPON_MP5;
-
-	InitDefaultAmmo(MP5_DEFAULT_GIVE);
-
-#if CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
-		m_iDefaultAmmo = MP5_DEFAULT_GIVE_MP;
-
-	FallInit();// get ready to fall down.
+	CConfigurableWeapon::Spawn();
 }
 
-void CMP5::Precache( void )
+void CMP5::PrecacheDefaultModelSounds()
 {
-	PRECACHE_MODEL( "models/v_9mmAR.mdl" );
-	PRECACHE_MODEL( MyWModel() );
-	PRECACHE_MODEL( "models/p_9mmAR.mdl" );
-
-	m_iShell = PRECACHE_MODEL( "models/shell.mdl" );// brass shellTE_MODEL
-
-	PRECACHE_MODEL( "models/grenade.mdl" );	// grenade
-
-	PRECACHE_MODEL( "models/w_9mmARclip.mdl" );
 	PRECACHE_SOUND( "items/9mmclip1.wav" );
-
 	PRECACHE_SOUND( "items/clipinsert1.wav" );
 	PRECACHE_SOUND( "items/cliprelease1.wav" );
-
-	PRECACHE_SOUND( "weapons/hks1.wav" );// H to the K
-	PRECACHE_SOUND( "weapons/hks2.wav" );// H to the K
-	PRECACHE_SOUND( "weapons/hks3.wav" );// H to the K
-
-	PRECACHE_SOUND( "weapons/glauncher.wav" );
-	PRECACHE_SOUND( "weapons/glauncher2.wav" );
-
-	PRECACHE_SOUND( "weapons/357_cock1.wav" );
-
-	m_usMP5 = PRECACHE_EVENT( 1, "events/mp5.sc" );
-	m_usMP52 = PRECACHE_EVENT( 1, "events/mp52.sc" );
 }
 
-int CMP5::GetItemInfo( ItemInfo *p )
+bool CMP5::GetItemInfo( ItemInfo *p )
 {
-	p->pszName = STRING( pev->classname );
-	p->pszAmmo1 = "9mm";
-	p->iMaxAmmo1 = _9MM_MAX_CARRY;
-	p->pszAmmo2 = "ARgrenades";
-	p->iMaxAmmo2 = M203_GRENADE_MAX_CARRY;
-	p->iMaxClip = MP5_MAX_CLIP;
 	p->iSlot = 2;
 	p->iPosition = 0;
-	p->iFlags = 0;
-	p->iId = WEAPON_MP5;
-	p->iWeight = MP5_WEIGHT;
-	p->pszAmmoEntity = "ammo_9mmAR";
-	p->iDropAmmo = AMMO_MP5CLIP_GIVE;
 
-	return 1;
+	return true;
 }
 
-int CMP5::AddToPlayer( CBasePlayer *pPlayer )
+WeaponParameters CMP5::GetDefaultParameters() const
 {
-	return AddToPlayerDefault(pPlayer);
-}
+	WeaponParameters params;
 
-BOOL CMP5::Deploy()
-{
-	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5" );
-}
+	params.initialAmmoAmount = (bIsMultiplayer() || FEATURE_OPFOR_SPECIFIC) ? 50 : 25;
+	params.maxClip = 50;
+	params.ammoName = "9mm";
+	params.secondaryAmmoName = "ARgrenades";
 
-void CMP5::PrimaryAttack()
-{
-	// don't fire underwater
-	if( m_pPlayer->pev->waterlevel == 3 )
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
-		return;
-	}
+	params.worldModel = "models/w_9mmAR.mdl";
+	params.viewModel = "models/v_9mmAR.mdl";
+	params.playerModel = "models/p_9mmAR.mdl";
+	params.playerAnimExt = "mp5";
+	params.priority = 15;
 
-	if( m_iClip <= 0 )
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
-		return;
-	}
+	params.deploy.animIndex = MP5_DEPLOY;
 
-	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{MP5_LONGIDLE, 0.5f, 41.0f / 8.0f},
+		WeaponParameters::IdleAnim{MP5_IDLE1, 0.5f, 111.0f / 35.0f},
+	};
 
-	m_iClip--;
+	// Primary fire
+	params.fire.fireType = WeaponParameters::Fire::BULLETS;
+	params.fire.damageInfo.main.damage = ::GetSkillValueRange("plr_9mmAR_bullet");
+	params.fire.anims.main = {MP5_FIRE1, MP5_FIRE2, MP5_FIRE3};
 
-	m_pPlayer->pev->effects = (int)( m_pPlayer->pev->effects ) | EF_MUZZLEFLASH;
+	params.fire.sound = {
+		CHAN_WEAPON,
+		{"weapons/hks1.wav", "weapons/hks2.wav"},
+		FloatRange(0.92f, 1.0f),
+		ATTN_NORM,
+		IntRange(94, 109)
+	};
+	params.fire.spread.SetStaticSpread(false, bIsMultiplayer() ? VECTOR_CONE_6DEGREES : VECTOR_CONE_3DEGREES);
+	params.fire.cycleTime = 0.1f;
+	params.fire.allowUnderwater = false;
+	params.fire.tracerFreq = 2;
 
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	params.fire.autoAimDegree = AUTOAIM_5DEGREES;
+	params.fire.muzzleFlash = true;
+	params.fire.weaponVolume = NORMAL_GUN_VOLUME;
+	params.fire.weaponFlash = NORMAL_GUN_FLASH;
 
-	Vector vecSrc = m_pPlayer->GetGunPosition();
-	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
-	Vector vecDir;
-#if CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		// optimized multiplayer. Widened to make it easier to hit a moving player
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
-	else
-	{
-		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
+	params.fire.clientPunchPitch = FloatRange(-2.0f, 2.0f);
+	params.fire.shellOffsetForward = 20;
+	params.fire.shellOffsetUp = -12;
+	params.fire.shellOffsetSide = 4;
+	params.fire.shellModel = "models/shell.mdl";
+	params.fire.shellSound = TE_BOUNCE_SHELL;
 
-	int flags;
-#if CLIENT_WEAPONS
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	params.fire.gunSmokeAttachment = 1;
+	//
 
-	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 );
+	// Alt fire
+	params.fire.fireType.alt = WeaponParameters::Fire::PROJECTILE;
+	params.fire.anims.alt = {MP5_LAUNCH};
+	params.fire.spread.SetStaticSpread(true, g_vecZero);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.1f );
+	params.fire.projectileName.alt = "grenade";
+	params.fire.projectileOffsetForward.alt = 16.0f;
+	params.fire.projectileRespectPunchangle.alt = true;
+	params.fire.projectileAdjustToCross = false;
 
-	if( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+	params.fire.sound.alt = {
+		CHAN_WEAPON,
+		{"weapons/glauncher.wav", "weapons/glauncher2.wav"},
+		1.0f,
+		ATTN_NORM,
+		IntRange(94, 109)
+	};
 
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-}
+	params.fire.spread.SetStaticSpread(true, g_vecZero);
+	params.fire.cycleTime.alt = 1.0f;
+	params.fire.idleDelay.alt = 5.0f;
+	params.fire.ammoPerFire.alt = 1;
+	params.fire.allowUnderwater.alt = false;
+	params.fire.useSecondaryAmmo.alt = true;
 
-void CMP5::SecondaryAttack( void )
-{
-	// don't fire underwater
-	if( m_pPlayer->pev->waterlevel == 3 )
-	{
-		PlayEmptySound( );
-		m_flNextPrimaryAttack = 0.15f;
-		return;
-	}
+	params.fire.autoAimDegree.alt = 0.0f;
+	params.fire.muzzleFlash.alt = false;
+	params.fire.weaponVolume.alt = NORMAL_GUN_VOLUME;
+	params.fire.weaponFlash.alt = BRIGHT_GUN_FLASH;
+	//params.fire.extraSoundTypes = bits_SOUND_DANGER;
+	//params.fire.extraSoundTime = 0.2f;
 
-	if( m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] == 0 )
-	{
-		PlayEmptySound();
-		return;
-	}
+	params.fire.delayAfterEmpty.alt = 0.0f;
 
-	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+	params.fire.clientPunchPitch.alt = -10;
+	//
 
-	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
-	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2f;
+	params.secondaryFireType = SecondaryFireType::ALTERNATIVE_FIRE;
 
-	m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType]--;
+	params.reload.animIndex = {WeaponParameters::ReloadAnim(MP5_RELOAD)};
+	params.reload.duration = 1.5f;
 
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	params.dropAmmo.classname = "ammo_9mmAR";
+	params.dropAmmoSecondary.classname = "ammo_ARgrenades";
 
- 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-
-	// we don't add in player velocity anymore.
-	CGrenade::ShootContact( m_pPlayer->pev,
-					m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16.0f,
-					gpGlobals->v_forward * 800.0f );
-
-	int flags;
-#if CLIENT_WEAPONS
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usMP52 );
-
-	m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;// idle pretty soon after shooting.
-
-	if( !m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] )
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 );
-}
-
-void CMP5::Reload( void )
-{
-	if( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 || m_iClip == MP5_MAX_CLIP )
-		return;
-
-	DefaultReload( MP5_MAX_CLIP, MP5_RELOAD, 1.5f );
-}
-
-void CMP5::WeaponIdle( void )
-{
-	ResetEmptySound();
-
-	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
-
-	if( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
-		return;
-
-	int iAnim;
-	switch( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:	
-		iAnim = MP5_LONGIDLE;	
-		break;
-	default:
-	case 1:
-		iAnim = MP5_IDLE1;
-		break;
-	}
-
-	SendWeaponAnim( iAnim );
-
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
+	return std::move(params);
 }

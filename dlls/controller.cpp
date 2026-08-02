@@ -23,9 +23,10 @@
 #include	"monsters.h"
 #include	"effects.h"
 #include	"schedule.h"
-#include	"weapons.h"
 #include	"squadmonster.h"
 #include	"scripted.h"
+#include	"global_models.h"
+#include	"visuals_utils.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -38,37 +39,43 @@
 
 #define CONTROLLER_FLINCH_DELAY			2		// at most one flinch every n secs
 
+const NamedVisual sharedEnergyBallVisual = BuildVisual("Controller.EnergyBallBase")
+		.Model("sprites/xspark4.spr")
+		.RenderColor(255, 255, 255)
+		.Alpha(255);
+
 class CController : public CSquadMonster
 {
 public:
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
-	void UpdateOnRemove();
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Alien Controller"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
+	void Spawn() override;
+	void Precache() override;
+	void ClearBalls();
+	void UpdateOnRemove() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Alien Controller"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 
-	void RunAI( void );
-	BOOL CheckRangeAttack1( float flDot, float flDist );	// balls
-	BOOL CheckRangeAttack2( float flDot, float flDist );	// head
-	BOOL CheckMeleeAttack1( float flDot, float flDist );	// block, throw
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	void RunAI() override;
+	bool CheckRangeAttack1( float flDot, float flDist ) override;	// balls
+	bool CheckRangeAttack2( float flDot, float flDist ) override;	// head
+	bool CheckMeleeAttack1( float flDot, float flDist ) override;	// block, throw
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 	CUSTOM_SCHEDULES
 
-	void Stop( void );
-	void Move( float flInterval );
-	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );
-	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval );
-	void SetActivity( Activity NewActivity );
-	BOOL ShouldAdvanceRoute( float flWaypointDist );
+	void Stop() override;
+	void Move( float flInterval ) override;
+	int CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist ) override;
+	void MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval ) override;
+	void SetActivity( Activity NewActivity ) override;
+	bool ShouldAdvanceRoute( float flWaypointDist ) override;
 	int LookupFloat();
 
 	float m_flNextFlinch;
@@ -76,25 +83,32 @@ public:
 	float m_flShootTime;
 	float m_flShootEnd;
 
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSound( void );
-	void DeathSound( void );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void AlertSound() override;
+	void IdleSound() override;
+	void AttackSound();
+	void DeathSound() override;
 
-	static const char *pAttackSounds[];
-	static const char *pIdleSounds[];
-	static const char *pAlertSounds[];
-	static const char *pPainSounds[];
-	static const char *pDeathSounds[];
+	static const NamedSoundScript idleSoundScript;
+	static const NamedSoundScript alertSoundScript;
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript attackSoundScript;
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void OnDying();
-	void GibMonster( void );
+	static const NamedVisual sharedBallLightVisual;
 
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return Vector( -32.0f, -32.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 32.0f, 32.0f, 64.0f ); }
+	static const NamedVisual energyBallVisual;
+	static const NamedVisual headOpenLightVisual;
+	static const NamedVisual headShootLightVisual;
+	static const NamedVisual energyBallLightVisual;
+
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
+	void GibMonster() override;
+
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 64.0f ); }
 
 	CSprite *m_pBall[2];	// hand balls
 	int m_iBall[2];		// how bright it should be
@@ -104,7 +118,7 @@ public:
 	Vector m_vecEstVelocity;
 
 	Vector m_velocity;
-	int m_fInCombat;
+	bool m_fInCombat;
 };
 
 LINK_ENTITY_TO_CLASS( monster_alien_controller, CController )
@@ -120,47 +134,77 @@ TYPEDESCRIPTION	CController::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CController, CSquadMonster )
 
-const char *CController::pAttackSounds[] =
-{
-	"controller/con_attack1.wav",
-	"controller/con_attack2.wav",
-	"controller/con_attack3.wav",
+constexpr IntRange controllerPitch(95, 105);
+
+const NamedSoundScript CController::idleSoundScript = {
+	CHAN_VOICE,
+	{
+		"controller/con_idle1.wav", "controller/con_idle2.wav", "controller/con_idle3.wav",
+		"controller/con_idle4.wav", "controller/con_idle5.wav"
+	},
+	controllerPitch,
+	"Controller.Idle"
 };
 
-const char *CController::pIdleSounds[] =
-{
-	"controller/con_idle1.wav",
-	"controller/con_idle2.wav",
-	"controller/con_idle3.wav",
-	"controller/con_idle4.wav",
-	"controller/con_idle5.wav",
+const NamedSoundScript CController::alertSoundScript = {
+	CHAN_VOICE,
+	{"controller/con_alert1.wav", "controller/con_alert2.wav", "controller/con_alert3.wav"},
+	controllerPitch,
+	"Controller.Alert"
 };
 
-const char *CController::pAlertSounds[] =
-{
-	"controller/con_alert1.wav",
-	"controller/con_alert2.wav",
-	"controller/con_alert3.wav",
+const NamedSoundScript CController::painSoundScript = {
+	CHAN_VOICE,
+	{"controller/con_pain1.wav", "controller/con_pain2.wav", "controller/con_pain3.wav"},
+	controllerPitch,
+	"Controller.Pain"
 };
 
-const char *CController::pPainSounds[] =
-{
-	"controller/con_pain1.wav",
-	"controller/con_pain2.wav",
-	"controller/con_pain3.wav",
+const NamedSoundScript CController::dieSoundScript = {
+	CHAN_VOICE,
+	{"controller/con_die1.wav", "controller/con_die2.wav"},
+	controllerPitch,
+	"Controller.Die"
 };
 
-const char *CController::pDeathSounds[] =
-{
-	"controller/con_die1.wav",
-	"controller/con_die2.wav",
+const NamedSoundScript CController::attackSoundScript = {
+	CHAN_VOICE,
+	{"controller/con_attack1.wav", "controller/con_attack2.wav", "controller/con_attack3.wav"},
+	controllerPitch,
+	"Controller.Attack"
 };
+
+const NamedVisual CController::energyBallVisual = BuildVisual("Controller.EnergyBall")
+		.RenderMode(kRenderGlow)
+		.RenderFx(kRenderFxNoDissipation)
+		.Scale(1.0f)
+		.Mixin(&sharedEnergyBallVisual);
+
+const NamedVisual CController::sharedBallLightVisual = BuildVisual("Controller.EnergyBallLightBase")
+		.RenderColor(255, 192, 64);
+
+const NamedVisual CController::headOpenLightVisual = BuildVisual("Controller.HeadOpenLight")
+		.Radius(1)
+		.Life(2.0f)
+		.Decay(-32.0f)
+		.Mixin(&CController::sharedBallLightVisual);
+
+const NamedVisual CController::headShootLightVisual = BuildVisual("Controller.HeadShootLight")
+		.Radius(32)
+		.Life(1.0f)
+		.Decay(32.0f)
+		.Mixin(&CController::sharedBallLightVisual);
+
+const NamedVisual CController::energyBallLightVisual = BuildVisual("Controller.EnergyBallLight")
+		.Radius(8)
+		.Life(0.5f)
+		.Mixin(&CController::sharedBallLightVisual);
 
 //=========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CController::DefaultClassify( void )
+int CController::DefaultClassify()
 {
 	return	CLASS_ALIEN_MILITARY;
 }
@@ -169,20 +213,12 @@ int CController::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CController::SetYawSpeed( void )
+void CController::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
 
-int CController::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
-{
-	// HACK HACK -- until we fix this.
-	if( IsAlive() )
-		PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
-}
-
-void CController::OnDying()
+void CController::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	// shut off balls
 	/*
@@ -203,49 +239,46 @@ void CController::OnDying()
 		m_pBall[1]->SUB_StartFadeOut();
 		m_pBall[1] = NULL;
 	}
-	CSquadMonster::OnDying();
+	CSquadMonster::OnDying(gibbed, pKiller);
 }
 
-void CController::GibMonster( void )
+void CController::GibMonster()
 {
-	// delete balls
-	if( m_pBall[0] )
-	{
-		UTIL_Remove( m_pBall[0] );
-		m_pBall[0] = NULL;
-	}
-	if( m_pBall[1] )
-	{
-		UTIL_Remove( m_pBall[1] );
-		m_pBall[1] = NULL;
-	}
+	ClearBalls();
 	CSquadMonster::GibMonster();
 }
 
-void CController::PainSound( void )
+PainSoundRule CController::DefaultPainSoundRule()
 {
-	if( RANDOM_LONG( 0, 5 ) < 2 )
-		EMIT_SOUND_ARRAY_DYN( CHAN_VOICE, pPainSounds ); 
-}	
-
-void CController::AlertSound( void )
-{
-	EMIT_SOUND_ARRAY_DYN( CHAN_VOICE, pAlertSounds ); 
+	PainSoundRule rule;
+	rule.allowWhenDying = true;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
 }
 
-void CController::IdleSound( void )
+void CController::PainSound()
 {
-	EMIT_SOUND_ARRAY_DYN( CHAN_VOICE, pIdleSounds ); 
+	EmitSoundScript(painSoundScript);
 }
 
-void CController::AttackSound( void )
+void CController::AlertSound()
 {
-	EMIT_SOUND_ARRAY_DYN( CHAN_VOICE, pAttackSounds ); 
+	EmitSoundScript(alertSoundScript);
 }
 
-void CController::DeathSound( void )
+void CController::IdleSound()
 {
-	EMIT_SOUND_ARRAY_DYN( CHAN_VOICE, pDeathSounds ); 
+	EmitSoundScript(idleSoundScript);
+}
+
+void CController::AttackSound()
+{
+	EmitSoundScript(attackSoundScript);
+}
+
+void CController::DeathSound()
+{
+	EmitSoundScript(dieSoundScript);
 }
 
 //=========================================================
@@ -262,19 +295,7 @@ void CController::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			GetAttachment( 0, vecStart, angleGun );
 
-			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-				WRITE_BYTE( TE_ELIGHT );
-				WRITE_SHORT( entindex() + 0x1000 );		// entity, attachment
-				WRITE_COORD( vecStart.x );		// origin
-				WRITE_COORD( vecStart.y );
-				WRITE_COORD( vecStart.z );
-				WRITE_COORD( 1 );	// radius
-				WRITE_BYTE( 255 );	// R
-				WRITE_BYTE( 192 );	// G
-				WRITE_BYTE( 64 );	// B
-				WRITE_BYTE( 20 );	// life * 10
-				WRITE_COORD( -32 ); // decay
-			MESSAGE_END();
+			SendEntLight(entindex(), vecStart, GetVisual(headOpenLightVisual), 1);
 
 			m_iBall[0] = 192;
 			m_iBallTime[0] = gpGlobals->time + atoi( pEvent->options ) / 15.0f;
@@ -285,25 +306,11 @@ void CController::HandleAnimEvent( MonsterEvent_t *pEvent )
 		case CONTROLLER_AE_BALL_SHOOT:
 		{
 			Vector vecStart, angleGun;
-			
 			GetAttachment( 0, vecStart, angleGun );
 
-			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-				WRITE_BYTE( TE_ELIGHT );
-				WRITE_SHORT( entindex() + 0x1000 );		// entity, attachment
-				WRITE_COORD( 0 );		// origin
-				WRITE_COORD( 0 );
-				WRITE_COORD( 0 );
-				WRITE_COORD( 32 );	// radius
-				WRITE_BYTE( 255 );	// R
-				WRITE_BYTE( 192 );	// G
-				WRITE_BYTE( 64 );	// B
-				WRITE_BYTE( 10 );	// life * 10
-				WRITE_COORD( 32 ); // decay
-			MESSAGE_END();
+			SendEntLight(entindex(), g_vecZero, GetVisual(headShootLightVisual), 1);
 
-			CBaseMonster *pBall = (CBaseMonster*)Create( "controller_head_ball", vecStart, pev->angles, edict() );
-
+			CBaseMonster *pBall = (CBaseMonster*)Create( "controller_head_ball", vecStart, pev->angles, edict(), GetProjectileOverrides() );
 			pBall->pev->velocity = Vector( 0.0f, 0.0f, 32.0f );
 			if (m_pCine)
 			{
@@ -355,16 +362,18 @@ void CController::Spawn()
 	Precache();
 
 	SetMyModel( "models/controller.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_FLY;
 	pev->flags		|= FL_FLY;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
-	SetMyHealth( gSkillData.controllerHealth );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
+	SetMyHealth( GetSkillValue("controller_health") );
 	pev->view_ofs		= Vector( 0.0f, 0.0f, -2.0f );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_FULL);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(false);
 
 	MonsterInit();
 }
@@ -375,32 +384,32 @@ void CController::Spawn()
 void CController::Precache()
 {
 	PrecacheMyModel( "models/controller.mdl" );
+	PrecacheMyGibModel();
 
-	PRECACHE_SOUND_ARRAY( pAttackSounds );
-	PRECACHE_SOUND_ARRAY( pIdleSounds );
-	PRECACHE_SOUND_ARRAY( pAlertSounds );
-	PRECACHE_SOUND_ARRAY( pPainSounds );
-	PRECACHE_SOUND_ARRAY( pDeathSounds );
+	RegisterAndPrecacheSoundScript(idleSoundScript);
+	RegisterAndPrecacheSoundScript(alertSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(attackSoundScript);
 
-	PRECACHE_MODEL( "sprites/xspark4.spr" );
+	RegisterVisual(energyBallVisual);
+	RegisterVisual(headOpenLightVisual);
+	RegisterVisual(headShootLightVisual);
+	RegisterVisual(energyBallLightVisual);
 
-	UTIL_PrecacheOther( "controller_energy_ball" );
-	UTIL_PrecacheOther( "controller_head_ball" );
+	UTIL_PrecacheOther( "controller_energy_ball", GetProjectileOverrides() );
+	UTIL_PrecacheOther( "controller_head_ball", GetProjectileOverrides() );
 }	
+
+void CController::ClearBalls()
+{
+	UTIL_RemoveAndClean( m_pBall[0] );
+	UTIL_RemoveAndClean( m_pBall[1] );
+}
 
 void CController::UpdateOnRemove()
 {
-	if( m_pBall[0] )
-	{
-		UTIL_Remove( m_pBall[0] );
-		m_pBall[0] = 0;
-	}
-
-	if( m_pBall[1] )
-	{
-		UTIL_Remove( m_pBall[1] );
-		m_pBall[1] = 0;
-	}
+	ClearBalls();
 	CSquadMonster::UpdateOnRemove();
 }
 
@@ -583,7 +592,7 @@ Vector Intersect( Vector vecSrc, Vector vecDst, Vector vecMove, float flSpeed )
 
 int CController::LookupFloat()
 {
-	if( m_velocity.Length() < 32.0f )
+	if( m_velocity.IsLengthLessThan(32.0f) )
 	{
 		return LookupSequence( "up" );
 	}
@@ -638,12 +647,12 @@ void CController::RunTask( Task_t *pTask )
 				{
 					if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
 					{
-						vecDir = (m_hTargetEnt->pev->origin - pev->origin).Normalize() * gSkillData.controllerSpeedBall;
+						vecDir = (m_hTargetEnt->pev->origin - pev->origin).Normalize() * GetSkillValue("controller_speedball");
 					}
 					else
 					{
 						UTIL_MakeVectors(pev->angles);
-						vecDir = gpGlobals->v_forward * gSkillData.controllerSpeedBall;
+						vecDir = gpGlobals->v_forward * GetSkillValue("controller_speedball");
 					}
 				}
 				else if (m_hEnemy != 0)
@@ -656,14 +665,16 @@ void CController::RunTask( Task_t *pTask )
 					{
 						m_vecEstVelocity = m_vecEstVelocity * 0.8f;
 					}
-					vecDir = Intersect( vecSrc, m_hEnemy->BodyTarget( pev->origin ), m_vecEstVelocity, gSkillData.controllerSpeedBall );
+					vecDir = Intersect( vecSrc, m_hEnemy->BodyTarget( pev->origin ), m_vecEstVelocity, GetSkillValue("controller_speedball") );
 				}
 				float delta = 0.03490f; // +-2 degree
-				vecDir = vecDir + Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * gSkillData.controllerSpeedBall;
+				vecDir += Vector( RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ), RANDOM_FLOAT( -delta, delta ) ) * GetSkillValue("controller_speedball");
 
-				vecSrc = vecSrc + vecDir * ( gpGlobals->time - m_flShootTime );
-				CBaseMonster *pBall = (CBaseMonster*)Create( "controller_energy_ball", vecSrc, pev->angles, edict() );
-				pBall->pev->velocity = vecDir;
+				vecSrc += vecDir * ( gpGlobals->time - m_flShootTime );
+
+				ProjectileParameters projectileParams("controller_energy_ball", vecSrc, pev->angles, vecDir.Normalize(), this, GetProjectileOverrides());
+				projectileParams.speedOverride = vecDir.Length();
+				CreateAndLaunchAsProjectile(projectileParams);
 			}
 			m_flShootTime += 0.2f;
 		}
@@ -674,7 +685,7 @@ void CController::RunTask( Task_t *pTask )
 			m_iBallTime[0] = m_flShootEnd;
 			m_iBall[1] = 64;
 			m_iBallTime[1] = m_flShootEnd;
-			m_fInCombat = FALSE;
+			m_fInCombat = false;
 		}
 	}
 
@@ -692,7 +703,7 @@ void CController::RunTask( Task_t *pTask )
 
 		if( m_fSequenceFinished )
 		{
-			m_fInCombat = FALSE;
+			m_fInCombat = false;
 		}
 
 		CSquadMonster::RunTask( pTask );
@@ -704,14 +715,14 @@ void CController::RunTask( Task_t *pTask )
 				pev->sequence = LookupActivity( ACT_RANGE_ATTACK1 );
 				pev->frame = 0;
 				ResetSequenceInfo();
-				m_fInCombat = TRUE;
+				m_fInCombat = true;
 			}
 			else if( HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) )
 			{
 				pev->sequence = LookupActivity( ACT_RANGE_ATTACK2 );
 				pev->frame = 0;
 				ResetSequenceInfo();
-				m_fInCombat = TRUE;
+				m_fInCombat = true;
 			}
 			else
 			{
@@ -737,7 +748,7 @@ void CController::RunTask( Task_t *pTask )
 // monster's member function to get a pointer to a schedule
 // of the proper type.
 //=========================================================
-Schedule_t *CController::GetSchedule( void )
+Schedule_t *CController::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
@@ -793,27 +804,27 @@ Schedule_t *CController::GetScheduleOfType( int Type )
 // CheckRangeAttack1  - shoot a bigass energy ball out of their head
 //
 //=========================================================
-BOOL CController::CheckRangeAttack1( float flDot, float flDist )
+bool CController::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( flDot > 0.5f && flDist > 256.0f && flDist <= 2048.0f )
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
-BOOL CController::CheckRangeAttack2( float flDot, float flDist )
+bool CController::CheckRangeAttack2( float flDot, float flDist )
 {
 	if( flDot > 0.5f && flDist > 64.0f && flDist <= 2048.0f )
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
-BOOL CController::CheckMeleeAttack1( float flDot, float flDist )
+bool CController::CheckMeleeAttack1( float flDot, float flDist )
 {
-	return FALSE;
+	return false;
 }
 
 void CController::SetActivity( Activity NewActivity )
@@ -834,7 +845,7 @@ void CController::SetActivity( Activity NewActivity )
 //=========================================================
 // RunAI
 //=========================================================
-void CController::RunAI( void )
+void CController::RunAI()
 {
 	CBaseMonster::RunAI();
 	Vector vecStart, angleGun;
@@ -846,10 +857,10 @@ void CController::RunAI( void )
 	{
 		if( m_pBall[i] == NULL )
 		{
-			m_pBall[i] = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
-			m_pBall[i]->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
-			m_pBall[i]->SetAttachment( edict(), ( i + 3 ) );
-			m_pBall[i]->SetScale( 1.0f );
+
+			m_pBall[i] = CreateSpriteFromVisual(GetVisual(energyBallVisual), pev->origin);
+			if (m_pBall[i])
+				m_pBall[i]->SetAttachment( edict(), ( i + 3 ) );
 		}
 
 		float t = m_iBallTime[i] - gpGlobals->time;
@@ -860,30 +871,25 @@ void CController::RunAI( void )
 
 		m_iBallCurrent[i] += ( m_iBall[i] - m_iBallCurrent[i] ) * t;
 
-		m_pBall[i]->SetBrightness( m_iBallCurrent[i] );
+		if (m_pBall[i])
+			m_pBall[i]->SetBrightness( m_iBallCurrent[i] );
 
 		GetAttachment( i + 2, vecStart, angleGun );
-		UTIL_SetOrigin( m_pBall[i]->pev, vecStart );
 
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_ELIGHT );
-			WRITE_SHORT( entindex() + 0x1000 * ( i + 3 ) );		// entity, attachment
-			WRITE_COORD( vecStart.x );		// origin
-			WRITE_COORD( vecStart.y );
-			WRITE_COORD( vecStart.z );
-			WRITE_COORD( m_iBallCurrent[i] / 8 );	// radius
-			WRITE_BYTE( 255 );	// R
-			WRITE_BYTE( 192 );	// G
-			WRITE_BYTE( 64 );	// B
-			WRITE_BYTE( 5 );	// life * 10
-			WRITE_COORD( 0 ); // decay
-		MESSAGE_END();
+		if (m_pBall[i])
+			UTIL_SetOrigin( m_pBall[i]->pev, vecStart );
+
+		const Visual* pVisual = GetVisual(energyBallLightVisual);
+		if (pVisual)
+		{
+			Visual visual = *pVisual;
+			visual.radius = m_iBallCurrent[i] / 8;
+			SendEntLight(entindex(), vecStart, &visual, i+3);
+		}
 	}
 }
 
-extern void DrawRoute( entvars_t *pev, WayPoint_t *m_Route, int m_iRouteIndex, int r, int g, int b );
-
-void CController::Stop( void )
+void CController::Stop()
 { 
 	m_IdealActivity = GetStoppedActivity(); 
 }
@@ -1068,14 +1074,9 @@ void CController::Move( float flInterval )
 	}
 }
 
-BOOL CController::ShouldAdvanceRoute( float flWaypointDist )
+bool CController::ShouldAdvanceRoute( float flWaypointDist )
 {
-	if( flWaypointDist <= 32.0f )
-	{
-		return TRUE;
-	}
-
-	return FALSE;
+	return flWaypointDist <= 32.0f;
 }
 
 int CController::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist )
@@ -1121,10 +1122,11 @@ void CController::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, fl
 class CControllerDead : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MILITARY; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/controller.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MILITARY; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 };
 
 const char* CControllerDead::getPos(int pos) const
@@ -1134,9 +1136,9 @@ const char* CControllerDead::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_alien_controller_dead, CControllerDead )
 
-void CControllerDead :: Spawn( )
+void CControllerDead::Spawn()
 {
-	SpawnHelper("models/controller.mdl", BLOOD_COLOR_YELLOW, gSkillData.controllerHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("controller_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }
@@ -1146,34 +1148,82 @@ void CControllerDead :: Spawn( )
 //=========================================================
 class CControllerHeadBall : public CBaseMonster
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT HuntThink( void );
-	void EXPORT DieThink( void );
+public:
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT HuntThink();
+	void EXPORT DieThink();
 	void EXPORT BounceTouch( CBaseEntity *pOther );
 	void MovetoTarget( Vector vecTarget );
-	void Crawl( void );
-	int m_flNextAttack;
+	void Crawl();
+	void MakeTraceBeam(const Vector& vecSrc);
+
 	Vector m_vecIdeal;
 	EHANDLE m_hOwner;
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	static const NamedSoundScript electroSoundScript;
+	static const NamedVisual headBallVisual;
+	static const NamedVisual headBallBeamVisual;
+	static const NamedVisual headBallLightVisual;
+
+private:
+	int m_maxFrame;
+	void SetMaxFrame() {
+		if (pev->modelindex)
+		{
+			m_maxFrame = MODEL_FRAMES(pev->modelindex) - 1;
+		}
+	}
 };
 
 LINK_ENTITY_TO_CLASS( controller_head_ball, CControllerHeadBall )
 
-void CControllerHeadBall::Spawn( void )
+TYPEDESCRIPTION	CControllerHeadBall::m_SaveData[] =
+{
+	DEFINE_FIELD( CControllerHeadBall, m_hOwner, FIELD_EHANDLE ),
+};
+
+IMPLEMENT_SAVERESTORE( CControllerHeadBall, CBaseMonster )
+
+const NamedSoundScript CControllerHeadBall::electroSoundScript = {
+	CHAN_STATIC,
+	{"weapons/electro4.wav"},
+	0.5f,
+	ATTN_NORM,
+	IntRange(140, 160),
+	"Controller.HeadElectro"
+};
+
+const NamedVisual CControllerHeadBall::headBallVisual = BuildVisual("Controller.HeadBall")
+		.RenderMode(kRenderTransAdd)
+		.Scale(2.0f)
+		.Mixin(&sharedEnergyBallVisual);
+
+const NamedVisual CControllerHeadBall::headBallBeamVisual = BuildVisual("Controller.HeadBallBeam")
+		.Model(g_pModelNameLaser)
+		.RenderColor(255, 255, 255)
+		.Alpha(255)
+		.BeamParams(20, 0, 10)
+		.Framerate(10.f)
+		.Life(0.3f);
+
+const NamedVisual CControllerHeadBall::headBallLightVisual = BuildVisual("Controller.HeadBallLight")
+		.RenderColor(255, 255, 255)
+		.Radius(16)
+		.Life(0.2f);
+
+void CControllerHeadBall::Spawn()
 {
 	Precache();
 	// motor
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT( pev ), "sprites/xspark4.spr" );
-	pev->rendermode = kRenderTransAdd;
-	pev->rendercolor.x = 255;
-	pev->rendercolor.y = 255;
-	pev->rendercolor.z = 255;
-	pev->renderamt = 255;
-	pev->scale = 2.0f;
+	ApplyVisualWithOwn(GetVisual(headBallVisual));
 
 	UTIL_SetSize(pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1187,46 +1237,46 @@ void CControllerHeadBall::Spawn( void )
 
 	m_hOwner = Instance( pev->owner );
 	pev->dmgtime = gpGlobals->time;
+
+	SetMaxFrame();
 }
 
-void CControllerHeadBall::Precache( void )
+void CControllerHeadBall::Precache()
 {
-	PRECACHE_MODEL( "sprites/xspark1.spr" );
-	PRECACHE_SOUND( "debris/zap4.wav" );
-	PRECACHE_SOUND( "weapons/electro4.wav" );
+	RegisterVisualAsMineOwn(headBallVisual);
+	RegisterVisual(headBallBeamVisual);
+	RegisterVisual(headBallLightVisual);
+	RegisterAndPrecacheSoundScript(electroSoundScript);
+	SetMaxFrame();
 }
 
-void CControllerHeadBall::HuntThink( void )
+void CControllerHeadBall::HuntThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
+
 	pev->renderamt -= 5;
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_ELIGHT );
-		WRITE_SHORT( entindex() );		// entity, attachment
-		WRITE_COORD( pev->origin.x );		// origin
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z );
-		WRITE_COORD( pev->renderamt / 16 );	// radius
-		WRITE_BYTE( 255 );	// R
-		WRITE_BYTE( 255 );	// G
-		WRITE_BYTE( 255 );	// B
-		WRITE_BYTE( 2 );	// life * 10
-		WRITE_COORD( 0 ); // decay
-	MESSAGE_END();
-
 	// check world boundaries
-	if( gpGlobals->time - pev->dmgtime > 5 || pev->renderamt < 64 || m_hEnemy == 0 || m_hOwner == 0 || pev->origin.x < -4096 || pev->origin.x > 4096 || pev->origin.y < -4096 || pev->origin.y > 4096 || pev->origin.z < -4096 || pev->origin.z > 4096 )
+	if( gpGlobals->time - pev->dmgtime > 5 || pev->renderamt < 64 || m_hEnemy == 0 || m_hOwner == 0 || !IsInWorld() )
 	{
 		SetTouch( NULL );
 		UTIL_Remove( this );
 		return;
 	}
 
+	const Visual* pVisual = GetVisual(headBallLightVisual);
+	if (pVisual)
+	{
+		Visual visual = *pVisual;
+		visual.radius = (int)(pev->renderamt / 16);
+		SendEntLight(entindex(), pev->origin, &visual);
+	}
+
 	MovetoTarget( m_hEnemy->Center() );
 
-	if( ( m_hEnemy->Center() - pev->origin ).Length() < 64 )
+	if( ( m_hEnemy->Center() - pev->origin ).IsLengthLessThan(64) )
 	{
 		TraceResult tr;
 
@@ -1235,31 +1285,11 @@ void CControllerHeadBall::HuntThink( void )
 		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 		if( pEntity != NULL && pEntity->pev->takedamage )
 		{
-			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, gSkillData.controllerDmgZap, pev->velocity, &tr, DMG_SHOCK);
+			pEntity->ApplyTraceAttack(pev, m_hOwner->pev, DamageInfo{GetSkillValue("controller_dmgzap"), DMG_SHOCK}, pev->velocity.Normalize(), &tr);
 		}
 
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_BEAMENTPOINT );
-			WRITE_SHORT( entindex() );
-			WRITE_COORD( tr.vecEndPos.x );
-			WRITE_COORD( tr.vecEndPos.y );
-			WRITE_COORD( tr.vecEndPos.z );
-			WRITE_SHORT( g_sModelIndexLaser );
-			WRITE_BYTE( 0 ); // frame start
-			WRITE_BYTE( 10 ); // framerate
-			WRITE_BYTE( 3 ); // life
-			WRITE_BYTE( 20 );  // width
-			WRITE_BYTE( 0 );   // noise
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 255 );	// brightness
-			WRITE_BYTE( 10 );		// speed
-		MESSAGE_END();
-
-		UTIL_EmitAmbientSound( ENT( pev ), tr.vecEndPos, "weapons/electro4.wav", 0.5f, ATTN_NORM, 0, RANDOM_LONG( 140, 160 ) );
-
-		m_flNextAttack = gpGlobals->time + 3.0f;
+		MakeTraceBeam(tr.vecEndPos);
+		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
 
 		SetThink( &CControllerHeadBall::DieThink );
 		pev->nextthink = gpGlobals->time + 0.3f;
@@ -1268,7 +1298,7 @@ void CControllerHeadBall::HuntThink( void )
 	//Crawl();
 }
 
-void CControllerHeadBall::DieThink( void )
+void CControllerHeadBall::DieThink()
 {
 	UTIL_Remove( this );
 }
@@ -1291,29 +1321,17 @@ void CControllerHeadBall::MovetoTarget( Vector vecTarget )
 	pev->velocity = m_vecIdeal;
 }
 
-void CControllerHeadBall::Crawl( void )
+void CControllerHeadBall::Crawl()
 {
 	Vector vecAim = Vector( RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ), RANDOM_FLOAT( -1.0f, 1.0f ) ).Normalize();
 	Vector vecPnt = pev->origin + pev->velocity * 0.3f + vecAim * 64.0f;
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMENTPOINT );
-		WRITE_SHORT( entindex() );
-		WRITE_COORD( vecPnt.x );
-		WRITE_COORD( vecPnt.y );
-		WRITE_COORD( vecPnt.z );
-		WRITE_SHORT( g_sModelIndexLaser );
-		WRITE_BYTE( 0 ); // frame start
-		WRITE_BYTE( 10 ); // framerate
-		WRITE_BYTE( 3 ); // life
-		WRITE_BYTE( 20 );  // width
-		WRITE_BYTE( 0 );   // noise
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 255 );	// brightness
-		WRITE_BYTE( 10 );		// speed
-	MESSAGE_END();
+	MakeTraceBeam(vecPnt);
+}
+
+void CControllerHeadBall::MakeTraceBeam(const Vector &vecSrc)
+{
+	SendBeam(entindex(), vecSrc, GetVisual(headBallBeamVisual));
 }
 
 void CControllerHeadBall::BounceTouch( CBaseEntity *pOther )
@@ -1331,30 +1349,65 @@ void CControllerHeadBall::BounceTouch( CBaseEntity *pOther )
 
 class CControllerZapBall : public CBaseMonster
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT AnimateThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void EXPORT AnimateThink();
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
 
 	EHANDLE m_hOwner;
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	static const NamedSoundScript electroSoundScript;
+	static const NamedVisual zapBallVisual;
+
+private:
+	int m_maxFrame; // don't save
+	void SetMaxFrame() {
+		if (pev->modelindex)
+		{
+			m_maxFrame = MODEL_FRAMES(pev->modelindex) - 1;
+		}
+	}
 };
 
 LINK_ENTITY_TO_CLASS( controller_energy_ball, CControllerZapBall )
 
-void CControllerZapBall::Spawn( void )
+TYPEDESCRIPTION	CControllerZapBall::m_SaveData[] =
+{
+	DEFINE_FIELD( CControllerZapBall, m_hOwner, FIELD_EHANDLE ),
+};
+
+IMPLEMENT_SAVERESTORE( CControllerZapBall, CBaseMonster )
+
+const NamedSoundScript CControllerZapBall::electroSoundScript = {
+	CHAN_STATIC,
+	{"weapons/electro4.wav"},
+	0.3f,
+	ATTN_NORM,
+	IntRange(90, 99),
+	"Controller.ZapElectro"
+};
+
+const NamedVisual CControllerZapBall::zapBallVisual = BuildVisual::Animated("Controller.ZapBall")
+		.RenderMode(kRenderTransAdd)
+		.Scale(0.5f)
+		.Mixin(&sharedEnergyBallVisual);
+
+void CControllerZapBall::Spawn()
 {
 	Precache();
 	// motor
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL( ENT( pev ), "sprites/xspark4.spr" );
-	pev->rendermode = kRenderTransAdd;
-	pev->rendercolor.x = 255;
-	pev->rendercolor.y = 255;
-	pev->rendercolor.z = 255;
-	pev->renderamt = 255;
-	pev->scale = 0.5f;
+	ApplyVisualWithOwn(GetVisual(zapBallVisual));
 
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -1365,22 +1418,31 @@ void CControllerZapBall::Spawn( void )
 	m_hOwner = Instance( pev->owner );
 	pev->dmgtime = gpGlobals->time; // keep track of when ball spawned
 	pev->nextthink = gpGlobals->time + 0.1f;
+
+	SetMaxFrame();
+	SetDefaultProjectileDamage(GetSkillValue("controller_dmgball"));
 }
 
-void CControllerZapBall::Precache( void )
+void CControllerZapBall::Precache()
 {
-	PRECACHE_MODEL( "sprites/xspark4.spr" );
-	// PRECACHE_SOUND( "debris/zap4.wav" );
-	// PRECACHE_SOUND( "weapons/electro4.wav" );
+	RegisterVisualAsMineOwn(zapBallVisual);
+	RegisterAndPrecacheSoundScript(electroSoundScript);
+	SetMaxFrame();
 }
 
-void CControllerZapBall::AnimateThink( void )
+void CControllerZapBall::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(GetSkillValue("controller_speedball"), params);
+	SetMyProjectileEffectFlags();
+}
+
+void CControllerZapBall::AnimateThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 
-	pev->frame = ( (int)pev->frame + 1 ) % 11;
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 
-	if( gpGlobals->time - pev->dmgtime > 5 || pev->velocity.Length() < 10.0f )
+	if( gpGlobals->time - pev->dmgtime > 5 || pev->velocity.IsLengthLessThan(10.0f) )
 	{
 		SetTouch( NULL );
 		UTIL_Remove( this );
@@ -1404,10 +1466,316 @@ void CControllerZapBall::ExplodeTouch( CBaseEntity *pOther )
 			pevOwner = pev;
 		}
 
-		pOther->ApplyTraceAttack(pev, pevOwner, gSkillData.controllerDmgBall, pev->velocity.Normalize(), &tr, DMG_ENERGYBEAM);
+		pOther->ApplyTraceAttack(pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
 
-		UTIL_EmitAmbientSound( ENT( pev ), tr.vecEndPos, "weapons/electro4.wav", 0.3f, ATTN_NORM, 0, RANDOM_LONG( 90, 99 ) );
+		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
 	}
 
 	UTIL_Remove( this );
 }
+
+class CZapBallTrap : public CBaseEntity
+{
+public:
+	void KeyValue( KeyValueData* pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
+	void Animate();
+	void EXPORT DetectThink();
+	void EXPORT Materialize();
+	void LaunchBall(CBaseEntity* pTarget);
+	void EXPORT EnableUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+
+	float IdleThinkPeriod() {
+		return 0.2f;
+	}
+	float AlertThinkPeriod() {
+		return 0.1f;
+	}
+	float ThinkPeriod() const {
+		return pev->frags;
+	}
+	void SetThinkPeriod(float value) const {
+		pev->frags = value;
+	}
+
+	float SenseRadius() {
+		return pev->health > 0.0f ? pev->health : GetSkillValue("zaptrap_sense_radius");
+	}
+
+	bool IncreaseAwareness(CBaseEntity *pTarget, int value);
+	void DecreaseAwareness();
+	void AwareEffect();
+	int CurrentAwareness() const {
+		return pev->button;
+	}
+	int MaxAwareness() const {
+		return 20;
+	}
+
+	int BaseBrigthness() const {
+		return m_baseBrightness;
+	}
+	int MaxBrightness() const {
+		return m_maxBrightness;
+	}
+
+	float BaseScale() const {
+		return m_baseScale;
+	}
+	float MaxScale() const {
+		return m_maxScale;
+	}
+
+	float RespawnTime() {
+		return pev->dmg_take > 0 ? pev->dmg_take : GetSkillValue("zaptrap_respawn_time");
+	}
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	static const NamedSoundScript detectSoundScript;
+	static const NamedSoundScript launchSoundScript;
+
+	static const NamedVisual zapBallVisual;
+
+private:
+	float m_baseScale;
+	float m_maxScale;
+	int m_baseBrightness;
+	int m_maxBrightness;
+	int m_maxFrame;
+	float m_lastTime;
+	float m_detectThinkTime;
+	void SetMaxFrame() {
+		if (pev->modelindex)
+		{
+			m_maxFrame = MODEL_FRAMES(pev->modelindex) - 1;
+		}
+	}
+};
+
+LINK_ENTITY_TO_CLASS( env_energy_ball_trap, CZapBallTrap )
+
+TYPEDESCRIPTION	CZapBallTrap::m_SaveData[] =
+{
+	DEFINE_FIELD( CZapBallTrap, m_lastTime, FIELD_TIME ),
+	DEFINE_FIELD( CZapBallTrap, m_detectThinkTime, FIELD_TIME ),
+};
+
+IMPLEMENT_SAVERESTORE( CZapBallTrap, CBaseEntity )
+
+const NamedSoundScript CZapBallTrap::detectSoundScript = {
+	CHAN_ITEM,
+	{"ambience/alien_frantic.wav"},
+	0.8f,
+	ATTN_STATIC,
+	110,
+	"ZapTrap.Detect"
+};
+
+const NamedSoundScript CZapBallTrap::launchSoundScript = {
+	CHAN_WEAPON,
+	{"debris/beamstart4.wav"},
+	1.0f,
+	ATTN_STATIC,
+	"ZapTrap.Launch"
+};
+
+const NamedVisual CZapBallTrap::zapBallVisual = BuildVisual::Animated("ZapTrap.EnergyBall")
+		.Scale(1.0f)
+		.Alpha(80)
+		.Mixin(&CControllerHeadBall::headBallVisual);
+
+void CZapBallTrap::KeyValue( KeyValueData *pkvd )
+{
+	if (FStrEq(pkvd->szKeyName, "wait"))
+	{
+		pev->dmg_take = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "radius"))
+	{
+		pev->health = atof(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CBaseEntity::KeyValue( pkvd );
+}
+
+void CZapBallTrap::Precache()
+{
+	UTIL_PrecacheOther("controller_head_ball", GetProjectileOverrides());
+
+	RegisterAndPrecacheSoundScript(detectSoundScript);
+	RegisterAndPrecacheSoundScript(launchSoundScript);
+
+	const Visual* visual = RegisterVisual(zapBallVisual);
+	m_baseScale = RandomizeNumberFromRange(visual->scale);
+	m_baseBrightness = RandomizeNumberFromRange(visual->renderamt);
+
+	const Visual* headVisual = GetVisual(CControllerHeadBall::headBallVisual);
+	m_maxScale = RandomizeNumberFromRange(headVisual->scale);
+	m_maxBrightness = RandomizeNumberFromRange(headVisual->renderamt);
+
+	SetMaxFrame();
+}
+
+void CZapBallTrap::Spawn()
+{
+	Precache();
+
+	pev->movetype = MOVETYPE_NONE;
+	pev->solid = SOLID_NOT;
+
+	const Visual* visual = GetVisual(zapBallVisual);
+
+	ApplyVisual(visual);
+
+	UTIL_SetSize(pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+	UTIL_SetOrigin( pev, pev->origin );
+
+	m_baseScale = RandomizeNumberFromRange(visual->scale);
+
+	if (FStringNull(pev->targetname))
+	{
+		Materialize();
+	}
+	else
+	{
+		pev->effects |= EF_NODRAW;
+		SetUse(&CZapBallTrap::EnableUse);
+	}
+
+	SetMaxFrame();
+}
+
+void CZapBallTrap::EnableUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	if (useType != USE_OFF)
+	{
+		Materialize();
+		SetUse(NULL);
+	}
+}
+
+void CZapBallTrap::Animate()
+{
+	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate, &m_lastTime);
+}
+
+void CZapBallTrap::DetectThink()
+{
+	Animate();
+
+	const float detectThinkPeriod = ThinkPeriod();
+
+	if (m_detectThinkTime <= gpGlobals->time)
+	{
+		m_detectThinkTime = gpGlobals->time + detectThinkPeriod;
+
+		const float senseRadius = SenseRadius();
+		const float fastSenseRadius = senseRadius / 3.0f;
+
+		CBaseEntity *pFoundTarget = NULL;
+		for( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			if (pPlayer && pPlayer->IsPlayer())
+			{
+				const float distance = (pPlayer->pev->origin - pev->origin).Length();
+				if (distance <= senseRadius)
+				{
+					TraceResult tr;
+					UTIL_TraceLine(pev->origin, pPlayer->Center(), dont_ignore_monsters, ENT(pev), &tr);
+					CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+					if (pEntity == pPlayer)
+					{
+						pFoundTarget = pPlayer;
+						bool ballLaunched = IncreaseAwareness(pPlayer, distance <= fastSenseRadius ? 4 : 2);
+						if (ballLaunched)
+							return;
+					}
+				}
+			}
+		}
+		if (!pFoundTarget)
+		{
+			DecreaseAwareness();
+		}
+	}
+	pev->nextthink = gpGlobals->time + Q_min(detectThinkPeriod, 0.1f);
+}
+
+void CZapBallTrap::LaunchBall(CBaseEntity *pTarget)
+{
+	pev->effects |= EF_NODRAW;
+	SetThink(&CZapBallTrap::Materialize);
+	pev->nextthink = gpGlobals->time + RespawnTime();
+
+	EmitSoundScript(launchSoundScript);
+
+	CBaseMonster *pBall = (CBaseMonster*)CBaseEntity::Create( "controller_head_ball", pev->origin, pev->angles, edict(), GetProjectileOverrides() );
+
+	pBall->pev->velocity = Vector( 0.0f, 0.0f, 32.0f );
+	pBall->m_hEnemy = pTarget;
+}
+
+void CZapBallTrap::Materialize()
+{
+	pev->renderamt = BaseBrigthness();
+	pev->scale = BaseScale();
+	pev->button = 0;
+	SetThinkPeriod(IdleThinkPeriod());
+	pev->effects &= ~EF_NODRAW;
+	pev->frame = 0;
+	SetThink( &CZapBallTrap::DetectThink );
+	m_detectThinkTime = pev->nextthink = gpGlobals->time + 0.1f;
+	m_lastTime = gpGlobals->time;
+}
+
+bool CZapBallTrap::IncreaseAwareness(CBaseEntity *pTarget, int value)
+{
+	const int prevAwareness = CurrentAwareness();
+	pev->button += value;
+	const int newAwareness = pev->button;
+
+	if (newAwareness >= MaxAwareness())
+	{
+		StopSoundScript(detectSoundScript);
+		LaunchBall(pTarget);
+		return true;
+	}
+	if (prevAwareness == 0)
+	{
+		SetThinkPeriod(AlertThinkPeriod());
+		EmitSoundScript(detectSoundScript);
+	}
+
+	AwareEffect();
+
+	return false;
+}
+
+void CZapBallTrap::DecreaseAwareness()
+{
+	if (pev->button > 0)
+	{
+		pev->button--;
+		AwareEffect();
+		if (pev->button == 0)
+		{
+			StopSoundScript(detectSoundScript);
+			SetThinkPeriod(IdleThinkPeriod());
+		}
+	}
+}
+
+void CZapBallTrap::AwareEffect()
+{
+	const float factor = (float)CurrentAwareness() / (float)MaxAwareness();
+	pev->scale = BaseScale() + (MaxScale() - BaseScale()) * factor;
+	pev->renderamt = BaseBrigthness() + (MaxBrightness() - BaseBrigthness()) * factor;
+}
+

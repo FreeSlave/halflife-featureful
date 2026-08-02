@@ -23,8 +23,8 @@
 #include	"cbase.h"
 #include	"monsters.h"
 #include	"schedule.h"
-#include	"mod_features.h"
 #include	"game.h"
+#include	"common_soundscripts.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -38,92 +38,90 @@
 class CZombie : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Zombie"; }
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int IgnoreConditions( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Zombie"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int IgnoreConditions() override;
+	Schedule_t* GetScheduleOfType(int Type) override;
 
 	float m_flNextFlinch;
 
-	void PainSound( void );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSound( void );
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void DeathSound() override;
+	void AlertSound() override;
+	void IdleSound() override;
+	void AttackSound();
 
-	static const char *pAttackSounds[];
-	static const char *pIdleSounds[];
-	static const char *pAlertSounds[];
-	static const char *pPainSounds[];
-	static const char *pAttackHitSounds[];
-	static const char *pAttackMissSounds[];
+	static const NamedSoundScript idleSoundScript;
+	static const NamedSoundScript alertSoundScript;
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript attackSoundScript;
+	static constexpr const char* attackHitSoundScript = "Zombie.AttackHit";
+	static constexpr const char* attackMissSoundScript = "Zombie.AttackMiss";
 
 	// No range attacks
-	BOOL CheckRangeAttack1( float flDot, float flDist ) { return FALSE; }
-	BOOL CheckRangeAttack2( float flDot, float flDist ) { return FALSE; }
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	bool CheckRangeAttack1( float flDot, float flDist ) override { return false; }
+	bool CheckRangeAttack2( float flDot, float flDist ) override { return false; }
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
-	virtual float OneSlashDamage() { return gSkillData.zombieDmgOneSlash; }
-	virtual float BothSlashDamage() { return gSkillData.zombieDmgBothSlash; }
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
+	virtual float OneSlashDamage() { return GetSkillValue("zombie_dmg_one_slash"); }
+	virtual float BothSlashDamage() { return GetSkillValue("zombie_dmg_both_slash"); }
 protected:
-	void SlashAttack( float dmg, float rightScalar, float forwardScalar, float punchz );
+	void SlashAttack(const TraceHullAttackParams& params);
 	void ZombieSpawnHelper(const char* modelName, float health);
 	void PrecacheSounds();
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie, CZombie )
 
-const char *CZombie::pAttackHitSounds[] =
-{
-	"zombie/claw_strike1.wav",
-	"zombie/claw_strike2.wav",
-	"zombie/claw_strike3.wav",
+const NamedSoundScript CZombie::idleSoundScript = {
+	CHAN_VOICE,
+	{"zombie/zo_idle1.wav", "zombie/zo_idle2.wav", "zombie/zo_idle3.wav", "zombie/zo_idle4.wav"},
+	IntRange(95, 104),
+	"Zombie.Idle"
 };
 
-const char *CZombie::pAttackMissSounds[] =
-{
-	"zombie/claw_miss1.wav",
-	"zombie/claw_miss2.wav",
+const NamedSoundScript CZombie::alertSoundScript = {
+	CHAN_VOICE,
+	{"zombie/zo_alert10.wav", "zombie/zo_alert20.wav", "zombie/zo_alert30.wav"},
+	IntRange(95, 104),
+	"Zombie.Alert"
 };
 
-const char *CZombie::pAttackSounds[] =
-{
-	"zombie/zo_attack1.wav",
-	"zombie/zo_attack2.wav",
+const NamedSoundScript CZombie::painSoundScript = {
+	CHAN_VOICE,
+	{"zombie/zo_pain1.wav", "zombie/zo_pain2.wav"},
+	IntRange(95, 104),
+	"Zombie.Pain"
 };
 
-const char *CZombie::pIdleSounds[] =
-{
-	"zombie/zo_idle1.wav",
-	"zombie/zo_idle2.wav",
-	"zombie/zo_idle3.wav",
-	"zombie/zo_idle4.wav",
+const NamedSoundScript CZombie::dieSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Zombie.Die"
 };
 
-const char *CZombie::pAlertSounds[] =
-{
-	"zombie/zo_alert10.wav",
-	"zombie/zo_alert20.wav",
-	"zombie/zo_alert30.wav",
-};
-
-const char *CZombie::pPainSounds[] =
-{
-	"zombie/zo_pain1.wav",
-	"zombie/zo_pain2.wav",
+const NamedSoundScript CZombie::attackSoundScript = {
+	CHAN_VOICE,
+	{"zombie/zo_attack1.wav", "zombie/zo_attack2.wav"},
+	IntRange(95, 104),
+	"Zombie.Attack"
 };
 
 //=========================================================
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CZombie::DefaultClassify( void )
+int CZombie::DefaultClassify()
 {
 	return	CLASS_ALIEN_MONSTER;
 }
@@ -132,84 +130,66 @@ int CZombie::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CZombie::SetYawSpeed( void )
+void CZombie::SetYawSpeed()
 {
 	pev->yaw_speed = 120;
 }
 
-int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+TakeDamageResult CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	if( bitsDamageType == DMG_BULLET )
+	if( damageInfo.type == DMG_BULLET && damageInfo.gibPolicy != GIB_NEVER )
 	{
-		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
-		vecDir = vecDir.Normalize();
-		float flForce = DamageForce( flDamage );
+		const Vector vecDir = (pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f).Normalize();
+		float flForce = DamageForce( damageInfo.damage );
 		pev->velocity = pev->velocity + vecDir * flForce;
 #if 0
 		// Take 30% damage from bullets
 		flDamage *= 0.3f;
 #endif
 	}
-
-	// HACK HACK -- until we fix this.
-	if( IsAlive() )
-		PainSound();
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
-void CZombie::PainSound( void )
+PainSoundRule CZombie::DefaultPainSoundRule()
 {
-	int pitch = 95 + RANDOM_LONG( 0, 9 );
-
-	if( RANDOM_LONG( 0, 5 ) < 2 )
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pPainSounds ), 1.0, ATTN_NORM, 0, pitch );
+	PainSoundRule rule;
+	rule.allowWhenDying = true;
+	rule.chance = 1.0f / 3.0f;
+	return rule;
 }
 
-void CZombie::AlertSound( void )
+void CZombie::PainSound()
 {
-	int pitch = 95 + RANDOM_LONG( 0, 9 );
-
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pAlertSounds ), 1.0, ATTN_NORM, 0, pitch );
+	EmitSoundScript(painSoundScript);
 }
 
-void CZombie::IdleSound( void )
+void CZombie::DeathSound()
 {
-	int pitch = 95 + RANDOM_LONG( 0, 9 );
-
-	// Play a random idle sound
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pIdleSounds ), 1.0, ATTN_NORM, 0, pitch );
+	EmitSoundScript(dieSoundScript);
 }
 
-void CZombie::AttackSound( void )
+void CZombie::AlertSound()
 {
-	int pitch = 95 + RANDOM_LONG( 0, 9 );
+	EmitSoundScript(alertSoundScript);
+}
 
-	// Play a random attack sound
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pAttackSounds ), 1.0, ATTN_NORM, 0, pitch );
+void CZombie::IdleSound()
+{
+	EmitSoundScript(idleSoundScript);
+}
+
+void CZombie::AttackSound()
+{
+	EmitSoundScript(attackSoundScript);
 }
 
 //=========================================================
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //=========================================================
-void CZombie::SlashAttack(float dmg, float rightScalar, float forwardScalar, float punchz )
+void CZombie::SlashAttack(const TraceHullAttackParams& params)
 {
-	CBaseEntity *pHurt = CheckTraceHullAttack( 70, dmg, DMG_SLASH );
-	if ( pHurt )
-	{
-		if ( pHurt->pev->flags & (FL_MONSTER|FL_CLIENT) )
-		{
-			if (punchz) {
-				pHurt->pev->punchangle.z = punchz;
-			}
-			pHurt->pev->punchangle.x = 5;
-			pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_right * rightScalar + gpGlobals->v_forward * forwardScalar;
-		}
-		// Play a random attack hit sound
-		EMIT_SOUND_DYN ( ENT(pev), CHAN_WEAPON, RANDOM_SOUND_ARRAY(pAttackHitSounds), 1.0, ATTN_NORM, 0, 100 + RANDOM_LONG(-5,5) );
-	}
-	else // Play a random attack miss sound
-		EMIT_SOUND_DYN ( ENT(pev), CHAN_WEAPON, RANDOM_SOUND_ARRAY(pAttackMissSounds), 1.0, ATTN_NORM, 0, 100 + RANDOM_LONG(-5,5) );
+	PerformTraceHullAttack(params);
 
 	if (RANDOM_LONG(0,1))
 		AttackSound();
@@ -220,15 +200,44 @@ void CZombie::HandleAnimEvent( MonsterEvent_t *pEvent )
 	switch( pEvent->event )
 	{
 		case ZOMBIE_AE_ATTACK_RIGHT:
-			SlashAttack(OneSlashDamage(), -100, 0, -18 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = OneSlashDamage();
+			params.knockRight = -100;
+			params.punchAngle.z = -18;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		case ZOMBIE_AE_ATTACK_LEFT:
-			SlashAttack(OneSlashDamage(), 100, 0, 18 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = OneSlashDamage();
+			params.knockRight = 100;
+			params.punchAngle.z = 18;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		case ZOMBIE_AE_ATTACK_BOTH:
-			SlashAttack(BothSlashDamage(), 0, -100, 0 );
+		{
+			TraceHullAttackParams params;
+			params.damageInfo.damage = BothSlashDamage();
+			params.knockForward = -100;
+			params.punchAngle.x = 5;
+			params.hitSoundScript = attackHitSoundScript;
+			params.missSoundScript = attackMissSoundScript;
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+			SlashAttack(params);
+		}
 		break;
 
 		default:
@@ -243,16 +252,16 @@ void CZombie::HandleAnimEvent( MonsterEvent_t *pEvent )
 void CZombie::ZombieSpawnHelper(const char* modelName, float health)
 {
 	SetMyModel( modelName );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	SetMyBloodColor( BLOOD_COLOR_GREEN );
+	SetMyBloodColor( BLOOD_COLOR_YELLOW );
 	SetMyHealth( health );
 	pev->view_ofs		= VEC_VIEW;// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
-	m_afCapability		= bits_CAP_DOORS_GROUP;
+	SetMyCanOpenDoors(true);
 
 	MonsterInit();
 }
@@ -260,7 +269,7 @@ void CZombie::ZombieSpawnHelper(const char* modelName, float health)
 void CZombie::Spawn()
 {
 	Precache();
-	ZombieSpawnHelper("models/zombie.mdl", gSkillData.zombieHealth);
+	ZombieSpawnHelper("models/zombie.mdl", GetSkillValue("zombie_health"));
 }
 
 //=========================================================
@@ -268,25 +277,27 @@ void CZombie::Spawn()
 //=========================================================
 void CZombie::Precache()
 {
-	PrecacheMyModel( "models/zombie.mdl" );
+	PrecacheMyModel("models/zombie.mdl");
+	PrecacheMyGibModel();
 	PrecacheSounds();
 }
 
 void CZombie::PrecacheSounds()
 {
-	PRECACHE_SOUND_ARRAY( pAttackHitSounds );
-	PRECACHE_SOUND_ARRAY( pAttackMissSounds );
-	PRECACHE_SOUND_ARRAY( pAttackSounds );
-	PRECACHE_SOUND_ARRAY( pIdleSounds );
-	PRECACHE_SOUND_ARRAY( pAlertSounds );
-	PRECACHE_SOUND_ARRAY( pPainSounds );
+	RegisterAndPrecacheSoundScript(idleSoundScript);
+	RegisterAndPrecacheSoundScript(alertSoundScript);
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(attackSoundScript);
+	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
+	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
 }
 
 //=========================================================
 // AI Schedules Specific to this monster
 //=========================================================
 
-int CZombie::IgnoreConditions( void )
+int CZombie::IgnoreConditions()
 {
 	int iIgnore = CBaseMonster::IgnoreConditions();
 
@@ -310,17 +321,27 @@ int CZombie::IgnoreConditions( void )
 	return iIgnore;
 }
 
+Schedule_t* CZombie::GetScheduleOfType(int Type)
+{
+	if (Type == SCHED_CHASE_ENEMY_FAILED && HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
+	{
+		return CBaseMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
+	}
+	return CBaseMonster::GetScheduleOfType(Type);
+}
+
 class CDeadZombie : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie.mdl"; }
+	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
-	static const char *m_szPoses[2];
+	const char* getPos(int pos) const override;
+	static const char *m_szPoses[3];
 };
 
-const char *CDeadZombie::m_szPoses[] = { "dieheadshot", "dieforward" };
+const char *CDeadZombie::m_szPoses[] = { "dieheadshot", "dieforward", "slidewall" };
 
 const char* CDeadZombie::getPos(int pos) const
 {
@@ -329,88 +350,87 @@ const char* CDeadZombie::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS( monster_zombie_dead, CDeadZombie )
 
-void CDeadZombie::Spawn( )
+void CDeadZombie::Spawn()
 {
-	SpawnHelper("models/zombie.mdl", BLOOD_COLOR_YELLOW);
+	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 	pev->frame = 255;
 }
 
-#if FEATURE_ZOMBIE_BARNEY
 class CZombieBarney : public CZombie
 {
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
-	const char* DefaultDisplayName() { return "Zombie Barney"; }
-	float OneSlashDamage() { return gSkillData.zombieBarneyDmgOneSlash; }
-	float BothSlashDamage() { return gSkillData.zombieBarneyDmgBothSlash; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
+	float OneSlashDamage() override { return GetSkillValue("zombie_barney_dmg_one_slash"); }
+	float BothSlashDamage() override { return GetSkillValue("zombie_barney_dmg_both_slash"); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_barney, CZombieBarney )
 
 void CZombieBarney::Spawn()
 {
-	Precache( );
-	ZombieSpawnHelper("models/zombie_barney.mdl", gSkillData.zombieBarneyHealth);
+	Precache();
+	ZombieSpawnHelper("models/zombie_barney.mdl", GetSkillValue("zombie_barney_health"));
 }
 
 void CZombieBarney::Precache()
 {
 	PrecacheMyModel("models/zombie_barney.mdl");
+	PrecacheMyGibModel();
 	PrecacheSounds();
 }
 
 class CDeadZombieBarney : public CDeadZombie
 {
 public:
-	void Spawn( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie_barney.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_barney_dead, CDeadZombieBarney )
 
-void CDeadZombieBarney::Spawn( )
+void CDeadZombieBarney::Spawn()
 {
-	SpawnHelper("models/zombie_barney.mdl", BLOOD_COLOR_YELLOW);
+	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 	pev->frame = 255;
 }
-#endif
 
-#if FEATURE_ZOMBIE_SOLDIER
 class CZombieSoldier : public CZombie
 {
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
-	const char* DefaultDisplayName() { return "Zombie Soldier"; }
-	float OneSlashDamage() { return gSkillData.zombieSoldierDmgOneSlash; }
-	float BothSlashDamage() { return gSkillData.zombieSoldierDmgBothSlash; }
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
+	float OneSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_one_slash"); }
+	float BothSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_both_slash"); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_soldier, CZombieSoldier )
 
 void CZombieSoldier::Spawn()
 {
-	Precache( );
-	ZombieSpawnHelper("models/zombie_soldier.mdl", gSkillData.zombieSoldierHealth);
+	Precache();
+	ZombieSpawnHelper("models/zombie_soldier.mdl", GetSkillValue("zombie_soldier_health"));
 }
 
 void CZombieSoldier::Precache()
 {
 	PrecacheMyModel("models/zombie_soldier.mdl");
+	PrecacheMyGibModel();
 	PrecacheSounds();
 }
 
 class CDeadZombieSoldier : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
-	int	DefaultClassify ( void ) { return	CLASS_ALIEN_MONSTER; }
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/zombie_soldier.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
+	int	DefaultClassify () override { return	CLASS_ALIEN_MONSTER; }
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -418,14 +438,13 @@ const char *CDeadZombieSoldier::m_szPoses[] = { "dead_on_back", "dead_on_stomach
 
 const char* CDeadZombieSoldier::getPos(int pos) const
 {
-	return m_szPoses[pos % (sizeof(m_szPoses)/sizeof(const char*))];
+	return m_szPoses[pos % ARRAYSIZE(m_szPoses)];
 }
 
 LINK_ENTITY_TO_CLASS( monster_zombie_soldier_dead, CDeadZombieSoldier )
 
-void CDeadZombieSoldier::Spawn( )
+void CDeadZombieSoldier::Spawn()
 {
-	SpawnHelper("models/zombie_soldier.mdl", BLOOD_COLOR_YELLOW);
+	SpawnHelper(BLOOD_COLOR_YELLOW);
 	MonsterInitDead();
 }
-#endif

@@ -18,24 +18,24 @@
 
 #include "extdll.h"
 
-extern void respawn( entvars_t *pev, BOOL fCopyCorpse );
-extern BOOL ClientConnect( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
+extern void respawn(entvars_t *pev, bool fCopyCorpse );
+extern qboolean ClientConnect( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
 extern void ClientDisconnect( edict_t *pEntity );
 extern void ClientKill( edict_t *pEntity );
 extern void ClientPutInServer( edict_t *pEntity );
 extern void ClientCommand( edict_t *pEntity );
 extern void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer );
 extern void ServerActivate( edict_t *pEdictList, int edictCount, int clientMax );
-extern void ServerDeactivate( void );
-extern void StartFrame( void );
+extern void ServerDeactivate();
+extern void StartFrame();
 extern void PlayerPostThink( edict_t *pEntity );
 extern void PlayerPreThink( edict_t *pEntity );
-extern void ParmsNewLevel( void );
-extern void ParmsChangeLevel( void );
+extern void ParmsNewLevel();
+extern void ParmsChangeLevel();
 
-extern void ClientPrecache( void );
+extern void ClientPrecache();
 
-extern const char *GetGameDescription( void );
+extern const char *GetGameDescription();
 extern void PlayerCustomization( edict_t *pEntity, customization_t *pCust );
 
 extern void SpectatorConnect( edict_t *pEntity );
@@ -47,8 +47,8 @@ extern void Sys_Error( const char *error_string );
 extern void SetupVisibility( edict_t *pViewEntity, edict_t *pClient, unsigned char **pvs, unsigned char **pas );
 extern void UpdateClientData( const struct edict_s *ent, int sendweapons, struct clientdata_s *cd );
 extern int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *host, int hostflags, int player, unsigned char *pSet );
-extern void CreateBaseline( int player, int eindex, struct entity_state_s *baseline, struct edict_s *entity, int playermodelindex, vec3_t player_mins, vec3_t player_maxs );
-extern void RegisterEncoders( void );
+extern void CreateBaseline(int player, int eindex, struct entity_state_s *baseline, struct edict_s *entity, int playermodelindex, Vector* player_mins, Vector* player_maxs );
+extern void RegisterEncoders();
 
 extern int GetWeaponData( struct edict_s *player, struct weapon_data_s *info );
 
@@ -59,9 +59,9 @@ extern int ConnectionlessPacket( const struct netadr_s *net_from, const char *ar
 
 extern int GetHullBounds( int hullnumber, float *mins, float *maxs );
 
-extern void CreateInstancedBaselines( void );
+extern void CreateInstancedBaselines();
 
 extern int InconsistentFile( const edict_t *player, const char *filename, char *disconnect_message );
 
-extern int AllowLagCompensation( void );
+extern int AllowLagCompensation();
 #endif // CLIENT_H

@@ -25,13 +25,14 @@ project (SVDLL)
 
 set (SVDLL_LIBRARY server)
 
+add_definitions(-DSERVER_DLL)
+
 if(NOT MSVC)
 	add_compile_options(-fno-exceptions) # GCC/Clang flag
 	add_compile_options(-fno-rtti) # GCC/Clang flag
 	add_compile_options(-Wno-invalid-offsetof) # GCC/Clang flag
 	add_compile_options(-fvisibility=hidden) # GCC/Clang flag
-	add_definitions(-D_LINUX) # It seems enough for all non-Win32 systems
-	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf )
+	add_definitions(-Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf )
 	if(CMAKE_BUILD_TYPE MATCHES "Release"
 		OR (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo"
 		AND CMAKE_SYSTEM_NAME STREQUAL "Android"))
@@ -39,10 +40,6 @@ if(NOT MSVC)
 		add_compile_options(-fomit-frame-pointer) # GCC/Clang flag
 		add_compile_options(-ftree-vectorize) # GCC/Clang flag
 		add_compile_options(-funsafe-math-optimizations) # GCC/Clang flag
-		if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-			add_compile_options(-O3 -DNDEBUG) # gradle compiles release builds with RelWithDebInfo(-O2 -g) and strips debug symbols.
-			target_link_options(${SVDLL_LIBRARY} PUBLIC "LINKER:-O3")
-		endif()
 	endif()
 else()
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
@@ -50,8 +47,11 @@ endif()
 
 set (SVDLL_SOURCES
 	agrunt.cpp
+	ai_debug.cpp
 	airtank.cpp
 	aflock.cpp
+	ammo_amounts.cpp
+	ammoregistry.cpp
 	ammunition.cpp
 	animating.cpp
 	animation.cpp
@@ -60,12 +60,15 @@ set (SVDLL_SOURCES
 	barney.cpp
 	bigmomma.cpp
 	bloater.cpp
+	blood.cpp
 	bmodels.cpp
 	bullsquid.cpp
 	buttons.cpp
 	cbase.cpp
+	classify.cpp
 	client.cpp
 	combat.cpp
+	common_soundscripts.cpp
 	controller.cpp
 	crossbow.cpp
 	crowbar.cpp
@@ -77,9 +80,12 @@ set (SVDLL_SOURCES
 	eagle.cpp
 	effects.cpp
 	egon.cpp
+	ent_templates.cpp
 	explode.cpp
 	fgrunt.cpp
+	flybee.cpp
 	flyingmonster.cpp
+	followers.cpp
 	followingmonster.cpp
 	func_break.cpp
 	func_tank.cpp
@@ -94,7 +100,9 @@ set (SVDLL_SOURCES
 	glock.cpp
 	gman.cpp
 	gonome.cpp
+	graphic_debug.cpp
 	grapple.cpp
+	grenadelauncher.cpp
 	h_ai.cpp
 	h_battery.cpp
 	h_cine.cpp
@@ -110,8 +118,10 @@ set (SVDLL_SOURCES
 	hornetgun.cpp
 	houndeye.cpp
 	ichthyosaur.cpp
+	inventory.cpp
 	islave.cpp
 	items.cpp
+	kingpin.cpp
 	knife.cpp
 	leech.cpp
 	lights.cpp
@@ -121,24 +131,29 @@ set (SVDLL_SOURCES
 	maprules.cpp
 	massn.cpp
 	medkit.cpp
+	minigun.cpp
 	monstermaker.cpp
 	monsters.cpp
 	monsterstate.cpp
 	mortar.cpp
 	mp5.cpp
 	multiplay_gamerules.cpp
+	nailgun.cpp
 	nihilanth.cpp
 	nodes.cpp
 	nuclearbomb.cpp
+	objecthint_spec.cpp
 	observer.cpp
 	op4mortar.cpp
 	osprey.cpp
+	panthereye.cpp
 	pathcorner.cpp
 	pipewrench.cpp
 	pitdrone.cpp
 	pitworm.cpp
 	plane.cpp
 	plats.cpp
+	player_templates.cpp
 	player.cpp
 	playermonster.cpp
 	python.cpp
@@ -146,9 +161,11 @@ set (SVDLL_SOURCES
 	rgrunt.cpp
 	recruit.cpp
 	roach.cpp
+	robocop.cpp
 	ropes.cpp
 	rpg.cpp
 	satchel.cpp
+	savetitles.cpp
 	schedule.cpp
 	scientist.cpp
 	scripted.cpp
@@ -158,6 +175,7 @@ set (SVDLL_SOURCES
 	shotgun.cpp
 	singleplay_gamerules.cpp
 	skill.cpp
+	skilldata.cpp
 	sniperrifle.cpp
 	sound.cpp
 	soundent.cpp
@@ -169,25 +187,49 @@ set (SVDLL_SOURCES
 	subs.cpp
 	talkmonster.cpp
 	teamplay_gamerules.cpp
-	tempmonster.cpp
 	tentacle.cpp
+	time_based_damage.cpp
+	tor.cpp
 	triggers.cpp
 	tripmine.cpp
 	turret.cpp
 	uzi.cpp
 	util.cpp
 	vehicle.cpp
+	visuals.cpp
+	visuals_utils.cpp
 	voltigore.cpp
+	warpball.cpp
 	weapons.cpp
 	weapons_shared.cpp
+	weapon_tools.cpp
 	world.cpp
 	xen.cpp
 	zombie.cpp
-	../pm_shared/pm_debug.c
-	../pm_shared/pm_math.c
-	../pm_shared/pm_shared.c
-	../game_shared/tex_materials.c
+	../pm_shared/pm_debug.cpp
+	../pm_shared/pm_math.cpp
+	../pm_shared/pm_shared.cpp
+	../game_shared/tex_materials.cpp
 	../game_shared/parsetext.cpp
+	../game_shared/damageinfo.cpp
+	../game_shared/error_collector.cpp
+	../game_shared/file_utils.cpp
+	../game_shared/fx_types.cpp
+	../game_shared/gib.cpp
+	../game_shared/json_config.cpp
+	../game_shared/json_utils.cpp
+	../game_shared/random_utils.cpp
+	../game_shared/schema_definitions.cpp
+	../game_shared/schema_weapons.cpp
+	../game_shared/sound_channel.cpp
+	../game_shared/soundscripts.cpp
+	../game_shared/studio_getters.cpp
+	../game_shared/visual_object.cpp
+	../game_shared/unicode.cpp
+	../game_shared/util_shared.cpp
+	../game_shared/weapon_parameters.cpp
+	../game_shared/weapon_templates.cpp
+	../public/safe_snprintf.c
 )
 
 if(NOT MSVC)
@@ -205,38 +247,44 @@ endif()
 if(USE_VOICEMGR)
 	set(SVDLL_SOURCES
 		${SVDLL_SOURCES}
-		../game_shared/voice_gamemgr.cpp)
+		voice_gamemgr.cpp)
 else()
 	add_definitions(-DNO_VOICEGAMEMGR)
 endif()
 
 add_library (${SVDLL_LIBRARY} SHARED ${SVDLL_SOURCES})
+target_link_libraries(${SVDLL_LIBRARY} vcs_info)
 
-set_target_properties (${SVDLL_LIBRARY} PROPERTIES
-	POSITION_INDEPENDENT_CODE 1)
+set_target_properties (${SVDLL_LIBRARY} PROPERTIES POSITION_INDEPENDENT_CODE 1)
 
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+if(APPLE AND NOT "${SERVER_LIBRARY_NAME_OSX}" STREQUAL "")
+	# on Apple platforms we always use gamedll_osx liblist/gameinfo key, if it's set
+	set(SVDLL_NAME "${SERVER_LIBRARY_NAME_OSX}")
+elseif(NOT WIN32 AND NOT "${SERVER_LIBRARY_NAME_LINUX}" STREQUAL "")
+	# on non-Windows platforms we use gamedll_linux liblist/gameinfo key, if it's set
+	set(SVDLL_NAME "${SERVER_LIBRARY_NAME_LINUX}")
+else()
+	# on Windows or if no gamedll_osx or gamedll_linux is set, use default gamedll key
 	set(SVDLL_NAME "${SERVER_LIBRARY_NAME}")
-
-	set_target_properties(${SVDLL_LIBRARY} PROPERTIES
-		OUTPUT_NAME ${SVDLL_NAME}
-		PREFIX "")
 endif()
 
-if(MSVC)
-	set_property(TARGET ${SVDLL_LIBRARY} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
+set_target_postfix_with_name(${SVDLL_LIBRARY} ${SVDLL_NAME})
+
+set_property(TARGET ${SVDLL_LIBRARY} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(HAVE_LTO)
 	set_property(TARGET ${SVDLL_LIBRARY} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-install( TARGETS ${SVDLL_LIBRARY}
-	DESTINATION "${GAMEDIR}/${SERVER_INSTALL_DIR}/"
+install(TARGETS ${SVDLL_LIBRARY}
+	RUNTIME DESTINATION "${GAMEDIR}/${SERVER_INSTALL_DIR}/"
+	LIBRARY DESTINATION "${GAMEDIR}/${SERVER_INSTALL_DIR}/"
 	PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-	    GROUP_READ GROUP_EXECUTE
+		GROUP_READ GROUP_EXECUTE
 		WORLD_READ WORLD_EXECUTE)
 
-add_custom_command(TARGET ${SVDLL_LIBRARY}
+if(CMAKE_BUILD_TYPE MATCHES "Release" AND NOT WIN32)
+	add_custom_command(TARGET ${SVDLL_LIBRARY}
 			POST_BUILD DEPENDS ${SVDLL_LIBRARY}
-			COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}> -s $<TARGET_FILE:${SVDLL_LIBRARY}>)
+			COMMAND ${CMAKE_STRIP} -s $<TARGET_FILE:${SVDLL_LIBRARY}>)
+endif()

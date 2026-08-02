@@ -3,6 +3,9 @@
 #define MAPCONFIG_H
 
 #include "extdll.h"
+#include "optional.h"
+#include "fixed_string.h"
+#include "fixed_vector.h"
 
 enum SuitLogon
 {
@@ -15,44 +18,42 @@ enum SuitLogon
 #define MAPCONFIG_MAX_OVERRIDE_CVARS 32
 #define MAPCONFIG_MAX_PICKUP_ENTS 64
 
-struct PickupEnt
-{
-	PickupEnt();
-	string_t entName;
-	short count;
-};
-
-struct AmmoQuantity
-{
-	char name[MAPCONFIG_ENTRY_LENGTH];
-	short count;
-};
-
-struct OverrideCvar
-{
-	char name[MAPCONFIG_ENTRY_LENGTH];
-	char value[MAPCONFIG_ENTRY_LENGTH];
-};
-
 struct MapConfig
 {
-	MapConfig();
-	PickupEnt pickupEnts[64];
-	int pickupEntCount;
+	struct PickupEnt
+	{
+		string_t entName;
+		int count;
+	};
 
-	AmmoQuantity ammo[MAX_AMMO_SLOTS];
-	int ammoCount;
+	struct AmmoQuantity
+	{
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> name;
+		int count;
+	};
 
-	OverrideCvar overrideCvars[MAPCONFIG_MAX_OVERRIDE_CVARS];
-	int cvarCount;
+	struct OverrideCvar
+	{
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> name;
+		fixed_string<MAPCONFIG_ENTRY_LENGTH> value;
+	};
 
-	int starthealth;
-	int startarmor;
+	fixed_vector<PickupEnt, MAPCONFIG_MAX_PICKUP_ENTS> pickupEnts;
+	fixed_vector<AmmoQuantity, MAX_AMMO_TYPES> ammo;
+	fixed_vector<PickupEnt, MAX_INVENTORY_ITEMS> inventory;
 
-	bool nomedkit; // for co-op
+	fixed_vector<OverrideCvar, MAPCONFIG_MAX_OVERRIDE_CVARS> overrideCvars;
 
-	bool nosuit;
-	short suitLogon;
+	string_t playerTemplate{0};
+	int starthealth{0};
+	int startarmor{0};
+	int maxhealth{0};
+	optional<int> maxarmor;
+
+	bool nomedkit{false}; // for co-op
+
+	bool nosuit{false};
+	short suitLogon{SuitNoLogon};
 
 	enum
 	{
@@ -61,14 +62,18 @@ struct MapConfig
 		SUIT_LIGHT_FLASHLIGHT,
 		SUIT_LIGHT_NVG,
 	};
-	int suit_light;
+	int suit_light{SUIT_LIGHT_DEFAULT};
 
-	bool longjump;
+	fixed_string<64> deployWeapon;
 
-	bool valid;
+	int antidotes{0};
+	int radcans{0};
+	int adrenalines{0};
+
+	bool longjump{false};
+
+	bool valid{false};
 };
-
-const char* FixedAmmoName(const char* ammoName);
 
 bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize);
 bool ReadMapConfigFromFile(MapConfig& mapConfig, const char* fileName);

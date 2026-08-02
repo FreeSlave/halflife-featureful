@@ -16,11 +16,6 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "weapons.h"
-#include "player.h"
-#include "skill.h"
-#include "items.h"
-#include "gamerules.h"
 
 //=========================================================
 // Nuclear bomb
@@ -29,14 +24,14 @@
 class CNuclearBombTimer : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 	void EXPORT NuclearBombTimerThink();
 	void SetNuclearBombTimer(bool on);
-	int ObjectCaps() {return FCAP_DONT_SAVE;}
+	int ObjectCaps() override {return FCAP_DONT_SAVE;}
 
-	BOOL bPlayBombSound;
-	BOOL bBombSoundPlaying;
+	bool bPlayBombSound;
+	bool bBombSoundPlaying;
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbombtimer, CNuclearBombTimer)
@@ -62,8 +57,8 @@ void CNuclearBombTimer::Spawn()
 		return;
 	}
 	pev->skin = 0;
-	bPlayBombSound = FALSE;
-	bBombSoundPlaying = FALSE;
+	bPlayBombSound = false;
+	bBombSoundPlaying = false;
 }
 
 void CNuclearBombTimer::NuclearBombTimerThink()
@@ -75,7 +70,7 @@ void CNuclearBombTimer::NuclearBombTimerThink()
 	if (bPlayBombSound)
 	{
 		EMIT_SOUND(ENT(pev), CHAN_BODY, "common/nuke_ticking.wav", 0.75, ATTN_IDLE);
-		bBombSoundPlaying = TRUE;
+		bBombSoundPlaying = true;
 	}
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -86,7 +81,7 @@ void CNuclearBombTimer::SetNuclearBombTimer(bool on)
 	{
 		SetThink(&CNuclearBombTimer::NuclearBombTimerThink);
 		pev->nextthink = gpGlobals->time;
-		bPlayBombSound = TRUE;
+		bPlayBombSound = true;
 	}
 	else
 	{
@@ -96,7 +91,7 @@ void CNuclearBombTimer::SetNuclearBombTimer(bool on)
 		if (bBombSoundPlaying)
 		{
 			EMIT_SOUND_DYN(ENT(pev), CHAN_BODY, "common/nuke_ticking.wav", 0.0, 0.0, SND_STOP, PITCH_NORM);
-			bBombSoundPlaying = FALSE;
+			bBombSoundPlaying = false;
 		}
 	}
 }
@@ -104,10 +99,10 @@ void CNuclearBombTimer::SetNuclearBombTimer(bool on)
 class CNuclearBombButton : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 	void SetNuclearBombButton(bool on);
-	int ObjectCaps() {return FCAP_DONT_SAVE;}
+	int ObjectCaps() override {return FCAP_DONT_SAVE;}
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbombbutton, CNuclearBombButton)
@@ -142,18 +137,18 @@ void CNuclearBombButton::SetNuclearBombButton(bool on)
 class CNuclearBomb : public CBaseToggle
 {
 public:
-	void Precache();
-	void Spawn();
-	void KeyValue(KeyValueData* pkvd);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	int ObjectCaps() {return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;}
-	void UpdateOnRemove();
+	void Precache() override;
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	int ObjectCaps() override {return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;}
+	void UpdateOnRemove() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	BOOL m_fOn;
+	bool m_fOn;
 	float m_flLastPush;
 	int m_iPushCount;
 	CNuclearBombTimer* m_pTimer;
@@ -209,13 +204,13 @@ void CNuclearBomb::KeyValue(KeyValueData *pkvd)
 {
 	if( FStrEq( pkvd->szKeyName, "initialstate" ) )
 	{
-		m_fOn = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		m_fOn = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "wait" ) )
 	{
 		m_flWait = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseToggle::KeyValue(pkvd);
@@ -228,12 +223,12 @@ void CNuclearBomb::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 		const char* sound = NULL;
 		if (m_fOn)
 		{
-			m_fOn = FALSE;
+			m_fOn = false;
 			sound = "buttons/button4.wav";
 		}
 		else
 		{
-			m_fOn = TRUE;
+			m_fOn = true;
 			sound = "buttons/button6.wav";
 		}
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, sound, VOL_NORM, ATTN_NORM);
@@ -253,15 +248,7 @@ void CNuclearBomb::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 
 void CNuclearBomb::UpdateOnRemove()
 {
-	if (m_pTimer)
-	{
-		UTIL_Remove(m_pTimer);
-		m_pTimer = NULL;
-	}
-	if (m_pButton)
-	{
-		UTIL_Remove(m_pButton);
-		m_pButton = NULL;
-	}
+	UTIL_RemoveAndClean(m_pTimer);
+	UTIL_RemoveAndClean(m_pButton);
 	CBaseToggle::UpdateOnRemove();
 }

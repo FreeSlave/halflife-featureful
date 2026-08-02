@@ -39,3 +39,9 @@ local.properties
 .project
 .classpath
 .settings
+*.jks
+
+# Possible resources
+*.mdl
+*.spr
+*.wav

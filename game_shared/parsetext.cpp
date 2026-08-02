@@ -1,16 +1,7 @@
 #include "parsetext.h"
 #include <cstring>
 #include <cstdio>
-
-bool IsValidIdentifierCharacter(char c)
-{
-	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
-}
-
-bool IsSpaceCharacter(char c)
-{
-	return c == ' ' || c == '\r' || c == '\n';
-}
+#include <cstdlib>
 
 void SkipSpaceCharacters(const char* text, int& i, const int length)
 {
@@ -20,10 +11,10 @@ void SkipSpaceCharacters(const char* text, int& i, const int length)
 	}
 }
 
-bool SkipSpaces(const char *text, int& i, const int length)
+bool SkipSpacesAndTabs(const char *text, int& i, const int length)
 {
 	int start = i;
-	while (i<length && text[i] == ' ')
+	while (i<length && text[i] == ' ' || text[i] == '\t')
 	{
 		++i;
 	}
@@ -32,7 +23,7 @@ bool SkipSpaces(const char *text, int& i, const int length)
 
 void ConsumeNonSpaceCharacters(const char *text, int& i, const int length)
 {
-	while(i<length && text[i] != ' ' && text[i] != '\n' && text[i] != '\r' && text[i] != '\0')
+	while(i<length && !IsSpaceCharacter(text[i]) && text[i] != '\0')
 	{
 		++i;
 	}
@@ -66,19 +57,36 @@ void ConsumeLineSignificantOnly(const char *text, int& i, const int length)
 	}
 }
 
-bool ReadIdentifier(const char *text, int& i, char* identBuf, unsigned int identBufSize)
+bool ConsumeLineUntil(const char *text, int &i, const int length, char c)
 {
-	if (identBufSize < 2)
-		return false;
-
-	unsigned int identLength = 0;
-	while(IsValidIdentifierCharacter(text[i]) && identLength < (identBufSize-1))
+	while(i<length && text[i] != c && text[i] != '\n' && text[i] != '\r' && text[i] != '\0')
 	{
-		identBuf[identLength++] = text[i];
 		++i;
 	}
-	identBuf[identLength] = '\0';
-	return identLength > 0;
+	return text[i] == c;
+}
+
+bool ConsumePossiblyQuotedString(const char* text, int& i, const int length, int& strStart, int& strEnd)
+{
+	const bool isQuoted = text[i] == '"';
+	if (isQuoted)
+	{
+		++i;
+		strStart = i;
+		if (ConsumeLineUntil(text, i, length, '"')) {
+			strEnd = i;
+			++i;
+		} else {
+			return false;
+		}
+	}
+	else
+	{
+		strStart = i;
+		ConsumeNonSpaceCharacters(text, i, length);
+		strEnd = i;
+	}
+	return strEnd - strStart > 0;
 }
 
 bool ParseInteger(const char *valueText, int& result)
@@ -143,9 +151,38 @@ bool ParseFloat(const char *valueText, float& result)
 	return sscanf(valueText, "%f", &result) == 1;
 }
 
-char *strncpyEnsureTermination(char *dest, const char *src, size_t n)
+bool ParseFloatRange(const char *valueText, FloatRange& result)
 {
-	char* result = strncpy(dest, src, n);
-	dest[n-1] = '\0';
-	return result;
+	if (sscanf(valueText, "%f", &result.min) != 1)
+		return false;
+
+	const char* found = strchr(valueText, ',');
+
+	if (found) {
+		found++;
+		if (sscanf(found, "%f", &result.max) != 1)
+			return false;
+	} else {
+		result.max = result.min;
+	}
+
+	return true;
+}
+
+bool ParseIntRange(const char *valueText, IntRange& result)
+{
+	if (sscanf(valueText, "%d", &result.min) != 1)
+		return false;
+
+	const char* found = strchr(valueText, ',');
+
+	if (found) {
+		found++;
+		if (sscanf(found, "%d", &result.max) != 1)
+			return false;
+	} else {
+		result.max = result.min;
+	}
+
+	return true;
 }

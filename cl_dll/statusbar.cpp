@@ -22,9 +22,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-
-#include <string.h>
-#include <stdio.h>
+#include "string_utils.h"
 
 DECLARE_MESSAGE( m_StatusBar, StatusText )
 DECLARE_MESSAGE( m_StatusBar, StatusValue )
@@ -34,7 +32,7 @@ DECLARE_MESSAGE( m_StatusBar, StatusValue )
 float *GetClientColor( int clientIndex );
 extern float g_ColorYellow[3];
 
-int CHudStatusBar::Init( void )
+int CHudStatusBar::Init()
 {
 	gHUD.AddHudElem( this );
 
@@ -48,13 +46,13 @@ int CHudStatusBar::Init( void )
 	return 1;
 }
 
-int CHudStatusBar::VidInit( void )
+int CHudStatusBar::VidInit()
 {
 	// Load sprites here
 	return 1;
 }
 
-void CHudStatusBar::Reset( void )
+void CHudStatusBar::Reset()
 {
 	int i = 0;
 
@@ -141,8 +139,7 @@ void CHudStatusBar::ParseStatusString( int line_num )
 							GetPlayerInfo( indexval, &g_PlayerInfoList[indexval] );
 							if( g_PlayerInfoList[indexval].name != NULL )
 							{
-								strncpy( szRepString, g_PlayerInfoList[indexval].name, MAX_PLAYER_NAME_LENGTH - 1 );
-								szRepString[MAX_PLAYER_NAME_LENGTH - 1] = '\0';
+								strncpyEnsureTermination( szRepString, g_PlayerInfoList[indexval].name );
 								m_pflNameColors[line_num] = GetClientColor( indexval );
 							}
 							else
@@ -181,7 +178,7 @@ int CHudStatusBar::Draw( float fTime )
 			m_pflNameColors[i] = g_ColorYellow;
 			ParseStatusString( i );
 		}
-		m_bReparseString = FALSE;
+		m_bReparseString = false;
 	}
 
 	int Y_START = ScreenHeight - YRES( 32 + 4 );
@@ -232,15 +229,14 @@ int CHudStatusBar::MsgFunc_StatusText( const char *pszName, int iSize, void *pbu
 	if( line < 0 || line >= MAX_STATUSBAR_LINES )
 		return 1;
 
-	strncpy( m_szStatusText[line], READ_STRING(), MAX_STATUSTEXT_LENGTH - 1 );
-	m_szStatusText[line][MAX_STATUSTEXT_LENGTH - 1] = 0;  // ensure it's null terminated ( strncpy() won't null terminate if read string too long)
+	strncpyEnsureTermination( m_szStatusText[line], READ_STRING() );
 
 	if( m_szStatusText[0] == 0 )
 		m_iFlags &= ~HUD_ACTIVE;
 	else
 		m_iFlags |= HUD_ACTIVE;  // we have status text, so turn on the status bar
 
-	m_bReparseString = TRUE;
+	m_bReparseString = true;
 
 	return 1;
 }
@@ -259,7 +255,7 @@ int CHudStatusBar::MsgFunc_StatusValue( const char *pszName, int iSize, void *pb
 
 	m_iStatusValues[index] = READ_SHORT();
 
-	m_bReparseString = TRUE;
+	m_bReparseString = true;
 
 	return 1;
 }

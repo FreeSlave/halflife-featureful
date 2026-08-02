@@ -1,4 +1,4 @@
-/***
+﻿/***
 *
 *	Copyright (c) 1996-2001, Valve LLC. All rights reserved.
 *	
@@ -24,20 +24,252 @@
 #include "util.h"
 #include "cbase.h"
 #include "saverestore.h"
-#include <time.h>
 #include "shake.h"
 #include "decals.h"
 #include "player.h"
-#include "weapons.h"
+#include "combat.h"
+#include "global_models.h"
+#include "game.h"
 #include "gamerules.h"
+#include "ammunition.h"
+#include "weapons.h"
+#include "color_utils.h"
+#include "string_utils.h"
+
+#include <set>
+#include <string>
+
+class StringPool
+{
+public:
+	void AddString(const char* str, string_t s)
+	{
+		stringMap[str] = s;
+	}
+	string_t FindString(const char* str)
+	{
+		auto it = stringMap.find(str);
+		if (it != stringMap.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			return iStringNull;
+		}
+	}
+	void Clear()
+	{
+		stringMap.clear();
+	}
+private:
+	std::map<std::string, string_t> stringMap;
+};
+
+#define USE_STRINGPOOL 1
+
+StringPool g_StringPool;
+
+string_t ALLOC_STRING(const char* str)
+{
+#if USE_STRINGPOOL
+	string_t s = g_StringPool.FindString(str);
+	if (!FStringNull(s))
+	{
+		return s;
+	}
+	else
+	{
+		s = g_engfuncs.pfnAllocString(str);
+		g_StringPool.AddString(str, s);
+		return s;
+	}
+#else
+	return g_engfuncs.pfnAllocString(str);
+#endif
+}
+
+void ClearStringPool()
+{
+	g_StringPool.Clear();
+}
+
+std::set<std::string> g_precachedModels;
+std::set<std::string> g_precachedSounds;
+bool g_warnedAboutModelLimit = false;
+bool g_warnedAboutSoundLimit = false;
+
+static void ReportPrecachedResources(const std::set<std::string>& precachedResources, const char* resourceName, int argc)
+{
+	if (argc > 1)
+		ALERT(at_console, "List of precached %s according to the list of prefixes:\n", resourceName);
+	else
+		ALERT(at_console, "List of precached %s:\n", resourceName);
+	int i = 0;
+	int countShown = 0;
+	for (const auto& entry : precachedResources)
+	{
+		bool show = false;
+		if (argc > 1)
+		{
+			for (int j=1; j<argc; ++j)
+			{
+				const char* prefix = CMD_ARGV(j);
+				if (entry.compare(0, strlen(prefix), prefix) == 0)
+				{
+					show = true;
+					break;
+				}
+			}
+		}
+		else
+			show = true;
+
+		if (show)
+		{
+			ALERT(at_console, "%s; ", entry.c_str());
+			countShown++;
+			i++;
+			if (i == 4)
+			{
+				ALERT(at_console, "\n");
+				i = 0;
+			}
+		}
+	}
+	const char* adj = argc > 1 ? "shown" : "precached";
+	ALERT(at_console, "\nNumber of %s %s: %d\n", adj, resourceName, countShown);
+}
+
+int PRECACHE_MODEL(const char* name)
+{
+	if (!name)
+	{
+		ALERT(at_warning, "Tried to precache model by the null string!\n");
+		return -1;
+	}
+	if (IsDeveloperModeOn())
+	{
+		g_precachedModels.insert(name);
+		if (!g_warnedAboutModelLimit && g_precachedModels.size() > 512)
+		{
+			g_warnedAboutModelLimit = true;
+			ALERT(at_console, "The number of precached models is exceeding the maximum number on GoldSource (512) which will result in failure\n");
+			ReportPrecachedResources(g_precachedModels, "models", 0);
+		}
+	}
+	return g_engfuncs.pfnPrecacheModel(name);
+}
+
+int PRECACHE_SOUND(const char* name)
+{
+	if (!name)
+	{
+		ALERT(at_warning, "Tried to precache sound by the null string!\n");
+		return -1;
+	}
+	if (name && *name == '!')
+	{
+		// no need to precache since it's a sentence
+		return -1;
+	}
+	if (IsDeveloperModeOn())
+	{
+		g_precachedSounds.insert(name);
+		if (!g_warnedAboutSoundLimit && g_precachedSounds.size() >= 512)
+		{
+			g_warnedAboutSoundLimit = true;
+			ALERT(at_console, "The number of precached sounds is exceeding the maximum number on GoldSource (512) which will result in failure\n");
+			ReportPrecachedResources(g_precachedSounds, "sounds", 0);
+		}
+	}
+	return g_engfuncs.pfnPrecacheSound(name);
+}
+
+void SET_MODEL(edict_t *e, const char *m)
+{
+	if (IsDeveloperModeOn())
+		g_precachedModels.insert(m);
+	g_engfuncs.pfnSetModel(e, m);
+}
+
+void ClearPrecachedModels()
+{
+	g_precachedModels.clear();
+	g_warnedAboutModelLimit = false;
+}
+
+void ClearPrecachedSounds()
+{
+	g_precachedSounds.clear();
+}
+
+static void ReportPrecachedResources(const std::set<std::string>& precachedResources, const char* resourceName)
+{
+	if (precachedResources.empty())
+	{
+		ALERT(at_console, "No precached %s registered! You need to restart or reload the map\n", resourceName);
+		return;
+	}
+	ReportPrecachedResources(precachedResources, resourceName, CMD_ARGC());
+}
+
+void ReportPrecachedModels()
+{
+	ReportPrecachedResources(g_precachedModels, "models");
+}
+
+void ReportPrecachedSounds()
+{
+	ReportPrecachedResources(g_precachedSounds, "sounds");
+}
+
+void AddMapBSPAsPrecachedModel()
+{
+	if (IsDeveloperModeOn())
+	{
+		char buf[1024];
+		snprintf(buf, sizeof(buf), "maps/%s.bsp", STRING(gpGlobals->mapname));
+		g_precachedModels.insert(buf);
+	}
+}
+
+void WRITE_COLOR(const Color3& color)
+{
+	WRITE_BYTE( color.r );
+	WRITE_BYTE( color.g );
+	WRITE_BYTE( color.b );
+}
+
+void WRITE_COLOR(const Vector& color)
+{
+	WRITE_BYTE( color.x );
+	WRITE_BYTE( color.y );
+	WRITE_BYTE( color.z );
+}
+
+void WRITE_VECTOR(const Vector& vecSrc)
+{
+	WRITE_COORD( vecSrc.x );
+	WRITE_COORD( vecSrc.y );
+	WRITE_COORD( vecSrc.z );
+}
+
+void WRITE_CIRCLE(const Vector& vecSrc, float radius)
+{
+	WRITE_VECTOR( vecSrc );
+	WRITE_COORD( vecSrc.x );
+	WRITE_COORD( vecSrc.y );
+	WRITE_COORD( vecSrc.z + radius );
+}
+
+#include <cstdint>
 
 void UTIL_DynamicLight( const Vector &vecSrc, float flRadius, byte r, byte g, byte b, float flTime, float flDecay )
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrc );
 		WRITE_BYTE( TE_DLIGHT );
-		WRITE_COORD( vecSrc.x );	// X
-		WRITE_COORD( vecSrc.y );	// Y
-		WRITE_COORD( vecSrc.z );	// Z
+		WRITE_VECTOR( vecSrc );
 		WRITE_BYTE( flRadius * 0.1f );	// radius * 0.1
 		WRITE_BYTE( r );		// r
 		WRITE_BYTE( g );		// g
@@ -51,115 +283,17 @@ void UTIL_MuzzleLight( const Vector& vecSrc )
 {
 	extern int gmsgMuzzleLight;
 	MESSAGE_BEGIN( MSG_PVS, gmsgMuzzleLight, vecSrc );
-		WRITE_COORD( vecSrc.x );
-		WRITE_COORD( vecSrc.y );
-		WRITE_COORD( vecSrc.z );
+		WRITE_VECTOR( vecSrc );
 	MESSAGE_END();
 }
 
-float UTIL_WeaponTimeBase( void )
+float UTIL_WeaponTimeBase()
 {
 #if CLIENT_WEAPONS
 	return 0.0f;
 #else
 	return gpGlobals->time;
 #endif
-}
-
-static unsigned int glSeed = 0; 
-
-unsigned int seed_table[256] =
-{
-	28985, 27138, 26457, 9451, 17764, 10909, 28790, 8716, 6361, 4853, 17798, 21977, 19643, 20662, 10834, 20103,
-	27067, 28634, 18623, 25849, 8576, 26234, 23887, 18228, 32587, 4836, 3306, 1811, 3035, 24559, 18399, 315,
-	26766, 907, 24102, 12370, 9674, 2972, 10472, 16492, 22683, 11529, 27968, 30406, 13213, 2319, 23620, 16823,
-	10013, 23772, 21567, 1251, 19579, 20313, 18241, 30130, 8402, 20807, 27354, 7169, 21211, 17293, 5410, 19223,
-	10255, 22480, 27388, 9946, 15628, 24389, 17308, 2370, 9530, 31683, 25927, 23567, 11694, 26397, 32602, 15031,
-	18255, 17582, 1422, 28835, 23607, 12597, 20602, 10138, 5212, 1252, 10074, 23166, 19823, 31667, 5902, 24630,
-	18948, 14330, 14950, 8939, 23540, 21311, 22428, 22391, 3583, 29004, 30498, 18714, 4278, 2437, 22430, 3439,
-	28313, 23161, 25396, 13471, 19324, 15287, 2563, 18901, 13103, 16867, 9714, 14322, 15197, 26889, 19372, 26241,
-	31925, 14640, 11497, 8941, 10056, 6451, 28656, 10737, 13874, 17356, 8281, 25937, 1661, 4850, 7448, 12744,
-	21826, 5477, 10167, 16705, 26897, 8839, 30947, 27978, 27283, 24685, 32298, 3525, 12398, 28726, 9475, 10208,
-	617, 13467, 22287, 2376, 6097, 26312, 2974, 9114, 21787, 28010, 4725, 15387, 3274, 10762, 31695, 17320,
-	18324, 12441, 16801, 27376, 22464, 7500, 5666, 18144, 15314, 31914, 31627, 6495, 5226, 31203, 2331, 4668,
-	12650, 18275, 351, 7268, 31319, 30119, 7600, 2905, 13826, 11343, 13053, 15583, 30055, 31093, 5067, 761,
-	9685, 11070, 21369, 27155, 3663, 26542, 20169, 12161, 15411, 30401, 7580, 31784, 8985, 29367, 20989, 14203,
-	29694, 21167, 10337, 1706, 28578, 887, 3373, 19477, 14382, 675, 7033, 15111, 26138, 12252, 30996, 21409,
-	25678, 18555, 13256, 23316, 22407, 16727, 991, 9236, 5373, 29402, 6117, 15241, 27715, 19291, 19888, 19847
-};
-
-unsigned int U_Random( void ) 
-{ 
-	glSeed *= 69069; 
-	glSeed += seed_table[glSeed & 0xff];
-
-	return ( ++glSeed & 0x0fffffff ); 
-} 
-
-void U_Srand( unsigned int seed )
-{
-	glSeed = seed_table[seed & 0xff];
-}
-
-/*
-=====================
-UTIL_SharedRandomLong
-=====================
-*/
-int UTIL_SharedRandomLong( unsigned int seed, int low, int high )
-{
-	unsigned int range;
-
-	U_Srand( (int)seed + low + high );
-
-	range = high - low + 1;
-	if( !( range - 1 ) )
-	{
-		return low;
-	}
-	else
-	{
-		int offset;
-		int rnum;
-
-		rnum = U_Random();
-
-		offset = rnum % range;
-
-		return ( low + offset );
-	}
-}
-
-/*
-=====================
-UTIL_SharedRandomFloat
-=====================
-*/
-float UTIL_SharedRandomFloat( unsigned int seed, float low, float high )
-{
-	unsigned int range;
-
-	U_Srand( (int)seed + *(int *)&low + *(int *)&high );
-
-	U_Random();
-	U_Random();
-
-	range = (int)( high - low );
-	if( !range )
-	{
-		return low;
-	}
-	else
-	{
-		int tensixrand;
-		float offset;
-
-		tensixrand = U_Random() & 65535;
-
-		offset = (float)tensixrand / 65536.0f;
-
-		return ( low + offset * range );
-	}
 }
 
 void UTIL_ParametricRocket( entvars_t *pev, Vector vecOrigin, Vector vecAngles, edict_t *owner )
@@ -174,7 +308,7 @@ void UTIL_ParametricRocket( entvars_t *pev, Vector vecOrigin, Vector vecAngles, 
 	// Now compute how long it will take based on current velocity
 	Vector vecTravel = pev->endpos - pev->startpos;
 	float travelTime = 0.0f;
-	if( pev->velocity.Length() > 0.0f )
+	if( pev->velocity.IsLengthGreaterThan(0.0f) )
 	{
 		travelTime = vecTravel.Length() / pev->velocity.Length();
 	}
@@ -194,7 +328,7 @@ void UTIL_SetGroupTrace( int groupmask, int op )
 	ENGINE_SETGROUPMASK( g_groupmask, g_groupop );
 }
 
-void UTIL_UnsetGroupTrace( void )
+void UTIL_UnsetGroupTrace()
 {
 	g_groupmask = 0;
 	g_groupop = 0;
@@ -214,7 +348,7 @@ UTIL_GroupTrace::UTIL_GroupTrace( int groupmask, int op )
 	ENGINE_SETGROUPMASK( g_groupmask, g_groupop );
 }
 
-UTIL_GroupTrace::~UTIL_GroupTrace( void )
+UTIL_GroupTrace::~UTIL_GroupTrace()
 {
 	g_groupmask = m_oldgroupmask;
 	g_groupop = m_oldgroupop;
@@ -237,7 +371,7 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 	DEFINE_ENTITY_FIELD( avelocity, FIELD_VECTOR ),
 	DEFINE_ENTITY_FIELD( punchangle, FIELD_VECTOR ),
 	DEFINE_ENTITY_FIELD( v_angle, FIELD_VECTOR ),
-	DEFINE_ENTITY_FIELD( fixangle, FIELD_FLOAT ),
+	DEFINE_ENTITY_FIELD( fixangle, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( idealpitch, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( pitch_speed, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( ideal_yaw, FIELD_FLOAT ),
@@ -267,15 +401,15 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 
 	DEFINE_ENTITY_FIELD( gravity, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( friction, FIELD_FLOAT ),
-	DEFINE_ENTITY_FIELD( light_level, FIELD_FLOAT ),
+	DEFINE_ENTITY_FIELD( light_level, FIELD_INTEGER ),
 
 	DEFINE_ENTITY_FIELD( frame, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( scale, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( sequence, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( animtime, FIELD_TIME ),
 	DEFINE_ENTITY_FIELD( framerate, FIELD_FLOAT ),
-	DEFINE_ENTITY_FIELD( controller, FIELD_INTEGER ),
-	DEFINE_ENTITY_FIELD( blending, FIELD_INTEGER ),
+	DEFINE_ENTITY_ARRAY( controller, FIELD_CHARACTER, 4 ),
+	DEFINE_ENTITY_ARRAY( blending, FIELD_CHARACTER, 2 ),
 
 	DEFINE_ENTITY_FIELD( rendermode, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( renderamt, FIELD_FLOAT ),
@@ -287,7 +421,7 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 	DEFINE_ENTITY_FIELD( weapons, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( takedamage, FIELD_FLOAT ),
 
-	DEFINE_ENTITY_FIELD( deadflag, FIELD_FLOAT ),
+	DEFINE_ENTITY_FIELD( deadflag, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( view_ofs, FIELD_VECTOR ),
 	DEFINE_ENTITY_FIELD( button, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( impulse, FIELD_INTEGER ),
@@ -300,7 +434,7 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 	DEFINE_ENTITY_FIELD( groundentity, FIELD_EDICT ),
 
 	DEFINE_ENTITY_FIELD( spawnflags, FIELD_INTEGER ),
-	DEFINE_ENTITY_FIELD( flags, FIELD_FLOAT ),
+	DEFINE_ENTITY_FIELD( flags, FIELD_INTEGER ),
 
 	DEFINE_ENTITY_FIELD( colormap, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( team, FIELD_INTEGER ),
@@ -340,15 +474,15 @@ edict_t *DBG_EntOfVars( const entvars_t *pev )
 {
 	if( pev->pContainingEntity != NULL )
 		return pev->pContainingEntity;
-	ALERT( at_console, "entvars_t pContainingEntity is NULL, calling into engine" );
+	ALERT( at_console, "entvars_t pContainingEntity is NULL, calling into engine\n" );
 	edict_t *pent = (*g_engfuncs.pfnFindEntityByVars)( (entvars_t*)pev );
 	if( pent == NULL )
-		ALERT( at_console, "DAMN!  Even the engine couldn't FindEntityByVars!" );
+		ALERT( at_console, "DAMN!  Even the engine couldn't FindEntityByVars!\n" );
 	( (entvars_t *)pev )->pContainingEntity = pent;
 	return pent;
 }
 
-void DBG_AssertFunction( BOOL fExpr, const char* szExpr, const char* szFile, int szLine, const char* szMessage )
+void DBG_AssertFunction( bool fExpr, const char* szExpr, const char* szFile, int szLine, const char* szMessage )
 {
 	if( fExpr )
 		return;
@@ -362,47 +496,6 @@ void DBG_AssertFunction( BOOL fExpr, const char* szExpr, const char* szFile, int
 	ALERT( at_console, szOut );
 }
 #endif	// DEBUG
-
-BOOL UTIL_GetNextBestWeapon(CBasePlayer *pPlayer, CBasePlayerWeapon *pCurrentWeapon )
-{
-	return g_pGameRules->GetNextBestWeapon( pPlayer, pCurrentWeapon );
-}
-
-// ripped this out of the engine
-float UTIL_AngleMod( float a )
-{
-	/*if( a < 0 )
-	{
-		a = a + 360 * ( (int)( a / 360 ) + 1 );
-	}
-	else if( a >= 360 )
-	{
-		a = a - 360 * ( (int)( a / 360 ) );
-	}*/
-	// a = ( 360.0 / 65536 ) * ( (int)( a * ( 65536 / 360.0 ) ) & 65535 );
-	a = fmod( a, 360.0f );
-	if( a < 0 )
-		a += 360;
-	return a;
-}
-
-float UTIL_AngleDiff( float destAngle, float srcAngle )
-{
-	float delta;
-
-	delta = destAngle - srcAngle;
-	if( destAngle > srcAngle )
-	{
-		if( delta >= 180 )
-			delta -= 360;
-	}
-	else
-	{
-		if( delta <= -180 )
-			delta += 360;
-	}
-	return delta;
-}
 
 Vector UTIL_VecToAngles( const Vector &vec )
 {
@@ -420,7 +513,7 @@ void UTIL_MoveToOrigin( edict_t *pent, const Vector &vecGoal, float flDist, int 
 	MOVE_TO_ORIGIN( pent, rgfl, flDist, iMoveType ); 
 }
 
-int UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask )
+int UTIL_EntitiesInBox(CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask, int deadFlagMask)
 {
 	edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
 	CBaseEntity *pEntity;
@@ -437,6 +530,9 @@ int UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, co
 			continue;
 
 		if( flagMask && !( pEdict->v.flags & flagMask ) )	// Does it meet the criteria?
+			continue;
+
+		if ( deadFlagMask && !( pEdict->v.deadflag & deadFlagMask ) )
 			continue;
 
 		if( mins.x > pEdict->v.absmax.x ||
@@ -572,6 +668,14 @@ CBaseEntity *UTIL_FindEntityByTargetname( CBaseEntity *pStartEntity, const char 
 		else
 			return NULL;
 	}
+	else if (UTIL_IsPlayerReference(szName))
+	{
+		CBaseEntity* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (pPlayer && (pStartEntity == NULL || pPlayer->eoffset() > pStartEntity->eoffset()))
+			return pPlayer;
+		else
+			return NULL;
+	}
 	else
 		return UTIL_FindEntityByTargetname( pStartEntity, szName );
 }
@@ -621,6 +725,24 @@ CBaseEntity *UTIL_PlayerByIndex( int playerIndex )
 	}
 	
 	return pPlayer;
+}
+
+CBaseEntity* UTIL_ClosestAlivePlayer(const Vector &vecSrc)
+{
+	float minDistSqr = 100000000.0f;
+	CBaseEntity* foundPlayer = nullptr;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity* player = UTIL_PlayerByIndex(i);
+		if (player && player->IsPlayer() && player->IsAlive()) {
+			const float distSqr = (vecSrc - player->pev->origin).LengthSqr();
+			if (distSqr < minDistSqr) {
+				minDistSqr = distSqr;
+				foundPlayer = player;
+			}
+		}
+	}
+	return foundPlayer;
 }
 
 void UTIL_MakeVectors( const Vector &vecAngles )
@@ -740,6 +862,21 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 	}
 }
 
+void UTIL_ScreenShakeToClient( edict_t* entity, float amplitude, float frequency, float duration )
+{
+	ScreenShake	shake;
+
+	shake.amplitude = FixedUnsigned16( amplitude, 1 << 12 );
+	shake.duration = FixedUnsigned16( duration, 1 << 12 );
+	shake.frequency = FixedUnsigned16( frequency, 1 << 8 );
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgShake, NULL, entity );
+	WRITE_SHORT( shake.amplitude );
+	WRITE_SHORT( shake.duration );
+	WRITE_SHORT( shake.frequency );
+	MESSAGE_END();
+}
+
 void UTIL_ScreenShakeAll( const Vector &center, float amplitude, float frequency, float duration )
 {
 	UTIL_ScreenShake( center, amplitude, frequency, duration, 0 );
@@ -747,8 +884,17 @@ void UTIL_ScreenShakeAll( const Vector &center, float amplitude, float frequency
 
 void UTIL_ScreenFadeBuild( ScreenFade &fade, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
 {
-	fade.duration = FixedUnsigned16( fadeTime, 1 << 12 );		// 4.12 fixed
-	fade.holdTime = FixedUnsigned16( fadeHold, 1 << 12 );		// 4.12 fixed
+	if (fadeTime > 16.0f || fadeHold > 16.0f)
+	{
+		fade.duration = FixedUnsigned16( fadeTime, 1 << 8 );
+		fade.holdTime = FixedUnsigned16( fadeHold, 1 << 8 );
+		flags |= FFADE_LONGFADE;
+	}
+	else
+	{
+		fade.duration = FixedUnsigned16( fadeTime, 1 << 12 );		// 4.12 fixed
+		fade.holdTime = FixedUnsigned16( fadeHold, 1 << 12 );		// 4.12 fixed
+	}
 	fade.r = (int)color.x;
 	fade.g = (int)color.y;
 	fade.b = (int)color.z;
@@ -784,7 +930,22 @@ static int CalculateFadeAlpha( const Vector& fadeSource, CBaseEntity* pEntity, i
 		return 0;
 }
 
-void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+static void SaveFadeToPlayer(CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags)
+{
+	if (pEntity && pEntity->IsPlayer())
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)pEntity;
+
+		pPlayer->m_fadeStarted = gpGlobals->time;
+		pPlayer->m_fadeDuration = fadeTime;
+		pPlayer->m_fadeHoldTime = fadeHold;
+		pPlayer->m_fadeColor = PackRGB((int)color.x, (int)color.y, (int)color.z);
+		pPlayer->m_fadeAlpha = alpha;
+		pPlayer->m_fadeFlags = flags;
+	}
+}
+
+void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	int i;
 	ScreenFade fade;
@@ -795,11 +956,13 @@ void UTIL_ScreenFadeAll( const Vector &color, float fadeTime, float fadeHold, in
 	{
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 
+		if (save)
+			SaveFadeToPlayer(pPlayer, color, fadeTime, fadeHold, alpha, flags);
 		UTIL_ScreenFadeWrite( fade, pPlayer );
 	}
 }
 
-void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	int i;
 
@@ -808,25 +971,28 @@ void UTIL_ScreenFadeAll( const Vector& fadeSource, const Vector &color, float fa
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 		if (pPlayer)
 		{
-			UTIL_ScreenFade( fadeSource, pPlayer, color, fadeTime, fadeHold, alpha, flags );
+			UTIL_ScreenFade( fadeSource, pPlayer, color, fadeTime, fadeHold, alpha, flags, save );
 		}
 	}
 }
 
-void UTIL_ScreenFade( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+void UTIL_ScreenFade( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	ScreenFade fade;
+
+	if (save)
+		SaveFadeToPlayer(pEntity, color, fadeTime, fadeHold, alpha, flags);
 
 	UTIL_ScreenFadeBuild( fade, color, fadeTime, fadeHold, alpha, flags );
 	UTIL_ScreenFadeWrite( fade, pEntity );
 }
 
-bool UTIL_ScreenFade( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags )
+bool UTIL_ScreenFade( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save )
 {
 	alpha = CalculateFadeAlpha(fadeSource, pEntity, alpha);
 	if (alpha > 0)
 	{
-		UTIL_ScreenFade( pEntity, color, fadeTime, fadeHold, alpha, flags );
+		UTIL_ScreenFade( pEntity, color, fadeTime, fadeHold, alpha, flags, save );
 		return true;
 	}
 	return false;
@@ -869,8 +1035,7 @@ void UTIL_HudMessage( CBaseEntity *pEntity, const hudtextparms_t &textparms, con
 		else
 		{
 			char tmp[512];
-			strncpy( tmp, pMessage, 511 );
-			tmp[511] = 0;
+			strncpyEnsureTermination( tmp, pMessage );
 			WRITE_STRING( tmp );
 		}
 	MESSAGE_END();
@@ -990,13 +1155,14 @@ char *UTIL_dtos4( int d )
 	return buf;
 }
 
-void UTIL_ShowMessage( const char *pString, CBaseEntity *pEntity )
+void UTIL_ShowMessage( const char *pString, CBaseEntity *pEntity, bool skipMissing )
 {
 	if( !pEntity || !pEntity->IsNetClient() )
 		return;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgHudText, NULL, pEntity->edict() );
 	WRITE_STRING( pString );
+	WRITE_BYTE(skipMissing ? 1 : 0);
 	MESSAGE_END();
 }
 
@@ -1016,17 +1182,17 @@ void UTIL_ShowMessageAll( const char *pString )
 // Overloaded to add IGNORE_GLASS
 void UTIL_TraceLine( const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, IGNORE_GLASS ignoreGlass, edict_t *pentIgnore, TraceResult *ptr )
 {
-	TRACE_LINE( vecStart, vecEnd, ( igmon == ignore_monsters ? TRUE : FALSE ) | ( ignoreGlass ? 0x100 : 0 ), pentIgnore, ptr );
+	TRACE_LINE( vecStart, vecEnd, ( igmon == ignore_monsters ? 1 : 0 ) | ( ignoreGlass ? 0x100 : 0 ), pentIgnore, ptr );
 }
 
 void UTIL_TraceLine( const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, edict_t *pentIgnore, TraceResult *ptr )
 {
-	TRACE_LINE( vecStart, vecEnd, ( igmon == ignore_monsters ? TRUE : FALSE ), pentIgnore, ptr );
+	TRACE_LINE( vecStart, vecEnd, ( igmon == ignore_monsters ? 1 : 0 ), pentIgnore, ptr );
 }
 
 void UTIL_TraceHull( const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, int hullNumber, edict_t *pentIgnore, TraceResult *ptr )
 {
-	TRACE_HULL( vecStart, vecEnd, ( igmon == ignore_monsters ? TRUE : FALSE ), hullNumber, pentIgnore, ptr );
+	TRACE_HULL( vecStart, vecEnd, ( igmon == ignore_monsters ? 1 : 0 ), hullNumber, pentIgnore, ptr );
 }
 
 void UTIL_TraceModel( const Vector &vecStart, const Vector &vecEnd, int hullNumber, edict_t *pentModel, TraceResult *ptr )
@@ -1034,7 +1200,7 @@ void UTIL_TraceModel( const Vector &vecStart, const Vector &vecEnd, int hullNumb
 	g_engfuncs.pfnTraceModel( vecStart, vecEnd, hullNumber, pentModel, ptr );
 }
 
-TraceResult UTIL_GetGlobalTrace( )
+TraceResult UTIL_GetGlobalTrace()
 {
 	TraceResult tr;
 
@@ -1068,61 +1234,9 @@ void UTIL_SetOrigin( entvars_t *pev, const Vector &vecOrigin )
 		SET_ORIGIN( ent, vecOrigin );
 }
 
-void UTIL_ParticleEffect( const Vector &vecOrigin, const Vector &vecDirection, ULONG ulColor, ULONG ulCount )
+void UTIL_ParticleEffect( const Vector &vecOrigin, const Vector &vecDirection, unsigned int ulColor, unsigned int ulCount )
 {
 	PARTICLE_EFFECT( vecOrigin, vecDirection, (float)ulColor, (float)ulCount );
-}
-
-float UTIL_Approach( float target, float value, float speed )
-{
-	float delta = target - value;
-
-	if( delta > speed )
-		value += speed;
-	else if( delta < -speed )
-		value -= speed;
-	else 
-		value = target;
-
-	return value;
-}
-
-float UTIL_ApproachAngle( float target, float value, float speed )
-{
-	target = UTIL_AngleMod( target );
-	value = UTIL_AngleMod( value );
-
-	float delta = target - value;
-
-	// Speed is assumed to be positive
-	if( speed < 0 )
-		speed = -speed;
-
-	if( delta < -180 )
-		delta += 360;
-	else if( delta > 180 )
-		delta -= 360;
-
-	if( delta > speed )
-		value += speed;
-	else if( delta < -speed )
-		value -= speed;
-	else 
-		value = target;
-
-	return value;
-}
-
-float UTIL_AngleDistance( float next, float cur )
-{
-	float delta = next - cur;
-
-	if( delta < -180 )
-		delta += 360;
-	else if( delta > 180 )
-		delta -= 360;
-
-	return delta;
 }
 
 float UTIL_SplineFraction( float value, float scale )
@@ -1153,7 +1267,7 @@ Vector UTIL_GetAimVector( edict_t *pent, float flSpeed )
 	return tmp;
 }
 
-int UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
+bool UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
 {
 	if( sMaster )
 	{
@@ -1183,7 +1297,12 @@ int UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
 	}
 
 	// if this isn't a master entity, just say yes.
-	return 1;
+	return true;
+}
+
+bool UTIL_IsPlayerReference(const char *name)
+{
+	return name != 0 && FStrEq(name, "*player");
 }
 
 bool UTIL_TargetnameIsActivator(const char *targetName)
@@ -1198,24 +1317,24 @@ bool UTIL_TargetnameIsActivator(string_t targetName)
 	return UTIL_TargetnameIsActivator(STRING(targetName));
 }
 
-BOOL UTIL_ShouldShowBlood( int color )
+bool UTIL_ShouldShowBlood( int color )
 {
 	extern cvar_t* violence_hblood;
 	extern cvar_t* violence_ablood;
-	if( color != DONT_BLEED )
+	if (color != DONT_BLEED)
 	{
-		if( color == BLOOD_COLOR_RED )
+		if (IsReddishBlood(color))
 		{
-			if( violence_hblood->value != 0 )
-				return TRUE;
+			if (violence_hblood->value != 0)
+				return true;
 		}
 		else
 		{
-			if( violence_ablood->value != 0 )
-				return TRUE;
+			if (violence_ablood->value != 0)
+				return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 int UTIL_PointContents(	const Vector &vec )
@@ -1225,35 +1344,28 @@ int UTIL_PointContents(	const Vector &vec )
 
 void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount )
 {
-	if( !UTIL_ShouldShowBlood( color ) )
+	if (!UTIL_ShouldShowBlood( color ))
 		return;
 
-	if( g_Language == LANGUAGE_GERMAN && color == BLOOD_COLOR_RED )
-		color = 0;
+	color = GetBloodStreamColor(color);
+	amount = clamp(amount, 0, 255);
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
 		WRITE_BYTE( TE_BLOODSTREAM );
-		WRITE_COORD( origin.x );
-		WRITE_COORD( origin.y );
-		WRITE_COORD( origin.z );
-		WRITE_COORD( direction.x );
-		WRITE_COORD( direction.y );
-		WRITE_COORD( direction.z );
+		WRITE_VECTOR( origin );
+		WRITE_VECTOR( direction );
 		WRITE_BYTE( color );
-		WRITE_BYTE( Q_min( amount, 255 ) );
+		WRITE_BYTE( amount );
 	MESSAGE_END();
 }				
 
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount )
 {
+	if (color == DONT_BLEED || amount <= 0)
+		return;
+
 	if( !UTIL_ShouldShowBlood( color ) )
 		return;
-
-	if( color == DONT_BLEED || amount == 0 )
-		return;
-
-	if( g_Language == LANGUAGE_GERMAN && color == BLOOD_COLOR_RED )
-		color = 0;
 
 	if( g_pGameRules->IsMultiplayer() )
 	{
@@ -1261,14 +1373,11 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 		amount *= 2;
 	}
 
-	if( amount > 255 )
-		amount = 255;
+	amount = clamp(amount, 0, 255);
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
 		WRITE_BYTE( TE_BLOODSPRITE );
-		WRITE_COORD( origin.x);								// pos
-		WRITE_COORD( origin.y);
-		WRITE_COORD( origin.z);
+		WRITE_VECTOR( origin );								// pos
 		WRITE_SHORT( g_sModelIndexBloodSpray );				// initial sprite model
 		WRITE_SHORT( g_sModelIndexBloodDrop );				// droplet sprite models
 		WRITE_BYTE( color );								// color index into host_basepal
@@ -1276,7 +1385,7 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 	MESSAGE_END();
 }				
 
-Vector UTIL_RandomBloodVector( void )
+Vector UTIL_RandomBloodVector()
 {
 	Vector direction;
 
@@ -1287,18 +1396,22 @@ Vector UTIL_RandomBloodVector( void )
 	return direction;
 }
 
-void UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor )
+void UTIL_BloodDecalTrace(const TraceResult *pTrace, int bloodColor)
 {
-	if( UTIL_ShouldShowBlood( bloodColor ) )
+	if (UTIL_ShouldShowBlood(bloodColor))
 	{
-		if( bloodColor == BLOOD_COLOR_RED )
-			UTIL_DecalTrace( pTrace, DECAL_BLOOD1 + RANDOM_LONG( 0, 5 ) );
-		else
-			UTIL_DecalTrace( pTrace, DECAL_YBLOOD1 + RANDOM_LONG( 0, 5 ) );
+		if (IsReddishBlood(bloodColor))
+		{
+			UTIL_DecalTrace(pTrace, DECAL_BLOOD1 + RANDOM_LONG(0, 5));
+		}
+		else if (IsYellowishBlood(bloodColor))
+		{
+			UTIL_DecalTrace(pTrace, DECAL_YBLOOD1 + RANDOM_LONG(0, 5));
+		}
 	}
 }
 
-void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber )
+void UTIL_DecalTrace(const TraceResult *pTrace, int decalNumber)
 {
 	short entityIndex;
 	int index;
@@ -1347,9 +1460,7 @@ void UTIL_DecalTrace( TraceResult *pTrace, int decalNumber )
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( message );
-		WRITE_COORD( pTrace->vecEndPos.x );
-		WRITE_COORD( pTrace->vecEndPos.y );
-		WRITE_COORD( pTrace->vecEndPos.z );
+		WRITE_VECTOR( pTrace->vecEndPos );
 		WRITE_BYTE( index );
 		if( entityIndex )
 			WRITE_SHORT( entityIndex );
@@ -1365,7 +1476,7 @@ Tell connected clients to display it, or use the default spray can decal
 if the custom can't be loaded.
 ==============
 */
-void UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, BOOL bIsCustom )
+void UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber, bool bIsCustom)
 {
 	int index;
 
@@ -1381,39 +1492,39 @@ void UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber,
 	else
 		index = decalNumber;
 
-	if( pTrace->flFraction == 1.0f )
+	if (tr.flFraction == 1.0f)
 		return;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_PLAYERDECAL );
 		WRITE_BYTE( playernum );
-		WRITE_COORD( pTrace->vecEndPos.x );
-		WRITE_COORD( pTrace->vecEndPos.y );
-		WRITE_COORD( pTrace->vecEndPos.z );
-		WRITE_SHORT( (short)ENTINDEX( pTrace->pHit ) );
+		WRITE_VECTOR( tr.vecEndPos );
+		WRITE_SHORT( (short)ENTINDEX( tr.pHit ) );
 		WRITE_BYTE( index );
 	MESSAGE_END();
 }
 
-void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber )
+void UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumber, char chTextureType, int ricochetSoundChance)
 {
-	if( decalNumber < 0 )
+	extern int gmsgGunshot;
+
+	if (decalNumber < 0)
 		return;
 
 	int index = gDecals[decalNumber].index;
-	if( index < 0 )
+	if (index < 0)
 		return;
 
-	if( pTrace->flFraction == 1.0f )
+	if (tr.flFraction == 1.0f)
 		return;
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos );
-		WRITE_BYTE( TE_GUNSHOTDECAL );
-		WRITE_COORD( pTrace->vecEndPos.x );
-		WRITE_COORD( pTrace->vecEndPos.y );
-		WRITE_COORD( pTrace->vecEndPos.z );
-		WRITE_SHORT( (short)ENTINDEX( pTrace->pHit ) );
-		WRITE_BYTE( index );
+	MESSAGE_BEGIN(MSG_PAS, gmsgGunshot, tr.vecEndPos);
+		WRITE_VECTOR(tr.vecEndPos);
+		WRITE_VECTOR(vecDir);
+		WRITE_SHORT((short)ENTINDEX(tr.pHit));
+		WRITE_SHORT(index);
+		WRITE_BYTE(chTextureType);
+		WRITE_BYTE(ricochetSoundChance);
 	MESSAGE_END();
 }
 
@@ -1421,9 +1532,22 @@ void UTIL_Sparks( const Vector &position )
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, position );
 		WRITE_BYTE( TE_SPARKS );
-		WRITE_COORD( position.x );
-		WRITE_COORD( position.y );
-		WRITE_COORD( position.z );
+		WRITE_VECTOR( position );
+	MESSAGE_END();
+}
+
+void UTIL_SparkShower(const Vector &position, const SparkEffectParams& params)
+{
+	extern int gmsgSparkShower;
+	MESSAGE_BEGIN( MSG_PVS, gmsgSparkShower, position );
+		WRITE_VECTOR( position );
+		WRITE_SHORT( params.sparkModelIndex );
+		WRITE_SHORT( params.streakCount );
+		WRITE_SHORT( params.streakVelocity );
+		WRITE_SHORT( short(params.sparkDuration * 100) );
+		WRITE_SHORT( short(params.sparkScaleMin * 100) );
+		WRITE_SHORT( short(params.sparkScaleMax * 100) );
+		WRITE_SHORT( params.flags );
 	MESSAGE_END();
 }
 
@@ -1431,57 +1555,34 @@ void UTIL_Ricochet( const Vector &position, float scale )
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, position );
 		WRITE_BYTE( TE_ARMOR_RICOCHET );
-		WRITE_COORD( position.x );
-		WRITE_COORD( position.y );
-		WRITE_COORD( position.z );
+		WRITE_VECTOR( position );
 		WRITE_BYTE( (int)( scale * 10.0f ) );
 	MESSAGE_END();
 }
 
-BOOL UTIL_TeamsMatch( const char *pTeamName1, const char *pTeamName2 )
+bool UTIL_TeamsMatch( const char *pTeamName1, const char *pTeamName2 )
 {
 	// Everyone matches unless it's teamplay
 	if( !g_pGameRules->IsTeamplay() )
-		return TRUE;
+		return true;
 
 	// Both on a team?
 	if( *pTeamName1 != 0 && *pTeamName2 != 0 )
 	{
 		if( !stricmp( pTeamName1, pTeamName2 ) )	// Same Team?
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
-void UTIL_StringToVector( float *pVector, const char *pString )
+Vector UTIL_StringToVector(const char* str)
 {
-	char *pstr, *pfront, tempString[128];
-	int j;
-
-	strcpy( tempString, pString );
-	pstr = pfront = tempString;
-
-	for( j = 0; j < 3; j++ )			// lifted from pr_edict.c
-	{
-		pVector[j] = atof( pfront );
-
-		while( *pstr && *pstr != ' ' )
-			pstr++;
-		if( !( *pstr ) )
-			break;
-		pstr++;
-		pfront = pstr;
+	float x, y, z;
+	if (sscanf( str, "%f %f %f", &x, &y, &z) == 3) {
+		return Vector(x, y, z);
 	}
-	if( j < 2 )
-	{
-		/*
-		ALERT( at_error, "Bad field in entity!! %s:%s == \"%s\"\n",
-			pkvd->szClassName, pkvd->szKeyName, pkvd->szValue );
-		*/
-		for( j = j + 1;j < 3; j++ )
-			pVector[j] = 0;
-	}
+	return g_vecZero;
 }
 
 //LRC - randomized vectors of the form "0 0 0 .. 1 0 0"
@@ -1491,7 +1592,7 @@ void UTIL_StringToRandomVector( float *pVector, const char *pString )
 	int	j;
 	float pAltVec[3];
 
-	strcpy( tempString, pString );
+	strncpyEnsureTermination( tempString, pString );
 	pstr = pfront = tempString;
 
 	for ( j = 0; j < 3; j++ )			// lifted from pr_edict.c
@@ -1505,10 +1606,6 @@ void UTIL_StringToRandomVector( float *pVector, const char *pString )
 	}
 	if (j < 2)
 	{
-		/*
-		ALERT( at_error, "Bad field in entity!! %s:%s == \"%s\"\n",
-			pkvd->szClassName, pkvd->szKeyName, pkvd->szValue );
-		*/
 		for (j = j+1;j < 3; j++)
 			pVector[j] = 0;
 	}
@@ -1527,17 +1624,18 @@ void UTIL_StringToRandomVector( float *pVector, const char *pString )
 	}
 }
 
-void UTIL_StringToIntArray( int *pVector, int count, const char *pString )
+template<typename T>
+void UTIL_StringToIntegerArray( T *pVector, int count, const char *pString )
 {
 	char *pstr, *pfront, tempString[128];
 	int j;
 
-	strcpy( tempString, pString );
+	strncpyEnsureTermination( tempString, pString );
 	pstr = pfront = tempString;
 
-	for( j = 0; j < count; j++ )			// lifted from pr_edict.c
+	for( j = 0; j < count; j++ )
 	{
-		pVector[j] = atoi( pfront );
+		pVector[j] = (T)atoi( pfront );
 
 		while( *pstr && *pstr != ' ' )
 			pstr++;
@@ -1551,6 +1649,16 @@ void UTIL_StringToIntArray( int *pVector, int count, const char *pString )
 	{
 		pVector[j] = 0;
 	}
+}
+
+void UTIL_StringToIntArray( int *pVector, int count, const char *pString )
+{
+	UTIL_StringToIntegerArray(pVector, count, pString);
+}
+
+void UTIL_StringToCharArray( char *pVector, int count, const char *pString )
+{
+	UTIL_StringToIntegerArray(pVector, count, pString);
 }
 
 Vector UTIL_ClampVectorToBox( const Vector &input, const Vector &clampSize )
@@ -1622,12 +1730,8 @@ void UTIL_Bubbles( Vector mins, Vector maxs, int count )
 
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, mid );
 		WRITE_BYTE( TE_BUBBLES );
-		WRITE_COORD( mins.x );	// mins
-		WRITE_COORD( mins.y );
-		WRITE_COORD( mins.z );
-		WRITE_COORD( maxs.x );	// maxz
-		WRITE_COORD( maxs.y );
-		WRITE_COORD( maxs.z );
+		WRITE_VECTOR( mins );	// mins
+		WRITE_VECTOR( maxs );	// maxz
 		WRITE_COORD( flHeight );			// height
 		WRITE_SHORT( g_sModelIndexBubbles );
 		WRITE_BYTE( count ); // count
@@ -1656,12 +1760,8 @@ void UTIL_BubbleTrail( Vector from, Vector to, int count )
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BUBBLETRAIL );
-		WRITE_COORD( from.x );	// mins
-		WRITE_COORD( from.y );
-		WRITE_COORD( from.z );
-		WRITE_COORD( to.x );	// maxz
-		WRITE_COORD( to.y );
-		WRITE_COORD( to.z );
+		WRITE_VECTOR( from );	// mins
+		WRITE_VECTOR( to );	// maxz
 		WRITE_COORD( flHeight );			// height
 		WRITE_SHORT( g_sModelIndexBubbles );
 		WRITE_BYTE( count ); // count
@@ -1679,55 +1779,134 @@ void UTIL_Remove( CBaseEntity *pEntity )
 	pEntity->pev->targetname = 0;
 }
 
-BOOL UTIL_IsValidEntity( edict_t *pent )
+void UTIL_RemoveAndClean(EHANDLE& handle)
+{
+	if (handle != 0)
+	{
+		UTIL_Remove(handle);
+		handle = 0;
+	}
+}
+
+bool UTIL_IsValidEntity( edict_t *pent )
 {
 	if( !pent || pent->free || ( pent->v.flags & FL_KILLME ) )
-		return FALSE;
-	return TRUE;
+		return false;
+	return true;
 }
 
-void UTIL_PrecacheOther( const char *szClassname )
+static void UTIL_PrecacheOtherWithOverride(CBaseEntity* pEntity, EntityOverrides entityOverrides)
 {
-	edict_t	*pent;
-
-	pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
-	if( FNullEnt( pent ) )
-	{
-		ALERT( at_console, "NULL Ent in UTIL_PrecacheOther\n" );
-		return;
-	}
-	
-	CBaseEntity *pEntity = CBaseEntity::Instance( VARS( pent ) );
-	if( pEntity && pEntity->IsEnabledInMod() )
-		pEntity->Precache();
-	REMOVE_ENTITY( pent );
+	pEntity->AssignEntityOverrides(entityOverrides);
+	pEntity->Precache();
+	pEntity->PrecacheEntTemplateResources();
 }
 
-void UTIL_PrecacheMonster(const char *szClassname, BOOL reverseRelationship, Vector* vecMin, Vector* vecMax)
+CBaseEntity* UTIL_CreateInstanceForPrecache(const char* szClassname, const char* contextStr)
 {
 	edict_t	*pent = CREATE_NAMED_ENTITY( MAKE_STRING( szClassname ) );
-	if( FNullEnt( pent ) )
+	if (FNullEnt(pent))
 	{
-		ALERT( at_console, "NULL Ent in UTIL_PrecacheMonster\n" );
-		return;
+		ALERT(at_console, "NULL Ent in %s (%s)\n", contextStr, szClassname);
+		return nullptr;
 	}
+	return CBaseEntity::Instance(VARS(pent));
+}
 
-	CBaseEntity *pEntity = CBaseEntity::Instance( VARS( pent ) );
-	if( pEntity )
+void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector* vecMax)
+{
+	CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+	if (pMonster)
 	{
-		CBaseMonster *pMonster = pEntity->MyMonsterPointer();
-		if (pMonster)
+		const EntTemplate* entTemplate = pMonster->GetMyEntTemplate();
+		if (entTemplate && entTemplate->IsSizeDefined())
 		{
-			pMonster->m_reverseRelationship = reverseRelationship;
+			if (vecMin)
+				*vecMin = entTemplate->MinSize();
+			if (vecMax)
+				*vecMax = entTemplate->MaxSize();
+		}
+		else
+		{
 			if (vecMin)
 				*vecMin = pMonster->DefaultMinHullSize();
 			if (vecMax)
 				*vecMax = pMonster->DefaultMaxHullSize();
 		}
-		if (pEntity->IsEnabledInMod())
-			pEntity->Precache();
+		if (vecMin && pMonster->m_minHullSize != g_vecZero)
+		{
+			*vecMin = pMonster->m_minHullSize;
+		}
+		if (vecMax && pMonster->m_maxHullSize != g_vecZero)
+		{
+			*vecMax = pMonster->m_maxHullSize;
+		}
 	}
-	REMOVE_ENTITY( pent );
+}
+
+bool UTIL_PrecacheOther( const char *szClassname, EntityOverrides entityOverrides )
+{
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheOther");
+	if (pEntity)
+	{
+		const bool enabled = pEntity->IsEnabledInMod();
+		if (enabled)
+		{
+			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
+	}
+	return false;
+}
+
+bool UTIL_PrecacheAmmoEntity( const char *szClassname, int& amount, EntityOverrides entityOverrides )
+{
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheAmmoEntity");
+	if (pEntity)
+	{
+		const bool enabled = pEntity->IsEnabledInMod();
+		if (enabled)
+		{
+			UTIL_PrecacheOtherWithOverride(pEntity, entityOverrides);
+			CBasePlayerAmmo* pAmmoEntity = pEntity->MyAmmoPointer();
+			if (pAmmoEntity)
+			{
+				amount = pAmmoEntity->MyAmount();
+			}
+		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
+	}
+	return false;
+}
+
+bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vector* vecMin, Vector* vecMax, EntityOverrides entityOverrides, string_t* keys, string_t* values, int keyValueCount)
+{
+	CBaseEntity *pEntity = UTIL_CreateInstanceForPrecache(szClassname, "UTIL_PrecacheMonster");
+	if (pEntity)
+	{
+		const bool enabled = pEntity->IsEnabledInMod();
+		if (enabled)
+		{
+			pEntity->AssignEntityOverrides(entityOverrides);
+			pEntity->FillKeyValues(keys, values, keyValueCount);
+
+			CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+			if (pMonster && reverseRelationship)
+			{
+				pMonster->m_reverseRelationship = reverseRelationship;
+			}
+
+			pEntity->Precache();
+			pEntity->PrecacheEntTemplateResources();
+
+			UTIL_GetSizeFromEntityPrecache(pEntity, vecMin, vecMax);
+		}
+		REMOVE_ENTITY(pEntity->edict());
+		return enabled;
+	}
+	return false;
 }
 
 //=========================================================
@@ -1756,7 +1935,7 @@ float UTIL_DotPoints( const Vector &vecSrc, const Vector &vecCheck, const Vector
 	Vector2D vec2LOS;
 
 	vec2LOS = ( vecCheck - vecSrc ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	return DotProduct( vec2LOS, ( vecDir.Make2D() ) );
 }
@@ -1764,11 +1943,11 @@ float UTIL_DotPoints( const Vector &vecSrc, const Vector &vecCheck, const Vector
 //=========================================================
 // UTIL_StripToken - for redundant keynames
 //=========================================================
-void UTIL_StripToken( const char *pKey, char *pDest )
+void UTIL_StripToken( const char *pKey, char *pDest, int nLen )
 {
 	int i = 0;
 
-	while( pKey[i] && pKey[i] != '#' )
+	while( i < nLen - 1 && pKey[i] && pKey[i] != '#' )
 	{
 		pDest[i] = pKey[i];
 		i++;
@@ -1787,7 +1966,7 @@ static int gSizes[FIELD_TYPECOUNT] =
 	sizeof(string_t),		// FIELD_STRING
 	sizeof(void*),		// FIELD_ENTITY
 	sizeof(void*),		// FIELD_CLASSPTR
-	sizeof(void*),		// FIELD_EHANDLE
+	sizeof(EHANDLE),	// FIELD_EHANDLE
 	sizeof(void*),		// FIELD_entvars_t
 	sizeof(void*),		// FIELD_EDICT
 	sizeof(float) * 3,	// FIELD_VECTOR
@@ -1799,12 +1978,13 @@ static int gSizes[FIELD_TYPECOUNT] =
 #else
 	sizeof(void *),		// FIELD_FUNCTION	
 #endif
-	sizeof(int),		// FIELD_BOOLEAN
+	sizeof(byte),		// FIELD_BOOLEAN
 	sizeof(short),		// FIELD_SHORT
 	sizeof(char),		// FIELD_CHARACTER
 	sizeof(float),		// FIELD_TIME
 	sizeof(int),		// FIELD_MODELNAME
 	sizeof(int),		// FIELD_SOUNDNAME
+	sizeof(std::uint64_t), //FIELD_INT64
 };
 
 // entities has different store size
@@ -1826,7 +2006,7 @@ static int gInputSizes[FIELD_TYPECOUNT] =
 #else
 	sizeof(void *),		// FIELD_FUNCTION
 #endif
-	sizeof(int),		// FIELD_BOOLEAN
+	sizeof(byte),		// FIELD_BOOLEAN
 	sizeof(short),		// FIELD_SHORT
 	sizeof(char),		// FIELD_CHARACTER
 	sizeof(float),		// FIELD_TIME
@@ -1835,7 +2015,7 @@ static int gInputSizes[FIELD_TYPECOUNT] =
 };
 
 // Base class includes common SAVERESTOREDATA pointer, and manages the entity table
-CSaveRestoreBuffer::CSaveRestoreBuffer( void )
+CSaveRestoreBuffer::CSaveRestoreBuffer()
 {
 	m_pdata = NULL;
 }
@@ -1845,7 +2025,7 @@ CSaveRestoreBuffer::CSaveRestoreBuffer( SAVERESTOREDATA *pdata )
 	m_pdata = pdata;
 }
 
-CSaveRestoreBuffer::~CSaveRestoreBuffer( void )
+CSaveRestoreBuffer::~CSaveRestoreBuffer()
 {
 }
 
@@ -1952,16 +2132,16 @@ unsigned short CSaveRestoreBuffer::TokenHash( const char *pszToken )
 	static int tokensparsed = 0;
 	tokensparsed++;
 	if( !m_pdata->tokenCount || !m_pdata->pTokens )
-		ALERT( at_error, "No token table array in TokenHash()!" );
+		ALERT( at_error, "No token table array in TokenHash()!\n" );
 #endif
 	for( int i = 0; i < m_pdata->tokenCount; i++ )
 	{
 #if _DEBUG
-		static qboolean beentheredonethat = FALSE;
+		static qboolean beentheredonethat = 0;
 		if( i > 50 && !beentheredonethat )
 		{
-			beentheredonethat = TRUE;
-			ALERT( at_error, "CSaveRestoreBuffer :: TokenHash() is getting too full!" );
+			beentheredonethat = 1;
+			ALERT( at_error, "CSaveRestoreBuffer :: TokenHash() is getting too full!\n" );
 		}
 #endif
 		int index = hash + i;
@@ -1977,7 +2157,7 @@ unsigned short CSaveRestoreBuffer::TokenHash( const char *pszToken )
 
 	// Token hash table full!!! 
 	// [Consider doing overflow table(s) after the main table & limiting linear hash table search]
-	ALERT( at_error, "CSaveRestoreBuffer :: TokenHash() is COMPLETELY FULL!" );
+	ALERT( at_error, "CSaveRestoreBuffer :: TokenHash() is COMPLETELY FULL!\n" );
 	return 0;
 }
 
@@ -2089,7 +2269,7 @@ void CSave::WritePositionVector( const char *pname, const float *value, int coun
 		Vector tmp( value[0], value[1], value[2] );
 
 		if( m_pdata && m_pdata->fUseLandmark )
-			tmp = tmp - m_pdata->vecLandmarkOffset;
+			tmp -= m_pdata->vecLandmarkOffset;
 
 		BufferData( (const char *)&tmp.x, sizeof(float) * 3 );
 		value += 3;
@@ -2134,7 +2314,17 @@ void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd )
 				break;
 			case FIELD_POSITION_VECTOR:
 			case FIELD_VECTOR:
-				UTIL_StringToVector( (float *)( (char *)pev + pField->fieldOffset ), pkvd->szValue );
+			{
+				int componentsRead = 0;
+				UTIL_StringToVector( (float *)( (char *)pev + pField->fieldOffset ), pkvd->szValue, &componentsRead );
+				if (componentsRead != 3 && DeveloperModeLevel() >= 4)
+				{
+					ALERT( at_warning, "Incorrect number of components for vector. %s:%s == \"%s\"\n", pkvd->szClassName, pField->fieldName, pkvd->szValue );
+				}
+			}
+				break;
+			case FIELD_CHARACTER:
+				UTIL_StringToCharArray((char *)pev + pField->fieldOffset, pField->fieldSize, pkvd->szValue);
 				break;
 			default:
 			case FIELD_EVARS:
@@ -2142,13 +2332,60 @@ void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd )
 			case FIELD_EDICT:
 			case FIELD_ENTITY:
 			case FIELD_POINTER:
-				ALERT( at_error, "Bad field in entity!!\n" );
+				ALERT( at_error, "Bad field in entity!! %s:%s == \"%s\"\n", pkvd->szClassName, pField->fieldName, pkvd->szValue );
 				break;
 			}
-			pkvd->fHandled = TRUE;
+			pkvd->fHandled = true;
 			return;
 		}
 	}
+}
+
+CKeyValue ReadEntvarKeyvalue(entvars_t* pev, const char* keyName)
+{
+	CKeyValue keyValue;
+	keyValue.keyName = keyName;
+
+	for( int i = 0; i < (int)ENTVARS_COUNT; i++ )
+	{
+		TYPEDESCRIPTION *pField = &gEntvarsDescription[i];
+		if( stricmp( pField->fieldName, keyName ) == 0 )
+		{
+			keyValue.fieldType = pField->fieldType;
+			keyValue.offset = pField->fieldOffset;
+			switch( pField->fieldType )
+			{
+			case FIELD_MODELNAME:
+			case FIELD_SOUNDNAME:
+			case FIELD_STRING:
+				keyValue.sVal = ( *(string_t *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_STRING;
+				break;
+			case FIELD_TIME:
+			case FIELD_FLOAT:
+				keyValue.fVal = ( *(float *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_FLOAT;
+				break;
+			case FIELD_INTEGER:
+				keyValue.iVal = ( *(int *)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_INT;
+				break;
+			case FIELD_POSITION_VECTOR:
+			case FIELD_VECTOR:
+				keyValue.vVal = Vector((float *)( (char *)pev + pField->fieldOffset ));
+				keyValue.keyType = KEY_TYPE_VECTOR;
+				break;
+			case FIELD_EDICT:
+				keyValue.eVal = ( *(edict_t **)( (char *)pev + pField->fieldOffset ) );
+				keyValue.keyType = KEY_TYPE_EDICT;
+				break;
+			default:
+				break;
+			}
+			return keyValue;
+		}
+	}
+	return keyValue;
 }
 
 int CSave::WriteEntVars( const char *pname, entvars_t *pev )
@@ -2161,6 +2398,7 @@ int CSave::WriteFields( const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 	int i, j, actualCount, emptyCount;
 	TYPEDESCRIPTION	*pTest;
 	int entityArray[MAX_ENTITYARRAY];
+	byte boolArray[MAX_ENTITYARRAY];
 
 	// Precalculate the number of empty fields
 	emptyCount = 0;
@@ -2238,6 +2476,14 @@ int CSave::WriteFields( const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 			WriteVector( pTest->fieldName, (float *)pOutputData, pTest->fieldSize );
 			break;
 		case FIELD_BOOLEAN:
+		{
+			for (j = 0; j < pTest->fieldSize; j++)
+			{
+				boolArray[j] = ((bool*)pOutputData)[j] ? 1 : 0;
+			}
+			WriteData(pTest->fieldName, pTest->fieldSize, (char*)boolArray);
+		}
+			break;
 		case FIELD_INTEGER:
 			WriteInt( pTest->fieldName, (int *)pOutputData, pTest->fieldSize );
 			break;
@@ -2253,6 +2499,9 @@ int CSave::WriteFields( const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 			break;
 		case FIELD_FUNCTION:
 			WriteFunction( pTest->fieldName, (void **)pOutputData, pTest->fieldSize );
+			break;
+		case FIELD_INT64:
+			WriteData( pTest->fieldName, sizeof(std::uint64_t) * pTest->fieldSize, ((char*)pOutputData) );
 			break;
 		default:
 			ALERT( at_error, "Bad field type\n" );
@@ -2290,7 +2539,7 @@ void CSave::BufferHeader( const char *pname, int size )
 {
 	short hashvalue = TokenHash( pname );
 	if( size > 1 << ( sizeof(short) * 8 ) )
-		ALERT( at_error, "CSave :: BufferHeader() size parameter exceeds 'short'!" );
+		ALERT( at_error, "CSave :: BufferHeader() size parameter exceeds 'short'!\n" );
 	BufferData( (const char *)&size, sizeof(short) );
 	BufferData( (const char *)&hashvalue, sizeof(short) );
 }
@@ -2302,7 +2551,7 @@ void CSave::BufferData( const char *pdata, int size )
 
 	if( m_pdata->size + size > m_pdata->bufferSize )
 	{
-		ALERT( at_error, "Save/Restore overflow!" );
+		ALERT( at_error, "Save/Restore overflow!\n" );
 		m_pdata->size = m_pdata->bufferSize;
 		return;
 	}
@@ -2340,7 +2589,7 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 	{
 		fieldNumber = ( i + startField ) % fieldCount;
 		pTest = &pFields[fieldNumber];
-		if( !stricmp( pTest->fieldName, pName ) )
+		if( pTest->fieldName && !stricmp( pTest->fieldName, pName ) )
 		{
 			if( !m_global || !(pTest->flags & FTYPEDESC_GLOBAL ) )
 			{
@@ -2421,7 +2670,7 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 						break;
 					case FIELD_EHANDLE:
 						// Input and Output sizes are different!
-						pOutputData = (char *)pOutputData + j * ( sizeof(EHANDLE) - gSizes[pTest->fieldType] );
+						pInputData = (char*)pData + j * gInputSizes[pTest->fieldType];
 						entityIndex = *(int *)pInputData;
 						pent = EntityFromIndex( entityIndex );
 						if( pent )
@@ -2461,6 +2710,12 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 						#endif
 						break;
 					case FIELD_BOOLEAN:
+					{
+						pOutputData = (char*)pOutputData + j * (sizeof(bool) - gSizes[pTest->fieldType]);
+						const bool value = *((byte*)pInputData) != 0;
+						*((bool*)pOutputData) = value;
+					}
+						break;
 					case FIELD_INTEGER:
 						*( (int *)pOutputData ) = *(int *)pInputData;
 						break;
@@ -2478,6 +2733,9 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 							*( (void**)pOutputData ) = 0;
 						else
 							*( (void**)pOutputData ) = (void*)FUNCTION_FROM_NAME( (char *)pInputData );
+						break;
+					case FIELD_INT64:
+						*((std::uint64_t*)pOutputData) = *(std::uint64_t*)pInputData;
 						break;
 					default:
 						ALERT( at_error, "Bad field type\n" );
@@ -2553,7 +2811,7 @@ void CRestore::BufferReadHeader( HEADER *pheader )
 }
 
 
-short CRestore::ReadShort( void )
+short CRestore::ReadShort()
 {
 	short tmp = 0;
 
@@ -2562,7 +2820,7 @@ short CRestore::ReadShort( void )
 	return tmp;
 }
 
-int CRestore::ReadInt( void )
+int CRestore::ReadInt()
 {
 	int tmp = 0;
 
@@ -2591,7 +2849,7 @@ char *CRestore::ReadNamedString( const char *pName )
 #endif
 }
 
-char *CRestore::BufferPointer( void )
+char *CRestore::BufferPointer()
 {
 	if( !m_pdata )
 		return NULL;
@@ -2608,7 +2866,7 @@ void CRestore::BufferReadBytes( char *pOutput, int size )
 
 	if( ( m_pdata->size + size ) > m_pdata->bufferSize )
 	{
-		ALERT( at_error, "Restore overflow!" );
+		ALERT( at_error, "Restore overflow!\n" );
 		m_pdata->size = m_pdata->bufferSize;
 		return;
 	}
@@ -2624,7 +2882,7 @@ void CRestore::BufferSkipBytes( int bytes )
 	BufferReadBytes( NULL, bytes );
 }
 
-int CRestore::BufferSkipZString( void )
+int CRestore::BufferSkipZString()
 {
 	char *pszSearch;
 	int len;
@@ -2676,93 +2934,14 @@ void UTIL_CleanSpawnPoint( Vector origin, float dist )
 	}
 }
 
-char *memfgets( byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize )
-{
-	// Bullet-proofing
-	if( !pMemFile || !pBuffer )
-		return NULL;
-
-	if( filePos >= fileSize )
-		return NULL;
-
-	int i = filePos;
-	int last = fileSize;
-
-	// fgets always NULL terminates, so only read bufferSize-1 characters
-	if( last - filePos > ( bufferSize - 1 ) )
-		last = filePos + ( bufferSize - 1 );
-
-	int stop = 0;
-
-	// Stop at the next newline (inclusive) or end of buffer
-	while( i < last && !stop )
-	{
-		if( pMemFile[i] == '\n' )
-		{
-			stop = 1;
-		}
-		if ( pMemFile[i] == '\r' )
-		{
-			if (i+1 < last && pMemFile[i+1] == '\n')
-			{
-				pMemFile[i] = '\n';
-				pMemFile[i+1] = '\0';
-				++i;
-			}
-			stop = 1;
-		}
-		i++;
-	}
-
-	// If we actually advanced the pointer, copy it over
-	if( i != filePos )
-	{
-		// We read in size bytes
-		int size = i - filePos;
-		// copy it out
-		memcpy( pBuffer, pMemFile + filePos, sizeof(byte) * size );
-
-		// If the buffer isn't full, terminate (this is always true)
-		if( size < bufferSize )
-			pBuffer[size] = 0;
-
-		// Update file pointer
-		filePos = i;
-		return pBuffer;
-	}
-
-	// No data read, bail
-	return NULL;
-}
-
-void ReportAIStateByClassname(const char* name)
-{
-	if (!name || !*name) {
-		ALERT(at_console, "Must provide a classname!\n");
-		return;
-	}
-	CBaseEntity* pEntity = 0;
-	ALERT(at_console, "Listing all monsters of \"%s\" classname\n", name);
-	while ( ( pEntity = UTIL_FindEntityByClassname(pEntity, name) ) != 0 ) {
-		CBaseMonster* pMonster = pEntity->MyMonsterPointer();
-		if (pMonster) {
-			pMonster->ReportAIState(at_console);
-			const bool clientInPVS = !FNullEnt(FIND_CLIENT_IN_PVS( pMonster->edict() ));
-			ALERT(at_console, "Position in the world: (%3.1f, %3.1f, %3.1f). ", pMonster->pev->origin.x, pMonster->pev->origin.y, pMonster->pev->origin.z);
-			ALERT(at_console, "Client in PVS: %s\n\n", clientInPVS ? "yes" : "no");
-		}
-	}
-}
-
-
 // LRC- change the origin to the given position, and bring any movewiths along too.
 void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin )
 {
-	UTIL_AssignOrigin( pEntity, vecOrigin, TRUE);
+	UTIL_AssignOrigin( pEntity, vecOrigin, true);
 }
 
 // LRC- bInitiator is true if this is being called directly, rather than because pEntity is moving with something else.
-void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin, BOOL bInitiator)
+void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin, bool bInitiator)
 {
 //	ALERT(at_console, "AssignOrigin before %f, after %f\n", pEntity->pev->origin.x, vecOrigin.x);
 #if 0
@@ -2802,13 +2981,13 @@ void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin, BOOL bInit
 				//);
 				if (pChild->pev->movetype != MOVETYPE_PUSH || pChild->pev->velocity == pEntity->pev->velocity) // if the child isn't moving under its own power
 				{
-					UTIL_AssignOrigin( pChild, vecOrigin + pChild->m_vecMoveWithOffset, FALSE );
+					UTIL_AssignOrigin( pChild, vecOrigin + pChild->m_vecMoveWithOffset, false );
 //					ALERT(at_console,"used m_vecMoveWithOffset based on %f %f %f to set %f %f %f\n",pEntity->pev->origin.x,pEntity->pev->origin.y,pEntity->pev->origin.z,pChild->pev->origin.x,pChild->pev->origin.y,pChild->pev->origin.z);
 				}
 				else
 				{
 					vecTemp = vecDiff + pChild->pev->origin;
-					UTIL_AssignOrigin( pChild, vecTemp, FALSE );
+					UTIL_AssignOrigin( pChild, vecTemp, false );
 				}
 				//ALERT(at_console,"  child origin becomes (%f %f %f)\n",pChild->pev->origin.x,pChild->pev->origin.y,pChild->pev->origin.z);
 				//ALERT(at_console,"ent %p has sibling %p\n",pChild,pChild->m_pSiblingMoveWith);
@@ -2821,13 +3000,13 @@ void UTIL_AssignOrigin( CBaseEntity *pEntity, const Vector vecOrigin, BOOL bInit
 
 void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles )
 {
-	UTIL_SetAngles( pEntity, vecAngles, TRUE );
+	UTIL_SetAngles( pEntity, vecAngles, true );
 }
 
-void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles, BOOL bInitiator)
+void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles, bool bInitiator)
 {
-	Vector vecDiff = vecAngles - pEntity->pev->angles;
 #if 0
+	Vector vecDiff = vecAngles - pEntity->pev->angles;
 	if (vecDiff.Length() > 0.01 && CVAR_GET_FLOAT("sohl_mwdebug"))
 		ALERT(at_console,"SetAngles %s %s: (%f %f %f) goes to (%f %f %f)\n",STRING(pEntity->pev->classname), STRING(pEntity->pev->targetname), pEntity->pev->angles.x, pEntity->pev->angles.y, pEntity->pev->angles.z, vecAngles.x, vecAngles.y, vecAngles.z);
 #endif
@@ -2847,12 +3026,12 @@ void UTIL_SetAngles( CBaseEntity *pEntity, const Vector vecAngles, BOOL bInitiat
 		{
 			if (pChild->pev->avelocity == pEntity->pev->avelocity) // if the child isn't turning under its own power
 			{
-				UTIL_SetAngles( pChild, vecAngles + pChild->m_vecRotWithOffset, FALSE );
+				UTIL_SetAngles( pChild, vecAngles + pChild->m_vecRotWithOffset, false );
 			}
 			else
 			{
 				vecTemp = vecDiff + pChild->pev->angles;
-				UTIL_SetAngles( pChild, vecTemp, FALSE );
+				UTIL_SetAngles( pChild, vecTemp, false );
 			}
 			//ALERT(at_console,"  child origin becomes (%f %f %f)\n",pChild->pev->origin.x,pChild->pev->origin.y,pChild->pev->origin.z);
 			//ALERT(at_console,"ent %p has sibling %p\n",pChild,pChild->m_pSiblingMoveWith);

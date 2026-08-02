@@ -8,7 +8,6 @@
 #include <assert.h>
 #include "hud.h"
 #include "cl_util.h"
-#include "const.h"
 #include "com_model.h"
 #include "studio.h"
 #include "entity_state.h"
@@ -69,7 +68,7 @@ CGameStudioModelRenderer
 
 ====================
 */
-CGameStudioModelRenderer::CGameStudioModelRenderer( void )
+CGameStudioModelRenderer::CGameStudioModelRenderer()
 {
 	// If you want to predict animations locally, set this to TRUE
 	// NOTE:  The animation code is somewhat broken, but gives you a sense for how
@@ -83,7 +82,7 @@ StudioSetupBones
 
 ====================
 */
-void CGameStudioModelRenderer::StudioSetupBones ( void )
+void CGameStudioModelRenderer::StudioSetupBones ()
 {
 	int					i;
 	double				f;
@@ -776,16 +775,16 @@ int CGameStudioModelRenderer::_StudioDrawPlayer( int flags, entity_state_t *ppla
 	}
 
 	m_pPlayerInfo = IEngineStudio.PlayerInfo( m_nPlayerIndex );
-	StudioSetupBones( );
-	StudioSaveBones( );
+	StudioSetupBones();
+	StudioSaveBones();
 	m_pPlayerInfo->renderframe = m_nFrameCount;
 
 	m_pPlayerInfo = NULL;
 
 	if (flags & STUDIO_EVENTS)
 	{
-		StudioCalcAttachments( );
-		IEngineStudio.StudioClientEvents( );
+		StudioCalcAttachments();
+		IEngineStudio.StudioClientEvents();
 		// copy attachments into global entity array
 		if ( m_pCurrentEntity->index > 0 )
 		{
@@ -834,7 +833,7 @@ int CGameStudioModelRenderer::_StudioDrawPlayer( int flags, entity_state_t *ppla
 
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
-		StudioRenderModel( );
+		StudioRenderModel();
 		m_pPlayerInfo = NULL;
 
 		if (pplayer->weaponmodel)
@@ -850,9 +849,9 @@ int CGameStudioModelRenderer::_StudioDrawPlayer( int flags, entity_state_t *ppla
 
 			IEngineStudio.StudioSetupLighting (&lighting);
 
-			StudioRenderModel( );
+			StudioRenderModel();
 
-			StudioCalcAttachments( );
+			StudioCalcAttachments();
 
 			*m_pCurrentEntity = saveent;
 		}
@@ -950,7 +949,7 @@ R_StudioInit
 
 ====================
 */
-void R_StudioInit( void )
+void R_StudioInit()
 {
 	g_StudioRenderer.Init();
 }

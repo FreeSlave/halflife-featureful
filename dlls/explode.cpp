@@ -25,20 +25,20 @@
 #include "decals.h"
 #include "explode.h"
 #include "locus.h"
-#include "weapons.h"
+#include "combat.h"
 
 // Spark Shower
 class CShower : public CBaseEntity
 {
-	void Spawn( void );
-	void Think( void );
-	void Touch( CBaseEntity *pOther );
-	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+	void Spawn() override;
+	void Think() override;
+	void Touch( CBaseEntity *pOther ) override;
+	int ObjectCaps() override { return FCAP_DONT_SAVE; }
 };
 
 LINK_ENTITY_TO_CLASS( spark_shower, CShower )
 
-void CShower::Spawn( void )
+void CShower::Spawn()
 {
 	pev->velocity = RANDOM_FLOAT( 200.0f, 300.0f ) * pev->angles;
 	pev->velocity.x += RANDOM_FLOAT( -100.0f, 100.0f );
@@ -59,7 +59,7 @@ void CShower::Spawn( void )
 	pev->angles = g_vecZero;
 }
 
-void CShower::Think( void )
+void CShower::Think()
 {
 	UTIL_Sparks( pev->origin );
 
@@ -85,14 +85,14 @@ void CShower::Touch( CBaseEntity *pOther )
 class CEnvExplosion : public CBaseEntity
 {
 public:
-	void Precache();
-	void Spawn();
-	void EXPORT Smoke( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Precache() override;
+	void Spawn() override;
+	void EXPORT Smoke();
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	int m_iMagnitude;// how large is the fireball? how much damage?
@@ -119,17 +119,17 @@ void CEnvExplosion::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "iMagnitude" ) )
 	{
 		m_iMagnitude = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "iRadius" ) )
 	{
 		m_iRadius = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq(pkvd->szKeyName, "smokesprite") )
 	{
 		m_smokeSprite = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseEntity::KeyValue( pkvd );
@@ -143,7 +143,7 @@ void CEnvExplosion::Precache()
 		m_iSmoke = PRECACHE_MODEL(STRING(m_smokeSprite));
 }
 
-void CEnvExplosion::Spawn( void )
+void CEnvExplosion::Spawn()
 {
 	Precache();
 
@@ -241,9 +241,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	{
 		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_EXPLOSION );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
+			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( fireballIndex );
 			WRITE_BYTE( (BYTE)m_spriteScale ); // scale * 10
 			WRITE_BYTE( 15 ); // framerate
@@ -254,9 +252,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	{
 		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_EXPLOSION );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
+			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( fireballIndex );
 			WRITE_BYTE( 0 ); // no sprite
 			WRITE_BYTE( 15 ); // framerate
@@ -271,8 +267,8 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 		if (FBitSet(pev->spawnflags, SF_ENVEXPLOSION_ACTIVATOR_IS_ATTACKER) && pActivator) {
 			pevAttacker = pActivator->pev;
 		}
-		const float radius = m_iRadius > 0 ? m_iRadius : m_iMagnitude * DEFAULT_EXPLOSTION_RADIUS_MULTIPLIER;
-		::RadiusDamage( pev->origin, pev, pevAttacker, m_iMagnitude, radius, CLASS_NONE, DMG_BLAST );
+		const float radius = m_iRadius > 0 ? m_iRadius : m_iMagnitude * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER;
+		::RadiusDamage( pev->origin, pev, pevAttacker, DamageInfo{(float)m_iMagnitude, DMG_BLAST}, radius, CLASS_NONE );
 	}
 
 	SetThink( &CEnvExplosion::Smoke );
@@ -290,15 +286,13 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	}
 }
 
-void CEnvExplosion::Smoke( void )
+void CEnvExplosion::Smoke()
 {
 	if( !( pev->spawnflags & SF_ENVEXPLOSION_NOSMOKE ) )
 	{
 		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
+			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( m_iSmoke ? m_iSmoke : g_sModelIndexSmoke );
 			WRITE_BYTE( (BYTE)m_spriteScale ); // scale * 10
 			WRITE_BYTE( 12 ); // framerate
@@ -312,7 +306,7 @@ void CEnvExplosion::Smoke( void )
 }
 
 // HACKHACK -- create one of these and fake a keyvalue to get the right explosion setup
-void ExplosionCreate(const Vector &center, const Vector &angles, edict_t *pOwner, int magnitude, BOOL doDamage , entvars_t *pevAttacker)
+void ExplosionCreate(const Vector &center, const Vector &angles, edict_t *pOwner, int magnitude, bool doDamage , entvars_t *pevAttacker)
 {
 	KeyValueData kvd;
 	char buf[128];

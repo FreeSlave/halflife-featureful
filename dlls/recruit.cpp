@@ -4,54 +4,49 @@
 #include	"monsters.h"
 #include	"talkmonster.h"
 #include	"schedule.h"
-#include	"scripted.h"
 #include	"soundent.h"
-#include	"mod_features.h"
 #include	"game.h"
-
-#if FEATURE_RECRUIT
 
 class CRecruit : public CTalkMonster
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("recruit"); }
-	void SetYawSpeed(void);
-	int DefaultISoundMask(void);
-	int DefaultClassify(void);
-	void DeathSound( void );
-	void PainSound( void );
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("recruit"); }
+	void SetYawSpeed() override;
+	int DefaultISoundMask() override;
+	int DefaultClassify() override;
+	void DeathSound() override;
+	void PainSound() override;
 
-	Schedule_t *GetSchedule( void );
+	Schedule_t *GetSchedule() override;
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	static TYPEDESCRIPTION m_SaveData[];
+	const char* DefaultSentenceGroup(int group) override;
 
-	const char* DefaultSentenceGroup(int group);
-
-	float m_painTime;
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( monster_recruit, CRecruit )
 
-TYPEDESCRIPTION	CRecruit::m_SaveData[] =
-{
-	DEFINE_FIELD( CRecruit, m_painTime, FIELD_TIME ),
+const NamedSoundScript CRecruit::painSoundScript = {
+	CHAN_VOICE,
+	{ "barney/ba_pain1.wav", "barney/ba_pain2.wav", "barney/ba_pain3.wav" },
+	"Recruit.Pain"
 };
 
-IMPLEMENT_SAVERESTORE( CRecruit, CTalkMonster )
+const NamedSoundScript CRecruit::dieSoundScript = {
+	CHAN_VOICE,
+	{ "barney/ba_die1.wav", "barney/ba_die2.wav", "barney/ba_die3.wav" },
+	"Recruit.Die"
+};
 
 void CRecruit::Precache()
 {
 	PrecacheMyModel("models/recruit.mdl");
-	PRECACHE_SOUND("barney/ba_pain1.wav");
-	PRECACHE_SOUND("barney/ba_pain2.wav");
-	PRECACHE_SOUND("barney/ba_pain3.wav");
-	PRECACHE_SOUND("barney/ba_die1.wav");
-	PRECACHE_SOUND("barney/ba_die2.wav");
-	PRECACHE_SOUND("barney/ba_die3.wav");
+	PrecacheMyGibModel();
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
 	TalkInit();
 	CTalkMonster::Precache();
 }
@@ -61,22 +56,24 @@ void CRecruit::Spawn()
 	Precache();
 
 	SetMyModel( "models/recruit.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
-	SetMyHealth( gSkillData.barneyHealth );
+	SetMyHealth( GetSkillValue("barney_health") );
 	pev->view_ofs = Vector ( 0, 0, 50 );// position of the eyes relative to monster's origin.
 	SetMyFieldOfView(VIEW_FIELD_WIDE); // NOTE: we need a wide field of view so npc will notice player and say hello
 	m_MonsterState = MONSTERSTATE_NONE;
 
-	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities();
+	SetMyCanOpenDoors(true);
 
 	TalkMonsterInit();
 }
 
-void CRecruit::SetYawSpeed( void )
+void CRecruit::SetYawSpeed()
 {
 	int ys = 0;
 	switch ( m_Activity )
@@ -98,7 +95,7 @@ void CRecruit::SetYawSpeed( void )
 	pev->yaw_speed = ys;
 }
 
-int CRecruit::DefaultISoundMask( void)
+int CRecruit::DefaultISoundMask()
 {
 	return bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -109,49 +106,19 @@ int CRecruit::DefaultISoundMask( void)
 			bits_SOUND_PLAYER;
 }
 
-int CRecruit::DefaultClassify(void)
+int CRecruit::DefaultClassify()
 {
 	return CLASS_PLAYER_ALLY_MILITARY;
 }
 
-void CRecruit::PainSound( void )
+void CRecruit::PainSound()
 {
-	if( gpGlobals->time < m_painTime )
-		return;
-
-	m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5, 0.75 );
-
-	switch( RANDOM_LONG( 0, 2 ) )
-	{
-	case 0:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_pain1.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 1:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_pain2.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 2:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_pain3.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	}
+	EmitSoundScriptTalk(painSoundScript);
 }
 
-//=========================================================
-// DeathSound
-//=========================================================
-void CRecruit::DeathSound( void )
+void CRecruit::DeathSound()
 {
-	switch( RANDOM_LONG( 0, 2 ) )
-	{
-	case 0:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_die1.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 1:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_die2.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	case 2:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "barney/ba_die3.wav", 1, ATTN_NORM, 0, GetVoicePitch() );
-		break;
-	}
+	EmitSoundScriptTalk(dieSoundScript);
 }
 
 const char* CRecruit::DefaultSentenceGroup(int group)
@@ -188,9 +155,9 @@ Schedule_t* CRecruit::GetSchedule()
 	case MONSTERSTATE_IDLE:
 	case MONSTERSTATE_ALERT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 	}
 		break;
 	case MONSTERSTATE_COMBAT:
@@ -202,6 +169,11 @@ Schedule_t* CRecruit::GetSchedule()
 		}
 		if( HasConditions( bits_COND_HEAR_SOUND ) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );	// Cower and panic from the scary sound!
+
+		Schedule_t* regenSchedule = GetRegenerationSchedule();
+		if (regenSchedule)
+			return regenSchedule;
+
 		return GetScheduleOfType( SCHED_RETREAT_FROM_ENEMY );			// Run & Cower
 	}
 		break;
@@ -210,5 +182,3 @@ Schedule_t* CRecruit::GetSchedule()
 	}
 	return CTalkMonster::GetSchedule();
 }
-
-#endif

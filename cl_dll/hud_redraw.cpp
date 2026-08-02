@@ -15,10 +15,10 @@
 //
 // hud_redraw.cpp
 //
-#include <cmath>
 
 #include "hud.h"
 #include "cl_util.h"
+#include "text_utils.h"
 //#include "triangleapi.h"
 
 #if USE_VGUI
@@ -36,12 +36,13 @@ int grgLogoFrame[MAX_LOGO_FRAMES] =
 
 extern int g_iVisibleMouse;
 
-float HUD_GetFOV( void );
+float HUD_GetFOV();
 
 extern cvar_t *sensitivity;
+extern cvar_t *default_fov;
 
 // Think
-void CHud::Think( void )
+void CHud::Think()
 {
 #if USE_VGUI
 	m_scrinfo.iSize = sizeof(m_scrinfo);
@@ -78,7 +79,7 @@ void CHud::Think( void )
 	else
 	{
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * m_pCvarZoomSensitivityRatio->value;
 	}
 
 	// think about default fov
@@ -86,6 +87,11 @@ void CHud::Think( void )
 	{
 		// only let players adjust up in fov,  and only if they are not overriden by something else
 		m_iFOV = Q_max( default_fov->value, 90 );  
+	}
+
+	if( gEngfuncs.IsSpectateOnly() )
+	{
+		m_iFOV = m_Spectator.GetFOV(); // default_fov->value;
 	}
 }
 
@@ -133,9 +139,8 @@ int CHud::Redraw( float flTime, int intermission )
 			m_iIntermission = intermission;
 			gViewPort->HideCommandMenu();
 			gViewPort->HideVGUIMenu();
-#if !USE_NOVGUI_SCOREBOARD
-			gViewPort->ShowScoreBoard();
-#endif
+			if (UseVguiScoreBoard())
+				gViewPort->ShowScoreBoard();
 			gViewPort->UpdateSpectatorPanel();
 			// Take a screenshot if the client's got the cvar set
 			if( CVAR_GET_FLOAT( "hud_takesshots" ) != 0 )
@@ -161,7 +166,11 @@ int CHud::Redraw( float flTime, int intermission )
 	// if no redrawing is necessary
 	// return 0;
 
-	m_Caption.Update( flTime, m_flTimeDelta );
+	m_iHudNumbersYOffset = UsingHighResSprites() ? m_iFontHeight * 0.2 : 0;
+
+	m_Caption.Update(flTime, m_flTimeDelta);
+	m_Journal.Update(flTime, m_flTimeDelta);
+
 	if( m_pCvarDraw->value )
 	{
 		HUDLIST *pList = m_pHudList;
@@ -248,8 +257,35 @@ int CHud::Redraw( float flTime, int intermission )
 		ResetCrosshair();
 	}
 
-	if (m_pCvarCrosshair->value > 0.0f) {
+	if (m_pCvarCrosshair->value > 0.0f && !TopLevelWindowIsActive() && !m_MessageBox.HasActiveMessageBoxes()) {
 		CHud::Renderer().DrawCrosshair();
+	}
+
+	if (m_pCvarShowPos && m_pCvarShowPos->value > 0)
+	{
+		extern Vector v_origin, v_angles;
+
+		cl_entity_t* pl = gEngfuncs.GetLocalPlayer();
+
+		const Vector pos = m_pCvarShowPos->value == 2 ? pl->origin : v_origin;
+		const Vector ang = m_pCvarShowPos->value == 2 ? pl->angles : v_angles;
+		const char* posType = m_pCvarShowPos->value == 2 ? "ent" : "view";
+
+		const int x = ScreenWidth/2;
+		int y = 4;
+		const int textHeight = ConsoleText::LineHeight();
+		char posBuf[256];
+
+		safe_snprintf(posBuf, sizeof(posBuf), "pos (%s): %.2f %.2f %.2f", posType, pos.x, pos.y, pos.z);
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
+		y += textHeight;
+
+		safe_snprintf(posBuf, sizeof(posBuf), "ang (%s): %.2f %.2f %.2f", posType, ang.x, ang.y, ang.z);
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
+		y += textHeight;
+
+		safe_snprintf(posBuf, sizeof(posBuf), "velocity: %.2f", m_velocity.Length());
+		ConsoleText::DrawString(x, y, ScreenWidth, posBuf, 255, 255, 255);
 	}
 
 	return 1;
@@ -287,7 +323,7 @@ int CHud::DrawHudString(int xpos, int ypos, int iMaxX, const char *szIt, int r, 
 	// draw the string until we hit the null character or a newline character
 	for( ; (length == -1 || szIt - start < length) && *szIt != 0 && *szIt != '\n'; szIt++ )
 	{
-		int w = gHUD.m_scrinfo.charWidths[(unsigned char)*szIt];
+		int w = m_scrinfo.charWidths[(unsigned char)*szIt];
 		if( xpos + w  > iMaxX )
 			return xpos;
 		if( ( *szIt == '^' ) && ( *( szIt + 1 ) >= '0') && ( *( szIt + 1 ) <= '7') )
@@ -319,10 +355,10 @@ int CHud::DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szStr
 {
 	// find the end of the string
 	for( const char *szIt = szString; *szIt != 0; szIt++ )
-		xpos -= gHUD.m_scrinfo.charWidths[(unsigned char)*szIt];
+		xpos -= m_scrinfo.charWidths[(unsigned char)*szIt];
 	if( xpos < iMinX )
 		xpos = iMinX;
-	DrawHudString( xpos, ypos, gHUD.m_scrinfo.iWidth, szString, r, g, b );
+	DrawHudString( xpos, ypos, m_scrinfo.iWidth, szString, r, g, b );
 	return xpos;
 }
 
@@ -334,11 +370,23 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 	if( iNumber > 0 )
 	{
 		// SPR_Draw 100's
+		if( iNumber >= 1000 )
+		{
+			k = iNumber / 1000;
+			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
+			x += iWidth;
+		}
+		else if( iFlags & ( DHN_4DIGITS ) )
+		{
+			//SPR_DrawAdditive( 0, x, y, &rc );
+			x += iWidth;
+		}
+
+		// SPR_Draw 100's
 		if( iNumber >= 100 )
 		{
-			k = iNumber / 100;
-			CHud::Renderer().SPR_Set( GetSprite( m_HUD_number_0 + k ), r, g, b );
-			CHud::Renderer().SPR_DrawAdditive( 0, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
+			k = (iNumber % 1000) / 100;
+			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
 			x += iWidth;
 		}
 		else if( iFlags & ( DHN_3DIGITS ) )
@@ -351,8 +399,7 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 		if( iNumber >= 10 )
 		{
 			k = ( iNumber % 100 ) / 10;
-			CHud::Renderer().SPR_Set( GetSprite( m_HUD_number_0 + k ), r, g, b );
-			CHud::Renderer().SPR_DrawAdditive( 0, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
+			CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b, x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
 			x += iWidth;
 		}
 		else if( iFlags & ( DHN_3DIGITS | DHN_2DIGITS ) )
@@ -363,13 +410,15 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 
 		// SPR_Draw ones
 		k = iNumber % 10;
-		CHud::Renderer().SPR_Set( GetSprite( m_HUD_number_0 + k ), r, g, b );
-		CHud::Renderer().SPR_DrawAdditive( 0,  x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
+		CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 + k ), r, g, b,  x, y, &GetSpriteRect( m_HUD_number_0 + k ) );
 		x += iWidth;
 	}
 	else if( iFlags & DHN_DRAWZERO )
 	{
-		CHud::Renderer().SPR_Set( GetSprite( m_HUD_number_0 ), r, g, b );
+		if( iFlags & ( DHN_4DIGITS ) )
+		{
+			x += iWidth;
+		}
 
 		// SPR_Draw 100's
 		if( iFlags & ( DHN_3DIGITS ) )
@@ -385,11 +434,61 @@ int CHud::DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, in
 		}
 
 		// SPR_Draw ones
-		CHud::Renderer().SPR_DrawAdditive( 0,  x, y, &GetSpriteRect( m_HUD_number_0 ) );
+		CHud::Renderer().SPR_DrawAdditive( GetSprite( m_HUD_number_0 ), r, g, b,  x, y, &GetSpriteRect( m_HUD_number_0 ) );
 		x += iWidth;
 	}
 
 	return x;
+}
+
+static int count_digits(int n) {
+	int result = 0;
+
+	do {
+		++result;
+	} while ((n /= 10) != 0);
+
+	return result;
+}
+
+static constexpr int ten_powers[] = {
+	1,
+	10,
+	100,
+	1000,
+	10000,
+	100000,
+	1000000,
+	10000000,
+	100000000,
+	1000000000
+};
+
+int CHud::DrawHudNumber(int x, int y, int number, int r, int g, int b)
+{
+	auto digit_width = GetSpriteRect(m_HUD_number_0).right - GetSpriteRect(m_HUD_number_0).left;
+	auto digit_count = count_digits(number);
+
+	for (int i = digit_count; i > 0; --i) {
+		int digit = number / ten_powers[i - 1];
+
+		CHud::Renderer().SPR_DrawAdditive(GetSprite(m_HUD_number_0 + digit), r, g, b, x, y, &GetSpriteRect(m_HUD_number_0 + digit));
+		x += digit_width;
+
+		number -= digit * ten_powers[i - 1];
+	}
+
+	return x;
+}
+
+std::pair<int, int> CHud::DrawHudNumberCentered(int x, int y, int number, int r, int g, int b)
+{
+	auto digit_width = GetSpriteRect(m_HUD_number_0).right - GetSpriteRect(m_HUD_number_0).left;
+	auto digit_count = count_digits(number);
+
+	const int numStartX = x - (digit_width * digit_count) / 2;
+	const int numEndX = DrawHudNumber(numStartX, y, number, r, g, b);
+	return std::make_pair(numStartX, numEndX);
 }
 
 int CHud::ConsoleText::DrawString(int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length)
@@ -409,10 +508,22 @@ int CHud::ConsoleText::DrawString(int xpos, int ypos, int iMaxX, const char *szS
 	return gEngfuncs.pfnDrawConsoleString(xpos, ypos, str);
 }
 
+int CHud::ConsoleText::DrawString(int xpos, int ypos, const char *szString, int r, int g, int b, int length)
+{
+	return DrawString(xpos, ypos, ScreenWidth, szString, r, g, b, length);
+}
+
 int CHud::ConsoleText::DrawNumberString(int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b)
 {
 	char szString[32];
 	sprintf( szString, "%d", iNumber );
+	return DrawStringReverse( xpos, ypos, iMinX, szString, r, g, b );
+}
+
+int CHud::ConsoleText::DrawFloatNumberString(int xpos, int ypos, int iMinX, float number, int r, int g, int b)
+{
+	char szString[32];
+	sprintf( szString, "%g", number );
 	return DrawStringReverse( xpos, ypos, iMinX, szString, r, g, b );
 }
 
@@ -426,7 +537,7 @@ int CHud::ConsoleText::DrawStringReverse(int x, int ypos, int iMinX, const char 
 
 int CHud::ConsoleText::LineWidth(const char *szString, int length)
 {
-	char buf[512] = {0};
+	char buf[1024] = {0};
 	const char* str = buf;
 
 	if (length < 0) {
@@ -446,7 +557,7 @@ int CHud::ConsoleText::WidestCharacterWidth()
 {
 	int width, height;
 	gEngfuncs.pfnDrawConsoleStringLen("M", &width, &height);
-	return height;
+	return width;
 }
 
 int CHud::ConsoleText::LineHeight()
@@ -454,6 +565,95 @@ int CHud::ConsoleText::LineHeight()
 	int width, height;
 	gEngfuncs.pfnDrawConsoleStringLen("YAW", &width, &height);
 	return height;
+}
+
+int CHud::ConsoleText::DrawMultiLineString(const char *str, int xpos, int ypos, int xmax, const int LineHeight, int r, int g, int b)
+{
+	const char *ch = str;
+	while(*ch)
+	{
+		const char *next_line = ch;
+		for(; *next_line != '\n' && *next_line != '\0'; next_line++)
+			;
+
+		const int lineLength = next_line - ch;
+		if (lineLength > 0)
+		{
+			const int lineWidth = CHud::UtfText::LineWidth(ch, lineLength);
+			const int numberOfLines = (lineWidth + xmax - xpos - 1) / (xmax - xpos);
+
+			int lineLengthRest = lineLength;
+			for (int i=0; i<numberOfLines; ++i)
+			{
+				int renderLineLength = i == 0 ? (lineLength - lineLength/numberOfLines * (numberOfLines-1)) : Q_min(lineLength/numberOfLines, lineLengthRest);
+				if (renderLineLength > 0)
+				{
+					while(isalpha(ch[renderLineLength]) || ch[renderLineLength] == '_' || isdigit(ch[renderLineLength]))
+						renderLineLength++;
+					if (ch[renderLineLength] == '\'' && isalpha(ch[renderLineLength+1]))
+						renderLineLength += 2;
+					if (ch[renderLineLength] == '"')
+						renderLineLength++;
+					if (ch[renderLineLength] == ':')
+						renderLineLength++;
+
+					lineLengthRest -= renderLineLength;
+
+					if (i > 0)
+					{
+						while(isspace(*ch))
+						{
+							++ch;
+							--renderLineLength;
+						}
+					}
+
+					CHud::UtfText::DrawString( xpos, ypos, xmax, ch, r, g, b, renderLineLength );
+					ypos += LineHeight;
+					ch += renderLineLength;
+				}
+			}
+		}
+
+		ch = next_line;
+		if (*ch == '\n')
+			ch++;
+	}
+	return ypos;
+}
+
+std::vector<std::pair<int, int>> CHud::ConsoleText::CalcLineOffsets(const char* str, int maxwidth)
+{
+	std::vector<std::pair<int, int>> lineOffsets;
+
+	WordBoundaries boundaries = SplitIntoWordBoundaries(str);
+
+	unsigned int startWordIndex = 0;
+	for (unsigned int j=0; j<boundaries.size();)
+	{
+		const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
+		if (width > maxwidth) {
+			if (j == startWordIndex) {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[startWordIndex].wordEnd));
+				startWordIndex = ++j;
+			} else {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j-1].wordEnd));
+				startWordIndex = j;
+			}
+		} else {
+			if (j == boundaries.size() - 1) {
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j].wordEnd));
+			}
+			else if (boundaries[j].newline){
+				lineOffsets.push_back(std::make_pair(boundaries[startWordIndex].wordStart, boundaries[j].wordEnd));
+				startWordIndex = j+1;
+			}
+
+			++j;
+		}
+	}
+
+	return lineOffsets;
 }
 
 int CHud::AdditiveText::DrawString(int xpos, int ypos, int iMaxX, const char *szString, int r, int g, int b, int length)
@@ -472,6 +672,11 @@ int CHud::AdditiveText::DrawString(int xpos, int ypos, int iMaxX, const char *sz
 	}
 
 	return xpos;
+}
+
+int CHud::AdditiveText::DrawString(int xpos, int ypos, const char *szString, int r, int g, int b, int length)
+{
+	return DrawString(xpos, ypos, ScreenWidth, szString, r, g, b, length);
 }
 
 int CHud::AdditiveText::DrawNumberString(int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b)
@@ -515,6 +720,9 @@ int CHud::AdditiveText::LineHeight()
 
 int CHud::GetNumWidth( int iNumber, int iFlags )
 {
+	if( iFlags & ( DHN_4DIGITS ) )
+		return 4;
+
 	if( iFlags & ( DHN_3DIGITS ) )
 		return 3;
 
@@ -535,32 +743,45 @@ int CHud::GetNumWidth( int iNumber, int iFlags )
 	if( iNumber < 100 )
 		return 2;
 
-	return 3;
+	if ( iNumber < 1000 )
+		return 3;
+
+	return 4;
 }	
 
 void CHud::DrawDarkRectangle( int x, int y, int wide, int tall )
 {
-	//gEngfuncs.pTriAPI->RenderMode( kRenderTransTexture );
-	gEngfuncs.pfnFillRGBABlend( x, y, wide, tall, 0, 0, 0, 255 * 0.6 );
-	FillRGBA( x + 1, y, wide - 1, 1, 255, 140, 0, 255 );
-	FillRGBA( x, y, 1, tall - 1, 255, 140, 0, 255 );
-	FillRGBA( x + wide - 1, y + 1, 1, tall - 1, 255, 140, 0, 255 );
-	FillRGBA( x, y + tall - 1, wide - 1, 1, 255, 140, 0, 255 );
+	DrawDarkRectangle(x, y, wide, tall, RectangleRenderProperties{});
+}
+
+void CHud::DrawDarkRectangle(int x, int y, int wide, int tall, const RectangleRenderProperties& rectProps )
+{
+	const auto& background = rectProps.backgroundColor;
+	const auto& frame = rectProps.frameColor;
+
+	auto fillBackgroundFunc = rectProps.backgroundBlend ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+	auto fillFrameFunc = rectProps.frameBlend ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+
+	fillBackgroundFunc( x, y, wide, tall, background.r, background.g, background.b, rectProps.backgroundAlpha );
+	fillFrameFunc( x + 1, y, wide - 1, 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x, y, 1, tall - 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x + wide - 1, y + 1, 1, tall - 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
+	fillFrameFunc( x, y + tall - 1, wide - 1, 1, frame.r, frame.g, frame.b, rectProps.frameAlpha );
 }
 
 int CHud::HUDColor()
 {
-	int result = HasSuit() ? m_cachedHudColor : clientFeatures.hud_color_nosuit;
-#if FEATURE_NIGHTVISION
-	if (this == &gHUD && gHUD.m_Nightvision.IsOn()) {
+	int result = HasSuit() ? m_cachedHudColor : (m_forcedHudColorNoSuit ? m_forcedHudColorNoSuit : clientFeatures.hud_color_nosuit);
+	if (m_Nightvision.IsOn()) {
 		result = clientFeatures.hud_color_nvg;
 	}
-#endif
 	return result;
 }
 
 int CHud::HUDColorCritical()
 {
+	if (m_forcedHudColorCritical)
+		return m_forcedHudColorCritical;
 	return clientFeatures.hud_color_critical;
 }
 
@@ -572,17 +793,44 @@ int CHud::MinHUDAlpha() const
 void CHud::RecacheValues()
 {
 	m_cachedMinAlpha = CalcMinHUDAlpha();
-	int hudR = m_pCvarHudRed->value;
-	int hudG = m_pCvarHudGreen->value;
-	int hudB = m_pCvarHudBlue->value;
-	m_cachedHudColor = ((hudR & 0xFF) << 16) | ((hudG & 0xFF) << 8) | (hudB & 0xFF);
+	if (m_forcedHudColor)
+	{
+		m_cachedHudColor = m_forcedHudColor;
+	}
+	else
+	{
+		if (clientFeatures.hud_color_configurable)
+		{
+			int hudR = m_pCvarHudRed->value;
+			int hudG = m_pCvarHudGreen->value;
+			int hudB = m_pCvarHudBlue->value;
+			m_cachedHudColor = PackRGB(hudR, hudG, hudB);
+		}
+		else
+		{
+			m_cachedHudColor = clientFeatures.hud_color;
+		}
+	}
+
+	m_cachedTextColor = m_cachedHudColor;
+	int r, g, b;
+	UnpackRGB(r, g, b, m_cachedTextColor);
+	const int rgbSum  = r + g + b;
+	if (rgbSum < 224 && rgbSum > 0)
+	{
+		const float multiplier = 224.0 / rgbSum;
+		r = Q_min(r * multiplier, 255);
+		g = Q_min(g * multiplier, 255);
+		b = Q_min(b * multiplier, 255);
+		m_cachedTextColor = PackRGB(r, g, b);
+	}
 }
 
 int CHud::GetCrosshairColor()
 {
 	if (CrosshairColorable())
 	{
-		return gHUD.HUDColor();
+		return HUDColor();
 	}
 	else
 	{
@@ -597,7 +845,7 @@ void CHud::ResetCrosshair()
 		WEAPON* pWeapon = m_Ammo.GetWeapon();
 		if (pWeapon)
 		{
-			int crosshairColor = gHUD.GetCrosshairColor();
+			int crosshairColor = GetCrosshairColor();
 			int r,g,b;
 			UnpackRGB(r,g,b,crosshairColor);
 			if( !ShouldUseZoomedCrosshair() )
@@ -610,4 +858,9 @@ void CHud::ResetCrosshair()
 			}
 		}
 	}
+}
+
+int CHud::HUDTextColor()
+{
+	return m_cachedTextColor;
 }

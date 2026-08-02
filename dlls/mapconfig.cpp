@@ -3,19 +3,6 @@
 #include "weapons.h"
 #include "parsetext.h"
 
-PickupEnt::PickupEnt(): entName(0), count(0) {}
-
-MapConfig::MapConfig() :
-	pickupEntCount(0), ammoCount(0), cvarCount(0),
-	starthealth(0), startarmor(0),
-	nomedkit(false), nosuit(false),
-	suitLogon(SuitNoLogon), suit_light(SUIT_LIGHT_DEFAULT), longjump(false),
-	valid(false)
-{
-	memset(ammo, 0, sizeof(ammo));
-	memset(overrideCvars, 0, sizeof(overrideCvars));
-}
-
 const char* FixedAmmoName(const char* ammoName)
 {
 	if (stricmp(ammoName, "Hand_Grenade") == 0)
@@ -29,6 +16,14 @@ const char* FixedAmmoName(const char* ammoName)
 
 bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 {
+	auto atoiAtLeast1 = [](const char* str)
+	{
+		int result = atoi(str);
+		if (result < 1)
+			result = 1;
+		return result;
+	};
+
 	int filePos = 0;
 	char buffer[512];
 	memset( buffer, 0, sizeof(buffer) );
@@ -60,14 +55,11 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		key[j-i] = '\0';
 		if (strncmp(key, "weapon_", 7) == 0 || strncmp(key, "ammo_", 5) == 0)
 		{
-			if (mapConfig.pickupEntCount < MAPCONFIG_MAX_PICKUP_ENTS)
+			if (mapConfig.pickupEnts.size() < MAPCONFIG_MAX_PICKUP_ENTS)
 			{
-				mapConfig.pickupEnts[mapConfig.pickupEntCount].entName = ALLOC_STRING(key);
-				int count = atoi(value);
-				if (count <= 0)
-					count = 1;
-				mapConfig.pickupEnts[mapConfig.pickupEntCount].count = count;
-				mapConfig.pickupEntCount++;
+				string_t entName = ALLOC_STRING(key);
+				int count = atoiAtLeast1(value);
+				mapConfig.pickupEnts.push_back(MapConfig::PickupEnt{entName, count});
 			}
 		}
 		else if (strncmp(key, "ammo!", 5) == 0)
@@ -79,11 +71,23 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 				if (count > 0)
 				{
 					ammoName = FixedAmmoName(ammoName);
-					strncpyEnsureTermination(mapConfig.ammo[mapConfig.ammoCount].name, ammoName, MAPCONFIG_ENTRY_LENGTH);
-					mapConfig.ammo[mapConfig.ammoCount].count = count;
-					mapConfig.ammoCount++;
+					mapConfig.ammo.push_back(MapConfig::AmmoQuantity{ammoName, count});
 				}
 			}
+		}
+		else if (strncmp(key, "inventory!", 10) == 0)
+		{
+			const char* inventoryItemName = key + 10;
+			if (*inventoryItemName)
+			{
+				string_t itemName = ALLOC_STRING(inventoryItemName);
+				int count = atoiAtLeast1(value);
+				mapConfig.inventory.push_back(MapConfig::PickupEnt{itemName, count});
+			}
+		}
+		else if (strcmp(key, "deploy") == 0)
+		{
+			mapConfig.deployWeapon = value;
 		}
 		else if (strcmp(key, "nomedkit") == 0)
 		{
@@ -99,7 +103,7 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 			{
 				mapConfig.suit_light = MapConfig::SUIT_LIGHT_FLASHLIGHT;
 			}
-			else if (strcmp(value, "nvg") == 0 || strcmp(value, "nvg") == 0)
+			else if (strcmp(value, "nvg") == 0 || strcmp(value, "nightvision") == 0)
 			{
 				mapConfig.suit_light = MapConfig::SUIT_LIGHT_NVG;
 			}
@@ -123,9 +127,25 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 				mapConfig.suitLogon = SuitNoLogon;
 			}
 		}
+		else if (strcmp(key, "item_antidote") == 0)
+		{
+			mapConfig.antidotes = atoiAtLeast1(value);
+		}
+		else if (strcmp(key, "item_radiation") == 0)
+		{
+			mapConfig.radcans = atoiAtLeast1(value);
+		}
+		else if (strcmp(key, "item_adrenaline") == 0)
+		{
+			mapConfig.adrenalines = atoiAtLeast1(value);
+		}
 		else if (strcmp(key, "item_longjump") == 0)
 		{
 			mapConfig.longjump = true;
+		}
+		else if (strcmp(key, "player_template") == 0)
+		{
+			mapConfig.playerTemplate = ALLOC_STRING(value);
 		}
 		else if (strcmp(key, "startarmor") == 0)
 		{
@@ -135,13 +155,19 @@ bool ReadMapConfigFromText(MapConfig& mapConfig, byte* pMemFile, int fileSize)
 		{
 			mapConfig.starthealth = atoi(value);
 		}
+		else if (strcmp(key, "maxhealth") == 0)
+		{
+			mapConfig.maxhealth = atoi(value);
+		}
+		else if (strcmp(key, "maxarmor") == 0)
+		{
+			mapConfig.maxarmor = atoi(value);
+		}
 		else if (strncmp(key, "sv_", 3) == 0 || strncmp(key, "mp_", 3) == 0 || strncmp(key, "npc_", 4) == 0)
 		{
-			if (mapConfig.cvarCount < 32)
+			if (mapConfig.overrideCvars.size() < MAPCONFIG_MAX_OVERRIDE_CVARS)
 			{
-				strncpyEnsureTermination(mapConfig.overrideCvars[mapConfig.cvarCount].name, key, MAPCONFIG_ENTRY_LENGTH);
-				strncpyEnsureTermination(mapConfig.overrideCvars[mapConfig.cvarCount].value, value, MAPCONFIG_ENTRY_LENGTH);
-				mapConfig.cvarCount++;
+				mapConfig.overrideCvars.push_back(MapConfig::OverrideCvar{key, value});
 			}
 		}
 	}
@@ -154,7 +180,7 @@ bool ReadMapConfigFromFile(MapConfig& mapConfig, const char* fileName)
 {
 	int fileSize;
 	byte *pMemFile = g_engfuncs.pfnLoadFileForMe( fileName, &fileSize );
-	if( !pMemFile )
+	if (!pMemFile)
 		return false;
 	bool result = ReadMapConfigFromText(mapConfig, pMemFile, fileSize);
 	g_engfuncs.pfnFreeFile( pMemFile );

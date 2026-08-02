@@ -1,115 +1,171 @@
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
-#include	"weapons.h"
 #include	"talkmonster.h"
 #include	"soundent.h"
 #include	"hgrunt.h"
 #include	"animation.h"
-#include	"mod_features.h"
 #include	"game.h"
+#include	"combat.h"
+#include	"gamerules.h"
 
-#if FEATURE_HWGRUNT
+#define GUN_GROUP 1
 
+#define GUN_MINIGUN 0
+#define GUN_NONE 1
+
+#define HWGRUNT_AE_SHOOT_PISTOL 1
 #define HWGRUNT_AE_DROP_GUN 11
 
 enum
 {
 	SCHED_HWGRUNT_SHOOT = LAST_FOLLOWINGMONSTER_SCHEDULE + 1,
 	SCHED_HWGRUNT_SPINDOWN,
+	SCHED_HWGRUNT_SUPPRESSING_FIRE,
 	SCHED_HWGRUNT_REPEL,
 	SCHED_HWGRUNT_REPEL_ATTACK,
-	SCHED_HWGRUNT_REPEL_LAND,
 };
 
 enum
 {
 	TASK_HWGRUNT_PLAY_SPINDOWN = LAST_FOLLOWINGMONSTER_TASK + 1,
+	TASK_HWGRUNT_RELOAD,
 };
+
+#define HWGRUNT_CLIP 100
 
 class CHWGrunt : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("hwgrunt"); }
-	void SetYawSpeed( void );
-	int DefaultClassify( void ) { return CLASS_HUMAN_MILITARY; }
-	const char* DefaultDisplayName() { return "Heavy Weapons Grunt"; }
-	const char* ReverseRelationshipModel() { return "models/hwgruntf.mdl"; }
-	int DefaultISoundMask( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	void SetActivity( Activity NewActivity );
-	BOOL CheckMeleeAttack1( float flDot, float flDist ) {
-		return FALSE;
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("hwgrunt"); }
+	void SetYawSpeed() override;
+	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
+	const char* DefaultDisplayName() override { return "Heavy Weapons Grunt"; }
+	const char* ReverseRelationshipModel() override { return "models/hwgruntf.mdl"; }
+	int DefaultISoundMask() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int LookupActivity(int activity) override;
+	void SetActivity( Activity NewActivity ) override;
+	bool CheckMeleeAttack1( float flDot, float flDist ) override {
+		return false;
 	}
-	BOOL CheckMeleeAttack2( float flDot, float flDist ) {
-		return FALSE;
+	bool CheckMeleeAttack2( float flDot, float flDist ) override {
+		return false;
 	}
-	BOOL CheckRangeAttack1( float flDot, float flDist );
-	BOOL CheckRangeAttack2( float flDot, float flDist ) {
-		return FALSE;
+	bool CheckRangeAttack1( float flDot, float flDist ) override;
+	bool CheckRangeAttack2( float flDot, float flDist ) override {
+		return false;
 	}
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
+	bool PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder) override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
 
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	void DeathSound( void );
-	void PainSound( void );
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
 	void Shoot();
+	void FinishReload();
 
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
+	void PrescheduleThink() override;
+	bool ShouldAnticipateLanding();
 
-	virtual int SizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void OnChangeSchedule( Schedule_t *pNewSchedule ) override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int SizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
+
+	void GibMonster() override;
+	void DropMyItems(bool isGibbed);
+
+	void DetectModelType();
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CUSTOM_SCHEDULES
 
-	float m_flNextPainTime;
+	EHANDLE m_lastOccluder;
+	bool m_firing;
+	bool m_sc5Model;
 
 	int		m_iM249Shell;
 	int		m_iM249Link;
+
+	static constexpr const char* painSoundScript = "HWGrunt.Pain";
+	static constexpr const char* dieSoundScript = "HWGrunt.Die";
+
+	static const NamedSoundScript shootSoundScript;
+	static const NamedSoundScript spinDownSoundScript;
+	static const NamedSoundScript spinUpSoundScript;
+
+	static constexpr const char* useSoundScript = "HWGrunt.Use";
+	static constexpr const char* unuseSoundScript = "HWGrunt.UnUse";
 };
 
 LINK_ENTITY_TO_CLASS( monster_hwgrunt, CHWGrunt )
 
 TYPEDESCRIPTION	CHWGrunt::m_SaveData[] =
 {
-	DEFINE_FIELD( CHGrunt, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CHWGrunt, m_lastOccluder, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CHWGrunt, CFollowingMonster )
+
+const NamedSoundScript CHWGrunt::shootSoundScript = {
+	CHAN_WEAPON,
+	{"hassault/hw_shoot2.wav", "hassault/hw_shoot3.wav"},
+	"HWGrunt.Shoot"
+};
+
+const NamedSoundScript CHWGrunt::spinDownSoundScript = {
+	CHAN_WEAPON,
+	{"hassault/hw_spindown.wav"},
+	"HWGrunt.Spindown"
+};
+
+const NamedSoundScript CHWGrunt::spinUpSoundScript = {
+	CHAN_WEAPON,
+	{"hassault/hw_spinup.wav"},
+	"HWGrunt.Spinup"
+};
 
 void CHWGrunt::Spawn()
 {
 	Precache();
 
 	SetMyModel( "models/hwgrunt.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	DetectModelType();
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
 	SetMyBloodColor( BLOOD_COLOR_RED );
 	pev->effects		= 0;
-	SetMyHealth( gSkillData.hwgruntHealth );
+	SetMyHealth( GetSkillValue("hwgrunt_health") );
 	SetMyFieldOfView(0.2);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_flNextPainTime	= gpGlobals->time;
 
-	m_afCapability		= bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_TURN_HEAD;
+	SetMySquadCapabilities(bits_CAP_SQUAD);
+	SetMyCanOpenDoors(true);
 
-	m_fEnemyEluded		= FALSE;
+	m_fEnemyEluded		= false;
 
 	m_HackedGunPos = Vector( 0, 0, 55 );
+	m_cClipSize = HWGRUNT_CLIP;
+	UpdateClipSizeForWeapon(m_cClipSize);
+	m_cAmmoLoaded = m_cClipSize;
 
 	FollowingMonsterInit();
 }
@@ -117,27 +173,26 @@ void CHWGrunt::Spawn()
 void CHWGrunt::Precache()
 {
 	PrecacheMyModel("models/hwgrunt.mdl");
+	PrecacheMyGibModel();
 
-	PRECACHE_SOUND( "hgrunt/gr_die1.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_die2.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_die3.wav" );
+	RegisterAndPrecacheSoundScript(painSoundScript, CHGrunt::painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript, CHGrunt::dieSoundScript);
 
-	PRECACHE_SOUND( "hgrunt/gr_pain1.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain2.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain3.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain4.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain5.wav" );
+	RegisterAndPrecacheSoundScript(shootSoundScript);
+	RegisterAndPrecacheSoundScript(spinDownSoundScript);
+	RegisterAndPrecacheSoundScript(spinUpSoundScript);
 
-	PRECACHE_SOUND( "hassault/hw_shoot2.wav" );
-	PRECACHE_SOUND( "hassault/hw_shoot3.wav" );
-	PRECACHE_SOUND( "hassault/hw_spindown.wav" );
-	PRECACHE_SOUND( "hassault/hw_spinup.wav" );
+	RegisterAndPrecacheSoundScript(useSoundScript, CHGrunt::useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, CHGrunt::unuseSoundScript);
+
+	if (pev->modelindex)
+		DetectModelType();
 
 	m_iM249Shell = PRECACHE_MODEL ("models/saw_shell.mdl");// saw shell
 	m_iM249Link = PRECACHE_MODEL ("models/saw_link.mdl");// saw link
 }
 
-void CHWGrunt::SetYawSpeed( void )
+void CHWGrunt::SetYawSpeed()
 {
 	int ys;
 
@@ -171,7 +226,7 @@ void CHWGrunt::SetYawSpeed( void )
 	pev->yaw_speed = ys;
 }
 
-int CHWGrunt::DefaultISoundMask( void )
+int CHWGrunt::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 			bits_SOUND_COMBAT |
@@ -183,7 +238,12 @@ void CHWGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 {
 	switch(pEvent->event)
 	{
+	case HWGRUNT_AE_SHOOT_PISTOL:
+		// TODO: Not supported yet
+		break;
 	case HWGRUNT_AE_DROP_GUN:
+		if (GetBodygroup(GUN_GROUP) != GUN_NONE)
+			DropMyItems(false);
 		break;
 	default:
 		CFollowingMonster::HandleAnimEvent(pEvent);
@@ -191,16 +251,41 @@ void CHWGrunt::HandleAnimEvent( MonsterEvent_t *pEvent )
 	}
 }
 
+int CHWGrunt::LookupActivity(int activity)
+{
+	if (m_sc5Model)
+	{
+		int iSequence = -1;
+		switch(activity)
+		{
+		case ACT_WALK:
+			iSequence = LookupSequence("creeping_walk");
+			break;
+		case ACT_RUN:
+			iSequence = LookupSequence("run");
+			break;
+		case ACT_RANGE_ATTACK1:
+			iSequence = LookupSequence("attack");
+			break;
+		default:
+			break;
+		}
+		if (iSequence != -1)
+			return iSequence;
+	}
+	return CFollowingMonster::LookupActivity(activity);
+}
+
 void CHWGrunt::SetActivity( Activity NewActivity )
 {
 	if (NewActivity == ACT_THREAT_DISPLAY)
 	{
-		EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hassault/hw_spinup.wav", 1, ATTN_NORM );
+		EmitSoundScript(spinUpSoundScript);
 	}
 	CFollowingMonster::SetActivity(NewActivity);
 }
 
-BOOL CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
+bool CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && flDist <= 2048 && flDot >= 0.5 && NoFriendlyFire() )
 	{
@@ -212,11 +297,25 @@ BOOL CHWGrunt::CheckRangeAttack1( float flDot, float flDist )
 
 		if( tr.flFraction == 1.0 )
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
+}
+
+bool CHWGrunt::PerceiveEnemyAsOccluded(CBaseEntity *pEnemy, CBaseEntity *pOccluder)
+{
+	/*if (pOccluder->IsDestroyableObstacle())
+	{
+		if (pEnemy && m_lastOccluder != pOccluder)
+		{
+			m_lastOccluder = pOccluder;
+			m_vecEnemyLKP = pEnemy->pev->origin;
+		}
+		return false;
+	}*/
+	return true;
 }
 
 void CHWGrunt::StartTask( Task_t *pTask )
@@ -233,7 +332,7 @@ void CHWGrunt::StartTask( Task_t *pTask )
 		break;
 	case TASK_HWGRUNT_PLAY_SPINDOWN:
 	{
-		EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hassault/hw_spindown.wav", 1, ATTN_NORM );
+		EmitSoundScript(spinDownSoundScript);
 		int iSequence = LookupSequence("spindown");
 		if( iSequence > ACTIVITY_NOT_AVAILABLE )
 		{
@@ -243,7 +342,27 @@ void CHWGrunt::StartTask( Task_t *pTask )
 		}
 		else
 		{
+			ALERT(at_aiconsole, "%s: couldn't find the \"spindown\" animation\n", STRING(pev->classname));
 			TaskComplete();
+		}
+	}
+		break;
+	case TASK_HWGRUNT_RELOAD:
+	{
+		if (m_cAmmoLoaded >= m_cClipSize)
+			TaskComplete();
+		else
+		{
+			float delay = (m_cClipSize - m_cAmmoLoaded) / static_cast<float>(m_cClipSize);
+			if (delay >= 0.1f)
+			{
+				m_flWaitFinished = gpGlobals->time + delay;
+			}
+			else
+			{
+				FinishReload();
+				TaskComplete();
+			}
 		}
 	}
 		break;
@@ -281,6 +400,13 @@ void CHWGrunt::RunTask( Task_t *pTask )
 		Shoot();
 		CFollowingMonster::RunTask(pTask);
 		break;
+	case TASK_HWGRUNT_RELOAD:
+		if( gpGlobals->time >= m_flWaitFinished )
+		{
+			FinishReload();
+			TaskComplete();
+		}
+		break;
 	default:
 		CFollowingMonster::RunTask(pTask);
 		break;
@@ -291,74 +417,29 @@ void CHWGrunt::RunTask( Task_t *pTask )
 
 void CHWGrunt::PlayUseSentence()
 {
-	switch(RANDOM_LONG(0,2))
-	{
-	case 0:
-		EMIT_SOUND( edict(), CHAN_VOICE, "!HG_ANSWER0", HWGRUNT_VOLUME, ATTN_NORM );
-		break;
-	case 1:
-		EMIT_SOUND( edict(), CHAN_VOICE, "!HG_ANSWER1", HWGRUNT_VOLUME, ATTN_NORM );
-		break;
-	case 2:
-		EMIT_SOUND( edict(), CHAN_VOICE, "!HG_ANSWER2", HWGRUNT_VOLUME, ATTN_NORM );
-		break;
-	}
+	EmitSoundScript(useSoundScript);
 }
 
 void CHWGrunt::PlayUnUseSentence()
 {
-	switch(RANDOM_LONG(0,1))
-	{
-	case 0:
-		EMIT_SOUND( edict(), CHAN_VOICE, "!HG_ANSWER5", HWGRUNT_VOLUME, ATTN_NORM );
-		break;
-	case 1:
-		EMIT_SOUND( edict(), CHAN_VOICE, "!HG_QUEST4", HWGRUNT_VOLUME, ATTN_NORM );
-		break;
-	}
+	EmitSoundScript(unuseSoundScript);
 }
 
 void CHWGrunt::DeathSound()
 {
-	switch( RANDOM_LONG( 0, 2 ) )
-	{
-	case 0:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_die1.wav", 1, ATTN_IDLE );
-		break;
-	case 1:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_die2.wav", 1, ATTN_IDLE );
-		break;
-	case 2:
-		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_die3.wav", 1, ATTN_IDLE );
-		break;
-	}
+	EmitSoundScript(dieSoundScript);
 }
 
-void CHWGrunt::PainSound( void )
+PainSoundRule CHWGrunt::DefaultPainSoundRule()
 {
-	if( gpGlobals->time > m_flNextPainTime )
-	{
-		switch( RANDOM_LONG( 0, 6 ) )
-		{
-		case 0:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_pain3.wav", 1, ATTN_NORM );
-			break;
-		case 1:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_pain4.wav", 1, ATTN_NORM );
-			break;
-		case 2:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_pain5.wav", 1, ATTN_NORM );
-			break;
-		case 3:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_pain1.wav", 1, ATTN_NORM );
-			break;
-		case 4:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hgrunt/gr_pain2.wav", 1, ATTN_NORM );
-			break;
-		}
+	PainSoundRule rule;
+	rule.delay = 1.0f;
+	return rule;
+}
 
-		m_flNextPainTime = gpGlobals->time + 1;
-	}
+void CHWGrunt::PainSound()
+{
+	EmitSoundScript(painSoundScript);
 }
 
 void CHWGrunt::Shoot()
@@ -368,11 +449,7 @@ void CHWGrunt::Shoot()
 		return;
 	}
 
-	switch ( RANDOM_LONG(0,1) )
-	{
-		case 0: EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hassault/hw_shoot2.wav", 1, ATTN_NORM ); break;
-		case 1: EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hassault/hw_shoot3.wav", 1, ATTN_NORM ); break;
-	}
+	EmitSoundScript(shootSoundScript);
 
 	Vector vecShootOrigin = GetGunPosition();
 	Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
@@ -383,17 +460,28 @@ void CHWGrunt::Shoot()
 
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iM249Link, TE_BOUNCE_SHELL);
 
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, BULLET_MONSTER_556 ); // shoot +-5 degrees
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_6DEGREES, 2048, GetSkillValue("556_bullet") ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
+
+	if (m_cClipSize > 0)
+		m_cAmmoLoaded--;
 
 	Vector angDir = UTIL_VecToAngles( vecShootDir );
 	SetBlending( 0, angDir.x );
 }
 
+void CHWGrunt::FinishReload()
+{
+	m_cAmmoLoaded = m_cClipSize;
+	ClearConditions( bits_COND_NO_AMMO_LOADED );
+}
+
 Task_t tlHWGruntStartRangeAttack[] =
 {
 	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_HWGRUNT_RELOAD, (float)0 },
 	{ TASK_PLAY_SEQUENCE_FACE_ENEMY, (float)ACT_THREAT_DISPLAY },
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_HWGRUNT_SPINDOWN },
 	{ TASK_SET_SCHEDULE, (float)SCHED_HWGRUNT_SHOOT }
@@ -408,8 +496,6 @@ Schedule_t slHWGruntStartRangeAttack[] =
 		bits_COND_ENEMY_DEAD |
 		bits_COND_ENEMY_LOST |
 		bits_COND_HEAVY_DAMAGE |
-		bits_COND_ENEMY_OCCLUDED |
-		bits_COND_NO_AMMO_LOADED |
 		bits_COND_NOFIRE |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER,
@@ -444,10 +530,63 @@ Schedule_t slHWGruntContinueRangeAttack[] =
 	},
 };
 
+Task_t tlHWGruntSuppressingRangeAttack[] =
+{
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_HWGRUNT_SPINDOWN },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+	{ TASK_FACE_ENEMY, (float)0 },
+	{ TASK_CHECK_FIRE, (float)0 },
+	{ TASK_RANGE_ATTACK1, (float)0 },
+};
+
+Schedule_t slHWGruntSuppressingRangeAttack[] =
+{
+	{
+		tlHWGruntSuppressingRangeAttack,
+		ARRAYSIZE( tlHWGruntSuppressingRangeAttack ),
+		bits_COND_NEW_ENEMY |
+		bits_COND_ENEMY_DEAD |
+		bits_COND_ENEMY_LOST |
+		bits_COND_HEAVY_DAMAGE |
+		bits_COND_NO_AMMO_LOADED |
+		bits_COND_NOFIRE |
+		bits_COND_HEAR_SOUND,
+		bits_SOUND_DANGER,
+		"HWGrunt Suppressing Range Attack"
+	},
+};
+
 Task_t tlHWGruntSpindown[] =
 {
 	{ TASK_HWGRUNT_PLAY_SPINDOWN, (float)0 },
 	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
+	{ TASK_HWGRUNT_RELOAD, (float)0 },
 };
 
 Schedule_t slHWGruntSpindown[] =
@@ -480,38 +619,8 @@ Schedule_t	slHWGruntRepel[] =
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER |
 		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER,
+		bits_SOUND_PLAYER_IF_NOT_ALLY,
 		"Repel"
-	},
-};
-
-//=========================================================
-// repel land
-//=========================================================
-Task_t tlHWGruntRepelLand[] =
-{
-	{ TASK_STOP_MOVING, (float)0 },
-	{ TASK_PLAY_SEQUENCE, (float)ACT_LAND },
-	{ TASK_GET_PATH_TO_LASTPOSITION, (float)0 },
-	{ TASK_RUN_PATH, (float)0 },
-	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
-	{ TASK_CLEAR_LASTPOSITION, (float)0 },
-};
-
-Schedule_t slHWGruntRepelLand[] =
-{
-	{
-		tlHWGruntRepelLand,
-		ARRAYSIZE( tlHWGruntRepelLand ),
-		bits_COND_SEE_ENEMY |
-		bits_COND_NEW_ENEMY |
-		bits_COND_LIGHT_DAMAGE |
-		bits_COND_HEAVY_DAMAGE |
-		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER |
-		bits_SOUND_COMBAT |
-		bits_SOUND_PLAYER,
-		"Repel Land"
 	},
 };
 
@@ -521,21 +630,63 @@ DEFINE_CUSTOM_SCHEDULES( CHWGrunt )
 	slHWGruntContinueRangeAttack,
 	slHWGruntSpindown,
 	slHWGruntRepel,
-	slHWGruntRepelLand,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHWGrunt, CFollowingMonster )
 
-Schedule_t *CHWGrunt::GetSchedule( void )
+//=========================================================
+// ShouldAnticipateLanding - traces down to the ground to
+// determine whether impact is imminent, so the landing anim
+// can be triggered before FL_ONGROUND is actually set by
+// the physics.
+//=========================================================
+bool CHWGrunt::ShouldAnticipateLanding()
+{
+	if( m_MonsterState == MONSTERSTATE_PRONE )
+		return false;
+
+	if( pev->velocity.z >= 0 )
+		return false; // still ascending/stationary, not falling
+
+	TraceResult tr;
+	UTIL_TraceLine( pev->origin, pev->origin - Vector( 0, 0, RAPPEL_LANDING_TRACE_DIST ),
+	                dont_ignore_monsters, ignore_glass, ENT( pev ), &tr );
+
+	float flDistToGround = pev->origin.z - tr.vecEndPos.z;
+
+	return flDistToGround <= 64.0f; // bigger margin for hwgrunt
+}
+
+//=========================================================
+// PrescheduleThink - this function runs after conditions
+// are collected and before scheduling code is run.
+//=========================================================
+void CHWGrunt::PrescheduleThink()
+{
+	// Force an immediate reschedule as soon as landing is imminent or has
+	// occurred, instead of waiting for a break condition of the repel
+	// schedule to trigger by chance (ACT_GLIDE loops and never finishes
+	// TASK_PLAY_SEQUENCE on its own).
+	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE
+	    && ( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() ) )
+	{
+		ClearSchedule();
+	}
+
+	CFollowingMonster::PrescheduleThink();
+}
+
+Schedule_t *CHWGrunt::GetSchedule()
 {
 	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling.
 	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
 	{
-		if( pev->flags & FL_ONGROUND )
+		if( FBitSet( pev->flags, FL_ONGROUND ) || ShouldAnticipateLanding() )
 		{
-			// just landed
+			// just landed (or about to)
 			pev->movetype = MOVETYPE_STEP;
-			return GetScheduleOfType( SCHED_HWGRUNT_REPEL_LAND );
+			pev->velocity.z = 0; // avoid a slight residual slide if we cut before the actual impact
+			return GetScheduleOfType( SCHED_REPEL_LAND );
 		}
 		else
 		{
@@ -549,14 +700,24 @@ Schedule_t *CHWGrunt::GetSchedule( void )
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_HUNT:
 	{
-		Schedule_t* followingSchedule = GetFollowingSchedule();
-		if (followingSchedule)
-			return followingSchedule;
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
 		break;
 	}
+	case MONSTERSTATE_COMBAT:
+		if( HasConditions( bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST ) )
+			return CBaseMonster::GetSchedule();
+		if (HasConditions(bits_COND_ENEMY_OCCLUDED) && m_firing)
+		{
+			return GetScheduleOfType(SCHED_HWGRUNT_SUPPRESSING_FIRE);
+		}
+		break;
 	default:
 		break;
 	}
+	if (m_firing)
+		return GetScheduleOfType(SCHED_HWGRUNT_SPINDOWN);
 	return CFollowingMonster::GetSchedule();
 }
 
@@ -572,6 +733,10 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 		{
 			return slHWGruntContinueRangeAttack;
 		}
+	case SCHED_HWGRUNT_SUPPRESSING_FIRE:
+		{
+			return slHWGruntSuppressingRangeAttack;
+		}
 	case SCHED_HWGRUNT_SPINDOWN:
 		{
 			return slHWGruntSpindown;
@@ -582,10 +747,6 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 				pev->velocity.z -= 32;
 			return &slHWGruntRepel[0];
 		}
-	case SCHED_HWGRUNT_REPEL_LAND:
-		{
-			return &slHWGruntRepelLand[0];
-		}
 	default:
 		{
 			return CFollowingMonster::GetScheduleOfType(Type);
@@ -593,14 +754,58 @@ Schedule_t* CHWGrunt::GetScheduleOfType(int Type)
 	}
 }
 
+void CHWGrunt::OnChangeSchedule(Schedule_t *pNewSchedule)
+{
+	CFollowingMonster::OnChangeSchedule(pNewSchedule);
+	m_firing = pNewSchedule == slHWGruntContinueRangeAttack;
+}
+
+void CHWGrunt::GibMonster()
+{
+	if (GetBodygroup(GUN_GROUP) != GUN_NONE)
+	{
+		DropMyItems(true);
+	}
+	CFollowingMonster::GibMonster();
+}
+
+void CHWGrunt::DropMyItems(bool isGibbed)
+{
+	if (g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
+	{
+		Vector vecGunPos;
+		Vector vecGunAngles;
+		GetAttachment(0, vecGunPos, vecGunAngles);
+
+		FixupDropItemPosition(vecGunPos);
+
+		CBaseEntity* pGun = DropItem("weapon_minigun", vecGunPos, vecGunAngles);
+		if (pGun)
+		{
+			if (isGibbed)
+			{
+				pGun->pev->velocity = Vector( RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( -100, 100 ), RANDOM_FLOAT( 200, 300 ) );
+				pGun->pev->avelocity = Vector( 0, RANDOM_FLOAT( 200, 400 ), 0 );
+			}
+			else
+			{
+				SetBodygroup(GUN_GROUP, GUN_NONE);
+			}
+		}
+	}
+}
+
+void CHWGrunt::DetectModelType()
+{
+	m_sc5Model = LookupSequence("pistol_shoot") != -1;
+}
+
 class CHWGruntRepel : public CHGruntRepel
 {
 public:
-	const char* TrooperName() {
+	const char* TrooperName() override {
 		return "monster_hwgrunt";
 	}
 };
 
 LINK_ENTITY_TO_CLASS(monster_hwgrunt_repel, CHWGruntRepel)
-
-#endif

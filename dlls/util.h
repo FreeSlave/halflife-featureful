@@ -17,19 +17,27 @@
 #define UTIL_H
 
 #include "extdll.h"
+#include "hull_types.h"
 //
 // Misc utility code
 //
-#if !defined(ACTIVITY_H)
 #include "activity.h"
-#endif
-
-#if !defined(ENGINECALLBACK_H)
 #include "enginecallback.h"
-#endif
 
-#include <string.h>
-#include <ctype.h>
+#include "blood_types.h"
+#include "fx_types.h"
+#include "hull_sizes.h"
+#include "sentences.h"
+#include "template_property_types.h"
+#include "util_shared.h"
+
+#include <cstring>
+#include <cctype>
+#include <map>
+#include <type_traits>
+
+class EHANDLE;
+
 inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin, entvars_t *ent );  // implementation later in this file
 
 extern globalvars_t				*gpGlobals;
@@ -37,18 +45,32 @@ extern globalvars_t				*gpGlobals;
 // Use this instead of ALLOC_STRING on constant strings
 #define STRING(offset)		(const char *)(gpGlobals->pStringBase + (int)offset)
 
+string_t ALLOC_STRING(const char* str);
+
 #if !XASH_64BIT || CLIENT_DLL
 #define MAKE_STRING(str)	((int)(long int)str - (int)(long int)STRING(0))
 #else
-static inline int MAKE_STRING(const char *szValue)
+static inline string_t MAKE_STRING(const char *szValue)
 {
 	long long ptrdiff = szValue - STRING(0);
 	if( ptrdiff > INT_MAX || ptrdiff < INT_MIN )
 		return ALLOC_STRING( szValue );
 	else
-		return (int)ptrdiff;
+		return (string_t)ptrdiff;
 }
 #endif
+
+extern void ClearStringPool();
+extern void ClearPrecachedModels();
+extern void ClearPrecachedSounds();
+extern void ReportPrecachedModels();
+extern void ReportPrecachedSounds();
+extern void AddMapBSPAsPrecachedModel();
+
+extern void WRITE_COLOR(const Color3& color);
+extern void WRITE_COLOR(const Vector& color);
+extern void WRITE_VECTOR(const Vector& vecSrc);
+extern void WRITE_CIRCLE(const Vector& vecSrc, float radius);
 
 inline edict_t *FIND_ENTITY_BY_CLASSNAME(edict_t *entStart, const char *pszName) 
 {
@@ -75,31 +97,15 @@ inline edict_t *FIND_ENTITY_BY_TARGET(edict_t *entStart, const char *pszName)
 #define WRITEKEY_VECTOR(pf, szKeyName, flX, flY, flZ)							\
 		ENGINE_FPRINTF(pf, "\"%s\" \"%f %f %f\"\n", szKeyName, flX, flY, flZ)
 
-// Keeps clutter down a bit, when using a float as a bit-vector
-#define SetBits(flBitVector, bits)		((flBitVector) = (int)(flBitVector) | (bits))
-#define ClearBits(flBitVector, bits)	((flBitVector) = (int)(flBitVector) & ~(bits))
-#define FBitSet(flBitVector, bit)		((int)(flBitVector) & (bit))
-
 // Makes these more explicit, and easier to find
 #define FILE_GLOBAL static
 #define DLL_GLOBAL
 
-// Until we figure out why "const" gives the compiler problems, we'll just have to use
-// this bogus "empty" define to mark things as constant.
-#define CONSTANT
-
 // More explicit than "int"
 typedef int EOFFSET;
 
-// In case it's not alread defined
-typedef int BOOL;
-
-// In case this ever changes
-#if !defined(M_PI)
-#define M_PI			3.14159265358979323846
-#endif
 // Keeps clutter down a bit, when declaring external entity/global method prototypes
-#define DECLARE_GLOBAL_METHOD(MethodName)  extern void DLLEXPORT MethodName( void )
+#define DECLARE_GLOBAL_METHOD(MethodName)  extern void DLLEXPORT MethodName()
 #define GLOBAL_METHOD(funcname)					void DLLEXPORT funcname(void)
 
 // This is the glue that hooks .MAP entity class names to our CPP classes
@@ -162,13 +168,13 @@ inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin, ent
 
 // Testing the three types of "entity" for nullity
 #define eoNullEntity 0
-inline BOOL FNullEnt(EOFFSET eoffset)			{ return eoffset == 0; }
-inline BOOL FNullEnt(const edict_t* pent)	{ return pent == NULL || FNullEnt(OFFSET(pent)); }
-inline BOOL FNullEnt(entvars_t* pev)				{ return pev == NULL || FNullEnt(OFFSET(pev)); }
+inline bool FNullEnt(EOFFSET eoffset)			{ return eoffset == 0; }
+inline bool FNullEnt(const edict_t* pent)	{ return pent == NULL || FNullEnt(OFFSET(pent)); }
+inline bool FNullEnt(entvars_t* pev)				{ return pev == NULL || FNullEnt(OFFSET(pev)); }
 
 // Testing strings for nullity
 #define iStringNull 0
-inline BOOL FStringNull(int iString)			{ return iString == iStringNull; }
+inline bool FStringNull(string_t iString)			{ return iString == iStringNull; }
 
 #define cchMapNameMost 32
 
@@ -177,12 +183,6 @@ inline BOOL FStringNull(int iString)			{ return iString == iStringNull; }
 #define	VIEW_FIELD_WIDE		-0.7f // +-135 degrees 0.1 // +-85 degrees, used for full FOV checks
 #define	VIEW_FIELD_NARROW	0.7f // +-45 degrees, more narrow check used to set up ranged attacks
 #define	VIEW_FIELD_ULTRA_NARROW	0.9f // +-25 degrees, more narrow check used to set up ranged attacks
-
-// All monsters need this data
-#define		DONT_BLEED			-1
-#define		BLOOD_COLOR_RED		(BYTE)247
-#define		BLOOD_COLOR_YELLOW	(BYTE)195
-#define		BLOOD_COLOR_GREEN	BLOOD_COLOR_YELLOW
 
 typedef enum 
 {
@@ -215,17 +215,30 @@ typedef enum {
 } NODE_LINKENT;
 
 // Misc useful
-inline BOOL FStrEq(const char*sz1, const char*sz2)
+inline bool FStrEq(const char*sz1, const char*sz2)
 {
 	return (strcmp(sz1, sz2) == 0);
 }
 
-inline BOOL FClassnameIs(edict_t* pent, const char* szClassname)
+inline bool FStrEq(string_t s1, string_t s2)
+{
+	if (s1 == s2)
+	{
+		return true;
+	}
+	if (!FStringNull(s1) && !FStringNull(s2))
+	{
+		return FStrEq(STRING(s1), STRING(s2));
+	}
+	return false;
+}
+
+inline bool FClassnameIs(edict_t* pent, const char* szClassname)
 {
 	return FStrEq(STRING(VARS(pent)->classname), szClassname);
 }
 
-inline BOOL FClassnameIs(entvars_t* pev, const char* szClassname)
+inline bool FClassnameIs(entvars_t* pev, const char* szClassname)
 {
 	return FStrEq(STRING(pev->classname), szClassname);
 }
@@ -236,8 +249,6 @@ class CBaseEntity;
 extern void			UTIL_SetSize			(entvars_t* pev, const Vector &vecMin, const Vector &vecMax);
 extern float		UTIL_VecToYaw			(const Vector &vec);
 extern Vector		UTIL_VecToAngles		(const Vector &vec);
-extern float		UTIL_AngleMod			(float a);
-extern float		UTIL_AngleDiff			( float destAngle, float srcAngle );
 
 extern CBaseEntity	*UTIL_FindEntityInSphere(CBaseEntity *pStartEntity, const Vector &vecCenter, float flRadius);
 extern CBaseEntity	*UTIL_FindEntityByString(CBaseEntity *pStartEntity, const char *szKeyword, const char *szValue );
@@ -251,13 +262,14 @@ extern bool UTIL_HasClassnameOrTargetname(entvars_t *pevToucher, const char* nam
 // otherwise returns NULL
 // Index is 1 based
 extern CBaseEntity	*UTIL_PlayerByIndex( int playerIndex );
+extern CBaseEntity	*UTIL_ClosestAlivePlayer(const Vector& vecSrc);
 
 #define UTIL_EntitiesInPVS(pent)			(*g_engfuncs.pfnEntitiesInPVS)(pent)
 extern void			UTIL_MakeVectors		(const Vector &vecAngles);
 
 // Pass in an array of pointers and an array size, it fills the array and returns the number inserted
 extern int			UTIL_MonstersInSphere( CBaseEntity **pList, int listMax, const Vector &center, float radius );
-extern int			UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask );
+extern int			UTIL_EntitiesInBox( CBaseEntity **pList, int listMax, const Vector &mins, const Vector &maxs, int flagMask, int deadFlagMask = 0 );
 
 inline void UTIL_MakeVectorsPrivate( const Vector &vecAngles, float *p_vForward, float *p_vRight, float *p_vUp )
 {
@@ -269,15 +281,16 @@ extern void			UTIL_MakeInvVectors		( const Vector &vec, globalvars_t *pgv );
 
 extern void			UTIL_SetOrigin			( entvars_t* pev, const Vector &vecOrigin );
 extern void			UTIL_EmitAmbientSound	( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch );
-extern void			UTIL_ParticleEffect		( const Vector &vecOrigin, const Vector &vecDirection, ULONG ulColor, ULONG ulCount );
+extern void			UTIL_ParticleEffect		( const Vector &vecOrigin, const Vector &vecDirection, unsigned int ulColor, unsigned int ulCount );
 extern void			UTIL_ScreenShake		( const Vector &center, float amplitude, float frequency, float duration, float radius );
+extern void			UTIL_ScreenShakeToClient( edict_t* entity, float amplitude, float frequency, float duration );
 extern void			UTIL_ScreenShakeAll		( const Vector &center, float amplitude, float frequency, float duration );
-extern void			UTIL_ShowMessage		( const char *pString, CBaseEntity *pPlayer );
+extern void			UTIL_ShowMessage		( const char *pString, CBaseEntity *pPlayer, bool skipMissing = false );
 extern void			UTIL_ShowMessageAll		( const char *pString );
-extern void			UTIL_ScreenFadeAll		( const Vector &color, float fadeTime, float holdTime, int alpha, int flags );
-extern void			UTIL_ScreenFadeAll		( const Vector& fadeSource, const Vector &color, float fadeTime, float holdTime, int alpha, int flags );
-extern void			UTIL_ScreenFade			( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags );
-extern bool			UTIL_ScreenFade			( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags );
+extern void			UTIL_ScreenFadeAll		( const Vector &color, float fadeTime, float holdTime, int alpha, int flags, bool save = false );
+extern void			UTIL_ScreenFadeAll		( const Vector& fadeSource, const Vector &color, float fadeTime, float holdTime, int alpha, int flags, bool save = false );
+extern void			UTIL_ScreenFade			( CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save = false );
+extern bool			UTIL_ScreenFade			( const Vector& fadeSource, CBaseEntity *pEntity, const Vector &color, float fadeTime, float fadeHold, int alpha, int flags, bool save = false );
 
 typedef enum
 {
@@ -295,45 +308,49 @@ typedef enum
 extern void			UTIL_TraceLine			(const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, edict_t *pentIgnore, TraceResult *ptr);
 extern void			UTIL_TraceLine			(const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, IGNORE_GLASS ignoreGlass, edict_t *pentIgnore, TraceResult *ptr);
 
-enum
-{
-	point_hull = 0,
-	human_hull = 1,
-	large_hull = 2,
-	head_hull = 3
-};
-
 extern void			UTIL_TraceHull			(const Vector &vecStart, const Vector &vecEnd, IGNORE_MONSTERS igmon, int hullNumber, edict_t *pentIgnore, TraceResult *ptr);
-extern TraceResult	UTIL_GetGlobalTrace		(void);
+extern TraceResult	UTIL_GetGlobalTrace		();
 extern void			UTIL_TraceModel			(const Vector &vecStart, const Vector &vecEnd, int hullNumber, edict_t *pentModel, TraceResult *ptr);
 extern Vector		UTIL_GetAimVector		(edict_t* pent, float flSpeed);
 extern int			UTIL_PointContents		(const Vector &vec);
 
-extern int			UTIL_IsMasterTriggered	(string_t sMaster, CBaseEntity *pActivator);
+extern bool			UTIL_IsMasterTriggered	(string_t sMaster, CBaseEntity *pActivator);
+extern bool			UTIL_IsPlayerReference(const char* name);
 extern bool			UTIL_TargetnameIsActivator( const char* targetName );
 extern bool			UTIL_TargetnameIsActivator( string_t targetName );
 extern void			UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount );
 extern void			UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount );
-extern Vector		UTIL_RandomBloodVector( void );
-extern BOOL			UTIL_ShouldShowBlood( int bloodColor );
-extern void			UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor );
-extern void			UTIL_DecalTrace( TraceResult *pTrace, int decalNumber );
-extern void			UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, BOOL bIsCustom );
-extern void			UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber );
+extern Vector		UTIL_RandomBloodVector();
+extern bool			UTIL_ShouldShowBlood( int bloodColor );
+extern void			UTIL_BloodDecalTrace( const TraceResult *pTrace, int bloodColor );
+extern void			UTIL_DecalTrace( const TraceResult *pTrace, int decalNumber );
+extern void			UTIL_PlayerDecalTrace(const TraceResult& tr, int playernum, int decalNumber, bool bIsCustom );
+extern void			UTIL_GunshotDecalTrace(const TraceResult& tr, const Vector& vecDir, int decalNumberm, char chTextureType, int ricochetSoundChance = 50);
 extern void			UTIL_Sparks( const Vector &position );
+extern void			UTIL_SparkShower( const Vector &position, const SparkEffectParams& params );
 extern void			UTIL_Ricochet( const Vector &position, float scale );
-extern void			UTIL_StringToVector( float *pVector, const char *pString );
+extern Vector		UTIL_StringToVector( const char *str );
 extern void			UTIL_StringToRandomVector( float *pVector, const char *pString );
 extern void			UTIL_StringToIntArray( int *pVector, int count, const char *pString );
+extern void			UTIL_StringToCharArray( char *pVector, int count, const char *pString );
 extern Vector		UTIL_ClampVectorToBox( const Vector &input, const Vector &clampSize );
-extern float		UTIL_Approach( float target, float value, float speed );
-extern float		UTIL_ApproachAngle( float target, float value, float speed );
-extern float		UTIL_AngleDistance( float next, float cur );
 
 extern char			*UTIL_VarArgs( const char *format, ... );
 extern void			UTIL_Remove( CBaseEntity *pEntity );
-extern BOOL			UTIL_IsValidEntity( edict_t *pent );
-extern BOOL			UTIL_TeamsMatch( const char *pTeamName1, const char *pTeamName2 );
+
+template<typename T>
+void UTIL_RemoveAndClean(T *&pEntity)
+{
+	static_assert(std::is_base_of<CBaseEntity, T>::value, "Type must be derivative of CBaseEntity");
+
+	UTIL_Remove(pEntity);
+	pEntity = nullptr;
+}
+
+void UTIL_RemoveAndClean(EHANDLE& handle);
+
+extern bool			UTIL_IsValidEntity( edict_t *pent );
+extern bool			UTIL_TeamsMatch( const char *pTeamName1, const char *pTeamName2 );
 
 // Use for ease-in, ease-out style interpolation (accel/decel)
 extern float		UTIL_SplineFraction( float value, float scale );
@@ -343,9 +360,21 @@ extern float		UTIL_WaterLevel( const Vector &position, float minz, float maxz );
 extern void			UTIL_Bubbles( Vector mins, Vector maxs, int count );
 extern void			UTIL_BubbleTrail( Vector from, Vector to, int count );
 
+struct EntityOverrides
+{
+	string_t model = iStringNull;
+	string_t entTemplate = iStringNull;
+	string_t ownerEntTemplate = iStringNull;
+	string_t netname = iStringNull;
+};
+
+CBaseEntity* UTIL_CreateInstanceForPrecache(const char* szClassname, const char* contextStr);
+void UTIL_GetSizeFromEntityPrecache(CBaseEntity* pEntity, Vector* vecMin, Vector* vecMax);
+
 // allows precacheing of other entities
-extern void			UTIL_PrecacheOther( const char *szClassname );
-extern void			UTIL_PrecacheMonster(const char *szClassname, BOOL reverseRelationship , Vector *vecMin = NULL, Vector *vecMax = NULL);
+extern bool			UTIL_PrecacheOther(const char *szClassname, EntityOverrides entityOverrides = EntityOverrides());
+extern bool			UTIL_PrecacheAmmoEntity(const char *szClassname, int& amount, EntityOverrides entityOverrides = EntityOverrides());
+extern bool			UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship , Vector *vecMin = NULL, Vector *vecMax = NULL, EntityOverrides entityOverrides = EntityOverrides(), string_t* keys = nullptr, string_t* values = nullptr, int keyValueCount = 0);
 
 // prints a message to each client
 extern void			UTIL_ClientPrintAll( int msg_dest, const char *msg_name, const char *param1 = NULL, const char *param2 = NULL, const char *param3 = NULL, const char *param4 = NULL );
@@ -357,7 +386,6 @@ inline void			UTIL_CenterPrintAll( const char *msg_name, const char *param1 = NU
 
 class CBasePlayerWeapon;
 class CBasePlayer;
-extern BOOL UTIL_GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerWeapon *pCurrentWeapon );
 
 // prints messages through the HUD
 extern void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, const char *param1 = NULL, const char *param2 = NULL, const char *param3 = NULL, const char *param4 = NULL );
@@ -399,9 +427,35 @@ extern void			UTIL_LogPrintf( const char *fmt, ... );
 // Sorta like FInViewCone, but for nonmonsters. 
 extern float UTIL_DotPoints ( const Vector &vecSrc, const Vector &vecCheck, const Vector &vecDir );
 
-extern void UTIL_StripToken( const char *pKey, char *pDest );// for redundant keynames
+extern void UTIL_StripToken( const char *pKey, char *pDest, int nLen );// for redundant keynames
 
 extern void EntvarsKeyvalue( entvars_t *pev, KeyValueData *pkvd );
+
+enum
+{
+	KEY_TYPE_NONE, // indicates value failed to load
+	KEY_TYPE_INT,
+	KEY_TYPE_FLOAT,
+	KEY_TYPE_VECTOR,
+	KEY_TYPE_STRING,
+	KEY_TYPE_EDICT
+};
+
+struct CKeyValue
+{
+	short fieldType = -1;
+	short keyType = KEY_TYPE_NONE;
+	int offset = 0;
+	const char* keyName;
+
+	int iVal = 0;
+	float fVal = 0.0f;
+	string_t sVal = iStringNull;
+	Vector vVal{};
+	edict_t* eVal = nullptr;
+};
+
+extern CKeyValue ReadEntvarKeyvalue(entvars_t* pev, const char* keyName);
 
 // Misc functions
 extern void SetMovedir(entvars_t* pev);
@@ -412,7 +466,7 @@ extern int BuildChangeList( LEVELLIST *pLevelList, int maxList );
 // How did I ever live without ASSERT?
 //
 #if	DEBUG
-void DBG_AssertFunction(BOOL fExpr, const char* szExpr, const char* szFile, int szLine, const char* szMessage);
+void DBG_AssertFunction(bool fExpr, const char* szExpr, const char* szFile, int szLine, const char* szMessage);
 #define ASSERT(f)		DBG_AssertFunction(f, #f, __FILE__, __LINE__, NULL)
 #define ASSERTSZ(f, sz)	DBG_AssertFunction(f, #f, __FILE__, __LINE__, sz)
 #else	// !DEBUG
@@ -422,28 +476,6 @@ void DBG_AssertFunction(BOOL fExpr, const char* szExpr, const char* szFile, int 
 
 extern DLL_GLOBAL const Vector g_vecZero;
 
-//
-// Constants that were used only by QC (maybe not used at all now)
-//
-// Un-comment only as needed
-//
-#define LANGUAGE_ENGLISH				0
-#define LANGUAGE_GERMAN					1
-#define LANGUAGE_FRENCH					2
-#define LANGUAGE_BRITISH				3
-
-extern DLL_GLOBAL int			g_Language;
-
-#define AMBIENT_SOUND_STATIC			0	// medium radius attenuation
-#define AMBIENT_SOUND_EVERYWHERE		1
-#define AMBIENT_SOUND_SMALLRADIUS		2
-#define AMBIENT_SOUND_MEDIUMRADIUS		4
-#define AMBIENT_SOUND_LARGERADIUS		8
-#define AMBIENT_SOUND_START_SILENT		16
-#define AMBIENT_SOUND_NOT_LOOPING		32
-
-#define SPEAKER_START_SILENT			1	// wait for trigger 'on' to start announcements
-
 #define SND_SPAWNING		(1<<8)		// duplicated in protocol.h we're spawing, used in some cases for ambients 
 #define SND_STOP			(1<<5)		// duplicated in protocol.h stop sound
 #define SND_CHANGE_VOL		(1<<6)		// duplicated in protocol.h change sound vol
@@ -451,37 +483,7 @@ extern DLL_GLOBAL int			g_Language;
 
 #define SND_DONT_REPORT_MISSING (1 << 16) // game library level flag, not part of a protocol
 
-#define	LFO_SQUARE			1
-#define LFO_TRIANGLE		2
-#define LFO_RANDOM			3
-
-// func_rotating
-#define SF_BRUSH_ROTATE_Y_AXIS		0
-#define SF_BRUSH_ROTATE_INSTANT		1
-#define SF_BRUSH_ROTATE_BACKWARDS	2
-#define SF_BRUSH_ROTATE_Z_AXIS		4
-#define SF_BRUSH_ROTATE_X_AXIS		8
-#define SF_PENDULUM_AUTO_RETURN		16
-#define	SF_PENDULUM_PASSABLE		32
-
-#define SF_BRUSH_ROTATE_SMALLRADIUS	128
-#define SF_BRUSH_ROTATE_MEDIUMRADIUS 256
-#define SF_BRUSH_ROTATE_LARGERADIUS 512
-
-#define PUSH_BLOCK_ONLY_X	1
-#define PUSH_BLOCK_ONLY_Y	2
-
-#define VEC_HULL_MIN		Vector(-16, -16, -36)
-#define VEC_HULL_MAX		Vector( 16,  16,  36)
-#define VEC_HUMAN_HULL_MIN	Vector( -16, -16, 0 )
-#define VEC_HUMAN_HULL_MAX	Vector( 16, 16, 72 )
-#define VEC_HUMAN_HULL_DUCK	Vector( 16, 16, 36 )
-
 #define VEC_VIEW			Vector( 0, 0, 28 )
-
-#define VEC_DUCK_HULL_MIN	Vector(-16, -16, -18 )
-#define VEC_DUCK_HULL_MAX	Vector( 16,  16,  18)
-#define VEC_DUCK_VIEW		Vector( 0, 0, 12 )
 
 #define SVC_TEMPENTITY		23
 #define SVC_INTERMISSION	30
@@ -496,47 +498,31 @@ extern DLL_GLOBAL int			g_Language;
 #define SF_TRIGGER_PUSHABLES		4// only pushables can fire this trigger
 #define SF_TRIGGER_EVERYTHING		8// can be triggered by anything else
 
-#define SF_LIGHT_START_OFF		1
-
-#define SPAWNFLAG_NOMESSAGE	1
-#define SPAWNFLAG_NOTOUCH	1
-#define SPAWNFLAG_DROIDONLY	4
-
-#define SPAWNFLAG_USEONLY	1		// can't be touched, must be used (buttons)
-
-#define TELE_PLAYER_ONLY	1
-#define TELE_SILENT			2
-
 // Sound Utilities
 
 // sentence groups
-#define CBSENTENCENAME_MAX 16
-
-#define CVOXFILESENTENCEMAX_GOLDSOURCE_LEGACY 1536
-#define CVOXFILESENTENCEMAX_GOLDSOURCE_ANNIVERSARY_25 2048
-#define CVOXFILESENTENCEMAX_XASH3D 4096
-#define CVOXFILESENTENCEMAX CVOXFILESENTENCEMAX_XASH3D // max number of sentences in game. NOTE: this must match
-							// CVOXFILESENTENCEMAX in engine\sound.h!!!
 
 extern char gszallsentencenames[CVOXFILESENTENCEMAX][CBSENTENCENAME_MAX];
 extern int gcallsentences;
 
 int USENTENCEG_Pick(int isentenceg, char *szfound);
-int USENTENCEG_PickSequential(int isentenceg, char *szfound, int ipick, int freset);
+int USENTENCEG_PickSequential(int isentenceg, char *szfound, int ipick, bool freset);
 void USENTENCEG_InitLRU(unsigned char *plru, int count);
 
 void SENTENCEG_Init();
 void SENTENCEG_Stop(edict_t *entity, int isentenceg, int ipick);
 int SENTENCEG_PlayRndI(edict_t *entity, int isentenceg, float volume, float attenuation, int flags, int pitch);
-int SENTENCEG_PlayRndSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch);
+int SENTENCEG_PlayRndSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int channel = 0);
 int SENTENCEG_PlayRndSzSub(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int holdTime);
-int SENTENCEG_PlaySequentialSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int ipick, int freset);
+int SENTENCEG_PlaySequentialSz(edict_t *entity, const char *szrootname, float volume, float attenuation, int flags, int pitch, int ipick, bool freset);
 int SENTENCEG_GetIndex(const char *szrootname);
 int SENTENCEG_Lookup(const char *sample, char *sentencenum);
 
 void TEXTURETYPE_Init();
 char TEXTURETYPE_Find(char *name);
-float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd, int iBulletType);
+char TEXTURETYPE_Trace(const TraceResult& tr, Vector vecSrc, Vector vecEnd);
+float TEXTURETYPE_PlaySound(const TraceResult &tr, char chTextureType);
+float TEXTURETYPE_PlaySound(const TraceResult &tr, const Vector& vecSrc, const Vector& vecEnd, bool ignoreFlesh = false);
 
 // NOTE: use EMIT_SOUND_DYN to set the pitch of a sound. Pitch of 100
 // is no pitch shift.  Pitch > 100 up to 255 is a higher pitch, pitch < 100
@@ -568,7 +554,7 @@ void EMIT_GROUPNAME_SUIT(edict_t *entity, const char *groupname);
 	{ for (int i = 0; i < (int)ARRAYSIZE( a ); i++ ) PRECACHE_SOUND( a[i] ); }
 
 #define EMIT_SOUND_ARRAY_DYN( chan, array ) \
-	EMIT_SOUND_DYN ( ENT(pev), chan , array [ RANDOM_LONG(0,ARRAYSIZE( array )-1) ], 1.0, ATTN_NORM, 0, RANDOM_LONG(95,105) ); 
+	EmitSoundDyn ( chan , array [ RANDOM_LONG(0,ARRAYSIZE( array )-1) ], 1.0, ATTN_NORM, 0, RANDOM_LONG(95,105) );
 
 #define RANDOM_SOUND_ARRAY( array ) (array) [ RANDOM_LONG(0,ARRAYSIZE( (array) )-1) ]
 
@@ -585,33 +571,40 @@ class UTIL_GroupTrace
 {
 public:
 	UTIL_GroupTrace( int groupmask, int op );
-	~UTIL_GroupTrace( void );
+	~UTIL_GroupTrace();
 
 private:
 	int m_oldgroupmask, m_oldgroupop;
 };
 
 void UTIL_SetGroupTrace( int groupmask, int op );
-void UTIL_UnsetGroupTrace( void );
+void UTIL_UnsetGroupTrace();
 
-int UTIL_SharedRandomLong( unsigned int seed, int low, int high );
-float UTIL_SharedRandomFloat( unsigned int seed, float low, float high );
-
-float UTIL_WeaponTimeBase( void );
+float UTIL_WeaponTimeBase();
 void UTIL_CleanSpawnPoint( Vector origin, float dist );
 void UTIL_DynamicLight( const Vector& vecSrc, float flRadius, byte r, byte g, byte b, float flTime, float flDecay );
 void UTIL_MuzzleLight( const Vector& vecSrc );
 
-char *memfgets( byte *pMemFile, int fileSize, int &filePos, char *pBuffer, int bufferSize );
+inline bool IsProbablyPickupClassname(const char* name)
+{
+	return name && (strncmp(name, "ammo_", 5) == 0 || strncmp(name, "item_", 5) == 0 || strncmp(name, "weapon_", 7) == 0);
+}
 
-void ReportAIStateByClassname(const char* name);
+inline bool LineOfSightSeparatedByWaterSurface(int lookerWaterlevel, int targetWaterlevel)
+{
+	return (lookerWaterlevel != WL_Eyes && targetWaterlevel == WL_Eyes) || (lookerWaterlevel == WL_Eyes && targetWaterlevel == WL_NotInWater);
+}
+
+inline Vector VectorFromColor(const Color3& color) {
+	return Vector(color.r, color.g, color.b);
+}
 
 //TODO: move this to movewith.h later
 extern void			UTIL_AssignOrigin		( CBaseEntity* pEntity, const Vector vecOrigin );
-extern void			UTIL_AssignOrigin		( CBaseEntity* pEntity, const Vector vecOrigin, BOOL bInitiator );
+extern void			UTIL_AssignOrigin		( CBaseEntity* pEntity, const Vector vecOrigin, bool bInitiator );
 extern void			UTIL_SetVelocity		( CBaseEntity *pEnt,	const Vector vecSet );
 extern void			UTIL_SetAngles			( CBaseEntity* pEntity, const Vector vecAngles );
-extern void			UTIL_SetAngles			( CBaseEntity* pEntity, const Vector vecAngles, BOOL bInitiator );
+extern void			UTIL_SetAngles			( CBaseEntity* pEntity, const Vector vecAngles, bool bInitiator );
 extern void			UTIL_SetAvelocity		( CBaseEntity *pEnt, const Vector vecSet );
 
 #endif // UTIL_H

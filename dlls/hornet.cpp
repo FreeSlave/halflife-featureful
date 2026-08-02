@@ -20,13 +20,10 @@
 #include	"util.h"
 #include	"cbase.h"
 #include	"monsters.h"
-#include	"weapons.h"
 #include	"soundent.h"
 #include	"hornet.h"
 #include	"gamerules.h"
-
-int iHornetTrail;
-int iHornetPuff;
+#include	"visuals_utils.h"
 
 LINK_ENTITY_TO_CLASS( hornet, CHornet )
 
@@ -42,21 +39,59 @@ TYPEDESCRIPTION	CHornet::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CHornet, CBaseMonster )
 
+const NamedSoundScript CHornet::buzzSoundScript = {
+	CHAN_VOICE,
+	{"hornet/ag_buzz1.wav", "hornet/ag_buzz2.wav", "hornet/ag_buzz3.wav"},
+	HORNET_BUZZ_VOLUME,
+	ATTN_NORM,
+	"Hornet.Buzz"
+};
+
+const NamedSoundScript CHornet::dieSoundScript = {
+	CHAN_VOICE,
+	{"hornet/ag_hornethit1.wav", "hornet/ag_hornethit2.wav", "hornet/ag_hornethit3.wav"},
+	1.0f,
+	ATTN_NORM,
+	"Hornet.Die"
+};
+
+const NamedVisual CHornet::modelVisual = BuildVisual("Hornet.Model")
+		.Model("models/hornet.mdl");
+
+const NamedVisual CHornet::sharedTrailVisual = BuildVisual("Hornet.TrailBase")
+		.Model("sprites/laserbeam.spr")
+		.Alpha(128)
+		.BeamParams(2, 0)
+		.Life(1.0f);
+
+const NamedVisual CHornet::trailVisual = BuildVisual("Hornet.Trail")
+		.RenderColor(179, 39, 14)
+		.Mixin(&CHornet::sharedTrailVisual);
+
+const NamedVisual CHornet::trailAltVisual = BuildVisual("Hornet.TrailAlt")
+		.RenderColor(255, 128, 0)
+		.Mixin(&CHornet::sharedTrailVisual);
+
+const NamedVisual CHornet::puffVisual = BuildVisual("Hornet.Puff")
+		.Model("sprites/muz1.spr")
+		.RenderMode(kRenderTransAdd)
+		.Scale(0.2f)
+		.Alpha(128);
+
 //=========================================================
 // don't let hornets gib, ever.
 //=========================================================
-int CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+TakeDamageResult CHornet::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
-	// filter these bits a little.
-	bitsDamageType &= ~( DMG_ALWAYSGIB );
-	bitsDamageType |= DMG_NEVERGIB;
+	DamageInfo dmgInfo = damageInfo;
+	dmgInfo.SetGibPolicy(GIB_NEVER);
 
-	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 }
 
 //=========================================================
 //=========================================================
-void CHornet::Spawn( void )
+void CHornet::Spawn()
 {
 	Precache();
 
@@ -89,7 +124,7 @@ void CHornet::Spawn( void )
 		m_flFlySpeed = HORNET_ORANGE_SPEED;
 	}
 
-	SET_MODEL( ENT( pev ), "models/hornet.mdl" );
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	UTIL_SetSize( pev, Vector( -4, -4, -4 ), Vector( 4, 4, 4 ) );
 
 	SetTouch( &CHornet::DieTouch );
@@ -101,12 +136,12 @@ void CHornet::Spawn( void )
 
 	if( !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
 	{
-		pev->dmg = gSkillData.plrDmgHornet;
+		SetDefaultProjectileDamage(GetSkillValue("plr_hornet_dmg"));
 	}
 	else
 	{
-		// no real owner, or owner isn't a client. 
-		pev->dmg = gSkillData.monDmgHornet;
+		// no real owner, or owner isn't a client.
+		SetDefaultProjectileDamage(GetSkillValue("hornet_dmg"));
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1f;
@@ -115,22 +150,14 @@ void CHornet::Spawn( void )
 
 void CHornet::Precache()
 {
-	PRECACHE_MODEL( "models/hornet.mdl" );
+	RegisterVisualAsMineOwn(modelVisual);
 
-	PRECACHE_SOUND( "agrunt/ag_fire1.wav" );
-	PRECACHE_SOUND( "agrunt/ag_fire2.wav" );
-	PRECACHE_SOUND( "agrunt/ag_fire3.wav" );
+	RegisterAndPrecacheSoundScript(buzzSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
 
-	PRECACHE_SOUND( "hornet/ag_buzz1.wav" );
-	PRECACHE_SOUND( "hornet/ag_buzz2.wav" );
-	PRECACHE_SOUND( "hornet/ag_buzz3.wav" );
-
-	PRECACHE_SOUND( "hornet/ag_hornethit1.wav" );
-	PRECACHE_SOUND( "hornet/ag_hornethit2.wav" );
-	PRECACHE_SOUND( "hornet/ag_hornethit3.wav" );
-
-	iHornetPuff = PRECACHE_MODEL( "sprites/muz1.spr" );
-	iHornetTrail = PRECACHE_MODEL( "sprites/laserbeam.spr" );
+	RegisterVisual(puffVisual);
+	RegisterVisual(trailVisual);
+	RegisterVisual(trailAltVisual);
 }
 
 //=========================================================
@@ -156,7 +183,7 @@ int CHornet::IRelationship( CBaseEntity *pTarget )
 //=========================================================
 // ID's Hornet as their owner
 //=========================================================
-int CHornet::DefaultClassify( void )
+int CHornet::DefaultClassify()
 {
 	if( pev->owner && pev->owner->v.flags & FL_CLIENT )
 	{
@@ -172,10 +199,22 @@ int CHornet::Classify()
 	return DefaultClassify();
 }
 
+void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	const float defaultSpeed = params.variant == DART ? 1200.0f : 300.0f;
+	LaunchAsProjectileImpl(defaultSpeed, params);
+	SetMyProjectileEffectFlags();
+	if (params.variant == DART)
+	{
+		SetThink(&CHornet::StartDart);
+		SendProjectileTracer();
+	}
+}
+
 //=========================================================
 // StartTrack - starts a hornet out tracking its target
 //=========================================================
-void CHornet::StartTrack( void )
+void CHornet::StartTrack()
 {
 	IgniteTrail();
 
@@ -188,7 +227,7 @@ void CHornet::StartTrack( void )
 //=========================================================
 // StartDart - starts a hornet out just flying straight.
 //=========================================================
-void CHornet::StartDart( void )
+void CHornet::StartDart()
 {
 	IgniteTrail();
 
@@ -198,7 +237,7 @@ void CHornet::StartDart( void )
 	pev->nextthink = gpGlobals->time + 4.0f;
 }
 
-void CHornet::IgniteTrail( void )
+void CHornet::IgniteTrail()
 {
 /*
 
@@ -226,35 +265,22 @@ old colors
 
 */
 	// trail
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMFOLLOW );
-		WRITE_SHORT( entindex() );	// entity
-		WRITE_SHORT( iHornetTrail );	// model
-		WRITE_BYTE( 10 ); // life
-		WRITE_BYTE( 2 );  // width
-
-		switch( m_iHornetType )
-		{
-		case HORNET_TYPE_RED:
-			WRITE_BYTE( 179 );   // r, g, b
-			WRITE_BYTE( 39 );   // r, g, b
-			WRITE_BYTE( 14 );   // r, g, b
-			break;
-		case HORNET_TYPE_ORANGE:
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 128 );   // r, g, b
-			WRITE_BYTE( 0 );   // r, g, b
-			break;
-		}
-
-		WRITE_BYTE( 128 );	// brightness
-	MESSAGE_END();
+	const Visual* visual;
+	if (m_iHornetType == HORNET_TYPE_RED)
+	{
+		visual = GetVisual(trailVisual);
+	}
+	else
+	{
+		visual = GetVisual(trailAltVisual);
+	}
+	SendBeamFollow(entindex(), visual);
 }
 
 //=========================================================
 // Hornet is flying, gently tracking target
 //=========================================================
-void CHornet::TrackTarget( void )
+void CHornet::TrackTarget()
 {
 	Vector	vecFlightDir;
 	Vector	vecDirToEnemy;
@@ -289,7 +315,7 @@ void CHornet::TrackTarget( void )
 
 	vecDirToEnemy = ( m_vecEnemyLKP - pev->origin ).Normalize();
 
-	if( pev->velocity.Length() < 0.1f )
+	if( pev->velocity.IsLengthLessThan(0.1f) )
 		vecFlightDir = vecDirToEnemy;
 	else 
 		vecFlightDir = pev->velocity.Normalize();
@@ -300,18 +326,7 @@ void CHornet::TrackTarget( void )
 	if( flDelta < 0.5f )
 	{
 		// hafta turn wide again. play sound
-		switch( RANDOM_LONG( 0, 2 ) )
-		{
-		case 0:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz1.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-			break;
-		case 1:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz2.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-			break;
-		case 2:
-			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz3.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-			break;
-		}
+		EmitSoundScript(buzzSoundScript);
 	}
 
 	if( flDelta <= 0 && m_iHornetType == HORNET_TYPE_RED )
@@ -350,31 +365,11 @@ void CHornet::TrackTarget( void )
 	// (only in the single player game)
 	if( m_hEnemy != 0 && !g_pGameRules->IsMultiplayer() )
 	{
-		if( flDelta >= 0.4f && ( pev->origin - m_vecEnemyLKP ).Length() <= 300 )
+		if( flDelta >= 0.4f && ( pev->origin - m_vecEnemyLKP ).IsLengthLessThanOrEqual(300) )
 		{
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_SPRITE );
-				WRITE_COORD( pev->origin.x );	// pos
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
-				WRITE_SHORT( iHornetPuff );		// model
-				// WRITE_BYTE( 0 );				// life * 10
-				WRITE_BYTE( 2 );				// size * 10
-				WRITE_BYTE( 128 );			// brightness
-			MESSAGE_END();
+			SendSprite(pev->origin, GetVisual(puffVisual));
 
-			switch( RANDOM_LONG( 0, 2 ) )
-			{
-			case 0:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz1.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-				break;
-			case 1:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz2.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-				break;
-			case 2:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_buzz3.wav", HORNET_BUZZ_VOLUME, ATTN_NORM );
-				break;
-			}
+			EmitSoundScript(buzzSoundScript);
 			pev->velocity = pev->velocity * 2.0f;
 			pev->nextthink = gpGlobals->time + 1.0f;
 			// don't attack again
@@ -399,7 +394,7 @@ void CHornet::TrackTouch( CBaseEntity *pOther )
 	{
 		// hit something we don't want to hurt, so turn around.
 
-		pev->velocity = pev->velocity.Normalize();
+		pev->velocity.NormalizeInPlace();
 
 		pev->velocity.x *= -1.0f;
 		pev->velocity.y *= -1.0f;
@@ -423,21 +418,9 @@ void CHornet::DieTouch( CBaseEntity *pOther )
 	if( pOther && pOther->pev->takedamage && pev->owner )
 	{
 		// do the damage
-		switch( RANDOM_LONG( 0, 2 ) )
-		{
-			// buzz when you plug someone
-			case 0:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_hornethit1.wav", 1, ATTN_NORM );
-				break;
-			case 1:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_hornethit2.wav", 1, ATTN_NORM );
-				break;
-			case 2:
-				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "hornet/ag_hornethit3.wav", 1, ATTN_NORM );
-				break;
-		}
+		EmitSoundScript(dieSoundScript);
 
-		pOther->TakeDamage( pev, VARS( pev->owner ), pev->dmg, DMG_BULLET );
+		pOther->TakeDamage( pev, VARS( pev->owner ), DamageInfo(GetProjectileDamage(), DMG_BULLET) );
 	}
 
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid

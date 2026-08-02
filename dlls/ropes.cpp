@@ -19,14 +19,12 @@
 #include "monsters.h"
 #include "squadmonster.h"
 #include "player.h"
-#include "weapons.h"
 #include "decals.h"
-#include "gamerules.h"
 #include "effects.h"
 #include "saverestore.h"
-#include "mod_features.h"
+#include "visuals_utils.h"
+#include "clamp.h"
 
-#if FEATURE_ROPE
 #include "ropes.h"
 
 #define SF_ROPE_NO_TRANSITION 2
@@ -63,12 +61,12 @@ class CRopeSample : public CBaseEntity
 {
 public:
 
-	void Spawn();
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	void Spawn() override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	int ObjectCaps() {
+	int ObjectCaps() override {
 		if (FBitSet(pev->spawnflags, SF_ROPE_NO_TRANSITION))
 			return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION;
 		else
@@ -102,13 +100,13 @@ public:
 
 	void ResetSwap()
 	{
-		swapped = FALSE;
+		swapped = false;
 	}
 
 private:
 	RopeSampleData data;
 	RopeSampleData data2;
-	BOOL swapped;
+	bool swapped;
 };
 
 
@@ -116,18 +114,17 @@ class CRopeSegment : public CBaseAnimating
 {
 public:
 
-	void Precache();
+	void Precache() override;
+	void Spawn() override;
 
-	void Spawn();
-
-	int ObjectCaps() {
+	int ObjectCaps() override {
 		if (FBitSet(pev->spawnflags, SF_ROPE_NO_TRANSITION))
 			return CBaseAnimating::ObjectCaps() & ~FCAP_ACROSS_TRANSITION;
 		else
 			return CBaseAnimating::ObjectCaps();
 	}
 
-	void Touch( CBaseEntity* pOther );
+	void Touch( CBaseEntity* pOther ) override;
 
 	void SetAbsOrigin(const Vector& pos)
 	{
@@ -150,8 +147,8 @@ public:
 			pev->spawnflags |= SF_ROPE_NO_TRANSITION;
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 
@@ -164,22 +161,27 @@ private:
 	CRope* mMasterRope;
 };
 
-static const char* const g_pszCreakSounds[] =
-{
-	"items/rope1.wav",
-	"items/rope2.wav",
-	"items/rope3.wav"
+const NamedSoundScript CRope::grabSoundScript = {
+	CHAN_BODY,
+	{"items/grab_rope.wav"},
+	"Rope.Grab"
+};
+
+const NamedSoundScript CRope::creakSoundScript = {
+	CHAN_BODY,
+	{"items/rope1.wav", "items/rope2.wav", "items/rope3.wav"},
+	"Rope.Creak"
 };
 
 TYPEDESCRIPTION	CRope::m_SaveData[] =
 {	DEFINE_FIELD( CRope, m_iSegments, FIELD_INTEGER ),
-	DEFINE_FIELD( CRope, m_bToggle, FIELD_CHARACTER ),
-	DEFINE_FIELD( CRope, m_InitialDeltaTime, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRope, m_bToggle, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CRope, m_InitialDeltaTime, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRope, mLastTime, FIELD_TIME ),
 	DEFINE_FIELD( CRope, m_LastEndPos, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CRope, m_Gravity, FIELD_VECTOR ),
 	DEFINE_FIELD( CRope, m_NumSamples, FIELD_INTEGER ),
-	DEFINE_FIELD( CRope, mObjectAttached, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRope, mObjectAttached, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRope, mAttachedObjectsSegment, FIELD_INTEGER ),
 	DEFINE_FIELD( CRope, detachTime, FIELD_TIME ),
 	DEFINE_FIELD( CRope, detachDelay, FIELD_FLOAT ),
@@ -190,8 +192,8 @@ TYPEDESCRIPTION	CRope::m_SaveData[] =
 	DEFINE_FIELD( CRope, mBodyModel, FIELD_STRING ),
 	DEFINE_FIELD( CRope, mEndingModel, FIELD_STRING ),
 	DEFINE_FIELD( CRope, mAttachedObjectsOffset, FIELD_FLOAT ),
-	DEFINE_FIELD( CRope, m_bMakeSound, FIELD_CHARACTER ),
-	DEFINE_FIELD( CRope, m_activated, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRope, m_bMakeSound, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CRope, m_activated, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CRope, CBaseDelay )
@@ -206,8 +208,7 @@ void CRope::KeyValue( KeyValueData* pkvd )
 
 		m_iSegments = strtol( pkvd->szValue, NULL, 10 );
 
-		if( m_iSegments >= MAX_SEGMENTS )
-			m_iSegments = MAX_SEGMENTS - 1;
+		m_iSegments = clamp(m_iSegments, 2, MAX_SEGMENTS - 1);
 	}
 	else if( FStrEq( pkvd->szKeyName, "bodymodel" ) )
 	{
@@ -247,7 +248,9 @@ void CRope::Precache()
 
 	PRECACHE_MODEL(STRING(GetBodyModel()));
 	PRECACHE_MODEL(STRING(GetEndingModel()));
-	PRECACHE_SOUND_ARRAY( g_pszCreakSounds );
+
+	RegisterAndPrecacheSoundScript(grabSoundScript);
+	RegisterAndPrecacheSoundScript(creakSoundScript);
 }
 
 void CRope::Spawn()
@@ -275,6 +278,21 @@ void CRope::Activate()
 		InitRope();
 		m_activated = true;
 	}
+}
+
+void CRope::UpdateOnRemove()
+{
+	for (size_t i=0; i<MAX_SEGMENTS; ++i)
+	{
+		UTIL_Remove(seg[i]);
+		UTIL_Remove(altseg[i]);
+	}
+	for (size_t i=0; i<MAX_SAMPLES; ++i)
+	{
+		UTIL_Remove(m_Samples[i]);
+	}
+
+	CBaseDelay::UpdateOnRemove();
 }
 
 int CRope::ObjectCaps()
@@ -316,8 +334,6 @@ void CRope::InitRope()
 
 	if( m_iSegments > 2 )
 	{
-		CRopeSample** ppCurrentSys = m_Samples;
-
 		for( int uiSeg = 1; uiSeg < m_iSegments - 1; ++uiSeg )
 		{
 			CRopeSample* pSegSample = m_Samples[ uiSeg ];
@@ -584,7 +600,7 @@ void CRope::ComputeSpringForce( RopeSampleData& first, RopeSampleData& second )
 
 	const double flNewRelativeDist = DotProduct( first.mVelocity - second.mVelocity, vecDist ) * SPRING_DAMPING;
 
-	vecDist = vecDist.Normalize();
+	vecDist.NormalizeInPlace();
 
 	const double flSpringFactor = -( flNewRelativeDist / flDistance + flForce );
 
@@ -732,7 +748,7 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 
 	if( mObjectAttached )
 	{
-		for( unsigned int uiSeg = 1; uiSeg < m_iSegments; ++uiSeg )
+		for( unsigned int uiSeg = 1; uiSeg < (unsigned int)m_iSegments; ++uiSeg )
 		{
 			CRopeSample* pSample = m_Samples[ uiSeg ];
 
@@ -784,7 +800,7 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 	}
 	else
 	{
-		for( unsigned int uiSeg = 1; uiSeg < m_iSegments; ++uiSeg )
+		for( unsigned int uiSeg = 1; uiSeg < (unsigned int)m_iSegments; ++uiSeg )
 		{
 			UTIL_TraceLine(
 				ppHiddenSegs[ uiSeg ]->pev->origin,
@@ -801,7 +817,6 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 			}
 			else
 			{
-				CBaseEntity* pEnt = (CBaseEntity*)GET_PRIVATE( tr.pHit );
 				const Vector vecNormal = tr.vecPlaneNormal.Normalize();
 
 				Vector vecOrigin = tr.vecEndPos + vecNormal * 10.0;
@@ -1079,7 +1094,7 @@ bool CRope::ShouldCreak() const
 	{
 		CRopeSample* pSample = seg[ mAttachedObjectsSegment ]->GetSample();
 
-		if( pSample->GetData().mVelocity.Length() > 20.0 )
+		if( pSample->GetData().mVelocity.IsLengthGreaterThan(20.0) )
 			return RANDOM_LONG( 1, 5 ) == 1;
 	}
 
@@ -1088,9 +1103,7 @@ bool CRope::ShouldCreak() const
 
 void CRope::Creak()
 {
-	EMIT_SOUND( edict(), CHAN_BODY,
-				g_pszCreakSounds[ RANDOM_LONG( 0, ARRAYSIZE( g_pszCreakSounds ) - 1 ) ],
-				VOL_NORM, ATTN_NORM );
+	EmitSoundScript(creakSoundScript);
 }
 
 float CRope::GetSegmentLength( int uiSegmentIndex ) const
@@ -1194,8 +1207,7 @@ Vector CRope::GetAttachedObjectsPosition() const
 	if( mAttachedObjectsSegment < m_iSegments )
 		vecResult = m_Samples[ mAttachedObjectsSegment ]->GetData().mPosition;
 
-	vecResult = vecResult +
-		( mAttachedObjectsOffset * GetSegmentDirFromOrigin( mAttachedObjectsSegment ) );
+	vecResult += ( mAttachedObjectsOffset * GetSegmentDirFromOrigin( mAttachedObjectsSegment ) );
 
 	return vecResult;
 }
@@ -1209,14 +1221,14 @@ TYPEDESCRIPTION	CRopeSample::m_SaveData[] =
 	DEFINE_FIELD( CRopeSample, data.mVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CRopeSample, data.mForce, FIELD_VECTOR ),
 	DEFINE_FIELD( CRopeSample, data.mExternalForce, FIELD_VECTOR ),
-	DEFINE_FIELD( CRopeSample, data.mApplyExternalForce, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRopeSample, data.mApplyExternalForce, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRopeSample, data.mMassReciprocal, FIELD_FLOAT ),
 	DEFINE_FIELD( CRopeSample, data.restLength, FIELD_FLOAT ),
 	DEFINE_FIELD( CRopeSample, data2.mPosition, FIELD_VECTOR ),
 	DEFINE_FIELD( CRopeSample, data2.mVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( CRopeSample, data2.mForce, FIELD_VECTOR ),
 	DEFINE_FIELD( CRopeSample, data2.mExternalForce, FIELD_VECTOR ),
-	DEFINE_FIELD( CRopeSample, data2.mApplyExternalForce, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRopeSample, data2.mApplyExternalForce, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRopeSample, data2.mMassReciprocal, FIELD_FLOAT ),
 	DEFINE_FIELD( CRopeSample, data2.restLength, FIELD_FLOAT ),
 	DEFINE_FIELD( CRopeSample, swapped, FIELD_BOOLEAN ),
@@ -1247,8 +1259,8 @@ TYPEDESCRIPTION	CRopeSegment::m_SaveData[] =
 	DEFINE_FIELD( CRopeSegment, m_Sample, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CRopeSegment, mModelName, FIELD_STRING ),
 	DEFINE_FIELD( CRopeSegment, mDefaultMass, FIELD_FLOAT ),
-	DEFINE_FIELD( CRopeSegment, mCauseDamage, FIELD_CHARACTER ),
-	DEFINE_FIELD( CRopeSegment, mCanBeGrabbed, FIELD_CHARACTER ),
+	DEFINE_FIELD( CRopeSegment, mCauseDamage, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CRopeSegment, mCanBeGrabbed, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CRopeSegment, mMasterRope, FIELD_CLASSPTR ),
 };
 IMPLEMENT_SAVERESTORE( CRopeSegment, CBaseAnimating )
@@ -1262,7 +1274,6 @@ void CRopeSegment::Precache()
 		mModelName = MAKE_STRING( "models/rope16.mdl" );
 
 	PRECACHE_MODEL( STRING( mModelName ) );
-	PRECACHE_SOUND( "items/grab_rope.wav" );
 }
 
 void CRopeSegment::Spawn()
@@ -1294,8 +1305,8 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 		{
 			if( gpGlobals->time >= pev->dmgtime )
 			{
-				if( pev->dmg < 0 ) pOther->TakeHealth(this, -pev->dmg, DMG_GENERIC );
-				else pOther->TakeDamage( pev, pev, pev->dmg ? pev->dmg : 5, DMG_SHOCK );
+				if( pev->dmg < 0 ) pOther->TakeHealth(this, -pev->dmg, HEAL_GENERIC );
+				else pOther->TakeDamage( pev, pev, DamageInfo(pev->dmg ? pev->dmg : 5, DMG_SHOCK) );
 				pev->dmgtime = gpGlobals->time + 0.5f;
 			}
 		}
@@ -1303,7 +1314,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 		if (pPlayer->m_afPhysicsFlags & PFLAG_ONBARNACLE)
 			return;
 
-		if( GetMasterRope()->IsAcceptingAttachment() && !(pPlayer->m_afPhysicsFlags & PFLAG_ONROPE) && pPlayer->pev->movetype != MOVETYPE_NOCLIP )
+		if( GetMasterRope()->IsAcceptingAttachment() && !pPlayer->IsOnRope() && pPlayer->pev->movetype != MOVETYPE_NOCLIP )
 		{
 			if( mCanBeGrabbed )
 			{
@@ -1317,7 +1328,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 
 				const Vector& vecVelocity = pOther->pev->velocity;
 
-				if( vecVelocity.Length() > 0.5 )
+				if( vecVelocity.IsLengthGreaterThan(0.5) )
 				{
 					//Apply some external force to move the rope. - Solokiller
 					data.mApplyExternalForce = true;
@@ -1327,7 +1338,7 @@ void CRopeSegment::Touch( CBaseEntity* pOther )
 
 				if( GetMasterRope()->IsSoundAllowed() )
 				{
-					EMIT_SOUND( edict(), CHAN_BODY, "items/grab_rope.wav", 1.0, ATTN_NORM );
+					EmitSoundScript(CRope::grabSoundScript);
 				}
 			}
 			else
@@ -1396,41 +1407,26 @@ class CElectrifiedWire : public CRope
 public:
 	CElectrifiedWire();
 	void InitElectrifiedRope();
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void KeyValue( KeyValueData* pkvd );
+	void KeyValue( KeyValueData* pkvd ) override;
 
-	void Precache();
-
-	void Spawn();
-	void Activate();
+	void Precache() override;
+	void Spawn() override;
+	void Activate() override;
 
 	void EXPORT ElectrifiedRopeThink();
 
-	void Use( CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float flValue );
+	void Use( CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float flValue ) override;
 
-	/**
-	*	@return Whether the wire is active.
-	*/
 	bool IsActive() const { return m_bIsActive; }
-
-	/**
-	*	@param iFrequency Frequency.
-	*	@return Whether the spark effect should be performed.
-	*/
 	bool ShouldDoEffect( const int iFrequency );
-
-	/**
-	*	Do spark effects.
-	*/
 	void DoSpark( const int uiSegment, const bool bExertForce );
-
-	/**
-	*	Do lightning effects.
-	*/
 	void DoLightning();
+
+	static NamedVisual lightningVisual;
 
 private:
 	bool m_bIsActive;
@@ -1445,8 +1441,6 @@ private:
 
 	int m_uiNumUninsulatedSegments;
 	int m_uiUninsulatedSegments[ MAX_SEGMENTS ];
-
-	int m_iLightningSprite;
 
 	float m_flLastSparkTime;
 };
@@ -1463,10 +1457,18 @@ CElectrifiedWire::CElectrifiedWire()
 	m_uiNumUninsulatedSegments = 0;
 }
 
+LINK_ENTITY_TO_CLASS( env_electrified_wire, CElectrifiedWire )
+
+NamedVisual CElectrifiedWire::lightningVisual = BuildVisual("Wire.Lightning")
+		.Model("sprites/lgtning.spr")
+		.Life(0.1f)
+		.BeamParams(10, 80, 255)
+		.RenderColor(255, 255, 255)
+		.Alpha(255);
 
 TYPEDESCRIPTION CElectrifiedWire::m_SaveData[] =
 {
-	DEFINE_FIELD( CElectrifiedWire, m_bIsActive, FIELD_CHARACTER ),
+	DEFINE_FIELD( CElectrifiedWire, m_bIsActive, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( CElectrifiedWire, m_iTipSparkFrequency, FIELD_INTEGER ),
 	DEFINE_FIELD( CElectrifiedWire, m_iBodySparkFrequency, FIELD_INTEGER ),
@@ -1479,14 +1481,10 @@ TYPEDESCRIPTION CElectrifiedWire::m_SaveData[] =
 	DEFINE_FIELD( CElectrifiedWire, m_uiNumUninsulatedSegments, FIELD_INTEGER ),
 	DEFINE_ARRAY( CElectrifiedWire, m_uiUninsulatedSegments, FIELD_INTEGER, MAX_SEGMENTS ),
 
-	//DEFINE_FIELD( m_iLightningSprite, FIELD_INTEGER ), //Not restored, reset in Precache. - Solokiller
-
 	DEFINE_FIELD( CElectrifiedWire, m_flLastSparkTime, FIELD_TIME ),
 };
 
-LINK_ENTITY_TO_CLASS( env_electrified_wire, CElectrifiedWire );
-IMPLEMENT_SAVERESTORE( CElectrifiedWire, CRope );
-
+IMPLEMENT_SAVERESTORE( CElectrifiedWire, CRope )
 
 void CElectrifiedWire::KeyValue( KeyValueData* pkvd )
 {
@@ -1533,8 +1531,7 @@ void CElectrifiedWire::KeyValue( KeyValueData* pkvd )
 void CElectrifiedWire::Precache()
 {
 	CRope::Precache();
-
-	m_iLightningSprite = PRECACHE_MODEL( "sprites/lgtning.spr" );
+	RegisterVisual(lightningVisual);
 }
 
 void CElectrifiedWire::Spawn()
@@ -1713,21 +1710,5 @@ void CElectrifiedWire::DoLightning()
 		pSegment2 = GetSegments()[ uiSegment2 ];
 	}
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMENTS );
-		WRITE_SHORT( pSegment1->entindex() );
-		WRITE_SHORT( pSegment2->entindex() );
-		WRITE_SHORT( m_iLightningSprite );
-		WRITE_BYTE( 0 );
-		WRITE_BYTE( 0 );
-		WRITE_BYTE( 1 );
-		WRITE_BYTE( 10 );
-		WRITE_BYTE( 80 );
-		WRITE_BYTE( 255 );
-		WRITE_BYTE( 255 );
-		WRITE_BYTE( 255 );
-		WRITE_BYTE( 255 );
-		WRITE_BYTE( 255 );
-	MESSAGE_END();
+	SendBeam(pSegment1->entindex(), pSegment2->entindex(), GetVisual(lightningVisual));
 }
-#endif

@@ -16,101 +16,45 @@
 #pragma once
 #if !defined(MATHLIB_H)
 #define MATHLIB_H
-#if !__cplusplus
-#include <math.h>
-#if HAVE_TGMATH_H
-#include <tgmath.h>
-#endif // HAVE_TGMATH_H
-#else // __cplusplus
-#if HAVE_CMATH
-#include <cmath>
-#else
-#include <math.h>
-#endif
-#endif // __cplusplus
 
-typedef float vec_t;
-
-#if !defined(DID_VEC3_T_DEFINE)
-#define DID_VEC3_T_DEFINE
-typedef vec_t vec3_t[3];
-#endif
-
-
-#if !defined(M_PI)
-#define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
-#endif
-
-#if !defined(M_PI_F)
-#define M_PI_F		(float)M_PI
-#endif
+#include "vector.h"
+#include "pi_constant.h"
 
 struct mplane_s;
 
-extern vec3_t vec3_origin;
+constexpr Vector vec3_origin(0,0,0);
 extern	int nanmask;
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
-#if !defined(VECTOR_H)
-	#define DotProduct(x,y) ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
-#endif
-
 #define VectorSubtract(a,b,c) {(c)[0]=(a)[0]-(b)[0];(c)[1]=(a)[1]-(b)[1];(c)[2]=(a)[2]-(b)[2];}
 #define VectorAdd(a,b,c) {(c)[0]=(a)[0]+(b)[0];(c)[1]=(a)[1]+(b)[1];(c)[2]=(a)[2]+(b)[2];}
 #define VectorCopy(a,b) {(b)[0]=(a)[0];(b)[1]=(a)[1];(b)[2]=(a)[2];}
-#define VectorClear(a) {(a)[0]=0.0;(a)[1]=0.0;(a)[2]=0.0;}
+inline void VectorClear(float *a) {(a)[0]=0.0f;(a)[1]=0.0f;(a)[2]=0.0f;}
 
-void VectorMA (const vec3_t veca, float scale, const vec3_t vecb, vec3_t vecc);
+void VectorMA (const float* veca, float scale, const float* vecb, float* vecc);
 
-vec_t _DotProduct (vec3_t v1, vec3_t v2);
-void _VectorSubtract (vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorAdd (vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorCopy (vec3_t in, vec3_t out);
+int VectorCompare (const float* v1, const float* v2);
+float Length (const float* v);
+void CrossProduct (const float* v1, const float* v2, float* cross);
+float VectorNormalize (float* v);		// returns vector length
+void VectorInverse (float* v);
+void VectorScale (const float* in, float scale, float* out);
 
-int VectorCompare (const vec3_t v1, const vec3_t v2);
-float Length (const vec3_t v);
-void CrossProduct (const vec3_t v1, const vec3_t v2, vec3_t cross);
-float VectorNormalize (vec3_t v);		// returns vector length
-void VectorInverse (vec3_t v);
-void VectorScale (const vec3_t in, vec_t scale, vec3_t out);
+void AngleVectors (const Vector& angles, Vector* forward, Vector* right, Vector* up);
+void AngleVectorsTranspose (const Vector& angles, Vector* forward, Vector* right, Vector* up);
 
-void R_ConcatRotations (float in1[3][3], float in2[3][3], float out[3][3]);
-void R_ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4]);
+void AngleMatrix (const float* angles, float (*matrix)[4] );
+void AngleIMatrix (const Vector& angles, float (*matrix)[4] );
+void VectorTransform (const float* in1, float in2[3][4], float* out);
 
-void AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
-void AngleVectorsTranspose (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
-#define AngleIVectors	AngleVectorsTranspose
+void NormalizeAngles( float* angles );
+void InterpolateAngles( float* start, float* end, float* output, float frac );
+float AngleBetweenVectors(const Vector& v1, const Vector& v2 );
 
-void AngleMatrix (const vec3_t angles, float (*matrix)[4] );
-void AngleIMatrix (const vec3_t angles, float (*matrix)[4] );
-void VectorTransform (const vec3_t in1, float in2[3][4], vec3_t out);
+void VectorMatrix(const Vector& forward, Vector& right, Vector& up);
+void VectorAngles( const float* forward, float* angles );
 
-void NormalizeAngles( vec3_t angles );
-void InterpolateAngles( vec3_t start, vec3_t end, vec3_t output, float frac );
-float AngleBetweenVectors( const vec3_t v1, const vec3_t v2 );
-
-void VectorMatrix( vec3_t forward, vec3_t right, vec3_t up);
-void VectorAngles( const vec3_t forward, vec3_t angles );
-
-int InvertMatrix( const float * m, float *out );
-
-int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct mplane_s *plane);
 float	anglemod(float a);
 
-#define BOX_ON_PLANE_SIDE(emins, emaxs, p)	\
-	(((p)->type < 3)?						\
-	(										\
-		((p)->dist <= (emins)[(p)->type])?	\
-			1								\
-		:									\
-		(									\
-			((p)->dist >= (emaxs)[(p)->type])?\
-				2							\
-			:								\
-				3							\
-		)									\
-	)										\
-	:										\
-		BoxOnPlaneSide( (emins), (emaxs), (p)))
 #endif // MATHLIB_H

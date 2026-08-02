@@ -7,12 +7,12 @@
 class CBasePlayerAmmo : public CPickup
 {
 public:
-	virtual void Spawn( void );
-	void KeyValue(KeyValueData* pkvd);
-	void Precache();
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void Precache() override;
 	void EXPORT DefaultTouch( CBaseEntity *pOther ); // default weapon touch
 	virtual bool AddAmmo( CBaseEntity *pOther );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void EXPORT DefaultUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void TouchOrUse( CBaseEntity* other );
 
 	virtual const char* MyModel() = 0;
@@ -21,11 +21,18 @@ public:
 	void SetCustomAmount(int amount);
 	virtual const char* AmmoName() = 0;
 
-	Vector MyRespawnSpot();
-	virtual float MyRespawnTime();
-	void OnMaterialize();
+	Vector MyRespawnSpot() override;
+	float MyRespawnTime() override;
+	void OnMaterialize() override;
 
-	CBasePlayerAmmo* MyAmmoPointer() {return this;}
+	CBasePlayerAmmo* MyAmmoPointer() override {return this;}
+
+	void DropAsAmmoEnt(int amount) override;
+
+protected:
+	void SetTouchAndUse();
+	void ClearTouchAndUse();
+	void RemoveMyself();
 };
 
 #endif

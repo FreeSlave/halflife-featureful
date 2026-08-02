@@ -2,7 +2,7 @@
 
 Half-Life SDK for GoldSource & Xash3D with some bugfixes and features that can be useful for mod makers.
 
-See the feature overview on the [Wiki](https://github.com/FreeSlave/halflife-featureful/wiki).
+See [Documentation](https://freeslave.github.io/halflife-featureful/).
 
 # Obtaining source code
 
@@ -71,22 +71,35 @@ cmake -G "Visual Studio 16 2019" -A Win32 -B build
 
 After the configuration step, `HALFLIFE-FEATUREFUL.sln` should appear in the `build` directory. You can open this solution in Visual Studio and continue developing there.
 
-## Windows x86. Using Microsoft Visual Studio 6
+## Linux x86. Portable steam-compatible build using Steam Runtime inside a container
 
-Microsoft Visual Studio 6 is very old, but if you still have it installed, you can use it to build this hlsdk. There are no project files, but two `.bat` files, for server and client libraries. They require variable **MSVCDir** to be set to the installation path of Visual Studio:
-
+### Prerequisites
+Install Podman.
 ```
-set MSVCDir=C:\Program Files\Microsoft Visual Studio
-cd dlls && compile.bat && cd ../cl_dll && compile.bat
+sudo apt install podman
 ```
 
-`hl.dll` and `client.dll` will appear in `dlls/` and `cl_dll/` diretories. The libraries built with msvc6 should be compatible with Windows XP.
+### Building
+```
+# Start a shell inside a Steam Runtime SDK container.
+podman run --rm -it \
+    --volume "$(pwd):/data" \
+    --workdir "/data" \
+    "registry.gitlab.steamos.cloud/steamrt/scout/sdk" \
+    /bin/bash
+
+# Build inside the container.
+cmake -DCMAKE_BUILD_TYPE=Release -B build -S .
+cmake --build build
+```
 
 ## Linux x86. Portable steam-compatible build using Steam Runtime in chroot
 
 ### Prerequisites
 
 The official way to build Steam compatible games for Linux is through steam-runtime.
+
+*Note*: For RHEL-based distros you may be need to use system chroot or docker.
 
 Install schroot. On Ubuntu or Debian:
 
@@ -112,9 +125,16 @@ schroot --chroot steamrt_scout_i386 -- cmake --build build-in-steamrt
 
 ### Prerequisites
 
-Install C++ compilers, cmake and x86 development libraries for C, C++ and SDL2. On Ubuntu/Debian:
+Install C++ compilers, cmake and x86 development libraries for C, C++ and SDL2.
+
+#### Ubuntu/Debian:
 ```
 sudo apt install cmake build-essential gcc-multilib g++-multilib libsdl2-dev:i386
+```
+
+#### RedHat/Fedora/CentOS:
+```
+sudo dnf install cmake gcc gcc-c++ glibc-devel.i686 SDL-devel.i686
 ```
 
 ### Building
@@ -268,7 +288,7 @@ make -j
 
 ## Other platforms
 
-Building on other architectures (e.g x86_64 or arm) and POSIX-compliant OSes (e.g. FreeBSD) is supported.
+Building on other architectures (e.g. x86_64 or arm) and POSIX-compliant OSes (e.g. FreeBSD) is supported.
 
 ### Prerequisites
 
@@ -310,10 +330,16 @@ Some useful build options that can be set during the cmake step.
 * **64BIT** - allows to turn off/on 64-bit build. Set to **OFF** by default on x86_64 Windows, x86_64 Linux and 32-bit platforms, **ON** on other 64-bit platforms.
 * **USE_VGUI** - whether to use VGUI library. **OFF** by default. You need to init `vgui_support` submodule in order to build with VGUI.
 
-This list is incomplete. Look at `CMakeLists.txt` to see all available options.
+This list is incomplete. Look at `mod_options.txt` to see all available options and their default values.
 
 Prepend option names with `-D` when passing to cmake. Boolean options can take values **OFF** and **ON**. Example:
 
 ```
-cmake .. -DUSE_VGUI=ON -DGOLDSOURCE_SUPPORT=ON -DCROWBAR_IDLE_ANIM=ON -DCROWBAR_FIX_RAPID_CROWBAR=ON
+cmake .. -DUSE_VGUI=ON -DGOLDSOURCE_SUPPORT=ON
 ```
+
+To add new build options for your mod, you can add them to `mod_options.txt` file in the following format:
+```
+<definition name>=<definition value> # <description>
+```
+If `definition value` set to `OFF` or `ON`, it will be considered as a boolean value. Otherwise it will be a string. Nor `definition name` nor `definition value` can have whitespace characters.

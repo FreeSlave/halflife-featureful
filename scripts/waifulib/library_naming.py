@@ -44,7 +44,6 @@ DEFINES = [
 'XASH_IRIX',
 'XASH_JS',
 'XASH_LINUX',
-'XASH_LINUX_UNKNOWN',
 'XASH_LITTLE_ENDIAN',
 'XASH_MIPS',
 'XASH_MOBILE_PLATFORM',
@@ -57,10 +56,15 @@ DEFINES = [
 'XASH_RISCV_SINGLEFP',
 'XASH_RISCV_SOFTFP',
 'XASH_SERENITY',
+'XASH_TERMUX',
 'XASH_WIN32',
 'XASH_X86',
 'XASH_NSWITCH',
 'XASH_PSVITA',
+'XASH_WASI',
+'XASH_WASM',
+'XASH_SUNOS',
+'XASH_HURD',
 ]
 
 def configure(conf):
@@ -76,10 +80,12 @@ def configure(conf):
 	# engine/common/build.c
 	if conf.env.XASH_ANDROID:
 		buildos = "android"
-	elif conf.env.XASH_LINUX_UNKNOWN:
-		buildos = "linuxunkabi"
-	elif conf.env.XASH_WIN32 or conf.env.XASH_LINUX or conf.env.XASH_APPLE:
-		buildos = "" # no prefix for default OS
+	elif conf.env.XASH_WIN32:
+		buildos = "win32"
+	elif conf.env.XASH_LINUX:
+		buildos = "linux"
+	elif conf.env.XASH_APPLE:
+		buildos = "apple"
 	elif conf.env.XASH_FREEBSD:
 		buildos = "freebsd"
 	elif conf.env.XASH_NETBSD:
@@ -100,6 +106,12 @@ def configure(conf):
 		buildos = "psvita"
 	elif conf.env.XASH_IRIX:
 		buildos = "irix"
+	elif conf.env.XASH_WASI:
+		buildos = "wasi"
+	elif conf.env.XASH_SUNOS:
+		buildos = "sunos"
+	elif conf.env.XASH_HURD:
+		buildos = "hurd"
 	else:
 		conf.fatal("Place your operating system name in build.h and library_naming.py!\n"
 			"If this is a mistake, try to fix conditions above and report a bug")
@@ -107,10 +119,7 @@ def configure(conf):
 	if conf.env.XASH_AMD64:
 		buildarch = "amd64"
 	elif conf.env.XASH_X86:
-		if conf.env.XASH_WIN32 or conf.env.XASH_LINUX or conf.env.XASH_APPLE:
-			buildarch = ""
-		else:
-			buildarch = "i386"
+		buildarch = "i386"
 	elif conf.env.XASH_ARM and conf.env.XASH_64BIT:
 		buildarch = "arm64"
 	elif conf.env.XASH_ARM:
@@ -159,20 +168,31 @@ def configure(conf):
 			buildarch += "64"
 		if conf.env.XASH_LITTLE_ENDIAN:
 			buildarch += "el"
+	elif conf.env.XASH_WASM:
+		buildarch = "wasm"
+		if conf.env.XASH_64BIT:
+			buildarch += "64"
+		else:
+			buildarch += "32"
 	else:
 		raise conf.fatal("Place your architecture name in build.h and library_naming.py!\n"
 			"If this is a mistake, try to fix conditions above and report a bug")
 
-	conf.env.revert()
+	node = conf.bldnode.make_node('true_postfix.txt')
+	node.write('%s-%s' % (buildos, buildarch))
 
-	if buildos == 'android':
-		# force disable for Android, as Android ports aren't distributed in normal way and doesn't follow library naming
-		conf.env.POSTFIX = ''
-	elif buildos != '' and buildarch != '':
-		conf.env.POSTFIX = '_%s_%s' % (buildos,buildarch)
+	if not conf.env.XASH_ANDROID and (conf.env.XASH_WIN32 or conf.env.XASH_LINUX or conf.env.XASH_APPLE):
+		buildos = ''
+		if conf.env.XASH_X86:
+			buildarch = ''
+
+	if buildos != '' and buildarch != '':
+		postfix = '_%s_%s' % (buildos,buildarch)
 	elif buildarch != '':
-		conf.env.POSTFIX = '_%s' % buildarch
+		postfix = '_%s' % buildarch
 	else:
-		conf.env.POSTFIX = ''
+		postfix = ''
 
+	conf.env.revert()
+	conf.env.POSTFIX = postfix
 	conf.end_msg(conf.env.POSTFIX)

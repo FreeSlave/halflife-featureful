@@ -1,0 +1,147 @@
+---
+bookHidden: true
+bookToC: false
+---
+
+# monster_human_grunt
+
+[TWHL](https://twhl.info/wiki/page/monster_human_grunt)
+
+### Changes
+
+* When human grunt checks for friendly fire he takes into account all allies, not only those who are in the same squad as him.
+* The model no longer requires the `ACT_RUN_HURT` and `ACT_WALK_HURT` activities to be present. If these are missing the regular `ACT_RUN` and `ACT_WALK` are used when grunt is hurt.
+
+### Skill variables
+
+* **sk_hgrunt_health** - monster's health.
+* **sk_hgrunt_kick** - kick damage.
+* **sk_hgrunt_pellets** - the number of shotgun pellets.
+* **sk_hgrunt_gspeed** - the grenade speed when it's thrown.
+* **sk_9mmAR_bullet** - 9mmAR damage.
+* **sk_buckshot** - shotgun pellet damage. If not defined, **sk_plr_buckshot** is used.
+* **sk_hgrunt_gren_launch_delay** - delay before the next check for grenade launch after firing a grenade. Default value is 6 on Easy and Medium, and `[2, 5]` (range) on Hard.
+* **sk_hgrunt_gren_throw_delay** - delay before the next check for grenade toss after throwing a grenade. Default value is 6.
+* **sk_hgrunt_gren_before_cover** - whether the human grunt can throw (or launch) a grenade before taking cover from enemy if the grunt is in squad. In game the conditions for this behavior are rarely met, but we introduce this variable just to get rid of the hardcoded check on hard difficulty. Default value is 0 on Easy and Medium, and 1 on Hard.
+
+### Default classification
+
+`Human Military`
+
+### Default display name
+
+`Human Grunt`
+
+### Soundscripts
+
+* **HGrunt.Pain** - pain sounds.
+* **HGrunt.Die** - death sounds.
+* **HGrunt.Reload** - reload sound. Derived from **NPC.Reload**
+* **HGrunt.9MM** - burst MP5 shot. Derived from **NPC.9MM**
+* **HGrunt.GrenadeLaunch** - MP5 grenade launch. Derived from **NPC.GrenadeLaunch**
+* **HGrunt.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
+* **HGrunt.Use** - start following the ally player. By default it uses the following sentences: `["!HG_ANSWER0", "!HG_ANSWER1", "!HG_ANSWER2"]`.
+* **HGrunt.UnUse** - stop following the ally player. By default it uses the following sentences: `["!HG_ANSWER5", "!HG_QUEST4"]`.
+
+### Attacks
+
+* *Melee Attack 1* - melee (kick).
+* *Range Attack 1* - primary weapon (MP5 or shotgun).
+* *Range Attack 2* - throw grenade or launch AR grenade.
+
+### Animation events
+
+* `2` - reload the weapon clip.
+* `3` - kick trace hull attack. Deals **sk_hgrunt_kick** damage.
+* `4` - first fire from the primary weapon. Play a weapon fire soundscript (depends on the equipped weapon).
+* `5` - second fire from the primary weapon (only MP5).
+* `6` - third fire from the primary weapon (only MP5).
+* `7` - throw a timed grenade.
+* `8` - launch a contact grenade.
+* `9` - drop a timed grenade.
+* `10` - talk about found enemy that previously has eluded the squad.
+* `11` - drop a weapon (on death).
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Trace Attack rules" %}}
+The [trace attack]({{< ref "entity-templates/#trace_attack" >}}) rules that emulate monster's native ones. Could be used as a starting point for further changes.
+
+{{% hint info %}}
+Hitgroup 11 is always getting changed to the head hitgroup, but the resistance is applied only with helmet submodel, thus it has two trace attack rules.
+{{% /hint %}}
+
+```json
+{
+    "monster_human_grunt": {
+        "trace_attack": [
+            {
+                "conditions": {
+                    "dmg_type": ["bullet", "slash", "blast", "club"],
+                    "hitgroup": 11,
+                    "self": {
+                        "body": {
+                            "bodygroup": 1,
+                            "submodel": 0
+                        }
+                    }
+                },
+                "modifier": {
+                    "dmg": "-20",
+                    "dmg_min_threshold": 0.01,
+                    "hitgroup": "head"
+                },
+                "threshold_effects": {
+                    "ricochet": {
+                        "chance": 1.0,
+                        "scale": 1
+                    }
+                }
+            },
+            {
+                "conditions": {
+                    "hitgroup": 11
+                },
+                "modifier": {
+                    "hitgroup": "head"
+                }
+            }
+        ]
+    }
+}
+```
+{{% /tab %}}
+
+{{% tab "Melee attack settings" %}}
+The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and [trace hull attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) properties that emulate monster's native ones. Could be used as a starting point for further changes.
+
+```json
+{
+    "monster_human_grunt": {
+        "check_melee_attack1": {
+            "distance": 64,
+            "dot": 0.7
+        },
+        "trace_hull_attacks": {
+            "3": {
+                "distance": 70,
+                "punchangle": {
+                    "pitch": 5
+                },
+                "knock": {
+                    "forward": 100,
+                    "up": 50
+                },
+                "damage_info": {
+                    "type": ["club"],
+                }
+            }
+        }
+    }
+}
+```
+{{% /tab %}}
+
+{{% /tabs %}}

@@ -20,7 +20,6 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
-#include "nodes.h"
 #include "monsters.h"
 #include "animation.h"
 #include "saverestore.h"
@@ -75,10 +74,12 @@ void CBaseMonster::SetState( MONSTERSTATE State )
 	m_IdealMonsterState = State;
 }
 
+extern cvar_t npc_idlesound_requires_pvs;
+
 //=========================================================
 // RunAI
 //=========================================================
-void CBaseMonster::RunAI( void )
+void CBaseMonster::RunAI()
 {
 	// to test model's eye height
 	//UTIL_ParticleEffect ( pev->origin + pev->view_ofs, g_vecZero, 255, 10 );
@@ -87,7 +88,8 @@ void CBaseMonster::RunAI( void )
 	// once we have sounds for that state.
 	if( ( m_MonsterState == MONSTERSTATE_IDLE || m_MonsterState == MONSTERSTATE_ALERT ) && RANDOM_LONG( 0, 99 ) == 0 && !( pev->spawnflags & SF_MONSTER_GAG ) )
 	{
-		IdleSound();
+		if (npc_idlesound_requires_pvs.value == 0.0f || !FNullEnt(FIND_CLIENT_IN_PVS(edict())))
+			IdleSound();
 	}
 
 	if( m_MonsterState != MONSTERSTATE_NONE &&
@@ -95,7 +97,7 @@ void CBaseMonster::RunAI( void )
 		 m_MonsterState != MONSTERSTATE_DEAD )// don't bother with this crap if monster is prone. 
 	{
 		bool bForcedGather = m_bForceConditionsGather;
-		m_bForceConditionsGather = FALSE;
+		m_bForceConditionsGather = false;
 
 		// collect some sensory Condition information.
 		// don't let monsters outside of the player's PVS act up, or most of the interesting
@@ -132,17 +134,16 @@ void CBaseMonster::RunAI( void )
 	// we throw them out cause we don't want them sitting around through the lifespan of a schedule
 	// that doesn't use them. 
 	m_afConditions &= ~( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE );
+	Forget(bits_MEMORY_BLOCKER_IS_ENEMY);
 }
 
 //=========================================================
 // GetIdealState - surveys the Conditions information available
 // and finds the best new state for a monster.
 //=========================================================
-MONSTERSTATE CBaseMonster::GetIdealState( void )
+MONSTERSTATE CBaseMonster::GetIdealState()
 {
-	int iConditions;
-
-	iConditions = IScheduleFlags();
+	int iConditions = IScheduleFlags();
 
 	// If no schedule conditions, the new ideal state is probably the reason we're in here.
 	switch( m_MonsterState )
@@ -174,9 +175,7 @@ MONSTERSTATE CBaseMonster::GetIdealState( void )
 			}
 			else if( iConditions & bits_COND_HEAR_SOUND )
 			{
-				CSound *pSound;
-
-				pSound = PBestSound();
+				CSound *pSound = PBestSound();
 				ASSERT( pSound != NULL );
 				if( pSound )
 				{

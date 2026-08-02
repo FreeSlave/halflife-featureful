@@ -23,21 +23,13 @@
 #include "util.h"
 #include "cbase.h"
 #include "monsters.h"
-
-#if !defined(ANIMATION_H)
 #include "animation.h"
-#endif
-
-#if !defined(SAVERESTORE_H)
-#include "saverestore.h"
-#endif
-
 #include "schedule.h"
 #include "scripted.h"
-#include "defaultai.h"
 #include "talkmonster.h"
 #include "player.h"
 #include "gamerules.h"
+#include "locus.h"
 
 enum
 {
@@ -116,138 +108,153 @@ void CCineMonster::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "m_iszIdle" ) )
 	{
 		m_iszIdle = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_iszPlay" ) )
 	{
 		m_iszPlay = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_iszEntity" ) )
 	{
 		m_iszEntity = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszAttack"))
 	{
 		m_iszAttack = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszMoveTarget"))
 	{
 		m_iszMoveTarget = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszFireOnBegin"))
 	{
 		m_iszFireOnBegin = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_fMoveTo" ) )
 	{
 		m_fMoveTo = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	/*else if( FStrEq( pkvd->szKeyName, "m_flRepeat" ) )
 	{
 		m_flRepeat = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}*/
 	else if( FStrEq( pkvd->szKeyName, "m_flRadius" ) )
 	{
 		m_flRadius = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_iFinishSchedule" ) )
 	{
 		m_iFinishSchedule = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iPriority"))
 	{
 		m_iPriority = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_iszFireOnAnimStart" ) )
 	{
 		m_iszFireOnAnimStart = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_iszFireOnPossessed" ) )
 	{
 		m_iszFireOnPossessed = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "m_targetActivator" ) )
 	{
 		m_targetActivator = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "moveto_radius" ) )
 	{
 		m_flMoveToRadius = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_fTurnType" ) )
 	{
 		m_fTurnType = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fAction"))
 	{
 		m_fAction = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_requiredFollowerState" ) )
 	{
 		m_requiredFollowerState = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_applySearchRadius" ) )
 	{
 		m_applySearchRadius = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_maxMoveFailAttempts" ) )
 	{
 		m_maxMoveFailAttempts = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iRepeats"))
 	{
 		m_iRepeats = atoi( pkvd->szValue );
 		m_iRepeatsLeft = m_iRepeats;
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fRepeatFrame"))
 	{
 		m_fRepeatFrame = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_interruptionPolicy" ) )
 	{
 		m_interruptionPolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_searchPolicy" ) )
 	{
 		m_searchPolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_takeDamagePolicy" ) )
 	{
 		m_takeDamagePolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "required_state" ) )
 	{
 		m_requiredState = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq(pkvd->szKeyName, "master") )
 	{
 		m_sMaster = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "initial_search_delay"))
+	{
+		m_initialSearchDelay = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "search_delay"))
+	{
+		m_searchDelay = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "m_playFramerate" ) )
+	{
+		m_playFramerate = atof( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else
 	{
@@ -299,6 +306,10 @@ TYPEDESCRIPTION	CCineMonster::m_SaveData[] =
 	DEFINE_FIELD( CCineMonster, m_takeDamagePolicy, FIELD_SHORT ),
 
 	DEFINE_FIELD( CCineMonster, m_sMaster, FIELD_STRING ),
+	DEFINE_FIELD( CCineMonster, m_initialSearchDelay, FIELD_FLOAT ),
+	DEFINE_FIELD( CCineMonster, m_searchDelay, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CCineMonster, m_playFramerate, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CCineMonster, CBaseDelay )
@@ -308,45 +319,49 @@ LINK_ENTITY_TO_CLASS( scripted_action, CCineMonster ) //LRC
 
 LINK_ENTITY_TO_CLASS( aiscripted_sequence, CCineAI )
 
-void CCineMonster::Spawn( void )
+void CCineMonster::Spawn()
 {
 	// pev->solid = SOLID_TRIGGER;
 	// UTIL_SetSize( pev, Vector( -8, -8, -8 ), Vector( 8, 8, 8 ) );
 	pev->solid = SOLID_NOT;
 
+	const bool isAutoSearch = IsAutoSearch();
+	const bool hasIdleAnim = !FStringNull(m_iszIdle);
+
 	// if no targetname, start now
-	if( IsAutoSearch() || !FStringNull( m_iszIdle ) )
+	if (isAutoSearch || hasIdleAnim)
 	{
 		SetThink( &CCineMonster::CineThink );
-		pev->nextthink = gpGlobals->time + 1.0f;
+		const float delay = m_initialSearchDelay > 0.0f ? m_initialSearchDelay : 1.0f;
+		pev->nextthink = gpGlobals->time + delay;
 		// Wait to be used?
-		if( !IsAutoSearch() )
+		if (!isAutoSearch || (hasIdleAnim && FBitSet(pev->spawnflags, SF_SCRIPT_ALLOW_UNNAMED_IDLE)))
 			m_startTime = gpGlobals->time + (float)1E6;
 	}
 	if( ForcedNoInterruptions() )
-		m_interruptable = FALSE;
+		m_interruptable = false;
 	else
-		m_interruptable = TRUE;
+		m_interruptable = true;
 }
 
 //=========================================================
-// FCanOverrideState - returns FALSE, scripted sequences
+// FCanOverrideState - returns false, scripted sequences
 // cannot possess entities regardless of state.
 //=========================================================
-BOOL CCineMonster::FCanOverrideState( void )
+bool CCineMonster::FCanOverrideState()
 {
 	if( pev->spawnflags & SF_SCRIPT_OVERRIDESTATE )
-		return TRUE;
-	return FALSE;
+		return true;
+	return false;
 }
 
 //=========================================================
 // FCanOverrideState - returns true because scripted AI can
 // possess entities regardless of their state.
 //=========================================================
-BOOL CCineAI::FCanOverrideState( void )
+bool CCineAI::FCanOverrideState()
 {
-	return TRUE;
+	return true;
 }
 
 bool CCineMonster::ShouldResetOnGroundFlag()
@@ -445,7 +460,7 @@ void CCineMonster::Touch( CBaseEntity *pOther )
 //
 // ********** Cinematic DIE **********
 //
-void CCineMonster::Die( void )
+void CCineMonster::Die()
 {
 	SetThink( &CBaseEntity::SUB_Remove );
 }
@@ -453,7 +468,7 @@ void CCineMonster::Die( void )
 //
 // ********** Cinematic PAIN **********
 //
-void CCineMonster::Pain( void )
+void CCineMonster::Pain()
 {
 
 }
@@ -463,12 +478,10 @@ void CCineMonster::Pain( void )
 //
 
 // find a viable entity
-CBaseMonster *CCineMonster::FindEntity( void )
+CBaseMonster *CCineMonster::FindEntity()
 {
-	edict_t *pentTarget;
 	CBaseMonster *pTarget = NULL;
 	int checkFail;
-	bool failedCheckReported = false;
 
 	if (UTIL_TargetnameIsActivator(m_iszEntity))
 	{
@@ -476,16 +489,17 @@ CBaseMonster *CCineMonster::FindEntity( void )
 		{
 			if (IsAppropriateTarget(pTarget, m_iPriority | SS_INTERRUPT_ALERT, m_applySearchRadius == SCRIPT_APPLY_SEARCH_RADIUS_ALWAYS, &checkFail))
 				return pTarget;
-			failedCheckReported = failedCheckReported || MayReportInappropriateTarget(checkFail);
+			MayReportInappropriateTarget(checkFail);
 		}
 		return NULL;
 	}
 
-	pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
 	pTarget = NULL;
+	bool failedCheckReported = false;
 
 	if ( m_searchPolicy != SCRIPT_SEARCH_POLICY_CLASSNAME_ONLY )
 	{
+		edict_t *pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
 		while( !FNullEnt( pentTarget ) )
 		{
 			if( FBitSet( VARS( pentTarget )->flags, FL_MONSTER ) )
@@ -548,7 +562,7 @@ bool CCineMonster::AcceptedFollowingState(CBaseMonster *pMonster)
 }
 
 // make the entity enter a scripted sequence
-void CCineMonster::PossessEntity( void )
+void CCineMonster::PossessEntity()
 {
 	CBaseEntity *pEntity = m_hTargetEnt;
 	CBaseMonster *pTarget = NULL;
@@ -646,11 +660,11 @@ void CCineMonster::PossessEntity( void )
 		//ALERT( at_aiconsole, "\"%s\" found and used (INT: %s)\n", STRING( pTarget->pev->targetname ), FBitSet( pev->spawnflags, SF_SCRIPT_NOINTERRUPT )? "No" : "Yes" );
 
 		m_moveFailCount = 0;
-		m_firedOnAnimStart = FALSE;
+		m_firedOnAnimStart = false;
 		pTarget->m_IdealMonsterState = MONSTERSTATE_SCRIPT;
 //		if( m_iszIdle )
 //		{
-//			StartSequence( pTarget, m_iszIdle, FALSE );
+//			StartSequence( pTarget, m_iszIdle, false );
 //			if( FStrEq( STRING( m_iszIdle ), STRING( m_iszPlay ) ) )
 //			{
 //				pTarget->pev->framerate = 0;
@@ -664,11 +678,12 @@ void CCineMonster::PossessEntity( void )
 	}
 }
 
-void CCineMonster::CineThink( void )
+void CCineMonster::CineThink()
 {
 	if (IsLockedByMaster() || !TryFindAndPossessEntity())
 	{
-		pev->nextthink = gpGlobals->time + 1.0f;
+		const float delay = m_searchDelay > 0.0f ? m_searchDelay : 1.0f;
+		pev->nextthink = gpGlobals->time + delay;
 	}
 }
 
@@ -723,7 +738,7 @@ bool CCineMonster::IsAppropriateTarget(CBaseMonster *pTarget, int interruptFlags
 	}
 	else if (shouldCheckRadius)
 	{
-		if ((pev->origin - pTarget->pev->origin).Length() > m_flRadius)
+		if ((pev->origin - pTarget->pev->origin).IsLengthGreaterThan(m_flRadius))
 		{
 			searchFail = CHECKFAIL_TARGET_IS_TOOFAR;
 		}
@@ -741,8 +756,18 @@ typedef enum
 	STA_FORWARD = 3,
 } SCRIPT_TARGET_ACTIVATOR;
 
+void CCineMonster::FireOnAnimStart(CBaseMonster *pTarget)
+{
+	if (!m_firedOnAnimStart && !FStringNull(m_iszFireOnAnimStart))
+	{
+		CBaseEntity* pActivator = GetActivator(pTarget);
+		FireTargets(STRING(m_iszFireOnAnimStart), pActivator, this);
+	}
+	m_firedOnAnimStart = true;
+}
+
 // lookup a sequence name and setup the target monster to play it
-BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL completeOnEmpty )
+bool CCineMonster::StartSequence(CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty )
 {
 	if( !iszSeq && completeOnEmpty )
 	{
@@ -751,17 +776,12 @@ BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL comple
 		// not until the animation sequence is finished. We have to manually take care of these things where there is no sequence.
 
 		SequenceDone( pTarget );
-		return FALSE;
+		return false;
 	}
 
 	if ( m_iszPlay != 0 && iszSeq == m_iszPlay )
 	{
-		if( !m_firedOnAnimStart && !FStringNull( m_iszFireOnAnimStart ) )
-		{
-			CBaseEntity* pActivator = GetActivator(pTarget);
-			FireTargets( STRING( m_iszFireOnAnimStart ), pActivator, this );
-		}
-		m_firedOnAnimStart = TRUE;
+		FireOnAnimStart(pTarget);
 	}
 
 	pTarget->pev->sequence = pTarget->LookupSequence( STRING( iszSeq ) );
@@ -769,7 +789,7 @@ BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL comple
 	{
 		ALERT( at_error, "%s: unknown scripted sequence \"%s\"\n", STRING( pTarget->pev->targetname ), STRING( iszSeq ) );
 		pTarget->pev->sequence = 0;
-		// return FALSE;
+		// return false;
 	}
 #if 0
 	char *s;
@@ -781,8 +801,10 @@ BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL comple
 	ALERT( at_console, "%s (%s): started \"%s\":INT:%s\n", STRING( pTarget->pev->targetname ), STRING( pTarget->pev->classname ), STRING( iszSeq ), s );
 #endif
 	pTarget->pev->frame = 0;
-	pTarget->ResetSequenceInfo( );
-	return TRUE;
+	pTarget->ResetSequenceInfo();
+	if (m_playFramerate && iszSeq == m_iszPlay)
+		pTarget->pev->framerate = m_playFramerate;
+	return true;
 }
 
 //=========================================================
@@ -849,14 +871,14 @@ void CCineMonster::FixScriptMonsterSchedule( CBaseMonster *pMonster )
 	}
 }
 
-BOOL CBaseMonster::ExitScriptedSequence()
+bool CBaseMonster::ExitScriptedSequence()
 {
 	if( pev->deadflag == DEAD_DYING )
 	{
 		// is this legal?
 		// BUGBUG -- This doesn't call Killed()
 		m_IdealMonsterState = MONSTERSTATE_DEAD;
-		return FALSE;
+		return false;
 	}
 
 	if( m_pCine )
@@ -864,7 +886,7 @@ BOOL CBaseMonster::ExitScriptedSequence()
 		m_pCine->CancelScript(SCRIPT_CANCELLATION_REASON_INTERRUPTED);
 	}
 
-	return TRUE;
+	return true;
 }
 
 bool CCineMonster::ForcedNoInterruptions()
@@ -872,24 +894,24 @@ bool CCineMonster::ForcedNoInterruptions()
 	return (pev->spawnflags & SF_SCRIPT_NOINTERRUPT) || m_interruptionPolicy == SCRIPT_INTERRUPTION_POLICY_NO_INTERRUPTIONS;
 }
 
-void CCineMonster::AllowInterrupt( BOOL fAllow )
+void CCineMonster::AllowInterrupt( bool fAllow )
 {
 	if( ForcedNoInterruptions() )
 		return;
 	m_interruptable = fAllow;
 }
 
-BOOL CCineMonster::CanInterrupt( void )
+bool CCineMonster::CanInterrupt()
 {
 	if( !m_interruptable )
-		return FALSE;
+		return false;
 
 	CBaseEntity *pTarget = m_hTargetEnt;
 
 	if( pTarget != NULL && pTarget->pev->deadflag == DEAD_NO )
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 bool CCineMonster::CanInterruptByPlayerCall()
@@ -904,7 +926,7 @@ bool CCineMonster::CanInterruptByBarnacle()
 	return m_interruptionPolicy != SCRIPT_INTERRUPTION_POLICY_ONLY_DEATH && CanInterrupt();
 }
 
-int CCineMonster::IgnoreConditions( void )
+int CCineMonster::IgnoreConditions()
 {
 	if( CanInterrupt() )
 		return 0;
@@ -938,7 +960,7 @@ void ScriptEntityCancel( edict_t *pentCine, int cancellationReason )
 			}
 		}
 
-		if (cancellationReason && FBitSet(pCineTarget->pev->spawnflags, SF_REMOVE_ON_INTERRUPTION))
+		if (cancellationReason && FBitSet(pCineTarget->pev->spawnflags, SF_SCRIPT_REMOVE_ON_INTERRUPTION))
 		{
 			pCineTarget->SetThink(&CBaseEntity::SUB_Remove);
 			pCineTarget->pev->nextthink = gpGlobals->time;
@@ -1008,7 +1030,7 @@ void CCineMonster::DelayStart( int state )
 }
 
 // Find an entity that I'm interested in and precache the sounds he'll need in the sequence.
-void CCineMonster::Activate( void )
+void CCineMonster::Activate()
 {
 	edict_t *pentTarget;
 	CBaseMonster *pTarget;
@@ -1070,9 +1092,11 @@ void CCineMonster::UpdateOnRemove()
 			pMonster->CineCleanup();
 		}
 	}
+
+	CBaseDelay::UpdateOnRemove();
 }
 
-BOOL CBaseMonster::CineCleanup()
+bool CBaseMonster::CineCleanup()
 {
 	CCineMonster *pOldCine = m_pCine;
 
@@ -1081,7 +1105,7 @@ BOOL CBaseMonster::CineCleanup()
 	{
 		// okay, reset me to what it thought I was before
 		m_pCine->m_hTargetEnt = NULL;
-		m_pCine->m_firedOnAnimStart = FALSE;
+		m_pCine->m_firedOnAnimStart = false;
 		pev->movetype = m_pCine->m_saved_movetype;
 		pev->solid = m_pCine->m_saved_solid;
 		pev->effects = m_pCine->m_saved_effects;
@@ -1106,7 +1130,7 @@ BOOL CBaseMonster::CineCleanup()
 		pev->deadflag = DEAD_DEAD;
 		UTIL_SetSize( pev, pev->mins, Vector( pev->maxs.x, pev->maxs.y, pev->mins.z + 2 ) );
 
-		OnDying();
+		OnDying(false, nullptr);
 		if( pOldCine && FBitSet( pOldCine->pev->spawnflags, SF_SCRIPT_LEAVECORPSE ) )
 		{
 			SetUse( NULL );
@@ -1119,7 +1143,7 @@ BOOL CBaseMonster::CineCleanup()
 		StopAnimation();
 		pev->movetype = MOVETYPE_NONE;
 		pev->effects |= EF_NOINTERP;	// Don't interpolate either, assume the corpse is positioned in its final resting place
-		return FALSE;
+		return false;
 	}
 
 	// If we actually played a sequence
@@ -1146,7 +1170,7 @@ BOOL CBaseMonster::CineCleanup()
 			// UNDONE: ugly hack.  Don't move monster if they don't "seem" to move
 			// this really needs to be done with the AX,AY,etc. flags, but that aren't consistantly
 			// being set, so animations that really do move won't be caught.
-			if( ( oldOrigin - new_origin).Length2D() < 8.0f )
+			if( ( oldOrigin - new_origin).IsLength2DLessThan(8.0f) )
 				new_origin = oldOrigin;
 
 			pev->origin.x = new_origin.x;
@@ -1159,18 +1183,44 @@ BOOL CBaseMonster::CineCleanup()
 				pev->ideal_yaw = UTIL_AngleMod( pev->angles.y );
 			}
 
-			pev->flags |= FL_ONGROUND;
-			int drop = DROP_TO_FLOOR( ENT( pev ) );
-
-			// Origin in solid?  Set to org at the end of the sequence
-			if( drop < 0 )
-				pev->origin = oldOrigin;
-			else if( drop == 0 ) // Hanging in air?
+			if (FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_DONT_DROP_TO_FLOOR))
 			{
-				pev->origin.z = new_origin.z;
-				pev->flags &= ~FL_ONGROUND;
+				TraceResult tr;
+				TRACE_MONSTER_HULL(edict(), pev->origin, pev->origin, dont_ignore_monsters, edict(), &tr);
+
+				if (tr.fAllSolid)
+				{
+					if (!FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_ALLOW_STUCK))
+						pev->origin = oldOrigin;
+					else
+						pev->origin.z = new_origin.z;
+				}
+				else
+				{
+					pev->origin.z = new_origin.z;
+					pev->flags &= ~FL_ONGROUND;
+				}
 			}
-			// else entity hit floor, leave there
+			else
+			{
+				pev->flags |= FL_ONGROUND;
+				int drop = DROP_TO_FLOOR( ENT( pev ) );
+
+				// Origin in solid?  Set to org at the end of the sequence
+				if (drop < 0)
+				{
+					if (!FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_ALLOW_STUCK))
+						pev->origin = oldOrigin;
+					else
+						pev->origin.z = new_origin.z;
+				}
+				else if (drop == 0) // Hanging in air?
+				{
+					pev->origin.z = new_origin.z;
+					pev->flags &= ~FL_ONGROUND;
+				}
+				// else entity hit floor, leave there
+			}
 
 			// pEntity->pev->origin.z = new_origin.z + 5.0; // damn, got to fix this
 
@@ -1186,13 +1236,21 @@ BOOL CBaseMonster::CineCleanup()
 	// set them back into a normal state
 	pev->enemy = NULL;
 	if( pev->health > 0 )
+	{
 		m_IdealMonsterState = MONSTERSTATE_IDLE; // m_previousState;
+
+		if (pOldCine && FStringNull(pOldCine->m_iszPlay) && !FStringNull(pOldCine->m_iszIdle))
+		{
+			m_IdealActivity = ACT_IDLE;
+			m_Activity = ACT_RESET;
+		}
+	}
 	else
 	{
 		// Dropping out because he got killed
 		// Now we call OnDying instead
 		m_IdealMonsterState = MONSTERSTATE_DEAD;
-		OnDying();
+		OnDying(false, nullptr);
 		SetConditions( bits_COND_LIGHT_DAMAGE );
 		pev->deadflag = DEAD_DYING;
 		FCheckAITrigger();
@@ -1202,7 +1260,7 @@ BOOL CBaseMonster::CineCleanup()
 	//	SetAnimation( m_MonsterState );
 	ClearBits( pev->spawnflags, SF_MONSTER_WAIT_FOR_SCRIPT );
 
-	return TRUE;
+	return true;
 }
 
 void CBaseMonster::SetScriptedMoveGoal(CBaseEntity *pEntity)
@@ -1251,21 +1309,21 @@ CBaseEntity* CCineMonster::GetActivator(CBaseEntity* pMonster)
 class CScriptedSentence : public CBaseDelay
 {
 public:
-	void Spawn( void );
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT FindThink( void );
-	void EXPORT DelayThink( void );
-	int ObjectCaps( void ) { return ( CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void EXPORT FindThink();
+	void EXPORT DelayThink();
+	int ObjectCaps() override { return ( CBaseDelay::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	CBaseMonster *FindEntity( void );
-	BOOL AcceptableSpeaker( CBaseMonster *pMonster );
-	BOOL StartSentence( CBaseMonster *pTarget );
+	CBaseToggle *FindEntity();
+	bool AcceptableSpeaker( CBaseToggle *pTarget );
+	bool InterlocutorIsInRange(CBaseEntity* pTarget, float flRadius, const Vector& searchOrigin);
+	bool StartSentence( CBaseToggle *pTarget );
 
 	float SpeakerSearchRadius() const {
 		return m_flRadius;
@@ -1282,7 +1340,7 @@ private:
 	float m_flRepeat;	// repeat rate
 	float m_flAttenuation;
 	float m_flVolume;
-	BOOL m_active;
+	bool m_active;
 	string_t m_iszListener; // name of entity to look at while talking
 	short m_requiredState;
 	short m_followAction;
@@ -1290,6 +1348,12 @@ private:
 	float m_flListenerRadius;
 
 	short m_searchPolicy;
+	short m_applySearchRadius;
+	string_t m_searchOrigin;
+	short m_allowUse;
+
+	string_t m_fireAfter;
+	float m_fireAfterDelay;
 };
 
 #define SF_SENTENCE_ONCE	0x0001
@@ -1325,6 +1389,11 @@ TYPEDESCRIPTION	CScriptedSentence::m_SaveData[] =
 	DEFINE_FIELD( CScriptedSentence, m_targetActivator, FIELD_SHORT ),
 	DEFINE_FIELD( CScriptedSentence, m_flListenerRadius, FIELD_FLOAT ),
 	DEFINE_FIELD( CScriptedSentence, m_searchPolicy, FIELD_SHORT ),
+	DEFINE_FIELD( CScriptedSentence, m_applySearchRadius, FIELD_SHORT ),
+	DEFINE_FIELD( CScriptedSentence, m_searchOrigin, FIELD_STRING ),
+	DEFINE_FIELD( CScriptedSentence, m_allowUse, FIELD_SHORT ),
+	DEFINE_FIELD( CScriptedSentence, m_fireAfter, FIELD_STRING ),
+	DEFINE_FIELD( CScriptedSentence, m_fireAfterDelay, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CScriptedSentence, CBaseDelay )
@@ -1336,67 +1405,92 @@ void CScriptedSentence::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "sentence" ) )
 	{
 		m_iszSentence = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "entity" ) )
 	{
 		m_iszEntity = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "duration" ) )
 	{
 		m_flDuration = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "radius" ) )
 	{
 		m_flRadius = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "refire") )
 	{
 		m_flRepeat = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "attenuation" ) )
 	{
 		pev->impulse = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "volume" ) )
 	{
 		m_flVolume = atof( pkvd->szValue ) * 0.1f;
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "listener" ) )
 	{
 		m_iszListener = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "required_state" ) )
 	{
 		m_requiredState = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "follow_action" ) )
 	{
 		m_followAction = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "target_activator" ) )
 	{
 		m_targetActivator = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "listener_radius" ) )
 	{
 		m_flListenerRadius = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "m_searchPolicy" ) )
 	{
 		m_searchPolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "m_applySearchRadius" ) )
+	{
+		m_applySearchRadius = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "search_origin" ) )
+	{
+		m_searchOrigin = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "allow_use" ) )
+	{
+		m_allowUse = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "fire_after" ) )
+	{
+		m_fireAfter = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "fire_after_delay" ) )
+	{
+		m_fireAfterDelay = atof( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseDelay::KeyValue( pkvd );
@@ -1412,11 +1506,11 @@ void CScriptedSentence::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	pev->nextthink = gpGlobals->time;
 }
 
-void CScriptedSentence::Spawn( void )
+void CScriptedSentence::Spawn()
 {
 	pev->solid = SOLID_NOT;
 
-	m_active = TRUE;
+	m_active = true;
 	// if no targetname, start now
 	if( !pev->targetname )
 	{
@@ -1457,17 +1551,17 @@ void CScriptedSentence::Spawn( void )
 		m_flVolume = 1.0f;
 }
 
-void CScriptedSentence::FindThink( void )
+void CScriptedSentence::FindThink()
 {
-	CBaseMonster *pMonster = FindEntity();
-	if( pMonster && StartSentence( pMonster ) )
+	CBaseToggle *pTarget = FindEntity();
+	if( pTarget && StartSentence( pTarget ) )
 	{
 		if( pev->spawnflags & SF_SENTENCE_ONCE )
 			UTIL_Remove( this );
 		SetThink( &CScriptedSentence::DelayThink );
 		pev->nextthink = gpGlobals->time + m_flDuration + m_flRepeat;
-		m_active = FALSE;
-		//ALERT( at_console, "%s: found monster %s\n", STRING( m_iszSentence ), STRING( m_iszEntity ) );
+		m_active = false;
+		//ALERT( at_console, "%s: found target %s\n", STRING( m_iszSentence ), STRING( m_iszEntity ) );
 	}
 	else
 	{
@@ -1477,66 +1571,89 @@ void CScriptedSentence::FindThink( void )
 	}
 }
 
-void CScriptedSentence::DelayThink( void )
+void CScriptedSentence::DelayThink()
 {
-	m_active = TRUE;
+	m_active = true;
 	if( !pev->targetname )
 		pev->nextthink = gpGlobals->time + 0.1f;
 	SetThink( &CScriptedSentence::FindThink );
 }
 
-BOOL CScriptedSentence::AcceptableSpeaker( CBaseMonster *pMonster )
+bool CScriptedSentence::AcceptableSpeaker( CBaseToggle *pTarget )
 {
-	if( pMonster )
+	if( pTarget )
 	{
-		if (!MatchingMonsterState(pMonster->m_MonsterState, m_requiredState))
-			return FALSE;
-		if( pev->spawnflags & SF_SENTENCE_FOLLOWERS )
+		CBaseMonster *pMonster = pTarget->MyMonsterPointer();
+		if( pMonster )
 		{
-			if( pMonster->m_hTargetEnt == 0 || !pMonster->m_hTargetEnt->IsPlayer() )
-				return FALSE;
+			if (!MatchingMonsterState(pMonster->m_MonsterState, m_requiredState))
+				return false;
+			if( pev->spawnflags & SF_SENTENCE_FOLLOWERS )
+			{
+				if( pMonster->m_hTargetEnt == 0 || !pMonster->m_hTargetEnt->IsPlayer() )
+					return false;
+			}
+
+			bool override;
+			if( pev->spawnflags & SF_SENTENCE_INTERRUPT )
+				override = true;
+			else
+				override = false;
+
+			if( pMonster->CanPlaySentence( override ) )
+				return true;
 		}
-
-		BOOL override;
-
-		if( pev->spawnflags & SF_SENTENCE_INTERRUPT )
-			override = TRUE;
 		else
-			override = FALSE;
-
-		if( pMonster->CanPlaySentence( override ) )
-			return TRUE;
+			return pTarget->IsAllowedToSpeak();
 	}
-	return FALSE;
+	return false;
 }
 
-CBaseMonster *CScriptedSentence::FindEntity( void )
+bool CScriptedSentence::InterlocutorIsInRange(CBaseEntity *pTarget, float flRadius, const Vector& searchOrigin)
 {
-	edict_t *pentTarget;
-	CBaseMonster *pMonster;
+	if (!pTarget)
+		return false;
+	return (searchOrigin - pTarget->pev->origin).IsLengthLessThanOrEqual(flRadius);
+}
+
+CBaseToggle *CScriptedSentence::FindEntity()
+{
+	CBaseToggle *pTarget = NULL;
+	Vector searchOrigin = pev->origin;
+	if (!FStringNull(m_searchOrigin))
+	{
+		if (!TryCalcLocus_Position(this, m_hActivator, STRING(m_searchOrigin), searchOrigin))
+			return NULL;
+	}
 
 	if (UTIL_TargetnameIsActivator(m_iszEntity))
 	{
-		if (m_hActivator != 0 && FBitSet(m_hActivator->pev->flags, FL_MONSTER) && (pMonster = m_hActivator->MyMonsterPointer()) != 0 )
+		if (m_hActivator != 0 && FBitSet(m_hActivator->pev->flags, FL_MONSTER) && (pTarget = m_hActivator->MyTogglePointer()) != 0 )
 		{
-			if( AcceptableSpeaker( pMonster ) )
-				return pMonster;
+			if( AcceptableSpeaker( pTarget ) )
+			{
+				if (m_applySearchRadius != SCRIPT_APPLY_SEARCH_RADIUS_ALWAYS || InterlocutorIsInRange(pTarget, SpeakerSearchRadius(), searchOrigin))
+					return pTarget;
+			}
 		}
 		return NULL;
 	}
 
-	pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
-	pMonster = NULL;
+	edict_t *pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING( m_iszEntity ) );
+	pTarget = NULL;
 
 	if ( m_searchPolicy != SCRIPT_SEARCH_POLICY_CLASSNAME_ONLY )
 	{
 		while( !FNullEnt( pentTarget ) )
 		{
-			pMonster = GetMonsterPointer( pentTarget );
-			if( pMonster != NULL )
+			pTarget = CBaseEntity::Instance( pentTarget )->MyTogglePointer();
+			if( pTarget != NULL )
 			{
-				if( AcceptableSpeaker( pMonster ) )
-					return pMonster;
+				if( AcceptableSpeaker( pTarget ) )
+				{
+					if (m_applySearchRadius != SCRIPT_APPLY_SEARCH_RADIUS_ALWAYS || InterlocutorIsInRange(pTarget, SpeakerSearchRadius(), searchOrigin))
+						return pTarget;
+				}
 				//ALERT( at_console, "%s (%s), not acceptable\n", STRING( pMonster->pev->classname ), STRING( pMonster->pev->targetname ) );
 			}
 			pentTarget = FIND_ENTITY_BY_TARGETNAME( pentTarget, STRING( m_iszEntity ) );
@@ -1546,15 +1663,15 @@ CBaseMonster *CScriptedSentence::FindEntity( void )
 	if ( m_searchPolicy != SCRIPT_SEARCH_POLICY_TARGETNAME_ONLY )
 	{
 		CBaseEntity *pEntity = NULL;
-		while( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, SpeakerSearchRadius() ) ) != NULL )
+		while( ( pEntity = UTIL_FindEntityInSphere( pEntity, searchOrigin, SpeakerSearchRadius() ) ) != NULL )
 		{
 			if( FClassnameIs( pEntity->pev, STRING( m_iszEntity ) ) )
 			{
 				if( FBitSet( pEntity->pev->flags, FL_MONSTER ) )
 				{
-					pMonster = pEntity->MyMonsterPointer();
-					if( AcceptableSpeaker( pMonster ) )
-						return pMonster;
+					pTarget = pEntity->MyMonsterPointer();
+					if( AcceptableSpeaker( pTarget ) )
+						return pTarget;
 				}
 			}
 		}
@@ -1563,48 +1680,80 @@ CBaseMonster *CScriptedSentence::FindEntity( void )
 	return NULL;
 }
 
-BOOL CScriptedSentence::StartSentence( CBaseMonster *pTarget )
+bool CScriptedSentence::StartSentence( CBaseToggle *pTarget )
 {
 	if( !pTarget )
 	{
 		ALERT( at_aiconsole, "Not Playing sentence %s\n", STRING( m_iszSentence ) );
-		return FALSE;
+		return false;
 	}
 
-	BOOL bConcurrent = FALSE;
+	bool bConcurrent = false;
 	if( !( pev->spawnflags & SF_SENTENCE_CONCURRENT ) )
-		bConcurrent = TRUE;
+		bConcurrent = true;
 
 	CBaseEntity *pListener = NULL;
 	if( !FStringNull( m_iszListener ) )
 	{
 		float radius = ListenerSearchRadius();
+		const bool listenerRequired = FBitSet(pev->spawnflags, SF_SENTENCE_REQUIRE_LISTENER);
 
-		if( FStrEq( STRING( m_iszListener ), "player" ) )
-			radius = 4096;	// Always find the player
-
-		pListener = UTIL_FindEntityGeneric( STRING( m_iszListener ), pTarget->pev->origin, radius );
-
-		if (!pListener && FBitSet(pev->spawnflags, SF_SENTENCE_REQUIRE_LISTENER))
+		if (UTIL_TargetnameIsActivator(m_iszListener))
 		{
-			return FALSE;
+			CBaseEntity* pActivator = m_hActivator;
+			if (InterlocutorIsInRange(pActivator, radius, pTarget->pev->origin))
+			{
+				pListener = pActivator;
+			}
+		}
+		else if (UTIL_IsPlayerReference(STRING(m_iszListener)))
+		{
+			CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(m_hActivator);
+			if (InterlocutorIsInRange(pPlayer, radius, pTarget->pev->origin))
+			{
+				pListener = pPlayer;
+			}
+		}
+		else
+		{
+			if (!listenerRequired && FStrEq( STRING( m_iszListener ), "player" ))
+				radius = 4096;	// Always find the player unless listener is explicitly required
+
+			pListener = UTIL_FindEntityGeneric( STRING( m_iszListener ), pTarget->pev->origin, radius );
+		}
+
+		if (!pListener && listenerRequired)
+		{
+			return false;
 		}
 	}
 
-	pTarget->PlayScriptedSentence( STRING( m_iszSentence ), m_flDuration,  m_flVolume, m_flAttenuation, bConcurrent, pListener );
-	if (m_followAction)
+	CBaseMonster* pMonster = pTarget->MyMonsterPointer();
+	if (pMonster)
 	{
-		CFollowingMonster* followingMonster = pTarget->MyFollowingMonsterPointer();
+		CTalkMonster* pTalkMonster = pMonster->MyTalkMonsterPointer();
+		if (pTalkMonster)
+		{
+			pTalkMonster->m_allowUseScriptedSentence = m_allowUse != 0;
+		}
+	}
+	pTarget->PlayScriptedSentence( STRING( m_iszSentence ), m_flDuration,  m_flVolume, m_flAttenuation, bConcurrent, pListener );
+	if (pMonster != 0 && m_followAction)
+	{
+		CFollowingMonster* followingMonster = pMonster->MyFollowingMonsterPointer();
 		if (followingMonster)
 		{
-			CBaseEntity* pPlayer = UTIL_FindEntityByClassname(NULL, "player");
 			if (m_followAction == FOLLOW_START)
 			{
-				followingMonster->DoFollowerUse(pPlayer, false, USE_ON, true);
+				if (!followingMonster->IsFollowingPlayer())
+				{
+					CBaseEntity* pPlayer = UTIL_ClosestAlivePlayer(followingMonster->Center());
+					followingMonster->DoFollowerUse(pPlayer, false, USE_ON, true);
+				}
 			}
 			else if (m_followAction == FOLLOW_STOP)
 			{
-				followingMonster->DoFollowerUse(pPlayer, false, USE_OFF, true);
+				followingMonster->DoFollowerUse(followingMonster->FollowedPlayer(), false, USE_OFF, true);
 			}
 		}
 	}
@@ -1624,11 +1773,12 @@ BOOL CScriptedSentence::StartSentence( CBaseMonster *pTarget )
 		pActivator = m_hActivator;
 	}
 	SUB_UseTargets( pActivator );
+	DelayedUse(m_flDuration + m_fireAfterDelay + 0.025f, pActivator, this, USE_TOGGLE, m_fireAfter);
 
 	if (pListener)
 	{
-		if (FBitSet(pev->spawnflags, SF_SENTENCE_SPEAKER_TURNS_TO_LISTENER)) {
-			pTarget->SuggestSchedule(SCHED_IDLE_FACE, pListener);
+		if (pMonster != 0 && FBitSet(pev->spawnflags, SF_SENTENCE_SPEAKER_TURNS_TO_LISTENER)) {
+			pMonster->SuggestSchedule(SCHED_IDLE_FACE, pListener);
 		}
 		if (FBitSet(pev->spawnflags, SF_SENTENCE_LISTENER_TURNS_TO_SPEAKER)) {
 			CBaseMonster* pMonsterListener = pListener->MyMonsterPointer();
@@ -1648,7 +1798,7 @@ BOOL CScriptedSentence::StartSentence( CBaseMonster *pTarget )
 			}
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 //=========================================================
@@ -1657,22 +1807,12 @@ BOOL CScriptedSentence::StartSentence( CBaseMonster *pTarget )
 class CFurniture : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Die( void );
-	int DefaultClassify( void );
-	virtual int ObjectCaps( void ) { return (CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	void Spawn() override;
+	int DefaultClassify() override;
+	int ObjectCaps() override { return (CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_furniture, CFurniture )
-
-//=========================================================
-// Furniture is killed
-//=========================================================
-void CFurniture::Die( void )
-{
-	SetThink( &CBaseEntity::SUB_Remove );
-	pev->nextthink = gpGlobals->time;
-}
 
 //=========================================================
 // This used to have something to do with bees flying, but
@@ -1703,7 +1843,7 @@ void CFurniture::Spawn()
 //=========================================================
 // ID's Furniture as neutral (noone will attack it)
 //=========================================================
-int CFurniture::DefaultClassify( void )
+int CFurniture::DefaultClassify()
 {
 	return CLASS_NONE;
 }
@@ -1735,8 +1875,8 @@ enum
 class CScriptedSchedule : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
 	int KnownSchedule() const;
 	int ScheduleType() const;
@@ -1777,37 +1917,37 @@ void  CScriptedSchedule::KeyValue(KeyValueData *pkvd)
 	if ( FStrEq( pkvd->szKeyName, "entity" ) )
 	{
 		pev->netname = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "schedule" ) )
 	{
 		pev->weapons = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "mindist" ) )
 	{
 		pev->health = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "maxdist" ) )
 	{
 		pev->max_health = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "spot_entity" ) )
 	{
 		pev->message = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "move_preference" ) )
 	{
 		pev->impulse = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "spot_preference" ) )
 	{
 		pev->button = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CPointEntity::KeyValue( pkvd );
@@ -1820,7 +1960,7 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		if (pev->message) {
 			pSpotEntity = UTIL_FindEntityByTargetname(NULL, STRING(pev->message));
 			if (!pSpotEntity) {
-				ALERT(at_aiconsole, "%s speficies \"%s\" as spot entity, but couldn't find it!\n", STRING(pev->classname), STRING(pev->message));
+				ALERT(at_aiconsole, "%s specifies \"%s\" as spot entity, but couldn't find it!\n", STRING(pev->classname), STRING(pev->message));
 				return;
 			}
 		} else {
@@ -1858,12 +1998,16 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 			CBaseMonster* pMonster = pEntity->MyMonsterPointer();
 			if (pMonster) {
 				if (ScheduleType() == SCRIPTED_SCHEDULE_CLEAR) {
-					pMonster->m_suggestedSchedule = SCHED_NONE;
 					pMonster->ClearSuggestedSchedule();
 				} else {
 					const int knownSchedule = KnownSchedule();
 					if (knownSchedule != SCHED_NONE)
-						pMonster->SuggestSchedule( KnownSchedule(), pSpotEntity, MinDist(), MaxDist(), flags );
+					{
+						int schedFlags = flags;
+						if (pev->weapons == SCRIPTED_SCHEDULE_MOVE_AWAY && (!pSpotEntity || pSpotEntity == pMonster))
+							schedFlags |= SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
+						pMonster->SuggestSchedule( knownSchedule, pSpotEntity, MinDist(), MaxDist(), schedFlags );
+					}
 				}
 			}
 		}
@@ -1874,21 +2018,32 @@ void CScriptedSchedule::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 
 LINK_ENTITY_TO_CLASS( scripted_schedule, CScriptedSchedule )
 
+#define SF_SCRIPTED_FOLLOWING_ONCE (1 << 0)
+
+enum
+{
+	SCRIPTED_FOLLOW_STOP = -1,
+	SCRIPTED_FOLLOW_FORWARD = 0,
+	SCRIPTED_FOLLOW_START = 1,
+};
+
 class CScriptedFollowing : public CPointEntity
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	void EXPORT FindThink();
 
-	bool MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType);
+	int MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType);
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
 	EHANDLE m_hActivator;
+	string_t m_onStartFollowing;
+	string_t m_onStopFollowing;
 };
 
 LINK_ENTITY_TO_CLASS( scripted_following, CScriptedFollowing )
@@ -1896,6 +2051,8 @@ LINK_ENTITY_TO_CLASS( scripted_following, CScriptedFollowing )
 TYPEDESCRIPTION	CScriptedFollowing::m_SaveData[] =
 {
 	DEFINE_FIELD( CScriptedFollowing, m_hActivator, FIELD_EHANDLE ),
+	DEFINE_FIELD( CScriptedFollowing, m_onStartFollowing, FIELD_STRING ),
+	DEFINE_FIELD( CScriptedFollowing, m_onStopFollowing, FIELD_STRING ),
 };
 
 IMPLEMENT_SAVERESTORE( CScriptedFollowing, CPointEntity )
@@ -1905,15 +2062,30 @@ void  CScriptedFollowing::KeyValue(KeyValueData *pkvd)
 	if ( FStrEq( pkvd->szKeyName, "entity" ) )
 	{
 		pev->netname = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "on_start_following" ) )
+	{
+		m_onStartFollowing = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "on_stop_following" ) )
+	{
+		m_onStopFollowing = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "use_type") )
+	{
+		pev->impulse = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else
 		CPointEntity::KeyValue( pkvd );
 }
 
-bool CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
+int CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
 {
-	int result = 0;
+	int result = FOLLOWING_INVALID;
 	CBaseEntity* pEntity = 0;
 	while( (pEntity = UTIL_FindEntityByTargetname(pEntity, STRING(pev->netname))) )
 	{
@@ -1923,30 +2095,53 @@ bool CScriptedFollowing::MakeFollowing(CBasePlayer* pPlayer, USE_TYPE useType)
 			if (pFollowingMonster)
 			{
 				result = pFollowingMonster->DoFollowerUse(pPlayer, false, useType, true);
-				// TODO: should it support many monsters? If not, we can break here
+				break;
 			}
 		}
 	}
-	if (result == FOLLOWING_NOTALLOWED)
-		return false;
-	return true;
+	if (result == FOLLOWING_STARTED)
+	{
+		if (!FStringNull(m_onStartFollowing))
+			FireTargets(STRING(m_onStartFollowing), pPlayer, this);
+	}
+	if (result == FOLLOWING_STOPPED)
+	{
+		if (!FStringNull(m_onStopFollowing))
+			FireTargets(STRING(m_onStopFollowing), pPlayer, this);
+	}
+	return result;
 }
 
 void CScriptedFollowing::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 {
 	if (pev->netname) {
-		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(pActivator);
 		if (!pPlayer)
 			return;
 
-		SetThink(NULL);
-		if (!MakeFollowing(pPlayer, useType))
+		switch(pev->impulse)
 		{
-			if (useType == USE_ON)
-			{
-				SetThink(&CScriptedFollowing::FindThink);
-				pev->nextthink = gpGlobals->time + 0.1f;
-			}
+		case SCRIPTED_FOLLOW_STOP:
+			useType = USE_OFF;
+			break;
+		case SCRIPTED_FOLLOW_START:
+			useType = USE_ON;
+			break;
+		default:
+			break;
+		}
+
+		SetThink(NULL);
+		int result = MakeFollowing(pPlayer, useType);
+		if (result == FOLLOWING_BUSYINSCRIPT && useType == USE_ON)
+		{
+			SetThink(&CScriptedFollowing::FindThink);
+			pev->nextthink = gpGlobals->time + 0.1f;
+		}
+		else
+		{
+			if (FBitSet(pev->spawnflags, SF_SCRIPTED_FOLLOWING_ONCE))
+				UTIL_Remove(this);
 		}
 	} else {
 		ALERT(at_aiconsole, "%s does not specify the affected monster!\n", STRING(pev->classname));
@@ -1955,18 +2150,21 @@ void CScriptedFollowing::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 
 void CScriptedFollowing::FindThink()
 {
-	CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(m_hActivator);
+	CBasePlayer* pPlayer = g_pGameRules->EffectiveAlivePlayer(m_hActivator);
 	if (!pPlayer)
 	{
 		SetThink(NULL);
 		return;
 	}
-	if (MakeFollowing(pPlayer, USE_ON))
+	int result = MakeFollowing(pPlayer, USE_ON);
+	if (result == FOLLOWING_BUSYINSCRIPT)
 	{
-		SetThink(NULL);
+		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 	else
 	{
-		pev->nextthink = gpGlobals->time + 0.1f;
+		SetThink(NULL);
+		if (FBitSet(pev->spawnflags, SF_SCRIPTED_FOLLOWING_ONCE))
+			UTIL_Remove(this);
 	}
 }

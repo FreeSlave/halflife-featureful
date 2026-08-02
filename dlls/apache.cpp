@@ -17,13 +17,15 @@
 #include "util.h"
 #include "cbase.h"
 #include "monsters.h"
-#include "weapons.h"
+#include "combat.h"
+#include "global_models.h"
+#include "ggrenade.h"
 #include "nodes.h"
 #include "effects.h"
-#include "mod_features.h"
 #include "game.h"
-
-extern DLL_GLOBAL int		g_iSkillLevel;
+#include "common_soundscripts.h"
+#include "visuals_utils.h"
+#include "graphic_debug.h"
 
 #define SF_WAITFORTRIGGER	(0x04 | 0x40) // UNDONE: Fix!
 #define SF_NOWRECKAGE		0x08
@@ -31,41 +33,54 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 class CApache : public CBaseMonster
 {
 public:
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
-	int DefaultClassify( void ) { return CLASS_HUMAN_MILITARY; }
-	bool IsMachine() { return true; }
-	const char* DefaultDisplayName() { return "Apache"; }
-	const char* ReverseRelationshipModel() { return "models/apachef.mdl"; }
-	int BloodColor( void ) { return DONT_BLEED; }
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
-	void GibMonster( void );
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
+	bool HasFlesh() override { return false; }
+	const char* DefaultDisplayName() override { return "Apache"; }
+	const char* ReverseRelationshipModel() override { return "models/apachef.mdl"; }
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	void GibMonster() override;
 
-	void SetObjectCollisionBox( void )
+	Vector DefaultMinHullSize() override { return Vector( -32.0f, -32.0f, -64.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 32.0f, 32.0f, 0.0f ); }
+	void SetObjectCollisionBox() override
 	{
-		pev->absmin = pev->origin + Vector( -300.0f, -300.0f, -172.0f );
-		pev->absmax = pev->origin + Vector( 300.0f, 300.0f, 8.0f );
+		SetMyObjectCollisionBox(Vector( -300.0f, -300.0f, -172.0f ), Vector( 300.0f, 300.0f, 8.0f ));
+	}
+	bool IsMovingCloakWise() override {
+		return pev->velocity != g_vecZero;
+	}
+	bool IsAttackingCloakWise() override {
+		bool result = m_attackedRecently;
+		m_attackedRecently = false;
+		return result;
 	}
 
-	void EXPORT HuntThink( void );
+	void EXPORT HuntThink();
 	void EXPORT FlyTouch( CBaseEntity *pOther );
 	void EXPORT CrashTouch( CBaseEntity *pOther );
-	void EXPORT DyingThink( void );
+	void EXPORT DyingThink();
 	void EXPORT StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	void EXPORT NullThink( void );
+	void EXPORT StopUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void EXPORT NullThink();
 
-	void ShowDamage( void );
-	void Flight( void );
-	void FireRocket( void );
-	BOOL FireGun( void );
+	void ShowDamage();
+	void Flight();
+	void FireRocket();
+	bool FireGun();
 
-	int  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	TakeDamageResult  TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
+	bool MustDoSmoke(const DamageInfo& damageInfo, const TraceResult* ptr);
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	void TraceAttack( entvars_t *pevInflictor,  entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	void ReportAIState(ALERT_TYPE level) override;
 
 	int m_iRockets;
 	float m_flForce;
@@ -85,24 +100,39 @@ public:
 
 	int m_iSoundState; // don't save this
 
-	int m_iSpriteTexture;
-	int m_iExplode;
 	int m_iBodyGibs;
 
 	float m_flGoalSpeed;
 
 	int m_iDoSmokePuff;
 	CBeam *m_pBeam;
-	
+
+	float m_rotorVolume;
+
+	bool m_iObeyTriggerMode;
+	bool m_attackedRecently;
+
+	static const NamedSoundScript rotorSoundScript;
+	static const NamedSoundScript fireGunSoundScript;
+	static constexpr const char* crashSoundScript = "Apache.Crash";
+
+	static const NamedVisual sharedSmokeVisual;
+	static const NamedVisual fallingSmokeVisual;
+	static const NamedVisual crashSmokeVisual;
+	static const NamedVisual rocketSmokeVisual;
+	static const NamedVisual damageSmokeVisual;
+	static const NamedVisual fireBallVisual;
+	static const NamedVisual blastCircleVisual;
+
 protected:
 	void SpawnImpl(const char* modelName);
 	void PrecacheImpl(const char* modelName, const char* gibModel);
-	float RotorVolume() const {
-		if (pev->armorvalue > 0.0f && pev->armorvalue <= 1.0f)
+	void SetRotorVolumeOverride(SoundScriptParamOverride& param)
+	{
+		if (m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f)
 		{
-			return pev->armorvalue;
+			param.OverrideVolumeAbsolute(m_rotorVolume);
 		}
-		return VOL_NORM;
 	}
 };
 
@@ -128,11 +158,69 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	DEFINE_FIELD( CApache, m_pBeam, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CApache, m_flGoalSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
+	DEFINE_FIELD( CApache, m_rotorVolume, FIELD_FLOAT ),
+	DEFINE_FIELD( CApache, m_iObeyTriggerMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CApache, m_attackedRecently, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CApache, CBaseMonster )
 
-void CApache::Spawn( void )
+const NamedSoundScript CApache::rotorSoundScript =  {
+	CHAN_STATIC,
+	{"apache/ap_rotor2.wav"},
+	VOL_NORM,
+	0.3f,
+	"Apache.Rotor"
+};
+
+const NamedSoundScript CApache::fireGunSoundScript = {
+	CHAN_WEAPON,
+	{"turret/tu_fire1.wav"},
+	1.0f,
+	0.3f,
+	"Apache.FireGun"
+};
+
+const NamedVisual CApache::sharedSmokeVisual = BuildVisual("Apache.SmokeBase")
+		.Model(g_pModelNameSmoke)
+		.Alpha(255)
+		.RenderMode(kRenderTransAlpha);
+
+const NamedVisual CApache::fallingSmokeVisual = BuildVisual("Apache.FallingSmoke")
+		.Scale(10.0f)
+		.Framerate(10.0f)
+		.Mixin(&CApache::sharedSmokeVisual);
+
+const NamedVisual CApache::crashSmokeVisual = BuildVisual("Apache.CrashSmoke")
+		.Scale(25.0f)
+		.Framerate(5.0f)
+		.Mixin(&CApache::sharedSmokeVisual);
+
+const NamedVisual CApache::rocketSmokeVisual = BuildVisual("Apache.RocketSmoke")
+		.Scale(2.0f)
+		.Framerate(12)
+		.Mixin(&CApache::sharedSmokeVisual);
+
+const NamedVisual CApache::damageSmokeVisual = BuildVisual("Apache.DamageSmoke")
+		.Scale(FloatRange(0.9f, 2.9f))
+		.Framerate(12)
+		.Mixin(&CApache::sharedSmokeVisual);
+
+const NamedVisual CApache::fireBallVisual = BuildVisual::Animated("Apache.Fireball")
+		.Model("sprites/fexplo.spr")
+		.RenderMode(kRenderTransAdd)
+		.Scale(12.0f)
+		.Alpha(255);
+
+const NamedVisual CApache::blastCircleVisual = BuildVisual("Apache.BlastCircle")
+		.Model("sprites/white.spr")
+		.Life(0.4f)
+		.BeamParams(32, 0)
+		.RenderColor(255, 255, 192)
+		.Alpha(128)
+		.WaveType(Visual::WAVETYPE_CYLINDER);
+
+void CApache::Spawn()
 {
 	SpawnImpl("models/apache.mdl");
 }
@@ -145,12 +233,13 @@ void CApache::SpawnImpl(const char *modelName)
 	pev->solid = SOLID_BBOX;
 
 	SetMyModel( modelName );
-	UTIL_SetSize( pev, Vector( -32.0f, -32.0f, -64.0f ), Vector( 32.0f, 32.0f, 0.0f ) );
+	SetMySize();
 	UTIL_SetOrigin( pev, pev->origin );
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
-	SetMyHealth( gSkillData.apacheHealth );
+	SetMyBloodColor(DONT_BLEED);
+	SetMyHealth( GetSkillValue("apache_health") );
 	pev->max_health = pev->health;
 
 	SetMyFieldOfView(-0.707f); // 270 degrees
@@ -170,13 +259,17 @@ void CApache::SpawnImpl(const char *modelName)
 	{
 		SetThink( &CApache::HuntThink );
 		SetTouch( &CApache::FlyTouch );
+		SetUse( &CApache::StopUse );
 	}
 	pev->nextthink = gpGlobals->time + 1.0f;
 
 	m_iRockets = 10;
+
+	InitLootRandomSeed();
+	InitUncloakedRenderamt();
 }
 
-void CApache::Precache( void )
+void CApache::Precache()
 {
 	PrecacheImpl("models/apache.mdl", "models/metalplategibs_green.mdl");
 }
@@ -184,63 +277,96 @@ void CApache::Precache( void )
 void CApache::PrecacheImpl(const char* modelName, const char* gibModel)
 {
 	PrecacheMyModel( modelName );
+	m_iBodyGibs = PrecacheMyGibModel(gibModel);
 
 	PRECACHE_SOUND( "apache/ap_rotor1.wav" );
-	PRECACHE_SOUND( "apache/ap_rotor2.wav" );
+	RegisterAndPrecacheSoundScript(rotorSoundScript);
 	PRECACHE_SOUND( "apache/ap_rotor3.wav" );
 	PRECACHE_SOUND( "apache/ap_whine1.wav" );
 
-	PRECACHE_SOUND( "weapons/mortarhit.wav" );
+	RegisterAndPrecacheSoundScript(crashSoundScript, NPC::crashSoundScript);
 
-	m_iSpriteTexture = PRECACHE_MODEL( "sprites/white.spr" );
+	RegisterVisual(blastCircleVisual);
 
-	PRECACHE_SOUND( "turret/tu_fire1.wav" );
+	RegisterAndPrecacheSoundScript(fireGunSoundScript);
+
+	RegisterVisual(fallingSmokeVisual);
+	RegisterVisual(crashSmokeVisual);
+	RegisterVisual(rocketSmokeVisual);
+	RegisterVisual(damageSmokeVisual);
 
 	PRECACHE_MODEL( "sprites/lgtning.spr" );
 
-	m_iExplode = PRECACHE_MODEL( "sprites/fexplo.spr" );
-	m_iBodyGibs = PRECACHE_MODEL( gibModel );
+	RegisterVisual(fireBallVisual);
 
-	UTIL_PrecacheOther( "hvr_rocket" );
+	UTIL_PrecacheOther( "hvr_rocket", GetProjectileOverrides() );
+	UTIL_PrecacheOther( "cycler_wreckage", GetProjectileOverrides() );
 }
 
 void CApache::KeyValue(KeyValueData *pkvd)
 {
 	if( FStrEq(pkvd->szKeyName, "rotorvolume" ) )
 	{
-		pev->armorvalue = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		m_rotorVolume = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq(pkvd->szKeyName, "m_iObeyTriggerMode" ) )
+	{
+		m_iObeyTriggerMode = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseMonster::KeyValue( pkvd );
 }
 
-void CApache::NullThink( void )
+void CApache::NullThink()
 {
 	StudioFrameAdvance();
 	FCheckAITrigger();
 	pev->nextthink = gpGlobals->time + 0.5f;
 	GlowShellUpdate();
+	HandleCloaking();
+	ShowDamage();
 }
 
 void CApache::StartupUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	SetThink( &CApache::HuntThink );
-	SetTouch( &CApache::FlyTouch );
-	pev->nextthink = gpGlobals->time + 0.1f;
-	SetUse( NULL );
+	if (!m_iObeyTriggerMode || useType != USE_OFF)
+	{
+		SetThink(&CApache::HuntThink);
+		SetTouch(&CApache::FlyTouch);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		SetUse(&CApache::StopUse);
+	}
 }
 
-void CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+void CApache::StopUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	if (m_iObeyTriggerMode && useType != USE_ON)
+	{
+		pev->velocity = g_vecZero;
+		pev->avelocity = g_vecZero;
+		m_iSoundState = 0;
+		StopSoundScript(rotorSoundScript);
+
+		SetThink(&CApache::NullThink);
+		SetTouch(nullptr);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		SetUse(&CApache::StartupUse);
+	}
+}
+
+KilledResult CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->movetype = MOVETYPE_TOSS;
 	pev->gravity = 0.3f;
 
-	STOP_SOUND( ENT( pev ), CHAN_STATIC, "apache/ap_rotor2.wav" );
+	StopSoundScript(rotorSoundScript);
 
-	UTIL_SetSize( pev, Vector( -32.0f, -32.0f, -64.0f ), Vector( 32.0f, 32.0f, 0.0f ) );
+	SetMySize();
 	SetThink( &CApache::DyingThink );
 	SetTouch( &CApache::CrashTouch );
+	SetUse(nullptr);
 	pev->nextthink = gpGlobals->time + 0.1f;
 	pev->health = 0;
 	pev->takedamage = DAMAGE_NO;
@@ -254,13 +380,16 @@ void CApache::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib 
 	{
 		m_flNextRocket = gpGlobals->time + 15.0f;
 	}
+	OnDying(false, CBaseEntity::OwnInstance(pevAttacker));
+	return KilledResult();
 }
 
-void CApache::DyingThink( void )
+void CApache::DyingThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	pev->avelocity = pev->avelocity * 1.02f;
 
@@ -282,24 +411,19 @@ void CApache::DyingThink( void )
 		MESSAGE_END();
 
 		// lots of smoke
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( pev->origin.x + RANDOM_FLOAT( -150.0f, 150.0f ) );
-			WRITE_COORD( pev->origin.y + RANDOM_FLOAT( -150.0f, 150.0f ) );
-			WRITE_COORD( pev->origin.z + RANDOM_FLOAT( -150.0f, -50.0f ) );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( 100 ); // scale * 10
-			WRITE_BYTE( 10 ); // framerate
-		MESSAGE_END();
+		const Vector smokePosition(
+					pev->origin.x + RANDOM_FLOAT(-150.0f, 150.0f),
+					pev->origin.y + RANDOM_FLOAT(-150.0f, 150.0f),
+					pev->origin.z + RANDOM_FLOAT(-150.0f, -50.0f)
+		);
+		SendSmoke(smokePosition, GetVisual(fallingSmokeVisual));
 
 		Vector vecSpot = pev->origin + ( pev->mins + pev->maxs ) * 0.5f;
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
 			WRITE_BYTE( TE_BREAKMODEL );
 
 			// position
-			WRITE_COORD( vecSpot.x );
-			WRITE_COORD( vecSpot.y );
-			WRITE_COORD( vecSpot.z );
+			WRITE_VECTOR( vecSpot );
 
 			// size
 			WRITE_COORD( 400 );
@@ -307,9 +431,7 @@ void CApache::DyingThink( void )
 			WRITE_COORD( 132 );
 
 			// velocity
-			WRITE_COORD( pev->velocity.x ); 
-			WRITE_COORD( pev->velocity.y );
-			WRITE_COORD( pev->velocity.z );
+			WRITE_VECTOR( pev->velocity );
 
 			// randomization
 			WRITE_BYTE( 50 ); 
@@ -349,56 +471,21 @@ void CApache::DyingThink( void )
 		*/
 
 		// fireball
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-			WRITE_BYTE( TE_SPRITE );
-			WRITE_COORD( vecSpot.x );
-			WRITE_COORD( vecSpot.y );
-			WRITE_COORD( vecSpot.z + 256.0f );
-			WRITE_SHORT( m_iExplode );
-			WRITE_BYTE( 120 ); // scale * 10
-			WRITE_BYTE( 255 ); // brightness
-		MESSAGE_END();
+		SendSprite(vecSpot + Vector(0, 0, 256.0f), GetVisual(fireBallVisual));
 
 		// big smoke
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( vecSpot.x );
-			WRITE_COORD( vecSpot.y );
-			WRITE_COORD( vecSpot.z + 512.0f );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( 250 ); // scale * 10
-			WRITE_BYTE( 5 ); // framerate
-		MESSAGE_END();
+		SendSmoke(vecSpot + Vector(0, 0, 512.0f), GetVisual(crashSmokeVisual));
 
 		// blast circle
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_BEAMCYLINDER );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z + 2000 ); // reach damage radius over .2 seconds
-			WRITE_SHORT( m_iSpriteTexture );
-			WRITE_BYTE( 0 ); // startframe
-			WRITE_BYTE( 0 ); // framerate
-			WRITE_BYTE( 4 ); // life
-			WRITE_BYTE( 32 );  // width
-			WRITE_BYTE( 0 );   // noise
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 192 );   // r, g, b
-			WRITE_BYTE( 128 ); // brightness
-			WRITE_BYTE( 0 );		// speed
-		MESSAGE_END();
+		SendBeamWave(pev->origin, 2000, GetVisual(blastCircleVisual), MSG_PVS, pev->origin);
 
-		EMIT_SOUND( ENT( pev ), CHAN_STATIC, "weapons/mortarhit.wav", 1.0f, 0.3f );
+		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, 300, CLASS_NONE, DMG_BLAST );
+		RadiusDamage( pev->origin, pev, pev, DamageInfo{GetSkillValue("apache_dmg_blast"), DMG_BLAST}, CLASS_NONE );
 
 		if(/*!( pev->spawnflags & SF_NOWRECKAGE ) && */( pev->flags & FL_ONGROUND ) )
 		{
-			CBaseEntity *pWreckage = Create( "cycler_wreckage", pev->origin, pev->angles );
+			CBaseEntity *pWreckage = Create( "cycler_wreckage", pev->origin, pev->angles, nullptr, GetProjectileOverrides() );
 			// SET_MODEL( ENT( pWreckage->pev ), STRING( pev->model ) );
 			UTIL_SetSize( pWreckage->pev, Vector( -200.0f, -200.0f, -128.0f ), Vector( 200.0f, 200.0f, -32.0f ) );
 			pWreckage->pev->frame = pev->frame;
@@ -413,9 +500,7 @@ void CApache::DyingThink( void )
 			WRITE_BYTE( TE_BREAKMODEL);
 
 			// position
-			WRITE_COORD( vecSpot.x );
-			WRITE_COORD( vecSpot.y );
-			WRITE_COORD( vecSpot.z + 64.0f );
+			WRITE_VECTOR( vecSpot + Vector(0, 0, 64.0f) );
 
 			// size
 			WRITE_COORD( 400 );
@@ -463,24 +548,31 @@ void CApache::FlyTouch( CBaseEntity *pOther )
 void CApache::CrashTouch( CBaseEntity *pOther )
 {
 	// only crash if we hit something solid
-	if( pOther->pev->solid == SOLID_BSP )
+	switch(pOther->pev->solid)
 	{
+	case SOLID_BBOX:
+	case SOLID_SLIDEBOX:
+	case SOLID_BSP:
 		SetTouch( NULL );
 		m_flNextRocket = gpGlobals->time;
 		pev->nextthink = gpGlobals->time;
+		break;
+	default:
+		break;
 	}
 }
 
-void CApache::GibMonster( void )
+void CApache::GibMonster()
 {
 	// EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "common/bodysplat.wav", 0.75f, ATTN_NORM, 0, 200 );
 }
 
-void CApache::HuntThink( void )
+void CApache::HuntThink()
 {
 	StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
 	GlowShellUpdate();
+	HandleCloaking();
 
 	ShowDamage();
 
@@ -543,6 +635,8 @@ void CApache::HuntThink( void )
 
 		if( flLength < 128.0f )
 		{
+			CBaseEntity* pPrevGoalEnt = m_pGoalEnt;
+
 			m_pGoalEnt = UTIL_FindEntityByTargetname( NULL, STRING( m_pGoalEnt->pev->target ) );
 			if( m_pGoalEnt )
 			{
@@ -550,6 +644,11 @@ void CApache::HuntThink( void )
 				UTIL_MakeAimVectors( m_pGoalEnt->pev->angles );
 				m_vecGoal = gpGlobals->v_forward;
 				flLength = ( pev->origin - m_posDesired ).Length();
+			}
+
+			if (pPrevGoalEnt && !FStringNull(pPrevGoalEnt->pev->message))
+			{
+				FireTargets(STRING(pPrevGoalEnt->pev->message), this, this);
 			}
 		}
 	}
@@ -589,7 +688,7 @@ void CApache::HuntThink( void )
 		}
 
 		// don't fire rockets and gun on easy mode
-		if( g_iSkillLevel == SKILL_EASY )
+		if (GetSkillValue("apache_rockets_and_gun") == 0.0f)
 			m_flNextRocket = gpGlobals->time + 10.0f;
 	}
 
@@ -597,14 +696,32 @@ void CApache::HuntThink( void )
 	Vector vecEst = ( gpGlobals->v_forward * 800.0f + pev->velocity ).Normalize();
 	// ALERT( at_console, "%d %d %d %4.2f\n", pev->angles.x < 0.0f, DotProduct( pev->velocity, gpGlobals->v_forward ) > -100.0f, m_flNextRocket < gpGlobals->time, DotProduct( m_vecTarget, vecEst ) );
 
+	auto allyInRange = [this](const Vector& vecLocation, float flDist)
+	{
+		CBaseEntity* pEntity = nullptr;
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecLocation, flDist)) != nullptr)
+		{
+			CBaseMonster* monster = pEntity->MyMonsterPointer();
+			if (monster != nullptr && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
+			{
+				ALERT(at_aiconsole, "%s: Ally %s at search radius.\n", STRING(pev->classname), STRING(monster->pev->classname));
+				return true;
+			}
+		}
+		return false;
+	};
+
 	if( ( m_iRockets % 2 ) == 1 )
 	{
 		FireRocket();
-		m_flNextRocket = gpGlobals->time + 0.5f;
-		if( m_iRockets <= 0 )
+		if (m_iRockets <= 0)
 		{
-			m_flNextRocket = gpGlobals->time + 10.0f;
+			m_flNextRocket = gpGlobals->time + GetSkillValue("apache_rocket_reload_time");
 			m_iRockets = 10;
+		}
+		else
+		{
+			m_flNextRocket = gpGlobals->time + GetSkillValue("apache_rocket_delay");
 		}
 	}
 	else if( pev->angles.x < 0.0f && DotProduct( pev->velocity, gpGlobals->v_forward ) > -100.0f && m_flNextRocket < gpGlobals->time )
@@ -619,18 +736,36 @@ void CApache::HuntThink( void )
 					TraceResult tr;
 
 					UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, ignore_monsters, edict(), &tr );
-					if( (tr.vecEndPos - m_posTarget ).Length() < 512.0f )
-						FireRocket();
+					if( (tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
+					{
+						if (!allyInRange(tr.vecEndPos + Vector(0, 0, 32), 256.0f))
+						{
+							FireRocket();
+						}
+						else
+						{
+							m_flNextRocket = gpGlobals->time + 1.0f;
+						}
+					}
 				}
 			}
-			else
+			else if (m_flLastSeen + 15.0f > gpGlobals->time)
 			{
 				TraceResult tr;
 
 				UTIL_TraceLine( pev->origin, pev->origin + vecEst * 4096.0f, dont_ignore_monsters, edict(), &tr );
 				// just fire when close
-				if( ( tr.vecEndPos - m_posTarget ).Length() < 512.0f )
-					FireRocket();
+				if( ( tr.vecEndPos - m_posTarget ).IsLengthLessThan(512.0f) )
+				{
+					if (!allyInRange(tr.vecEndPos + Vector(0, 0, 32), 384.0f))
+					{
+						FireRocket();
+					}
+					else
+					{
+						m_flNextRocket = gpGlobals->time + 1.0f;
+					}
+				}
 			}
 		}
 	}
@@ -638,7 +773,7 @@ void CApache::HuntThink( void )
 	FCheckAITrigger();
 }
 
-void CApache::Flight( void )
+void CApache::Flight()
 {
 	// tilt model 5 degrees
 	Vector vecAdj = Vector( 5.0f, 0.0f, 0.0f );
@@ -754,7 +889,10 @@ void CApache::Flight( void )
 	// make rotor, engine sounds
 	if( m_iSoundState == 0 )
 	{
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_rotor2.wav", RotorVolume(), 0.3f, 0, 110 );
+		SoundScriptParamOverride param;
+		SetRotorVolumeOverride(param);
+		param.OverridePitchRelative(110);
+		EmitSoundScript(rotorSoundScript, param);
 		// EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_whine1.wav", 0.5, 0.2, 0, 110 );
 
 		m_iSoundState = SND_CHANGE_PITCH; // hack for going through level transitions
@@ -782,7 +920,10 @@ void CApache::Flight( void )
 			if( flVol > 1.0f ) 
 				flVol = 1.0f;*/
 
-			EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_rotor2.wav", RotorVolume(), 0.3f, SND_CHANGE_PITCH | SND_CHANGE_VOL, pitch );
+			SoundScriptParamOverride param;
+			SetRotorVolumeOverride(param);
+			param.OverridePitchRelative(pitch);
+			EmitSoundScript(rotorSoundScript, param, SND_CHANGE_PITCH | SND_CHANGE_VOL);
 		}
 		// EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_whine1.wav", flVol, 0.2f, SND_CHANGE_PITCH | SND_CHANGE_VOL, pitch );
 	
@@ -790,7 +931,7 @@ void CApache::Flight( void )
 	}
 }
 
-void CApache::FireRocket( void )
+void CApache::FireRocket()
 {
 	static float side = 1.0f;
 
@@ -803,43 +944,37 @@ void CApache::FireRocket( void )
 	switch( m_iRockets % 5 )
 	{
 	case 0:
-		vecSrc = vecSrc + gpGlobals->v_right * 10.0f;
+		vecSrc += gpGlobals->v_right * 10.0f;
 		break;
 	case 1:
-		vecSrc = vecSrc - gpGlobals->v_right * 10.0f;
+		vecSrc -= gpGlobals->v_right * 10.0f;
 		break;
 	case 2:
-		vecSrc = vecSrc + gpGlobals->v_up * 10.0f;
+		vecSrc += gpGlobals->v_up * 10.0f;
 		break;
 	case 3:
-		vecSrc = vecSrc - gpGlobals->v_up * 10.0f;
+		vecSrc -= gpGlobals->v_up * 10.0f;
 		break;
 	case 4:
 		break;
 	}
 
-	CBaseEntity *pRocket = CBaseEntity::Create( "hvr_rocket", vecSrc, pev->angles, edict() );
+	ProjectileParameters params("hvr_rocket", vecSrc, pev->angles, gpGlobals->v_forward, this, GetProjectileOverrides());
+	CBaseEntity *pRocket = CBaseEntity::CreateAndLaunchAsProjectile(params);
 	if( pRocket )
 	{
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrc );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( vecSrc.x );
-			WRITE_COORD( vecSrc.y );
-			WRITE_COORD( vecSrc.z );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( 20 ); // scale * 10
-			WRITE_BYTE( 12 ); // framerate
-		MESSAGE_END();
+		SendSmoke(vecSrc, GetVisual(rocketSmokeVisual));
 
-		pRocket->pev->velocity = pev->velocity + gpGlobals->v_forward * 100.0f;
+		pRocket->pev->velocity += pev->velocity;
 
 		m_iRockets--;
 
 		side = - side;
 	}
+	m_attackedRecently = true;
 }
 
-BOOL CApache::FireGun()
+bool CApache::FireGun()
 {
 	UTIL_MakeAimVectors( pev->angles );
 
@@ -885,8 +1020,8 @@ BOOL CApache::FireGun()
 	if( DotProduct( vecGun, vecTarget ) > 0.98f )
 	{
 #if 1
-		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, BULLET_MONSTER_12MM, 1 );
-		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "turret/tu_fire1.wav", 1, 0.3f );
+		FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, GetSkillValue("12mm_bullet"), 1 );
+		EmitSoundScript(fireGunSoundScript);
 #else
 		static float flNext;
 		TraceResult tr;
@@ -907,46 +1042,42 @@ BOOL CApache::FireGun()
 			m_pBeam->SetStartPos( tr.vecEndPos );
 		}
 #endif
-		return TRUE;
+		m_attackedRecently = true;
+		return true;
 	}
 	else
 	{
-		if( m_pBeam )
-		{
-			UTIL_Remove( m_pBeam );
-			m_pBeam = NULL;
-		}
+		UTIL_RemoveAndClean(m_pBeam);
 	}
-	return FALSE;
+	return false;
 }
 
-void CApache::ShowDamage( void )
+void CApache::ShowDamage()
 {
 	if( m_iDoSmokePuff > 0 || RANDOM_LONG( 0, 99 ) > pev->health )
 	{
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z - 32 );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( RANDOM_LONG( 0, 9 ) + 20 ); // scale * 10
-			WRITE_BYTE( 12 ); // framerate
-		MESSAGE_END();
+		SendSmoke(pev->origin + Vector(0, 0, -32), GetVisual(damageSmokeVisual));
 	}
 	if( m_iDoSmokePuff > 0 )
 		m_iDoSmokePuff--;
 }
 
-int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+DamageInfo CApache::DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo)
+{
+	DamageInfo damageInfo = inputDamageInfo;
+
+	if (damageInfo.type & DMG_BLAST)
+	{
+		damageInfo.damage *= 2.0f;
+	}
+
+	return damageInfo;
+}
+
+TakeDamageResult CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
 	if( pevInflictor->owner == edict() )
-		return 0;
-
-	if( bitsDamageType & DMG_BLAST )
-	{
-		flDamage *= 2.0f;
-	}
+		return TakeDamageResult();
 
 	/*
 	if( ( bitsDamageType & DMG_BULLET ) && flDamage > 50.0f )
@@ -957,18 +1088,22 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	*/
 
 	// ALERT( at_console, "%.0f\n", flDamage );
-	int result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+	if (damageInfo.nonLethal)
+		SetNonLethalHealthThreshold();
+	TakeDamageResult result = CBaseEntity::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 
 	//Are we damaged at all?
 	if (pev->health < pev->max_health)
 	{
 		//Took some damage.
 		SetConditions(bits_COND_LIGHT_DAMAGE);
+		result.SetGotLightDamage();
 
 		if (pev->health < (pev->max_health / 2))
 		{
 			//Seriously damaged now.
 			SetConditions(bits_COND_HEAVY_DAMAGE);
+			result.SetGotHeavyDamage();
 		}
 		else
 		{
@@ -984,42 +1119,88 @@ int CApache::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	return result;
 }
 
-void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+bool CApache::MustDoSmoke(const DamageInfo &damageInfo, const TraceResult *ptr)
 {
-	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
+	// hit hard, hits cockpit, hits engines
+	return damageInfo.damage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2;
+}
 
+DamageInfo CApache::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
+{
 	// ignore blades
-	if( ptr->iHitgroup == 6 && ( bitsDamageType & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
+	if( ptr->iHitgroup == 6 && ( inputDamageInfo.type & ( DMG_ENERGYBEAM | DMG_BULLET | DMG_CLUB ) ) )
+	{
+		DamageInfo damageInfo = inputDamageInfo;
+		damageInfo.mustSkip = true;
+		return damageInfo;
+	}
+
+	if( !MustDoSmoke(inputDamageInfo, ptr) )
+	{
+		UTIL_Ricochet( ptr->vecEndPos, 2.0f );
+		DamageInfo damageInfo = inputDamageInfo;
+		damageInfo.mustSkip = true;
+		return damageInfo;
+	}
+
+	return inputDamageInfo;
+}
+
+void CApache::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo, Vector vecDir, TraceResult *ptr )
+{
+	DamageInfo damageInfo = HandleTraceAttack(pevInflictor, pevAttacker, inputDamageInfo, vecDir, ptr);
+
+	if (damageInfo.mustSkip)
 		return;
 
-	// hit hard, hits cockpit, hits engines
-	if( flDamage > 50 || ptr->iHitgroup == 1 || ptr->iHitgroup == 2 )
+	// ALERT( at_console, "%d %.0f\n", ptr->iHitgroup, flDamage );
+	if (!pev->takedamage)
+		return;
+
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
+
+	BloodEffect(damageInfo, vecDir, ptr);
+
+	// TODO: Smoke currently can't be expressed via trace attack effects. Keep it as is.
+	if( MustDoSmoke(damageInfo, ptr) )
 	{
-		// ALERT( at_console, "%.0f\n", flDamage );
-		AddMultiDamage( pevAttacker, pevAttacker, this, flDamage, bitsDamageType );
-		m_iDoSmokePuff = 3.0f + ( flDamage / 5.0f );
+		m_iDoSmokePuff = 3.0f + ( inputDamageInfo.damage / 5.0f );
 	}
-	else
-	{
-		// do half damage in the body
-		// AddMultiDamage( pevAttacker, this, flDamage / 2.0f, bitsDamageType );
-		UTIL_Ricochet( ptr->vecEndPos, 2.0f );
-	}
+}
+
+void CApache::ReportAIState(ALERT_TYPE level)
+{
+	CBaseMonster::ReportAIState(level);
+	ALERT(level, "Rockets: %d; ", m_iRockets);
+	ALERT(level, "Current time: %g; Next rocket time: %g; Last seen enemy time: %g; Prev seen enemy time: %g; ", gpGlobals->time, m_flNextRocket, m_flLastSeen, m_flPrevSeen);
 }
 
 class CApacheHVR : public CGrenade
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT IgniteThink( void );
-	void EXPORT AccelerateThink( void );
+public:
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT IgniteThink();
+	void EXPORT AccelerateThink();
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		if (m_pfnThink == &CApacheHVR::AccelerateThink)
+			SendProjectileTracer(pClient);
+	}
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	int m_iTrail;
 	Vector m_vecForward;
+
+	static const NamedSoundScript rpgSoundScript;
+
+	static const NamedVisual modelVisual;
+	static const NamedVisual trailVisual;
 };
 
 LINK_ENTITY_TO_CLASS( hvr_rocket, CApacheHVR )
@@ -1032,14 +1213,32 @@ TYPEDESCRIPTION	CApacheHVR::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CApacheHVR, CGrenade )
 
-void CApacheHVR::Spawn( void )
+const NamedSoundScript CApacheHVR::rpgSoundScript = {
+	CHAN_VOICE,
+	{"weapons/rocket1.wav"},
+	1.0f,
+	0.5f,
+	"Apache.RPG"
+};
+
+const NamedVisual CApacheHVR::modelVisual = BuildVisual("Apache.RocketModel")
+		.Model("models/HVR.mdl");
+
+const NamedVisual CApacheHVR::trailVisual = BuildVisual("Apache.RocketTrail")
+		.Model("sprites/smoke.spr")
+		.Life(1.5f)
+		.BeamWidth(5)
+		.RenderColor(224, 224, 255)
+		.Alpha(255);
+
+void CApacheHVR::Spawn()
 {
 	Precache();
 	// motor
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL( ENT( pev ), "models/HVR.mdl" );
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	UTIL_SetSize( pev, Vector( 0, 0, 0), Vector(0, 0, 0) );
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -1052,48 +1251,40 @@ void CApacheHVR::Spawn( void )
 
 	pev->nextthink = gpGlobals->time + 0.1f;
 
-	pev->dmg = 150;
+	SetDefaultProjectileDamage(150.0f);
 }
 
-void CApacheHVR::Precache( void )
+void CApacheHVR::Precache()
 {
-	PRECACHE_MODEL( "models/HVR.mdl" );
-	m_iTrail = PRECACHE_MODEL( "sprites/smoke.spr" );
-	PRECACHE_SOUND( "weapons/rocket1.wav" );
+	PrecacheBaseGrenadeSounds();
+	RegisterVisualAsMineOwn(modelVisual);
+	RegisterVisual(trailVisual);
+	RegisterAndPrecacheSoundScript(rpgSoundScript);
 }
 
-void CApacheHVR::IgniteThink( void )
+void CApacheHVR::IgniteThink()
 {
 	// pev->movetype = MOVETYPE_TOSS;
 
 	// pev->movetype = MOVETYPE_FLY;
-	pev->effects |= EF_LIGHT;
+	SetMyProjectileEffectFlags(EF_LIGHT);
+	SendProjectileTracer();
 
 	// make rocket sound
-	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/rocket1.wav", 1, 0.5f );
+	EmitSoundScript(rpgSoundScript);
 
 	// rocket trail
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMFOLLOW );
-		WRITE_SHORT( entindex() ); // entity
-		WRITE_SHORT( m_iTrail ); // model
-		WRITE_BYTE( 15 ); // life
-		WRITE_BYTE( 5 );  // width
-		WRITE_BYTE( 224 );   // r, g, b
-		WRITE_BYTE( 224 );   // r, g, b
-		WRITE_BYTE( 255 );   // r, g, b
-		WRITE_BYTE( 255 );	// brightness
-	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
+	SendBeamFollow(entindex(), GetVisual(trailVisual));
 
 	// set to accelerate
 	SetThink( &CApacheHVR::AccelerateThink );
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-void CApacheHVR::AccelerateThink( void )
+void CApacheHVR::AccelerateThink()
 {
 	// check world boundaries
-	if( pev->origin.x < -4096.0f || pev->origin.x > 4096.0f || pev->origin.y < -4096.0f || pev->origin.y > 4096.0f || pev->origin.z < -4096.0f || pev->origin.z > 4096.0f )
+	if( !IsInWorld() )
 	{
 		UTIL_Remove( this );
 		return;
@@ -1112,14 +1303,18 @@ void CApacheHVR::AccelerateThink( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
-#if FEATURE_BLACK_APACHE
+void CApacheHVR::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(100.0f, params);
+}
+
 class CBlkopApache : public CApache
 {
 public:
-	void Spawn();
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("blkop_apache"); }
-	int	DefaultClassify ( void )
+	void Spawn() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("blkop_apache"); }
+	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
 			return CLASS_HUMAN_BLACKOPS;
@@ -1129,13 +1324,12 @@ public:
 
 LINK_ENTITY_TO_CLASS( monster_blkop_apache, CBlkopApache )
 
-void CBlkopApache::Spawn( void )
+void CBlkopApache::Spawn()
 {
 	SpawnImpl("models/blkop_apache.mdl");
 }
 
-void CBlkopApache::Precache( void )
+void CBlkopApache::Precache()
 {
 	PrecacheImpl("models/blkop_apache.mdl", "models/metalplategibs_dark.mdl");
 }
-#endif

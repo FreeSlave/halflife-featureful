@@ -17,15 +17,17 @@
 #if !defined(SPECTATOR_H)
 #define SPECTATOR_H
 
+#include "cbase.h"
+
 class CBaseSpectator : public CBaseEntity 
 {
 public:
-	void Spawn();
-	void SpectatorConnect( void );
-	void SpectatorDisconnect( void );
-	void SpectatorThink( void );
+	void Spawn() override;
+	void SpectatorConnect();
+	void SpectatorDisconnect();
+	void SpectatorThink();
 
 private:
-	void SpectatorImpulseCommand( void );
+	void SpectatorImpulseCommand();
 };
 #endif // SPECTATOR_H

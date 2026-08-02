@@ -2,10 +2,38 @@
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "parsetext.h"
-#include <string.h>
-#include <stdio.h>
+#include "arraysize.h"
+#include "text_utils.h"
+
+#include <algorithm>
 
 extern cvar_t *cl_subtitles;
+
+Caption_t::Caption_t(): profile(NULL), delay(0.0f), duration(0.0f)
+{
+	memset(name, 0, sizeof(name));
+}
+
+Caption_t::Caption_t(const char *captionName): profile(NULL), delay(0.0f), duration(0.0f)
+{
+	strncpyEnsureTermination(name, captionName);
+}
+
+struct CaptionCompare
+{
+	bool operator ()(const Caption_t& lhs, const char* rhs)
+	{
+		return stricmp(lhs.name, rhs) < 0;
+	}
+	bool operator ()(const char* lhs, const Caption_t& rhs)
+	{
+		return stricmp(lhs, rhs.name) < 0;
+	}
+	bool operator ()(const Caption_t& lhs, const Caption_t& rhs)
+	{
+		return stricmp(lhs.name, rhs.name) < 0;
+	}
+};
 
 DECLARE_MESSAGE( m_Caption, Caption )
 
@@ -15,14 +43,12 @@ int CHudCaption::Init()
 {
 	captionsInit = false;
 	memset(subtitles, 0, sizeof(subtitles));
-	memset(profiles, 0, sizeof(profiles));
-	memset(captions, 0, sizeof(captions));
-	profileCount = captionCount = 0;
 	defaultProfile.r = 255;
 	defaultProfile.g = 255;
 	defaultProfile.b = 255;
 	defaultProfile.firstLetter = '_';
 	defaultProfile.secondLetter = '_';
+	defaultCaption.profile = &defaultProfile;
 
 	gHUD.AddHudElem( this );
 	HOOK_MESSAGE(Caption);
@@ -35,11 +61,29 @@ int CHudCaption::Init()
 
 int CHudCaption::VidInit()
 {
+	std::vector<Caption_t> oldCaptions;
+	if (gHUD.IsDeveloperModeOn())
+	{
+		profiles.clear();
+		oldCaptions = std::move(captions);
+		captionsInit = false;
+	}
 	if (!captionsInit)
 	{
 		ParseCaptionsProfilesFile();
 		ParseCaptionsFile();
 		captionsInit = true;
+
+		for (int i=0; i<sub_count; ++i)
+		{
+			if (subtitles[i].caption)
+			{
+				const Caption_t* caption = CaptionLookup(subtitles[i].caption->name);
+				subtitles[i].caption = caption ? caption : &defaultCaption;
+				if (!caption)
+					subtitles[i].timeLeft = 0.0f;
+			}
+		}
 	}
 	m_hVoiceIcon = SPR_Load("sprites/voiceicon.spr");
 	voiceIconWidth = SPR_Width(m_hVoiceIcon, 0);
@@ -94,22 +138,28 @@ int CHudCaption::MsgFunc_Caption(const char *pszName, int iSize, void *pbuf)
 
 	sub.radio = radio != 0;
 
-	if (holdTime <= 0)
+	if (caption->duration > 0)
 	{
-		int perceivedLength = 0;
-		const char* ptr = caption->message;
-		while(*ptr != '\0') {
-			if (*ptr >= 0 && *ptr <= 127)
-				perceivedLength += 2;
-			else
-				perceivedLength ++;
-			++ptr;
-		}
-		holdTime = 2 + perceivedLength/32.0f;
+		sub.timeLeft = caption->duration;
 	}
-	sub.timeLeft = holdTime;
+	else
+	{
+		if (holdTime <= 0)
+		{
+			int perceivedLength = 0;
+			for (auto it = caption->message.begin(); it != caption->message.end(); ++it)
+			{
+				if (*it >= 0 && *it <= 127)
+					perceivedLength += 2;
+				else
+					perceivedLength ++;
+			}
+			holdTime = 2 + perceivedLength/32.0f;
+		}
+		sub.timeLeft = holdTime;
+	}
 	sub.timeBeforeStart = caption->delay;
-	gEngfuncs.Con_DPrintf("New caption: Hold time: %f. Current time: %f\n", sub.timeLeft, gHUD.m_flTime);
+	gEngfuncs.Con_DPrintf("New caption: Hold time: %g. Current time: %g. Delay: %g\n", sub.timeLeft, gHUD.m_flTime, caption->delay);
 
 	CalculateLineOffsets(sub);
 
@@ -120,7 +170,7 @@ int CHudCaption::MsgFunc_Caption(const char *pszName, int iSize, void *pbuf)
 
 void CHudCaption::AddSubtitle(const Subtitle_t &sub)
 {
-	if ((unsigned)sub_count < sizeof(subtitles)/sizeof(subtitles[0]))
+	if ((unsigned)sub_count < ARRAYSIZE(subtitles))
 	{
 		subtitles[sub_count] = sub;
 		sub_count++;
@@ -129,82 +179,42 @@ void CHudCaption::AddSubtitle(const Subtitle_t &sub)
 
 void CHudCaption::CalculateLineOffsets(Subtitle_t &sub)
 {
-	const char* str = sub.caption->message;
+	const char* start = sub.caption->message.c_str();
+	const char* str = start;
 	const int xmax = SUB_MAX_XPOS - SUB_START_XPOS;
 
-	if (CHud::ShouldUseConsoleFont())
+	WordBoundaries boundaries = SplitIntoWordBoundaries(sub.caption->message);
+
+	unsigned int startWordIndex = 0;
+	for (unsigned int j=0; j<boundaries.size();)
 	{
-		WordBoundary boundaries[sizeof(sub.caption->message)/2];
-		unsigned int wordCount = CHud::SplitIntoWordBoundaries(boundaries, sub.caption->message);
+		const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
+		if (width > xmax) {
+			if (j == startWordIndex) {
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[startWordIndex].wordEnd;
+				sub.lineCount++;
 
-		unsigned int startWordIndex = 0;
-		for (unsigned int j=0; j<wordCount;)
-		{
-			const int width = CHud::UtfText::LineWidth(str + boundaries[startWordIndex].wordStart, boundaries[j].wordEnd - boundaries[startWordIndex].wordStart);
-			if (width > xmax) {
-				if (j == startWordIndex) {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[startWordIndex].wordEnd;
-					sub.lineCount++;
-
-					startWordIndex = ++j;
-				} else {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[j-1].wordEnd;
-					sub.lineCount++;
-
-					startWordIndex = j;
-				}
+				startWordIndex = ++j;
 			} else {
-				if (j == wordCount - 1) {
-					sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
-					sub.lineEndOffsets[sub.lineCount] = boundaries[j].wordEnd;
-					sub.lineCount++;
-				}
-
-				++j;
-			}
-
-			if (sub.lineCount >= SUB_MAX_LINES)
-				break;
-		}
-	}
-	else
-	{
-		int lineWidth = 0;
-		const char* currentLine = str;
-		const char* lastSpace = str;
-		do
-		{
-			if (*str == '\0')
-			{
-				sub.lineOffsets[sub.lineCount] = currentLine - sub.caption->message;
-				sub.lineEndOffsets[sub.lineCount] = str - sub.caption->message;
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[j-1].wordEnd;
 				sub.lineCount++;
-				break;
+
+				startWordIndex = j;
 			}
-			lineWidth += gHUD.m_scrinfo.charWidths[(unsigned char)*str];
-			if (*str == ' ' || *str == '\n')
-			{
-				lastSpace = str;
-			}
-			if (lineWidth > xmax)
-			{
-				str = lastSpace;
-			}
-			if (*str == '\n' || lineWidth > xmax)
-			{
-				sub.lineOffsets[sub.lineCount] = currentLine - sub.caption->message;
-				sub.lineEndOffsets[sub.lineCount] = str - sub.caption->message;
+		} else {
+			if (j == boundaries.size() - 1) {
+				sub.lineOffsets[sub.lineCount] = boundaries[startWordIndex].wordStart;
+				sub.lineEndOffsets[sub.lineCount] = boundaries[j].wordEnd;
 				sub.lineCount++;
-				lineWidth = 0;
-				currentLine = str + 1;
-				if (sub.lineCount >= SUB_MAX_LINES)
-					break;
 			}
-			str++;
+
+			++j;
 		}
-		while(true);
+
+		if (sub.lineCount >= SUB_MAX_LINES)
+			break;
 	}
 }
 
@@ -278,21 +288,7 @@ int CHudCaption::Draw(float flTime)
 		overallLineCount += subtitles[i].lineCount;
 		for (j=0; j<subtitles[i].lineCount; ++j)
 		{
-			int lineWidth = 0;
-
-			if (CHud::ShouldUseConsoleFont())
-			{
-				lineWidth += CHud::UtfText::LineWidth(subtitles[i].caption->message + subtitles[i].lineOffsets[j], subtitles[i].lineEndOffsets[j] - subtitles[i].lineOffsets[j]);
-			}
-			else
-			{
-				const char* str = subtitles[i].caption->message + subtitles[i].lineOffsets[j];
-				while( str != subtitles[i].caption->message + subtitles[i].lineEndOffsets[j] )
-				{
-					lineWidth += gHUD.m_scrinfo.charWidths[(unsigned char)*str];
-					str++;
-				}
-			}
+			const int lineWidth = CHud::UtfText::LineWidth(subtitles[i].caption->message.c_str() + subtitles[i].lineOffsets[j], subtitles[i].lineEndOffsets[j] - subtitles[i].lineOffsets[j]);
 
 			if (lineWidth > maxLineWidth)
 				maxLineWidth = lineWidth;
@@ -326,7 +322,7 @@ int CHudCaption::Draw(float flTime)
 				SPR_DrawAdditive( 0, xpos-SUB_BORDER_LENGTH-voiceIconWidth-Q_max(voiceIconWidth/8, 1), ypos + lineHeight/2 - voiceIconWidth/2, NULL );
 			}
 
-			CHud::UtfText::DrawString( xpos, ypos, xmax, sub.caption->message + sub.lineOffsets[j], sub.r, sub.g, sub.b, sub.lineEndOffsets[j] - sub.lineOffsets[j] );
+			CHud::UtfText::DrawString( xpos, ypos, xmax, sub.caption->message.c_str() + sub.lineOffsets[j], sub.r, sub.g, sub.b, sub.lineEndOffsets[j] - sub.lineOffsets[j] );
 			ypos += lineHeight;
 		}
 		ypos += distanceBetweenSubs;
@@ -343,7 +339,7 @@ void CHudCaption::UserCmd_DumpCaptions()
 		if (subtitle.caption)
 		{
 			gEngfuncs.Con_DPrintf("Caption %d: `%s`. Line count: %d. Time left: %f\n",
-							i+1, subtitle.caption->message, subtitle.lineCount, subtitle.timeLeft);
+							i+1, subtitle.caption->message.c_str(), subtitle.lineCount, subtitle.timeLeft);
 		}
 	}
 }
@@ -360,7 +356,7 @@ static void ParseCaptionColor(const char* pfile, int& i, int length, CaptionProf
 	int rgb[3];
 	for (int j=0; j<3; ++j)
 	{
-		SkipSpaces(pfile, i, length);
+		SkipSpacesAndTabs(pfile, i, length);
 		rgb[j] = atoi(pfile + i);
 		ConsumeNonSpaceCharacters(pfile, i, length);
 	}
@@ -411,30 +407,21 @@ bool CHudCaption::ParseCaptionsProfilesFile()
 				char secondLetter = *(pfile + currentIdStart + 1);
 				if (IsLatinLowerCase(firstLetter) && IsLatinLowerCase(secondLetter))
 				{
-					if (profileCount >= CAPTION_PROFILES_MAX)
+					CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
+					if (existingProfile)
 					{
-						gEngfuncs.Con_Printf("Too many caption profiles! Max is %d\n", CAPTION_PROFILES_MAX);
-						break;
+						gEngfuncs.Con_Printf("Multiple definitions of caption profile with ID '%c%c'! Skipping.\n", firstLetter, secondLetter);
+						ConsumeLine(pfile, i, length);
+						continue;
 					}
-					else
-					{
-						CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
-						if (existingProfile)
-						{
-							gEngfuncs.Con_Printf("Multiple definitions of caption profile with ID '%c%c'! Skipping.\n", firstLetter, secondLetter);
-							ConsumeLine(pfile, i, length);
-							continue;
-						}
 
-						CaptionProfile_t& profile = profiles[profileCount];
-						profile.firstLetter = firstLetter;
-						profile.secondLetter = secondLetter;
+					CaptionProfile_t profile;
+					profile.firstLetter = firstLetter;
+					profile.secondLetter = secondLetter;
+					ParseCaptionColor(pfile, i, length, profile);
+					profiles.push_back(profile);
 
-						ParseCaptionColor(pfile, i, length, profile);
-
-						profileCount++;
-						ReportParsedCaptionProfile(profile);
-					}
+					ReportParsedCaptionProfile(profile);
 				}
 				else
 				{
@@ -484,7 +471,7 @@ bool CHudCaption::ParseCaptionsFile()
 		{
 			currentTokenStart = i;
 			ConsumeNonSpaceCharacters(pfile, i, length);
-			int tokenLength = i-currentTokenStart;
+			unsigned int tokenLength = i-currentTokenStart;
 			if (!tokenLength || tokenLength >= sizeof(captions[0].name))
 			{
 				gEngfuncs.Con_Printf("invalid caption name length! Max is %d\n", sizeof(captions[0].name)-1);
@@ -498,163 +485,137 @@ bool CHudCaption::ParseCaptionsFile()
 			// This code is left for compatibility with existing mods. We should define caption profiles in captions_profiles.txt now instead!
 			if (tokenLength == 2 && IsLatinLowerCase(captionName[0]) && IsLatinLowerCase(captionName[1]))
 			{
-				if (profileCount >= CAPTION_PROFILES_MAX)
+				char firstLetter = captionName[0];
+				char secondLetter = captionName[1];
+				CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
+				if (existingProfile)
 				{
-					ConsumeLine(pfile, i, length);
-					gEngfuncs.Con_Printf("Too many caption profiles! Max is %d\n", CAPTION_PROFILES_MAX);
+					gEngfuncs.Con_Printf("Redefining caption profile with ID '%c%c'!.\n", firstLetter, secondLetter);
+					ParseCaptionColor(pfile, i, length, *existingProfile);
+					ReportParsedCaptionProfile(*existingProfile);
 				}
 				else
 				{
-					char firstLetter = captionName[0];
-					char secondLetter = captionName[1];
-					CaptionProfile_t* existingProfile = CaptionProfileLookup(firstLetter, secondLetter);
-					if (existingProfile)
-					{
-						gEngfuncs.Con_Printf("Redefining caption profile with ID '%c%c'!.\n", firstLetter, secondLetter);
-					}
-
-					CaptionProfile_t& profile = existingProfile ? *existingProfile : profiles[profileCount];
+					CaptionProfile_t profile;
 					profile.firstLetter = firstLetter;
 					profile.secondLetter = secondLetter;
-
 					ParseCaptionColor(pfile, i, length, profile);
-
-					if (!existingProfile)
-						profileCount++;
+					profiles.push_back(profile);
 					ReportParsedCaptionProfile(profile);
 				}
 			}
 			//
 			else
 			{
-				if (captionCount >= CAPTIONS_MAX)
-				{
-					ConsumeLine(pfile, i, length);
-					gEngfuncs.Con_Printf("Too many captions! Max is %d\n", CAPTIONS_MAX);
-				}
-				else
-				{
-					Caption_t& caption = captions[captionCount];
-					strncpy(caption.name, captionName, sizeof(caption.name));
+				Caption_t caption(captionName);
 
-					SkipSpaces(pfile, i, length);
+				do {
+					SkipSpacesAndTabs(pfile, i, length);
 					currentTokenStart = i;
 					ConsumeNonSpaceCharacters(pfile, i, length);
 
 					tokenLength = i-currentTokenStart;
-					if (tokenLength > 0 && pfile[currentTokenStart] >= '1' && pfile[currentTokenStart] <= '9')
-					{
-						char numbuf[8];
-						strncpy(numbuf, pfile + currentTokenStart, Q_max(tokenLength, sizeof(numbuf)-1));
-						numbuf[sizeof(numbuf)-1] = '\0';
+				} while (ParseFloatParameter(pfile, currentTokenStart, tokenLength, caption));
 
-						caption.delay = atof(numbuf);
-
-						SkipSpaces(pfile, i, length);
-						currentTokenStart = i;
-						ConsumeNonSpaceCharacters(pfile, i, length);
-
-						tokenLength = i-currentTokenStart;
-					}
-
-					if (tokenLength != 2 || !IsLatinLowerCase(pfile[currentTokenStart]) || !IsLatinLowerCase(pfile[currentTokenStart+1]))
-					{
-						gEngfuncs.Con_Printf("invalid caption profile for %s! Must be 2 lowercase latin characters\n", caption.name);
-						ConsumeLine(pfile, i, length);
-						continue;
-					}
-
-					char firstLetter = pfile[currentTokenStart];
-					char secondLetter = pfile[currentTokenStart+1];
-					caption.profile = CaptionProfileLookup(firstLetter, secondLetter);
-
-					if (!caption.profile)
-					{
-						gEngfuncs.Con_Printf("Could not find a caption profile %c%c for %s\n", firstLetter, secondLetter, caption.name);
-					}
-
-					SkipSpaces(pfile, i, length);
-					currentTokenStart = i;
+				if (tokenLength != 2 || !IsLatinLowerCase(pfile[currentTokenStart]) || !IsLatinLowerCase(pfile[currentTokenStart+1]))
+				{
+					gEngfuncs.Con_Printf("invalid caption profile for \"%s\"! Must be 2 lowercase latin characters\n", caption.name);
 					ConsumeLine(pfile, i, length);
-
-					tokenLength = i-currentTokenStart;
-
-					if (!tokenLength || tokenLength >= sizeof(caption.message))
-					{
-						gEngfuncs.Con_Printf("Invalid caption message length for %s! Max is %d\n", caption.name, sizeof(caption.message)-1);
-						continue;
-					}
-
-					strncpy(caption.message, pfile + currentTokenStart, tokenLength);
-					caption.message[tokenLength] = '\0';
-
-					captionCount++;
-					//gEngfuncs.Con_DPrintf("Parsed a caption. Name: %s. Profile: %c%c. Text: %s\n", caption.name, caption.profile->firstLetter, caption.profile->secondLetter, caption.message);
+					continue;
 				}
+
+				char firstLetter = pfile[currentTokenStart];
+				char secondLetter = pfile[currentTokenStart+1];
+				caption.profile = CaptionProfileLookup(firstLetter, secondLetter);
+
+				if (!caption.profile)
+				{
+					gEngfuncs.Con_Printf("Could not find a caption profile '%c%c' for %s\n", firstLetter, secondLetter, caption.name);
+				}
+
+				SkipSpacesAndTabs(pfile, i, length);
+				currentTokenStart = i;
+				ConsumeLine(pfile, i, length);
+
+				tokenLength = i-currentTokenStart;
+
+				caption.message = std::string(pfile + currentTokenStart, tokenLength);
+				captions.push_back(caption);
+				//gEngfuncs.Con_DPrintf("Parsed a caption. Name: %s. Profile: %c%c. Text: %s\n", caption.name, caption.profile->firstLetter, caption.profile->secondLetter, caption.message);
 			}
 		}
 	}
-	SortCaptions();
+	std::sort(captions.begin(), captions.end(), CaptionCompare());
 
 	gEngfuncs.COM_FreeFile(pfile);
 	return true;
 }
 
-void CHudCaption::SortCaptions()
+bool CHudCaption::ParseFloatParameter(char* pfile, int& currentTokenStart, unsigned int& tokenLength, Caption_t& caption)
 {
-	int i, j;
+	if (tokenLength <= 0)
+		return false;
+	char c = pfile[currentTokenStart];
 
-	for( i = 0; i < captionCount; i++ )
+	bool expectDuration = false;
+	bool expectDelay = false;
+	if (c == '!')
 	{
-		for( j = i + 1; j < captionCount; j++ )
-		{
-			if( strcmp( captions[i].name, captions[j].name ) > 0 )
-			{
-				Caption_t tmp = captions[i];
-				captions[i] = captions[j];
-				captions[j] = tmp;
-			}
-		}
+		if (tokenLength <= 1)
+			return false;
+		currentTokenStart++;
+		tokenLength--;
+		expectDuration = true;
 	}
+	else if (c == '^')
+	{
+		if (tokenLength <= 1)
+			return false;
+		currentTokenStart++;
+		tokenLength--;
+		expectDelay = true;
+	}
+	// deprecated way to set delay, used in Induction, left for compatibility
+	else if (c >= '1' && c <= '9')
+	{
+		expectDelay = true;
+	}
+
+	if (!expectDelay && !expectDuration) {
+		return false;
+	}
+
+	char numbuf[8];
+	strncpyEnsureTermination(numbuf, pfile + currentTokenStart, Q_min(tokenLength+1, sizeof(numbuf)));
+
+	float value = atof(numbuf);
+	if (expectDuration)
+	{
+		caption.duration = value;
+	}
+	else if (expectDelay)
+	{
+		caption.delay = value;
+	}
+	return true;
 }
 
 const Caption_t* CHudCaption::CaptionLookup(const char *name)
 {
-	int left, right, pivot;
-	int val;
-
-	left = 0;
-	right = captionCount - 1;
-
-	while( left <= right )
-	{
-		pivot = ( left + right ) / 2;
-
-		val = stricmp( name, captions[pivot].name );
-		if( val == 0 )
-		{
-			return &captions[pivot];
-		}
-		else if( val > 0 )
-		{
-			left = pivot + 1;
-		}
-		else if( val < 0 )
-		{
-			right = pivot - 1;
-		}
-	}
-	return NULL;
+	auto result = std::equal_range(captions.begin(), captions.end(), name, CaptionCompare());
+	if (result.first != result.second)
+		return &(*result.first);
+	return nullptr;
 }
 
 CaptionProfile_t* CHudCaption::CaptionProfileLookup(char firstLetter, char secondLetter)
 {
-	for (int k=0; k<profileCount; ++k)
+	for (CaptionProfile_t& profile : profiles)
 	{
-		if (profiles[k].firstLetter == firstLetter && profiles[k].secondLetter == secondLetter)
+		if (profile.firstLetter == firstLetter && profile.secondLetter == secondLetter)
 		{
-			return &profiles[k];
+			return &profile;
 		}
 	}
-	return NULL;
+	return nullptr;
 }

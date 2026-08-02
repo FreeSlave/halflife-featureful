@@ -16,26 +16,23 @@
 #if !defined(__AMMO_H__)
 #define __AMMO_H__
 
-#define MAX_WEAPON_NAME 128
+#include "common_limits.h"
 
 #define WEAPON_FLAGS_SELECTONEMPTY	1
 
 #define WEAPON_IS_ONTARGET 0x40
-
-#define WEAPON_SLOTS_HARDLIMIT 7
 
 struct WEAPON
 {
 	char	szName[MAX_WEAPON_NAME];
 	int		iAmmoType;
 	int		iAmmo2Type;
-	int		iMax1;
-	int		iMax2;
 	int		iSlot;
 	int		iSlotPos;
 	int		iFlags;
 	int		iId;
 	int		iClip;
+	int		iMaxClip;
 
 	int		iCount;		// # of itesm in plist
 

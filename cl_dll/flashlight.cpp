@@ -21,17 +21,13 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-#include "mod_features.h"
-
-#include <string.h>
-#include <stdio.h>
 
 DECLARE_MESSAGE( m_Flash, FlashBat )
 DECLARE_MESSAGE( m_Flash, Flashlight )
 
 #define BAT_NAME "sprites/%d_Flashlight.spr"
 
-int CHudFlashlight::Init( void )
+int CHudFlashlight::Init()
 {
 	m_fFade = 0;
 	m_fOn = 0;
@@ -46,7 +42,7 @@ int CHudFlashlight::Init( void )
 	return 1;
 }
 
-void CHudFlashlight::Reset( void )
+void CHudFlashlight::Reset()
 {
 	m_fFade = 0;
 	m_fOn = 0;
@@ -54,7 +50,7 @@ void CHudFlashlight::Reset( void )
 	m_flBat = 1.0f;
 }
 
-int CHudFlashlight::VidInit( void )
+int CHudFlashlight::VidInit()
 {
 	int HUD_flash_empty = gHUD.GetSpriteIndex( "flash_empty" );
 	int HUD_flash_full = gHUD.GetSpriteIndex( "flash_full" );
@@ -113,6 +109,7 @@ int CHudFlashlight::Draw( float flTime )
 			gMobileEngfuncs->pfnTouchHideButtons( "flashlight", !show );
 		}
 	}
+	bottomCoordinate = 0;
 	if( !show )
 		return 1;
 
@@ -148,15 +145,14 @@ int CHudFlashlight::Draw( float flTime )
 	if (!emptySprite || !fullSprite)
 		return 1;
 
-	wrect_t* emptyFlash = shouldDrawNvg ? m_prc3 : m_prc1;
-	wrect_t* fullFlash = shouldDrawNvg ? m_prc4 : m_prc2;
+	const wrect_t* emptyFlash = shouldDrawNvg ? m_prc3 : m_prc1;
+	const wrect_t* fullFlash = shouldDrawNvg ? m_prc4 : m_prc2;
 
 	y = ( emptyFlash->bottom - fullFlash->top ) / 2;
 	x = CHud::Renderer().PerceviedScreenWidth() - m_iWidth - m_iWidth / 2 ;
 
 	// Draw the flashlight casing
-	CHud::Renderer().SPR_Set( emptySprite, r, g, b );
-	CHud::Renderer().SPR_DrawAdditive( 0,  x, y, emptyFlash );
+	CHud::Renderer().SPR_DrawAdditive( emptySprite, r, g, b,  x, y, emptyFlash );
 
 	// Don't draw a beam for nvg
 	if( m_fOn && m_hBeam && !nvgIsOn )
@@ -164,8 +160,7 @@ int CHudFlashlight::Draw( float flTime )
 		// draw the flashlight beam
 		x = CHud::Renderer().PerceviedScreenWidth() - m_iWidth / 2;
 
-		CHud::Renderer().SPR_Set( m_hBeam, r, g, b );
-		CHud::Renderer().SPR_DrawAdditive( 0, x, y, m_prcBeam );
+		CHud::Renderer().SPR_DrawAdditive( m_hBeam, r, g, b, x, y, m_prcBeam );
 	}
 
 	// draw the flashlight energy level
@@ -176,9 +171,14 @@ int CHudFlashlight::Draw( float flTime )
 		rc = *fullFlash;
 		rc.left += iOffset;
 
-		CHud::Renderer().SPR_Set( fullSprite, r, g, b );
-		CHud::Renderer().SPR_DrawAdditive( 0, x + iOffset, y, &rc );
+		CHud::Renderer().SPR_DrawAdditive( fullSprite, r, g, b, x + iOffset, y, &rc );
 	}
 
+	bottomCoordinate = y + (emptyFlash->bottom - emptyFlash->top);
 	return 1;
+}
+
+int CHudFlashlight::RightmostCoordinate()
+{
+	return CHud::Renderer().PerceviedScreenWidth() - m_iWidth / 2;
 }

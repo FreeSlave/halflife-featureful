@@ -10,4 +10,6 @@
 #define SF_SUIT_NOLOGON		0x0002
 #define SF_SUIT_FLASHLIGHT 0x0004
 
+#define INVENTORY_DONT_SHOW_IN_HISTORY ( 1 << 0 )
+
 #endif

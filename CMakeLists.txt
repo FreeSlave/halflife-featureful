@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+set (CMAKE_CXX_STANDARD 11)
+
 # 3.9 added captures in if(MATCHES)
 cmake_minimum_required(VERSION 3.9)
 
@@ -31,6 +33,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 include(CheckIncludeFile)
+include(CheckFunctionExists)
 include(CheckCSourceCompiles)
 include(VSForceXPToolchain) # Force XP toolchain for Visual Studio
 include(CheckIPOSupported)
@@ -41,13 +44,16 @@ project (HLSDK-FEATUREFUL)
 # USER DEFINES \
 ################\
 option(USE_VGUI "Enable VGUI1." OFF)
-option(USE_VGUI2 "Enable VGUI2. UNDONE" OFF)
-option(USE_NOVGUI_MOTD "Prefer non-VGUI MOTD when USE_VGUI is enabled" OFF)
-option(USE_NOVGUI_SCOREBOARD "Prefer non-VGUI Scoreboard when USE_VGUI is enabled" OFF)
 option(USE_VOICEMGR "Enable VOICE MANAGER." OFF)
 option(BUILD_CLIENT "Build client dll" ON)
 option(BUILD_SERVER "Build server dll" ON)
+option(LTO "Enable interprocedural optimization" OFF)
 option(POLLY "Enable pollyhedral optimization" OFF)
+option(ANDROID_APK "Enable APK styled deploy" OFF)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	set(CMAKE_INSTALL_PREFIX "")
+endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4 OR
 	((WIN32 OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -88,12 +94,15 @@ endif()
 # MAIN BUILD CODE \
 ###################\
 
-file(STRINGS "mod_options.txt" MOD_OPTIONS_STRINGS REGEX "^([A-Za-z0-9_]+)=([A-Za-z0-9_]+)\ \#\ (.*)$")
+CHECK_FUNCTION_EXISTS(strlcpy HAVE_STRLCPY)
+CHECK_FUNCTION_EXISTS(strlcat HAVE_STRLCAT)
+
+file(STRINGS "mod_options.txt" MOD_OPTIONS_STRINGS REGEX "^([A-Za-z0-9_-]+)=([A-Za-z0-9_-]+)\ \#\ (.*)$")
 foreach(LINE IN LISTS MOD_OPTIONS_STRINGS)
 	# file() itself doesn't populate CMAKE_MATCH_<n>, so
 	# reparse the string
 
-	if(${LINE} MATCHES "^([A-Za-z0-9_]+)=([A-Za-z0-9_]+)\ \#\ (.*)$")
+	if(${LINE} MATCHES "^([A-Za-z0-9_-]+)=([A-Za-z0-9_-]+)\ \#\ (.*)$")
 		# detect boolean options
 		if(${CMAKE_MATCH_2} STREQUAL "ON" OR ${CMAKE_MATCH_2} STREQUAL "OFF")
 			option(${CMAKE_MATCH_1} "${CMAKE_MATCH_3}" ${CMAKE_MATCH_2})
@@ -106,10 +115,17 @@ foreach(LINE IN LISTS MOD_OPTIONS_STRINGS)
 				message(STATUS ${CMAKE_MATCH_3} " is disabled")
 			endif()
 		else()
+			message(STATUS ${CMAKE_MATCH_3} " set to " ${CMAKE_MATCH_2})
 			set(${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE STRING "${CMAKE_MATCH_3}")
 		endif()
 	endif()
 endforeach()
+
+if(ANDROID_APK)
+	set(GAMEDIR ".")
+	set(SERVER_INSTALL_DIR ".")
+	set(CLIENT_INSTALL_DIR ".")
+endif()
 
 if(HLDEMO_BUILD AND OEM_BUILD)
 	message(FATAL_ERROR "Don't mix Demo and OEM builds!")
@@ -117,7 +133,7 @@ endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT 64BIT)
 	if(MSVC)
-		error("UNDONE: set 32 build flags")
+		message(FATAL_ERROR "Add \"-D64BIT=ON\" to build 64-bit version of SDK or add \"-A Win32\" if you want to build a 32-bit version")
 	else()
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
@@ -128,6 +144,21 @@ endif()
 
 if(64BIT AND CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "You enabled XASH_64BIT, but compiler can't create 64 bit code!")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+	find_program(TERMUX_INFO termux-info)
+	if(NOT TERMUX_INFO)
+		# no-op
+	else()
+		# set through flags because otherwise macro won't be seen in tests
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__TERMUX__=1")
+		set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D__TERMUX__=1")
+	endif()
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "iOS" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+	set(CMAKE_CXX_STANDARD 14)
 endif()
 
 # Xash3D FWGS Library Naming Scheme compliance
@@ -156,11 +187,13 @@ if(VITA)
 	add_compile_options(-fno-use-cxa-atexit)
 endif()
 
-check_ipo_supported(RESULT HAVE_LTO OUTPUT LTO_ERROR)
-if(HAVE_LTO)
-	message(STATUS "IPO / LTO enabled")
-else()
-	message(STATUS "IPO / LTO not supported: <${LTO_ERROR}>")
+if(LTO)
+	check_ipo_supported(RESULT HAVE_LTO OUTPUT LTO_ERROR)
+	if(HAVE_LTO)
+		message(STATUS "IPO / LTO enabled")
+	else()
+		message(STATUS "IPO / LTO not supported: ${LTO_ERROR}")
+	endif()
 endif()
 
 check_include_file("tgmath.h" HAVE_TGMATH_H)
@@ -175,6 +208,8 @@ if(HAVE_TGMATH_H)
 		add_definitions(-DHAVE_TGMATH_H)
 	endif()
 endif()
+
+add_subdirectory(game_shared)
 
 if(BUILD_CLIENT)
 	message(STATUS "Building client enabled")

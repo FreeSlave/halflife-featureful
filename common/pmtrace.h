@@ -16,9 +16,12 @@
 #if !defined(PM_TRACE_H)
 #define PM_TRACE_H
 
+#include "common_types.h"
+#include "vector.h"
+
 typedef struct
 {
-	vec3_t	normal;
+	Vector	normal;
 	float	dist;
 } pmplane_t;
 
@@ -30,10 +33,10 @@ struct pmtrace_s
 	qboolean	startsolid;	// if true, the initial point was in a solid area
 	qboolean	inopen, inwater;  // End point is in empty space or in water
 	float	fraction;		// time completed, 1.0 = didn't hit anything
-	vec3_t	endpos;		// final position
+	Vector	endpos;		// final position
 	pmplane_t	plane;		// surface normal at impact
 	int	ent;		// entity at impact
-	vec3_t	deltavelocity;	// Change in player's velocity caused by impact.  
+	Vector	deltavelocity;	// Change in player's velocity caused by impact.
 				// Only run on server.
 	int	hitgroup;
 };

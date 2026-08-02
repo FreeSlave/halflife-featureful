@@ -44,12 +44,12 @@ typedef struct physent_s
 {
 	char		name[32];		// Name of model, or "player" or "world".
 	int		player;
-	vec3_t		origin;		// Model's origin in world coordinates.
+	Vector		origin;		// Model's origin in world coordinates.
 	struct model_s	*model;		// only for bsp models
 	struct model_s	*studiomodel;	// SOLID_BBOX, but studio clip intersections.
-	vec3_t		mins, maxs;	// only for non-bsp models
+	Vector		mins, maxs;	// only for non-bsp models
 	int		info;		// For client or server to use to identify (index into edicts or cl_entities)
-	vec3_t		angles;		// rotated entities need this info for hull testing to work.
+	Vector		angles;		// rotated entities need this info for hull testing to work.
 
 	int		solid;		// Triggers and func_door type WATER brushes are SOLID_NOT
 	int		skin;		// BSP Contents for such things like fun_door water brushes.
@@ -76,10 +76,10 @@ typedef struct physent_s
 	float		fuser2;
 	float		fuser3;
 	float		fuser4;
-	vec3_t		vuser1;
-	vec3_t		vuser2;
-	vec3_t		vuser3;
-	vec3_t		vuser4;
+	Vector		vuser1;
+	Vector		vuser2;
+	Vector		vuser3;
+	Vector		vuser4;
 } physent_t;
 
 typedef struct playermove_s
@@ -91,18 +91,18 @@ typedef struct playermove_s
 	float		time;		// realtime on host, for reckoning duck timing
 	float		frametime;	// Duration of this frame
 
-	vec3_t		forward, right, up;	// Vectors for angles
+	Vector		forward, right, up;	// Vectors for angles
 
 	// player state
-	vec3_t		origin;		// Movement origin.
-	vec3_t		angles;		// Movement view angles.
-	vec3_t		oldangles;	// Angles before movement view angles were looked at.
-	vec3_t		velocity;		// Current movement direction.
-	vec3_t		movedir;		// For waterjumping, a forced forward velocity so we can fly over lip of ledge.
-	vec3_t		basevelocity;	// Velocity of the conveyor we are standing, e.g.
+	Vector		origin;		// Movement origin.
+	Vector		angles;		// Movement view angles.
+	Vector		oldangles;	// Angles before movement view angles were looked at.
+	Vector		velocity;		// Current movement direction.
+	Vector		movedir;		// For waterjumping, a forced forward velocity so we can fly over lip of ledge.
+	Vector		basevelocity;	// Velocity of the conveyor we are standing, e.g.
 	
 	// For ducking/dead
-	vec3_t		view_ofs;		// Our eye position.
+	Vector		view_ofs;		// Our eye position.
 	float		flDuckTime;	// Time we started duck
 	qboolean		bInDuck;		// In process of ducking or ducked already?
 	
@@ -111,7 +111,7 @@ typedef struct playermove_s
 	int		iStepLeft;
 
 	float		flFallVelocity;
-	vec3_t		punchangle;
+	Vector		punchangle;
 
 	float		flSwimTime;
 	float		flNextPrimaryAttack;
@@ -149,10 +149,10 @@ typedef struct playermove_s
 	float		fuser2;
 	float		fuser3;
 	float		fuser4;
-	vec3_t		vuser1;
-	vec3_t		vuser2;
-	vec3_t		vuser3;
-	vec3_t		vuser4;
+	Vector		vuser1;
+	Vector		vuser2;
+	Vector		vuser3;
+	Vector		vuser4;
 
 	// world state
 
@@ -179,16 +179,16 @@ typedef struct playermove_s
 	char		physinfo[MAX_PHYSINFO_STRING]; // Physics info string
 
 	struct movevars_s	*movevars;
-	vec3_t		player_mins[4];
-	vec3_t		player_maxs[4];
+	Vector		player_mins[4];
+	Vector		player_maxs[4];
 	
 	// Common functions
 	const char	*(*PM_Info_ValueForKey) ( const char *s, const char *key );
 	void		(*PM_Particle)( float *origin, int color, float life, int zpos, int zvel );
 	int		(*PM_TestPlayerPosition)( float *pos, pmtrace_t *ptrace );
-	void		(*Con_NPrintf)( int idx, char *fmt, ... );
-	void		(*Con_DPrintf)( char *fmt, ... );
-	void		(*Con_Printf)( char *fmt, ... );
+	void		(*Con_NPrintf)( int idx, const char *fmt, ... );
+	void		(*Con_DPrintf)( const char *fmt, ... );
+	void		(*Con_Printf)( const char *fmt, ... );
 	double		(*Sys_FloatTime)( void );
 	void		(*PM_StuckTouch)( int hitent, pmtrace_t *ptraceresult );
 	int		(*PM_PointContents)( float *p, int *truecontents /*filled in if this is non-null*/ );
@@ -207,9 +207,9 @@ typedef struct playermove_s
 	void		(*PM_GetModelBounds)( struct model_s *mod, float *mins, float *maxs );
 	void		*(*PM_HullForBsp)( physent_t *pe, float *offset );
 	float		(*PM_TraceModel)( physent_t *pEnt, float *start, float *end, trace_t *trace );
-	int		(*COM_FileSize)( char *filename );
-	byte		*(*COM_LoadFile)( char *path, int usehunk, int *pLength );
-	void		(*COM_FreeFile)( void *buffer );
+	int		(*COM_FileSize)( const char *filename );
+	byte		*(*COM_LoadFile)( const char *path, int usehunk, int *pLength );
+	void		(*COM_FreeFile)( const void *buffer );
 	char		*(*memfgets)( byte *pMemFile, int fileSize, int *pFilePos, char *pBuffer, int bufferSize );
 
 	// Functions

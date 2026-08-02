@@ -15,6 +15,8 @@ class CGraph_Retail
 {
 public:
 
+	typedef int32_t BOOL;
+
 	BOOL        m_fGraphPresent;
 	BOOL        m_fGraphPointersSet;
 	BOOL        m_fRoutingComplete;

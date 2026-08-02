@@ -1,0 +1,12 @@
+#pragma once
+#ifndef COMBATTEXT_H
+#define COMBATTEXT_H
+
+enum
+{
+	COMBATTEXT_NORMAL = 0,
+	COMBATTEXT_CRITICAL,
+	COMBATTEXT_POWERSHIELD,
+};
+
+#endif

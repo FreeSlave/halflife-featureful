@@ -18,10 +18,10 @@ CGameStudioModelRenderer
 class CGameStudioModelRenderer : public CStudioModelRenderer
 {
 public:
-	CGameStudioModelRenderer( void );
+	CGameStudioModelRenderer();
 
 	// Set up model bone positions
-	virtual void StudioSetupBones ( void );	
+	virtual void StudioSetupBones ();	
 
 	// Estimate gait frame for player
 	virtual void StudioEstimateGait ( entity_state_t *pplayer );

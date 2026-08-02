@@ -6,7 +6,6 @@
 // Spirit of Half-Life's particle system uses "locus triggers" to tell
 // entities where to perform their actions.
 
-#include "extdll.h"
 #include "util.h"
 #include "cbase.h"
 #include "locus.h"
@@ -18,7 +17,7 @@ bool IsLikelyNumber(const char* szText)
 	return (*szText >= '0' && *szText <= '9') || *szText == '-';
 }
 
-bool TryCalcLocus_Position( CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result )
+bool TryCalcLocus_Position(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError)
 {
 	if (IsLikelyNumber(szText))
 	{ // it's a vector
@@ -29,17 +28,21 @@ bool TryCalcLocus_Position( CBaseEntity *pEntity, CBaseEntity *pLocus, const cha
 	}
 
 	CBaseEntity *pCalc = UTIL_FindEntityByTargetname(NULL, szText, pLocus);
-
 	if (pCalc != NULL)
 	{
 		return pCalc->CalcPosition( pLocus, &result );
 	}
 
-	ALERT(at_error, "%s \"%s\" has bad or missing calc_position value \"%s\"\n", STRING(pEntity->pev->classname), STRING(pEntity->pev->targetname), szText);
+	if (showError)
+	{
+		const char* requesterClassname = pEntity ? STRING(pEntity->pev->classname) : "";
+		const char* requesterTargetname = pEntity ? STRING(pEntity->pev->targetname) : "";
+		ALERT(at_error, "%s \"%s\" has bad or missing [LP] value \"%s\"\n", requesterClassname, requesterTargetname, szText);
+	}
 	return false;
 }
 
-bool TryCalcLocus_Velocity(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText , Vector& result)
+bool TryCalcLocus_Velocity(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError)
 {
 	if (IsLikelyNumber(szText))
 	{ // it's a vector
@@ -50,17 +53,21 @@ bool TryCalcLocus_Velocity(CBaseEntity *pEntity, CBaseEntity *pLocus, const char
 	}
 
 	CBaseEntity *pCalc = UTIL_FindEntityByTargetname(NULL, szText, pLocus);
-		
 	if (pCalc != NULL)
 	{
 		return pCalc->CalcVelocity( pLocus, &result );
 	}
-		
-	ALERT(at_error, "%s \"%s\" has bad or missing calc_velocity value \"%s\"\n", STRING(pEntity->pev->classname), STRING(pEntity->pev->targetname), szText);
+
+	if (showError)
+	{
+		const char* requesterClassname = pEntity ? STRING(pEntity->pev->classname) : "";
+		const char* requesterTargetname = pEntity ? STRING(pEntity->pev->targetname) : "";
+		ALERT(at_error, "%s \"%s\" has bad or missing [LV] value \"%s\"\n", requesterClassname, requesterTargetname, szText);
+	}
 	return false;
 }
 
-bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText , float& result)
+bool TryCalcLocus_RatioNonRandom(CBaseEntity *pLocus, const char *szText, float& result, bool showError)
 {
 	if (IsLikelyNumber(szText))
 	{ // assume it's a float
@@ -75,7 +82,65 @@ bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText , float& result)
 		return pCalc->CalcRatio( pLocus, &result );
 	}
 
-	ALERT(at_error, "Bad or missing calc_ratio entity \"%s\"\n", szText);
+	if (showError)
+	{
+		ALERT(at_error, "Bad or missing [LR] value \"%s\"\n", szText);
+	}
+	return false;
+}
+
+bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText, float& result, bool showError)
+{
+	for (int i = 0; szText[i]; i++)
+	{
+		if (szText[i] == '.' && szText[i + 1] == '.')
+		{
+			char szComponentName[128];
+			strncpy(szComponentName, szText, i);
+			szComponentName[i] = '\0';
+
+			float A, B;
+			bool bA = TryCalcLocus_RatioNonRandom(pLocus, szComponentName, A, showError);
+			bool bB = TryCalcLocus_RatioNonRandom(pLocus, &szText[i + 2], B, showError);
+
+			if (bA && bB)
+				result = RANDOM_FLOAT(A, B);
+			else if (bA)
+				result = A;
+			else if (bB)
+				result = B;
+			else
+				return false;
+
+			return true;
+		}
+	}
+	return TryCalcLocus_RatioNonRandom(pLocus, szText, result, showError);
+}
+
+bool TryCalcLocus_Color(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError)
+{
+	if (IsLikelyNumber(szText))
+	{ // it's a vector
+		Vector tmp;
+		UTIL_StringToRandomVector( (float *)tmp, szText );
+		result = tmp;
+		return true;
+	}
+
+	CBaseEntity *pCalc = UTIL_FindEntityByTargetname(NULL, szText, pLocus);
+	if (pCalc != NULL)
+	{
+		result = pCalc->pev->rendercolor;
+		return true;
+	}
+
+	if (showError)
+	{
+		const char* requesterClassname = pEntity ? STRING(pEntity->pev->classname) : "";
+		const char* requesterTargetname = pEntity ? STRING(pEntity->pev->targetname) : "";
+		ALERT(at_error, "%s \"%s\" has bad or missing color value \"%s\"\n", requesterClassname, requesterTargetname, szText);
+	}
 	return false;
 }
 
@@ -87,13 +152,13 @@ bool TryCalcLocus_Ratio(CBaseEntity *pLocus, const char *szText , float& result)
 class CLocusAlias : public CBaseAlias
 {
 public:
-	void	PostSpawn( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void	PostSpawn();
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	CBaseEntity		*FollowAlias( CBaseEntity *pFrom );
-	void	FlushChanges( void );
+	void	FlushChanges();
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	EHANDLE	m_hValue;
@@ -109,7 +174,7 @@ TYPEDESCRIPTION	CLocusAlias::m_SaveData[] =
 LINK_ENTITY_TO_CLASS( locus_alias, CLocusAlias );
 IMPLEMENT_SAVERESTORE( CLocusAlias, CBaseAlias );
 
-void CLocusAlias::PostSpawn( void )
+void CLocusAlias::PostSpawn()
 {
 	m_hValue = UTIL_FindEntityByTargetname( NULL, STRING(pev->netname) );
 }
@@ -120,7 +185,7 @@ void CLocusAlias::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 	UTIL_AddToAliasList( this );
 }
 
-void CLocusAlias::FlushChanges( void )
+void CLocusAlias::FlushChanges()
 {
 	m_hValue = m_hChangeTo;
 	m_hChangeTo = NULL;
@@ -156,14 +221,12 @@ CBaseEntity *CLocusAlias::FollowAlias( CBaseEntity *pFrom )
 class CLocusBeam : public CPointEntity
 {
 public:
-	void	Spawn( void );
-	void	Precache( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-
-	void KeyValue( KeyValueData *pkvd );
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-
+	void	Spawn() override;
+	void	Precache() override;
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	void	KeyValue( KeyValueData *pkvd ) override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszSprite;
@@ -208,77 +271,77 @@ void CLocusBeam::KeyValue( KeyValueData *pkvd )
 	if (FStrEq(pkvd->szKeyName, "m_iszSprite"))
 	{
 		m_iszSprite = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszTargetName"))
 	{
 		m_iszTargetName = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszStart"))
 	{
 		m_iszStart = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszEnd"))
 	{
 		m_iszEnd = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iWidth"))
 	{
 		m_iWidth = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iDistortion"))
 	{
 		m_iDistortion = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fFrame"))
 	{
 		m_fFrame = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iScrollRate"))
 	{
 		m_iScrollRate = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fDuration"))
 	{
 		m_fDuration = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fDamage"))
 	{
 		m_fDamage = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iDamageType"))
 	{
 		m_iDamageType = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iStartAttachment"))
 	{
 		m_iStartAttachment = atoi(pkvd->szValue);
 		if (m_iStartAttachment > 4 || m_iStartAttachment < 0)
 			m_iStartAttachment = 0;
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iEndAttachment"))
 	{
 		m_iEndAttachment = atoi(pkvd->szValue);
 		if (m_iEndAttachment > 4 || m_iEndAttachment < 0)
 			m_iEndAttachment = 0;
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
 
-void CLocusBeam::Precache ( void )
+void CLocusBeam::Precache ()
 {
 	PRECACHE_MODEL ( STRING(m_iszSprite) );
 }
@@ -329,6 +392,9 @@ void CLocusBeam::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 		pBeam = CBeam::BeamCreate( STRING(m_iszSprite), m_iWidth );
 		pBeam->PointsInit( vecStartPos, vecStartPos + vecEndPos );
 		break;
+	default:
+		ALERT(at_error, "%s: unknown 'Start and End' type. Refusing to spawn a beam\n", STRING(pev->classname));
+		return;
 	}
 	pBeam->SetColor( pev->rendercolor.x, pev->rendercolor.y, pev->rendercolor.z );
 	pBeam->SetBrightness( pev->renderamt );
@@ -353,7 +419,7 @@ void CLocusBeam::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 	}
 }
 
-void CLocusBeam::Spawn( void )
+void CLocusBeam::Spawn()
 {
 	Precache();
 	m_iFlags = 0;
@@ -374,7 +440,7 @@ void CLocusBeam::Spawn( void )
 class CCalcPosition : public CPointEntity
 {
 public:
-	bool CalcPosition( CBaseEntity *pLocus, Vector* outVector );
+	bool CalcPosition( CBaseEntity *pLocus, Vector* outVector ) override;
 };
 
 LINK_ENTITY_TO_CLASS( calc_position, CCalcPosition )
@@ -393,6 +459,17 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 	if (pev->message) {
 		if (!TryCalcLocus_Velocity( this, pLocus, STRING(pev->message), vecOffset)) {
 			ALERT(at_console, "%s \"%s\" failed, bad LV \"%s\"\n", STRING(pev->classname), STRING(pev->targetname), STRING(pev->message) );
+			return false;
+		}
+	}
+
+	CBaseAnimating* pAnimatingSubject = nullptr;
+	if (pev->impulse >= 5 && pev->impulse <= 8)
+	{
+		pAnimatingSubject = pSubject->MyAnimatingPointer();
+		if (!pAnimatingSubject)
+		{
+			ALERT(at_console, "%s \"%s\" can't get attachment points from non-animating entity\n");
 			return false;
 		}
 	}
@@ -429,21 +506,19 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 		);
 		break;
 	case 5:
-		// this could cause problems.
-		// is there a good way to check whether it's really a CBaseAnimating?
-		((CBaseAnimating*)pSubject)->GetAttachment( 0, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 0, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 6:
-		((CBaseAnimating*)pSubject)->GetAttachment( 1, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 1, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 7:
-		((CBaseAnimating*)pSubject)->GetAttachment( 2, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 2, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 8:
-		((CBaseAnimating*)pSubject)->GetAttachment( 3, vecPosition, vecJunk );
+		pAnimatingSubject->GetAttachment( 3, vecPosition, vecJunk );
 		*outVector = vecOffset + vecPosition;
 		break;
 	case 9:
@@ -452,6 +527,15 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 			RANDOM_FLOAT(pSubject->pev->mins.y, pSubject->pev->maxs.y),
 			RANDOM_FLOAT(pSubject->pev->mins.z, pSubject->pev->maxs.z)
 		);
+		break;
+	case 10:
+		if (pSubject == this)
+		{
+			ALERT(at_warning, "Recursion: %s refers to its own CalcPosition\n", STRING(pev->targetname));
+			return false;
+		}
+		if (!pSubject->CalcPosition(pLocus, outVector))
+			return false;
 		break;
 	default:
 		*outVector = vecOffset + pSubject->pev->origin;
@@ -462,18 +546,123 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 
 //=======================================================
 
+static bool ClampToMinMax(CBaseEntity* pLocus, float& fBasis, string_t iszMin, string_t iszMax, int clampPolicy)
+{
+	if (!FStringNull(iszMin))
+	{
+		float fMin = 0;
+		if (!TryCalcLocus_Ratio( pLocus, STRING(iszMin), fMin))
+			return false;
+
+		if (!FStringNull(iszMax))
+		{
+			float fMax = 0;
+			if (!TryCalcLocus_Ratio( pLocus, STRING(iszMax), fMax))
+				return false;
+
+			if (fBasis >= fMin && fBasis <= fMax) {
+				return true;
+			}
+			switch (clampPolicy)
+			{
+			case 0:
+				if (fBasis < fMin)
+					fBasis = fMin;
+				else
+					fBasis = fMax;
+				return true;
+			case 1:
+				while (fBasis < fMin)
+					fBasis += fMax - fMin;
+				while (fBasis > fMax)
+					fBasis -= fMax - fMin;
+				return true;
+			case 2:
+				while (fBasis < fMin || fBasis > fMax)
+				{
+					if (fBasis < fMin)
+						fBasis = fMin + fMax - fBasis;
+					else
+						fBasis = fMax + fMax - fBasis;
+				}
+				return true;
+			}
+		}
+
+		if (fBasis < fMin)
+			fBasis = fMin; // crop to nearest value
+	}
+	else if (!FStringNull(iszMax))
+	{
+		float fMax = 0;
+		if (!TryCalcLocus_Ratio( pLocus, STRING(iszMax), fMax))
+			return false;
+
+		if (fBasis > fMax)
+			fBasis = fMax; // crop to nearest value
+	}
+	return true;
+}
+
+enum
+{
+	CALCRATIO_TRANSFORM_NONE = 0,
+	CALCRATIO_TRANSFORM_REVERSED,
+	CALCRATIO_TRANSFORM_NEGATIVE,
+	CALCRATIO_TRANSFORM_RECIPROCAL,
+	CALCRATIO_TRANSFORM_SQUARE,
+	CALCRATIO_TRANSFORM_INVERSESQUARE,
+	CALCRATIO_TRANSFORM_SQUAREROOT,
+	CALCRATIO_TRANSFORM_COSINE,
+	CALCRATIO_TRANSFORM_SINE,
+	CALCRATIO_TRANSFORM_TANGENT,
+	CALCRATIO_TRANSFORM_ACOSINE,
+	CALCRATIO_TRANSFORM_ASINE,
+	CALCRATIO_TRANSFORM_ATANGENT,
+};
+
+enum
+{
+	CALC_CASTTOINT_NO = 0,
+	CALC_CASTTOINT_ROUND = 1,
+	CALC_CASTTOINT_FLOOR = 2,
+	CALC_CASTTOINT_CEIL = 3,
+	CALC_CASTTOINT_TRUNC = 4,
+};
+
+static float ApplyCastMode(float f, byte castMode)
+{
+	switch(castMode)
+	{
+	case CALC_CASTTOINT_ROUND:
+		return round(f);
+	case CALC_CASTTOINT_FLOOR:
+		return floor(f);
+	case CALC_CASTTOINT_CEIL:
+		return ceil(f);
+	case CALC_CASTTOINT_TRUNC:
+		return trunc(f);
+	case CALC_CASTTOINT_NO:
+	default:
+		return f;
+	}
+}
+
 class CCalcRatio : public CPointEntity
 {
 public:
-	bool CalcRatio( CBaseEntity *pLocus, float* outResult );
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	void KeyValue( KeyValueData *pkvd ) override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszMin;
 	string_t m_iszMax;
+	byte m_baseCastMode;
+	byte m_resultCastMode;
 };
 
 LINK_ENTITY_TO_CLASS( calc_ratio, CCalcRatio )
@@ -482,6 +671,8 @@ TYPEDESCRIPTION	CCalcRatio::m_SaveData[] =
 {
 	DEFINE_FIELD( CCalcRatio, m_iszMin, FIELD_STRING ),
 	DEFINE_FIELD( CCalcRatio, m_iszMax, FIELD_STRING ),
+	DEFINE_FIELD( CCalcRatio, m_baseCastMode, FIELD_CHARACTER ),
+	DEFINE_FIELD( CCalcRatio, m_resultCastMode, FIELD_CHARACTER ),
 };
 
 IMPLEMENT_SAVERESTORE( CCalcRatio, CPointEntity )
@@ -494,6 +685,22 @@ void CCalcRatio::Spawn()
 	pev->noise1 = iStringNull;
 }
 
+void CCalcRatio::KeyValue(KeyValueData *pkvd)
+{
+	if(FStrEq(pkvd->szKeyName, "base_cast_mode"))
+	{
+		m_baseCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "result_cast_mode"))
+	{
+		m_resultCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else
+		CPointEntity::KeyValue(pkvd);
+}
+
 bool CCalcRatio::CalcRatio( CBaseEntity *pLocus, float* outResult )
 {
 	float fBasis = 0;
@@ -501,11 +708,22 @@ bool CCalcRatio::CalcRatio( CBaseEntity *pLocus, float* outResult )
 		return false;
 	}
 
+	fBasis = ApplyCastMode(fBasis, m_baseCastMode);
+
 	switch (pev->impulse)
 	{
-	case 1:		fBasis = 1-fBasis; break; //reversed
-	case 2:		fBasis = -fBasis; break; //negative
-	case 3:		fBasis = 1/fBasis; break; //reciprocal
+	case CALCRATIO_TRANSFORM_REVERSED:	fBasis = 1-fBasis; break;
+	case CALCRATIO_TRANSFORM_NEGATIVE:	fBasis = -fBasis; break;
+	case CALCRATIO_TRANSFORM_RECIPROCAL: fBasis = 1/fBasis; break;
+	case CALCRATIO_TRANSFORM_SQUARE: fBasis = fBasis * fBasis; break;
+	case CALCRATIO_TRANSFORM_INVERSESQUARE: fBasis = 1 / (fBasis * fBasis); break;
+	case CALCRATIO_TRANSFORM_SQUAREROOT: fBasis = sqrt(fBasis); break;
+	case CALCRATIO_TRANSFORM_COSINE: fBasis = cos(fBasis * (M_PI / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_SINE: fBasis = sin(fBasis * (M_PI / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_TANGENT: fBasis = tan(fBasis * (M_PI / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_ACOSINE: fBasis = acos(fBasis) * (180.0f / M_PI); break;
+	case CALCRATIO_TRANSFORM_ASINE: fBasis = asin(fBasis) * (180.0f / M_PI); break;
+	case CALCRATIO_TRANSFORM_ATANGENT: fBasis = atan(fBasis) * (180.0f / M_PI); break;
 	}
 
 	if (!FStringNull(pev->netname)) {
@@ -514,73 +732,188 @@ bool CCalcRatio::CalcRatio( CBaseEntity *pLocus, float* outResult )
 			return false;
 		fBasis += fTmp;
 	}
-	//fBasis = fBasis * CalcLocus_Ratio( pLocus, STRING(pev->message));
-
-	if (!FStringNull(m_iszMin))
-	{
-		float fMin = 0;
-		if (!TryCalcLocus_Ratio( pLocus, STRING(m_iszMin), fMin))
+	if (!FStringNull(pev->message)) {
+		float fTmp = 1;
+		if (!TryCalcLocus_Ratio( pLocus, STRING(pev->message), fTmp))
 			return false;
-
-		if (!FStringNull(m_iszMax))
-		{
-			float fMax = 0;
-			if (!TryCalcLocus_Ratio( pLocus, STRING(m_iszMax), fMax))
-				return false;
-			
-			if (fBasis >= fMin && fBasis <= fMax) {
-				*outResult = fBasis;
-				return true;
-			}
-			switch ((int)pev->frags)
-			{
-			case 0:
-				if (fBasis < fMin)
-					*outResult = fMin;
-				else
-					*outResult = fMax;
-				return true;
-			case 1:
-				while (fBasis < fMin)
-					fBasis += fMax - fMin;
-				while (fBasis > fMax)
-					fBasis -= fMax - fMin;
-				*outResult = fBasis;
-				return true;
-			case 2:
-				while (fBasis < fMin || fBasis > fMax)
-				{
-					if (fBasis < fMin)
-						fBasis = fMin + fMax - fBasis;
-					else
-						fBasis = fMax + fMax - fBasis;
-				}
-				*outResult = fBasis;
-				return true;
-			}
-		}
-		
-		if (fBasis > fMin)
-			*outResult = fBasis;
-		else
-			*outResult = fMin; // crop to nearest value
+		fBasis = fBasis * fTmp;
 	}
-	else if (!FStringNull(m_iszMax))
-	{
-		float fMax = 0;
-		if (!TryCalcLocus_Ratio( pLocus, STRING(m_iszMax), fMax))
-			return false;
 
-		if (fBasis < fMax)
-			*outResult = fBasis;
-		else
-			*outResult = fMax; // crop to nearest value
-	}
-	else
-		*outResult = fBasis;
+	if (!ClampToMinMax(pLocus, fBasis, m_iszMin, m_iszMax, (int)pev->frags))
+		return false;
+
+	fBasis = ApplyCastMode(fBasis, m_resultCastMode);
+	*outResult = fBasis;
 	return true;
 }
 
+enum
+{
+	CALCVECTOR_VELOCITY = 0,
+	CALCVECTOR_POSITION = 1,
+	CALCVECTOR_COLOR = 2,
+};
+
+static bool TryCalcLocus_Vector(CBaseEntity* pEntity, CBaseEntity* pLocus, const char* szText, Vector& result, int requestedVectorType)
+{
+	switch (requestedVectorType) {
+	case CALCVECTOR_POSITION:
+		return TryCalcLocus_Position(pEntity, pLocus, szText, result);
+	case CALCVECTOR_COLOR:
+		return TryCalcLocus_Color(pEntity, pLocus, szText, result);
+	case CALCVECTOR_VELOCITY:
+	default:
+		return TryCalcLocus_Velocity(pEntity, pLocus, szText, result);
+	}
+}
+
+class CCalcNumFromVec : public CPointEntity
+{
+public:
+	void KeyValue( KeyValueData *pkvd ) override
+	{
+		if (FStrEq(pkvd->szKeyName, "vector_type"))
+		{
+			pev->weapons = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
+};
+
+LINK_ENTITY_TO_CLASS( calc_numfromvec, CCalcNumFromVec )
+
+bool CCalcNumFromVec::CalcRatio( CBaseEntity *pLocus, float* outResult )
+{
+	if ( FStringNull(pev->target) )
+	{
+		ALERT(at_error, "No base vector given for %s \"%s\"\n", STRING(pev->classname), STRING(pev->targetname));
+		return false;
+	}
+
+	Vector vecA;
+	if (!TryCalcLocus_Vector(this, pLocus, STRING(pev->target), vecA, pev->weapons))
+	{
+		ALERT(at_error, "%s: Couldn't get the vector value from %s\n", STRING(pev->classname), STRING(pev->target));
+		return false;
+	}
+
+	switch(pev->impulse)
+	{
+	case 0: // X
+		*outResult = vecA.x; return true;
+	case 1: // Y
+		*outResult = vecA.y; return true;
+	case 2: // Z
+		*outResult = vecA.z; return true;
+	case 3: // Length
+		*outResult = vecA.Length(); return true;
+	case 4: // Pitch
+		{
+			Vector ang = UTIL_VecToAngles(vecA);
+			*outResult = ang.x;
+			return true;
+		}
+	case 5: // Yaw
+		{
+			Vector ang = UTIL_VecToAngles(vecA);
+			*outResult = ang.y;
+			return true;
+		}
+	}
+
+	ALERT(at_console, "%s \"%s\" doesn't understand mode %d\n", STRING(pev->classname), STRING(pev->targetname), pev->impulse);
+	return false;
+}
+
+class CCalcVectorFromNums : public CPointEntity
+{
+public:
+	void KeyValue( KeyValueData *pkvd ) override
+	{
+		if (FStrEq(pkvd->szKeyName, "x_value"))
+		{
+			m_xValue = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "y_value"))
+		{
+			m_yValue = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "z_value"))
+		{
+			m_zValue = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "base_vector"))
+		{
+			pev->netname = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else if (FStrEq(pkvd->szKeyName, "vector_type"))
+		{
+			pev->weapons = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+
+	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult) override
+	{
+		return CalcVector(pLocus, outResult);
+	}
+	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult) override
+	{
+		return CalcVector(pLocus, outResult);
+	}
+
+	bool CalcVector(CBaseEntity* pLocus, Vector *outResult)
+	{
+		Vector baseVector = g_vecZero;
+
+		if (!FStringNull(pev->netname))
+		{
+			if (!TryCalcLocus_Vector(this, pLocus, STRING(pev->netname), baseVector, pev->weapons))
+				return false;
+		}
+
+		string_t components[3] = {m_xValue, m_yValue, m_zValue};
+		for (int i=0; i<3; ++i)
+		{
+			if (!FStringNull(components[i]))
+			{
+				float value;
+				if (!TryCalcLocus_Ratio(pLocus, STRING(components[i]), value))
+					return false;
+				baseVector[i] = value;
+			}
+		}
+		*outResult = baseVector;
+		return true;
+	}
+
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	string_t m_xValue;
+	string_t m_yValue;
+	string_t m_zValue;
+};
+
+TYPEDESCRIPTION CCalcVectorFromNums::m_SaveData[] =
+{
+	DEFINE_FIELD(CCalcVectorFromNums, m_xValue, FIELD_STRING),
+	DEFINE_FIELD(CCalcVectorFromNums, m_yValue, FIELD_STRING),
+	DEFINE_FIELD(CCalcVectorFromNums, m_zValue, FIELD_STRING),
+};
+
+LINK_ENTITY_TO_CLASS( calc_vecfromnums, CCalcVectorFromNums )
+IMPLEMENT_SAVERESTORE( CCalcVectorFromNums, CPointEntity )
 
 //=======================================================
 #define SF_CALCVELOCITY_NORMALIZE 1
@@ -593,11 +926,11 @@ class CCalcSubVelocity : public CPointEntity
 	bool Convert( CBaseEntity *pLocus, Vector vecVel, Vector* outVector );
 	bool ConvertAngles( CBaseEntity *pLocus, Vector vecAngles, Vector* outVector );
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -620,11 +953,23 @@ void CCalcSubVelocity::Spawn()
 
 bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 {
+	// Note: this loses the original pLocus. This is how it's coded in all versions of SoHL
 	pLocus = UTIL_FindEntityByTargetname( NULL, STRING(pev->netname), pLocus );
 	if ( !pLocus )
 	{
 		ALERT(at_console, "%s \"%s\" failed to find target entity \"%s\"\n", STRING(pev->classname), STRING(pev->targetname), STRING(pev->netname) );
 		return false;
+	}
+
+	CBaseAnimating* pAnimatingSubject = nullptr;
+	if (pev->impulse >= 5 && pev->impulse <= 8)
+	{
+		pAnimatingSubject = pLocus->MyAnimatingPointer();
+		if (!pAnimatingSubject)
+		{
+			ALERT(at_console, "%s \"%s\" can't get attachment points from non-animating entity\n");
+			return false;
+		}
 	}
 
 	Vector vecAngles;
@@ -637,19 +982,29 @@ bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 	case 2: //v_angle
 		return ConvertAngles( pLocus, pLocus->pev->v_angle, outResult );
 	case 5:
-		// this could cause problems.
-		// is there a good way to check whether it's really a CBaseAnimating?
-		((CBaseAnimating*)pLocus)->GetAttachment( 0, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 0, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 6:
-		((CBaseAnimating*)pLocus)->GetAttachment( 1, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 1, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 7:
-		((CBaseAnimating*)pLocus)->GetAttachment( 2, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 2, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
 	case 8:
-		((CBaseAnimating*)pLocus)->GetAttachment( 3, vecJunk, vecAngles );
+		pAnimatingSubject->GetAttachment( 3, vecJunk, vecAngles );
 		return ConvertAngles( pLocus, vecAngles, outResult );
+	case 10:
+	{
+		if (pLocus == this)
+		{
+			ALERT(at_warning, "Recursion: %s refers to its own CalcVelocity\n", STRING(pev->targetname));
+			return false;
+		}
+		Vector calcedVelocity;
+		if (!pLocus->CalcVelocity(pLocus, &calcedVelocity))
+			return false;
+		return Convert( pLocus, calcedVelocity, outResult );
+	}
 	default:
 		return Convert( pLocus, pLocus->pev->velocity, outResult );
 	}
@@ -658,7 +1013,7 @@ bool CCalcSubVelocity::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 bool CCalcSubVelocity::Convert( CBaseEntity *pLocus, Vector vecDir, Vector* outVector )
 {
 	if (pev->spawnflags & SF_CALCVELOCITY_NORMALIZE)
-		vecDir = vecDir.Normalize();
+		vecDir.NormalizeInPlace();
 	
 	float fRatio = 1;
 	if (m_iszFactor) {
@@ -699,11 +1054,11 @@ bool CCalcSubVelocity::ConvertAngles( CBaseEntity *pLocus, Vector vecAngles, Vec
 class CCalcVelocityPath : public CPointEntity
 {
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outVector );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outVector ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -749,7 +1104,7 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 	case 0:
 		if (!TryCalcLocus_Position( this, pLocus, STRING(pev->netname), vecOffs ))
 			return false;
-		vecOffs = vecOffs - vecStart;
+		vecOffs -= vecStart;
 		break;
 	case 1:
 		if (!TryCalcLocus_Velocity( this, pLocus, STRING(pev->netname), vecOffs ))
@@ -764,21 +1119,21 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 		switch ((int)pev->health)
 		{
 		case 1:
-			vecOffs = vecOffs/len;
+			vecOffs /= len;
 			break;
 		case 2:
-			vecOffs = vecOffs/(len*len);
+			vecOffs /= len*len;
 			break;
 		case 3:
-			vecOffs = vecOffs/(len*len*len);
+			vecOffs /= len*len*len;
 			break;
 		case 4:
-			vecOffs = vecOffs*len;
+			vecOffs *= len;
 			break;
 		}
 	}
 
-	vecOffs = vecOffs * fFactor;
+	vecOffs *= fFactor;
 
 	if (pev->frags)
 	{
@@ -813,11 +1168,11 @@ bool CCalcVelocityPath::CalcVelocity( CBaseEntity *pLocus, Vector* outVector )
 class CCalcVelocityPolar : public CPointEntity
 {
 public:
-	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult );
+	bool CalcVelocity( CBaseEntity *pLocus, Vector* outResult ) override;
 
-	void Spawn();
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void Spawn() override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszFactor;
@@ -869,23 +1224,22 @@ bool CCalcVelocityPolar::CalcVelocity( CBaseEntity *pLocus, Vector* outResult )
 class CMark : public CPointEntity
 {
 public:
-	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) { *outVector = pev->movedir; return true; }
-	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) { *outResult = pev->frags; return true; }
-	void	Think( void ) { SUB_Remove(); }
+	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) override { *outVector = pev->movedir; return true; }
+	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) override { *outResult = pev->frags; return true; }
+	void	Think() override { SUB_Remove(); }
 };
 
 class CLocusVariable : public CPointEntity
 {
 public:
-	void	Spawn( void );
-	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) { *outVector = pev->movedir; return true; }
-	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) { *outResult = pev->frags; return true; }
+	void	Spawn() override;
+	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	bool	CalcVelocity(CBaseEntity *pLocus, Vector* outVector) override { *outVector = pev->movedir; return true; }
+	bool	CalcRatio(CBaseEntity *pLocus, float* outResult) override { *outResult = pev->frags; return true; }
 
-	void KeyValue( KeyValueData *pkvd );
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-
+	void KeyValue( KeyValueData *pkvd ) override;
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	string_t m_iszPosition;
@@ -914,38 +1268,38 @@ void CLocusVariable :: KeyValue( KeyValueData *pkvd )
 	if (FStrEq(pkvd->szKeyName, "m_iszPosition"))
 	{
 		m_iszPosition = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszVelocity"))
 	{
 		m_iszVelocity = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszRatio"))
 	{
 		m_iszRatio = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszTargetName"))
 	{
 		m_iszTargetName = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_iszFireOnSpawn"))
 	{
 		m_iszFireOnSpawn = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "m_fDuration"))
 	{
 		m_fDuration = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CPointEntity::KeyValue( pkvd );
 }
 
-void CLocusVariable::Spawn( void )
+void CLocusVariable::Spawn()
 {
 	SetMovedir(pev);
 }
@@ -989,40 +1343,77 @@ class CCalcEvalNumber : public CPointEntity
 public:
 	enum {
 		EVAL_ADD = 0,
-		EVAL_SUBSTRUCT,
-		EVAL_MULTIPLY,
-		EVAL_DIVIDE,
+		EVAL_SUBTRACT = 1,
+		EVAL_MULTIPLY = 2,
+		EVAL_DIVIDE = 3,
+		EVAL_MOD = 4,
+		EVAL_MIN = 5,
+		EVAL_MAX = 6
 	};
 
-	void KeyValue( KeyValueData *pkvd );
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-	bool CalcRatio(CBaseEntity *pLocus, float *outResult)
+	enum {
+		REPORTED_VECTOR_NONE = 0,
+		REPORTED_VECTOR_X00 = 1,
+		REPORTED_VECTOR_0Y0 = 2,
+		REPORTED_VECTOR_00Z = 3,
+	};
+
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
+	bool CalcRatio(CBaseEntity *pLocus, float *outResult) override
 	{
-		bool success;
-		*outResult = CalcEvalNumber(pLocus, false, success);
-		return success;
+		return CalcEvalNumber(pLocus, *outResult);
+	}
+	bool CalcVelocity(CBaseEntity *pLocus, Vector *outResult) override
+	{
+		return ReportVector(pLocus, *outResult);
+	}
+	bool CalcPosition(CBaseEntity *pLocus, Vector *outResult) override
+	{
+		return ReportVector(pLocus, *outResult);
 	}
 
-	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
+	int		Save( CSave &save ) override;
+	int		Restore( CRestore &restore ) override;
 	static	TYPEDESCRIPTION m_SaveData[];
 
 protected:
-	float CalcEvalNumber(CBaseEntity* pActivator, bool isUse, bool& success);
-	float DoOperation(float leftValue, float rightValue, int operationId, bool& success);
+	bool CalcEvalNumber(CBaseEntity* pActivator, float& result);
+	bool DoOperation(float& result, float* operands, int operandCount, int operationId);
+	bool ReportVector(CBaseEntity* pLocus, Vector& result);
 
 	string_t m_left;
 	string_t m_right;
+	string_t m_third;
 	int m_operation;
 	string_t m_storeIn;
+	string_t m_triggerOnFail;
+	string_t m_iszMin;
+	string_t m_iszMax;
+	int m_clampPolicy;
+	int m_vectorMode;
+	byte m_firstCastMode;
+	byte m_secondCastMode;
+	byte m_thirdCastMode;
+	byte m_resultCastMode;
 };
 
 TYPEDESCRIPTION CCalcEvalNumber::m_SaveData[] =
 {
 	DEFINE_FIELD( CCalcEvalNumber, m_left, FIELD_STRING ),
 	DEFINE_FIELD( CCalcEvalNumber, m_right, FIELD_STRING ),
+	DEFINE_FIELD( CCalcEvalNumber, m_third, FIELD_STRING ),
 	DEFINE_FIELD( CCalcEvalNumber, m_operation, FIELD_INTEGER ),
 	DEFINE_FIELD( CCalcEvalNumber, m_storeIn, FIELD_STRING ),
+	DEFINE_FIELD( CCalcEvalNumber, m_triggerOnFail, FIELD_STRING ),
+	DEFINE_FIELD( CCalcEvalNumber, m_iszMin, FIELD_STRING ),
+	DEFINE_FIELD( CCalcEvalNumber, m_iszMax, FIELD_STRING ),
+	DEFINE_FIELD( CCalcEvalNumber, m_clampPolicy, FIELD_INTEGER ),
+	DEFINE_FIELD( CCalcEvalNumber, m_vectorMode, FIELD_INTEGER ),
+	DEFINE_FIELD( CCalcEvalNumber, m_firstCastMode, FIELD_CHARACTER ),
+	DEFINE_FIELD( CCalcEvalNumber, m_secondCastMode, FIELD_CHARACTER ),
+	DEFINE_FIELD( CCalcEvalNumber, m_thirdCastMode, FIELD_CHARACTER ),
+	DEFINE_FIELD( CCalcEvalNumber, m_resultCastMode, FIELD_CHARACTER ),
 };
 
 IMPLEMENT_SAVERESTORE( CCalcEvalNumber, CPointEntity )
@@ -1031,25 +1422,75 @@ LINK_ENTITY_TO_CLASS( calc_eval_number, CCalcEvalNumber )
 
 void CCalcEvalNumber::KeyValue(KeyValueData *pkvd)
 {
-	if(strcmp(pkvd->szKeyName, "operation") == 0)
+	if(FStrEq(pkvd->szKeyName, "operation"))
 	{
 		m_operation = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
-	else if(strcmp(pkvd->szKeyName, "left_operand") == 0)
+	else if(FStrEq(pkvd->szKeyName, "left_operand"))
 	{
 		m_left = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
-	else if(strcmp(pkvd->szKeyName, "right_operand") == 0)
+	else if(FStrEq(pkvd->szKeyName, "right_operand"))
 	{
 		m_right = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
-	else if(strcmp(pkvd->szKeyName, "store_result") == 0)
+	else if(FStrEq(pkvd->szKeyName, "third_operand"))
+	{
+		m_third = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "store_result"))
 	{
 		m_storeIn = ALLOC_STRING(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "min_value"))
+	{
+		m_iszMin = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "max_value"))
+	{
+		m_iszMax = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "clamp_policy"))
+	{
+		m_clampPolicy = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "trigger_on_fail"))
+	{
+		m_triggerOnFail = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "vector_mode"))
+	{
+		m_vectorMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "first_cast_mode"))
+	{
+		m_firstCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "second_cast_mode"))
+	{
+		m_secondCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "third_cast_mode"))
+	{
+		m_thirdCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if(FStrEq(pkvd->szKeyName, "result_cast_mode"))
+	{
+		m_resultCastMode = atoi(pkvd->szValue);
+		pkvd->fHandled = true;
 	}
 	else
 		CPointEntity::KeyValue(pkvd);
@@ -1057,63 +1498,124 @@ void CCalcEvalNumber::KeyValue(KeyValueData *pkvd)
 
 void CCalcEvalNumber::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 {
-	bool success;
-	CalcEvalNumber(pActivator, true, success);
-}
-
-float CCalcEvalNumber::CalcEvalNumber(CBaseEntity *pActivator, bool isUse, bool &success)
-{
-	if (FStringNull(m_left) || FStringNull(m_right))
-	{
-		ALERT(at_error, "%s needs both left and right operands defined\n", STRING(pev->classname));
-		success = false;
-		return 0.0f;
-	}
-
-	float leftValue = 0;
-	float rightValue = 0;
-
-	const bool leftSuccess = TryCalcLocus_Ratio(pActivator, STRING(m_left), leftValue);
-	const bool rightSuccess = TryCalcLocus_Ratio(pActivator, STRING(m_right), rightValue);
-
-	if (!leftSuccess || !rightSuccess) {
-		success = false;
-		return 0.0f;
-	}
-
-	const float result = DoOperation(leftValue, rightValue, m_operation, success);
-
-	if (isUse)
+	float result;
+	if (CalcEvalNumber(pActivator, result))
 	{
 		if (m_storeIn)
 			FireTargets(STRING(m_storeIn), pActivator, this, USE_SET, result);
 		if (pev->target)
 			FireTargets(STRING(pev->target), pActivator, this);
 	}
-
-	return result;
+	else
+	{
+		if (m_triggerOnFail)
+			FireTargets(STRING(m_triggerOnFail), pActivator, this);
+	}
 }
 
-float CCalcEvalNumber::DoOperation(float leftValue, float rightValue, int operationId, bool &success)
+bool CCalcEvalNumber::CalcEvalNumber(CBaseEntity* pActivator, float& result)
 {
-	success = true;
-	switch (operationId) {
-	case EVAL_ADD:
-		return leftValue + rightValue;
-	case EVAL_SUBSTRUCT:
-		return leftValue - rightValue;
-	case EVAL_MULTIPLY:
-		return leftValue * rightValue;
-	case EVAL_DIVIDE:
-		if (rightValue == 0)
-		{
-			success = false;
-			return 0.0f;
+	if (FStringNull(m_left) || FStringNull(m_right))
+	{
+		ALERT(at_error, "%s needs at least left and right operands defined\n", STRING(pev->classname));
+		return false;
+	}
+
+	float leftValue;
+	float rightValue;
+
+	if (!TryCalcLocus_Ratio(pActivator, STRING(m_left), leftValue))
+		return false;
+	if (!TryCalcLocus_Ratio(pActivator, STRING(m_right), rightValue))
+		return false;
+
+	leftValue = ApplyCastMode(leftValue, m_firstCastMode);
+	rightValue = ApplyCastMode(rightValue, m_secondCastMode);
+
+	int operandCount = 2;
+
+	float thirdValue = 0.0f;
+	if (!FStringNull(m_third))
+	{
+		if (!TryCalcLocus_Ratio(pActivator, STRING(m_third), thirdValue))
+			return false;
+		operandCount++;
+		thirdValue = ApplyCastMode(thirdValue, m_thirdCastMode);
+	}
+
+	float operands[3] = {leftValue, rightValue, thirdValue};
+
+	if (!DoOperation(result, operands, operandCount, m_operation))
+		return false;
+
+	if (!ClampToMinMax(pActivator, result, m_iszMin, m_iszMax, m_clampPolicy))
+		return false;
+
+	result = ApplyCastMode(result, m_resultCastMode);
+	return true;
+}
+
+bool CCalcEvalNumber::DoOperation(float& result, float* operands, int operandCount, int operationId)
+{
+	if (operandCount <= 0)
+		return false;
+	float value = operands[0];
+	for (int i=1; i<operandCount; ++i)
+	{
+		float operand = operands[i];
+		switch (operationId) {
+		case EVAL_ADD:
+			value += operand;
+			break;
+		case EVAL_SUBTRACT:
+			value -= operand;
+			break;
+		case EVAL_MULTIPLY:
+			value *= operand;
+			break;
+		case EVAL_DIVIDE:
+			if (operand == 0.0f)
+				return false;
+			value /= operand;
+			break;
+		case EVAL_MOD:
+			if (operand == 0.0f)
+				return false;
+			value = fmod(value, operand);
+			break;
+		case EVAL_MIN:
+			value = Q_min(value, operand);
+			break;
+		case EVAL_MAX:
+			value = Q_max(value, operand);
+			break;
+		default:
+			ALERT(at_error, "%s: unknown operation id %d\n", STRING(pev->classname), operationId);
+			return false;
 		}
-		return leftValue / rightValue;
+	}
+	result = value;
+	return true;
+}
+
+bool CCalcEvalNumber::ReportVector(CBaseEntity *pLocus, Vector &result)
+{
+	float f;
+	if (!CalcEvalNumber(pLocus, f))
+		return false;
+
+	switch (m_vectorMode) {
+	case REPORTED_VECTOR_X00:
+		result = Vector(f, 0.0f, 0.0f);
+		return true;
+	case REPORTED_VECTOR_0Y0:
+		result =  Vector(0.0f, f, 0.0f);
+		return true;
+	case REPORTED_VECTOR_00Z:
+		result = Vector(0.0f, 0.0f, f);
+		return true;
+	case REPORTED_VECTOR_NONE:
 	default:
-		ALERT(at_error, "%s: unknown operation id %d\n", STRING(pev->classname), operationId);
-		success = false;
-		return 0.0f;
+		return false;
 	}
 }

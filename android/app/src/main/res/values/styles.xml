@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="AppTheme" parent="@android:style/Theme.Material">
+		<item name="android:actionBarStyle">@style/MyActionBar</item>
+		<item name="android:colorPrimary">@color/ic_launcher_background</item>
+		<item name="android:colorPrimaryDark">@color/ic_launcher_background</item>
+		<item name="android:colorAccent">@color/ic_launcher_background</item>
+		<item name="android:statusBarColor">@color/ic_launcher_background</item>
+		<item name="android:windowLightStatusBar">true</item>
+	</style>
+
+	<style name="MyActionBar" parent="@android:style/Widget.Material.ActionBar">
+		<item name="android:background">@color/ic_launcher_background</item>
+		<item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
+	</style>
+
+	<style name="MyActionBarTitleText" parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
+		<item name="android:textColor">#ff000000</item>
+	</style>
+</resources>

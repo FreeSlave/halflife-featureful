@@ -43,10 +43,11 @@ typedef enum
 #define SF_BREAK_TRIGGER_ONLY	1// may only be broken by trigger
 #define	SF_BREAK_TOUCH			2// can be 'crashed through' by running player (plate glass)
 #define SF_BREAK_PRESSURE		4// can be broken by a player standing on it
+#define SF_BREAKABLE_INVERT		16
+#define SF_BREAK_SHOW_HUD_INFO	32
 #define SF_BREAK_CROWBAR		256// instant break if hit with crowbar
 #define SF_BREAK_EXPLOSIVES_ONLY		512// can be damaged only by DMG_BLAST
 #define SF_BREAK_OP4MORTAR_ONLY	1024 // can be damaged only by op4mortar rockets
-#define SF_BREAK_NOT_SOLID_OLD 2048 // TODO: outdated, remove
 #define SF_BREAK_NOT_SOLID 4096 // breakable is not solid
 #define SF_BREAK_SMOKE_TRAILS 8192
 #define SF_BREAK_TRANSPARENT_GIBS 16384
@@ -58,48 +59,75 @@ class CBreakable : public CBaseDelay
 {
 public:
 	// basic functions
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue( KeyValueData* pkvd);
+	void Spawn() override;
+	void Precache() override;
+	void Activate() override;
+	void KeyValue( KeyValueData* pkvd) override;
 	void EXPORT BreakTouch( CBaseEntity *pOther );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic);
-	void DamageSound( void );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	NODE_LINKENT HandleLinkEnt(int afCapMask, bool nodeQueryStatic) override;
+	void DamageSound();
 
-	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag);
+	static void BreakModel(const Vector& vecSpot, const Vector& size, const Vector &vecVelocity, int shardModelIndex, int iGibs, char cFlag, float customScale = 0.0f);
+
+	bool CalcRatio(CBaseEntity* pLocus, float* outResult) override
+	{
+		if (pev->health > 0 && pev->max_health > 0)
+			*outResult = pev->health / pev->max_health;
+		else
+			*outResult = 0;
+		return true;
+	}
 
 	// breakables use an overridden takedamage
-	virtual int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	DamageInfo DefaultTransformDamageInfo(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo) override;
+	float DamagedHealth() const { return pev->max_health * 0.5f; }
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+	int TakeHealth( CBaseEntity* pHealer, float flHealth, int healType ) override;
 	// To spark when hit
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType );
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
+	bool ShouldSparkOnHit();
 
-	BOOL IsBreakable( void );
-	BOOL SparkWhenHit( void );
+	bool IsBreakable();
 
-	int DamageDecal( int bitsDamageType );
+	int DamageDecal( int bitsDamageType ) override;
+	const char* DefaultDisplayName() override { return "Breakable"; }
+	bool MustDisplayHUDInfo() const override { return (pev->spawnflags & SF_BREAK_SHOW_HUD_INFO) != 0; }
+	bool IsDestroyableObstacle() override;
 
-	void EXPORT Die( void );
+	void EXPORT BreakableThink();
+	void EXPORT Die();
 	void DieToActivator(CBaseEntity* pActivator);
-	virtual int ObjectCaps( void ) { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	void UpdateOnRemove() override;
+	int ObjectCaps() override { return ( CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION ); }
+	bool PlaysItsOwnHitSounds() const override { return true; }
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
+	static TYPEDESCRIPTION m_SaveData[];
 
-	inline BOOL Explodable( void ) { return ExplosionMagnitude() > 0; }
-	inline int ExplosionMagnitude( void ) { return pev->impulse; }
+	inline bool Explodable() { return ExplosionMagnitude() > 0; }
+	inline int ExplosionMagnitude() { return pev->impulse; }
 	inline void ExplosionSetMagnitude( int magnitude ) { pev->impulse = magnitude; }
 
-	static void MaterialSoundPrecache( Materials precacheMaterial );
-	static void MaterialSoundRandom( edict_t *pEdict, Materials soundMaterial, float volume );
-	static const char **MaterialSoundList( Materials precacheMaterial, int &soundCount );
-
-	static const char *pSoundsWood[];
-	static const char *pSoundsFlesh[];
-	static const char *pSoundsGlass[];
-	static const char *pSoundsMetal[];
-	static const char *pSoundsConcrete[];
 	static const char *pSpawnObjects[];
 
-	static TYPEDESCRIPTION m_SaveData[];
+	static const NamedSoundScript woodSoundScript;
+	static const NamedSoundScript fleshSoundScript;
+	static const NamedSoundScript glassSoundScript;
+	static const NamedSoundScript metalSoundScript;
+	static const NamedSoundScript concreteSoundScript;
+	static const NamedSoundScript computerSoundScript;
+
+	static const NamedSoundScript bustWoodSoundScript;
+	static const NamedSoundScript bustFleshSoundScript;
+	static const NamedSoundScript bustComputerSoundScript;
+	static const NamedSoundScript bustGlassSoundScript;
+	static const NamedSoundScript bustMetalSoundScript;
+	static const NamedSoundScript bustConcreteSoundScript;
+	static const NamedSoundScript bustRocksSoundScript;
+	static const NamedSoundScript bustCeilingSoundScript;
+
+	static const char* sparkSoundScript;
 
 	Materials m_Material;
 	Explosions m_Explosion;
@@ -107,8 +135,18 @@ public:
 	float m_angle;
 	string_t m_iszGibModel;
 	string_t m_iszSpawnObject;
+	string_t m_iszSpawnObjectTemplate;
 
 	short m_targetActivator;
 	int m_iGibs;
+	float m_gibScale;
+
+	string_t m_iszWhenHit; // locus trigger
+	CPointEntity* m_pHitProxy;
+
+	bool m_switchTextureWhenDamaged;
+	bool m_sparkWhenHit;
+
+	CBaseEntity* GetHitProxy();
 };
 #endif	// FUNC_BREAK_H

@@ -6,6 +6,9 @@
 #include	"monsters.h"
 #include	"followingmonster.h"
 
+#define RAPPEL_LANDING_TRACE_DIST			4096.0f
+#define RAPPEL_LANDING_ANTICIPATION			24.0f
+
 //=========================================================
 // monster-specific schedule types
 //=========================================================
@@ -18,7 +21,6 @@ enum
 	SCHED_GRUNT_FOUND_ENEMY,
 	SCHED_GRUNT_REPEL,
 	SCHED_GRUNT_REPEL_ATTACK,
-	SCHED_GRUNT_REPEL_LAND,
 	SCHED_GRUNT_WAIT_FACE_ENEMY,
 	SCHED_GRUNT_TAKECOVER_FAILED,// special schedule type that forces analysis of conditions and picks the best possible schedule to recover from this type of failure.
 	SCHED_GRUNT_ELOF_FAIL
@@ -55,77 +57,78 @@ typedef enum
 class CHGrunt : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify( void );
-	const char* DefaultDisplayName() { return "Human Grunt"; }
-	const char* ReverseRelationshipModel();
-	int DefaultISoundMask( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	BOOL FCanCheckAttacks( void );
-	BOOL CheckMeleeAttack1( float flDot, float flDist );
-	BOOL CheckRangeAttack1( float flDot, float flDist );
-	BOOL CheckRangeAttack2( float flDot, float flDist );
-	void CheckAmmo( void );
-	int LookupActivity(int activity);
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	void DeathSound( void );
-	void PainSound( void );
-	void IdleSound( void );
-	Vector GetGunPosition( void );
-	void Shoot( void );
-	void Shotgun( void );
-	void PrescheduleThink( void );
-	void GibMonster( void );
-	virtual void SpeakSentence( void );
+	void KeyValue(KeyValueData* pkvd) override;
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "Human Grunt"; }
+	const char* ReverseRelationshipModel() override;
+	int DefaultISoundMask() override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	bool FCanCheckAttacks() override;
+	bool CheckMeleeAttack1( float flDot, float flDist ) override;
+	bool CheckRangeAttack1( float flDot, float flDist ) override;
+	bool CheckRangeAttack2( float flDot, float flDist ) override;
+	int LookupActivity(int activity) override;
+	int LookupRegenerationActivity() override;
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void DeathSound() override;
+	PainSoundRule DefaultPainSoundRule() override;
+	void PainSound() override;
+	void IdleSound() override;
+	Vector GetGunPosition() override;
+	void Shoot();
+	void Shotgun();
+	void PrescheduleThink() override;
+	bool ShouldAnticipateLanding();
+	void GibMonster() override;
+	virtual void SpeakSentence();
 	bool PlayGruntSentence(int sentence, int flags = 0);
 	bool PlaySentenceGroup(const char* group, int flags = 0);
-	void PlaySentenceSound(const char* sound);
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void PlaySentenceSoundScript(const char* soundScript);
+	bool EmitSoundScriptTalk(const char* soundScript);
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	int Save( CSave &save );
-	int Restore( CRestore &restore );
-
-	CBaseEntity *Kick( void );
-	void PerformKick(float damage, float zpunch = 0);
-	Schedule_t *GetSchedule( void );
-	Schedule_t *GetScheduleOfType( int Type );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-
-	int IRelationship( CBaseEntity *pTarget );
-
-	virtual BOOL FOkToSpeak( void );
-	virtual bool CanDropGrenade() const;
-	void JustSpoke( void );
-	void DropMyItems(BOOL isGibbed);
-	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, BOOL isGibbed);
-
-	CUSTOM_SCHEDULES
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int DefaultSizeForGrapple() { return GRAPPLE_MEDIUM; }
-	bool IsDisplaceable() { return true; }
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	void PerformKick(int eventIndex, float damage, float zpunch = 0);
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
-	void ReportAIState(ALERT_TYPE level);
+	int IRelationship( CBaseEntity *pTarget ) override;
+
+	virtual bool FOkToSpeak();
+	virtual bool CanDropGrenade() const;
+	void JustSpoke();
+	void DropMyItems(bool isGibbed);
+	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
+
+	CUSTOM_SCHEDULES
+
+	int DefaultSizeForGrapple() override { return GRAPPLE_MEDIUM; }
+	bool IsDisplaceable() override { return true; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
+
+	void ReportAIState(ALERT_TYPE level) override;
 
 	// checking the feasibility of a grenade toss is kind of costly, so we do it every couple of seconds,
 	// not every server frame.
 	float m_flNextGrenadeCheck;
-	float m_flNextPainTime;
 	float m_flLastEnemySightTime;
 
 	Vector m_vecTossVelocity;
 
-	BOOL m_fThrowGrenade;
-	BOOL m_fStanding;
-	BOOL m_fFirstEncounter;// only put on the handsign show in the squad's first encounter.
-	int m_cClipSize;
+	bool m_fThrowGrenade;
+	bool m_fStanding;
+	bool m_fFirstEncounter;// only put on the handsign show in the squad's first encounter.
 
 	int m_voicePitch;
 
@@ -134,14 +137,19 @@ public:
 
 	int m_iSentence;
 
-
+	short m_desiredSkin;
 protected:
+	void OnBecomingLeader() override;
+
 	static const char *pGruntSentences[HGRUNT_SENT_COUNT];
 
 	void SpawnHelper(const char* modelName, int health, int bloodColor = BLOOD_COLOR_RED);
 	void PrecacheHelper(const char* modelName);
-	void PlayFirstBurstSounds();
-	BOOL CheckRangeAttack2Impl(float grenadeSpeed, float flDot, float flDist, bool contact);
+	virtual void PlayFirstBurstSounds();
+	virtual void PlayReloadSound();
+	virtual void PlayGrenadeLaunchSound();
+	virtual void PlayShogtunSound();
+	bool CheckRangeAttack2Impl(float grenadeSpeed, float flDot, float flDist, bool contact);
 	virtual int GetRangeAttack1Sequence();
 	virtual int GetRangeAttack2Sequence();
 	virtual Schedule_t* ScheduleOnRangeAttack1();
@@ -154,14 +162,27 @@ protected:
 
 	virtual void SpeakCaughtEnemy();
 	virtual bool AlertSentenceIsForPlayerOnly();
+	virtual bool CanFireWhileRappelling();
+
+public:
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+
+	static constexpr const char* reloadSoundScript = "HGrunt.Reload";
+	static constexpr const char* burst9mmSoundScript = "HGrunt.9MM";
+	static constexpr const char* grenadeLaunchSoundScript = "HGrunt.GrenadeLaunch";
+	static constexpr const char* shotgunSoundScript = "HGrunt.Shotgun";
+
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
 };
 
 class CHGruntRepel : public CFollowingMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void KeyValue(KeyValueData* pkvd);
+	void Spawn() override;
+	void Precache() override;
+	void KeyValue(KeyValueData* pkvd) override;
 	void EXPORT RepelUse ( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	int m_iSpriteTexture;	// Don't save, precache
 	virtual const char* TrooperName();

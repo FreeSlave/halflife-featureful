@@ -27,22 +27,50 @@
 #include "monsters.h"
 #include "animation.h"
 #include "saverestore.h"
-#include "weapons.h"
+#include "combat.h"
+#include "global_models.h"
 #include "scripted.h"
 #include "followingmonster.h"
 #include "decals.h"
 #include "soundent.h"
 #include "gamerules.h"
-#include "mod_features.h"
 #include "game.h"
+#include "common_soundscripts.h"
+#include "visuals_utils.h"
+#include "inventory.h"
+#include "classify.h"
+#include "studio.h"
+#include "clamp.h"
+#include "tex_materials.h"
+#include "ai_debug.h"
+#include "graphic_debug.h"
+#include "plane.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
 Vector VecBModelOrigin( entvars_t *pevBModel );
 
-extern DLL_GLOBAL	BOOL	g_fDrawLines;
-extern DLL_GLOBAL	short	g_sModelIndexLaser;// holds the index for the laser beam
-extern DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
+static void ReportRouteType(ALERT_TYPE level, int routeType)
+{
+	if (routeType & bits_MF_TO_TARGETENT)
+		ALERT(level, "To TargetEnt; ");
+	if (routeType & bits_MF_TO_ENEMY)
+		ALERT(level, "To Enemy; ");
+	if (routeType & bits_MF_TO_DETOUR)
+		ALERT(level, "Detour; ");
+	if (routeType & bits_MF_TO_PATHCORNER)
+		ALERT(level, "Path Corner; ");
+	if (routeType & bits_MF_TO_NODE)
+		ALERT(level, "Node; ");
+	if (routeType & bits_MF_TO_LOCATION)
+		ALERT(level, "Location; ");
+	if (routeType & bits_MF_IS_GOAL)
+		ALERT(level, "Goal; ");
+	if (routeType & bits_MF_DONT_SIMPLIFY)
+		ALERT(level, "Don't simplify; ");
+	if (routeType & bits_MF_NEAREST_PATH)
+		ALERT(level, "Nearest; ");
+}
 
 // Global Savedata for monster
 // UNDONE: Save schedule data?  Can this be done?  We may
@@ -92,6 +120,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_flNextAttack, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_bitsDamageType, FIELD_INTEGER ),
 	DEFINE_ARRAY( CBaseMonster, m_rgbTimeBasedDamage, FIELD_CHARACTER, CDMG_TIMEBASED ),
+	DEFINE_ARRAY( CBaseMonster, m_tbdNext, FIELD_TIME, CDMG_TIMEBASED ),
 	DEFINE_FIELD( CBaseMonster, m_bloodColor, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_failSchedule, FIELD_INTEGER ),
 
@@ -109,20 +138,14 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_iClass, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_gibModel, FIELD_STRING ),
 	DEFINE_FIELD( CBaseMonster, m_reverseRelationship, FIELD_BOOLEAN ),
-	DEFINE_FIELD( CBaseMonster, m_displayName, FIELD_STRING ),
-
-	DEFINE_FIELD( CBaseMonster, m_glowShellTime, FIELD_TIME ),
-	DEFINE_FIELD( CBaseMonster, m_glowShellColor, FIELD_VECTOR ),
-	DEFINE_FIELD( CBaseMonster, m_glowShellUpdate, FIELD_BOOLEAN ),
-
-	DEFINE_FIELD( CBaseMonster, m_prevRenderAmt, FIELD_INTEGER ),
-	DEFINE_FIELD( CBaseMonster, m_prevRenderColor, FIELD_VECTOR ),
-	DEFINE_FIELD( CBaseMonster, m_prevRenderFx, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_leaping, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flNextLeapAttack, FIELD_TIME ),
 
 	DEFINE_FIELD( CBaseMonster, m_nextPatrolPathCheck, FIELD_TIME ),
 
 	DEFINE_FIELD( CBaseMonster, m_customSoundMask, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_prisonerTo, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_ignoredBy, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_freeRoam, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_activeAfterCombat, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_huntActivitiesCount, FIELD_SHORT ),
@@ -138,6 +161,19 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseMonster, m_gibPolicy, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_bForceConditionsGather, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flNextPainTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_equalDislikeTime, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_triggerOnDeath, FIELD_STRING ),
+
+	DEFINE_FIELD( CBaseMonster, m_clearOwnerTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CBaseMonster, m_iTargetRenderamt, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_UncloakedRenderamt, FIELD_SHORT ),
+	DEFINE_FIELD( CBaseMonster, m_handledCloakingOnce, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CBaseMonster, m_retreatSuggestionTime, FIELD_TIME ),
+
+	DEFINE_FIELD( CBaseMonster, m_procreator, FIELD_EHANDLE ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -183,14 +219,13 @@ void CBaseMonster::Eat( float flFullDuration )
 //=========================================================
 // FShouldEat - returns true if a monster is hungry.
 //=========================================================
-BOOL CBaseMonster::FShouldEat( void )
+bool CBaseMonster::FShouldEat()
 {
 	if( m_flHungryTime > gpGlobals->time )
 	{
-		return FALSE;
+		return false;
 	}
-
-	return TRUE;
+	return true;
 }
 
 //=========================================================
@@ -214,7 +249,7 @@ void CBaseMonster::BarnacleVictimBitten( entvars_t *pevBarnacle )
 // BarnacleVictimReleased - called by barnacle victims when
 // the host barnacle is killed.
 //=========================================================
-void CBaseMonster::BarnacleVictimReleased( void )
+void CBaseMonster::BarnacleVictimReleased()
 {
 	m_IdealMonsterState = MONSTERSTATE_IDLE;
 
@@ -226,7 +261,7 @@ void CBaseMonster::BarnacleVictimReleased( void )
 // Listen - monsters dig through the active sound list for
 // any sounds that may interest them. (smells, too!)
 //=========================================================
-void CBaseMonster::Listen( void )
+void CBaseMonster::Listen()
 {
 	int	iSound;
 	int	iMySounds;
@@ -258,7 +293,7 @@ void CBaseMonster::Listen( void )
 
 		if( pCurrentSound &&
 			( pCurrentSound->m_iType & iMySounds )	&&
-			( pCurrentSound->m_vecOrigin - EarPosition() ).Length() <= pCurrentSound->m_iVolume * hearingSensitivity )
+			( pCurrentSound->m_vecOrigin - EarPosition() ).IsLengthLessThanOrEqual(pCurrentSound->m_iVolume * hearingSensitivity) )
 
 		//if( ( g_pSoundEnt->m_SoundPool[iSound].m_iType & iMySounds ) && ( g_pSoundEnt->m_SoundPool[iSound].m_vecOrigin - EarPosition()).Length () <= g_pSoundEnt->m_SoundPool[iSound].m_iVolume * hearingSensitivity )
 		{
@@ -268,8 +303,27 @@ void CBaseMonster::Listen( void )
 
 			if( pCurrentSound->FIsSound() )
 			{
-				// this is an audible sound.
-				SetConditions( bits_COND_HEAR_SOUND );
+				if ((pCurrentSound->m_iType & iMySounds) == bits_SOUND_PLAYER)
+				{
+					if (m_pSchedule && (m_pSchedule->iSoundMask & bits_SOUND_PLAYER_IF_NOT_ALLY) == bits_SOUND_PLAYER_IF_NOT_ALLY)
+					{
+						// TODO: check against the player who produced the sound, not the player class
+						const int relToPlayer = IDefaultRelationship(CLASS_PLAYER);
+						if (relToPlayer != R_AL)
+						{
+							SetConditions( bits_COND_HEAR_SOUND );
+						}
+					}
+					else
+					{
+						SetConditions( bits_COND_HEAR_SOUND );
+					}
+				}
+				else
+				{
+					// this is an audible sound.
+					SetConditions( bits_COND_HEAR_SOUND );
+				}
 			}
 			else
 			{
@@ -315,9 +369,9 @@ float CBaseMonster::FLSoundVolume( CSound *pSound )
 // FValidateHintType - tells use whether or not the monster cares
 // about the type of Hint Node given
 //=========================================================
-BOOL CBaseMonster::FValidateHintType( short sHint )
+bool CBaseMonster::FValidateHintType( short sHint )
 {
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -361,9 +415,15 @@ void CBaseMonster::Look( int iDistance )
 				 (!m_prisonerTo || m_prisonerTo != pSightEnt->Classify()) &&
 				 pSightEnt->pev->health > 0 )
 			{
+				const int myClassify = Classify();
 				CBaseMonster* pSightMonster = pSightEnt->MyMonsterPointer();
-				if (pSightMonster && pSightMonster->m_prisonerTo != 0 && pSightMonster->m_prisonerTo == Classify())
-					continue;
+				if (pSightMonster)
+				{
+					if (pSightMonster->m_prisonerTo != 0 && pSightMonster->m_prisonerTo == myClassify)
+						continue;
+					if (pSightMonster->m_ignoredBy != 0 && pSightMonster->m_ignoredBy == myClassify)
+						continue;
+				}
 
 				const int iRelationship = IRelationship( pSightEnt );
 				// the looker will want to consider this entity
@@ -437,7 +497,7 @@ void CBaseMonster::Look( int iDistance )
 // of sounds this monster regards. In the base class implementation,
 // monsters care about all sounds, but no scents.
 //=========================================================
-int CBaseMonster::DefaultISoundMask( void )
+int CBaseMonster::DefaultISoundMask()
 {
 	return	bits_SOUND_WORLD |
 		bits_SOUND_COMBAT |
@@ -462,7 +522,7 @@ int CBaseMonster::ISoundMask()
 // PBestSound - returns a pointer to the sound the monster 
 // should react to. Right now responds only to nearest sound.
 //=========================================================
-CSound *CBaseMonster::PBestSound( void )
+CSound *CBaseMonster::PBestSound()
 {	
 	int iThisSound; 
 	int iBestSound = -1;
@@ -516,7 +576,7 @@ CSound *CBaseMonster::PBestSound( void )
 // PBestScent - returns a pointer to the scent the monster 
 // should react to. Right now responds only to nearest scent
 //=========================================================
-CSound *CBaseMonster::PBestScent( void )
+CSound *CBaseMonster::PBestScent()
 {
 	int iThisScent; 
 	int iBestScent = -1;
@@ -568,14 +628,26 @@ CSound *CBaseMonster::PBestScent( void )
 // Monster Think - calls out to core AI functions and handles this
 // monster's specific animation events
 //=========================================================
-void CBaseMonster::MonsterThink( void )
+void CBaseMonster::MonsterThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;// keep monster thinking.
 
+	if (m_clearOwnerTime && m_clearOwnerTime <= gpGlobals->time)
+	{
+		if (pev->owner)
+		{
+			pev->owner = nullptr;
+		}
+		m_clearOwnerTime = 0.0f;
+	}
+
 	RunAI();
 	GlowShellUpdate();
+	HandlePassiveRegeneration();
+	HandlePowerShieldRecharge();
+	HandleCloaking();
 
-	float flInterval = StudioFrameAdvance( ); // animate
+	float flInterval = StudioFrameAdvance(); // animate
 
 	// start or end a fidget
 	// This needs a better home -- switching animations over time should be encapsulated on a per-activity basis
@@ -635,7 +707,7 @@ void CBaseMonster::MonsterUse( CBaseEntity *pActivator, CBaseEntity *pCaller, US
 // schedule, but may not want to interrupt the schedule every
 // time. (Pain, for instance)
 //=========================================================
-int CBaseMonster::IgnoreConditions( void )
+int CBaseMonster::IgnoreConditions()
 {
 	int iIgnoreConditions = 0;
 
@@ -654,7 +726,7 @@ int CBaseMonster::IgnoreConditions( void )
 //=========================================================
 // 	RouteClear - zeroes out the monster's route array and goal
 //=========================================================
-void CBaseMonster::RouteClear( void )
+void CBaseMonster::RouteClear()
 {
 	RouteNew();
 	m_movementGoal = MOVEGOAL_NONE;
@@ -666,22 +738,25 @@ void CBaseMonster::RouteClear( void )
 // Route New - clears out a route to be changed, but keeps
 //				goal intact.
 //=========================================================
-void CBaseMonster::RouteNew( void )
+void CBaseMonster::RouteNew()
 {
-	m_Route[0].iType = 0;
+	for (auto& route : m_Route)
+	{
+		route.iType = 0;
+	}
 	m_iRouteIndex = 0;
 }
 
 //=========================================================
-// FRouteClear - returns TRUE is the Route is cleared out
+// FRouteClear - returns true is the Route is cleared out
 // ( invalid )
 //=========================================================
-BOOL CBaseMonster::FRouteClear( void )
+bool CBaseMonster::FRouteClear()
 {
 	if( m_Route[m_iRouteIndex].iType == 0 || m_movementGoal == MOVEGOAL_NONE )
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -691,15 +766,13 @@ BOOL CBaseMonster::FRouteClear( void )
 //=========================================================
 extern cvar_t npc_patrol;
 
-BOOL CBaseMonster::FRefreshRoute( int buildRouteFlags )
+bool CBaseMonster::FRefreshRoute( int buildRouteFlags )
 {
 	CBaseEntity	*pPathCorner;
 	int		i;
-	BOOL		returnCode;
+	bool returnCode = false;
 
 	RouteNew();
-
-	returnCode = FALSE;
 
 	switch( m_movementGoal )
 	{
@@ -730,12 +803,13 @@ BOOL CBaseMonster::FRefreshRoute( int buildRouteFlags )
 							m_Route[i].iType |= bits_MF_IS_GOAL;
 						i++;
 					}
-					returnCode = TRUE;
+					returnCode = true;
 				}
 			}
 			break;
 		case MOVEGOAL_ENEMY:
-			returnCode = BuildRoute( m_vecEnemyLKP, bits_MF_TO_ENEMY, m_hEnemy, buildRouteFlags );
+		case MOVEGOAL_ENEMY_NEAREST:
+			returnCode = BuildRoute( m_vecEnemyLKP, m_movementGoal, m_hEnemy, buildRouteFlags );
 			break;
 		case MOVEGOAL_LOCATION:
 		case MOVEGOAL_LOCATION_NEAREST:
@@ -758,7 +832,7 @@ BOOL CBaseMonster::FRefreshRoute( int buildRouteFlags )
 	return returnCode;
 }
 
-BOOL CBaseMonster::MoveToEnemy( Activity movementAct, float waitTime )
+bool CBaseMonster::MoveToEnemy( Activity movementAct, float waitTime )
 {
 	m_movementActivity = movementAct;
 	m_moveWaitTime = waitTime;
@@ -767,7 +841,7 @@ BOOL CBaseMonster::MoveToEnemy( Activity movementAct, float waitTime )
 	return FRefreshRoute();
 }
 
-BOOL CBaseMonster::MoveToLocation( Activity movementAct, float waitTime, const Vector &goal, int buildRouteFlags )
+bool CBaseMonster::MoveToLocation( Activity movementAct, float waitTime, const Vector &goal, int buildRouteFlags )
 {
 	m_movementActivity = movementAct;
 	m_moveWaitTime = waitTime;
@@ -777,7 +851,7 @@ BOOL CBaseMonster::MoveToLocation( Activity movementAct, float waitTime, const V
 	return FRefreshRoute(buildRouteFlags);
 }
 
-BOOL CBaseMonster::MoveToLocationClosest( Activity movementAct, float waitTime, const Vector &goal, int buildRouteFlags )
+bool CBaseMonster::MoveToLocationClosest( Activity movementAct, float waitTime, const Vector &goal, int buildRouteFlags )
 {
 	m_movementActivity = movementAct;
 	m_moveWaitTime = waitTime;
@@ -787,7 +861,7 @@ BOOL CBaseMonster::MoveToLocationClosest( Activity movementAct, float waitTime, 
 	return FRefreshRoute(buildRouteFlags);
 }
 
-BOOL CBaseMonster::MoveToTarget( Activity movementAct, float waitTime, bool closest )
+bool CBaseMonster::MoveToTarget( Activity movementAct, float waitTime, bool closest )
 {
 	m_movementActivity = movementAct;
 	m_moveWaitTime = waitTime;
@@ -796,7 +870,7 @@ BOOL CBaseMonster::MoveToTarget( Activity movementAct, float waitTime, bool clos
 	return FRefreshRoute();
 }
 
-BOOL CBaseMonster::MoveToNode( Activity movementAct, float waitTime, const Vector &goal )
+bool CBaseMonster::MoveToNode( Activity movementAct, float waitTime, const Vector &goal )
 {
 	m_movementActivity = movementAct;
 	m_moveWaitTime = waitTime;
@@ -804,31 +878,6 @@ BOOL CBaseMonster::MoveToNode( Activity movementAct, float waitTime, const Vecto
 	m_movementGoal = MOVEGOAL_NODE;
 	m_vecMoveGoal = goal;
 	return FRefreshRoute();
-}
-
-static void DrawRoutePart(const Vector& vecStart, const Vector& vecEnd, int r, int g, int b, int life, int width = 16)
-{
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMPOINTS);
-		WRITE_COORD( vecStart.x );
-		WRITE_COORD( vecStart.y );
-		WRITE_COORD( vecStart.z );
-		WRITE_COORD( vecEnd.x );
-		WRITE_COORD( vecEnd.y );
-		WRITE_COORD( vecEnd.z );
-
-		WRITE_SHORT( g_sModelIndexLaser );
-		WRITE_BYTE( 0 ); // frame start
-		WRITE_BYTE( 10 ); // framerate
-		WRITE_BYTE( life ); // life
-		WRITE_BYTE( width );  // width
-		WRITE_BYTE( 0 );   // noise
-		WRITE_BYTE( r );   // r, g, b
-		WRITE_BYTE( g );   // r, g, b
-		WRITE_BYTE( b );   // r, g, b
-		WRITE_BYTE( 255 );	// brightness
-		WRITE_BYTE( 10 );		// speed
-	MESSAGE_END();
 }
 
 void DrawRoute( entvars_t *pev, WayPoint_t *m_Route, int m_iRouteIndex, int r, int g, int b, int life = 1 )
@@ -842,14 +891,14 @@ void DrawRoute( entvars_t *pev, WayPoint_t *m_Route, int m_iRouteIndex, int r, i
 	}
 
 	//UTIL_ParticleEffect ( m_Route[m_iRouteIndex].vecLocation, g_vecZero, 255, 25 );
-	DrawRoutePart( pev->origin, m_Route[m_iRouteIndex].vecLocation, r, g, b, life, 16 );
+	DrawBeamLine( pev->origin, m_Route[m_iRouteIndex].vecLocation, r, g, b, life, 16 );
 
 	for( i = m_iRouteIndex; i < ROUTE_SIZE - 1; i++ )
 	{
 		if( ( m_Route[i].iType & bits_MF_IS_GOAL ) || ( m_Route[i + 1].iType == 0 ) )
 			break;
 
-		DrawRoutePart( m_Route[m_iRouteIndex].vecLocation, m_Route[i + 1].vecLocation, r, g, b, life, 8 );
+		DrawBeamLine( m_Route[m_iRouteIndex].vecLocation, m_Route[i + 1].vecLocation, r, g, b, life, 8 );
 		//UTIL_ParticleEffect( m_Route[i].vecLocation, g_vecZero, 255, 25 );
 	}
 }
@@ -872,13 +921,13 @@ void DrawRoute(CBaseMonster* pMonster, int iMoveFlag)
 	DrawRoute(pMonster->pev, pMonster->m_Route, pMonster->m_iRouteIndex, r, g, b, 25);
 }
 
-int ShouldSimplify( int routeType )
+bool ShouldSimplify( int routeType )
 {
 	routeType &= ~bits_MF_IS_GOAL;
 
 	if( ( routeType == bits_MF_TO_PATHCORNER ) || ( routeType & bits_MF_DONT_SIMPLIFY ) )
-		return FALSE;
-	return TRUE;
+		return false;
+	return true;
 }
 
 //=========================================================
@@ -994,11 +1043,11 @@ void CBaseMonster::RouteSimplify( CBaseEntity *pTargetEnt )
 // right now only used when a barnacle snatches someone, so 
 // may have some special case stuff for that.
 //=========================================================
-BOOL CBaseMonster::FBecomeProne( void )
+bool CBaseMonster::FBecomeProne()
 {
 	if (m_pCine && !m_pCine->CanInterruptByBarnacle())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if( FBitSet( pev->flags, FL_ONGROUND ) )
@@ -1007,59 +1056,70 @@ BOOL CBaseMonster::FBecomeProne( void )
 	}
 
 	m_IdealMonsterState = MONSTERSTATE_PRONE;
-	return TRUE;
+	return true;
 }
 
 //=========================================================
 // CheckRangeAttack1
 //=========================================================
-BOOL CBaseMonster::CheckRangeAttack1( float flDot, float flDist )
+bool CBaseMonster::CheckRangeAttack1( float flDot, float flDist )
 {
 	if( flDist > 64.0f && flDist <= 784.0f && flDot >= 0.5f )
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // CheckRangeAttack2
 //=========================================================
-BOOL CBaseMonster::CheckRangeAttack2( float flDot, float flDist )
+bool CBaseMonster::CheckRangeAttack2( float flDot, float flDist )
 {
 	if( flDist > 64.0f && flDist <= 512.0f && flDot >= 0.5f )
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // CheckMeleeAttack1
 //=========================================================
-BOOL CBaseMonster::CheckMeleeAttack1( float flDot, float flDist )
+bool CBaseMonster::CheckMeleeAttackImpl(float flDot, float flDist, const CheckMeleeAttackParams& defaults, bool meleeAttack2)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	CheckMeleeAttackParams params = defaults;
+	if (entTemplate)
+	{
+		EntTemplate::CheckMeleeAttack check = meleeAttack2 ? entTemplate->GetCheckMeleeAttack2() : entTemplate->GetCheckMeleeAttack1();
+		if (check.distance)
+		{
+			params.distance = *check.distance;
+		}
+		if (check.dot)
+		{
+			params.dot = *check.dot;
+		}
+	}
+	return flDist <= params.distance && flDot >= params.dot;
+}
+
+bool CBaseMonster::CheckMeleeAttack1( float flDot, float flDist )
 {
 	// Decent fix to keep folks from kicking/punching hornets and snarks is to check the onground flag(sjb)
 	// Note: the check for FL_ONGROUND actually causes problems. E.g. zombies can't attack sentry turrets and flying enemies.
 	// Hornets are not seen as enemies by everything except the machines, so they're not a problem at all.
 	// Disabling this check for now.
-	if( flDist <= 64.0f && flDot >= 0.7f && m_hEnemy != 0 /*&& FBitSet( m_hEnemy->pev->flags, FL_ONGROUND )*/ )
-	{
-		return TRUE;
-	}
-	return FALSE;
+	return CheckMeleeAttackImpl(flDot, flDist, CheckMeleeAttackParams(), false) && m_hEnemy != 0 /*&& FBitSet( m_hEnemy->pev->flags, FL_ONGROUND )*/;
 }
 
 //=========================================================
 // CheckMeleeAttack2
 //=========================================================
-BOOL CBaseMonster::CheckMeleeAttack2( float flDot, float flDist )
+bool CBaseMonster::CheckMeleeAttack2( float flDot, float flDist )
 {
-	if( flDist <= 64.0f && flDot >= 0.7f )
-	{
-		return TRUE;
-	}
-	return FALSE;
+	return CheckMeleeAttackImpl(flDot, flDist, CheckMeleeAttackParams(), true);
 }
 
 //=========================================================
@@ -1074,7 +1134,7 @@ void CBaseMonster::CheckAttacks(CBaseEntity *pTarget, float flDist, float flMele
 	UTIL_MakeVectors( pev->angles );
 
 	vec2LOS = ( pTarget->pev->origin - pev->origin ).Make2D();
-	vec2LOS = vec2LOS.Normalize();
+	vec2LOS.NormalizeInPlace();
 
 	flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
@@ -1114,33 +1174,45 @@ void CBaseMonster::CheckAttacks(CBaseEntity *pTarget, float flDist, float flMele
 // CanCheckAttacks - prequalifies a monster to do more fine
 // checking of potential attacks. 
 //=========================================================
-BOOL CBaseMonster::FCanCheckAttacks( void )
+bool CBaseMonster::FCanCheckAttacks()
 {
 	if( HasConditions( bits_COND_SEE_ENEMY ) && !HasConditions( bits_COND_ENEMY_TOOFAR ) )
 	{
-		return TRUE;
+		return true;
 	}
+	return false;
+}
 
-	return FALSE;
+bool CBaseMonster::WantsToGetCloseToEnemy()
+{
+	return !FBitSet(m_afCapability, bits_CAP_RANGE_ATTACK1|bits_CAP_RANGE_ATTACK2) && FBitSet(m_afCapability, bits_CAP_MELEE_ATTACK1|bits_CAP_MELEE_ATTACK1);
 }
 
 //=========================================================
 // CheckEnemy - part of the Condition collection process,
 // gets and stores data and conditions pertaining to a monster's
-// enemy. Returns TRUE if Enemy LKP was updated.
+// enemy. Returns true if Enemy LKP was updated.
 //=========================================================
-int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
+bool CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 {
-	float	flDistToEnemy;
-	int	iUpdatedLKP;// set this to TRUE if you update the EnemyLKP in this function.
+	bool iUpdatedLKP;// set this to true if you update the EnemyLKP in this function.
 
-	iUpdatedLKP = FALSE;
+	iUpdatedLKP = false;
 	ClearConditions( bits_COND_ENEMY_FACING_ME | bits_COND_ENEMY_LOST );
 
-	if( !FVisible( pEnemy ) )
+	CBaseEntity* pOccluder;
+	if( !FVisible( pEnemy, &pOccluder ) )
 	{
 		ASSERT( !HasConditions( bits_COND_SEE_ENEMY ) );
-		SetConditions( bits_COND_ENEMY_OCCLUDED );
+		if (pOccluder)
+		{
+			if (PerceiveEnemyAsOccluded(pEnemy, pOccluder))
+				SetConditions( bits_COND_ENEMY_OCCLUDED );
+			else
+				ClearConditions( bits_COND_ENEMY_OCCLUDED );
+		}
+		else
+			SetConditions( bits_COND_ENEMY_OCCLUDED );
 	}
 	else
 		ClearConditions( bits_COND_ENEMY_OCCLUDED );
@@ -1151,7 +1223,7 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 	{
 		SetConditions( bits_COND_ENEMY_DEAD );
 		ClearConditions( bits_COND_SEE_ENEMY | bits_COND_ENEMY_OCCLUDED );
-		return FALSE;
+		return false;
 	}
 
 	// My enemy is not actually my enemy anymore or I became prisoner (e.g. via trigger_configure_monster)
@@ -1178,26 +1250,28 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 	{
 		SetConditions(bits_COND_ENEMY_LOST);
 		ClearConditions( bits_COND_SEE_ENEMY | bits_COND_ENEMY_OCCLUDED );
-		return FALSE;
+		return false;
 	}
 
-	Vector vecEnemyPos = pEnemy->pev->origin;
+	const float myFeetLevel = pev->origin.z + pev->mins.z;
+	const float myHeight = pev->maxs.z - pev->mins.z;
+	const float enemyFeetLevel = pEnemy->pev->origin.z + pEnemy->pev->mins.z;
+	const float enemyHeight = pEnemy->pev->maxs.z - pEnemy->pev->mins.z;
 
-	// distance to enemy's origin
-	flDistToEnemy = ( vecEnemyPos - pev->origin ).Length();
-	vecEnemyPos.z += pEnemy->pev->size.z * 0.5f;
+	float flDistToEnemy = 1000000.0f;
 
-	// distance to enemy's head
-	float flDistToEnemy2 = ( vecEnemyPos - pev->origin ).Length();
-	if( flDistToEnemy2 < flDistToEnemy )
-		flDistToEnemy = flDistToEnemy2;
-	else
+	Vector myPos = pev->origin;
+	myPos.z = myFeetLevel;
+	myPos.z += myHeight * 0.5f;
+
+	for (int j=0; j<4; ++j)
 	{
-		// distance to enemy's feet
-		vecEnemyPos.z -= pEnemy->pev->size.z;
-		flDistToEnemy2 = ( vecEnemyPos - pev->origin ).Length();
-		if( flDistToEnemy2 < flDistToEnemy )
-			flDistToEnemy = flDistToEnemy2;
+		Vector enemyPos = pEnemy->pev->origin;
+		enemyPos.z = enemyFeetLevel;
+		enemyPos.z += enemyHeight * 0.25f * j;
+
+		const float flDistToEnemy2 = (enemyPos - myPos).Length();
+		flDistToEnemy = Q_min(flDistToEnemy, flDistToEnemy2);
 	}
 
 	float maxSideSize;
@@ -1219,7 +1293,7 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 	{
 		CBaseMonster *pEnemyMonster;
 
-		iUpdatedLKP = TRUE;
+		iUpdatedLKP = true;
 		m_vecEnemyLKP = pEnemy->pev->origin;
 		m_flLastTimeObservedEnemy = gpGlobals->time;
 
@@ -1250,7 +1324,7 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 		// if the enemy is not occluded, and unseen, that means it is behind or beside the monster.
 		// if the enemy is near enough the monster, we go ahead and let the monster know where the
 		// enemy is. 
-		iUpdatedLKP = TRUE;
+		iUpdatedLKP = true;
 		m_vecEnemyLKP = pEnemy->pev->origin;
 		m_flLastTimeObservedEnemy = gpGlobals->time;
 	}
@@ -1261,7 +1335,7 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 		{
 			SetConditions( bits_COND_ENEMY_LOST );
 			ClearConditions( bits_COND_ENEMY_OCCLUDED );
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1278,15 +1352,21 @@ int CBaseMonster::CheckEnemy( CBaseEntity *pEnemy )
 		CheckAttacks( m_hEnemy, flDistToEnemy, flMeleeDist );
 	}
 
-	if( m_movementGoal == MOVEGOAL_ENEMY )
+	if( m_movementGoal == MOVEGOAL_ENEMY || m_movementGoal == MOVEGOAL_ENEMY_NEAREST )
 	{
 		for( int i = m_iRouteIndex; i < ROUTE_SIZE; i++ )
 		{
-			if( m_Route[i].iType == ( bits_MF_IS_GOAL | bits_MF_TO_ENEMY ) )
+			if( m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY) || m_Route[i].iType == (bits_MF_IS_GOAL|bits_MF_TO_ENEMY|bits_MF_NEAREST_PATH) )
 			{
 				// UNDONE: Should we allow monsters to override this distance (80?)
-				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).Length() > 80.0f )
+				if( ( m_Route[i].vecLocation - m_vecEnemyLKP ).IsLengthGreaterThan(80.0f) )
 				{
+					// I'm already standing almost on enemy LKP. No point in building a path to the same spot.
+					// Set the current route point as enemy LKP instead
+					if ((pev->origin - m_vecEnemyLKP).IsLengthLessThanOrEqual(48.0f) && (pev->origin - m_vecEnemyLKP).IsLength2DLessThanOrEqual(16.0f))
+					{
+						m_vecEnemyLKP = m_Route[m_iRouteIndex].vecLocation;
+					}
 					// Refresh
 					FRefreshRoute();
 					return iUpdatedLKP;
@@ -1310,7 +1390,11 @@ void CBaseMonster::SetEnemy(CBaseEntity *pNewEnemy)
 	m_hEnemy = pNewEnemy;
 	m_vecEnemyLKP = pNewEnemy->pev->origin;
 	m_flLastTimeObservedEnemy = gpGlobals->time;
-	//ALERT(at_aiconsole, "%s got %s as new enemy\n", STRING(pev->classname), STRING(pNewEnemy->pev->classname));
+
+	if (ShouldReportAIChange(entindex()))
+	{
+		ALERT(at_aiconsole, "%s (%d): got %s as new enemy. Previous enemy: %s\n", STRING(pev->classname), entindex(), STRING(pNewEnemy->pev->classname), pPreviousEnemy ? STRING(pPreviousEnemy->pev->classname) : "none");
+	}
 
 	// Don't keep the new enemy in the list of old enemies
 	for( int i = 0; i < MAX_OLD_ENEMIES; i++ )
@@ -1357,7 +1441,7 @@ void CBaseMonster::PushEnemy( CBaseEntity *pEnemy, const Vector &vecLastKnownPos
 //=========================================================
 // PopEnemy - try remembering the last few enemies
 //=========================================================
-BOOL CBaseMonster::PopEnemy()
+bool CBaseMonster::PopEnemy()
 {
 	// UNDONE: blah, this is bad, we should use a stack but I'm too lazy to code one.
 	for( int i = MAX_OLD_ENEMIES - 1; i >= 0; i-- )
@@ -1371,7 +1455,7 @@ BOOL CBaseMonster::PopEnemy()
 				m_flLastTimeObservedEnemy = gpGlobals->time;
 				ALERT( at_aiconsole, "%s remembering old enemy %s\n", STRING(pev->classname), STRING(m_hEnemy->pev->classname) );
 				m_hOldEnemy[i] = NULL;
-				return TRUE;
+				return true;
 			}
 			else
 			{
@@ -1379,12 +1463,14 @@ BOOL CBaseMonster::PopEnemy()
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // SetActivity 
 //=========================================================
+extern cvar_t npc_range_attack_unlooped;
+
 void CBaseMonster::SetActivity( Activity NewActivity )
 {
 	int iSequence = LookupActivity( NewActivity );
@@ -1408,11 +1494,17 @@ void CBaseMonster::SetActivity( Activity NewActivity )
 		pev->sequence = iSequence;	// Set to the reset anim (if it's there)
 		ResetSequenceInfo();
 		SetYawSpeed();
+
+		if (m_fSequenceLoops && m_Activity == ACT_RANGE_ATTACK1 && npc_range_attack_unlooped.value)
+		{
+			//ALERT(at_aiconsole, "%s: forcing attack animation not to loop\n", STRING(pev->classname));
+			m_fSequenceLoops = false;
+		}
 	}
 	else
 	{
 		// Not available try to get default anim
-		ALERT( at_aiconsole, "%s has no sequence for act:%d\n", STRING( pev->classname ), NewActivity );
+		ALERT(at_aiconsole, "%s (%s) has no sequence for act:%d\n", STRING(pev->classname), STRING(pev->model), NewActivity);
 		pev->sequence = 0;	// Set to the reset anim (if it's there)
 	}
 }
@@ -1447,7 +1539,7 @@ void CBaseMonster::SetSequenceByName( const char *szSequence )
 }
 
 //=========================================================
-// CheckLocalMove - returns TRUE if the caller can walk a 
+// CheckLocalMove - returns true if the caller can walk a
 // straight line from its current origin to the given 
 // location. If so, don't use the node graph!
 //
@@ -1495,7 +1587,7 @@ int CBaseMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, 
 
 		// since we've actually moved the monster during the check, undo the move.
 		pev->origin = vecStartPos;
-		return FALSE;
+		return false;
 	}
 */
 	// this loop takes single steps to the goal.
@@ -1525,7 +1617,7 @@ int CBaseMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, 
 			{
 				// If we're going toward an entity, and we're almost getting there, it's OK.
 				//if( pTarget && fabs( flDist - iStep ) < LOCAL_STEP_SIZE )
-				//	fReturn = TRUE;
+				//	fReturn = true;
 				//else
 				iReturn = LOCALMOVE_INVALID;
 				break;
@@ -1567,7 +1659,7 @@ float CBaseMonster::OpenDoorAndWait( entvars_t *pevDoor )
 
 	//ALERT( at_aiconsole, "A door. " );
 	CBaseEntity *pcbeDoor = CBaseEntity::Instance( pevDoor );
-	if( pcbeDoor )
+	if( pcbeDoor && !pcbeDoor->IsLockedByMaster() )
 	{
 		//ALERT( at_aiconsole, "unlocked! " );
 		flTravelTime = pcbeDoor->InputByMonster(this);
@@ -1686,7 +1778,11 @@ int CBaseMonster::RouteClassify( int iMoveFlag )
 			movementGoal = MOVEGOAL_TARGETENT_NEAREST;
 	}
 	else if( iMoveFlag & bits_MF_TO_ENEMY )
+	{
 		movementGoal = MOVEGOAL_ENEMY;
+		if( iMoveFlag & bits_MF_NEAREST_PATH )
+			movementGoal = MOVEGOAL_ENEMY_NEAREST;
+	}
 	else if( iMoveFlag & bits_MF_TO_PATHCORNER )
 		movementGoal = MOVEGOAL_PATHCORNER;
 	else if( iMoveFlag & bits_MF_TO_NODE )
@@ -1704,7 +1800,7 @@ int CBaseMonster::RouteClassify( int iMoveFlag )
 //=========================================================
 // BuildRoute
 //=========================================================
-BOOL CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity *pTarget, int buildRouteFlags )
+bool CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity *pTarget, int buildRouteFlags )
 {
 	float flDist;
 	Vector vecApexes[3];
@@ -1724,10 +1820,7 @@ BOOL CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 		if (shouldApplyTridepth)
 		{
 			triangDepth = TridepthValue();
-			if (triangDepth < 1)
-				triangDepth = 1;
-			if (triangDepth > ARRAYSIZE(vecApexes))
-				triangDepth = ARRAYSIZE(vecApexes);
+			triangDepth = clamp(triangDepth, 1, static_cast<int>(ARRAYSIZE(vecApexes)));
 		}
 	}
 
@@ -1748,7 +1841,7 @@ BOOL CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 		if( iLocalMove == LOCALMOVE_VALID )
 		{
 			// monster can walk straight there!
-			return TRUE;
+			return true;
 		}
 
 		// try to triangulate around any obstacles.
@@ -1768,58 +1861,94 @@ BOOL CBaseMonster::BuildRoute( const Vector &vecGoal, int iMoveFlag, CBaseEntity
 				m_Route[result].iType = iMoveFlag | bits_MF_IS_GOAL;
 
 				RouteSimplify( pTarget );
-				return TRUE;
+				return true;
 			}
+		}
+	}
+
+	auto nearestBuildRoute = [&]()
+	{
+		if (nearest && !FBitSet(buildRouteFlags, BUILDROUTE_NODEROUTE_ONLY))
+		{
+			SetBits(iMoveFlag, bits_MF_NEAREST_PATH);
+
+			const Vector localMoveNearest = pev->origin + (vecGoal - pev->origin).Normalize() * flDist;
+
+			Vector apex;
+			const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
+
+			if ((vecGoal - triangulatedNearest).Length2DSqr() < (vecGoal - localMoveNearest).Length2DSqr())
+			{
+				if ((apex - triangulatedNearest).IsLength2DLessThan(1))
+				{
+					if ((triangulatedNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
+					{
+						m_Route[0].vecLocation = triangulatedNearest;
+						m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+						m_vecMoveGoal = triangulatedNearest;
+						return true;
+					}
+				}
+				else
+				{
+					if ((triangulatedNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
+					{
+						m_Route[0].vecLocation = apex;
+						m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
+
+						m_Route[1].vecLocation = triangulatedNearest;
+						m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
+
+						RouteSimplify( pTarget );
+						m_vecMoveGoal = triangulatedNearest;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// Prevent playing walk/run animation while standing in place
+				if ((localMoveNearest - pev->origin).IsLength2DGreaterThanOrEqual(1.0f))
+				{
+					m_Route[0].vecLocation = localMoveNearest;
+					m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
+
+					m_vecMoveGoal = localMoveNearest;
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	// If monster want to nearest route to enemy, it means he wants to get closer, so do this check before nodes
+	if (FBitSet(iMoveFlag, bits_MF_TO_ENEMY))
+	{
+		if (nearestBuildRoute())
+		{
+			return true;
 		}
 	}
 
 	// last ditch, try nodes
-	if( !FBitSet(buildRouteFlags, BUILDROUTE_NO_NODEROUTE) && FGetNodeRoute( vecGoal ) )
+	if( !FBitSet(buildRouteFlags, BUILDROUTE_NO_NODEROUTE) && FGetNodeRoute( vecGoal, iMoveFlag & (bits_MF_TO_TARGETENT|bits_MF_TO_ENEMY) ) )
 	{
 		//ALERT( at_console, "Can get there on nodes\n" );
 		m_vecMoveGoal = vecGoal;
 		RouteSimplify( pTarget );
-		return TRUE;
+		return true;
 	}
 
-	if (nearest && !FBitSet(buildRouteFlags, BUILDROUTE_NODEROUTE_ONLY))
+	if (!FBitSet(iMoveFlag, bits_MF_TO_ENEMY))
 	{
-		SetBits(iMoveFlag, bits_MF_NEAREST_PATH);
-
-		const Vector localMoveNearest = pev->origin + (vecGoal - pev->origin).Normalize() * flDist;
-
-		m_Route[0].vecLocation = localMoveNearest;
-		m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
-
-		m_vecMoveGoal = localMoveNearest;
-
-		Vector apex;
-		const Vector triangulatedNearest = FTriangulateToNearest(pev->origin, vecGoal, flDist, pTarget, apex);
-
-		if ((vecGoal - triangulatedNearest).Length2D() < (vecGoal - localMoveNearest).Length2D())
+		if (nearestBuildRoute())
 		{
-			if ((apex - triangulatedNearest).Length2D() < 1)
-			{
-				m_Route[0].vecLocation = triangulatedNearest;
-				m_Route[0].iType = iMoveFlag | bits_MF_IS_GOAL;
-			}
-			else
-			{
-				m_Route[0].vecLocation = apex;
-				m_Route[0].iType = (iMoveFlag | bits_MF_TO_DETOUR);
-
-				m_Route[1].vecLocation = triangulatedNearest;
-				m_Route[1].iType = iMoveFlag | bits_MF_IS_GOAL;
-
-				RouteSimplify( pTarget );
-			}
-			m_vecMoveGoal = triangulatedNearest;
+			return true;
 		}
-		return TRUE;
 	}
 
 	// b0rk
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -1855,13 +1984,10 @@ void CBaseMonster::InsertWaypoint( Vector vecLocation, int afMoveFlags )
 int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, float flDist, CBaseEntity *pTargetEnt, Vector *pApexes, int n, int tries, bool recursive )
 {
 	Vector		vecDir;
-	Vector		vecForward;
 	Vector		vecLeft;// the spot we'll try to triangulate to on the left
 	Vector		vecRight;// the spot we'll try to triangulate to on the right
 	Vector		vecTop;// the spot we'll try to triangulate to on the top
 	Vector		vecBottom;// the spot we'll try to triangulate to on the bottom
-	Vector		vecFarSide;// the spot that we'll move to after hitting the triangulated point, before moving on to our normal goal.
-	int		i;
 	float		sizeX, sizeZ;
 
 	// If the hull width is less than 24, use 24 because CheckLocalMove uses a min of
@@ -1875,7 +2001,7 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 	//if( sizeZ < 24.0f )
 	//	sizeZ = 24.0f;
 
-	vecForward = ( vecEnd - vecStart ).Normalize();
+	const Vector vecForward = ( vecEnd - vecStart ).Normalize();
 
 	Vector vecDirUp( 0, 0, 1 );
 	vecDir = CrossProduct( vecForward, vecDirUp );
@@ -1890,38 +2016,30 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 	vecRight = vecStart + ( vecForward * ( flDist + ( recursive ? 0 : sizeX ) ) ) + vecDir * ( recursive ? sizeX : sizeX * 3 );
 	if( pev->movetype == MOVETYPE_FLY )
 	{
-		vecTop = vecStart + ( vecForward * flDist ) + ( vecDirUp * sizeZ * 3 );
-		vecBottom = vecStart + ( vecForward * flDist ) - ( vecDirUp *  sizeZ * 3 );
+		vecTop = vecStart + ( vecForward * flDist ) + ( vecDirUp * (recursive ? sizeZ : sizeZ * 3) );
+		vecBottom = vecStart + ( vecForward * flDist ) - ( vecDirUp * (recursive ? sizeZ : sizeZ * 3) );
 	}
 
-	vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
+	const Vector vecFarSide = vecEnd;//m_Route[m_iRouteIndex].vecLocation; // since we use recursion these are not always the same anymore
 
-	vecDir = vecDir * sizeX * 2;
+	vecDir *= sizeX * 2;
 	if( pev->movetype == MOVETYPE_FLY )
-		vecDirUp = vecDirUp * sizeZ * 2;
+		vecDirUp *= sizeZ * 2;
 
-	for( i = 0; i < tries; i++ )
+	for( int i = 0; i < tries; i++ )
 	{
 // Debug, Draw the triangulation
 #if 0
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_SHOWLINE);
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			WRITE_COORD( vecRight.x );
-			WRITE_COORD( vecRight.y );
-			WRITE_COORD( vecRight.z );
+			WRITE_VECTOR( pev->origin );
+			WRITE_VECTOR( vecRight );
 		MESSAGE_END();
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_SHOWLINE );
-			WRITE_COORD( pev->origin.x );
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			WRITE_COORD( vecLeft.x );
-			WRITE_COORD( vecLeft.y );
-			WRITE_COORD( vecLeft.z );
+			WRITE_VECTOR( pev->origin );
+			WRITE_VECTOR( vecLeft );
 		MESSAGE_END();
 #endif
 #if 0
@@ -1929,22 +2047,14 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		{
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_SHOWLINE );
-				WRITE_COORD( pev->origin.x );
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
-				WRITE_COORD( vecTop.x );
-				WRITE_COORD( vecTop.y );
-				WRITE_COORD( vecTop.z );
+				WRITE_VECTOR( pev->origin );
+				WRITE_VECTOR( vecTop );
 			MESSAGE_END();
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_SHOWLINE );
-				WRITE_COORD( pev->origin.x );
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
-				WRITE_COORD( vecBottom.x );
-				WRITE_COORD( vecBottom.y );
-				WRITE_COORD( vecBottom.z );
+				WRITE_VECTOR( pev->origin );
+				WRITE_VECTOR( vecBottom );
 			MESSAGE_END();
 		}
 #endif
@@ -1954,14 +2064,10 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		{
 			if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 			{
-				if( pApexes )
-				{
-					*pApexes = vecRight;
-				}
-
+				*pApexes = vecRight;
 				return 1;
 			}
-			else if (n>1 && pApexes)
+			else if (n>1)
 			{
 				result = FTriangulate(vecRight, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 2, true);
 				if (result)
@@ -1971,12 +2077,12 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 				}
 			}
 		}
-		else if (n>1 && pApexes)
+		else if (n>1)
 		{
-			result = FTriangulate(vecStart, vecRight, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
-			if (result)
+			if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
 			{
-				if( CheckLocalMove( vecRight, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+				result = FTriangulate(vecStart, vecRight, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
+				if (result)
 				{
 					pApexes[n-1] = vecRight;
 					return result+1;
@@ -1987,14 +2093,10 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 		{
 			if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 			{
-				if( pApexes )
-				{
-					*pApexes = vecLeft;
-				}
-
+				*pApexes = vecLeft;
 				return 1;
 			}
-			else if (n>1 && pApexes)
+			else if (n>1)
 			{
 				result = FTriangulate(vecLeft, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 2, true);
 				if (result)
@@ -2004,12 +2106,12 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 				}
 			}
 		}
-		else if (n>1 && pApexes)
+		else if (n>1)
 		{
-			result = FTriangulate(vecStart, vecLeft, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
-			if (result)
+			if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
 			{
-				if( CheckLocalMove( vecLeft, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+				result = FTriangulate(vecStart, vecLeft, localMoveDist, pTargetEnt, pApexes, n-1, tries - 2, true);
+				if (result)
 				{
 					pApexes[n-1] = vecLeft;
 					return result+1;
@@ -2019,42 +2121,74 @@ int CBaseMonster::FTriangulate( const Vector &vecStart, const Vector &vecEnd, fl
 
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			if( CheckLocalMove( vecStart, vecTop, pTargetEnt, NULL ) == LOCALMOVE_VALID)
+			const bool applyTridepth = TridepthVertical();
+
+			if( CheckLocalMove( vecStart, vecTop, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID)
 			{
-				if( CheckLocalMove ( vecTop, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+				if( CheckLocalMove ( vecTop, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
 				{
-					if( pApexes )
+					*pApexes = vecTop;
+					return 1;
+				}
+				else if (n>1 && applyTridepth)
+				{
+					result = FTriangulate(vecTop, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 3, true);
+					if (result)
 					{
 						*pApexes = vecTop;
-						//ALERT(at_aiconsole, "triangulate over\n");
+						return result+1;
 					}
-
-					return 1;
 				}
 			}
-#if 1
-			if( CheckLocalMove( vecStart, vecBottom, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+			else if (n>1 && applyTridepth)
 			{
-				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, NULL ) == LOCALMOVE_VALID )
+				if( CheckLocalMove( vecTop, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
 				{
-					if( pApexes )
+					result = FTriangulate(vecStart, vecTop, localMoveDist, pTargetEnt, pApexes, n-1, tries - 3, true);
+					if (result)
+					{
+						pApexes[n-1] = vecTop;
+						return result+1;
+					}
+				}
+			}
+			if( CheckLocalMove( vecStart, vecBottom, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+			{
+				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, &localMoveDist ) == LOCALMOVE_VALID )
+				{
+					*pApexes = vecBottom;
+					return 1;
+				}
+				else if (n>1 && applyTridepth)
+				{
+					result = FTriangulate(vecBottom, vecFarSide, localMoveDist, pTargetEnt, pApexes+1, n-1, tries - 3, true);
+					if (result)
 					{
 						*pApexes = vecBottom;
-						//ALERT(at_aiconsole, "triangulate under\n");
+						return result+1;
 					}
-
-					return 1;
 				}
 			}
-#endif
+			else if (n>1 && applyTridepth)
+			{
+				if( CheckLocalMove( vecBottom, vecFarSide, pTargetEnt, nullptr ) == LOCALMOVE_VALID )
+				{
+					result = FTriangulate(vecStart, vecBottom, localMoveDist, pTargetEnt, pApexes, n-1, tries - 3, true);
+					if (result)
+					{
+						pApexes[n-1] = vecBottom;
+						return result+1;
+					}
+				}
+			}
 		}
 
-		vecRight = vecRight + vecDir;
-		vecLeft = vecLeft - vecDir;
+		vecRight += vecDir;
+		vecLeft -= vecDir;
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			vecTop = vecTop + vecDirUp;
-			vecBottom = vecBottom - vecDirUp;
+			vecTop += vecDirUp;
+			vecBottom -= vecDirUp;
 		}
 	}
 
@@ -2105,9 +2239,9 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 
 	vecFarSide = vecEnd;
 
-	vecDir = vecDir * sizeX * 2;
+	vecDir *= sizeX * 2;
 	if( pev->movetype == MOVETYPE_FLY )
-		vecDirUp = vecDirUp * sizeZ * 2;
+		vecDirUp *= sizeZ * 2;
 
 	const int tries = 8;
 	Vector vecNearest = vecStart;
@@ -2126,7 +2260,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			else
 			{
 				vecTest = vecRight + (vecFarSide - vecRight).Normalize() * localMoveDist;
-				if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+				if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 				{
 					vecNearest = vecTest;
 					vecBestApex = vecRight;
@@ -2136,7 +2270,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 		else
 		{
 			vecTest = vecStart + (vecRight - vecStart).Normalize() * localMoveDist;
-			if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+			if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 			{
 				vecNearest = vecTest;
 				vecBestApex = vecNearest;
@@ -2152,7 +2286,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			else
 			{
 				vecTest = vecLeft + (vecFarSide - vecLeft).Normalize() * localMoveDist;
-				if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+				if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 				{
 					vecNearest = vecTest;
 					vecBestApex = vecLeft;
@@ -2162,7 +2296,7 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 		else
 		{
 			vecTest = vecStart + (vecLeft - vecStart).Normalize() * localMoveDist;
-			if ((vecTest - vecFarSide).Length2D() < (vecNearest - vecFarSide).Length2D())
+			if ((vecTest - vecFarSide).Length2DSqr() < (vecNearest - vecFarSide).Length2DSqr())
 			{
 				vecNearest = vecTest;
 				vecBestApex = vecNearest;
@@ -2189,12 +2323,12 @@ Vector CBaseMonster::FTriangulateToNearest(const Vector &vecStart , const Vector
 			}
 		}
 
-		vecRight = vecRight + vecDir;
-		vecLeft = vecLeft - vecDir;
+		vecRight += vecDir;
+		vecLeft -= vecDir;
 		if( pev->movetype == MOVETYPE_FLY )
 		{
-			vecTop = vecTop + vecDirUp;
-			vecBottom = vecBottom - vecDirUp;
+			vecTop += vecDirUp;
+			vecBottom -= vecDirUp;
 		}
 	}
 
@@ -2267,12 +2401,12 @@ void CBaseMonster::Move( float flInterval )
 		flCheckDist = DIST_TO_CHECK;
 	}
 
-	if( ( m_Route[m_iRouteIndex].iType & ( ~bits_MF_NOT_TO_MASK ) ) == bits_MF_TO_ENEMY )
+	if( ( m_Route[m_iRouteIndex].iType & ( ~(bits_MF_NOT_TO_MASK|bits_MF_NEAREST_PATH) ) ) == bits_MF_TO_ENEMY )
 	{
 		// only on a PURE move to enemy ( i.e., ONLY MF_TO_ENEMY set, not MF_TO_ENEMY and DETOUR )
 		pTargetEnt = m_hEnemy;
 	}
-	else if( ( m_Route[m_iRouteIndex].iType & ~bits_MF_NOT_TO_MASK ) & bits_MF_TO_TARGETENT )
+	else if( ( m_Route[m_iRouteIndex].iType & ~(bits_MF_NOT_TO_MASK|bits_MF_NEAREST_PATH) ) == bits_MF_TO_TARGETENT )
 	{
 		pTargetEnt = m_hTargetEnt;
 	}
@@ -2283,13 +2417,11 @@ void CBaseMonster::Move( float flInterval )
 	flDist = 0;
 	if( CheckLocalMove( pev->origin, pev->origin + vecDir * flCheckDist, pTargetEnt, &flDist ) != LOCALMOVE_VALID )
 	{
-		CBaseEntity *pBlocker;
-
 		// Can't move, stop
 		Stop();
 
 		// Blocking entity is in global trace_ent
-		pBlocker = CBaseEntity::Instance( gpGlobals->trace_ent );
+		CBaseEntity *pBlocker = CBaseEntity::Instance( gpGlobals->trace_ent );
 		if( pBlocker )
 		{
 			DispatchBlocked( edict(), pBlocker->edict() );
@@ -2334,16 +2466,35 @@ void CBaseMonster::Move( float flInterval )
 							Remember( bits_MEMORY_MOVE_FAILED );
 
 						m_flMoveWaitFinished = gpGlobals->time + 0.1f;
+
+						if (m_pCine || m_hTargetEnt != 0)
+						{
+							if (HandleBlocker(pBlocker, true))
+								MakeMyBlockerMoveAway();
+						}
 					}
 				}
 				else
 				{
+					if ((m_movementGoal == MOVEGOAL_ENEMY || m_movementGoal == MOVEGOAL_ENEMY_NEAREST) && pBlocker && pBlocker == m_hEnemy)
+					{
+						Remember(bits_MEMORY_BLOCKER_IS_ENEMY);
+					}
+
 					HandleBlocker(pBlocker, true);
 					if (m_pCine) {
 						m_pCine->OnMoveFail();
 					}
 					TaskFail("failed to move");
-					//ALERT( at_aiconsole, "Blocker is %s\n", STRING(pBlocker->pev->classname) );
+					if (DeveloperModeLevel() >= 4 && pBlocker && pBlocker->entindex() != 0)
+					{
+						ALERT(at_aiconsole, "%s: failed to move. Blocker is %s. Target is %s. Route waypoint type: ",
+							STRING(pev->classname),
+							STRING(pBlocker->pev->classname),
+							pTargetEnt ? STRING(pTargetEnt->pev->classname) : "null");
+						ReportRouteType(at_aiconsole, m_Route[m_iRouteIndex].iType);
+						ALERT(at_aiconsole, "Schedule is \"%s\"\n", m_pSchedule ? m_pSchedule->pName : "null");
+					}
 					//ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING( pev->classname ), HasMemory( bits_MEMORY_MOVE_FAILED ) );
 					//ALERT( at_aiconsole, "%f, %f, %f\n", pev->origin.z, ( pev->origin + ( vecDir * flCheckDist ) ).z, m_Route[m_iRouteIndex].vecLocation.z );
 				}
@@ -2381,15 +2532,15 @@ void CBaseMonster::Move( float flInterval )
 	}
 }
 
-BOOL CBaseMonster::ShouldAdvanceRoute( float flWaypointDist )
+bool CBaseMonster::ShouldAdvanceRoute( float flWaypointDist )
 {
 	if( flWaypointDist <= MONSTER_CUT_CORNER_DIST )
 	{
 		// ALERT( at_console, "cut %f\n", flWaypointDist );
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 void CBaseMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval )
@@ -2419,7 +2570,7 @@ void CBaseMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, f
 // initialization that should take place for all monsters
 // goes here.
 //=========================================================
-void CBaseMonster::MonsterInit( void )
+void CBaseMonster::MonsterInit()
 {
 	if( !g_pGameRules->FAllowMonsters() )
 	{
@@ -2444,7 +2595,7 @@ void CBaseMonster::MonsterInit( void )
 
 	ClearSchedule();
 	RouteClear();
-	InitBoneControllers( ); // FIX: should be done in Spawn
+	InitBoneControllers(); // FIX: should be done in Spawn
 
 	m_iHintNode = NO_NODE;
 
@@ -2462,14 +2613,15 @@ void CBaseMonster::MonsterInit( void )
 	pev->nextthink = gpGlobals->time + 0.1f;
 	SetUse( &CBaseMonster::MonsterUse );
 
-	m_flLastYawTime = gpGlobals->time;
+	InitLootRandomSeed();
+	InitUncloakedRenderamt();
 }
 
 //=========================================================
 // MonsterInitThink - Calls StartMonster. Startmonster is 
 // virtual, but this function cannot be 
 //=========================================================
-void CBaseMonster::MonsterInitThink( void )
+void CBaseMonster::MonsterInitThink()
 {
 	StartMonster();
 }
@@ -2483,7 +2635,7 @@ Schedule_t* CBaseMonster::StartPatrol(CBaseEntity *path)
 			// At this point, we expect only a path_corner as initial goal
 			if( !FClassnameIs( m_pGoalEnt->pev, "path_corner" ) )
 			{
-				ALERT( at_warning, "ReadyMonster--monster's initial goal '%s' is not a path_corner", STRING( pev->target ) );
+				ALERT( at_warning, "ReadyMonster--monster's initial goal '%s' is not a path_corner\n", STRING( pev->target ) );
 			}
 #endif
 		m_pGoalEnt = path;
@@ -2517,7 +2669,7 @@ Schedule_t* CBaseMonster::StartPatrol(CBaseEntity *path)
 	}
 	else
 	{
-		ALERT( at_error, "ReadyMonster()--%s couldn't find target %s", STRING( pev->classname ), STRING( pev->target ) );
+		ALERT( at_error, "ReadyMonster()--%s couldn't find target %s\n", STRING( pev->classname ), STRING( pev->target ) );
 	}
 	return NULL;
 }
@@ -2526,7 +2678,7 @@ Schedule_t* CBaseMonster::StartPatrol(CBaseEntity *path)
 // StartMonster - final bit of initization before a monster 
 // is turned over to the AI. 
 //=========================================================
-void CBaseMonster::StartMonster( void )
+void CBaseMonster::StartMonster()
 {
 	// update capabilities
 	if( LookupActivity( ACT_RANGE_ATTACK1 ) != ACTIVITY_NOT_AVAILABLE )
@@ -2558,7 +2710,7 @@ void CBaseMonster::StartMonster( void )
 			if( !WALK_MOVE( ENT( pev ), 0, 0, WALKMOVE_NORMAL ) )
 			{
 				ALERT( at_error, "Monster %s stuck in wall--level design error\n", STRING( pev->classname ) );
-				if( g_psv_developer && g_psv_developer->value )
+				if( IsDeveloperModeOn() )
 					pev->effects |= EF_BRIGHTFIELD;
 			}
 		}
@@ -2602,7 +2754,7 @@ void CBaseMonster::StartMonster( void )
 	}
 }
 
-void CBaseMonster::MovementComplete( void ) 
+void CBaseMonster::MovementComplete() 
 { 
 	switch( m_iTaskStatus )
 	{
@@ -2622,13 +2774,9 @@ void CBaseMonster::MovementComplete( void )
 	m_movementGoal = MOVEGOAL_NONE;
 }
 
-int CBaseMonster::TaskIsRunning( void )
+bool CBaseMonster::TaskIsRunning()
 {
-	if( m_iTaskStatus != TASKSTATUS_COMPLETE && 
-		 m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT )
-		 return 1;
-
-	return 0;
+	return ( m_iTaskStatus != TASKSTATUS_COMPLETE && m_iTaskStatus != TASKSTATUS_RUNNING_MOVEMENT );
 }
 
 //=========================================================
@@ -2668,7 +2816,7 @@ int CBaseMonster::IDefaultRelationship(int classify1, int classify2)
 	/*MACHINE*/		{ R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_DL,	R_DL,	R_DL,	R_DL,	R_DL,	R_DL,	R_DL,	R_DL,	R_DL},
 	/*PLAYER*/		{ R_NO	,R_DL	,R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO,	R_DL,	R_DL,	R_DL,	R_DL,	R_NO,	R_DL,	R_DL,	R_DL},
 	/*HUMANPASSIVE*/{ R_NO	,R_NO	,R_AL	,R_AL	,R_HT	,R_HT	,R_NO	,R_HT	,R_DL	,R_HT	,R_NO	,R_AL,	R_NO,	R_NO,	R_HT,	R_HT,	R_OA,	R_HT,	R_DL,	R_HT},
-	/*HUMANMILITAR*/{ R_NO	,R_NO	,R_HT	,R_DL	,R_NO	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO,	R_HT,	R_HT,	R_DL,	R_DL,	R_HT,	R_HT},
+	/*HUMANMILITAR*/{ R_NO	,R_NO	,R_HT	,R_DL	,R_AL	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO,	R_HT,	R_HT,	R_HT,	R_HT,	R_HT,	R_HT},
 	/*ALIENMILITAR*/{ R_NO	,R_DL	,R_HT	,R_DL	,R_HT	,R_AL	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO,	R_PA,	R_XA,	R_HT,	R_HT,	R_NO,	R_AL},
 	/*ALIENPASSIVE*/{ R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO,	R_NO,	R_NO,	R_NO,	R_NO,	R_NO,	R_NO,	R_NO,	R_NO},
 	/*ALIENMONSTER*/{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO,	R_AX,	R_AX,	R_DL,	R_DL,	R_NO,	R_NO},
@@ -2680,8 +2828,8 @@ int CBaseMonster::IDefaultRelationship(int classify1, int classify2)
 	/*ABIOWEAPON*/	{ R_NO	,R_NO	,R_DL	,R_DL	,R_DL	,R_AL	,R_NO	,R_DL	,R_DL	,R_NO	,R_NO	,R_DL,	R_DL,	R_NO,	R_DL,	R_DL,	R_DL,	R_DL,	R_NO,	R_AL},
 	/*XPREDATOR*/	{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_PA	,R_NO	,R_AX	,R_DL	,R_DL	,R_NO	,R_DL,	R_NO,	R_NO,	R_AL,	R_AL,	R_DL,	R_DL,	R_NO,	R_XG},
 	/*XSHOCK*/		{ R_NO	,R_DL	,R_HT	,R_DL	,R_HT	,R_XA	,R_NO	,R_AX	,R_AX	,R_AX	,R_NO	,R_DL,	R_NO,	R_NO,	R_AL,	R_AL,	R_HT,	R_HT,	R_NO,	R_XG},
-	/*PLRALLYMIL*/	{ R_NO	,R_DL	,R_AL	,R_OA	,R_DL	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_OA,	R_NO,	R_NO,	R_DL,	R_HT,	R_AL,	R_DL,	R_HT,	R_HT},
-	/*BLACKOPS*/	{ R_NO	,R_DL	,R_HT	,R_DL	,R_DL	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO,	R_HT,	R_HT,	R_DL,	R_AL,	R_HT,	R_HT},
+	/*PLRALLYMIL*/	{ R_NO	,R_DL	,R_AL	,R_OA	,R_HT	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_OA,	R_NO,	R_NO,	R_DL,	R_HT,	R_AL,	R_HT,	R_HT,	R_HT},
+	/*BLACKOPS*/	{ R_NO	,R_DL	,R_HT	,R_DL	,R_HT	,R_HT	,R_DL	,R_DL	,R_DL	,R_DL	,R_NO	,R_HT,	R_NO,	R_NO,	R_HT,	R_HT,	R_HT,	R_AL,	R_HT,	R_HT},
 	/*SNARK*/		{ R_NO	,R_NO	,R_HT	,R_DL	,R_HT	,R_NO	,R_NO	,R_DL	,R_DL	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO,	R_DL,	R_DL,	R_HT,	R_HT,	R_NO,	R_DL},
 	/*GARGANTUA*/	{ R_NO	,R_DL	,R_DL	,R_DL	,R_DL	,R_AL	,R_NO	,R_NO	,R_NO	,R_NO	,R_NO	,R_DL,	R_NO,	R_NO,	R_XG,	R_XG,	R_DL,	R_DL,	R_NO,	R_AL},
 	};
@@ -2719,16 +2867,8 @@ int CBaseMonster::IDefaultRelationship(int classify1, int classify2)
 
 //float CGraph::PathLength( int iStart, int iDest, int iHull, int afCapMask )
 
-BOOL CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist, int flags , const char *displayName)
+bool CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist, int flags , const char *displayName)
 {
-	int i;
-	int iMyHullIndex;
-	int iMyNode;
-	int iThreatNode;
-	float flDist;
-	Vector vecLookersOffset;
-	TraceResult tr;
-
 	if( !flMaxDist )
 	{
 		// user didn't supply a MaxDist, so work up a crazy one.
@@ -2746,52 +2886,55 @@ BOOL CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 	if( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{
 		ALERT( at_aiconsole, "Graph not ready for %s!\n", displayName );
-		return FALSE;
+		return false;
 	}
 
-	iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
-	iThreatNode = WorldGraph.FindNearestNode ( vecThreat, this );
-	iMyHullIndex = WorldGraph.HullIndex( this );
+	const int iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
 
 	if( iMyNode == NO_NODE )
 	{
 		ALERT( at_aiconsole, "%s - %s has no nearest node!\n", displayName, STRING( pev->classname ) );
-		return FALSE;
-	}
-	if( iThreatNode == NO_NODE )
-	{
-		// ALERT( at_aiconsole, "%s - Threat has no nearest node!\n", displayName );
-		iThreatNode = iMyNode;
-		// return FALSE;
+		return false;
 	}
 
-	vecLookersOffset = vecThreat + vecViewOffset;// calculate location of enemy's eyes
+	const int iThreatNode = WorldGraph.FindNearestNode ( vecThreat, this );
+	const int iMyHullIndex = WorldGraph.HullIndex( this );
+
+	const Vector vecLookersSpot = vecThreat + vecViewOffset;// calculate location of enemy's eyes
+	const bool mustTraceLooker = FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER);
+	const bool dontAvoidThreatNode = vecThreat == pev->origin || FBitSet(flags, FINDSPOTAWAY_DONT_AVOID_THREAT_NODE);
+
+	if ((!mustTraceLooker && !dontAvoidThreatNode) && iThreatNode != NO_NODE && iThreatNode == iMyNode)
+	{
+		ALERT( at_aiconsole, "%s - %s: my nearest node and threat nearest node are the same!\n", displayName, STRING( pev->classname ) );
+		return false;
+	}
 
 	// we'll do a rough sample to find nodes that are relatively nearby
-	for( i = 0; i < WorldGraph.m_cNodes; i++ )
+	for( int i = 0; i < WorldGraph.m_cNodes; i++ )
 	{
 		int nodeNumber = ( i + WorldGraph.m_iLastCoverSearch ) % WorldGraph.m_cNodes;
 
 		CNode &node = WorldGraph.Node( nodeNumber );
 
-		// could use an optimization here!!
-		flDist = ( pev->origin - node.m_vecOrigin ).Length();
+		const float flDistSqr = ( pev->origin - node.m_vecOrigin ).LengthSqr();
 
 		// DON'T do the trace check on a node that is farther away than a node that we've already found to 
 		// provide cover! Also make sure the node is within the mins/maxs of the search.
-		if( flDist >= flMinDist && flDist < flMaxDist )
+		if( flDistSqr >= flMinDist*flMinDist && flDistSqr < flMaxDist*flMaxDist )
 		{
 			bool traceOk = true;
-			if (FBitSet(flags, FINDSPOTAWAY_TRACE_LOOKER))
+			if (mustTraceLooker)
 			{
-				UTIL_TraceLine( node.m_vecOrigin + vecViewOffset, vecLookersOffset, ignore_monsters, ignore_glass,  ENT( pev ), &tr );
-				// if this node will block the threat's line of sight to me...
+				TraceResult tr;
+				UTIL_TraceLine( node.m_vecOrigin + vecViewOffset, vecLookersSpot, ignore_monsters, ignore_glass,  ENT( pev ), &tr );
 				traceOk = tr.flFraction != 1.0f;
 			}
 			if( traceOk )
 			{
-				// ..and is also closer to me than the threat, or the same distance from myself and the threat the node is good.
-				bool distanceOk = iMyNode == iThreatNode;
+				bool distanceOk = iThreatNode == NO_NODE;
+				if (!distanceOk && (mustTraceLooker || dontAvoidThreatNode))
+					distanceOk = iThreatNode == iMyNode;
 				if (!distanceOk)
 				{
 					float myPathLength = WorldGraph.PathLength( iMyNode, nodeNumber, iMyHullIndex, m_afCapability );
@@ -2806,37 +2949,33 @@ BOOL CBaseMonster::FindSpotAway(Vector vecThreat, Vector vecViewOffset, float fl
 						MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 							WRITE_BYTE( TE_SHOWLINE );
 
-							WRITE_COORD( node.m_vecOrigin.x );
-							WRITE_COORD( node.m_vecOrigin.y );
-							WRITE_COORD( node.m_vecOrigin.z );
+							WRITE_VECTOR( node.m_vecOrigin );
 
-							WRITE_COORD( vecLookersOffset.x );
-							WRITE_COORD( vecLookersOffset.y );
-							WRITE_COORD( vecLookersOffset.z );
+							WRITE_VECTOR( vecLookersOffset );
 						MESSAGE_END();
 						*/
 
 						WorldGraph.m_iLastCoverSearch = nodeNumber + 1; // next monster that searches for cover node will start where we left off here.
-						return TRUE;
+						return true;
 					}
 				}
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
-BOOL CBaseMonster::FindCover( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist, int flags )
+bool CBaseMonster::FindCover( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist, int flags )
 {
 	return FindSpotAway(vecThreat, vecViewOffset, flMinDist, flMaxDist, flags|FINDSPOTAWAY_TRACE_LOOKER, "FindCover()");
 }
 
-BOOL CBaseMonster::FindCover(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist)
+bool CBaseMonster::FindCover(Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist)
 {
 	return FindCover( vecThreat, vecViewOffset, flMinDist, flMaxDist, FINDSPOTAWAY_RUN|FINDSPOTAWAY_CHECK_SPOT );
 }
 
-BOOL CBaseMonster::FindSpotAway( Vector vecThreat, float flMinDist, float flMaxDist, int flags )
+bool CBaseMonster::FindSpotAway( Vector vecThreat, float flMinDist, float flMaxDist, int flags )
 {
 	return FindSpotAway(vecThreat, g_vecZero, flMinDist, flMaxDist, flags, "FindSpotAway()");
 }
@@ -2850,7 +2989,7 @@ BOOL CBaseMonster::FindSpotAway( Vector vecThreat, float flMinDist, float flMaxD
 // if MaxDist isn't supplied, it defaults to a reasonable 
 // value
 //=========================================================
-BOOL CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist )
+bool CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist )
 {
 	int i;
 	int iMyHullIndex;
@@ -2876,7 +3015,7 @@ BOOL CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, fl
 	if( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{
 		ALERT( at_aiconsole, "Graph not ready for BuildNearestRoute!\n" );
-		return FALSE;
+		return false;
 	}
 
 	iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
@@ -2886,7 +3025,7 @@ BOOL CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, fl
 	if( iMyNode == NO_NODE )
 	{
 		ALERT( at_aiconsole, "BuildNearestRoute() - %s has no nearest node!\n", STRING( pev->classname ) );
-		return FALSE;
+		return false;
 	}
 
 	vecLookersOffset = vecThreat + vecViewOffset;// calculate location of enemy's eyes
@@ -2917,14 +3056,14 @@ BOOL CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, fl
 						// flMaxDist = flDist;
 						m_vecMoveGoal = node.m_vecOrigin;
 						WorldGraph.m_iLastCoverSearch = nodeNumber + 1; // next monster that searches for cover node will start where we left off here.
-						return TRUE; // UNDONE: keep looking for something closer!
+						return true; // UNDONE: keep looking for something closer!
 					}
 				}
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -2936,11 +3075,11 @@ BOOL CBaseMonster::BuildNearestRoute( Vector vecThreat, Vector vecViewOffset, fl
 // !!!UNDONE - currently, this only returns the closest enemy.
 // we'll want to consider distance, relationship, attack types, back turned, etc.
 //=========================================================
-CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
+CBaseEntity *CBaseMonster::BestVisibleEnemy()
 {
 	CBaseEntity	*pReturn = NULL;
 	CBaseEntity	*pNextEnt = m_pLink;
-	int		iNearest = 8192;// so first visible entity will become the closest.
+	int		iNearestSqr = 8192 * 8192;// so first visible entity will become the closest.
 	int		iBestRelationship = R_NO;
 
 	while( pNextEnt != NULL )
@@ -2948,13 +3087,23 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 		if( pNextEnt->IsFullyAlive() )
 		{
 			const int relationship = IRelationship( pNextEnt);
-			if( relationship > iBestRelationship )
+			if (relationship >= R_DL && m_equalDislikeTime > gpGlobals->time)
+			{
+				iBestRelationship = relationship;
+				const int iDistSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
+				if( iDistSqr <= iNearestSqr )
+				{
+					iNearestSqr = iDistSqr;
+					pReturn = pNextEnt;
+				}
+			}
+			else if( relationship > iBestRelationship )
 			{
 				// this entity is disliked MORE than the entity that we 
 				// currently think is the best visible enemy. No need to do 
 				// a distance check, just get mad at this one for now.
 				iBestRelationship = relationship;
-				iNearest = ( pNextEnt->pev->origin - pev->origin ).Length();
+				iNearestSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
 				pReturn = pNextEnt;
 			}
 			else if( relationship == iBestRelationship )
@@ -2962,11 +3111,11 @@ CBaseEntity *CBaseMonster::BestVisibleEnemy( void )
 				// this entity is disliked just as much as the entity that
 				// we currently think is the best visible enemy, so we only
 				// get mad at it if it is closer.
-				const int iDist = ( pNextEnt->pev->origin - pev->origin ).Length();
+				const int iDistSqr = ( pNextEnt->pev->origin - pev->origin ).LengthSqr();
 				
-				if( iDist <= iNearest )
+				if( iDistSqr <= iNearestSqr )
 				{
-					iNearest = iDist;
+					iNearestSqr = iDistSqr;
 					pReturn = pNextEnt;
 				}
 			}
@@ -3014,7 +3163,7 @@ void CBaseMonster::MakeIdealYaw( Vector vecTarget )
 //
 // Positive result is left turn, negative is right turn
 //=========================================================
-float CBaseMonster::FlYawDiff( void )
+float CBaseMonster::FlYawDiff()
 {
 	float flCurrentYaw;
 
@@ -3041,9 +3190,12 @@ float CBaseMonster::ChangeYaw( int yawSpeed )
 	{
 		if( monsteryawspeedfix.value )
 		{
-			float delta;
+			if( m_flLastYawTime == 0.f )
+				m_flLastYawTime = gpGlobals->time - gpGlobals->frametime;
 
-			delta = Q_min( gpGlobals->time - m_flLastYawTime, 0.25f );
+			float delta = Q_min( gpGlobals->time - m_flLastYawTime, 0.25f );
+
+			m_flLastYawTime = gpGlobals->time;
 
 			speed = (float)yawSpeed * delta * 2;
 		}
@@ -3093,8 +3245,6 @@ float CBaseMonster::ChangeYaw( int yawSpeed )
 	else
 		move = 0;
 
-	m_flLastYawTime = gpGlobals->time;
-
 	return move;
 }
 
@@ -3117,7 +3267,7 @@ float CBaseMonster::VecToYaw( Vector vecDir )
 // that vector to the monster's view_ofs
 //
 //=========================================================
-void CBaseMonster::SetEyePosition( void )
+void CBaseMonster::SetEyePosition()
 {
 	Vector  vecEyePosition;
 	void	*pmodel = GET_MODEL_PTR( ENT(pev) );
@@ -3128,7 +3278,8 @@ void CBaseMonster::SetEyePosition( void )
 
 	if( pev->view_ofs == g_vecZero )
 	{
-		ALERT( at_aiconsole, "%s has no view_ofs!\n", STRING( pev->classname ) );
+		ALERT( at_aiconsole, "%s has no view_ofs! Fallback to %.2f\n", STRING( pev->classname ), pev->maxs.z );
+		pev->view_ofs = Vector(0, 0, pev->maxs.z);
 	}
 }
 
@@ -3161,10 +3312,22 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		}
 		break;
 	case SCRIPT_EVENT_SOUND:			// Play a named wave file
-		EMIT_SOUND( edict(), CHAN_BODY, pEvent->options, 1.0, ATTN_IDLE );
+		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_IDLE );
 		break;
 	case SCRIPT_EVENT_SOUND_VOICE:
-		EMIT_SOUND( edict(), CHAN_VOICE, pEvent->options, 1.0, ATTN_IDLE );
+		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_IDLE );
+		break;
+	case SCRIPT_EVENT_SOUND_VOICE_BODY:
+		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_NORM );
+		break;
+	case SCRIPT_EVENT_SOUND_VOICE_VOICE:
+		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_NORM );
+		break;
+	case SCRIPT_EVENT_SOUND_VOICE_WEAPON:
+		EmitSound( CHAN_WEAPON, pEvent->options, VOL_NORM, ATTN_NORM );
+		break;
+	case SCRIPT_EVENT_SOUNDSCRIPT:
+		EmitSoundScript(pEvent->options);
 		break;
 	case SCRIPT_EVENT_SENTENCE_RND1:		// Play a named sentence group 33% of the time
 		if( RANDOM_LONG( 0, 2 ) == 0 )
@@ -3178,11 +3341,11 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		break;
 	case SCRIPT_EVENT_NOINTERRUPT:		// Can't be interrupted from now on
 		if( m_pCine )
-			m_pCine->AllowInterrupt( FALSE );
+			m_pCine->AllowInterrupt( false );
 		break;
 	case SCRIPT_EVENT_CANINTERRUPT:		// OK to interrupt now
 		if( m_pCine )
-			m_pCine->AllowInterrupt( TRUE );
+			m_pCine->AllowInterrupt( true );
 		break;
 #if 0
 	case SCRIPT_EVENT_INAIR:			// Don't DROP_TO_FLOOR()
@@ -3192,37 +3355,86 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 	case MONSTER_EVENT_BODYDROP_HEAVY:
 		if( pev->flags & FL_ONGROUND )
 		{
-			if( RANDOM_LONG( 0, 1 ) == 0 )
-			{
-				EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, "common/bodydrop3.wav", 1, ATTN_NORM, 0, 90 );
-			}
-			else
-			{
-				EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, "common/bodydrop4.wav", 1, ATTN_NORM, 0, 90 );
-			}
+			EmitSoundScript(NPC::bodyDropHeavySoundScript);
 		}
 		break;
 	case MONSTER_EVENT_BODYDROP_LIGHT:
 		if( pev->flags & FL_ONGROUND )
 		{
-			if( RANDOM_LONG( 0, 1 ) == 0 )
-			{
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "common/bodydrop3.wav", 1, ATTN_NORM );
-			}
+			EmitSoundScript(NPC::bodyDropLightSoundScript);
+		}
+		break;
+	case MONSTER_EVENT_MATERIAL_FOOTSTEP:
+	{
+		if (FBitSet(pev->flags, FL_ONGROUND))
+		{
+			const Vector vecStart = pev->origin;
+			const Vector vecEnd = pev->origin - Vector(0, 0, 2);
+
+
+			TraceResult tr;
+			UTIL_TraceLine(vecStart, vecEnd, ignore_monsters, edict(), &tr);
+
+			CBaseEntity* pHit = Instance(tr.pHit);
+
+			float rgfl1[3];
+			float rgfl2[3];
+			const char* pTexture;
+
+			vecStart.CopyToArray(rgfl1);
+			vecEnd.CopyToArray(rgfl2);
+
+			if (pHit)
+				pTexture = TRACE_TEXTURE(ENT(pHit->pev), rgfl1, rgfl2);
 			else
+				pTexture = TRACE_TEXTURE(ENT(0), rgfl1, rgfl2);
+
+			if (pTexture && *pTexture)
 			{
-				EMIT_SOUND( ENT( pev ), CHAN_BODY, "common/bodydrop4.wav", 1, ATTN_NORM );
+				char szbuffer[64];
+				GetStrippedTextureName(szbuffer, pTexture);
+
+				char chTextureType = TEXTURETYPE_Find(szbuffer);
+
+				const MaterialStepData* stepData = g_MaterialRegistry.GetMaterialStepData(chTextureType);
+				if (stepData)
+				{
+					const MaterialStepData::StepSoundArray& arr = RANDOM_LONG(0, 1) ? stepData->left : stepData->right;
+					if (!arr.empty())
+					{
+						EMIT_SOUND(edict(), CHAN_BODY, arr[RANDOM_LONG(0, arr.size()-1)].c_str(), stepData->running.volume, ATTN_IDLE);
+					}
+				}
 			}
 		}
+	}
 		break;
 	case MONSTER_EVENT_SWISHSOUND:
 		{
 			// NO MONSTER may use this anim event unless that monster's precache precaches this sound!!!
-			EMIT_SOUND( ENT( pev ), CHAN_BODY, "zombie/claw_miss2.wav", 1, ATTN_NORM );
+			EmitSoundScript(NPC::swishSoundScript);
 			break;
 		}
 	default:
-		ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+		{
+			TraceHullAttackParams params;
+			if (SetTraceHullAttackParamsFromTemplate(pEvent->event, params))
+			{
+				PerformTraceHullAttack(params);
+			}
+			else
+			{
+				if (GetLeapAttackStart().animationEvent == pEvent->event)
+				{
+					SetLeapAttackTouch();
+					LaunchLeapAttack();
+				}
+				else
+				{
+					ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
+				}
+			}
+		}
 		break;
 	}
 }
@@ -3230,15 +3442,16 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 // Combat
 Vector CBaseMonster::GetGunPosition()
 {
-	UTIL_MakeVectors( pev->angles );
+	Vector forward, right, up;
+	UTIL_MakeVectorsPrivate(pev->angles, forward, right, up);
 
 	// Vector vecSrc = pev->origin + gpGlobals->v_forward * 10;
 	//vecSrc.z = pevShooter->absmin.z + pevShooter->size.z * 0.7;
 	//vecSrc.z = pev->origin.z + (pev->view_ofs.z - 4);
 	Vector vecSrc = pev->origin 
-					+ gpGlobals->v_forward * m_HackedGunPos.y 
-					+ gpGlobals->v_right * m_HackedGunPos.x 
-					+ gpGlobals->v_up * m_HackedGunPos.z;
+					+ forward * m_HackedGunPos.y
+					+ right * m_HackedGunPos.x
+					+ up * m_HackedGunPos.z;
 
 	return vecSrc;
 }
@@ -3251,11 +3464,11 @@ Vector CBaseMonster::GetGunPosition()
 // FGetNodeRoute - tries to build an entire node path from
 // the callers origin to the passed vector. If this is 
 // possible, ROUTE_SIZE waypoints will be copied into the
-// callers m_Route. TRUE is returned if the operation 
-// succeeds (path is valid) or FALSE if failed (no path 
+// callers m_Route. true is returned if the operation
+// succeeds (path is valid) or false if failed (no path
 // exists )
 //=========================================================
-BOOL CBaseMonster::FGetNodeRoute( Vector vecDest )
+bool CBaseMonster::FGetNodeRoute( Vector vecDest, int goalMoveFlag )
 {
 	int iPath[ MAX_PATH_SIZE ];
 	int iSrcNode, iDestNode;
@@ -3266,7 +3479,7 @@ BOOL CBaseMonster::FGetNodeRoute( Vector vecDest )
 	if( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{
 		ALERT( at_aiconsole, "FGetNodeRoute: Graph not ready!\n" );
-		return FALSE;
+		return false;
 	}
 
 	iSrcNode = WorldGraph.FindNearestNode( pev->origin, this );
@@ -3276,13 +3489,13 @@ BOOL CBaseMonster::FGetNodeRoute( Vector vecDest )
 	{
 		// no node nearest self
 		//ALERT( at_aiconsole, "FGetNodeRoute: No valid node near self!\n" );
-		return FALSE;
+		return false;
 	}
 	else if( iDestNode == -1 )
 	{
 		// no node nearest target
 		//ALERT( at_aiconsole, "FGetNodeRoute: No valid node near target!\n" );
-		return FALSE;
+		return false;
 	}
 
 	// valid src and dest nodes were found, so it's safe to proceed with
@@ -3296,16 +3509,16 @@ BOOL CBaseMonster::FGetNodeRoute( Vector vecDest )
 	{
 #if 1
 		ALERT( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
-		return FALSE;
+		return false;
 #else
-		BOOL bRoutingSave = WorldGraph.m_fRoutingComplete;
-		WorldGraph.m_fRoutingComplete = FALSE;
+		qboolean bRoutingSave = WorldGraph.m_fRoutingComplete;
+		WorldGraph.m_fRoutingComplete = 0;
 		iResult = WorldGraph.FindShortestPath( iPath, iSrcNode, iDestNode, iNodeHull, m_afCapability );
 		WorldGraph.m_fRoutingComplete = bRoutingSave;
 		if( !iResult )
 		{
 			ALERT( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
-			return FALSE;
+			return false;
 		}
 		else
 		{
@@ -3337,16 +3550,16 @@ BOOL CBaseMonster::FGetNodeRoute( Vector vecDest )
 	if( iNumToCopy < ROUTE_SIZE )
 	{
 		m_Route[iNumToCopy].vecLocation = vecDest;
-		m_Route[iNumToCopy].iType |= bits_MF_IS_GOAL;
+		m_Route[iNumToCopy].iType = goalMoveFlag|bits_MF_IS_GOAL;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //=========================================================
 // FindHintNode
 //=========================================================
-int CBaseMonster::FindHintNode( void )
+int CBaseMonster::FindHintNode()
 {
 	int i;
 	TraceResult tr;
@@ -3389,54 +3602,6 @@ int CBaseMonster::FindHintNode( void )
 	WorldGraph.m_iLastActiveIdleSearch = 0;// start at the top of the list for the next search.
 
 	return NO_NODE;
-}		
-
-static const char* ClassifyDisplayName(int classify)
-{
-	switch (classify) {
-	case CLASS_NONE:
-		return "None";
-	case CLASS_MACHINE:
-		return "Machine";
-	case CLASS_PLAYER:
-		return "Player";
-	case CLASS_HUMAN_PASSIVE:
-		return "Human Passive";
-	case CLASS_HUMAN_MILITARY:
-		return "Human Military";
-	case CLASS_ALIEN_MILITARY:
-		return "Alien Military";
-	case CLASS_ALIEN_PASSIVE:
-		return "Alien Passive";
-	case CLASS_ALIEN_MONSTER:
-		return "Alien Monster";
-	case CLASS_ALIEN_PREY:
-		return "Alien Prey";
-	case CLASS_ALIEN_PREDATOR:
-		return "Alien Predator";
-	case CLASS_INSECT:
-		return "Insect";
-	case CLASS_PLAYER_ALLY:
-		return "Player Ally";
-	case CLASS_PLAYER_BIOWEAPON:
-		return "Player Bioweapon";
-	case CLASS_ALIEN_BIOWEAPON:
-		return "Alien Bioweapon";
-	case CLASS_RACEX_PREDATOR:
-		return "Race X Predator";
-	case CLASS_RACEX_SHOCK:
-		return "Race X Shock";
-	case CLASS_PLAYER_ALLY_MILITARY:
-		return "Player Ally Military";
-	case CLASS_HUMAN_BLACKOPS:
-		return "Human Blackops";
-	case CLASS_SNARK:
-		return "Snark";
-	case CLASS_GARGANTUA:
-		return "Gargantua";
-	default:
-		return "Unknown";
-	}
 }
 
 const char* CBaseMonster::MonsterStateDisplayString(MONSTERSTATE monsterState)
@@ -3467,7 +3632,7 @@ const char* CBaseMonster::MonsterStateDisplayString(MONSTERSTATE monsterState)
 
 void CBaseMonster::ReportAIState( ALERT_TYPE level )
 {
-	const bool shouldReportRoute = g_psv_developer && g_psv_developer->value >= 4;
+	const bool shouldReportRoute = DeveloperModeLevel() >= 3;
 	if (shouldReportRoute && !FRouteClear())
 	{
 		DrawRoute(this, m_movementGoal);
@@ -3480,12 +3645,15 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	} else {
 		ALERT( level, "%s (%s): ", STRING(pev->classname), STRING(pev->targetname) );
 	}
+	ALERT( level, "Entindex: %d. ", entindex() );
+	if (!FStringNull(m_entTemplate))
+		ALERT( level , "Template: %s. ", STRING(m_entTemplate) );
 	const int classify = Classify();
 	ALERT( level, "Classify: %s (%d), ", ClassifyDisplayName(classify), classify );
 
 	ALERT( level, "State: %s, ", MonsterStateDisplayString(m_MonsterState) );
 
-	if( pev->deadflag < ARRAYSIZE( pDeadNames ) )
+	if( pev->deadflag < static_cast<int>(ARRAYSIZE( pDeadNames )) )
 		ALERT( level, "Dead flag: %s, ", pDeadNames[pev->deadflag] );
 	else
 		ALERT( level, "Dead flag: %d, ", pev->deadflag );
@@ -3495,17 +3663,39 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	if ( HasMemory( bits_MEMORY_PROVOKED ) )
 		ALERT(level, "Has MEMORY_PROVOKED, ");
 	else if ( HasMemory( bits_MEMORY_SUSPICIOUS ) )
-		ALERT(level, "Has MEMORY_SUSPICIOUS");
+		ALERT(level, "Has MEMORY_SUSPICIOUS, ");
 
-	int i = 0;
-	while( activity_map[i].type != 0 )
-	{
-		if( activity_map[i].type == (int)m_Activity )
+	auto getActivityName = [](Activity activity) -> const char* {
+		int i = 0;
+		while (activity_map[i].type != 0)
 		{
-			ALERT( level, "Activity %s, ", activity_map[i].name );
-			break;
+			if (activity_map[i].type == (int)activity)
+			{
+				return activity_map[i].name;
+			}
+			i++;
 		}
-		i++;
+		return nullptr;
+	};
+
+	const char* activityName = getActivityName(m_Activity);
+	if (activityName)
+	{
+		ALERT(level, "Activity %s, ", activityName);
+	}
+
+	const char* idealActivityName = getActivityName(m_IdealActivity);
+	if (idealActivityName)
+	{
+		ALERT(level, "Ideal Activity %s, ", idealActivityName);
+	}
+
+	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
+	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
+	if (pev->sequence >= 0 && pev->sequence < pstudiohdr->numseq)
+	{
+		mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)( (byte *)pstudiohdr + pstudiohdr->seqindex );
+		ALERT(at_console, "Playing sequence %s (index %d, frame %g, framerate %g, finished: %s), ", pseqdesc[pev->sequence].label, pev->sequence, pev->frame, pev->framerate, m_fSequenceFinished ? "yes" : "no");
 	}
 
 	if( m_pSchedule )
@@ -3522,17 +3712,24 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	else
 		ALERT( level, "No Schedule, " );
 
-	if( m_hEnemy != 0 )
-		ALERT( level, "Enemy is %s (%s). ", STRING( m_hEnemy->pev->classname ), m_hEnemy->IsAlive() ? "alive" : "dead" );
-	else
-		ALERT( level, "No enemy. " );
-
-	for (i=0; i<MAX_OLD_ENEMIES; ++i)
+	auto reportEnemy = [level](CBaseEntity* pEnemy, const Vector& enemyLKP, const char* kind)
 	{
-		if (m_hOldEnemy[i] != 0)
+		if (pEnemy)
 		{
-			ALERT( level, "Old enemy is %s (%s). ", STRING( m_hOldEnemy[i]->pev->classname ), m_hOldEnemy[i]->IsAlive() ? "alive" : "dead" );
+			ALERT(level, "%s is %s (%s, ent: %d, LKP: (%g, %g, %g)). ", kind,
+				  STRING(pEnemy->pev->classname), pEnemy->IsAlive() ? "alive" : "dead", pEnemy->entindex(),
+				  enemyLKP.x, enemyLKP.y, enemyLKP.z);
 		}
+	};
+
+	if (m_hEnemy != 0)
+		reportEnemy(m_hEnemy, m_vecEnemyLKP, "Enemy");
+	else
+		ALERT(level, "No enemy. ");
+
+	for (int i=0; i<MAX_OLD_ENEMIES; ++i)
+	{
+		reportEnemy(m_hOldEnemy[i], m_vecOldEnemy[i], "Old enemy");
 	}
 
 	if ( m_hTargetEnt != 0 )
@@ -3545,7 +3742,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	{
 		ALERT( level, "Moving" );
 		if( m_flMoveWaitFinished > gpGlobals->time )
-			ALERT( level, ": Stopped for %.2f", (double)(m_flMoveWaitFinished - gpGlobals->time) );
+			ALERT( level, ": Stopped for %.2f", m_flMoveWaitFinished - gpGlobals->time );
 		else if( m_IdealActivity == GetStoppedActivity() )
 			ALERT( level, ": In stopped anim" );
 		ALERT( level, ". " );
@@ -3554,10 +3751,60 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	ALERT( level, "Yaw speed: %3.1f, Current Yaw: %3.1f, Ideal Yaw: %3.1f, ", pev->yaw_speed, UTIL_AngleMod( pev->angles.y ), pev->ideal_yaw );
 	ALERT( level, "Health: %3.1f / %3.1f, ", pev->health, pev->max_health );
 	ALERT( level, "Field of View: %3.1f. ", m_flFieldOfView );
+	ALERT( level, "Origin: (%g, %g, %g). ", pev->origin.x, pev->origin.y, pev->origin.z );
+	ALERT( level, "Boundbox: (%g, %g, %g), (%g, %g, %g). Size: (%g, %g, %g). ",
+		   pev->mins.x, pev->mins.y, pev->mins.z,
+		   pev->maxs.x, pev->maxs.y, pev->maxs.z,
+		   pev->size.x, pev->size.y, pev->size.z);
+
+	if (pev->model)
+		ALERT(level, "Model: %s. ", STRING(pev->model));
+	const char* gibModel = GibModel();
+	if (gibModel)
+		ALERT(level, "Gib Model: %s. ", gibModel);
+
+	ALERT(level, "Rendermode: %s. Color: (%g, %g, %g). Alpha: %g. Renderfx: %s. ",
+		  RenderModeToString(pev->rendermode),
+		  pev->rendercolor.x, pev->rendercolor.y, pev->rendercolor.z,
+		  pev->renderamt,
+		  RenderFxToString(pev->renderfx));
+
+	if (pev->scale)
+		ALERT(level, "Scale: %g. ", pev->scale);
+
+	ALERT(level, "Illumination: %d. ", GETENTITYILLUM(edict()));
+
+	ALERT(level, "On ground: %s. ", FBitSet(pev->flags, FL_ONGROUND) ? "yes" : "no");
+	if (pev->groundentity)
+		ALERT(level, "Ground entity: %s (%d). ", STRING(pev->groundentity->v.classname), ENTINDEX(pev->groundentity));
+
+	const char* targetForGrapple = nullptr;
+	switch (SizeForGrapple()) {
+	case GRAPPLE_NOT_A_TARGET:
+		targetForGrapple = "Not a target";
+		break;
+	case GRAPPLE_SMALL:
+		targetForGrapple = "Small";
+		break;
+	case GRAPPLE_MEDIUM:
+		targetForGrapple = "Medium";
+		break;
+	case GRAPPLE_LARGE:
+		targetForGrapple = "Large";
+		break;
+	case GRAPPLE_FIXED:
+		targetForGrapple = "Fixed";
+		break;
+	default:
+		targetForGrapple = "Unknown";
+		break;
+	}
+	ALERT( level, "Target for Grapple: %s. ", targetForGrapple );
+
 	if( pev->spawnflags & SF_MONSTER_PRISONER )
-		ALERT( level, " PRISONER! " );
+		ALERT( level, "PRISONER! " );
 	if( pev->spawnflags & SF_MONSTER_PREDISASTER )
-		ALERT( level, " Pre-Disaster! " );
+		ALERT( level, "Pre-Disaster! " );
 	if ( pev->flags & FL_MONSTERCLIP )
 		ALERT( level, "Monsterclip. " );
 	if ( pev->spawnflags & SF_MONSTER_ACT_OUT_OF_PVS )
@@ -3574,6 +3821,42 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 	if (HasConditions(bits_COND_SEE_ENEMY))
 		ALERT(level, "Sees enemy; ");
 
+	if (FBitSet(m_afCapability, bits_CAP_DOORS_GROUP))
+		ALERT(level, "Can open doors; ");
+
+	if (FBitSet(m_afCapability, bits_CAP_SQUAD))
+		ALERT(level, "Can form squads; ");
+
+	if (m_lastHurtTime > 0.0f)
+		ALERT(level, "Time since last hurt: %g; ", gpGlobals->time - m_lastHurtTime);
+
+	if (m_passiveRegenTime > gpGlobals->time)
+		ALERT(level, "Time before passive regeneration update: %g; ", m_passiveRegenTime - gpGlobals->time);
+
+	if (m_activeRegenTime > gpGlobals->time)
+		ALERT(level, "Time before active regeneration update: %g; ", m_activeRegenTime - gpGlobals->time);
+
+	if (m_nextActiveRegen > gpGlobals->time)
+		ALERT(level, "Time before can activate regeneration: %g; ", m_nextActiveRegen - gpGlobals->time);
+
+	if (m_regenResource > 0.0f)
+		ALERT(level, "Regeneration resource: %g; ", m_regenResource);
+
+	if (m_hasPowerShield)
+	{
+		ALERT(level, "Power shield: %g / %g; ", pev->armorvalue, MaximumPowerShield());
+		if (m_shieldRegenResource > 0.0f)
+		{
+			ALERT(level, "Power shield recharge resource: %g; ", m_shieldRegenResource);
+
+			if (m_shieldLastHurtTime > 0.0f)
+				ALERT(level, "Time since shield last hurt: %g; ", gpGlobals->time - m_shieldLastHurtTime);
+
+			if (m_shieldRegenTime > gpGlobals->time)
+				ALERT(level, "Time before shield recharge update: %g; ", m_shieldRegenTime - gpGlobals->time);
+		}
+	}
+
 	if (shouldReportRoute)
 	{
 		int iMyNode = WorldGraph.FindNearestNode( pev->origin, this );
@@ -3582,13 +3865,32 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 			ALERT(level, "Nearest node: %d. ", iMyNode);
 
 			CNode &node = WorldGraph.Node( iMyNode );
-			DrawRoutePart(node.m_vecOrigin, node.m_vecOrigin + Vector(0,0,72), 0, 0, 200, 25, 16);
+			DrawBeamLine(node.m_vecOrigin, node.m_vecOrigin + Vector(0,0,72), 0, 0, 200, 25, 16);
 		}
 		else
 		{
 			ALERT(level, "No nearest node. ");
 		}
+
+		if (!FRouteClear())
+		{
+			ALERT(level, "\nRoute:\n");
+			for (size_t j = 0; m_Route[j].iType && j < ARRAYSIZE(m_Route); ++j)
+			{
+				ALERT(level, "%d: ", static_cast<int>(j));
+				ReportRouteType(level, m_Route[j].iType);
+				ALERT(level, "(%g, %g, %g)\n", m_Route[j].vecLocation.x, m_Route[j].vecLocation.y, m_Route[j].vecLocation.z);
+			}
+		}
 	}
+}
+
+extern cvar_t npc_report_fire_animevents;
+
+void CBaseMonster::ReportFireAnimEvent(int event)
+{
+	if (IsDeveloperModeOn() && npc_report_fire_animevents.value)
+		ALERT(at_aiconsole, "%s (%d): event: %d, time: %g, frame: %g\n", STRING(pev->classname), entindex(), event, gpGlobals->time, pev->frame);
 }
 
 //=========================================================
@@ -3601,17 +3903,17 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "TriggerTarget" ) )
 	{
 		m_iszTriggerTarget = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerCondition" ) )
 	{
 		m_iTriggerCondition = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerAltCondition" ) )
 	{
 		m_iTriggerAltCondition = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "bloodcolor" ) )
 	{
@@ -3621,7 +3923,7 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 			m_bloodColor = BLOOD_COLOR_RED;
 		else if (m_bloodColor == 2)
 			m_bloodColor = BLOOD_COLOR_YELLOW;
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "field_of_view" ) )
 	{
@@ -3630,67 +3932,72 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 			ALERT(at_warning, "Invalid field of view for monster %s: %3.1f\n", STRING(pev->classname), m_flFieldOfView);
 			m_flFieldOfView = 0.0f;
 		}
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "classify" ) )
 	{
 		m_iClass = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName , "gibmodel" ) || FStrEq( pkvd->szKeyName, "m_iszGibModel" ) )
 	{
 		m_gibModel = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "is_player_ally" ) )
 	{
 		m_reverseRelationship = atoi( pkvd->szValue ) != 0;
-		pkvd->fHandled = TRUE;
-	}
-	else if ( FStrEq( pkvd->szKeyName, "displayname" ) )
-	{
-		m_displayName = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "minhullsize" ) )
 	{
 		UTIL_StringToVector((float*)m_minHullSize, pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "maxhullsize" ) )
 	{
 		UTIL_StringToVector((float*)m_maxHullSize, pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "soundmask" ) )
 	{
 		m_customSoundMask = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "prisonerto" ) )
 	{
 		m_prisonerTo = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "ignoredby" ) )
+	{
+		m_ignoredBy = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "freeroam" ) )
 	{
 		m_freeRoam = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "active_alert" ) )
 	{
 		m_activeAfterCombat = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "size_for_grapple" ) )
 	{
 		m_sizeForGrapple = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if ( FStrEq( pkvd->szKeyName, "gib_policy" ) )
 	{
 		m_gibPolicy = (short)atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if ( FStrEq( pkvd->szKeyName, "trigger_on_death" ) )
+	{
+		m_triggerOnDeath = ALLOC_STRING( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else
 	{
@@ -3698,9 +4005,116 @@ void CBaseMonster::KeyValue( KeyValueData *pkvd )
 	}
 }
 
+void CBaseMonster::Activate()
+{
+	CBaseToggle::Activate();
+
+	if (!g_modFeatures.dying_monsters_block_player && pev->deadflag == DEAD_DYING && HasMemory(bits_MEMORY_KILLED)) {
+		MarkAsNonBlockerForPlayer();
+	}
+}
+
+void CBaseMonster::PrecacheEntTemplateResources()
+{
+	CBaseToggle::PrecacheEntTemplateResources();
+
+	bool canCloak = false;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Cloaking& cloaking = entTemplate->GetCloaking();
+		if (cloaking.ability.IsDefined())
+		{
+			canCloak = GetSkillValueRange(cloaking.ability).min != 0.0f;
+		}
+		else
+		{
+			canCloak = CanCloakByDefault();
+		}
+	}
+	else
+	{
+		canCloak = CanCloakByDefault();
+	}
+
+	if (canCloak)
+	{
+		RegisterAndPrecacheSoundScript(CloakingStartSoundScript());
+	}
+}
+
+void CBaseMonster::LaunchAsProjectile(const ProjectileParameters &params)
+{
+	LaunchAsProjectileImpl(600.0f, params);
+	pev->angles.x = pev->angles.z = 0;
+	pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	m_clearOwnerTime = gpGlobals->time + 1.0f;
+}
+
+void CBaseMonster::DropAsAmmoEnt(int amount)
+{
+	pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	m_clearOwnerTime = gpGlobals->time + 1.0f;
+}
+
 void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)
 {
-	UTIL_SetSize(pev, m_minHullSize == g_vecZero ? vecMin : m_minHullSize, m_maxHullSize == g_vecZero ? vecMax : m_maxHullSize);
+	Vector vecMins = vecMin;
+	Vector vecMaxs = vecMax;
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->IsSizeDefined())
+	{
+		vecMins = entTemplate->MinSize();
+		vecMaxs = entTemplate->MaxSize();
+	}
+	UTIL_SetSize(pev, m_minHullSize == g_vecZero ? vecMins : m_minHullSize, m_maxHullSize == g_vecZero ? vecMaxs : m_maxHullSize);
+}
+
+void CBaseMonster::SetMySize()
+{
+	SetMySize(DefaultMinHullSize(), DefaultMaxHullSize());
+}
+
+static void SetCapFromTriBool(int& ret, tribool b, int cap)
+{
+	if (!indeterminate(b))
+	{
+		if (b)
+		{
+			SetBits(ret, cap);
+		}
+		else
+		{
+			ClearBits(ret, cap);
+		}
+	}
+}
+
+void CBaseMonster::SetMySquadCapabilities(int defaultCaps)
+{
+	m_afCapability |= defaultCaps;
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		SquadCapabilities squadCaps = entTemplate->GetSquadCapabilities();
+		SetCapFromTriBool(m_afCapability, squadCaps.canRecruit, bits_CAP_SQUAD);
+		SetCapFromTriBool(m_afCapability, squadCaps.denyRecruiting, bits_CAP_SQUAD_DENY);
+		SetCapFromTriBool(m_afCapability, squadCaps.allowDifferentClassification, bits_CAP_SQUAD_ALLOW_OTHER_CLASSIFY);
+		SetCapFromTriBool(m_afCapability, squadCaps.requireSameClassname, bits_CAP_SQUAD_SAME_CLASSNAME);
+		SetCapFromTriBool(m_afCapability, squadCaps.requireSameEntTemplate, bits_CAP_SQUAD_SAME_TEMPLATE);
+	}
+}
+
+void CBaseMonster::SetMyCanOpenDoors(bool enable)
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate && entTemplate->IsOpenDoorCapabilityDefined())
+	{
+		enable = entTemplate->CanOpenDoors();
+	}
+	if (enable)
+		m_afCapability |= bits_CAP_DOORS_GROUP;
 }
 
 //=========================================================
@@ -3708,32 +4122,30 @@ void CBaseMonster::SetMySize(const Vector &vecMin, const Vector &vecMax)
 // if there is a condition, then checks to see if condition is 
 // met. If yes, the monster's TriggerTarget is fired.
 //
-// Returns TRUE if the target is fired.
+// Returns true if the target is fired.
 //=========================================================
-BOOL CBaseMonster::FCheckAITrigger( short condition )
+bool CBaseMonster::FCheckAITrigger( short condition )
 {
-	BOOL fFireTarget;
-
 	if( condition == AITRIGGER_NONE )
 	{
 		// no conditions, so this trigger is never fired.
-		return FALSE;
+		return false;
 	}
 
-	fFireTarget = FALSE;
+	bool fFireTarget = false;
 
 	switch( condition )
 	{
 	case AITRIGGER_SEEPLAYER_ANGRY_AT_PLAYER:
 		if( m_hEnemy != 0 && m_hEnemy->IsPlayer() && HasConditions( bits_COND_SEE_ENEMY ) )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_SEEPLAYER_UNCONDITIONAL:
 		if( HasConditions( bits_COND_SEE_CLIENT ) )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_SEEPLAYER_NOT_IN_COMBAT:
@@ -3742,25 +4154,25 @@ BOOL CBaseMonster::FCheckAITrigger( short condition )
 			 m_MonsterState != MONSTERSTATE_PRONE	&&
 			 m_MonsterState != MONSTERSTATE_SCRIPT)
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_TAKEDAMAGE:
 		if( m_afConditions & ( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_DEATH:
 		if( pev->deadflag != DEAD_NO )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_HALFHEALTH:
 		if( IsAlive() && pev->health <= ( pev->max_health / 2 ) )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 /*
@@ -3775,19 +4187,35 @@ BOOL CBaseMonster::FCheckAITrigger( short condition )
 	case AITRIGGER_HEARWORLD:
 		if( m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_WORLD )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_HEARPLAYER:
 		if( m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_PLAYER )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
 		}
 		break;
 	case AITRIGGER_HEARCOMBAT:
 		if( m_afConditions & bits_COND_HEAR_SOUND && m_afSoundTypes & bits_SOUND_COMBAT )
 		{
-			fFireTarget = TRUE;
+			fFireTarget = true;
+		}
+		break;
+	case AITRIGGER_PROVOKED_BY_PLAYER:
+		{
+			if (HasMemory(bits_MEMORY_PROVOKED))
+			{
+				fFireTarget = true;
+			}
+		}
+		break;
+	case AITRIGGER_GOTHEALED:
+		{
+			if (HasMemory(bits_MEMORY_GOT_HEALED_RECENTLY))
+			{
+				fFireTarget = true;
+			}
 		}
 		break;
 	}
@@ -3800,18 +4228,28 @@ BOOL CBaseMonster::FCheckAITrigger( short condition )
 		FireTargets( STRING( m_iszTriggerTarget ), this, this );
 		m_iTriggerCondition = AITRIGGER_NONE;
 		m_iTriggerAltCondition = AITRIGGER_NONE;
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	Forget(bits_MEMORY_GOT_HEALED_RECENTLY);
+	return false;
 }
 
-BOOL CBaseMonster::FCheckAITrigger( void )
+bool CBaseMonster::FCheckAITrigger()
 {
-	BOOL ret = FCheckAITrigger( m_iTriggerCondition );
+	bool ret = FCheckAITrigger( m_iTriggerCondition );
 	if (!ret)
 		return FCheckAITrigger( m_iTriggerAltCondition );
 	return ret;
+}
+
+void CBaseMonster::TriggerOnDeath(CBaseEntity *pKiller)
+{
+	if (!FStringNull(m_triggerOnDeath))
+	{
+		FireTargets(STRING(m_triggerOnDeath), pKiller, this);
+		m_triggerOnDeath = iStringNull;
+	}
 }
 
 //=========================================================	
@@ -3821,42 +4259,42 @@ BOOL CBaseMonster::FCheckAITrigger( void )
 // will be sucked into the script no matter what state it is
 // in. ONLY Scripted AI ents should allow this.
 //=========================================================	
-int CBaseMonster::CanPlaySequence( int interruptFlags )
+bool CBaseMonster::CanPlaySequence( int interruptFlags )
 {
 	if( m_pCine )
 	{
 		if ( interruptFlags & SS_INTERRUPT_SCRIPTS )
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
 			// monster is already running a scripted sequence or dead!
-			return FALSE;
+			return false;
 		}
 	}
 	else if (!IsFullyAlive() || m_MonsterState == MONSTERSTATE_PRONE)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	if( interruptFlags & SS_INTERRUPT_ANYSTATE )
 	{
 		// ok to go, no matter what the monster state. (scripted AI)
-		return TRUE;
+		return true;
 	}
 
 	if( m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE )
 	{
 		// ok to go, but only in these states
-		return TRUE;
+		return true;
 	}
 	
 	if( (m_MonsterState == MONSTERSTATE_ALERT || m_MonsterState == MONSTERSTATE_HUNT) && (interruptFlags & SS_INTERRUPT_ALERT) )
-		return TRUE;
+		return true;
 
 	// unknown situation
-	return FALSE;
+	return false;
 }
 
 //=========================================================
@@ -3865,11 +4303,29 @@ int CBaseMonster::CanPlaySequence( int interruptFlags )
 // conceal them from view of pSightEnt
 //=========================================================
 
-BOOL CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, float maxDist, int flags )
+bool CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, float maxDist, int flags )
 {
-	UTIL_MakeVectors( pev->angles );
-	Vector vecRight = gpGlobals->v_right;
-	vecRight.z = 0;
+	Vector vecFromThreat = pev->origin - vecThreat;
+	vecFromThreat.z = 0;
+
+	const bool threatIsRightOnMe = vecFromThreat == g_vecZero;
+
+	Vector vecRight{};
+	if (threatIsRightOnMe)
+	{
+		UTIL_MakeVectors(pev->angles);
+		vecRight = gpGlobals->v_right;
+		vecRight.z = 0;
+	}
+	else
+	{
+		vecFromThreat.NormalizeInPlace();
+
+		const float sideAngleRad = M_PI_F * 0.5f;
+		vecRight.x = vecFromThreat.x * std::cos(sideAngleRad) - vecFromThreat.y * std::sin(sideAngleRad);
+		vecRight.y = vecFromThreat.x * std::sin(sideAngleRad) + vecFromThreat.y * std::cos(sideAngleRad);
+	}
+
 	const Vector vecStepRight = vecRight * COVER_DELTA;
 	const Vector vecStart = pev->origin;
 
@@ -3880,40 +4336,40 @@ BOOL CBaseMonster::FindLateralSpotAway( const Vector& vecThreat, float minDist, 
 	const Vector startOffset = vecRight * minDist;
 	const int coverChecks = (int)((maxDist - minDist) / COVER_DELTA) + 1; // at least one check
 
-	const bool threatIsMyself = vecThreat == vecStart;
+	const float distToThreatSqr = (vecStart - vecThreat).LengthSqr();
 
 	for( int i = 1; i <= coverChecks; i++ )
 	{
 		const Vector vecLeftTest = vecStart - startOffset - vecStepRight * ( coverChecks - i );
 		const Vector vecRightTest = vecStart + startOffset + vecStepRight * ( coverChecks - i );
 
-		if (threatIsMyself || (vecStart - vecLeftTest).Length() < (vecThreat - vecLeftTest).Length())
+		if (!threatIsRightOnMe || (vecLeftTest - vecThreat).LengthSqr() > distToThreatSqr)
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecLeftTest )) )
 			{
 				if( MoveToLocation( movementActivity, 0, vecLeftTest, BUILDROUTE_NO_NODEROUTE|BUILDROUTE_NO_TRIANGULATION ) )
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 
-		if (threatIsMyself || (vecStart - vecRightTest).Length() < (vecThreat - vecRightTest).Length())
+		if (!threatIsRightOnMe || (vecRightTest - vecThreat).LengthSqr() > distToThreatSqr)
 		{
 			if( (!FBitSet(flags, FINDSPOTAWAY_CHECK_SPOT) || FValidateCover( vecRightTest )) )
 			{
 				if( MoveToLocation( movementActivity, 0, vecRightTest, BUILDROUTE_NO_NODEROUTE|BUILDROUTE_NO_TRIANGULATION ) )
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL CBaseMonster::FindStraightSpotAway( const Vector& vecThreat, float minDist, float maxDist, int flags )
+bool CBaseMonster::FindStraightSpotAway( const Vector& vecThreat, float minDist, float maxDist, int flags )
 {
 	const Vector vecStart = pev->origin;
 
@@ -3921,7 +4377,7 @@ BOOL CBaseMonster::FindStraightSpotAway( const Vector& vecThreat, float minDist,
 	vecDiff.z = 0;
 
 	if (vecDiff == g_vecZero)
-		return FALSE;
+		return false;
 
 	const Vector vecDirection = vecDiff.Normalize();
 	const Vector vecStep = vecDirection * COVER_DELTA;
@@ -3942,15 +4398,15 @@ BOOL CBaseMonster::FindStraightSpotAway( const Vector& vecThreat, float minDist,
 		{
 			if( MoveToLocation( movementActivity, 0, vecTest, BUILDROUTE_NO_NODEROUTE|BUILDROUTE_NO_TRIANGULATION ) )
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset, float minDist, float maxDist, int flags )
+bool CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset, float minDist, float maxDist, int flags )
 {
 	TraceResult tr;
 	UTIL_MakeVectors( pev->angles );
@@ -3980,7 +4436,7 @@ BOOL CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecV
 			{
 				if( MoveToLocation( movementActivity, 0, vecLeftTest, BUILDROUTE_NO_NODEROUTE|BUILDROUTE_NO_TRIANGULATION ) )
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
@@ -3994,16 +4450,16 @@ BOOL CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecV
 			{
 				if( MoveToLocation( movementActivity, 0, vecRightTest, BUILDROUTE_NO_NODEROUTE|BUILDROUTE_NO_TRIANGULATION ) )
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset )
+bool CBaseMonster::FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset )
 {
 	return FindLateralCover( vecThreat, vecViewOffset, COVER_DELTA, COVER_DELTA * COVER_CHECKS, FINDSPOTAWAY_RUN|FINDSPOTAWAY_CHECK_SPOT );
 }
@@ -4021,7 +4477,11 @@ Vector CBaseMonster::ShootAtEnemy( const Vector &shootOrigin )
 		return( ( pEnemy->BodyTarget( shootOrigin ) - pEnemy->pev->origin ) + m_vecEnemyLKP - shootOrigin ).Normalize();
 	}
 	else
-		return gpGlobals->v_forward;
+	{
+		Vector forward, right, up;
+		UTIL_MakeVectorsPrivate(pev->angles, forward, right, up);
+		return forward;
+	}
 }
 
 Vector CBaseMonster::SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDeviation, float *distance)
@@ -4055,69 +4515,32 @@ Vector CBaseMonster::SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDev
 // number. Nicer to have it in one place if we're gonna
 // be stuck with it.
 //=========================================================
-BOOL CBaseMonster::FacingIdeal( void )
+bool CBaseMonster::FacingIdeal()
 {
-	if( fabs( FlYawDiff() ) <= 0.006f )//!!!BUGBUG - no magic numbers!!!
-	{
-		return TRUE;
-	}
-
-	return FALSE;
+	return fabs( FlYawDiff() ) <= 0.006f;//!!!BUGBUG - no magic numbers!!!
 }
 
 //=========================================================
 // FCanActiveIdle
 //=========================================================
-BOOL CBaseMonster::FCanActiveIdle( void )
+bool CBaseMonster::FCanActiveIdle()
 {
 	/*
 	if( m_MonsterState == MONSTERSTATE_IDLE && m_IdealMonsterState == MONSTERSTATE_IDLE && !IsMoving() )
 	{
-		return TRUE;
+		return true;
 	}
 	*/
-	return FALSE;
-}
-
-bool CBaseMonster::PlaySentence(const char *pszSentence, float duration, float volume, float attenuation , bool subtitle)
-{
-	if( pszSentence && IsAlive() )
-	{
-		if( pszSentence[0] == '!' )
-		{
-			if (subtitle)
-				return EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 );
-			else
-				return EMIT_SOUND_DYN( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM );
-		}
-		else
-		{
-			if (subtitle)
-				return SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 ) >= 0;
-			else
-				return SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM ) >= 0;
-		}
-	}
 	return false;
 }
 
-void CBaseMonster::PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener )
-{
-	PlaySentence( pszSentence, duration, volume, attenuation, true );
-}
-
-void CBaseMonster::SentenceStop( void )
-{
-	EMIT_SOUND( edict(), CHAN_VOICE, "common/null.wav", 1.0, ATTN_IDLE );
-}
-
-void CBaseMonster::CorpseFallThink( void )
+void CBaseMonster::CorpseFallThink()
 {
 	if( pev->flags & FL_ONGROUND )
 	{
 		SetThink( NULL );
 
-		SetSequenceBox( );
+		SetSequenceBox();
 		UTIL_SetOrigin( pev, pev->origin );// link into world.
 	}
 	else
@@ -4125,7 +4548,7 @@ void CBaseMonster::CorpseFallThink( void )
 }
 
 // Call after animation/pose is set up
-void CBaseMonster::MonsterInitDead( void )
+void CBaseMonster::MonsterInitDead()
 {
 	InitBoneControllers();
 
@@ -4171,13 +4594,13 @@ void CBaseMonster::MonsterInitDead( void )
 // is lying flat on a surface (traces from all four corners
 // are same length.)
 //=========================================================
-BOOL CBaseMonster::BBoxFlat( void )
+bool CBaseMonster::BBoxFlat()
 {
 	TraceResult	tr;
 	Vector		vecPoint;
 	float		flXSize, flYSize;
-	float		flLength;
-	float		flLength2;
+	float		flLengthSqr;
+	float		flLength2Sqr;
 
 	flXSize = pev->size.x / 2;
 	flYSize = pev->size.y / 2;
@@ -4187,46 +4610,46 @@ BOOL CBaseMonster::BBoxFlat( void )
 	vecPoint.z = pev->origin.z;
 
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength = ( vecPoint - tr.vecEndPos ).Length();
+	flLengthSqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
 
 	vecPoint.x = pev->origin.x - flXSize;
 	vecPoint.y = pev->origin.y - flYSize;
 
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
-		return FALSE;
+		return false;
 	}
-	flLength = flLength2;
+	flLengthSqr = flLength2Sqr;
 
 	vecPoint.x = pev->origin.x - flXSize;
 	vecPoint.y = pev->origin.y + flYSize;
 	UTIL_TraceLine ( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
-		return FALSE;
+		return false;
 	}
-	flLength = flLength2;
+	flLengthSqr = flLength2Sqr;
 
 	vecPoint.x = pev->origin.x + flXSize;
 	vecPoint.y = pev->origin.y - flYSize;
 	UTIL_TraceLine( vecPoint, vecPoint - Vector( 0, 0, 100 ), ignore_monsters, ENT( pev ), &tr );
-	flLength2 = ( vecPoint - tr.vecEndPos ).Length();
-	if( flLength2 > flLength )
+	flLength2Sqr = ( vecPoint - tr.vecEndPos ).LengthSqr();
+	if( flLength2Sqr > flLengthSqr )
 	{
-		return FALSE;
+		return false;
 	}
 	// flLength = flLength2;
 
-	return TRUE;
+	return true;
 }
 
 //=========================================================
 // Get Enemy - tries to find the best suitable enemy for the monster.
 //=========================================================
-BOOL CBaseMonster::GetEnemy( bool forcePopping )
+bool CBaseMonster::GetEnemy( bool forcePopping )
 {
 	CBaseEntity *pNewEnemy;
 
@@ -4275,13 +4698,7 @@ BOOL CBaseMonster::GetEnemy( bool forcePopping )
 		}
 	}
 
-	if( m_hEnemy != 0 )
-	{
-		// monster has an enemy.
-		return TRUE;
-	}
-
-	return FALSE;// monster has no enemy
+	return m_hEnemy != 0;
 }
 
 //=========================================================
@@ -4308,86 +4725,114 @@ CBaseEntity *CBaseMonster::DropItem( const char *pszItemName, const Vector &vecP
 	}
 }
 
+void CBaseMonster::FixupDropItemPosition(Vector &pos)
+{
+	TraceResult tr;
+	UTIL_TraceHull(pos, pos + Vector(0,0,1), ignore_monsters, head_hull, edict(), &tr);
+	if (tr.fStartSolid || tr.fAllSolid)
+		pos = Center();
+}
+
 bool CBaseMonster::IsFullyAlive()
 {
 	return !HasMemory(bits_MEMORY_KILLED) && CBaseToggle::IsFullyAlive();
 }
 
-BOOL CBaseMonster::ShouldFadeOnDeath( void )
+bool CBaseMonster::ShouldFadeOnDeath()
 {
 	// if flagged to fade out or I have an owner (I came from a monster spawner)
 	if( ( pev->spawnflags & SF_MONSTER_FADECORPSE ) || !FNullEnt( pev->owner ) )
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
-void CBaseMonster::SetMyHealth(const float health)
+bool CBaseMonster::ShouldCollide(CBaseEntity *pOther)
 {
-	//if (!pev->health) {
-		pev->health = health;
-	//}
+	if (pev->deadflag == DEAD_DEAD && FBitSet(pev->flags, FL_MONSTER))
+		return pOther->ShouldCollideWithCorpses();
+	return CBaseToggle::ShouldCollide(pOther);
 }
 
-void CBaseMonster::SetMyModel(const char *model)
+bool CBaseMonster::ShouldCollideWithCorpses()
 {
-	if (FStringNull(pev->model)) {
-		const char* reverseModel = NULL;
-#if FEATURE_REVERSE_RELATIONSHIP_MODELS
-		if (m_reverseRelationship)
-			reverseModel = ReverseRelationshipModel();
-#endif
-		if (reverseModel)
-			SET_MODEL( ENT( pev ), reverseModel );
-		else
-			SET_MODEL( ENT( pev ), model );
-	} else {
-		SET_MODEL( ENT( pev ), STRING(pev->model) );
-	}
+	if (FBitSet(pev->flags, FL_MONSTER))
+		return false;
+	return true;
 }
 
-void CBaseMonster::PrecacheMyModel(const char *model)
+const char* CBaseMonster::MyNonDefaultGibModel()
 {
-	if (FStringNull(pev->model)) {
-		const char* reverseModel = NULL;
-#if FEATURE_REVERSE_RELATIONSHIP_MODELS
-		if (m_reverseRelationship)
-			reverseModel = ReverseRelationshipModel();
-#endif
-		if (reverseModel)
-			PRECACHE_MODEL(reverseModel);
-		else
-			PRECACHE_MODEL( model );
-	} else {
-		PRECACHE_MODEL( STRING( pev->model ) );
+	if (!FStringNull(m_gibModel))
+		return STRING(m_gibModel);
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const Visual* gibVisual = g_VisualSystem.GetVisual(entTemplate->GibVisualName());
+		if (gibVisual && gibVisual->model)
+			return gibVisual->model;
 	}
-	if (!FStringNull(m_gibModel)) {
-		PRECACHE_MODEL( STRING(m_gibModel) );
-	}
+
+	return nullptr;
 }
 
-void CBaseMonster::SetMyBloodColor(int bloodColor)
+const Visual* CBaseMonster::MyGibVisual()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+		return g_VisualSystem.GetVisual(entTemplate->GibVisualName());
+	return nullptr;
+}
+
+int CBaseMonster::PrecacheMyGibModel(const char *model)
+{
+	const char* nonDefaultModel = MyNonDefaultGibModel();
+	if (nonDefaultModel)
+	{
+		return PRECACHE_MODEL(nonDefaultModel);
+	}
+	if (model)
+		return PRECACHE_MODEL(model);
+	return 0;
+}
+
+void CBaseMonster::SetMyBloodColor(int defaultBloodColor)
 {
 	if (!m_bloodColor) {
-		m_bloodColor = bloodColor;
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate && entTemplate->IsBloodDefined())
+			m_bloodColor = entTemplate->BloodColor();
+		else
+			m_bloodColor = defaultBloodColor;
 	}
 }
 
 void CBaseMonster::SetMyFieldOfView(const float defaultFieldOfView)
 {
 	if (!m_flFieldOfView) {
-		m_flFieldOfView = defaultFieldOfView;
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate && entTemplate->IsFielfOfViewDefined())
+			m_flFieldOfView = entTemplate->FieldOfView();
+		else
+			m_flFieldOfView = defaultFieldOfView;
 	}
 }
 
 int CBaseMonster::Classify()
 {
+	/*
 	if (m_iClass == -1)
 		return CLASS_NONE;
 	if (m_iClass)
 		return m_iClass;
-	const int defaultClassify = DefaultClassify();
-	/*if (m_reverseRelationship)
+	*/
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	const int defaultClassify = (entTemplate && entTemplate->IsClassifyDefined()) ? entTemplate->Classify() : DefaultClassify();
+
+	/*
+	if (m_reverseRelationship)
 	{
 		switch(defaultClassify)
 		{
@@ -4409,9 +4854,20 @@ int CBaseMonster::DefaultClassify()
 	return CLASS_NONE;
 }
 
-const char* CBaseMonster::DisplayName()
+void CBaseMonster::FixChildClassify(CBaseMonster *pChild)
 {
-	return FStringNull(m_displayName) ? DefaultDisplayName() : STRING(m_displayName);
+	// If I have a custom class forward it to the child
+	if (m_iClass)
+		pChild->m_iClass = m_iClass;
+	if (m_reverseRelationship)
+		pChild->m_reverseRelationship = m_reverseRelationship;
+
+	// If my child turned enemy to me, set the same classify as myself
+	// TODO: this won't work for the classify that dislikes its own kind (like bullsquids)
+	if (IRelationship(pChild) >= R_DL)
+	{
+		pChild->m_iClass = Classify();
+	}
 }
 
 Vector CBaseMonster::DefaultMinHullSize()
@@ -4430,67 +4886,486 @@ int CBaseMonster::SizeForGrapple()
 		return GRAPPLE_NOT_A_TARGET;
 	else if (m_sizeForGrapple > 0 && m_sizeForGrapple <= GRAPPLE_FIXED)
 		return m_sizeForGrapple;
+	else
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate && entTemplate->IsSizeForGrappleDefined())
+			return entTemplate->SizeForGrapple();
+	}
 	return DefaultSizeForGrapple();
 }
 
-bool CBaseMonster::IsFreeToManipulate()
+bool CBaseMonster::HandleBlocker(CBaseEntity* pBlocker, bool duringMovement)
 {
-	return IsFullyAlive() && m_IdealMonsterState != MONSTERSTATE_SCRIPT &&
-			m_IdealMonsterState != MONSTERSTATE_PRONE &&
-				 (m_MonsterState == MONSTERSTATE_ALERT ||
-				  m_MonsterState == MONSTERSTATE_IDLE ||
-				  m_MonsterState == MONSTERSTATE_HUNT);
+	if (!pBlocker)
+		return false;
+
+	CBaseMonster* blockerMonster = pBlocker->MyMonsterPointer();
+	if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
+		if (DeveloperModeLevel() >= 4)
+			ALERT(at_console, "%s (%s) sets %s as blocker (%s)\n", STRING(pev->classname), m_pSchedule ? m_pSchedule->pName : "", STRING(pBlocker->pev->classname), duringMovement ? "movement" : "path searching");
+		m_lastMoveBlocker = pBlocker;
+		return true;
+	}
+	return false;
+}
+
+bool CBaseMonster::CanBeMadeMoveAway(CBaseEntity *pPusher)
+{
+	if (FBitSet(pev->flags, FL_CLIENT))
+		return false;
+	if (FBitSet(pev->spawnflags, SF_MONSTER_IGNORE_PUSH))
+		return false;
+	int rel = IRelationship(pPusher);
+	if (rel == R_AL)
+		return true;
+	CBaseMonster* pMonster = pPusher->MyMonsterPointer();
+	if (pMonster && (pMonster->m_pCine || FBitSet(pMonster->m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_PLAYING)))
+		return rel == R_NO;
+	return false;
+}
+
+bool CBaseMonster::MakeMyBlockerMoveAway()
+{
+	if (m_lastMoveBlocker != 0)
+	{
+		bool success = false;
+		CBaseMonster* blockerMonster = m_lastMoveBlocker->MyMonsterPointer();
+		if (blockerMonster && blockerMonster->CanBeMadeMoveAway(this)) {
+			int flags = SUGGEST_SCHEDULE_FLAG_RUN;
+			if (FBitSet(m_suggestedScheduleFlags, SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT))
+				flags |= SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT;
+			CBaseEntity* pGoalEntity = this;
+			if (m_hMoveGoalEnt != 0)
+				pGoalEntity = m_hMoveGoalEnt;
+			success = blockerMonster->SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pGoalEntity, 0.0f, 256.0f, flags);
+		}
+		m_lastMoveBlocker = 0;
+		return success;
+	}
+	return false;
+}
+
+bool CBaseMonster::IsFreeToManipulate(bool allowInCombat)
+{
+	bool isMonsterOk = IsFullyAlive() && m_IdealMonsterState != MONSTERSTATE_SCRIPT && m_IdealMonsterState != MONSTERSTATE_PRONE;
+	if (isMonsterOk)
+	{
+		switch (m_MonsterState) {
+		case MONSTERSTATE_IDLE:
+		case MONSTERSTATE_ALERT:
+		case MONSTERSTATE_HUNT:
+		case MONSTERSTATE_NONE:
+			return true;
+		case MONSTERSTATE_COMBAT:
+			return allowInCombat;
+		default:
+			return false;
+		}
+	}
+	return false;
+}
+
+//=========================================================
+// NoFriendlyFire - checks for possibility of friendly fire
+//
+// Builds a large box in front of the grunt and checks to see
+// if any squad members are in that box.
+//=========================================================
+bool CBaseMonster::NoFriendlyFire()
+{
+	Vector forward, right, up;
+	if (m_hEnemy != 0)
+	{
+		UTIL_MakeVectorsPrivate(UTIL_VecToAngles(m_hEnemy->Center() - pev->origin), forward, right, up);
+	}
+	else
+	{
+		return false;
+	}
+
+	CBaseEntity* pEnemy = m_hEnemy;
+	const Vector enemyCenter = pEnemy->Center();
+	const Vector gunPos = GetGunPosition();
+	const Vector posVecs[3] = {gunPos, gunPos + right * pev->size.x * 1, right * pev->size.x * (-1)};
+	const Vector enemyVec[3] = {enemyCenter, enemyCenter + right * pEnemy->pev->size.x * 0.5, enemyCenter + right * pEnemy->pev->size.x * -0.5};
+	for (int j=0; j<3; ++j)
+	{
+		TraceResult tr;
+		UTIL_TraceLine(posVecs[j], enemyVec[j], dont_ignore_monsters, ENT(pev), &tr);
+		if (tr.flFraction != 1.0 && tr.pHit != 0)
+		{
+			CBaseMonster* monster = GetMonsterPointer(tr.pHit);
+			if (monster != 0 && FBitSet(monster->pev->flags, FL_MONSTER|FL_CLIENT) && monster->pev->deadflag != DEAD_DEAD && IRelationship(monster) == R_AL)
+			{
+				//ALERT(at_aiconsole, "%s: Ally %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(monster->pev->classname));
+				return false;
+			}
+		}
+	}
+
+	CSquadMonster* squadMonster = MySquadMonsterPointer();
+	const bool inSquad = squadMonster && squadMonster->InSquad();
+	CBaseEntity* player = UTIL_PlayerByIndex(1);
+	const bool friendWithPlayer = player != 0 && IRelationship(player) == R_AL; // TODO: better check for player relationship
+
+	if (!inSquad && !friendWithPlayer)
+		return true;
+
+	CPlane backPlane;
+	CPlane leftPlane;
+	CPlane rightPlane;
+	CPlane frontPlane;
+
+	Vector vecLeftSide;
+	Vector vecRightSide;
+	Vector v_left;
+	Vector v_dir;
+
+	v_dir = right * ( pev->size.x * 1.5f );
+	vecLeftSide = pev->origin - v_dir;
+	vecRightSide = pev->origin + v_dir;
+
+	v_left = right * -1.0f;
+
+	leftPlane.InitializePlane( right, vecLeftSide );
+	rightPlane.InitializePlane( v_left, vecRightSide );
+	backPlane.InitializePlane( forward, pev->origin );
+	frontPlane.InitializePlane( forward * -1, enemyCenter + forward * pEnemy->pev->size.Length2D() / 2 );
+
+	const bool enemyIsAlive = pEnemy->IsFullyAlive();
+	if (inSquad)
+	{
+		CSquadMonster *pSquadLeader = squadMonster->MySquadLeader();
+		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+		{
+			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+			if( pMember && pMember != this )
+			{
+				if( backPlane.PointInFront( pMember->pev->origin ) &&
+					leftPlane.PointInFront( pMember->pev->origin ) &&
+					rightPlane.PointInFront( pMember->pev->origin ) )
+				{
+					// this guy is in the check volume! Don't shoot!
+					if (frontPlane.PointInFront( pMember->pev->origin ))
+					{
+						//ALERT(at_aiconsole, "%s: Squad member %s at fire line. Don't shoot!\n", STRING(pev->classname), STRING(pMember->pev->classname));
+						return false;
+					}
+					else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
+						return false;
+				}
+			}
+		}
+	}
+	for( int k = 1; k <= gpGlobals->maxClients; k++ )
+	{
+		CBaseEntity* pPlayer = UTIL_PlayerByIndex(k);
+		if (pPlayer && pPlayer->IsPlayer() && IRelationship(pPlayer) == R_AL)
+		{
+			if( backPlane.PointInFront( pPlayer->pev->origin ) &&
+				leftPlane.PointInFront( pPlayer->pev->origin ) &&
+				rightPlane.PointInFront( pPlayer->pev->origin ) )
+			{
+				//ALERT(at_aiconsole, "%s: Ally player at fire plane!\n", STRING(pev->classname));
+				// player is in the check volume! Don't shoot!
+				if (frontPlane.PointInFront( pPlayer->pev->origin ))
+					return false;
+				else if (!enemyIsAlive) // don't shoot when ally is behind the dying enemy
+					return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 bool CBaseMonster::HandleDoorBlockage(CBaseEntity *pDoor)
 {
-#if FEATURE_DOOR_BLOCKED_FADE_CORPSES
-	if (pev->deadflag == DEAD_DEAD && pev->movetype == MOVETYPE_TOSS && pev->takedamage == DAMAGE_YES) {
-		SUB_StartFadeOut();
-		return true;
+	if (g_modFeatures.DoorsFadeCorpsesWhenBlocked())
+	{
+		if (pev->deadflag == DEAD_DEAD && pev->movetype == MOVETYPE_TOSS && pev->takedamage == DAMAGE_YES) {
+			SUB_StartFadeOut();
+			return true;
+		}
 	}
-#endif
+
+	if (m_retreatSuggestionTime < gpGlobals->time)
+	{
+		int flags = SUGGEST_SCHEDULE_FLAG_RUN|SUGGEST_SCHEDULE_FLAG_SPOT_IS_POSITION|SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE|SUGGEST_SCHEDULE_FLAG_ALLOW_IN_COMBAT;
+		SuggestSchedule(SCHED_RETREAT_FROM_SPOT, this, 8.0f, 128.0f, flags);
+		m_retreatSuggestionTime = gpGlobals->time + 0.4f;
+	}
+
 	return false;
 }
 
-void CBaseMonster::GlowShellOn( Vector color, float flDuration )
+void CBaseMonster::AskMoveAwayFromSpot(CBaseEntity* pSpotEntity, float minDist, bool run)
 {
-	if (!m_glowShellUpdate)
+	if (!IsFreeToManipulate())
+		return;
+
+	int schedFlags = SUGGEST_SCHEDULE_FLAG_DONT_AVOID_THREAT_NODE;
+
+	if (run)
 	{
-		m_prevRenderColor = pev->rendercolor;
-		m_prevRenderAmt = pev->renderamt;
-		m_prevRenderFx = pev->renderfx;
-
-		pev->renderamt = 5;
-		pev->rendercolor = color;
-		pev->renderfx = kRenderFxGlowShell;
-
-		m_glowShellColor = color;
-
-		m_glowShellUpdate = TRUE;
+		schedFlags |= SUGGEST_SCHEDULE_FLAG_RUN;
 	}
-	m_glowShellTime = gpGlobals->time + flDuration;
+	SuggestSchedule(SCHED_RETREAT_FROM_SPOT, pSpotEntity, minDist, 256, schedFlags);
 }
 
-void CBaseMonster::GlowShellOff( void )
+void CBaseMonster::HandleCloaking()
 {
 	if (m_glowShellUpdate)
+		return;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	bool canCloak = false;
+	int cloakConditions = EntTemplate::Cloaking::DefaultConditions;
+	int cloakSpeed = EntTemplate::Cloaking::DefaultCloakSpeed;
+	optional<int> uncloakSpeed;
+	int targetOpacity = 20;
+
+	if (entTemplate)
 	{
-		pev->renderamt = m_prevRenderAmt;
-		pev->rendercolor = m_prevRenderColor;
-		pev->renderfx = m_prevRenderFx;
+		const EntTemplate::Cloaking& cloaking = entTemplate->GetCloaking();
 
-		m_glowShellTime = 0.0f;
+		if (cloaking.ability.IsDefined())
+		{
+			canCloak = GetSkillValueRange(cloaking.ability).min != 0.0f;
+		}
+		else
+		{
+			canCloak = CanCloakByDefault();
+		}
 
-		m_glowShellUpdate = FALSE;
+		if (canCloak)
+		{
+			cloakConditions = cloaking.conditions;
+			cloakSpeed = cloaking.cloakSpeed;
+			uncloakSpeed = cloaking.uncloakSpeed;
+			if (cloaking.opacity.IsDefined())
+				targetOpacity = static_cast<int>(GetSkillValue(cloaking.opacity));
+		}
+	}
+	else
+	{
+		canCloak = CanCloakByDefault();
+	}
+
+	if (!uncloakSpeed.has_value())
+	{
+		uncloakSpeed = cloakSpeed;
+	}
+
+	if (!canCloak)
+		return;
+
+	bool passed = false;
+
+	if (pev->deadflag != DEAD_NO)
+	{
+		passed = true;
+		cloakConditions = EntTemplate::Cloaking::COND_UNCLOAK;
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_MOVING))
+		{
+			passed = IsMovingCloakWise();
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_STANDING))
+		{
+			passed = !IsMovingCloakWise();
+		}
+	}
+
+	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_ATTACKING))
+	{
+		if (IsAttackingCloakWise())
+			passed = true;
+	}
+
+	if (!passed && FBitSet(cloakConditions, EntTemplate::Cloaking::COND_RELOADING))
+	{
+		passed = m_Activity == ACT_RELOAD;
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_NOT_ON_GROUND))
+		{
+			passed = !FBitSet(pev->flags, FL_ONGROUND);
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_ON_GROUND))
+		{
+			passed = FBitSet(pev->flags, FL_ONGROUND);
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HAS_NO_ENEMY))
+		{
+			passed = m_hEnemy == 0;
+		}
+		else if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HAS_ENEMY))
+		{
+			passed = m_hEnemy != 0;
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_TAKE_DAMAGE))
+		{
+			passed = HasConditions(bits_COND_LIGHT_DAMAGE|bits_COND_HEAVY_DAMAGE) || (gpGlobals->time - m_lastHurtTime < 0.2f);
+		}
+	}
+
+	if (!passed)
+	{
+		if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_HOPPING))
+		{
+			if (!FBitSet(pev->flags, FL_SWIM|FL_FLY))
+			{
+				passed = !FBitSet(pev->flags, FL_ONGROUND) && pev->velocity != g_vecZero;
+			}
+		}
+	}
+
+	tribool newCloakState;
+
+	const int perceivedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
+
+	if (FBitSet(cloakConditions, EntTemplate::Cloaking::COND_UNCLOAK))
+	{
+		if (passed)
+		{
+			if (perceivedRenderamt != m_UncloakedRenderamt)
+				newCloakState = false;
+		}
+		else
+		{
+			newCloakState = true;
+		}
+	}
+	else
+	{
+		if (passed)
+		{
+			if (perceivedRenderamt != targetOpacity)
+				newCloakState = true;
+		}
+		else
+		{
+			newCloakState = false;
+		}
+	}
+
+	if (indeterminate(newCloakState)) {
+		m_handledCloakingOnce = true;
+		return;
+	}
+
+	if (newCloakState)
+	{
+		if (perceivedRenderamt == m_UncloakedRenderamt && m_handledCloakingOnce)
+		{
+			EmitSoundScript(CloakingStartSoundScript());
+		}
+
+		m_iTargetRenderamt = targetOpacity;
+	}
+	else
+	{
+		m_iTargetRenderamt = m_UncloakedRenderamt;
+	}
+
+	m_handledCloakingOnce = true;
+
+	const int changeSpeed = newCloakState ? cloakSpeed : *uncloakSpeed;
+
+	bool renderAmtChanged = false;
+	if (m_iTargetRenderamt > perceivedRenderamt)
+	{
+		pev->renderamt = Q_min(perceivedRenderamt + changeSpeed, m_iTargetRenderamt);
+		renderAmtChanged = true;
+	}
+	else if (m_iTargetRenderamt < perceivedRenderamt)
+	{
+		pev->renderamt = Q_max(perceivedRenderamt - changeSpeed, m_iTargetRenderamt);
+		renderAmtChanged = true;
+	}
+
+	if (renderAmtChanged)
+	{
+		pev->renderamt = clamp(pev->renderamt, 0.0f, 255.0f);
+
+		//ALERT(at_console, "%s: m_iTargetRenderamt: %d. prev renderamt: %d. renderamt: %g\n", STRING(pev->classname), (int)m_iTargetRenderamt, perceivedRenderamt, pev->renderamt);
+
+		if (pev->renderamt >= 255 && pev->rendermode == kRenderTransTexture)
+			pev->rendermode = kRenderNormal;
+		else if (pev->renderamt < 255 && pev->rendermode == kRenderNormal)
+			pev->rendermode = kRenderTransTexture;
 	}
 }
-void CBaseMonster::GlowShellUpdate( void )
+
+void CBaseMonster::InitUncloakedRenderamt()
 {
-	if( m_glowShellUpdate )
+	m_UncloakedRenderamt = pev->rendermode == kRenderNormal ? 255 : pev->renderamt;
+}
+
+bool CBaseMonster::IsMovingCloakWise()
+{
+	if (FBitSet(pev->flags, FL_SWIM|FL_FLY))
 	{
-		if( gpGlobals->time > m_glowShellTime || pev->deadflag == DEAD_DEAD )
-			GlowShellOff();
+		return pev->velocity != g_vecZero || IsMoving();
+	}
+	else
+	{
+		switch(m_Activity)
+		{
+		case ACT_WALK:
+		case ACT_RUN:
+		case ACT_WALK_HURT:
+		case ACT_RUN_HURT:
+		case ACT_WALK_SCARED:
+		case ACT_RUN_SCARED:
+			return true;
+		default:
+			return false;
+		}
+	}
+}
+
+bool CBaseMonster::IsAttackingCloakWise()
+{
+	switch(m_Activity)
+	{
+	case ACT_MELEE_ATTACK1:
+	case ACT_MELEE_ATTACK2:
+	case ACT_RANGE_ATTACK1:
+	case ACT_RANGE_ATTACK2:
+		return true;
+	default:
+		return false;
+	}
+}
+
+const NamedSoundScript& CBaseMonster::CloakingStartSoundScript()
+{
+	return cloakingStartSoundScript;
+}
+
+void CBaseMonster::SendDeathNotice()
+{
+	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
+	CBaseEntity *pOwner = m_procreator != 0 ? m_procreator.Entity() : CBaseEntity::OwnInstance(pev->owner);
+	if (pOwner)
+	{
+		pOwner->DeathNotice(pev);
 	}
 }
 
@@ -4499,7 +5374,7 @@ void CDeadMonster::KeyValue( KeyValueData *pkvd )
 	if (FStrEq(pkvd->szKeyName, "pose"))
 	{
 		m_iPose = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else 
 		CBaseMonster::KeyValue( pkvd );
@@ -4507,14 +5382,14 @@ void CDeadMonster::KeyValue( KeyValueData *pkvd )
 
 void CDeadMonster::Precache()
 {
-	if (!FStringNull(m_gibModel))
-		PRECACHE_MODEL(STRING(m_gibModel));
+	PrecacheMyModel(DefaultModel());
+	PrecacheMyGibModel();
 }
 
-void CDeadMonster::SpawnHelper( const char* modelName, int bloodColor, int health)
+void CDeadMonster::SpawnHelper(const char* defaultModel, int bloodColor, int health)
 {
-	PrecacheMyModel( modelName );
-	SetMyModel( modelName );
+	Precache();
+	SetMyModel(defaultModel);
 
 	pev->effects &= EF_INVLIGHT;
 	pev->yaw_speed		= 8;
@@ -4525,20 +5400,51 @@ void CDeadMonster::SpawnHelper( const char* modelName, int bloodColor, int healt
 	pev->sequence = LookupSequence( seqName );
 	if (pev->sequence == -1)
 	{
-		ALERT ( at_console, "%s with bad pose (no %s animation in %s)\n", STRING(pev->classname), seqName, modelName );
+		ALERT ( at_console, "%s with bad pose (no '%s' animation in %s)\n", STRING(pev->classname), seqName, STRING(pev->model) );
 	}
 	SetMyHealth( health );
 }
 
-#if FEATURE_SKELETON
+void CDeadMonster::SpawnHelper(int bloodColor, int health)
+{
+	SpawnHelper(DefaultModel(), bloodColor, health);
+}
+
+void CDeadMonster::MonsterInitDead()
+{
+	bool shouldForceLastFrame = false;
+	if (pev->sequence < 0)
+	{
+		pev->sequence = LookupActivity(ACT_DIESIMPLE);
+		if (pev->sequence != ACTIVITY_NOT_AVAILABLE)
+		{
+			ALERT(at_aiconsole, "Dead monster %s had invalid sequence. Setting a sequence based on ACT_DIESIMPLE as a fallback\n", STRING(pev->classname));
+			shouldForceLastFrame = true;
+		}
+		else
+		{
+			pev->sequence = 0;
+		}
+	}
+	CBaseMonster::MonsterInitDead();
+	if (shouldForceLastFrame)
+		pev->frame = 255;
+}
+
+bool CDeadMonster::ShouldCollide(CBaseEntity* pOther)
+{
+	return pOther->ShouldCollideWithCorpses();
+}
+
 class CSkeleton : public CDeadMonster
 {
 public:
-	void Spawn(void);
-	int	DefaultClassify(void) { return	CLASS_NONE; }
-	int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType);
+	void Spawn() override;
+	const char* DefaultModel() override { return "models/skeleton.mdl"; }
+	int	DefaultClassify() override { return	CLASS_NONE; }
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[4];
 };
 
@@ -4551,31 +5457,30 @@ const char* CSkeleton::getPos(int pos) const
 
 LINK_ENTITY_TO_CLASS(monster_skeleton_dead, CSkeleton)
 
-void CSkeleton::Spawn(void)
+void CSkeleton::Spawn()
 {
-	SpawnHelper("models/skeleton.mdl", DONT_BLEED);
+	SpawnHelper(DONT_BLEED);
 	MonsterInitDead();
 }
 
-int CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+TakeDamageResult CSkeleton::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo)
 {
-	return CDeadMonster::TakeDamage(pevInflictor, pevAttacker, 0.0, bitsDamageType);
+	return TakeDamageResult();
 }
-#endif
 
 //LRC - an entity for monsters to shoot at.
 #define SF_MONSTERTARGET_OFF 1
 class CMonsterTarget : public CBaseEntity
 {
 public:
-	void Spawn( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	int Classify( void ) { return pev->frags; };
+	void Spawn() override;
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int Classify() override { return pev->frags; }
 };
 LINK_ENTITY_TO_CLASS( monster_target, CMonsterTarget );
 LINK_ENTITY_TO_CLASS( monster_bullseye, CMonsterTarget ); // for parity with npc_bullseye from Source games
 
-void CMonsterTarget :: Spawn ( void )
+void CMonsterTarget::Spawn()
 {
 	if (pev->spawnflags & SF_MONSTERTARGET_OFF)
 		pev->health = 0;

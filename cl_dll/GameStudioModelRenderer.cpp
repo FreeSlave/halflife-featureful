@@ -5,19 +5,14 @@
 // $NoKeywords: $
 //=============================================================================
 
-#include <assert.h>
-#include "hud.h"
+#include <cassert>
 #include "cl_util.h"
-#include "const.h"
 #include "com_model.h"
 #include "studio.h"
 #include "entity_state.h"
 #include "cl_entity.h"
 #include "dlight.h"
 #include "triangleapi.h"
-
-#include <stdio.h>
-#include <string.h>
 
 #include "studio_util.h"
 #include "r_studioint.h"
@@ -41,7 +36,7 @@ CGameStudioModelRenderer
 
 ====================
 */
-CGameStudioModelRenderer::CGameStudioModelRenderer( void )
+CGameStudioModelRenderer::CGameStudioModelRenderer()
 {
 }
 
@@ -77,7 +72,7 @@ R_StudioInit
 
 ====================
 */
-void R_StudioInit( void )
+void R_StudioInit()
 {
 	g_StudioRenderer.Init();
 }
@@ -113,4 +108,9 @@ extern "C" int DLLEXPORT HUD_GetStudioModelInterface( int version, struct r_stud
 
 	// Success
 	return 1;
+}
+
+void CacheFullbrightModels()
+{
+	g_StudioRenderer.StudioCacheFullbrightNames();
 }

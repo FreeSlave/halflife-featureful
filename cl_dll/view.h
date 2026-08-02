@@ -9,14 +9,10 @@
 #define VIEWH 
 #pragma once
 
-#if !defined(M_PI)
-#define M_PI		3.14159265358979323846  // matches value in gcc v2 math.h
-#endif
+extern bool g_Paused;
 
-#if !defined(M_PI_F)
-#define M_PI_F		(float)M_PI
-#endif
+#include "pi_constant.h"
 
-void V_StartPitchDrift( void );
-void V_StopPitchDrift( void );
+void V_StartPitchDrift();
+void V_StopPitchDrift();
 #endif // !VIEWH

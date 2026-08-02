@@ -15,6 +15,14 @@
 #pragma once
 #if !defined(CONST_H)
 #define CONST_H
+
+#include "common_types.h"
+#include "vector.h"
+#include "const_render.h"
+#include "const_sound.h"
+#include "const_waterlevel.h"
+#include "shell_bounce.h"
+
 //
 // Constants shared by the engine and dlls
 // This header file included by engine files and DLL files.
@@ -114,21 +122,15 @@
 #define EF_NODRAW			128	// don't draw entity
 #define EF_NIGHTVISION			256	// player nightvision
 #define EF_SNIPERLASER			512	// sniper laser effect
-#define EF_FIBERCAMERA			1024	// fiber camera
-
-
-#define EF_NOREFLECT		(1<<24)	// Entity won't reflecting in mirrors
-#define EF_REFLECTONLY		(1<<25)	// Entity will be drawing only in mirrors
-#define EF_NOWATERCSG		(1<<26)	// Do not remove sides for func_water entity
-#define EF_FULLBRIGHT		(1<<27)	// Just get fullbright
-#define EF_NOSHADOW			(1<<28)	// ignore shadow for this entity
-#define EF_MERGE_VISIBILITY		(1<<29)	// this entity allowed to merge vis (e.g. env_sky or portal camera)
-#define EF_REQUEST_PHS		(1<<30)	// This entity requested phs bitvector instead of pvsbitvector in AddToFullPack calls
-// g-cont. one reserved bit here for me
+#define EF_NOREFLECTION			1024
+#define EF_MODEL_BRIGHT			2048
 
 // entity flags
 #define EFLAG_SLERP			1	// do studio interpolation of this entity
-		
+#define EFLAG_FLESH_SOUND		2
+#define EFLAG_PREVENT_ORIGIN_UNSETTING 4
+#define EFLAG_ALWAYS_SEND 8
+
 //
 // temp entity events
 //
@@ -618,42 +620,6 @@
 #define CONTENT_LAVA		-5
 #define CONTENT_SKY			-6
 
-// channels
-#define CHAN_AUTO			0
-#define CHAN_WEAPON			1
-#define CHAN_VOICE			2
-#define CHAN_ITEM			3
-#define CHAN_BODY			4
-#define CHAN_STREAM			5	// allocate stream channel from the static or dynamic area
-#define CHAN_STATIC			6	// allocate channel from the static area 
-#define CHAN_NETWORKVOICE_BASE		7	// voice data coming across the network
-#define CHAN_NETWORKVOICE_END		500	// network voice data reserves slots (CHAN_NETWORKVOICE_BASE through CHAN_NETWORKVOICE_END).
-#define CHAN_BOT			501	// channel used for bot chatter.
-
-// attenuation values
-#define ATTN_NONE			0
-#define ATTN_NORM			(float)0.8
-#define ATTN_IDLE			(float)2
-#define ATTN_STATIC			(float)1.25 
-
-// pitch values
-#define PITCH_NORM			100	// non-pitch shifted
-#define PITCH_LOW			95	// other values are possible - 0-255, where 255 is very high
-#define PITCH_HIGH			120
-
-// volume values
-#define VOL_NORM			1.0
-
-// plats
-#define PLAT_LOW_TRIGGER		1
-
-// Trains
-#define SF_TRAIN_WAIT_RETRIGGER	1
-#define SF_TRAIN_SETORIGIN	2
-#define SF_TRAIN_START_ON		4	// Train is initially moving
-#define SF_TRAIN_PASSABLE		8	// Train is not solid -- used SF_TRAIN_SETORIGINefine SF_TRAIN_RESPECT_ORIGIN		32
-#define SF_TRAIN_NO_DAMAGE		64
-
 // buttons
 #define IN_ATTACK			(1<<0)
 #define IN_JUMP			(1<<1)
@@ -693,73 +659,7 @@
 #define BOUNCE_CONCRETE		BREAK_CONCRETE
 #define BOUNCE_SHOTSHELL		0x80
 
-// Temp entity bounce sound types
-#define TE_BOUNCE_NULL		0
-#define TE_BOUNCE_SHELL		1
-#define TE_BOUNCE_SHOTSHELL		2
-
-// Rendering constants
-enum 
-{	
-	kRenderNormal,		// src
-	kRenderTransColor,		// c*a+dest*(1-a)
-	kRenderTransTexture,	// src*a+dest*(1-a)
-	kRenderGlow,		// src*a+dest -- No Z buffer checks
-	kRenderTransAlpha,		// src*srca+dest*(1-srca)
-	kRenderTransAdd,		// src*a+dest
-	kRenderWorldGlow		// Same as kRenderGlow but not fixed size in screen space
-};
-
-enum 
-{	
-	kRenderFxNone = 0, 
-	kRenderFxPulseSlow, 
-	kRenderFxPulseFast, 
-	kRenderFxPulseSlowWide, 
-	kRenderFxPulseFastWide, 
-	kRenderFxFadeSlow, 
-	kRenderFxFadeFast, 
-	kRenderFxSolidSlow, 
-	kRenderFxSolidFast, 	   
-	kRenderFxStrobeSlow, 
-	kRenderFxStrobeFast, 
-	kRenderFxStrobeFaster, 
-	kRenderFxFlickerSlow, 
-	kRenderFxFlickerFast,
-	kRenderFxNoDissipation,
-	kRenderFxDistort,			// Distort/scale/translate flicker
-	kRenderFxHologram,			// kRenderFxDistort + distance fade
-	kRenderFxDeadPlayer,		// kRenderAmt is the player index
-	kRenderFxExplode,			// Scale up really big!
-	kRenderFxGlowShell,			// Glowing Shell
-	kRenderFxClampMinScale,		// Keep this sprite from getting very small (SPRITES only!)
-	kRenderFxLightMultiplier	//CTM !!!CZERO added to tell the studiorender that the value in iuser2 is a lightmultiplier
-};
-
 typedef unsigned int		func_t;
-typedef int		string_t;
-
-typedef unsigned char	byte;
-typedef unsigned short	word;
-
-#undef true
-#undef false
-
-#if !__cplusplus
-typedef enum { false, true }	qboolean;
-#else 
-typedef int qboolean;
-#endif
-
-typedef struct
-{
-	byte	r, g, b;
-} color24;
-
-typedef struct
-{
-	unsigned	r, g, b, a;
-} colorVec;
 
 typedef struct link_s
 {
@@ -770,7 +670,7 @@ typedef struct edict_s edict_t;
 
 typedef struct
 {
-	vec3_t	normal;
+	Vector	normal;
 	float	dist;
 } plane_t;
 
@@ -780,7 +680,7 @@ typedef struct
 	qboolean	startsolid;	// if true, the initial point was in a solid area
 	qboolean	inopen, inwater;
 	float	fraction;		// time completed, 1.0 = didn't hit anything
-	vec3_t	endpos;		// final position
+	Vector	endpos;		// final position
 	plane_t	plane;		// surface normal at impact
 	edict_t	*ent;		// entity the surface is on
 	int	hitgroup;		// 0 == generic, non zero is specific body part

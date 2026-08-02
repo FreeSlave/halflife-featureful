@@ -29,9 +29,8 @@
 #include	"gamerules.h"
 #include	"game.h"
 #include	"hgrunt.h"
-#include	"mod_features.h"
-
-#if FEATURE_SHOCKTROOPER
+#include	"common_soundscripts.h"
+#include	"visuals_utils.h"
 
 #include "shockbeam.h"
 #include "spore.h"
@@ -46,7 +45,6 @@
 #define STROOPER_NUM_HEADS					2 // how many grunt heads are there?
 #define STROOPER_MINIMUM_HEADSHOT_DAMAGE	15 // must do at least this much damage in one shot to head to score a headshot kill
 #define	STROOPER_SENTENCE_VOLUME			(float)0.45 // volume of grunt sentences
-#define STROOPER_MUZZLEFLASH	"sprites/muzzle_shock.spr"
 
 #define STROOPER_SHOCKRIFLE			(1 << 0)
 #define STROOPER_HANDGRENADE		(1 << 1)
@@ -77,78 +75,126 @@
 class CShockTrooper : public CHGrunt
 {
 public:
-	void Spawn(void);
-	void MonsterThink();
-	void Precache(void);
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
-	int  DefaultClassify(void);
-	const char* ReverseRelationshipModel() { return NULL; }
-	const char* DefaultDisplayName() { return "Shock Trooper"; }
-	BOOL CheckRangeAttack1(float flDot, float flDist);
-	BOOL CheckRangeAttack2(float flDot, float flDist);
-	void HandleAnimEvent(MonsterEvent_t *pEvent);
+	void Spawn() override;
+	void MonsterThink() override;
+	void Precache() override;
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
+	int  DefaultClassify() override;
+	const char* ReverseRelationshipModel() override { return nullptr; }
+	const char* DefaultDisplayName() override { return "Shock Trooper"; }
+	bool CheckRangeAttack1(float flDot, float flDist) override;
+	bool CheckRangeAttack2(float flDot, float flDist) override;
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 
-	void DeathSound(void);
-	void PainSound(void);
-	void GibMonster(void);
-	void PlayUseSentence();
-	void PlayUnUseSentence();
+	void DeathSound() override;
+	void PainSound() override;
+	void GibMonster() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
-
-	int	Save(CSave &save);
-	int Restore(CRestore &restore);
-
-	const char* DefaultGibModel() {
-		return "models/strooper_gibs.mdl";
+	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
+		return inputDamageInfo;
 	}
-	int DefaultGibCount() {
-		return STRIIPER_GIB_COUNT;
-	}
-	virtual bool CanDropGrenade() const;
-	void DropShockRoach(bool gibbed);
 
+	int	Save(CSave &save) override;
+	int Restore(CRestore &restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	virtual int SizeForGrapple() { return GRAPPLE_LARGE; }
-	Vector DefaultMinHullSize() { return Vector( -24.0f, -24.0f, 0.0f ); }
-	Vector DefaultMaxHullSize() { return Vector( 24.0f, 24.0f, 72.0f ); }
+	const char* DefaultGibModel() override {
+		return "models/strooper_gibs.mdl";
+	}
+	int DefaultGibCount() override {
+		return STRIIPER_GIB_COUNT;
+	}
+	bool CanDropGrenade() const override;
+	void DropShockRoach(bool gibbed);
 
-	BOOL m_bRightClaw;
+	int SizeForGrapple() override { return GRAPPLE_LARGE; }
+	Vector DefaultMinHullSize() override { return Vector( -24.0f, -24.0f, 0.0f ); }
+	Vector DefaultMaxHullSize() override { return Vector( 24.0f, 24.0f, 72.0f ); }
+
+	bool m_bRightClaw;
 	float m_rechargeTime;
 	float m_blinkTime;
 	float m_eyeChangeTime;
-
-	static int iStrooperMuzzleFlash;
 protected:
 	static const char *pTrooperSentences[HGRUNT_SENT_COUNT];
 
-	int GetRangeAttack1Sequence();
-	int GetRangeAttack2Sequence();
-	Schedule_t* ScheduleOnRangeAttack1();
+	int GetRangeAttack1Sequence() override;
+	int GetRangeAttack2Sequence() override;
+	Schedule_t* ScheduleOnRangeAttack1() override;
 
-	float SentenceVolume();
-	float SentenceAttn();
-	const char* SentenceByNumber(int sentence);
-	virtual int* GruntQuestionVar();
-	bool AlertSentenceIsForPlayerOnly() {
+	float SentenceVolume() override;
+	float SentenceAttn() override;
+	const char* SentenceByNumber(int sentence) override;
+	int* GruntQuestionVar() override;
+	bool AlertSentenceIsForPlayerOnly() override {
 		return false;
 	}
+public:
+	static const NamedSoundScript painSoundScript;
+	static const NamedSoundScript dieSoundScript;
+	static const NamedSoundScript fireSoundScript;
+
+	static const NamedSoundScript useSoundScript;
+	static const NamedSoundScript unuseSoundScript;
+
+	static const NamedVisual muzzleFlashVisual;
 };
 
 LINK_ENTITY_TO_CLASS(monster_shocktrooper, CShockTrooper)
 
-int CShockTrooper::iStrooperMuzzleFlash = 0;
-
 TYPEDESCRIPTION	CShockTrooper::m_SaveData[] =
 {
-	DEFINE_FIELD(CShockTrooper, m_bRightClaw, FIELD_BOOLEAN),
 	DEFINE_FIELD(CShockTrooper, m_rechargeTime, FIELD_TIME),
 	DEFINE_FIELD(CShockTrooper, m_blinkTime, FIELD_TIME),
 	DEFINE_FIELD(CShockTrooper, m_eyeChangeTime, FIELD_TIME),
 };
 
 IMPLEMENT_SAVERESTORE(CShockTrooper, CHGrunt)
+
+const NamedSoundScript CShockTrooper::painSoundScript = {
+	CHAN_VOICE,
+	{
+		"shocktrooper/shock_trooper_pain1.wav", "shocktrooper/shock_trooper_pain2.wav",
+		"shocktrooper/shock_trooper_pain3.wav", "shocktrooper/shock_trooper_pain4.wav",
+		"shocktrooper/shock_trooper_pain5.wav"
+	},
+	"ShockTrooper.Pain"
+};
+
+const NamedSoundScript CShockTrooper::dieSoundScript = {
+	CHAN_VOICE,
+	{
+		"shocktrooper/shock_trooper_die1.wav", "shocktrooper/shock_trooper_die2.wav",
+		"shocktrooper/shock_trooper_die3.wav", "shocktrooper/shock_trooper_die4.wav"
+	},
+	"ShockTrooper.Die"
+};
+
+const NamedSoundScript CShockTrooper::fireSoundScript = {
+	CHAN_WEAPON,
+	{"weapons/shock_fire.wav"},
+	"ShockTrooper.Fire"
+};
+
+const NamedSoundScript CShockTrooper::useSoundScript = {
+	CHAN_VOICE,
+	{"ST_IDLE"},
+	"ShockTrooper.Use"
+};
+
+const NamedSoundScript CShockTrooper::unuseSoundScript = {
+	CHAN_VOICE,
+	{"ST_ALERT"},
+	"ShockTrooper.UnUse"
+};
+
+const NamedVisual CShockTrooper::muzzleFlashVisual = BuildVisual("ShockTrooper.MuzzleFlash")
+		.Model("sprites/muzzle_shock.spr")
+		.RenderMode(kRenderTransAdd)
+		.Scale(0.4f)
+		.Alpha(128);
 
 const char *CShockTrooper::pTrooperSentences[] =
 {
@@ -187,7 +233,7 @@ Schedule_t* CShockTrooper::ScheduleOnRangeAttack1()
 		// little time and give the player a chance to turn.
 		if( MySquadLeader()->m_fEnemyEluded && !HasConditions( bits_COND_ENEMY_FACING_ME ) )
 		{
-			MySquadLeader()->m_fEnemyEluded = FALSE;
+			MySquadLeader()->m_fEnemyEluded = false;
 			return GetScheduleOfType( SCHED_GRUNT_FOUND_ENEMY );
 		}
 	}
@@ -255,7 +301,7 @@ float CShockTrooper::SentenceAttn()
 //=========================================================
 // GibMonster - make gun fly through the air.
 //=========================================================
-void CShockTrooper::GibMonster(void)
+void CShockTrooper::GibMonster()
 {
 	if (GetBodygroup(STROOPER_GUN_GROUP) != STROOPER_GUN_NONE)
 	{
@@ -269,23 +315,23 @@ void CShockTrooper::GibMonster(void)
 // Classify - indicates this monster's place in the
 // relationship table.
 //=========================================================
-int	CShockTrooper::DefaultClassify(void)
+int	CShockTrooper::DefaultClassify()
 {
 	return CLASS_RACEX_SHOCK;
 }
 
-BOOL CShockTrooper::CheckRangeAttack1(float flDot, float flDist)
+bool CShockTrooper::CheckRangeAttack1(float flDot, float flDist)
 {
-	return m_cAmmoLoaded >= 1 && CHGrunt::CheckRangeAttack1(flDot, flDist);
+	return (m_cClipSize <= 0 || m_cAmmoLoaded >= 1) && CHGrunt::CheckRangeAttack1(flDot, flDist);
 }
 
-BOOL CShockTrooper::CheckRangeAttack2( float flDot, float flDist )
+bool CShockTrooper::CheckRangeAttack2( float flDot, float flDist )
 {
 	if( !FBitSet( pev->weapons, STROOPER_HANDGRENADE ) )
 	{
-		return FALSE;
+		return false;
 	}
-	return CheckRangeAttack2Impl(gSkillData.strooperGrenadeSpeed, flDot, flDist, false);
+	return CheckRangeAttack2Impl(GetSkillValue("shocktrooper_gspeed"), flDot, flDist, false);
 }
 
 //=========================================================
@@ -318,18 +364,26 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 			Vector vecToss = g_vecZero;
 			if (m_hTargetEnt != 0 && m_pCine->PreciseAttack())
 			{
-				vecToss = VecCheckToss( pev, GetGunPosition(), m_hTargetEnt->pev->origin, 0.5 );
+				vecToss = VecCheckToss( pev, GetGunPosition(), m_hTargetEnt->pev->origin, 0.5f, 0.0f );
 			}
 			if (vecToss == g_vecZero)
 			{
-				vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*gSkillData.strooperGrenadeSpeed;
+				vecToss = (gpGlobals->v_forward*0.5+gpGlobals->v_up*0.5).Normalize()*GetSkillValue("shocktrooper_gspeed");
 			}
-			CSpore::CreateSpore(vecOrigin, pev->angles, vecToss, this, CSpore::GRENADE, true, false);
+			ProjectileParameters params("spore", vecOrigin, pev->angles, vecToss.Normalize(), this, GetProjectileOverrides());
+			params.variant = CSpore::GRENADE_THROWN;
+			params.speedOverride = vecToss.Length();
+			CBaseEntity::CreateAndLaunchAsProjectile(params);
 		}
 		else
-			CSpore::CreateSpore(vecOrigin, pev->angles, m_vecTossVelocity, this, CSpore::GRENADE, true, false);
+		{
+			ProjectileParameters params("spore", vecOrigin, pev->angles, m_vecTossVelocity.Normalize(), this, GetProjectileOverrides());
+			params.variant = CSpore::GRENADE_THROWN;
+			params.speedOverride = m_vecTossVelocity.Length();
+			CBaseEntity::CreateAndLaunchAsProjectile(params);
+		}
 
-		m_fThrowGrenade = FALSE;
+		m_fThrowGrenade = false;
 		m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
 		// !!!LATER - when in a group, only try to throw grenade if ordered.
 	}
@@ -341,6 +395,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case STROOPER_AE_BURST1:
 	{
+		ReportFireAnimEvent(pEvent->event);
 		if (m_hEnemy != 0 || m_pCine != 0)
 		{
 			Vector	vecGunPos;
@@ -348,28 +403,22 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 			GetAttachment(0, vecGunPos, vecGunAngles);
 
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecGunPos );
-				WRITE_BYTE( TE_SPRITE );
-				WRITE_COORD( vecGunPos.x );	// pos
-				WRITE_COORD( vecGunPos.y );
-				WRITE_COORD( vecGunPos.z );
-				WRITE_SHORT( iStrooperMuzzleFlash );		// model
-				WRITE_BYTE( 4 );				// size * 10
-				WRITE_BYTE( 128 );			// brightness
-			MESSAGE_END();
+			SendSprite(vecGunPos, GetVisual(muzzleFlashVisual));
 
 			UTIL_MakeVectors(pev->angles);
 			Vector vecShootOrigin = vecGunPos + gpGlobals->v_forward * 32;
 			Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
 			vecGunAngles = UTIL_VecToAngles(vecShootDir);
 
-			CShock::Shoot(pev, vecGunAngles, vecShootOrigin, vecShootDir * CShock::ShockSpeed());
-			m_cAmmoLoaded--;
+			ProjectileParameters params("shock_beam", vecShootOrigin, vecGunAngles, vecShootDir, this, GetProjectileOverrides());
+			CreateAndLaunchAsProjectile(params);
+			if (m_cClipSize > 0)
+				m_cAmmoLoaded--;
 			SetBlending( 0, vecGunAngles.x );
 
 			// Play fire sound.
-			EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_fire.wav", 1, ATTN_NORM);
-			CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3);
+			EmitSoundScript(fireSoundScript);
+			InsertAISound(bits_SOUND_COMBAT, 384, 0.3);
 		}
 		else if (m_pSchedule)
 		{
@@ -380,9 +429,7 @@ void CShockTrooper::HandleAnimEvent(MonsterEvent_t *pEvent)
 
 	case STROOPER_AE_KICK:
 	{
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_WEAPON, "zombie/claw_miss2.wav", 1.0, ATTN_NORM, 0, PITCH_NORM + RANDOM_LONG( -5, 5 ) );
-		PerformKick(gSkillData.strooperDmgKick, (m_bRightClaw) ? -10 : 10);
-
+		PerformKick(pEvent->event, GetSkillValue("shocktrooper_kick"), (m_bRightClaw) ? -10 : 10);
 		m_bRightClaw = !m_bRightClaw;
 	}
 	break;
@@ -410,8 +457,8 @@ void CShockTrooper::Spawn()
 {
 	Precache();
 
-	SpawnHelper("models/strooper.mdl", gSkillData.strooperHealth * 2.5, BLOOD_COLOR_GREEN);
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SpawnHelper("models/strooper.mdl", GetSkillValue("shocktrooper_health") * GetSkillValue("shocktrooper_health_factor"), BLOOD_COLOR_YELLOW);
+	SetMySize();
 
 	if (pev->weapons == 0)
 	{
@@ -419,14 +466,14 @@ void CShockTrooper::Spawn()
 		pev->weapons = STROOPER_SHOCKRIFLE | STROOPER_HANDGRENADE;
 	}
 
-	m_cClipSize = gSkillData.strooperMaxCharge;
-
+	m_cClipSize = GetSkillValue("shocktrooper_maxcharge");
+	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
-	m_bRightClaw = FALSE;
+	m_bRightClaw = false;
 
 	CTalkMonster::g_talkWaitTime = 0;
-	m_rechargeTime = gpGlobals->time + gSkillData.strooperRchgSpeed;
+	m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 	m_blinkTime = gpGlobals->time + RANDOM_FLOAT(3.0f, 7.0f);
 
 	FollowingMonsterInit();
@@ -438,8 +485,10 @@ void CShockTrooper::MonsterThink()
 	{
 		if (m_rechargeTime < gpGlobals->time)
 		{
+			//ALERT(at_console, "%s: recharging ammo\n", STRING(pev->classname));
 			m_cAmmoLoaded++;
-			m_rechargeTime = gpGlobals->time + gSkillData.strooperRchgSpeed;
+			ClearConditions(bits_COND_NO_AMMO_LOADED);
+			m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 		}
 	}
 	if (m_blinkTime <= gpGlobals->time && pev->skin == 0) {
@@ -465,97 +514,47 @@ void CShockTrooper::MonsterThink()
 void CShockTrooper::Precache()
 {
 	PrecacheMyModel("models/strooper.mdl");
-	PRECACHE_MODEL("models/strooper_gibs.mdl");
-	iStrooperMuzzleFlash = PRECACHE_MODEL(STROOPER_MUZZLEFLASH);
-	PRECACHE_SOUND("shocktrooper/shock_trooper_attack.wav");
+	PrecacheMyGibModel(DefaultGibModel());
+	RegisterVisual(muzzleFlashVisual);
+	if (!ShouldAutoPrecacheSounds())
+	{
+		PRECACHE_SOUND("shocktrooper/shock_trooper_attack.wav");
+	}
 
-	PRECACHE_SOUND("shocktrooper/shock_trooper_die1.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_die2.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_die3.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_die4.wav");
+	RegisterAndPrecacheSoundScript(painSoundScript);
+	RegisterAndPrecacheSoundScript(dieSoundScript);
+	RegisterAndPrecacheSoundScript(fireSoundScript);
+	RegisterAndPrecacheSoundScript(useSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript);
 
-	PRECACHE_SOUND("shocktrooper/shock_trooper_pain1.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_pain2.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_pain3.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_pain4.wav");
-	PRECACHE_SOUND("shocktrooper/shock_trooper_pain5.wav");
+	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
-	PRECACHE_SOUND("weapons/shock_fire.wav");
-
-	PRECACHE_SOUND("zombie/claw_miss2.wav");
-
-	UTIL_PrecacheOther("shock_beam");
-	UTIL_PrecacheOther("spore");
-	UTIL_PrecacheOther("monster_shockroach");
+	UTIL_PrecacheOther("shock_beam", GetProjectileOverrides());
+	UTIL_PrecacheOther("spore", GetProjectileOverrides());
+	PrecacheChildren("monster_shockroach", m_reverseRelationship);
 
 	// get voice pitch
 	if (RANDOM_LONG(0, 1))
 		m_voicePitch = 109 + RANDOM_LONG(0, 7);
 	else
 		m_voicePitch = 100;
-
-	m_iBrassShell = PRECACHE_MODEL("models/shell.mdl");// brass shell
 }
 
 
 //=========================================================
 // PainSound
 //=========================================================
-void CShockTrooper::PainSound(void)
+void CShockTrooper::PainSound()
 {
-	if (gpGlobals->time > m_flNextPainTime)
-	{
-		switch (RANDOM_LONG(0, 4))
-		{
-		case 0:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_pain1.wav", 1, ATTN_NORM);
-			break;
-		case 1:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_pain2.wav", 1, ATTN_NORM);
-			break;
-		case 2:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_pain3.wav", 1, ATTN_NORM);
-			break;
-		case 3:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_pain4.wav", 1, ATTN_NORM);
-			break;
-		case 4:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_pain5.wav", 1, ATTN_NORM);
-			break;
-		}
-
-		m_flNextPainTime = gpGlobals->time + 1;
-	}
+	EmitSoundScript(painSoundScript);
 }
 
 //=========================================================
 // DeathSound
 //=========================================================
-void CShockTrooper::DeathSound(void)
+void CShockTrooper::DeathSound()
 {
-	switch (RANDOM_LONG(0, 3))
-	{
-	case 0:
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_die1.wav", 1, ATTN_IDLE);
-		break;
-	case 1:
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_die2.wav", 1, ATTN_IDLE);
-		break;
-	case 2:
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_die3.wav", 1, ATTN_IDLE);
-		break;
-	case 3:
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "shocktrooper/shock_trooper_die4.wav", 1, ATTN_IDLE);
-		break;
-	}
-}
-
-//=========================================================
-// TraceAttack - reimplemented in shock trooper because they never have helmets
-//=========================================================
-void CShockTrooper::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
-{
-	CFollowingMonster::TraceAttack(pevInflictor, pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
+	EmitSoundScript(dieSoundScript);
 }
 
 bool CShockTrooper::CanDropGrenade() const
@@ -579,25 +578,32 @@ void CShockTrooper::DropShockRoach(bool gibbed)
 		Vector vecDropGunPos = gibbed ? (vecGunPos + Vector(0, 0, 32)) : (pev->origin + Vector(0, 0, 48));
 
 		// now spawn a shockroach.
-		CBaseEntity* pRoach = CBaseEntity::Create( "monster_shockroach", vecDropGunPos, vecDropGunAngles, edict() );
+		ChildVariantHandle childVariant = SelectChildVariant("monster_shockroach");
+		CBaseEntity* pRoach = CreateNoSpawn(childVariant.classname, vecDropGunPos, vecDropGunAngles, edict());
 		if (pRoach)
 		{
-			if (gibbed)
+			pRoach->FillKeyValues(childVariant.parameters);
+
+			CBaseMonster* pMonster = pRoach->MyMonsterPointer();
+			if (pMonster)
 			{
-				pRoach->pev->velocity = Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(200.0f, 300.0f));
-				pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(200.0f, 300.0f), 0);
+				if (ShouldFadeOnDeath())
+					pRoach->pev->spawnflags |= SF_MONSTER_FADECORPSE;
+				FixChildClassify(pMonster);
 			}
-			else
+
+			if (DispatchSpawnAutoClean(pRoach))
 			{
-				pRoach->pev->velocity = Vector(RANDOM_FLOAT(-20.0f, 20.0f) , RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(20.0f, 30.0f));
-				pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(20.0f, 40.0f), 0);
-			}
-			if (ShouldFadeOnDeath())
-				pRoach->pev->spawnflags |= SF_MONSTER_FADECORPSE;
-			CBaseMonster *pNewMonster = pRoach->MyMonsterPointer();
-			if (pNewMonster) {
-				pNewMonster->m_iClass = m_iClass;
-				pNewMonster->m_reverseRelationship = m_reverseRelationship;
+				if (gibbed)
+				{
+					pRoach->pev->velocity = Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(200.0f, 300.0f));
+					pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(200.0f, 300.0f), 0);
+				}
+				else
+				{
+					pRoach->pev->velocity = Vector(RANDOM_FLOAT(-20.0f, 20.0f) , RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(20.0f, 30.0f));
+					pRoach->pev->avelocity = Vector(0, RANDOM_FLOAT(20.0f, 40.0f), 0);
+				}
 			}
 		}
 	}
@@ -605,29 +611,30 @@ void CShockTrooper::DropShockRoach(bool gibbed)
 
 void CShockTrooper::PlayUseSentence()
 {
-	PlaySentenceGroup("ST_IDLE");
+	PlaySentenceSoundScript(useSoundScript);
 }
 
 void CShockTrooper::PlayUnUseSentence()
 {
-	PlaySentenceGroup("ST_ALERT");
+	PlaySentenceSoundScript(unuseSoundScript);
 }
 
 class CDeadStrooper : public CDeadMonster
 {
 public:
-	void Spawn( void );
-	void Precache();
-	bool IsEnabledInMod() { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
-	int	DefaultClassify ( void ) { return	CLASS_RACEX_SHOCK; }
-	const char* DefaultGibModel() {
+	void Spawn() override;
+	void Precache() override;
+	const char* DefaultModel() override { return "models/strooper.mdl"; }
+	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
+	int	DefaultClassify() override { return	CLASS_RACEX_SHOCK; }
+	const char* DefaultGibModel() override {
 		return "models/strooper_gibs.mdl";
 	}
-	int DefaultGibCount() {
+	int DefaultGibCount() override {
 		return STRIIPER_GIB_COUNT;
 	}
 
-	const char* getPos(int pos) const;
+	const char* getPos(int pos) const override;
 	static const char *m_szPoses[2];
 };
 
@@ -642,16 +649,13 @@ LINK_ENTITY_TO_CLASS( monster_shocktrooper_dead, CDeadStrooper )
 
 void CDeadStrooper::Precache()
 {
-	CDeadMonster::Precache();
-	PRECACHE_MODEL("models/strooper_gibs.mdl");
+	PrecacheMyModel(DefaultModel());
+	PrecacheMyGibModel(DefaultGibModel());
 }
 
-void CDeadStrooper::Spawn( )
+void CDeadStrooper::Spawn()
 {
-	Precache();
-	SpawnHelper("models/strooper.mdl", BLOOD_COLOR_YELLOW, gSkillData.strooperHealth/2);
+	SpawnHelper(BLOOD_COLOR_YELLOW, GetSkillValue("shocktrooper_health")/2);
 	MonsterInitDead();
 	pev->frame = 255;
 }
-
-#endif

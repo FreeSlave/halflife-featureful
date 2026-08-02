@@ -30,35 +30,59 @@
 #define HORNET_ORANGE_SPEED		(float)800
 #define	HORNET_BUZZ_VOLUME		(float)0.8
 
-extern int iHornetPuff;
-
 //=========================================================
 // Hornet - this is the projectile that the Alien Grunt fires.
 //=========================================================
 class CHornet : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int DefaultClassify( void );
-	int Classify( void );
-	int IRelationship( CBaseEntity *pTarget );
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	enum
+	{
+		TRACKING = 0,
+		DART
+	};
+
+	void Spawn() override;
+	void Precache() override;
+	int DefaultClassify() override;
+	int Classify() override;
+	int IRelationship( CBaseEntity *pTarget ) override;
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void IgniteTrail( void );
-	void EXPORT StartTrack( void );
-	void EXPORT StartDart( void );
-	void EXPORT TrackTarget( void );
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	void SendMessages(CBaseEntity* pClient) override {
+		if (m_pfnThink == &CHornet::StartDart)
+			SendProjectileTracer(pClient);
+	}
+
+	void IgniteTrail();
+	void EXPORT StartTrack();
+	void EXPORT StartDart();
+	void EXPORT TrackTarget();
 	void EXPORT TrackTouch( CBaseEntity *pOther );
 	void EXPORT DartTouch( CBaseEntity *pOther );
 	void EXPORT DieTouch( CBaseEntity *pOther );
 
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
+
+	bool IsTinyCreature() override { return true; }
 
 	float m_flStopAttack;
 	int m_iHornetType;
 	float m_flFlySpeed;
+
+	static const NamedSoundScript buzzSoundScript;
+	static const NamedSoundScript dieSoundScript;
+
+	static const NamedVisual modelVisual;
+	static const NamedVisual sharedTrailVisual;
+	static const NamedVisual trailVisual;
+	static const NamedVisual trailAltVisual;
+	static const NamedVisual puffVisual;
 };
 #endif // HORNET_H

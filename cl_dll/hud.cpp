@@ -20,10 +20,10 @@
 
 #include "hud.h"
 #include "cl_util.h"
-#include <cstring>
-#include <cstdio>
 #include "parsemsg.h"
 #include "parsetext.h"
+#include "arraysize.h"
+#include "clamp.h"
 #if USE_VGUI
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
@@ -31,6 +31,13 @@
 
 #include "demo.h"
 #include "demo_api.h"
+
+#include "environment.h"
+#include "error_collector.h"
+#include "tex_materials.h"
+#include "hl_palette.h"
+
+extern bool m_bCacheFullbrightModels;
 
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
@@ -77,19 +84,18 @@ FlashlightFeatures::FlashlightFeatures() : color(0xFFFFFF), distance(2048)
 ClientFeatures::ClientFeatures()
 {
 	hud_color = RGB_HUD_DEFAULT;
+	hud_color_configurable = false;
 	hud_color_critical = RGB_REDISH;
 	hud_min_alpha.defaultValue = MIN_ALPHA;
 	hud_min_alpha.minValue = 100;
 	hud_min_alpha.maxValue = 200;
 
-	hud_autoscale_by_default = true;
+	hud_scale.defaultValue = 0.0f;
 	hud_draw_nosuit = false;
 	hud_color_nosuit = RGB_HUD_NOSUIT;
 
 	hud_color_nvg = 0x00FFFFFF;
 	hud_min_alpha_nvg = 192;
-
-	opfor_title = FEATURE_OPFOR_SPECIFIC ? true : false;
 
 	movemode.configurable = false;
 	crosshair_colorable.configurable = false;
@@ -110,11 +116,24 @@ ClientFeatures::ClientFeatures()
 	nvg_opfor.radius.minValue = NVG_DLIGHT_MIN_RADIUS;
 	nvg_opfor.radius.maxValue = NVG_DLIGHT_MAX_RADIUS;
 	nvg_opfor.layer_color = RGB_GREENISH;
-	nvg_opfor.layer_alpha = 255;
+	nvg_opfor.layer_alpha = 225;
 	nvg_opfor.light_color = 0xFAFAFA;
+
+	nvg_fade_time.defaultValue = 0.0f;
 
 	memset(nvg_empty_sprite, 0, sizeof (nvg_empty_sprite));
 	memset(nvg_full_sprite, 0, sizeof (nvg_full_sprite));
+
+	memset(wall_puffs, 0, sizeof(wall_puffs));
+	strcpy(wall_puffs[0], "sprites/stmbal1.spr");
+
+	bloodstream_threshold.configurable = false;
+	bloodstream_threshold.defaultValue = 90;
+
+	memset(bucket_slot_sprite, 0, sizeof (bucket_slot_sprite));
+	use_divider_sprite = false;
+
+	fullbright_textures = true;
 
 	// Intense Force defaults
 	nvgstyle.configurable = true;
@@ -170,16 +189,6 @@ static void CreateBooleanCvarConditionally(cvar_t*& cvarPtr, const char* name, c
 		cvarPtr = 0;
 }
 
-template<typename T>
-static T boundValue(T min, T value, T max)
-{
-	if (value < min)
-		return min;
-	if (value > max)
-		return max;
-	return value;
-}
-
 #if USE_VGUI
 #include "vgui_ScorePanel.h"
 
@@ -190,7 +199,7 @@ public:
 	{
 		color[0] = color[1] = color[2] = 255;
 
-		if( entindex >= 0 && entindex < sizeof(g_PlayerExtraInfo)/sizeof(g_PlayerExtraInfo[0]) )
+		if( entindex >= 0 && entindex < static_cast<int>(ARRAYSIZE(g_PlayerExtraInfo)) )
 		{
 			int iTeam = g_PlayerExtraInfo[entindex].teamnumber;
 
@@ -232,8 +241,10 @@ extern client_sprite_t *GetSpriteList( client_sprite_t *pList, const char *psz, 
 
 extern cvar_t *sensitivity;
 cvar_t *cl_lw = NULL;
+cvar_t *cl_righthand = NULL;
 cvar_t *r_decals = NULL;
 cvar_t *cl_viewbob = NULL;
+cvar_t *cl_viewmodel_lag = NULL;
 cvar_t *cl_rollspeed = NULL;
 cvar_t *cl_rollangle = NULL;
 cvar_t *cl_satchelcontrol = NULL;
@@ -241,21 +252,17 @@ cvar_t *cl_grenadephysics = NULL;
 
 cvar_t* cl_weapon_sparks = NULL;
 cvar_t* cl_weapon_wallpuff = NULL;
+cvar_t* cl_gunsmoke = NULL;
+
+cvar_t* cl_weather = NULL;
 
 cvar_t* cl_muzzlelight = NULL;
 cvar_t* cl_muzzlelight_monsters = NULL;
 
-#if FEATURE_NIGHTVISION_STYLES
 cvar_t *cl_nvgstyle = NULL;
-#endif
-
-#if FEATURE_CS_NIGHTVISION
 cvar_t *cl_nvgradius_cs = NULL;
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 cvar_t *cl_nvgradius_of = NULL;
-#endif
+cvar_t *cl_nvgfadetime = NULL;
 
 cvar_t* cl_flashlight_custom = NULL;
 cvar_t* cl_flashlight_radius = NULL;
@@ -263,10 +270,41 @@ cvar_t* cl_flashlight_fade_distance = NULL;
 
 cvar_t *cl_subtitles = NULL;
 
+cvar_t *cl_bloodsplatter_style = NULL;
+cvar_t *cl_bloodstream = NULL;
+cvar_t *cl_bloodstream_threshold = NULL;
+
+cvar_t *cl_wallimpact_style = NULL;
+
 cvar_t *hud_scale = NULL;
 cvar_t *hud_sprite_offset = NULL;
 
-void ShutdownInput( void );
+cvar_t *cl_viewmodel_fov = NULL;
+cvar_t *default_fov = NULL;
+
+void ShutdownInput();
+
+int GetBloodSplatterStyle()
+{
+	return cl_bloodsplatter_style ? (int)cl_bloodsplatter_style->value : gHUD.clientFeatures.bloodsplatter_style.defaultValue;
+}
+
+bool ShouldSpawnBloodStream(int damageAmount)
+{
+	const bool canSpawnBloodStream = cl_bloodstream ? cl_bloodstream->value != 0 : gHUD.clientFeatures.bloodstream.enabled_by_default;
+	if (canSpawnBloodStream)
+	{
+		const int threshold = cl_bloodstream_threshold ? (int)cl_bloodstream_threshold->value : gHUD.clientFeatures.bloodstream_threshold.defaultValue;
+		if (damageAmount >= threshold)
+			return true;
+	}
+	return false;
+}
+
+int GetWallImpactStyle()
+{
+	return cl_wallimpact_style ? (int)cl_wallimpact_style->value : gHUD.clientFeatures.wallimpact_style.defaultValue;
+}
 
 //DECLARE_MESSAGE( m_Logo, Logo )
 int __MsgFunc_Logo( const char *pszName, int iSize, void *pbuf )
@@ -285,15 +323,25 @@ int __MsgFunc_SetFog(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_SetFog( pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Rain(const char *pszName, int iSize, void *pbuf)
+{
+	return g_Environment.MsgFunc_Rain( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_Snow(const char *pszName, int iSize, void *pbuf)
+{
+	return g_Environment.MsgFunc_Snow( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_WeatherPos(const char *pszName, int iSize, void *pbuf)
+{
+	return g_Environment.MsgFunc_WeatherPos( pszName, iSize, pbuf );
+}
+
 //LRC
 int __MsgFunc_KeyedDLight(const char *pszName, int iSize, void *pbuf)
 {
 	return gHUD.MsgFunc_KeyedDLight( pszName, iSize, pbuf );
-}
-
-int __MsgFunc_WallPuffs(const char *pszName, int iSize, void *pbuf)
-{
-	return gHUD.MsgFunc_WallPuffs( pszName, iSize, pbuf );
 }
 
 //DECLARE_MESSAGE( m_Logo, Logo )
@@ -324,6 +372,29 @@ int __MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf )
 	return gHUD.MsgFunc_Concuss( pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_Weapons( pszName, iSize, pbuf );
+}
+
+extern int __MsgFunc_MaxClip(const char* pszName, int iSize, void* pbuf);
+extern int __MsgFunc_MaxAmmo(const char* pszName, int iSize, void* pbuf);
+extern int __MsgFunc_WeaponTool(const char* pszName, int iSize, void* pbuf);
+extern int __MsgFunc_ToolState(const char* pszName, int iSize, void* pbuf);
+
+int __MsgFunc_SetBody(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	int body = READ_SHORT();
+
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+	if (view)
+		view->curstate.body = body;
+
+	return 1;
+}
+
 int __MsgFunc_GameMode( const char *pszName, int iSize, void *pbuf )
 {
 	return gHUD.MsgFunc_GameMode( pszName, iSize, pbuf );
@@ -331,7 +402,7 @@ int __MsgFunc_GameMode( const char *pszName, int iSize, void *pbuf )
 
 void PlayMP3( const char* pszMp3, bool loop = false )
 {
-	if( !IsXashFWGS() && gEngfuncs.pfnGetCvarPointer( "gl_overbright" ) )
+	if( !IsAnyXash() )
 	{
 		char cmd[256];
 
@@ -347,7 +418,7 @@ void PlayMP3( const char* pszMp3, bool loop = false )
 
 void StopMp3()
 {
-	if( !IsXashFWGS() && gEngfuncs.pfnGetCvarPointer( "gl_overbright" ) )
+	if( !IsAnyXash() )
 		gEngfuncs.pfnClientCmd( "mp3 stop\n" );
 	else
 		gEngfuncs.pfnPrimeMusicStream( 0, 0 );
@@ -367,8 +438,38 @@ int __MsgFunc_PlayMP3( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
+int __MsgFunc_ObjectHint( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_ObjectHint( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_PlTemplate( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_PlTemplate( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_SoundScript( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_SoundScript( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_Capability( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_Capability( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_OnRope( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_OnRope( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_Mirror( const char *pszName, int iSize, void *pbuf )
+{
+	return gHUD.MsgFunc_Mirror( pszName, iSize, pbuf );
+}
+
 // TFFree Command Menu
-void __CmdFunc_OpenCommandMenu( void )
+void __CmdFunc_OpenCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -379,7 +480,7 @@ void __CmdFunc_OpenCommandMenu( void )
 }
 
 // TFC "special" command
-void __CmdFunc_InputPlayerSpecial( void )
+void __CmdFunc_InputPlayerSpecial()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -389,7 +490,7 @@ void __CmdFunc_InputPlayerSpecial( void )
 #endif
 }
 
-void __CmdFunc_CloseCommandMenu( void )
+void __CmdFunc_CloseCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -399,7 +500,7 @@ void __CmdFunc_CloseCommandMenu( void )
 #endif
 }
 
-void __CmdFunc_ForceCloseCommandMenu( void )
+void __CmdFunc_ForceCloseCommandMenu()
 {
 #if USE_VGUI
 	if ( gViewPort )
@@ -455,14 +556,23 @@ int __MsgFunc_VGUIMenu( const char *pszName, int iSize, void *pbuf )
 	return 0;
 }
 
-#if USE_VGUI && !USE_NOVGUI_MOTD
 int __MsgFunc_MOTD(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
-		return gViewPort->MsgFunc_MOTD( pszName, iSize, pbuf );
-	return 0;
-}
+	bool finished = gHUD.m_MOTD.HandleMOTDMessage(pszName, iSize, pbuf);
+	if (finished)
+	{
+#if USE_VGUI
+		if (gHUD.UseVguiMOTD() && gViewPort)
+		{
+			gViewPort->ShowMOTD();
+			return 1;
+		}
 #endif
+		gHUD.m_MOTD.m_bShow = true;
+	}
+
+	return 1;
+}
 
 int __MsgFunc_BuildSt( const char *pszName, int iSize, void *pbuf )
 {
@@ -491,28 +601,25 @@ int __MsgFunc_ServerName( const char *pszName, int iSize, void *pbuf )
 	return 0;
 }
 
-#if USE_VGUI && !USE_NOVGUI_SCOREBOARD
 int __MsgFunc_ScoreInfo(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
-		return gViewPort->MsgFunc_ScoreInfo( pszName, iSize, pbuf );
-	return 0;
+	return gHUD.m_Scoreboard.MsgFunc_ScoreInfo( pszName, iSize, pbuf );
 }
 
 int __MsgFunc_TeamScore(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
-		return gViewPort->MsgFunc_TeamScore( pszName, iSize, pbuf );
-	return 0;
+	return gHUD.m_Scoreboard.MsgFunc_TeamScore( pszName, iSize, pbuf );
 }
 
 int __MsgFunc_TeamInfo(const char *pszName, int iSize, void *pbuf)
 {
+	int result = gHUD.m_Scoreboard.MsgFunc_TeamInfo( pszName, iSize, pbuf );
+#if USE_VGUI
 	if (gViewPort)
-		return gViewPort->MsgFunc_TeamInfo( pszName, iSize, pbuf );
-	return 0;
-}
+		gViewPort->m_pScoreBoard->Update();
 #endif
+	return result;
+}
 
 int __MsgFunc_Spectator( const char *pszName, int iSize, void *pbuf )
 {
@@ -553,9 +660,82 @@ void __CmdFunc_HUDColor()
 {
 	gHUD.HUDColorCmd();
 }
- 
+
+extern void ReportRegisteredAmmoTypes();
+extern void SetWeaponParameters();
+
+void GetTranslatedMessage()
+{
+	if (gEngfuncs.Cmd_Argc() <= 1)
+	{
+		gEngfuncs.Con_Printf("usage: %s <message-id>\n", gEngfuncs.Cmd_Argv(0));
+		return;
+	}
+
+	const char* msgId = gEngfuncs.Cmd_Argv(1);
+	const char* msgText = gHUD.m_messageStrings.GetText(msgId);
+	if (msgText)
+		gEngfuncs.Con_Printf("%s\n", msgText);
+	else
+		gEngfuncs.Con_Printf("No message with id \"%s\"\n", msgId);
+}
+
+void ShowClosestPaletteColor()
+{
+	if (gEngfuncs.Cmd_Argc() <= 3)
+	{
+		gEngfuncs.Con_Printf("usage: %s R G B\n", gEngfuncs.Cmd_Argv(0));
+		return;
+	}
+
+	const int r = atoi(gEngfuncs.Cmd_Argv(1));
+	const int g = atoi(gEngfuncs.Cmd_Argv(2));
+	const int b = atoi(gEngfuncs.Cmd_Argv(3));
+
+	const int colorIndex = ClosestPaletteColorIndex(Color3(r, g, b));
+
+	gEngfuncs.Con_Printf("%d (%d, %d, %d)\n", colorIndex,
+						(int)hlPalette[colorIndex * 3], (int)hlPalette[colorIndex * 3 + 1], (int)hlPalette[colorIndex * 3 + 2]);
+}
+
+void CHud::ParseModConfigs()
+{
+	g_errorCollector.Clear();
+
+	MaterialRegistry materialRegistry;
+	materialRegistry.FillDefaults();
+	materialRegistry.ReadFromFile("features/materials.json");
+	g_MaterialRegistry = std::move(materialRegistry);
+
+	InventoryHudSpec spec;
+	spec.ReadFromFile("sprites/hud_inventory.json");
+	m_inventorySpec = std::move(spec);
+
+	MessageStrings translatedStrings;
+	translatedStrings.ReadFromFile("messages.en.json");
+	translatedStrings.ReadFromFile("messages.json");
+	m_messageStrings = std::move(translatedStrings);
+
+	DisplayNames displayNames;
+	displayNames.ReadFromFile("displaynames.json");
+	m_displayNames = std::move(displayNames);
+
+	JournalConfig journalConfig;
+	journalConfig.ReadFromFile("journal.json");
+	m_journalConfig = std::move(journalConfig);
+
+	SetWeaponParameters();
+
+	m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
+}
+
+bool CHud::IsDeveloperModeOn()
+{
+	return m_pCvarDeveloper && m_pCvarDeveloper->value;
+}
+
 // This is called every time the DLL is loaded
-void CHud::Init( void )
+void CHud::Init()
 {
 	HOOK_MESSAGE( Logo );
 	HOOK_MESSAGE( ResetHUD );
@@ -564,10 +744,18 @@ void CHud::Init( void )
 	HOOK_MESSAGE( ViewMode );
 	HOOK_MESSAGE( SetFOV );
 	HOOK_MESSAGE( Concuss );
+	HOOK_MESSAGE( Weapons );
+	HOOK_MESSAGE( MaxClip );
+	HOOK_MESSAGE( MaxAmmo );
+	HOOK_MESSAGE( WeaponTool );
+	HOOK_MESSAGE( ToolState );
+	HOOK_MESSAGE( SetBody );
 	HOOK_MESSAGE( Items );
 	HOOK_MESSAGE( SetFog );
+	HOOK_MESSAGE( Rain );
+	HOOK_MESSAGE( Snow );
+	HOOK_MESSAGE( WeatherPos );
 	HOOK_MESSAGE( KeyedDLight );
-	HOOK_MESSAGE( WallPuffs );
 
 	// TFFree CommandMenu
 	HOOK_COMMAND( "+commandmenu", OpenCommandMenu );
@@ -582,16 +770,11 @@ void CHud::Init( void )
 	HOOK_MESSAGE( BuildSt );
 	HOOK_MESSAGE( RandomPC );
 	HOOK_MESSAGE( ServerName );
-
-#if USE_VGUI && !USE_NOVGUI_MOTD
 	HOOK_MESSAGE( MOTD );
-#endif
 
-#if USE_VGUI && !USE_NOVGUI_SCOREBOARD
 	HOOK_MESSAGE( ScoreInfo );
 	HOOK_MESSAGE( TeamScore );
 	HOOK_MESSAGE( TeamInfo );
-#endif
 
 	HOOK_MESSAGE( Spectator );
 	HOOK_MESSAGE( AllowSpec );
@@ -605,57 +788,82 @@ void CHud::Init( void )
 	HOOK_MESSAGE( VGUIMenu );
 
 	HOOK_MESSAGE( PlayMP3 );
-
-	HOOK_COMMAND( "hud_color", HUDColor );
+	HOOK_MESSAGE( ObjectHint );
+	HOOK_MESSAGE( PlTemplate );
+	HOOK_MESSAGE( SoundScript );
+	HOOK_MESSAGE( Capability );
+	HOOK_MESSAGE( OnRope );
+	HOOK_MESSAGE( Mirror );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
 
 	m_iLogo = 0;
 	m_iFOV = 0;
+	m_inScope = false;
 
 	ParseClientFeatures();
+	ParseModConfigs();
 
-	CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE );
+	m_pCvarZoomSensitivityRatio = CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE );
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_satchelcontrol = CVAR_CREATE( "_satctrl", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_grenadephysics = CVAR_CREATE( "_grenphys", "0", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	default_fov = CVAR_CREATE( "default_fov", "90", FCVAR_ARCHIVE );
+	cl_viewmodel_fov = CVAR_CREATE( "cl_viewmodel_fov", "0", FCVAR_ARCHIVE );
 	m_pCvarStealMouse = CVAR_CREATE( "hud_capturemouse", "1", FCVAR_ARCHIVE );
 	m_pCvarDraw = CVAR_CREATE( "hud_draw", "1", FCVAR_ARCHIVE );
+
+	if (gEngfuncs.pfnGetCvarPointer( "cl_showpos" ) != nullptr)
+	{
+		// cl_showpos exists in the engine. Probably running Xash3D-FWGS
+		m_pCvarShowPos = nullptr;
+	}
+	else
+	{
+		m_pCvarShowPos = CVAR_CREATE( "cl_showpos", "0", FCVAR_ARCHIVE );
+	}
+
+	m_pAllowHD = CVAR_CREATE ( "hud_allow_hd", "1", FCVAR_ARCHIVE );
 	CreateBooleanCvarConditionally(m_pCvarDrawMoveMode, "hud_draw_movemode", clientFeatures.movemode);
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
+	cl_righthand = CVAR_CREATE( "cl_righthand", "0", 0 );
+	m_pCvarDeveloper = gEngfuncs.pfnGetCvarPointer( "developer" );
 	r_decals = gEngfuncs.pfnGetCvarPointer( "r_decals" );
 	m_pCvarCrosshair = gEngfuncs.pfnGetCvarPointer( "crosshair" );
 
 	CreateBooleanCvarConditionally(cl_viewbob, "cl_viewbob", clientFeatures.view_bob);
+	CreateBooleanCvarConditionally(cl_viewmodel_lag, "cl_viewmodel_lag", clientFeatures.viewmodel_lag);
 	CreateFloatCvarConditionally(cl_rollangle, "cl_rollangle", clientFeatures.rollangle);
 	cl_rollspeed = gEngfuncs.pfnRegisterVariable ( "cl_rollspeed", "200", FCVAR_CLIENTDLL|FCVAR_ARCHIVE );
 
 	CreateIntegerCvarConditionally(m_pCvarMinAlpha, "hud_min_alpha", clientFeatures.hud_min_alpha);
+	CreateBooleanCvarConditionally(m_pCvarArmorNearHealth, "hud_armor_near_health", clientFeatures.hud_armor_near_health);
 	int hudR, hudG, hudB;
 	UnpackRGB(hudR, hudG, hudB, clientFeatures.hud_color);
-	m_pCvarHudRed = CVAR_CREATE_INTVALUE("hud_color_r", hudR, FCVAR_ARCHIVE);
-	m_pCvarHudGreen = CVAR_CREATE_INTVALUE("hud_color_g", hudG, FCVAR_ARCHIVE);
-	m_pCvarHudBlue = CVAR_CREATE_INTVALUE("hud_color_b", hudB, FCVAR_ARCHIVE);
+
+	if (clientFeatures.hud_color_configurable)
+	{
+		m_pCvarHudRed = CVAR_CREATE_INTVALUE("hud_color_r", hudR, FCVAR_ARCHIVE);
+		m_pCvarHudGreen = CVAR_CREATE_INTVALUE("hud_color_g", hudG, FCVAR_ARCHIVE);
+		m_pCvarHudBlue = CVAR_CREATE_INTVALUE("hud_color_b", hudB, FCVAR_ARCHIVE);
+
+		HOOK_COMMAND( "hud_color", HUDColor );
+	}
 
 	CreateBooleanCvarConditionally(cl_weapon_sparks, "cl_weapon_sparks", clientFeatures.weapon_sparks);
 	CreateBooleanCvarConditionally(cl_weapon_wallpuff, "cl_weapon_wallpuff", clientFeatures.weapon_wallpuff);
+	CreateBooleanCvarConditionally(cl_gunsmoke, "cl_gunsmoke", clientFeatures.gunsmoke);
+
+	cl_weather = CVAR_CREATE( "cl_weather", "1", FCVAR_ARCHIVE );
 
 	CreateBooleanCvarConditionally(cl_muzzlelight, "cl_muzzlelight", clientFeatures.muzzlelight);
 	cl_muzzlelight_monsters = CVAR_CREATE( "cl_muzzlelight_monsters", "0", FCVAR_ARCHIVE );
 
-#if FEATURE_NIGHTVISION_STYLES
 	CreateIntegerCvarConditionally(cl_nvgstyle, "cl_nvgstyle", clientFeatures.nvgstyle);
-#endif
-
-#if FEATURE_CS_NIGHTVISION
 	CreateIntegerCvarConditionally(cl_nvgradius_cs, "cl_nvgradius_cs", clientFeatures.nvg_cs.radius );
-#endif
-
-#if FEATURE_OPFOR_NIGHTVISION
 	CreateIntegerCvarConditionally(cl_nvgradius_of, "cl_nvgradius_of", clientFeatures.nvg_opfor.radius );
-#endif
+	CreateFloatCvarConditionally(cl_nvgfadetime, "cl_nvgfadetime", clientFeatures.nvg_fade_time);
 
 	CreateBooleanCvarConditionally(cl_flashlight_custom, "cl_flashlight_custom", clientFeatures.flashlight.custom);
 	CreateIntegerCvarConditionally(cl_flashlight_radius, "cl_flashlight_radius", clientFeatures.flashlight.radius);
@@ -663,15 +871,25 @@ void CHud::Init( void )
 
 	cl_subtitles = CVAR_CREATE( "cl_subtitles", "1", FCVAR_ARCHIVE );
 
+	CreateIntegerCvarConditionally(cl_bloodsplatter_style, "cl_bloodsplatter_style", clientFeatures.bloodsplatter_style);
+	CreateBooleanCvarConditionally(cl_bloodstream, "cl_bloodstream", clientFeatures.bloodstream);
+	CreateIntegerCvarConditionally(cl_bloodstream_threshold, "cl_bloodstream_threshold", clientFeatures.bloodstream_threshold);
+	CreateIntegerCvarConditionally(cl_wallimpact_style, "cl_wallimpact_style", clientFeatures.wallimpact_style);
+
 	hasHudScaleInEngine = gEngfuncs.pfnGetCvarPointer( "hud_scale" ) != NULL;
 
 	if (!hasHudScaleInEngine)
 	{
-		hud_scale = CVAR_CREATE("hud_scale", clientFeatures.hud_autoscale_by_default ? "0" : "1.0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
+		CreateFloatCvarConditionally(hud_scale, "hud_scale", clientFeatures.hud_scale);
 		hud_sprite_offset = CVAR_CREATE("hud_sprite_offset", "0.5", FCVAR_CLIENTDLL | FCVAR_ARCHIVE);
 	}
 
 	CreateBooleanCvarConditionally(m_pCvarCrosshairColorable, "crosshair_colorable", clientFeatures.crosshair_colorable);
+
+	m_pCvarObjectHint = CVAR_CREATE("cl_objecthint", "1", FCVAR_ARCHIVE);
+
+	m_pCvarMOTDVGUI = CVAR_CREATE("cl_motd_vgui", "1", FCVAR_ARCHIVE);
+	m_pCvarScoreboardVGUI = CVAR_CREATE("cl_scoreboard_vgui", "1", FCVAR_ARCHIVE);
 
 	m_pSpriteList = NULL;
 
@@ -697,11 +915,8 @@ void CHud::Init( void )
 	m_Spectator.Init();
 	m_Geiger.Init();
 	m_Train.Init();
-	m_Battery.Init();
 	m_Flash.Init();
-#if FEATURE_MOVE_MODE
 	m_MoveMode.Init();
-#endif
 	m_Message.Init();
 	m_StatusBar.Init();
 	m_DeathNotice.Init();
@@ -713,20 +928,48 @@ void CHud::Init( void )
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 #endif
 
-#if !USE_VGUI || USE_NOVGUI_MOTD
 	m_MOTD.Init();
-#endif
-#if !USE_VGUI || USE_NOVGUI_SCOREBOARD
 	m_Scoreboard.Init();
-#endif
+	m_Journal.Init();
+	m_ErrorCollection.Init();
 
 	m_Menu.Init();
 
 	m_Caption.Init();
+	m_MonsterInfo.Init();
+	m_Meter.Init();
+	m_MessageBox.Init();
+	m_CombatText.Init();
 
 	hudRenderer.Init();
 
+	gEngfuncs.pfnAddCommand("dump_ammo_types_client", ReportRegisteredAmmoTypes);
+	gEngfuncs.pfnAddCommand("get_message", GetTranslatedMessage);
+	gEngfuncs.pfnAddCommand("closest_palette_color", ShowClosestPaletteColor);
+	gEngfuncs.pfnAddCommand("give_inventory", nullptr);
+	gEngfuncs.pfnAddCommand("remove_inventory", nullptr);
+	gEngfuncs.pfnAddCommand("give", nullptr);
+	gEngfuncs.pfnAddCommand("read_keyvalue", nullptr);
+	gEngfuncs.pfnAddCommand("nightvision", nullptr);
+	gEngfuncs.pfnAddCommand("teleport_to", nullptr);
+	gEngfuncs.pfnAddCommand("recruit_followers", nullptr);
+	gEngfuncs.pfnAddCommand("disband_followers", nullptr);
+	gEngfuncs.pfnAddCommand("make_stop_following", nullptr);
+	gEngfuncs.pfnAddCommand("make_start_following", nullptr);
+	gEngfuncs.pfnAddCommand("buddha", nullptr);
+	gEngfuncs.pfnAddCommand("ent_remove_all", nullptr);
+	gEngfuncs.pfnAddCommand("ent_remove", nullptr);
+	gEngfuncs.pfnAddCommand("noclip_fast", nullptr);
+
 	MsgFunc_ResetHUD( 0, 0, NULL );
+	ClientCmd( "richpresence_gamemode\n" );
+	ClientCmd( "richpresence_update\n" );
+
+	if (g_errorCollector.HasErrors())
+	{
+		m_ErrorCollection.SetClientErrors(g_errorCollector.GetFullString());
+		g_errorCollector.Clear();
+	}
 }
 
 const char* strStartsWith(const char* str, const char* start)
@@ -836,12 +1079,6 @@ void CHud::ParseClientFeatures()
 	const char* fileName = "features/featureful_client.cfg";
 	int fileSize = 0;
 	char* pfile = (char *)gEngfuncs.COM_LoadFile( fileName, 5, &fileSize );
-	if ( !pfile )
-	{
-		fileName = "featureful_client.cfg";
-		pfile = (char *)gEngfuncs.COM_LoadFile( fileName, 5, &fileSize );
-	}
-
 	if( !pfile )
 		return;
 
@@ -859,13 +1096,17 @@ void CHud::ParseClientFeatures()
 		{ "flashlight.distance", clientFeatures.flashlight.distance },
 	};
 	KeyValueDefinition<ConfigurableBooleanValue> configurableBooleans[] = {
+		{ "hud_armor_near_health.", clientFeatures.hud_armor_near_health},
 		{ "flashlight.custom.", clientFeatures.flashlight.custom},
 		{ "view_bob.", clientFeatures.view_bob},
+		{ "viewmodel_lag.", clientFeatures.viewmodel_lag},
 		{ "weapon_wallpuff.", clientFeatures.weapon_wallpuff},
 		{ "weapon_sparks.", clientFeatures.weapon_sparks},
+		{ "gunsmoke.", clientFeatures.gunsmoke},
 		{ "muzzlelight.", clientFeatures.muzzlelight},
 		{ "movemode.", clientFeatures.movemode},
 		{ "crosshair_colorable.", clientFeatures.crosshair_colorable},
+		{ "bloodstream.", clientFeatures.bloodstream},
 	};
 	KeyValueDefinition<ConfigurableBoundedValue> configurableBounds[] = {
 		{ "hud_min_alpha.", clientFeatures.hud_min_alpha },
@@ -873,12 +1114,21 @@ void CHud::ParseClientFeatures()
 		{ "flashlight.fade_distance.", clientFeatures.flashlight.fade_distance },
 	};
 	KeyValueDefinition<ConfigurableFloatValue> configurableFloats[] = {
+		{ "hud_scale.", clientFeatures.hud_scale },
 		{ "rollangle.", clientFeatures.rollangle },
+		{ "nvg_fade_time.", clientFeatures.nvg_fade_time },
+	};
+	KeyValueDefinition<ConfigurableIntegerValue> configurableIntegers[] = {
+		{ "nvgstyle.", clientFeatures.nvgstyle },
+		{ "bloodsplatter_style.", clientFeatures.bloodsplatter_style },
+		{ "bloodstream_threshold.", clientFeatures.bloodstream_threshold },
+		{ "wallimpact_style.", clientFeatures.wallimpact_style },
 	};
 	KeyValueDefinition<bool> booleans[] = {
-		{ "hud_autoscale_by_default", clientFeatures.hud_autoscale_by_default },
+		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
-		{ "opfor_title", clientFeatures.opfor_title },
+		{ "use_divider_sprite", clientFeatures.use_divider_sprite },
+		{ "fullbright_textures", clientFeatures.fullbright_textures },
 	};
 
 	char valueBuf[CLIENT_FEATURE_VALUE_LENGTH+1];
@@ -900,7 +1150,7 @@ void CHud::ParseClientFeatures()
 			ConsumeNonSpaceCharacters(pfile, i, fileSize);
 
 			const int keyLength = i - keyStart;
-			SkipSpaces(pfile, i, fileSize);
+			SkipSpacesAndTabs(pfile, i, fileSize);
 			const int valueStart = i;
 			ConsumeLineSignificantOnly(pfile, i, fileSize);
 			const int valueLength = i - valueStart;
@@ -923,7 +1173,7 @@ void CHud::ParseClientFeatures()
 
 			unsigned int i = 0;
 			bool shouldContinue = true;
-			for (i = 0; shouldContinue && i<sizeof(colors)/sizeof(colors[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(colors); ++i)
 			{
 				if (strcmp(keyName, colors[i].name) == 0)
 				{
@@ -932,7 +1182,7 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
-			for (i = 0; shouldContinue && i<sizeof(integers)/sizeof(integers[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(integers); ++i)
 			{
 				if (strcmp(keyName, integers[i].name) == 0)
 				{
@@ -941,7 +1191,7 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
-			for (i = 0; shouldContinue && i<sizeof(configurableBooleans)/sizeof(configurableBooleans[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableBooleans); ++i)
 			{
 				if ((subKey = strStartsWith(keyName, configurableBooleans[i].name)))
 				{
@@ -950,7 +1200,7 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
-			for (i = 0; shouldContinue && i<sizeof(configurableFloats)/sizeof(configurableFloats[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableFloats); ++i)
 			{
 				if ((subKey = strStartsWith(keyName, configurableFloats[i].name)))
 				{
@@ -959,7 +1209,16 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
-			for (i = 0; shouldContinue && i<sizeof(configurableBounds)/sizeof(configurableBounds[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableIntegers); ++i)
+			{
+				if ((subKey = strStartsWith(keyName, configurableIntegers[i].name)))
+				{
+					UpdateIntegerValue(configurableIntegers[i].value, subKey, valueBuf);
+					shouldContinue = false;
+					break;
+				}
+			}
+			for (i = 0; shouldContinue && i<ARRAYSIZE(configurableBounds); ++i)
 			{
 				if ((subKey = strStartsWith(keyName, configurableBounds[i].name)))
 				{
@@ -968,7 +1227,7 @@ void CHud::ParseClientFeatures()
 					break;
 				}
 			}
-			for (i = 0; shouldContinue && i<sizeof(booleans)/sizeof(booleans[0]); ++i)
+			for (i = 0; shouldContinue && i<ARRAYSIZE(booleans); ++i)
 			{
 				if (strcmp(keyName, booleans[i].name) == 0)
 				{
@@ -979,11 +1238,7 @@ void CHud::ParseClientFeatures()
 			}
 			if (shouldContinue)
 			{
-				if ((subKey = strStartsWith(keyName, "nvgstyle.")))
-				{
-					UpdateIntegerValue(clientFeatures.nvgstyle, subKey, valueBuf);
-				}
-				else if ((subKey = strStartsWith(keyName, "nvg_cs.")))
+				if ((subKey = strStartsWith(keyName, "nvg_cs.")))
 				{
 					UpdateNVGValue(clientFeatures.nvg_cs, subKey, valueBuf);
 				}
@@ -993,11 +1248,31 @@ void CHud::ParseClientFeatures()
 				}
 				else if (strcmp(keyName, "nvg_empty_sprite") == 0)
 				{
-					strncpyEnsureTermination(clientFeatures.nvg_empty_sprite, valueBuf, MAX_SPRITE_NAME_LENGTH);
+					strncpyEnsureTermination(clientFeatures.nvg_empty_sprite, valueBuf);
 				}
 				else if (strcmp(keyName, "nvg_full_sprite") == 0)
 				{
-					strncpyEnsureTermination(clientFeatures.nvg_full_sprite, valueBuf, MAX_SPRITE_NAME_LENGTH);
+					strncpyEnsureTermination(clientFeatures.nvg_full_sprite, valueBuf);
+				}
+				else if (strcmp(keyName, "wall_puff1") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.wall_puffs[0], valueBuf);
+				}
+				else if (strcmp(keyName, "wall_puff2") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.wall_puffs[1], valueBuf);
+				}
+				else if (strcmp(keyName, "wall_puff3") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.wall_puffs[2], valueBuf);
+				}
+				else if (strcmp(keyName, "wall_puff4") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.wall_puffs[3], valueBuf);
+				}
+				else if (strcmp(keyName, "bucket_slot_sprite") == 0)
+				{
+					strncpyEnsureTermination(clientFeatures.bucket_slot_sprite, valueBuf);
 				}
 			}
 		}
@@ -1043,8 +1318,39 @@ int CHud::GetSpriteIndex( const char *SpriteName )
 	return -1; // invalid sprite
 }
 
-void CHud::VidInit( void )
+void CHud::LoadWallPuffSprites()
 {
+	int i = 0;
+	for (i=0; i<static_cast<int>(ARRAYSIZE(wallPuffs)); ++i)
+	{
+		if (*clientFeatures.wall_puffs[i])
+		{
+			wallPuffs[i] = const_cast<model_t*>(gEngfuncs.GetSpritePointer(gEngfuncs.pfnSPR_Load(clientFeatures.wall_puffs[i])));
+		}
+		else
+			break;
+	}
+	wallPuffCount = i;
+}
+
+extern void LoadGunSmokeSprites();
+
+void CHud::VidInit()
+{
+	static bool vidInitAtLeastOnce = false;
+	if (vidInitAtLeastOnce)
+	{
+		if (IsDeveloperModeOn())
+		{
+			gEngfuncs.Con_DPrintf("Re-parsing mod client configs\n");
+			ParseModConfigs();
+		}
+	}
+	vidInitAtLeastOnce = true;
+
+	keyedDlightManager.Reset();
+	fakeMirrors.clear();
+
 	int j;
 	m_scrinfo.iSize = sizeof(m_scrinfo);
 	GetScreenInfo( &m_scrinfo );
@@ -1057,16 +1363,28 @@ void CHud::VidInit( void )
 	m_hsprLogo = 0;	
 	m_hsprCursor = 0;
 
-	if( ScreenWidth < 640 )
-		m_iRes = 320;
-	else
-		m_iRes = 640;
+	// a1ba: don't break the loading order here and
+	// don't cause memory leak but check
+	// maximum HUD sprite resolution we have
+	m_iMaxRes = 640;
+	client_sprite_t *pSpriteList = m_pSpriteList ? m_pSpriteList :
+		SPR_GetList( "sprites/hud.txt", &m_iSpriteCountAllRes );
+	if( pSpriteList )
+	{
+		for( int i = 0; i < m_iSpriteCountAllRes; i++ )
+		{
+			if( m_iMaxRes < pSpriteList[i].iRes )
+				m_iMaxRes = pSpriteList[i].iRes;
+		}
+	}
+
+	m_iRes = GetSpriteRes( ScreenWidth, ScreenHeight );
 
 	// Only load this once
 	if( !m_pSpriteList )
 	{
 		// we need to load the hud.txt, and all sprites within
-		m_pSpriteList = SPR_GetList( "sprites/hud.txt", &m_iSpriteCountAllRes );
+		m_pSpriteList = pSpriteList;
 
 		if( m_pSpriteList )
 		{
@@ -1095,8 +1413,7 @@ void CHud::VidInit( void )
 					sprintf( sz, "sprites/%s.spr", p->szSprite );
 					m_rghSprites[index] = SPR_Load( sz );
 					m_rgrcRects[index] = p->rc;
-					strncpy( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH - 1 );
-					m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH + ( MAX_SPRITE_NAME_LENGTH - 1 )] = '\0';
+					strncpyEnsureTermination( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH );
 					index++;
 				}
 
@@ -1138,8 +1455,7 @@ void CHud::VidInit( void )
 				sprintf( sz, "sprites/%s.spr", p->szSprite );
 				m_rghSprites[index] = SPR_Load( sz );
 				m_rgrcRects[index] = p->rc;
-				strncpy( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH - 1 );
-				m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH + ( MAX_SPRITE_NAME_LENGTH - 1 )] = '\0';
+				strncpyEnsureTermination( &m_rgszSpriteNames[index * MAX_SPRITE_NAME_LENGTH], p->szName, MAX_SPRITE_NAME_LENGTH );
 				index++;
 			}
 
@@ -1150,30 +1466,20 @@ void CHud::VidInit( void )
 	// assumption: number_1, number_2, etc, are all listed and loaded sequentially
 	m_HUD_number_0 = GetSpriteIndex( "number_0" );
 
-	if( m_HUD_number_0 == -1 )
-	{
-		const char *msg = "There is something wrong with your game data! Please, reinstall\n";
-
-		if( HUD_MessageBox( msg ) )
-		{
-			gEngfuncs.pfnClientCmd( "quit\n" );
-		}
-
-		return;
-	}
+	LoadWallPuffSprites();
+	LoadGunSmokeSprites();
 
 	m_iFontHeight = m_rgrcRects[m_HUD_number_0].bottom - m_rgrcRects[m_HUD_number_0].top;
+
+	objectHintManager.Clear();
 
 	m_Ammo.VidInit();
 	m_Health.VidInit();
 	m_Spectator.VidInit();
 	m_Geiger.VidInit();
 	m_Train.VidInit();
-	m_Battery.VidInit();
 	m_Flash.VidInit();
-#if FEATURE_MOVE_MODE
 	m_MoveMode.VidInit();
-#endif
 	m_Message.VidInit();
 	m_StatusBar.VidInit();
 	m_DeathNotice.VidInit();
@@ -1185,15 +1491,17 @@ void CHud::VidInit( void )
 #if USE_VGUI
 	GetClientVoiceMgr()->VidInit();
 #endif
-#if !USE_VGUI || USE_NOVGUI_MOTD
 	m_MOTD.VidInit();
-#endif
-#if !USE_VGUI || USE_NOVGUI_SCOREBOARD
 	m_Scoreboard.VidInit();
-#endif
+	m_Journal.VidInit();
+	m_ErrorCollection.VidInit();
 	m_Nightvision.VidInit();
 
 	m_Caption.VidInit();
+	m_MonsterInfo.VidInit();
+	m_Meter.VidInit();
+	m_MessageBox.VidInit();
+	m_CombatText.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));
@@ -1201,6 +1509,8 @@ void CHud::VidInit( void )
 	RecacheValues();
 	m_colorableCrosshair = CrosshairColorable();
 	m_lastCrosshairColor = m_cachedHudColor;
+
+	m_bCacheFullbrightModels = true;
 }
 
 int CHud::MsgFunc_Logo( const char *pszName,  int iSize, void *pbuf )
@@ -1254,14 +1564,11 @@ void COM_FileBase ( const char *in, char *out )
 	else 
 		start++;
 
-	// Length of new sting
+	// Length of new string
 	len = end - start + 1;
 
 	// Copy partial string
-	strncpy( out, &in[start], len );
-
-	// Terminate it
-	out[len] = 0;
+	strncpyEnsureTermination( out, &in[start], len + 1 );
 }
 
 /*
@@ -1292,7 +1599,7 @@ HUD_GetFOV
 Returns last FOV
 =====================
 */
-float HUD_GetFOV( void )
+float HUD_GetFOV()
 {
 	if( gEngfuncs.pDemoAPI->IsRecording() )
 	{
@@ -1319,9 +1626,11 @@ int CHud::MsgFunc_SetFOV( const char *pszName,  int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 
 	int newfov = READ_BYTE();
-	int def_fov = CVAR_GET_FLOAT( "default_fov" );
+	int def_fov = default_fov->value;
 
 	g_lastFOV = newfov;
+
+	m_inScope = newfov != 0;
 
 	if( newfov == 0 )
 	{
@@ -1343,7 +1652,7 @@ int CHud::MsgFunc_SetFOV( const char *pszName,  int iSize, void *pbuf )
 	else
 	{  
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * m_pCvarZoomSensitivityRatio->value;
 	}
 
 	return 1;
@@ -1379,7 +1688,7 @@ void CHud::AddHudElem( CHudBase *phudelem )
 	ptemp->pNext = pdl;
 }
 
-float CHud::GetSensitivity( void )
+float CHud::GetSensitivity()
 {
 	return m_flMouseSensitivity;
 }
@@ -1392,13 +1701,7 @@ void CHud::GetAllPlayersInfo()
 
 		if( g_PlayerInfoList[i].thisplayer )
 		{
-#if USE_VGUI
-			if(gViewPort)
-				gViewPort->m_pScoreBoard->m_iPlayerNum = i;
-#endif
-#if !USE_VGUI || USE_NOVGUI_SCOREBOARD
 			m_Scoreboard.m_iPlayerNum = i;  // !!!HACK: this should be initialized elsewhere... maybe gotten from the engine
-#endif
 		}
 	}
 }
@@ -1415,17 +1718,25 @@ bool CHud::ViewBobEnabled()
 	return ClientFeatureEnabled(cl_viewbob, clientFeatures.view_bob.enabled_by_default);
 }
 
+bool CHud::ViewModelLagEnabled()
+{
+	return ClientFeatureEnabled(cl_viewmodel_lag, clientFeatures.viewmodel_lag.enabled_by_default);
+}
+
 int CHud::CalcMinHUDAlpha()
 {
-#if FEATURE_NIGHTVISION
 	if (m_Nightvision.IsOn()) {
 		return clientFeatures.hud_min_alpha_nvg;
 	}
-#endif
 
 	const ConfigurableBoundedValue& min_alpha = clientFeatures.hud_min_alpha;
 	const int value = m_pCvarMinAlpha ? m_pCvarMinAlpha->value : min_alpha.defaultValue;
-	return boundValue(min_alpha.minValue, value, min_alpha.maxValue);
+	return clamp(value, min_alpha.minValue, min_alpha.maxValue);
+}
+
+bool CHud::DrawArmorNearHealth()
+{
+	return ClientFeatureEnabled(m_pCvarArmorNearHealth, clientFeatures.hud_armor_near_health.enabled_by_default);
 }
 
 bool CHud::WeaponWallpuffEnabled()
@@ -1436,6 +1747,11 @@ bool CHud::WeaponWallpuffEnabled()
 bool CHud::WeaponSparksEnabled()
 {
 	return ClientFeatureEnabled(cl_weapon_sparks, clientFeatures.weapon_sparks.enabled_by_default);
+}
+
+bool CHud::GunSmokeEnabled()
+{
+	return ClientFeatureEnabled(cl_gunsmoke, clientFeatures.gunsmoke.enabled_by_default);
 }
 
 bool CHud::MuzzleLightEnabled()
@@ -1452,7 +1768,7 @@ float CHud::FlashlightRadius()
 {
 	const FlashlightFeatures& flashlight = clientFeatures.flashlight;
 	const int radius = cl_flashlight_radius && cl_flashlight_radius->value > 0.0f ? cl_flashlight_radius->value : flashlight.radius.defaultValue;
-	return boundValue(flashlight.radius.minValue, radius, flashlight.radius.maxValue);
+	return clamp(radius, flashlight.radius.minValue, flashlight.radius.maxValue);
 }
 
 float CHud::FlashlightDistance()
@@ -1464,7 +1780,7 @@ float CHud::FlashlightFadeDistance()
 {
 	const FlashlightFeatures& flashlight = clientFeatures.flashlight;
 	const int distance = cl_flashlight_fade_distance && cl_flashlight_fade_distance->value > 0.0f ? cl_flashlight_fade_distance->value : flashlight.fade_distance.defaultValue;
-	return boundValue(flashlight.fade_distance.minValue, distance, flashlight.fade_distance.maxValue);
+	return clamp(distance, flashlight.fade_distance.minValue, flashlight.fade_distance.maxValue);
 }
 
 color24 CHud::FlashlightColor()
@@ -1473,18 +1789,16 @@ color24 CHud::FlashlightColor()
 	UnpackRGB(r,g,b, clientFeatures.flashlight.color);
 
 	color24 color;
-	color.r = boundValue(0, r, 255);
-	color.g = boundValue(0, g, 255);
-	color.b = boundValue(0, b, 255);
+	color.r = clamp(r, 0, 255);
+	color.g = clamp(g, 0, 255);
+	color.b = clamp(b, 0, 255);
 	return color;
 }
 
 int CHud::NVGStyle()
 {
-#if FEATURE_NIGHTVISION_STYLES
 	if (cl_nvgstyle)
 		return (int)cl_nvgstyle->value;
-#endif
 	return clientFeatures.nvgstyle.defaultValue;
 }
 
@@ -1496,6 +1810,21 @@ bool CHud::MoveModeEnabled()
 bool CHud::CrosshairColorable()
 {
 	return ClientFeatureEnabled(m_pCvarCrosshairColorable, clientFeatures.crosshair_colorable.enabled_by_default);
+}
+
+extern bool ShouldHideViewModelOnZoom(int weaponId);
+
+bool CHud::ShouldHideViewModel()
+{
+	if (ShouldUseZoomedCrosshair())
+	{
+		WEAPON* curWeapon = m_Ammo.GetWeapon();
+		if (curWeapon)
+		{
+			return ShouldHideViewModelOnZoom(curWeapon->iId);
+		}
+	}
+	return false;
 }
 
 void CHud::HUDColorCmd()
@@ -1521,7 +1850,7 @@ void CHud::HUDColorCmd()
 			else if (strncmp(param, "0x", 2) == 0 || *param == '#')
 			{
 				const bool sharp = *param == '#';
-				const int expectedLength = sharp ? 7 : 8;
+				const unsigned int expectedLength = sharp ? 7 : 8;
 				const int shift = sharp ? 1 : 2;
 				if (strlen(param) != expectedLength)
 				{
@@ -1564,7 +1893,7 @@ void CHud::HUDColorCmd()
 		const int hudR = m_pCvarHudRed->value;
 		const int hudG = m_pCvarHudGreen->value;
 		const int hudB = m_pCvarHudBlue->value;
-		const int currentHudColor = ((hudR & 0xFF) << 16) | ((hudG & 0xFF) << 8) | (hudB & 0xFF);
+		const int currentHudColor = PackRGB(hudR, hudG, hudB);
 		gEngfuncs.Con_Printf( "Current HUD color: %d %d %d (%06X)\n"
 							  "usage:\n"
 							  "hud_color RRR GGG BBB\n"
@@ -1588,7 +1917,81 @@ HudSpriteRenderer& CHud::Renderer()
 	return gHUD.hudRenderer.DefaultScale();
 }
 
-#if FEATURE_MOVE_MODE
+void KeyedDLightManager::Reset()
+{
+	for (auto& data : _dlights)
+	{
+		Reset(data);
+	}
+}
+
+void KeyedDLightManager::Reset(DlightAndData& data)
+{
+	data.dl = nullptr;
+	data.entindex = 0;
+}
+
+void KeyedDLightManager::AddDlight(dlight_t *dl, int entindex)
+{
+	for (auto& data : _dlights)
+	{
+		if (!data.dl)
+		{
+			data.dl = dl;
+			data.entindex = entindex;
+			return;
+		}
+	}
+}
+
+void KeyedDLightManager::RemoveDlight(int key)
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl && data.dl->key == key)
+		{
+			data.dl->die = gEngfuncs.GetClientTime();
+			Reset(data);
+			return;
+		}
+	}
+}
+
+void KeyedDLightManager::Update()
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl)
+		{
+			if (data.dl->key == 0)
+			{
+				Reset(data);
+				continue;
+			}
+			if (data.entindex)
+			{
+				cl_entity_t *pEntity = gEngfuncs.GetEntityByIndex(data.entindex);
+				if (pEntity)
+				{
+					data.dl->origin = pEntity->origin;
+				}
+			}
+		}
+	}
+}
+
+void KeyedDLightManager::SetPosition(int key, const Vector& pos)
+{
+	for (auto& data : _dlights)
+	{
+		if (data.dl && data.dl->key == key)
+		{
+			data.dl->origin = pos;
+			return;
+		}
+	}
+}
+
 DECLARE_MESSAGE( m_MoveMode, MoveMode )
 
 int CHudMoveMode::Init()
@@ -1627,6 +2030,7 @@ int CHudMoveMode::VidInit()
 
 int CHudMoveMode::Draw(float flTime)
 {
+	bottomCoordinate = 0;
 	if (!gHUD.MoveModeEnabled())
 		return 1;
 
@@ -1635,7 +2039,7 @@ int CHudMoveMode::Draw(float flTime)
 		return 1;
 	}
 	int r, g, b, x, y;
-	wrect_t* prc;
+	const wrect_t* prc = nullptr;
 	HSPRITE sprite;
 	UnpackRGB( r,g,b, gHUD.HUDColor() );
 
@@ -1663,11 +2067,12 @@ int CHudMoveMode::Draw(float flTime)
 
 	const wrect_t rc = *prc;
 	int width = rc.right - rc.left;
-	y = ( rc.bottom - rc.top ) * 2;
+	y = gHUD.m_Flash.bottomCoordinate + 4;
 	x = CHud::Renderer().PerceviedScreenWidth() - width - width / 2;
 
-	CHud::Renderer().SPR_Set( sprite, r, g, b );
-	CHud::Renderer().SPR_DrawAdditive( 0,  x, y, &rc );
+	CHud::Renderer().SPR_DrawAdditive( sprite, r, g, b,  x, y, &rc );
+
+	bottomCoordinate = y + (rc.bottom - rc.top);
 	return 1;
 }
 
@@ -1677,39 +2082,116 @@ int CHudMoveMode::MsgFunc_MoveMode(const char *pszName, int iSize, void *pbuf)
 	m_movementState = READ_SHORT();
 	return 1;
 }
-#endif
 
-bool CHud::ShouldUseConsoleFont()
+extern WEAPON *gpActiveSel;
+
+int ActiveWeaponId()
 {
-	return true;
+	auto weapon = gHUD.m_Ammo.GetWeapon();
+	if (weapon)
+		return weapon->iId;
+	return -1;
 }
 
-unsigned int CHud::SplitIntoWordBoundaries(WordBoundary* boundaries, const char *message)
+extern bool ShouldMirrorViewModel(int id);
+
+bool ShouldMirrorCurrentViewModel()
 {
-	unsigned int wordCount = 0;
+	return ShouldMirrorViewModel(ActiveWeaponId());
+}
 
-	const unsigned int len = strlen(message);
+bool CHud::CanDrawStatusIcons()
+{
+	return !gpActiveSel;
+}
 
-	bool searchingForWordStart = true;
-	for (unsigned int i = 0; i<len; ++i)
+int CHud::TopRightInventoryCoordinate()
+{
+	int y = m_Flash.bottomCoordinate;
+	if (MoveModeEnabled())
 	{
-		if (searchingForWordStart && !IsSpaceCharacter(message[i]))
-		{
-			boundaries[wordCount].wordStart = i;
-			searchingForWordStart = false;
-		}
+		y = Q_max(y, m_MoveMode.bottomCoordinate);
+	}
+	return y;
+}
 
-		if (!searchingForWordStart && IsSpaceCharacter(message[i]))
+bool CHud::UseVguiMOTD()
+{
+#if USE_VGUI
+	return m_pCvarMOTDVGUI && m_pCvarMOTDVGUI->value;
+#else
+	return false;
+#endif
+}
+
+bool CHud::UseVguiScoreBoard()
+{
+#if USE_VGUI
+	return m_pCvarScoreboardVGUI && m_pCvarScoreboardVGUI->value;
+#else
+	return false;
+#endif
+}
+
+bool CHud::HandleClientButton(int button)
+{
+	if (button == IN_ATTACK)
+	{
+		if (m_MOTD.m_bShow)
 		{
-			boundaries[wordCount].wordEnd = i;
-			wordCount++;
-			searchingForWordStart = true;
+			m_MOTD.Reset();
+			return true;
 		}
 	}
-	if (!searchingForWordStart) {
-		boundaries[wordCount].wordEnd = len;
-		wordCount++;
+
+	if (button == IN_ATTACK)
+	{
+		if (!TopLevelWindowIsActive() && m_MessageBox.HandleClientInput())
+			return true;
 	}
 
-	return wordCount;
+	return false;
+}
+
+bool CHud::HandleKeyDown(int keynum)
+{
+	if (m_MOTD.m_bShow)
+	{
+		return m_MOTD.HandleKeyDown(keynum);
+	}
+	if (!TopLevelWindowIsActive() && m_MessageBox.HandleKeyDown(keynum))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool CHud::TopLevelWindowIsActive()
+{
+	if (m_Scoreboard.m_iShowscoresHeld)
+		return true;
+	if (m_Journal.m_iShowscoresHeld && m_Journal.ShouldDraw())
+		return true;
+	if (m_MOTD.m_bShow)
+		return true;
+	return false;
+}
+
+model_t* CHud::GetRandomWallPuff()
+{
+	if (gHUD.wallPuffCount > 0)
+	{
+		return gHUD.wallPuffs[Com_RandomLong(0, gHUD.wallPuffCount-1)];
+	}
+	return nullptr;
+}
+
+bool CHud::HasActiveFakeMirrors() const
+{
+	for (const auto& mirror: fakeMirrors)
+	{
+		if (mirror.enabled)
+			return true;
+	}
+	return false;
 }

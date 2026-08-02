@@ -1,0 +1,13 @@
+#pragma once
+#ifndef COMMON_LIMITS_H
+#define COMMON_LIMITS_H
+
+#define MAX_WEAPONS 64
+#define	MAX_AMMO_TYPES 32
+#define MAX_INVENTORY_ITEMS 16
+#define MAX_MESSAGE_BOXES 8
+
+#define MAX_WEAPON_NAME 128
+#define WEAPON_SLOTS_HARDLIMIT 9
+
+#endif

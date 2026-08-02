@@ -177,7 +177,7 @@ void CBasePlayer::Observer_CheckProperties()
 		if( !target )
 			return;
 
-		int weapon = ( target->m_pActiveItem != NULL ) ? target->m_pActiveItem->m_iId : 0;
+		int weapon = ( target->m_pActiveItem != NULL ) ? target->m_pActiveItem->WeaponId() : 0;
 		// use fov of tracked client
 		if( m_iFOV != target->m_iFOV || m_iObserverWeapon != weapon )
 		{
@@ -208,7 +208,7 @@ void CBasePlayer::Observer_CheckProperties()
 			MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
 				WRITE_BYTE( 1 );	// 1 = current weapon
 				WRITE_BYTE( m_iObserverWeapon );	
-				WRITE_BYTE( 0 );	// clip
+				WRITE_SHORT( 0 );	// clip
 			MESSAGE_END();
 		}
 	}

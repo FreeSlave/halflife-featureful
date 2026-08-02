@@ -10,8 +10,7 @@
 #include	"skill.h"
 #include	"shockbeam.h"
 #include	"game.h"
-
-#if FEATURE_SHOCKBEAM
+#include	"visuals_utils.h"
 
 #define SHOCK_BEAM_LENGTH		64
 #define SHOCK_BEAM_LENGTH_HALF	SHOCK_BEAM_LENGTH * 0.5f
@@ -29,7 +28,46 @@ TYPEDESCRIPTION	CShock::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE(CShock, CBaseAnimating)
 
-void CShock::Spawn(void)
+const NamedSoundScript CShock::impactSoundScript = {
+	CHAN_WEAPON,
+	{"weapons/shock_impact.wav"},
+	FloatRange(0.8f, 0.9f),
+	ATTN_NORM,
+	"ShockBeam.Impact"
+};
+
+const NamedVisual CShock::spriteVisual = BuildVisual("ShockBeam.Sprite")
+		.Model("sprites/flare3.spr")
+		.Scale(0.35f)
+		.RenderProps(kRenderTransAdd, Color3(255, 255, 255), 255, kRenderFxDistort);
+
+const NamedVisual CShock::beam1Visual = BuildVisual("ShockBeam.Beam1")
+		.Model("sprites/lgtning.spr")
+		.Alpha(180)
+		.BeamParams(60, 0, 10)
+		.RenderColor(0, 253, 253)
+		.BeamFlags(BEAM_FSHADEOUT);
+
+const NamedVisual CShock::beam2Visual = BuildVisual("ShockBeam.Beam2")
+		.Model("sprites/lgtning.spr")
+		.Alpha(180)
+		.BeamParams(20, 30, 30)
+		.RenderColor(255, 255, 157)
+		.BeamFlags(BEAM_FSHADEOUT);
+
+const NamedVisual CShock::lightVisual = BuildVisual("ShockBeam.Light")
+		.Radius(80)
+		.RenderColor(8, 253, 253)
+		.Life(0.5f)
+		.Decay(100.0f);
+
+const NamedVisual CShock::shellVisual = BuildVisual("ShockBeam.Shell")
+		.RenderColor(0, 220, 255)
+		.Life(0.5f)
+		.Alpha(5)
+		.RenderFx(kRenderFxGlowShell);
+
+void CShock::Spawn()
 {
 	Precache();
 	pev->movetype = MOVETYPE_FLY;
@@ -38,10 +76,18 @@ void CShock::Spawn(void)
 	SET_MODEL(ENT(pev), "models/shock_effect.mdl");
 	UTIL_SetOrigin(pev, pev->origin);
 
-	if ( g_pGameRules->IsMultiplayer() )
-		pev->dmg = gSkillData.plrDmgShockroachM;
+	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
+	{
+		if (g_pGameRules->IsMultiplayer())
+			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachm"));
+		else
+			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachs"));
+	}
 	else
-		pev->dmg = gSkillData.plrDmgShockroach;
+	{
+		SetDefaultProjectileDamage(GetSkillValue("shockroach"));
+	}
+
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 
 	CreateEffects();
@@ -51,19 +97,22 @@ void CShock::Spawn(void)
 
 void CShock::Precache()
 {
-	PRECACHE_MODEL("sprites/flare3.spr");
-	PRECACHE_MODEL("sprites/lgtning.spr");
+	RegisterVisual(spriteVisual);
+	RegisterVisual(beam1Visual);
+	RegisterVisual(beam2Visual);
+	RegisterVisual(lightVisual);
+	RegisterVisual(shellVisual);
 	PRECACHE_MODEL("models/shock_effect.mdl");
-	PRECACHE_SOUND("weapons/shock_impact.wav");
+	RegisterAndPrecacheSoundScript(impactSoundScript);
 }
 
 void CShock::FlyThink()
 {
-	if (pev->waterlevel == 3)
+	if (pev->waterlevel == WL_Eyes)
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/shock_impact.wav", VOL_NORM, ATTN_NORM);
-		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, pev->dmg * 3, 144, CLASS_NONE, DMG_SHOCK | DMG_ALWAYSGIB );
+		EmitSoundScript(impactSoundScript);
+		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, DamageInfo(GetProjectileDamage() * 3, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 144, CLASS_NONE );
 		ClearEffects();
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time;
@@ -74,51 +123,27 @@ void CShock::FlyThink()
 	}
 }
 
-void CShock::Shoot(entvars_t *pevOwner, const Vector angles, const Vector vecStart, const Vector vecVelocity)
-{
-	CShock *pShock = GetClassPtr((CShock *)NULL);
-	UTIL_SetOrigin(pShock->pev, vecStart);
-	pShock->Spawn();
-
-	pShock->pev->velocity = vecVelocity;
-	pShock->pev->owner = ENT(pevOwner);
-	pShock->pev->angles = angles;
-
-	pShock->pev->nextthink = gpGlobals->time;
-}
-
 void CShock::Touch(CBaseEntity *pOther)
 {
 	// Do not collide with the owner.
 	if (ENT(pOther->pev) == pev->owner)
 		return;
 
-	TraceResult tr = UTIL_GetGlobalTrace( );
+	TraceResult tr = UTIL_GetGlobalTrace();
 
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE(TE_DLIGHT);
-		WRITE_COORD(pev->origin.x);	// X
-		WRITE_COORD(pev->origin.y);	// Y
-		WRITE_COORD(pev->origin.z);	// Z
-		WRITE_BYTE( 8 );		// radius * 0.1
-		WRITE_BYTE( 0 );		// r
-		WRITE_BYTE( 255 );		// g
-		WRITE_BYTE( 255 );		// b
-		WRITE_BYTE( 10 );		// time * 10
-		WRITE_BYTE( 10 );		// decay * 0.1
-	MESSAGE_END( );
+	SendDynLight(pev->origin, GetVisual(lightVisual));
 
 	CBaseMonster* pMonster = pOther->MyMonsterPointer();
 	if (pMonster && pMonster->IsAlive())
 	{
-		pMonster->GlowShellOn( Vector( 0, 220, 255 ), .5f );
+		pMonster->GlowShellOn(GetVisual(shellVisual));
 	}
 
 	ClearEffects();
 	if (!pOther->pev->takedamage)
 	{
 		// make a splat on the wall
-		const int baseDecal = g_modFeatures.opfor_decals ? DECAL_OPFOR_SCORCH1 : DECAL_SMALLSCORCH1;
+		const int baseDecal = gDecals[DECAL_OPFOR_SCORCH1].index >= 0 ? DECAL_OPFOR_SCORCH1 : DECAL_SMALLSCORCH1;
 		UTIL_DecalTrace(&tr, baseDecal + RANDOM_LONG(0, 2));
 
 		int iContents = UTIL_PointContents(pev->origin);
@@ -138,21 +163,19 @@ void CShock::Touch(CBaseEntity *pOther)
 		}
 		entvars_t *pevOwner = VARS(pev->owner);
 		entvars_t *pevAttacker = pevOwner ? pevOwner : pev;
-		pOther->ApplyTraceAttack(pev, pevAttacker, pev->dmg, pev->velocity.Normalize(), &tr, damageType );
+		pOther->ApplyTraceAttack(pev, pevAttacker, DamageInfo{GetProjectileDamage(), damageType}, pev->velocity.Normalize(), &tr );
 		if (pOther->IsPlayer() && (UTIL_PointContents(pev->origin) != CONTENTS_WATER))
 		{
 			const Vector position = tr.vecEndPos;
 			MESSAGE_BEGIN( MSG_ONE, SVC_TEMPENTITY, NULL, pOther->pev );
 				WRITE_BYTE( TE_SPARKS );
-				WRITE_COORD( position.x );
-				WRITE_COORD( position.y );
-				WRITE_COORD( position.z );
+				WRITE_VECTOR( position );
 			MESSAGE_END();
 		}
 	}
 
 	// splat sound
-	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_impact.wav", VOL_NORM, ATTN_NORM);
+	EmitSoundScript(impactSoundScript);
 
 	pev->modelindex = 0;
 	pev->solid = SOLID_NOT;
@@ -162,75 +185,35 @@ void CShock::Touch(CBaseEntity *pOther)
 
 void CShock::CreateEffects()
 {
-	m_pSprite = CSprite::SpriteCreate( "sprites/flare3.spr", pev->origin, FALSE );
-	m_pSprite->SetAttachment( edict(), 0 );
-	m_pSprite->pev->scale = 0.35;
-	m_pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 170, kRenderFxDistort );
-	//m_pSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
-	//m_pSprite->pev->flags |= FL_SKIPLOCALHOST;
+	m_pSprite = CreateSpriteFromVisual(GetVisual(spriteVisual), pev->origin);
+	if (m_pSprite)
+	{
+		m_pSprite->SetAttachment( edict(), 0 );
+		m_pSprite->pev->spawnflags |= SF_SPRITE_TRANSIT;
+	}
 
-	m_pBeam = CBeam::BeamCreate( "sprites/lgtning.spr", 60 );
-
+	m_pBeam = CreateBeamFromVisual(GetVisual(beam1Visual));
 	if (m_pBeam)
 	{
 		UTIL_SetOrigin(m_pBeam->pev, pev->origin);
-
-		m_pBeam->EntsInit( entindex(), entindex() );
-		m_pBeam->SetStartAttachment( 1 );
-		m_pBeam->SetEndAttachment( 2 );
-		m_pBeam->SetBrightness( 180 );
-		m_pBeam->SetScrollRate( 10 );
-		m_pBeam->SetNoise( 0 );
-		m_pBeam->SetFlags( BEAM_FSHADEOUT );
-		m_pBeam->SetColor( 0, 253, 253 );
-		//m_pBeam->RelinkBeam();
-	}
-	else
-	{
-		ALERT(at_console, "Could no create shockbeam beam!\n");
+		m_pBeam->EntsInit( entindex(), entindex(), 1, 2 );
+		m_pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 
-	m_pNoise = CBeam::BeamCreate( "sprites/lgtning.spr", 20 );
-
+	m_pNoise = CreateBeamFromVisual(GetVisual(beam2Visual));
 	if (m_pNoise)
 	{
 		UTIL_SetOrigin(m_pNoise->pev, pev->origin);
-
-		m_pNoise->EntsInit( entindex(), entindex() );
-		m_pNoise->SetStartAttachment( 1 );
-		m_pNoise->SetEndAttachment( 2 );
-		m_pNoise->SetBrightness( 180 );
-		m_pNoise->SetScrollRate( 30 );
-		m_pNoise->SetNoise( 30 );
-		m_pNoise->SetFlags( BEAM_FSHADEOUT );
-		m_pNoise->SetColor( 255, 255, 157 );
-		//m_pNoise->RelinkBeam();
-	}
-	else
-	{
-		ALERT(at_console, "Could no create shockbeam noise!\n");
+		m_pNoise->EntsInit( entindex(), entindex(), 1, 2 );
+		m_pNoise->pev->spawnflags |= SF_BEAM_TRANSIT;
 	}
 }
 
 void CShock::ClearEffects()
 {
-	if (m_pBeam)
-	{
-		UTIL_Remove( m_pBeam );
-		m_pBeam = NULL;
-	}
-
-	if (m_pNoise)
-	{
-		UTIL_Remove( m_pNoise );
-		m_pNoise = NULL;
-	}
-
-	if (m_pSprite)
-	{
-		UTIL_Remove( m_pSprite );
-		m_pSprite = NULL;
-	}
+	UTIL_RemoveAndClean(m_pBeam);
+	UTIL_RemoveAndClean(m_pNoise);
+	UTIL_RemoveAndClean(m_pSprite);
 }
 
 void CShock::UpdateOnRemove()
@@ -239,4 +222,10 @@ void CShock::UpdateOnRemove()
 	CBaseAnimating::UpdateOnRemove();
 }
 
-#endif
+void CShock::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(SHOCKBEAM_SPEED, params);
+	SetMyProjectileEffectFlags();
+	SendProjectileTracer();
+	pev->nextthink = gpGlobals->time;
+}

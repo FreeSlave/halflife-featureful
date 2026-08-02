@@ -20,7 +20,7 @@
 #include	"cbase.h"
 #include	"monsters.h"
 #include	"schedule.h"
-#include	"weapons.h"
+#include	"combat.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -29,26 +29,27 @@
 class CGMan : public CBaseMonster
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	void SetYawSpeed( void );
-	int DefaultClassify ( void );
-	void HandleAnimEvent( MonsterEvent_t *pEvent );
-	int DefaultISoundMask ( void );
+	void Spawn() override;
+	void Precache() override;
+	void SetYawSpeed() override;
+	int DefaultClassify() override;
+	const char* DefaultDisplayName() override { return "G-man"; }
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	int DefaultISoundMask() override;
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	void StartTask( Task_t *pTask );
-	void RunTask( Task_t *pTask );
-	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
-	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
+	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;
 
-	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener );
+	void PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener ) override;
 
-	Vector DefaultMinHullSize() { return VEC_HUMAN_HULL_MIN; }
-	Vector DefaultMaxHullSize() { return VEC_HUMAN_HULL_MAX; }
+	Vector DefaultMinHullSize() override { return VEC_HUMAN_HULL_MIN; }
+	Vector DefaultMaxHullSize() override { return VEC_HUMAN_HULL_MAX; }
 
 	EHANDLE m_hPlayer;
 	EHANDLE m_hTalkTarget;
@@ -69,7 +70,7 @@ IMPLEMENT_SAVERESTORE( CGMan, CBaseMonster )
 // Classify - indicates this monster's place in the 
 // relationship table.
 //=========================================================
-int CGMan::DefaultClassify( void )
+int CGMan::DefaultClassify()
 {
 	return CLASS_NONE;
 }
@@ -78,7 +79,7 @@ int CGMan::DefaultClassify( void )
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
-void CGMan::SetYawSpeed( void )
+void CGMan::SetYawSpeed()
 {
 	int ys;
 
@@ -110,7 +111,7 @@ void CGMan::HandleAnimEvent( MonsterEvent_t *pEvent )
 //=========================================================
 // ISoundMask - generic monster can't hear.
 //=========================================================
-int CGMan::DefaultISoundMask( void )
+int CGMan::DefaultISoundMask()
 {
 	return 0;
 }
@@ -123,7 +124,7 @@ void CGMan::Spawn()
 	Precache();
 
 	SetMyModel( "models/gman.mdl" );
-	SetMySize( DefaultMinHullSize(), DefaultMaxHullSize() );
+	SetMySize();
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
@@ -141,6 +142,7 @@ void CGMan::Spawn()
 void CGMan::Precache()
 {
 	PrecacheMyModel( "models/gman.mdl" );
+	PrecacheMyGibModel();
 }
 
 //=========================================================
@@ -208,29 +210,32 @@ void CGMan::RunTask( Task_t *pTask )
 //=========================================================
 // Override all damage
 //=========================================================
-int CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+TakeDamageResult CGMan::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
 {
+	TakeDamageResult takeDamageResult;
 	pev->health = pev->max_health / 2; // always trigger the 50% damage aitrigger
 
-	if( flDamage > 0 )
+	if( damageInfo.damage > 0 )
 	{
 		SetConditions( bits_COND_LIGHT_DAMAGE );
+		takeDamageResult.SetGotLightDamage();
 	}
 
-	if( flDamage >= 20 )
+	if( damageInfo.damage >= 20 )
 	{
 		SetConditions( bits_COND_HEAVY_DAMAGE );
+		takeDamageResult.SetGotHeavyDamage();
 	}
-	return TRUE;
+	return takeDamageResult;
 }
 
-void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType)
+void CGMan::TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr )
 {
 	UTIL_Ricochet( ptr->vecEndPos, 1.0 );
-	AddMultiDamage( pevInflictor, pevAttacker, this, flDamage, bitsDamageType );
+	AddMultiDamage( pevInflictor, pevAttacker, this, damageInfo, ptr );
 }
 
-void CGMan::PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener )
+void CGMan::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )
 {
 	CBaseMonster::PlayScriptedSentence( pszSentence, duration, volume, attenuation, bConcurrent, pListener );
 

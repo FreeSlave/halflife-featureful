@@ -14,10 +14,10 @@
 #include<VGUI_TextGrid.h>
 #include<VGUI_Label.h>
 #include<VGUI_TextImage.h>
-#include "../game_shared/vgui_listbox.h"
+#include "vgui_listbox.h"
 #include "cl_util.h"
 
-#include <ctype.h>
+#include <cctype>
 
 #define MAX_SCORES					10
 #define MAX_SCOREBOARD_TEAMS		5
@@ -223,8 +223,8 @@ private:
 
 class ScoreTablePanel;
 
-#include "../game_shared/vgui_grid.h"
-#include "../game_shared/vgui_defaultinputsignal.h"
+#include "vgui_grid.h"
+#include "vgui_defaultinputsignal.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: Scoreboard back panel
@@ -266,36 +266,26 @@ private:
 	CLabelHeader*	GetPlayerEntry(int x, int y)	{return &m_PlayerEntries[x][y];}
 
 public:
-	
-	int				m_iNumTeams;
-	int				m_iPlayerNum;
-	int				m_iShowscoresHeld;
-
 	int				m_iRows;
 	int				m_iSortedRows[NUM_ROWS];
 	int				m_iIsATeam[NUM_ROWS];
 	bool			m_bHasBeenSorted[MAX_PLAYERS];
-	int				m_iLastKilledBy;
-	int				m_fLastKillTime;
 
 
 public:
 
 	ScorePanel(int x,int y,int wide,int tall);
 
-	void Update( void );
+	void Update();
 
-	void SortTeams( void );
+	void SortTeams();
 	void SortPlayers( int iTeam, char *team );
-	void RebuildTeams( void );
 
 	void FillGrid();
 
-	void DeathMsg( int killer, int victim );
+	void Initialize();
 
-	void Initialize( void );
-
-	void Open( void );
+	void Open();
 
 	void MouseOverCell(int row, int col);
 

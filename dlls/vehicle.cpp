@@ -3,6 +3,7 @@
 #include "cbase.h"
 #include "trains.h"
 #include "saverestore.h"
+#include "common_soundscripts.h"
 
 #define VEHICLE_SPEED0_ACCELERATION	0.005000000000000000
 #define VEHICLE_SPEED1_ACCELERATION	0.002142857142857143
@@ -23,6 +24,49 @@
 #define VEHICLE_MAXPITCH		200
 #define VEHICLE_MAXSPEED		1500
 
+#define VEHICLE_DEFAULT_BRAKE_SOUND "plats/vehicle_brake1.wav"
+
+void CFuncVehicleProxy::Spawn()
+{
+	pev->movetype = MOVETYPE_FLY;
+	pev->solid = SOLID_BBOX;
+	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+	UTIL_SetOrigin(pev, pev->origin);
+
+	if (FNullEnt(pev->owner))
+	{
+		REMOVE_ENTITY(edict());
+	}
+	else
+	{
+		SetThink(&CFuncVehicleProxy::ProxyThink);
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
+}
+int CFuncVehicleProxy::ObjectCaps()
+{
+	return CPointEntity::ObjectCaps() | FCAP_DONT_SAVE;
+}
+void CFuncVehicleProxy::ProxyThink()
+{
+	if (FNullEnt(pev->owner))
+	{
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1f;
+		return;
+	}
+	CBaseEntity* pVehicle = CBaseEntity::Instance(pev->owner);
+	if (pVehicle)
+	{
+		pev->velocity = pVehicle->pev->velocity;
+		UTIL_SetOrigin(pev, pVehicle->pev->origin);
+		pev->nextthink = gpGlobals->time + 0.05f;
+	}
+}
+
+LINK_ENTITY_TO_CLASS(func_vehicle_proxy, CFuncVehicleProxy)
+LINK_ENTITY_TO_CLASS(func_tracktrain_proxy, CFuncVehicleProxy)
+
 TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 {
 	DEFINE_FIELD( CFuncVehicle, m_ppath, FIELD_CLASSPTR ),
@@ -37,6 +81,10 @@ TYPEDESCRIPTION CFuncVehicle::m_SaveData[] =
 	DEFINE_FIELD( CFuncVehicle, m_flVolume, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_flBank, FIELD_FLOAT ),
 	DEFINE_FIELD( CFuncVehicle, m_oldSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncVehicle, m_touchProxyName, FIELD_STRING ),
+	DEFINE_FIELD( CFuncVehicle, m_reverseSpeed, FIELD_FLOAT ),
+	DEFINE_FIELD( CFuncVehicle, m_deceleration, FIELD_INTEGER ),
+	DEFINE_FIELD( CFuncVehicle, m_stopSoundWhenAtHalt, FIELD_BOOLEAN ),
 };
 
 static float Fix2( float angle )
@@ -66,39 +114,39 @@ void CFuncVehicle::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "length" ))
 	{
 		m_length = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "width" ))
 	{
 		m_width = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "height" ))
 	{
 		m_height = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "startspeed" ))
 	{
 		m_startSpeed = atof(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "sounds" ))
 	{
 		m_sounds = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "volume" ))
 	{
 		m_flVolume = (float)atoi( pkvd->szValue );
 		m_flVolume *= 0.1f;
 
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "bank" ))
 	{
 		m_flBank = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "acceleration" ))
 	{
@@ -110,13 +158,43 @@ void CFuncVehicle::KeyValue( KeyValueData *pkvd )
 		else if( m_acceleration > 10 )
 			m_acceleration = 10;
 
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "reverse_speed" ))
+	{
+		m_reverseSpeed = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "deceleration" ))
+	{
+		m_deceleration = atof( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "stop_sound_at_halt" ))
+	{
+		m_stopSoundWhenAtHalt = atoi( pkvd->szValue ) != 0;
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "brake_sound" ))
+	{
+		pev->noise1 = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "ignition_sound" ))
+	{
+		pev->noise3 = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "touch_proxy_name" ))
+	{
+		m_touchProxyName = ALLOC_STRING(pkvd->szValue);
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseEntity::KeyValue( pkvd );
 }
 
-void CFuncVehicle::NextThink( float thinkTime, BOOL alwaysThink )
+void CFuncVehicle::NextThink( float thinkTime, bool alwaysThink )
 {
 	if( alwaysThink )
 		pev->flags |= FL_ALWAYSTHINK;
@@ -165,7 +243,7 @@ void CFuncVehicle::Blocked( CBaseEntity *pOther )
 		|| pOther->pev->origin.z < pev->origin.z
 		|| pOther->pev->origin.z > maxz )
 	{
-		pOther->TakeDamage( pev, pev, 150, DMG_CRUSH );
+		pOther->TakeDamage( pev, pev, DamageInfo(150, DMG_CRUSH) );
 	}
 }
 
@@ -207,10 +285,12 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		}
 
 		float flSpeedRatio = delta;
+		const bool hasCustomReverseSpeed = m_reverseSpeed > 0;
+		const float reverseSpeed = hasCustomReverseSpeed ? m_reverseSpeed : m_speed;
 
 		if( delta > 0 )
 		{
-			flSpeedRatio = (float)( pev->speed / m_speed );
+			flSpeedRatio = pev->speed / m_speed;
 
 			if( pev->speed < 0 )		flSpeedRatio = m_acceleration * 0.0005 + flSpeedRatio + VEHICLE_SPEED0_ACCELERATION;
 			else if( pev->speed < 10 )	flSpeedRatio = m_acceleration * 0.0006 + flSpeedRatio + VEHICLE_SPEED1_ACCELERATION;
@@ -229,7 +309,7 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		}
 		else if( delta < 0 )
 		{
-			flSpeedRatio = pev->speed / m_speed;
+			flSpeedRatio = pev->speed / reverseSpeed;
 
 										// TODO: fix float for test demo
 			if( flSpeedRatio > 0 )						flSpeedRatio = (float)flSpeedRatio - 0.0125f;
@@ -245,12 +325,33 @@ void CFuncVehicle::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		{
 			flSpeedRatio = 1;
 		}
-		else if( flSpeedRatio < -0.35f )
+		else
 		{
-			flSpeedRatio = -0.35f;
+			if (hasCustomReverseSpeed)
+			{
+				if( flSpeedRatio < -1.0f )
+				{
+					flSpeedRatio = -1.0f;
+				}
+			}
+			else
+			{
+				if( flSpeedRatio < -0.35f )
+				{
+					flSpeedRatio = -0.35f;
+				}
+			}
 		}
 
-		pev->speed = flSpeedRatio * m_speed;
+		if (delta < 0.0f && hasCustomReverseSpeed)
+		{
+			pev->speed = flSpeedRatio * reverseSpeed;
+		}
+		else
+		{
+			pev->speed = flSpeedRatio * m_speed;
+		}
+
 		Next();
 		m_flAcceleratorDecay = gpGlobals->time + 0.25f;
 	}
@@ -306,9 +407,12 @@ void CFuncVehicle::UpdateSound()
 
 	if( !m_soundPlaying )
 	{
-		if( m_sounds < 5 )
+		bool shouldPlayBrakeSound = m_sounds < 5 || !FStringNull(pev->noise1);
+
+		if (shouldPlayBrakeSound)
 		{
-			EMIT_SOUND_DYN( ENT(pev), CHAN_ITEM, "plats/vehicle_brake1.wav", m_flVolume, ATTN_NORM, 0, PITCH_NORM );
+			const char* brakeSound = FStringNull(pev->noise1) ? VEHICLE_DEFAULT_BRAKE_SOUND : STRING(pev->noise1);
+			EMIT_SOUND_DYN( ENT(pev), CHAN_ITEM, brakeSound, m_flVolume, ATTN_NORM, 0, PITCH_NORM );
 		}
 
 		EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, STRING( pev->noise ), m_flVolume, ATTN_NORM, 0, (int)flpitch );
@@ -316,12 +420,7 @@ void CFuncVehicle::UpdateSound()
 	}
 	else
 	{
-		unsigned short us_sound = ( (unsigned short)( m_sounds ) & 0x0007 ) << 12;
-		unsigned short us_pitch = ( (unsigned short)( flpitch / 10.0 ) & 0x003F ) << 6;
-		unsigned short us_volume = ( (unsigned short)( m_flVolume * 40 ) & 0x003F );
-		unsigned short us_encode = us_sound | us_pitch | us_volume;
-
-		PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, g_vecZero, g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0 );
+		PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, g_vecZero, g_vecZero, m_flVolume, 0.0, m_sounds, (int)flpitch, 0, 0 );
 	}
 }
 
@@ -560,16 +659,18 @@ void CFuncVehicle::Next()
 	{
 		m_flAcceleratorDecay = gpGlobals->time + 0.1f;
 
+		const int deceleration = m_deceleration > 0 ? m_deceleration : 20;
+
 		if( pev->speed < 0 )
 		{
-			pev->speed += 20;
+			pev->speed += deceleration;
 
 			if( pev->speed > 0 )
 				pev->speed = 0;
 		}
 		else if( pev->speed > 0 )
 		{
-			pev->speed -= 20;
+			pev->speed -= deceleration;
 
 			if( pev->speed < 0 )
 				pev->speed = 0;
@@ -583,7 +684,12 @@ void CFuncVehicle::Next()
 		pev->velocity = g_vecZero;
 
 		SetThink( &CFuncVehicle::Next );
-		NextThink( pev->ltime + time, TRUE );
+		NextThink( pev->ltime + time, true );
+
+		if (m_stopSoundWhenAtHalt && !m_pDriver)
+		{
+			StopSound();
+		}
 		return;
 	}
 
@@ -674,7 +780,7 @@ void CFuncVehicle::Next()
 	}
 
 	SetThink( &CFuncVehicle::Next );
-	NextThink( pev->ltime + time, TRUE );
+	NextThink( pev->ltime + time, true );
 }
 
 void CFuncVehicle::DeadEnd()
@@ -690,7 +796,7 @@ void CFuncVehicle::DeadEnd()
 		{
 			do
 			{
-				pNext = pTrack->ValidPath( pTrack->GetPrevious(), TRUE );
+				pNext = pTrack->ValidPath( pTrack->GetPrevious(), true );
 
 				if( pNext != NULL )
 				{
@@ -703,7 +809,7 @@ void CFuncVehicle::DeadEnd()
 		{
 			do
 			{
-				pNext = pTrack->ValidPath( pTrack->GetNext(), TRUE );
+				pNext = pTrack->ValidPath( pTrack->GetNext(), true );
 
 				if( pNext != NULL )
 				{
@@ -737,10 +843,10 @@ void CFuncVehicle::SetControls(entvars_t *pevControls)
 	m_controlMaxs = pevControls->maxs + offset;
 }
 
-BOOL CFuncVehicle::OnControls(entvars_t *pevTest)
+bool CFuncVehicle::OnControls(entvars_t *pevTest)
 {
 	if( pev->spawnflags & SF_TRACKTRAIN_NOCONTROL )
-		return FALSE;
+		return false;
 
 	Vector offset = pevTest->origin - pev->origin;
 
@@ -776,7 +882,7 @@ void CFuncVehicle::Find()
 
 	Vector look = nextPos;
 	look.z -= m_height;
-	m_ppath->LookAhead( &look, m_length, 0 );
+	m_ppath->LookAhead( &look, m_length, false );
 	look.z += m_height;
 
 	pev->angles = UTIL_VecToAngles( look - nextPos );
@@ -788,7 +894,7 @@ void CFuncVehicle::Find()
 	}
 
 	UTIL_SetOrigin( pev, nextPos );
-	NextThink( pev->ltime + 0.1f, FALSE );
+	NextThink( pev->ltime + 0.1f, false );
 	SetThink( &CFuncVehicle::Next );
 	pev->speed = m_startSpeed;
 	UpdateSound();
@@ -827,7 +933,7 @@ void CFuncVehicle::NearestPath()
 
 	if( pTrack != NULL )
 	{
-		if( ( pev->origin - pTrack->pev->origin ).Length() < ( pev->origin - pNearest->pev->origin ).Length())
+		if( ( pev->origin - pTrack->pev->origin ).LengthSqr() < ( pev->origin - pNearest->pev->origin ).LengthSqr())
 		{
 			pNearest = pTrack;
 		}
@@ -836,14 +942,14 @@ void CFuncVehicle::NearestPath()
 	m_ppath = (CPathTrack *)pNearest;
 	if( pev->speed != 0 )
 	{
-		NextThink( pev->ltime + 0.1f, FALSE );
+		NextThink( pev->ltime + 0.1f, false );
 		SetThink( &CFuncVehicle::Next );
 	}
 }
 
 void CFuncVehicle::OverrideReset()
 {
-	NextThink( pev->ltime + 0.1f, FALSE );
+	NextThink( pev->ltime + 0.1f, false );
 	SetThink( &CFuncVehicle::NearestPath );
 }
 
@@ -886,7 +992,7 @@ void CFuncVehicle::Spawn()
 
 	if( FStringNull( pev->target ))
 	{
-		ALERT( at_console, "Vehicle with no target" );
+		ALERT( at_console, "Vehicle with no target\n" );
 	}
 
 	if( pev->spawnflags & SF_TRACKTRAIN_PASSABLE )
@@ -906,7 +1012,7 @@ void CFuncVehicle::Spawn()
 	m_controlMaxs = pev->maxs;
 	m_controlMaxs.z += 72;
 
-	NextThink( pev->ltime + 0.1f, FALSE );
+	NextThink( pev->ltime + 0.1f, false );
 	SetThink( &CFuncVehicle::Find );
 	Precache();
 }
@@ -927,13 +1033,13 @@ void CFuncVehicle::Restart()
 
 	if( FStringNull( pev->target ))
 	{
-		ALERT( at_console, "Vehicle with no target" );
+		ALERT( at_console, "Vehicle with no target\n" );
 	}
 
 	UTIL_SetOrigin( pev, pev->oldorigin );
 	STOP_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noise ));
 
-	NextThink( pev->ltime + 0.1f, FALSE );
+	NextThink( pev->ltime + 0.1f, false );
 	SetThink( &CFuncVehicle::Find );
 }
 
@@ -944,18 +1050,42 @@ void CFuncVehicle::Precache()
 
 	switch( m_sounds )
 	{
-	case 1: PRECACHE_SOUND( "plats/vehicle1.wav" );pev->noise = MAKE_STRING( "plats/vehicle1.wav" ); break;
-	case 2: PRECACHE_SOUND( "plats/vehicle2.wav" );pev->noise = MAKE_STRING( "plats/vehicle2.wav" ); break;
-	case 3: PRECACHE_SOUND( "plats/vehicle3.wav" );pev->noise = MAKE_STRING( "plats/vehicle3.wav" ); break;
-	case 4: PRECACHE_SOUND( "plats/vehicle4.wav" );pev->noise = MAKE_STRING( "plats/vehicle4.wav" ); break;
-	case 5: PRECACHE_SOUND( "plats/vehicle6.wav" );pev->noise = MAKE_STRING( "plats/vehicle6.wav" ); break;
-	case 6: PRECACHE_SOUND( "plats/vehicle7.wav" );pev->noise = MAKE_STRING( "plats/vehicle7.wav" ); break;
+	case 1: pev->noise = MAKE_STRING( "plats/vehicle1.wav" ); break;
+	case 2: pev->noise = MAKE_STRING( "plats/vehicle2.wav" ); break;
+	case 3: pev->noise = MAKE_STRING( "plats/vehicle3.wav" ); break;
+	case 4: pev->noise = MAKE_STRING( "plats/vehicle4.wav" ); break;
+	case 5: pev->noise = MAKE_STRING( "plats/vehicle6.wav" ); break;
+	case 6: pev->noise = MAKE_STRING( "plats/vehicle7.wav" ); break;
+	default: break;
 	}
 
-	PRECACHE_SOUND( "plats/vehicle_brake1.wav" );
-	PRECACHE_SOUND( "plats/vehicle_start1.wav" );
+	if (!FStringNull(pev->noise))
+	{
+		PRECACHE_SOUND(STRING(pev->noise));
+	}
+
+	if (FStringNull(pev->noise1))
+		PRECACHE_SOUND(VEHICLE_DEFAULT_BRAKE_SOUND);
+	else
+		PRECACHE_SOUND(STRING(pev->noise1));
+	RegisterAndPrecacheSoundScript(Player::vehicleIgnitionSoundScript);
+	if (!FStringNull(pev->noise3))
+		PRECACHE_SOUND(STRING(pev->noise3));
+
+	if (!FStringNull(m_touchProxyName))
+	{
+		m_vehicleProxy = Create("func_vehicle_proxy", pev->origin, pev->angles, edict());
+		m_vehicleProxy->pev->targetname = m_touchProxyName;
+	}
 
 	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/vehicle.sc" );
+}
+
+void CFuncVehicle::UpdateOnRemove()
+{
+	UTIL_RemoveAndClean(m_vehicleProxy);
+
+	CBaseEntity::UpdateOnRemove();
 }
 
 LINK_ENTITY_TO_CLASS( func_vehiclecontrols, CFuncVehicleControls );

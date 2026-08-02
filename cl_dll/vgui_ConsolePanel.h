@@ -8,7 +8,7 @@
 #ifndef CONSOLEPANEL_H
 #define CONSOLEPANEL_H
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <VGUI_Panel.h>
 
 namespace vgui

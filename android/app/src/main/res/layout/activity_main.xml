@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:orientation="vertical" 
+    android:id="@+id/layout_launcher" 
+    android:focusable="true" 
+    android:focusableInTouchMode="true" 
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent" 
+    android:weightSum="1.0">
+
+    <TextView 
+        android:id="@+id/textView_args" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="@string/cmd_args_text" />
+
+    <EditText 
+        android:id="@+id/cmdArgs" 
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" />
+
+    <Button 
+        android:layout_gravity="right" 
+        android:id="@+id/button_launch" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="@string/launch_button" />
+
+</LinearLayout>

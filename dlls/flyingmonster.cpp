@@ -16,6 +16,7 @@
 #include	"extdll.h"
 #include	"util.h"
 #include	"cbase.h"
+#include        "game.h"
 #include	"monsters.h"
 #include	"schedule.h"
 #include	"flyingmonster.h"
@@ -31,7 +32,7 @@ int CFlyingMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd
 	if( FBitSet( pev->flags, FL_SWIM ) && ( UTIL_PointContents( vecEnd ) != CONTENTS_WATER ) )
 	{
 		// ALERT( at_aiconsole, "can't swim out of water\n" );
-		return FALSE;
+		return LOCALMOVE_INVALID;
 	}
 
 	TraceResult tr;
@@ -57,7 +58,7 @@ int CFlyingMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd
 	return LOCALMOVE_VALID;
 }
 
-Activity CFlyingMonster::GetStoppedActivity( void )
+Activity CFlyingMonster::GetStoppedActivity()
 { 
 	if( pev->movetype != MOVETYPE_FLY )		// UNDONE: Ground idle here, IDLE may be something else
 		return ACT_IDLE;
@@ -65,7 +66,7 @@ Activity CFlyingMonster::GetStoppedActivity( void )
 	return ACT_HOVER; 
 }
 
-void CFlyingMonster::Stop( void ) 
+void CFlyingMonster::Stop() 
 {
 	Activity stopped = GetStoppedActivity();
 	if( m_IdealActivity != stopped )
@@ -78,7 +79,7 @@ void CFlyingMonster::Stop( void )
 	m_vecTravel = g_vecZero;
 }
 
-float CFlyingMonster::ChangeYaw( int speed )
+float CFlyingMonster::ChangeYaw( int yawSpeed )
 {
 	if( pev->movetype == MOVETYPE_FLY )
 	{
@@ -92,18 +93,34 @@ float CFlyingMonster::ChangeYaw( int speed )
 			else if( diff > 20.0f )
 				target = -90.0f;
 		}
-		pev->angles.z = UTIL_Approach( target, pev->angles.z, 220.0f * gpGlobals->frametime );
+
+		float speed = 220.f;
+
+		if( monsteryawspeedfix.value )
+		{
+			if( m_flLastZYawTime == 0.f )
+				m_flLastZYawTime = gpGlobals->time - gpGlobals->frametime;
+
+			float delta = Q_min( gpGlobals->time - m_flLastZYawTime, 0.25f );
+			m_flLastZYawTime = gpGlobals->time;
+
+			speed *= delta;
+		}
+		else
+			speed *= gpGlobals->frametime;
+
+		pev->angles.z = UTIL_Approach( target, pev->angles.z, speed );
 	}
-	return CBaseMonster::ChangeYaw( speed );
+	return CBaseMonster::ChangeYaw( yawSpeed );
 }
 
-void CFlyingMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CFlyingMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->movetype = MOVETYPE_STEP;
 	ClearBits( pev->flags, FL_ONGROUND );
 	pev->angles.z = 0;
 	pev->angles.x = 0;
-	CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
+	return CBaseMonster::Killed( pevInflictor, pevAttacker, iGib );
 }
 
 void CFlyingMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
@@ -130,16 +147,16 @@ void CFlyingMonster::Move( float flInterval )
 	CBaseMonster::Move( flInterval );
 }
 
-BOOL CFlyingMonster::ShouldAdvanceRoute( float flWaypointDist )
+bool CFlyingMonster::ShouldAdvanceRoute( float flWaypointDist )
 {
 	// Get true 3D distance to the goal so we actually reach the correct height
 	if( m_Route[m_iRouteIndex].iType & bits_MF_IS_GOAL )
 		flWaypointDist = ( m_Route[m_iRouteIndex].vecLocation - pev->origin ).Length();
 
 	if( flWaypointDist <= 64.0f + ( m_flGroundSpeed * gpGlobals->frametime ) )
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 void CFlyingMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, float flInterval )
@@ -168,7 +185,7 @@ void CFlyingMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir,
 		if( CheckLocalMove( pev->origin, vecMove, pTargetEnt, NULL ) )
 		{
 			m_vecTravel = vecMove - pev->origin;
-			m_vecTravel = m_vecTravel.Normalize();
+			m_vecTravel.NormalizeInPlace();
 			UTIL_MoveToOrigin( ENT( pev ), vecMove, ( m_flGroundSpeed * flInterval ), MOVE_STRAFE );
 		}
 		else
@@ -201,7 +218,7 @@ float CFlyingMonster::CeilingZ( const Vector &position )
 	return maxUp.z;
 }
 
-BOOL CFlyingMonster::ProbeZ( const Vector &position, const Vector &probe, float *pFraction )
+bool CFlyingMonster::ProbeZ( const Vector &position, const Vector &probe, float *pFraction )
 {
 	int conPosition = UTIL_PointContents( position );
 	if( ( ( ( pev->flags ) & FL_SWIM ) == FL_SWIM ) ^ ( conPosition == CONTENTS_WATER ) )
@@ -210,7 +227,7 @@ BOOL CFlyingMonster::ProbeZ( const Vector &position, const Vector &probe, float 
 		// or FLYING  & WATER
 		//
 		*pFraction = 0.0f;
-		return TRUE; // We hit a water boundary because we are where we don't belong.
+		return true; // We hit a water boundary because we are where we don't belong.
 	}
 	int conProbe = UTIL_PointContents( probe );
 	if( conProbe == conPosition )
@@ -219,7 +236,7 @@ BOOL CFlyingMonster::ProbeZ( const Vector &position, const Vector &probe, float 
 		// outside the water (for birds).
 		//
 		*pFraction = 1.0f;
-		return FALSE;
+		return false;
 	}
 
 	Vector ProbeUnit = ( probe - position ).Normalize();
@@ -244,7 +261,201 @@ BOOL CFlyingMonster::ProbeZ( const Vector &position, const Vector &probe, float 
 	}
 	*pFraction = minProbeLength/ProbeLength;
 
-	return TRUE;
+	return true;
+}
+
+Vector CFlyingMonster::DoProbe(const Vector &Probe, const Vector& myVelocity)
+{
+	Vector WallNormal = Vector(0,0,-1); // WATER normal is Straight Down for fish.
+	float frac;
+	bool bBumpedSomething = ProbeZ(pev->origin, Probe, &frac);
+
+	if (bBumpedSomething && Probe.z < pev->origin.z && !FBitSet(pev->flags, FL_SWIM))
+	{
+		WallNormal = Vector(0, 0, 1);
+	}
+
+	TraceResult tr;
+	TRACE_MONSTER_HULL(edict(), pev->origin, Probe, dont_ignore_monsters, edict(), &tr);
+	if ( tr.fAllSolid || tr.flFraction < 0.99 )
+	{
+		if (tr.flFraction < 0.0)
+			tr.flFraction = 0.0;
+		if (tr.flFraction > 1.0)
+			tr.flFraction = 1.0;
+		if (tr.flFraction < frac)
+		{
+			frac = tr.flFraction;
+			bBumpedSomething = true;
+			WallNormal = tr.vecPlaneNormal;
+		}
+	}
+
+	if (bBumpedSomething && (m_hEnemy == 0 || tr.pHit != m_hEnemy->edict()))
+	{
+		Vector ProbeDir = Probe - pev->origin;
+
+		Vector NormalToProbeAndWallNormal = CrossProduct(ProbeDir, WallNormal);
+		Vector SteeringVector = CrossProduct( NormalToProbeAndWallNormal, ProbeDir);
+
+		float SteeringForce = m_flightSpeed * (1-frac) * (DotProduct(WallNormal.Normalize(), myVelocity.Normalize()));
+		if (SteeringForce < 0.0)
+		{
+			SteeringForce = -SteeringForce;
+		}
+		SteeringVector = SteeringForce * SteeringVector.Normalize();
+
+		return SteeringVector;
+	}
+	return Vector(0, 0, 0);
+}
+
+void CFlyingMonster::FlyAwayFromGround()
+{
+	Vector Angles;
+	Vector Forward, Right, Up;
+
+	pev->angles.x = 0.0f;
+	pev->angles.y += RANDOM_FLOAT( -45, 45 );
+	ClearBits( pev->flags, FL_ONGROUND );
+
+	Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+
+	pev->velocity = Forward * 200 + Up * 200;
+}
+
+Vector CFlyingMonster::GetSteeringVector(const Vector &start, float probeLength, const Vector &myVelocity)
+{
+	Vector Forward, Right, Up;
+	Vector Angles = UTIL_VecToAngles( myVelocity );
+	Angles.x = -Angles.x;
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+
+	Vector f, u, l, r, d;
+	f = DoProbe( start + probeLength * Forward, myVelocity );
+	r = DoProbe( start + probeLength / 3 * (Forward + Right), myVelocity );
+	l = DoProbe( start + probeLength / 3 * (Forward - Right), myVelocity );
+	u = DoProbe( start + probeLength / 3 * (Forward + Up), myVelocity );
+	d = DoProbe( start + probeLength / 3 * (Forward - Up), myVelocity );
+
+	return f + r + l + u + d;
+}
+
+Vector CFlyingMonster::SetFlyVelocityWithSteer(const Vector& myVelocity, const Vector& SteeringVector)
+{
+	const Vector newVelocity = ( myVelocity + SteeringVector / 2 ).Normalize();
+
+	Vector Forward, Right, Up;
+	Vector Angles = Vector( -pev->angles.x, pev->angles.y, pev->angles.z );
+	UTIL_MakeVectorsPrivate( Angles, Forward, Right, Up );
+	// ALERT( at_console, "%f : %f\n", Angles.x, Forward.z );
+
+	float flDot = DotProduct( Forward, myVelocity );
+	if( flDot > 0.5f )
+		pev->velocity = newVelocity * m_flightSpeed;
+	else if( flDot > 0 )
+		pev->velocity = newVelocity * m_flightSpeed * ( flDot + 0.5f );
+	else
+		pev->velocity = newVelocity * 80;
+	return pev->velocity;
+}
+
+void CFlyingMonster::SmoothAngles(const Vector &myVelocity)
+{
+	Vector Angles = UTIL_VecToAngles( myVelocity );
+
+	// Smooth Pitch
+	//
+	if( Angles.x > 180 )
+		Angles.x = Angles.x - 360;
+	pev->angles.x = UTIL_Approach( Angles.x, pev->angles.x, 50 * 0.1f );
+	if( pev->angles.x < -80 )
+		pev->angles.x = -80;
+	if( pev->angles.x > 80 )
+		pev->angles.x = 80;
+
+	// Smooth Yaw and generate Roll
+	//
+	float turn = 360;
+	// ALERT( at_console, "Y %.0f %.0f\n", Angles.y, pev->angles.y );
+
+	if( fabs( Angles.y - pev->angles.y ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y;
+	}
+	if( fabs( Angles.y - pev->angles.y + 360 ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y + 360;
+	}
+	if( fabs( Angles.y - pev->angles.y - 360 ) < fabs( turn ) )
+	{
+		turn = Angles.y - pev->angles.y - 360;
+	}
+
+	float speed = m_flightSpeed * 0.1f;
+
+	// ALERT( at_console, "speed %.0f %f\n", turn, speed );
+	if( fabs( turn ) > speed )
+	{
+		if( turn < 0.0f )
+		{
+			turn = -speed;
+		}
+		else
+		{
+			turn = speed;
+		}
+	}
+	pev->angles.y += turn;
+	pev->angles.z -= turn;
+	pev->angles.y = fmod( ( pev->angles.y + 360.0f ), 360.0f );
+
+	static float yaw_adj;
+
+	yaw_adj = yaw_adj * 0.8f + turn;
+
+	// ALERT( at_console, "yaw %f : %f\n", turn, yaw_adj );
+
+	SetBoneController( 0, -yaw_adj * 0.25f );
+
+	// Roll Smoothing
+	//
+	turn = 360;
+	if( fabs( Angles.z - pev->angles.z ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z;
+	}
+	if( fabs( Angles.z - pev->angles.z + 360 ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z + 360;
+	}
+	if( fabs( Angles.z - pev->angles.z - 360 ) < fabs( turn ) )
+	{
+		turn = Angles.z - pev->angles.z - 360;
+	}
+	speed = m_flightSpeed / 2 * 0.1f;
+
+	if( fabs( turn ) < speed )
+	{
+		pev->angles.z += turn;
+	}
+	else
+	{
+		if( turn < 0.0f )
+		{
+			pev->angles.z -= speed;
+		}
+		else
+		{
+			pev->angles.z += speed;
+		}
+	}
+
+	if( pev->angles.z < -20 )
+		pev->angles.z = -20;
+	if( pev->angles.z > 20 )
+		pev->angles.z = 20;
 }
 
 float CFlyingMonster::FloorZ( const Vector &position )

@@ -15,21 +15,13 @@
 #ifndef BARNACLEGRAPPLETIP_H
 #define BARNACLEGRAPPLETIP_H
 
-#include "mod_features.h"
 #include "cbase.h"
 
-#if FEATURE_GRAPPLE
 class CBarnacleGrappleTip : public CBaseEntity
 {
 public:
-
-/*	virtual int		Save( CSave &save );
-	virtual int		Restore( CRestore &restore );
-	static	TYPEDESCRIPTION m_SaveData[];
-*/
-	int targetClass;
-	void Precache();
-	void Spawn();
+	void Precache() override;
+	void Spawn() override;
 
 	void EXPORT FlyThink();
 	void EXPORT OffsetThink();
@@ -61,7 +53,5 @@ private:
 #endif
 	Vector m_vecOriginOffset;
 };
-
-#endif
 
 #endif

@@ -18,15 +18,29 @@
 #include	"cbase.h"
 #include	"monsters.h"
 #include	"soundent.h"
+#include	"graphic_debug.h"
+#include	"clamp.h"
+#include	"lerp.h"
 
 LINK_ENTITY_TO_CLASS( soundent, CSoundEnt )
 
+extern cvar_t displaysoundlist;
 CSoundEnt *pSoundEnt;
+
+const std::pair<int, const char*> g_SoundNames[] = {
+	{bits_SOUND_COMBAT, "Combat"},
+	{bits_SOUND_WORLD, "World"},
+	{bits_SOUND_PLAYER, "Player"},
+	{bits_SOUND_CARCASS, "Carcass"},
+	{bits_SOUND_MEAT, "Meat"},
+	{bits_SOUND_DANGER, "Danger"},
+	{bits_SOUND_GARBAGE, "Garbage"},
+};
 
 //=========================================================
 // CSound - Clear - zeros all fields for a sound
 //=========================================================
-void CSound::Clear( void )
+void CSound::Clear()
 {
 	m_vecOrigin = g_vecZero;
 	m_iType = 0;
@@ -40,7 +54,7 @@ void CSound::Clear( void )
 // Reset - clears the volume, origin, and type for a sound,
 // but doesn't expire or unlink it. 
 //=========================================================
-void CSound::Reset( void )
+void CSound::Reset()
 {
 	m_vecOrigin = g_vecZero;
 	m_iType = 0;
@@ -49,35 +63,35 @@ void CSound::Reset( void )
 }
 
 //=========================================================
-// FIsSound - returns TRUE if the sound is an Audible sound
+// FIsSound - returns true if the sound is an Audible sound
 //=========================================================
-BOOL CSound::FIsSound( void )
+bool CSound::FIsSound()
 {
 	if( m_iType & ( bits_SOUND_COMBAT | bits_SOUND_WORLD | bits_SOUND_PLAYER | bits_SOUND_DANGER ) )
 	{
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
-// FIsScent - returns TRUE if the sound is actually a scent
+// FIsScent - returns true if the sound is actually a scent
 //=========================================================
-BOOL CSound::FIsScent( void )
+bool CSound::FIsScent()
 {
 	if( m_iType & ( bits_SOUND_CARCASS | bits_SOUND_MEAT | bits_SOUND_GARBAGE ) )
 	{
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 //=========================================================
 // Spawn 
 //=========================================================
-void CSoundEnt::Spawn( void )
+void CSoundEnt::Spawn()
 {
 	pev->solid = SOLID_NOT;
 	Initialize();
@@ -90,7 +104,7 @@ void CSoundEnt::Spawn( void )
 // for sounds that have ExpireTimes less than or equal
 // to the current world time, and these sounds are deallocated.
 //=========================================================
-void CSoundEnt::Think( void )
+void CSoundEnt::Think()
 {
 	int iSound;
 	int iPreviousSound;
@@ -106,6 +120,23 @@ void CSoundEnt::Think( void )
 		{
 			int iNext = m_SoundPool[ iSound ].m_iNext;
 
+			if (displaysoundlist.value >= 1)
+			{
+				ALERT(at_console, "The %s of volume %d at (%g, %g, %g) has expired. Type: ",
+					m_SoundPool[iSound].FIsScent() ? "scent" : "sound",
+					m_SoundPool[iSound].m_iVolume,
+					m_SoundPool[iSound].m_vecOrigin.x, m_SoundPool[iSound].m_vecOrigin.y, m_SoundPool[iSound].m_vecOrigin.z);
+
+				for (const auto& sound : g_SoundNames)
+				{
+					if (FBitSet(m_SoundPool[iSound].m_iType, sound.first))
+					{
+						ALERT(at_console, "%s; ", sound.second);
+					}
+				}
+				ALERT(at_console, "\n");
+			}
+
 			// move this sound back into the free list
 			FreeSound( iSound, iPreviousSound );
 
@@ -118,17 +149,13 @@ void CSoundEnt::Think( void )
 		}
 	}
 
-	if( m_fShowReport )
-	{
-		ALERT( at_aiconsole, "Soundlist: %d / %d  (%d)\n", ISoundsInList( SOUNDLISTTYPE_ACTIVE ),ISoundsInList( SOUNDLISTTYPE_FREE ), ISoundsInList( SOUNDLISTTYPE_ACTIVE ) - m_cLastActiveSounds );
-		m_cLastActiveSounds = ISoundsInList( SOUNDLISTTYPE_ACTIVE );
-	}
+	ReportUpdate();
 }
 
 //=========================================================
 // Precache - dummy function
 //=========================================================
-void CSoundEnt::Precache( void )
+void CSoundEnt::Precache()
 {
 }
 
@@ -167,14 +194,14 @@ void CSoundEnt::FreeSound( int iSound, int iPrevious )
 // IAllocSound - moves a sound from the Free list to the 
 // Active list returns the index of the alloc'd sound
 //=========================================================
-int CSoundEnt::IAllocSound( void )
+int CSoundEnt::IAllocSound()
 {
 	int iNewSound;
 
 	if( m_iFreeSound == SOUNDLIST_EMPTY )
 	{
 		// no free sound!
-		ALERT( at_console, "Free Sound List is full!\n" );
+		//ALERT( at_console, "Free Sound List is full!\n" );
 		return SOUNDLIST_EMPTY;
 	}
 
@@ -196,35 +223,111 @@ int CSoundEnt::IAllocSound( void )
 // InsertSound - Allocates a free sound and fills it with 
 // sound info.
 //=========================================================
-void CSoundEnt::InsertSound( int iType, const Vector &vecOrigin, int iVolume, float flDuration )
+void CSoundEnt::InsertSound( CBaseEntity* pInitiator, int iType, const Vector &vecOrigin, int iVolume, float flDuration )
 {
-	int iThisSound;
-
 	if( !pSoundEnt )
 	{
 		// no sound ent!
 		return;
 	}
 
-	iThisSound = pSoundEnt->IAllocSound();
+	int iThisSound = pSoundEnt->IAllocSound();
 
-	if( iThisSound == SOUNDLIST_EMPTY )
+	if (iThisSound == SOUNDLIST_EMPTY)
 	{
-		ALERT( at_console, "Could not AllocSound() for InsertSound() (DLL)\n" );
-		return;
+		ALERT(at_warning, "Could not AllocSound() for InsertSound() (DLL)\n");
+
+		int iSound = pSoundEnt->m_iActiveSound;
+		int iPreviousSound = SOUNDLIST_EMPTY;
+
+		float minExpireTime = 0.0f;
+		int iSoundToFree = SOUNDLIST_EMPTY;
+		int iPreviousSoundToFree = SOUNDLIST_EMPTY;
+
+		while (iSound != SOUNDLIST_EMPTY)
+		{
+			if (pSoundEnt->m_SoundPool[iSound].m_flExpireTime != SOUND_NEVER_EXPIRE)
+			{
+				if (minExpireTime == 0.0f || pSoundEnt->m_SoundPool[iSound].m_flExpireTime < minExpireTime)
+				{
+					minExpireTime = pSoundEnt->m_SoundPool[iSound].m_flExpireTime;
+					iSoundToFree = iSound;
+					iPreviousSoundToFree = iPreviousSound;
+				}
+			}
+
+			iPreviousSound = iSound;
+			iSound = pSoundEnt->m_SoundPool[iSound].m_iNext;
+		}
+
+		if (iSoundToFree != SOUNDLIST_EMPTY)
+		{
+			FreeSound(iSoundToFree, iPreviousSoundToFree);
+			ALERT(at_warning, "Taking out an old sound in order to insert a new one\n");
+
+			iThisSound = pSoundEnt->IAllocSound();
+			if (iThisSound == SOUNDLIST_EMPTY)
+			{
+				ALERT(at_error, "Could not AllocSound() even after freeing?!\n");
+				return;
+			}
+		}
+		else
+			return;
 	}
 
 	pSoundEnt->m_SoundPool[iThisSound].m_vecOrigin = vecOrigin;
 	pSoundEnt->m_SoundPool[iThisSound].m_iType = iType;
 	pSoundEnt->m_SoundPool[iThisSound].m_iVolume = iVolume;
 	pSoundEnt->m_SoundPool[iThisSound].m_flExpireTime = gpGlobals->time + flDuration;
+
+	if (displaysoundlist.value >= 1)
+	{
+		ALERT(at_console, "%s: inserting %s of volume %d at (%g, %g, %g) for %g seconds. Type: ",
+			pInitiator ? STRING(pInitiator->pev->classname) : "world",
+			pSoundEnt->m_SoundPool[iThisSound].FIsScent() ? "scent" : "sound",
+			iVolume, vecOrigin.x, vecOrigin.y, vecOrigin.z, flDuration);
+
+		for (const auto& sound : g_SoundNames)
+		{
+			if (FBitSet(iType, sound.first))
+			{
+				ALERT(at_console, "%s; ", sound.second);
+			}
+		}
+		ALERT(at_console, "\n");
+	}
+
+	if (displaysoundlist.value >= 2)
+	{
+		Color3 color{255, 255, 255};
+		if (FBitSet(iType, bits_SOUND_DANGER))
+			color = Color3{255, 0, 0};
+		else if (FBitSet(iType, bits_SOUND_COMBAT))
+			color = Color3{255, 170, 0};
+		else if (FBitSet(iType, bits_SOUND_MEAT|bits_SOUND_CARCASS))
+			color = Color3{255, 85, 127};
+		else if (FBitSet(iType, bits_SOUND_PLAYER))
+			color = Color3{0, 170, 255};
+
+		const int minVolume = 192;
+		const int maxVolume = 512;
+
+		const int volume = clamp(iVolume, minVolume, maxVolume);
+		const float volParameter = (volume - minVolume) / static_cast<float>(maxVolume - minVolume);
+
+		const float height = lerp(16.0f, 96.0f, volParameter);
+		const float width = lerp(8.0f, 80.0f, volParameter);
+
+		DrawBeamLine(vecOrigin, vecOrigin + Vector(0,0,height), color, flDuration * 10, (int)width);
+	}
 }
 
 //=========================================================
 // Initialize - clears all sounds and moves them into the 
 // free sound list.
 //=========================================================
-void CSoundEnt::Initialize( void )
+void CSoundEnt::Initialize()
 {
   	int i;
 	int iSound;
@@ -254,15 +357,6 @@ void CSoundEnt::Initialize( void )
 		}
 
 		pSoundEnt->m_SoundPool[iSound].m_flExpireTime = SOUND_NEVER_EXPIRE;
-	}
-
-	if( CVAR_GET_FLOAT( "displaysoundlist" ) == 1 )
-	{
-		m_fShowReport = TRUE;
-	}
-	else
-	{
-		m_fShowReport = FALSE;
 	}
 }
 
@@ -308,7 +402,7 @@ int CSoundEnt::ISoundsInList( int iListType )
 //=========================================================
 // ActiveList - returns the head of the active sound list
 //=========================================================
-int CSoundEnt::ActiveList( void )
+int CSoundEnt::ActiveList()
 {
 	if( !pSoundEnt )
 	{
@@ -321,7 +415,7 @@ int CSoundEnt::ActiveList( void )
 //=========================================================
 // FreeList - returns the head of the free sound list
 //=========================================================
-int CSoundEnt::FreeList( void )
+int CSoundEnt::FreeList()
 {
 	if( !pSoundEnt )
 	{
@@ -375,4 +469,21 @@ int CSoundEnt::ClientSoundIndex( edict_t *pClient )
 #endif // _DEBUG
 
 	return iReturn;
+}
+
+void CSoundEnt::ReportUpdate()
+{
+	if (!pSoundEnt)
+		return;
+
+	if (displaysoundlist.value < 1)
+		return;
+
+	const int activeSoundNum = pSoundEnt->ISoundsInList( SOUNDLISTTYPE_ACTIVE );
+	if (pSoundEnt->m_cLastActiveSounds != activeSoundNum)
+	{
+		const int freeSoundNum = pSoundEnt->ISoundsInList( SOUNDLISTTYPE_FREE );
+		pSoundEnt->m_cLastActiveSounds = activeSoundNum;
+		ALERT(at_aiconsole, "Soundlist: active %d; free %d out of %d\n", activeSoundNum, freeSoundNum, MAX_WORLD_SOUNDS);
+	}
 }

@@ -21,12 +21,14 @@ extern "C"
 }
 #include "cvardef.h"
 #include "usercmd.h"
-#include "const.h"
 #include "camera.h"
 #include "in_defs.h"
 //#include "view.h"
-#include <string.h>
-#include <ctype.h>
+#include <cctype>
+#include "keydefs.h"
+#include "player_capabilities.h"
+
+#include <set>
 
 #if USE_VGUI
 #include "vgui_TeamFortressViewport.h"
@@ -45,12 +47,12 @@ extern int g_weaponselect;
 extern cl_enginefunc_t gEngfuncs;
 
 // Defined in pm_math.c
-extern "C" float anglemod( float a );
+float anglemod( float a );
 
-void IN_Init( void );
+void IN_Init();
 void IN_Move( float frametime, usercmd_t *cmd );
-void IN_Shutdown( void );
-void V_Init( void );
+void IN_Shutdown();
+void V_Init();
 void VectorAngles( const float *forward, float *angles );
 int CL_ButtonBits( int );
 
@@ -134,6 +136,48 @@ typedef struct kblist_s
 } kblist_t;
 
 kblist_t *g_kbkeys = NULL;
+
+namespace autofuncs
+{
+static cvar_t* cl_autojump;
+
+static struct {
+	bool onground = false;
+	bool inwater = false;
+	bool walking = true; // Movetype == MOVETYPE_WALK. Filters out noclip, being on ladder, etc.
+} player;
+
+static void handle_autojump(usercmd_t* cmd)
+{
+	static bool s_jump_was_down_last_frame = false;
+
+	if (cl_autojump->value != 0.0f)
+	{
+		bool should_release_jump = (!player.onground && !player.inwater && player.walking);
+
+		/*
+			 * Spam pressing and releasing jump if we're stuck in a spot where jumping still results in
+			 * being onground in the end of the frame. Without this check, +jump would remain held and
+			 * when the player exits this spot they would have to release and press the jump button to
+			 * start jumping again. This also helps with exiting water or ladder right onto the ground.
+			 */
+		if (s_jump_was_down_last_frame && player.onground && !player.inwater && player.walking)
+			should_release_jump = true;
+
+		if (should_release_jump && !gHUD.m_onRope)
+			cmd->buttons &= ~IN_JUMP;
+	}
+
+	s_jump_was_down_last_frame = ((cmd->buttons & IN_JUMP) != 0);
+}
+}
+
+void pm_update_player_info(int onground, int inwater, int walking)
+{
+	autofuncs::player.onground = (onground != 0);
+	autofuncs::player.inwater = (inwater != 0);
+	autofuncs::player.walking = (walking != 0);
+}
 
 /*
 ============
@@ -268,7 +312,7 @@ KB_Init
 Add kbutton_t definitions that the engine can query if needed
 ============
 */
-void KB_Init( void )
+void KB_Init()
 {
 	g_kbkeys = NULL;
 
@@ -284,7 +328,7 @@ KB_Shutdown
 Clear kblist
 ============
 */
-void KB_Shutdown( void )
+void KB_Shutdown()
 {
 	kblist_t *p, *n;
 	p = g_kbkeys;
@@ -378,8 +422,31 @@ HUD_Key_Event
 Return 1 to allow engine to process the key, otherwise, act on it as needed
 ============
 */
+
+bool g_checkingBindings = false;
+std::set<int> g_boundKeynums;
+
 int DLLEXPORT HUD_Key_Event( int down, int keynum, const char *pszCurrentBinding )
 {
+	if (g_checkingBindings)
+	{
+		if (down)
+		{
+			if (pszCurrentBinding && *pszCurrentBinding)
+			{
+				g_boundKeynums.insert(keynum);
+			}
+			//gEngfuncs.Con_DPrintf("Key Event: %d. Binding: %s\n", keynum, pszCurrentBinding ? pszCurrentBinding : "[unbound]");
+		}
+		return 0;
+	}
+
+	if (down)
+	{
+		if (gHUD.HandleKeyDown(keynum))
+			return 0;
+	}
+
 #if USE_VGUI
 	if (gViewPort)
 		return gViewPort->KeyInput(down, keynum, pszCurrentBinding);
@@ -387,295 +454,300 @@ int DLLEXPORT HUD_Key_Event( int down, int keynum, const char *pszCurrentBinding
 	return 1;
 }
 
-void IN_BreakDown( void )
+void IN_BreakDown()
 {
 	KeyDown( &in_break );
 }
 
-void IN_BreakUp( void )
+void IN_BreakUp()
 {
 	KeyUp( &in_break );
 }
 
-void IN_KLookDown( void )
+void IN_KLookDown()
 {
 	KeyDown( &in_klook );
 }
 
-void IN_KLookUp( void )
+void IN_KLookUp()
 {
 	KeyUp( &in_klook );
 }
 
-void IN_JLookDown( void )
+void IN_JLookDown()
 {
 	KeyDown( &in_jlook );
 }
 
-void IN_JLookUp( void )
+void IN_JLookUp()
 {
 	KeyUp( &in_jlook );
 }
 
-void IN_MLookDown( void )
+void IN_MLookDown()
 {
 	KeyDown( &in_mlook );
 }
 
-void IN_UpDown( void )
+void IN_UpDown()
 {
 	KeyDown( &in_up );
 }
 
-void IN_UpUp( void )
+void IN_UpUp()
 {
 	KeyUp( &in_up );
 }
 
-void IN_DownDown( void )
+void IN_DownDown()
 {
 	KeyDown( &in_down );
 }
 
-void IN_DownUp( void )
+void IN_DownUp()
 {
 	KeyUp( &in_down );
 }
 
-void IN_LeftDown( void )
+void IN_LeftDown()
 {
 	KeyDown( &in_left );
 }
 
-void IN_LeftUp( void )
+void IN_LeftUp()
 {
 	KeyUp( &in_left );
 }
 
-void IN_RightDown( void )
+void IN_RightDown()
 {
 	KeyDown( &in_right );
 }
 
-void IN_RightUp( void )
+void IN_RightUp()
 {
 	KeyUp( &in_right );
 }
 
-void IN_ForwardDown( void )
+void IN_ForwardDown()
 {
 	KeyDown( &in_forward );
 	gHUD.m_Spectator.HandleButtonsDown( IN_FORWARD );
 }
 
-void IN_ForwardUp( void )
+void IN_ForwardUp()
 {
 	KeyUp( &in_forward );
 	gHUD.m_Spectator.HandleButtonsUp( IN_FORWARD );
 }
 
-void IN_BackDown( void )
+void IN_BackDown()
 {
 	KeyDown( &in_back );
 	gHUD.m_Spectator.HandleButtonsDown( IN_BACK );
 }
 
-void IN_BackUp( void )
+void IN_BackUp()
 {
 	KeyUp( &in_back );
 	gHUD.m_Spectator.HandleButtonsUp( IN_BACK );
 }
 
-void IN_LookupDown( void )
+void IN_LookupDown()
 {
 	KeyDown( &in_lookup );
 }
 
-void IN_LookupUp( void )
+void IN_LookupUp()
 {
 	KeyUp( &in_lookup );
 }
 
-void IN_LookdownDown( void )
+void IN_LookdownDown()
 {
 	KeyDown( &in_lookdown );
 }
 
-void IN_LookdownUp( void )
+void IN_LookdownUp()
 {
 	KeyUp( &in_lookdown );
 }
 
-void IN_MoveleftDown( void )
+void IN_MoveleftDown()
 {
 	KeyDown( &in_moveleft );
 	gHUD.m_Spectator.HandleButtonsDown( IN_MOVELEFT );
 }
 
-void IN_MoveleftUp( void )
+void IN_MoveleftUp()
 {
 	KeyUp( &in_moveleft );
 	gHUD.m_Spectator.HandleButtonsUp( IN_MOVELEFT );
 }
 
-void IN_MoverightDown( void )
+void IN_MoverightDown()
 {
 	KeyDown( &in_moveright );
 	gHUD.m_Spectator.HandleButtonsDown( IN_MOVERIGHT );
 }
 
-void IN_MoverightUp( void )
+void IN_MoverightUp()
 {
 	KeyUp( &in_moveright );
 	gHUD.m_Spectator.HandleButtonsUp( IN_MOVERIGHT );
 }
 
-void IN_SpeedDown( void )
+void IN_SpeedDown()
 {
 	KeyDown( &in_speed );
 }
 
-void IN_SpeedUp( void )
+void IN_SpeedUp()
 {
 	KeyUp( &in_speed );
 }
 
-void IN_StrafeDown( void )
+void IN_StrafeDown()
 {
 	KeyDown( &in_strafe );
 }
 
-void IN_StrafeUp( void )
+void IN_StrafeUp()
 {
 	KeyUp( &in_strafe );
 }
 
 // needs capture by hud/vgui also
-extern void __CmdFunc_InputPlayerSpecial( void );
+extern void __CmdFunc_InputPlayerSpecial();
 
-void IN_Attack2Down( void )
+void IN_Attack2Down()
 {
 	KeyDown( &in_attack2 );
 
 	gHUD.m_Spectator.HandleButtonsDown( IN_ATTACK2 );
 }
 
-void IN_Attack2Up( void )
+void IN_Attack2Up()
 {
 	KeyUp( &in_attack2 );
 }
 
-void IN_UseDown( void )
+void IN_UseDown()
 {
 	KeyDown( &in_use );
 	gHUD.m_Spectator.HandleButtonsDown( IN_USE );
 }
-void IN_UseUp( void )
+void IN_UseUp()
 {
 	KeyUp( &in_use );
 }
-void IN_JumpDown( void )
+void IN_JumpDown()
 {
 	KeyDown( &in_jump );
 	gHUD.m_Spectator.HandleButtonsDown( IN_JUMP );
 }
 
-void IN_JumpUp( void )
+void IN_JumpUp()
 {
 	KeyUp( &in_jump );
 }
 
-void IN_DuckDown( void )
+void IN_DuckDown()
 {
 	KeyDown( &in_duck );
 	gHUD.m_Spectator.HandleButtonsDown( IN_DUCK );
 }
 
-void IN_DuckUp( void )
+void IN_DuckUp()
 {
 	KeyUp( &in_duck );
 }
 
-void IN_ReloadDown( void )
+void IN_ReloadDown()
 {
 	KeyDown( &in_reload );
 }
 
-void IN_ReloadUp( void )
+void IN_ReloadUp()
 {
 	KeyUp( &in_reload );
 }
 
-void IN_Alt1Down( void )
+void IN_Alt1Down()
 {
 	KeyDown( &in_alt1 );
 }
 
-void IN_Alt1Up( void )
+void IN_Alt1Up()
 {
 	KeyUp( &in_alt1 );
 }
 
-void IN_GraphDown( void )
+void IN_GraphDown()
 {
 	KeyDown( &in_graph );
 }
 
-void IN_GraphUp( void )
+void IN_GraphUp()
 {
 	KeyUp( &in_graph );
 }
 
-void IN_AttackDown( void )
+void IN_AttackDown()
 {
 	KeyDown( &in_attack );
 	gHUD.m_Spectator.HandleButtonsDown( IN_ATTACK );
 }
 
-void IN_AttackUp( void )
+void IN_AttackUp()
 {
 	KeyUp( &in_attack );
 	in_cancel = 0;
 }
 
 // Special handling
-void IN_Cancel( void )
+void IN_Cancel()
 {
 	in_cancel = 1;
 }
 
-void IN_Impulse( void )
+void IN_Impulse()
 {
 	in_impulse = atoi( gEngfuncs.Cmd_Argv( 1 ) );
 }
 
-void IN_ScoreDown( void )
+void IN_ScoreDown()
 {
 	KeyDown( &in_score );
-#if USE_VGUI && !USE_NOVGUI_SCOREBOARD
-	if ( gViewPort )
+#if USE_VGUI
+	if ( gEngfuncs.GetMaxClients() > 1 && gHUD.UseVguiScoreBoard() && gViewPort )
 	{
 		gViewPort->ShowScoreBoard();
+		return;
 	}
-#else
-	gHUD.m_Scoreboard.UserCmd_ShowScores();
 #endif
+	if (gEngfuncs.GetMaxClients() > 1)
+		gHUD.m_Scoreboard.UserCmd_ShowScores();
+	else
+		gHUD.m_Journal.UserCmd_ShowJournal();
 }
 
-void IN_ScoreUp( void )
+void IN_ScoreUp()
 {
 	KeyUp( &in_score );
-#if USE_VGUI && !USE_NOVGUI_SCOREBOARD
+#if USE_VGUI
 	if ( gViewPort )
 	{
 		gViewPort->HideScoreBoard();
 	}
-#else
-	gHUD.m_Scoreboard.UserCmd_HideScores();
 #endif
+	if (gEngfuncs.GetMaxClients() > 1)
+		gHUD.m_Scoreboard.UserCmd_HideScores();
+	else
+		gHUD.m_Journal.UserCmd_HideJournal();
 }
 
-void IN_MLookUp( void )
+void IN_MLookUp()
 {
 	KeyUp( &in_mlook );
 }
@@ -799,8 +871,8 @@ if active == 1 then we are 1) not playing back demos ( where our commands are ig
 void DLLEXPORT CL_CreateMove( float frametime, struct usercmd_s *cmd, int active )
 {
 	float spd;
-	vec3_t viewangles;
-	static vec3_t oldangles;
+	Vector viewangles;
+	static Vector oldangles;
 
 	if( active )
 	{
@@ -814,22 +886,27 @@ void DLLEXPORT CL_CreateMove( float frametime, struct usercmd_s *cmd, int active
 
 		gEngfuncs.SetViewAngles( (float *)viewangles );
 
-		if( in_strafe.state & 1 )
+		const bool movementIsSuppressed = (gHUD.m_suppressedCapabilities & PLAYER_SUPPRESS_MOVEMENT) != 0;
+
+		if (!movementIsSuppressed)
 		{
-			cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_right );
-			cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_left );
-		}
+			if( in_strafe.state & 1 )
+			{
+				cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_right );
+				cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_left );
+			}
 
-		cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_moveright );
-		cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_moveleft );
+			cmd->sidemove += cl_sidespeed->value * CL_KeyState( &in_moveright );
+			cmd->sidemove -= cl_sidespeed->value * CL_KeyState( &in_moveleft );
 
-		cmd->upmove += cl_upspeed->value * CL_KeyState( &in_up );
-		cmd->upmove -= cl_upspeed->value * CL_KeyState( &in_down );
+			cmd->upmove += cl_upspeed->value * CL_KeyState( &in_up );
+			cmd->upmove -= cl_upspeed->value * CL_KeyState( &in_down );
 
-		if( !(in_klook.state & 1 ) )
-		{	
-			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState( &in_forward );
-			cmd->forwardmove -= cl_backspeed->value * CL_KeyState( &in_back );
+			if( !(in_klook.state & 1 ) )
+			{
+				cmd->forwardmove += cl_forwardspeed->value * CL_KeyState( &in_forward );
+				cmd->forwardmove -= cl_backspeed->value * CL_KeyState( &in_back );
+			}
 		}
 
 		// adjust for speed key
@@ -869,6 +946,8 @@ void DLLEXPORT CL_CreateMove( float frametime, struct usercmd_s *cmd, int active
 	// set button and flag bits
 	//
 	cmd->buttons = CL_ButtonBits( 1 );
+
+	autofuncs::handle_autojump(cmd);
 
 #if USE_VGUI
 	// If they're in a modal dialog, ignore the attack button.
@@ -911,7 +990,7 @@ CL_IsDead
 Returns 1 if health is <= 0
 ============
 */
-int CL_IsDead( void )
+int CL_IsDead()
 {
 	return ( gHUD.m_Health.m_iHealth <= 0 ) ? 1 : 0;
 }
@@ -930,12 +1009,7 @@ int CL_ButtonBits( int bResetState )
 
 	if( in_attack.state & 3 )
 	{
-#if !USE_VGUI || USE_NOVGUI_MOTD
-		if( gHUD.m_MOTD.m_bShow )
-			gHUD.m_MOTD.Reset();
-		else
-#endif
-			bits |= IN_ATTACK;
+		bits |= IN_ATTACK;
 	}
 
 	if( in_duck.state & 3 )
@@ -1066,7 +1140,7 @@ void CL_ResetButtonBits( int bits )
 InitInput
 ============
 */
-void InitInput( void )
+void InitInput()
 {
 	gEngfuncs.pfnAddCommand( "+moveup", IN_UpDown );
 	gEngfuncs.pfnAddCommand( "-moveup", IN_UpUp );
@@ -1137,6 +1211,8 @@ void InitInput( void )
 
 	cl_vsmoothing		= gEngfuncs.pfnRegisterVariable( "cl_vsmoothing", "0.05", FCVAR_ARCHIVE );
 
+	autofuncs::cl_autojump = gEngfuncs.pfnRegisterVariable ( "cl_autojump", "0", FCVAR_ARCHIVE );
+
 	m_pitch			= gEngfuncs.pfnRegisterVariable( "m_pitch","0.022", FCVAR_ARCHIVE );
 	m_yaw			= gEngfuncs.pfnRegisterVariable( "m_yaw","0.022", FCVAR_ARCHIVE );
 	m_forward		= gEngfuncs.pfnRegisterVariable( "m_forward","1", FCVAR_ARCHIVE );
@@ -1157,7 +1233,7 @@ void InitInput( void )
 ShutdownInput
 ============
 */
-void ShutdownInput( void )
+void ShutdownInput()
 {
 	IN_Shutdown();
 	KB_Shutdown();

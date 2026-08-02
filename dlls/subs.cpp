@@ -27,13 +27,12 @@
 #include "nodes.h"
 #include "doors.h"
 
-extern BOOL FEntIsVisible( entvars_t *pev, entvars_t *pevTarget );
-
-extern DLL_GLOBAL int g_iSkillLevel;
+extern bool FEntIsVisible( entvars_t *pev, entvars_t *pevTarget );
 
 // Landmark class
-void CPointEntity::Spawn( void )
+void CPointEntity::Spawn()
 {
+	Precache();
 	pev->solid = SOLID_NOT;
 	//UTIL_SetSize( pev, g_vecZero, g_vecZero );
 }
@@ -41,11 +40,11 @@ void CPointEntity::Spawn( void )
 class CNullEntity : public CBaseEntity
 {
 public:
-	void Spawn( void );
+	void Spawn() override;
 };
 
 // Null Entity, remove on startup
-void CNullEntity::Spawn( void )
+void CNullEntity::Spawn()
 {
 	REMOVE_ENTITY( ENT( pev ) );
 }
@@ -55,7 +54,7 @@ LINK_ENTITY_TO_CLASS( info_null, CNullEntity )
 class CSpawnPoint : public CPointEntity
 {
 public:
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 
 #define SF_SPAWNPOINT_OFF 2
@@ -74,8 +73,8 @@ void CSpawnPoint::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE us
 class CBaseDMStart : public CSpawnPoint
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	BOOL IsTriggered( CBaseEntity *pEntity );
+	void KeyValue( KeyValueData *pkvd ) override;
+	bool IsTriggered( CBaseEntity *pEntity ) override;
 
 private:
 };
@@ -91,21 +90,21 @@ void CBaseDMStart::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "master" ) )
 	{
 		pev->netname = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CSpawnPoint::KeyValue( pkvd );
 }
 
-BOOL CBaseDMStart::IsTriggered( CBaseEntity *pEntity )
+bool CBaseDMStart::IsTriggered( CBaseEntity *pEntity )
 {
-	BOOL master = UTIL_IsMasterTriggered( pev->netname, pEntity );
+	bool master = UTIL_IsMasterTriggered( pev->netname, pEntity );
 
 	return master;
 }
 
 // This updates global tables that need to know about entities being removed
-void CBaseEntity::UpdateOnRemove( void )
+void CBaseEntity::UpdateOnRemove()
 {
 	int i;
 
@@ -125,10 +124,13 @@ void CBaseEntity::UpdateOnRemove( void )
 
 	if( pev->globalname )
 		gGlobalState.EntitySetState( pev->globalname, GLOBAL_DEAD );
+
+	UTIL_RemoveAndClean(m_passiveRegenSprite);
+	UTIL_RemoveAndClean(m_activeRegenSprite);
 }
 
 // Convenient way to delay removing oneself
-void CBaseEntity::SUB_Remove( void )
+void CBaseEntity::SUB_Remove()
 {
 	UpdateOnRemove();
 	if( pev->health > 0 )
@@ -143,7 +145,7 @@ void CBaseEntity::SUB_Remove( void )
 }
 
 // Convenient way to explicitly do nothing (passed to functions that require a method)
-void CBaseEntity::SUB_DoNothing( void )
+void CBaseEntity::SUB_DoNothing()
 {
 }
 
@@ -162,12 +164,12 @@ void CBaseDelay::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "delay" ) )
 	{
 		m_flDelay = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "killtarget" ) )
 	{
 		m_iszKillTarget = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 	{
@@ -217,26 +219,39 @@ const char* UseTypeToString(USE_TYPE useType)
 	}
 }
 
-void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+void FireTargets(const char *targetName, CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value, bool (*FilterEntities)(CBaseEntity*, CBaseEntity*, CBaseEntity*, USE_TYPE, float))
 {
 	CBaseEntity* pTarget = NULL;
 	if( !targetName || *targetName == '\0' )
 		return;
 
 	const char* useTypeString = UseTypeToString(useType);
-	ALERT( at_aiconsole, "Firing: (%s)\n", targetName );
+	const char* callerClassname = pCaller ? STRING(pCaller->pev->classname) : "";
+	const char* activatorClassname = pActivator ? STRING(pActivator->pev->classname) : "";
 
+	bool fired = false;
 	for( ; ; )
 	{
 		pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, pActivator);
 		if( !pTarget )
 			break;
 
-		if( pTarget && !( pTarget->pev->flags & FL_KILLME ) )	// Don't use dying ents
+		if( pTarget && !( pTarget->pev->flags & FL_KILLME ) && (!FilterEntities || FilterEntities(pTarget, pActivator, pCaller, useType, value)))	// Don't use dying ents
 		{
-			ALERT( at_aiconsole, "Found: %s, firing (%s, %s)\n", STRING( pTarget->pev->classname ), targetName, useTypeString );
+			if (useType == USE_SET)
+				ALERT(at_aiconsole, "Firing: %s (%s, %s, value is %g, called by '%s', activated by '%s')\n", STRING(pTarget->pev->classname), targetName, useTypeString, value, callerClassname, activatorClassname);
+			else
+				ALERT(at_aiconsole, "Firing: %s (%s, %s, called by '%s', activated by '%s')\n", STRING(pTarget->pev->classname), targetName, useTypeString, callerClassname, activatorClassname);
+			fired = true;
 			pTarget->Use( pActivator, pCaller, useType, value );
 		}
+	}
+	if (!fired)
+	{
+		if (useType == USE_SET)
+			ALERT(at_aiconsole, "Missing fire: (%s, %s, value is %g, caller is '%s', activator is '%s')\n", targetName, useTypeString, value, callerClassname, activatorClassname);
+		else
+			ALERT(at_aiconsole, "Missing fire: (%s, %s, caller is '%s', activator is '%s')\n", targetName, useTypeString, callerClassname, activatorClassname);
 	}
 }
 
@@ -312,7 +327,7 @@ void CBaseDelay::SUB_UseTargets( CBaseEntity *pActivator, USE_TYPE useType, floa
 }
 
 /*
-void CBaseDelay::SUB_UseTargetsEntMethod( void )
+void CBaseDelay::SUB_UseTargetsEntMethod()
 {
 	SUB_UseTargets( pev );
 }
@@ -341,7 +356,7 @@ void SetMovedir( entvars_t *pev )
 	pev->angles = g_vecZero;
 }
 
-void CBaseDelay::DelayThink( void )
+void CBaseDelay::DelayThink()
 {
 	// The use type is cached (and stashed) in pev->button
 	SUB_UseTargets( m_hActivator, (USE_TYPE)pev->button );
@@ -378,22 +393,22 @@ void CBaseToggle::KeyValue( KeyValueData *pkvd )
 	if( FStrEq(pkvd->szKeyName, "lip" ) )
 	{
 		m_flLip = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "wait" ) )
 	{
 		m_flWait = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "master" ) )
 	{
 		m_sMaster = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "distance" ) )
 	{
 		m_flMoveDistance = atof( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseDelay::KeyValue( pkvd );
@@ -440,7 +455,7 @@ void CBaseToggle::LinearMove( Vector vecDest, float flSpeed )
 After moving, set origin to exact final destination, call "move done" function
 ============
 */
-void CBaseToggle::LinearMoveDone( void )
+void CBaseToggle::LinearMoveDone()
 {
 	Vector delta = m_vecFinalDest - pev->origin;
 	float error = delta.Length();
@@ -457,12 +472,9 @@ void CBaseToggle::LinearMoveDone( void )
 		( this->*m_pfnCallWhenMoveDone )();
 }
 
-BOOL CBaseToggle::IsLockedByMaster( void )
+bool CBaseToggle::IsLockedByMaster()
 {
-	if( m_sMaster && !UTIL_IsMasterTriggered( m_sMaster, m_hActivator ) )
-		return TRUE;
-	else
-		return FALSE;
+	return m_sMaster && !UTIL_IsMasterTriggered( m_sMaster, m_hActivator );
 }
 
 /*
@@ -507,7 +519,7 @@ void CBaseToggle::AngularMove( Vector vecDestAngle, float flSpeed )
 After rotating, set angle to exact final angle, call "move done" function
 ============
 */
-void CBaseToggle::AngularMoveDone( void )
+void CBaseToggle::AngularMoveDone()
 {
 	pev->angles = m_vecFinalAngle;
 	pev->avelocity = g_vecZero;
@@ -547,14 +559,46 @@ float CBaseToggle::AxisDelta( int flags, const Vector &angle1, const Vector &ang
 	return angle1.y - angle2.y;
 }
 
+bool CBaseToggle::PlaySentence(const char *pszSentence, float duration, float volume, float attenuation , bool subtitle)
+{
+	if( pszSentence && IsAllowedToSpeak() )
+	{
+		if( pszSentence[0] == '!' )
+		{
+			if (subtitle)
+				return EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 );
+			else
+				return EMIT_SOUND_DYN( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM );
+		}
+		else
+		{
+			if (subtitle)
+				return SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 ) >= 0;
+			else
+				return SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM ) >= 0;
+		}
+	}
+	return false;
+}
+
+void CBaseToggle::PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )
+{
+	PlaySentence( pszSentence, duration, volume, attenuation, true );
+}
+
+void CBaseToggle::SentenceStop()
+{
+	EMIT_SOUND( edict(), CHAN_VOICE, "common/null.wav", 1.0, ATTN_IDLE );
+}
+
 /*
 =============
 FEntIsVisible
 
-returns TRUE if the passed entity is visible to caller, even if not infront ()
+returns true if the passed entity is visible to caller, even if not infront ()
 =============
 */
-BOOL FEntIsVisible( entvars_t *pev, entvars_t *pevTarget)
+bool FEntIsVisible( entvars_t *pev, entvars_t *pevTarget)
 {
 	Vector vecSpot1 = pev->origin + pev->view_ofs;
 	Vector vecSpot2 = pevTarget->origin + pevTarget->view_ofs;
@@ -563,10 +607,10 @@ BOOL FEntIsVisible( entvars_t *pev, entvars_t *pevTarget)
 	UTIL_TraceLine( vecSpot1, vecSpot2, ignore_monsters, ENT( pev ), &tr );
 
 	if( tr.fInOpen && tr.fInWater )
-		return FALSE;                   // sight line crossed contents
+		return false;                   // sight line crossed contents
 
 	if( tr.flFraction == 1 )
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }

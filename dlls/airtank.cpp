@@ -16,25 +16,28 @@
 #include "util.h"
 #include "cbase.h"
 #include "monsters.h"
-#include "weapons.h"
-#include "nodes.h"
+#include "ggrenade.h"
 #include "player.h"
 
 class CAirtank : public CGrenade
 {
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT TankThink( void );
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT TankThink();
 	void EXPORT TankTouch( CBaseEntity *pOther );
-	int  BloodColor( void ) { return DONT_BLEED; };
-	void Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	int  BloodColor() override { return DONT_BLEED; }
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 
-	virtual int Save( CSave &save ); 
-	virtual int Restore( CRestore &restore );
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	int m_state;
+	float m_denySoundTime;
+
+	static const NamedSoundScript supplySoundScript;
+	static const NamedSoundScript denySoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( item_airtank, CAirtank )
@@ -46,14 +49,26 @@ TYPEDESCRIPTION	CAirtank::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CAirtank, CGrenade )
 
-void CAirtank::Spawn( void )
+const NamedSoundScript CAirtank::supplySoundScript = {
+	CHAN_VOICE,
+	{"doors/aliendoor3.wav"},
+	"AirTank.Supply"
+};
+
+const NamedSoundScript CAirtank::denySoundScript = {
+	CHAN_BODY,
+	{"player/pl_swim2.wav"},
+	"AirTank.Deny"
+};
+
+void CAirtank::Spawn()
 {
 	Precache();
 	// motor
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL( ENT( pev ), "models/w_oxygen.mdl" );
+	SetMyModel("models/w_oxygen.mdl");
 	UTIL_SetSize( pev, Vector( -16, -16, 0), Vector( 16, 16, 36 ) );
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -67,22 +82,25 @@ void CAirtank::Spawn( void )
 	m_state = 1;
 }
 
-void CAirtank::Precache( void )
+void CAirtank::Precache()
 {
-	PRECACHE_MODEL( "models/w_oxygen.mdl" );
-	PRECACHE_SOUND( "doors/aliendoor3.wav" );
+	PrecacheBaseGrenadeSounds();
+	PrecacheMyModel("models/w_oxygen.mdl");
+	RegisterAndPrecacheSoundScript(supplySoundScript);
+	RegisterAndPrecacheSoundScript(denySoundScript);
 }
 
-void CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
+KilledResult CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->owner = ENT( pevAttacker );
 
 	// UNDONE: this should make a big bubble cloud, not an explosion
 
 	Explode( pev->origin, Vector( 0, 0, -1 ) );
+	return KilledResult();
 }
 
-void CAirtank::TankThink( void )
+void CAirtank::TankThink()
 {
 	// Fire trigger
 	m_state = 1;
@@ -97,7 +115,11 @@ void CAirtank::TankTouch( CBaseEntity *pOther )
 	if( !m_state )
 	{
 		// "no oxygen" sound
-		EMIT_SOUND( ENT( pev ), CHAN_BODY, "player/pl_swim2.wav", 1.0, ATTN_NORM );
+		if (m_denySoundTime <= gpGlobals->time)
+		{
+			EmitSoundScript(denySoundScript);
+			m_denySoundTime = gpGlobals->time + 1.0f;
+		}
 		return;
 	}
 
@@ -105,7 +127,7 @@ void CAirtank::TankTouch( CBaseEntity *pOther )
 	pOther->pev->air_finished = gpGlobals->time + 12;
 
 	// suit recharge sound
-	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "doors/aliendoor3.wav", 1.0, ATTN_NORM );
+	EmitSoundScript(supplySoundScript);
 
 	// recharge airtank in 30 seconds
 	pev->nextthink = gpGlobals->time + 30;

@@ -65,7 +65,7 @@ public:
 	EHANDLE	m_hSquadMember[MAX_SQUAD_MEMBERS - 1];	// valid only for leader
 	int m_afSquadSlots;
 	float m_flLastEnemySightTime; // last time anyone in the squad saw the enemy
-	BOOL m_fEnemyEluded;
+	bool m_fEnemyEluded;
 
 	// squad member info
 	int m_iMySlot;// this is the behaviour slot that the monster currently holds in the squad. 
@@ -74,18 +74,19 @@ public:
 	virtual bool	ReadyToHeal() {return false;}
 	virtual void	StartFollowingHealTarget(CBaseEntity* pTarget) {}
 
-	int CheckEnemy( CBaseEntity *pEnemy );
-	void StartMonster( void );
-	void VacateSlot( void );
-	void ScheduleChange( void );
-	void OnDying();
-	BOOL OccupySlot( int iDesiredSlot );
-	BOOL NoFriendlyFire( void );
+	bool CheckEnemy( CBaseEntity *pEnemy ) override;
+	void StartMonster() override;
+	void VacateSlot();
+	void ScheduleChange() override;
+	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
+	void UpdateOnRemove() override;
+	void RemoveMySelfFromSquad();
+	bool OccupySlot( int iDesiredSlot );
 
 	// squad functions still left in base class
 	CSquadMonster *MySquadLeader()
 	{
-		CSquadMonster *pSquadLeader = (CSquadMonster *)( (CBaseEntity *)m_hSquadLeader );
+		CSquadMonster *pSquadLeader = m_hSquadLeader.Entity<CSquadMonster>();
 		if( pSquadLeader != NULL )
 			return pSquadLeader;
 		return this;
@@ -95,37 +96,39 @@ public:
 		if( i >= MAX_SQUAD_MEMBERS - 1 )
 			return this;
 		else
-			return (CSquadMonster *)( (CBaseEntity *)m_hSquadMember[i] );
+			return m_hSquadMember[i].Entity<CSquadMonster>();
 	}
-	int InSquad( void ) { return m_hSquadLeader != 0; }
-	int IsLeader( void ) { return m_hSquadLeader == this; }
+	bool InSquad() { return m_hSquadLeader != 0; }
+	bool IsLeader() { return m_hSquadLeader == this; }
 	int SquadJoin( int searchRadius );
 	int SquadRecruit( int searchRadius, int maxMembers );
-	int SquadCount( void );
+	int SquadCount();
 	void SquadRemove( CSquadMonster *pRemove );
-	void SquadUnlink( void );
-	BOOL SquadAdd( CSquadMonster *pAdd );
-	void SquadDisband( void );
+	void SquadUnlink();
+	bool SquadAdd( CSquadMonster *pAdd );
+	void SquadDisband();
 	void SquadAddConditions( int iConditions );
 	void SquadMakeEnemy( CBaseEntity *pEnemy );
-	void SquadPasteEnemyInfo( void );
-	void SquadCopyEnemyInfo( void );
-	BOOL SquadEnemySplit( void );
-	BOOL AllyMonsterInRange( const Vector &vecLocation, float flDist );
+	void SquadPasteEnemyInfo();
+	void SquadCopyEnemyInfo();
+	bool SquadEnemySplit();
+	bool AllyMonsterInRange( const Vector &vecLocation, float flDist );
 
-	virtual CSquadMonster *MySquadMonsterPointer( void ) { return this; }
+	CSquadMonster *MySquadMonsterPointer() override { return this; }
 
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	int Save( CSave &save ); 
-	int Restore( CRestore &restore );
+	bool FValidateCover( const Vector &vecCoverLocation ) override;
 
-	BOOL FValidateCover( const Vector &vecCoverLocation );
+	MONSTERSTATE GetIdealState() override;
+	Schedule_t *GetScheduleOfType( int iType ) override;
+	void StartTask( Task_t *pTask ) override;
 
-	MONSTERSTATE GetIdealState( void );
-	Schedule_t *GetScheduleOfType( int iType );
-	void StartTask( Task_t *pTask );
+	void ReportAIState(ALERT_TYPE level) override;
 
-	void ReportAIState(ALERT_TYPE level);
+protected:
+	virtual void OnBecomingLeader() {}
 };
 #endif // SQUADMONSTER_H

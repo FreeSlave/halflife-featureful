@@ -22,21 +22,12 @@
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "kbutton.h"
-#include "triangleapi.h"
-#include <string.h>
-#include <stdio.h>
+#include "string_utils.h"
+#include "keydefs.h"
 
-#if !USE_VGUI || USE_NOVGUI_MOTD
-DECLARE_MESSAGE( m_MOTD, MOTD )
-#endif
-
-int CHudMOTD::Init( void )
+int CHudMOTD::Init()
 {
 	gHUD.AddHudElem( this );
-
-#if !USE_VGUI || USE_NOVGUI_MOTD
-	HOOK_MESSAGE( MOTD );
-#endif
 
 	m_bShow = false;
 
@@ -46,88 +37,91 @@ int CHudMOTD::Init( void )
 	return 1;
 }
 
-int CHudMOTD::VidInit( void )
+int CHudMOTD::VidInit()
 {
 	// Load sprites here
 	return 1;
 }
 
-void CHudMOTD::Reset( void )
+void CHudMOTD::Reset()
 {
 	m_iFlags &= ~HUD_ACTIVE;  // start out inactive
 	m_szMOTD[0] = 0;
-	m_iLines = 0;
-	m_bShow = 0;
+	m_bShow = false;
+	m_scrollLines = 0;
+	m_lineOffsets.clear();
 }
 
-#define ROW_GAP  13
-#define ROW_RANGE_MIN 30
-#define ROW_RANGE_MAX ( ScreenHeight - 100 )
+#define MIN_TEXT_XPOS (ScreenWidth / 64)
+
 int CHudMOTD::Draw( float fTime )
 {
-	gHUD.m_iNoConsolePrint &= ~( 1 << 1 );
-	if( !m_bShow )
+	if (!m_bShow)
 		return 1;
+
 	const int LineHeight = CHud::UtfText::LineHeight();
 	const int WidestCharacterWidth = CHud::UtfText::WidestCharacterWidth();
-	gHUD.m_iNoConsolePrint |= 1 << 1;
-	//bool bScroll;
+
+	const int PaddingWidth = WidestCharacterWidth;
+	const int PaddingHeight = LineHeight;
+
+	const int MarginHeight = LineHeight;
+
+	const int FirstRowMinY = PaddingHeight + MarginHeight;
+
 	// find the top of where the MOTD should be drawn,  so the whole thing is centered in the screen
-	int ypos = ( ScreenHeight - LineHeight * m_iLines ) / 2; // shift it up slightly
-	unsigned char *ch = (unsigned char*)m_szMOTD;
+	int ypos = ( ScreenHeight - LineHeight * m_lineOffsets.size() ) / 2; // shift it up slightly
 	int xpos = ( ScreenWidth - WidestCharacterWidth * m_iMaxLength ) / 2;
-	if( xpos < 30 )
-		xpos = 30;
-	int xmax = xpos + WidestCharacterWidth * m_iMaxLength;
-	int height = LineHeight * m_iLines;
-	int ypos_r=ypos;
-	if( height > ROW_RANGE_MAX )
+
+	const int minTextXPos = MIN_TEXT_XPOS;
+	if (xpos < minTextXPos)
+		xpos = minTextXPos;
+
+	const int visibleRows = Q_min(m_lineOffsets.size(), m_iMaxRowsPerWindow);
+
+	int ypos_r = ypos;
+
+	const bool scrollEnabled = m_lineOffsets.size() > m_iMaxRowsPerWindow;
+	if (scrollEnabled)
 	{
-		ypos = ROW_RANGE_MIN + 7 + scroll;
-		if( ypos  > ROW_RANGE_MIN + 4 )
-			scroll-= ( ypos - ( ROW_RANGE_MIN + 4 ) ) / 3.0f;
-		if( ypos + height < ROW_RANGE_MAX )
-			scroll+= ( ROW_RANGE_MAX - ( ypos + height ) ) / 3.0f;
-		ypos_r = ROW_RANGE_MIN;
-		height = ROW_RANGE_MAX;
+		ypos = ypos_r = FirstRowMinY;
 	}
-	// int ymax = ypos + height;
-	if( xmax > ScreenWidth - 30 ) xmax = ScreenWidth - 30;
-	gHUD.DrawDarkRectangle( xpos - 5, ypos_r - 5, xmax - xpos + 10, height + 10 );
-	while( *ch )
+
+	int xmax = xpos + m_iMaxLength * WidestCharacterWidth;
+	if (xmax > ScreenWidth - minTextXPos)
+		xmax = ScreenWidth - minTextXPos;
+
+	gHUD.DrawDarkRectangle(xpos - PaddingWidth, ypos_r - PaddingHeight, xmax - xpos + PaddingWidth*2, visibleRows * LineHeight + PaddingHeight*2);
+
+	int r = 255;
+	int g = 180;
+	int b = 0;
+
+	int startRow = scrollEnabled ? m_scrollLines : 0;
+	int endRow = scrollEnabled ? m_scrollLines + m_iMaxRowsPerWindow : m_lineOffsets.size();
+	endRow = Q_min(endRow, m_lineOffsets.size());
+
+	if (startRow > 0)
 	{
-		unsigned char *next_line;
-		for( next_line = ch; *next_line != '\n' && *next_line != 0; next_line++ )
-			;
-		// int line_length = 0;  // count the length of the current line
-		// for( next_line = ch; *next_line != '\n' && *next_line != 0; next_line++ )
-		//	line_length += gHUD.m_scrinfo.charWidths[*next_line];
-		unsigned char *top = next_line;
-		if( *top == '\n' )
-			*top = 0;
-		else
-			top = NULL;
+		CHud::UtfText::DrawString(xpos, ypos - LineHeight / 3 * 2, xmax, "^^^^^^", 255, 255, 0);
+	}
 
-		// find where to start drawing the line
-		if( ( ypos > ROW_RANGE_MIN ) && ( ypos + LineHeight <= ypos_r + height ) )
-			CHud::UtfText::DrawString( xpos, ypos, xmax, (const char*)ch, 255, 180, 0 );
-
+	for (int i=startRow; i<endRow; ++i)
+	{
+		const auto& lineOffset = m_lineOffsets[i];
+		CHud::UtfText::DrawString(xpos, ypos, xmax, m_szMOTD + lineOffset.first, r, g, b, lineOffset.second - lineOffset.first);
 		ypos += LineHeight;
+	}
 
-		if( top )  // restore
-			*top = '\n';
-		ch = next_line;
-		if( *ch == '\n' )
-			ch++;
-
-		if( ypos > ( ScreenHeight - 20 ) )
-			break;  // don't let it draw too low
+	if (endRow < m_lineOffsets.size())
+	{
+		CHud::UtfText::DrawString(xpos, ypos - LineHeight / 3, xmax, "......", 255, 255, 0);
 	}
 
 	return 1;
 }
 
-int CHudMOTD::MsgFunc_MOTD( const char *pszName, int iSize, void *pbuf )
+bool CHudMOTD::HandleMOTDMessage( const char *pszName, int iSize, void *pbuf )
 {
 	if( m_iFlags & HUD_ACTIVE )
 	{
@@ -137,38 +131,102 @@ int CHudMOTD::MsgFunc_MOTD( const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 
 	int is_finished = READ_BYTE();
-	strncat( m_szMOTD, READ_STRING(), sizeof(m_szMOTD) - strlen(m_szMOTD) - 1 );
-	m_szMOTD[sizeof(m_szMOTD) - 1] = '\0';
+	strcatEnsureTermination( m_szMOTD, READ_STRING() );
 
 	if( is_finished )
 	{
-		int length = 0;
-
 		m_iMaxLength = 0;
 		m_iFlags |= HUD_ACTIVE;
 
-		for( char *sz = m_szMOTD; *sz != 0; sz++ )  // count the number of lines in the MOTD
+		m_lineOffsets = CHud::UtfText::CalcLineOffsets(m_szMOTD, MaxTextWidth());
+
+		for (const auto& lineOffset : m_lineOffsets)
 		{
-			if( *sz == '\n' )
-			{
-				m_iLines++;
-				if( length > m_iMaxLength )
-				{
-					m_iMaxLength = length;
-					length = 0;
-				}
-			}
-			length++;
+			int length = lineOffset.second - lineOffset.first;
+			if (length > m_iMaxLength)
+				m_iMaxLength = length;
 		}
 
-		m_iLines++;
-		if( length > m_iMaxLength )
-		{
-			m_iMaxLength = length;
-			// length = 0;
-		}
-		m_bShow = true;
+		const int LineHeight = CHud::UtfText::LineHeight();
+
+		const int PaddingHeight = LineHeight;
+		const int MarginHeight = LineHeight;
+
+		const int FirstRowMinY = PaddingHeight + MarginHeight;
+		const int MaxTextYPos = ScreenHeight - PaddingHeight - MarginHeight;
+		const int MaxTextHeight = MaxTextYPos - FirstRowMinY;
+
+		m_iMaxRowsPerWindow = MaxTextHeight / LineHeight;
+		m_iMaxRowsPerWindow = Q_max(1, m_iMaxRowsPerWindow);
 	}
 
-	return 1;
+	return is_finished ? true : false;
+}
+
+int CHudMOTD::MaxTextWidth()
+{
+	return ScreenWidth - MIN_TEXT_XPOS * 2;
+}
+
+bool CHudMOTD::HandleKeyDown(int keynum)
+{
+	switch (keynum) {
+	case K_MWHEELDOWN:
+		ScrollDown();
+		return true;
+	case K_MWHEELUP:
+		ScrollUp();
+		return true;
+	case K_PGDN:
+		PageDown();
+		return true;
+	case K_PGUP:
+		PageUp();
+		return true;
+	default:
+		return false;
+	}
+}
+
+void CHudMOTD::ScrollDown()
+{
+	if (m_lineOffsets.empty())
+		return;
+
+	m_scrollLines++;
+
+	const int maxScroll = m_lineOffsets.size() - m_iMaxRowsPerWindow + 1;
+
+	if (m_scrollLines > maxScroll)
+		m_scrollLines = maxScroll;
+}
+
+void CHudMOTD::ScrollUp()
+{
+	m_scrollLines--;
+	if (m_scrollLines < 0)
+		m_scrollLines = 0;
+}
+
+void CHudMOTD::PageDown()
+{
+	if (m_lineOffsets.empty())
+		return;
+
+	m_scrollLines += m_iMaxRowsPerWindow;
+
+	const int maxScroll = m_lineOffsets.size() - m_iMaxRowsPerWindow + 1;
+
+	if (m_scrollLines > maxScroll)
+		m_scrollLines = maxScroll;
+}
+
+void CHudMOTD::PageUp()
+{
+	if (m_lineOffsets.empty())
+		return;
+
+	m_scrollLines -= m_iMaxRowsPerWindow;
+	if (m_scrollLines < 0)
+		m_scrollLines = 0;
 }

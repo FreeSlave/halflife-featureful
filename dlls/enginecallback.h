@@ -16,6 +16,7 @@
 #if !defined(ENGINECALLBACK_H)
 #define ENGINECALLBACK_H
 
+#include "eiface.h"
 #include "event_flags.h"
 
 // Fix warning in MSVC8
@@ -26,10 +27,10 @@ extern enginefuncs_t g_engfuncs;
 
 // The actual engine callbacks
 #define GETPLAYERUSERID (*g_engfuncs.pfnGetPlayerUserId)
-#define PRECACHE_MODEL	(*g_engfuncs.pfnPrecacheModel)
-#define PRECACHE_SOUND	(*g_engfuncs.pfnPrecacheSound)
+extern int PRECACHE_MODEL(const char* name);
+extern int PRECACHE_SOUND(const char* name);
 #define PRECACHE_GENERIC	(*g_engfuncs.pfnPrecacheGeneric)
-#define SET_MODEL		(*g_engfuncs.pfnSetModel)
+extern void SET_MODEL(edict_t *e, const char *m);
 #define MODEL_INDEX		(*g_engfuncs.pfnModelIndex)
 #define MODEL_FRAMES	(*g_engfuncs.pfnModelFrames)
 #define SET_SIZE		(*g_engfuncs.pfnSetSize)
@@ -104,7 +105,7 @@ inline void *GET_PRIVATE( edict_t *pent )
 
 #define FREE_PRIVATE	(*g_engfuncs.pfnFreeEntPrivateData)
 //#define STRING			(*g_engfuncs.pfnSzFromIndex)
-#define ALLOC_STRING	(*g_engfuncs.pfnAllocString)
+//#define ALLOC_STRING	(*g_engfuncs.pfnAllocString)
 #define FIND_ENTITY_BY_STRING	(*g_engfuncs.pfnFindEntityByString)
 #define GETENTITYILLUM	(*g_engfuncs.pfnGetEntityIllum)
 #define FIND_ENTITY_IN_SPHERE		(*g_engfuncs.pfnFindEntityInSphere)

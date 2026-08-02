@@ -20,17 +20,18 @@
 
 #include "hud.h"
 #include "cl_util.h"
-#include <string.h>
-#include <time.h>
-#include <stdio.h>
+#include <ctime>
 
 #include "parsemsg.h"
 #include "event_api.h"
 #include "mod_features.h"
+#include "soundscripts.h"
+#include "view.h"
+#include "util_shared.h"
 
 DECLARE_MESSAGE( m_Geiger, Geiger )
 
-int CHudGeiger::Init( void )
+int CHudGeiger::Init()
 {
 	HOOK_MESSAGE( Geiger );
 
@@ -44,7 +45,7 @@ int CHudGeiger::Init( void )
 	return 1;
 }
 
-int CHudGeiger::VidInit( void )
+int CHudGeiger::VidInit()
 {
 	return 1;
 }
@@ -65,10 +66,17 @@ int CHudGeiger::MsgFunc_Geiger( const char *pszName,  int iSize, void *pbuf )
 
 int CHudGeiger::Draw( float flTime )
 {
+	return 1;
+}
+
+void CHudGeiger::Think()
+{
+	if (g_Paused)
+		return;
+
 	int pct;
 	float flvol = 0.0f;
-	//int rg[3];
-	int i = 0;
+	bool partialSounds = false;
 
 	if( m_iGeigerRange < 1000 && m_iGeigerRange > 0 )
 	{
@@ -81,113 +89,88 @@ int CHudGeiger::Draw( float flTime )
 		{
 			pct = 2;
 			flvol = 0.4f;	//Con_Printf( "range > 600\n" );
-			//rg[0] = 1;
-			//rg[1] = 1;
-			i = 2;
+			partialSounds = true;
 		}
 		else if( m_iGeigerRange > 500 )
 		{
 			pct = 4;
 			flvol = 0.5f;	//Con_Printf( "range > 500\n" );
-			//rg[0] = 1;
-			//rg[1] = 2;
-			i = 2;
+			partialSounds = true;
 		}
 		else if( m_iGeigerRange > 400 )
 		{
 			pct = 8;
 			flvol = 0.6f;	//Con_Printf( "range > 400\n" );
-			//rg[0] = 1;
-			//rg[1] = 2;
-			//rg[2] = 3;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 300 )
 		{
 			pct = 8;
 			flvol = 0.7f;	//Con_Printf( "range > 300\n" );
-			//rg[0] = 2;
-			//rg[1] = 3;
-			//rg[2] = 4;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 200 )
 		{
 			pct = 28;
 			flvol = 0.78f;	//Con_Printf( "range > 200\n" );
-			//rg[0] = 2;
-			//rg[1] = 3;
-			//rg[2] = 4;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 150 )
 		{
 			pct = 40;
 			flvol = 0.80f;	//Con_Printf( "range > 150\n" );
-			//rg[0] = 3;
-			//rg[1] = 4;
-			//rg[2] = 5;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 100 )
 		{
 			pct = 60;
 			flvol = 0.85;	//Con_Printf( "range > 100\n" );
-			//rg[0] = 3;
-			//rg[1] = 4;
-			//rg[2] = 5;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 75 )
 		{
 			pct = 80;
 			flvol = 0.9f;	//Con_Printf( "range > 75\n" );
 			//gflGeigerDelay = cl.time + GEIGERDELAY * 0.75;
-			//rg[0] = 4;
-			//rg[1] = 5;
-			//rg[2] = 6;
-			i = 3;
 		}
 		else if( m_iGeigerRange > 50 )
 		{
 			pct = 90;
 			flvol = 0.95f;	//Con_Printf( "range > 50\n" );
-			//rg[0] = 5;
-			//rg[1] = 6;
-			i = 2;
+			partialSounds = true;
 		}
 		else
 		{
 			pct = 95;
 			flvol = 1.0f;	//Con_Printf( "range < 50\n" );
-			//rg[0] = 5;
-			//rg[1] = 6;
-			i = 2;
+			partialSounds = true;
 		}
-
-		flvol = ( flvol * ( ( rand() & 127 ) ) / 255 ) + 0.25f; // UTIL_RandomFloat( 0.25f, 0.5f );
 
 		if( ( rand() & 127 ) < pct || ( rand() & 127 ) < pct )
 		{
-			//S_StartDynamicSound( -1, 0, rgsfx[rand() % i], r_origin, flvol, 1.0f, 0, 100 );
-			char sz[256];
+			const SoundScript* soundScript = g_SoundScriptSystem.GetSoundScript("Player.Geiger");
+			if (soundScript && !soundScript->waves.empty())
+			{
+				const char* sample = nullptr;
+				if (partialSounds && soundScript->waves.size() > 2)
+				{
+					sample = soundScript->waves[rand() % (soundScript->waves.size()/2+1)];
+				}
+				else if (soundScript->waves.size() > 1)
+				{
+					sample = soundScript->waves[rand() % soundScript->waves.size()];
+				}
+				else
+				{
+					sample = soundScript->waves[0];
+				}
 
-			int j = rand() & 1;
-			if( i > 2 )
-				j += rand() & 1;
-
-			sprintf( sz, "player/geiger%d.wav", j + 1 );
+				flvol = RandomizeNumberFromRange(soundScript->volume) * flvol;
 
 #if FEATURE_GEIGER_SOUNDS_FIX
-			vec3_t view_ofs;
-			cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
-			gEngfuncs.pEventAPI->EV_LocalPlayerViewheight( view_ofs );
-			gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin + view_ofs, CHAN_STATIC, sz, flvol, ATTN_NORM, 0, PITCH_NORM );
+				Vector view_ofs;
+				cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
+				gEngfuncs.pEventAPI->EV_LocalPlayerViewheight( view_ofs );
+				gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin + view_ofs, CHAN_STATIC, sample, flvol, soundScript->attenuation, 0, RandomizeNumberFromRange(soundScript->pitch) );
 #else
-			PlaySound( sz, flvol );
+				PlaySound( sample, flvol );
 #endif
+			}
 		}
 	}
-
-	return 1;
 }

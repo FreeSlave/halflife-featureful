@@ -17,43 +17,35 @@
 #include "util.h"
 #include "cbase.h"
 #include "monsters.h"
-#include "weapons.h"
-#include "nodes.h"
 #include "player.h"
 #include "items.h"
 #include "gamerules.h"
 #include "wallcharger.h"
 #include "game.h"
-
-extern int gmsgItemPickup;
+#include "studio.h"
+#include "pm_materials.h"
 
 class CHealthKit : public CItem
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	BOOL MyTouch( CBasePlayer *pPlayer );
-/*
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
-	static TYPEDESCRIPTION m_SaveData[];
-*/
+	void Spawn() override;
+	void Precache() override;
+	bool MyTouch( CBasePlayer *pPlayer ) override;
+
+	static const NamedSoundScript pickupSoundScript;
 protected:
-	virtual int DefaultCapacity() { return gSkillData.healthkitCapacity; }
+	virtual int DefaultCapacity() { return GetSkillValue("healthkit"); }
 };
 
 LINK_ENTITY_TO_CLASS( item_healthkit, CHealthKit )
 
-/*
-TYPEDESCRIPTION	CHealthKit::m_SaveData[] =
-{
-
+const NamedSoundScript CHealthKit::pickupSoundScript = {
+	CHAN_ITEM,
+	{"items/smallmedkit1.wav"},
+	"HealthKit.Pickup"
 };
 
-IMPLEMENT_SAVERESTORE( CHealthKit, CItem )
-*/
-
-void CHealthKit::Spawn( void )
+void CHealthKit::Spawn()
 {
 	Precache();
 	SetMyModel( "models/w_medkit.mdl" );
@@ -61,34 +53,26 @@ void CHealthKit::Spawn( void )
 	CItem::Spawn();
 }
 
-void CHealthKit::Precache( void )
+void CHealthKit::Precache()
 {
 	PrecacheMyModel( "models/w_medkit.mdl" );
-	PRECACHE_SOUND( "items/smallmedkit1.wav" );
+	RegisterAndPrecacheSoundScript(pickupSoundScript);
 }
 
-BOOL CHealthKit::MyTouch( CBasePlayer *pPlayer )
+bool CHealthKit::MyTouch( CBasePlayer *pPlayer )
 {
-	if( pPlayer->pev->deadflag != DEAD_NO )
-	{
-		return FALSE;
-	}
-
 	const bool healed = pPlayer->pev->health < pPlayer->pev->max_health;
 	if( pPlayer->TakeHealth( this, pev->health > 0 ? pev->health : DefaultCapacity(), HEAL_CHARGE ) )
 	{
 		if (healed) {
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-				WRITE_STRING( STRING( pev->classname ) );
-			MESSAGE_END();
-
-			EMIT_SOUND( ENT( pPlayer->pev ), CHAN_ITEM, "items/smallmedkit1.wav", 1, ATTN_NORM );
+			NotifyPickup(pPlayer, pev->classname);
+			pPlayer->EmitSoundScript(GetSoundScript(pickupSoundScript));
 		}
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 //-------------------------------------------------------------
@@ -121,15 +105,29 @@ void CWallCharger::Spawn()
 
 void CWallCharger::Precache()
 {
-	PRECACHE_SOUND( ChargeStartSound() );
-	PRECACHE_SOUND( DenySound() );
-	PRECACHE_SOUND( LoopingSound() );
-	const char* rechargeSound = RechargeSound();
+	RegisterAndPrecacheSoundScript(ChargeStartSoundScript());
+	RegisterAndPrecacheSoundScript(DenySoundScript());
+	RegisterAndPrecacheSoundScript(LoopingSoundScript());
+	RegisterAndPrecacheSoundScript(RechargeSoundScript());
+
+	const char* chargeStartSound = CustomChargeStartSound();
+	if (chargeStartSound)
+		PRECACHE_SOUND(chargeStartSound);
+
+	const char* denySound = CustomDenySound();
+	if (denySound)
+		PRECACHE_SOUND(denySound);
+
+	const char* loopingSound = CustomLoopingSound();
+	if (loopingSound)
+		PRECACHE_SOUND(loopingSound);
+
+	const char* rechargeSound = CustomRechargeSound();
 	if (rechargeSound)
 		PRECACHE_SOUND(rechargeSound);
 }
 
-int CWallCharger::ObjectCaps( void )
+int CWallCharger::ObjectCaps()
 {
 	return ( CBaseEntity::ObjectCaps() | FCAP_CONTINUOUS_USE
 			| (FBitSet(pev->spawnflags, SF_WALLCHARGER_ONLYDIRECT)?FCAP_ONLYDIRECT_USE:0) )
@@ -140,7 +138,7 @@ void CWallCharger::Off()
 {
 	// Stop looping sound.
 	if( m_iOn > 1 )
-		STOP_SOUND( ENT( pev ), CHAN_STATIC, LoopingSound() );
+		StopChargerSound(LoopingSoundScript(), CustomLoopingSound());
 
 	m_iOn = 0;
 
@@ -155,35 +153,49 @@ void CWallCharger::Off()
 	}
 }
 
-void CWallCharger::Recharge( void )
+void CWallCharger::Recharge()
 {
 	if (m_triggerOnRecharged)
 	{
 		FireTargets( STRING( m_triggerOnRecharged ), this, this );
 	}
-	const char* rechargeSound = RechargeSound();
-	if (rechargeSound)
-		EMIT_SOUND( ENT( pev ), CHAN_ITEM, rechargeSound, 1.0, ATTN_NORM );
+	PlayChargerSound(RechargeSoundScript(), CustomRechargeSound());
 	m_iJuice = ChargerCapacity();
 	pev->frame = OnStateFrame();
 	SetThink( &CBaseEntity::SUB_DoNothing );
 }
 
-const char* CWallCharger::LoopingSound()
+const char* CWallCharger::CustomLoopingSound()
 {
-	return pev->noise ? STRING(pev->noise) : DefaultLoopingSound();
+	return pev->noise ? STRING(pev->noise) : nullptr;
 }
-const char* CWallCharger::DenySound()
+const char* CWallCharger::CustomDenySound()
 {
-	return pev->noise1 ? STRING(pev->noise1) : DefaultDenySound();
+	return pev->noise1 ? STRING(pev->noise1) : nullptr;
 }
-const char* CWallCharger::ChargeStartSound()
+const char* CWallCharger::CustomChargeStartSound()
 {
-	return pev->noise2 ? STRING(pev->noise2) : DefaultChargeStartSound();
+	return pev->noise2 ? STRING(pev->noise2) : nullptr;
 }
-const char* CWallCharger::RechargeSound()
+const char* CWallCharger::CustomRechargeSound()
 {
-	return pev->noise3 ? STRING(pev->noise3) : DefaultRechargeSound();
+	return pev->noise3 ? STRING(pev->noise3) : nullptr;
+}
+
+void CWallCharger::PlayChargerSound(const NamedSoundScript& soundScript, const char* customSample)
+{
+	if (customSample)
+		EmitSoundScriptSelectedSample(soundScript, customSample);
+	else
+		EmitSoundScript(soundScript);
+}
+
+void CWallCharger::StopChargerSound(const NamedSoundScript& soundScript, const char* customSample)
+{
+	if (customSample)
+		StopSoundScriptSelectedSample(soundScript, customSample);
+	else
+		StopSoundScript(soundScript);
 }
 
 TYPEDESCRIPTION CWallCharger::m_SaveData[] =
@@ -208,52 +220,52 @@ void CWallCharger::KeyValue( KeyValueData *pkvd )
 		FStrEq( pkvd->szKeyName, "value2" ) ||
 		FStrEq( pkvd->szKeyName, "value3" ) )
 	{
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "dmdelay" ) )
 	{
 		m_iReactivate = atoi( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerOnEmpty" ) )
 	{
 		m_triggerOnEmpty = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerOnRecharged" ) )
 	{
 		m_triggerOnRecharged = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerOnFirstUse" ) )
 	{
 		m_triggerOnFirstUse = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "capacity" ) || FStrEq( pkvd->szKeyName, "CustomJuice" ) )
 	{
 		pev->health = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "CustomLoopSound" ) )
 	{
 		pev->noise = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "CustomDeniedSound" ) )
 	{
 		pev->noise1 = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "CustomStartSound" ) )
 	{
 		pev->noise2 = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "CustomRechargeSound" ) )
 	{
 		pev->noise3 = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseEntity::KeyValue( pkvd );
@@ -271,7 +283,7 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		case USE_OFF:
 			if (m_iJuice > 0)
 			{
-				EMIT_SOUND( ENT( pev ), CHAN_ITEM, DenySound(), SoundVolume(), ATTN_NORM );
+				PlayChargerSound(DenySoundScript(), CustomDenySound());
 				m_iJuice = 0;
 				pev->frame = OffStateFrame();
 				Off();
@@ -299,13 +311,14 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		Off();
 	}
 
+	CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
 	// if the player doesn't have the suit, or there is no juice left, make the deny noise
-	if( ( m_iJuice <= 0 ) || !((static_cast<CBasePlayer*>(pActivator))->HasSuit() || AllowNoSuit()) )
+	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit(pPlayer)) || !pPlayer->CanHaveItem(this) )
 	{
 		if( m_flSoundTime <= gpGlobals->time )
 		{
 			m_flSoundTime = gpGlobals->time + 0.62f;
-			EMIT_SOUND( ENT( pev ), CHAN_ITEM, DenySound(), SoundVolume(), ATTN_NORM );
+			PlayChargerSound(DenySoundScript(), CustomDenySound());
 		}
 		return;
 	}
@@ -335,10 +348,10 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		if( m_flSoundTime <= gpGlobals->time )
 		{
 			m_flSoundTime = gpGlobals->time + 0.62f;
-			EMIT_SOUND( ENT( pev ), CHAN_ITEM, DenySound(), SoundVolume(), ATTN_NORM );
+			PlayChargerSound(DenySoundScript(), CustomDenySound());
 		}
 		if( m_iOn > 1 )
-			STOP_SOUND( ENT( pev ), CHAN_STATIC, LoopingSound() );
+			StopChargerSound(LoopingSoundScript(), CustomLoopingSound());
 		m_iOn = 0;
 		return;
 	}
@@ -347,13 +360,13 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	if( !m_iOn )
 	{
 		m_iOn++;
-		EMIT_SOUND( ENT( pev ), CHAN_ITEM, ChargeStartSound(), 1.0, ATTN_NORM );
+		PlayChargerSound(ChargeStartSoundScript(), CustomChargeStartSound());
 		m_flSoundTime = 0.56f + gpGlobals->time;
 	}
 	if( ( m_iOn == 1 ) && ( m_flSoundTime <= gpGlobals->time ) )
 	{
 		m_iOn++;
-		EMIT_SOUND( ENT( pev ), CHAN_STATIC, LoopingSound(), 1.0, ATTN_NORM );
+		PlayChargerSound(LoopingSoundScript(), CustomLoopingSound());
 	}
 }
 
@@ -377,6 +390,17 @@ bool CWallCharger::CalcRatio( CBaseEntity *pLocus, float* outResult )
 	return true;
 }
 
+bool CWallCharger::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if(m_iJuice <= 0)
+		return false;
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
+}
 
 //-------------------------------------------------------------
 // Wall mounted health kit
@@ -384,23 +408,72 @@ bool CWallCharger::CalcRatio( CBaseEntity *pLocus, float* outResult )
 class CWallHealth : public CWallCharger
 {
 public:
-	const char* DefaultLoopingSound() { return "items/medcharge4.wav"; }
-	int RechargeTime() { return (int)g_pGameRules->FlHealthChargerRechargeTime(); }
-	const char* DefaultRechargeSound() { return "items/medshot4.wav"; }
-	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
-	const char* DefaultDenySound() { return "items/medshotno1.wav"; }
-	const char* DefaultChargeStartSound() { return "items/medshot4.wav"; }
-	float SoundVolume() { return 1.0f; }
-	bool GiveCharge(CBaseEntity* pActivator)
+	int RechargeTime() override { return (int)g_pGameRules->FlHealthChargerRechargeTime(); }
+	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : GetSkillValue("healthcharger")); }
+	bool GiveCharge(CBaseEntity* pActivator) override
 	{
 		return pActivator->TakeHealth( this, 1, HEAL_CHARGE ) > 0;
 	}
-	bool AllowNoSuit() {
+	bool AllowNoSuit(CBasePlayer* pPlayer) override {
+		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))
+		{
+			return (bool)pPlayer->m_playerTemplate->nosuitAllowHealthCharger;
+		}
 		return g_modFeatures.nosuit_allow_healthcharger;
 	}
+
+	const NamedSoundScript& LoopingSoundScript() override {
+		return loopingSoundScript;
+	}
+	const NamedSoundScript& DenySoundScript() override {
+		return denySoundScript;
+	}
+	const NamedSoundScript& ChargeStartSoundScript() override {
+		return startSoundScript;
+	}
+	const NamedSoundScript& RechargeSoundScript() override {
+		return rechargeSoundScript;
+	}
+
+	static const NamedSoundScript denySoundScript;
+	static const NamedSoundScript startSoundScript;
+	static const NamedSoundScript loopingSoundScript;
+	static const NamedSoundScript rechargeSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( func_healthcharger, CWallHealth )
+
+const NamedSoundScript CWallHealth::denySoundScript = {
+	CHAN_ITEM,
+	{"items/medshotno1.wav"},
+	1.0f,
+	ATTN_NORM,
+	"WallHealth.Deny"
+};
+
+const NamedSoundScript CWallHealth::startSoundScript = {
+	CHAN_ITEM,
+	{"items/medshot4.wav"},
+	1.0f,
+	ATTN_NORM,
+	"WallHealth.Start"
+};
+
+const NamedSoundScript CWallHealth::loopingSoundScript = {
+	CHAN_STATIC,
+	{"items/medcharge4.wav"},
+	1.0f,
+	ATTN_NORM,
+	"WallHealth.ChargingLoop"
+};
+
+const NamedSoundScript CWallHealth::rechargeSoundScript = {
+	CHAN_ITEM,
+	{"items/medshot4.wav"},
+	1.0f,
+	ATTN_NORM,
+	"WallHealth.Recharge"
+};
 
 //-------------------------------------------------------------
 // Wall mounted health kit (PS2 && Decay)
@@ -409,21 +482,53 @@ LINK_ENTITY_TO_CLASS( func_healthcharger, CWallHealth )
 class CWallHealthJarDecay : public CBaseAnimating
 {
 public:
-	void Spawn();
-	void Think();
+	void Spawn() override;
+	void Precache() override;
+	void Think() override;
 	void Update(bool slosh, float value);
 	void ToRest();
+
+	static const NamedVisual wallHealthTank;
+
+	float m_boneControllerStart;
+	float m_boneControllerEnd;
 };
+
+const NamedVisual CWallHealthJarDecay::wallHealthTank = BuildVisual("WallHealth.Tank")
+		.Model("models/health_charger_both.mdl")
+		.RenderMode(kRenderTransTexture)
+		.Alpha(180);
 
 void CWallHealthJarDecay::Spawn()
 {
+	Precache();
 	pev->solid = SOLID_NOT;
 	pev->movetype = MOVETYPE_FLY;
 
-	SET_MODEL(ENT(pev), "models/health_charger_both.mdl");
-	pev->renderamt = 180;
-	pev->rendermode = kRenderTransTexture;
+	ApplyVisual(GetVisual(wallHealthTank));
 	InitBoneControllers();
+
+	void *pmodel = GET_MODEL_PTR(ENT(pev));
+	if (pmodel)
+	{
+		studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
+
+		if (pstudiohdr->numbonecontrollers > 0)
+		{
+			mstudiobonecontroller_t	*pbonecontroller = (mstudiobonecontroller_t *)((byte *)pstudiohdr + pstudiohdr->bonecontrollerindex);
+			m_boneControllerStart = pbonecontroller->start;
+			m_boneControllerEnd = pbonecontroller->end;
+		}
+	}
+
+	pev->sequence = 0;
+	ResetSequenceInfo();
+	pev->nextthink = gpGlobals->time + 0.1f;
+}
+
+void CWallHealthJarDecay::Precache()
+{
+	RegisterVisual(wallHealthTank);
 }
 
 void CWallHealthJarDecay::Think()
@@ -434,6 +539,8 @@ void CWallHealthJarDecay::Think()
 		if (pev->sequence == 2 && m_fSequenceFinished)
 		{
 			pev->sequence = 0;
+			ResetSequenceInfo();
+			pev->frame = 0;
 		}
 		else
 		{
@@ -449,10 +556,10 @@ void CWallHealthJarDecay::Update(bool slosh, float value)
 		pev->sequence = 1;
 		ResetSequenceInfo();
 		pev->frame = 0;
-		m_fSequenceLoops = TRUE;
+		m_fSequenceLoops = true;
 		pev->nextthink = gpGlobals->time;
 	}
-	const float jarBoneControllerValue = value * 11 - 11;
+	const float jarBoneControllerValue = m_boneControllerStart + value * std::fabs(m_boneControllerEnd - m_boneControllerStart);
 	SetBoneController(0,  jarBoneControllerValue );
 }
 
@@ -471,25 +578,38 @@ LINK_ENTITY_TO_CLASS(item_healthcharger_jar, CWallHealthJarDecay)
 class CWallHealthDecay : public CBaseAnimating
 {
 public:
-	void KeyValue( KeyValueData *pkvd );
-	void Spawn();
-	void Precache(void);
+	void KeyValue( KeyValueData *pkvd ) override;
+	void Spawn() override;
+	void Precache() override;
+	void Activate() override;
 	void EXPORT AnimateAndWork();
 	void SearchForPlayer();
-	void Off( void );
-	void EXPORT Recharge( void );
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	virtual int ObjectCaps( void ) { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
+	void Off();
+	void EXPORT Recharge();
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
+	int ObjectCaps() override { return ( CBaseAnimating::ObjectCaps() | FCAP_CONTINUOUS_USE | FCAP_ONLYDIRECT_USE ); }
 	void TurnNeedleToPlayer(const Vector &player);
 	void SetNeedleState(int state);
 	void SetNeedleController(float yaw);
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 	void UpdateJar();
-	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : gSkillData.healthchargerCapacity); }
+	int ChargerCapacity() { return (int)(pev->health > 0 ? pev->health : GetSkillValue("healthcharger")); }
+	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
+	char DefaultRedefinedMaterial() override {
+		return CHAR_TEX_COMPUTER;
+	}
 
-	virtual int Save( CSave &save );
-	virtual int Restore( CRestore &restore );
+	bool AllowNoSuit(CBasePlayer* pPlayer) {
+		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))
+		{
+			return (bool)pPlayer->m_playerTemplate->nosuitAllowHealthCharger;
+		}
+		return g_modFeatures.nosuit_allow_healthcharger;
+	}
 
+	int Save( CSave &save ) override;
+	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	enum {
@@ -508,13 +628,17 @@ public:
 	int m_iState;
 	float m_flSoundTime;
 	float m_goToOffTime;
-	BOOL m_goingToOff;
+	bool m_goingToOff;
+	bool m_playingChargeSound;
 	CWallHealthJarDecay* m_jar;
-	BOOL m_playingChargeSound;
 	float m_currentYaw;
 	float m_goalYaw;
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
+	int m_collisionType;
+	bool m_missingSequence;
+
+	static constexpr const char* deploySoundScript = "WallHealth.Deploy";
 
 protected:
 	void SetMySequence(const char* sequence);
@@ -531,6 +655,8 @@ TYPEDESCRIPTION CWallHealthDecay::m_SaveData[] =
 	DEFINE_FIELD( CWallHealthDecay, m_playingChargeSound, FIELD_BOOLEAN),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnFirstUse, FIELD_STRING),
 	DEFINE_FIELD( CWallHealthDecay, m_triggerOnEmpty, FIELD_STRING),
+	DEFINE_FIELD( CWallHealthDecay, m_collisionType, FIELD_INTEGER),
+	DEFINE_FIELD( CWallHealthDecay, m_missingSequence, FIELD_BOOLEAN),
 };
 
 IMPLEMENT_SAVERESTORE( CWallHealthDecay, CBaseAnimating )
@@ -540,17 +666,22 @@ void CWallHealthDecay::KeyValue( KeyValueData *pkvd )
 	if( FStrEq( pkvd->szKeyName, "capacity" ) || FStrEq( pkvd->szKeyName, "CustomJuice" ) )
 	{
 		pev->health = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerOnEmpty" ) )
 	{
 		m_triggerOnEmpty = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "TriggerOnFirstUse" ) )
 	{
 		m_triggerOnFirstUse = ALLOC_STRING( pkvd->szValue );
-		pkvd->fHandled = TRUE;
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "collision_type" ) )
+	{
+		m_collisionType = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
 	}
 	else
 		CBaseAnimating::KeyValue( pkvd );
@@ -563,9 +694,27 @@ void CWallHealthDecay::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
+	if (m_collisionType == PS2CHARGER_COLLISION_ACCURATE)
+	{
+		pev->movetype = MOVETYPE_NONE;
+	}
 
-	SET_MODEL(ENT(pev), "models/health_charger_body.mdl");
-	UTIL_SetSize(pev, Vector(-12, -16, 0), Vector(12, 16, 48));
+	SetMyModel("models/health_charger_body.mdl");
+
+	bool setSafeBox = false;
+	if (m_collisionType == PS2CHARGER_COLLISION_ACCURATE)
+	{
+		setSafeBox = SetSequenceSafeBox(1.0f);
+	}
+	else
+	{
+		setSafeBox = SetSequenceSafeBox(0.0f, 8.0f);
+	}
+	if (!setSafeBox)
+	{
+		UTIL_SetSize(pev, Vector(-8, -8, 0), Vector(8, 8, 48));
+	}
+
 	UTIL_SetOrigin(pev, pev->origin);
 	pev->skin = 0;
 
@@ -573,46 +722,57 @@ void CWallHealthDecay::Spawn()
 
 	if (m_iJuice > 0)
 	{
-		m_iState = Still;
+		SetNeedleState(Still);
 		SetThink(&CWallHealthDecay::AnimateAndWork);
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 	else
 	{
-		m_iState = Inactive;
+		SetNeedleState(Inactive);
 	}
 }
 
 LINK_ENTITY_TO_CLASS(item_healthcharger, CWallHealthDecay)
 
-void CWallHealthDecay::Precache(void)
+void CWallHealthDecay::Precache()
 {
-	PRECACHE_MODEL("models/health_charger_body.mdl");
-	PRECACHE_MODEL("models/health_charger_both.mdl");
-	PRECACHE_SOUND( "items/medshot4.wav" );
-	PRECACHE_SOUND( "items/medshotno1.wav" );
-	PRECACHE_SOUND( "items/medcharge4.wav" );
+	PrecacheMyModel("models/health_charger_body.mdl");
 
+	RegisterAndPrecacheSoundScript(CWallHealth::startSoundScript);
+	RegisterAndPrecacheSoundScript(CWallHealth::denySoundScript);
+	RegisterAndPrecacheSoundScript(CWallHealth::loopingSoundScript);
+	RegisterAndPrecacheSoundScript(CWallHealth::rechargeSoundScript);
+	RegisterAndPrecacheSoundScript(deploySoundScript, CWallHealth::startSoundScript);
+
+	UTIL_PrecacheOther("item_healthcharger_jar", GetProjectileOverrides());
+}
+
+void CWallHealthDecay::Activate()
+{
 	m_jar = GetClassPtr( (CWallHealthJarDecay *)NULL );
 	if (m_jar)
 	{
+		m_jar->AssignEntityOverrides(GetProjectileOverrides());
 		m_jar->Spawn();
-		UTIL_SetOrigin( m_jar->pev, pev->origin );
+		UTIL_SetOrigin(m_jar->pev, pev->origin);
 		m_jar->pev->angles = pev->angles;
 		UpdateJar();
 	}
+
+	CBaseAnimating::Activate();
 }
 
 void CWallHealthDecay::AnimateAndWork()
 {
 	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.1;
+	pev->nextthink = gpGlobals->time + 0.1f;
 
 	if (m_goalYaw < 0)
 		m_currentYaw = Q_max(m_currentYaw - 15, m_goalYaw);
 	else
 		m_currentYaw = Q_min(m_currentYaw + 15, m_goalYaw);
 	SetBoneController(0, m_currentYaw);
+	SetBoneController(1, m_currentYaw);
 
 	if (m_goingToOff)
 	{
@@ -629,36 +789,44 @@ void CWallHealthDecay::SearchForPlayer()
 {
 	CBaseEntity* pEntity = 0;
 	UTIL_MakeVectors( pev->angles );
-	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) { // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
-		if (pEntity->IsPlayer() && pEntity->IsAlive() && ((static_cast<CBasePlayer*>(pEntity))->HasSuit() || g_modFeatures.nosuit_allow_healthcharger)) {
-			if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
-				continue;
-			}
-			TurnNeedleToPlayer(pEntity->pev->origin);
-			switch (m_iState) {
-			case RetractShot:
-				if( m_fSequenceFinished )
-					SetNeedleState(Idle);
-				break;
-			case RetractArm:
-				SetNeedleState(Deploy);
-				break;
-			case Still:
-				SetNeedleState(Deploy);
-				break;
-			case Deploy:
-				if (m_fSequenceFinished)
-				{
-					SetNeedleState(Idle);
+	while((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), 64)) != 0) // this must be in sync with PLAYER_SEARCH_RADIUS from player.cpp
+	{
+		if (pEntity->IsPlayer() && pEntity->IsAlive())
+		{
+			CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pEntity);
+
+			if ((pPlayer->HasSuit() || AllowNoSuit(pPlayer)) && pPlayer->CanHaveItem(this))
+			{
+				if (DotProduct(pEntity->pev->origin - pev->origin, gpGlobals->v_forward) < 0) {
+					continue;
 				}
-				break;
-			case Idle:
-				break;
-			default:
+				TurnNeedleToPlayer(pEntity->pev->origin);
+				switch (m_iState) {
+				case RetractShot:
+					if (m_fSequenceFinished || m_missingSequence)
+						SetNeedleState(Idle);
+					break;
+				case RetractArm:
+					SetNeedleState(Deploy);
+					break;
+				case Still:
+					SetNeedleState(Deploy);
+					break;
+				case Deploy:
+					if (m_fSequenceFinished || m_missingSequence)
+					{
+						SetNeedleState(Idle);
+					}
+					break;
+				case Idle:
+					break;
+				default:
+					break;
+				}
+
 				break;
 			}
 		}
-		break;
 	}
 	if (!pEntity || !pEntity->IsPlayer()) {
 		switch (m_iState) {
@@ -668,7 +836,7 @@ void CWallHealthDecay::SearchForPlayer()
 			SetNeedleState(RetractArm);
 			break;
 		case RetractArm:
-			if (m_fSequenceFinished)
+			if (m_fSequenceFinished || m_missingSequence)
 			{
 				SetNeedleState(Still);
 				SetNeedleController(0);
@@ -698,12 +866,12 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pCaller);
 
 	// if the player doesn't have the suit, or there is no juice left, make the deny noise
-	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || g_modFeatures.nosuit_allow_healthcharger) )
+	if( ( m_iJuice <= 0 ) || !(pPlayer->HasSuit() || AllowNoSuit(pPlayer)) )
 	{
 		if( m_flSoundTime <= gpGlobals->time )
 		{
 			m_flSoundTime = gpGlobals->time + 0.62f;
-			EMIT_SOUND( ENT( pev ), CHAN_ITEM, "items/medshotno1.wav", 1.0, ATTN_NORM );
+			EmitSoundScript(CWallHealth::denySoundScript);
 		}
 		return;
 	}
@@ -711,7 +879,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	if (m_iState != Idle && m_iState != GiveShot && m_iState != Healing && m_iState != Inactive)
 		return;
 
-	m_goingToOff = TRUE;
+	m_goingToOff = true;
 	// if there is no juice left, turn it off
 	if( (m_iState == Healing || m_iState == GiveShot) && m_iJuice <= 0 )
 	{
@@ -736,7 +904,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		soundType = 1;
 		break;
 	case GiveShot:
-		if (m_fSequenceFinished)
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			SetNeedleState(Healing);
 		}
@@ -745,7 +913,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		if (!m_playingChargeSound && m_flSoundTime <= gpGlobals->time)
 		{
 			soundType = 2;
-			m_playingChargeSound = TRUE;
+			m_playingChargeSound = true;
 		}
 		break;
 	default:
@@ -774,12 +942,12 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 
 		if (soundType == 1)
 		{
-			EMIT_SOUND( ENT( pev ), CHAN_ITEM, "items/medshot4.wav", 1.0, ATTN_NORM );
+			EmitSoundScript(CWallHealth::startSoundScript);
 		}
 		else if (soundType == 2)
 		{
-			EMIT_SOUND( ENT( pev ), CHAN_STATIC, "items/medcharge4.wav", 1.0, ATTN_NORM );
-			m_playingChargeSound = TRUE;
+			EmitSoundScript(CWallHealth::loopingSoundScript);
+			m_playingChargeSound = true;
 		}
 	}
 	else
@@ -791,11 +959,11 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		if( m_flSoundTime <= gpGlobals->time )
 		{
 			m_flSoundTime = gpGlobals->time + 0.62;
-			EMIT_SOUND( ENT( pev ), CHAN_ITEM, "items/medshotno1.wav", 1.0, ATTN_NORM );
+			EmitSoundScript(CWallHealth::denySoundScript);
 		}
 		if (m_playingChargeSound) {
-			STOP_SOUND( ENT( pev ), CHAN_STATIC, "items/medcharge4.wav" );
-			m_playingChargeSound = FALSE;
+			StopSoundScript(CWallHealth::loopingSoundScript);
+			m_playingChargeSound = false;
 		}
 	}
 
@@ -803,9 +971,9 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	m_flNextCharge = gpGlobals->time + 0.1f;
 }
 
-void CWallHealthDecay::Recharge( void )
+void CWallHealthDecay::Recharge()
 {
-	EMIT_SOUND( ENT( pev ), CHAN_ITEM, "items/medshot4.wav", 1.0, ATTN_NORM );
+	EmitSoundScript(CWallHealth::rechargeSoundScript);
 	m_iJuice = ChargerCapacity();
 	UpdateJar();
 	pev->skin = 0;
@@ -814,14 +982,14 @@ void CWallHealthDecay::Recharge( void )
 	pev->nextthink = gpGlobals->time;
 }
 
-void CWallHealthDecay::Off( void )
+void CWallHealthDecay::Off()
 {
 	switch (m_iState) {
 	case GiveShot:
 	case Healing:
 		if (m_playingChargeSound) {
-			STOP_SOUND( ENT( pev ), CHAN_STATIC, "items/medcharge4.wav" );
-			m_playingChargeSound = FALSE;
+			StopSoundScript(CWallHealth::loopingSoundScript);
+			m_playingChargeSound = false;
 		}
 		if (m_jar)
 		{
@@ -830,11 +998,11 @@ void CWallHealthDecay::Off( void )
 		SetNeedleState(RetractShot);
 		break;
 	case RetractShot:
-		if( m_fSequenceFinished )
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			if (m_iJuice > 0) {
 				SetNeedleState(Idle);
-				m_goingToOff = FALSE;
+				m_goingToOff = false;
 				pev->nextthink = gpGlobals->time;
 			} else {
 				SetNeedleState(RetractArm);
@@ -844,15 +1012,16 @@ void CWallHealthDecay::Off( void )
 		break;
 	case RetractArm:
 	{
-		if( m_fSequenceFinished )
+		if (m_fSequenceFinished || m_missingSequence)
 		{
 			m_currentYaw = m_goalYaw = 0;
 			SetBoneController(0, m_currentYaw);
-			if( ( m_iJuice <= 0 ) )
+			SetBoneController(1, m_currentYaw);
+			if (m_iJuice <= 0)
 			{
 				SetNeedleState(Inactive);
 				const float rechargeTime = g_pGameRules->FlHealthChargerRechargeTime();
-				if (rechargeTime > 0 ) {
+				if (rechargeTime > 0) {
 					pev->nextthink = gpGlobals->time + rechargeTime;
 					SetThink( &CWallHealthDecay::Recharge );
 				}
@@ -871,13 +1040,28 @@ void CWallHealthDecay::Off( void )
 
 void CWallHealthDecay::SetMySequence(const char *sequence)
 {
-	pev->sequence = LookupSequence( sequence );
-	if (pev->sequence == -1) {
-		ALERT(at_error, "unknown sequence in %s: %s\n", STRING(pev->model), sequence);
-		pev->sequence = 0;
+	bool shouldReset = false;
+	int newSequence = LookupSequence( sequence );
+	if (newSequence == -1) {
+		m_missingSequence = true;
+		if (pev->sequence != 0)
+		{
+			pev->sequence = 0;
+			shouldReset = true;
+		}
 	}
-	pev->frame = 0;
-	ResetSequenceInfo( );
+	else
+	{
+		m_missingSequence = false;
+		pev->sequence = newSequence;
+		shouldReset = true;
+	}
+
+	if (shouldReset)
+	{
+		pev->frame = 0;
+		ResetSequenceInfo();
+	}
 }
 
 void CWallHealthDecay::SetNeedleState(int state)
@@ -888,7 +1072,7 @@ void CWallHealthDecay::SetNeedleState(int state)
 		SetMySequence("still");
 		break;
 	case Deploy:
-		EMIT_SOUND( ENT( pev ), CHAN_ITEM, "items/medshot4.wav", 1.0, ATTN_NORM );
+		EmitSoundScript(deploySoundScript);
 		SetMySequence("deploy");
 		break;
 	case Idle:
@@ -932,8 +1116,7 @@ void CWallHealthDecay::SetNeedleController(float yaw)
 
 void CWallHealthDecay::UpdateOnRemove()
 {
-	UTIL_Remove(m_jar);
-	m_jar = NULL;
+	UTIL_RemoveAndClean(m_jar);
 	CBaseAnimating::UpdateOnRemove();
 }
 
@@ -943,4 +1126,27 @@ void CWallHealthDecay::UpdateJar()
 	{
 		m_jar->Update(m_iState == Healing || m_iState == GiveShot, m_iJuice / (float)ChargerCapacity());
 	}
+}
+
+bool CWallHealthDecay::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
+{
+	if(m_iJuice <= 0)
+		return false;
+	if (pPlayer->IsPlayer())
+	{
+		CBasePlayer* p = (CBasePlayer*)pPlayer;
+		return p->CanHaveItem(this);
+	}
+	return false;
+}
+
+bool CWallHealthDecay::HandleDoorBlockage(CBaseEntity *pDoor)
+{
+	if (pev->maxs.x >= 4.0f && m_collisionType != PS2CHARGER_COLLISION_ACCURATE)
+	{
+		UTIL_SetSize(pev, Vector(pev->mins.x * 0.5f, pev->mins.y * 0.5f, pev->mins.z), Vector(pev->maxs.x * 0.5f, pev->maxs.y * 0.5f, pev->maxs.z));
+		ALERT(at_console, "%s is blocking the door. Shrinking to (%g, %g, %g) - (%g, %g, %g)\n", STRING(pev->classname), pev->mins.x, pev->mins.y, pev->mins.z, pev->maxs.x, pev->maxs.y, pev->maxs.z);
+		return true;
+	}
+	return false;
 }
