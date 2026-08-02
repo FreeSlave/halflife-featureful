@@ -90,7 +90,7 @@ ClientFeatures::ClientFeatures()
 	hud_min_alpha.minValue = 100;
 	hud_min_alpha.maxValue = 200;
 
-	hud_scale.defaultValue = 1.0f;
+	hud_scale.defaultValue = 0.0f;
 	hud_draw_nosuit = false;
 	hud_color_nosuit = RGB_HUD_NOSUIT;
 
@@ -100,10 +100,10 @@ ClientFeatures::ClientFeatures()
 	movemode.configurable = false;
 	crosshair_colorable.configurable = false;
 
-	nvgstyle.configurable = false;
+	nvgstyle.configurable = true;
 	nvgstyle.defaultValue = 1;
 
-	nvg_cs.radius.configurable = false;
+	nvg_cs.radius.configurable = true;
 	nvg_cs.radius.defaultValue = CS_NVG_DLIGHT_RADIUS;
 	nvg_cs.radius.minValue = NVG_DLIGHT_MIN_RADIUS;
 	nvg_cs.radius.maxValue = NVG_DLIGHT_MAX_RADIUS;
@@ -111,7 +111,7 @@ ClientFeatures::ClientFeatures()
 	nvg_cs.layer_alpha = 110;
 	nvg_cs.light_color = 0x32FF32;
 
-	nvg_opfor.radius.configurable = false;
+	nvg_opfor.radius.configurable = true;
 	nvg_opfor.radius.defaultValue = OF_NVG_DLIGHT_RADIUS;
 	nvg_opfor.radius.minValue = NVG_DLIGHT_MIN_RADIUS;
 	nvg_opfor.radius.maxValue = NVG_DLIGHT_MAX_RADIUS;

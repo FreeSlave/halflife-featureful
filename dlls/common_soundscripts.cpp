@@ -288,13 +288,13 @@ const NamedSoundScript flashlightOffSoundScript = {
 
 const NamedSoundScript nvgOnSoundScript = {
 	CHAN_WEAPON,
-	{},
+	{"items/flashlight1.wav"},
 	"Player.NVGOn"
 };
 
 const NamedSoundScript nvgOffSoundScript = {
 	CHAN_WEAPON,
-	{},
+	{"items/flashlight2.wav"},
 	"Player.NVGOff"
 };
 

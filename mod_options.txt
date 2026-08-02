@@ -1,6 +1,6 @@
 CLIENT_WEAPONS=ON # Client local weapons prediction
 
-GAMEDIR=featureful # Gamedir path
+GAMEDIR=sum # Gamedir path
 
 # keys below must match liblist.gam/gameinfo.txt
 SERVER_INSTALL_DIR=dlls # Where put server dll

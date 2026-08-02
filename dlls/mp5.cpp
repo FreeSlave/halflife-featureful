@@ -75,7 +75,7 @@ WeaponParameters CMP5::GetDefaultParameters() const
 {
 	WeaponParameters params;
 
-	params.initialAmmoAmount = (bIsMultiplayer() || FEATURE_OPFOR_SPECIFIC) ? 50 : 25;
+	params.initialAmmoAmount = 25;
 	params.maxClip = 50;
 	params.ammoName = "9mm";
 	params.secondaryAmmoName = "ARgrenades";

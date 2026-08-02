@@ -9,9 +9,9 @@
 
 // Enable opfor specific changes, like more weapon slots, green hud, etc.
 // Follow the symbol to see what it actually changes
-#define FEATURE_OPFOR_SPECIFIC 0
+#define FEATURE_OPFOR_SPECIFIC 1
 
-#define FEATURE_OPFOR_WEAPON_SLOTS (0 || FEATURE_OPFOR_SPECIFIC)
+#define FEATURE_OPFOR_WEAPON_SLOTS 0
 
 // monsters who carry hand grenades will drop one hand grenade upon death
 #define FEATURE_MONSTERS_DROP_HANDGRENADES 0

@@ -661,6 +661,8 @@ public:
 	Vector DefaultMinHullSize() override { return Vector( -12.0f, -12.0f, 0.0f ); }
 	Vector DefaultMaxHullSize() override { return Vector( 12.0f, 12.0f, 4.0f ); }
 
+	int DefaultClassify() { return CLASS_RACEX_SHOCK; }
+
 	int		Save(CSave &save) override;
 	int		Restore(CRestore &restore) override;
 	static	TYPEDESCRIPTION m_SaveData[];

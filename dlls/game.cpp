@@ -71,7 +71,7 @@ ModFeatures::ModFeatures()
 	player_maxhealth = MAX_NORMAL_HEALTH;
 	player_maxarmor = MAX_NORMAL_BATTERY;
 
-	suit_light = SUIT_LIGHT_FLASHLIGHT;
+	suit_light = SUIT_LIGHT_NVG;
 	suit_light_allow_both = false;
 	suit_sentences = true;
 	hev_dead_requires_suit = false;
@@ -98,7 +98,7 @@ ModFeatures::ModFeatures()
 
 	racex_dislike_alien_military = true;
 	racex_dislike_gargs = true;
-	racex_dislike_alien_monsters = false;
+	racex_dislike_alien_monsters = true;
 
 	scientist_random_heads =  4;
 
@@ -344,6 +344,14 @@ void ModFeatures::EnableDefaultWeapons()
 	weapons[WEAPON_SATCHEL] = true;
 	weapons[WEAPON_TRIPMINE] = true;
 	weapons[WEAPON_SNARK] = true;
+
+	weapons[WEAPON_KNIFE] = true;
+	weapons[WEAPON_GRAPPLE] = true;
+	weapons[WEAPON_EAGLE] = true;
+	weapons[WEAPON_M249] = true;
+	weapons[WEAPON_SNIPERRIFLE] = true;
+	weapons[WEAPON_SHOCKRIFLE] = true;
+	weapons[WEAPON_SPORELAUNCHER] = true;
 }
 
 void ModFeatures::EnableAllWeapons()
@@ -547,7 +555,27 @@ void ReadEnabledMonsters()
 	int filePos = 0, fileSize;
 	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
 	if (!pMemFile)
+	{
+		g_modFeatures.EnableMonster("gonome");
+		g_modFeatures.EnableMonster("zombie_barney");
+		g_modFeatures.EnableMonster("zombie_soldier");
+		g_modFeatures.EnableMonster("voltigore");
+		g_modFeatures.EnableMonster("babyvoltigore");
+		g_modFeatures.EnableMonster("shocktrooper");
+		g_modFeatures.EnableMonster("pitdrone");
+		g_modFeatures.EnableMonster("otis");
+		g_modFeatures.EnableMonster("cleansuit_scientist");
+		g_modFeatures.EnableMonster("shockroach");
+		g_modFeatures.EnableMonster("male_assassin");
+		g_modFeatures.EnableMonster("blkop_apache");
+		g_modFeatures.EnableMonster("blkop_osprey");
+		g_modFeatures.EnableMonster("human_grunt_ally");
+		g_modFeatures.EnableMonster("human_grunt_medic");
+		g_modFeatures.EnableMonster("human_grunt_torch");
+		g_modFeatures.EnableMonster("drillsergeant");
+		g_modFeatures.EnableMonster("recruit");
 		return;
+	}
 
 	ALERT(at_console, "Parsing enabled monsters from %s\n", fileName);
 
@@ -1260,7 +1288,7 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("bigmomma_dmg_blast", 100.0f);
 	g_SkillData.ProvideFallback("bigmomma_radius_blast", 250.0f);
 
-	g_SkillData.ProvideFallback("bullsquid_toxicity", 0.0f, 1.0f, 1.0f);
+	g_SkillData.ProvideFallback("bullsquid_toxicity", 0.0f, 0.0f, 0.0f);
 	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_poison", "bullsquid_dmg_spit", 0.25f);
 	g_SkillData.ProvideFallbackWithFactor("bullsquid_dmg_toxic_impact", "bullsquid_dmg_spit", 1.5f);
 	g_SkillData.ProvideFallback("bullsquid_spit_inaccuracy", 5.0f, 3.0f, 1.0f);
@@ -1310,12 +1338,12 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("ichthyosaur_maxspeed", 400.0f);
 
 	g_SkillData.ProvideFallback("islave_zap_rate", 1.0f, 1.0f, 1.5f);
-	g_SkillData.ProvideFallback("islave_revival", 0.0f, 0.0f, 1.0f);
-	g_SkillData.ProvideFallback("islave_coil_attack", 1.0f);
+	g_SkillData.ProvideFallback("islave_revival", 0.0f, 0.0f, 0.0f);
+	g_SkillData.ProvideFallback("islave_coil_attack", 0.0f);
 	g_SkillData.ProvideFallbackWithFactor("islave_dmg_coil", "islave_dmg_zap", 2.5f);
-	g_SkillData.ProvideFallback("islave_selfheal", "islave_dmg_zap");
-	g_SkillData.ProvideFallback("islave_heal", "islave_dmg_zap");
-	g_SkillData.ProvideFallback("islave_arm_boost", 1.0f);
+	g_SkillData.ProvideFallback("islave_selfheal", 0.0f);
+	g_SkillData.ProvideFallback("islave_heal", 0.0f);
+	g_SkillData.ProvideFallback("islave_arm_boost", 0.0f);
 	g_SkillData.ProvideFallbackWithFactor("islave_boosted_dmg_claw", "islave_dmg_claw", 1.5f);
 	g_SkillData.ProvideFallback("islave_idle_effects", 0.0f);
 	g_SkillData.ProvideFallback("islave_initial_energy", 0.0f);
