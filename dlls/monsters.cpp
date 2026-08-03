@@ -4821,12 +4821,10 @@ void CBaseMonster::SetMyFieldOfView(const float defaultFieldOfView)
 
 int CBaseMonster::Classify()
 {
-	/*
 	if (m_iClass == -1)
 		return CLASS_NONE;
 	if (m_iClass)
 		return m_iClass;
-	*/
 
 	const EntTemplate* entTemplate = GetMyEntTemplate();
 	const int defaultClassify = (entTemplate && entTemplate->IsClassifyDefined()) ? entTemplate->Classify() : DefaultClassify();
