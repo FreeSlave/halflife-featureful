@@ -4226,6 +4226,9 @@ void CBlowerCannon::BlowerCannonThink()
 
 	if( evaluated )
 	{
+		const char* projectileName = ProjectileName();
+		const bool isRpgRocket = strcmp(projectileName, "rpg_rocket") == 0 || strcmp(projectileName, "rpg_rocket straight") == 0;
+
 		if (pev->netname)
 		{
 			evaluated = TryCalcLocus_Velocity(this, m_hActivator, STRING(pev->netname), direction);
@@ -4234,7 +4237,10 @@ void CBlowerCannon::BlowerCannonThink()
 				direction.z += m_iZOffset;
 				direction.NormalizeInPlace();
 				angles = UTIL_VecToAngles( direction );
-				angles.z = -angles.z;
+				if (isRpgRocket)
+					angles.x = -angles.x;
+				else
+					angles.z = -angles.z;
 			}
 		}
 		else
@@ -4248,7 +4254,10 @@ void CBlowerCannon::BlowerCannonThink()
 					direction.z += m_iZOffset;
 					direction.NormalizeInPlace();
 					angles = UTIL_VecToAngles( direction );
-					angles.z = -angles.z;
+					if (isRpgRocket)
+						angles.x = -angles.x;
+					else
+						angles.z = -angles.z;
 				}
 				else
 				{
@@ -4273,7 +4282,6 @@ void CBlowerCannon::BlowerCannonThink()
 			if (!owner)
 				owner = this;
 
-			const char* projectileName = ProjectileName();
 			if (projectileName)
 			{
 				int variant = 0;

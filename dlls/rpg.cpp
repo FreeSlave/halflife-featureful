@@ -187,13 +187,26 @@ void CRpgRocket::Spawn()
 
 	if (!m_straight)
 	{
-		Vector angles = pev->angles;
-		angles.x = -angles.x;
-		angles.x -= 30.0f;
-		UTIL_MakeVectors(angles);
+		if (m_hLauncher && m_hLauncher->MyWeaponPointer())
+		{
+			pev->angles.x = -pev->angles.x;
+		}
+
+		pev->angles.x -= 30;
+		UTIL_MakeVectors(pev->angles);
+		pev->angles.x = -(pev->angles.x + 30);
+
 		pev->gravity = 0.5f;
+
+		pev->velocity = gpGlobals->v_forward * 250.0f;
 	}
-	pev->velocity = gpGlobals->v_forward * 250.0f;
+	else
+	{
+		if (!(m_hLauncher && m_hLauncher->MyWeaponPointer()))
+		{
+			pev->angles.x = -pev->angles.x;
+		}
+	}
 
 	pev->nextthink = gpGlobals->time + 0.4f;
 
@@ -230,8 +243,16 @@ void CRpgRocket::SetProjectileParamsBeforeSpawn(const ProjectileParameters& para
 
 void CRpgRocket::LaunchAsProjectile(const ProjectileParameters& params)
 {
-	if (params.speedOverride)
-		pev->velocity = pev->velocity.Normalize() * params.speedOverride;
+	if (m_straight)
+	{
+		pev->velocity = params.direction * (params.speedOverride > 0.0f ? params.speedOverride : 250.0f);
+	}
+	else
+	{
+		if (params.speedOverride)
+			pev->velocity = pev->velocity.Normalize() * params.speedOverride;
+	}
+
 	CConfigurableWeapon* pLauncher = GetLauncher();
 	if (pLauncher)
 	{

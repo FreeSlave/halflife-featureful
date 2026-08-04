@@ -551,7 +551,7 @@ float CPenguinGrenade::AdditionalExplosionDamage()
 
 float CPenguinGrenade::MaximumExplosionDamage()
 {
-	return GetSkillValue("penguin_max_dmg_pop")*5;
+	return GetSkillValue("penguin_max_dmg_pop");
 }
 
 float CPenguinGrenade::JumpDelay()
