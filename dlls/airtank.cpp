@@ -27,6 +27,9 @@ class CAirtank : public CGrenade
 	void EXPORT TankTouch( CBaseEntity *pOther );
 	int  BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override {
+		return RadiusDamageInfo(DamageInfo(50, DMG_BLAST));
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -78,7 +81,6 @@ void CAirtank::Spawn()
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_YES;
 	pev->health = 20;
-	pev->dmg = 50;
 	m_state = 1;
 }
 
@@ -96,7 +98,7 @@ KilledResult CAirtank::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 
 	// UNDONE: this should make a big bubble cloud, not an explosion
 
-	Explode( pev->origin, Vector( 0, 0, -1 ) );
+	ExplodeDownwards();
 	return KilledResult();
 }
 

@@ -3189,7 +3189,7 @@ void CTorch::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const 
 					WRITE_BYTE( 15  ); // framerate
 					WRITE_BYTE( TE_EXPLFLAG_NONE );
 				MESSAGE_END();
-				::RadiusDamage ( pev->origin, pev, pev, DamageInfo{Q_min(pev->max_health, 75), DMG_BLAST}, 125, CLASS_NONE );
+				::RadiusDamage( pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{Q_min(pev->max_health, 75), DMG_BLAST}, 125) );
 				Create( "spark_shower", pev->origin, ptr->vecPlaneNormal, NULL );
 			}
 		}

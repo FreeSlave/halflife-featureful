@@ -437,7 +437,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 			}
 
 			SendBeamWave(vecEnd, 1000, GetVisual(zapWaveVisual), MSG_PVS, pev->origin);
-			RadiusDamage( vecEnd, pev, pev, DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}, CLASS_ALIEN_MONSTER );
+			::RadiusDamage( vecEnd, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}), Classify() );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);
 			break;

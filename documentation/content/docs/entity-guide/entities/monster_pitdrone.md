@@ -15,7 +15,7 @@ bookToC: false
 * **sk_pitdrone_health** - monster's health.
 * **sk_pitdrone_dmg_bite** - both claw attack damage. This is dealt two times during the attack due to animation events.
 * **sk_pitdrone_dmg_whip** - single claw attack damage.
-* **sk_pitdrone_dmg_spit** - spike damage.
+* [pitdronespike]({{< ref pitdronespike >}}) skill variables.
 
 {{% hint info %}}
 The skill variable names might be confusing as pitdrones don't bite and don't have a tail to whip, but these are the names that are used in Opposing Force.

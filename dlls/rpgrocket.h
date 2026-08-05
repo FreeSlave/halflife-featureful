@@ -21,11 +21,12 @@ public:
 	static	TYPEDESCRIPTION m_SaveData[];
 	void Spawn() override;
 	void Precache() override;
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void EXPORT FollowThink();
 	void EXPORT IgniteThink();
-	void Explode( TraceResult *pTrace, int bitsDamageType ) override;
+	void Explode(const TraceResult *pTrace) override;
 	inline CConfigurableWeapon *GetLauncher();
 
 	float m_flIgniteTime;

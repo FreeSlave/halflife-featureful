@@ -27,6 +27,7 @@ public:
 	void CreateEffects();
 	void ClearEffects();
 	void UpdateOnRemove() override;
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override;
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}

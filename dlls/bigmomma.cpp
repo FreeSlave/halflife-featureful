@@ -118,6 +118,9 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override {
+		return RadiusDamageInfo(DamageInfo{GetSkillValue("bigmomma_dmg_blast"), DMG_ACID}, GetSkillValue("bigmomma_radius_blast"));
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -1347,7 +1350,6 @@ void CBMortar::Spawn()
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
 	pev->dmgtime = gpGlobals->time + 0.4f;
-	SetDefaultProjectileDamage(GetSkillValue("bigmomma_dmg_blast"));
 }
 
 void CBMortar::Precache()
@@ -1407,6 +1409,6 @@ void CBMortar::Touch( CBaseEntity *pOther )
 	if( pev->owner )
 		pevOwner = VARS(pev->owner);
 
-	RadiusDamage( pev->origin, pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ACID}, GetSkillValue("bigmomma_radius_blast"), CLASS_NONE );
+	RadiusDamage( pev->origin, pev, pevOwner, GetProjectileRadiusDamageInfo() );
 	UTIL_Remove( this );
 }

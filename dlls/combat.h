@@ -5,8 +5,6 @@
 #include "cbase.h"
 #include "cone_degrees.h"
 
-#define DEFAULT_EXPLOSION_RADIUS_MULTIPLIER 2.5f
-
 #define BIG_EXPLOSION_VOLUME	2048
 #define NORMAL_EXPLOSION_VOLUME	1024
 #define SMALL_EXPLOSION_VOLUME	512
@@ -29,7 +27,7 @@ extern void AddMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, CBas
 extern void DecalGunshot(const TraceResult& tr, const Vector& vecDir, char chTextureType, int ricochetSoundChance = 50);
 extern void DecalSmack(const TraceResult& tr);
 extern int DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
-extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore );
+extern void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const RadiusDamageInfo& radiusDamageInfo, int iClassIgnore = CLASS_NONE );
 
 enum
 {
@@ -42,15 +40,17 @@ enum
 };
 
 template<typename Filter>
-void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int flags, Filter filter)
+void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const RadiusDamageInfo& radiusDamageInfo, int flags, Filter filter)
 {
 	CBaseEntity *pEntity = nullptr;
 	TraceResult	tr;
 	float		flAdjustedDamage, falloff;
 	Vector		vecSpot;
 
+	const float flRadius = radiusDamageInfo.GetRadius();
+
 	if( flRadius )
-		falloff = damageInfo.damage / flRadius;
+		falloff = radiusDamageInfo.damageInfo.damage / flRadius;
 	else
 		falloff = 1.0f;
 
@@ -90,7 +90,7 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 
 			if (pLooker != nullptr)
 			{
-				flAdjustedDamage = damageInfo.damage;
+				flAdjustedDamage = radiusDamageInfo.damageInfo.damage;
 
 				if (flags & RADIUSDAMAGE_APPLY_FALLOFF)
 					flAdjustedDamage -= (vecSpot - vecSrc).Length() * falloff;
@@ -113,7 +113,7 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 
 				if( flAdjustedDamage > 0.0f )
 				{
-					DamageInfo dmgInfo = damageInfo;
+					DamageInfo dmgInfo = radiusDamageInfo.damageInfo;
 					dmgInfo.damage = flAdjustedDamage;
 					pEntity->TakeDamage( pevInflictor, pevAttacker, dmgInfo );
 				}
@@ -143,13 +143,13 @@ void RadiusDamage(CBaseEntity* pLooker, Vector vecSrc, entvars_t *pevInflictor, 
 					}
 
 					// decrease damage for an ent that's farther from the bomb.
-					flAdjustedDamage = damageInfo.damage;
+					flAdjustedDamage = radiusDamageInfo.damageInfo.damage;
 					if (flags & RADIUSDAMAGE_APPLY_FALLOFF)
 						flAdjustedDamage -= ( vecSrc - tr.vecEndPos ).Length() * falloff;
 
 					if (flAdjustedDamage > 0.0f)
 					{
-						DamageInfo dmgInfo = damageInfo;
+						DamageInfo dmgInfo = radiusDamageInfo.damageInfo;
 						dmgInfo.damage = flAdjustedDamage;
 						if( tr.flFraction != 1.0f )
 						{

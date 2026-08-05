@@ -17,6 +17,22 @@ A spore grenade used by [ammo_spore]({{< ref ammo_spore >}}), [monster_shocktroo
 Spore deals two times - first when (and if) it hits something that can take damage, and the explosion damage right after that.
 {{% /hint %}}
 
+### Projectile properties
+
+Speed: 800. 1200 for `spore rocket` variant.
+
+#### Direct damage
+
+* Damage: **sk_plr_spore_direct**
+* Type: generic
+
+#### Radius damage
+
+* Damage: **sk_plr_spore**
+* Type: blast
+* Radius: 200
+* Gib: always
+
 ### Soundscripts
 
 * **Spore.Bounce** - when bouncing from walls.

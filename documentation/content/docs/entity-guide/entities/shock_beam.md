@@ -12,6 +12,15 @@ entityCategory: projectile
 * **sk_plr_shockroachm** - impact damage in multiplayer.
 * **sk_shockroach** - impact damage for Monster entites. If not defined, **sk_plr_shockroachs** is used.
 
+### Projectile properties
+
+Speed: 2000
+
+#### Direct damage
+
+* Damage: **sk_shockroach** or **sk_plr_shockroachs** and **sk_plr_shockroachm** (if fired by player)
+* Type: shock
+
 ### Soundscripts
 
 * **ShockBeam.Impact** - on impact with something.

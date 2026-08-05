@@ -14,6 +14,16 @@ This uses the model **models/pipebomb.mdl** from Team Fortress Classic with `ski
 
 * **sk_plr_grenade** - explosion damage. If not defined, **sk_plr_hand_grenade** is used.
 
+### Projectile properties
+
+Speed: 600
+
+#### Radius damage
+
+* Damage: **sk_plr_grenade**
+* Type: blast
+* Radius: depends on damage
+
 ### Soundscripts
 
 * **Grenade.Bounce** - bounce sound. The default definition is the same as of **HandGrenade.Bounce**.

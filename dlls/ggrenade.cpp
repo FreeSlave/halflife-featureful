@@ -33,6 +33,13 @@
 
 LINK_ENTITY_TO_CLASS( grenade, CGrenade )
 
+TYPEDESCRIPTION	CGrenade::m_SaveData[] =
+{
+	DEFINE_FIELD(CGrenade, m_isTimed, FIELD_BOOLEAN),
+};
+
+IMPLEMENT_SAVERESTORE(CGrenade, CBaseMonster)
+
 const NamedSoundScript CGrenade::debrisSoundScript = {
 	CHAN_VOICE,
 	{"weapons/debris1.wav", "weapons/debris2.wav", "weapons/debris3.wav"},
@@ -55,22 +62,19 @@ const NamedVisual CGrenade::handGrenadeVisual = BuildVisual("HandGrenade.Model")
 const NamedVisual CGrenade::arGrenadeVisual = BuildVisual("ARGrenade.Model")
 		.Model("models/grenade.mdl");
 
-// Grenades flagged with this will be triggered when the owner calls detonateSatchelCharges
-#define SF_DETONATE		0x0001
-
 //
 // Grenade Explode
 //
-void CGrenade::Explode( Vector vecSrc, Vector vecAim )
+void CGrenade::ExplodeDownwards()
 {
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, -32 ), ignore_monsters, ENT( pev ), & tr );
 
-	Explode( &tr, DMG_BLAST );
+	Explode(&tr);
 }
 
 // UNDONE: temporary scorching for PreAlpha - find a less sleazy permenant solution.
-void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
+void CGrenade::Explode(const TraceResult *pTrace)
 {
 	// float flRndSound;// sound randomizer
 
@@ -79,7 +83,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	pev->takedamage = DAMAGE_NO;
 
-	const float damage = GetProjectileDamage();
+	RadiusDamageInfo radiusDamageInfo = GetProjectileRadiusDamageInfo();
 
 	// Pull out of the wall a bit
 	if( pTrace->flFraction != 1.0f )
@@ -87,7 +91,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		if (explosionfix.value)
 			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * 0.6f );
 		else
-			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * ( damage - 24 ) * 0.6f );
+			pev->origin = pTrace->vecEndPos + ( pTrace->vecPlaneNormal * ( radiusDamageInfo.damageInfo.damage - 24 ) * 0.6f );
 	}
 
 	int iContents = UTIL_PointContents( pev->origin );
@@ -103,7 +107,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		{
 			WRITE_SHORT( g_sModelIndexWExplosion );
 		}
-		WRITE_BYTE( FireballDeciScaleFromDamage( damage ) ); // scale * 10
+		WRITE_BYTE( FireballDeciScaleFromDamage( radiusDamageInfo.damageInfo.damage ) ); // scale * 10
 		WRITE_BYTE( FireballFramerate() ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
@@ -117,11 +121,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	pev->owner = NULL; // can't traceline attack owner if this is set
 
-	const float exploRadius = ExplosionRadius();
-	if (exploRadius)
-		::RadiusDamage(pev->origin, pev, pevOwner, DamageInfo{damage, bitsDamageType}, exploRadius, CLASS_NONE);
-	else
-		RadiusDamage( pev, pevOwner, DamageInfo{damage, bitsDamageType}, CLASS_NONE );
+	::RadiusDamage(pev->origin, pev, pevOwner, radiusDamageInfo);
 
 	if( RANDOM_FLOAT( 0, 1 ) < 0.5f )
 	{
@@ -161,7 +161,7 @@ void CGrenade::Smoke()
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_VECTOR( pev->origin );
 			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( SmokeDeciScaleFromDamage( GetProjectileDamage() ) ); // scale * 10
+			WRITE_BYTE( SmokeDeciScaleFromDamage( GetProjectileRadiusDamageInfo().damageInfo.damage ) ); // scale * 10
 			WRITE_BYTE( 12 ); // framerate
 		MESSAGE_END();
 	}
@@ -197,7 +197,7 @@ void CGrenade::Detonate()
 	vecSpot = pev->origin + Vector( 0, 0, 8 );
 	UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -40 ), ignore_monsters, ENT(pev), &tr );
 
-	Explode( &tr, DMG_BLAST );
+	Explode(&tr);
 }
 
 
@@ -214,7 +214,7 @@ void CGrenade::ExplodeTouch( CBaseEntity *pOther )
 	vecSpot = pev->origin - pev->velocity.Normalize() * 32;
 	UTIL_TraceLine( vecSpot, vecSpot + pev->velocity.Normalize() * 64, ignore_monsters, ENT( pev ), &tr );
 
-	Explode( &tr, DMG_BLAST );
+	Explode(&tr);
 }
 
 void CGrenade::DangerSoundThink()
@@ -225,7 +225,7 @@ void CGrenade::DangerSoundThink()
 		return;
 	}
 
-	InsertAISound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2 );
+	InsertAISound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileRadiusDamageInfo().GetRadius(), 0.2 );
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	if( pev->waterlevel != WL_NotInWater )
@@ -247,7 +247,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		if( pevOwner && pOther->pev->takedamage )
 		{
 			TraceResult tr = UTIL_GetGlobalTrace();
-			pOther->ApplyTraceAttack( pev, pevOwner, DamageInfo{GetSkillValue("plr_hand_grenade_hit"), DMG_CLUB}, gpGlobals->v_forward, &tr );
+			pOther->ApplyTraceAttack( pev, pevOwner, GetProjectileDirectDamageInfo(), gpGlobals->v_forward, &tr );
 		}
 		m_flNextAttack = gpGlobals->time + 1.0f; // debounce
 	}
@@ -280,7 +280,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		// go ahead and emit the danger sound.
 
 		// register a radius louder than the explosion, so we make sure everyone gets out of the way
-		InsertAISound( bits_SOUND_DANGER, pev->origin, (int)( GetProjectileDamage() / 0.4f ), 0.3f );
+		InsertAISound( bits_SOUND_DANGER, pev->origin, (int)( GetProjectileRadiusDamageInfo().GetRadius() ), 0.3f );
 		m_fRegisteredSound = true;
 	}
 
@@ -393,19 +393,29 @@ void CGrenade::PrecacheBaseGrenadeSounds()
 	RegisterAndPrecacheSoundScript(debrisSoundScript);
 }
 
+RadiusDamageInfo CGrenade::GetDefaultProjectileRadiusDamageInfo()
+{
+	DamageInfo damageInfo{0.0f, DMG_BLAST};
+	if (m_isTimed)
+	{
+		damageInfo.damage = GetSkillValue("plr_9mmAR_grenade");
+	}
+	else
+	{
+		damageInfo.damage = GetSkillValue("plr_hand_grenade");
+	}
+	return RadiusDamageInfo(damageInfo);
+}
+
+DamageInfo CGrenade::GetDefaultProjectileDirectDamageInfo()
+{
+	return DamageInfo(GetSkillValue("plr_hand_grenade_hit"), DMG_CLUB);
+}
+
 void CGrenade::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)
 {
 	m_isTimed = params.variant == TIMED;
 	SetProjectileParamsBeforeSpawnImpl(params);
-
-	if (params.variant == CONTACT)
-	{
-		SetDefaultProjectileDamage(GetSkillValue("plr_9mmAR_grenade"));
-	}
-	else
-	{
-		SetDefaultProjectileDamage(GetSkillValue("plr_hand_grenade"));
-	}
 }
 
 void CGrenade::LaunchAsProjectile(const ProjectileParameters& params)
@@ -476,65 +486,6 @@ CGrenade *CGrenade::ShootTimed( CBaseEntity *pOwner, const Vector& vecStart, con
 	return (CGrenade*)CreateAndLaunchAsProjectile(parameters);
 }
 
-CGrenade *CGrenade::ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity )
-{
-	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
-	pGrenade->pev->movetype = MOVETYPE_BOUNCE;
-	pGrenade->pev->classname = MAKE_STRING( "grenade" );
-
-	pGrenade->pev->solid = SOLID_BBOX;
-
-	SET_MODEL( ENT( pGrenade->pev ), "models/grenade.mdl" );	// Change this to satchel charge model
-
-	UTIL_SetSize( pGrenade->pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
-
-	pGrenade->pev->dmg = 200;
-	UTIL_SetOrigin( pGrenade->pev, vecStart );
-	pGrenade->pev->velocity = vecVelocity;
-	pGrenade->pev->angles = g_vecZero;
-	pGrenade->pev->owner = ENT( pevOwner );
-
-	// Detonate in "time" seconds
-	pGrenade->SetThink( &CBaseEntity::SUB_DoNothing );
-	pGrenade->SetUse( &CGrenade::DetonateUse );
-	pGrenade->SetTouch( &CGrenade::SlideTouch );
-	pGrenade->pev->spawnflags = SF_DETONATE;
-
-	pGrenade->pev->friction = 0.9f;
-
-	return pGrenade;
-}
-
-void CGrenade::UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code )
-{
-	edict_t *pentFind;
-	edict_t *pentOwner;
-
-	if( !pevOwner )
-		return;
-
-	CBaseEntity *pOwner = CBaseEntity::Instance( pevOwner );
-
-	pentOwner = pOwner->edict();
-
-	pentFind = FIND_ENTITY_BY_CLASSNAME( NULL, "grenade" );
-	while( !FNullEnt( pentFind ) )
-	{
-		CBaseEntity *pEnt = Instance( pentFind );
-		if( pEnt )
-		{
-			if( FBitSet( pEnt->pev->spawnflags, SF_DETONATE ) && pEnt->pev->owner == pentOwner )
-			{
-				if( code == SATCHEL_DETONATE )
-					pEnt->Use( pOwner, pOwner, USE_ON, 0 );
-				else // SATCHEL_RELEASE
-					pEnt->pev->owner = NULL;
-			}
-		}
-		pentFind = FIND_ENTITY_BY_CLASSNAME( pentFind, "grenade" );
-	}
-}
-
 //======================end grenade
 
 class CGrenadeRound : public CGrenade
@@ -545,6 +496,7 @@ public:
 
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 
 	void EXPORT GrenadeTouch(CBaseEntity* pEntity);
 	void EXPORT GrenadeThink();
@@ -581,8 +533,6 @@ void CGrenadeRound::Spawn()
 	pev->skin = 1;
 
 	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
-
-	SetDefaultProjectileDamage(GetSkillValue("plr_grenade"));
 
 	m_fRegisteredSound = false;
 }
@@ -621,6 +571,11 @@ void CGrenadeRound::LaunchAsProjectile(const ProjectileParameters& params)
 	SendBeamFollow(entindex(), GetVisual(trailVisual));
 }
 
+RadiusDamageInfo CGrenadeRound::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_grenade"), DMG_BLAST));
+}
+
 void CGrenadeRound::GrenadeTouch(CBaseEntity* pOther)
 {
 	bool shouldDetonate = pOther->pev->takedamage == DAMAGE_AIM;
@@ -641,7 +596,7 @@ void CGrenadeRound::GrenadeTouch(CBaseEntity* pOther)
 
 		if (vecTestVelocity.IsLengthLessThanOrEqual(60))
 		{
-			InsertAISound(bits_SOUND_DANGER, pev->origin, (int)(GetProjectileDamage() * 2.5f), 0.3f);
+			InsertAISound(bits_SOUND_DANGER, pev->origin, (int)(GetProjectileRadiusDamageInfo().GetRadius()), 0.3f);
 			m_fRegisteredSound = true;
 		}
 	}

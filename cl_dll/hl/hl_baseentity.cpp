@@ -165,8 +165,6 @@ bool CBaseMonster::IsFullyAlive() { return CBaseToggle::IsFullyAlive(); }
 bool CBaseMonster::ShouldFadeOnDeath() { return false; }
 bool CBaseMonster::ShouldCollide(CBaseEntity *pOther) { return true; }
 bool CBaseMonster::ShouldCollideWithCorpses() { return true; }
-void CBaseMonster::RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore ) { }
-void CBaseMonster::RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore ) { }
 void CBaseMonster::FadeMonster() { }
 void CBaseMonster::GibMonster() { }
 bool CBaseMonster::HasHumanGibs() { return false; }

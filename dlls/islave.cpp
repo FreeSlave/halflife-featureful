@@ -1103,8 +1103,8 @@ void CISlave::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 				UTIL_ScreenShake( pev->origin, 3.0, 40.0, 1.0, ISLAVE_COIL_ATTACK_RADIUS );
 
-				::RadiusDamage(this, pev->origin, pev, pev, DamageInfo{GetSkillValue("islave_dmg_coil"), DMG_SHOCK},
-							   ISLAVE_COIL_ATTACK_RADIUS,
+				::RadiusDamage(this, pev->origin, pev, pev,
+							   RadiusDamageInfo(DamageInfo{GetSkillValue("islave_dmg_coil"), DMG_SHOCK}, ISLAVE_COIL_ATTACK_RADIUS),
 							   RADIUSDAMAGE_SPOT_IS_TARGET_CENTER,
 							   [this](CBaseEntity* pEntity)
 				{

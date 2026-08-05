@@ -219,6 +219,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 	void EXPORT MortarExplode();
 
 	static const NamedVisual beamVisual;
@@ -248,8 +249,6 @@ void CMortar::Spawn()
 	pev->movetype = MOVETYPE_NONE;
 	pev->solid = SOLID_NOT;
 
-	pev->dmg = GetSkillValue("mortar");
-
 	SetThink( &CMortar::MortarExplode );
 	pev->nextthink = 0;
 
@@ -262,6 +261,11 @@ void CMortar::Precache()
 	RegisterVisual(circleVisual);
 }
 
+RadiusDamageInfo CMortar::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("mortar"), DMG_BLAST|DMG_MORTAR));
+}
+
 void CMortar::MortarExplode()
 {
 	SendBeam(pev->origin, pev->origin + Vector(0, 0, 1024), GetVisual(beamVisual));
@@ -271,7 +275,7 @@ void CMortar::MortarExplode()
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + Vector( 0, 0, 1024 ), pev->origin - Vector( 0, 0, 1024 ), dont_ignore_monsters, ENT( pev ), &tr );
 
-	Explode( &tr, DMG_BLAST | DMG_MORTAR );
+	Explode(&tr);
 	UTIL_ScreenShake( tr.vecEndPos, 25.0, 150.0, 1.0, 750 );
 #if 0
 	int pitch = RANDOM_LONG( 95, 124 );

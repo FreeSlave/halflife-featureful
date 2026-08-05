@@ -10,8 +10,8 @@ The final boss in Opposing Force.
 ### Skill variables
 
 * **sk_geneworm_health** - monster's health (per cycle).
-* **sk_geneworm_dmg_spit** - acid cloud damage.
 * **sk_geneworm_dmg_hit** - melee damage. Actually dealt by [trigger_geneworm_hit]({{< ref trigger_geneworm_hit >}}).
+* [env_genewormcloud]({{< ref env_genewormcloud >}}) skill variables.
 
 ### Default classification
 

@@ -66,6 +66,9 @@ public:
 	void TurnOn();
 	void RunGeneWormCloud();
 
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("geneworm_dmg_spit"), DMG_ACID);
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -139,8 +142,6 @@ void CGeneWormCloud::Spawn()
 	m_bLaunched = false;
 
 	m_baseScale = pev->scale ? pev->scale : 1.0f;
-
-	SetDefaultProjectileDamage(GetSkillValue("geneworm_dmg_spit"));
 }
 
 void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
@@ -153,7 +154,7 @@ void CGeneWormCloud::CloudTouch(CBaseEntity *pOther)
 			CBaseEntity* pOwner = CBaseEntity::OwnInstance(pev->owner);
 			if (pOwner)
 				pevAttacker = pOwner->pev;
-			pOther->TakeDamage(pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID));
+			pOther->TakeDamage(pev, pevAttacker, GetProjectileDirectDamageInfo());
 		}
 
 		pev->nextthink = gpGlobals->time;
@@ -454,7 +455,7 @@ void CGeneWormSpawn::RunGeneWormSpawn(float frames)
 					}
 					else
 					{
-						::RadiusDamage(pev->origin, pev, pev, DamageInfo(1000.0, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 128.0, CLASS_NONE);
+						::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo(1000.0, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 128.0));
 						CreateWarpBeams(1);
 						CreateWarpBeams(-1);
 					}

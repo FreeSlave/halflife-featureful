@@ -668,13 +668,13 @@ public:
 	virtual bool IsCorpse() { return pev->deadflag == DEAD_DEAD; }
 	virtual bool IsTinyCreature() { return false; }
 
-	inline void SetDefaultProjectileDamage(float damage) {
-		if (!pev->dmg)
-			pev->dmg = damage;
-	}
-	inline float GetProjectileDamage() {
-		return pev->dmg;
-	}
+	virtual DamageInfo GetDefaultProjectileDirectDamageInfo() { return DamageInfo{}; }
+	virtual RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() { return RadiusDamageInfo{}; }
+	virtual RadiusDamageInfo GetDefaultProjectileAuraRadiusDamageInfo() { return RadiusDamageInfo{}; }
+	virtual bool IsRadiusDamageProjectile() { return false; }
+	DamageInfo GetProjectileDirectDamageInfo();
+	RadiusDamageInfo GetProjectileRadiusDamageInfo();
+	RadiusDamageInfo GetProjectileAuraRadiusDamageInfo();
 	void SetProjectileParamsBeforeSpawnImpl(const ProjectileParameters& params) {
 		if (params.damageOverride > 0.0f)
 			pev->dmg = params.damageOverride;
@@ -695,6 +695,7 @@ public:
 	FloatRange GetSkillValueRange(const SkillBasedValue& skillValue);
 	float GetSkillValue(const SkillBasedValue& skillValue);
 	void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
+	void ApplyRadiusDamageInfoPatch(RadiusDamageInfo& curRadiusDamageInfo, const RadiusDamageInfoPatch& radiusDamageInfo);
 	void ApplyPunchAngle(const Vector& punchAngle);
 
 	void InsertAISound(int iType, const Vector &vecOrigin, int iVolume, float flDuration);

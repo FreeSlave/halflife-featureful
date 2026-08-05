@@ -21,6 +21,9 @@ public:
 	void Spawn() override;
 	void EXPORT FlyThink();
 
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override {
+		return RadiusDamageInfo(DamageInfo(GetSkillValue("op4mortar"), DMG_BLAST));
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -92,8 +95,6 @@ void CMortarShell::Spawn()
 
 	pev->gravity = 1;
 
-	SetDefaultProjectileDamage(GetSkillValue("op4mortar"));
-
 	pev->nextthink = gpGlobals->time + 0.01f;
 	m_flIgniteTime = gpGlobals->time;
 	m_iSoundedOff = false;
@@ -109,7 +110,7 @@ void CMortarShell::MortarExplodeTouch(CBaseEntity *pOther)
 	TraceResult tr;
 	UTIL_TraceLine(vecSpot, vecSpot + direction * 64, ignore_monsters, edict(), &tr);
 
-	Explode(&tr, DMG_BLAST);
+	Explode(&tr);
 }
 
 void CMortarShell::BurnThink()
@@ -142,7 +143,7 @@ void CMortarShell::FlyThink()
 
 	if (m_dangerSoundTime <= gpGlobals->time)
 	{
-		InsertAISound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileDamage() * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, 0.2f );
+		InsertAISound( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5f, GetProjectileRadiusDamageInfo().GetRadius(), 0.2f );
 		m_dangerSoundTime = gpGlobals->time + 0.2f;
 	}
 

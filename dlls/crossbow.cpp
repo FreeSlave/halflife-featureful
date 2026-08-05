@@ -44,6 +44,12 @@ public:
 	void EXPORT BubbleThink();
 	void EXPORT BoltTouch( CBaseEntity *pOther );
 	void EXPORT ExplodeThink();
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("plr_xbow_bolt_monster"), DMG_BULLET).SetGibPolicy(GIB_NEVER);
+	}
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override {
+		return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_xbow_bolt_explo"), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128);
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 		if (params.variant)
@@ -138,28 +144,26 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		TraceResult tr = UTIL_GetGlobalTrace();
 		entvars_t *pevOwner = VARS( pev->owner );
 
-		float damage = GetProjectileDamage();
-		int dmgType = DMG_GENERIC;
+		DamageInfo damageInfo = GetProjectileDirectDamageInfo();
 
-		if (damage == 0)
+		if (pOther->IsPlayer())
 		{
-			if( pOther->IsPlayer() )
+			bool customDamage = pev->dmg > 0;
+			if (!customDamage)
 			{
-				damage = GetSkillValue("plr_xbow_bolt_client");
+				const EntTemplate* entTemplate = GetMyEntTemplate();
+				if (entTemplate)
+				{
+					const EntTemplate::Projectile& projectile = entTemplate->GetProjectileParams();
+					customDamage = projectile.directDamageInfo.damage.has_value();
+				}
 			}
-			else
+
+			if (!customDamage)
 			{
-				damage = GetSkillValue("plr_xbow_bolt_monster");
+				damageInfo.damage = GetSkillValue("plr_xbow_bolt_client");
 			}
 		}
-
-		if (!pOther->IsPlayer())
-		{
-			dmgType = DMG_BULLET;
-		}
-
-		DamageInfo damageInfo(damage, dmgType);
-		damageInfo.SetGibPolicy(GIB_NEVER);
 		pOther->ApplyTraceAttack( pev, pevOwner, damageInfo, pev->velocity.Normalize(), &tr );
 
 		pev->velocity = Vector( 0, 0, 0 );
@@ -236,10 +240,7 @@ void CCrossbowBolt::BubbleThink()
 void CCrossbowBolt::ExplodeThink()
 {
 	int iContents = UTIL_PointContents( pev->origin );
-	int iScale;
-
-	pev->dmg = GetSkillValue("plr_xbow_bolt_explo");
-	iScale = 10;
+	int iScale = 10;
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_EXPLOSION );
@@ -266,7 +267,7 @@ void CCrossbowBolt::ExplodeThink()
 
 	pev->owner = NULL; // can't traceline attack owner if this is set
 
-	::RadiusDamage( pev->origin, pev, pevOwner, DamageInfo(pev->dmg, DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
+	::RadiusDamage(pev->origin, pev, pevOwner, GetProjectileRadiusDamageInfo());
 
 	UTIL_Remove( this );
 }

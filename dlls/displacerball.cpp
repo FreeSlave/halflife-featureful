@@ -96,8 +96,6 @@ void CDisplacerBall::Spawn()
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	m_iBeams = 0;
-
-	SetDefaultProjectileDamage(GetSkillValue("plr_displacer_other"));
 }
 
 void CDisplacerBall::Precache()
@@ -163,13 +161,23 @@ void CDisplacerBall::ArmBeam( int iSide )
 	{
 		//Beam hit something, deal radius damage to it
 		m_pBeam[m_iBeams]->EntsInit( pHit->entindex(), entindex() );
-		RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), DamageInfo{GetSkillValue("displacer_beam_dmg"), DMG_ENERGYBEAM}, GetSkillValue("displacer_beam_radius"), CLASS_NONE );
+		::RadiusDamage( tr.vecEndPos, pev, VARS(pev->owner), GetProjectileAuraRadiusDamageInfo() );
 	}
 	else
 	{
 		m_pBeam[m_iBeams]->PointEntInit( tr.vecEndPos, entindex() );
 	}
 	m_iBeams++;
+}
+
+RadiusDamageInfo CDisplacerBall::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_displacer_other"), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), GetSkillValue("plr_displacer_radius"));
+}
+
+RadiusDamageInfo CDisplacerBall::GetDefaultProjectileAuraRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("displacer_beam_dmg"), DMG_ENERGYBEAM), GetSkillValue("displacer_beam_radius"));
 }
 
 void CDisplacerBall::LaunchAsProjectile(const ProjectileParameters& params)
@@ -301,7 +309,7 @@ void CDisplacerBall::ExplodeThink()
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;
 
-	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, DamageInfo(GetProjectileDamage(), DMG_BLAST).SetGibPolicy(GIB_ALWAYS), GetSkillValue("plr_displacer_radius"), CLASS_NONE );
+	::RadiusDamage( pev->origin, pev, pAttacker ? pAttacker->pev : pev, GetProjectileRadiusDamageInfo() );
 
 	UTIL_Remove( this );
 }

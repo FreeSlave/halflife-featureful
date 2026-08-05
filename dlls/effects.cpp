@@ -3432,7 +3432,7 @@ LINK_ENTITY_TO_CLASS( warpball_hurt, CWarpballHurt )
 
 void CWarpballHurt::Think()
 {
-	::RadiusDamage(pev->origin, pev, pev, DamageInfo{pev->dmg, DMG_SHOCK}, pev->button, CLASS_NONE);
+	::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{pev->dmg, DMG_SHOCK}, pev->button));
 	UTIL_Remove(this);
 }
 
@@ -3578,7 +3578,7 @@ void CEnvWarpBall::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(vecOrigin, pev, pev, DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius, CLASS_NONE);
+			::RadiusDamage(vecOrigin, pev, pev, RadiusDamageInfo(DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius));
 		}
 		else
 		{
@@ -3705,7 +3705,7 @@ void CEnvWarpballTemplated::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, U
 		const float damageDelay = DamageDelay();
 		if (damageDelay == 0)
 		{
-			::RadiusDamage(vecOrigin, pev, pev, DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius, CLASS_NONE);
+			::RadiusDamage(vecOrigin, pev, pev, RadiusDamageInfo(DamageInfo{WARPBALL_DAMAGE, DMG_SHOCK}, inflictedRadius));
 		}
 		else
 		{

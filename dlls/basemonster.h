@@ -460,8 +460,6 @@ public:
 	void PainReaction(const DamageInfo& damageInfo);
 	TakeDamageResult DeadTakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo );
 
-	void RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
-	void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 	bool IsMoving() override { return m_movementGoal != MOVEGOAL_NONE; }
 
 	void RouteClear();

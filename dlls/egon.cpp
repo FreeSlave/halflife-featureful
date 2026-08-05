@@ -354,7 +354,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 			if( g_pGameRules->IsMultiplayer() )
 			{
 				// radius damage a little more potent in multiplayer.
-				::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, DamageInfo(GetSkillValue("plr_egon_wide") * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
+				::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, RadiusDamageInfo(DamageInfo(GetSkillValue("plr_egon_wide") * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128) );
 			}
 
 			if( !m_pPlayer->IsAlive() )

@@ -11,6 +11,15 @@ entityCategory: projectile
 * **sk_hornet_dmg** - hornet damage.
 * **sk_plr_hornet_dmg** - hornet damage dealt by player's hornetgun. Default value is 7.
 
+### Projectile properties
+
+Speed: 300. 1200 for `hornet dart` variant
+
+#### Direct damage
+
+* Damage: **sk_hornet_dmg** or **sk_plr_hornet_dmg** (if fired by player)
+* Type: bullet
+
 ### Soundscripts
 
 * **Hornet.Buzz** - plays occasionally when hornet is tracking the enemy.

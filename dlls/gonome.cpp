@@ -56,6 +56,9 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void Touch(CBaseEntity *pOther) override;
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("gonome_dmg_guts"), DMG_GENERIC);
+	}
 
 	static constexpr const char* spitTouchSoundScript = "Gonome.SpitTouch";
 	static constexpr const char* spitHitSoundScript = "Gonome.SpitHit";
@@ -73,7 +76,6 @@ const NamedVisual CGonomeGuts::gutsVisual = BuildVisual::Animated("Gonome.Guts")
 void CGonomeGuts::Spawn()
 {
 	SpawnHelper("gonomeguts", gutsVisual);
-	SetDefaultProjectileDamage(GetSkillValue("gonome_dmg_guts"));
 }
 
 void CGonomeGuts::Precache()
@@ -101,7 +103,7 @@ void CGonomeGuts::Touch( CBaseEntity *pOther )
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_GENERIC) );
+		pOther->TakeDamage( pev, pevAttacker, GetProjectileDirectDamageInfo() );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );

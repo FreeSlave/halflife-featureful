@@ -14,7 +14,7 @@ bookToC: false
 
 * **sk_voltigore_health** - monster's health.
 * **sk_voltigore_dmg_punch** - melee damage.
-* **sk_voltigore_dmg_beam** - damage dealth by charged bolt.
+* [charged_bolt]({{< ref charged_bolt >}}) skill variables.
 * **sk_voltigore_dmg_explode** - explosion damage. If not defined, **sk_voltigore_dmg_beam** is used.
 
 ### Default classification

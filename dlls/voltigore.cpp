@@ -48,6 +48,12 @@ public:
 
 	void EXPORT ShutdownChargedBolt();
 
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("voltigore_dmg_beam"), DMG_SHOCK).SetGibPolicy(GIB_ALWAYS);
+	}
+	RadiusDamageInfo GetDefaultProjectileAuraRadiusDamageInfo() override {
+		return RadiusDamageInfo{DamageInfo(GetSkillValue("voltigore_dmg_beam_aura"), DMG_SHOCK), 32};
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -61,7 +67,7 @@ public:
 	void EXPORT Animate();
 	void EXPORT FlyThink();
 	void EXPORT PreShutdownThink();
-	void DoRadiusDamage(float dmg, float radius);
+	void DoRadiusDamage();
 
 	void EXPORT ChargedBoltTouch(CBaseEntity* pOther);
 
@@ -139,8 +145,6 @@ void CChargedBolt::Spawn()
 	SetThink(&CChargedBolt::Animate);
 
 	InitBeams();
-
-	SetDefaultProjectileDamage(GetSkillValue("voltigore_dmg_beam"));
 }
 
 void CChargedBolt::InitBeams()
@@ -265,7 +269,7 @@ void CChargedBolt::FlyThink()
 
 	if (m_radiusCheckTime <= gpGlobals->time)
 	{
-		DoRadiusDamage(GetProjectileDamage() * 0.2f, 32);
+		DoRadiusDamage();
 		m_radiusCheckTime = gpGlobals->time + 0.1f;
 	}
 }
@@ -274,7 +278,7 @@ void CChargedBolt::PreShutdownThink()
 {
 	pev->nextthink = gpGlobals->time + 0.1f;
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate, &m_lastTime);
-	DoRadiusDamage(GetProjectileDamage() * 0.2f, 32);
+	DoRadiusDamage();
 
 	if (m_shutdownTime <= gpGlobals->time)
 	{
@@ -283,10 +287,10 @@ void CChargedBolt::PreShutdownThink()
 	}
 }
 
-void CChargedBolt::DoRadiusDamage(float dmg, float radius)
+void CChargedBolt::DoRadiusDamage()
 {
 	CBaseMonster* pOwner = GetMonsterPointer(pev->owner);
-	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, DamageInfo{dmg, DMG_SHOCK}, radius, RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
+	::RadiusDamage(nullptr, pev->origin, pev, pOwner ? pOwner->pev : pev, GetProjectileAuraRadiusDamageInfo(), RADIUSDAMAGE_CHECK_ATTACKER_TRACE,
 				   [pOwner](CBaseEntity* pEntity) {
 		if (pOwner)
 		{
@@ -314,7 +318,7 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 	{
 		TraceResult tr = UTIL_GetGlobalTrace();
 		entvars_t* pAttacker = FNullEnt(pev->owner) ? pev : VARS(pev->owner);
-		pOther->ApplyTraceAttack(pev, pAttacker, DamageInfo(GetProjectileDamage(), DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), pev->velocity, &tr);
+		pOther->ApplyTraceAttack(pev, pAttacker, GetProjectileDirectDamageInfo(), pev->velocity, &tr);
 	}
 
 	pev->velocity = g_vecZero;
@@ -594,7 +598,7 @@ void CVoltigore::DeathGibThink()
 
 		const float dmgExplode = GetSkillValue("voltigore_dmg_explode");
 		const float attackRadius = Q_max(Q_min(dmgExplode * 2.0f, 200.0f), 160.0f);
-		::RadiusDamage(pev->origin, pev, pev, DamageInfo{dmgExplode, DMG_SHOCK}, attackRadius, CLASS_NONE);
+		::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{dmgExplode, DMG_SHOCK}, attackRadius));
 	}
 }
 

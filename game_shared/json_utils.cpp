@@ -608,6 +608,29 @@ bool UpdatePropertyFromJson(SkillBasedValue& skillValue, const Value& jsonValue,
 	return false;
 }
 
+bool UpdatePropertyFromJson(DamageInfoPatch& damageInfo, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		UpdateDamageInfoFromJson(damageInfo, it->value);
+		return true;
+	}
+	return false;
+}
+
+bool UpdatePropertyFromJson(RadiusDamageInfoPatch& radiusDamageInfo, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		UpdatePropertyFromJson(radiusDamageInfo.damageInfo, it->value, "damage_info");
+		UpdatePropertyFromJson(radiusDamageInfo.radius, it->value, "radius");
+		return true;
+	}
+	return false;
+}
+
 static bool ParseAttenuation(const char* str, float& attenuation)
 {
 	constexpr std::pair<const char*, float> attenuations[] = {

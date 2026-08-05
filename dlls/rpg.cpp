@@ -145,7 +145,7 @@ const NamedVisual CRpgRocket::trailVisual = BuildVisual("RPG.Trail")
 
 //=========================================================
 //=========================================================
-void CRpgRocket::Explode( TraceResult *pTrace, int bitsDamageType )
+void CRpgRocket::Explode(const TraceResult *pTrace)
 {
 	if( CConfigurableWeapon *pLauncher = GetLauncher())
 	{
@@ -156,7 +156,7 @@ void CRpgRocket::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	StopSoundScript(rocketIgniteSoundScript);
 
-	CGrenade::Explode( pTrace, bitsDamageType );
+	CGrenade::Explode(pTrace);
 }
 
 CConfigurableWeapon *CRpgRocket::GetLauncher()
@@ -209,8 +209,6 @@ void CRpgRocket::Spawn()
 	}
 
 	pev->nextthink = gpGlobals->time + 0.4f;
-
-	SetDefaultProjectileDamage(GetSkillValue("plr_rpg"));
 }
 
 //=========================================================
@@ -221,6 +219,11 @@ void CRpgRocket::Precache()
 	PrecacheMyModel("models/rpgrocket.mdl");
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rocketIgniteSoundScript);
+}
+
+RadiusDamageInfo CRpgRocket::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_rpg"), DMG_BLAST));
 }
 
 void CRpgRocket::SetProjectileParamsBeforeSpawn(const ProjectileParameters& params)

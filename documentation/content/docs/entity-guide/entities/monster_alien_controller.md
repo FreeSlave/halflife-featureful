@@ -15,8 +15,7 @@ bookToC: false
 
 * **sk_controller_health** - monster's health.
 * **sk_controller_dmgzap** - the head energy ball projectile damage.
-* **sk_controller_dmgball** - the energy ball projectile damage.
-* **sk_controller_speedball** - the energy ball movement speed.
+* [controller_energy_ball]({{< ref controller_energy_ball >}}) skill variables.
 
 ### Default classification
 

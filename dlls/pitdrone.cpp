@@ -49,6 +49,9 @@ public:
 	void Precache() override;
 	void EXPORT SpikeTouch(CBaseEntity *pOther);
 	void EXPORT StartTrail();
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("pitdrone_dmg_spit"), DMG_GENERIC).SetGibPolicy(GIB_NEVER);
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -105,8 +108,6 @@ void CPitdroneSpike::Spawn()
 	pev->frame = 0;
 
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
-
-	SetDefaultProjectileDamage(GetSkillValue("pitdrone_dmg_spit"));
 }
 
 void CPitdroneSpike::Precache()
@@ -146,7 +147,7 @@ void CPitdroneSpike::SpikeTouch(CBaseEntity *pOther)
 	else
 	{
 		entvars_t	*pevOwner = VARS(pev->owner);
-		pOther->TakeDamage(pev, pevOwner, DamageInfo(GetProjectileDamage(), DMG_GENERIC).SetGibPolicy(GIB_NEVER));
+		pOther->TakeDamage(pev, pevOwner, GetProjectileDirectDamageInfo());
 		EmitSoundScript(hitBodySoundScript);
 	}
 }

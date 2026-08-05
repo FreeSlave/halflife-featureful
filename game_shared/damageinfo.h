@@ -10,6 +10,8 @@
 #include "template_property_types.h"
 #include "skillbasedvalue.h"
 
+#define DEFAULT_EXPLOSION_RADIUS_MULTIPLIER 2.5f
+
 struct DamageInfo
 {
 	DamageInfo() {}
@@ -78,6 +80,23 @@ struct DamageInfo
 	}
 };
 
+struct RadiusDamageInfo
+{
+	RadiusDamageInfo() {}
+	explicit RadiusDamageInfo(const DamageInfo& dmgInfo): damageInfo(dmgInfo) {}
+	RadiusDamageInfo(const DamageInfo& dmgInfo, float r): damageInfo(dmgInfo), radius(r) {}
+	DamageInfo damageInfo;
+	float radius{0.0f};
+	float damageToRadiusMultiplier{DEFAULT_EXPLOSION_RADIUS_MULTIPLIER};
+
+	inline float GetRadius() const {
+		if (radius > 0.0f)
+			return radius;
+		else
+			return damageInfo.damage * damageToRadiusMultiplier;
+	}
+};
+
 struct DamageInfoPatch
 {
 	enum
@@ -98,8 +117,12 @@ struct DamageInfoPatch
 	tribool ignorePowerShield;
 };
 
-int ParseDamageType(const char *type);
+struct RadiusDamageInfoPatch
+{
+	DamageInfoPatch damageInfo;
+	SkillBasedValue radius;
+};
 
-void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
+int ParseDamageType(const char *type);
 
 #endif

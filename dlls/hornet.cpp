@@ -134,16 +134,6 @@ void CHornet::Spawn()
 	if( !pSoundEnt )
 		pSoundEnt = edict();*/
 
-	if( !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
-	{
-		SetDefaultProjectileDamage(GetSkillValue("plr_hornet_dmg"));
-	}
-	else
-	{
-		// no real owner, or owner isn't a client.
-		SetDefaultProjectileDamage(GetSkillValue("hornet_dmg"));
-	}
-
 	pev->nextthink = gpGlobals->time + 0.1f;
 	ResetSequenceInfo();
 }
@@ -197,6 +187,18 @@ int CHornet::DefaultClassify()
 int CHornet::Classify()
 {
 	return DefaultClassify();
+}
+
+DamageInfo CHornet::GetDefaultProjectileDirectDamageInfo()
+{
+	if (!FNullEnt( pev->owner ) && (pev->owner->v.flags & FL_CLIENT))
+	{
+		return DamageInfo(GetSkillValue("plr_hornet_dmg"), DMG_BULLET);
+	}
+	else
+	{
+		return DamageInfo(GetSkillValue("hornet_dmg"), DMG_BULLET);
+	}
 }
 
 void CHornet::LaunchAsProjectile(const ProjectileParameters& params)
@@ -420,7 +422,7 @@ void CHornet::DieTouch( CBaseEntity *pOther )
 		// do the damage
 		EmitSoundScript(dieSoundScript);
 
-		pOther->TakeDamage( pev, VARS( pev->owner ), DamageInfo(GetProjectileDamage(), DMG_BULLET) );
+		pOther->TakeDamage( pev, VARS( pev->owner ), GetProjectileDirectDamageInfo() );
 	}
 
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid

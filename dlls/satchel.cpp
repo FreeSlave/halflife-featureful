@@ -93,7 +93,8 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void BounceSound() override;
-	void Explode( TraceResult *pTrace, int bitsDamageType ) override;
+	void Explode(const TraceResult *pTrace) override;
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 
 	void EXPORT SatchelSlide( CBaseEntity *pOther );
 	void EXPORT SatchelThink();
@@ -145,7 +146,6 @@ void CSatchelCharge::Spawn()
 	pev->gravity = 0.5f;
 	pev->friction = 0.8f;
 
-	pev->dmg = GetSkillValue("plr_satchel");
 	// ResetSequenceInfo();
 	pev->sequence = 1;
 }
@@ -225,10 +225,10 @@ void CSatchelCharge::BounceSound()
 	EmitSoundScript(bounceSoundScript);
 }
 
-void CSatchelCharge::Explode( TraceResult *pTrace, int bitsDamageType )
+void CSatchelCharge::Explode(const TraceResult *pTrace)
 {
 	edict_t* pOwner = pev->owner;
-	CGrenade::Explode(pTrace, bitsDamageType);
+	CGrenade::Explode(pTrace);
 	if (!FNullEnt(pOwner))
 	{
 		CBaseEntity* pEntity = CBaseEntity::Instance(pOwner);
@@ -238,6 +238,11 @@ void CSatchelCharge::Explode( TraceResult *pTrace, int bitsDamageType )
 			pPlayer->m_needSatchelRecheck = true;
 		}
 	}
+}
+
+RadiusDamageInfo CSatchelCharge::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_satchel"), DMG_BLAST));
 }
 
 bool CSatchelCharge::HandleDoorBlockage(CBaseEntity *pDoor)

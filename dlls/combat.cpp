@@ -1591,22 +1591,13 @@ float CBaseMonster::DamageForce( float damage )
 // RadiusDamage - this entity is exploding, or otherwise needs to inflict damage upon entities within a certain range.
 // 
 // only damage ents that can clearly be seen by the explosion!
-void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, float flRadius, int iClassIgnore )
+
+void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const RadiusDamageInfo& radiusDamageInfo, int iClassIgnore )
 {
-	RadiusDamage(nullptr, vecSrc, pevInflictor, pevAttacker, damageInfo, flRadius,
+	RadiusDamage(nullptr, vecSrc, pevInflictor, pevAttacker, radiusDamageInfo,
 				 RADIUSDAMAGE_FIX_GRENADE_POS | RADIUSDAMAGE_DONT_TRAVEL_THROUGH_WATER | RADIUSDAMAGE_APPLY_FALLOFF, [iClassIgnore](CBaseEntity* pEntity) {
 		return iClassIgnore == CLASS_NONE || pEntity->Classify() != iClassIgnore;
 	});
-}
-
-void CBaseMonster::RadiusDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore )
-{
-	::RadiusDamage( pev->origin, pevInflictor, pevAttacker, damageInfo, damageInfo.damage * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, iClassIgnore );
-}
-
-void CBaseMonster::RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore )
-{
-	::RadiusDamage( vecSrc, pevInflictor, pevAttacker, damageInfo, damageInfo.damage * DEFAULT_EXPLOSION_RADIUS_MULTIPLIER, iClassIgnore );
 }
 
 void CBaseMonster::SetLeapAttackTouch()

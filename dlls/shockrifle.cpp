@@ -174,7 +174,7 @@ bool CShockrifle::HandleAttackSubstitution(bool altMode)
 		const float radius = 1.5f * dmg;
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/shock_discharge.wav", VOL_NORM, ATTN_NORM);
 		m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] = 0;
-		RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius, CLASS_NONE );
+		::RadiusDamage(m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, RadiusDamageInfo(DamageInfo(dmg, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), radius) );
 #endif
 		return true;
 	}

@@ -1475,6 +1475,68 @@ The minimum interval between repeating the same sentence. This is used to preven
 
 An object that defines projectile-related properties.
 
+#### direct_damage_info
+
+The [damage info](#damage_info) object for the projectile contact hit. This can be used to override default damage properties.
+
+```json
+{
+    "pitdronespike": {
+        "projectile": {
+            "direct_damage_info": {
+                "type": "freeze"
+            }
+        }
+    }
+}
+```
+
+#### radius_damage_info {#projectile-radius_damage_info}
+
+The [radius damage info](#radius_damage_info) object for the explosive projectiles. This can be used to override default damage properties.
+
+```json
+{
+    "grenaderound": {
+        "projectile": {
+            "radius_damage_info": {
+                "damage_info": {
+                    "type": "shock"
+                },
+                "radius": 400
+            }
+        }
+    }
+}
+```
+
+#### aura_radius_damage_info
+
+The [radius damage info](#radius_damage_info) object for projectiles that are capable of dealing damage around them as they travel. This can be used to override default damage properties.
+
+Used by the following projectiles:
+
+* [charged_bolt]({{< ref charged_bolt >}})
+* [displacer_ball]({{< ref displacer_ball >}})
+* [squidtoxicspit]({{< ref squidtoxicspit >}})
+
+```json
+{
+    "charged_bolt": {
+        "projectile": {
+            "aura_radius_damage_info": {
+                "damage_info": {
+                    "damage": 20,
+                    "type": "burn",
+                    "type_policy": "replace"
+                },
+                "radius": 64
+            }
+        }
+    }
+}
+```
+
 #### effect_flags
 
 An array of pre-defined effect-flags recognized by the engine. Possible item values:
@@ -1950,6 +2012,13 @@ Standard hitgroup names used by various objects:
 * `"right leg"` (7)
 
 Custom hitgroups must be referred by a number (e.g. armor hitgroup is usually implemented via hitgroup 10).
+
+### radius_damage_info
+
+The object used for radius damage attacks. Has the following properties:
+
+* `"damage_info"` - [damage info](#damage_info)
+* `"radius"` - the radius of effect. This is a [skill based value](#skill-based-value). If not defined, the resulting radius depends on the damage from [damage info](#damage_info).
 
 ### tracer_color
 
