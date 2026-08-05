@@ -257,8 +257,9 @@ int GetAnimationEvent(void *pmodel, entvars_t *pev, MonsterEvent_t *pMonsterEven
 		if (animevent_floorframe.value)
 		{
 			flStart = std::floor(flStart);
-			if (flStart != std::floor(flEnd))
-				flEnd = std::floor(flEnd);
+			const float flooredEnd = std::floor(flEnd);
+			if (flStart != flooredEnd)
+				flEnd = Q_min(flEnd, flooredEnd + 0.001f);
 		}
 	}
 	else
