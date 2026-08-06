@@ -1814,7 +1814,7 @@
 	target(target_generic) : "Target to shoot at [LE]"
 	projectile_name(choices) : "Projectile Name" : "grenade" =
 	[
-		"" : "Nothing"
+		"" : ""
 		"grenade" : "AR grenade"
 		"crossbow_bolt" : "crossbow_bolt"
 		"crossbow_bolt explosive" : "crossbow_bolt explosive"
@@ -1840,6 +1840,7 @@
 		"nail": "nail"
 		"grenaderound": "grenaderound"
 		"env_genewormcloud": "env_genewormcloud"
+		"flyball": "flyball (Flybee)"
 	]
 	detonation_delay(string) : "Grenade detonation delay"
 	speed(string) : "Custom projectile speed"
@@ -3291,6 +3292,7 @@
 		"nail" : "nail"
 		"grenaderound": "grenaderound"
 		"env_genewormcloud": "env_genewormcloud"
+		"flyball": "flyball (Flybee)"
 	]
 	projectile_ent_template(string) : "Projectile Entity Template"
 	detonation_delay(string) : "Detonation delay"
