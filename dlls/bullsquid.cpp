@@ -957,7 +957,7 @@ Schedule_t slSquidRangeAttack1[] =
 // Chase enemy schedule
 Task_t tlSquidChaseEnemy1[] =
 {
-	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_RANGE_ATTACK1 },// !!!OEM - this will stop nasty squid oscillation.
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_CHASE_ENEMY_FAILED },
 	{ TASK_GET_PATH_TO_ENEMY, 0.0f },
 	{ TASK_RUN_PATH, 0.0f },
 	{ TASK_WAIT_FOR_MOVEMENT, 0.0f },
