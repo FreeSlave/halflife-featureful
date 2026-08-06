@@ -519,6 +519,12 @@
 	]
 ]
 
+@BaseClass = TurretProps
+[
+	maxsleep(string) : "Custom Search Time (before deactivate)" : : "Time in seconds to continue searching for an enemy after losing them before retiring."
+	turnrate(integer) : "Custom Turning Rate (per 0.1s)" : : "Turning rate of turret when tracking enemies, in degrees per 0.1 second. Default is 30"
+]
+
 @BaseClass = FollowingMonsterProps
 [
 	followfailpolicy(choices) : "Follow fail policy" : : "What to do when couldn't reach the target" = 
@@ -6543,7 +6549,7 @@
 
 @BaseClass base(Targetname, RenderFields, Angles) = DeadTurret []
 
-@PointClass base(Monster, Sequence) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = monster_miniturret : "Mini Auto Turret"
+@PointClass base(Monster, TurretProps) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = monster_miniturret : "Mini Auto Turret"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
@@ -7477,7 +7483,7 @@
 	]
 ]
 @PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/scientist_rosenberg.mdl") = monster_rosenberg : "Dr. Rosenberg" []
-@PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry : "Sentry Turret Gun"
+@PointClass base(Monster, TurretProps) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry : "Sentry Turret Gun"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
@@ -7615,7 +7621,7 @@
 		2 : "Triggerable" : 0 : "Explode when triggered"
 	]
 ]
-@PointClass base(Monster, Sequence) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = monster_turret : "Auto Turret"
+@PointClass base(Monster, TurretProps) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = monster_turret : "Auto Turret"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
