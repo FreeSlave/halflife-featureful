@@ -2076,7 +2076,7 @@
 	]
 ]
 
-@PointClass base(Targetname, Angles, RenderFields, Scalable, EntityEffects) studio() = env_model : "New alternative to cyclers"
+@PointClass base(Targetname, Angles, RenderFields, Scalable, EntityEffects, EntityTemplate) studio() = env_model : "New alternative to cyclers"
 [
 	model(studio) : "Model name"
 	skin(integer) : "Skin" : 0

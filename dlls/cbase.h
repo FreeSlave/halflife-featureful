@@ -869,6 +869,7 @@ public:
 	int ExtractBbox( int sequence, float *mins, float *maxs );
 	void SetSequenceBox();
 	bool SetSequenceSafeBox(float minHalfSide, float forcedHalfSide = 0.0f);
+	bool HandleBaseAnimEvent(MonsterEvent_t *pEvent);
 
 	// animation needs
 	float m_flFrameRate;		// computed FPS for current sequence

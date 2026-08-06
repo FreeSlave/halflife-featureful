@@ -1463,6 +1463,10 @@ class CEnvModel : public CBaseAnimating
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	int	ObjectCaps() override { return CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override
+	{
+		HandleBaseAnimEvent(pEvent);
+	}
 
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;
@@ -1598,7 +1602,11 @@ void CEnvModel::Think()
 //	ALERT(at_console, "env_model Think fr=%f\n", pev->framerate);
 
 	if (!FBitSet(pev->spawnflags, SF_ENVMODEL_CLIENTSIDEANIM))
-		StudioFrameAdvance(); // set m_fSequenceFinished if necessary
+	{
+		float flInterval = StudioFrameAdvance();
+		pev->nextthink = gpGlobals->time + 0.1f;
+		DispatchAnimEvents(flInterval);
+	}
 	else
 	{
 		// Still do calculations, but save result to m_savedFrame

@@ -8,6 +8,10 @@ entityCategory: object
 
 Model-based suit charger from PS2 version of Half-Life.
 
+{{% hint info %}}
+This entity can play sound [animation events]({{< ref model-animation-events >}}). Use entity template with [autoprecache_sounds]({{< ref "entity-templates/#autoprecache_sounds" >}}) enabled to precache such sounds.
+{{% /hint %}}
+
 ### Parameters
 
 * `Collision type`

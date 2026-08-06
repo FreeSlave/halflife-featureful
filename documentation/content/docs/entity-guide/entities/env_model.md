@@ -7,6 +7,10 @@ bookToC: false
 
 The (optionally) animated model that can play two different sequences depending on its state.
 
+{{% hint info %}}
+This entity can play sound [animation events]({{< ref model-animation-events >}}). Use entity template with [autoprecache_sounds]({{< ref "entity-templates/#autoprecache_sounds" >}}) enabled to precache such sounds.
+{{% /hint %}}
+
 ### Parameters
 
 * `Sequence when on` - the sequence name to play in On state.

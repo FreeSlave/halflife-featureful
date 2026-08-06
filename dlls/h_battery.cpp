@@ -164,6 +164,9 @@ public:
 
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
 	bool HandleDoorBlockage(CBaseEntity* pDoor) override;
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override {
+		HandleBaseAnimEvent(pEvent);
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -293,7 +296,7 @@ void CRechargeDecay::Spawn()
 	{
 		SetChargeState(Still);
 		SetThink(&CRechargeDecay::AnimateAndWork);
-		pev->nextthink = gpGlobals->time + 0.1;
+		pev->nextthink = gpGlobals->time + 0.1f;
 	}
 	else
 	{
@@ -337,8 +340,9 @@ void CRechargeDecay::Activate()
 
 void CRechargeDecay::AnimateAndWork()
 {
-	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.1;
+	float flInterval = StudioFrameAdvance();
+	pev->nextthink = gpGlobals->time + 0.1f;
+	DispatchAnimEvents(flInterval);
 
 	if (m_goalYaw < 0)
 		m_currentYaw = Q_max(m_currentYaw - 10, m_goalYaw);

@@ -3285,6 +3285,9 @@ void CBaseMonster::SetEyePosition()
 
 void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 {
+	if (HandleBaseAnimEvent(pEvent))
+		return;
+
 	switch( pEvent->event )
 	{
 	case SCRIPT_EVENT_DEAD:
@@ -3310,31 +3313,6 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 			// This is for life/death sequences where the player can determine whether a character is dead or alive after the script 
 			pev->health = pev->max_health;
 		}
-		break;
-	case SCRIPT_EVENT_SOUND:			// Play a named wave file
-		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_IDLE );
-		break;
-	case SCRIPT_EVENT_SOUND_VOICE:
-		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_IDLE );
-		break;
-	case SCRIPT_EVENT_SOUND_VOICE_BODY:
-		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_NORM );
-		break;
-	case SCRIPT_EVENT_SOUND_VOICE_VOICE:
-		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_NORM );
-		break;
-	case SCRIPT_EVENT_SOUND_VOICE_WEAPON:
-		EmitSound( CHAN_WEAPON, pEvent->options, VOL_NORM, ATTN_NORM );
-		break;
-	case SCRIPT_EVENT_SOUNDSCRIPT:
-		EmitSoundScript(pEvent->options);
-		break;
-	case SCRIPT_EVENT_SENTENCE_RND1:		// Play a named sentence group 33% of the time
-		if( RANDOM_LONG( 0, 2 ) == 0 )
-			break;
-		// fall through...
-	case SCRIPT_EVENT_SENTENCE:			// Play a named sentence group
-		SENTENCEG_PlayRndSz( edict(), pEvent->options, 1.0, ATTN_IDLE, 0, 100 );
 		break;
 	case SCRIPT_EVENT_FIREEVENT:		// Fire a trigger
 		FireTargets( pEvent->options, this, this );
