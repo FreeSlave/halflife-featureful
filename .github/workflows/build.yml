@@ -8,6 +8,7 @@ on:
       - 'appveyor.yml'
       - 'README.md'
       - '.github/workflows/manual*.yml'
+      - '.github/workflows/hugo.yml'
   pull_request:
     paths-ignore:
       - 'documentation/**'
@@ -15,6 +16,7 @@ on:
       - 'appveyor.yml'
       - 'README.md'
       - '.github/workflows/manual*.yml'
+      - '.github/workflows/hugo.yml'
 
 jobs:
   definitions:
