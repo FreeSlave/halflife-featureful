@@ -89,8 +89,8 @@ Some Half-Life behavior aspects were changed from vanilla to better alternatives
 * `satchels_pickable`
 * `monsters_delegate_squad_leadership`
 * `monsters_eat_for_health`
-* `sentry_retract`
-* Some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default.
+
+Also some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default - they can be disabled via the [skill.cfg]({{< ref skill-variables >}}).
 
 There're also some [cvars]({{< ref "cvars/#server-cvars" >}}) that you might be interested in changing in [featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg).
 
