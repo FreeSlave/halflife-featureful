@@ -12,7 +12,8 @@ entityCategory: solid
 
 * ![](/images/spirit.png) `Direct use only` - require a non-occluded view of entity in order to use it.
 * ![](/images/svencoop.png) `Ignore Targetname` allows to open named doors by touching (same as the flag above, but in the parameter form).
-* ![](/images/svencoop.png) Custom Move and Stop sounds.
+* Return Stop Sound - custom sound for when the door has returned. By default the door plays the `Stop Sound` on return.
+* ![](/images/svencoop.png) Move and Stop sound overrides.
 * ![](/images/svencoop.png) Custom `Locked` and `Unlocked` sounds and sentences.
 * `Sound radius` - configure door sounds attenuation.
 * ![](/images/spirit.png) `Fire On Open` - fire when door has opened. This parameter is added for compatibility with Spirit of Half-Life. You can use `Fire On Open End` instead.

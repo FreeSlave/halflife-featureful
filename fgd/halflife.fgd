@@ -953,6 +953,19 @@
 		7: "Metal Lock Stop"
 		8: "Snappy Metal Stop"
 	]
+	returnstopsnd(choices) : "Return Stop Sound" =
+	[
+		0: "Same as Stop Sound"
+		1: "Clang with brake"
+		2: "Clang reverb"
+		3: "Ratchet Stop"
+		4: "Chunk"
+		5: "Light airbrake"
+		6: "Metal Slide Stop"
+		7: "Metal Lock Stop"
+		8: "Snappy Metal Stop"
+		255: "No Sound"
+	]
 	wait(integer) : "delay before close, -1 stay open " : 4
 	lip(integer) : "Lip"
 	dmg(integer) : "Damage inflicted when blocked" : 0
@@ -984,6 +997,7 @@
 	]
 	noise1(sound) : "Move Sound Override"
 	noise2(sound) : "Stop Sound Override"
+	noise3(sound) : "Return Stop Sound Override"
 	return_speed(integer) : "Return speed"
 	locked_play_on_use(choices) : "If locked, play locked sound on use" : : "By default if door is locked by a master and is set to 'Use only' or triggered by something it won't play the locked sound. Set this option to change the behavior" =
 	[
