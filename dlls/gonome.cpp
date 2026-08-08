@@ -756,7 +756,7 @@ Schedule_t slGonomeRangeAttack1[] =
 // Chase enemy schedule
 Task_t tlGonomeChaseEnemy1[] =
 {
-	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_RANGE_ATTACK1 },
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_CHASE_ENEMY_FAILED },
 	{ TASK_GET_PATH_TO_ENEMY, (float)0 },
 	{ TASK_RUN_PATH, (float)0 },
 	{ TASK_WAIT_FOR_MOVEMENT, (float)0 },
