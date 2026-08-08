@@ -41,6 +41,7 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [Half-Life: Induction](https://www.moddb.com/mods/half-life-induction) uses this codebase since version 1.3. The Induction source code was released as a [branch](https://github.com/FreeSlave/halflife-featureful/tree/induction) of this repository along with the release of version 1.4.
 * [Christmas hikikomori](https://www.moddb.com/mods/christmas-hikikomori)
 * [Janitorial Escapism](https://www.moddb.com/mods/janitorial-escapism)
+* [The Tough Duty](https://www.moddb.com/mods/the-tough-duty)
 
 ### Projects in development
 
