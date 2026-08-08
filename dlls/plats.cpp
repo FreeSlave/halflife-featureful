@@ -2479,7 +2479,7 @@ void CGunTarget::Spawn()
 	pev->flags |= FL_MONSTER;
 
 	m_on = false;
-	SetMyHealth(0.0f);
+	//SetMyHealth(0.0f);
 	pev->max_health = pev->health;
 
 	if( pev->spawnflags & FGUNTARGET_START_ON )
