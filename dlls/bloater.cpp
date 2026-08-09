@@ -28,6 +28,7 @@
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
+#include	"combat.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -1018,7 +1019,7 @@ void CFloater::ExplodeEffect()
 
 	EmitSoundScript(explodeSoundScript);
 
-	RadiusDamage(exploOrigin, pev, pev, DamageInfo{GetSkillValue("floater_explode"), DMG_BLAST|DMG_ACID}, Classify());
+	::RadiusDamage(exploOrigin, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("floater_explode"), DMG_BLAST|DMG_ACID}), Classify());
 }
 
 void CFloater::FloaterBloatUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)

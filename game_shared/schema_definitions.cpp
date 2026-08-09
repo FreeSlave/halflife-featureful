@@ -552,6 +552,17 @@ const char* const json_schemas::definitions = R"(
 		},
 		"additionalProperties": false
 	},
+	"radius_damage_info": {
+		"type": "object",
+		"properties": {
+			"damage_info": {
+				"$ref": "#/damage_info"
+			},
+			"radius": {
+				"$ref": "#/skill_value_non_negative"
+			}
+		}
+	},
 	"hitgroup_set": {
 		"type": ["array", "string", "integer"],
 		"minimum": 0,
@@ -1256,6 +1267,15 @@ R"(
 			"projectile": {
 				"type": "object",
 				"properties": {
+					"direct_damage_info": {
+						"$ref": "#/damage_info"
+					},
+					"radius_damage_info": {
+						"$ref": "#/radius_damage_info"
+					},
+					"aura_radius_damage_info": {
+						"$ref": "#/radius_damage_info"
+					},
 					"effect_flags": {
 						"type": "array",
 						"items": {

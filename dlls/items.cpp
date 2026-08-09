@@ -1259,6 +1259,9 @@ public:
 	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 	int LookupActivity(int activity) override;
 	void SetActivity(Activity NewActivity);
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override {
+		HandleBaseAnimEvent(pEvent);
+	}
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -1505,8 +1508,9 @@ void CEyeScanner::WaitForSequenceEnd()
 		} else if (m_Activity == ACT_CROUCH) {
 			SetActivity(ACT_CROUCHIDLE);
 		}
-	} else if (m_Activity != ACT_IDLE && m_Activity != ACT_CROUCHIDLE) {
+	} else {
 		StudioFrameAdvance();
+		DispatchAnimEvents();
 	}
 }
 

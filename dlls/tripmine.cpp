@@ -41,6 +41,7 @@ class CTripmineGrenade : public CGrenade
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;
 
 	void EXPORT WarningThink();
@@ -171,7 +172,6 @@ void CTripmineGrenade::Spawn()
 	pev->nextthink = gpGlobals->time + 0.2f;
 
 	pev->takedamage = DAMAGE_YES;
-	pev->dmg = GetSkillValue("plr_tripmine");
 	pev->health = GetSkillValue("tripmine_health"); // don't let die normally
 	pev->max_health = pev->health;
 
@@ -380,6 +380,11 @@ void CTripmineGrenade::BeamBreakThink()
 	pev->nextthink = gpGlobals->time + 0.1f;
 }
 
+RadiusDamageInfo CTripmineGrenade::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(GetSkillValue("plr_tripmine"), DMG_BLAST));
+}
+
 TakeDamageResult CTripmineGrenade::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& inputDamageInfo )
 {
 	if (!pev->takedamage)
@@ -443,7 +448,7 @@ void CTripmineGrenade::DelayDeathThink()
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 64.0f,  dont_ignore_monsters, ENT( pev ), &tr );
 
-	Explode( &tr, DMG_BLAST );
+	Explode(&tr);
 }
 #endif
 

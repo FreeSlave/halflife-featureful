@@ -14,6 +14,25 @@ This represents either a hand grenade (timed) or an AR grenade (contact).
 * **sk_plr_hand_grenade_hit** - hand grenade direct hit damage. Default value is 1.
 * **sk_plr_9mmAR_grenade** - explosion damage of the AR (contact) grenade.
 
+### Projectile properties
+
+Speed: 800 for contact, 600 for timed
+
+#### Direct damage
+
+{{% hint %}}
+Used by hand grenade.
+{{% /hint %}}
+
+* Damage: **sk_plr_hand_grenade_hit**
+* Type: club
+
+#### Radius damage
+
+* Damage: **sk_plr_hand_grenade** (for timed) or **sk_plr_9mmAR_grenade** (for contact)
+* Type: blast
+* Radius: depends on damage
+
 ### Soundscripts
 
 * **BaseGrenade.Debris** - plays together with explosion. Used with other explosive projectiles as well like satchels, rockets and tripmines.

@@ -13,6 +13,23 @@ entityCategory: projectile
 * **sk_displacer_beam_dmg** - the damage dealt by the beam coming out of the displacer ball when the beam hits something. Default value is 25.
 * **sk_displacer_beam_radius** - the radius of the damage dealt by the beam. Default value is 15.
 
+### Projectile properties
+
+Speed: 500
+
+#### Radius damage
+
+* Damage: **sk_plr_displacer_other**
+* Type: blast
+* Radius: **sk_plr_displacer_radius**
+* Gib: always
+
+#### Aura damage
+
+* Damage: **sk_displacer_beam_dmg**
+* Type: energybeam
+* Radius: **sk_displacer_beam_radius**
+
 ### Soundscripts
 
 * **DisplacerBall.Impact** - hitting something.

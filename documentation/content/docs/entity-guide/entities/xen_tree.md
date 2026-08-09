@@ -8,6 +8,10 @@ entityCategory: object
 
 [TWHL](https://twhl.info/wiki/page/xen_tree)
 
+{{% hint info %}}
+This entity can play sound [animation events]({{< ref model-animation-events >}}). Use entity template with [autoprecache_sounds]({{< ref "entity-templates/#autoprecache_sounds" >}}) enabled to precache such sounds.
+{{% /hint %}}
+
 ### Bugfixes
 
 * Going through the level transition and back and then attacking or touching the xen tree won't crash the game anymore.

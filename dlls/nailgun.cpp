@@ -26,6 +26,20 @@ public:
 	void Precache() override;
 
 	void EXPORT NailTouch(CBaseEntity* pOther);
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override
+	{
+		DamageInfo damageInfo(0.0f, DMG_GENERIC);
+		damageInfo.SetGibPolicy(GIB_NEVER);
+		if (!FNullEnt(pev->owner) && FBitSet(pev->owner->v.flags, FL_CLIENT))
+		{
+			damageInfo.damage = GetSkillValue("plr_nail");
+		}
+		else
+		{
+			damageInfo.damage = GetSkillValue("nail");
+		}
+		return damageInfo;
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -72,15 +86,6 @@ void CNail::Spawn()
 	UTIL_SetOrigin(pev, pev->origin);
 
 	SetTouch(&CNail::NailTouch);
-
-	if (!FNullEnt(pev->owner) && FBitSet(pev->owner->v.flags, FL_CLIENT))
-	{
-		SetDefaultProjectileDamage(GetSkillValue("plr_nail"));
-	}
-	else
-	{
-		SetDefaultProjectileDamage(GetSkillValue("nail"));
-	}
 }
 
 void CNail::Precache()
@@ -104,9 +109,7 @@ void CNail::NailTouch(CBaseEntity *pOther)
 	if (pOther->pev->takedamage)
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
-		DamageInfo damageInfo(GetProjectileDamage(), DMG_GENERIC);
-		damageInfo.SetGibPolicy(GIB_NEVER);
-		pOther->ApplyTraceAttack(pev, pevOwner, damageInfo, vecDir, &tr);
+		pOther->ApplyTraceAttack(pev, pevOwner, GetProjectileDirectDamageInfo(), vecDir, &tr);
 
 		if (FBitSet(pOther->pev->flags, FL_CLIENT) || RANDOM_LONG(0, 1))
 			EmitSoundScript(hitBodySoundScript);

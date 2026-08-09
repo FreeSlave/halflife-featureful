@@ -25,6 +25,7 @@
 #include "cbase.h"
 #include "animation.h"
 #include "saverestore.h"
+#include "scriptevent.h"
 
 TYPEDESCRIPTION	CBaseAnimating::m_SaveData[] =
 {
@@ -445,4 +446,38 @@ bool CBaseAnimating::SetSequenceSafeBox(float minHalfSide, float forcedHalfSide)
 		return true;
 	}
 	return false;
+}
+
+bool CBaseAnimating::HandleBaseAnimEvent(MonsterEvent_t *pEvent)
+{
+	switch(pEvent->event)
+	{
+	case SCRIPT_EVENT_SOUND:			// Play a named wave file
+		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_IDLE );
+		return true;
+	case SCRIPT_EVENT_SOUND_VOICE:
+		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_IDLE );
+		return true;
+	case SCRIPT_EVENT_SOUND_VOICE_BODY:
+		EmitSound( CHAN_BODY, pEvent->options, VOL_NORM, ATTN_NORM );
+		return true;
+	case SCRIPT_EVENT_SOUND_VOICE_VOICE:
+		EmitSound( CHAN_VOICE, pEvent->options, VOL_NORM, ATTN_NORM );
+		return true;
+	case SCRIPT_EVENT_SOUND_VOICE_WEAPON:
+		EmitSound( CHAN_WEAPON, pEvent->options, VOL_NORM, ATTN_NORM );
+		return true;
+	case SCRIPT_EVENT_SOUNDSCRIPT:
+		EmitSoundScript(pEvent->options);
+		return true;
+	case SCRIPT_EVENT_SENTENCE_RND1:		// Play a named sentence group 33% of the time
+		if (RANDOM_LONG( 0, 2 ) == 0)
+			return true;
+		// fall through...
+	case SCRIPT_EVENT_SENTENCE:			// Play a named sentence group
+		SENTENCEG_PlayRndSz( edict(), pEvent->options, 1.0, ATTN_IDLE, 0, 100 );
+		return true;
+	default:
+		return false;
+	}
 }

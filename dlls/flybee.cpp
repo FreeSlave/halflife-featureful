@@ -133,6 +133,8 @@ TYPEDESCRIPTION	CFlybee::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE( CFlybee, CFlyingMonster );
 
+#define FLYBALL_SPEED 1000.0f
+
 class CFlyBall : public CBaseEntity
 {
 public :
@@ -140,6 +142,18 @@ public :
 	void Precache() override;
 	void EXPORT AnimateThink();
 	void EXPORT ExplodeTouch( CBaseEntity *pOther );
+
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo{GetSkillValue("flybee_dmg_flyball"), DMG_ENERGYBEAM};
+	}
+	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
+		SetProjectileParamsBeforeSpawnImpl(params);
+	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override {
+		LaunchAsProjectileImpl(FLYBALL_SPEED, params);
+		SetMyProjectileEffectFlags();
+		SendProjectileTracer();
+	}
 
 	static CFlyBall *CreateFlyBall(Vector vecOrigin, Vector vecAngles, entvars_s *pevOwner , EntityOverrides entityOverrides);
 
@@ -437,7 +451,7 @@ void CFlybee::HandleAnimEvent( MonsterEvent_t *pEvent )
 			}
 
 			SendBeamWave(vecEnd, 1000, GetVisual(zapWaveVisual), MSG_PVS, pev->origin);
-			RadiusDamage( vecEnd, pev, pev, DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}, CLASS_ALIEN_MONSTER );
+			::RadiusDamage( vecEnd, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("flybee_dmg_beam"), DMG_SHOCK}), Classify() );
 
 			EmitSoundScriptAmbient(vecEnd, beamSoundScript);
 			break;
@@ -1098,8 +1112,9 @@ CFlyBall *CFlyBall::CreateFlyBall( Vector vecOrigin, Vector vecAngles, entvars_s
 	Vector vecDir = gpGlobals->v_forward +
 					x * VECTOR_CONE_6DEGREES.x * gpGlobals->v_right +
 					y * VECTOR_CONE_6DEGREES.y * gpGlobals->v_up;
+	vecDir.NormalizeInPlace();
 
-	pBall->pev->angles = UTIL_VecToAngles ( vecDir.Normalize() );
+	pBall->pev->angles = UTIL_VecToAngles(vecDir);
 
 	pBall->pev->angles.x = -pBall->pev->angles.x;
 
@@ -1110,7 +1125,7 @@ CFlyBall *CFlyBall::CreateFlyBall( Vector vecOrigin, Vector vecAngles, entvars_s
 	pBall->AssignEntityOverrides(entityOverrides);
 
 	pBall->Spawn();
-	pBall->SetTouch( &CFlyBall::ExplodeTouch );
+	pBall->pev->velocity = vecDir * FLYBALL_SPEED;
 	
 	return pBall;
 }
@@ -1133,9 +1148,6 @@ void CFlyBall::Spawn()
 
 	pev->dmgtime = gpGlobals->time; // keep track of when ball spawned
 	pev->nextthink = gpGlobals->time + 0.1f;
-
-	UTIL_MakeVectors ( pev->angles );
-	pev->velocity = gpGlobals->v_forward * 1000;
 }
 
 void CFlyBall::Precache()
@@ -1194,7 +1206,7 @@ void CFlyBall::ExplodeTouch( CBaseEntity *pOther )
 		if ( pOther->pev != VARS ( pev->owner ) )
 		{
 			CBaseEntity* pAttacker = !FNullEnt(pev->owner) ? CBaseEntity::Instance(pev->owner) : nullptr;
-			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, DamageInfo{GetSkillValue("flybee_dmg_flyball"), DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
+			pOther->ApplyTraceAttack(pev, pAttacker ? pAttacker->pev : pev, GetProjectileDirectDamageInfo(), pev->velocity.Normalize(), &tr);
 		}
 	}
 

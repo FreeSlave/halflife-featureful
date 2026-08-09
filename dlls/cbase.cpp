@@ -2012,6 +2012,62 @@ int CBaseEntity::IRelationship( CBaseEntity *pTarget )
 	return R_NO;
 }
 
+DamageInfo CBaseEntity::GetProjectileDirectDamageInfo()
+{
+	DamageInfo damageInfo = GetDefaultProjectileDirectDamageInfo();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectile = entTemplate->GetProjectileParams();
+		ApplyDamageInfoPatch(damageInfo, projectile.directDamageInfo);
+	}
+
+	if (!IsRadiusDamageProjectile())
+	{
+		const float customDamage = pev->dmg;
+		if (customDamage > 0)
+			damageInfo.damage = customDamage;
+	}
+
+	return damageInfo;
+}
+
+RadiusDamageInfo CBaseEntity::GetProjectileRadiusDamageInfo()
+{
+	RadiusDamageInfo radiusDamageInfo = GetDefaultProjectileRadiusDamageInfo();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectile = entTemplate->GetProjectileParams();
+		ApplyRadiusDamageInfoPatch(radiusDamageInfo, projectile.radiusDamageInfo);
+	}
+
+	if (IsRadiusDamageProjectile())
+	{
+		const float customDamage = pev->dmg;
+		if (customDamage > 0)
+			radiusDamageInfo.damageInfo.damage = customDamage;
+	}
+
+	return radiusDamageInfo;
+}
+
+RadiusDamageInfo CBaseEntity::GetProjectileAuraRadiusDamageInfo()
+{
+	RadiusDamageInfo radiusDamageInfo = GetDefaultProjectileAuraRadiusDamageInfo();
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Projectile& projectile = entTemplate->GetProjectileParams();
+		ApplyRadiusDamageInfoPatch(radiusDamageInfo, projectile.auraRadiusDamageInfo);
+	}
+
+	return radiusDamageInfo;
+}
+
 void CBaseEntity::SetMyProjectileEffectFlags(int defaultEffects)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
@@ -2155,6 +2211,16 @@ void CBaseEntity::ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageIn
 	if (damageInfo.gibPolicy)
 	{
 		curDamageInfo.gibPolicy = *damageInfo.gibPolicy;
+	}
+}
+
+void CBaseEntity::ApplyRadiusDamageInfoPatch(RadiusDamageInfo& curRadiusDamageInfo, const RadiusDamageInfoPatch& radiusDamageInfo)
+{
+	ApplyDamageInfoPatch(curRadiusDamageInfo.damageInfo, radiusDamageInfo.damageInfo);
+
+	if (radiusDamageInfo.radius.IsDefined())
+	{
+		curRadiusDamageInfo.radius = GetSkillValue(radiusDamageInfo.radius);
 	}
 }
 

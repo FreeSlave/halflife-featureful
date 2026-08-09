@@ -339,7 +339,7 @@ void CRGrunt::Explode()
 
 	InsertAISound( bits_SOUND_COMBAT, NORMAL_EXPLOSION_VOLUME, 3.0 );
 
-	RadiusDamage( pev, pev, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
+	::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{pev->dmg, DMG_BLAST}));
 
 	if( RANDOM_LONG(0,1) )
 	{

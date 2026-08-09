@@ -188,6 +188,28 @@ const char entities[] = R"(
 				"classname": "item_battery"
 			}
 		]
+	},
+	"projectile_test": {
+		"projectile": {
+			"direct_damage_info": {
+				"damage": 42,
+				"type": "freeze"
+			},
+			"radius_damage_info": {
+				"damage_info": {
+					"damage": 100,
+					"type": "burn"
+				},
+				"radius": 128
+			},
+			"aura_radius_damage_info": {
+				"damage_info": {
+					"damage": 8,
+					"type": "poison"
+				},
+				"radius": 32
+			}
+		}
 	}
 }
 )";
@@ -486,6 +508,33 @@ TEST(EntityTemplates, Parse)
 		++it;
 		++it;
 		ASSERT_FALSE(it->weapons.has_value());
+	}
+
+	{
+		const EntTemplate* projectileTest = es.GetTemplate("projectile_test");
+		ASSERT_TRUE(projectileTest != nullptr);
+
+		const EntTemplate::Projectile& projectile = projectileTest->GetProjectileParams();
+		ASSERT_TRUE(projectile.directDamageInfo.damage.has_value());
+		EXPECT_EQ(projectile.directDamageInfo.damage->medium, 42.0f);
+		ASSERT_TRUE(projectile.directDamageInfo.type.has_value());
+		EXPECT_EQ(*projectile.directDamageInfo.type, DMG_FREEZE);
+
+		ASSERT_TRUE(projectile.radiusDamageInfo.damageInfo.damage.has_value());
+		EXPECT_EQ(projectile.radiusDamageInfo.damageInfo.damage->medium, 100.0f);
+		ASSERT_TRUE(projectile.radiusDamageInfo.damageInfo.type.has_value());
+		EXPECT_EQ(*projectile.radiusDamageInfo.damageInfo.type, DMG_BURN);
+
+		ASSERT_TRUE(projectile.radiusDamageInfo.radius.IsDefined());
+		EXPECT_EQ(projectile.radiusDamageInfo.radius.medium, 128);
+
+		ASSERT_TRUE(projectile.auraRadiusDamageInfo.damageInfo.damage.has_value());
+		EXPECT_EQ(projectile.auraRadiusDamageInfo.damageInfo.damage->medium, 8.0f);
+		ASSERT_TRUE(projectile.auraRadiusDamageInfo.damageInfo.type.has_value());
+		EXPECT_EQ(*projectile.auraRadiusDamageInfo.damageInfo.type, DMG_POISON);
+
+		ASSERT_TRUE(projectile.auraRadiusDamageInfo.radius.IsDefined());
+		EXPECT_EQ(projectile.auraRadiusDamageInfo.radius.medium, 32);
 	}
 
 	{

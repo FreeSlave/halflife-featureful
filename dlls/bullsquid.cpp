@@ -85,7 +85,6 @@ const NamedVisual CSquidSpit::fleckVisual = BuildVisual::Spray("Bullsquid.Fleck"
 void CSquidSpit::Spawn()
 {
 	SpawnHelper("squidspit", spitVisual);
-	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_spit"));
 }
 
 void CSquidSpit::Precache()
@@ -117,6 +116,10 @@ void CSquidSpit::Animate()
 	pev->frame = AnimateWithFramerate(pev->frame, m_maxFrame, pev->framerate);
 }
 
+DamageInfo CSquidSpit::GetDefaultProjectileDirectDamageInfo() {
+	return DamageInfo{GetSkillValue("bullsquid_dmg_spit"), DMG_GENERIC};
+}
+
 void CSquidSpit::Touch( CBaseEntity *pOther )
 {
 	TraceResult tr;
@@ -136,7 +139,7 @@ void CSquidSpit::Touch( CBaseEntity *pOther )
 	{
 		CBaseMonster* owner = GetMonsterPointer( pev->owner );
 		entvars_t* pevAttacker = owner ? owner->pev : pev;
-		pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_GENERIC) );
+		pOther->TakeDamage( pev, pevAttacker, GetProjectileDirectDamageInfo() );
 	}
 
 	SetThink( &CBaseEntity::SUB_Remove );
@@ -203,8 +206,6 @@ void CSquidToxicSpit::Spawn()
 	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
 
 	m_maxFrame = MODEL_FRAMES( pev->modelindex ) - 1;
-
-	SetDefaultProjectileDamage(GetSkillValue("bullsquid_dmg_toxic_impact"));
 }
 
 void CSquidToxicSpit::Precache()
@@ -225,13 +226,13 @@ void CSquidToxicSpit::Animate()
 	CBaseEntity* pEntity = NULL;
 	CBaseMonster* spitOwner = GetSpitOwner();
 
-	const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
-	if (poisonDamage > 0.0f)
+	RadiusDamageInfo auraRadiusDamageInfo = GetProjectileAuraRadiusDamageInfo();
+	if (auraRadiusDamageInfo.damageInfo.damage > 0.0f)
 	{
-		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 32)) != NULL) {
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, auraRadiusDamageInfo.GetRadius())) != NULL) {
 			if ( pEntity != spitOwner && pEntity->MyMonsterPointer() && !FClassnameIs(pEntity->pev, "monster_bullchicken")) {
 				if (!spitOwner || spitOwner->IRelationship(pEntity) >= R_DL) {
-					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor());
+					pEntity->TakeDamage(pev, spitOwner ? spitOwner->pev : pev, auraRadiusDamageInfo.damageInfo);
 				}
 			}
 		}
@@ -295,10 +296,11 @@ void CSquidToxicSpit::Touch( CBaseEntity *pOther )
 		CBaseMonster* spitOwner = GetSpitOwner();
 		if (!spitOwner || spitOwner->IRelationship(pOther) >= R_DL) {
 			entvars_t* pevAttacker = spitOwner ? spitOwner->pev : pev;
-			const float poisonDamage = GetSkillValue("bullsquid_dmg_toxic_poison");
-			if (poisonDamage > 0)
-				pOther->TakeDamage( pev, pevAttacker, DamageInfo(poisonDamage, DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor() );
-			pOther->TakeDamage( pev, pevAttacker, DamageInfo(GetProjectileDamage(), DMG_ACID) );
+
+			RadiusDamageInfo auraRadiusDamageInfo = GetProjectileAuraRadiusDamageInfo();
+			if (auraRadiusDamageInfo.damageInfo.damage > 0)
+				pOther->TakeDamage( pev, pevAttacker, auraRadiusDamageInfo.damageInfo);
+			pOther->TakeDamage( pev, pevAttacker, GetProjectileDirectDamageInfo() );
 		}
 	}
 
@@ -310,6 +312,14 @@ CBaseMonster* CSquidToxicSpit::GetSpitOwner() {
 	if (!FNullEnt(pev->owner))
 		return GetMonsterPointer(pev->owner);
 	return 0;
+}
+
+DamageInfo CSquidToxicSpit::GetDefaultProjectileDirectDamageInfo() {
+	return DamageInfo{GetSkillValue("bullsquid_dmg_toxic_impact"), DMG_ACID};
+}
+
+RadiusDamageInfo CSquidToxicSpit::GetDefaultProjectileAuraRadiusDamageInfo() {
+	return RadiusDamageInfo{DamageInfo(GetSkillValue("bullsquid_dmg_toxic_poison"), DMG_POISON).SetTimedNonLethal().SetIgnoreArmor().SetTimedIgnoreArmor(), 32};
 }
 
 void CSquidToxicSpit::LaunchAsProjectile(const ProjectileParameters& params)
@@ -947,7 +957,7 @@ Schedule_t slSquidRangeAttack1[] =
 // Chase enemy schedule
 Task_t tlSquidChaseEnemy1[] =
 {
-	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_RANGE_ATTACK1 },// !!!OEM - this will stop nasty squid oscillation.
+	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_CHASE_ENEMY_FAILED },
 	{ TASK_GET_PATH_TO_ENEMY, 0.0f },
 	{ TASK_RUN_PATH, 0.0f },
 	{ TASK_WAIT_FOR_MOVEMENT, 0.0f },

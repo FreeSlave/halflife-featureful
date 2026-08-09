@@ -207,6 +207,9 @@ public:
 			DETONATE_TOUCH_AIMABLE,
 		};
 
+		DamageInfoPatch directDamageInfo;
+		RadiusDamageInfoPatch radiusDamageInfo;
+		RadiusDamageInfoPatch auraRadiusDamageInfo;
 		optional<int> effects;
 		short detonateOnTouch{DETONATE_DEFAULT};
 

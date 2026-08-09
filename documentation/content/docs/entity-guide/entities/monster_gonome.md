@@ -13,7 +13,7 @@ bookToC: false
 
 * **sk_gonome_health** - monster's health.
 * **sk_gonome_dmg_one_slash** - melee damage.
-* **sk_gonome_dmg_guts** - guts projectile damage.
+* [gonomeguts]({{< ref gonomeguts >}}) skill variables.
 * **sk_gonome_dmg_one_bite** - mouth bite damage.
 * **sk_gonome_lock_player** - whether Gonome can temporarily lock (freeze) the player with bite attack. Default value is 0 (disabled). When enabled, this ability can conflict with usage of [trigger_playerfreeze]({{< ref trigger_playerfreeze >}}) entity, so use it with care.
 

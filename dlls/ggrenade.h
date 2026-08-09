@@ -19,17 +19,16 @@ public:
 	void Precache() override;
 	void PrecacheBaseGrenadeSounds();
 
-	typedef enum { SATCHEL_DETONATE = 0, SATCHEL_RELEASE } SATCHELCODE;
-
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override;
+	bool IsRadiusDamageProjectile() override { return true; }
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	static CGrenade *ShootTimed( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, float time, EntityOverrides entityOverrides = EntityOverrides() );
 	static CGrenade *ShootContact( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, EntityOverrides entityOverrides = EntityOverrides() );
-	static CGrenade *ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
-	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 
-	void Explode( Vector vecSrc, Vector vecAim );
-	virtual void Explode( TraceResult *pTrace, int bitsDamageType );
+	void ExplodeDownwards();
+	virtual void Explode(const TraceResult *pTrace);
 	void EXPORT Smoke();
 
 	void EXPORT BounceTouch( CBaseEntity *pOther );
@@ -44,7 +43,6 @@ public:
 	virtual void BounceSound();
 	int	BloodColor() override { return DONT_BLEED; }
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	virtual float ExplosionRadius() { return 0.0f; } // if 0 the default radius is used (depending on amount of damage)
 	virtual int FireballDeciScaleFromDamage(float dmg) {
 		int result = (dmg - Q_min(50.0f, dmg/2)) * 0.6f;
 		return clamp(result, 1, 255);
@@ -59,6 +57,11 @@ public:
 
 	bool m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.
 	bool m_isTimed;
+
+	int Save(CSave& save) override;
+	int Restore(CRestore& restore) override;
+
+	static TYPEDESCRIPTION m_SaveData[];
 
 	static const NamedSoundScript debrisSoundScript;
 	static const NamedSoundScript bounceSoundScript;

@@ -481,7 +481,7 @@ void CApache::DyingThink()
 
 		EmitSoundScript(crashSoundScript);
 
-		RadiusDamage( pev->origin, pev, pev, DamageInfo{GetSkillValue("apache_dmg_blast"), DMG_BLAST}, CLASS_NONE );
+		::RadiusDamage( pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("apache_dmg_blast"), DMG_BLAST}) );
 
 		if(/*!( pev->spawnflags & SF_NOWRECKAGE ) && */( pev->flags & FL_ONGROUND ) )
 		{
@@ -1182,6 +1182,9 @@ public:
 	void Precache() override;
 	void EXPORT IgniteThink();
 	void EXPORT AccelerateThink();
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override {
+		return RadiusDamageInfo(DamageInfo(150.0f, DMG_BLAST));
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -1250,8 +1253,6 @@ void CApacheHVR::Spawn()
 	pev->gravity = 0.5f;
 
 	pev->nextthink = gpGlobals->time + 0.1f;
-
-	SetDefaultProjectileDamage(150.0f);
 }
 
 void CApacheHVR::Precache()

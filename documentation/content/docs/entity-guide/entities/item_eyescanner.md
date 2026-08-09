@@ -14,6 +14,10 @@ If scanner gets input by the unlocker entity while it's in the active state caus
 
 The retinal scanner is non-solid by default. You're supposed to place an invisible `func_wall` for collision (recommended width is 8 units) or set the `Solid` spawnflag.
 
+{{% hint info %}}
+This entity can play sound [animation events]({{< ref model-animation-events >}}). Use entity template with [autoprecache_sounds]({{< ref "entity-templates/#autoprecache_sounds" >}}) enabled to precache such sounds.
+{{% /hint %}}
+
 ### Parameters
 
 * `Unlocker's name` - a targetname or a classname of the entity which will be perceieved as unlocker by the retinal scanner. When getting a use input the `item_eyescanner` checks the activator. If activator is empty, the caller is used instead. If this parameter is empty, non-player activator will be unlocker. Put `player` as a parameter value to allow players to get access granted on this retinal scanner.

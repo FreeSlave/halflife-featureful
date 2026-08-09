@@ -44,6 +44,7 @@ public:
 	void EXPORT SuperBounceTouch( CBaseEntity *pOther );
 	void EXPORT HuntThink();
 	int	BloodColor() override { return CBaseMonster::BloodColor(); }
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void GibMonster() override;
 	void ReportAIState(ALERT_TYPE level) override;
@@ -211,6 +212,11 @@ void CSqueakGrenade::PrecacheImpl( const char* modelName )
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 }
 
+RadiusDamageInfo CSqueakGrenade::GetDefaultProjectileRadiusDamageInfo()
+{
+	return RadiusDamageInfo(DamageInfo(0.0f, DMG_BLAST));
+}
+
 KilledResult CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	pev->model = iStringNull;// make invisible
@@ -231,7 +237,7 @@ KilledResult CSqueakGrenade::Killed( entvars_t *pevInflictor, entvars_t *pevAtta
 	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
 
 	entvars_t* pevExploAttacker = m_hOwner != 0 ? m_hOwner->pev : pev;
-	RadiusDamage( pev, pevExploAttacker, DamageInfo{pev->dmg, DMG_BLAST}, CLASS_NONE );
+	::RadiusDamage(pev->origin, pev, pevExploAttacker, GetProjectileRadiusDamageInfo());
 
 	// reset owner so death message happens
 	if( m_hOwner != 0 )
@@ -504,11 +510,6 @@ class CPenguinGrenade : public CSqueakGrenade
 	float MaximumExplosionDamage() override;
 	float JumpDelay() override;
 	float JumpSpeed() override;
-	float ExplosionRadius() override
-	{
-		const float maxDmg = GetSkillValue("penguin_max_dmg_pop");
-		return Q_min(maxDmg, pev->dmg * 2.5f);
-	}
 };
 
 void CPenguinGrenade::Spawn()

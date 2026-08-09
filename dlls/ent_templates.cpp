@@ -1163,9 +1163,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 				UpdatePropertyFromJson(traceHullAttack.knock.playerOnly, value, "player_only");
 			});
 
-			HandleJSONMember(attackValue, "damage_info", [&traceHullAttack](const Value& value) {
-				UpdateDamageInfoFromJson(traceHullAttack.damageInfo, value);
-			});
+			UpdatePropertyFromJson(traceHullAttack.damageInfo, attackValue, "damage_info");
 
 			UpdatePropertyFromJson(traceHullAttack.spawnBlood, attackValue, "spawn_blood");
 
@@ -1198,10 +1196,7 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 	{
 		auto leapAttack = entTemplate.GetLeapAttack();
 
-		HandleJSONMember(value, "damage_info", [&leapAttack](const Value& value) {
-			UpdateDamageInfoFromJson(leapAttack.damageInfo, value);
-		});
-
+		UpdatePropertyFromJson(leapAttack.damageInfo, value, "damage_info");
 		UpdatePropertyFromJson(leapAttack.spawnBlood, value, "spawn_blood");
 
 		HandleJSONMember(value, "punchangle", [&leapAttack](const Value& value) {
@@ -1447,6 +1442,9 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 
 	HandleJSONMember(value, "projectile", [&entTemplate](const Value& value) {
 		EntTemplate::Projectile projectile = entTemplate.GetProjectileParams();
+		UpdatePropertyFromJson(projectile.directDamageInfo, value, "direct_damage_info");
+		UpdatePropertyFromJson(projectile.radiusDamageInfo, value, "radius_damage_info");
+		UpdatePropertyFromJson(projectile.auraRadiusDamageInfo, value, "aura_radius_damage_info");
 		HandleJSONMember(value, "effect_flags", [&entTemplate, &projectile](const Value& value) {
 			int effects = 0;
 			Value::ConstArray arr = value.GetArray();

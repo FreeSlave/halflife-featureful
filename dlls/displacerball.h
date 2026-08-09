@@ -16,6 +16,8 @@ public:
 	void Precache() override;
 
 	static void SelfCreate(entvars_t *pevOwner, Vector vecStart);
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
+	RadiusDamageInfo GetDefaultProjectileAuraRadiusDamageInfo() override;
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}

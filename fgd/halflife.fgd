@@ -519,6 +519,12 @@
 	]
 ]
 
+@BaseClass = TurretProps
+[
+	maxsleep(string) : "Custom Search Time (before deactivate)" : : "Time in seconds to continue searching for an enemy after losing them before retiring."
+	turnrate(integer) : "Custom Turning Rate (per 0.1s)" : : "Turning rate of turret when tracking enemies, in degrees per 0.1 second. Default is 30"
+]
+
 @BaseClass = FollowingMonsterProps
 [
 	followfailpolicy(choices) : "Follow fail policy" : : "What to do when couldn't reach the target" = 
@@ -947,6 +953,19 @@
 		7: "Metal Lock Stop"
 		8: "Snappy Metal Stop"
 	]
+	returnstopsnd(choices) : "Return Stop Sound" =
+	[
+		0: "Same as Stop Sound"
+		1: "Clang with brake"
+		2: "Clang reverb"
+		3: "Ratchet Stop"
+		4: "Chunk"
+		5: "Light airbrake"
+		6: "Metal Slide Stop"
+		7: "Metal Lock Stop"
+		8: "Snappy Metal Stop"
+		255: "No Sound"
+	]
 	wait(integer) : "delay before close, -1 stay open " : 4
 	lip(integer) : "Lip"
 	dmg(integer) : "Damage inflicted when blocked" : 0
@@ -978,6 +997,7 @@
 	]
 	noise1(sound) : "Move Sound Override"
 	noise2(sound) : "Stop Sound Override"
+	noise3(sound) : "Return Stop Sound Override"
 	return_speed(integer) : "Return speed"
 	locked_play_on_use(choices) : "If locked, play locked sound on use" : : "By default if door is locked by a master and is set to 'Use only' or triggered by something it won't play the locked sound. Set this option to change the behavior" =
 	[
@@ -1814,7 +1834,7 @@
 	target(target_generic) : "Target to shoot at [LE]"
 	projectile_name(choices) : "Projectile Name" : "grenade" =
 	[
-		"" : "Nothing"
+		"" : ""
 		"grenade" : "AR grenade"
 		"crossbow_bolt" : "crossbow_bolt"
 		"crossbow_bolt explosive" : "crossbow_bolt explosive"
@@ -1840,6 +1860,7 @@
 		"nail": "nail"
 		"grenaderound": "grenaderound"
 		"env_genewormcloud": "env_genewormcloud"
+		"flyball": "flyball (Flybee)"
 	]
 	detonation_delay(string) : "Grenade detonation delay"
 	speed(string) : "Custom projectile speed"
@@ -2075,7 +2096,7 @@
 	]
 ]
 
-@PointClass base(Targetname, Angles, RenderFields, Scalable, EntityEffects) studio() = env_model : "New alternative to cyclers"
+@PointClass base(Targetname, Angles, RenderFields, Scalable, EntityEffects, EntityTemplate) studio() = env_model : "New alternative to cyclers"
 [
 	model(studio) : "Model name"
 	skin(integer) : "Skin" : 0
@@ -3291,6 +3312,7 @@
 		"nail" : "nail"
 		"grenaderound": "grenaderound"
 		"env_genewormcloud": "env_genewormcloud"
+		"flyball": "flyball (Flybee)"
 	]
 	projectile_ent_template(string) : "Projectile Entity Template"
 	detonation_delay(string) : "Detonation delay"
@@ -6541,7 +6563,7 @@
 
 @BaseClass base(Targetname, RenderFields, Angles) = DeadTurret []
 
-@PointClass base(Monster, Sequence) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = monster_miniturret : "Mini Auto Turret"
+@PointClass base(Monster, TurretProps) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = monster_miniturret : "Mini Auto Turret"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
@@ -7475,7 +7497,7 @@
 	]
 ]
 @PointClass base(Monster, Civilian) size(-16 -16 0, 16 16 72) studio("models/scientist_rosenberg.mdl") = monster_rosenberg : "Dr. Rosenberg" []
-@PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry : "Sentry Turret Gun"
+@PointClass base(Monster, TurretProps) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = monster_sentry : "Sentry Turret Gun"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
@@ -7613,7 +7635,7 @@
 		2 : "Triggerable" : 0 : "Explode when triggered"
 	]
 ]
-@PointClass base(Monster, Sequence) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = monster_turret : "Auto Turret"
+@PointClass base(Monster, TurretProps) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = monster_turret : "Auto Turret"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[

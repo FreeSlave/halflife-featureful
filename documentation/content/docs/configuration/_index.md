@@ -20,6 +20,7 @@ The list of featureful configuration files:
 * [features/maxammo.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/maxammo.cfg) - configuring max ammo amount for each ammo type.
 * **features/followers.json** - configuring player [followers]({{< ref followers >}}) properties.
 * **features/materials.json** - configuring texture [materials]({{< ref materials >}}) properties.
+* **features/time_based_damage.json** - configuring properties of [time based damage]({{< ref time-based-damage >}}).
 * **sound/captions.txt** and **sound/captions_profiles.txt** - parts of [subtitles system]({{< ref subtitles >}}).
 * **sound/soundscripts.json** - configuring [soundscripts]({{< ref soundscripts >}}).
 * **templates/visuals.json** - configuring [visuals]({{< ref visuals >}}).
@@ -89,8 +90,8 @@ Some Half-Life behavior aspects were changed from vanilla to better alternatives
 * `satchels_pickable`
 * `monsters_delegate_squad_leadership`
 * `monsters_eat_for_health`
-* `sentry_retract`
-* Some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default.
+
+Also some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default - they can be disabled via the [skill.cfg]({{< ref skill-variables >}}).
 
 There're also some [cvars]({{< ref "cvars/#server-cvars" >}}) that you might be interested in changing in [featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg).
 

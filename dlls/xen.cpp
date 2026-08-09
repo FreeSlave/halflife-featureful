@@ -42,6 +42,11 @@ public:
 		return caps & ~FCAP_ACROSS_TRANSITION;
 	}
 
+	void HandleAnimEvent(MonsterEvent_t *pEvent) override
+	{
+		HandleBaseAnimEvent(pEvent);
+	}
+
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
@@ -170,8 +175,9 @@ void CXenPLight::Precache()
 
 void CXenPLight::Think()
 {
-	StudioFrameAdvance();
+	float flInterval = StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
+	DispatchAnimEvents(flInterval);
 
 	switch( GetActivity() )
 	{
@@ -269,8 +275,9 @@ void CXenHair::Spawn()
 
 void CXenHair::Think()
 {
-	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.5f;
+	float flInterval = StudioFrameAdvance();
+	pev->nextthink = gpGlobals->time + 0.1f;
+	DispatchAnimEvents(flInterval);
 }
 
 void CXenHair::Precache()
@@ -379,6 +386,8 @@ void CXenTree::Precache()
 
 void CXenTree::Activate()
 {
+	CActAnimating::Activate();
+
 	Vector triggerPosition;
 	UTIL_MakeVectorsPrivate( pev->angles, triggerPosition, NULL, NULL );
 	triggerPosition = pev->origin + ( triggerPosition * 64 );
@@ -447,7 +456,7 @@ void CXenTree::Think()
 {
 	float flInterval = StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
-	DispatchAnimEvents( flInterval );
+	DispatchAnimEvents(flInterval);
 
 	switch( GetActivity() )
 	{
@@ -479,7 +488,6 @@ public:
 	void Touch( CBaseEntity *pOther ) override;
 	void Think() override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override { Attack(); return TakeDamageResult(); }
-	//void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void Attack() {}
 
 	virtual const char* DefaultModel() const = 0;
@@ -629,18 +637,9 @@ void CXenSpore::Touch( CBaseEntity *pOther )
 
 void CXenSpore::Think()
 {
-	StudioFrameAdvance();
+	float flInterval = StudioFrameAdvance();
 	pev->nextthink = gpGlobals->time + 0.1f;
-#if 0
-	DispatchAnimEvents( flInterval );
-
-	switch( GetActivity() )
-	{
-	default:
-	case ACT_IDLE:
-		break;
-	}
-#endif
+	DispatchAnimEvents(flInterval);
 }
 
 void CXenSpore::SetMySize(const Vector &vecMin, const Vector &vecMax)

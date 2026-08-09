@@ -51,6 +51,7 @@ public:
 	int Restore( CRestore &restore ) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override;
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}

@@ -33,6 +33,8 @@ public:
 	void EXPORT RocketTouch(CBaseEntity* pOther);
 	void EXPORT MyBounceTouch(CBaseEntity* pOther);
 
+	RadiusDamageInfo GetDefaultProjectileRadiusDamageInfo() override;
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override;
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override;
 	void LaunchAsProjectile(const ProjectileParameters& params) override;
 	void SendMessages(CBaseEntity* pClient) override {

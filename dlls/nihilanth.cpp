@@ -1557,7 +1557,7 @@ void CNihilanthHVR::ZapTouch( CBaseEntity *pOther )
 {
 	EmitSoundScriptAmbient(pev->origin, zapTouchSoundScript);
 
-	RadiusDamage( pev, pev, DamageInfo{50, DMG_SHOCK}, CLASS_NONE );
+	::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{50, DMG_SHOCK}) );
 	pev->velocity = pev->velocity * 0;
 
 	/*

@@ -246,7 +246,7 @@ public:
 	void SpinUpCall() override;
 	void SpinDownCall() override;
 	int MaxEyeBrightness() override;
-	float DefaultSearchTime() {
+	float DefaultSearchTime() override {
 		return GetSkillValue("turret_searchtime");
 	}
 
@@ -312,7 +312,7 @@ public:
 	// other functions
 	const char* DefaultDisplayName() override { return "Mini-Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
-	float DefaultSearchTime() {
+	float DefaultSearchTime() override {
 		return GetSkillValue("miniturret_searchtime");
 	}
 
@@ -1352,7 +1352,7 @@ public:
 	// other functions
 	const char* DefaultDisplayName() override { return "Sentry Turret"; }
 	void Shoot( Vector &vecSrc, Vector &vecDirToEnemy ) override;
-	float DefaultSearchTime() {
+	float DefaultSearchTime() override {
 		return GetSkillValue("sentry_searchtime");
 	}
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;

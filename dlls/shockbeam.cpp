@@ -76,18 +76,6 @@ void CShock::Spawn()
 	SET_MODEL(ENT(pev), "models/shock_effect.mdl");
 	UTIL_SetOrigin(pev, pev->origin);
 
-	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
-	{
-		if (g_pGameRules->IsMultiplayer())
-			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachm"));
-		else
-			SetDefaultProjectileDamage(GetSkillValue("plr_shockroachs"));
-	}
-	else
-	{
-		SetDefaultProjectileDamage(GetSkillValue("shockroach"));
-	}
-
 	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
 
 	CreateEffects();
@@ -112,7 +100,11 @@ void CShock::FlyThink()
 	{
 		entvars_t *pevOwner = VARS(pev->owner);
 		EmitSoundScript(impactSoundScript);
-		RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, DamageInfo(GetProjectileDamage() * 3, DMG_SHOCK).SetGibPolicy(GIB_ALWAYS), 144, CLASS_NONE );
+
+		DamageInfo damageInfo = GetProjectileDirectDamageInfo();
+		damageInfo.damage *= 3.0f;
+		damageInfo.SetGibPolicy(GIB_ALWAYS);
+		::RadiusDamage(pev->origin, pev, pevOwner ? pevOwner : pev, RadiusDamageInfo(damageInfo, 144) );
 		ClearEffects();
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time;
@@ -156,14 +148,14 @@ void CShock::Touch(CBaseEntity *pOther)
 	}
 	else
 	{
-		int damageType = DMG_SHOCK;
+		DamageInfo damageInfo = GetProjectileDirectDamageInfo();
 		if (pMonster && !pMonster->IsAlive())
 		{
-			damageType |= DMG_CLUB;
+			damageInfo.type |= DMG_CLUB;
 		}
 		entvars_t *pevOwner = VARS(pev->owner);
 		entvars_t *pevAttacker = pevOwner ? pevOwner : pev;
-		pOther->ApplyTraceAttack(pev, pevAttacker, DamageInfo{GetProjectileDamage(), damageType}, pev->velocity.Normalize(), &tr );
+		pOther->ApplyTraceAttack(pev, pevAttacker, damageInfo, pev->velocity.Normalize(), &tr );
 		if (pOther->IsPlayer() && (UTIL_PointContents(pev->origin) != CONTENTS_WATER))
 		{
 			const Vector position = tr.vecEndPos;
@@ -220,6 +212,23 @@ void CShock::UpdateOnRemove()
 {
 	ClearEffects();
 	CBaseAnimating::UpdateOnRemove();
+}
+
+DamageInfo CShock::GetDefaultProjectileDirectDamageInfo()
+{
+	DamageInfo damageInfo{0.0f, DMG_SHOCK};
+	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT))
+	{
+		if (g_pGameRules->IsMultiplayer())
+			damageInfo.damage = GetSkillValue("plr_shockroachm");
+		else
+			damageInfo.damage = GetSkillValue("plr_shockroachs");
+	}
+	else
+	{
+		damageInfo.damage = GetSkillValue("shockroach");
+	}
+	return damageInfo;
 }
 
 void CShock::LaunchAsProjectile(const ProjectileParameters& params)

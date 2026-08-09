@@ -11,7 +11,7 @@ This entity, when triggered, changes maximum ammo amount of selected ammo type f
 
 ### Parameters
 
-* `Ammo name` - ammo name. See [Ammo types](http://localhost:1313/halflife-featureful/docs/configuration/ammo-types/).
+* `Ammo name` - ammo name. See [Ammo types]({{< ref ammo-types >}}).
 * `Value to use` - value to use along with `Change max ammo mode`.
 * `Change Max Ammo Mode` - set up the way the new ammo limit is modified.
     - `Set` - `Value to use` becomes maximum ammo amount.

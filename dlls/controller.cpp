@@ -1351,6 +1351,9 @@ class CControllerZapBall : public CBaseMonster
 {
 	void Spawn() override;
 	void Precache() override;
+	DamageInfo GetDefaultProjectileDirectDamageInfo() override {
+		return DamageInfo(GetSkillValue("controller_dmgball"), DMG_ENERGYBEAM);
+	}
 	void SetProjectileParamsBeforeSpawn(const ProjectileParameters& params) override {
 		SetProjectileParamsBeforeSpawnImpl(params);
 	}
@@ -1420,7 +1423,6 @@ void CControllerZapBall::Spawn()
 	pev->nextthink = gpGlobals->time + 0.1f;
 
 	SetMaxFrame();
-	SetDefaultProjectileDamage(GetSkillValue("controller_dmgball"));
 }
 
 void CControllerZapBall::Precache()
@@ -1466,7 +1468,7 @@ void CControllerZapBall::ExplodeTouch( CBaseEntity *pOther )
 			pevOwner = pev;
 		}
 
-		pOther->ApplyTraceAttack(pev, pevOwner, DamageInfo{GetProjectileDamage(), DMG_ENERGYBEAM}, pev->velocity.Normalize(), &tr);
+		pOther->ApplyTraceAttack(pev, pevOwner, GetProjectileDirectDamageInfo(), pev->velocity.Normalize(), &tr);
 
 		EmitSoundScriptAmbient(tr.vecEndPos, electroSoundScript);
 	}

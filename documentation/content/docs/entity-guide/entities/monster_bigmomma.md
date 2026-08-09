@@ -11,8 +11,7 @@ bookToC: false
 
 * **sk_bigmomma_health_factor** - health factor for health in `info_bigmomma`.
 * **sk_bigmomma_dmg_slash** - melee damage.
-* **sk_bigmomma_dmg_blast** - acid mortar damage.
-* **sk_bigmomma_radius_blast** - acid mortar blast radius.
+* [bmortar]({{< ref bmortar >}}) skill variables.
 
 ### Default classification
 

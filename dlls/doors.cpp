@@ -29,6 +29,7 @@
 
 #define noiseMoving noise1
 #define noiseArrived noise2
+#define noiseReturnStop noise3
 
 enum
 {
@@ -93,6 +94,7 @@ public:
 
 	BYTE m_bMoveSnd;			// sound a door makes while moving
 	BYTE m_bStopSnd;			// sound a door makes when it stops
+	BYTE m_bReturnStopSnd;
 
 	locksound_t m_ls;			// door lock sounds
 
@@ -147,6 +149,7 @@ TYPEDESCRIPTION	CBaseDoor::m_SaveData[] =
 	DEFINE_FIELD( CBaseDoor, m_bHealthValue, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_bMoveSnd, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_bStopSnd, FIELD_CHARACTER ),
+	DEFINE_FIELD( CBaseDoor, m_bReturnStopSnd, FIELD_CHARACTER ),
 
 	DEFINE_FIELD( CBaseDoor, m_bLockedSound, FIELD_CHARACTER ),
 	DEFINE_FIELD( CBaseDoor, m_bLockedSentence, FIELD_CHARACTER ),
@@ -301,6 +304,11 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "stopsnd" ) )
 	{
 		m_bStopSnd = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "returnstopsnd" ) )
+	{
+		m_bReturnStopSnd = atoi( pkvd->szValue );
 		pkvd->fHandled = true;
 	}
 	else if( FStrEq( pkvd->szKeyName, "healthvalue" ) )
@@ -637,6 +645,59 @@ void CBaseDoor::Precache()
 	}
 
 	if( !NullSound )
+		PRECACHE_SOUND( pszSound );
+	NullSound = false;
+
+	if (FStringNull(pev->noiseReturnStop))
+	{
+		// set the door's 'reached destination' stop sound
+		switch( m_bReturnStopSnd )
+		{
+		case 1:
+			pszSound = "doors/doorstop1.wav";
+			break;
+		case 2:
+			pszSound = "doors/doorstop2.wav";
+			break;
+		case 3:
+			pszSound = "doors/doorstop3.wav";
+			break;
+		case 4:
+			pszSound = "doors/doorstop4.wav";
+			break;
+		case 5:
+			pszSound = "doors/doorstop5.wav";
+			break;
+		case 6:
+			pszSound = "doors/doorstop6.wav";
+			break;
+		case 7:
+			pszSound = "doors/doorstop7.wav";
+			break;
+		case 8:
+			pszSound = "doors/doorstop8.wav";
+			break;
+		case 255:
+			pszSound = "common/null.wav";
+			NullSound = true;
+			break;
+		case 0:
+		default:
+			pszSound = nullptr;
+			break;
+		}
+
+		if (pszSound)
+			pev->noiseReturnStop = MAKE_STRING(pszSound);
+		else
+			pev->noiseReturnStop = iStringNull;
+	}
+	else
+	{
+		pszSound = STRING(pev->noiseReturnStop);
+	}
+
+	if (!NullSound && pszSound)
 		PRECACHE_SOUND( pszSound );
 
 	// get door button sounds, for doors which are directly 'touched' to open
@@ -1101,7 +1162,9 @@ void CBaseDoor::DoorHitBottom()
 	if( !FBitSet( pev->spawnflags, SF_DOOR_SILENT ) )
 	{
 		STOP_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseMoving ) );
-		EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING( pev->noiseArrived ), 1.0f, SoundAttenuation() );
+
+		string_t noiseStop = FStringNull(pev->noiseReturnStop) ? pev->noiseArrived : pev->noiseReturnStop;
+		EMIT_SOUND( ENT( pev ), CHAN_STATIC, STRING(noiseStop), 1.0f, SoundAttenuation() );
 	}
 
 	ASSERT( m_toggle_state == TS_GOING_DOWN );

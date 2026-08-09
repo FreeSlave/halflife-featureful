@@ -1,5 +1,5 @@
 baseURL = 'https://freeslave.github.io/halflife-featureful/'
-languageCode = 'en-us'
+locale = 'en-us'
 title = 'Featureful SDK'
 theme = 'hugo-book'
 [caches]
@@ -64,9 +64,9 @@ theme = 'hugo-book'
         title = true
     [markup.goldmark.renderHooks]
       [markup.goldmark.renderHooks.image]
-        enableDefault = true
+        useEmbedded = "fallback"
       [markup.goldmark.renderHooks.link]
-        enableDefault = true
+        useEmbedded = "fallback"
     [markup.goldmark.renderer]
       hardWraps = false
       unsafe = true

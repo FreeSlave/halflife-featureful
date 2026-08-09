@@ -234,7 +234,7 @@ void CKingpinPlasmaBall::Explode(CBaseEntity* pEnemy)
 	CBaseEntity* pOwner = CBaseEntity::OwnInstance(pev->owner);
 	if (pOwner)
 		classify = pOwner->Classify();
-	::RadiusDamage(pev->origin, pev, pOwner ? pOwner->pev : pev, DamageInfo(GetSkillValue("kingpin_plasma_blast"), DMG_SHOCK), KINGPIN_PLASMABALL_RADIUS, classify );
+	::RadiusDamage(pev->origin, pev, pOwner ? pOwner->pev : pev, RadiusDamageInfo(DamageInfo(GetSkillValue("kingpin_plasma_blast"), DMG_SHOCK), KINGPIN_PLASMABALL_RADIUS), classify );
 
 	PlayShockWave(GetVisual(shockInnerVisual), TE_BEAMDISK, 600);
 	PlayShockWave(GetVisual(shockOuterVisual), TE_BEAMCYLINDER, 750);
@@ -1614,7 +1614,7 @@ void CKingpin::RunTask( Task_t *pTask )
 					escapeFlare->EmitSoundScript(GetSoundScript(escapeEndSoundScript));
 				}
 
-				RadiusDamage(pev, pev, DamageInfo{GetSkillValue("kingpin_plasma_blast")/2, DMG_SHOCK}, Classify());
+				::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("kingpin_plasma_blast")/2, DMG_SHOCK}), Classify());
 				UTIL_ScreenFadeAll( pev->origin, Vector(85, 255, 127), 2.0f, 0.0f, 200, FFADE_IN );
 
 				const Vector shockWavePos = Center();
@@ -1638,7 +1638,7 @@ void CKingpin::RunTask( Task_t *pTask )
 				StopAnimation();
 				g_vecAttackDir = Vector(0,0,-1);
 				GibMonster();
-				RadiusDamage(pev, pev, DamageInfo{GetSkillValue("kingpin_plasma_blast"), DMG_SHOCK}, Classify());
+				::RadiusDamage(pev->origin, pev, pev, RadiusDamageInfo(DamageInfo{GetSkillValue("kingpin_plasma_blast"), DMG_SHOCK}), Classify());
 				m_bloodColor = BLOOD_COLOR_RED; // HACK to change blood color of pink gibs
 				CGib::SpawnRandomGibs( pev, DefaultGibCount(), "models/stickygibpink.mdl" );
 			}

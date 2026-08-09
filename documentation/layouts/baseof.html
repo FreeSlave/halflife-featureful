@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ default .Site.Language.Lang .Site.LanguageCode  }}" dir="{{ default "ltr" .Site.Language.LanguageDirection }}">
+<html lang="{{ default .Site.Language.Lang .Site.Language.Locale  }}" dir="{{ default "ltr" .Site.Language.Direction }}">
 <head>
   {{ partial "docs/html-head" . }}
   {{ partial "docs/inject/head" . }}
   {{ partialCached "css.html" . }}
   {{ partialCached "js.html" . }}
 </head>
-<body dir="{{ default "ltr" .Site.Language.LanguageDirection }}">
+<body dir="{{ default "ltr" .Site.Language.Direction }}">
   <input type="checkbox" class="hidden toggle" id="menu-control" />
   <input type="checkbox" class="hidden toggle" id="toc-control" />
   <main class="container flex">
