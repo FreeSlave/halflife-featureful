@@ -12,7 +12,7 @@ enum camera_e
 	CAMERA_HOLSTER
 };
 
-class CCameraRadio : public CConfigurableWeapon
+class CCameraTool : public CConfigurableWeapon
 {
 public:
 	int WeaponId() const override { return WEAPON_CAMERA; }
@@ -20,16 +20,16 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 };
 
-LINK_WEAPON_TO_CLASS( weapon_camera, CCameraRadio )
+LINK_WEAPON_TO_CLASS( weapon_camera, CCameraTool )
 
-bool CCameraRadio::GetItemInfo(ItemInfo *p)
+bool CCameraTool::GetItemInfo(ItemInfo *p)
 {
 	p->iSlot = 4;
 	p->iPosition = 5;
 	return true;
 }
 
-WeaponParameters CCameraRadio::GetDefaultParameters() const
+WeaponParameters CCameraTool::GetDefaultParameters() const
 {
 	WeaponParameters params;
 
@@ -69,7 +69,7 @@ enum radio_e
 	RADIO_USE
 };
 
-class CToolRadio : public CConfigurableWeapon
+class CRadioTool : public CConfigurableWeapon
 {
 public:
 	int WeaponId() const override { return WEAPON_RADIO; }
@@ -77,16 +77,16 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 };
 
-LINK_WEAPON_TO_CLASS( weapon_radio, CToolRadio )
+LINK_WEAPON_TO_CLASS( weapon_radio, CRadioTool )
 
-bool CToolRadio::GetItemInfo(ItemInfo *p)
+bool CRadioTool::GetItemInfo(ItemInfo *p)
 {
 	p->iSlot = 4;
 	p->iPosition = 6;
 	return true;
 }
 
-WeaponParameters CToolRadio::GetDefaultParameters() const
+WeaponParameters CRadioTool::GetDefaultParameters() const
 {
 	WeaponParameters params;
 
@@ -117,6 +117,162 @@ WeaponParameters CToolRadio::GetDefaultParameters() const
 	return std::move(params);
 }
 
+enum btorch_e
+{
+	BTORCH_IDLE = 0,
+	BTORCH_USE,
+	BTORCH_DRAW
+};
+
+#define BLOWTORCH_FLARE_SPRITE "sprites/flare1.spr"
+#define BLOWTORCH_FIRE_SOUND "weapons/blowtorch-1.wav"
+
+class CBlowTorchTool : public CConfigurableWeapon
+{
+public:
+	void Precache() override;
+	bool Deploy() override;
+	void Holster() override;
+	int WeaponId() const override { return WEAPON_BTORCH; }
+	bool GetItemInfo(ItemInfo* p) override;
+	WeaponParameters GetDefaultParameters() const override;
+	void NativeAttack(bool altMode) override;
+	void WeaponIdle() override;
+	void StopFireSound();
+	void SetTorchState(int state);
+
+	bool m_playingFireSound;
+
+	int m_usBlowTorch;
+};
+
+LINK_WEAPON_TO_CLASS( weapon_blowtorch, CBlowTorchTool )
+
+void CBlowTorchTool::Precache()
+{
+	CConfigurableWeapon::Precache();
+	PRECACHE_MODEL(BLOWTORCH_FLARE_SPRITE);
+	PRECACHE_SOUND(BLOWTORCH_FIRE_SOUND);
+	m_usBlowTorch = PRECACHE_EVENT(1, "events/crowbar.sc"); //re-use crowbar event as all fully configurable weapons use the glock1.sc anyway
+}
+
+bool CBlowTorchTool::Deploy()
+{
+	if (CConfigurableWeapon::Deploy())
+	{
+		SetTorchState(1);
+		return true;
+	}
+	return false;
+}
+
+void CBlowTorchTool::Holster()
+{
+	CConfigurableWeapon::Holster();
+	SetTorchState(0);
+	StopFireSound();
+}
+
+bool CBlowTorchTool::GetItemInfo(ItemInfo *p)
+{
+	p->iSlot = 4;
+	p->iPosition = 7;
+	return true;
+}
+
+WeaponParameters CBlowTorchTool::GetDefaultParameters() const
+{
+	WeaponParameters params;
+
+	params.worldModel = "models/w_btorch.mdl";
+	params.viewModel = "models/v_btorch.mdl";
+	params.playerModel = "models/p_btorch.mdl";
+
+	params.idleAnims.main = WeaponParameters::IdleAnimArray{
+		WeaponParameters::IdleAnim{BTORCH_IDLE, 1.0f, 1.0f}
+	};
+
+	params.deploy.animIndex = BTORCH_DRAW;
+	params.deploy.duration = 1.0f;
+
+	params.fire.anims = {BTORCH_USE};
+	params.fire.damageInfo.main.damage = 1.0f;
+	params.fire.damageInfo.main.type = DMG_BURN;
+	params.fire.cycleTime = 0.1f;
+	params.fire.preventMovement = true;
+	params.fire.fireType = WeaponParameters::Fire::NATIVE;
+
+	params.mirrorViewModel = true;
+
+	params.toolIcon = "icon_blowtorch";
+
+	return params;
+}
+
+void CBlowTorchTool::NativeAttack(bool altMode)
+{
+	const WeaponParameters& params = MyParameters();
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+	const Vector vecDir = gpGlobals->v_forward;
+	const Vector vecSrc = m_pPlayer->GetGunPosition();
+	const Vector vecDest = vecSrc + vecDir * 64.0f;
+
+	SetTorchState(2);
+
+	if (!m_playingFireSound)
+	{
+		EMIT_SOUND_DYN(m_pPlayer->edict(), CHAN_WEAPON, BLOWTORCH_FIRE_SOUND, 1.0f, ATTN_NORM, 0, 100);
+		m_playingFireSound = true;
+	}
+
+	edict_t *pentIgnore = m_pPlayer->edict();
+	TraceResult tr;
+	UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
+
+	if (tr.fAllSolid)
+		return;
+
+#if !CLIENT_DLL
+	CBaseEntity *pEntity = CBaseEntity::OwnInstance(tr.pHit);
+	if (!pEntity)
+		return;
+
+	if (pev->dmgtime < gpGlobals->time)
+	{
+		if (pEntity->pev->takedamage)
+		{
+			DamageInfo damageInfo;
+			ApplyDamageInfoPatch(damageInfo, params.fire.damageInfo.Get(altMode));
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, damageInfo, vecDir, &tr);
+		}
+
+		pev->dmgtime = gpGlobals->time + 0.1f;
+	}
+#endif
+}
+
+void CBlowTorchTool::WeaponIdle()
+{
+	CConfigurableWeapon::WeaponIdle();
+	SetTorchState(1);
+	StopFireSound();
+}
+
+void CBlowTorchTool::StopFireSound()
+{
+	if (m_playingFireSound)
+	{
+		STOP_SOUND(m_pPlayer->edict(), CHAN_WEAPON, BLOWTORCH_FIRE_SOUND);
+		m_playingFireSound = false;
+	}
+}
+
+void CBlowTorchTool::SetTorchState(int state)
+{
+	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usBlowTorch, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, state, 0, 0, 0);
+}
+
 enum satchel_radio_e
 {
 	SATCHEL_RADIO_IDLE1 = 0,
@@ -139,7 +295,7 @@ LINK_WEAPON_TO_CLASS( weapon_tool, CWeaponTool )
 bool CWeaponTool::GetItemInfo(ItemInfo *p)
 {
 	p->iSlot = 4;
-	p->iPosition = 7;
+	p->iPosition = 8;
 	return true;
 }
 

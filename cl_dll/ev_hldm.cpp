@@ -40,6 +40,8 @@
 #include "util_shared.h"
 #include "hl_palette.h"
 
+#include "particleman.h"
+
 extern const WeaponParameters& GetWeaponParameters(int id);
 
 extern engine_studio_api_t IEngineStudio;
@@ -1810,7 +1812,240 @@ void EV_MedkitFire( event_args_s *args )
 //	   MEDKIT END
 //======================
 
+#define BLOWTORCH_GLOW_SPRITE "sprites/flare1.spr"
+#define BLOWTORCH_FLAME_SPRITE "sprites/flare1.spr"
+
+int blowTorchState = 0;
+Vector g_vBlowTorchAttachment;
+model_t* blowTorchFlameTexture = nullptr;
+model_t* blowTorchGlowTexture = nullptr;
+
+void SetBlowTorchAttachment(cl_entity_t* pEntity)
+{
+	if (blowTorchState && gEngfuncs.GetViewModel() == pEntity)
+	{
+		g_vBlowTorchAttachment = pEntity->attachment[0];
+	}
+}
+
+class CPartBlowTorchGlow : public CBaseParticle
+{
+public:
+	CPartBlowTorchGlow() = default;
+	void Think(float flTime) override {
+		m_vOrigin = g_vBlowTorchAttachment;
+		CBaseParticle::Think(flTime);
+	}
+};
+
+class CPartBlowTorchPilot : public CBaseParticle
+{
+public:
+	CPartBlowTorchPilot(): CBaseParticle(), m_flForward{0.0f} {
+		m_prevTime = gEngfuncs.GetClientTime();
+	}
+	void Think(float flTime) override {
+		Vector forward, right, up;
+		gEngfuncs.pfnAngleVectors(gHUD.m_vecAngles, forward, right, up);
+
+		if (blowTorchState == 2)
+		{
+			const float random1 = Com_RandomFloat(-0.065f, 0.065f);
+			const float random2 = Com_RandomFloat(-0.08f, 0.08f);
+
+			m_vOrigin = g_vBlowTorchAttachment + forward * m_flForward + random2 * right + random1 * up;
+		}
+		else
+		{
+			const float random1 = Com_RandomFloat(-0.05f, 0.05f);
+			const float random2 = Com_RandomFloat(-0.05f, 0.05f);
+
+			m_vOrigin = g_vBlowTorchAttachment + forward * m_flForward / 1.5f + random2 * right + random1 * up;
+		}
+
+		const float currentTime = gEngfuncs.GetClientTime();
+		m_flForward += 48.0f * std::fabs(currentTime - m_prevTime);
+		m_prevTime = currentTime;
+
+		CBaseParticle::Think(flTime);
+
+		if (blowTorchState == 0)
+		{
+			m_flDieTime = flTime;
+		}
+	}
+
+	float m_flForward;
+	float m_prevTime;
+};
+
+static void CreatePilotFlame(const Vector& origin)
+{
+	if (!blowTorchFlameTexture)
+	{
+		blowTorchFlameTexture = (model_t*)gEngfuncs.GetSpritePointer(SPR_Load(BLOWTORCH_FLAME_SPRITE));
+	}
+
+	CPartBlowTorchPilot* particle = new CPartBlowTorchPilot();
+	if (!particle)
+		return;
+
+	const float currentTime = gEngfuncs.GetClientTime();
+	const bool firing = blowTorchState == 2;
+	const float particleSize = firing ? 1.1f : 1.0f;
+	particle->InitializeSprite(origin, Vector{}, blowTorchFlameTexture, particleSize, 255);
+	particle->SetLightFlag(LIGHT_NONE);
+	particle->SetRenderFlag(RENDER_FACEPLAYER);
+
+	particle->m_iRendermode = kRenderTransAdd;
+	particle->m_flFadeSpeed = 0.0f;
+
+	if (firing)
+	{
+		particle->m_flScaleSpeed = -0.1f;
+		particle->m_vColor = Vector(255.0f, 175.0f, 175.0f);
+		particle->m_flDieTime = currentTime + 0.12f;
+	}
+	else
+	{
+		particle->m_flScaleSpeed = -0.4f;
+		particle->m_vColor = Vector(150.0f, 150.0f, 255.0f);
+		particle->m_flDieTime = currentTime + 0.06f;
+	}
+}
+
+void UpdateBlowTorchEffect()
+{
+	static float flOldTime = 0.0f;
+
+	if (!blowTorchState)
+		return;
+
+	const float currentTime = gEngfuncs.GetClientTime();
+	if (std::fabs(currentTime - flOldTime) <= 0.02f)
+		return;
+
+	cl_entity_t* viewModel = GetViewEntity();
+	if (viewModel)
+	{
+		g_vBlowTorchAttachment = viewModel->attachment[0];
+	}
+
+	if (!blowTorchGlowTexture)
+	{
+		blowTorchGlowTexture = (model_t*)gEngfuncs.GetSpritePointer(SPR_Load(BLOWTORCH_GLOW_SPRITE));
+	}
+
+	const bool firing = blowTorchState == 2;
+	const float glowParticleSize = firing ? Com_RandomFloat(11.0f, 12.0f) : Com_RandomFloat(4.0f, 5.0f);
+
+	CPartBlowTorchGlow* glowParticle = new CPartBlowTorchGlow();
+	if (glowParticle)
+	{
+		glowParticle->InitializeSprite(g_vBlowTorchAttachment, Vector{}, blowTorchGlowTexture, glowParticleSize, 225);
+		//strcpy(glowParticle->m_szClassname, "blowtorch_particle");
+
+		glowParticle->SetLightFlag(LIGHT_NONE);
+		glowParticle->SetRenderFlag(RENDER_FACEPLAYER);
+		glowParticle->m_iRendermode = kRenderTransAdd;
+		glowParticle->m_flFadeSpeed = 0.0f;
+		glowParticle->m_flScaleSpeed = 0.05f;
+		glowParticle->m_vColor = Vector(50, 30, 30);
+		glowParticle->m_flDieTime = currentTime + 0.08f;
+	}
+
+	dlight_t* torchLight = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	if (torchLight)
+	{
+		torchLight->origin = g_vBlowTorchAttachment;
+
+		if (blowTorchState == 2)
+		{
+			torchLight->radius = 75.0f;
+			torchLight->decay = 300.0f;
+			torchLight->color = {255, 190, 40};
+		}
+		else
+		{
+			torchLight->radius = 50.0f;
+			torchLight->decay = 25.0f;
+			torchLight->color = {225, 190, 40};
+		}
+
+		torchLight->die = currentTime + 0.08f;
+	}
+
+	CreatePilotFlame(g_vBlowTorchAttachment);
+
+	flOldTime = currentTime;
+}
+
+void EV_BlowTorchIdle( event_args_s *args )
+{
+	int idx = args->entindex;
+
+	if (EV_IsLocal(idx))
+	{
+		blowTorchState = args->iparam1;
+	}
+
+	if (args->iparam1 == 2)
+	{
+		Vector origin{args->origin};
+		Vector up, right, forward;
+		const Vector angles{args->angles};
+		AngleVectors(angles, forward, right, up);
+
+		Vector vecSrc = EV_GetGunPosition(args, origin);
+		Vector vecDir = forward;
+		Vector vecEnd = vecSrc + vecDir * 64.0f;
+		pmtrace_t tr;
+
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers( idx - 1 );
+		gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+		gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecEnd, PM_NORMAL, -1, &tr );
+
+		if (tr.fraction != 1.0f)
+		{
+			physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
+			if (pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP ))
+			{
+				bool isSky;
+				EV_HLDM_GetTextureSound( idx, &tr, vecSrc, vecEnd, isSky );
+
+				if (!isSky)
+				{
+					gEngfuncs.pEfxAPI->R_SparkStreaks(tr.endpos, 2, -200, 200);
+
+					char* decalName = EV_HLDM_DamageDecal(pe);
+
+					if (decalName && decalName[0])
+					{
+						if (r_decals->value)
+						{
+							gEngfuncs.pEfxAPI->R_DecalShoot(
+								gEngfuncs.pEfxAPI->Draw_DecalIndex( gEngfuncs.pEfxAPI->Draw_DecalIndexFromName( decalName ) ),
+								gEngfuncs.pEventAPI->EV_IndexFromTrace( &tr ), 0, tr.endpos, 0 );
+						}
+					}
+				}
+			}
+		}
+
+		gEngfuncs.pEventAPI->EV_PopPMStates();
+	}
+}
+
 int EV_TFC_IsAllyTeam( int iTeam1, int iTeam2 )
 {
 	return 0;
+}
+
+void EV_VidInit()
+{
+	blowTorchState = 0;
+	blowTorchFlameTexture = nullptr;
+	blowTorchGlowTexture = nullptr;
 }

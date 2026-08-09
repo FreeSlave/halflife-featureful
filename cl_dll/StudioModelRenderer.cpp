@@ -1675,6 +1675,8 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	return 1;
 }
 
+void SetBlowTorchAttachment(cl_entity_t* pEntity);
+
 /*
 ====================
 StudioCalcAttachments
@@ -1704,6 +1706,8 @@ void CStudioModelRenderer::StudioCalcAttachments()
 			StudioAdjustViewmodelAttachments(m_pCurrentEntity->attachment[i]);
 		}
 	}
+
+	SetBlowTorchAttachment(m_pCurrentEntity);
 }
 
 bool CStudioModelRenderer::NeedAdjustViewmodelAdjustments()

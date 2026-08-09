@@ -14,6 +14,7 @@ This brush entity defines where and what tools should be used.
 * `Tool Name` - a tool to be used in this area.
     - [Camera]({{< ref weapon_camera >}})
     - [Radio]({{< ref weapon_radio >}})
+    - [Blowtorch]({{< ref weapon_blowtorch >}})
     - [Tool]({{< ref weapon_tool >}})
 * `Tool Target` - where the player needs to be looking to be able to activate the tool. The best way to get this to work is to target an `info_target`. If no tool target defined, player can look in any direction.
 

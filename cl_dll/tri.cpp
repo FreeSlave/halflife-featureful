@@ -30,6 +30,8 @@ extern "C"
 void CacheFullbrightModels();
 bool m_bCacheFullbrightModels = true;
 
+void UpdateBlowTorchEffect();
+
 #include "com_model.h"
 #include "particleman.h"
 #include "environment.h"
@@ -195,4 +197,6 @@ void DLLEXPORT HUD_DrawTransparentTriangles()
 		g_pParticleMan->Update();
 		g_Environment.Update();
 	}
+
+	UpdateBlowTorchEffect();
 }

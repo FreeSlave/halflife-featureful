@@ -636,6 +636,7 @@ so the HUD can reinitialize itself.
 ==========================
 */
 extern void HUD_ResetClientWeaponData();
+extern void EV_VidInit();
 
 int DLLEXPORT HUD_VidInit()
 {
@@ -649,6 +650,7 @@ int DLLEXPORT HUD_VidInit()
 	gHUD.m_iHardwareMode = IEngineStudio.IsHardware() != 0;
 	HUD_ResetClientWeaponData();
 	gHUD.VidInit();
+	EV_VidInit();
 	LoadDefaultSprites();
 #if USE_FAKE_VGUI
 	vgui::Panel* root=(vgui::Panel*)gEngfuncs.VGui_GetPanel();

@@ -19,6 +19,7 @@ void EV_VehiclePitchAdjust( struct event_args_s *args );
 
 void EV_Displacer( struct event_args_s *args );
 void EV_MedkitFire( struct event_args_s *args );
+void EV_BlowTorchIdle( struct event_args_s *args );
 }
 
 #endif

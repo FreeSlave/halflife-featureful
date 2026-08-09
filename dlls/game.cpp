@@ -309,6 +309,7 @@ bool ModFeatures::EnableWeapon(const char *name, bool enable)
 		WeaponNameAndId("throwable", WEAPON_THROWABLE),
 		WeaponNameAndId("camera", WEAPON_CAMERA),
 		WeaponNameAndId("radio", WEAPON_RADIO),
+		WeaponNameAndId("blowtorch", WEAPON_BTORCH),
 		WeaponNameAndId("tool", WEAPON_TOOL),
 	};
 
