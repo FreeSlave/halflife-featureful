@@ -201,99 +201,45 @@ void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
 	if( !pList )
 		return;
 
-	client_sprite_t *p;
+	auto AssignSpriteFull = [&](const char* name, HSPRITE& sprite, wrect_t& rect, const HSPRITE& fallbackSprite, const wrect_t& fallbackRect, bool updateHistoryGap) {
+		client_sprite_t *p = GetSpriteList(pList, name, iRes, i);
 
-	p = GetSpriteList( pList, "crosshair", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hCrosshair = SPR_Load( sz );
-		pWeapon->rcCrosshair = p->rc;
-	}
-	else
-		pWeapon->hCrosshair = 0;
+		if (p)
+		{
+			sprintf( sz, "sprites/%s.spr", p->szSprite );
+			sprite = SPR_Load( sz );
+			rect = p->rc;
 
-	p = GetSpriteList( pList, "autoaim", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hAutoaim = SPR_Load( sz );
-		pWeapon->rcAutoaim = p->rc;
-	}
-	else
-		pWeapon->hAutoaim = 0;
+			if (updateHistoryGap)
+				gHR.iHistoryGap = Q_max(gHR.iHistoryGap, rect.bottom - rect.top);
+		}
+		else
+		{
+			sprite = fallbackSprite;
+			rect = fallbackRect;
+		}
+	};
 
-	p = GetSpriteList( pList, "zoom", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hZoomedCrosshair = SPR_Load( sz );
-		pWeapon->rcZoomedCrosshair = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedCrosshair = pWeapon->hCrosshair; //default to non-zoomed crosshair
-		pWeapon->rcZoomedCrosshair = pWeapon->rcCrosshair;
-	}
+	auto AssignSpriteWithFallback = [&](const char* name, HSPRITE& sprite, wrect_t& rect, const HSPRITE& fallbackSprite, const wrect_t& fallbackRect) {
+		AssignSpriteFull(name, sprite, rect, fallbackSprite, fallbackRect, false);
+	};
 
-	p = GetSpriteList( pList, "zoom_autoaim", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hZoomedAutoaim = SPR_Load( sz );
-		pWeapon->rcZoomedAutoaim = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedAutoaim = pWeapon->hZoomedCrosshair;  //default to zoomed crosshair
-		pWeapon->rcZoomedAutoaim = pWeapon->rcZoomedCrosshair;
-	}
+	auto AssignSprite = [&](const char* name, HSPRITE& sprite, wrect_t& rect) {
+		AssignSpriteWithFallback(name, sprite, rect, 0, wrect_t{});
+	};
 
-	p = GetSpriteList( pList, "weapon", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hInactive = SPR_Load( sz );
-		pWeapon->rcInactive = p->rc;
+	auto AssignSpriteUpdateHistoryGap = [&](const char* name, HSPRITE& sprite, wrect_t& rect) {
+		AssignSpriteFull(name, sprite, rect, 0, wrect_t{}, true);
+	};
 
-		gHR.iHistoryGap = Q_max( gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top );
-	}
-	else
-		pWeapon->hInactive = 0;
-
-	p = GetSpriteList( pList, "weapon_s", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hActive = SPR_Load( sz );
-		pWeapon->rcActive = p->rc;
-	}
-	else
-		pWeapon->hActive = 0;
-
-	p = GetSpriteList( pList, "ammo", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hAmmo = SPR_Load( sz );
-		pWeapon->rcAmmo = p->rc;
-
-		gHR.iHistoryGap = Q_max( gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top );
-	}
-	else
-		pWeapon->hAmmo = 0;
-
-	p = GetSpriteList( pList, "ammo2", iRes, i );
-	if( p )
-	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hAmmo2 = SPR_Load( sz );
-		pWeapon->rcAmmo2 = p->rc;
-
-		gHR.iHistoryGap = Q_max( gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top );
-	}
-	else
-		pWeapon->hAmmo2 = 0;
+	AssignSprite("crosshair", pWeapon->hCrosshair, pWeapon->rcCrosshair);
+	AssignSprite("autoaim", pWeapon->hAutoaim, pWeapon->rcAutoaim);
+	AssignSpriteWithFallback("zoom", pWeapon->hZoomedCrosshair, pWeapon->rcZoomedCrosshair, pWeapon->hCrosshair, pWeapon->rcCrosshair);
+	AssignSpriteWithFallback("zoom_autoaim", pWeapon->hZoomedAutoaim, pWeapon->rcZoomedAutoaim, pWeapon->hZoomedCrosshair, pWeapon->rcZoomedCrosshair);
+	AssignSpriteUpdateHistoryGap("weapon", pWeapon->hInactive, pWeapon->rcInactive);
+	AssignSprite("weapon_s", pWeapon->hActive, pWeapon->rcActive);
+	AssignSpriteUpdateHistoryGap("ammo", pWeapon->hAmmo, pWeapon->rcAmmo);
+	AssignSpriteUpdateHistoryGap("ammo2", pWeapon->hAmmo2, pWeapon->rcAmmo2);
 }
 
 // Returns the first weapon for a given slot.
