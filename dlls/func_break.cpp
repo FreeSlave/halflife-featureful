@@ -193,6 +193,11 @@ void CBreakable::KeyValue( KeyValueData* pkvd )
 		m_sparkWhenHit = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
+	else if( FStrEq( pkvd->szKeyName, "damagetype" ) )
+	{
+		m_bitsDamageInflict = atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
 	else
 		CBaseDelay::KeyValue( pkvd );
 }
@@ -221,6 +226,8 @@ TYPEDESCRIPTION CBreakable::m_SaveData[] =
 	DEFINE_FIELD( CBreakable, m_pHitProxy, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CBreakable, m_switchTextureWhenDamaged, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBreakable, m_sparkWhenHit, FIELD_BOOLEAN ),
+
+	DEFINE_FIELD( CBreakable, m_bitsDamageInflict, FIELD_INTEGER ),
 
 	// Explosion magnitude is stored in pev->impulse
 };
@@ -701,6 +708,9 @@ TakeDamageResult CBreakable::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 
 	DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
 	if (damageInfo.mustSkip)
+		return takeDamageResult;
+
+	if (m_bitsDamageInflict && (damageInfo.type & m_bitsDamageInflict) == 0)
 		return takeDamageResult;
 
 	// if Attacker == Inflictor, the attack was a melee or other instant-hit attack.

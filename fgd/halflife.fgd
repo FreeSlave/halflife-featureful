@@ -761,6 +761,19 @@
 		1 : "This breakable"
 		2 : "My attacker or activator"
 	]
+	damagetype(choices) : "Acceptable Damage Type" =
+	[
+		0 : "Anything"
+		2 : "Bullets"
+		132 : "Melee"
+		2097160 : "Burning"
+		4194320 : "Freezing"
+		64 : "Explosion"
+		256 : "Shock/Electro"
+		512 : "Sonic"
+		1024 : "Energy Beam"
+		1048576 : "Chemical"
+	]
 ]
 
 @BaseClass = BaseLockable

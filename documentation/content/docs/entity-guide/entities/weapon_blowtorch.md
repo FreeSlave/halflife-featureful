@@ -24,7 +24,7 @@ The visual effects are currently not configurable.
 
 Blowtorch deals 1 point of `burn` damage per 0.1 seconds.
 
-Use the following [entity template]({{< ref entity-templates >}}) with `func_breakable` to allow breaking it only with `burn` damage type:
+Set the `Acceptable Damage Type` parameter on [func_breakable]({{< ref func_breakable >}}) or use the following [entity template]({{< ref entity-templates >}}) to allow breaking it only with `burn` damage type:
 
 ```json
 {

@@ -14,6 +14,7 @@ entityCategory: solid
 * `Spawn On Break (classname)` - specify the classname of the spawn object manually instead choosing from the predefined list. Technically this can be any entity. This allows easily spawn monsters from the breakables.
 * `Entity template for Spawn On Break` - set [entity template]({{< ref entity-templates >}}) for the spawn object.
 * `info_item_random entity` - name of the [info_item_random]({{< ref info_item_random >}}) entity for the item drop randomization. If this is defined the `func_breakable` will prefer using this instead of `Spawn On Break`.
+* `Acceptable Damage Type` - take damage only if it's of this type. This is checked after the [take_damage]({{< ref "entity-templates/#take_damage" >}}) rules.
 * `Relative to attack` option is now working as intended (was buggy in Half-Life).
 * `Custom gib scale` - custom gib model scale.
 * `Custom number of gibs` - custom number of gibs (by default it depends on the breakable's size).

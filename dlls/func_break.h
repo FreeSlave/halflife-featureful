@@ -148,5 +148,7 @@ public:
 	bool m_sparkWhenHit;
 
 	CBaseEntity* GetHitProxy();
+
+	int m_bitsDamageInflict;
 };
 #endif	// FUNC_BREAK_H
