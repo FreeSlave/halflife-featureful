@@ -6367,6 +6367,9 @@ void CEnvMirror::Spawn(void)
 
 	pev->solid = SOLID_BSP;
 
+	if (!pev->rendermode)
+		pev->rendermode = kRenderTransTexture;
+
 	m_iActive = true;
 
 	Precache();
