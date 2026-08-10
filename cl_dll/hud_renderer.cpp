@@ -240,6 +240,39 @@ void HudSpriteRenderer::SPR_SetInternal(HSPRITE hPic, int r, int g, int b) {
 	sprite_color.b = b;
 }
 
+void HudSpriteRenderer::SPR_DrawAuto(HSPRITE hPic, int r, int g, int b, int x, int y, const wrect_t *prc, int frame) {
+	const model_t* model = gEngfuncs.GetSpritePointer(hPic);
+	if (model->type == mod_sprite)
+	{
+		const msprite_t* spriteDef = (const msprite_t*)model->cache.data;
+		if (spriteDef)
+		{
+			switch(spriteDef->texFormat)
+			{
+			case SPR_INDEXALPHA:
+				SPR_Set(hPic, r, g, b);
+				if (IsCustomScale()) {
+					SPR_DrawInternal(frame, x, y, -1.0f, -1.0f, prc, kRenderTransAlpha);
+				} else {
+					::SPR_DrawHoles(frame, x, y, prc);
+				}
+				break;
+			case SPR_ALPHTEST:
+				SPR_Set(hPic, r, g, b);
+				if (IsCustomScale()) {
+					SPR_DrawInternal(frame, x, y, -1.0f, -1.0f, prc, kRenderTransTexture);
+				} else {
+					::SPR_DrawHoles(frame, x, y, prc);
+				}
+				break;
+			default:
+				SPR_DrawAdditive(hPic, r, g, b, x, y, prc, frame);
+				break;
+			}
+		}
+	}
+}
+
 void HudSpriteRenderer::SPR_DrawAdditive(int frame, int x, int y, const wrect_t *prc) {
 	if (IsCustomScale()) {
 		SPR_DrawInternal(frame, x, y, -1.0f, -1.0f, prc, kRenderTransAdd);

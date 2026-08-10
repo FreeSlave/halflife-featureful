@@ -338,7 +338,7 @@ void LinkUserMessages()
 		return;
 	}
 
-	gmsgCurWeapon = REG_USER_MSG( "CurWeapon", 6 );
+	gmsgCurWeapon = REG_USER_MSG( "CurWeapon", 7 );
 	gmsgGeigerRange = REG_USER_MSG( "Geiger", 1 );
 	gmsgFlashlight = REG_USER_MSG( "Flashlight", 2 );
 	gmsgFlashBattery = REG_USER_MSG( "FlashBat", 1 );
@@ -4563,6 +4563,7 @@ void CBasePlayer::SendCurWeaponClear()
 		WRITE_BYTE( 0 );
 		WRITE_SHORT( 0 );
 		WRITE_SHORT( 0 );
+		WRITE_BYTE( 0 );
 	MESSAGE_END();
 }
 
@@ -4573,6 +4574,7 @@ void CBasePlayer::SendCurWeaponDead()
 		WRITE_BYTE( 0XFF );
 		WRITE_SHORT( -1 );
 		WRITE_SHORT( -1 );
+		WRITE_BYTE( 0 );
 	MESSAGE_END();
 }
 

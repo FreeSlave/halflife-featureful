@@ -850,7 +850,10 @@ void CHud::ResetCrosshair()
 			UnpackRGB(r,g,b,crosshairColor);
 			if( !ShouldUseZoomedCrosshair() )
 			{
-				SetCrosshair( pWeapon->hCrosshair, pWeapon->rcCrosshair, r, g, b );
+				if (pWeapon->inAltMode)
+					SetCrosshair( pWeapon->hCrosshairAlt, pWeapon->rcCrosshairAlt, r, g, b );
+				else
+					SetCrosshair( pWeapon->hCrosshair, pWeapon->rcCrosshair, r, g, b );
 			}
 			else
 			{

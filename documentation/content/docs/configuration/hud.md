@@ -48,6 +48,19 @@ E.g. `hud_color 0 160 0` sets the HUD color to green.
 
 Upon changing, health, armor and ammo numbers in HUD temporarily brighten up and then gradually decrease their alpha value (opaqueness). This value can be configured by the `hud_min_alpha` cvar. The value is clamped between 100 and 200.
 
+### Weapons HUD
+
+Like in base Half-Life the HUD elements for weapons are defined in **sprites/weapon_name.txt** files (where the `weapon_name` is replaced with the actual weapon classname, e.g. **sprites/weapon_9mmAR.txt**, etc.). Featureful SDK introduces some new entries:
+
+* `crosshair2` - a crosshair to use when the weapon is in alt mode (for weapons which [secondary attack]({{< ref "weapon-templates/#secondary_attack" >}}) is `switch_mode`). Note: `zoom` entry is still preferred for weapons with a scope.
+* `autoaim2` - an autoaim crosshair to use when the weapon is in alt mode. Note: `zoom_autoaim` entry is still preferred for weapons with a scope.
+* `mode` - an icon to draw in the bottom right corner (near the ammo if the weapon uses ammo) when the weapon is in primary mode. Unlike other sprites that are rendered with a HUD color in additive mode, this one is rendered in its original color and with respect to the sprite type (i.e.  sprites with transparency are supported).
+* `mode2` - same as `mode` but for alt mode.
+
+{{% hint info %}}
+When adding new entries to the weapon's hud txt file, don't forget to increase the number in the beginning to update the number of entries to read.
+{{% /hint %}}
+
 ### Speedometer
 
 The speedometer can be useful for debugging and for speedrunning.

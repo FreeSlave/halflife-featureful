@@ -322,6 +322,7 @@ public:
 	float m_packedTime;
 
 	bool m_inAltMode;
+	bool m_ClientInAltMode;
 
 	int m_dropAmmoAmount;
 	int m_dropSecondaryAmmoAmount;

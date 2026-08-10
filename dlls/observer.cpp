@@ -195,6 +195,7 @@ void CBasePlayer::Observer_CheckProperties()
 				WRITE_BYTE( m_iObserverWeapon );
 				WRITE_SHORT( 0 );	// clip
 				WRITE_SHORT( 0 );
+				WRITE_BYTE( 0 );
 			MESSAGE_END();
 		}
 	}
@@ -211,6 +212,7 @@ void CBasePlayer::Observer_CheckProperties()
 				WRITE_BYTE( m_iObserverWeapon );	
 				WRITE_SHORT( 0 );	// clip
 				WRITE_SHORT( 0 );
+				WRITE_BYTE( 0 );
 			MESSAGE_END();
 		}
 	}

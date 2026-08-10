@@ -37,6 +37,7 @@ public:
 	void HUD_Frame(double time);
 
 	void SPR_Set(HSPRITE hPic, int r, int g, int b);
+	void SPR_DrawAuto(HSPRITE hPic, int r, int g, int b, int x, int y, const wrect_t *prc, int frame = 0);
 	void SPR_DrawAdditive(int frame, int x, int y, const wrect_t *prc);
 	void SPR_DrawAdditive(HSPRITE hPic, int r, int g, int b, int x, int y, const wrect_t *prc, int frame = 0);
 	void SPR_DrawAdditiveWithAlphaScale(HSPRITE hPic, int r, int g, int b, int a, int x, int y, const wrect_t *prc, int frame = 0);

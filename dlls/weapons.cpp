@@ -903,8 +903,10 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		}
 	}
 
+	const bool inAltMode = InAltMode();
+
 	// If the ammo, state, or fov has changed, update the weapon
-	if( m_iClip != m_iClientClip || state != m_iClientWeaponState || pPlayer->m_iFOV != pPlayer->m_iClientFOV )
+	if( m_iClip != m_iClientClip || state != m_iClientWeaponState || pPlayer->m_iFOV != pPlayer->m_iClientFOV || m_ClientInAltMode != inAltMode)
 	{
 		bSend = true;
 	}
@@ -916,10 +918,12 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 			WRITE_BYTE( WeaponId() );
 			WRITE_SHORT( m_iClip );
 			WRITE_SHORT( m_iMaxClip );
+			WRITE_BYTE( inAltMode );
 		MESSAGE_END();
 
 		m_iClientClip = m_iClip;
 		m_iClientWeaponState = state;
+		m_ClientInAltMode = inAltMode;
 		pPlayer->m_fWeapon = true;
 	}
 

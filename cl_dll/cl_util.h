@@ -53,7 +53,9 @@ inline void SPR_Set(HSPRITE hPic, int r, int g, int b) {
 #define SPR_GetList ( *gEngfuncs.pfnSPR_GetList )
 
 // SPR_Draw  draws a the current sprite as solid
-#define SPR_Draw ( *gEngfuncs.pfnSPR_Draw )
+inline void SPR_Draw(int frame, int x, int y, const wrect_t *prc) {
+	gEngfuncs.pfnSPR_Draw(frame, x, y, prc);
+}
 // SPR_DrawHoles  draws the current sprites, with color index255 not drawn (transparent)
 inline void SPR_DrawHoles(int frame, int x, int y, const wrect_t *prc) {
 	gEngfuncs.pfnSPR_DrawHoles(frame, x, y, prc);
