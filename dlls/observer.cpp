@@ -192,8 +192,9 @@ void CBasePlayer::Observer_CheckProperties()
 			//send weapon update
 			MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
 				WRITE_BYTE( 1 );	// 1 = current weapon, not on target
-				WRITE_BYTE( m_iObserverWeapon );	
-				WRITE_BYTE( 0 );	// clip
+				WRITE_BYTE( m_iObserverWeapon );
+				WRITE_SHORT( 0 );	// clip
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 		}
 	}
@@ -209,6 +210,7 @@ void CBasePlayer::Observer_CheckProperties()
 				WRITE_BYTE( 1 );	// 1 = current weapon
 				WRITE_BYTE( m_iObserverWeapon );	
 				WRITE_SHORT( 0 );	// clip
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 		}
 	}
