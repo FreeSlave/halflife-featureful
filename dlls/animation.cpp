@@ -98,7 +98,7 @@ void GetEyePosition( void *pmodel, Vector& vecEyePosition )
 		return;
 	}
 
-	vecEyePosition = pstudiohdr->eyeposition, vecEyePosition;
+	vecEyePosition = pstudiohdr->eyeposition;
 }
 
 int LookupSequence( void *pmodel, const char *label )
