@@ -2821,30 +2821,97 @@ void CBasePlayer::PreThink()
 	{
 		const float defaultMaxSpeed = GetBaseMaxSpeed();
 		const float weaponSpeed = m_pActiveItem ? m_pActiveItem->GetMaxSpeed() : 0.0f;
+		float maxSpeedValue = 0.0f;
 		if (weaponSpeed > 0.0f)
 		{
 			if (m_maxSpeedOverride > 0.0f)
 			{
 				if (m_maxSpeedOverrideIsAbsolute)
-					pev->maxspeed = m_maxSpeedOverride / defaultMaxSpeed * weaponSpeed;
+					maxSpeedValue = m_maxSpeedOverride / defaultMaxSpeed * weaponSpeed;
 				else
-					pev->maxspeed = m_maxSpeedOverride * weaponSpeed;
+					maxSpeedValue = m_maxSpeedOverride * weaponSpeed;
 			}
 			else
-				pev->maxspeed = weaponSpeed;
+				maxSpeedValue = weaponSpeed;
 		}
 		else
 		{
 			if (m_maxSpeedOverrideIsAbsolute)
-				pev->maxspeed = m_maxSpeedOverride;
+				maxSpeedValue = m_maxSpeedOverride;
 			else
 			{
 				if (!m_maxSpeedOverride && HasCustomBaseMaxSpeed())
-					pev->maxspeed = defaultMaxSpeed;
+					maxSpeedValue = defaultMaxSpeed;
 				else
-					pev->maxspeed = m_maxSpeedOverride * defaultMaxSpeed;
+					maxSpeedValue = m_maxSpeedOverride * defaultMaxSpeed;
 			}
 		}
+
+		auto getTimeBasedDamageInfo = [](int i)
+		{
+			switch(i)
+			{
+			case itbd_Paralyze:
+				return g_timeBasedDamageDescription.paralyze;
+			case itbd_NerveGas:
+				return g_timeBasedDamageDescription.nerveGas;
+			case itbd_Poison:
+				return g_timeBasedDamageDescription.poison;
+			case itbd_Radiation:
+				return g_timeBasedDamageDescription.radiation;
+			case itbd_Acid:
+				return g_timeBasedDamageDescription.acid;
+			case itbd_SlowBurn:
+				return g_timeBasedDamageDescription.slowBurn;
+			case itbd_SlowFreeze:
+				return g_timeBasedDamageDescription.slowFreeze;
+			default:
+				return TimeBasedDamageInfo{};
+			}
+		};
+
+		for (int i = 0; i < CDMG_TIMEBASED; i++)
+		{
+			if (!FBitSet(m_bitsDamageType, DMG_PARALYZE << i))
+				continue;
+
+			if (i == itbd_DrownRecover)
+				continue;
+
+			TimeBasedDamageInfo tbdInfo = getTimeBasedDamageInfo(i);
+
+			if (tbdInfo.playedMaxSpeed.value <= 0.0f)
+				continue;
+
+			if (tbdInfo.playedMaxSpeed.isFactor)
+			{
+				const float speedFactor = tbdInfo.playedMaxSpeed.value;
+				if (maxSpeedValue)
+				{
+					maxSpeedValue *= speedFactor;
+				}
+				else
+				{
+					maxSpeedValue = defaultMaxSpeed * speedFactor;
+				}
+			}
+			else
+			{
+				if (maxSpeedValue)
+				{
+					maxSpeedValue *= tbdInfo.playedMaxSpeed.value / defaultMaxSpeed;
+				}
+				else
+				{
+					maxSpeedValue = tbdInfo.playedMaxSpeed.value;
+				}
+			}
+		}
+
+		if (maxSpeedValue > 0.0f && maxSpeedValue < 1.0f)
+			maxSpeedValue = 1.0f;
+
+		pev->maxspeed = maxSpeedValue;
 	}
 
 	if (m_fFlashlightON && m_fFlashlightFlicker && gpGlobals->time >= m_flNextFlashlightFlick)
@@ -3447,7 +3514,7 @@ void CBasePlayer::CheckTimeBasedDamage()
 		}
 		else
 		{
-			if (protectedByAntidote && tbdInfo.damagePerTick > 0)
+			if (protectedByAntidote && (tbdInfo.damagePerTick > 0 || tbdInfo.playedMaxSpeed.value > 0.0f))
 			{
 				if (m_antidotes > 0)
 				{
@@ -3459,7 +3526,7 @@ void CBasePlayer::CheckTimeBasedDamage()
 					EmitSoundScript(Player::antidoteSoundScript);
 				}
 			}
-			else if (protectedByRadcan && tbdInfo.damagePerTick > 0)
+			else if (protectedByRadcan && (tbdInfo.damagePerTick > 0 || tbdInfo.playedMaxSpeed.value > 0.0f))
 			{
 				if (m_radcans > 0)
 				{

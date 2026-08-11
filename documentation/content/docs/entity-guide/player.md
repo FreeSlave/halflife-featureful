@@ -87,6 +87,7 @@ There're several factors that may contribute to the change in the player's maxim
 * The [player template]({{< ref player-templates >}}) can change the base maximum speed.
 * The maximum speed set by a [currently equipped weapon]({{< ref "weapon-templates#player_maxspeed" >}}) or when [weapon is fired]({{< ref "weapon-templates#fire-player_maxspeed" >}}).
 * The effect of the [player_speed]({{< ref player_speed >}}) entity.
+* [Time based damage]({{< ref "time-based-damage" >}})
 
 {{% hint warning %}}
 The actual maximum speed can't exceed the one set by the `sv_maxspeed` cvar. None of the above factors can change that even if the resulting speed is higher. You need to set a custom value `sv_maxspeed` in **features/featureful_exec.cfg** to allow higher speeds, e.g. `sv_maxspeed 400`.

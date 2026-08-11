@@ -3275,7 +3275,7 @@ float CConfigurableWeapon::GetMaxSpeed()
 {
 	float result = 0.0f;
 #if !CLIENT_DLL
-	auto CalcSpeed = [this](const PlayerSpeed& playerSpeed) {
+	auto CalcSpeed = [this](const AbsoluteValueOrFactor& playerSpeed) {
 		if (playerSpeed.isFactor)
 		{
 			return m_pPlayer->GetBaseMaxSpeed() * playerSpeed.value;
@@ -3290,7 +3290,7 @@ float CConfigurableWeapon::GetMaxSpeed()
 
 	if (m_chargingAttack)
 	{
-		const PlayerSpeed& speedOnCharge = params.fire.playerMaxSpeedOnCharge.Get(m_chargingAltFire);
+		const AbsoluteValueOrFactor& speedOnCharge = params.fire.playerMaxSpeedOnCharge.Get(m_chargingAltFire);
 		result = CalcSpeed(speedOnCharge);
 	}
 
@@ -3304,13 +3304,13 @@ float CConfigurableWeapon::GetMaxSpeed()
 
 		if (primaryFiring)
 		{
-			const PlayerSpeed& primaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(false);
+			const AbsoluteValueOrFactor& primaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(false);
 			if (primaryFirePlayerSpeed.IsDefined())
 				result = weaponPrimaryFireSpeed = CalcSpeed(primaryFirePlayerSpeed);
 		}
 		if (secondaryFiring)
 		{
-			const PlayerSpeed& secondaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(true);
+			const AbsoluteValueOrFactor& secondaryFirePlayerSpeed = params.fire.playerMaxSpeed.Get(true);
 			if (secondaryFirePlayerSpeed.IsDefined())
 				result = weaponSecondaryFireSpeed = CalcSpeed(secondaryFirePlayerSpeed);
 		}
@@ -3322,7 +3322,7 @@ float CConfigurableWeapon::GetMaxSpeed()
 
 	if (result == 0.0f)
 	{
-		const PlayerSpeed playerSpeed = params.playerMaxSpeed.Get(InAltMode());
+		const AbsoluteValueOrFactor playerSpeed = params.playerMaxSpeed.Get(InAltMode());
 		if (playerSpeed.IsDefined())
 			result = CalcSpeed(playerSpeed);
 	}

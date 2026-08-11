@@ -26,6 +26,9 @@ const char timeBasedDamageSchema[] = R"(
 				"first_delay": {
 					"type": "number",
 					"minimum": 0
+				},
+				"player_maxspeed": {
+					"$ref": "definitions.json#/absolute_or_factor"
 				}
 			},
 			"additionalProperties": false
@@ -93,6 +96,7 @@ bool TimeBasedDamageDescription::ReadFromDocument(const rapidjson::Document& doc
 				UpdatePropertyFromJson(info.damagePerTick, value, "damage_per_tick");
 				UpdatePropertyFromJson(info.interval, value, "interval");
 				UpdatePropertyFromJson(info.firstDelay, value, "first_delay");
+				UpdatePropertyFromJson(info.playedMaxSpeed, value, "player_maxspeed");
 			});
 		};
 

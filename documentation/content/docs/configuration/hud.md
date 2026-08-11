@@ -65,7 +65,7 @@ When adding new entries to the weapon's hud txt file, don't forget to increase t
 
 The speedometer can be useful for debugging and for speedrunning.
 
-* `hud_speedometer` - shows the player speed (this doesn't include the vertical velocity).
+* `hud_speedometer` - shows the player speed (this doesn't include the vertical velocity). Value 2 also shows the [player's maximum speed]({{< ref "player/#maximum-speed" >}}).
 * `hud_speedometer_below_cross` - shows the speedometer under the crosshair.
 
 ### Combat text

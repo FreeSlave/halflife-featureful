@@ -3,6 +3,7 @@
 #define TIME_BASED_DAMAGE_H
 
 #include "json_config.h"
+#include "template_property_types.h"
 
 struct TimeBasedDamageInfo
 {
@@ -10,6 +11,8 @@ struct TimeBasedDamageInfo
 	float damagePerTick{0.0f};
 	float interval{2.0f};
 	float firstDelay{0.0f};
+
+	AbsoluteValueOrFactor playedMaxSpeed;
 };
 
 class TimeBasedDamageDescription : public JSONConfig

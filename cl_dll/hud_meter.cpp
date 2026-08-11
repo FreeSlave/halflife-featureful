@@ -27,6 +27,8 @@ int CHudMeter::VidInit()
 	return 1;
 }
 
+extern float g_ServerMaxSpeed;
+
 int CHudMeter::Draw(float time)
 {
 	int r, g, b;
@@ -42,7 +44,17 @@ int CHudMeter::Draw(float time)
 		else
 			y = CHud::Renderer().PerceviedScreenHeight() - gHUD.m_iFontHeight * 2.5f;
 
-		gHUD.DrawHudNumberCentered(CHud::Renderer().PerceviedScreenWidth() / 2, y, speed, r, g, b);
+		int x = CHud::Renderer().PerceviedScreenWidth() / 2;
+
+		gHUD.DrawHudNumberCentered(x, y, speed, r, g, b);
+
+		if (hud_speedometer->value >= 2.0f)
+		{
+			float clientMaxSpeed = gEngfuncs.GetClientMaxspeed();
+			if (!clientMaxSpeed)
+				clientMaxSpeed = g_ServerMaxSpeed;
+			gHUD.DrawHudNumberCentered(x, y + gHUD.m_iFontHeight, clientMaxSpeed, r, g, b);
+		}
 	}
 
 	if (hud_soundlevelmeter->value != 0.0f && soundVolume > 0)

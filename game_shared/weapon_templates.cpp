@@ -347,24 +347,6 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 	HandleIdle("alt_idle", true, false);
 	HandleIdle("alt_idle_empty", true, true);
 
-	auto ParsePlayerSpeed = [](const Value& value) {
-		PlayerSpeed playerSpeed;
-		if (value.IsString())
-		{
-			const char* heightStr = value.GetString();
-			if (*heightStr == '*')
-			{
-				playerSpeed.value = static_cast<float>(atof(heightStr + 1));
-				playerSpeed.isFactor = true;
-			}
-		}
-		else if (value.IsNumber())
-		{
-			playerSpeed.value = value.GetFloat();
-		}
-		return playerSpeed;
-	};
-
 	auto HandleFire = [&](const char* propName, bool altMode) {
 		HandleJSONMember(value, propName, [&](const Value& value) {
 			auto& fire = params.fire;
@@ -909,13 +891,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			UpdatePropertyFromJson(fire.preventMovement, value, "prevent_movement", altMode);
 
-			HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
-				fire.playerMaxSpeed.Materialize(altMode) = ParsePlayerSpeed(value);
-			});
-
-			HandleJSONMember(value, "player_maxspeed_on_charge", [&](const Value& value) {
-				fire.playerMaxSpeedOnCharge.Materialize(altMode) = ParsePlayerSpeed(value);
-			});
+			UpdatePropertyFromJson(fire.playerMaxSpeed, value, "player_maxspeed", altMode);
+			UpdatePropertyFromJson(fire.playerMaxSpeedOnCharge, value, "player_maxspeed_on_charge", altMode);
 
 			HandleJSONMember(value, "projectile", [&](const Value& value) {
 				UpdatePropertyFromJson(fire.projectileName, value, "name", altMode);
@@ -1330,12 +1307,8 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 		}
 	});
 
-	HandleJSONMember(value, "player_maxspeed", [&](const Value& value) {
-		params.playerMaxSpeed.Materialize(false) = ParsePlayerSpeed(value);
-	});
-	HandleJSONMember(value, "player_maxspeed_alt", [&](const Value& value) {
-		params.playerMaxSpeed.Materialize(true) = ParsePlayerSpeed(value);
-	});
+	UpdatePropertyFromJson(params.playerMaxSpeed, value, "player_maxspeed", false);
+	UpdatePropertyFromJson(params.playerMaxSpeed, value, "player_maxspeed_alt", false);
 
 	auto HandleReload = [&](const char* propName, bool altMode, bool emptied) {
 		HandleJSONMember(value, propName, [&](const Value& value) {

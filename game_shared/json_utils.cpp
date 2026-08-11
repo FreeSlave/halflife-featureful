@@ -631,6 +631,29 @@ bool UpdatePropertyFromJson(RadiusDamageInfoPatch& radiusDamageInfo, const Value
 	return false;
 }
 
+bool UpdatePropertyFromJson(AbsoluteValueOrFactor& playerSpeed, const Value& jsonValue, const char* key)
+{
+	auto it = jsonValue.FindMember(key);
+	if (it != jsonValue.MemberEnd())
+	{
+		if (it->value.IsString())
+		{
+			const char* heightStr = it->value.GetString();
+			if (*heightStr == '*')
+			{
+				playerSpeed.value = static_cast<float>(atof(heightStr + 1));
+				playerSpeed.isFactor = true;
+			}
+		}
+		else if (it->value.IsNumber())
+		{
+			playerSpeed.value = it->value.GetFloat();
+		}
+		return true;
+	}
+	return false;
+}
+
 static bool ParseAttenuation(const char* str, float& attenuation)
 {
 	constexpr std::pair<const char*, float> attenuations[] = {

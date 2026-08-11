@@ -468,15 +468,6 @@ private:
 	WeaponModeValue<RuleList> _rules;
 };
 
-struct PlayerSpeed
-{
-	float value{0.0f};
-	bool isFactor{false};
-	bool IsDefined() const {
-		return value > 0.0f;
-	}
-};
-
 struct WeaponParameters
 {
 	struct IdleAnim
@@ -695,8 +686,8 @@ struct WeaponParameters
 		WeaponModeValue<int> sprayFlags{0};
 
 		WeaponModeValue<bool> preventMovement{false};
-		WeaponModeValue<PlayerSpeed> playerMaxSpeed;
-		WeaponModeValue<PlayerSpeed> playerMaxSpeedOnCharge;
+		WeaponModeValue<AbsoluteValueOrFactor> playerMaxSpeed;
+		WeaponModeValue<AbsoluteValueOrFactor> playerMaxSpeedOnCharge;
 
 		WeaponModeValue<std::string> projectileName;
 		WeaponModeValue<std::string> projectileEntTemplate;
@@ -836,7 +827,7 @@ struct WeaponParameters
 	float toolDelayAfterDeny{0.1f};
 	int toolIndex{-1};
 
-	WeaponModeValue<PlayerSpeed> playerMaxSpeed;
+	WeaponModeValue<AbsoluteValueOrFactor> playerMaxSpeed;
 	bool preventJump{false};
 	bool exhausitble{false};
 

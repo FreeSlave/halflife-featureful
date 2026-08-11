@@ -96,6 +96,7 @@ bool UpdatePropertyFromJson(tribool& b, const rapidjson::Value& jsonValue, const
 bool UpdatePropertyFromJson(SkillBasedValue& skillValue, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(DamageInfoPatch& damageInfo, const rapidjson::Value& jsonValue, const char* key);
 bool UpdatePropertyFromJson(RadiusDamageInfoPatch& damageInfo, const rapidjson::Value& jsonValue, const char* key);
+bool UpdatePropertyFromJson(AbsoluteValueOrFactor& playerSpeed, const rapidjson::Value& jsonValue, const char* key);
 
 template<typename T>
 bool UpdatePropertyFromJson(optional<T>& v, const rapidjson::Value& jsonValue, const char* key)

@@ -45,6 +45,7 @@ static bool pm_shared_initialized = false;
 #endif
 
 playermove_t *pmove = NULL;
+float g_ServerMaxSpeed = 0;
 
 // Ducking time
 #define TIME_TO_DUCK		0.4f
@@ -3117,6 +3118,7 @@ void PM_Move( struct playermove_s *ppmove, int server )
 	assert( pm_shared_initialized );
 
 	pmove = ppmove;
+	g_ServerMaxSpeed = pmove->maxspeed;
 
 	//pmove->Con_Printf( "PM_Move: %g, frametime %g, onground %i\n", pmove->time, pmove->frametime, pmove->onground );
 	

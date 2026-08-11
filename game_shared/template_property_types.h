@@ -120,4 +120,13 @@ struct PlayerShake
 	}
 };
 
+struct AbsoluteValueOrFactor
+{
+	float value{0.0f};
+	bool isFactor{false};
+	bool IsDefined() const {
+		return value > 0.0f;
+	}
+};
+
 #endif
