@@ -7897,3 +7897,46 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( trigger_usetool, CTriggerUseTool )
+
+class CTriggerCleanse : public CPointEntity
+{
+public:
+	void KeyValue(KeyValueData *pkvd) override
+	{
+		if (FStrEq(pkvd->szKeyName, "timeddmgtype"))
+		{
+			pev->impulse = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (pPlayer)
+		{
+			const int cleanseDamageType = pev->impulse == -1 ? (DMG_TIMEBASED & ~DMG_DROWNRECOVER) : pev->impulse;
+			if (FBitSet(cleanseDamageType, DMG_TIMEBASED))
+			{
+				for (int i = 0; i < CDMG_TIMEBASED; i++)
+				{
+					const int dmgTypeBit = DMG_PARALYZE << i;
+					if (!FBitSet(cleanseDamageType, dmgTypeBit))
+						continue;
+
+					pPlayer->m_rgbTimeBasedDamage[i] = 0;
+					pPlayer->m_timeBasedDmgModifiers[i] = 0;
+				}
+				ClearBits(pPlayer->m_bitsDamageType, cleanseDamageType);
+			}
+		}
+		else
+		{
+			ALERT(at_warning, "%s: activator is not a player\n", STRING(pev->classname));
+		}
+	}
+};
+
+LINK_ENTITY_TO_CLASS( trigger_cleanse, CTriggerCleanse )

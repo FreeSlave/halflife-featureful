@@ -126,7 +126,7 @@ int CHudHealth::MsgFunc_Damage( const char *pszName, int iSize, void *pbuf )
 
 	int armor = READ_BYTE();	// armor
 	int damageTaken = READ_BYTE();	// health
-	long bitsDamage = READ_LONG(); // damage bits
+	int bitsDamage = READ_LONG(); // damage bits
 
 	Vector vecFrom = READ_VECTOR();
 
@@ -523,32 +523,26 @@ int CHudHealth::DrawDamage( float flTime )
 	return 1;
 }
 
-void CHudHealth::UpdateTiles( float flTime, long bitsDamage )
-{	
-	DAMAGE_IMAGE *pdmg;
-
+void CHudHealth::UpdateTiles( float flTime, int bitsDamage )
+{
 	// Which types are new?
-	long bitsOn = ~m_bitsDamage & bitsDamage;
+	const int bitsOn = ~m_bitsDamage & bitsDamage;
 
 	for( int i = 0; i < NUM_DMG_TYPES; i++ )
 	{
-		pdmg = &m_dmg[i];
+		DAMAGE_IMAGE *pdmg = &m_dmg[i];
 
-		// Is this one already on?
-		if( m_bitsDamage & giDmgFlags[i] )
+		if (bitsDamage & giDmgFlags[i])
 		{
-			pdmg->fExpire = flTime + DMG_IMAGE_LIFE; // extend the duration
-			if( !pdmg->fBaseline )
-				pdmg->fBaseline = flTime;
+			pdmg->fExpire = flTime + DMG_IMAGE_LIFE;
 		}
 
 		// Are we just turning it on?
-		if( bitsOn & giDmgFlags[i] )
+		if (bitsOn & giDmgFlags[i])
 		{
 			// put this one at the bottom
 			pdmg->x = giDmgWidth / 8;
 			pdmg->y = CHud::Renderer().PerceviedScreenHeight() - giDmgHeight * 2;
-			pdmg->fExpire=flTime + DMG_IMAGE_LIFE;
 
 			// move everyone else up
 			for( int j = 0; j < NUM_DMG_TYPES; j++ )
@@ -560,7 +554,6 @@ void CHudHealth::UpdateTiles( float flTime, long bitsDamage )
 				if( pdmg->y )
 					pdmg->y -= giDmgHeight;
 			}
-			// pdmg = &m_dmg[i];
 		}
 	}
 

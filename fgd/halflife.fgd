@@ -9029,6 +9029,22 @@
 	fire_if_absent(target_destination) : "Fire if absent"
 ]
 
+@PointClass base(Targetname) = trigger_cleanse : "Cleanse timed effects"
+[
+	timeddmgtype(choices) : "Timed Damage Type" =
+	[
+		0 : "Nothing"
+		32768 : "PARALYSE"
+		65536 : "NERVEGAS"
+		131072 : "POISON"
+		262144 : "RADIATION"
+		1048576 : "CHEMICAL"
+		2097152 : "SLOWBURN"
+		4194304 : "SLOWFREEZE"
+		-1 : "All"
+	]
+]
+
 @PointClass base(Targetname) = trigger_command : "Console Command"
 [
 	netname(string) : "Command String"

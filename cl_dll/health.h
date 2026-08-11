@@ -33,7 +33,6 @@
 typedef struct
 {
 	float fExpire;
-	float fBaseline;
 	int	x, y;
 } DAMAGE_IMAGE;
 

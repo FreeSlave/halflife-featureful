@@ -600,7 +600,7 @@ private:
 	int DrawPain( float fTime );
 	int DrawDamage( float fTime );
 	void CalcDamageDirection( Vector vecFrom );
-	void UpdateTiles( float fTime, long bits );
+	void UpdateTiles(float fTime, int bits );
 };
 
 //
