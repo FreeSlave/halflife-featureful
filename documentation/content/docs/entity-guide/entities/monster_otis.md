@@ -5,6 +5,10 @@ bookToC: false
 
 # ![](/images/opfor.png) monster_otis
 
+### Changes
+
+* Has the same set of changes as [monster_barney]({{< ref monster_barney >}}).
+
 ### Skill variables
 
 * **sk_otis_health** - monster's health. If not defined, **sk_barney_health** is used.

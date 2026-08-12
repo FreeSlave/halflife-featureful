@@ -131,7 +131,6 @@ public:
 protected:
 	void SpawnImpl(const char* modelName, float health);
 	DamageInfo DefaultHandleTraceAttackImpl(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr, bool hasHelmet);
-	virtual bool PrioritizeMeleeAttack() { return false; }
 
 	int m_iHead;
 };
@@ -699,7 +698,7 @@ Schedule_t *CBarney::GetSchedule()
 			if( HasConditions( bits_COND_HEAVY_DAMAGE ) )
 				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
 
-			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) && PrioritizeMeleeAttack() )
+			if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) && (HasConditions(bits_COND_NO_AMMO_LOADED) || RANDOM_LONG(0,1) == 1) )
 				return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
 
 			if (HasConditions(bits_COND_NO_AMMO_LOADED))
@@ -1174,7 +1173,6 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	int LookupActivity(int activity) override;
 	int DefaultToleranceLevel() override { return TOLERANCE_AVERAGE; }
-	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	void DeathSound() override;
 	void PainSound() override;
 
@@ -1188,7 +1186,6 @@ public:
 	static const NamedSoundScript punchSoundScript;
 
 protected:
-	bool PrioritizeMeleeAttack() override { return true; }
 	float LimpHealth();
 
 	int m_iCombatState;
@@ -1363,22 +1360,21 @@ int CKate::LookupActivity(int activity)
 		if( RANDOM_LONG( 0, 2 ) )
 		{
 			m_iCombatState = -1;
-			return LookupSequence( "karate_hit" );
+			int seq = LookupSequence( "karate_hit" );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
 		else
 		{
 			m_iCombatState = 0;
-			return LookupSequence( "karate_bighit" );
+			int seq = LookupSequence( "karate_bighit" );
+			if (seq != ACTIVITY_NOT_AVAILABLE)
+				return seq;
 		}
-		break;
+		return CBarney::LookupActivity( activity );
 	default:
 		return CBarney::LookupActivity( activity );
 	}
-}
-
-bool CKate::CheckMeleeAttack1(float flDot, float flDist)
-{
-	return CTalkMonster::CheckMeleeAttack1(flDot, flDist);
 }
 
 void CKate::DeathSound()

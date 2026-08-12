@@ -11,7 +11,8 @@ bookToC: false
 
 * Checks for friendly fire when shooting.
 * Now uses alert sentences (`BA_ATTACK`) when encountering enemy.
-* Can set a custom head if the model has multiple heads. The bodygroup index 2 is supposed to be the head bodygroup, i.e. the following order is expected : `body`, `gun`, `heads`.
+* Can set a custom head if the model has multiple heads. The bodygroup index 2 is supposed to be the head bodygroup, i.e. the following order is expected : `body`, `gun`, `heads` (the actual naming doesn't matter. Also the first bodygroup is expected to have only 1 submodel. Multiple bodies are not supported for barney yet).
+* If the model has a sequence with the `ACT_MELEE_ATTACK1` activity, barney can use melee attacks. To make the melee attack actually do something you must define the animation events in the sequence and [trace_hull_attacks]({{< ref "entity-templates/#trace_hull_attacks" >}}) in the entity template (see [Entity template examples](#entity-template-examples)).
 
 ### New parameters
 
@@ -123,6 +124,39 @@ Make Barney use reload by limiting the clip size:
     }
 }
 ```
+{{% /tab %}}
+
+{{% tab "Melee attack" %}}
+
+This considers the model has event of id 6 on its sequence with `ACT_MELEE_ATTACK1` activity.
+
+```json
+{
+    "monster_barney": {
+        "trace_hull_attacks": {
+            "6": {
+                "distance": 70,
+                "punchangle": {
+                    "roll": 5
+                },
+                "knock": {
+                    "forward": 80,
+                    "up": 50
+                },
+                "damage_info": {
+                    "damage": "hgrunt_kick",
+                    "type": "club"
+                },
+                "hit_soundscript": {
+                    "channel": "item",
+                    "waves": ["common/punch.wav"]
+                }
+            }
+        }
+    }
+}
+```
+
 {{% /tab %}}
 
 {{% /tabs %}}

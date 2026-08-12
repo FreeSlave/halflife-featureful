@@ -7,6 +7,10 @@ bookToC: false
 
 Female version of [monster_barney]({{< ref monster_barney >}}) from Azure Sheep. Uses `BN` prefix for sentences instead of `BA`.
 
+### Changes
+
+* Has the same set of changes as [monster_barney]({{< ref monster_barney >}}).
+
 ### Skill variables
 
 * **sk_barney_health** - monster's health.
