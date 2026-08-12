@@ -383,7 +383,7 @@ public:
 	void IdleSound() override;
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
-	bool EmitSoundScriptTalk(const char* name);
+	bool EmitSoundScriptTalk(const char* name) override;
 
 	void OnDying(bool gibbed, CBaseEntity* pKiller) override;
 	void DeathNotice( entvars_t* pevChild ) override

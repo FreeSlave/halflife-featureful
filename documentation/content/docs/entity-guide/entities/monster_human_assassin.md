@@ -30,6 +30,7 @@ bookToC: false
 * **HAssassin.Die** - death sounds. Empty by default.
 * **HAssassin.Use** - start following the ally player. By default it uses the `HA_OK` sentence group.
 * **HAssassin.UnUse** - stop following the ally player. By default it uses the `HA_WAIT` sentence group.
+* **HAssassin.FriendlyFireComplaint** - hit by ally player. Empty by default.
 
 ### Attacks
 

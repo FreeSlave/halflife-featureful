@@ -198,7 +198,7 @@ public:
 	const char* DefaultSentenceGroup(int group) override;
 
 	bool FOkToSpeak();
-	void JustSpoke();
+	void JustSpoke() override;
 
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
@@ -436,7 +436,7 @@ bool CHFGrunt::FOkToSpeak()
 //=========================================================
 void CHFGrunt::JustSpoke()
 {
-	CTalkMonster::g_talkWaitTime = gpGlobals->time + RANDOM_FLOAT(1.5, 2.0);
+	CTalkMonster::JustSpoke();
 	m_iSentence = -1;
 }
 //=========================================================

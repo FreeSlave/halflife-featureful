@@ -3,7 +3,6 @@
 #include	"cbase.h"
 #include	"combat.h"
 #include	"global_models.h"
-#include	"talkmonster.h"
 #include	"soundent.h"
 #include	"decals.h"
 #include	"hgrunt.h"
@@ -39,6 +38,7 @@ public:
 
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 
 	void DeathSound() override;
 	void PainSound() override;
@@ -69,6 +69,7 @@ public:
 
 	static const NamedSoundScript useSoundScript;
 	static const NamedSoundScript unuseSoundScript;
+	static const NamedSoundScript friendlyFireComplaintSoundScript;
 
 protected:
 	static const char *pRoboSentences[HGRUNT_SENT_COUNT];
@@ -143,6 +144,12 @@ const NamedSoundScript CRGrunt::unuseSoundScript = {
 	"RGrunt.UnUse"
 };
 
+const NamedSoundScript CRGrunt::friendlyFireComplaintSoundScript = {
+	CHAN_VOICE,
+	{},
+	"RGrunt.FriendlyFireComplaint"
+};
+
 const char* CRGrunt::SentenceByNumber(int sentence)
 {
 	return pRoboSentences[sentence];
@@ -168,8 +175,7 @@ void CRGrunt::Spawn()
 	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
-	CTalkMonster::g_talkWaitTime = 0;
-
+	ResetTalkWaitTime();
 	FollowingMonsterInit();
 }
 
@@ -195,6 +201,7 @@ void CRGrunt::Precache()
 
 	RegisterAndPrecacheSoundScript(useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript);
 
 	m_voicePitch = 115;
 
@@ -204,14 +211,17 @@ void CRGrunt::Precache()
 
 void CRGrunt::PlayUseSentence()
 {
-	if (EmitSoundScript(useSoundScript))
-		JustSpoke();
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CRGrunt::PlayUnUseSentence()
 {
-	if (EmitSoundScript(unuseSoundScript))
-		JustSpoke();
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CRGrunt::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 void CRGrunt::DeathSound()

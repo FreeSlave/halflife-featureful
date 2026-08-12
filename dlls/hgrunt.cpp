@@ -35,7 +35,6 @@
 #include	"animation.h"
 #include	"combat.h"
 #include	"ggrenade.h"
-#include	"talkmonster.h"
 #include	"soundent.h"
 #include	"effects.h"
 #include	"customentity.h"
@@ -151,6 +150,14 @@ const NamedSoundScript CHGrunt::unuseSoundScript = {
 	"HGrunt.UnUse"
 };
 
+const NamedSoundScript CHGrunt::friendlyFireComplaintSoundScript = {
+	CHAN_VOICE,
+	{},
+	HGRUNT_SENTENCE_VOLUME,
+	GRUNT_ATTN,
+	"HGrunt.FriendlyFireComplaint"
+};
+
 //=========================================================
 // Speak Sentence - say your cued up sentence.
 //
@@ -193,12 +200,6 @@ bool CHGrunt::PlaySentenceGroup(const char *group, int flags)
 	return false;
 }
 
-void CHGrunt::PlaySentenceSoundScript(const char *soundScript)
-{
-	if (EmitSoundScriptTalk(soundScript))
-		JustSpoke();
-}
-
 bool CHGrunt::EmitSoundScriptTalk(const char* name)
 {
 	SoundScriptParamOverride paramOverride;
@@ -208,12 +209,17 @@ bool CHGrunt::EmitSoundScriptTalk(const char* name)
 
 void CHGrunt::PlayUseSentence()
 {
-	PlaySentenceSoundScript(useSoundScript);
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CHGrunt::PlayUnUseSentence()
 {
-	PlaySentenceSoundScript(unuseSoundScript);
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CHGrunt::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 //=========================================================
@@ -312,7 +318,7 @@ int CHGrunt::DefaultISoundMask()
 bool CHGrunt::FOkToSpeak()
 {
 	// if someone else is talking, don't speak
-	if( CTalkMonster::SomeoneIsTalking() )
+	if( CFollowingMonster::SomeoneIsTalking() )
 		return false;
 
 	if( pev->spawnflags & SF_MONSTER_GAG )
@@ -335,7 +341,7 @@ bool CHGrunt::FOkToSpeak()
 //=========================================================
 void CHGrunt::JustSpoke()
 {
-	CTalkMonster::g_talkWaitTime = gpGlobals->time + RANDOM_FLOAT( 1.5f, 2.0f );
+	CFollowingMonster::JustSpoke();
 	m_iSentence = HGRUNT_SENT_NONE;
 }
 
@@ -1094,8 +1100,7 @@ void CHGrunt::Spawn()
 		pev->skin = 1; // alway dark skin
 	}
 
-	CTalkMonster::g_talkWaitTime = 0;
-
+	ResetTalkWaitTime();
 	FollowingMonsterInit();
 }
 
@@ -1125,6 +1130,7 @@ void CHGrunt::Precache()
 
 	RegisterAndPrecacheSoundScript(useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript);
 
 	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 

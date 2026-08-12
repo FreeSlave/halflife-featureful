@@ -34,6 +34,7 @@ bookToC: false
 * **Massn.Sniper** - sniperrifle fire. Derived from **NPC.Sniper**
 * **Massn.Use** - start following the ally player. Empty by default.
 * **Massn.UnUse** - stop following the ally player. Empty by default.
+* **Massn.FriendlyFireComplaint** - hit by ally player. Empty by default.
 
 ### Attacks
 

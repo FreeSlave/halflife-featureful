@@ -28,7 +28,6 @@
 // Talking monster base class
 // Used for scientists and barneys
 //=========================================================
-float CTalkMonster::g_talkWaitTime = 0;		// time delay until it's ok to speak: used so that two NPCs don't talk at once
 
 #define SF_TALKMONSTER_DONTGREET_PLAYER (1 << 17)
 #define SF_TALKMONSTER_DONT_TALK_TO_PLAYER (1 << 18)
@@ -791,7 +790,7 @@ void CTalkMonster::TalkInit()
 {
 	// every new talking monster must reset this global, otherwise
 	// when a level is loaded, nobody will talk (time is reset to 0)
-	CTalkMonster::g_talkWaitTime = 0;
+	ResetTalkWaitTime();
 
 	if (FBitSet(pev->spawnflags, SF_TALKMONSTER_DONTGREET_PLAYER))
 		SetBits(m_bitsSaid, bit_saidHelloPlayer);
@@ -1138,7 +1137,7 @@ bool CTalkMonster::FIdleSpeak()
 
 	// didn't speak
 	Talk( 0 );
-	CTalkMonster::g_talkWaitTime = 0;
+	ResetTalkWaitTime();
 	return false;
 }
 
@@ -1178,7 +1177,7 @@ bool CTalkMonster::PlaySentence(const char *pszSentence, float duration, float v
 	}
 
 	if (status)
-		CTalkMonster::g_talkWaitTime = gpGlobals->time + duration + 2.0f;
+		DelayTalkWaitTime(duration + 2.0f);
 
 	// If you say anything, don't greet the player - you may have already spoken to them
 	SetBits( m_bitsSaid, bit_saidHelloPlayer );
@@ -1748,11 +1747,6 @@ void CTalkMonster::ReportAIState(ALERT_TYPE level)
 	ALERT( level, "Tolerance level: %s. ", ToleranceLevelDisplayName(MyToleranceLevel()) );
 	ALERT( level, "I will alert friends if player kills me: %s. ", AlertFriendsPolicyDisplayName(AlertFriendsPolicy()) );
 	ALERT( level, "Friends can alert me if player kills them: %s. ", AlertableByFriendDeath() ? "yes" : "no" );
-}
-
-bool CTalkMonster::SomeoneIsTalking()
-{
-	return gpGlobals->time <= CTalkMonster::g_talkWaitTime;
 }
 
 bool CTalkMonster::EmitSoundScriptTalk(const char* name)

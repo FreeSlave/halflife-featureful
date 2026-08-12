@@ -183,7 +183,7 @@ public:
 	void			Talk( float flDuration );
 	virtual const char* DefaultSentenceGroup(int group) { return nullptr; }
 	virtual const char* SentenceGroup(int group);
-	bool EmitSoundScriptTalk(const char* name);
+	bool EmitSoundScriptTalk(const char* name) override;
 
 	// Following related
 	void			StartFollowing( CBaseEntity *pLeader, bool saySentence = true ) override;
@@ -241,8 +241,6 @@ public:
 
 	static TalkFriend m_szFriends[TLK_CFRIENDS];		// array of friend names
 	static char m_szMedics[NUM_MEDICS][64];
-	static float g_talkWaitTime;
-	static bool SomeoneIsTalking();
 	static void RegisterTalkMonster(const char* className, bool canFollow, short followerCategory);
 	void RegisterTalkMonster(bool canFollow = true);
 	static void RegisterMedic(const char* className);

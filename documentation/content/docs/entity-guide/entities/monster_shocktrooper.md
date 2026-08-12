@@ -30,6 +30,7 @@ bookToC: false
 * **ShockTrooper.Fire** - firing a shock beam projectile.
 * **ShockTrooper.Use** - start following the ally player. By default it uses the `ST_IDLE` sentence group.
 * **ShockTrooper.UnUse** - stop following the ally player. By default it uses the `ST_ALERT` sentence group.
+* **ShockTrooper.FriendlyFireComplaint** - hit by ally player. Empty by default.
 * [shock_beam soundscripts]({{< ref "shock_beam/#soundscripts" >}}).
 * [spore soundscripts]({{< ref "spore/#soundscripts" >}}).
 

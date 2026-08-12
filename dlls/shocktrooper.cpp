@@ -91,6 +91,7 @@ public:
 	void GibMonster() override;
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override {
 		return inputDamageInfo;
@@ -138,6 +139,7 @@ public:
 
 	static const NamedSoundScript useSoundScript;
 	static const NamedSoundScript unuseSoundScript;
+	static const NamedSoundScript friendlyFireComplaintSoundScript;
 
 	static const NamedVisual muzzleFlashVisual;
 };
@@ -188,6 +190,12 @@ const NamedSoundScript CShockTrooper::unuseSoundScript = {
 	CHAN_VOICE,
 	{"ST_ALERT"},
 	"ShockTrooper.UnUse"
+};
+
+const NamedSoundScript CShockTrooper::friendlyFireComplaintSoundScript = {
+	CHAN_VOICE,
+	{},
+	"ShockTrooper.FriendlyFireComplaint"
 };
 
 const NamedVisual CShockTrooper::muzzleFlashVisual = BuildVisual("ShockTrooper.MuzzleFlash")
@@ -472,7 +480,7 @@ void CShockTrooper::Spawn()
 
 	m_bRightClaw = false;
 
-	CTalkMonster::g_talkWaitTime = 0;
+	ResetTalkWaitTime();
 	m_rechargeTime = gpGlobals->time + GetSkillValue("shocktrooper_rchgspeed");
 	m_blinkTime = gpGlobals->time + RANDOM_FLOAT(3.0f, 7.0f);
 
@@ -526,6 +534,7 @@ void CShockTrooper::Precache()
 	RegisterAndPrecacheSoundScript(fireSoundScript);
 	RegisterAndPrecacheSoundScript(useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript);
 
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
@@ -611,12 +620,17 @@ void CShockTrooper::DropShockRoach(bool gibbed)
 
 void CShockTrooper::PlayUseSentence()
 {
-	PlaySentenceSoundScript(useSoundScript);
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CShockTrooper::PlayUnUseSentence()
 {
-	PlaySentenceSoundScript(unuseSoundScript);
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CShockTrooper::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 class CDeadStrooper : public CDeadMonster

@@ -20,7 +20,7 @@
 #include "util.h"
 #include "cbase.h"
 #include "player.h"
-#include "talkmonster.h"
+#include "followingmonster.h"
 #include "gamerules.h"
 #include "tex_materials.h"
 #include "soundent.h"
@@ -1955,9 +1955,9 @@ void CSpeaker::SpeakerThink()
 	int pitch = 100;
 
 	// Wait for the talkmonster to finish first.
-	if( CTalkMonster::SomeoneIsTalking() )
+	if( CFollowingMonster::SomeoneIsTalking() )
 	{
-		pev->nextthink = CTalkMonster::g_talkWaitTime + RANDOM_FLOAT( 5.0f, 10.0f );
+		pev->nextthink = CFollowingMonster::g_talkWaitTime + RANDOM_FLOAT( 5.0f, 10.0f );
 		return;
 	}
 
@@ -2025,7 +2025,7 @@ void CSpeaker::SpeakerThink()
 		// set next announcement time for random 5 to 10 minute delay
 		pev->nextthink = gpGlobals->time + RANDOM_FLOAT( ANNOUNCE_MINUTES_MIN * 60.0f, ANNOUNCE_MINUTES_MAX * 60.0f );
 
-		CTalkMonster::g_talkWaitTime = gpGlobals->time + 5.0f;		// time delay until it's ok to speak: used so that two NPCs don't talk at once
+		CFollowingMonster::DelayTalkWaitTime(5.0f);		// time delay until it's ok to speak: used so that two NPCs don't talk at once
 	}
 
 	return;

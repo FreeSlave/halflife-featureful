@@ -35,3 +35,4 @@ The model from Sven Co-op 5 has some changes to the model activities and the hwg
 * **HWGrunt.Spinup** - minigun spinup.
 * **HWGrunt.Use** - start following the ally player. Derived from **HGrunt.Use**
 * **HWGrunt.UnUse** - stop following the ally player. Derived from **HGrunt.UnUse**
+* **HWGrunt.FriendlyFireComplaint** - hit by ally player. Empty by default. Derived from **HGrunt.FriendlyFireComplaint**

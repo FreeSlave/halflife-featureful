@@ -1552,7 +1552,7 @@ bool CSittingScientist::FIdleSpeak()
 	}
 
 	// never spoke
-	CTalkMonster::g_talkWaitTime = 0;
+	ResetTalkWaitTime();
 	return false;
 }
 

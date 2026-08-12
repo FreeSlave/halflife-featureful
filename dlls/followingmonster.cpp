@@ -11,6 +11,8 @@
 #include "gamerules.h"
 #include "player.h"
 
+float CFollowingMonster::g_talkWaitTime = 0;		// time delay until it's ok to speak: used so that two NPCs don't talk at once
+
 TYPEDESCRIPTION	CFollowingMonster::m_SaveData[] =
 {
 	DEFINE_FIELD( CFollowingMonster, m_followFailPolicy, FIELD_SHORT ),
@@ -562,6 +564,17 @@ void CFollowingMonster::PrescheduleThink()
 	CSquadMonster::PrescheduleThink();
 }
 
+TakeDamageResult CFollowingMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo )
+{
+	TakeDamageResult ret = CSquadMonster::TakeDamage(pevInflictor, pevAttacker, damageInfo);
+	if (ret.TookDamageToHealth() && IsFullyAlive() && pevAttacker && m_MonsterState != MONSTERSTATE_PRONE && FBitSet(pevAttacker->flags, FL_CLIENT)
+		&& IDefaultRelationship(CLASS_PLAYER) == R_AL)
+	{
+		PlayFriendlyFireComplaint();
+	}
+	return ret;
+}
+
 void CFollowingMonster::FollowingMonsterInit()
 {
 	MonsterInit();
@@ -808,6 +821,11 @@ int CFollowingMonster::DoFollowerUse(CBaseEntity *pCaller, bool saySentence, USE
 	return FOLLOWING_INVALID;
 }
 
+void CFollowingMonster::JustSpoke()
+{
+	g_talkWaitTime = gpGlobals->time + RANDOM_FLOAT(1.5f, 2.0f);
+}
+
 CBaseEntity* CFollowingMonster::PlayerToFace()
 {
 	return g_pGameRules->EffectiveAlivePlayer(FollowedPlayer());
@@ -897,4 +915,19 @@ bool CFollowingMonster::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 	if (m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY || m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY_DECLINE_USE)
 		return false;
 	return true;
+}
+
+bool CFollowingMonster::SomeoneIsTalking()
+{
+	return gpGlobals->time <= g_talkWaitTime;
+}
+
+void CFollowingMonster::ResetTalkWaitTime()
+{
+	g_talkWaitTime = 0;
+}
+
+void CFollowingMonster::DelayTalkWaitTime(float delay)
+{
+	g_talkWaitTime = gpGlobals->time + delay;
 }

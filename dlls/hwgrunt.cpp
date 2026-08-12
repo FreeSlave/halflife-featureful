@@ -64,6 +64,7 @@ public:
 
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 
 	void DeathSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
@@ -110,6 +111,7 @@ public:
 
 	static constexpr const char* useSoundScript = "HWGrunt.Use";
 	static constexpr const char* unuseSoundScript = "HWGrunt.UnUse";
+	static constexpr const char* friendlyFireComplaintSoundScript = "HWGrunt.FriendlyFireComplaint";
 };
 
 LINK_ENTITY_TO_CLASS( monster_hwgrunt, CHWGrunt )
@@ -167,6 +169,7 @@ void CHWGrunt::Spawn()
 	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
+	ResetTalkWaitTime();
 	FollowingMonsterInit();
 }
 
@@ -184,6 +187,7 @@ void CHWGrunt::Precache()
 
 	RegisterAndPrecacheSoundScript(useSoundScript, CHGrunt::useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript, CHGrunt::unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript, CHGrunt::friendlyFireComplaintSoundScript);
 
 	if (pev->modelindex)
 		DetectModelType();
@@ -417,12 +421,17 @@ void CHWGrunt::RunTask( Task_t *pTask )
 
 void CHWGrunt::PlayUseSentence()
 {
-	EmitSoundScript(useSoundScript);
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CHWGrunt::PlayUnUseSentence()
 {
-	EmitSoundScript(unuseSoundScript);
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CHWGrunt::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 void CHWGrunt::DeathSound()

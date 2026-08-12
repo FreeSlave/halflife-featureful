@@ -87,10 +87,10 @@ public:
 	virtual void SpeakSentence();
 	bool PlayGruntSentence(int sentence, int flags = 0);
 	bool PlaySentenceGroup(const char* group, int flags = 0);
-	void PlaySentenceSoundScript(const char* soundScript);
-	bool EmitSoundScriptTalk(const char* soundScript);
+	bool EmitSoundScriptTalk(const char* soundScript) override;
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -106,7 +106,7 @@ public:
 
 	virtual bool FOkToSpeak();
 	virtual bool CanDropGrenade() const;
-	void JustSpoke();
+	void JustSpoke() override;
 	void DropMyItems(bool isGibbed);
 	CBaseEntity* DropMyItem(const char *entityName, const Vector &vecGunPos, const Vector &vecGunAngles, bool isGibbed);
 
@@ -175,6 +175,7 @@ public:
 
 	static const NamedSoundScript useSoundScript;
 	static const NamedSoundScript unuseSoundScript;
+	static const NamedSoundScript friendlyFireComplaintSoundScript;
 };
 
 class CHGruntRepel : public CFollowingMonster

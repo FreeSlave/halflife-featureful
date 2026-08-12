@@ -78,6 +78,7 @@ public:
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
 	void PrescheduleThink() override;
+	TakeDamageResult TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo) override;
 
 	void FollowingMonsterInit();
 	void IdleHeadTurn( Vector &vecFriend );
@@ -116,8 +117,21 @@ public:
 		return failPolicy;
 	}
 
+	virtual bool EmitSoundScriptTalk(const char* soundScript) {
+		return EmitSoundScript(soundScript);
+	}
+	bool PlaySpokenSoundScript(const char *soundScript) {
+		if (EmitSoundScriptTalk(soundScript))
+		{
+			JustSpoke();
+			return true;
+		}
+		return false;
+	}
 	virtual void PlayUseSentence() {}
 	virtual void PlayUnUseSentence() {}
+	virtual bool PlayFriendlyFireComplaint() { return false; }
+	virtual void JustSpoke();
 
 	CBaseEntity* PlayerToFace();
 	void StopScript();
@@ -138,6 +152,11 @@ public:
 	short m_followagePolicy;
 
 	int m_cClipSize;
+
+	static bool SomeoneIsTalking();
+	static void ResetTalkWaitTime();
+	static void DelayTalkWaitTime(float delay);
+	static float g_talkWaitTime;
 
 	CUSTOM_SCHEDULES
 };

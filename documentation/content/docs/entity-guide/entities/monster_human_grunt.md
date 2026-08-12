@@ -42,6 +42,7 @@ bookToC: false
 * **HGrunt.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
 * **HGrunt.Use** - start following the ally player. By default it uses the following sentences: `["!HG_ANSWER0", "!HG_ANSWER1", "!HG_ANSWER2"]`.
 * **HGrunt.UnUse** - stop following the ally player. By default it uses the following sentences: `["!HG_ANSWER5", "!HG_QUEST4"]`.
+* **HGrunt.FriendlyFireComplaint** - hit by ally player. Empty by default.
 
 ### Attacks
 

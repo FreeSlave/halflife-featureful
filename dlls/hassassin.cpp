@@ -110,6 +110,7 @@ public:
 	void RunTask( Task_t *pTask ) override;
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 	void DeathSound() override;
 	void IdleSound() override;
 	PainSoundRule DefaultPainSoundRule() override;
@@ -161,6 +162,7 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript useSoundScript;
 	static const NamedSoundScript unuseSoundScript;
+	static const NamedSoundScript friendlyFireComplaintSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_assassin, CHAssassin )
@@ -230,16 +232,25 @@ const NamedSoundScript CHAssassin::unuseSoundScript = {
 	"HAssassin.UnUse"
 };
 
+const NamedSoundScript CHAssassin::friendlyFireComplaintSoundScript = {
+	CHAN_VOICE,
+	{},
+	"HAssassin.FriendlyFireComplaint"
+};
+
 void CHAssassin::PlayUseSentence()
 {
-	EmitSoundScript(useSoundScript);
-	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_OK", 0.6, ATTN_NORM, 0, 90 );
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CHAssassin::PlayUnUseSentence()
 {
-	EmitSoundScript(unuseSoundScript);
-	//SENTENCEG_PlayRndSz( ENT( pev ), "HA_WAIT", 0.6, ATTN_NORM, 0, 90 );
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CHAssassin::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 //=========================================================
@@ -492,6 +503,7 @@ void CHAssassin::Spawn()
 	UpdateClipSizeForWeapon(m_cClipSize);
 	m_cAmmoLoaded = m_cClipSize;
 
+	ResetTalkWaitTime();
 	FollowingMonsterInit();
 }
 
@@ -511,6 +523,7 @@ void CHAssassin::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript);
 
 	UTIL_PrecacheOther("grenade", GetProjectileOverrides());
 

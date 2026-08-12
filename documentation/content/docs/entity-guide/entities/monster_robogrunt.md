@@ -38,6 +38,7 @@ When die robogrunts play spark effects and explode after 2 seconds.
 * **RGrunt.Shotgun** - shotgun fire. Derived from **NPC.Shotgun**
 * **RGrunt.Use** - start following the ally player.
 * **RGrunt.UnUse** - stop following the ally player.
+* **RGrunt.FriendlyFireComplaint** - hit by ally player. Empty by default.
 
 ### Entity template examples
 

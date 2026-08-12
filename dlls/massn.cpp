@@ -59,6 +59,7 @@ public:
 	void GibMonster() override;
 	void PlayUseSentence() override;
 	void PlayUnUseSentence() override;
+	bool PlayFriendlyFireComplaint() override;
 	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
@@ -91,6 +92,7 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript useSoundScript;
 	static const NamedSoundScript unuseSoundScript;
+	static const NamedSoundScript friendlyFireComplaintSoundScript;
 
 	static constexpr const char* reloadSoundScript = "Massn.Reload";
 	static constexpr const char* burst9mmSoundScript = "Massn.9MM";
@@ -138,14 +140,25 @@ const NamedSoundScript CMassn::unuseSoundScript = {
 	"Massn.UnUse"
 };
 
+const NamedSoundScript CMassn::friendlyFireComplaintSoundScript = {
+	CHAN_VOICE,
+	{},
+	"Massn.FriendlyFireComplaint"
+};
+
 void CMassn::PlayUseSentence()
 {
-	PlaySentenceSoundScript(useSoundScript);
+	PlaySpokenSoundScript(useSoundScript);
 }
 
 void CMassn::PlayUnUseSentence()
 {
-	PlaySentenceSoundScript(unuseSoundScript);
+	PlaySpokenSoundScript(unuseSoundScript);
+}
+
+bool CMassn::PlayFriendlyFireComplaint()
+{
+	return PlaySpokenSoundScript(friendlyFireComplaintSoundScript);
 }
 
 bool CMassn::FOkToSpeak()
@@ -349,6 +362,7 @@ void CMassn::Spawn()
 	}
 	SetBodygroup(MASSN_HEAD_GROUP, m_iHead);
 
+	ResetTalkWaitTime();
 	FollowingMonsterInit();
 }
 
@@ -373,6 +387,7 @@ void CMassn::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(useSoundScript);
 	RegisterAndPrecacheSoundScript(unuseSoundScript);
+	RegisterAndPrecacheSoundScript(friendlyFireComplaintSoundScript);
 
 	RegisterAndPrecacheSoundScript(reloadSoundScript, NPC::reloadSoundScript);
 	RegisterAndPrecacheSoundScript(burst9mmSoundScript, NPC::burst9mmSoundScript);
