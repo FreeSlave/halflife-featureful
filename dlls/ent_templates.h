@@ -752,7 +752,7 @@ public:
 		_powerShield = powerShield;
 	}
 
-	const Cloaking GetCloaking() const {
+	const Cloaking& GetCloaking() const {
 		return _cloaking;
 	}
 	void SetCloaking(Cloaking&& cloaking) {

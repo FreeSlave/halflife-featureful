@@ -84,7 +84,7 @@ int CBaseAnimating::LookupActivity( int activity )
 		const EntTemplate* entTemplate = GetMyEntTemplate();
 		if (entTemplate)
 		{
-			const EntTemplate::ActiveRegeneration regen = entTemplate->GetActiveRegenerationRules();
+			const EntTemplate::ActiveRegeneration& regen = entTemplate->GetActiveRegenerationRules();
 			if (!regen.sequence.empty())
 			{
 				int sequence = LookupSequence(regen.sequence.c_str());
