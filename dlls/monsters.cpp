@@ -72,6 +72,25 @@ static void ReportRouteType(ALERT_TYPE level, int routeType)
 		ALERT(level, "Nearest; ");
 }
 
+LaunchToHeightResult CalcLaunchToHeight(float height)
+{
+	LaunchToHeightResult result;
+	result.height = height;
+	result.gravity = g_psv_gravity->value;
+	if (result.gravity <= 1)
+		result.gravity = 1;
+	result.time = sqrt(height * 2.0f / result.gravity);
+	result.speed = result.gravity * result.time;
+	return result;
+}
+
+static Vector TraceBottom(const Vector& pos, edict_t* pIgnore, float deepness = 500)
+{
+	TraceResult tr;
+	UTIL_TraceLine(pos, pos - Vector(0,0,deepness), ignore_monsters, pIgnore, &tr);
+	return tr.vecEndPos;
+}
+
 // Global Savedata for monster
 // UNDONE: Save schedule data?  Can this be done?  We may
 // lose our enemy pointer or other data (goal ent, target, etc)
@@ -174,6 +193,12 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_retreatSuggestionTime, FIELD_TIME ),
 
 	DEFINE_FIELD( CBaseMonster, m_procreator, FIELD_EHANDLE ),
+
+	DEFINE_FIELD( CBaseMonster, m_flNextJump, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_vecJumpVelocity, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_vecJumpTarget, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_doingRightAngleJump, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_appliedJumpVelocity, FIELD_BOOLEAN ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
@@ -3407,6 +3432,10 @@ void CBaseMonster::HandleAnimEvent( MonsterEvent_t *pEvent )
 					SetLeapAttackTouch();
 					LaunchLeapAttack();
 				}
+				else if (m_vecJumpVelocity != g_vecZero && JumpAnimationEvent() == pEvent->event)
+				{
+					MakeCurrentJump();
+				}
 				else
 				{
 					ALERT( at_aiconsole, "Unhandled animation event %d for %s\n", pEvent->event, STRING( pev->classname ) );
@@ -5341,6 +5370,519 @@ void CBaseMonster::SendDeathNotice()
 	if (pOwner)
 	{
 		pOwner->DeathNotice(pev);
+	}
+}
+
+int CBaseMonster::MyJumpHull()
+{
+	int hullType = human_hull;
+	if (pev->size.x > 32.0f)
+	{
+		hullType = large_hull;
+	}
+	else if (pev->size.z < 64.0f)
+	{
+		hullType = head_hull;
+	}
+	return hullType;
+}
+
+enum
+{
+	MONSTERJUMP_OK = 0,
+	MONSTERJUMP_CLOSE_IN_2D,
+	MONSTERJUMP_TOOFAR_SOLID,
+	MONSTERJUMP_TOOFAR_TOODEEP,
+	MONSTERJUMP_TOOHIGH,
+	MONSTERJUMP_MIDPOINT_AT_SOLID,
+	MONSTERJUMP_NO_VALID_ARCH
+};
+
+std::pair<Vector, int> CBaseMonster::CalcMonsterArchedJump(const Vector &vecTarget, float maximumHeight, float maximumDistance)
+{
+	const float myHeight = pev->size.z;
+	const float halfMyHeight = myHeight * 0.5f;
+	const Vector halfMyHeightVec(0.0f, 0.0f, halfMyHeight);
+	Vector vecChosenDest = vecTarget;
+
+	const Vector2D vec2DDist = (vecChosenDest - pev->origin).Make2D();
+	const float dist2DSqr = vec2DDist.LengthSqr();
+	const bool isTooFar = dist2DSqr > maximumDistance * maximumDistance;
+	const bool isTooCloseIn2D = dist2DSqr < 48.0f * 48.0f;
+	if (isTooCloseIn2D)
+	{
+		return std::make_pair(g_vecZero, MONSTERJUMP_CLOSE_IN_2D);
+	}
+
+	// Can't jump that far. Just jump to get closer
+	if (isTooFar)
+	{
+		const Vector2D horizontalShift = vec2DDist.Normalize() * maximumDistance;
+		vecChosenDest.x = pev->origin.x + horizontalShift.x;
+		vecChosenDest.y = pev->origin.y + horizontalShift.y;
+
+		if (UTIL_PointContents(vecChosenDest) == CONTENTS_SOLID)
+		{
+			return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_SOLID);
+		}
+
+		Vector bottom = TraceBottom(vecChosenDest, edict());
+		if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+		{
+			//DrawBeamLine(vecChosenDest, bottom, Color3(255, 100, 50));
+			const Vector2D halfHorizontalShift = horizontalShift * 0.5f;
+			vecChosenDest.x = pev->origin.x + halfHorizontalShift.x;
+			vecChosenDest.y = pev->origin.y + halfHorizontalShift.y;
+
+			if (UTIL_PointContents(vecChosenDest) == CONTENTS_SOLID)
+			{
+				return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+			}
+			else
+			{
+				bottom = TraceBottom(vecChosenDest, edict());
+				if (bottom.z + 8.0f < Q_min(pev->origin.z, vecChosenDest.z))
+				{
+					return std::make_pair(g_vecZero, MONSTERJUMP_TOOFAR_TOODEEP);
+				}
+			}
+		}
+	}
+
+	Vector midPoint = (vecChosenDest + pev->origin) * 0.5f;
+	midPoint.z = Q_max(pev->origin.z, vecChosenDest.z) + 1.0f;
+	const Vector midpointTop = midPoint + Vector(0,0, Q_max(500.0f, maximumHeight + myHeight));
+
+	TraceResult midpointTr;
+	UTIL_TraceLine(midPoint, midpointTop, ignore_monsters, edict(), &midpointTr);
+
+	if (midpointTr.fStartSolid)
+	{
+		return std::make_pair(g_vecZero, MONSTERJUMP_MIDPOINT_AT_SOLID);
+	}
+
+	//DrawBeamLine(midPoint, midpointTop, Color3(255, 255, 0));
+
+	const float ceilingZ = midpointTr.vecEndPos.z;
+
+	const float jumpMinZ = Q_max(vecChosenDest.z, pev->origin.z) + halfMyHeight * 0.5f;
+	const float jumpMaxZ = Q_max(ceilingZ - myHeight, jumpMinZ);
+
+	if (jumpMinZ - pev->origin.z > maximumHeight)
+	{
+		return std::make_pair(g_vecZero, MONSTERJUMP_TOOHIGH);
+	}
+
+	float jumpHeights[3] = {};
+	int jumpHeightsToCheck = 0;
+
+	const float jumpHighest = Q_min(pev->origin.z + maximumHeight, jumpMaxZ);
+	if (jumpMinZ + halfMyHeight <= jumpHighest)
+	{
+		jumpHeights[jumpHeightsToCheck++] = (jumpHighest + jumpMinZ) * 0.5f;
+	}
+	jumpHeights[jumpHeightsToCheck++] = jumpHighest;
+	if (jumpMinZ <= jumpHighest)
+	{
+		jumpHeights[jumpHeightsToCheck++] = jumpMinZ;
+	}
+
+	const int hullType = MyJumpHull();
+
+	for (int i=0; i<jumpHeightsToCheck; ++i)
+	{
+		Vector vecApex = midPoint;
+		vecApex.z = jumpHeights[i];
+
+		const Vector vecTraceHullStart = pev->origin + halfMyHeightVec;
+		const Vector vecTraceHullTop = vecApex + halfMyHeightVec;
+		const Vector vecTraceHullTarget = vecChosenDest + halfMyHeightVec;
+
+		TraceResult tr;
+		UTIL_TraceHull(vecTraceHullStart, vecTraceHullTop, dont_ignore_monsters, hullType, edict(), &tr);
+
+		if (!tr.fStartSolid && tr.flFraction == 1.0f)
+		{
+			// TODO: check two more intermediate points for better accuracy?
+			// Current check is triangular:
+			//      A
+			//    /  \
+			//   /    \
+			// M       T
+			// But the body will actually travel an arch:
+			//       - A -
+			//     /      \
+			//   |         |
+			//  M           T
+
+			TraceResult tr2;
+			UTIL_TraceHull(vecTraceHullTop, vecTraceHullTarget, ignore_monsters, hullType, edict(), &tr2);
+			if (!tr2.fStartSolid && tr2.flFraction == 1.0f)
+			{
+				//DrawBeamLine(vecTraceHullStart, vecTraceHullTop, Color3(0, 255, 0));
+				//DrawBeamLine(vecTraceHullTop, vecTraceHullTarget, Color3(0, 255, 0));
+
+				auto launchCalcResult = CalcLaunchToHeight(vecApex.z - pev->origin.z);
+
+				Vector velocity;
+				velocity.x = (vecApex.x - pev->origin.x) / launchCalcResult.time;
+				velocity.y = (vecApex.y - pev->origin.y) / launchCalcResult.time;
+				velocity.z = launchCalcResult.speed;
+				return std::make_pair(velocity, MONSTERJUMP_OK);
+			}
+		}
+	}
+
+	//DrawBeamLine(vecTraceHullStart, vecTraceHullTop, Color3(255, 0, 0));
+	return std::make_pair(g_vecZero, MONSTERJUMP_NO_VALID_ARCH);
+}
+
+bool CBaseMonster::FindJumpToSpot(const Vector& vecTarget)
+{
+	float maxDistance = EntTemplate::Jumping::DefaultMaxDistance;
+	float maxHeight = EntTemplate::Jumping::DefaultMaxHeight;
+
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Jumping& jumping = entTemplate->GetJumping();
+		maxDistance = jumping.maxDistance;
+		maxHeight = jumping.maxHeight;
+	}
+
+	bool aboveSpotIsUnoccupied = false;
+	bool checkedAboveSpot = false;
+
+	const float myHeight = pev->size.z;
+	const int hullType = MyJumpHull();
+
+	auto CheckAboveSpot = [&]()
+	{
+		if (checkedAboveSpot)
+			return aboveSpotIsUnoccupied;
+
+		// 2  _T_
+		// ^ |
+		// ^ |
+		// ^ |
+		// 1 |
+
+		const Vector vecTraceHullStart = pev->origin + Vector(0.0f, 0.0f, myHeight * 0.5f);
+		const Vector vecTraceHullTop = Vector(pev->origin.x, pev->origin.y, vecTarget.z + myHeight * 0.5f);
+
+		TraceResult tr;
+		UTIL_TraceHull(vecTraceHullStart, vecTraceHullTop, dont_ignore_monsters, hullType, edict(), &tr);
+
+		checkedAboveSpot = true;
+		aboveSpotIsUnoccupied = !tr.fStartSolid && tr.flFraction == 1.0f;
+		return aboveSpotIsUnoccupied;
+	};
+
+	auto CalcRightAngleJump = [this, myHeight, hullType](const Vector& vecChosenDest)
+	{
+		// 1 -> _T_
+		//   |
+		//   |
+		// 0 |
+
+		TraceResult tr;
+		const Vector vecTraceHullApex = Vector(pev->origin.x, pev->origin.y, vecChosenDest.z + myHeight * 0.5f);
+		const Vector vecTraceHullDest = vecChosenDest + Vector(0.0f, 0.0f, myHeight * 0.5f);
+		UTIL_TraceHull(vecTraceHullApex, vecTraceHullDest, ignore_monsters, hullType, edict(), &tr);
+
+		if (!tr.fStartSolid && tr.flFraction == 1.0f)
+		{
+			//DrawBeamLine(vecTraceHullApex, vecTraceHullDest, Color3(50, 255, 0));
+
+			// Launch a bit higher than the apex so the monster had time to adjust its forward velocity
+			auto launchCalcResult = CalcLaunchToHeight(vecTraceHullApex.z + myHeight * 0.5f - pev->origin.z);
+			Vector velocity{0,0,launchCalcResult.speed};
+			return optional<Vector>(velocity);
+		}
+
+		return optional<Vector>();
+	};
+
+	const float horizontalJumpDistance = maxDistance;
+
+	const Vector2D vec2DDist = (vecTarget - pev->origin).Make2D();
+	const float dist2DSqr = vec2DDist.LengthSqr();
+	const bool isTooCloseIn2D = dist2DSqr < 48.0f * 48.0f;
+
+	if (isTooCloseIn2D)
+	{
+		if (std::fabs(pev->origin.z - vecTarget.z) <= pev->size.z)
+		{
+			// Refuse early
+			//ALERT(at_console, "%s: already is close to the target\n", STRING(pev->classname));
+			return false;
+		}
+		if (pev->origin.z < vecTarget.z && CheckAboveSpot())
+		{
+			auto result = CalcRightAngleJump(vecTarget);
+			if (result.has_value())
+			{
+				SetRightAngleJump(*result, vecTarget);
+				return true;
+			}
+			return false;
+		}
+
+		// The target is underneath. Try jump off to it
+		const std::pair<float, float> directions[] = {
+			{1, 0},
+			{-1, 0},
+			{0, 1},
+			{0, -1}
+		};
+
+		const float spotOffset = Q_min(128.0f, horizontalJumpDistance);
+
+		const size_t indexShift = RANDOM_LONG(0, ARRAYSIZE(directions)-1);
+
+		for (size_t i=0; i<ARRAYSIZE(directions); ++i)
+		{
+			size_t j = (i + indexShift) % ARRAYSIZE(directions);
+			const auto& randomDir = directions[j];
+
+			Vector vecSpot = pev->origin + Vector(randomDir.first * spotOffset, randomDir.second * spotOffset, 0.0f);
+			vecSpot.z = vecTarget.z;
+
+			auto jumpResult = CalcMonsterArchedJump(vecSpot, maxHeight, horizontalJumpDistance);
+			if (jumpResult.first != g_vecZero)
+			{
+				SetArchedJump(jumpResult.first);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//TODO: calculate this depending on the monster and player geometry?
+	const FloatRange baseOffsetRange(45.0f, 50.0f); // don't jump right onto the target
+
+	const Vector2D vecTarget2D = vecTarget.Make2D();
+	const Vector2D vecToTarget = vecTarget2D - pev->origin.Make2D();
+	const Vector2D dirToTarget = vecToTarget.Normalize();
+	const Vector2D inFrontOfTarget = vecTarget2D - dirToTarget * RandomizeNumberFromRange(baseOffsetRange);
+	const Vector2D toRightFromTarget = vecTarget2D + Vector2D(dirToTarget.y, -dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
+	const Vector2D toLeftFromTarget = vecTarget2D + Vector2D(-dirToTarget.y, dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
+
+	std::pair<Vector, bool> possibleTargets[] = {
+		std::make_pair(Vector(inFrontOfTarget, vecTarget.z), false),
+		std::make_pair(Vector(toRightFromTarget, vecTarget.z), false),
+		std::make_pair(Vector(toLeftFromTarget, vecTarget.z), false)
+	};
+
+	const size_t indexShift = RANDOM_LONG(0, ARRAYSIZE(possibleTargets)-1);
+
+	for (size_t i=0; i<ARRAYSIZE(possibleTargets); ++i)
+	{
+		size_t j = (i + indexShift) % ARRAYSIZE(possibleTargets);
+
+		const Vector& vecPossibleTarget = possibleTargets[j].first;
+		const Vector bottom = TraceBottom(vecPossibleTarget, edict());
+
+		if (bottom.z + 8.0f < Q_min(pev->origin.z, vecPossibleTarget.z))
+		{
+			continue;
+		}
+		possibleTargets[j].second = true;
+
+		auto jumpResult = CalcMonsterArchedJump(vecPossibleTarget, maxHeight, horizontalJumpDistance);
+		if (jumpResult.first != g_vecZero)
+		{
+			SetArchedJump(jumpResult.first);
+			//ALERT(at_console, "%s: vertical jump velocity: %g; horizontal jump velocity: %g\n", STRING(pev->classname), m_vecJumpVelocity.z, m_vecJumpVelocity.Make2D().Length());
+			return true;
+		}
+		else
+		{
+			/*switch(jumpResult.second)
+			{
+			case MONSTERJUMP_CLOSE_IN_2D:
+				ALERT(at_console, "%s can't make jump: is already too close\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOFAR_SOLID:
+				ALERT(at_console, "%s can't make jump: the target is to far and the new selected point is in solid volume\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOFAR_TOODEEP:
+				ALERT(at_console, "%s can't make jump: new selected point is too deep\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_TOOHIGH:
+				ALERT(at_console, "%s can't make jump: too high!\n", STRING(pev->classname));
+				break;
+			case MONSTERJUMP_MIDPOINT_AT_SOLID:
+				ALERT(at_console, "%s can't make jump: midpoint is at solid!\n", STRING(pev->classname));
+				break;
+			default:
+				ALERT(at_console, "%s can't make jump: can't calculate jump\n", STRING(pev->classname));
+				break;
+			}*/
+		}
+	}
+
+	// Couldn't do an arched jump. Make a jump directly up and then forward to the target
+	if (pev->origin.z < vecTarget.z && pev->origin.z + maxHeight >= vecTarget.z && CheckAboveSpot())
+	{
+		fixed_vector<Vector, ARRAYSIZE(possibleTargets) + 1> possibleVertJumpTargets;
+		possibleVertJumpTargets.push_back(vecTarget);
+		for (const auto& target : possibleTargets)
+		{
+			if (target.second)
+			{
+				possibleVertJumpTargets.push_back(target.first);
+			}
+		}
+
+		const size_t indexShift = RANDOM_LONG(0, possibleVertJumpTargets.size()-1);
+
+		for (size_t i=0; i<possibleVertJumpTargets.size(); ++i)
+		{
+			size_t j = (i + indexShift) % possibleVertJumpTargets.size();
+
+			auto result = CalcRightAngleJump(possibleVertJumpTargets[j]);
+			if (result.has_value())
+			{
+				SetRightAngleJump(*result, possibleVertJumpTargets[j]);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CBaseMonster::FindJumpToEntity(CBaseEntity* pEntity)
+{
+	if (!pEntity)
+		return false;
+
+	const Vector vecTarget(pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->absmin.z + 1.0f);
+	return FindJumpToSpot(vecTarget);
+}
+
+bool CBaseMonster::CanJumpFreely()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Jumping& jumping = entTemplate->GetJumping();
+		if (jumping.ability.IsDefined())
+		{
+			return GetSkillValueRange(jumping.ability).min != 0.0f;
+		}
+	}
+	return CanJumpFreelyByDefault();
+}
+
+int CBaseMonster::JumpAnimationEvent()
+{
+	const EntTemplate* entTemplate = GetMyEntTemplate();
+	if (entTemplate)
+	{
+		const EntTemplate::Jumping& jumping = entTemplate->GetJumping();
+		if (jumping.animationEvent.has_value())
+		{
+			return *jumping.animationEvent;
+		}
+	}
+	return DefaultJumpAnimationEvent();
+}
+
+void CBaseMonster::SetArchedJump(const Vector& velocity)
+{
+	m_vecJumpVelocity = velocity;
+	m_vecJumpTarget = g_vecZero;
+	m_doingRightAngleJump = false;
+	m_appliedJumpVelocity = false;
+}
+
+void CBaseMonster::SetRightAngleJump(const Vector& velocity, const Vector& target)
+{
+	m_vecJumpVelocity = velocity;
+	m_vecJumpTarget = target;
+	m_doingRightAngleJump = true;
+	m_appliedJumpVelocity = false;
+}
+
+void CBaseMonster::ResetCurrentJump()
+{
+	m_vecJumpVelocity = g_vecZero;
+	m_vecJumpTarget = g_vecZero;
+	m_doingRightAngleJump = false;
+	m_appliedJumpVelocity = false;
+}
+
+void CBaseMonster::MakeCurrentJump()
+{
+	ClearBits(pev->flags, FL_ONGROUND);
+	pev->velocity = m_vecJumpVelocity;
+	m_flNextJump = gpGlobals->time + 3.0f;
+	m_appliedJumpVelocity = true;
+}
+
+void CBaseMonster::HandleJumpFallTask(const Vector* target, bool allowAttack)
+{
+	if (target)
+	{
+		MakeIdealYaw(*target);
+	}
+	ChangeYaw(pev->yaw_speed);
+
+	if (m_fSequenceFinished)
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		const EntTemplate::Jumping* jumping = entTemplate ? &entTemplate->GetJumping() : nullptr;
+
+		if (pev->velocity.z > 0)
+		{
+			const int sequence = (jumping && jumping->upSequence.has_value()) ? (jumping->upSequence->empty() ? -1 : LookupSequence(jumping->upSequence->c_str())) : DefaultJumpUpSequence();
+			if (sequence >= 0)
+			{
+				pev->sequence = sequence;
+				ResetSequenceInfo();
+			}
+		}
+		else if (HasConditions( bits_COND_SEE_ENEMY ) && allowAttack)
+		{
+			const int sequence = DefaultAttackDuringJumpSequence();
+			if (sequence >= 0)
+			{
+				pev->sequence = sequence;
+				pev->frame = 0;
+				ResetSequenceInfo();
+			}
+			else
+			{
+				const int sequence = (jumping && jumping->downSequence.has_value()) ? (jumping->downSequence->empty() ? -1 : LookupSequence(jumping->downSequence->c_str())) : DefaultJumpDownSequence();
+				if (sequence >= 0)
+				{
+					pev->sequence = sequence;
+					pev->frame = 0;
+					ResetSequenceInfo();
+				}
+			}
+		}
+		else
+		{
+			const int sequence = (jumping && jumping->downSequence.has_value()) ? (jumping->downSequence->empty() ? -1 : LookupSequence(jumping->downSequence->c_str())) : DefaultJumpDownSequence();
+			if (sequence >= 0)
+			{
+				pev->sequence = sequence;
+				pev->frame = 0;
+				ResetSequenceInfo();
+			}
+		}
+
+		SetYawSpeed();
+	}
+	if (pev->flags & FL_ONGROUND)
+	{
+		// ALERT( at_console, "on ground\n" );
+		ResetCurrentJump();
+		TaskComplete();
 	}
 }
 

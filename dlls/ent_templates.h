@@ -429,6 +429,23 @@ public:
 		optional<int> uncloakSpeed;
 	};
 
+	struct Jumping
+	{
+		static constexpr float DefaultMaxDistance = 360.0f;
+		static constexpr float DefaultMaxHeight = 160.0f;
+
+		SkillBasedValue ability;
+		float maxDistance{360.0f};
+		float maxHeight{160.0f};
+
+		optional<int> animationEvent;
+		optional<float> startFrameFraction;
+
+		optional<std::string> startSequence;
+		optional<std::string> upSequence;
+		optional<std::string> downSequence;
+	};
+
 	struct WeaponDefinition
 	{
 		optional<int> weaponBit;
@@ -742,6 +759,13 @@ public:
 		_cloaking = cloaking;
 	}
 
+	const Jumping& GetJumping() const {
+		return _jumping;
+	}
+	void SetJumping(Jumping&& jumping) {
+		_jumping = jumping;
+	}
+
 	const std::vector<WeaponDefinition>& GetWeaponDefinitions() const {
 		return _weaponsDefinitions;
 	}
@@ -812,6 +836,8 @@ private:
 	PowerShield _powerShield;
 
 	Cloaking _cloaking;
+
+	Jumping _jumping;
 
 	std::vector<WeaponDefinition> _weaponsDefinitions;
 };

@@ -122,6 +122,19 @@ void CBaseMonster::RunAI()
 		}
 
 		CheckAmmo();
+
+		if (m_appliedJumpVelocity)
+		{
+			if (m_doingRightAngleJump && pev->origin.z >= (m_vecJumpTarget.z - 16.0f))
+			{
+				const Vector2D additionalVelocity = (m_vecJumpTarget - pev->origin).Make2D().Normalize() * pev->size.x;
+				pev->velocity.x += additionalVelocity.x;
+				pev->velocity.y += additionalVelocity.y;
+			}
+
+			if (FBitSet(pev->flags, FL_ONGROUND))
+				ResetCurrentJump();
+		}
 	}
 
 	FCheckAITrigger();

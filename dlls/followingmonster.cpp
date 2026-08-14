@@ -221,6 +221,24 @@ Schedule_t slPVSIndependentFail[] =
 	},
 };
 
+Task_t tlJumpFollowing[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_JUMP, (float)0 },
+	{ TASK_FALL_TO_GROUND_FOLLOWING, (float)0 },
+};
+
+Schedule_t slJumpFollowing[] =
+{
+	{
+		tlJumpFollowing,
+		ARRAYSIZE( tlJumpFollowing ),
+		0,
+		0,
+		"JumpFollowing"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CFollowingMonster )
 {
 	slFollow,
@@ -232,6 +250,7 @@ DEFINE_CUSTOM_SCHEDULES( CFollowingMonster )
 	slMoveAwayFail,
 	slStopFollowing,
 	slPVSIndependentFail,
+	slJumpFollowing,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CFollowingMonster, CSquadMonster )
@@ -305,7 +324,20 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 	case SCHED_TARGET_REACHED:
 		return slFaceTarget;
 	case SCHED_TARGET_FACE_CHECK_JUMP:
+	{
+		if (NpcFollowNearest() && m_hTargetEnt != 0 && CanJumpFreely() && (m_hTargetEnt->pev->origin - pev->origin).IsLength2DGreaterThanOrEqual(128.0f))
+		{
+			if (m_flNextJump <= gpGlobals->time)
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				if (FindFollowJump())
+					return GetScheduleOfType(SCHED_JUMP_FOLLOWING);
+			}
+		}
 		return GetScheduleOfType(SCHED_TARGET_FACE);
+	}
+	case SCHED_JUMP_FOLLOWING:
+		return slJumpFollowing;
 	case SCHED_TARGET_CHASE:
 	case SCHED_FOLLOW:
 		return slFollow;
@@ -323,16 +355,34 @@ Schedule_t *CFollowingMonster::GetScheduleOfType( int Type )
 		else if (failPolicy == FOLLOW_FAIL_TRY_NEAREST)
 		{
 			MakeMyBlockerMoveAway();
+			if (m_flNextJump <= gpGlobals->time)
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				if (CanJumpFreely() && FindFollowJump())
+					return GetScheduleOfType(SCHED_JUMP_FOLLOWING);
+			}
 			return GetScheduleOfType(SCHED_FOLLOW_NEAREST);
 		}
 		else
 		{
 			MakeMyBlockerMoveAway();
+			if (m_flNextJump <= gpGlobals->time)
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				if (CanJumpFreely() && FindFollowJump())
+					return GetScheduleOfType(SCHED_JUMP_FOLLOWING);
+			}
 			return GetScheduleOfType(SCHED_FAIL_PVS_INDEPENDENT);
 		}
 	}
 	case SCHED_FOLLOW_NEAREST_FAILED:
 	{
+		if (m_flNextJump <= gpGlobals->time)
+		{
+			m_flNextJump = gpGlobals->time + 0.5f;
+			if (CanJumpFreely() && FindFollowJump())
+				return GetScheduleOfType(SCHED_JUMP_FOLLOWING);
+		}
 		if (m_hTargetEnt != 0 && FVisible(m_hTargetEnt))
 		{
 			if (RANDOM_LONG(0, 1) == 1)
@@ -494,6 +544,8 @@ void CFollowingMonster::StartTask( Task_t *pTask )
 		StopFollowing( false, false );
 		TaskComplete();
 		break;
+	case TASK_FALL_TO_GROUND_FOLLOWING:
+		break;
 	default:
 		CSquadMonster::StartTask( pTask );
 		break;
@@ -546,6 +598,21 @@ void CFollowingMonster::RunTask( Task_t *pTask )
 			else
 			{
 				CSquadMonster::RunTask( pTask );
+			}
+		}
+		break;
+	case TASK_FALL_TO_GROUND_FOLLOWING:
+		{
+			Vector vecTarget;
+			CBaseEntity* pLeader = FollowedPlayer();
+			if (pLeader)
+			{
+				vecTarget = pLeader->pev->origin;
+				HandleJumpFallTask(&vecTarget, false);
+			}
+			else
+			{
+				HandleJumpFallTask(nullptr, false);
 			}
 		}
 		break;
@@ -915,6 +982,11 @@ bool CFollowingMonster::IsUsefulToDisplayHint(CBaseEntity* pPlayer)
 	if (m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY || m_followagePolicy == FOLLOWAGE_SCRIPTED_ONLY_DECLINE_USE)
 		return false;
 	return true;
+}
+
+bool CFollowingMonster::FindFollowJump()
+{
+	return FindJumpToEntity(FollowedPlayer());
 }
 
 bool CFollowingMonster::SomeoneIsTalking()

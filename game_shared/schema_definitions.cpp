@@ -1510,6 +1510,44 @@ R"(
 				"dependencies": {
 					"uncloak_when": { "not": { "required": ["cloak_when"] } }
 				}
+			},
+			"jumping": {
+				"type": "object",
+				"properties": {
+					"ability": {
+						"$ref": "#/skill_value_non_negative"
+					},
+					"max_distance": {
+						"type": "number",
+						"minimum": 1
+					},
+					"max_height": {
+						"type": "number",
+						"minimum": 1
+					},
+					"animation_event": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"start_frame_fraction": {
+						"type": "number",
+						"minimum": 0,
+						"exclusiveMaximum": 1
+					},
+					"start_sequence": {
+						"type": "string"
+					},
+					"up_sequence": {
+						"type": "string"
+					},
+					"down_sequence": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false,
+				"dependencies": {
+					"start_frame_fraction": { "not": { "required": ["animation_event"] } }
+				}
 			}
 		},
 		"additionalProperties": false,

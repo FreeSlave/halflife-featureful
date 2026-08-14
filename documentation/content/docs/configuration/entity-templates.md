@@ -1882,6 +1882,44 @@ In this example we make the templates for zombie and headcrab:
 ```
 {{% /details %}}
 
+### jumping
+
+Jumping ability for monsters. Monsters can use jumps when chasing an enemy or when following the ally player.
+
+Properties:
+
+* `"ability"` - a [skill based value](#skill-based-value). Non-zero values mean the monster can use jumping. This allows to make this ability dependent on the difficulty level. Set it just to `1` in case you want the ability to be available on any difficulty level. Currently the only monster who can use jumping ability by default is [monster_human_assassin]({{< ref monster_human_assassin >}}) (on all difficulty levels).
+* `"max_distance"` - maximum horizontal distance the monster can travel by a single jump. Default value is 360.
+* `"max_height"` - maximum height the monster can reach with a jump. Default value is 160.
+* `"start_sequence"` - the name of the jump animation sequence to use. Ideally the animation shouldn't displace the model (in the editor it should look like the monster is playing the jump animation while staying in the same place). The animation definitely should not include forward/backward/side motion. If this is not defined the monster will play its idle animation or its default jump animation (currently only [monster_human_assassin]({{< ref monster_human_assassin >}}) uses jump animation by default).
+* `"animation_event"` - the id of animation event that applies the pre-calculated jump velocity to the monster. This must be a unique animation event id that is not used by a monster for any other purpose. This event must be defined on the sequence referenced by `"start_sequence"` property.
+* `"start_frame_fraction"` - a fraction of animation where to apply the pre-calculated jump velocity to the monster. This must be the value between 0 and 1. This is an alternative to `"animation_event"` (these properties can't be defined together), for cases when editing the model events is not an option.
+
+{{% details title="Example" %}}
+
+In this example we set the jumping ability for [monster_alien_slave]({{< ref monster_alien_slave >}}) and [monster_houndeye]({{< ref monster_houndeye >}}) on all difficulties. Note: the `jump` animation in the default **models/islave.mdl** features some vertical motion by itself, so this sequence serves here just as an example.
+
+```json
+{
+    "monster_alien_slave": {
+        "jumping": {
+            "ability": 1,
+            "start_sequence": "jump",
+            "start_frame_fraction": 0.25
+        }
+    },
+    "monster_houndeye": {
+        "jumping": {
+            "ability": 1,
+            "start_sequence": "madidle2",
+            "start_frame_fraction": 0.1
+        }
+    }
+}
+```
+
+{{% /details %}}
+
 ## Inheriting templates
 
 Entity templates can be derived from another entity template. Let's say you defined a custom template for a vortigaunt (`monster_alien_slave`), with different visuals, for example. And now you want to define more templates for vortigaunts with the same custom visuals and some additional changes (e.g. a different model or even more custom visuals). Without inheritance you would need to copy the defined properties into the new template and then extend the template with new properties. This is far from ideal, as in case you wanted to change some property value, you would have to go through all the templates and change the value in each instance. This is where the template inheritance comes in handy.

@@ -1686,6 +1686,27 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetCloaking(std::move(cloaking));
 	});
 
+	HandleJSONMember(value, "jumping", [&entTemplate](const Value& value) {
+		EntTemplate::Jumping jumping = entTemplate.GetJumping();
+
+		UpdatePropertyFromJson(jumping.ability, value, "ability");
+		UpdatePropertyFromJson(jumping.maxDistance, value, "max_distance");
+		UpdatePropertyFromJson(jumping.maxHeight, value, "max_height");
+		if (UpdatePropertyFromJson(jumping.animationEvent, value, "animation_event"))
+		{
+			jumping.startFrameFraction.reset();
+		}
+		if (UpdatePropertyFromJson(jumping.startFrameFraction, value, "start_frame_fraction"))
+		{
+			jumping.animationEvent = -1;
+		}
+		UpdatePropertyFromJson(jumping.startSequence, value, "start_sequence");
+		UpdatePropertyFromJson(jumping.upSequence, value, "up_sequence");
+		UpdatePropertyFromJson(jumping.downSequence, value, "down_sequence");
+
+		entTemplate.SetJumping(std::move(jumping));
+	});
+
 	HandleJSONMember(value, "primary_weapon", [&entTemplate](const Value& value) {
 		std::vector<EntTemplate::WeaponDefinition> weapons;
 

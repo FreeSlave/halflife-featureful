@@ -1466,6 +1466,24 @@ Schedule_t slRepelLandAndMove[] =
 	},
 };
 
+Task_t tlJumpChase[] =
+{
+	{ TASK_STOP_MOVING, (float)0 },
+	{ TASK_JUMP, (float)0 },
+	{ TASK_FALL_TO_GROUND, (float)0 },
+};
+
+Schedule_t slJumpChase[] =
+{
+	{
+		tlJumpChase,
+		ARRAYSIZE( tlJumpChase ),
+		0,
+		0,
+		"JumpChase"
+	},
+};
+
 Schedule_t *CBaseMonster::m_scheduleList[] =
 {
 	slIdleStand,
@@ -1522,6 +1540,7 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slRegen,
 	slRepelLand,
 	slRepelLandAndMove,
+	slJumpChase,
 	slFail,
 	slCombatFail
 };
@@ -1660,6 +1679,12 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 		}
 	case SCHED_CHASE_ENEMY_FAILED:
 		{
+			if (m_flNextJump <= gpGlobals->time)
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				if (CanJumpFreely() && FindJumpToEntity(m_hEnemy))
+					return GetScheduleOfType(SCHED_JUMP_CHASE);
+			}
 			return GetScheduleOfType(SCHED_FAIL);
 		}
 	case SCHED_SMALL_FLINCH:
@@ -1811,6 +1836,10 @@ Schedule_t* CBaseMonster::GetScheduleOfType( int Type )
 				return slRepelLandAndMove;
 			else
 				return slRepelLand;
+		}
+	case SCHED_JUMP_CHASE:
+		{
+			return slJumpChase;
 		}
 	default:
 		{

@@ -631,6 +631,12 @@ Schedule_t *CSquadMonster::GetScheduleOfType( int iType )
 	{
 	case SCHED_CHASE_ENEMY_FAILED:
 		{
+			if (m_flNextJump <= gpGlobals->time)
+			{
+				m_flNextJump = gpGlobals->time + 0.5f;
+				if (CanJumpFreely() && FindJumpToEntity(m_hEnemy))
+					return GetScheduleOfType(SCHED_JUMP_CHASE);
+			}
 			return &slChaseEnemyFailed[0];
 		}
 	default:

@@ -126,4 +126,24 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
 ```
 {{% /tab %}}
 
+{{% tab "Jumping" %}}
+
+Let pitdrones jump freely using the [jumping]({{< ref "entity-templates/#jumping" >}}) property.
+
+Note: the `jump` animation in the default **models/pit_drone.mdl** features some vertical motion by itself and also sets the vertical velocity via the animation event. So ideally it should be changed to a different animation; this is just an example.
+
+```json
+{
+    "monster_pitdrone": {
+        "jumping": {
+            "ability": 1,
+            "start_sequence": "jump",
+            "start_frame_fraction": 0.25
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
 {{% /tabs %}}

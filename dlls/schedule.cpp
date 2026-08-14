@@ -844,6 +844,58 @@ void CBaseMonster::RunTask( Task_t *pTask )
 			}
 			break;
 		}
+	case TASK_JUMP:
+		{
+			int jumpAnimationEvent = -1;
+			float frameFraction = -1.0f;
+			const EntTemplate* entTemplate = GetMyEntTemplate();
+			if (entTemplate)
+			{
+				const EntTemplate::Jumping& jumping = entTemplate->GetJumping();
+				if (jumping.startFrameFraction.has_value())
+				{
+					frameFraction = *jumping.startFrameFraction;
+				}
+				else
+				{
+					if (jumping.animationEvent.has_value())
+					{
+						jumpAnimationEvent = *jumping.animationEvent;
+					}
+					else
+					{
+						jumpAnimationEvent = DefaultJumpAnimationEvent();
+					}
+
+					if (jumpAnimationEvent == -1)
+					{
+						frameFraction = 0.0f;
+					}
+				}
+			}
+			if (frameFraction >= 0.0f)
+			{
+				if (pev->frame / 255.0f >= frameFraction || m_fSequenceFinished)
+				{
+					MakeCurrentJump();
+					TaskComplete();
+				}
+			}
+			else
+			{
+				if (m_fSequenceFinished)
+				{
+					TaskComplete();
+				}
+			}
+			break;
+		}
+	case TASK_FALL_TO_GROUND:
+		{
+			const Vector vecTarget = m_vecEnemyLKP;
+			HandleJumpFallTask(&vecTarget, m_hEnemy != 0);
+			break;
+		}
 	}
 }
 
@@ -2026,6 +2078,15 @@ void CBaseMonster::StartTask( Task_t *pTask )
 	case TASK_REGENERATION:
 		{
 			m_IdealActivity = ACT_REGEN;
+			break;
+		}
+	case TASK_JUMP:
+		{
+			m_IdealActivity = ACT_JUMP;
+			break;
+		}
+	case TASK_FALL_TO_GROUND:
+		{
 			break;
 		}
 	default:

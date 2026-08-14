@@ -70,3 +70,28 @@ Note: when customizing the wave color you usually want to configure it for each 
 * `5` - play **HoundEye.Anger2** soundscript.
 * `6` - jump back.
 * `7` - set model skin to value 2 if blinking is allowed at the moment.
+
+### Entity template examples
+
+{{% tabs %}}
+
+{{% tab "Jumping" %}}
+
+Let houndeyes jump freely using the [jumping]({{< ref "entity-templates/#jumping" >}}) property.
+
+```json
+{
+    "monster_houndeye": {
+        "jumping": {
+            "ability": 1,
+            "start_sequence": "madidle2",
+            "start_frame_fraction": 0.1
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
+{{% /tabs %}}
+

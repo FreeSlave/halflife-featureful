@@ -19,6 +19,7 @@ enum
 	SCHED_FOLLOW_CAUTIOUS,
 	SCHED_FAIL_PVS_INDEPENDENT,
 	SCHED_FOLLOW_NEAREST_FAILED,
+	SCHED_JUMP_FOLLOWING,
 
 	LAST_FOLLOWINGMONSTER_SCHEDULE		// MUST be last
 };
@@ -32,6 +33,7 @@ enum
 	TASK_FACE_PLAYER,		// Face the player
 	TASK_GET_NEAREST_PATH_TO_TARGET, // Find path to the nearest node to target
 	TASK_CANT_FOLLOW,
+	TASK_FALL_TO_GROUND_FOLLOWING,
 
 	LAST_FOLLOWINGMONSTER_TASK			// MUST be last
 };
@@ -143,6 +145,8 @@ public:
 
 	bool CanRoamAfterCombat() override;
 	bool IsUsefulToDisplayHint(CBaseEntity* pPlayer) override;
+
+	bool FindFollowJump();
 
 	int		Save( CSave &save ) override;
 	int		Restore( CRestore &restore ) override;

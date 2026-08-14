@@ -348,4 +348,24 @@ The [check melee]({{< ref "entity-templates/#check_melee_attack1" >}}) rules and
 ```
 {{% /tab %}}
 
+{{% tab "Jumping" %}}
+
+Let vortigaunts jump freely using the [jumping]({{< ref "entity-templates/#jumping" >}}) property.
+
+Note: the `jump` animation in the default **models/islave.mdl** features some vertical motion by itself. So ideally it should be changed to a different animation; this is just an example.
+
+```json
+{
+    "monster_alien_slave": {
+        "jumping": {
+            "ability": 1,
+            "start_sequence": "jump",
+            "start_frame_fraction": 0.25
+        }
+    }
+}
+```
+
+{{% /tab %}}
+
 {{% /tabs %}}

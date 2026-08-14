@@ -73,6 +73,16 @@ struct LeapAttackImpactParams
 	bool slowAfter{false};
 };
 
+struct LaunchToHeightResult
+{
+	float height;
+	float gravity;
+	float time;
+	float speed;
+};
+
+LaunchToHeightResult CalcLaunchToHeight(float height);
+
 //
 // generic Monster
 //
@@ -553,6 +563,23 @@ public:
 
 	void SendDeathNotice();
 
+	int MyJumpHull();
+	std::pair<Vector, int> CalcMonsterArchedJump(const Vector& vecTarget, float maximumHeight, float maximumDistance);
+	bool FindJumpToSpot(const Vector& vecTarget);
+	bool FindJumpToEntity(CBaseEntity* pEntity);
+	virtual bool CanJumpFreelyByDefault() { return false; }
+	bool CanJumpFreely();
+	virtual int DefaultJumpUpSequence() { return -1; }
+	virtual int DefaultJumpDownSequence() { return -1; }
+	virtual int DefaultAttackDuringJumpSequence() { return -1; }
+	virtual int DefaultJumpAnimationEvent() { return -1; }
+	int JumpAnimationEvent();
+	void SetArchedJump(const Vector& velocity);
+	void SetRightAngleJump(const Vector& velocity, const Vector& target);
+	void ResetCurrentJump();
+	void MakeCurrentJump();
+	void HandleJumpFallTask(const Vector* target, bool allowAttack);
+
 	float m_nextPatrolPathCheck;
 
 	// Custom hull sizes
@@ -593,6 +620,12 @@ public:
 	float m_retreatSuggestionTime;
 
 	EHANDLE m_procreator;
+
+	float m_flNextJump;
+	Vector m_vecJumpVelocity;
+	Vector m_vecJumpTarget;
+	bool m_doingRightAngleJump;
+	bool m_appliedJumpVelocity;
 
 	const char* taskFailReason;
 };

@@ -94,6 +94,26 @@ int CBaseAnimating::LookupActivity( int activity )
 		}
 		return LookupRegenerationActivity();
 	}
+	else if (activity == ACT_JUMP)
+	{
+		const EntTemplate* entTemplate = GetMyEntTemplate();
+		if (entTemplate)
+		{
+			const EntTemplate::Jumping& jumping = entTemplate->GetJumping();
+			if (jumping.startSequence.has_value())
+			{
+				if (jumping.startSequence->empty())
+				{
+					return CBaseAnimating::LookupJumpActivity();
+				}
+				else
+				{
+					return LookupSequence(jumping.startSequence->c_str());
+				}
+			}
+		}
+		return LookupJumpActivity();
+	}
 
 	return ::LookupActivity( pmodel, pev, activity );
 }

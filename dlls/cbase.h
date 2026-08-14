@@ -852,6 +852,7 @@ public:
 	int GetSequenceFlags();
 	virtual int LookupActivity( int activity );
 	virtual int LookupRegenerationActivity() { return LookupActivity(ACT_IDLE); }
+	virtual int LookupJumpActivity() { return LookupActivity(ACT_IDLE); }
 	int LookupActivityHeaviest( int activity );
 	int LookupSequence( const char *label );
 	void ResetSequenceInfo();
