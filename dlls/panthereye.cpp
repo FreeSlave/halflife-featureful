@@ -2,7 +2,7 @@
 #include	"util.h"
 #include	"cbase.h"
 #include	"monsters.h"
-#include	"squadmonster.h"
+#include	"followingmonster.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"clamp.h"
@@ -34,7 +34,7 @@ Schedule_t slPantherRangeAttack1[] =
 	},
 };
 
-class CPantherEye : public CSquadMonster
+class CPantherEye : public CFollowingMonster
 {
 public:
 	void Spawn() override;
@@ -45,6 +45,7 @@ public:
 	const char* DefaultDisplayName() override { return "Panthereye"; }
 
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	Schedule_t* GetSchedule() override;
 	Schedule_t* GetScheduleOfType(int Type) override;
 	void OnChangeSchedule(Schedule_t *pNewSchedule) override;
 	void StartTask(Task_t *pTask) override;
@@ -74,6 +75,13 @@ public:
 		EmitSoundScript(attackHitSoundScript);
 	}
 
+	void PlayUseSentence() override {
+		EmitSoundScript(useSoundScript);
+	}
+	void PlayUnUseSentence() override {
+		EmitSoundScript(unuseSoundScript);
+	}
+
 	bool CheckMeleeAttack1( float flDot, float flDist ) override;
 	bool CheckMeleeAttack2( float flDot, float flDist ) override {return false;}
 	bool CheckRangeAttack1( float flDot, float flDist ) override;
@@ -96,6 +104,9 @@ public:
 	static const NamedSoundScript dieSoundScript;
 	static const NamedSoundScript attackSoundScript;
 	static constexpr const char* leapAttackSoundScript = "PantherEye.LeapAttack";
+
+	static constexpr const char* useSoundScript = "PantherEye.Use";
+	static constexpr const char* unuseSoundScript = "PantherEye.UnUse";
 
 	void IdleSound() override {
 		EmitSoundScript(idleSoundScript);
@@ -175,7 +186,7 @@ void CPantherEye::Spawn()
 	m_MonsterState = MONSTERSTATE_NONE;
 	SetMySquadCapabilities(bits_CAP_SQUAD|bits_CAP_SQUAD_SAME_CLASSNAME);
 
-	MonsterInit();
+	FollowingMonsterInit();
 }
 
 void CPantherEye::Precache()
@@ -192,6 +203,9 @@ void CPantherEye::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(leapAttackSoundScript, attackSoundScript);
+
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 }
 
 bool CPantherEye::CheckMeleeAttack1 ( float flDot, float flDist )
@@ -272,9 +286,26 @@ void CPantherEye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 		}
 	default:
-		CSquadMonster::HandleAnimEvent(pEvent);
+		CFollowingMonster::HandleAnimEvent(pEvent);
 		break;
 	}
+}
+
+Schedule_t* CPantherEye::GetSchedule()
+{
+	switch (m_MonsterState)
+	{
+	case MONSTERSTATE_IDLE:
+	case MONSTERSTATE_ALERT:
+	{
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
+	}
+	default:
+		break;
+	}
+	return CFollowingMonster::GetSchedule();
 }
 
 Schedule_t* CPantherEye::GetScheduleOfType(int Type)
@@ -282,7 +313,7 @@ Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 	if (Type == SCHED_CHASE_ENEMY_FAILED)
 	{
 		if (HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
-			return CSquadMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
+			return CFollowingMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
 		else if (m_flNextAttack <= gpGlobals->time && !HasConditions(bits_COND_ENEMY_OCCLUDED))
 			return slPantherRangeAttack1;
 
@@ -291,18 +322,18 @@ Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 	{
 		return slPantherRangeAttack1;
 	}
-	return CSquadMonster::GetScheduleOfType(Type);
+	return CFollowingMonster::GetScheduleOfType(Type);
 }
 
 void CPantherEye::OnChangeSchedule(Schedule_t *pNewSchedule)
 {
-	CSquadMonster::OnChangeSchedule(pNewSchedule);
+	CFollowingMonster::OnChangeSchedule(pNewSchedule);
 	m_leaping = false;
 }
 
 void CPantherEye::StartTask(Task_t *pTask)
 {
-	CSquadMonster::StartTask(pTask);
+	CFollowingMonster::StartTask(pTask);
 
 	if (pTask->iTask == TASK_RANGE_ATTACK1)
 	{
@@ -313,7 +344,7 @@ void CPantherEye::StartTask(Task_t *pTask)
 
 void CPantherEye::RunTask(Task_t *pTask)
 {
-	CSquadMonster::RunTask(pTask);
+	CFollowingMonster::RunTask(pTask);
 
 	if (pTask->iTask == TASK_RANGE_ATTACK1)
 	{

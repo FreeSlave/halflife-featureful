@@ -30,6 +30,8 @@ Baby version of [monster_alien_voltigore]({{< ref monster_alien_voltigore >}}). 
 * **BabyVoltigore.Attack** - starting melee attack.
 * **BabyVoltigore.AttackHit** - melee attack hit. Derived from **NPC.AttackHit** with increased pitch.
 * **BabyVoltigore.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss** with increased pitch.
+* **BabyVoltigore.Use** - start following the ally player. Derived from **BabyVoltigore.Idle**
+* **BabyVoltigore.UnUse** - stop following the ally player. Derived from **BabyVoltigore.Alert**
 
 ### Entity template examples
 

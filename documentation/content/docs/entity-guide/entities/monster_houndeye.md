@@ -43,6 +43,8 @@ bookToC: false
 * **HoundEye.Sonic** - sonic blast.
 * **HoundEye.Anger1** - played on event 4 in the `madidle` sequence.
 * **HoundEye.Anger2** - played on event 5 in the `madidle` sequence.
+* **HoundEye.Use** - start following the ally player. Derived from **HoundEye.Idle**
+* **HoundEye.UnUse** - stop following the ally player. Derived from **HoundEye.Alert**
 
 ### Visuals
 

@@ -1395,6 +1395,7 @@ void CTalkMonster::TalkMonsterInit()
 	if (IsFriendWithPlayerBeforeProvoked()) {
 		m_afCapability |= bits_CAP_USABLE;
 		SetUse( &CTalkMonster::FollowerUse );
+		SetTouch( &CFollowingMonster::FollowerTouch );
 	}
 }
 

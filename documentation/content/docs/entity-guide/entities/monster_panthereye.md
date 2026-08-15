@@ -30,6 +30,8 @@ An alien creature cut from Half-Life.
 * **PantherEye.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **PantherEye.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
 * **PantherEye.LeapAttack** - leap attack. Derived from **PantherEye.Attack**
+* **PantherEye.Use** - start following the ally player. Derived from **PantherEye.Idle**
+* **PantherEye.UnUse** - stop following the ally player. Derived from **PantherEye.Alert**
 
 ### Attacks
 

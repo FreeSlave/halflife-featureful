@@ -255,7 +255,7 @@ DEFINE_CUSTOM_SCHEDULES( CFollowingMonster )
 
 IMPLEMENT_CUSTOM_SCHEDULES( CFollowingMonster, CSquadMonster )
 
-void CFollowingMonster::Touch( CBaseEntity *pOther )
+void CFollowingMonster::FollowerTouch( CBaseEntity *pOther )
 {
 	// Did the player touch me?
 	if( pOther->IsPlayer() )
@@ -648,6 +648,7 @@ void CFollowingMonster::FollowingMonsterInit()
 	if (IDefaultRelationship(CLASS_PLAYER) == R_AL) {
 		m_afCapability |= bits_CAP_USABLE;
 		SetUse( &CFollowingMonster::FollowerUse );
+		SetTouch( &CFollowingMonster::FollowerTouch );
 	}
 }
 

@@ -24,7 +24,7 @@
 #include	"schedule.h"
 #include	"animation.h"
 #include	"nodes.h"
-#include	"squadmonster.h"
+#include	"followingmonster.h"
 #include	"soundent.h"
 #include	"game.h"
 #include	"visuals_utils.h"
@@ -68,7 +68,7 @@ enum
 //=========================================================
 enum
 {
-	TASK_HOUND_CLOSE_EYE = LAST_COMMON_TASK + 1,
+	TASK_HOUND_CLOSE_EYE = LAST_FOLLOWINGMONSTER_TASK + 1,
 	TASK_HOUND_OPEN_EYE,
 	TASK_HOUND_THREAT_DISPLAY,
 	TASK_HOUND_FALL_ASLEEP,
@@ -82,7 +82,7 @@ enum
 //=========================================================
 enum
 {
-	SCHED_HOUND_AGITATED = LAST_COMMON_SCHEDULE + 1,
+	SCHED_HOUND_AGITATED = LAST_FOLLOWINGMONSTER_SCHEDULE + 1,
 	SCHED_HOUND_HOP_RETREAT,
 	SCHED_HOUND_FAIL,
 	SCHED_HOUND_EAT,
@@ -100,7 +100,7 @@ enum
 #define		HOUND_AE_HOPBACK		6
 #define		HOUND_AE_CLOSE_EYE		7
 
-class CHoundeye : public CSquadMonster
+class CHoundeye : public CFollowingMonster
 {
 public:
 	void Spawn() override;
@@ -115,6 +115,8 @@ public:
 	void WarnSound();
 	void PainSound() override;
 	void IdleSound() override;
+	void PlayUseSentence() override;
+	void PlayUnUseSentence() override;
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
 	void SonicAttack();
@@ -133,6 +135,7 @@ public:
 	int DefaultISoundMask() override;
 	float HearingSensitivity() override;
 	bool FInViewCone( CBaseEntity *pEntity ) override;
+	void ReportAIState(ALERT_TYPE level) override;
 	void EXPORT TouchSleeping( CBaseEntity* pToucher );
 	void EXPORT UseSleeping( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
@@ -162,6 +165,9 @@ public:
 	static const NamedSoundScript anger1SoundScript;
 	static const NamedSoundScript anger2SoundScript;
 
+	static constexpr const char* useSoundScript = "HoundEye.Use";
+	static constexpr const char* unuseSoundScript = "HoundEye.UnUse";
+
 	static const NamedVisual waveVisual;
 	static const NamedVisual wave1Visual;
 	static const NamedVisual wave2Visual;
@@ -179,7 +185,7 @@ TYPEDESCRIPTION	CHoundeye::m_SaveData[] =
 	DEFINE_FIELD( CHoundeye, m_vecPackCenter, FIELD_POSITION_VECTOR ),
 };
 
-IMPLEMENT_SAVERESTORE( CHoundeye, CSquadMonster )
+IMPLEMENT_SAVERESTORE( CHoundeye, CFollowingMonster )
 
 const NamedSoundScript CHoundeye::idleSoundScript = {
 	CHAN_VOICE,
@@ -381,7 +387,7 @@ int CHoundeye::LookupActivity(int activity)
 		if (sequence != ACTIVITY_NOT_AVAILABLE)
 			return sequence;
 	}
-	return CSquadMonster::LookupActivity(activity);
+	return CFollowingMonster::LookupActivity(activity);
 }
 
 void CHoundeye::SetActivity( Activity NewActivity )
@@ -389,7 +395,7 @@ void CHoundeye::SetActivity( Activity NewActivity )
 	if( NewActivity == m_Activity )
 		return;
 
-	CSquadMonster::SetActivity( NewActivity );
+	CFollowingMonster::SetActivity( NewActivity );
 }
 
 //=========================================================
@@ -435,7 +441,7 @@ void CHoundeye::HandleAnimEvent( MonsterEvent_t *pEvent )
 			}
 			break;
 		default:
-			CSquadMonster::HandleAnimEvent( pEvent );
+			CFollowingMonster::HandleAnimEvent( pEvent );
 			break;
 	}
 }
@@ -463,7 +469,7 @@ void CHoundeye::Spawn()
 	SetMySquadCapabilities(bits_CAP_SQUAD|bits_CAP_SQUAD_SAME_CLASSNAME);
 	SetMyCanOpenDoors(false);
 
-	MonsterInit();
+	FollowingMonsterInit();
 }
 
 //=========================================================
@@ -484,6 +490,9 @@ void CHoundeye::Precache()
 
 	RegisterAndPrecacheSoundScript(anger1SoundScript);
 	RegisterAndPrecacheSoundScript(anger2SoundScript);
+
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 
 	RegisterVisual(waveVisual);
 	RegisterVisual(wave1Visual);
@@ -621,6 +630,7 @@ void CHoundeye::StartTask( Task_t *pTask )
 			if (FBitSet(pev->spawnflags, SF_HOUNDEYE_START_SLEEPING))
 			{
 				ClearBits(pev->spawnflags, SF_HOUNDEYE_START_SLEEPING);
+				ClearBits(m_afCapability, bits_CAP_USABLE);
 				SetTouch(&CHoundeye::TouchSleeping);
 				SetUse(&CHoundeye::UseSleeping);
 				m_iAsleep = HOUNDEYE_DEEP_SLEEPING;
@@ -712,7 +722,7 @@ void CHoundeye::StartTask( Task_t *pTask )
 		}
 	default: 
 		{
-			CSquadMonster::StartTask( pTask );
+			CFollowingMonster::StartTask( pTask );
 			break;
 		}
 	}
@@ -785,7 +795,7 @@ void CHoundeye::RunTask( Task_t *pTask )
 		}
 	default:
 		{
-			CSquadMonster::RunTask( pTask );
+			CFollowingMonster::RunTask( pTask );
 			break;
 		}
 	}
@@ -855,7 +865,7 @@ void CHoundeye::Activate()
 	{
 		SetBits(pev->spawnflags, SF_HOUNDEYE_START_SLEEPING);
 	}
-	CSquadMonster::Activate();
+	CFollowingMonster::Activate();
 }
 
 //=========================================================
@@ -1200,7 +1210,7 @@ DEFINE_CUSTOM_SCHEDULES( CHoundeye )
 	slHoundCombatFailNoPVS,
 };
 
-IMPLEMENT_CUSTOM_SCHEDULES( CHoundeye, CSquadMonster )
+IMPLEMENT_CUSTOM_SCHEDULES( CHoundeye, CFollowingMonster )
 
 //=========================================================
 // GetScheduleOfType 
@@ -1271,7 +1281,7 @@ Schedule_t *CHoundeye::GetScheduleOfType( int Type )
 			}
 			else
 			{
-				return CSquadMonster::GetScheduleOfType( Type );
+				return CFollowingMonster::GetScheduleOfType( Type );
 			}
 		}
 	case SCHED_RANGE_ATTACK1:
@@ -1319,7 +1329,7 @@ Schedule_t *CHoundeye::GetScheduleOfType( int Type )
 			}
 			else
 			{
-				return CSquadMonster::GetScheduleOfType( Type );
+				return CFollowingMonster::GetScheduleOfType( Type );
 			}
 		}
 	case SCHED_HOUND_EAT:
@@ -1332,7 +1342,7 @@ Schedule_t *CHoundeye::GetScheduleOfType( int Type )
 		}
 	default:
 		{
-			return CSquadMonster::GetScheduleOfType( Type );
+			return CFollowingMonster::GetScheduleOfType( Type );
 		}
 	}
 }
@@ -1344,6 +1354,13 @@ Schedule_t *CHoundeye::GetSchedule()
 {
 	switch( m_MonsterState )
 	{
+	case MONSTERSTATE_IDLE:
+		{
+			Schedule_t* utilitySchedule = GetUtilitySchedule();
+			if (utilitySchedule)
+				return utilitySchedule;
+			break;
+		}
 	case MONSTERSTATE_COMBAT:
 		{
 			// dead enemy
@@ -1387,6 +1404,10 @@ Schedule_t *CHoundeye::GetSchedule()
 		}
 	case MONSTERSTATE_ALERT:
 		{
+			Schedule_t* regenSchedule = GetRegenerationSchedule();
+			if (regenSchedule)
+				return regenSchedule;
+
 			if( HasConditions( bits_COND_SMELL_FOOD ) )
 			{
 				CSound *pSound = PBestScent();
@@ -1395,13 +1416,18 @@ Schedule_t *CHoundeye::GetSchedule()
 					return GetScheduleOfType( SCHED_HOUND_EAT );
 				}
 			}
+
+			Schedule_t* followingSchedule = GetFollowingSchedule();
+			if (followingSchedule)
+				return followingSchedule;
+
 			break;
 		}
 	default:
 			break;
 	}
 
-	return CSquadMonster::GetSchedule();
+	return CFollowingMonster::GetSchedule();
 }
 
 int CHoundeye::IgnoreConditions()
@@ -1434,14 +1460,14 @@ float CHoundeye::HearingSensitivity()
 {
 	if (m_iAsleep == HOUNDEYE_DEEP_SLEEPING)
 		return 0.6;
-	return CSquadMonster::HearingSensitivity();
+	return CFollowingMonster::HearingSensitivity();
 }
 
 bool CHoundeye::FInViewCone(CBaseEntity *pEntity)
 {
 	if (m_iAsleep == HOUNDEYE_DEEP_SLEEPING)
 		return false;
-	return CSquadMonster::FInViewCone(pEntity);
+	return CFollowingMonster::FInViewCone(pEntity);
 }
 
 void CHoundeye::TouchSleeping(CBaseEntity *pToucher)
@@ -1454,8 +1480,16 @@ void CHoundeye::TouchSleeping(CBaseEntity *pToucher)
 			m_iAsleep = HOUNDEYE_FORCE_URGENT_WAKING;
 			MakeIdealYaw( pToucher->pev->origin );
 		}
-		SetTouch(NULL);
-		SetUse( &CBaseMonster::MonsterUse );
+		if (IDefaultRelationship(CLASS_PLAYER) == R_AL) {
+			m_afCapability |= bits_CAP_USABLE;
+			SetUse( &CFollowingMonster::FollowerUse );
+			SetTouch( &CFollowingMonster::FollowerTouch );
+		}
+		else
+		{
+			SetTouch(NULL);
+			SetUse( &CBaseMonster::MonsterUse );
+		}
 	}
 }
 
@@ -1466,8 +1500,80 @@ void CHoundeye::UseSleeping(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 		ClearSchedule();
 		m_iAsleep = useType == USE_ON ? HOUNDEYE_FORCE_URGENT_WAKING : HOUNDEYE_FORCE_LAZY_WAKING;
 	}
-	SetTouch(NULL);
-	SetUse( &CBaseMonster::MonsterUse );
+
+	if (IDefaultRelationship(CLASS_PLAYER) == R_AL) {
+		m_afCapability |= bits_CAP_USABLE;
+		SetUse( &CFollowingMonster::FollowerUse );
+		SetTouch( &CFollowingMonster::FollowerTouch );
+	}
+	else
+	{
+		SetTouch(NULL);
+		SetUse( &CBaseMonster::MonsterUse );
+	}
+}
+
+void CHoundeye::PlayUseSentence()
+{
+	EmitSoundScript(useSoundScript);
+}
+
+void CHoundeye::PlayUnUseSentence()
+{
+	EmitSoundScript(unuseSoundScript);
+}
+
+void CHoundeye::ReportAIState(ALERT_TYPE level)
+{
+	CFollowingMonster::ReportAIState(level);
+
+	switch(m_iAsleep)
+	{
+	case HOUNDEYE_SLEEPING:
+		ALERT(level, "Sleeping; ");
+		break;
+	case HOUNDEYE_DEEP_SLEEPING:
+		ALERT(level, "In deep sleep; ");
+		break;
+	case HOUNDEYE_FORCE_LAZY_WAKING:
+		ALERT(level, "Waking lazily; ");
+		break;
+	case HOUNDEYE_FORCE_URGENT_WAKING:
+		ALERT(level, "Waking urgently; ");
+		break;
+	default:
+		break;
+	}
+
+	switch(pev->skin)
+	{
+	case HOUNDEYE_EYE_OPEN:
+		ALERT(level, "Eye open; ");
+		break;
+	case HOUNDEYE_EYE_HALFCLOSED:
+		ALERT(level, "Eye half-closed; ");
+		break;
+	case HOUNDEYE_EYE_CLOSED:
+		ALERT(level, "Eye closed; ");
+		break;
+	default:
+		break;
+	}
+
+	switch(m_iBlink)
+	{
+	case HOUNDEYE_BLINK:
+		ALERT(level, "Blinking; ");
+		break;
+	case HOUNDEYE_DONT_BLINK:
+		ALERT(level, "No blinking; ");
+		break;
+	case HOUNDEYE_HALF_BLINK:
+		ALERT(level, "Half-blinking; ");
+		break;
+	default:
+		break;
+	}
 }
 
 #define HOUNDEYE_DEAD_MODEL "models/houndeye_dead.mdl"

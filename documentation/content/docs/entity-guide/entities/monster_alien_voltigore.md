@@ -35,6 +35,8 @@ bookToC: false
 * **Voltigore.BeamAttack** - starting beam attack.
 * **Voltigore.AttackHit** - melee attack hit. Derived from **NPC.AttackHit**
 * **Voltigore.AttackMiss** - melee attack miss. Derived from **NPC.AttackMiss**
+* **Voltigore.Use** - start following the ally player. Derived from **Voltigore.Idle**
+* **Voltigore.UnUse** - stop following the ally player. Derived from **Voltigore.Alert**
 
 ### Visuals
 

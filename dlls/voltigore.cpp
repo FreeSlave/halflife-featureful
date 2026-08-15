@@ -26,7 +26,7 @@
 #include	"soundent.h"
 #include	"scripted.h"
 #include	"game.h"
-#include	"squadmonster.h"
+#include	"followingmonster.h"
 #include	"combat.h"
 #include	"game.h"
 #include	"common_soundscripts.h"
@@ -340,7 +340,7 @@ void CChargedBolt::ChargedBoltTouch(CBaseEntity* pOther)
 //=========================================================
 // CVoltigore
 //=========================================================
-class CVoltigore : public CSquadMonster
+class CVoltigore : public CFollowingMonster
 {
 public:
 	void Spawn() override;
@@ -355,6 +355,12 @@ public:
 	void PainSound() override;
 	void DeathSound() override;
 	void AlertSound() override;
+	void PlayUseSentence() override {
+		EmitSoundScript(useSoundScript);
+	}
+	void PlayUnUseSentence() override {
+		EmitSoundScript(unuseSoundScript);
+	}
 	void StartTask(Task_t *pTask) override;
 	bool CheckMeleeAttack1(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
@@ -401,6 +407,9 @@ public:
 	static const NamedSoundScript footstepSoundScript;
 	static const NamedSoundScript beamAttackSoundScript;
 
+	static constexpr const char* useSoundScript = "Voltigore.Use";
+	static constexpr const char* unuseSoundScript = "Voltigore.UnUse";
+
 	static const NamedVisual beamVisual;
 	static const NamedVisual chargeBeamVisual;
 	static const NamedVisual deathBeamVisual;
@@ -419,7 +428,7 @@ TYPEDESCRIPTION	CVoltigore::m_SaveData[] =
 	DEFINE_FIELD(CVoltigore, m_pChargedBolt, FIELD_EHANDLE),
 };
 
-IMPLEMENT_SAVERESTORE(CVoltigore, CSquadMonster)
+IMPLEMENT_SAVERESTORE(CVoltigore, CFollowingMonster)
 
 const NamedSoundScript CVoltigore::idleSoundScript = {
 	CHAN_VOICE,
@@ -507,7 +516,7 @@ bool CVoltigore::CheckRangeAttack1(float flDot, float flDist)
 void CVoltigore::RunAI()
 {
 	UpdateBeamAndBoltPositions();
-	CSquadMonster::RunAI();
+	CFollowingMonster::RunAI();
 }
 
 void CVoltigore::GibMonster()
@@ -519,7 +528,7 @@ void CVoltigore::GibMonster()
 	pev->rendercolor.z = 0;
 	pev->framerate = 0;
 
-	CSquadMonster::GibMonster();
+	CFollowingMonster::GibMonster();
 
 	pev->nextthink = gpGlobals->time + 0.15;
 }
@@ -768,7 +777,7 @@ void CVoltigore::HandleAnimEvent(MonsterEvent_t *pEvent)
 	break;
 
 	default:
-		CSquadMonster::HandleAnimEvent(pEvent);
+		CFollowingMonster::HandleAnimEvent(pEvent);
 	}
 }
 
@@ -795,7 +804,7 @@ void CVoltigore::Spawn()
 
 	m_flNextBeamAttackCheck	= gpGlobals->time;
 
-	MonsterInit();
+	FollowingMonsterInit();
 	pev->view_ofs		= Vector(0, 0, 84);
 
 	memset(m_pBeam, 0, sizeof(m_pBeam));
@@ -817,6 +826,9 @@ void CVoltigore::Precache()
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
 	RegisterAndPrecacheSoundScript(footstepSoundScript);
 	RegisterAndPrecacheSoundScript(beamAttackSoundScript);
+
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript);
 
 	if (!ShouldAutoPrecacheSounds())
 	{
@@ -921,19 +933,26 @@ DEFINE_CUSTOM_SCHEDULES(CVoltigore)
 	slVoltigoreVictoryDance
 };
 
-IMPLEMENT_CUSTOM_SCHEDULES(CVoltigore, CSquadMonster)
+IMPLEMENT_CUSTOM_SCHEDULES(CVoltigore, CFollowingMonster)
 
 Schedule_t *CVoltigore::GetSchedule()
 {
 	switch (m_MonsterState)
 	{
+	case MONSTERSTATE_IDLE:
+	{
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
+		break;
+	}
 	case MONSTERSTATE_COMBAT:
 	{
 		// dead enemy
 		if (HasConditions(bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST))
 		{
 			// call base class, all code to handle dead enemies is centralized there.
-			return CSquadMonster::GetSchedule();
+			return CFollowingMonster::GetSchedule();
 		}
 
 		if (HasConditions(bits_COND_NEW_ENEMY))
@@ -968,7 +987,7 @@ Schedule_t *CVoltigore::GetSchedule()
 		break;
 	}
 
-	return CSquadMonster::GetSchedule();
+	return CFollowingMonster::GetSchedule();
 }
 
 Schedule_t* CVoltigore::GetScheduleOfType(int Type)
@@ -983,7 +1002,7 @@ Schedule_t* CVoltigore::GetScheduleOfType(int Type)
 		break;
 	}
 
-	return CSquadMonster::GetScheduleOfType(Type);
+	return CFollowingMonster::GetScheduleOfType(Type);
 }
 
 void CVoltigore::StartTask(Task_t *pTask)
@@ -1015,16 +1034,16 @@ void CVoltigore::StartTask(Task_t *pTask)
 			m_pChargedBolt = CreateProjectile(params);
 
 			EmitSoundScriptAmbient(pev->origin, beamAttackSoundScript);
-			CSquadMonster::StartTask(pTask);
+			CFollowingMonster::StartTask(pTask);
 		}
 		break;
 	case TASK_DIE:
 	{
 		SetThink(&CVoltigore::CallDeathGibThink);
-		CSquadMonster::StartTask(pTask);
+		CFollowingMonster::StartTask(pTask);
 	}
 	default:
-		CSquadMonster::StartTask(pTask);
+		CFollowingMonster::StartTask(pTask);
 		break;
 	}
 }
@@ -1032,14 +1051,14 @@ void CVoltigore::StartTask(Task_t *pTask)
 void CVoltigore::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
 	ClearBeams();
-	CSquadMonster::OnDying(gibbed, pKiller);
+	CFollowingMonster::OnDying(gibbed, pKiller);
 }
 
 void CVoltigore::UpdateOnRemove()
 {
 	UTIL_RemoveAndClean(m_pChargedBolt);
 	ClearBeams();
-	CSquadMonster::UpdateOnRemove();
+	CFollowingMonster::UpdateOnRemove();
 }
 
 void CVoltigore::UpdateBeamAndBoltPositions()
@@ -1098,10 +1117,10 @@ public:
 	void	StartTask(Task_t *pTask) override;
 	void	GibMonster() override;
 	const char* DefaultGibModel() override {
-		return CSquadMonster::DefaultGibModel();
+		return CFollowingMonster::DefaultGibModel();
 	}
 	int DefaultGibCount() override {
-		return CSquadMonster::DefaultGibCount();
+		return CFollowingMonster::DefaultGibCount();
 	}
 	Schedule_t* GetSchedule() override;
 	Schedule_t* GetScheduleOfType(int Type) override;
@@ -1114,6 +1133,12 @@ public:
 	void AlertSound() override;
 	void PainSound() override;
 	void DeathSound() override;
+	void PlayUseSentence() override {
+		EmitSoundScript(useSoundScript);
+	}
+	void PlayUnUseSentence() override {
+		EmitSoundScript(unuseSoundScript);
+	}
 	void AttackSound();
 
 	static constexpr const char* idleSoundScript = "BabyVoltigore.Idle";
@@ -1123,6 +1148,10 @@ public:
 	static constexpr const char* attackHitSoundScript = "BabyVoltigore.AttackHit";
 	static constexpr const char* attackMissSoundScript = "BabyVoltigore.AttackMiss";
 	static constexpr const char* footstepSoundScript = "BabyVoltigore.Footstep";
+
+	static constexpr const char* useSoundScript = "BabyVoltigore.Use";
+	static constexpr const char* unuseSoundScript = "BabyVoltigore.UnUse";
+
 	static const NamedSoundScript attackSoundScript;
 };
 
@@ -1158,7 +1187,7 @@ void CBabyVoltigore::Spawn()
 
 	m_flNextBeamAttackCheck	= gpGlobals->time;
 
-	MonsterInit();
+	FollowingMonsterInit();
 	pev->view_ofs		= Vector(0, 0, 32);
 }
 
@@ -1181,6 +1210,8 @@ void CBabyVoltigore::Precache()
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript, bodyParamOverride);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript, bodyParamOverride);
 	RegisterAndPrecacheSoundScript(footstepSoundScript, CVoltigore::footstepSoundScript, bodyParamOverride);
+	RegisterAndPrecacheSoundScript(useSoundScript, idleSoundScript, CVoltigore::idleSoundScript);
+	RegisterAndPrecacheSoundScript(unuseSoundScript, alertSoundScript, CVoltigore::alertSoundScript);
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 }
 
@@ -1265,18 +1296,18 @@ void CBabyVoltigore::StartTask(Task_t *pTask)
 	{
 	case TASK_MELEE_ATTACK1:
 	{
-		CSquadMonster::StartTask(pTask);
+		CFollowingMonster::StartTask(pTask);
 		break;
 	}
 	default:
-		CSquadMonster::StartTask(pTask);
+		CFollowingMonster::StartTask(pTask);
 		break;
 	}
 }
 
 void CBabyVoltigore::GibMonster()
 {
-	CSquadMonster::GibMonster();
+	CFollowingMonster::GibMonster();
 }
 
 bool CBabyVoltigore::CheckRangeAttack1(float flDot, float flDist)
@@ -1291,13 +1322,20 @@ Schedule_t *CBabyVoltigore::GetSchedule()
 {
 	switch (m_MonsterState)
 	{
+	case MONSTERSTATE_IDLE:
+	{
+		Schedule_t* utilitySchedule = GetUtilitySchedule();
+		if (utilitySchedule)
+			return utilitySchedule;
+		break;
+	}
 	case MONSTERSTATE_COMBAT:
 	{
 		// dead enemy
 		if (HasConditions(bits_COND_ENEMY_DEAD|bits_COND_ENEMY_LOST))
 		{
 			// call base class, all code to handle dead enemies is centralized there.
-			return CSquadMonster::GetSchedule();
+			return CFollowingMonster::GetSchedule();
 		}
 
 		if (HasConditions(bits_COND_NEW_ENEMY))
@@ -1323,7 +1361,7 @@ Schedule_t *CBabyVoltigore::GetSchedule()
 		break;
 	}
 
-	return CSquadMonster::GetSchedule();
+	return CFollowingMonster::GetSchedule();
 }
 
 Schedule_t *CBabyVoltigore::GetScheduleOfType(int Type)
