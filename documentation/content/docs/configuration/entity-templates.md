@@ -1821,7 +1821,7 @@ Technically the cloaking can make monster more visible than in the "uncloaked" s
 
 Properties:
 
-* `"ability"` - a [skill based value](#skill-based-value). Non-zero values mean the monster can use cloaking. This allows to make this ability dependent on the difficulty level. Set it just to `1` in case you want the ability to be available on any difficulty level. Note: [monster_human_assassin]({{< ref monster_human_assassin >}}) has its own skill variable to control the cloaking ability.
+* `"ability"` - a [skill based boolean value](#skill-based-boolean-value). `1` or `true` values mean the monster can use cloaking. This allows to make this ability dependent on the difficulty level. Set it just to `true` in case you want the ability to be available on any difficulty level. Note: [monster_human_assassin]({{< ref monster_human_assassin >}}) has its own skill variable to control the cloaking ability.
 * `"opacity"` - the opacity when cloaked. This is a [skill based value](#skill-based-value). Should be a value between 0 and 255. Default value is 20.
 * `"cloak_speed"` - speed of the opacity change per 0.1 seconds. Default value is 50. To make the cloaking appear instant use some high value like 255.
 * `"uncloak_speed"` - speed of the opacity change per 0.1 seconds when uncloaking. This is optional. If not defined, the same value as in `"cloak_speed"` is used.
@@ -1859,7 +1859,7 @@ In this example we make the templates for zombie and headcrab:
 {
     "zombie_stealth": {
         "cloaking": {
-            "ability": 1,
+            "ability": true,
             "opacity": [100, 100, 50],
             "cloak_when": ["moving"],
             "cloak_speed": 130
@@ -1873,7 +1873,7 @@ In this example we make the templates for zombie and headcrab:
     },
     "headcrab_stealth": {
         "cloaking": {
-            "ability": [0, 0, 1],
+            "ability": [false, false, true],
             "opacity": 50,
             "uncloak_when": ["hopping"]
         }
@@ -1888,7 +1888,7 @@ Jumping ability for monsters. Monsters can use jumps when chasing an enemy or wh
 
 Properties:
 
-* `"ability"` - a [skill based value](#skill-based-value). Non-zero values mean the monster can use jumping. This allows to make this ability dependent on the difficulty level. Set it just to `1` in case you want the ability to be available on any difficulty level. Currently the only monster who can use jumping ability by default is [monster_human_assassin]({{< ref monster_human_assassin >}}) (on all difficulty levels).
+* `"ability"` - a [skill based boolean value](#skill-based-boolean-value). `1` or `true` values mean the monster can use jumping. This allows to make this ability dependent on the difficulty level. Set it just to `true` in case you want the ability to be available on any difficulty level. Currently the only monster who can use jumping ability by default is [monster_human_assassin]({{< ref monster_human_assassin >}}) (on all difficulty levels).
 * `"max_distance"` - maximum horizontal distance the monster can travel by a single jump. Default value is 360.
 * `"max_height"` - maximum height the monster can reach with a jump. Default value is 160.
 * `"start_sequence"` - the name of the jump animation sequence to use. Ideally the animation shouldn't displace the model (in the editor it should look like the monster is playing the jump animation while staying in the same place). The animation definitely should not include forward/backward/side motion. If this is not defined the monster will play its idle animation or its default jump animation (currently only [monster_human_assassin]({{< ref monster_human_assassin >}}) uses jump animation by default).
@@ -1903,14 +1903,14 @@ In this example we set the jumping ability for [monster_alien_slave]({{< ref mon
 {
     "monster_alien_slave": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "jump",
             "start_frame_fraction": 0.25
         }
     },
     "monster_houndeye": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "madidle2",
             "start_frame_fraction": 0.1
         }
@@ -1970,6 +1970,14 @@ The value can be:
 * A [range]({{< ref "JSON/#range" >}}).
 * An array of three numbers - values for easy, medium and hard difficulties.
 * An array of three [ranges]({{< ref "JSON/#range" >}}) - for easy, medium and hard difficulties.
+* A string - the name of a skill variable (with or without `sk_` prefix).
+
+### skill based boolean value
+
+The value can be:
+
+* A singular boolean (`false` or `true`) or an integer in range `[0, 1]`.
+* An array of three booleans or integers in range `[0, 1]` - values for easy, medium and hard difficulties.
 * A string - the name of a skill variable (with or without `sk_` prefix).
 
 ### damage_info

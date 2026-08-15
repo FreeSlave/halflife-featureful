@@ -226,6 +226,29 @@ const char* const json_schemas::definitions = R"(
 			}
 		]
 	},
+	"skill_value_boolean": {
+		"oneOf": [
+			{
+				"type": ["boolean", "integer"],
+				"minimum": 0,
+				"maximum": 1
+			},
+			{
+				"type": "string",
+				"pattern": "^[^ ]+$"
+			},
+			{
+				"type": "array",
+				"minItems": 3,
+				"maxItems": 3,
+				"items": {
+					"type": ["boolean", "integer"],
+					"minimum": 0,
+					"maximum": 1
+				}
+			}
+		]
+	},
 	"object_size": {
 		"type": ["object", "string"],
 		"properties": {
@@ -1486,7 +1509,7 @@ R"(
 				"type": "object",
 				"properties": {
 					"ability": {
-						"$ref": "#/skill_value_non_negative"
+						"$ref": "#/skill_value_boolean"
 					},
 					"opacity": {
 						"$ref": "#/skill_value_non_negative"
@@ -1515,7 +1538,7 @@ R"(
 				"type": "object",
 				"properties": {
 					"ability": {
-						"$ref": "#/skill_value_non_negative"
+						"$ref": "#/skill_value_boolean"
 					},
 					"max_distance": {
 						"type": "number",

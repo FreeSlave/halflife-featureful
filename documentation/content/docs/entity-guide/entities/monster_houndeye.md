@@ -83,7 +83,7 @@ Let houndeyes jump freely using the [jumping]({{< ref "entity-templates/#jumping
 {
     "monster_houndeye": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "madidle2",
             "start_frame_fraction": 0.1
         }

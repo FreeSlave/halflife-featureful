@@ -358,7 +358,7 @@ Note: the `jump` animation in the default **models/islave.mdl** features some ve
 {
     "monster_alien_slave": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "jump",
             "start_frame_fraction": 0.25
         }

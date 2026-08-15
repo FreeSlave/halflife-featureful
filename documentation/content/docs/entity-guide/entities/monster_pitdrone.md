@@ -136,7 +136,7 @@ Note: the `jump` animation in the default **models/pit_drone.mdl** features some
 {
     "monster_pitdrone": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "jump",
             "start_frame_fraction": 0.25
         }

@@ -572,6 +572,13 @@ SkillBasedValue SkillBasedValueFromJSON(const Value& value)
 		skillValue.type = SkillBasedValue::COMMON;
 		return skillValue;
 	}
+	else if (value.IsBool())
+	{
+		const float v = value.GetBool() ? 1.0f : 0.0f;
+		skillValue.easy = skillValue.medium = skillValue.hard = v;
+		skillValue.type = SkillBasedValue::COMMON;
+		return skillValue;
+	}
 	else if (value.IsString())
 	{
 		skillValue.skillVariable = value.GetString();
@@ -584,9 +591,22 @@ SkillBasedValue SkillBasedValueFromJSON(const Value& value)
 		if (arr.Size() == 3)
 		{
 			skillValue.type = SkillBasedValue::DIFFICULTIES;
-			skillValue.easy = FloatRangeFromJSON(arr[0]).value_or(FloatRange());
-			skillValue.medium = FloatRangeFromJSON(arr[1]).value_or(FloatRange());
-			skillValue.hard = FloatRangeFromJSON(arr[2]).value_or(FloatRange());
+
+			auto SetSkillValue = [](FloatRange& dest, const Value& value) {
+				if (value.IsBool())
+				{
+					dest = value.GetBool() ? 1.0f : 0.0f;
+				}
+				else
+				{
+					dest = FloatRangeFromJSON(value).value_or(FloatRange());
+				}
+			};
+
+			SetSkillValue(skillValue.easy, arr[0]);
+			SetSkillValue(skillValue.medium, arr[1]);
+			SetSkillValue(skillValue.hard, arr[2]);
+
 			return skillValue;
 		}
 	}

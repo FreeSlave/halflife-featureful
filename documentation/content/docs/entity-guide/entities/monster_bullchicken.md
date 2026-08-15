@@ -172,7 +172,7 @@ Note: the `surprisedhop` animation in the default **models/bullsquid.mdl** featu
 {
     "monster_bullchicken": {
         "jumping": {
-            "ability": 1,
+            "ability": true,
             "start_sequence": "suprisedhop",
             "start_frame_fraction": 0.25
         }

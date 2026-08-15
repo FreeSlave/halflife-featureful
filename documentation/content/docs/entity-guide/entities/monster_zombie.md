@@ -105,7 +105,7 @@ Zombified assassins from Delta Paricles that are cloaked while moving.
             "model": "models/zombie_assassin.mdl"
         },
         "cloaking": {
-            "ability": 1,
+            "ability": true,
             "opacity": [150, 150, 70],
             "cloak_when": ["moving"],
             "cloak_speed": 255

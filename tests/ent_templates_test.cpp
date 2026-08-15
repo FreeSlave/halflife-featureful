@@ -210,6 +210,21 @@ const char entities[] = R"(
 				"radius": 32
 			}
 		}
+	},
+	"zombie_assassin": {
+		"cloaking": {
+			"ability": [false, true, true],
+			"opacity": [150, 150, 70],
+			"cloak_when": ["standing"],
+			"cloak_speed": 255
+		}
+	},
+	"vort_jumping": {
+		"jumping": {
+			"ability": true,
+			"start_sequence": "jump",
+			"start_frame_fraction": 0.25
+		}
 	}
 }
 )";
@@ -535,6 +550,38 @@ TEST(EntityTemplates, Parse)
 
 		ASSERT_TRUE(projectile.auraRadiusDamageInfo.radius.IsDefined());
 		EXPECT_EQ(projectile.auraRadiusDamageInfo.radius.medium, 32);
+	}
+
+	{
+		const EntTemplate* zombieAssassin = es.GetTemplate("zombie_assassin");
+		ASSERT_TRUE(zombieAssassin != nullptr);
+
+		const EntTemplate::Cloaking& cloaking = zombieAssassin->GetCloaking();
+		EXPECT_EQ(cloaking.ability.type, SkillBasedValue::DIFFICULTIES);
+		EXPECT_EQ(cloaking.ability.easy, 0.0f);
+		EXPECT_EQ(cloaking.ability.medium, 1.0f);
+		EXPECT_EQ(cloaking.ability.hard, 1.0f);
+
+		EXPECT_EQ(cloaking.opacity.type, SkillBasedValue::DIFFICULTIES);
+		EXPECT_FLOAT_EQ(cloaking.opacity.easy.min, 150.0f);
+		EXPECT_FLOAT_EQ(cloaking.opacity.medium.min, 150.0f);
+		EXPECT_FLOAT_EQ(cloaking.opacity.hard.min, 70.0f);
+
+		EXPECT_EQ(cloaking.conditions, EntTemplate::Cloaking::COND_STANDING);
+		EXPECT_EQ(cloaking.cloakSpeed, 255);
+	}
+
+	{
+		const EntTemplate* vortJumping = es.GetTemplate("vort_jumping");
+		ASSERT_TRUE(vortJumping != nullptr);
+
+		const EntTemplate::Jumping& jumping = vortJumping->GetJumping();
+		EXPECT_EQ(jumping.ability.type, SkillBasedValue::COMMON);
+		EXPECT_EQ(jumping.ability.medium, 1.0f);
+		ASSERT_TRUE(jumping.startSequence.has_value());
+		EXPECT_EQ(*jumping.startSequence, "jump");
+		ASSERT_TRUE(jumping.startFrameFraction.has_value());
+		EXPECT_FLOAT_EQ(*jumping.startFrameFraction, 0.25f);
 	}
 
 	{
