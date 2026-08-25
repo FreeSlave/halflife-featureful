@@ -707,7 +707,7 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	// with view model distortion, this may be a cause. (SJB). 
 	view->origin[2] -= 1.0f;
 
-	if (gHUD.ViewModelLagEnabled())
+	if (gHUD.ViewModelLagEnabled() && !gHUD.m_inScope)
 		V_CalcViewModelLag(pparams, view->origin, pparams->viewangles, pparams->cl_viewangles);
 
 	// fudge position around to keep amount of weapon visible
