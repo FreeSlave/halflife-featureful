@@ -270,7 +270,9 @@ void CMortar::MortarExplode()
 {
 	SendBeam(pev->origin, pev->origin + Vector(0, 0, 1024), GetVisual(beamVisual));
 
-	SendBeamWave(pev->origin + Vector(0,0,32), pev->dmg * 2 / .2, GetVisual(circleVisual));
+	RadiusDamageInfo radiusDmgInfo = GetProjectileRadiusDamageInfo();
+
+	SendBeamWave(pev->origin + Vector(0,0,32), radiusDmgInfo.damageInfo.damage * 2 / .2f, GetVisual(circleVisual));
 
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + Vector( 0, 0, 1024 ), pev->origin - Vector( 0, 0, 1024 ), dont_ignore_monsters, ENT( pev ), &tr );
