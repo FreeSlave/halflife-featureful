@@ -1029,6 +1029,22 @@ int CHudAmmo::Draw( float flTime )
 	HSPRITE modeSprite = pw->inAltMode ? m_pWeapon->hAltMode : m_pWeapon->hMode;
 	wrect_t modeRect = pw->inAltMode ? m_pWeapon->rcAltMode : m_pWeapon->rcMode;
 
+	auto DrawWeaponMode = [&](int x, int y)
+	{
+		int r, g, b;
+		if (gHUD.clientFeatures.weaponmode_uses_hud_color)
+		{
+			r = hudR;
+			g = hudG;
+			b = hudB;
+		}
+		else
+		{
+			r = g = b = 255;
+		}
+		CHud::Renderer().SPR_DrawAuto(modeSprite, r, g, b, x, y, &modeRect);
+	};
+
 	if (pw->iAmmoType > 0)
 	{
 		// Does weapon have any ammo at all?
@@ -1106,7 +1122,7 @@ int CHudAmmo::Draw( float flTime )
 
 				int yMode = CHud::Renderer().PerceviedScreenHeight() - (modeRect.bottom - modeRect.top) - gHUD.m_iFontHeight / 2;
 
-				CHud::Renderer().SPR_DrawAuto(modeSprite, 255, 255, 255, xMode, yMode, &modeRect);
+				DrawWeaponMode(xMode, yMode);
 			}
 		}
 	}
@@ -1117,7 +1133,7 @@ int CHudAmmo::Draw( float flTime )
 			int xMode = CHud::Renderer().PerceviedScreenWidth() - (modeRect.right - modeRect.left) - AmmoWidth / 2;
 			int yMode = CHud::Renderer().PerceviedScreenHeight() - (modeRect.bottom - modeRect.top) - gHUD.m_iFontHeight / 2;
 
-			CHud::Renderer().SPR_DrawAuto(modeSprite, 255, 255, 255, xMode, yMode, &modeRect);
+			DrawWeaponMode(xMode, yMode);
 		}
 	}
 

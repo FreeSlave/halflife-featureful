@@ -132,6 +132,7 @@ ClientFeatures::ClientFeatures()
 
 	memset(bucket_slot_sprite, 0, sizeof (bucket_slot_sprite));
 	use_divider_sprite = false;
+	weaponmode_uses_hud_color = false;
 
 	fullbright_textures = true;
 }
@@ -1123,6 +1124,7 @@ void CHud::ParseClientFeatures()
 		{ "hud_color.configurable", clientFeatures.hud_color_configurable },
 		{ "hud_draw_nosuit", clientFeatures.hud_draw_nosuit },
 		{ "use_divider_sprite", clientFeatures.use_divider_sprite },
+		{ "weaponmode_uses_hud_color", clientFeatures.weaponmode_uses_hud_color },
 		{ "fullbright_textures", clientFeatures.fullbright_textures },
 	};
 

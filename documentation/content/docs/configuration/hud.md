@@ -54,7 +54,7 @@ Like in base Half-Life the HUD elements for weapons are defined in **sprites/wea
 
 * `crosshair2` - a crosshair to use when the weapon is in alt mode (for weapons which [secondary attack]({{< ref "weapon-templates/#secondary_attack" >}}) is `switch_mode`). Note: `zoom` entry is still preferred for weapons with a scope.
 * `autoaim2` - an autoaim crosshair to use when the weapon is in alt mode. Note: `zoom_autoaim` entry is still preferred for weapons with a scope.
-* `mode` - an icon to draw in the bottom right corner (near the ammo if the weapon uses ammo) when the weapon is in primary mode. Unlike other sprites that are rendered with a HUD color in additive mode, this one is rendered in its original color and with respect to the sprite type (i.e.  sprites with transparency are supported).
+* `mode` - an icon to draw in the bottom right corner (near the ammo if the weapon uses ammo) when the weapon is in primary mode. Unlike other sprites that are rendered with a HUD color in additive mode, this one is rendered in its original color and with respect to the sprite type (i.e.  sprites with transparency are supported). To make it depend on the current HUD color, enable `weaponmode_uses_hud_color` in **features/featureful_client.cfg**.
 * `mode2` - same as `mode` but for alt mode.
 
 {{% hint info %}}

@@ -1047,6 +1047,7 @@ struct ClientFeatures
 
 	char bucket_slot_sprite[MAX_SPRITE_NAME_LENGTH];
 	bool use_divider_sprite;
+	bool weaponmode_uses_hud_color;
 
 	bool fullbright_textures;
 };
