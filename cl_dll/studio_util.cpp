@@ -16,7 +16,8 @@
 #endif
 
 // this conflicts with definitions from pm_math.cpp
-#if XASH_SIMD_NEON
+#if 0
+//#if XASH_SIMD_NEON
 /*
 ====================
 AngleMatrix
