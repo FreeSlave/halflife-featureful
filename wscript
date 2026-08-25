@@ -187,7 +187,7 @@ def configure(conf):
 		]
 
 		opt_cflags = [
-			'-Werror=declaration-after-statement',
+			# '-Werror=declaration-after-statement',
 			'-Werror=enum-conversion',
 			'-Werror=implicit-int',
 			'-Werror=implicit-function-declaration',

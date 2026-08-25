@@ -14,6 +14,10 @@ To clone the repository with git type in Git Bash (on Windows) or in terminal (o
 git clone --recursive https://github.com/FreeSlave/halflife-featureful
 ```
 
+# CI Builds
+
+Fresh builds is always available in [artifacts](https://github.com/FWGS/hlsdk-portable/actions) for most common platforms and you can download it if you logged in to github.
+
 # Build Instructions
 
 ## Windows x86.
@@ -71,6 +75,7 @@ cmake -G "Visual Studio 16 2019" -A Win32 -B build
 
 After the configuration step, `HALFLIFE-FEATUREFUL.sln` should appear in the `build` directory. You can open this solution in Visual Studio and continue developing there.
 
+<<<<<<< HEAD
 ## Linux x86. Portable steam-compatible build using Steam Runtime inside a container
 
 ### Prerequisites
@@ -93,6 +98,8 @@ cmake -DCMAKE_BUILD_TYPE=Release -B build -S .
 cmake --build build
 ```
 
+=======
+>>>>>>> master
 ## Linux x86. Portable steam-compatible build using Steam Runtime in chroot
 
 ### Prerequisites
@@ -134,7 +141,7 @@ sudo apt install cmake build-essential gcc-multilib g++-multilib libsdl2-dev:i38
 
 #### RedHat/Fedora/CentOS:
 ```
-sudo dnf install cmake gcc gcc-c++ glibc-devel.i686 SDL-devel.i686
+sudo dnf install cmake gcc gcc-c++ glibc-devel.i686 SDL2-devel.i686
 ```
 
 ### Building

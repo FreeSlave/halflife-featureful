@@ -28,6 +28,8 @@
 #include "locus.h"
 #include "common_soundscripts.h"
 
+char *PM_memfgets( byte *pMemFile, int fileSize, int *pFilePos, char *pBuffer, int bufferSize );
+
 // ==================== GENERIC AMBIENT SOUND ======================================
 
 // runtime pitch shift and volume fadein/out structure
@@ -1558,7 +1560,7 @@ void SENTENCEG_Init()
 	memset( buffer, 0, 512 );
 	memset( szgroup, 0, 64 );
 	// for each line in the file...
-	while( memfgets( pMemFile, fileSize, filePos, buffer, 511 ) != NULL )
+	while( PM_memfgets( pMemFile, fileSize, &filePos, buffer, 511 ) != NULL )
 	{
 		// skip whitespace
 		i = 0;
@@ -1764,16 +1766,6 @@ void EMIT_GROUPNAME_SUIT( edict_t *entity, const char *groupname )
 	if( fvol > 0.05f )
 		SENTENCEG_PlayRndSz( entity, groupname, fvol, ATTN_NORM, 0, pitch );
 }
-
-// ===================== MATERIAL TYPE DETECTION, MAIN ROUTINES ========================
-// 
-// Used to detect the texture the player is standing on, map the
-// texture name to a material type.  Play footstep sound based
-// on material type.
-
-// open materials.txt,  get size, alloc space, 
-// save in array.  Only works first time called, 
-// ignored on subsequent calls.
 
 // given texture name, find texture type
 // if not found, return type 'concrete'
