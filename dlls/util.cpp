@@ -2173,6 +2173,11 @@ void CSave::WriteInt( const char *pname, const int *data, int count )
 	BufferField( pname, sizeof(int) * count, (const char *)data, sizeof(int) );
 }
 
+void CSave::WriteInt64( const char *pname, const std::uint64_t *data, int count )
+{
+	BufferField( pname, sizeof(std::uint64_t) * count, (const char *)data, sizeof(std::uint64_t) );
+}
+
 void CSave::WriteFloat( const char *pname, const float *data, int count )
 {
 	BufferField( pname, sizeof(float) * count, (const char *)data, sizeof(float) );
@@ -2498,7 +2503,7 @@ int CSave::WriteFields( const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 			WriteFunction( pTest->fieldName, (void **)pOutputData, pTest->fieldSize );
 			break;
 		case FIELD_INT64:
-			WriteData( pTest->fieldName, sizeof(std::uint64_t) * pTest->fieldSize, ((char*)pOutputData) );
+			WriteInt64( pTest->fieldName, ((std::uint64_t*)pOutputData), pTest->fieldSize );
 			break;
 		default:
 			ALERT( at_error, "Bad field type\n" );
@@ -2760,7 +2765,7 @@ int CRestore::ReadField( void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 							*( (void**)pOutputData ) = (void*)FUNCTION_FROM_NAME( (char *)pInputData );
 						break;
 					case FIELD_INT64:
-						*((std::uint64_t*)pOutputData) = *(std::uint64_t*)pInputData;
+						*((std::uint64_t*)pOutputData) = ULittleToHost(*(std::uint64_t*)pInputData);
 						break;
 					default:
 						ALERT( at_error, "Bad field type\n" );

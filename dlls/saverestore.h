@@ -17,6 +17,8 @@
 #if !defined(SAVERESTORE_H)
 #define SAVERESTORE_H
 
+#include <cstdint>
+
 class CBaseEntity;
 
 class CSaveRestoreBuffer
@@ -55,6 +57,7 @@ public:
 
 	void	WriteShort( const char *pname, const short *value, int count );
 	void	WriteInt( const char *pname, const int *value, int count );		// Save an int
+	void	WriteInt64( const char *pname, const std::uint64_t *value, int count );		// Save an int64
 	void	WriteFloat( const char *pname, const float *value, int count );	// Save a float
 	void	WriteTime( const char *pname, const float *value, int count );	// Save a float (timevalue)
 	void	WriteData( const char *pname, int size, const char *pdata );		// Save a binary data block
