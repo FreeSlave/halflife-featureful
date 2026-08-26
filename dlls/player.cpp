@@ -4093,6 +4093,8 @@ pt_end:
 					gun->m_flTimeWeaponIdle = Q_max( gun->m_flTimeWeaponIdle - gpGlobals->frametime, -0.001f );
 				}
 
+				gun->m_flNextReloadSubstitute = Q_max( gun->m_flNextReloadSubstitute - gpGlobals->frametime, -0.001f );
+
 				if( gun->pev->fuser1 != 1000.0f )
 				{
 					gun->pev->fuser1 = Q_max( gun->pev->fuser1 - gpGlobals->frametime, -0.001f );

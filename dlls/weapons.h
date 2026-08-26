@@ -249,6 +249,7 @@ public:
 	// called by CBasePlayerWeapons ItemPostFrame()
 	virtual void PrimaryAttack() { return; }				// do "+ATTACK"
 	virtual void SecondaryAttack() { return; }			// do "+ATTACK2"
+	void PerformReloadSubstitute();
 	bool CanReload();
 	virtual void Reload() { return; }						// do "+RELOAD"
 	virtual void WeaponIdle() { return; }					// called when no buttons pressed
@@ -302,6 +303,7 @@ public:
 	int		m_iClientClip;										// the last version of m_iClip sent to hud dll
 	int		m_iClientWeaponState;								// the last version of the weapon state sent to hud dll (is current weapon, is on target)
 	int		m_fInReload;										// Are we in the middle of a reload;
+	float	m_flNextReloadSubstitute;
 
 	void	SetInitialAmmoAmount();
 	int		m_iDefaultAmmo;// how much ammo you get when you pick up this weapon as placed by a level designer.

@@ -1048,6 +1048,19 @@ R"(
 		},
 		"additionalProperties": false
 	},
+	"reload_substitute": {
+		"type": "object",
+		"properties": {
+			"anim": {
+				"$ref": "#/anim_index_optional"
+			},
+			"duration": {
+				"type": "number",
+				"minimum": 0
+			}
+		},
+		"additionalProperties": false
+	},
 )"
 R"(
 	"weapon_template": {
@@ -1298,6 +1311,12 @@ R"(
 			},
 			"recharge_alt": {
 				"$ref": "#/recharge"
+			},
+			"reload_substitute": {
+				"$ref": "#/reload_substitute"
+			},
+			"alt_reload_substitute": {
+				"$ref": "#/reload_substitute"
 			},
 			"laser_spot": {
 				"type": "object",

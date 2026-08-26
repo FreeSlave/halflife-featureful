@@ -2407,6 +2407,42 @@ A boolean defining whether the weapon shot automatically start reloading instead
 
 This is true for [weapon_shotgun]({{< ref weapon_shotgun >}}) and [weapon_sporelauncher]({{< ref weapon_sporelauncher >}}).
 
+## reload_substitute
+
+An action to play when player presses the "reload" key but the current weapon clip is already full or the current weapon doesn't use clips at all. Currently it supports just playing an animation which may be useful if you want to add "inspect weapon" mechanic.
+
+Properties:
+
+* `"anim"` - animation index. Default value is -1 (i.e. disabled).
+* `"duration"` - minimum delay between "reload substitute" actions (usually should be the same as the animation duration). Also delays playing the next idle animation. Default value is 0.5.
+
+```json
+{
+    "weapon_gauss": {
+        "reload_substitute": {
+            "anim": 2,
+            "duration": 3.0
+        }
+    },
+    "weapon_357": {
+        "reload_substitute": {
+            "anim": 1,
+            "duration": 5.7
+        }
+    },
+    "weapon_sporelauncher": {
+        "reload_substitute": {
+            "anim": 1,
+            "duration": 4.0
+        }
+    }
+}
+```
+
+## alt_reload_substitute
+
+Same as [reload_substitute](#reload_substitute) but when the weapon is in alternative mode.
+
 ## secondary_attack
 
 Defines how the secondary attack works. The available values are:

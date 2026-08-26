@@ -529,6 +529,12 @@ struct WeaponParameters
 		WeaponModeValueEmptyAware<WeaponSoundScript> sound{CHAN_ITEM};
 	};
 
+	struct ReloadSubstitute
+	{
+		WeaponModeValueNonNegative<short> animIndex{-1};
+		WeaponModeValueNonNegative<float> duration{0.5f};
+	};
+
 	struct Holster
 	{
 		WeaponModeValueEmptyAwareNonNegative<int> animIndex{-1};
@@ -788,6 +794,8 @@ struct WeaponParameters
 	Reload reload;
 	StartReload startReload;
 	EndReload endReload;
+
+	ReloadSubstitute reloadSubstitute;
 
 	Holster holster;
 

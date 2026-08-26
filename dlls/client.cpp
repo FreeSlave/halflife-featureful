@@ -2010,6 +2010,7 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 					item->m_flNextSecondaryAttack	= Q_max( gun->m_flNextSecondaryAttack, -0.001f );
 					item->m_fInReload		= gun->m_fInReload;
 					item->m_fInSpecialReload	= gun->m_fInSpecialReload;
+					item->m_flNextReload	= Q_max( gun->m_flNextReloadSubstitute, -0.001f );
 					item->fuser1			= Q_max( gun->pev->fuser1, -0.001f );
 					gun->GetWeaponData(*item);
 

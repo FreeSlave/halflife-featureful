@@ -383,6 +383,10 @@ void CBasePlayerWeapon::ItemPostFrame()
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
 	}
+	else if ( (m_pPlayer->pev->button & IN_RELOAD) && !UsesClip() && !m_fInReload && !FBitSet(m_pPlayer->pev->flags, FL_FROZEN) )
+	{
+		PerformReloadSubstitute();
+	}
 	else if( !( m_pPlayer->pev->button & ( IN_ATTACK | IN_ATTACK2 ) ) )
 	{
 		// no fire buttons down
@@ -505,6 +509,27 @@ bool CBasePlayerWeapon::CanReload()
 		return m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] >= ammoCountMin;
 	}
 	return true;
+}
+
+void CBasePlayerWeapon::PerformReloadSubstitute()
+{
+	if (m_flNextReloadSubstitute <= UTIL_WeaponTimeBase())
+	{
+		const WeaponParameters& params = MyParameters();
+
+		const bool inAltMode = InAltMode();
+		const int anim = params.reloadSubstitute.animIndex.Get(inAltMode);
+		if (anim >= 0)
+		{
+			const float endTime = UTIL_WeaponTimeBase() + params.reloadSubstitute.duration.Get(inAltMode);
+			m_flTimeWeaponIdle = Q_max(m_flTimeWeaponIdle, endTime);
+			m_ForceSendAnimations = true;
+			SendWeaponAnim(params.reloadSubstitute.animIndex.Get(inAltMode));
+			m_ForceSendAnimations = false;
+
+			m_flNextReloadSubstitute = endTime;
+		}
+	}
 }
 
 bool CBasePlayerWeapon::UsesClip()
@@ -2323,7 +2348,11 @@ bool CConfigurableWeapon::PerformReload()
 	}
 
 	if (!CanReload())
+	{
+		if (m_iClip >= iMaxClip())
+			PerformReloadSubstitute();
 		return false;
+	}
 
 	const WeaponParameters::Reload& reload = params.reload;
 	const bool empty = Emptied();

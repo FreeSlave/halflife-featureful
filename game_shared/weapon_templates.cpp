@@ -1439,6 +1439,18 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 		}
 	});
 
+	auto HandleReloadSubstitute = [&](const char* propName, bool altMode) {
+		HandleJSONMember(value, propName, [&](const Value& value) {
+			auto& reloadSubstitute = params.reloadSubstitute;
+
+			UpdatePropertyFromJson(reloadSubstitute.animIndex, value, "anim", altMode);
+			UpdatePropertyFromJson(reloadSubstitute.duration, value, "duration", altMode);
+		});
+	};
+
+	HandleReloadSubstitute("reload_substitute", false);
+	HandleReloadSubstitute("alt_reload_substitute", true);
+
 	UpdatePropertyFromJson(params.reloadAutostart, value, "reload_autostart");
 	UpdatePropertyFromJson(params.startInAltMode, value, "start_in_alt_mode");
 	UpdatePropertyFromJson(params.mirrorViewModel, value, "mirror_viewmodel");
