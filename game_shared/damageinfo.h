@@ -29,6 +29,7 @@ struct DamageInfo
 	bool ignoreTransform = false;
 	bool enforceLightDamage = false;
 	bool ignorePowerShield = false;
+	bool gibCorpse = false;
 
 	bool mustSkip = false;
 

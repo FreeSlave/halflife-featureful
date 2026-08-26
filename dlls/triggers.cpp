@@ -5383,7 +5383,7 @@ void CTriggerKillMonster::KillMonster(CBaseEntity *pEntity)
 		if (pev->spawnflags & SF_KILLMONSTER_GIBALWAYS)
 			damageInfo.SetGibPolicy(GIB_ALWAYS);
 		damageInfo.SetMakePureDamageToHealth();
-		pMonster->TakeDamage(pev, pev, damageInfo );
+		pMonster->TakeDamage(pev, pev, damageInfo);
 	}
 }
 
@@ -6572,6 +6572,7 @@ void CTriggerChangeClass::Affect(CBaseEntity *pEntity, USE_TYPE useType)
 #define SF_TRIGGER_HURT_REMOTE_CONSTANT 2
 #define SF_TRIGGER_HURT_REMOTE_STARTON 4
 #define SF_TRIGGER_HURT_REMOTE_DO_ARMOR_DAMAGE 8
+#define SF_TRIGGER_HURT_REMOTE_DO_CORPSES 16
 
 #define SF_TRIGGER_HURT_REMOTE_IGNORE_ARMOR 256
 #define SF_TRIGGER_HURT_REMOTE_NO_PUNCH 512
@@ -6714,7 +6715,7 @@ void CTriggerHurtRemote::DoDamage()
 
 void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 {
-	if (!pTarget->IsAlive())
+	if (!pTarget->IsAlive() && !FBitSet(pev->spawnflags, SF_TRIGGER_HURT_REMOTE_DO_CORPSES))
 		return;
 
 	CBaseEntity* pActivator = m_hActivator;
@@ -6755,6 +6756,7 @@ void CTriggerHurtRemote::DoDamage(CBaseEntity* pTarget)
 		{
 			damageInfo.damage = pTarget->pev->health;
 			damageInfo.SetMakePureDamageToHealth();
+			damageInfo.gibCorpse = true;
 			if (!pTarget->IsPlayer())
 				damageInfo.SetGibPolicy(GIB_ALWAYS);
 			pTarget->TakeDamage(pTarget->pev, pevAttacker, damageInfo);

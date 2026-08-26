@@ -22,12 +22,13 @@ When dealing damage, the activator of the `trigger_hurt_remote` acts as an attac
 
 ### Spawnflags
 
-* `Instant Kill` - kill the target. Note: don't rely on this yet, as it may not work in some cases, e.g. if the monster has resistance to damage. Use [trigger_killmonster]({{< ref trigger_killmonster >}}) as a more reliable approach.
+* `Instant Kill` - deal amount of damage that is enough to kill the target.
 * `Constant` - make use of `Delay` keyvalue and affect target entities repeatedly.
 * `Start On` - `trigger_hurt_remote` is enabled at start, this only makes sense when "Constant" flag is selected.
 * `Do Armor Damage` - allows to use `Armor Damage` keyvalue.
 * `Ignore Armor` - ignore player's armor. Do damage directly to the health.
 * `No Camera Punch` - don't punch player's view camera.
+* `Do Damage to Dead` - whether to do damage to corpses and monsters who already died. Use it with `Instant Kill` to gib the monster's corpse.
 
 ### Reaction to use-type
 

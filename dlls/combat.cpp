@@ -1559,7 +1559,7 @@ TakeDamageResult CBaseMonster::DeadTakeDamage( entvars_t *pevInflictor, entvars_
 	takeDamageResult.SetWasAlreadyDead();
 
 	// kill the corpse if enough damage was done to destroy the corpse and the damage is of a type that is allowed to destroy the corpse.
-	if( damageInfo.type & DMG_GIB_CORPSE )
+	if( (damageInfo.type & DMG_GIB_CORPSE) || damageInfo.gibCorpse )
 	{
 		if( pev->health <= damageInfo.damage )
 		{
