@@ -22,8 +22,8 @@ public:
 
 	virtual int RechargeTime() = 0;
 	virtual int ChargerCapacity() = 0;
-
-	virtual bool GiveCharge(CBaseEntity* pActivator) = 0;
+	virtual int ChargeRate() = 0;
+	virtual int GiveCharge(CBaseEntity* pActivator) = 0;
 	virtual bool AllowNoSuit(CBasePlayer* pPlayer) { return false; }
 
 	virtual const NamedSoundScript& LoopingSoundScript() = 0;
@@ -55,6 +55,8 @@ public:
 	string_t m_triggerOnFirstUse;
 	string_t m_triggerOnEmpty;
 	string_t m_triggerOnRecharged;
+
+	int m_chargeRate; // don't save, set in Precache
 
 	int OnStateFrame();
 	int OffStateFrame();

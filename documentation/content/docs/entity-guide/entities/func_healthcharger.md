@@ -27,6 +27,7 @@ Reports the fraction of juice left (a number between 0 and 1 inclusive).
 ### Skill variables
 
 * **sk_healthcharger** - health charger default capacity.
+* **sk_healthcharger_rate** - amount of health to charge per use 'tick'. Default (and minimum) value is 1.
 
 ### Soundscripts
 

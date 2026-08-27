@@ -1399,6 +1399,9 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("soda", 1.0f);
 	g_SkillData.ProvideFallback("vortigaunt_armor_charge", "battery");
 
+	g_SkillData.ProvideFallback("healthcharger_rate", 1.0f);
+	g_SkillData.ProvideFallback("suitcharger_rate", 1.0f);
+
 	g_SkillData.ProvideFallback("monster_head", 2.0f);
 	g_SkillData.ProvideFallback("monster_chest", 1.0f);
 	g_SkillData.ProvideFallback("monster_stomach", 1.0f);

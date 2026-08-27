@@ -38,9 +38,14 @@ class CRecharge : public CWallCharger
 public:
 	int RechargeTime() override { return (int)g_pGameRules->FlHEVChargerRechargeTime(); }
 	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : GetSkillValue("suitcharger")); }
-	bool GiveCharge(CBaseEntity* pActivator) override
+	int ChargeRate() override {
+		return (int)GetSkillValue("suitcharger_rate");
+	}
+	int GiveCharge(CBaseEntity* pActivator) override
 	{
-		return pActivator->TakeArmor(this, 1);
+		int value = Q_max(m_chargeRate, 1);
+		value = Q_min(m_iJuice, value);
+		return pActivator->TakeArmor(this, value);
 	}
 
 	const NamedSoundScript& LoopingSoundScript() override {
@@ -199,6 +204,7 @@ public:
 	string_t m_triggerOnEmpty;
 	int m_collisionType;
 	bool m_missingSequence;
+	int m_chargeRate; // don't save, set in Precache
 
 	static constexpr const char* deploySoundScript = "SuitRecharge.Deploy";
 
@@ -319,6 +325,8 @@ void CRechargeDecay::Precache()
 	RegisterVisual(beamVisual);
 
 	UTIL_PrecacheOther("item_recharge_glass", GetProjectileOverrides());
+
+	m_chargeRate = (int)GetSkillValue("suitcharger_rate");
 }
 
 void CRechargeDecay::Activate()
@@ -500,14 +508,17 @@ void CRechargeDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 	}
 
 	// charge the player
-	if( pPlayer->pev->armorvalue < pPlayer->MaxArmor() )
+	int giveArmor = Q_max(m_chargeRate, 1);
+	giveArmor = Q_min(m_iJuice, giveArmor);
+	const int givenCharge = pPlayer->TakeArmor(this, giveArmor);
+	if (givenCharge > 0)
 	{
 		if (m_triggerOnFirstUse)
 		{
 			FireTargets( STRING( m_triggerOnFirstUse ), pPlayer, this );
 			m_triggerOnFirstUse = iStringNull;
 		}
-		m_iJuice--;
+		m_iJuice -= givenCharge;
 		if (m_iJuice <= 0)
 		{
 			pev->skin = 1;
@@ -519,8 +530,6 @@ void CRechargeDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 		const float boneControllerValue = (m_iJuice / (float)ChargerCapacity()) * 360;
 		SetBoneController(RECHARGER_COIL_CONTROLLER, 360 - boneControllerValue);
 		SetBoneController(RECHARGER_COIL_CONTROLLER2,  boneControllerValue);
-
-		pPlayer->TakeArmor(this, 1);
 	}
 
 	// govern the rate of charge

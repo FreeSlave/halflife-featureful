@@ -125,6 +125,8 @@ void CWallCharger::Precache()
 	const char* rechargeSound = CustomRechargeSound();
 	if (rechargeSound)
 		PRECACHE_SOUND(rechargeSound);
+
+	m_chargeRate = ChargeRate();
 }
 
 int CWallCharger::ObjectCaps()
@@ -334,14 +336,16 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 	m_flNextCharge = gpGlobals->time + 0.1f;
 
 	// charge the player
-	if( GiveCharge(pActivator) )
+	const int givenCharge = GiveCharge(pActivator);
+
+	if (givenCharge > 0)
 	{
 		if (m_triggerOnFirstUse)
 		{
 			FireTargets( STRING( m_triggerOnFirstUse ), this, this );
 			m_triggerOnFirstUse = 0;
 		}
-		m_iJuice--;
+		m_iJuice -= givenCharge;
 	}
 	else
 	{
@@ -410,9 +414,14 @@ class CWallHealth : public CWallCharger
 public:
 	int RechargeTime() override { return (int)g_pGameRules->FlHealthChargerRechargeTime(); }
 	int ChargerCapacity() override { return (int)(pev->health > 0 ? pev->health : GetSkillValue("healthcharger")); }
-	bool GiveCharge(CBaseEntity* pActivator) override
+	int ChargeRate() override {
+		return (int)GetSkillValue("healthcharger_rate");
+	}
+	int GiveCharge(CBaseEntity* pActivator) override
 	{
-		return pActivator->TakeHealth( this, 1, HEAL_CHARGE ) > 0;
+		int value = Q_max(m_chargeRate, 1);
+		value = Q_min(m_iJuice, value);
+		return pActivator->TakeHealth(this, value, HEAL_CHARGE|HEAL_FROM_CHARGER);
 	}
 	bool AllowNoSuit(CBasePlayer* pPlayer) override {
 		if (pPlayer->m_playerTemplate && !indeterminate(pPlayer->m_playerTemplate->nosuitAllowHealthCharger))
@@ -640,6 +649,7 @@ public:
 	string_t m_triggerOnEmpty;
 	int m_collisionType;
 	bool m_missingSequence;
+	int m_chargeRate; // don't save, set in Precache
 
 	static constexpr const char* deploySoundScript = "WallHealth.Deploy";
 
@@ -748,6 +758,8 @@ void CWallHealthDecay::Precache()
 	RegisterAndPrecacheSoundScript(deploySoundScript, CWallHealth::startSoundScript);
 
 	UTIL_PrecacheOther("item_healthcharger_jar", GetProjectileOverrides());
+
+	m_chargeRate = (int)GetSkillValue("healthcharger_rate");
 }
 
 void CWallHealthDecay::Activate()
@@ -926,14 +938,17 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	}
 
 	// charge the player
-	if( pPlayer->TakeHealth( this, 1, HEAL_CHARGE ) )
+	int giveHealth = Q_max(m_chargeRate, 1);
+	giveHealth = Q_min(m_iJuice, giveHealth);
+	const int givenCharge = pPlayer->TakeHealth(this, giveHealth, HEAL_CHARGE|HEAL_FROM_CHARGER);
+	if (givenCharge > 0)
 	{
 		if (m_triggerOnFirstUse)
 		{
 			FireTargets( STRING( m_triggerOnFirstUse ), pPlayer, this );
 			m_triggerOnFirstUse = iStringNull;
 		}
-		m_iJuice--;
+		m_iJuice -= givenCharge;
 		if (m_iJuice <= 0)
 		{
 			pev->skin = 1;

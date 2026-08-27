@@ -13,6 +13,7 @@ Has same changes as [func_healthcharger]({{< ref func_healthcharger >}})
 ### Skill variables
 
 * **sk_suitcharger** - suit charger default capacity.
+* **sk_suitcharger_rate** - amount of armor to charge per use 'tick'. Default (and minimum) value is 1.
 
 ### Soundscripts
 

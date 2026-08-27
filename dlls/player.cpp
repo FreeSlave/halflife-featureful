@@ -584,7 +584,7 @@ int CBasePlayer::TakeHealth( CBaseEntity* pHealer, float flHealth, int healType 
 				const int toAdd = Q_min(rest, medMaxAmmo - medAmmo);
 				m_rgAmmo[medAmmoIndex] += toAdd;
 
-				if (flHealth > 1)
+				if (!FBitSet(healType, HEAL_FROM_CHARGER))
 				{
 					if (!m_hidePickups)
 					{
@@ -629,15 +629,16 @@ void CBasePlayer::SetMaxHealth(int maxHealth, bool clampValue)
 	}
 }
 
-bool CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
+int CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
 {
 	if (!flArmor)
-		return false;
+		return 0;
 	const int maxArmor = MaxArmor();
 	const bool allowOvercharge = FBitSet(flags, GIVEARMOR_ALLOW_OVERFLOW);
 
 	if (flArmor > 0 && pev->armorvalue >= maxArmor && !allowOvercharge)
-		return false;
+		return 0;
+	const float prevValue = pev->armorvalue;
 	pev->armorvalue += flArmor;
 	if (flArmor > 0 && !allowOvercharge)
 	{
@@ -645,7 +646,7 @@ bool CBasePlayer::TakeArmor(CBaseEntity *pCharger, float flArmor, int flags)
 	}
 	if (pev->armorvalue < 0)
 		pev->armorvalue = 0;
-	return true;
+	return static_cast<int>(std::ceil(pev->armorvalue - prevValue));
 }
 
 int CBasePlayer::MaxArmor()
