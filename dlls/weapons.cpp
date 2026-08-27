@@ -36,6 +36,7 @@
 #include "common_soundscripts.h"
 #include "player_templates.h"
 #include "weapon_templates.h"
+#include "weapon_carry_categories.h"
 
 extern bool gEvilImpulse101;
 
@@ -713,8 +714,13 @@ static bool IsPickableByUse(CBaseEntity* pEntity)
 void CBasePlayerWeapon::DefaultTouch( CBaseEntity *pOther )
 {
 	if (IsPickableByTouch(this)) {
-		TouchOrUse(pOther);
+		TouchOrUse(pOther, false);
 	}
+}
+
+bool CBasePlayerWeapon::IsPickableByUse()
+{
+	return ::IsPickableByUse(this) || g_WeaponCarryCategories.Categorize(WeaponId()) != 0;
 }
 
 int CBasePlayerWeapon::ObjectCaps()
@@ -724,21 +730,21 @@ int CBasePlayerWeapon::ObjectCaps()
 	{
 		ClearBits(caps, FCAP_ACROSS_TRANSITION);
 	}
-	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW)) {
-		return caps | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
-	} else {
-		return caps;
+	if (!FBitSet(pev->effects, EF_NODRAW) && IsPickableByUse())
+	{
+		caps |= FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 	}
+	return caps;
 }
 
 void CBasePlayerWeapon::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW) ) {
-		TouchOrUse(pCaller);
+	if (!FBitSet(pev->effects, EF_NODRAW) && IsPickableByUse()) {
+		TouchOrUse(pCaller, true);
 	}
 }
 
-void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther )
+void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther, bool use)
 {
 	// if it's not a player, ignore
 	if( !pOther->IsPlayer() )
@@ -758,6 +764,16 @@ void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther )
 
 	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
 		return;
+
+	if (!use && !g_WeaponCarryCategories.Empty())
+	{
+		int weaponCarryCategory = g_WeaponCarryCategories.Categorize(WeaponId());
+		CBasePlayerWeapon* pWeapon = pPlayer->WeaponOfCarryCategory(weaponCarryCategory);
+		if (pWeapon && pWeapon->WeaponId() != WeaponId())
+		{
+			return;
+		}
+	}
 
 	if( pOther->AddPlayerItem( this ) == GOT_NEW_ITEM )
 	{
@@ -1516,27 +1532,46 @@ void CWeaponBox::Kill()
 void CWeaponBox::Touch( CBaseEntity *pOther )
 {
 	if (IsPickableByTouch(this)) {
-		TouchOrUse(pOther);
+		TouchOrUse(pOther, false);
 	}
+}
+
+bool CWeaponBox::IsPickableByUse()
+{
+	if (::IsPickableByUse(this))
+	{
+		return true;
+	}
+	for (int i = 0; i < MAX_WEAPONS; i++)
+	{
+		CBasePlayerWeapon *pWeapon = m_rgpPlayerWeapons[i];
+		if (pWeapon && g_WeaponCarryCategories.Categorize(pWeapon->WeaponId()) != 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 int CWeaponBox::ObjectCaps()
 {
-	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW)) {
-		return CBaseDelay::ObjectCaps() | FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
-	} else {
-		return CBaseDelay::ObjectCaps();
+	int caps = CBaseDelay::ObjectCaps();
+
+	if (!FBitSet(pev->effects, EF_NODRAW) && IsPickableByUse())
+	{
+		caps |= FCAP_IMPULSE_USE | FCAP_ONLYVISIBLE_USE;
 	}
+	return caps;
 }
 
 void CWeaponBox::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if (IsPickableByUse(this) && !(pev->effects & EF_NODRAW) ) {
-		TouchOrUse(pCaller);
+	if (!FBitSet(pev->effects, EF_NODRAW) && IsPickableByUse()) {
+		TouchOrUse(pCaller, true);
 	}
 }
 
-void CWeaponBox::TouchOrUse( CBaseEntity *pOther )
+void CWeaponBox::TouchOrUse( CBaseEntity *pOther, bool use )
 {
 	if( pev->movetype == MOVETYPE_TOSS && !( pev->flags & FL_ONGROUND ) )
 	{
@@ -1556,7 +1591,23 @@ void CWeaponBox::TouchOrUse( CBaseEntity *pOther )
 	}
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-	int i;
+
+	if (!use && !g_WeaponCarryCategories.Empty())
+	{
+		for (int i = 0; i < MAX_WEAPONS; i++)
+		{
+			CBasePlayerWeapon *pWeapon = m_rgpPlayerWeapons[i];
+			if (pWeapon)
+			{
+				int weaponCarryCategory = g_WeaponCarryCategories.Categorize(pWeapon->WeaponId());
+				CBasePlayerWeapon* pPlayerWeapon = pPlayer->WeaponOfCarryCategory(weaponCarryCategory);
+				if (pPlayerWeapon && pPlayerWeapon->WeaponId() != pWeapon->WeaponId())
+				{
+					return;
+				}
+			}
+		}
+	}
 
 	bool shouldRemove = false;
 
@@ -1565,7 +1616,7 @@ void CWeaponBox::TouchOrUse( CBaseEntity *pOther )
 	// to deploy a better weapon that the player may pick up because he has no ammo for it.
 
 	// dole out ammo
-	for( i = 0; i < MAX_AMMO_TYPES; i++ )
+	for( int i = 0; i < MAX_AMMO_TYPES; i++ )
 	{
 		if( !FStringNull( m_rgiszAmmo[i] ) )
 		{
@@ -1580,7 +1631,7 @@ void CWeaponBox::TouchOrUse( CBaseEntity *pOther )
 		}
 	}
 
-	for( i = 0; i < MAX_WEAPONS; i++ )
+	for( int i = 0; i < MAX_WEAPONS; i++ )
 	{
 		CBasePlayerWeapon *pItem = m_rgpPlayerWeapons[i];
 

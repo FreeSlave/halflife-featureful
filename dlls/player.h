@@ -461,6 +461,8 @@ public:
 
 	void InsertWeaponById( CBasePlayerWeapon* pItem );
 	CBasePlayerWeapon* WeaponById( int id );
+	CBasePlayerWeapon* WeaponOfCarryCategory(int carryCategory);
+	void DropConflictingWeapons(CBasePlayerWeapon* pNewWeapon);
 
 	int m_izSBarState[SBAR_END];
 	float m_flNextSBarUpdateTime;

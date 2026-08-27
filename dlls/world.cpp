@@ -49,6 +49,7 @@ CGlobalState					gGlobalState;
 extern DLL_GLOBAL bool				gDisplayTitle;
 
 extern void W_Precache( CBaseEntity* pWorld );
+extern void ReadWeaponCarryCategories();
 
 //
 // This must match the list in util.h
@@ -554,6 +555,10 @@ void CWorld::Precache()
 		ParseModConfigs();
 	}
 	SetWeaponParameters();
+	if (!worldInitAtLeastOnce || IsDeveloperModeOn())
+	{
+		ReadWeaponCarryCategories();
+	}
 
 	g_AmmoRegistry.ResetExhaustible();
 	for(int i=1; i<MAX_WEAPONS; ++i)

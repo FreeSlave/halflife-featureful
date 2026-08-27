@@ -175,9 +175,10 @@ public:
 	virtual void Kill();
 	virtual void AttachToPlayer ( CBasePlayer *pPlayer );
 
+	bool IsPickableByUse();
 	int ObjectCaps() override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
-	void TouchOrUse( CBaseEntity* other );
+	void TouchOrUse(CBaseEntity* other, bool use);
 
 	static const AmmoType* GetAmmoType( const char* name );
 
@@ -527,9 +528,10 @@ public:
 	bool IsEmpty();
 	void SetObjectCollisionBox() override;
 
+	bool IsPickableByUse();
 	int ObjectCaps() override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
-	void TouchOrUse( CBaseEntity* other );
+	void TouchOrUse( CBaseEntity* other, bool use );
 
 	void EXPORT Kill ();
 	int		Save( CSave &save ) override;

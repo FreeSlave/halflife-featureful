@@ -202,6 +202,7 @@ set (SVDLL_SOURCES
 	warpball.cpp
 	weapons.cpp
 	weapons_shared.cpp
+	weapon_carry_categories.cpp
 	weapon_tools.cpp
 	world.cpp
 	xen.cpp

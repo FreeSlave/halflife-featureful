@@ -21,6 +21,7 @@ The list of featureful configuration files:
 * **features/followers.json** - configuring player [followers]({{< ref followers >}}) properties.
 * **features/materials.json** - configuring texture [materials]({{< ref materials >}}) properties.
 * **features/time_based_damage.json** - configuring properties of [time based damage]({{< ref time-based-damage >}}).
+* **features/weapon_carry_categories.cfg** - configuring weapon carry mutual restrictions.
 * **sound/captions.txt** and **sound/captions_profiles.txt** - parts of [subtitles system]({{< ref subtitles >}}).
 * **sound/soundscripts.json** - configuring [soundscripts]({{< ref soundscripts >}}).
 * **templates/visuals.json** - configuring [visuals]({{< ref visuals >}}).

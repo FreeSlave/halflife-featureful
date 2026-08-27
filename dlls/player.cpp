@@ -53,6 +53,7 @@
 #include "ammunition.h"
 #include "monsterinfo.h"
 #include "player_capabilities.h"
+#include "weapon_carry_categories.h"
 
 // #define DUCKFIX
 
@@ -5291,6 +5292,8 @@ int CBasePlayer::AddPlayerItem( CBasePlayerWeapon *pItem )
 
 		InsertWeaponById(pItem);
 
+		DropConflictingWeapons(pItem);
+
 		// should we switch to this item?
 		if( g_pGameRules->FShouldSwitchWeapon( this, pItem ) )
 		{
@@ -7045,6 +7048,46 @@ CBasePlayerWeapon* CBasePlayer::WeaponById(int id)
 		return m_rgpPlayerWeapons[id-1];
 	}
 	return NULL;
+}
+
+CBasePlayerWeapon* CBasePlayer::WeaponOfCarryCategory(int carryCategory)
+{
+	if (g_WeaponCarryCategories.Empty() || carryCategory == 0)
+	{
+		return nullptr;
+	}
+	for (int i=1; i<MAX_WEAPONS; ++i)
+	{
+		CBasePlayerWeapon* pWeapon = WeaponById(i);
+		if (pWeapon && g_WeaponCarryCategories.Categorize(i) == carryCategory)
+		{
+			return pWeapon;
+		}
+	}
+	return nullptr;
+}
+
+void CBasePlayer::DropConflictingWeapons(CBasePlayerWeapon *pNewWeapon)
+{
+	if (!pNewWeapon)
+		return;
+
+	const int weaponCarryCategory = g_WeaponCarryCategories.Categorize(pNewWeapon->WeaponId());
+	if (weaponCarryCategory == 0) {
+		return;
+	}
+
+	for( int i = 0; i < MAX_WEAPONS; i++ )
+	{
+		CBasePlayerWeapon *pWeapon = m_rgpPlayerWeapons[i];
+		if (pWeapon)
+		{
+			if (pWeapon->WeaponId() != pNewWeapon->WeaponId() && g_WeaponCarryCategories.Categorize(pWeapon->WeaponId()) == weaponCarryCategory) {
+				DropPlayerItemImpl(pWeapon, NoAmmoDrop, 200);
+				return;
+			}
+		}
+	}
 }
 
 void CBasePlayer::SetFlashlightOnly()

@@ -39,6 +39,7 @@
 #include "error_collector.h"
 #include "weapons.h"
 #include "weapon_templates.h"
+#include "weapon_carry_categories.h"
 #include "ai_debug.h"
 
 #include <chrono>
@@ -673,7 +674,47 @@ void ReadAmmoAmounts()
 			}
 			else
 			{
-				ALERT(at_warning, "Key '%s' without value!\n", key);
+				ALERT(at_warning, "%s: key '%s' without a value!\n", fileName, key);
+			}
+		}
+	}
+}
+
+void ReadWeaponCarryCategories()
+{
+	g_WeaponCarryCategories.Reset();
+
+	const char* fileName = "features/weapon_carry_categories.cfg";
+	int filePos = 0, fileSize;
+	byte *pMemFile = g_engfuncs.pfnLoadFileForMe( fileName, &fileSize );
+	if (!pMemFile)
+		return;
+
+	ALERT(at_console, "Parsing weapon carry categories from %s\n", fileName);
+
+	char buffer[512];
+	memset(buffer, 0, sizeof(buffer));
+
+	while (memfgets( pMemFile, fileSize, filePos, buffer, sizeof(buffer)-1 ))
+	{
+		char* key = nullptr;
+		char* value = nullptr;
+		TryConsumeKeyAndValue(buffer, sizeof(buffer), key, value);
+
+		if (key)
+		{
+			if (value)
+			{
+				const int category = atoi(value);
+				const int weaponId = GetWeaponIdByName(key);
+				if (weaponId < 0)
+					continue;
+
+				g_WeaponCarryCategories.SetWeaponCategory(weaponId, category);
+			}
+			else
+			{
+				ALERT(at_warning, "%s: key '%s' without a value!\n", fileName, key);
 			}
 		}
 	}
