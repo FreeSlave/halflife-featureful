@@ -232,7 +232,7 @@ weapon_data_t none
 	DEFINE_DELTA( m_flNextReload, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
 	DEFINE_DELTA( m_fNextAimBonus, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
 	DEFINE_DELTA( m_flNextSecondaryAttack, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
-	DEFINE_DELTA( m_iClip, DT_SIGNED | DT_INTEGER, 10, 1.0 ),
+	DEFINE_DELTA( m_iClip, DT_SIGNED | DT_INTEGER, 15, 1.0 ),
 	DEFINE_DELTA( m_flPumpTime, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
 	DEFINE_DELTA( m_fInSpecialReload, DT_INTEGER, 2, 1.0 ),
 	DEFINE_DELTA( m_fReloadTime, DT_FLOAT, 16, 100.0 ),
