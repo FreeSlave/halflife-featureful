@@ -4752,6 +4752,29 @@
 	]
 ]
 @PointClass base(Apache) size(-360 -360 -172, 360 360 8) studio("models/apache.mdl") = monster_apache : "Apache" []
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/archer.mdl") = monster_archer : "Archer"
+[
+	sequence(Choices) : "Animation Sequence (editor)" : 0 =
+	[
+			0 : "idle1"
+			1 : "idle2"
+			2 : "idle3"
+			3 : "burst(small)"
+			4 : "swim"
+			5 : "swim_fast"
+			6 : "bite"
+			7 : "flinch1"
+			8 : "flinch2"
+			9 : "die1"
+			10 : "die2"
+			11 : "shoot"
+			12 : "surface"
+			13 : "sink"
+			14 : "dead_float"
+			15 : "180left"
+			16 : "180right"
+	]
+]
 @PointClass base(Monster, Sequence) size(-16 -16 0, 16 16 36) studio("models/baby_headcrab.mdl") = monster_babycrab : "Baby Headcrab"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =

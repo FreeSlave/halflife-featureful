@@ -56,6 +56,7 @@ set (SVDLL_SOURCES
 	animating.cpp
 	animation.cpp
 	apache.cpp
+	archer.cpp
 	barnacle.cpp
 	barney.cpp
 	bigmomma.cpp

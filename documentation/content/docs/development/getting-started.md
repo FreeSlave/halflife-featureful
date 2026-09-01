@@ -123,6 +123,7 @@ geneworm
 drillsergeant
 recruit
 
+archer
 floater
 flybee
 panthereye

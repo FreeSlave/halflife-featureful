@@ -289,6 +289,7 @@ Most entities has their collision box to match the size. However some monsters r
 * monster_alien_grunt
 * monster_alien_tor
 * monster_apache
+* monster_archer
 * monster_babygarg
 * monster_bigmomma
 * monster_garganuta

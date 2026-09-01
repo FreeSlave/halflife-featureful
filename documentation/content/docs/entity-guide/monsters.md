@@ -123,6 +123,7 @@ Talkmonsters are the following monsters who can also talk to each other and to t
 {{% /details_header %}}
 
 {{% details_header title="Xen creatures" %}}
+* [Archer]({{< ref monster_archer >}})
 * [Baby Gargantua]({{< ref monster_babygarg >}})
 * [Floater]({{< ref monster_floater >}})
 * [Flybee]({{< ref monster_flybee >}})

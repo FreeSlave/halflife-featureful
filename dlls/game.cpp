@@ -1292,6 +1292,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("apache_rocket_reload_time", 10.0f);
 	g_SkillData.ProvideFallback("apache_rocket_delay", 0.5f);
 
+	g_SkillData.ProvideFallback("archer_delay_zap", FloatRange(2.5f, 7.0f));
+
 	g_SkillData.ProvideFallbackWithFactor("babycrab_health", "headcrab_health", 0.25f);
 	g_SkillData.ProvideFallbackWithFactor("babycrab_dmg_bite", "headcrab_dmg_bite", 0.3f);
 

@@ -76,6 +76,17 @@ void CBaseMonster::SetState( MONSTERSTATE State )
 
 extern cvar_t npc_idlesound_requires_pvs;
 
+void CBaseMonster::MayPlayIdleSound()
+{
+	// IDLE sound permitted in ALERT state is because monsters were silent in ALERT state. Only play IDLE sound in IDLE state
+	// once we have sounds for that state.
+	if( ( m_MonsterState == MONSTERSTATE_IDLE || m_MonsterState == MONSTERSTATE_ALERT ) && RANDOM_LONG( 0, 99 ) == 0 && !( pev->spawnflags & SF_MONSTER_GAG ) )
+	{
+		if (npc_idlesound_requires_pvs.value == 0.0f || !FNullEnt(FIND_CLIENT_IN_PVS(edict())))
+			IdleSound();
+	}
+}
+
 //=========================================================
 // RunAI
 //=========================================================
@@ -84,13 +95,7 @@ void CBaseMonster::RunAI()
 	// to test model's eye height
 	//UTIL_ParticleEffect ( pev->origin + pev->view_ofs, g_vecZero, 255, 10 );
 
-	// IDLE sound permitted in ALERT state is because monsters were silent in ALERT state. Only play IDLE sound in IDLE state
-	// once we have sounds for that state.
-	if( ( m_MonsterState == MONSTERSTATE_IDLE || m_MonsterState == MONSTERSTATE_ALERT ) && RANDOM_LONG( 0, 99 ) == 0 && !( pev->spawnflags & SF_MONSTER_GAG ) )
-	{
-		if (npc_idlesound_requires_pvs.value == 0.0f || !FNullEnt(FIND_CLIENT_IN_PVS(edict())))
-			IdleSound();
-	}
+	MayPlayIdleSound();
 
 	if( m_MonsterState != MONSTERSTATE_NONE &&
 		 m_MonsterState != MONSTERSTATE_PRONE &&

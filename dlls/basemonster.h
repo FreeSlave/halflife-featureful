@@ -207,6 +207,7 @@ public:
 	virtual CTalkMonster* MyTalkMonsterPointer() { return NULL; }
 
 	virtual void Look( int iDistance );// basic sight function for monsters
+	void MayPlayIdleSound();
 	virtual void RunAI();// core ai function!
 	void Listen();
 

@@ -13,7 +13,6 @@ This is the list of features that would be nice to have in our codebase. You are
 * ![](/images/decay.png) monster_alienflyer
 * ![](/images/svencoop.png) monster_bodyguard
 * ![](/images/svencoop.png) monster_stukabat
-* monster_archer (probably should shoot spikes like pitdrone or some kinds of electric bolts)
 * ![](/images/tfc.png) Engineer's Sentry Gun (3 different levels)
 * Drones from Sweet Half-Life
 * ![](/images/svencoop.png) Chumtoad from Sven Co-op or Todesangst 2
