@@ -108,7 +108,7 @@ Talkmonsters are the following monsters who can also talk to each other and to t
 * [Opfor Human Grunt]({{< ref monster_human_grunt_ally >}})
 * [Medic]({{< ref monster_human_medic_ally >}})
 * [Engineer (Torch)]({{< ref monster_human_torch_ally >}})
-* [Heave weapons grunt]({{< ref monster_hwgrunt >}})
+* [Heavy weapons grunt]({{< ref monster_hwgrunt >}})
 {{% /details_header %}}
 
 {{% details_header title="Blackops" %}}

@@ -784,7 +784,7 @@ private:
 	cvar_t* hud_combattext_time;
 	cvar_t* hud_combattext_speed;
 
-	int lastSlot;
+	size_t lastSlot;
 	CombatText texts[8];
 };
 

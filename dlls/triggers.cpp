@@ -7914,7 +7914,7 @@ public:
 			CPointEntity::KeyValue(pkvd);
 	}
 
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override
 	{
 		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
 		if (pPlayer)
