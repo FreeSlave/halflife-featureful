@@ -274,7 +274,11 @@ public:
 	void TraceAttack( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr ) override;
 	TakeDamageResult TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo) override;
 	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
-	Vector BodyTarget( const Vector &posSrc ) override { return Center() + pev->view_ofs * RANDOM_FLOAT( 0.5, 1.1 ); }		// position to shoot at
+	Vector BodyTarget( const Vector &posSrc ) override {
+		if (pev->waterlevel > WL_Feet)
+			return Center() + Vector(0,0,RANDOM_FLOAT(0.0f, 4.0f)); // underwater the player's hitbox is more "flattened" so aim more at the center
+		return Center() + pev->view_ofs * RANDOM_FLOAT( 0.5f, 1.1f ); // position to shoot at
+	}
 	bool IsAlive() override { return IsFullyAlive(); }
 	bool IsFullyAlive() override { return CBaseMonster::IsFullyAlive() && !IsObserver(); }
 	bool ShouldFadeOnDeath() override { return false; }
