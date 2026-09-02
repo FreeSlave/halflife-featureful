@@ -476,8 +476,15 @@ CGrenade *CGrenade::ShootContact(CBaseEntity *pOwner, const Vector& vecStart, co
 
 CGrenade *CGrenade::ShootTimed( CBaseEntity *pOwner, const Vector& vecStart, const Vector& vecVelocity, float time, EntityOverrides entityOverrides )
 {
-	Vector vecDir = vecVelocity;
-	const float speed = vecDir.NormalizeInPlace();
+	Vector vecDir{};
+	float speed = 0.0f;
+
+	if (vecVelocity != g_vecZero)
+	{
+		vecDir = vecVelocity;
+		speed = vecDir.NormalizeInPlace();
+	}
+
 	const Vector vecAng = UTIL_VecToAngles(vecVelocity);
 
 	ProjectileParameters parameters("grenade", vecStart, vecAng, vecDir, speed, pOwner, entityOverrides);
