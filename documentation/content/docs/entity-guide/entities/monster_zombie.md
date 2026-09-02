@@ -9,7 +9,7 @@ bookToC: false
 
 ### Changes
 
-* Unlike original Half-Life, zombies don't have resistance against Tau-Cannon and tank guns anymore. This is believed to be wrong coding by Valve as zombies lack resistance to against bullets from other weapons.
+* Unlike original Half-Life, zombies don't have resistance against Tau-Cannon and tank guns anymore. This is believed to be wrong coding by Valve as zombies lack resistance against bullets from other weapons.
 
 ### Skill variables
 

@@ -52,6 +52,7 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - demo available (the mod, however, branched off to utilize its own gamecode).
 * [Half-Life: Deep Cover](https://www.moddb.com/mods/half-life-deep-cover) - demo available.
 * [Retrograde](https://www.moddb.com/mods/retrograde)
+* [Half-Life: The Shotgun Manifesto](https://www.moddb.com/mods/half-life-the-shotgun-manifesto) - demo avaialble.
 * [Half-Life: Sleep-Derived](https://www.moddb.com/mods/half-life-sleep-deprived)
 * [Half-Life: Static Interference](https://www.moddb.com/mods/half-life-static-interference) - demo avaialble.
 * [Specific impulse](https://www.moddb.com/mods/specific-impulse) - demo available.

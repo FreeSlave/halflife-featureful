@@ -13,9 +13,11 @@ The only entities capable of being Master in Half-Life are `multisource` and `ga
 
 * [env_state]({{< ref env_state >}})
 * [calc_state]({{< ref calc_state >}})
+* [multisource]({{< ref multisource >}})
 * [player_hasitem]({{< ref player_hasitem >}})
 * [player_hasweapon]({{< ref player_hasweapon >}})
 * [player_hasinventory]({{< ref player_hasinventory >}})
+* [player_template]({{< ref player_template >}})
 * [trigger_compare]({{< ref trigger_compare >}})
 
 ### Globals as masters
