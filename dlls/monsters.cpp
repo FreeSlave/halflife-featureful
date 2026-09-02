@@ -5894,9 +5894,8 @@ void CBaseMonster::HandleJumpFallTask(const Vector* target, bool allowAttack)
 
 		SetYawSpeed();
 	}
-	if (pev->flags & FL_ONGROUND)
+	if (FBitSet(pev->flags, FL_ONGROUND) || (pev->waterlevel > WL_Feet && pev->velocity.IsLengthLessThan(1.0f)))
 	{
-		// ALERT( at_console, "on ground\n" );
 		ResetCurrentJump();
 		TaskComplete();
 	}
