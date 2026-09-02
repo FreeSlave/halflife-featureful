@@ -803,7 +803,9 @@ void CArcher::SwimThink()
 		pev->speed = UTIL_Approach( -ARCHER_SWIM_SPEED * 0.5f, pev->speed, ARCHER_SWIM_DECEL * ARCHER_FRAMETIME * obstacleFactor );
 		pev->velocity = gpGlobals->v_forward * pev->speed;
 	}
+
 	UpdateMotion(m_flTurning + turnYawSpeed, obstacleFactor);
+	FCheckAITrigger();
 	HandleCloaking();
 }
 
@@ -869,6 +871,7 @@ KilledResult CArcher::Killed(entvars_t* pevInflictor, entvars_t *pevAttacker, in
 		return killedResult.SetGibbed();
 	}
 
+	SetConditions( bits_COND_LIGHT_DAMAGE );
 	const bool shouldGib = ShouldGibMonster(iGib);
 	OnDying(shouldGib, CBaseEntity::OwnInstance(pevAttacker));
 
@@ -899,5 +902,6 @@ KilledResult CArcher::Killed(entvars_t* pevInflictor, entvars_t *pevAttacker, in
 	SetThink( &CArcher::DeadThink );
 	pev->deadflag = DEAD_DEAD;
 	DeathSound();
+	FCheckAITrigger();
 	return killedResult;
 }

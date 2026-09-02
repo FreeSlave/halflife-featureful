@@ -7,6 +7,10 @@ bookToC: false
 
 [TWHL](https://twhl.info/wiki/page/monster_leech)
 
+### Changes
+
+* Leeches now can trigger targets on Death and Take Damage conditions.
+
 ### Skill variables
 
 * **sk_leech_health** - monster's health.
