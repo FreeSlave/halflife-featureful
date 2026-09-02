@@ -974,13 +974,16 @@ bool CBaseEntity::EmitSoundScriptSelectedSample(const SoundScript* soundScript, 
 
 		paramsOverride.ApplyOverride(channel, volume, attenuation, pitch);
 
+		int pitchValue = RandomizeNumberFromRange(pitch);
+		pitchValue = clamp(pitchValue, 0, 255);
+
 		if (IsProbablySentenceGroup(sample))
 		{
-			return SENTENCEG_PlayRndSz(edict(), sample, RandomizeNumberFromRange(volume), attenuation, flags, RandomizeNumberFromRange(pitch), soundScript->channel) >= 0;
+			return SENTENCEG_PlayRndSz(edict(), sample, RandomizeNumberFromRange(volume), attenuation, flags, pitchValue, soundScript->channel) >= 0;
 		}
 		else
 		{
-			return EmitSoundDyn(soundScript->channel, sample, RandomizeNumberFromRange(volume), attenuation, flags, RandomizeNumberFromRange(pitch));
+			return EmitSoundDyn(soundScript->channel, sample, RandomizeNumberFromRange(volume), attenuation, flags, pitchValue);
 		}
 	}
 	return false;
