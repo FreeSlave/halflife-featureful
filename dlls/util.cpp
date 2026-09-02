@@ -1277,20 +1277,26 @@ bool UTIL_IsMasterTriggered( string_t sMaster, CBaseEntity *pActivator )
 		}
 
 		edict_t *pentTarget = FIND_ENTITY_BY_TARGETNAME( NULL, szMaster );
+		CBaseEntity *pMaster = CBaseEntity::OwnInstance( pentTarget );
 
-		if( !FNullEnt( pentTarget ) )
+		if (pMaster)
 		{
-			CBaseEntity *pMaster = CBaseEntity::Instance( pentTarget );
-			if( pMaster && ( pMaster->ObjectCaps() & FCAP_MASTER ) )
+			if (pMaster->ObjectCaps() & FCAP_MASTER)
 			{
 				if (reverse)
 					return !pMaster->IsTriggered( pActivator );
 				else
 					return pMaster->IsTriggered( pActivator );
 			}
+			else
+			{
+				ALERT(at_console, "'%s' (%s) is not a master entity!\n", STRING(sMaster), STRING(pMaster->pev->classname));
+			}
 		}
-
-		ALERT( at_console, "Master %s was null or not a master!\n", STRING(sMaster) );
+		else
+		{
+			ALERT( at_console, "Master entity '%s' doesn't exist!\n", STRING(sMaster) );
+		}
 	}
 
 	// if this isn't a master entity, just say yes.
