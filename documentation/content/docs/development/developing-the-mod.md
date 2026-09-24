@@ -49,7 +49,7 @@ Featureful SDK introduces some new console commands designed to aid the develope
 * `dump_ammo_types` - report registered ammo types.
 * `dump_ammo_types_client` - report ammo types as known to the client (should be the same as `dump_ammo_types`).
 * `dump_materials` - report registered texture materials. See [Materials]({{< ref materials >}}).
-* `dump_precached_models` and `dump_precached_sounds` - show the count and the list of precached models (including sprites and brush models) or sounds. Useful to keep track of the number of precached resources and to see what's exactly is being precached.
+* `dump_precached_models` and `dump_precached_sounds` - show the count and the list of precached models (including sprites and brush models) or sounds. Useful to keep track of the number of precached resources and to see what exactly is being precached. Xash3D-FWGS has built-in `modellist` and `soundlist` commands serving the same purpose.
 * `dump_soundscripts` - report soundscripts. See [soundscript debugging]({{< ref "soundscripts/#debugging" >}}).
 * `dump_visuals` - report visuals. See [visuals debugging]({{< ref "visuals/#debugging" >}}).
 * `get_skill` - report skill values. See [skill variables]({{< ref "skill-variables" >}}).
