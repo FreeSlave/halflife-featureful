@@ -6975,7 +6975,7 @@
 	]
 ]
 
-@PointClass base(Monster) studio("models/panthereye.mdl") = monster_panthereye : "Panthereye" []
+@PointClass base(Monster) studio("models/panthereye.mdl") size(-24 -24 0, 24 24 64) = monster_panthereye : "Panthereye" []
 
 @PointClass base(Monster, FollowingMonster, Sequence) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = monster_pitdrone : "PitDrone"
 [
@@ -9307,6 +9307,22 @@
 		0 : "No change"
 		247 : "Human (red)"
 		195 : "Alien (yellow)"
+		70 : "Dark red"
+		192 : "Bright yellow"
+		244 : "Green"
+		12 : "White"
+		5 : "Grey"
+		25 : "Brown"
+		59 : "Olive"
+		178 : "Grey green"
+		92 : "Orange"
+		106 : "Goldish"
+		124 : "Peach"
+		145 : "Magenta"
+		161 : "Tan"
+		210 : "Blue"
+		214 : "Darker Blue"
+		43 : "Bluish"
 	]
 	ignoredby(choices) : "Ignored by classify" =
 	[
