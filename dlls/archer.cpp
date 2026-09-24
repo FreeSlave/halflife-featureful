@@ -94,7 +94,7 @@ public:
 	int LookupActivity(int activity) override;
 	void SetActivity(Activity NewActivity) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
-	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib );
+	KilledResult Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib ) override;
 	void Activate() override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	TakeDamageResult TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo ) override;

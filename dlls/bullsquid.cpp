@@ -34,9 +34,6 @@
 const NamedVisual sharedTinySpitVisual = BuildVisual("Bullsquid.TinySpitBase")
 		.Model("sprites/tinyspit.spr");
 
-// Slow big poisonous ball as alternative range attack for bullsquid
-#define FEATURE_BULLSQUID_TOXICSPIT 1
-
 #define		SQUID_SPRINT_DIST	256.0f // how close the squid has to get before starting to sprint and refusing to swerve
 
 //=========================================================
@@ -725,14 +722,12 @@ void CBullsquid::HandleAnimEvent( MonsterEvent_t *pEvent )
 				const Vector vecSpitDir = SpitAtEnemy(vecSpitOrigin, dirRandomDeviation, &distanceToEnemy);
 
 				bool toxicSpit = false;
-#if FEATURE_BULLSQUID_TOXICSPIT
 				if (GetSkillValue("bullsquid_toxicity") > 0.0f && RANDOM_LONG(0,1))
 				{
 					if (distanceToEnemy < 400) {
 						toxicSpit = true;
 					}
 				}
-#endif
 
 				// do stuff for this event.
 				AttackSound(toxicSpit);
@@ -855,9 +850,8 @@ void CBullsquid::Precache()
 	PrecacheMyGibModel();
 
 	UTIL_PrecacheOther("squidspit", GetProjectileOverrides());
-#if FEATURE_BULLSQUID_TOXICSPIT
-	UTIL_PrecacheOther("squidtoxicspit", GetProjectileOverrides()); // toxic spit projectile
-#endif
+	if (GetSkillValue("bullsquid_toxicity") > 0.0f)
+		UTIL_PrecacheOther("squidtoxicspit", GetProjectileOverrides());
 
 	RegisterVisual(tinySpitVisual);
 	RegisterVisual(toxicTinySpitVisual);

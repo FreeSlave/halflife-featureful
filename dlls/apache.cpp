@@ -279,10 +279,7 @@ void CApache::PrecacheImpl(const char* modelName, const char* gibModel)
 	PrecacheMyModel( modelName );
 	m_iBodyGibs = PrecacheMyGibModel(gibModel);
 
-	PRECACHE_SOUND( "apache/ap_rotor1.wav" );
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
-	PRECACHE_SOUND( "apache/ap_rotor3.wav" );
-	PRECACHE_SOUND( "apache/ap_whine1.wav" );
 
 	RegisterAndPrecacheSoundScript(crashSoundScript, NPC::crashSoundScript);
 
@@ -294,8 +291,6 @@ void CApache::PrecacheImpl(const char* modelName, const char* gibModel)
 	RegisterVisual(crashSmokeVisual);
 	RegisterVisual(rocketSmokeVisual);
 	RegisterVisual(damageSmokeVisual);
-
-	PRECACHE_MODEL( "sprites/lgtning.spr" );
 
 	RegisterVisual(fireBallVisual);
 
@@ -893,7 +888,6 @@ void CApache::Flight()
 		SetRotorVolumeOverride(param);
 		param.OverridePitchRelative(110);
 		EmitSoundScript(rotorSoundScript, param);
-		// EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_whine1.wav", 0.5, 0.2, 0, 110 );
 
 		m_iSoundState = SND_CHANGE_PITCH; // hack for going through level transitions
 	}
@@ -925,7 +919,6 @@ void CApache::Flight()
 			param.OverridePitchRelative(pitch);
 			EmitSoundScript(rotorSoundScript, param, SND_CHANGE_PITCH | SND_CHANGE_VOL);
 		}
-		// EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, "apache/ap_whine1.wav", flVol, 0.2f, SND_CHANGE_PITCH | SND_CHANGE_VOL, pitch );
 	
 		// ALERT( at_console, "%.0f %.2f\n", pitch, flVol );
 	}
