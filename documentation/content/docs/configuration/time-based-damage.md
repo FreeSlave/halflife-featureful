@@ -93,7 +93,7 @@ The `"paralyze"` damage type is not drawn in HUD.
 
 {{% details title="Old Time based damage values" %}}
 \
-The values that seemingly were used during the development.
+The values that seemingly were used during the Half-Life development (before retail).
 
 ```json
 {

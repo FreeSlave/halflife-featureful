@@ -10,6 +10,10 @@ Triggers a target when the player looks at something while standing in the trigg
 
 Designed after [trigger_look](https://developer.valvesoftware.com/wiki/Trigger_look) entity from Source.
 
+{{% hint warning %}}
+If the target to look at is a brush entity it must have an origin brush.
+{{% /hint %}}
+
 ### Parameters
 
 * `Look Target` - the entity the player should look at in order to trigger a target.

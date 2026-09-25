@@ -10,4 +10,4 @@ entityCategory: solid
 
 ### New spawnflags
 
-* ![](/images/svencoop.png) `Use angles` - make the `func_wall` use angles defined in the map source file for the entity. Note that the angle will be applied only in the game, you can't preview the result in the editor.
+* ![](/images/svencoop.png) `Use angles` - make the `func_wall` use its angles (by default it resets angles to zero). This requires origin brush tied to it. Note that the angle will be applied only in game - you can't automatically preview the result in the editor.
