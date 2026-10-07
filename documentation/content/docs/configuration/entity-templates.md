@@ -2086,11 +2086,3 @@ The tracer particles support only a handful of colors defined by the renderer in
 * `"golden"` or `"yellow"`
 * `"orange"`
 * `"purple"`
-
-## Known issues
-
-### Model sound precaching issue
-
-{{% hint warning %}}
-There might be problems with precaching sounds from models for entities (mainly monsters) coming from the [monstermaker]({{< ref monstermaker >}}). Until the issue is resolved you should ensure the map has at least one spawned monster of the same entity template and model as long as such monster can spawn from the monstermaker.
-{{% /hint %}}

@@ -1501,9 +1501,22 @@ static void PrecacheSequenceSounds(CBaseEntity* pEntity, bool precacheSounds, bo
 	if (!precacheSounds && !precacheSoundScripts)
 		return;
 
-	void *pmodel = GET_MODEL_PTR( pEntity->edict() );
+	void *pmodel = GET_MODEL_PTR(pEntity->edict());
 	if (!pmodel)
-		return;
+	{
+		// Doens't have a model? It means entity is not spawned and if we're doing precache for the spawner
+		// This must happen AFTER the model has been precached!
+		const char* model = pEntity->MyOwnModel();
+		if (model)
+		{
+			SET_MODEL(pEntity->edict(), model);
+			pmodel = GET_MODEL_PTR(pEntity->edict());
+			if (!pmodel)
+				return;
+		}
+		else
+			return;
+	}
 
 	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
 	for( int i = 0; i < pstudiohdr->numseq; i++ )
