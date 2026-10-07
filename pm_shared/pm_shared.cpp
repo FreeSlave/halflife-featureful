@@ -124,6 +124,7 @@ struct MatTexture
 static fixed_vector<MatTexture, CTEXTURESMAX> gTextures;
 
 bool g_onladder = true;
+bool g_wasOnLadder = false;
 
 static void PM_InitTrace( trace_t *trace, const Vector& end )
 {
@@ -2881,6 +2882,7 @@ void PM_PlayerMove( qboolean server )
 
 	PM_Duck();
 	
+	g_wasOnLadder = false;
 	// Don't run ladder code if dead or on a train
 	if( !pmove->dead && !( pmove->flags & FL_ONTRAIN ) )
 	{
@@ -2893,6 +2895,7 @@ void PM_PlayerMove( qboolean server )
 			// Clear ladder stuff unless player is noclipping
 			//  it will be set immediately again next frame if necessary
 			pmove->movetype = MOVETYPE_WALK;
+			g_wasOnLadder = true;
 		}
 	}
 
@@ -3198,12 +3201,13 @@ void PM_Move( struct playermove_s *ppmove, int server )
 	}
 
 #ifdef CLIENT_DLL
-	extern void pm_update_player_info(int onground, int inwater, int walking);
+	extern void pm_update_player_info(int onground, int inwater, int walking, bool onladder);
 
 	pm_update_player_info(
 		pmove->onground != -1,
 		pmove->waterlevel > 1,
-		pmove->movetype == MOVETYPE_WALK
+		pmove->movetype == MOVETYPE_WALK,
+		g_wasOnLadder
 		);
 #endif
 }
