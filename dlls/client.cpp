@@ -881,6 +881,7 @@ void ClientCommand( edict_t *pEntity )
 			{
 				ClientPrint(&pEntity->v, HUD_PRINTCONSOLE, "noclip OFF\n");
 				pev->movetype = MOVETYPE_WALK;
+				pev->velocity = g_vecZero;
 				g_engfuncs.pfnSetPhysicsKeyValue( pEntity, "ncf", "0" );
 			}
 		}
