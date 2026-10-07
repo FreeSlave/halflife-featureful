@@ -33,8 +33,8 @@
 #define SPRING_DAMPING	0.1f
 #define ROPE_IGNORE_SAMPLES	4		// integrator may be hanging if less than
 
-const float RopeFrameRate = 100.f;
-const float RopeForceMultiplier = 50.f;
+constexpr const float RopeFrameRate = 100.f;
+constexpr const float RopeForceMultiplier = 50.f;
 
 /**
 *	Data for a single rope joint.
@@ -874,6 +874,8 @@ void CRope::TraceModels( CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSe
 void CRope::SetRopeSegments( const int uiNumSegments,
 							 CRopeSegment** ppPrimarySegs, CRopeSegment** ppHiddenSegs )
 {
+	const bool isMultiplayer = gpGlobals->maxClients > 1;
+
 	if( uiNumSegments > 0 )
 	{
 		TraceModels( ppPrimarySegs, ppHiddenSegs );
@@ -882,7 +884,8 @@ void CRope::SetRopeSegments( const int uiNumSegments,
 		ClearBits(ppPrimarySegs[ 0 ]->pev->effects, EF_NODRAW);
 
 		ppHiddenSegs[ 0 ]->pev->solid = SOLID_NOT;
-		SetBits(ppHiddenSegs[ 0 ]->pev->effects, EF_NODRAW);
+		if (!isMultiplayer)
+			SetBits(ppHiddenSegs[ 0 ]->pev->effects, EF_NODRAW);
 
 		for( int uiIndex = 1; uiIndex < uiNumSegments; ++uiIndex )
 		{
@@ -893,7 +896,8 @@ void CRope::SetRopeSegments( const int uiNumSegments,
 			ClearBits(pPrim->pev->effects, EF_NODRAW);
 
 			pHidden->pev->solid = SOLID_NOT;
-			SetBits(pHidden->pev->effects, EF_NODRAW);
+			if (!isMultiplayer)
+				SetBits(pHidden->pev->effects, EF_NODRAW);
 
 			Vector vecOrigin = pPrim->pev->origin;
 
