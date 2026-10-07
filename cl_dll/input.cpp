@@ -143,6 +143,7 @@ static struct {
 	bool onground = false;
 	bool inwater = false;
 	bool walking = true; // Movetype == MOVETYPE_WALK. Filters out noclip, being on ladder, etc.
+	bool onladder = false;
 } player;
 
 static void handle_autojump(usercmd_t* cmd)
@@ -162,19 +163,22 @@ static void handle_autojump(usercmd_t* cmd)
 		if (s_jump_was_down_last_frame && player.onground && !player.inwater && player.walking)
 			should_release_jump = true;
 
-		if (should_release_jump && !gHUD.m_onRope)
+		if (should_release_jump && !gHUD.m_onRope && !player.onladder)
+		{
 			cmd->buttons &= ~IN_JUMP;
+		}
 	}
 
 	s_jump_was_down_last_frame = ((cmd->buttons & IN_JUMP) != 0);
 }
 }
 
-void pm_update_player_info(int onground, int inwater, int walking)
+void pm_update_player_info(int onground, int inwater, int walking, bool onladder)
 {
 	autofuncs::player.onground = (onground != 0);
 	autofuncs::player.inwater = (inwater != 0);
 	autofuncs::player.walking = (walking != 0);
+	autofuncs::player.onladder = onladder;
 }
 
 /*
