@@ -35,7 +35,7 @@ class CTripmineGrenade : public CGrenade
 {
 	void Spawn() override;
 	void Precache() override;
-	const char* DefaultModel() { return "models/v_tripmine.mdl"; }
+	const char* DefaultModel() override { return "models/v_tripmine.mdl"; }
 	float DefaultHealth() { return GetSkillValue("tripmine_health"); }
 	void UpdateOnRemove() override;
 

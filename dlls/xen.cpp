@@ -334,7 +334,7 @@ public:
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	void Attack();
 	int DefaultClassify() override { return CLASS_BARNACLE; }
-	void UpdateOnRemove() {
+	void UpdateOnRemove() override {
 		UTIL_RemoveAndClean(m_pTrigger);
 		CActAnimating::UpdateOnRemove();
 	}
@@ -529,7 +529,7 @@ public:
 	const char* DefaultModel() override {
 		return "models/fungus(large).mdl";
 	}
-	void UpdateOnRemove();
+	void UpdateOnRemove() override;
 
 	CBaseEntity* m_hulls[XEN_SPORE_LARGE_HULL_COUNT];
 	static const Vector m_hullSizes[XEN_SPORE_LARGE_HULL_COUNT];

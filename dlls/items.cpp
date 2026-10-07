@@ -715,7 +715,7 @@ public:
 		else
 			RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
-	const char* DefaultModel() { return "models/w_antidote.mdl"; }
+	const char* DefaultModel() override { return "models/w_antidote.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
 		const int maxCount = g_InventorySpec.GetAntidoteSpec().maxCount;
@@ -758,7 +758,7 @@ public:
 		PrecacheMyModel();
 		RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
-	const char* DefaultModel() { return "models/w_rad.mdl"; }
+	const char* DefaultModel() override { return "models/w_rad.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
 		const int maxCount = g_InventorySpec.GetRadcanSpec().maxCount;
@@ -801,7 +801,7 @@ public:
 		PrecacheMyModel();
 		RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
-	const char* DefaultModel() { return "models/w_adrenaline.mdl"; }
+	const char* DefaultModel() override { return "models/w_adrenaline.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
 		const int maxCount = g_InventorySpec.GetAdrenalineSpec().maxCount;
@@ -844,7 +844,7 @@ class CItemSecurity : public CItem
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
-	const char* DefaultModel() { return "models/w_security.mdl"; }
+	const char* DefaultModel() override { return "models/w_security.mdl"; }
 	void KeyValue(KeyValueData* pkvd) override
 	{
 		if (FStrEq(pkvd->szKeyName, "hudname"))
@@ -986,7 +986,7 @@ class CItemLongJump : public CItem
 	{
 		PrecacheMyModel();
 	}
-	const char* DefaultModel() { return "models/w_longjump.mdl"; }
+	const char* DefaultModel() override { return "models/w_longjump.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
 	{
 		if( pPlayer->m_fLongJump )
@@ -1040,7 +1040,7 @@ public:
 		PrecacheMyModel();
 		RegisterAndPrecacheSoundScript(pickupSoundScript, Items::pickupSoundScript);
 	}
-	const char* DefaultModel()
+	const char* DefaultModel() override
 	{
 		if (g_hasFlashlightModel)
 			return FLASHLIGHT_MODEL;
@@ -1261,7 +1261,7 @@ public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Spawn() override;
 	void Precache() override;
-	const char* DefaultModel() { return "models/EYE_SCANNER.mdl"; }
+	const char* DefaultModel() override { return "models/EYE_SCANNER.mdl"; }
 	void PlayBeep();
 	void WaitForSequenceEnd();
 	void Think() override;
