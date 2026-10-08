@@ -158,9 +158,6 @@ void CKingpinPlasmaBall::Precache()
 	RegisterVisual(ballVisual);
 	RegisterAndPrecacheSoundScript(impactSoundScript);
 	RegisterAndPrecacheSoundScript(ambienceSoundScript);
-	PRECACHE_SOUND( "kingpin/kingpin_seeker1.wav" );
-	PRECACHE_SOUND( "kingpin/kingpin_seeker2.wav" );
-	PRECACHE_SOUND( "kingpin/kingpin_seeker3.wav" );
 
 	RegisterVisual(trailVisual);
 	RegisterVisual(shockInnerVisual);
