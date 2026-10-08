@@ -2994,8 +2994,12 @@ void CTorch::Precache()
 	RegisterAndPrecacheSoundScript(desertEagleSoundScript, NPC::desertEagleSoundScript);
 	RegisterAndPrecacheSoundScript(desertEagleReloadSoundScript, NPC::desertEagleReloadSoundScript);
 
-	PRECACHE_SOUND("fgrunt/torch_light.wav");
-	PRECACHE_SOUND("fgrunt/torch_cut_loop.wav");
+	if (!ShouldAutoPrecacheSounds())
+	{
+		// Used in model from Opposing Force
+		PRECACHE_SOUND("fgrunt/torch_light.wav");
+		PRECACHE_SOUND("fgrunt/torch_cut_loop.wav");
+	}
 
 	RegisterVisual(beamVisual);
 	RegisterVisual(dynLightVisual);

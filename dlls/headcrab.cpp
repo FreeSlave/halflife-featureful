@@ -809,7 +809,21 @@ void CShockRoach::Precache()
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(biteSoundScript);
 
-	PRECACHE_SOUND("shockroach/shock_walk.wav");
+	if (!ShouldAutoPrecacheSounds())
+	{
+		// Used in model from Opposing Force
+		PRECACHE_SOUND("shockroach/shock_walk.wav");
+
+		PRECACHE_SOUND("shockroach/shock_idle1.wav");
+		PRECACHE_SOUND("shockroach/shock_idle2.wav");
+		PRECACHE_SOUND("shockroach/shock_idle3.wav");
+
+		PRECACHE_SOUND("shockroach/shock_angry.wav");
+		PRECACHE_SOUND("shockroach/shock_flinch.wav");
+		PRECACHE_SOUND("shockroach/shock_die.wav");
+		PRECACHE_SOUND("shockroach/shock_jump1.wav");
+		PRECACHE_SOUND("shockroach/shock_jump2.wav");
+	}
 
 	PrecacheMyModel();
 	PrecacheMyGibModel();

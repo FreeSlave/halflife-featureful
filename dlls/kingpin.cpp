@@ -1221,8 +1221,12 @@ void CKingpin::Precache()
 {
 	PrecacheMyModel();
 	PRECACHE_MODEL("models/stickygibpink.mdl");
-	PRECACHE_SOUND("kingpin/kingpin_moveslow.wav");
-	PRECACHE_SOUND("kingpin/kingpin_move.wav");
+
+	if (!ShouldAutoPrecacheSounds())
+	{
+		PRECACHE_SOUND("kingpin/kingpin_moveslow.wav");
+		PRECACHE_SOUND("kingpin/kingpin_move.wav");
+	}
 
 	RegisterVisual(teleportEnterVisual);
 	RegisterVisual(teleportExitVisual);

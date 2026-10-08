@@ -1885,9 +1885,12 @@ void CKeller::Precache()
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 
-	PRECACHE_SOUND( "wheelchair/wheelchair_jog.wav" );
-	PRECACHE_SOUND( "wheelchair/wheelchair_run.wav" );
-	PRECACHE_SOUND( "wheelchair/wheelchair_walk.wav" );
+	if (!ShouldAutoPrecacheSounds())
+	{
+		PRECACHE_SOUND( "wheelchair/wheelchair_jog.wav" );
+		//PRECACHE_SOUND( "wheelchair/wheelchair_run.wav" ); // not used in default model?
+		PRECACHE_SOUND( "wheelchair/wheelchair_walk.wav" );
+	}
 
 	TalkInit();
 	CTalkMonster::Precache();
