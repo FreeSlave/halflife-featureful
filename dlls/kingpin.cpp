@@ -1220,6 +1220,7 @@ void CKingpin::Spawn()
 void CKingpin::Precache()
 {
 	PrecacheMyModel();
+	PrecacheMyGibModel();
 	PRECACHE_MODEL("models/stickygibpink.mdl");
 
 	if (!ShouldAutoPrecacheSounds())

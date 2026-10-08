@@ -818,7 +818,7 @@ void CVoltigore::Spawn()
 void CVoltigore::Precache()
 {
 	PrecacheMyModel();
-	PrecacheMyGibModel("models/vgibs.mdl");
+	PrecacheMyGibModel(DefaultGibModel());
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -1200,6 +1200,7 @@ void CBabyVoltigore::Spawn()
 void CBabyVoltigore::Precache()
 {
 	PrecacheMyModel();
+	PrecacheMyGibModel();
 
 	SoundScriptParamOverride voiceParamOverride;
 	voiceParamOverride.OverridePitchRelative(180);
