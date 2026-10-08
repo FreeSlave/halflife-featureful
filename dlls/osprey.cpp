@@ -1223,7 +1223,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/blkop_osprey.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("blkopsosprey"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("blkop_osprey"); }
 	void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt) override;
 	int	DefaultClassify() override
 	{

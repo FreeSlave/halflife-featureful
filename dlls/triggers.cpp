@@ -5629,7 +5629,6 @@ class CTriggerGenewormHit : public CTriggerHurt
 public:
 	void Spawn() override;
 	void Precache() override;
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("geneworm"); }
 	float DamageAmount() override {
 		return pev->dmg ? pev->dmg : GetSkillValue("geneworm_dmg_hit");
 	}

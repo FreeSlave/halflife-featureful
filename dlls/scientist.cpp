@@ -1581,7 +1581,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/cleansuit_scientist.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("cleansuit_scientist_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
 	const char* DefaultDisplayName() override { return "Cleansuit Scientist"; }
 	bool AbleToHeal() override { return false; }
 	void ReportAIState(ALERT_TYPE level) override;
@@ -1628,7 +1627,6 @@ class CDeadCleansuitScientist : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/cleansuit_scientist.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
 	int	DefaultClassify() override { return	CLASS_HUMAN_PASSIVE; }
 
 	const char* getPos(int pos) const override;
@@ -1657,7 +1655,6 @@ class CSittingCleansuitScientist : public CSittingScientist
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/cleansuit_scientist.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("cleansuit_scientist"); }
 };
 
 void CSittingCleansuitScientist::Spawn()
@@ -1683,7 +1680,6 @@ public:
 #endif
 	}
 	float DefaultHealth() override { return GetSkillValue("scientist_health") * 2; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("rosenberg"); }
 	const char* DefaultDisplayName() override { return "Dr. Rosenberg"; }
 	const char* DefaultSentenceGroup(int group) override;
 	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }
@@ -1838,7 +1834,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/wheelchair_sci.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("scientist_health") * 2; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("keller"); }
 	const char* DefaultDisplayName() override { return "Richard Keller"; }
 	const char* DefaultSentenceGroup(int group) override;
 	int DefaultToleranceLevel() override { return TOLERANCE_ABSOLUTE; }

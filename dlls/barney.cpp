@@ -807,7 +807,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/otis.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("otis_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("otis"); }
 	const char* DefaultSentenceGroup(int group) override;
 	const char* ReverseRelationshipModel() override { return "models/otisf.mdl"; }
 
@@ -972,7 +971,6 @@ class CDeadOtis : public CDeadBarney
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/otis.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("otis"); }
 	const char* getPos(int pos) const override;
 	static const char *m_szPoses[5];
 };
@@ -1002,7 +1000,6 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	const char* DefaultModel() override { return "models/barniel.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("barniel"); }
 	const char* DefaultSentenceGroup(int group) override;
 	const char* ReverseRelationshipModel() override { return NULL; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
@@ -1142,7 +1139,6 @@ class CDeadBarniel : public CDeadBarney
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/barniel.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("barniel"); }
 	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };
@@ -1173,7 +1169,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/kate.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("kate_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kate"); }
 	const char* DefaultSentenceGroup(int group) override;
 	const char* DefaultDisplayName() override { return "Kate"; }
 	const char* ReverseRelationshipModel() override { return nullptr; }
@@ -1427,7 +1422,6 @@ class CDeadKate : public CDeadBarney
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/kate.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kate"); }
 	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 };

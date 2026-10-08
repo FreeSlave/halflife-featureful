@@ -37,7 +37,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/pit_worm_up.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("pitworm_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	int  DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Pit Worm"; }
 	int	ObjectCaps() override { return CBaseMonster::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
@@ -1368,7 +1367,6 @@ class CPitwormGib : public CBaseEntity
 public:
 	void Spawn() override;
 	void Precache() override;
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	void EXPORT GibFloat();
 };
 
@@ -1424,7 +1422,6 @@ class CPitwormGibShooter : public CBaseDelay
 public:
 	void Spawn() override;
 	void Precache() override;
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	void KeyValue( KeyValueData *pkvd ) override;
 	void EXPORT ShootThink();
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
@@ -1523,7 +1520,6 @@ class CPitWormSteamTrigger : public CBaseEntity
 {
 public:
 	void Spawn() override;
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitworm"); }
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 };
 

@@ -57,7 +57,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/Tor.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("tor_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("tor"); }
 	void SetYawSpeed() override;
 	int DefaultClassify() override {
 		return CLASS_ALIEN_MILITARY;

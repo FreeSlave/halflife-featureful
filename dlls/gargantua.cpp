@@ -2051,7 +2051,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/babygarg.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("babygargantua_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("babygarg"); }
 	void SetYawSpeed() override;
 	const char* ReverseRelationshipModel() override { return "models/babygargf.mdl"; }
 	const char* DefaultDisplayName() override { return "Baby Gargantua"; }

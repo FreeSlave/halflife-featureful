@@ -61,10 +61,8 @@ cvar_t handle_tiny_creatures = {"handle_tiny_creatures", "0"};
 
 ModFeatures::ModFeatures()
 {
-	memset(monsters, 0, sizeof(monsters));
 	memset(weapons, 0, sizeof(weapons));
 	memset(maxAmmos, 0, sizeof(maxAmmos));
-	monstersCount = 0;
 	maxAmmoCount = 0;
 
 	EnableDefaultWeapons();
@@ -380,40 +378,6 @@ const char* ModFeatures::DeadHazModel() const
 		return "models/player.mdl";
 }
 
-void ModFeatures::EnableMonster(const char *name)
-{
-	for (unsigned int i=0; i<monstersCount; ++i)
-	{
-		if (strcmp(monsters[i], name) == 0)
-		{
-			ALERT(at_warning, "Monster '%s' is already enabled\n", name);
-			return;
-		}
-	}
-
-	if (monstersCount >= ARRAYSIZE(monsters))
-	{
-		ALERT(at_error, "Can't enable monster '%s' due to monster count limit\n", name);
-		return;
-	}
-
-	strncpyEnsureTermination(monsters[monstersCount], name);
-	monstersCount++;
-}
-
-bool ModFeatures::IsMonsterEnabled(const char *name) const
-{
-	// TODO: optimize
-	for (unsigned int i=0; i<monstersCount; ++i)
-	{
-		if (strcmp(monsters[i], name) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 bool ModFeatures::DoorsOpenInMoveDirection() const
 {
 	return ::doors_open_in_move_direction.value != 0;
@@ -538,30 +502,6 @@ void ReadEnabledWeapons()
 				ALERT(at_console, "%s weapon '%s'\n", enable ? "Enabled" : "Disabled", weaponName);
 			else
 				ALERT(at_warning, "Unknown weapon '%s' in %s\n", weaponName, fileName);
-		}
-	}
-	g_engfuncs.pfnFreeFile( pMemFile );
-}
-
-void ReadEnabledMonsters()
-{
-	const char* fileName = "features/featureful_monsters.cfg";
-	int filePos = 0, fileSize;
-	byte *pMemFile = g_engfuncs.pfnLoadFileForMe(fileName, &fileSize);
-	if (!pMemFile)
-		return;
-
-	ALERT(at_console, "Parsing enabled monsters from %s\n", fileName);
-
-	char buffer[128];
-	memset(buffer, 0, sizeof(buffer));
-	while( memfgets( pMemFile, fileSize, filePos, buffer, sizeof(buffer)-1 ) )
-	{
-		char* monsterName = TryConsumeToken(buffer, sizeof(buffer));
-		if (monsterName)
-		{
-			ALERT(at_console, "Enabling monster '%s'\n", monsterName);
-			g_modFeatures.EnableMonster(monsterName);
 		}
 	}
 	g_engfuncs.pfnFreeFile( pMemFile );
@@ -1608,7 +1548,6 @@ static void ExecuteServerCommand(const char* pfile, int size)
 void GameDLLInit()
 {
 	ReadServerFeatures();
-	ReadEnabledMonsters();
 	ReadEnabledWeapons();
 	ReadMaxAmmos();
 	ReadAmmoAmounts();

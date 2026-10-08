@@ -28,7 +28,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/rgrunt.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("hgrunt_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("robogrunt"); }
 	int DefaultClassify() override { return CLASS_MACHINE; }
 	const char* DefaultDisplayName() override { return "Robo Grunt"; }
 	const char* ReverseRelationshipModel() override { return "models/rgruntf.mdl"; }

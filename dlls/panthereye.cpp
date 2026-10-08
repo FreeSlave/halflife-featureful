@@ -41,7 +41,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/panthereye.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("panthereye_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("panthereye"); }
 	void SetYawSpeed() override;
 	int  DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Panthereye"; }

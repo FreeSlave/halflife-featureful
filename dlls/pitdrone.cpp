@@ -220,7 +220,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/pit_drone.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("pitdrone_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
 	void HandleAnimEvent(MonsterEvent_t *pEvent) override;
 	void SetYawSpeed() override;
 	int DefaultISoundMask() override;
@@ -1177,7 +1176,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/pit_drone.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("pitdrone_health")/2; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("pitdrone"); }
 	int	DefaultClassify() override { return	CLASS_RACEX_PREDATOR; }
 	const char* DefaultGibModel() override {
 		return "models/pit_drone_gibs.mdl";

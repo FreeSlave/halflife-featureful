@@ -12,7 +12,6 @@ The list of featureful configuration files:
 
 * [features/featureful_client.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_client.cfg) allows configuring client-side features, like HUD color, allowed client-side cvars and their default values.
 * [features/featureful_server.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_server.cfg) allows configuring server-side features, related to different aspects of the game, like monsters and items.
-* [features/featureful_monsters.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_monsters.cfg) is the list of enabled custom monsters (i.e. non-standard for the original Half-Life).
 * [features/featureful_weapons.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_weapons.cfg) is the list of enabled custom weapons (i.e. non-standard for the original Half-Life).
 * [features/featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg) is the config file that gets executed on game dll initialization.
 * [features/ammo_amounts.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/ammo_amounts.cfg) - configuring default ammo amounts per weapon and ammo entities.
@@ -57,7 +56,7 @@ Boolean parameters can take values `true`, `yes`, `1` and `false`, `no`, `0`.
 
 Color parameters can be either the hexadecimal number (e.g. `0xFFA000`) or RGB values separated by spacebars (e.g. `255 160 0`)
 
-The format for **features/featureful_monsters.cfg** and **features/featureful_weapons.cfg** is a bit different. The comments start with `//` and non-empty lines specify which weapons and monsters should be enabled in the mod.
+The format for **features/featureful_weapons.cfg** is a bit different. The comments start with `//` and non-empty lines specify which weapons should be enabled in the mod.
 
 **features/featureful_exec.cfg**, unlike others, is a real configuration file, i.e. it will be executed as other .cfg files by the engine server-side. Thus it has a different format compared to other featureful file. Usually you want to put some server cvars here. But remember that that these cvars can be overriden by a user's **game.cfg** or changed in console during the game. Our current philosophy regarding that is simple: if the user changes something in the console, he knows what he's doing. Still in future we might provide an option to remove undesired cvars and set the constant values instead.
 
@@ -71,8 +70,6 @@ If some config file is missing the default parameters will be used in game.
 If some feature in the **features/** config file is omitted or commented out, the default behavior will be used.
 
 You must disable weapons unused in your mod. Otherwise if your mod is lacking the resources for these weapons there will be a precache error.
-
-You also should disable unused monsters. Even if you don't use some non-standard monster on the mod maps, there can be some errors in console about missing cvars if skill cvars related to this monster are not present in **skill.cfg**.
 
 ## Recommendations
 
@@ -97,6 +94,3 @@ Some Half-Life behavior aspects were changed from vanilla to better alternatives
 Also some [vortigaunt's]({{< ref monster_alien_slave >}}) and [bullsquid's]({{< ref monster_bullchicken >}}) new abilities are enabled by default - they can be disabled via the [skill.cfg]({{< ref skill-variables >}}).
 
 There're also some [cvars]({{< ref "cvars/#server-cvars" >}}) that you might be interested in changing in [featureful_exec.cfg](https://github.com/FreeSlave/halflife-featureful/blob/featureful/features/featureful_exec.cfg).
-
-Be mindful when deciding on what custom weapons and monsters should be enabled in your mod. Featureful SDK provides many new weapons and monsters, but it's not the reason to throw all of them into your mod! First think of what actually belongs to the campaign you're making. It's better to utilize less to its full extent instead of turning your mod into a zoo.
-

@@ -80,7 +80,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/strooper.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("shocktrooper_health") * GetSkillValue("shocktrooper_health_factor"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
 	int  DefaultClassify() override;
 	const char* ReverseRelationshipModel() override { return nullptr; }
 	const char* DefaultDisplayName() override { return "Shock Trooper"; }
@@ -575,7 +574,7 @@ bool CShockTrooper::CanDropGrenade() const
 
 void CShockTrooper::DropShockRoach(bool gibbed)
 {
-	if (!FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN) && g_modFeatures.IsMonsterEnabled("shockroach"))
+	if (!FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
 	{
 		Vector	vecGunPos;
 		Vector	vecGunAngles = g_vecZero;
@@ -642,7 +641,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/strooper.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("shocktrooper_health")/2; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shocktrooper"); }
 	int	DefaultClassify() override { return	CLASS_RACEX_SHOCK; }
 	const char* DefaultGibModel() override {
 		return "models/strooper_gibs.mdl";

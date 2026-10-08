@@ -358,7 +358,6 @@ class CZombieBarney : public CZombie
 {
 	const char* DefaultModel() override { return "models/zombie_barney.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("zombie_barney_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
 	float OneSlashDamage() override { return GetSkillValue("zombie_barney_dmg_one_slash"); }
 	float BothSlashDamage() override { return GetSkillValue("zombie_barney_dmg_both_slash"); }
 };
@@ -370,7 +369,6 @@ class CDeadZombieBarney : public CDeadZombie
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/zombie_barney.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_barney"); }
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie_barney_dead, CDeadZombieBarney )
@@ -386,7 +384,6 @@ class CZombieSoldier : public CZombie
 {
 	const char* DefaultModel() override { return "models/zombie_soldier.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("zombie_soldier_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
 	float OneSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_one_slash"); }
 	float BothSlashDamage() override { return GetSkillValue("zombie_soldier_dmg_both_slash"); }
 };
@@ -398,7 +395,6 @@ class CDeadZombieSoldier : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/zombie_soldier.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("zombie_soldier"); }
 	int	DefaultClassify () override { return	CLASS_ALIEN_MONSTER; }
 
 	const char* getPos(int pos) const override;

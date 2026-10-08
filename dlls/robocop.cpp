@@ -123,7 +123,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/robocop.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("robocop_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("robocop"); }
 	void UpdateOnRemove() override;
 	void RemoveSpriteEffects();
 	void SetYawSpeed() override;

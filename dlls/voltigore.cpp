@@ -347,7 +347,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/voltigore.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("voltigore_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("voltigore"); }
 	void SetYawSpeed() override;
 	int  DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Voltigore"; }
@@ -1113,7 +1112,6 @@ public:
 	void	Precache() override;
 	const char* DefaultModel() override { return "models/baby_voltigore.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("babyvoltigore_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("babyvoltigore"); }
 	const char* DefaultDisplayName() override { return "Baby Voltigore"; }
 	void	HandleAnimEvent(MonsterEvent_t* pEvent) override;
 	bool	CheckMeleeAttack1(float flDot, float flDist) override;

@@ -14,7 +14,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/recruit.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("barney_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("recruit"); }
 	void SetYawSpeed() override;
 	int DefaultISoundMask() override;
 	int DefaultClassify() override;

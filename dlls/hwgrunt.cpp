@@ -41,7 +41,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/hwgrunt.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("hwgrunt_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("hwgrunt"); }
 	void SetYawSpeed() override;
 	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
 	const char* DefaultDisplayName() override { return "Heavy Weapons Grunt"; }

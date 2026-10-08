@@ -52,7 +52,6 @@ public:
 			}
 		}
 	}
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("archer"); }
 	const char* DefaultDisplayName() override { return "Archer"; }
 
 	void EXPORT SwimThink();

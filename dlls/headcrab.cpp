@@ -633,7 +633,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/w_shock_rifle.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("shockroach_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("shockroach"); }
 	const char* DefaultDisplayName() override { return "Shock Roach"; }
 	float GetDamageAmount() override { return GetSkillValue("shockroach_dmg_bite"); }
 	void LeapAttackTouch(CBaseEntity *pOther) override;

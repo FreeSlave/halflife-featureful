@@ -120,7 +120,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/gonome.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("gonome_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("gonome"); }
 
 	int  DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Gonome"; }
@@ -877,7 +876,6 @@ class CDeadGonome : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/gonome.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("gonome"); }
 	int	DefaultClassify() override { return	CLASS_ALIEN_MONSTER; }
 	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];

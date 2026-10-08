@@ -73,7 +73,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/massn.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("massassin_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
 	void MonsterInit() override;
 
 	void DeathSound() override;
@@ -431,7 +430,6 @@ void CMassn::SetHead(int head)
 class CAssassinRepel : public CHGruntRepel
 {
 public:
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
 	void KeyValue(KeyValueData* pkvd) override;
 	const char* TrooperName() override {
 		return "monster_male_assassin";
@@ -476,7 +474,6 @@ class CDeadMassn : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/massn.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("male_assassin"); }
 	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)

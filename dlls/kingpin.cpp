@@ -784,7 +784,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/kingpin.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("kingpin_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("kingpin"); }
 	void SetYawSpeed() override { pev->yaw_speed = 140; }
 	int DefaultClassify() override;
 	const char* DefaultDisplayName() override { return "Kingpin"; }

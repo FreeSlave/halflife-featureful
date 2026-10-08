@@ -44,7 +44,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/flybee.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("flybee_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("flybee"); }
 	int DefaultClassify() override { return CLASS_ALIEN_MONSTER; }
 	const char* DefaultDisplayName() override { return "Flybee"; }
 

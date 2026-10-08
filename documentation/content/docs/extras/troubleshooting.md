@@ -50,10 +50,6 @@ If the log has something like `Warning: Number of world leaves(8325) exceeded MA
 
 Recompile the map and see how the number changes and whether it fits the `MAX_MAP_LEAFS` limit (to speedup the process you can use fast compilation parameters, because the error happens during the `bsp` stage, so there's no need for the full `vis` or `rad`).
 
-## The monsters of specific class don't appear in the game
-
-You probably didn't enable the monster in the **features/featureful_monsters.cfg**.
-
 ## Some entities or some entity parameters are not listed in JACK level editor.
 
 1. Make sure you set the right **fgd** in the mod profile configuration and open the map in the this configuration.

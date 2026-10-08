@@ -148,7 +148,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/floater.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("floater_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("floater"); }
 	void SetYawSpeed() override;
 	int DefaultISoundMask() override;
 	int DefaultClassify() override;

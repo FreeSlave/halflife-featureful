@@ -49,9 +49,6 @@ struct ModFeatures
 	const char* M249DropName() const;
 	const char* DeadHazModel() const;
 
-	void EnableMonster(const char* name);
-	bool IsMonsterEnabled(const char* name) const;
-
 	int MaxPlayerHealth() {
 		return player_maxhealth > 0 ? player_maxhealth : MAX_NORMAL_HEALTH;
 	}
@@ -120,8 +117,6 @@ private:
 	bool UpdateFloat(const char* value, float& result, const char* key);
 
 	bool weapons[64];
-	char monsters[64][64];
-	unsigned int monstersCount;
 
 public:
 	struct MaxAmmo

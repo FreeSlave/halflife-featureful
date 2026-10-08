@@ -1308,7 +1308,6 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	const char* DefaultModel() override { return "models/blkop_apache.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("blkop_apache"); }
 	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)

@@ -74,64 +74,19 @@ sniperrifle2
 
 ## Enabling custom monsters
 
-Decide which of available non-standard Half-Life monsters you want to be use in the mod. Monsters need new resources to be included in the mod directory.
+All non-standard monsters are always enabled. They will spawn if they're placed on the map.
+
+{{% hint info %}}
+In earlier Featureful SDK versions (before 2026-10-08) there was a mechanism to enable only certain monsters (via features/featureful_monsters.cfg) but it was deemed unnecessary.
+{{% /hint %}}
+
+Non-standard monsters need new resources to be included in the mod directory:
 
 * Models (the monster's model itself; sometimes gibs and projectiles)
 * Sounds
 * Sprites (visual effects related to the monster)
 * Additional skill cvars in skill.cfg
-* Some monsters need additional entries in the `sound/sentences.txt`. E.g. Otis needs sentences with `OT_`prefix.
-
-Open **features/featureful_monsters.cfg** in your mod directory and configure the list of enabled monsters.
-
-{{% details "The list of all available non-standard monsters" %}}
-```
-cleansuit_scientist
-rosenberg
-keller
-otis
-barniel
-kate
-
-babygarg
-tor
-
-gonome
-zombie_barney
-zombie_soldier
-
-human_grunt_ally
-human_grunt_medic
-human_grunt_torch
-
-hwgrunt
-
-male_assassin
-blkop_apache
-blkop_osprey
-
-robogrunt
-
-pitdrone
-shocktrooper
-shockroach
-voltigore
-babyvoltigore
-pitworm
-geneworm
-
-drillsergeant
-recruit
-
-archer
-floater
-flybee
-panthereye
-robocop
-
-kingpin
-```
-{{% /details %}}
+* Some monsters need additional entries in the `sound/sentences.txt`. E.g. Otis needs sentences with `OT_` prefix.
 
 ## Configuring server-side features
 

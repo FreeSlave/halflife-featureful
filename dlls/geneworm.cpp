@@ -612,7 +612,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/geneworm.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("geneworm_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("geneworm"); }
 	int  DefaultClassify() override { return CLASS_RACEX_SHOCK; }
 	const char* DefaultDisplayName() override { return "Gene Worm"; }
 	void TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr) override;

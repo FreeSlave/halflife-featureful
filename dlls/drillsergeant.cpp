@@ -14,7 +14,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/drill.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("barney_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
 	const char* DefaultDisplayName() override { return "Drill Sergeant"; }
 	void SetYawSpeed() override;
 	int DefaultISoundMask() override;
@@ -196,7 +195,6 @@ class CDeadDrillSergeant : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/drill.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("drillsergeant"); }
 	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
 	const char* getPos(int pos) const override;

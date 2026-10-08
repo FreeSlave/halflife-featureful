@@ -149,7 +149,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/hgrunt_opfor.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("hgrunt_ally_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
 	void SetYawSpeed() override;
 	int  DefaultISoundMask() override;
 	int  DefaultClassify() override;
@@ -297,7 +296,6 @@ public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/hgrunt_medic.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("medic_ally_health"); }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
 	const char* DefaultDisplayName() override { return "Medic Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	bool CheckRangeAttack1 ( float flDot, float flDist ) override;
@@ -2713,7 +2711,6 @@ void CTalkMonsterRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CHFGruntRepel : public CTalkMonsterRepel
 {
 public:
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
 	void KeyValue(KeyValueData* pkvd) override;
 	const char* TrooperName() override {
 		return "monster_human_grunt_ally";
@@ -2757,7 +2754,6 @@ void CHFGruntRepel::PrepareBeforeSpawn(CBaseEntity *pEntity)
 class CMedicRepel : public CHFGruntRepel
 {
 public:
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
 	const char* TrooperName() override {
 		return "monster_human_medic_ally";
 	}
@@ -2768,7 +2764,6 @@ LINK_ENTITY_TO_CLASS( monster_medic_ally_repel, CMedicRepel )
 class CTorchRepel : public CTalkMonsterRepel
 {
 public:
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
 	const char* TrooperName() override {
 		return "monster_human_torch_ally";
 	}
@@ -2785,7 +2780,6 @@ class CDeadFGrunt : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/hgrunt_opfor.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_ally"); }
 	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
 	void KeyValue( KeyValueData *pkvd ) override;
@@ -2885,7 +2879,6 @@ public:
 	const char* DefaultModel() override { return "models/hgrunt_torch.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("torch_ally_health"); }
 	void Activate() override;
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
 	const char* DefaultDisplayName() override { return "Torch Grunt"; }
 	void HandleAnimEvent( MonsterEvent_t* pEvent ) override;
 	int LookupActivity(int activity) override;
@@ -3297,7 +3290,6 @@ class CDeadTorch : public CDeadMonster
 public:
 	void Spawn() override;
 	const char* DefaultModel() override { return "models/hgrunt_torch.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_torch"); }
 	int	DefaultClassify() override { return	CLASS_PLAYER_ALLY_MILITARY; }
 
 	const char* getPos(int pos) const override;
@@ -4067,7 +4059,6 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	const char* DefaultModel() override { return "models/hgrunt_medic.mdl"; }
-	bool IsEnabledInMod() override { return g_modFeatures.IsMonsterEnabled("human_grunt_medic"); }
 	const char* getPos(int pos) const override;
 	static const char *m_szPoses[3];
 
