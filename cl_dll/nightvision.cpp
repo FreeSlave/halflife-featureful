@@ -203,8 +203,8 @@ void CHudNightvision::DrawOpforNVG(float flTime)
 	const int nvgSpriteWidth = SPR_Width(m_hSprite, 0);
 	const int nvgSpriteHeight = SPR_Height(m_hSprite, 0);
 
-	const int colCount = (int)ceil(ScreenWidth / (float)nvgSpriteWidth);
-	const int rowCount = (int)ceil(ScreenHeight / (float)nvgSpriteHeight);
+	const int colCount = (int)std::ceil(ScreenWidth / (float)nvgSpriteWidth);
+	const int rowCount = (int)std::ceil(ScreenHeight / (float)nvgSpriteHeight);
 
 	//
 	// draw nightvision scanlines sprite.

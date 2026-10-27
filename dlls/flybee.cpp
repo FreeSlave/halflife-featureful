@@ -722,7 +722,7 @@ Schedule_t* CFlybee::GetSchedule()
 			}
 			else
 			{
-				if (m_hEnemy != 0 && (Center() - m_hEnemy->Center()).IsLengthLessThanOrEqual(300) && fabs(pev->origin.z - m_hEnemy->pev->origin.z) <= 128)
+				if (m_hEnemy != 0 && (Center() - m_hEnemy->Center()).IsLengthLessThanOrEqual(300) && std::fabs(pev->origin.z - m_hEnemy->pev->origin.z) <= 128)
 					return slFlybeeRunAttack;
 			}
 		}
@@ -987,7 +987,7 @@ float CFlybee::VectorToPitch( const Vector &vec )
 		pitch = 0;
 	else
 	{
-		pitch = (int) (atan2(vec.z, sqrt(vec.x*vec.x+vec.y*vec.y)) * 180 / M_PI);
+		pitch = (int) (std::atan2(vec.z, std::sqrt(vec.x*vec.x+vec.y*vec.y)) * 180.0f / M_PI_F);
 		if (pitch < 0)
 			pitch += 360;
 	}

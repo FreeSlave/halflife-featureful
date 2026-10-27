@@ -699,7 +699,7 @@ void CPitWorm::DyingThink()
 		{
 			ChangeLevel();
 		}
-		if ( fabs(pev->origin.z - this->m_flLevels[0]) < 16.0 )
+		if ( std::fabs(pev->origin.z - this->m_flLevels[0]) < 16.0 )
 		{
 			pev->velocity = Vector(0, 0, 0);
 			pev->deadflag = DEAD_DEAD;
@@ -919,7 +919,7 @@ void CPitWorm::NextActivity()
 		}
 		else if (pev->origin.z == m_posDesired.z)
 		{
-			if ( abs((int)floor(m_flIdealTorsoYaw - m_flTorsoYaw)) > 10 || !ClawAttack() )
+			if ( abs((int)std::floor(m_flIdealTorsoYaw - m_flTorsoYaw)) > 10 || !ClawAttack() )
 			{
 				if ( RANDOM_LONG(0, 2) == 0 )
 				{

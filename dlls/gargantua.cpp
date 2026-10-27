@@ -1619,7 +1619,7 @@ void CGargantua::RunTask( Task_t *pTask )
 				if( dir.IsLengthGreaterThan(FlameDistanceThreshold()) )
 					cancel = true;
 			}
-			if( fabs(angles.y) > 60 )
+			if( std::fabs(angles.y) > 60 )
 				cancel = true;
 
 			if( cancel )

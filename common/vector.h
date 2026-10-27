@@ -46,7 +46,7 @@ public:
 	inline Vector2D& operator*=(float fl) { x *= fl; y *= fl;; return *this; }
 	inline Vector2D& operator/=(float fl) { x /= fl; y /= fl;; return *this; }
 
-	NODISCARD inline float Length() const	{ return sqrt(x * x + y * y ); }
+	NODISCARD inline float Length() const	{ return std::sqrt(x * x + y * y ); }
 	NODISCARD inline constexpr float LengthSqr() const	{ return x * x + y * y; }
 
 	NODISCARD inline constexpr bool IsLengthGreaterThan(float val) const {
@@ -135,7 +135,7 @@ public:
 
 	// Methods
 	void CopyToArray( float* rgfl ) const		{ rgfl[0] = x, rgfl[1] = y, rgfl[2] = z; }
-	NODISCARD inline float Length() const		{ return sqrt( x * x + y * y + z * z ); }
+	NODISCARD inline float Length() const		{ return std::sqrt( x * x + y * y + z * z ); }
 	NODISCARD inline constexpr float LengthSqr() const { return x * x + y * y + z * z; }
 	operator float *()								{ return &x; } // Vectors will now automatically convert to float * when needed
 	constexpr operator const float *() const					{ return &x; } // Vectors will now automatically convert to float * when needed
@@ -175,7 +175,7 @@ public:
 	{
 		return {x, y};
 	}
-	NODISCARD inline float Length2D() const		{ return sqrt( x * x + y * y ); }
+	NODISCARD inline float Length2D() const		{ return std::sqrt( x * x + y * y ); }
 	NODISCARD inline constexpr float Length2DSqr() const		{ return x * x + y * y; }
 
 	NODISCARD inline constexpr bool IsLengthGreaterThan(float val) const {

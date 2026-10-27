@@ -216,8 +216,8 @@ float V_CalcBob( struct ref_params_s *pparams )
 	VectorCopy( pparams->simvel, vel );
 	vel[2] = 0;
 
-	bob = sqrt( vel[0] * vel[0] + vel[1] * vel[1] ) * cl_bob->value;
-	bob = bob * 0.3f + bob * 0.7f * sin(cycle);
+	bob = std::sqrt( vel[0] * vel[0] + vel[1] * vel[1] ) * cl_bob->value;
+	bob = bob * 0.3f + bob * 0.7f * std::sin(cycle);
 	bob = Q_min( bob, 4.0f );
 	bob = Q_max( bob, -7.0f );
 	return bob;
@@ -240,7 +240,7 @@ float V_CalcRoll( Vector angles, Vector velocity, float rollangle, float rollspe
 
 	side = DotProduct( velocity, right );
 	sign = side < 0.0f ? -1.0f : 1.0f;
-	side = fabs( side );
+	side = std::fabs( side );
 
 	value = rollangle;
 	if( side < rollspeed )
@@ -296,11 +296,11 @@ void V_CalcGunAngle( struct ref_params_s *pparams )
 
 	viewent->angles[YAW] = pparams->viewangles[YAW] + pparams->crosshairangle[YAW];
 	viewent->angles[PITCH] = -pparams->viewangles[PITCH] + pparams->crosshairangle[PITCH] * 0.25f;
-	viewent->angles[ROLL] -= v_idlescale * sin( pparams->time * v_iroll_cycle.value ) * v_iroll_level.value;
+	viewent->angles[ROLL] -= v_idlescale * std::sin( pparams->time * v_iroll_cycle.value ) * v_iroll_level.value;
 
 	// don't apply all of the v_ipitch to prevent normally unseen parts of viewmodel from coming into view.
-	viewent->angles[PITCH] -= v_idlescale * sin( pparams->time * v_ipitch_cycle.value ) * ( v_ipitch_level.value * 0.5f );
-	viewent->angles[YAW] -= v_idlescale * sin( pparams->time * v_iyaw_cycle.value ) * v_iyaw_level.value;
+	viewent->angles[PITCH] -= v_idlescale * std::sin( pparams->time * v_ipitch_cycle.value ) * ( v_ipitch_level.value * 0.5f );
+	viewent->angles[YAW] -= v_idlescale * std::sin( pparams->time * v_iyaw_cycle.value ) * v_iyaw_level.value;
 
 	if( !gHUD.ViewBobEnabled() )
 	{
@@ -318,9 +318,9 @@ Idle swaying
 */
 void V_AddIdle( struct ref_params_s *pparams )
 {
-	pparams->viewangles[ROLL] += v_idlescale * sin( pparams->time * v_iroll_cycle.value ) * v_iroll_level.value;
-	pparams->viewangles[PITCH] += v_idlescale * sin( pparams->time * v_ipitch_cycle.value ) * v_ipitch_level.value;
-	pparams->viewangles[YAW] += v_idlescale * sin( pparams->time * v_iyaw_cycle.value ) * v_iyaw_level.value;
+	pparams->viewangles[ROLL] += v_idlescale * std::sin( pparams->time * v_iroll_cycle.value ) * v_iroll_level.value;
+	pparams->viewangles[PITCH] += v_idlescale * std::sin( pparams->time * v_ipitch_cycle.value ) * v_ipitch_level.value;
+	pparams->viewangles[YAW] += v_idlescale * std::sin( pparams->time * v_iyaw_cycle.value ) * v_iyaw_level.value;
 }
 
 extern cvar_t *cl_rollspeed;
@@ -906,7 +906,7 @@ void V_SmoothInterpolateAngles( float * startAngle, float * endAngle, float * fi
 			d += 360.0f;
 		}
 
-		absd = fabs( d );
+		absd = std::fabs( d );
 
 		if( absd > 0.01f )
 		{
@@ -1130,7 +1130,7 @@ float MaxAngleBetweenAngles( float *a1, float *a2 )
 			d += 360.0f;
 		}
 
-		d = fabs( d );
+		d = std::fabs( d );
 
 		if( d > maxd )
 			maxd = d;

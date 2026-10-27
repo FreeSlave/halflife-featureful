@@ -1093,7 +1093,7 @@ void PM_Friction()
 	vel = pmove->velocity;
 	
 	// Calculate speed
-	speed = sqrt( vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2] );
+	speed = std::sqrt( vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2] );
 
 	// If too slow, return
 	if( speed < 0.1f )
@@ -2482,18 +2482,18 @@ void PM_Jump()
 				pmove->velocity[i] = pmove->forward[i] * PLAYER_LONGJUMP_SPEED * 1.6f;
 			}
 
-			pmove->velocity[2] = sqrt( 2.0f * 800.0f * 56.0f );
+			pmove->velocity[2] = std::sqrt( 2.0f * 800.0f * 56.0f );
 
 			PM_PlaySoundScript(PM_GetPlayerSoundScript(pmove->player_index, "Player.LongJump"));
 		}
 		else
 		{
-			pmove->velocity[2] = sqrt( 2.0f * 800.0f * 45.0f );
+			pmove->velocity[2] = std::sqrt( 2.0f * 800.0f * 45.0f );
 		}
 	}
 	else
 	{
-		pmove->velocity[2] = sqrt( 2.0f * 800.0f * 45.0f );
+		pmove->velocity[2] = std::sqrt( 2.0f * 800.0f * 45.0f );
 	}
 
 	// Decay it for simulation
@@ -2553,7 +2553,7 @@ void PM_CheckWaterJump()
 	savehull = pmove->usehull;
 	pmove->usehull = 2;
 	tr = pmove->PM_PlayerTraceEx( vecStart, vecEnd, PM_NORMAL, PM_Ignore );
-	if( tr.fraction < 1.0f && fabs( tr.plane.normal[2] ) < 0.1f )  // Facing a near vertical wall?
+	if( tr.fraction < 1.0f && std::fabs( tr.plane.normal[2] ) < 0.1f )  // Facing a near vertical wall?
 	{
 		vecStart[2] += pmove->player_maxs[savehull][2] - WJ_HEIGHT;
 		VectorMA( vecStart, 24, flatforward, vecEnd );
@@ -2666,7 +2666,7 @@ float PM_CalcRoll( Vector angles, Vector velocity, float rollangle, float rollsp
 
 	sign = side < 0 ? -1 : 1;
 
-	side = fabs( side );
+	side = std::fabs( side );
 
 	value = rollangle;
 

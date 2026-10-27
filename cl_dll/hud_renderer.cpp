@@ -199,7 +199,7 @@ int HudSpriteRenderer::VidInit() {
 			average_scale = sqrtf(0.5f * (x_scale * x_scale + y_scale * y_scale));
 
 			float doubleScale = average_scale * 2.0f;
-			float rounded = floor(doubleScale + 0.5f);
+			float rounded = std::floor(doubleScale + 0.5f);
 			average_scale = rounded / 2.0f;
 		}
 	}

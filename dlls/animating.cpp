@@ -330,10 +330,10 @@ void CBaseAnimating::SetSequenceBox()
 		float yaw = pev->angles.y * ( M_PI_F / 180.0f );
 
 		Vector xvector, yvector;
-		xvector.x = cos( yaw );
-		xvector.y = sin( yaw );
-		yvector.x = -sin( yaw );
-		yvector.y = cos( yaw );
+		xvector.x = std::cos( yaw );
+		xvector.y = std::sin( yaw );
+		yvector.x = -std::sin( yaw );
+		yvector.y = std::cos( yaw );
 		Vector bounds[2];
 
 		bounds[0] = mins;
@@ -397,10 +397,10 @@ bool CBaseAnimating::SetSequenceSafeBox(float minHalfSide, float forcedHalfSide)
 		float yaw = pev->angles.y * (M_PI_F / 180.0f);
 
 		Vector xvector, yvector;
-		xvector.x = cos(yaw);
-		xvector.y = sin(yaw);
-		yvector.x = -sin(yaw);
-		yvector.y = cos(yaw);
+		xvector.x = std::cos(yaw);
+		xvector.y = std::sin(yaw);
+		yvector.x = -std::sin(yaw);
+		yvector.y = std::cos(yaw);
 		Vector bounds[2];
 
 		bounds[0] = mins;

@@ -1275,7 +1275,7 @@ int CBaseTurret::MoveTurret()
 	if( m_vecCurAngles.y != m_vecGoalAngles.y )
 	{
 		float flDir = m_vecGoalAngles.y > m_vecCurAngles.y ? 1 : -1 ;
-		float flDist = fabs( m_vecGoalAngles.y - m_vecCurAngles.y );
+		float flDist = std::fabs( m_vecGoalAngles.y - m_vecCurAngles.y );
 
 		if( flDist > 180 )
 		{

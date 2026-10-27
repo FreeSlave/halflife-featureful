@@ -769,7 +769,7 @@ float CIchthyosaur::VectorToPitch( const Vector &vec )
 		pitch = 0;
 	else
 	{
-		pitch = (int) ( atan2( vec.z, sqrt( vec.x * vec.x + vec.y * vec.y ) ) * 180.0f / M_PI_F );
+		pitch = (int) ( std::atan2( vec.z, std::sqrt( vec.x * vec.x + vec.y * vec.y ) ) * 180.0f / M_PI_F );
 		if( pitch < 0 )
 			pitch += 360;
 	}

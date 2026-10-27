@@ -566,14 +566,14 @@ bool CBaseToggle::PlaySentence(const char *pszSentence, float duration, float vo
 		if( pszSentence[0] == '!' )
 		{
 			if (subtitle)
-				return EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 );
+				return EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM, std::ceil(duration)+1 );
 			else
 				return EMIT_SOUND_DYN( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM );
 		}
 		else
 		{
 			if (subtitle)
-				return SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM, ceil(duration)+1 ) >= 0;
+				return SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM, std::ceil(duration)+1 ) >= 0;
 			else
 				return SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM ) >= 0;
 		}

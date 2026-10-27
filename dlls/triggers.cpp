@@ -3483,9 +3483,9 @@ std::string CBaseLogic::FloatToString(float f, int flt2str_mode)
 	case FLT2STR_3DP: return UTIL_VarArgs("%.3f", f);
 	case FLT2STR_2DP: return UTIL_VarArgs("%.2f", f);
 	case FLT2STR_1DP: return UTIL_VarArgs("%.1f", f);
-	case FLT2STR_ROUND: return UTIL_VarArgs("%d", (int)(f + 0.5f));
-	case FLT2STR_CEIL: return UTIL_VarArgs("%d", (int)ceilf(f));
-	case FLT2STR_FLOOR: return UTIL_VarArgs("%d", (int)f);
+	case FLT2STR_ROUND: return UTIL_VarArgs("%d", (int)std::round(f));
+	case FLT2STR_CEIL: return UTIL_VarArgs("%d", (int)std::ceil(f));
+	case FLT2STR_FLOOR: return UTIL_VarArgs("%d", (int)std::floor(f));
 	case FLT2STR_6DP:
 	default:
 		return UTIL_VarArgs("%f", f);
@@ -4306,7 +4306,7 @@ bool CTriggerCondition::CompareVectors(const CKeyValue& monitorKey, const CKeyVa
 	case COMPARE_EQUAL:
 		if (compareKeyIsVector) {
 			Vector d = monitorVector - compareVector;
-			return fabs(d.x) <= VEC_EQ_EPSILON && fabs(d.y) <= VEC_EQ_EPSILON && fabs(d.z) <= VEC_EQ_EPSILON;
+			return std::fabs(d.x) <= VEC_EQ_EPSILON && std::fabs(d.y) <= VEC_EQ_EPSILON && std::fabs(d.z) <= VEC_EQ_EPSILON;
 		}
 		else {
 			return monitorFloat == compareFloat;
@@ -4314,7 +4314,7 @@ bool CTriggerCondition::CompareVectors(const CKeyValue& monitorKey, const CKeyVa
 	case COMPARE_NEQUAL:
 		if (compareKeyIsVector) {
 			Vector d = monitorVector - compareVector;
-			return fabs(d.x) > VEC_EQ_EPSILON || fabs(d.y) > VEC_EQ_EPSILON || fabs(d.z) > VEC_EQ_EPSILON;
+			return std::fabs(d.x) > VEC_EQ_EPSILON || std::fabs(d.y) > VEC_EQ_EPSILON || std::fabs(d.z) > VEC_EQ_EPSILON;
 		}
 		else {
 			return monitorFloat != compareFloat;
@@ -8117,8 +8117,8 @@ public:
 		distance2 = Q_max(distance2, 0.0f);
 
 		// How long will it take to travel this distance
-		float time1 = sqrt( distance1 / (0.5f * flGravity) );
-		float time2 = sqrt( distance2 / (0.5f * flGravity) );
+		float time1 = std::sqrt( distance1 / (0.5f * flGravity) );
+		float time2 = std::sqrt( distance2 / (0.5f * flGravity) );
 		if (time1 < 0.1f)
 			return;
 

@@ -1152,7 +1152,7 @@ void CGib::BounceGibTouch( CBaseEntity *pOther )
 
 		if( m_material != matNone && RANDOM_LONG( 0, 2 ) == 0 )
 		{
-			float zvel = fabs( pev->velocity.z );
+			float zvel = std::fabs( pev->velocity.z );
 			float volume = 0.8f * Q_min( 1.0f, zvel / 450.0f );
 
 			CGib::EmitMaterialSound(this, m_material, volume);
@@ -1720,7 +1720,7 @@ void CBaseMonster::LaunchLeapAttack(const LeapAttackJumpParams& params)
 		// How fast does the headcrab need to travel to reach that height given gravity?
 		float height = m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z;
 		height = clamp(height, 16.0f, params.maxJumpHeight);
-		float speed = sqrt( 2 * gravity * height );
+		float speed = std::sqrt( 2 * gravity * height );
 		float time = speed / gravity;
 
 		// Scale the sideways velocity to get there at the right time

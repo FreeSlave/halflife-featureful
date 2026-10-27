@@ -578,7 +578,7 @@ void CKingpinPlasmaCluster::MakeParticleBurst()
 
 				const float phi = RANDOM_FLOAT(0, M_PI_F * 0.5f);
 				theta += 2.0f*M_PI_F/KINGPIN_CLUSTER_PARTICLE_COUNT;
-				const Vector direction(cos(theta)*sin(phi), sin(theta)*sin(phi), cos(phi));
+				const Vector direction(std::cos(theta)*std::sin(phi), std::sin(theta)*std::sin(phi), std::cos(phi));
 				pParticle->pev->velocity = direction * KINGPIN_CLUSTER_PARTICLE_SPEED;
 				pParticle->pev->velocity.z /= 2.0f;
 
@@ -623,7 +623,7 @@ void CKingpinPlasmaCluster::BeamDamage(float flDamage)
 					const Visual* visual = altColor ? GetVisual(beamAltVisual) : GetVisual(beamVisual);
 					const int beamRenderAmt = RandomizeNumberFromRange(visual->renderamt);
 
-					float damage = beamRenderAmt <= 0 ? 0 : ceil(flDamage * pBeam->pev->renderamt / beamRenderAmt);
+					float damage = beamRenderAmt <= 0 ? 0 : std::ceil(flDamage * pBeam->pev->renderamt / beamRenderAmt);
 					if (damage >= 2) {
 						TraceResult* ptr = &tr;
 						DamageInfo beamDamageInfo{damage, DMG_SHOCK};

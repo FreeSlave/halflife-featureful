@@ -495,8 +495,8 @@ public:
 		UTIL_MakeVectors( pev->angles );
 		const float familiarSide = (m_summonMaxSize.x - m_summonMinSize.x) * 0.5f;
 		const float vortSide = pev->size.x * 0.5f;
-		const float baseDist = sqrt(vortSide * vortSide + vortSide * vortSide) * 1.3f;
-		const float dist = std::ceil(baseDist + sqrt(familiarSide * familiarSide + familiarSide * familiarSide));
+		const float baseDist = std::sqrt(vortSide * vortSide + vortSide * vortSide) * 1.3f;
+		const float dist = std::ceil(baseDist + std::sqrt(familiarSide * familiarSide + familiarSide * familiarSide));
 		return pev->origin + gpGlobals->v_forward * dist + Vector(0,0,20);
 	}
 

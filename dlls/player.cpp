@@ -2509,7 +2509,7 @@ void CBasePlayer::UpdateStatusBar()
 		if (validInfoTarget)
 		{
 			const int entityIndex = ENTINDEX( pEntity->edict() );
-			int health = (int)ceil(pEntity->pev->health);
+			int health = (int)std::ceil(pEntity->pev->health);
 			health = Q_max(health, 0);
 			int armor = (int)pEntity->pev->armorvalue;
 			armor = Q_max(armor, 0);
@@ -2584,7 +2584,7 @@ void CBasePlayer::UpdateStatusBar()
 						WRITE_BYTE(MONSTERINFO_FULLUPDATE);
 						WRITE_STRING(displayName);
 						WRITE_SHORT(health);
-						WRITE_SHORT((int)ceil(pEntity->pev->max_health));
+						WRITE_SHORT((int)std::ceil(pEntity->pev->max_health));
 						WRITE_SHORT(armor);
 						WRITE_BYTE(monsterInfoFlags);
 					MESSAGE_END();
@@ -2647,7 +2647,7 @@ void CBasePlayer::UpdateStatusBar()
 				{
 					CBaseMonster* pMonster = pEntity->MyMonsterPointer();
 
-					int health = (int)ceil(pEntity->pev->health);
+					int health = (int)std::ceil(pEntity->pev->health);
 					if (health < 0 || !pEntity->IsFullyAlive()) {
 						health = 0;
 					}
@@ -2679,7 +2679,7 @@ void CBasePlayer::UpdateStatusBar()
 						MESSAGE_BEGIN(MSG_ONE, gmsgMonsterInfo, nullptr, edict());
 							WRITE_BYTE(MONSTERINFO_FASTUPDATE);
 							WRITE_SHORT(health);
-							WRITE_SHORT((int)ceil(pEntity->pev->max_health));
+							WRITE_SHORT((int)std::ceil(pEntity->pev->max_health));
 							WRITE_SHORT(armor);
 							WRITE_BYTE(monsterInfoFlags);
 						MESSAGE_END();
@@ -6347,7 +6347,7 @@ static Vector CalcHintOrigin(CBaseEntity* pEntity, CBaseEntity* pLooker, int fla
 			for (int i=0; i<3; ++i)
 			{
 				float dist = (center[i] - tr.vecEndPos[i]);
-				if (fabs(dist) > fabs(maxDist))
+				if (std::fabs(dist) > std::fabs(maxDist))
 				{
 					maxDist = dist;
 					axis = i;
@@ -6690,7 +6690,7 @@ Vector CBasePlayer::AutoaimDeflection( const Vector &vecSrc, float flDist, float
 		if( DotProduct( dir, gpGlobals->v_forward ) < 0 )
 			continue;
 
-		dot = fabs( DotProduct( dir, gpGlobals->v_right ) ) + fabs( DotProduct( dir, gpGlobals->v_up ) ) * 0.5f;
+		dot = std::fabs( DotProduct( dir, gpGlobals->v_right ) ) + std::fabs( DotProduct( dir, gpGlobals->v_up ) ) * 0.5f;
 
 		// tweek for distance
 		dot *= 1.0f + 0.2f * ( ( center - vecSrc ).Length() / flDist );

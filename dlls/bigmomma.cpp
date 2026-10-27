@@ -1323,7 +1323,7 @@ Vector VecCheckSplatToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot
 		return g_vecZero;
 	}
 	// How fast does the grenade need to travel to reach that height given gravity?
-	const float speed = sqrt( 2.0f * flGravity * height );
+	const float speed = std::sqrt( 2.0f * flGravity * height );
 	
 	// How much time does it take to get to enemy position
 	const float deltaZ = vecSpot2.z - vecSpot1.z;
@@ -1334,7 +1334,7 @@ Vector VecCheckSplatToss( entvars_t *pev, const Vector &vecSpot1, Vector vecSpot
 		return g_vecZero;
 	}
 
-	const float time = (-speed - sqrt(d)) / (-flGravity); // quadratic equation
+	const float time = (-speed - std::sqrt(d)) / (-flGravity); // quadratic equation
 	//ALERT(at_console, "speed is %f, d is %f, sqrt(d) is %f, time is %f, gravity is %f\n", speed, d, sqrt(d), time, flGravity);
 	vecGrenadeVel = vecSpot2 - vecSpot1;
 	vecGrenadeVel.z = 0.0f;

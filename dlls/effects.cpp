@@ -101,7 +101,7 @@ void CBubbling::Spawn()
 	pev->solid = SOLID_NOT;							// Remove model & collisions
 	pev->renderamt = 0;								// The engine won't draw this model if this is set to 0 and blending is on
 	pev->rendermode = kRenderTransTexture;
-	int speed = fabs( pev->speed );
+	int speed = std::fabs( pev->speed );
 
 	// HACKHACK!!! - Speed in rendercolor
 	pev->rendercolor.x = speed >> 8;
@@ -6149,15 +6149,15 @@ void CParticleShooter::ShootParticle()
 		vecShootDir = (vecShootAtPos - position).Normalize();
 	}
 
-	float teta = acos(vecShootDir.z);
-	float fi = (vecShootDir.x == 0 && vecShootDir.y == 0) ? RANDOM_FLOAT(0, M_PI_F * 2) : atan2(vecShootDir.y, vecShootDir.x);
+	float teta = std::acos(vecShootDir.z);
+	float fi = (vecShootDir.x == 0 && vecShootDir.y == 0) ? RANDOM_FLOAT(0, M_PI_F * 2) : std::atan2(vecShootDir.y, vecShootDir.x);
 
 	teta += RANDOM_FLOAT(-1.0f,1.0f) * m_velVariance * M_PI_F / 180.0f;
 	fi += RANDOM_FLOAT(-1.0f,1.0f) * m_velVariance * M_PI_F / 180.0f;
 
-	vecShootDir.x = cos(fi) * sin(teta);
-	vecShootDir.y = sin(fi) * sin(teta);
-	vecShootDir.z = cos(teta);
+	vecShootDir.x = std::cos(fi) * std::sin(teta);
+	vecShootDir.y = std::sin(fi) * std::sin(teta);
+	vecShootDir.z = std::cos(teta);
 
 	/*vecShootDir = vecShootDir + gpGlobals->v_right * RANDOM_FLOAT( -1.0f, 1.0f ) * m_velVariance;;
 	vecShootDir = vecShootDir + gpGlobals->v_forward * RANDOM_FLOAT( -1.0f, 1.0f ) * m_velVariance;;

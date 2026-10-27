@@ -193,9 +193,9 @@ Vector WeatherData::GetRandomOrigin(const Vector& weatherOrigin) const
 		if (DistanceIsRadius())
 		{
 			const float radius = Com_RandomFloat( -distance, distance );
-			const float angle = Com_RandomFloat(0.0f, M_PI * 2);
-			vecOrigin.x += radius * cos(angle);
-			vecOrigin.y += radius * sin(angle);
+			const float angle = Com_RandomFloat(0.0f, M_PI_F * 2);
+			vecOrigin.x += radius * std::cos(angle);
+			vecOrigin.y += radius * std::sin(angle);
 		}
 		else
 		{
@@ -250,8 +250,8 @@ RainData::RainData():
 
 float RainData::GetRaindropFallingSpeed() const
 {
-	float speed1 = fabs(raindropMinSpeed);
-	float speed2 = fabs(raindropMaxSpeed);
+	float speed1 = std::fabs(raindropMinSpeed);
+	float speed2 = std::fabs(raindropMaxSpeed);
 
 	float minSpeed = speed1 < speed2 ? speed1 : speed2;
 	float maxSpeed = speed1 > speed2 ? speed1 : speed2;
@@ -301,8 +301,8 @@ SnowData::SnowData():
 
 float SnowData::GetSnowflakeFallingSpeed() const
 {
-	float speed1 = fabs(snowflakeMinSpeed);
-	float speed2 = fabs(snowflakeMaxSpeed);
+	float speed1 = std::fabs(snowflakeMinSpeed);
+	float speed2 = std::fabs(snowflakeMaxSpeed);
 
 	float minSpeed = speed1 < speed2 ? speed1 : speed2;
 	float maxSpeed = speed1 > speed2 ? speed1 : speed2;
@@ -347,7 +347,7 @@ void CPartRainDrop::Think( float flTime )
 	AngleVectors( vecViewAngles, vecForward, vecRight, vecUp );
 
 	m_vAngles.y = vecViewAngles.y;
-	m_vAngles.z = atan( DotProduct( m_vVelocity, vecRight ) / m_vVelocity.z ) * ( 180.0 / M_PI );
+	m_vAngles.z = std::atan( DotProduct( m_vVelocity, vecRight ) / m_vVelocity.z ) * ( 180.0f / M_PI_F );
 
 	if( m_flBrightness < 155.0f )
 		m_flBrightness += 6.5f;
@@ -536,7 +536,7 @@ void CPartSnowFlake::Think( float flTime )
 	{
 		const float flDelta = flTime - g_Environment.GetOldTime();
 
-		const float flSpin = sin( flTime * 5.0 + reinterpret_cast<std::intptr_t>( this ) );
+		const float flSpin = std::sin( flTime * 5.0f + reinterpret_cast<std::intptr_t>( this ) );
 
 		m_vOrigin = m_vOrigin + m_vVelocity * flDelta;
 
@@ -712,7 +712,7 @@ void CEnvironment::UpdateWind()
 		}
 		else
 		{
-			m_flIdealYaw = floor( atan2( vecDir.y, vecDir.x ) * ( 180.0 / M_PI ) );
+			m_flIdealYaw = std::floor( std::atan2( vecDir.y, vecDir.x ) * ( 180.0f / M_PI_F ) );
 
 			if( m_flIdealYaw < 0.0f )
 				m_flIdealYaw += 360.0f;
@@ -731,7 +731,7 @@ void CEnvironment::UpdateWind()
 
 	if( vecAngles.y < 0.0f )
 	{
-		flYaw = 120 * ( 3 * static_cast<int>( floor( vecAngles.y / 360.0 ) ) + 3 );
+		flYaw = 120 * ( 3 * static_cast<int>( std::floor( vecAngles.y / 360.0f ) ) + 3 );
 	}
 	else
 	{
@@ -741,7 +741,7 @@ void CEnvironment::UpdateWind()
 		}
 		else
 		{
-			flYaw = vecAngles.y - ( 360 * floor( vecAngles.y / 360.0 ) );
+			flYaw = vecAngles.y - ( 360 * std::floor( vecAngles.y / 360.0f ) );
 		}
 	}
 

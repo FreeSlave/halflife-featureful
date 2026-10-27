@@ -801,7 +801,7 @@ void CFuncTank::Think()
 
 	TrackTarget();
 
-	if( fabs( pev->avelocity.x ) > 1 || fabs( pev->avelocity.y ) > 1 )
+	if( std::fabs( pev->avelocity.x ) > 1 || std::fabs( pev->avelocity.y ) > 1 )
 		StartRotSound();
 	else
 		StopRotSound();
@@ -997,7 +997,7 @@ void CFuncTank::TrackTarget()
 		pev->avelocity.x = -m_pitchRate;
 
 	// notify the TankSequence if we're (pretty close to) facing the target
-	if( m_pSequence && fabs( distY ) < 0.1f && fabs( distX ) < 0.1f )
+	if( m_pSequence && std::fabs( distY ) < 0.1f && std::fabs( distX ) < 0.1f )
 		m_pSequence->FacingNotify();
 
 	if (!FStringNull(m_extraBarrelsName))
@@ -1060,7 +1060,7 @@ void CFuncTank::TrackTarget()
 			UpdateNextAttack();
 		}
 	}
-	else if( CanFire() && ( ( fabs( distX ) < m_pitchTolerance && fabs( distY ) < m_yawTolerance ) || ( pev->spawnflags & SF_TANK_LINEOFSIGHT ) ) )
+	else if( CanFire() && ( ( std::fabs( distX ) < m_pitchTolerance && std::fabs( distY ) < m_yawTolerance ) || ( pev->spawnflags & SF_TANK_LINEOFSIGHT ) ) )
 	{
 		bool fire = false;
 		Vector forward;
@@ -1107,13 +1107,13 @@ void CFuncTank::AdjustAnglesForBarrel( Vector &angles, float distance )
 		{
 			r2 = m_barrelPos.y * m_barrelPos.y;
 			if( d2 > r2 )
-				angles.y += ( 180.0f / M_PI_F ) * atan2( m_barrelPos.y, sqrt( d2 - r2 ) );
+				angles.y += ( 180.0f / M_PI_F ) * std::atan2( m_barrelPos.y, std::sqrt( d2 - r2 ) );
 		}
 		if( m_barrelPos.z )
 		{
 			r2 = m_barrelPos.z * m_barrelPos.z;
 			if( d2 > r2 )
-				angles.x += ( 180.0f / M_PI_F ) * atan2( -m_barrelPos.z, sqrt( d2 - r2 ) );
+				angles.x += ( 180.0f / M_PI_F ) * std::atan2( -m_barrelPos.z, std::sqrt( d2 - r2 ) );
 		}
 	}
 }

@@ -910,7 +910,7 @@ void CTentacle::HandleAnimEvent( MonsterEvent_t *pEvent )
 	case 6:
 		// light tap
 		{
-			Vector vecSrc = pev->origin + m_flTapRadius * Vector( cos( pev->angles.y * ( M_PI_F / 180.0f ) ), sin( pev->angles.y * ( M_PI_F / 180.0f ) ), 0.0f );
+			Vector vecSrc = pev->origin + m_flTapRadius * Vector( std::cos( pev->angles.y * ( M_PI_F / 180.0f ) ), std::sin( pev->angles.y * ( M_PI_F / 180.0f ) ), 0.0f );
 
 			vecSrc.z += MyHeight();
 

@@ -1127,14 +1127,14 @@ bool CTalkMonster::PlaySentence(const char *pszSentence, float duration, float v
 	if( pszSentence[0] == '!' )
 	{
 		if (subtitle)
-			status = EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, GetVoicePitch(), ceil(duration)+1 );
+			status = EMIT_SOUND_DYN_SUB( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, GetVoicePitch(), std::ceil(duration)+1 );
 		else
 			status = EMIT_SOUND_DYN( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, GetVoicePitch() );
 	}
 	else
 	{
 		if (subtitle)
-			status = SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, GetVoicePitch(), ceil(duration)+1 ) >= 0;
+			status = SENTENCEG_PlayRndSzSub( edict(), pszSentence, volume, attenuation, 0, GetVoicePitch(), std::ceil(duration)+1 ) >= 0;
 		else
 			status = SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, GetVoicePitch() ) >= 0;
 	}

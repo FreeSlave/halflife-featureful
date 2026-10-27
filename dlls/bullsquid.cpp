@@ -556,7 +556,7 @@ bool CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 	{
 		if( m_hEnemy != 0 )
 		{
-			if( fabs( pev->origin.z - m_hEnemy->pev->origin.z ) > 256.0f )
+			if( std::fabs( pev->origin.z - m_hEnemy->pev->origin.z ) > 256.0f )
 			{
 				// don't try to spit at someone up really high or down really low.
 				return false;

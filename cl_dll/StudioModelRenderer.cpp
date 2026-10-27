@@ -1424,7 +1424,7 @@ void CStudioModelRenderer::StudioEstimateGait( entity_state_t *pplayer )
 	}
 	else
 	{
-		m_pPlayerInfo->gaityaw = ( atan2( est_velocity[1], est_velocity[0] ) * 180.0f / M_PI_F );
+		m_pPlayerInfo->gaityaw = ( std::atan2( est_velocity[1], est_velocity[0] ) * 180.0f / M_PI_F );
 		if( m_pPlayerInfo->gaityaw > 180.0f )
 			m_pPlayerInfo->gaityaw = 180.0f;
 		if( m_pPlayerInfo->gaityaw < -180.0f )
@@ -1744,7 +1744,7 @@ float CStudioModelRenderer::EffectiveViewmodelFOV()
 void CStudioModelRenderer::StudioAdjustViewmodelAttachments(Vector &vOrigin)
 {
 	const float effectiveVMFOV = EffectiveViewmodelFOV();
-	const float factor = tanf(g_flRenderFOV * M_PI / 360.0f) / tanf(effectiveVMFOV * M_PI / 360.0f);
+	const float factor = tanf(g_flRenderFOV * M_PI_F / 360.0f) / tanf(effectiveVMFOV * M_PI_F / 360.0f);
 
 	Vector tmp = vOrigin - g_vViewOrigin;
 	Vector vTransformed(DotProduct(g_vViewRight, tmp),

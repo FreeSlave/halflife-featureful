@@ -522,7 +522,7 @@ void CRoboCop::ChangeLaserState()
 		time = gpGlobals->time * 5.0f;
 	}
 
-	brightnessFraction = fabs( sin( time ) );
+	brightnessFraction = std::fabs( std::sin( time ) );
 
 end:
 	if( m_iLaserFlags & LF_ROBOCOP_LASER )
@@ -938,7 +938,7 @@ void CRoboCop::RunTask( Task_t *pTask )
 		vecAngle.y = UTIL_AngleDiff( vecAngle.y, pev->angles.y );
 		vecAngle.x = -vecAngle.x;
 
-		if( fabs( vecAngle.y ) > 60.0f )
+		if( std::fabs( vecAngle.y ) > 60.0f )
 		{
 			TaskFail("enemy is out of FOV");
 			return;

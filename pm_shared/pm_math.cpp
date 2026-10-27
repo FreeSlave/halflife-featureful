@@ -51,14 +51,14 @@ void AngleVectors( const Vector& angles, Vector* forward, Vector* right, Vector*
 	float sr, sp, sy, cr, cp, cy;
 
 	angle = angles[YAW] * ( M_PI_F * 2.0f / 360.0f );
-	sy = sin( angle );
-	cy = cos( angle );
+	sy = std::sin( angle );
+	cy = std::cos( angle );
 	angle = angles[PITCH] * ( M_PI_F * 2.0f / 360.0f );
-	sp = sin( angle );
-	cp = cos( angle );
+	sp = std::sin( angle );
+	cp = std::cos( angle );
 	angle = angles[ROLL] * ( M_PI_F * 2.0f / 360.0f );
-	sr = sin( angle );
-	cr = cos( angle );
+	sr = std::sin( angle );
+	cr = std::cos( angle );
 
 	if( forward )
 	{
@@ -86,14 +86,14 @@ void AngleVectorsTranspose( const Vector& angles, Vector* forward, Vector* right
 	float sr, sp, sy, cr, cp, cy;
 	
 	angle = angles[YAW] * ( M_PI_F * 2.0f / 360.0f );
-	sy = sin( angle );
-	cy = cos( angle );
+	sy = std::sin( angle );
+	cy = std::cos( angle );
 	angle = angles[PITCH] * ( M_PI_F * 2.0f / 360.0f );
-	sp = sin( angle );
-	cp = cos( angle );
+	sp = std::sin( angle );
+	cp = std::cos( angle );
 	angle = angles[ROLL] * ( M_PI_F * 2.0f / 360.0f );
-	sr = sin( angle );
-	cr = cos( angle );
+	sr = std::sin( angle );
+	cr = std::cos( angle );
 
 	if( forward )
 	{
@@ -156,14 +156,14 @@ void AngleMatrix(const float* angles, float (*matrix)[4] )
 	float sr, sp, sy, cr, cp, cy;
 
 	angle = angles[YAW] * ( M_PI_F * 2.0f / 360.0f );
-	sy = sin( angle );
-	cy = cos( angle );
+	sy = std::sin( angle );
+	cy = std::cos( angle );
 	angle = angles[PITCH] * ( M_PI_F * 2.0f / 360.0f );
-	sp = sin( angle );
-	cp = cos( angle );
+	sp = std::sin( angle );
+	cp = std::cos( angle );
 	angle = angles[ROLL] * ( M_PI_F * 2.0f / 360.0f );
-	sr = sin( angle );
-	cr = cos( angle );
+	sr = std::sin( angle );
+	cr = std::cos( angle );
 
 	// matrix = (YAW * PITCH) * ROLL
 	matrix[0][0] = cp * cy;
@@ -187,14 +187,14 @@ void AngleIMatrix( const Vector& angles, float matrix[3][4] )
 	float sr, sp, sy, cr, cp, cy;
 
 	angle = angles[YAW] * ( M_PI_F * 2.0f / 360.0f );
-	sy = sin( angle );
-	cy = cos( angle );
+	sy = std::sin( angle );
+	cy = std::cos( angle );
 	angle = angles[PITCH] * ( M_PI_F * 2.0f / 360.0f );
-	sp = sin( angle );
-	cp = cos( angle );
+	sp = std::sin( angle );
+	cp = std::cos( angle );
 	angle = angles[ROLL] * ( M_PI_F * 2.0f / 360.0f );
-	sr = sin( angle );
-	cr = cos( angle );
+	sr = std::sin( angle );
+	cr = std::cos( angle );
 
 	// matrix = ( YAW * PITCH ) * ROLL
 	matrix[0][0] = cp * cy;
@@ -282,7 +282,7 @@ float AngleBetweenVectors( const Vector& v1, const Vector& v2 )
 	if( !l1 || !l2 )
 		return 0.0f;
 
-	angle = acos( DotProduct( v1, v2 ) / ( l1 * l2 ));
+	angle = std::acos( DotProduct( v1, v2 ) / ( l1 * l2 ));
 	angle = ( angle  * 180.0f ) / M_PI_F;
 
 	return angle;
@@ -359,7 +359,7 @@ float Length(const float* v )
 
 	for( i = 0; i < 3; i++ )
 		length += v[i] * v[i];
-	length = sqrt( length );		// FIXME
+	length = std::sqrt( length );		// FIXME
 
 	return length;
 }
@@ -376,7 +376,7 @@ float VectorNormalize( float* v )
 	float length, ilength;
 
 	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-	length = sqrt( length );		// FIXME
+	length = std::sqrt( length );		// FIXME
 
 	if( length )
 	{
@@ -447,12 +447,12 @@ void VectorAngles( const float* forward, float* angles )
 	}
 	else
 	{
-		yaw = ( atan2( forward[1], forward[0] ) * 180.0f / M_PI_F );
+		yaw = ( std::atan2( forward[1], forward[0] ) * 180.0f / M_PI_F );
 		if( yaw < 0.0f )
 			yaw += 360.0f;
 
-		tmp = sqrt( forward[0] * forward[0] + forward[1] * forward[1] );
-		pitch = ( atan2( forward[2], tmp ) * 180.0f / M_PI_F );
+		tmp = std::sqrt( forward[0] * forward[0] + forward[1] * forward[1] );
+		pitch = ( std::atan2( forward[2], tmp ) * 180.0f / M_PI_F );
 		if( pitch < 0.0f )
 			pitch += 360.0f;
 	}

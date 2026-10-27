@@ -1120,7 +1120,7 @@ void COsprey::DyingThink()
 			// velocity
 			WRITE_COORD( m_velocity.x ); 
 			WRITE_COORD( m_velocity.y );
-			WRITE_COORD( fabs( m_velocity.z ) * 0.25f );
+			WRITE_COORD( std::fabs( m_velocity.z ) * 0.25f );
 
 			// randomization
 			WRITE_BYTE( 40 ); 

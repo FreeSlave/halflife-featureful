@@ -106,7 +106,7 @@ float MoveToward( float cur, float goal, float maxspeed )
 {
 	if( cur != goal )
 	{
-		if( fabs( cur - goal ) > 180.0f )
+		if( std::fabs( cur - goal ) > 180.0f )
 		{
 			if( cur < goal )
 				cur += 360.0f;
@@ -381,7 +381,7 @@ void DLLEXPORT CAM_Think()
 		if( camAngles[PITCH] - viewangles[PITCH] != cam_idealpitch->value )
 			camAngles[PITCH] = MoveToward( camAngles[PITCH], cam_idealpitch->value + viewangles[PITCH], CAM_ANGLE_SPEED );
 
-		if( fabs( camAngles[2] - cam_idealdist->value ) < 2.0f )
+		if( std::fabs( camAngles[2] - cam_idealdist->value ) < 2.0f )
 			camAngles[2] = cam_idealdist->value;
 		else
 			camAngles[2] += ( cam_idealdist->value - camAngles[2] ) * 0.25f;

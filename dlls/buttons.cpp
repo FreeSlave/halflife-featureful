@@ -1259,7 +1259,7 @@ void CBaseButton::Spawn()
 	m_toggle_state = TS_AT_BOTTOM;
 	m_vecPosition1 = pev->origin;
 	// Subtract 2 from size because the engine expands bboxes by 1 in all directions making the size too big
-	m_vecPosition2	= m_vecPosition1 + ( pev->movedir * ( fabs( pev->movedir.x * ( pev->size.x - 2.0f ) ) + fabs( pev->movedir.y * ( pev->size.y - 2.0f ) ) + fabs( pev->movedir.z * ( pev->size.z - 2.0f ) ) - m_flLip ) );
+	m_vecPosition2	= m_vecPosition1 + ( pev->movedir * ( std::fabs( pev->movedir.x * ( pev->size.x - 2.0f ) ) + std::fabs( pev->movedir.y * ( pev->size.y - 2.0f ) ) + std::fabs( pev->movedir.z * ( pev->size.z - 2.0f ) ) - m_flLip ) );
 
 	// Is this a non-moving button?
 	if( ( ( m_vecPosition2 - m_vecPosition1 ).IsLengthLessThan(1.0f) ) || ( pev->spawnflags & SF_BUTTON_DONTMOVE ) )

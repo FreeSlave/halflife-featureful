@@ -414,9 +414,9 @@ void CEgon::UpdateEffect( const Vector &startPoint, const Vector &endPoint, floa
 	m_pBeam->SetWidth( (int)( 40 - ( timeBlend * 20 ) ) );
 
 	if( m_fireMode == FIRE_WIDE )
-		m_pBeam->SetColor( (int)( 30 + ( 25 * timeBlend ) ), (int)( 30 + ( 30 * timeBlend ) ), (int)( 64 + 80 * fabs( sin( gpGlobals->time * 10.0f ) ) ) );
+		m_pBeam->SetColor( (int)( 30 + ( 25 * timeBlend ) ), (int)( 30 + ( 30 * timeBlend ) ), (int)( 64 + 80 * std::fabs( std::sin( gpGlobals->time * 10.0f ) ) ) );
 	else
-		m_pBeam->SetColor( (int)( 60 + ( 25 * timeBlend ) ), (int)( 120 + ( 30 * timeBlend ) ), (int)( 64 + 80 * fabs( sin( gpGlobals->time * 10.0f ) ) ) );
+		m_pBeam->SetColor( (int)( 60 + ( 25 * timeBlend ) ), (int)( 120 + ( 30 * timeBlend ) ), (int)( 64 + 80 * std::fabs( std::sin( gpGlobals->time * 10.0f ) ) ) );
 
 	UTIL_SetOrigin( m_pSprite->pev, endPoint );
 	m_pSprite->pev->frame += 8.0f * gpGlobals->frametime;

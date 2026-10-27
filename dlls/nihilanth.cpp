@@ -602,7 +602,7 @@ void CNihilanth::DyingThink()
 	{
 		Flight();
 
-		if( fabs( pev->origin.z - m_flMaxZ ) < 16 )
+		if( std::fabs( pev->origin.z - m_flMaxZ ) < 16 )
 		{
 			pev->velocity = Vector( 0, 0, 0 );
 			FireTargets( m_szDeadUse, this, this, USE_ON, 1.0 );
@@ -646,7 +646,7 @@ void CNihilanth::DyingThink()
 	{
 	case 1:
 		// head
-		vecDir.z = fabs( vecDir.z ) * 0.5f;
+		vecDir.z = std::fabs( vecDir.z ) * 0.5f;
 		vecDir += 2 * gpGlobals->v_up;
 		break;
 	case 2:
@@ -1067,9 +1067,9 @@ void CNihilanth::Flight()
 	//float flDist = DotProduct( m_posDesired - vecEst, gpGlobals->v_forward );
 
 	// sideways drag
-	m_velocity.x = m_velocity.x * ( 1.0f - fabs( gpGlobals->v_right.x ) * 0.05f );
-	m_velocity.y = m_velocity.y * ( 1.0f - fabs( gpGlobals->v_right.y ) * 0.05f );
-	m_velocity.z = m_velocity.z * ( 1.0f - fabs( gpGlobals->v_right.z ) * 0.05f );
+	m_velocity.x = m_velocity.x * ( 1.0f - std::fabs( gpGlobals->v_right.x ) * 0.05f );
+	m_velocity.y = m_velocity.y * ( 1.0f - std::fabs( gpGlobals->v_right.y ) * 0.05f );
+	m_velocity.z = m_velocity.z * ( 1.0f - std::fabs( gpGlobals->v_right.z ) * 0.05f );
 
 	// general drag
 	m_velocity = m_velocity * 0.995f;

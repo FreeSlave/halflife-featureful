@@ -635,13 +635,13 @@ static float ApplyCastMode(float f, byte castMode)
 	switch(castMode)
 	{
 	case CALC_CASTTOINT_ROUND:
-		return round(f);
+		return std::round(f);
 	case CALC_CASTTOINT_FLOOR:
-		return floor(f);
+		return std::floor(f);
 	case CALC_CASTTOINT_CEIL:
-		return ceil(f);
+		return std::ceil(f);
 	case CALC_CASTTOINT_TRUNC:
-		return trunc(f);
+		return std::trunc(f);
 	case CALC_CASTTOINT_NO:
 	default:
 		return f;
@@ -717,13 +717,13 @@ bool CCalcRatio::CalcRatio( CBaseEntity *pLocus, float* outResult )
 	case CALCRATIO_TRANSFORM_RECIPROCAL: fBasis = 1/fBasis; break;
 	case CALCRATIO_TRANSFORM_SQUARE: fBasis = fBasis * fBasis; break;
 	case CALCRATIO_TRANSFORM_INVERSESQUARE: fBasis = 1 / (fBasis * fBasis); break;
-	case CALCRATIO_TRANSFORM_SQUAREROOT: fBasis = sqrt(fBasis); break;
-	case CALCRATIO_TRANSFORM_COSINE: fBasis = cos(fBasis * (M_PI / 180.0f)); break;
-	case CALCRATIO_TRANSFORM_SINE: fBasis = sin(fBasis * (M_PI / 180.0f)); break;
-	case CALCRATIO_TRANSFORM_TANGENT: fBasis = tan(fBasis * (M_PI / 180.0f)); break;
-	case CALCRATIO_TRANSFORM_ACOSINE: fBasis = acos(fBasis) * (180.0f / M_PI); break;
-	case CALCRATIO_TRANSFORM_ASINE: fBasis = asin(fBasis) * (180.0f / M_PI); break;
-	case CALCRATIO_TRANSFORM_ATANGENT: fBasis = atan(fBasis) * (180.0f / M_PI); break;
+	case CALCRATIO_TRANSFORM_SQUAREROOT: fBasis = std::sqrt(fBasis); break;
+	case CALCRATIO_TRANSFORM_COSINE: fBasis = std::cos(fBasis * (M_PI_F / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_SINE: fBasis = std::sin(fBasis * (M_PI_F / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_TANGENT: fBasis = std::tan(fBasis * (M_PI_F / 180.0f)); break;
+	case CALCRATIO_TRANSFORM_ACOSINE: fBasis = std::acos(fBasis) * (180.0f / M_PI_F); break;
+	case CALCRATIO_TRANSFORM_ASINE: fBasis = std::asin(fBasis) * (180.0f / M_PI_F); break;
+	case CALCRATIO_TRANSFORM_ATANGENT: fBasis = std::atan(fBasis) * (180.0f / M_PI_F); break;
 	}
 
 	if (!FStringNull(pev->netname)) {

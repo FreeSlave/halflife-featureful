@@ -822,9 +822,9 @@ bool CTor::GetSummonPos(Vector& pos)
 
 	for (int i = 0; i < attempts; i++) {
 		// random point on circle
-		float c = RANDOM_FLOAT(0, 2*M_PI);
-		float x = cos(c) * SUMMON_DISTANCE;
-		float y = sin(c) * SUMMON_DISTANCE;
+		float c = RANDOM_FLOAT(0, 2*M_PI_F);
+		float x = std::cos(c) * SUMMON_DISTANCE;
+		float y = std::sin(c) * SUMMON_DISTANCE;
 		float z = startPos.z + (m_summonMaxSize.z - m_summonMinSize.z)*0.5f + RANDOM_FLOAT(0.0f, SUMMON_HEIGHT);
 
 		const Vector checkPos = pev->origin + Vector(x, y, z);

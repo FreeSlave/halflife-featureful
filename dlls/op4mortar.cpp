@@ -617,13 +617,13 @@ void COp4Mortar::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 
 void COp4Mortar::AIUpdatePosition()
 {
-	if (fabs(m_vGunAngle.x - m_vIdealGunAngle.x) >= 3.0)
+	if (std::fabs(m_vGunAngle.x - m_vIdealGunAngle.x) >= 3.0)
 	{
 		const float angle = UTIL_AngleDiff(m_vGunAngle.x, m_vIdealGunAngle.x);
 
 		if (angle != 0)
 		{
-			const float absolute = fabs(angle);
+			const float absolute = std::fabs(angle);
 			if (absolute <= 3.0)
 				d_x = static_cast<int>(-absolute);
 			else
@@ -633,13 +633,13 @@ void COp4Mortar::AIUpdatePosition()
 
 	const float yawAngle = UTIL_AngleMod(m_zeroYaw + m_vGunAngle.y);
 
-	if (fabs(yawAngle - m_vIdealGunAngle.y) >= 3.0)
+	if (std::fabs(yawAngle - m_vIdealGunAngle.y) >= 3.0)
 	{
 		const float angle = UTIL_AngleDiff(yawAngle, m_vIdealGunAngle.y);
 
 		if (angle != 0)
 		{
-			const float absolute = fabs(angle);
+			const float absolute = std::fabs(angle);
 			if (absolute <= 3.0)
 				d_y = static_cast<int>(-absolute);
 			else

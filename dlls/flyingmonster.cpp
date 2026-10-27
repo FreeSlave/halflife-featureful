@@ -385,15 +385,15 @@ void CFlyingMonster::SmoothAngles(const Vector &myVelocity)
 	float turn = 360;
 	// ALERT( at_console, "Y %.0f %.0f\n", Angles.y, pev->angles.y );
 
-	if( fabs( Angles.y - pev->angles.y ) < fabs( turn ) )
+	if( std::fabs( Angles.y - pev->angles.y ) < std::fabs( turn ) )
 	{
 		turn = Angles.y - pev->angles.y;
 	}
-	if( fabs( Angles.y - pev->angles.y + 360 ) < fabs( turn ) )
+	if( std::fabs( Angles.y - pev->angles.y + 360 ) < std::fabs( turn ) )
 	{
 		turn = Angles.y - pev->angles.y + 360;
 	}
-	if( fabs( Angles.y - pev->angles.y - 360 ) < fabs( turn ) )
+	if( std::fabs( Angles.y - pev->angles.y - 360 ) < std::fabs( turn ) )
 	{
 		turn = Angles.y - pev->angles.y - 360;
 	}
@@ -401,7 +401,7 @@ void CFlyingMonster::SmoothAngles(const Vector &myVelocity)
 	float speed = m_flightSpeed * 0.1f;
 
 	// ALERT( at_console, "speed %.0f %f\n", turn, speed );
-	if( fabs( turn ) > speed )
+	if( std::fabs( turn ) > speed )
 	{
 		if( turn < 0.0f )
 		{
@@ -427,21 +427,21 @@ void CFlyingMonster::SmoothAngles(const Vector &myVelocity)
 	// Roll Smoothing
 	//
 	turn = 360;
-	if( fabs( Angles.z - pev->angles.z ) < fabs( turn ) )
+	if( std::fabs( Angles.z - pev->angles.z ) < std::fabs( turn ) )
 	{
 		turn = Angles.z - pev->angles.z;
 	}
-	if( fabs( Angles.z - pev->angles.z + 360 ) < fabs( turn ) )
+	if( std::fabs( Angles.z - pev->angles.z + 360 ) < std::fabs( turn ) )
 	{
 		turn = Angles.z - pev->angles.z + 360;
 	}
-	if( fabs( Angles.z - pev->angles.z - 360 ) < fabs( turn ) )
+	if( std::fabs( Angles.z - pev->angles.z - 360 ) < std::fabs( turn ) )
 	{
 		turn = Angles.z - pev->angles.z - 360;
 	}
 	speed = m_flightSpeed / 2 * 0.1f;
 
-	if( fabs( turn ) < speed )
+	if( std::fabs( turn ) < speed )
 	{
 		pev->angles.z += turn;
 	}

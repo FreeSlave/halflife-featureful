@@ -3576,7 +3576,7 @@ void CGraph::TestRoutingTables()
 								ALERT( at_aiconsole, "No link.\n" );
 							}
 						}
-						if( fabs( flDistance1 - flDistance2 ) > 0.1f )
+						if( std::fabs( flDistance1 - flDistance2 ) > 0.1f )
 						{
 #else
 						if( cPathSize1 != cPathSize2 || memcmp( pMyPath, pMyPath2, sizeof(int) * cPathSize1 ) != 0 )

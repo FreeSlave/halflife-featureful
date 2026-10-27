@@ -229,7 +229,7 @@ void CFuncConveyor::KeyValue(KeyValueData *pkvd)
 void CFuncConveyor::UpdateSpeed( float speed )
 {
 	// Encode it as an integer with 4 fractional bits
-	int speedCode = (int)( fabs( speed ) * 16.0f );
+	int speedCode = (int)( std::fabs( speed ) * 16.0f );
 
 	if( speed < 0 )
 		pev->rendercolor.x = 1;
@@ -626,12 +626,12 @@ void CFuncRotating::RampPitchVol( bool fUp )
 	int pitch;
 
 	// get current angular velocity
-	vecCur = fabs( vecAVel.x != 0 ? vecAVel.x : ( vecAVel.y != 0 ? vecAVel.y : vecAVel.z ) );
+	vecCur = std::fabs( vecAVel.x != 0 ? vecAVel.x : ( vecAVel.y != 0 ? vecAVel.y : vecAVel.z ) );
 
 	// get target angular velocity
 	vecFinal = ( pev->movedir.x != 0 ? pev->movedir.x : ( pev->movedir.y != 0 ? pev->movedir.y : pev->movedir.z ) );
 	vecFinal *= pev->speed;
-	vecFinal = fabs( vecFinal );
+	vecFinal = std::fabs( vecFinal );
 
 	// calc volume and pitch as % of final vol and pitch
 	fpct = vecCur / vecFinal;
@@ -664,9 +664,9 @@ void CFuncRotating::SpinUp()
 	vecAVel = pev->avelocity;// cache entity's rotational velocity
 
 	// if we've met or exceeded target speed, set target speed and stop thinking
-	if( fabs( vecAVel.x ) >= fabs( pev->movedir.x * pev->speed ) &&
-		fabs( vecAVel.y ) >= fabs( pev->movedir.y * pev->speed ) &&
-		fabs( vecAVel.z ) >= fabs( pev->movedir.z * pev->speed ) )
+	if( std::fabs( vecAVel.x ) >= std::fabs( pev->movedir.x * pev->speed ) &&
+		std::fabs( vecAVel.y ) >= std::fabs( pev->movedir.y * pev->speed ) &&
+		std::fabs( vecAVel.z ) >= std::fabs( pev->movedir.z * pev->speed ) )
 	{
 		pev->avelocity = pev->movedir * pev->speed;// set speed in case we overshot
 		EMIT_SOUND_DYN( ENT( pev ), CHAN_STATIC, STRING( pev->noiseRunning ), 
@@ -881,7 +881,7 @@ void CPendulum::Spawn()
 		pev->speed = 100.0f;
 
 	const float multiplier = (FBitSet(pev->spawnflags, SF_PENDULUM_BOTHWAYS)) ? 1.0f : 2.0f;
-	m_accel = ( pev->speed * pev->speed ) / ( multiplier * fabs( m_distance ) );	// Calculate constant acceleration from speed and distance
+	m_accel = ( pev->speed * pev->speed ) / ( multiplier * std::fabs( m_distance ) );	// Calculate constant acceleration from speed and distance
 	m_maxSpeed = pev->speed;
 	m_start = pev->angles;
 	if (FBitSet(pev->spawnflags, SF_PENDULUM_BOTHWAYS))

@@ -848,9 +848,9 @@ void CApache::Flight()
 	}
 
 	// sideways drag
-	pev->velocity.x = pev->velocity.x * ( 1.0f - fabs( gpGlobals->v_right.x ) * 0.05f );
-	pev->velocity.y = pev->velocity.y * ( 1.0f - fabs( gpGlobals->v_right.y ) * 0.05f );
-	pev->velocity.z = pev->velocity.z * ( 1.0f - fabs( gpGlobals->v_right.z ) * 0.05f );
+	pev->velocity.x = pev->velocity.x * ( 1.0f - std::fabs( gpGlobals->v_right.x ) * 0.05f );
+	pev->velocity.y = pev->velocity.y * ( 1.0f - std::fabs( gpGlobals->v_right.y ) * 0.05f );
+	pev->velocity.z = pev->velocity.z * ( 1.0f - std::fabs( gpGlobals->v_right.z ) * 0.05f );
 
 	// general drag
 	pev->velocity = pev->velocity * 0.995f;

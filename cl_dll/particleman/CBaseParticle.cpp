@@ -345,8 +345,8 @@ void CBaseParticle::CalculateVelocity(float time)
 	{
 		m_vOrigin = m_vOrigin + m_vVelocity * deltaTime;
 
-		m_vOrigin.x += sin(time * 5.0 + reinterpret_cast<std::intptr_t>(this)) * 2;
-		m_vOrigin.y += sin(time * 7.5 + reinterpret_cast<std::intptr_t>(this));
+		m_vOrigin.x += std::sin(time * 5.0f + reinterpret_cast<std::intptr_t>(this)) * 2;
+		m_vOrigin.y += std::sin(time * 7.5f + reinterpret_cast<std::intptr_t>(this));
 	}
 	else
 	{

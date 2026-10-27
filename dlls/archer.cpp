@@ -478,7 +478,7 @@ float CArcher::ObstacleDistance( CBaseEntity *pTarget )
 		}
 		else
 		{
-			if ( fabs(m_height - pev->origin.z) > 10 )
+			if ( std::fabs(m_height - pev->origin.z) > 10 )
 				return tr.flFraction;
 		}
 	}

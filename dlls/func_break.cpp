@@ -855,7 +855,7 @@ void CBreakable::DieToActivator( CBaseEntity* pActivator )
 	// The more negative pev->health, the louder
 	// the sound should be.
 
-	fvol = RANDOM_FLOAT( 0.85f, 1.0 ) + ( fabs( pev->health ) / 100.0f );
+	fvol = RANDOM_FLOAT( 0.85f, 1.0 ) + ( std::fabs( pev->health ) / 100.0f );
 
 	if( fvol > 1.0f )
 		fvol = 1.0f;
@@ -1312,14 +1312,14 @@ void CPushable::Move( CBaseEntity *pOther, int push )
 			if( sv_pushable_fixed_tick_fudge.value >= 0 )
 				factor *= ( sv_pushable_fixed_tick_fudge.value * gpGlobals->frametime );
 
-			if( fabs( pev->velocity.x ) < fabs( pevToucher->velocity.x - pevToucher->velocity.x * factor ))
+			if( std::fabs( pev->velocity.x ) < std::fabs( pevToucher->velocity.x - pevToucher->velocity.x * factor ))
 				pev->velocity.x += pevToucher->velocity.x * factor;
-			if( fabs( pev->velocity.y ) < fabs( pevToucher->velocity.y - pevToucher->velocity.y * factor ))
+			if( std::fabs( pev->velocity.y ) < std::fabs( pevToucher->velocity.y - pevToucher->velocity.y * factor ))
 				pev->velocity.y += pevToucher->velocity.y * factor;
 		}
 	}
 
-	float length = sqrt( pev->velocity.x * pev->velocity.x + pev->velocity.y * pev->velocity.y );
+	float length = std::sqrt( pev->velocity.x * pev->velocity.x + pev->velocity.y * pev->velocity.y );
 	if( ( push && pushablemode.value != 0 )
 	    || pushablemode.value == 0 )
 	{

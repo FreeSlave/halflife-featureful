@@ -362,7 +362,7 @@ void CSporeAmmo::Spawn()
 
 	pev->angles.x -= 90;// :3
 #if FEATURE_SPORE_AMMO_CEILING_LIGHT
-	if (fabs(pev->angles.x - 180.0f) < 5.0f) {
+	if (std::fabs(pev->angles.x - 180.0f) < 5.0f) {
 		pev->effects |= EF_INVLIGHT;
 	}
 #endif

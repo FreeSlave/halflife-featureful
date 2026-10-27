@@ -299,7 +299,7 @@ void CRoach::MonsterThink()
 					pSound = CSoundEnt::SoundPointerForIndex( m_iAudibleList );
 
 					// roach smells food and is just standing around. Go to food unless food isn't on same z-plane.
-					if( pSound && fabs( pSound->m_vecOrigin.z - pev->origin.z ) <= 3.0f )
+					if( pSound && std::fabs( pSound->m_vecOrigin.z - pev->origin.z ) <= 3.0f )
 					{
 						PickNewDest( ROACH_SMELL_FOOD );
 						SetActivity( ACT_WALK );

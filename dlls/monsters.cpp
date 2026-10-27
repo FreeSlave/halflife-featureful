@@ -79,7 +79,7 @@ LaunchToHeightResult CalcLaunchToHeight(float height)
 	result.gravity = g_psv_gravity->value;
 	if (result.gravity <= 1)
 		result.gravity = 1;
-	result.time = sqrt(height * 2.0f / result.gravity);
+	result.time = std::sqrt(height * 2.0f / result.gravity);
 	result.speed = result.gravity * result.time;
 	return result;
 }
@@ -1703,7 +1703,7 @@ int CBaseMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, 
 	{
 		// The monster can move to a spot UNDER the target, but not to it. Don't try to triangulate, go directly to the node graph.
 		// UNDONE: Magic # 64 -- this used to be pev->size.z but that won't work for small creatures like the headcrab
-		if( fabs( vecEnd.z - pev->origin.z ) > 64.0f )
+		if( std::fabs( vecEnd.z - pev->origin.z ) > 64.0f )
 		{
 			iReturn = LOCALMOVE_INVALID_DONT_TRIANGULATE;
 		}
@@ -4630,7 +4630,7 @@ Vector CBaseMonster::SpitAtEnemy(const Vector& vecSpitOrigin, float dirRandomDev
 //=========================================================
 bool CBaseMonster::FacingIdeal()
 {
-	return fabs( FlYawDiff() ) <= 0.006f;//!!!BUGBUG - no magic numbers!!!
+	return std::fabs( FlYawDiff() ) <= 0.006f;//!!!BUGBUG - no magic numbers!!!
 }
 
 //=========================================================

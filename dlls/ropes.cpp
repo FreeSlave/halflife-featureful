@@ -709,7 +709,7 @@ void GetAlignmentAngles( const Vector& vecTop, const Vector& vecBottom, Vector& 
 
 	Vector vecResult = vecDist.Normalize();
 
-	const float flRoll = acos( DotProduct( vecResult, RIGHT ) ) * ( 180.0 / M_PI );
+	const float flRoll = std::acos( DotProduct( vecResult, RIGHT ) ) * ( 180.0f / M_PI_F );
 
 	vecOut.z = -flRoll;
 
@@ -717,7 +717,7 @@ void GetAlignmentAngles( const Vector& vecTop, const Vector& vecBottom, Vector& 
 
 	vecResult = vecDist.Normalize();
 
-	const float flPitch = acos( DotProduct( vecResult, DOWN ) ) * ( 180.0 / M_PI );
+	const float flPitch = std::acos( DotProduct( vecResult, DOWN ) ) * ( 180.0f / M_PI_F );
 
 	vecOut.x = ( vecResult.x >= 0.0 ) ? flPitch : -flPitch;
 	vecOut.y = 0;
