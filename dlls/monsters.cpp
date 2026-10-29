@@ -5776,6 +5776,11 @@ bool CBaseMonster::FindJumpToSpot(const Vector& vecTarget)
 		return false;
 	}
 
+	Vector pointBetween = (pev->origin + vecTarget) * 0.5f;
+	pointBetween.z = vecTarget.z;
+
+	int nodeBetween = WorldGraph.FindNearestNode(pointBetween, bits_NODE_LAND);
+
 	//TODO: calculate this depending on the monster and player geometry?
 	const FloatRange baseOffsetRange(45.0f, 50.0f); // don't jump right onto the target
 
@@ -5786,17 +5791,27 @@ bool CBaseMonster::FindJumpToSpot(const Vector& vecTarget)
 	const Vector2D toRightFromTarget = vecTarget2D + Vector2D(dirToTarget.y, -dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
 	const Vector2D toLeftFromTarget = vecTarget2D + Vector2D(-dirToTarget.y, dirToTarget.x) * RandomizeNumberFromRange(baseOffsetRange);
 
-	std::pair<Vector, bool> possibleTargets[] = {
+	fixed_vector<std::pair<Vector, bool>, 4> possibleTargets = {
 		std::make_pair(Vector(inFrontOfTarget, vecTarget.z), false),
 		std::make_pair(Vector(toRightFromTarget, vecTarget.z), false),
 		std::make_pair(Vector(toLeftFromTarget, vecTarget.z), false)
 	};
 
-	const size_t indexShift = RANDOM_LONG(0, ARRAYSIZE(possibleTargets)-1);
-
-	for (size_t i=0; i<ARRAYSIZE(possibleTargets); ++i)
+	if (nodeBetween != NO_NODE)
 	{
-		size_t j = (i + indexShift) % ARRAYSIZE(possibleTargets);
+		const CNode& node = WorldGraph.Node(nodeBetween);
+		if (node.m_vecOriginPeek.z >= vecTarget.z)
+		{
+			possibleTargets.push_back(std::make_pair(node.m_vecOrigin, false));
+			//DrawBeamLine(node.m_vecOrigin, node.m_vecOrigin + Vector(0,0,64), Color3(255, 0, 255), 30);
+		}
+	}
+
+	const size_t indexShift = RANDOM_LONG(0, possibleTargets.size()-1);
+
+	for (size_t i=0; i<possibleTargets.size(); ++i)
+	{
+		size_t j = (i + indexShift) % possibleTargets.size();
 
 		const Vector& vecPossibleTarget = possibleTargets[j].first;
 		const Vector bottom = TraceBottom(vecPossibleTarget, edict());
@@ -5843,7 +5858,7 @@ bool CBaseMonster::FindJumpToSpot(const Vector& vecTarget)
 	// Couldn't do an arched jump. Make a jump directly up and then forward to the target
 	if (pev->origin.z < vecTarget.z && pev->origin.z + maxHeight >= vecTarget.z && CheckAboveSpot())
 	{
-		fixed_vector<Vector, ARRAYSIZE(possibleTargets) + 1> possibleVertJumpTargets;
+		fixed_vector<Vector, 5> possibleVertJumpTargets;
 		possibleVertJumpTargets.push_back(vecTarget);
 		for (const auto& target : possibleTargets)
 		{
