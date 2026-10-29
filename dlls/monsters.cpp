@@ -1625,6 +1625,9 @@ void CBaseMonster::SetSequenceByName( const char *szSequence )
 // DON"T USE SETORIGIN! 
 //=========================================================
 #define	LOCAL_STEP_SIZE	16
+
+extern cvar_t npc_checklocalmove_tracehull;
+
 int CBaseMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist )
 {
 	Vector vecStartPos;// record monster's position before trying the move
@@ -1692,6 +1695,18 @@ int CBaseMonster::CheckLocalMove( const Vector &vecStart, const Vector &vecEnd, 
 				//if( pTarget && fabs( flDist - iStep ) < LOCAL_STEP_SIZE )
 				//	fReturn = true;
 				//else
+
+				if (npc_checklocalmove_tracehull.value)
+				{
+					TraceResult trm;
+					TRACE_MONSTER_HULL(edict(), vecStart, vecEnd, dont_ignore_monsters, edict(), &trm);
+					if ((!trm.fStartSolid && trm.flFraction == 1.0f) || (pTarget && pTarget->edict() == trm.pHit))
+					{
+						iReturn = LOCALMOVE_VALID;
+						break;
+					}
+				}
+
 				iReturn = LOCALMOVE_INVALID;
 				break;
 			}
