@@ -2186,7 +2186,15 @@
 		2 : "Exponential2"
 		3 : "Linear"
 	]
-	density(string) : "Density" : 0.001
+	density(Choices) : "Density" : "0.001" =
+	[
+		"0.0005" : "Misty"
+		"0.0007" : "Thin"
+		"0.001" : "Hazy"
+		"0.003" : "Moderate"
+		"0.005" : "Dense"
+		"0.01" : "Thick"
+	]
 ]
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_funnel : "Large Portal Funnel"
@@ -3598,8 +3606,7 @@
 	]
 ]
 
-@SolidClass base(Targetname, Global, RenderFields, BaseTrain, FuncTrainBase, SoundRadius, CollisionWithCorpses, InstantGibCorpses, TinyCreaturesHandling, ZHLT) = func_train : "Moving platform"
-[]
+@SolidClass base(Targetname, Global, RenderFields, BaseTrain, FuncTrainBase, SoundRadius, CollisionWithCorpses, InstantGibCorpses, TinyCreaturesHandling, ZHLT) = func_train : "Moving platform" []
 
 @BaseClass = FuncVehicleBase
 [
