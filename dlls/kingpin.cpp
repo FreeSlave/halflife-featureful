@@ -10,6 +10,7 @@
 #include	"visuals_utils.h"
 #include	"game.h"
 #include	"followingmonster.h"
+#include	"nodes.h"
 
 #define KINGPIN_AE_LEFT 1
 #define KINGPIN_AE_RIGHT 2
@@ -1509,30 +1510,60 @@ void CKingpin::RunTask( Task_t *pTask )
 				}
 				else
 				{
+					int enemyNearestNode = NO_NODE;
+					if (m_hEnemy != 0)
+					{
+						enemyNearestNode = WorldGraph.FindNearestNode(m_hEnemy->pev->origin, bits_NODE_LAND);
+					}
+
 					CBaseEntity* pEntity = NULL;
 					CBaseEntity* pBestSpot = NULL;
-					int bestDistance = 8192;
+					bool foundNodePath = false;
+					float bestDistance = 8192;
 					while( ( pEntity = UTIL_FindEntityByTargetname( pEntity, STRING(m_sTeleportTarget) ) ) != NULL )
 					{
-						TraceResult tr;
-						UTIL_TraceHull( pEntity->pev->origin + Vector(0,0,pev->size.z/2.0f), pEntity->pev->origin + Vector(0,0,pev->size.z/2.0f+1), dont_ignore_monsters, human_hull, edict(), &tr );
-						if (!tr.fStartSolid && !tr.fAllSolid)
+						const float distanceToSpot = (pev->origin - pEntity->pev->origin).Length();
+						// don't teleport to nearby distance - that would be silly
+						if (distanceToSpot >= 192.0f)
 						{
-							int distance;
-							int distanceToSpot = (pev->origin - pEntity->pev->origin).Length();
-							if (m_hEnemy != 0)
+							TraceResult tr;
+							UTIL_TraceHull( pEntity->pev->origin + Vector(0,0,pev->size.z/2.0f), pEntity->pev->origin + Vector(0,0,pev->size.z/2.0f+1), dont_ignore_monsters, human_hull, edict(), &tr );
+							if (!tr.fStartSolid && !tr.fAllSolid)
 							{
-								distance = (m_hEnemy->pev->origin - pEntity->pev->origin).Length();
-							}
-							else
-							{
-								distance = distanceToSpot;
-							}
+								float distance;
+								bool isNodePath = false;
+								if (m_hEnemy != 0)
+								{
+									float pathLength = -1;
+									int spotNearestNode = WorldGraph.FindNearestNode(pEntity->pev->origin, bits_NODE_LAND);
+									if (enemyNearestNode != NO_NODE && spotNearestNode != NO_NODE)
+									{
+										pathLength = WorldGraph.PathLength(spotNearestNode, enemyNearestNode, WorldGraph.HullIndex(this), 0);
+									}
+									if (pathLength >= 0)
+									{
+										isNodePath = true;
+										distance = pathLength;
+									}
+									else
+									{
+										distance = (m_hEnemy->pev->origin - pEntity->pev->origin).Length();
+									}
+								}
+								else
+								{
+									distance = distanceToSpot;
+								}
+								if ((distance < bestDistance && (!foundNodePath || isNodePath)) || (!foundNodePath && isNodePath))
+								{
+									pBestSpot = pEntity;
+									bestDistance = distance;
 
-							if (distanceToSpot >= 192 && distance < bestDistance)
-							{
-								pBestSpot = pEntity;
-								bestDistance = distance;
+									if (!foundNodePath && isNodePath)
+									{
+										foundNodePath = true;
+									}
+								}
 							}
 						}
 					}
@@ -1700,6 +1731,7 @@ void CKingpin::OnChangeSchedule(Schedule_t *pNewSchedule)
 	if (m_isTeleporting)
 	{
 		m_isTeleporting = false;
+		// TODO: restore these to the monster's visual parameters instead of hardcode
 		pev->rendermode = kRenderNormal;
 		pev->renderfx = kRenderFxNone;
 	}
