@@ -1165,6 +1165,9 @@ static void ResetMonsterclip()
 // If there's a problem with this process, the index
 // of the offending node will be written to piBadNode
 //=========================================================
+
+extern cvar_t nodegraph_linknodes_retry;
+
 int CGraph::LinkVisibleNodes( CLink *pLinkPool, FILE *file, int *piBadNode )
 {
 	int i, j, z;
@@ -1261,6 +1264,22 @@ int CGraph::LinkVisibleNodes( CLink *pLinkPool, FILE *file, int *piBadNode )
 
 			if( tr.fStartSolid )
 				continue;
+
+			if (nodegraph_linknodes_retry.value && tr.flFraction != 1.0f)
+			{
+				// Try again with slightly higher positions: should improve connections on stairs
+				TraceResult tr2;
+				UTIL_TraceLine( m_pNodes[i].m_vecOrigin + Vector(0,0,NODE_HEIGHT),
+								m_pNodes[j].m_vecOrigin + Vector(0,0,NODE_HEIGHT),
+								ignore_monsters,
+								g_pBodyQueueHead,
+								&tr2 );
+
+				if (tr2.flFraction == 1.0f)
+				{
+					tr = tr2;
+				}
+			}
 
 			if( tr.flFraction != 1.0f )
 			{
