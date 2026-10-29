@@ -1387,6 +1387,16 @@ void CConfigurableWeapon::SetBody(int body)
 	MESSAGE_END();
 }
 
+void CConfigurableWeapon::SendMessages(CBaseEntity *pClient)
+{
+	if (pClient && pClient == m_pPlayer && m_pPlayer->m_pActiveItem == this)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgSetBody, nullptr, m_pPlayer->pev);
+		WRITE_SHORT(pev->body);
+		MESSAGE_END();
+	}
+}
+
 void CConfigurableWeapon::KickBack(const WeaponKickBack& kickBack)
 {
 	auto applyKickBack = [this](float currentPunchAngle, float base, float modifier, float maxValue, bool direction, int shotsFired) {

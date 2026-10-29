@@ -270,6 +270,10 @@ void CConfigurableWeapon::SetBody(int body)
 		view->curstate.body = body;
 }
 
+void CConfigurableWeapon::SendMessages(CBaseEntity *pClient)
+{
+}
+
 /*
 =====================
 CBaseEntity::FireBulletsPlayer

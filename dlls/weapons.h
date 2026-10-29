@@ -403,6 +403,7 @@ public:
 	void Holster() override;
 	int ViewModelBody() override;
 	void SetBody(int body);
+	void SendMessages(CBaseEntity* pClient) override;
 
 	void ProjectileAttack(bool altMode);
 	virtual void NativeAttack(bool altMode) { return; }
