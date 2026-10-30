@@ -3230,7 +3230,7 @@ bool CheckTakeDamageConditions(const EntTemplate::DamageConditions& conditions, 
 		if (relToAttacker == R_NO && relToInitiator == R_NO)
 			return (attackAffinity & EntTemplate::DamageConditions::NEUTRAL) != 0;
 
-		const bool atLeastOneIsAlly = (relToAttacker == R_NO && relToInitiator == R_AL) || (relToAttacker == R_AL && relToInitiator == R_NO);
+		const bool atLeastOneIsAlly = (relToAttacker == R_NO && relToInitiator == R_AL) || (relToAttacker == R_AL && relToInitiator == R_NO) || (relToAttacker == R_AL && relToInitiator == R_AL);
 		if (atLeastOneIsAlly && (attackAffinity & EntTemplate::DamageConditions::FRIENDLY))
 			return true;
 

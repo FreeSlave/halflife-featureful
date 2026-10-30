@@ -1698,7 +1698,7 @@
 		0 : "Origin"
 		1 : "Eyes"
 		2 : "Top"
-		3 : "Centre"
+		3 : "Center"
 		4 : "Bottom"
 		5 : "Attachment point 0"
 		6 : "Attachment point 1"
@@ -1706,6 +1706,7 @@
 		8 : "Attachment point 3"
 		9 : "Random"
 		10 : "Calc Position [LP]" : "Get Calc Position of another entity. This allows to use the result of another calc_position as a base. You must ensure that the evaluation chain won't lead to recursion!"
+		11 : "Body"
 	]
 	message(string) : "Add offset [LV]" : "0 0 0"
 ]
@@ -9922,6 +9923,81 @@
 @SolidClass base(Targetname) = trigger_safe_fall : "Make next fall deal no damage"
 [
 	master(string) : "Master"
+]
+
+@PointClass base(Targetname) = trigger_sensor : "Detect entities in proximity and fire triggers for them"
+[
+	radius(string) : "Radius" : 192 : "Detect entities in this radius"
+	target(target_destination) : "Target (activator is detected entity)"
+	position(string) : "Source Position [LP]" : : "Calculate a position to use as a center"
+	line_blocked(choices) : "Line is blocked by" : 2 =
+	[
+		0 : "Nothing"
+		1 : "Walls"
+		2 : "Walls & Glass"
+		3 : "Walls & Monsters"
+		4 : "Walls, Monsters & Glass"
+	]
+	trace_to(choices) : "Trace line to" : 1 =
+	[
+		0 : "Origin"
+		1 : "Center"
+		2 : "Eyes"
+		3 : "Body"
+	]
+	fire_trigger_policy(choices) : "Fire trigger for" =
+	[
+		0 : "Every entity"
+		1 : "Closest entity"
+		2 : "Farthest entity"
+	]
+	alive_filter(choices) : "Entity is alive" =
+	[
+		-1 : "Dead only"
+		0 : "No filter"
+		1 : "Alive only"
+	]
+	takedamage_filter(choices) : "Entity is damageable" =
+	[
+		-1 : "No"
+		0 : "No filter"
+		1 : "Yes"
+		2 : "Yes, aimable (monsters)"
+	]
+	sensed_master(string) : "Trigger Master (activator is detected entity)"
+	sensed_classname(string) : "Required classname"
+	classify(choices) : "Act as Classify" : : "For relationship checks" =
+	[
+		0 : "None"
+		1 : "Machine"
+		2 : "Player"
+		3 : "Human passive"
+		4 : "Human military"
+		5 : "Alien military"
+		6 : "Alien passive"
+		7 : "Alien monster"
+		8 : "Alien prey"
+		9 : "Alien predator"
+		10 : "Insect"
+		11 : "Player ally"
+		12 : "Player bioweapon"
+		13 : "Alien bioweapon"
+		14 : "Race X predator"
+		15 : "Race X shock"
+		16 : "Opfor ally"
+		17 : "Blackops"
+		18 : "Snark"
+		19 : "Gargantua"
+	]
+	relationship_filter(choices) : "My relationship to entity" =
+	[
+		0 : "Any"
+		1 : "Neutral"
+		2 : "Enemy"
+		3 : "Enemy or neutral"
+		4 : "Ally"
+		5 : "Ally or neutral"
+	]
 ]
 
 @SolidClass base(Targetname, RoomType) = trigger_sound : "Brush-based DSP Sound"

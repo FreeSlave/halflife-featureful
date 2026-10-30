@@ -537,6 +537,9 @@ bool CCalcPosition::CalcPosition( CBaseEntity *pLocus, Vector* outVector )
 		if (!pSubject->CalcPosition(pLocus, outVector))
 			return false;
 		break;
+	case 11:
+		*outVector = vecOffset + pSubject->BodyTarget(pSubject->pev->origin);
+		break;
 	default:
 		*outVector = vecOffset + pSubject->pev->origin;
 		break;
