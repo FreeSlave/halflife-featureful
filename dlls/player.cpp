@@ -867,7 +867,7 @@ TakeDamageResult CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pe
 	bool adrenalineSave = false;
 	if (dmgInfo.healthFloor <= 0.0f)
 	{
-		const bool canBeSavedByAdrenaline = !FBitSet(dmgInfo.type, DMG_FALL|DMG_DROWN|DMG_CRUSH);
+		const bool canBeSavedByAdrenaline = !FBitSet(dmgInfo.type, DMG_FALL|DMG_DROWN) && dmgInfo.damage < pev->max_health;
 
 		if (canBeSavedByAdrenaline && m_adrenalineEndTime && m_adrenalineEndTime > gpGlobals->time && m_adrenalineDeathSaves > 0)
 		{
