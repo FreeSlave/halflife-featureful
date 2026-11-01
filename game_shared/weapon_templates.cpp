@@ -911,7 +911,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 						std::string entTemplateName = weaponName;
 						entTemplateName += "#";
 						entTemplateName += altMode ? "alt_fire##projectile" : "fire##projectile";
-						fire.projectileEntTemplate = entTemplateName;
+						fire.projectileEntTemplate.Materialize(altMode) = entTemplateName;
 						g_EntTemplateSystem.AddTemplateFromJsonValue(fire.projectileEntTemplate.Get(altMode).c_str(), value, fileName);
 #endif
 					}
