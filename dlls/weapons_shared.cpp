@@ -1390,6 +1390,15 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 					return;
 				}
 			}
+
+			if (params.toolIndex >= 0)
+			{
+				const int toolBit = 1<<params.toolIndex;
+				if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit) || FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
+				{
+					return;
+				}
+			}
 		}
 
 		if (!m_chargingAttack)
