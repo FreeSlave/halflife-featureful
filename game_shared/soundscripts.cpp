@@ -10,6 +10,7 @@
 #include <string>
 
 #include "json_utils.h"
+#include "string_set.h"
 
 using namespace rapidjson;
 
@@ -188,7 +189,7 @@ void SoundScriptSystem::AddSoundScriptFromJsonValue(const char *name, const Valu
 		Value::ConstArray arr = value.GetArray();
 		for (auto& item : arr)
 		{
-			std::string str = item.GetString();
+			const char* str = item.GetString();
 			soundScript.waves.push_back(RegisterWaveString(str));
 		}
 		soundScriptMeta.wavesSet = true;
@@ -351,18 +352,7 @@ void SoundScriptSystem::ReplaceSoundScript(const char *name, const SoundScript &
 
 const char* SoundScriptSystem::RegisterWaveString(const char *str)
 {
-	return RegisterWaveString(std::string(str));
-}
-
-const char* SoundScriptSystem::RegisterWaveString(const std::string& str)
-{
-	auto strIt = _waveStringSet.find(str);
-	if (strIt == _waveStringSet.end())
-	{
-		auto p = _waveStringSet.insert(str);
-		strIt = p.first;
-	}
-	return strIt->c_str();
+	return MakeStringInSet(_waveStringSet, str);
 }
 
 void SoundScriptSystem::DumpSoundScriptImpl(const char *name, const SoundScript &soundScript, const SoundScriptMeta &meta) const
