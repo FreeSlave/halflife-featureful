@@ -456,6 +456,8 @@ public:
 	void PrecacheCommonEvent();
 	bool PreferNewGrenadePhysics();
 
+	void PrintToolDenyMessage();
+
 	bool m_wasEmptyReload;
 	bool m_switchingBody;
 	bool m_wasInAltModeBeforeSwitchingBody;
@@ -515,6 +517,7 @@ public:
 
 	// tool
 	float m_toolTriggerTime;
+	float m_toolDenyMessageTime;
 
 	// for max speed
 	float m_primaryFireEndTime;

@@ -1396,6 +1396,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				const int toolBit = 1<<params.toolIndex;
 				if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit) || FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
 				{
+					if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit))
+						PrintToolDenyMessage();
 					return;
 				}
 			}
@@ -1459,6 +1461,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		}
 		else
 		{
+			if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit))
+				PrintToolDenyMessage();
 			PlayWeaponSoundScript(params.toolDenySound);
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + params.toolDelayAfterDeny;
 			return;
@@ -3553,6 +3557,16 @@ bool CConfigurableWeapon::PreferNewGrenadePhysics()
 		return m_pPlayer->m_iPreferNewGrenadePhysics != 0;
 	return false;
 #endif
+}
+
+void CConfigurableWeapon::PrintToolDenyMessage()
+{
+	const WeaponParameters& params = MyParameters();
+	if (!params.toolDenyMessage.empty() && m_toolDenyMessageTime <= gpGlobals->time)
+	{
+		m_toolDenyMessageTime = gpGlobals->time + 1.0f;
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, params.toolDenyMessage.c_str());
+	}
 }
 
 class CGenericConfigurableWeapon : public CConfigurableWeapon {};

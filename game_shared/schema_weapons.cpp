@@ -1368,6 +1368,9 @@ R"(
 					"delay_after_deny": {
 						"type": "number",
 						"exclusiveMinimum": 0
+					},
+					"deny_message": {
+						"type": "string"
 					}
 				},
 				"additionalProperties": false

@@ -2601,6 +2601,30 @@ When tool is used in the designated area, fire the tool target with this delay. 
 
 Delay before the weapon is usable again after the out of bounds usage attempt.
 
+### deny_message
+
+The string to display when player is trying to use a tool weapon outside of the tool zone. If the string starts with `#` symbol it will search the entry in **titles.txt** and in [translatable messages]({{< ref "text-messages/#translatable-messages" >}}).
+
+Example:
+
+```json
+{
+    "weapon_camera": {
+        "tool": {
+            "deny_message": "#CAMERA_MESSAGE"
+        }
+    }
+}
+```
+
+`CAMERA_MESSAGE` defined in **messages.en.json** (`\n` denotes a newline separator):
+
+```json
+{
+    "CAMERA_MESSAGE": "The camera can only be\nused in a camera zone."
+}
+```
+
 ## viewmodel_body
 
 The view model body. Should be an integer.

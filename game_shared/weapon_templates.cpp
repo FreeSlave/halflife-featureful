@@ -1521,6 +1521,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 			ParseWeaponSoundScript(params.toolDenySound, value);
 		});
 		UpdatePropertyFromJson(params.toolDelayAfterDeny, value, "delay_after_deny");
+		UpdatePropertyFromJson(params.toolDenyMessage, value, "deny_message");
 	});
 
 	auto HandleDropAmmo = [&](const char* propName, WeaponParameters::DropAmmoEnt& dropAmmo) {
