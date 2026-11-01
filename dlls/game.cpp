@@ -1495,6 +1495,8 @@ void ProvideSkillFallbacks()
 	g_SkillData.ProvideFallback("eyescanner_sentence_delay", 0.0f);
 
 	g_SkillData.ProvideFallback("dead_takedamage_factor", 0.1f);
+
+	g_SkillData.ProvideFallback("gib_life", 25.0f);
 }
 
 void ParseSkillCfg(const char* fileName)

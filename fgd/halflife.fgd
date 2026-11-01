@@ -1299,7 +1299,7 @@
 
 @BaseClass = TriggerCond
 [
-	netname(string) : "Triggered only by entity" : : "Classname or targetname of entity required to activate this trigger by touching"
+	netname(string) : "Triggered only by entity (classname or targetname)" : : "Classname or targetname of entity required to activate this trigger by touching"
 	spawnflags(flags) =
 	[
 		1: "Monsters" : 0

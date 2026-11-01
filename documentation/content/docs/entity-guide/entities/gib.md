@@ -15,4 +15,8 @@ Gibs spawned by [func_breakable]({{< ref func_breakable >}}) are temporary entit
 ### Changes
 
 * Save-restore is enabled on gibs (in Half-Life gibs disappear after the save-load).
-* Can be launched as a [projectile]({{< ref "weapon-templates/#projectile" >}}) although currently serves no real purpose.
+* Can be launched as a [projectile]({{< ref "weapon-templates/#projectile" >}}) although currently serves no real purpose other than being checked in some brush triggers.
+
+### Skill variables
+
+* `sk_gib_life` - default life duration, before the gib starts fading away. This is usually overriden by the [env_shooter]({{< ref env_shooter >}}) entity parameter.

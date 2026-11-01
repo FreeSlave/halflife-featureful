@@ -436,7 +436,7 @@ void CGib::LaunchAsProjectile(const ProjectileParameters& params)
 	LaunchAsProjectileImpl(350.0f, params);
 
 	pev->nextthink = gpGlobals->time + 4.0f;
-	m_lifeTime = 25;
+	m_lifeTime = GetSkillValue("gib_life");
 	m_bornTime = gpGlobals->time;
 	SetThink(&CGib::WaitTillLand);
 	SetTouch(&CGib::BounceGibTouch);

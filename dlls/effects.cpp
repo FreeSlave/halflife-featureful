@@ -1851,7 +1851,7 @@ void CGibShooter::Spawn()
 
 	if( m_flGibLife == 0 )
 	{
-		m_flGibLife = 25;
+		m_flGibLife = GetSkillValue("gib_life");
 	}
 
 	SetMovedir( pev );
@@ -1972,11 +1972,51 @@ void CGibShooter::ShootThink()
 class CShot : public CSprite
 {
 public:
+	void Spawn() override;
+	void Precache() override;
 	void Touch(CBaseEntity* pOther) override;
 	void Activate() override {
 		CPointEntity::Activate();
 	}
+	void LaunchAsProjectile(const ProjectileParameters& params) override;
 };
+
+void CShot::Spawn()
+{
+	pev->solid = SOLID_SLIDEBOX;
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->friction = 0.55f;
+
+	ApplyVisualWithOwn(nullptr);
+	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
+}
+
+void CShot::Precache()
+{
+	PrecacheMyModel();
+}
+
+void CShot::LaunchAsProjectile(const ProjectileParameters& params)
+{
+	LaunchAsProjectileImpl(350.0f, params);
+
+	const float lifeTime = GetSkillValue("gib_life");
+
+	SetThink(&CShot::SUB_Remove);
+	pev->nextthink = gpGlobals->time + lifeTime;
+
+	if (pev->framerate > 0)
+	{
+		m_maxFrame = (float)MODEL_FRAMES(pev->modelindex) - 1;
+		if (m_maxFrame > 1.0f)
+		{
+			SetThink(&CShot::AnimateUntilDead);
+			pev->dmgtime = gpGlobals->time + lifeTime;
+			pev->nextthink = gpGlobals->time;
+			m_lastTime = gpGlobals->time;
+		}
+	}
+}
 
 void CShot::Touch(CBaseEntity* pOther)
 {
@@ -2199,8 +2239,6 @@ CBaseEntity *CEnvShooter::CreateGib(const Vector& vecPos, const Vector& vecVel, 
 	{
 		// special shot
 		CShot* pShot = GetClassPtr((CShot*)NULL);
-		//if (!m_iPhysics)
-		//	pShot->pev->movetype = MOVETYPE_BOUNCE;
 		pShot->pev->classname = MAKE_STRING("shot");
 		pShot->pev->solid = SOLID_SLIDEBOX;
 		pShot->pev->origin = vecPos;
