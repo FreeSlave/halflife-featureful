@@ -144,6 +144,8 @@ public:
 
 	short m_makeBlockerMoveAway;
 
+	bool m_changeRenderMode;
+
 	bool m_childIsValid;
 };
 
@@ -186,6 +188,7 @@ TYPEDESCRIPTION	CMonsterMaker::m_SaveData[] =
 	DEFINE_FIELD( CMonsterMaker, m_positionToFaceTo, FIELD_STRING ),
 	DEFINE_FIELD( CMonsterMaker, m_triggerOnDeathNotice, FIELD_STRING ),
 	DEFINE_FIELD( CMonsterMaker, m_makeBlockerMoveAway, FIELD_SHORT ),
+	DEFINE_FIELD( CMonsterMaker, m_changeRenderMode, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CMonsterMaker, CBaseMonster )
@@ -320,6 +323,11 @@ void CMonsterMaker::KeyValue( KeyValueData *pkvd )
 	else if( FStrEq( pkvd->szKeyName, "make_blocker_move_away" ) )
 	{
 		m_makeBlockerMoveAway = (short)atoi( pkvd->szValue );
+		pkvd->fHandled = true;
+	}
+	else if( FStrEq( pkvd->szKeyName, "change_rendermode" ) )
+	{
+		m_changeRenderMode = atoi( pkvd->szValue ) != 0;
 		pkvd->fHandled = true;
 	}
 	else if ( pkvd->szKeyName[0] == '#' )
@@ -835,6 +843,14 @@ CBaseEntity* CMonsterMaker::SpawnMonster(const Vector &placePosition, const Vect
 	{
 		// if I have a netname (overloaded), give the child monster that name as a targetname
 		pevCreate->targetname = pev->netname;
+	}
+
+	if (m_changeRenderMode)
+	{
+		pevCreate->rendermode = pev->rendermode;
+		pevCreate->renderamt = pev->renderamt;
+		pevCreate->rendercolor = pev->rendercolor;
+		pevCreate->renderfx = pev->renderfx;
 	}
 
 	m_cLiveChildren++;// count this monster

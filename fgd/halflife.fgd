@@ -265,22 +265,8 @@
 	]
 ]
 
-@BaseClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Targetname, TargetOnPickup, Delay, Appearflags, Angles, Global, Scalable, CustomObjectHint, EntityTemplate, EntityEffects, Colormap) = Pickup
+@BaseClass = RenderFieldsUnset
 [
-	spawnflags(Flags) =
-	[
-		128 : "TOUCH Only" : 0
-		256 : "USE Only" : 0
-	]
-	movetype(choices) : "Gravity Setting" =
-	[
-		-1: "Unmoveable, no collisions"
-		0: "Fall to the ground (default)"
-		5: "Hover in the air, can touch triggers"
-		8: "Hover in the air, ignore brush collision"
-	]
-	master(string) : "Master" : : "Block picking up until master is activated"
-
 	renderfx(choices) :"Render FX" : : "Gives objects special render effects. Think of it as modifying whatever the Render Mode puts out. The options are as follows:" =
 	[
 		0: "Normal"
@@ -314,6 +300,23 @@
 	]
 	renderamt(integer) : "FX Amount (1 - 255)"
 	rendercolor(color255) : "FX Color (R G B)"
+]
+
+@BaseClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Targetname, TargetOnPickup, Delay, Appearflags, Angles, Global, Scalable, CustomObjectHint, EntityTemplate, EntityEffects, Colormap, RenderFieldsUnset) = Pickup
+[
+	spawnflags(Flags) =
+	[
+		128 : "TOUCH Only" : 0
+		256 : "USE Only" : 0
+	]
+	movetype(choices) : "Gravity Setting" =
+	[
+		-1: "Unmoveable, no collisions"
+		0: "Fall to the ground (default)"
+		5: "Hover in the air, can touch triggers"
+		8: "Hover in the air, ignore brush collision"
+	]
+	master(string) : "Master" : : "Block picking up until master is activated"
 ]
 @BaseClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Pickup) = Weapon []
 @BaseClass base(Pickup) = Item
@@ -8207,7 +8210,7 @@
 		1 : "Start ON" 	: 0 : "Enabled on map start. Note that if the entity does not have a name it acts as Start ON no matter what."
 	// 	2 : "PVS On/Off" : 0  // not implemented
 		4 : "Cyclic" : 0 : "With this flag set, the entity will spawn one time every time it is fired."
-		8 : "MonsterClip" : 0 : "Monsters spawned by a squadmaker with this flag set will be blocked by the func_monsterclip brush entity."
+		8 : "MonsterClip" : 0 : "Monsters spawned by a monstermaker with this flag set will be blocked by the func_monsterclip brush entity."
 		16 : "Prisoner" : 0 : "The spawned monster won't attack its enemies and will be ignored by its enemies."
 		32 : "Auto size BBox" : 1 : "When checking if the area is free to spawn, use the monster specific hull size instead of large one provided by default."
 		64: "Cyclic backlog" : 0 : "Used with 'Cyclic' flag. Keep track of number of monsters who could not be spawned, e.g. because of blocking. Try to spawn them later. Useful when you want to ensure that the specific number of monsters will spawn."
@@ -8242,9 +8245,14 @@
 		1: "Yes, walking"
 		2: "Yes, running"
 	]
+	change_rendermode(Choices) : "Override Render Mode" =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
 ]
-@PointClass base(MonsterMaker) = monstermaker : "Monster Maker" []
-@PointClass base(MonsterMaker) = squadmaker : "Squad Maker" []
+@PointClass base(MonsterMaker, RenderFieldsUnset) = monstermaker : "Monster Maker" []
+@PointClass base(MonsterMaker, RenderFieldsUnset) = squadmaker : "Squad Maker" []
 
 @PointClass base(Targetname) = motion_manager : "Control the movement and direction of an entity"
 [
