@@ -190,7 +190,7 @@ TYPEDESCRIPTION CItemRandom::m_SaveData[] =
 	DEFINE_FIELD( CItemRandom, m_itemCount, FIELD_INTEGER ),
 	DEFINE_FIELD( CItemRandom, m_randomSeed, FIELD_INTEGER ),
 };
-IMPLEMENT_SAVERESTORE( CItemRandom, CBaseEntity )
+IMPLEMENT_SAVERESTORE( CItemRandom, CPointEntity )
 
 bool CItemRandom::IsAppropriateItemName(const char *name)
 {

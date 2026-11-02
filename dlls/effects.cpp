@@ -4403,7 +4403,7 @@ TYPEDESCRIPTION	CEnvShockwave::m_SaveData[] =
 	DEFINE_FIELD( CEnvShockwave, m_iszPosition, FIELD_STRING ),
 };
 
-IMPLEMENT_SAVERESTORE( CEnvShockwave, CBaseEntity )
+IMPLEMENT_SAVERESTORE( CEnvShockwave, CPointEntity )
 
 void CEnvShockwave::Precache()
 {
@@ -5019,7 +5019,7 @@ TYPEDESCRIPTION	CEnvFog::m_SaveData[] =
 	DEFINE_FIELD( CEnvFog, m_fogType, FIELD_SHORT ),
 };
 
-IMPLEMENT_SAVERESTORE( CEnvFog, CBaseEntity )
+IMPLEMENT_SAVERESTORE( CEnvFog, CPointEntity )
 
 void CEnvFog :: KeyValue( KeyValueData *pkvd )
 {

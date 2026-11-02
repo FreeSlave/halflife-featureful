@@ -239,7 +239,7 @@ TYPEDESCRIPTION	CGonome::m_SaveData[] =
 	DEFINE_FIELD( CGonome, m_lockedPlayer, FIELD_EHANDLE ),
 };
 
-IMPLEMENT_SAVERESTORE( CGonome, CBaseMonster )
+IMPLEMENT_SAVERESTORE( CGonome, CFollowingMonster )
 
 void CGonome::OnDying(bool gibbed, CBaseEntity* pKiller)
 {
