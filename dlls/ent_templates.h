@@ -561,7 +561,7 @@ public:
 		return _hitGroupToBlood;
 	}
 	void SetHitGroupToBlood(EntTemplate::HitGroupToBlood&& hitGroupToBlood) {
-		_hitGroupToBlood = hitGroupToBlood;
+		_hitGroupToBlood = std::move(hitGroupToBlood);
 	}
 
 	bool IsHealthDefined() const {
@@ -571,7 +571,7 @@ public:
 		return _health;
 	}
 	void SetHealth(SkillBasedValue&& health) {
-		_health = health;
+		_health = std::move(health);
 	}
 
 	bool IsFielfOfViewDefined() const {
@@ -701,21 +701,21 @@ public:
 		return _childrenInfo;
 	}
 	void SetChildrenInfo(ChildrenInfo&& childrenInfo) {
-		_childrenInfo = childrenInfo;
+		_childrenInfo = std::move(childrenInfo);
 	}
 
 	const DropItemSet& GetLootDrop() const {
 		return _lootDrop;
 	}
 	void SetLootDrop(DropItemSet&& dropItemSet) {
-		_lootDrop = dropItemSet;
+		_lootDrop = std::move(dropItemSet);
 	}
 
 	const optional<std::vector<EquipmentItem>>& GetEquipmentDrop() const {
 		return _equipmentDrop;
 	}
 	void SetEquipmentDrop(std::vector<EquipmentItem>&& equipmentDrop) {
-		_equipmentDrop = equipmentDrop;
+		_equipmentDrop = std::move(equipmentDrop);
 	}
 
 	PainSoundRule GetPainSoundRule() const {
@@ -785,28 +785,28 @@ public:
 		return _powerShield;
 	}
 	void SetPowerShield(PowerShield&& powerShield) {
-		_powerShield = powerShield;
+		_powerShield = std::move(powerShield);
 	}
 
 	const Cloaking& GetCloaking() const {
 		return _cloaking;
 	}
 	void SetCloaking(Cloaking&& cloaking) {
-		_cloaking = cloaking;
+		_cloaking = std::move(cloaking);
 	}
 
 	const Jumping& GetJumping() const {
 		return _jumping;
 	}
 	void SetJumping(Jumping&& jumping) {
-		_jumping = jumping;
+		_jumping = std::move(jumping);
 	}
 
 	const NPCBehavior& GetNPCBehavior() const {
 		return _npcBehavior;
 	}
 	void SetNPCBehavior(NPCBehavior&& behavior) {
-		_npcBehavior = behavior;
+		_npcBehavior = std::move(behavior);
 	}
 
 	bool IsSoundMaskDefined() const {
@@ -827,14 +827,14 @@ public:
 		return _gibDisposition;
 	}
 	void SetGibDisposition(GibDisposition&& gibDisposition) {
-		_gibDisposition = gibDisposition;
+		_gibDisposition = std::move(gibDisposition);
 	}
 
 	const std::vector<WeaponDefinition>& GetWeaponDefinitions() const {
 		return _weaponsDefinitions;
 	}
 	void SetWeaponDefinitions(std::vector<WeaponDefinition>&& weaponDefinitions) {
-		_weaponsDefinitions = weaponDefinitions;
+		_weaponsDefinitions = std::move(weaponDefinitions);
 	}
 private:
 	mutable std::string tempString;

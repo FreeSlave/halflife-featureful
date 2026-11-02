@@ -155,12 +155,12 @@ void EntTemplate::SetSoundReplacement(const char *originalSample, const char *re
 
 void EntTemplate::SetPrecachedSounds(std::vector<std::string> &&sounds)
 {
-	_precachedSounds = sounds;
+	_precachedSounds = std::move(sounds);
 }
 
 void EntTemplate::SetPrecachedSoundScripts(std::vector<std::string> &&soundScripts)
 {
-	_precachedSoundScripts = soundScripts;
+	_precachedSoundScripts = std::move(soundScripts);
 }
 
 void EntTemplate::AddPrecachedSoundScript(const std::string& soundScript)
@@ -181,7 +181,7 @@ std::pair<std::vector<EntTemplate::TraceAttackRule>::const_iterator, std::vector
 
 void EntTemplate::SetTraceAttackRules(std::vector<EntTemplate::TraceAttackRule>&& traceAttackRules)
 {
-	_traceAttackRules = traceAttackRules;
+	_traceAttackRules = std::move(traceAttackRules);
 	_traceAttackRulesDefined = true;
 }
 
@@ -192,7 +192,7 @@ std::pair<std::vector<EntTemplate::TakeDamageRule>::const_iterator, std::vector<
 
 void EntTemplate::SetTakeDamageRules(std::vector<EntTemplate::TakeDamageRule>&& takeDamageRules)
 {
-	_takeDamageRules = takeDamageRules;
+	_takeDamageRules = std::move(takeDamageRules);
 	_takeDamageRulesDefined = true;
 }
 
