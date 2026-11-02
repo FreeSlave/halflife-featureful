@@ -299,9 +299,13 @@ Schedule_t* CPantherEye::GetScheduleOfType(int Type)
 	{
 		if (HasMemory(bits_MEMORY_BLOCKER_IS_ENEMY))
 			return CFollowingMonster::GetScheduleOfType(SCHED_CHASE_ENEMY);
-		else if (m_flNextAttack <= gpGlobals->time && !HasConditions(bits_COND_ENEMY_OCCLUDED))
-			return slPantherRangeAttack1;
-
+		else if (FBitSet(pev->flags, FL_ONGROUND) && m_hEnemy != 0 && m_flNextAttack <= gpGlobals->time && HasConditions(bits_COND_SEE_ENEMY) && FBitSet(m_afCapability, bits_CAP_RANGE_ATTACK1))
+		{
+			if (CanDoLeapForChase(m_hEnemy->pev->origin))
+			{
+				return slPantherRangeAttack1;
+			}
+		}
 	}
 	if (Type == SCHED_RANGE_ATTACK1)
 	{

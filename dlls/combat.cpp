@@ -41,6 +41,7 @@
 #include "global_models.h"
 #include "clamp.h"
 #include "combattext.h"
+#include "graphic_debug.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -1701,6 +1702,34 @@ void CBaseMonster::SetLeapAttackJumpFromTemplate(LeapAttackJumpParams& params)
 		if (attack.maxJumpHeight > 0.0f)
 			params.maxJumpHeight = attack.maxJumpHeight;
 	}
+}
+
+bool CBaseMonster::CanDoLeapForChase(const Vector& vecTarget)
+{
+	LeapAttackJumpParams jumpParams = GetDefaultLeapAttackJump();
+	SetLeapAttackJumpFromTemplate(jumpParams);
+
+	Vector distance = vecTarget - pev->origin;
+
+	if (distance.IsLength2DLessThan(jumpParams.maxJumpDistance * 0.5f))
+	{
+		return true;
+	}
+	else
+	{
+		distance = distance.Normalize() * jumpParams.maxJumpDistance * 0.5f;
+		distance.z = 0;
+		TraceResult tr;
+
+		Vector pos = pev->origin + distance;
+		pos.z = Q_min(pev->origin.z, vecTarget.z);
+
+		const Vector bottom = pos - Vector(0,0,jumpParams.maxJumpHeight);
+		UTIL_TraceLine(pos, bottom, ignore_monsters, edict(), &tr);
+		//DrawBeamLine(pos, bottom, Color3(255, 255, 0), 20);
+		return tr.flFraction < 1.0f;
+	}
+	return false;
 }
 
 void CBaseMonster::LaunchLeapAttack(const LeapAttackJumpParams& params)

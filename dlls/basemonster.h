@@ -387,6 +387,7 @@ public:
 	void SetLeapAttackStartFromTemplate(LeapAttackStartParams& params);
 
 	void SetLeapAttackJumpFromTemplate(LeapAttackJumpParams& params);
+	bool CanDoLeapForChase(const Vector& vecTarget);
 	void LaunchLeapAttack(const LeapAttackJumpParams& params);
 	void LaunchLeapAttack();
 

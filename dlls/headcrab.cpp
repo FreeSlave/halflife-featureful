@@ -468,9 +468,12 @@ Schedule_t *CHeadCrab::GetScheduleOfType( int Type )
 	{
 		case SCHED_CHASE_ENEMY_FAILED:
 		{
-			if (FBitSet(pev->flags, FL_ONGROUND) && m_hEnemy != 0 && HasConditions(bits_COND_SEE_ENEMY))
+			if (FBitSet(pev->flags, FL_ONGROUND) && m_hEnemy != 0 && HasConditions(bits_COND_SEE_ENEMY) && FBitSet(m_afCapability, bits_CAP_RANGE_ATTACK1))
 			{
-				return GetLeapAttackSchedule();
+				if (CanDoLeapForChase(m_hEnemy->pev->origin))
+				{
+					return GetLeapAttackSchedule();
+				}
 			}
 		}
 		break;
