@@ -31,7 +31,7 @@ See also: [settings.scr and user.scr on TWHL](https://twhl.info/wiki/page/settin
 
 ### userconfig.cfg
 
-**DO NOT** ship the custom **userconfig.cfg** with your mod unless you're absolutely have to. This file is supposed to be edited by the user, not shipped with a mod.
+**DO NOT** ship the custom **userconfig.cfg** with your mod unless you absolutely have to. This file is supposed to be edited by the user, not shipped with a mod.
 
 Use **features/featureful_client.cfg** to set the default values for some custom client cvars. Use **features/featureful_exec.cfg** to set custom default values for server cvars. Use [player templates]({{< ref "player-templates" >}}) to change the default player traits like maximum speed.
 

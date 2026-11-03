@@ -51,10 +51,10 @@ Half-Life Featureful is not just SDK in vacuum. It's a result of working on the 
 * [The Big Boned and The Curious](https://www.moddb.com/mods/the-big-boned-and-the-curious) - demo available.
 * [Half-Life: Recovery](https://www.moddb.com/mods/half-life-recovery)
 * [Half-Life: Military Duty - Operation Firestorm](https://www.moddb.com/mods/military-duty)
-* [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - demo available (the mod, however, branched off to utilize its own gamecode).
-* [Retrograde](https://www.moddb.com/mods/retrograde)
+* [X - Conundrum](https://www.moddb.com/mods/x-conundrum) - demo available (the mod branched off to utilize its own gamecode).
+* [Retrograde](https://www.moddb.com/mods/retrograde) (the mod branched off to utilize its own gamecode)
 * [Half-Life: The Shotgun Manifesto](https://www.moddb.com/mods/half-life-the-shotgun-manifesto) - demo avaialble.
-* [Half-Life: Sleep-Deprived](https://www.moddb.com/mods/half-life-sleep-deprived)
+* [Half-Life: Sleep-Deprived](https://www.moddb.com/mods/half-life-sleep-deprived) (the mod branched off to utilize its own gamecode)
 * [Half-Life: Static Interference](https://www.moddb.com/mods/half-life-static-interference) - demo avaialble.
 * [Specific impulse](https://www.moddb.com/mods/specific-impulse) - demo available.
 * [ULTRA-FORCE](https://www.moddb.com/mods/ultra-force) - demo available.
