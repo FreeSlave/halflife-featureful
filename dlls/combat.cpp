@@ -1697,8 +1697,8 @@ void CBaseMonster::SetLeapAttackJumpFromTemplate(LeapAttackJumpParams& params)
 	if (entTemplate)
 	{
 		const EntTemplate::LeapAttack& attack = entTemplate->GetLeapAttack();
-		if (attack.maxJumpDistance > 0.0f)
-			params.maxJumpDistance = attack.maxJumpDistance;
+		if (attack.maxJumpSpeed > 0.0f)
+			params.maxJumpSpeed = attack.maxJumpSpeed;
 		if (attack.maxJumpHeight > 0.0f)
 			params.maxJumpHeight = attack.maxJumpHeight;
 	}
@@ -1711,13 +1711,13 @@ bool CBaseMonster::CanDoLeapForChase(const Vector& vecTarget)
 
 	Vector distance = vecTarget - pev->origin;
 
-	if (distance.IsLength2DLessThan(jumpParams.maxJumpDistance * 0.5f))
+	if (distance.IsLength2DLessThan(jumpParams.maxJumpSpeed * 0.5f))
 	{
 		return true;
 	}
 	else
 	{
-		distance = distance.Normalize() * jumpParams.maxJumpDistance * 0.5f;
+		distance = distance.Normalize() * jumpParams.maxJumpSpeed * 0.5f;
 		distance.z = 0;
 		TraceResult tr;
 
@@ -1762,15 +1762,15 @@ void CBaseMonster::LaunchLeapAttack(const LeapAttackJumpParams& params)
 		// Don't jump too far/fast
 		float distance = vecJumpDir.Length();
 
-		if (distance > params.maxJumpDistance)
+		if (distance > params.maxJumpSpeed)
 		{
-			vecJumpDir *= params.maxJumpDistance / distance;
+			vecJumpDir *= params.maxJumpSpeed / distance;
 		}
 	}
 	else
 	{
 		// jump hop, don't care where
-		vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * params.maxJumpDistance * (7.0f / 13.0f);
+		vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * params.maxJumpSpeed * (7.0f / 13.0f);
 	}
 
 	pev->velocity = vecJumpDir;

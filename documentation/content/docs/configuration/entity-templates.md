@@ -929,7 +929,7 @@ This used to be called `"touch_attack"`. The old name is still supported but usi
     },
     "monster_panthereye": {
         "leap_attack": {
-            "max_jump_distance": 800,
+            "max_jump_speed": 800,
             "max_jump_height": 200,
             "spawn_blood": true
         }
@@ -946,7 +946,7 @@ Properties:
     - `"yaw"` - yaw value.
     - `"roll"`- roll value.
 * `"spawn_blood"` - a boolean denoting whether the touch attack should make the hit target bleed (if it can bleed) if damage has been dealt. Default value is `false`.
-* `"max_jump_distance"` - how far the monster can jump. Default value is 650.
+* `"max_jump_speed"` - the maximum velocity magnitude of the jump. Default value is 650. Note: old name was `"max_jump_distance"` - the property was renamed to reflect the underlined meaning better. The old name is still supported it's advised to avoid using it. Defining both properties is prohibited.
 * `"max_jump_height"` - how far the monster can jump. Default value is 120.
 * `"animation_event"` - the animation event that actually launches the monster into the leap attack. Headcrabs, babycrabs and shockroaches set it to 2 by default. The panthereyes use other means to determine the start of the jump (see below). The animation event must be the part of the sequence used to perform a jump. The event mustn't be used by other sequences.
 * `"start_frame_fraction"` - a fraction of animation where to actually start the jump. This must be the value between 0 and 1. This is an alternative to `"animation_event"` (these properties can't be defined together), for cases when editing the model events is not an option. E.g. the [panthereye]({{< ref monster_panthereye >}}) sets it to 0.47 by default.

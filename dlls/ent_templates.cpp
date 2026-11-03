@@ -1273,7 +1273,8 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 			UpdatePropertyFromJson(leapAttack.punchAngle.roll, value, "roll");
 		});
 
-		UpdatePropertyFromJson(leapAttack.maxJumpDistance, value, "max_jump_distance");
+		UpdatePropertyFromJson(leapAttack.maxJumpSpeed, value, "max_jump_distance");
+		UpdatePropertyFromJson(leapAttack.maxJumpSpeed, value, "max_jump_speed");
 		UpdatePropertyFromJson(leapAttack.maxJumpHeight, value, "max_jump_height");
 		UpdatePropertyFromJson(leapAttack.animationEvent, value, "animation_event");
 		UpdatePropertyFromJson(leapAttack.startFrameFraction, value, "start_frame_fraction");

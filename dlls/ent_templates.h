@@ -269,7 +269,7 @@ public:
 		DamageInfoPatch damageInfo;
 		PunchAngle punchAngle;
 		tribool spawnBlood;
-		float maxJumpDistance{0.0f};
+		float maxJumpSpeed{0.0f};
 		float maxJumpHeight{0.0f};
 		optional<int> animationEvent;
 		optional<float> startFrameFraction;

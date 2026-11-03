@@ -38,7 +38,7 @@ struct LeapAttackStartParams
 
 struct LeapAttackJumpParams
 {
-	float maxJumpDistance{650.0f};
+	float maxJumpSpeed{650.0f};
 	float maxJumpHeight{120.0f};
 	float delay{0.0f};
 };

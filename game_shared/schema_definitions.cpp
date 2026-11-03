@@ -1050,6 +1050,10 @@ R"(
 				"type": "number",
 				"minimum": 8
 			},
+			"max_jump_speed": {
+				"type": "number",
+				"minimum": 8
+			},
 			"max_jump_height": {
 				"type": "number",
 				"minimum": 8
@@ -1072,7 +1076,8 @@ R"(
 		},
 		"additionalProperties": false,
 		"dependencies": {
-			"start_frame_fraction": { "not": { "required": ["animation_event"] } }
+			"start_frame_fraction": { "not": { "required": ["animation_event"] } },
+			"max_jump_distance": { "not": { "required": ["max_jump_speed"] } }
 		}
 	},
 )"
