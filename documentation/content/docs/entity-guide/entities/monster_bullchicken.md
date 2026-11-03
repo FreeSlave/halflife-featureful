@@ -12,6 +12,7 @@ bookToC: false
 * Spit projectile precision depends on difficulty level (**sk_bullsquid_spit_inaccuracy** skill value).
 * Can spit an alternative projectile - the slow poisonous ball. Depends on **sk_bullsquid_toxicity** skill value.
 * Restores health when eating.
+* In Half-Life bullsquid could use a spit attack every time he failed to chase the enemy, disregarding the distance and the height difference used in normal range attack checks. This made bullsquids spam their range attacks in certain areas where they can't build a path to the enemy (e.g. some bullsquids on Blast Pit). In Featurful SDK we changed the behavior - the bullsquid will still have a chance to spit at much longer distance after he failed to chase his enemy, but as it's a chance-based now, he won't spawn his attacks.
 
 {{% hint warning %}}
 If you don't want a new bullsquid's projectile attack put the following entry in your **skill.cfg**:

@@ -363,6 +363,7 @@ public:
 	virtual void AttackSound(bool bigSpit);
 	void StartTask(Task_t *pTask) override;
 	void RunTask(Task_t *pTask) override;
+	bool FCanCheckAttacks() override;
 	bool CheckMeleeAttack1(float flDot, float flDist) override;
 	bool CheckMeleeAttack2(float flDot, float flDist) override;
 	bool CheckRangeAttack1(float flDot, float flDist) override;
@@ -393,6 +394,7 @@ public:
 
 	float m_flNextSpitTime;// last time the bullsquid used the spit attack.
 	float m_flNextHopTime;
+	bool m_nextRangeAttackIsLong;
 
 	static const NamedSoundScript idleSoundScript;
 	static const NamedSoundScript alertSoundScript;
@@ -541,22 +543,37 @@ TakeDamageResult CBullsquid::TakeDamage( entvars_t *pevInflictor, entvars_t *pev
 	return CFollowingMonster::TakeDamage( pevInflictor, pevAttacker, damageInfo );
 }
 
+bool CBullsquid::FCanCheckAttacks()
+{
+	return m_nextRangeAttackIsLong || CFollowingMonster::FCanCheckAttacks();
+}
+
 //=========================================================
 // CheckRangeAttack1
 //=========================================================
 bool CBullsquid::CheckRangeAttack1( float flDot, float flDist )
 {
+	float maxDist = 784.0f;
+	float maxHeightDifference = 256.0f;
+	if (m_nextRangeAttackIsLong)
+	{
+		maxDist *= 3.0f;
+		maxHeightDifference *= 2.0f;
+		m_nextRangeAttackIsLong = false;
+		//ALERT(at_console, "CheckRangeAttack1: maxDist is %g; dist is %g. flDot: %g\n", maxDist, flDist, flDot);
+	}
+
 	if( IsMoving() && flDist >= 512.0f )
 	{
 		// squid will far too far behind if he stops running to spit at this distance from the enemy.
 		return false;
 	}
 
-	if( flDist > 64.0f && flDist <= 784.0f && flDot >= 0.5f && gpGlobals->time >= m_flNextSpitTime )
+	if( flDist > 64.0f && flDist <= maxDist && flDot >= 0.5f && gpGlobals->time >= m_flNextSpitTime )
 	{
 		if( m_hEnemy != 0 )
 		{
-			if( std::fabs( pev->origin.z - m_hEnemy->pev->origin.z ) > 256.0f )
+			if( std::fabs( pev->origin.z - m_hEnemy->pev->origin.z ) > maxHeightDifference )
 			{
 				// don't try to spit at someone up really high or down really low.
 				return false;
@@ -1348,6 +1365,8 @@ Schedule_t *CBullsquid::GetScheduleOfType( int Type )
 		break;
 	case SCHED_CHASE_ENEMY_FAILED:
 		m_flNextSpitTime = gpGlobals->time;
+		if (RANDOM_LONG(0,1))
+			m_nextRangeAttackIsLong = true;
 		break;
 	}
 
