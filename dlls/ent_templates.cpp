@@ -1284,7 +1284,6 @@ void EntTemplateSystem::AddTemplateFromJsonValueImpl(const std::string& template
 		entTemplate.SetLeapAttack(leapAttack);
 	};
 
-	HandleJSONMember(value, "touch_attack", handleLeapAttack); // old name
 	HandleJSONMember(value, "leap_attack", handleLeapAttack);
 
 	HandleJSONMember(value, "take_damage", [&entTemplate](const Value& value) {

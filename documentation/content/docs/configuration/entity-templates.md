@@ -908,7 +908,7 @@ You can create your own trace hull attacks without relying on the ones that are 
 The object that redefines the parameters for the monster's leap attack. Currently works only for [headcrabs]({{< ref monster_headcrab >}}), [babycrabs]({{< ref monster_babycrab >}}), [shockroaches]({{< ref monster_shockroach >}}) and [panthereye]({{< ref monster_panthereye >}}).
 
 {{% hint info %}}
-This used to be called `"touch_attack"`. The old name is still supported but using of the new one is encouraged.
+This used to be called `"touch_attack"`. The old name is not supported anymore, use `"leap_attack"`.
 {{% /hint %}}
 
 {{% details title="Example" %}}

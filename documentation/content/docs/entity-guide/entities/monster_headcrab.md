@@ -104,7 +104,7 @@ Mimick the HL2 headcrab by providing the custom model and adding the poison dama
         "own_visual": {
             "model": "models/headcrab_black.mdl"
         },
-        "touch_attack": {
+        "leap_attack": {
             "damage_info": {
                 "type": "poison"
             }

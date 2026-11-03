@@ -1268,9 +1268,6 @@ R"(
 				},
 				"additionalProperties": false
 			},
-			"touch_attack": {
-				"$ref": "#/leap_attack"
-			},
 			"leap_attack": {
 				"$ref": "#/leap_attack"
 			},
@@ -1730,10 +1727,7 @@ R"(
 				"additionalProperties": false
 			}
 		},
-		"additionalProperties": false,
-		"dependencies": {
-			"leap_attack": { "not": { "required": ["touch_attack"] } }
-		}
+		"additionalProperties": false
 	}
 }
 )";
