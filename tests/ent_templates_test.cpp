@@ -199,7 +199,7 @@ const char entities[] = R"(
 				"roll": 6.0
 			},
 			"spawn_blood": true,
-			"max_jump_distance": 700,
+			"max_jump_speed": 700,
 			"max_jump_height": 160
 		}
 	},
@@ -574,7 +574,7 @@ TEST(EntityTemplates, Parse)
 		EXPECT_TRUE(!indeterminate(leapAttack.spawnBlood));
 		EXPECT_TRUE((bool)leapAttack.spawnBlood);
 
-		EXPECT_EQ(leapAttack.maxJumpDistance, 700.0f);
+		EXPECT_EQ(leapAttack.maxJumpSpeed, 700.0f);
 		EXPECT_EQ(leapAttack.maxJumpHeight, 160.0f);
 	}
 
