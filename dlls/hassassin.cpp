@@ -698,6 +698,7 @@ Schedule_t slAssassinHunt[] =
 		tlAssassinHunt,
 		ARRAYSIZE( tlAssassinHunt ),
 		bits_COND_NEW_ENEMY |
+		bits_COND_ENEMY_DEAD |
 		// bits_COND_SEE_ENEMY |
 		bits_COND_CAN_RANGE_ATTACK1 |
 		bits_COND_HEAR_SOUND,

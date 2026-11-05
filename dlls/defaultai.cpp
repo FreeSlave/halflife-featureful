@@ -795,6 +795,7 @@ Schedule_t slChaseEnemy[] =
 		tlChaseEnemy1,
 		ARRAYSIZE( tlChaseEnemy1 ),
 		bits_COND_NEW_ENEMY |
+		bits_COND_ENEMY_DEAD |
 		bits_COND_CAN_RANGE_ATTACK1 |
 		bits_COND_CAN_MELEE_ATTACK1 |
 		bits_COND_CAN_RANGE_ATTACK2 |
