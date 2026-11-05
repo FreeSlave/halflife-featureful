@@ -1684,14 +1684,21 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		}
 	case TASK_RUN_PATH:
 		{
-			// UNDONE: This is in some default AI and some monsters can't run? -- walk instead?
-			if( LookupActivity( ACT_RUN ) != ACTIVITY_NOT_AVAILABLE )
+			if( pev->movetype == MOVETYPE_FLY )
 			{
-				m_movementActivity = ACT_RUN;
+				m_movementActivity = ACT_FLY;
 			}
 			else
 			{
-				m_movementActivity = ACT_WALK;
+				// UNDONE: This is in some default AI and some monsters can't run? -- walk instead?
+				if( LookupActivity( ACT_RUN ) != ACTIVITY_NOT_AVAILABLE )
+				{
+					m_movementActivity = ACT_RUN;
+				}
+				else
+				{
+					m_movementActivity = ACT_WALK;
+				}
 			}
 			TaskComplete();
 			break;
@@ -1702,13 +1709,16 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			{
 				m_movementActivity = ACT_FLY;
 			}
-			if( LookupActivity( ACT_WALK ) != ACTIVITY_NOT_AVAILABLE )
-			{
-				m_movementActivity = ACT_WALK;
-			}
 			else
 			{
-				m_movementActivity = ACT_RUN;
+				if( LookupActivity( ACT_WALK ) != ACTIVITY_NOT_AVAILABLE )
+				{
+					m_movementActivity = ACT_WALK;
+				}
+				else
+				{
+					m_movementActivity = ACT_RUN;
+				}
 			}
 			TaskComplete();
 			break;

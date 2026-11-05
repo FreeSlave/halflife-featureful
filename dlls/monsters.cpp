@@ -3832,7 +3832,7 @@ void CBaseMonster::ReportAIState( ALERT_TYPE level )
 			ALERT( level, ": Stopped for %.2f", m_flMoveWaitFinished - gpGlobals->time );
 		else if( m_IdealActivity == GetStoppedActivity() )
 			ALERT( level, ": In stopped anim" );
-		ALERT( level, ". " );
+		ALERT( level, "; Ground movement speed: %g. ", m_flGroundSpeed );
 	}
 
 	ALERT( level, "Yaw speed: %3.1f, Current Yaw: %3.1f, Ideal Yaw: %3.1f, ", pev->yaw_speed, UTIL_AngleMod( pev->angles.y ), pev->ideal_yaw );

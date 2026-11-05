@@ -133,6 +133,7 @@ Talkmonsters are the following monsters who can also talk to each other and to t
 * [Flybee]({{< ref monster_flybee >}})
 * [Kingpin]({{< ref monster_kingpin >}})
 * [Panthereye]({{< ref monster_panthereye >}})
+* [Stukabat]({{< ref monster_stukabat >}})
 * [Tor]({{< ref monster_alien_tor >}})
 {{% /details_header %}}
 

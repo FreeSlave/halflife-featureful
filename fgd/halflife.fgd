@@ -7321,6 +7321,37 @@
 	]
 ]
 
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/stukabat.mdl") = monster_stukabat : "Stukabat"
+[
+	sequence(Choices) : "Animation Sequence (editor)" : 10 =
+	[
+		0 : "Land_ceiling"
+		1 : "Land_ground"
+		2 : "Attack_bomb"
+		3 : "Attack_claw"
+		4 : "Dive_cycler"
+		5 : "Death_fall_simple"
+		6 : "Death_fall_violent"
+		7 : "fall_cycler"
+		8 : "Flinch_big"
+		9 : "Flinch_small"
+		10 : "Flying_cycler"
+		11 : "Flying_turn_left"
+		12 : "Flying_turn_right"
+		13 : "Hover"
+		14 : "Die_on_ground"
+		15 : "Flinch_on_ground"
+		16 : "Eat_on_ground"
+		17 : "Disply_fidget_on_ground"
+		18 : "Subtle_fidget_on_ground"
+		19 : "Ground_walk"
+		20 : "Subtle_fidget"
+		21 : "Preen_fidget"
+		22 : "Swing_fidget"
+		23 : "Take_off_from_land"
+	]
+]
+
 @PointClass base(Monster) size(-6 -6 0, 6 6 6) studio("models/bigrat.mdl") = monster_rat : "Rat (no ai)"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =

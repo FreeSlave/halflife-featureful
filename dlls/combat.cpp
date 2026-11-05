@@ -1964,7 +1964,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 		fixed_vector<float, 5> heights;
 		heights.push_back(params.height ? *params.height : myHeight * 0.5f);
 
-		if (params.allowRetry && npc_trace_hull_attack_retry.value && params.damageInfo.damage > 0)
+		if (params.allowRetry && (npc_trace_hull_attack_retry.value || pev->movetype == MOVETYPE_FLY) && params.damageInfo.damage > 0)
 		{
 			heights.push_back(0.75f * myHeight);
 			if (params.height)
@@ -2071,7 +2071,7 @@ bool CBaseMonster::FInViewCone( CBaseEntity *pEntity )
 	Vector2D vec2LOS = ( pEntity->pev->origin - pev->origin ).Make2D().Normalize();
 	float flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
-	return flDot > m_flFieldOfView;
+	return flDot > CurrentFieldOfView();
 }
 
 //=========================================================
@@ -2086,7 +2086,7 @@ bool CBaseMonster::FInViewCone( const Vector& origin )
 	Vector2D vec2LOS = (origin - pev->origin).Make2D().Normalize();
 	float flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
 
-	return flDot > m_flFieldOfView;
+	return flDot > CurrentFieldOfView();
 }
 
 //=========================================================

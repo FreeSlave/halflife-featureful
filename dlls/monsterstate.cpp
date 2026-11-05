@@ -114,7 +114,7 @@ void CBaseMonster::RunAI()
 		// an area where monsters are fighting, and the fight will continue.
 		if( bForcedGather || FBitSet(pev->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS) || ( m_MonsterState == MONSTERSTATE_COMBAT ) || !FNullEnt( FIND_CLIENT_IN_PVS( edict() ) ) )
 		{
-			Look( m_flDistLook );
+			Look( CurrentLookDistance() );
 			Listen();// check for audible sounds. 
 
 			// now filter conditions.

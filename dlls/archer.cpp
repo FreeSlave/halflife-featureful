@@ -648,7 +648,7 @@ void CArcher::SwimThink()
 	ClearConditions( bits_COND_CAN_MELEE_ATTACK1 );
 	ClearConditions( bits_COND_CAN_RANGE_ATTACK1 );
 
-	Look( m_flDistLook );
+	Look( CurrentLookDistance() );
 
 	auto MaySelectNewHeight = [this]()
 	{

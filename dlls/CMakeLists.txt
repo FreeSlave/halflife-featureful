@@ -185,6 +185,7 @@ set (SVDLL_SOURCES
 	sporelauncher.cpp
 	squadmonster.cpp
 	squeakgrenade.cpp
+	stukabat.cpp
 	subs.cpp
 	talkmonster.cpp
 	teamplay_gamerules.cpp

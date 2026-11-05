@@ -262,7 +262,7 @@ void CLeech::SwitchLeechState()
 	}
 	else
 	{
-		Look( m_flDistLook );
+		Look( CurrentLookDistance() );
 		CBaseEntity *pEnemy = BestVisibleEnemy();
 		if( pEnemy && pEnemy->pev->waterlevel != WL_NotInWater )
 		{

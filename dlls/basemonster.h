@@ -184,6 +184,8 @@ public:
 	virtual CFollowingMonster* MyFollowingMonsterPointer() { return NULL; }
 	virtual CTalkMonster* MyTalkMonsterPointer() { return NULL; }
 
+	virtual float CurrentLookDistance() { return m_flDistLook; }
+	virtual float CurrentFieldOfView() { return m_flFieldOfView; }
 	virtual void Look( int iDistance );// basic sight function for monsters
 	void MayPlayIdleSound();
 	virtual void RunAI();// core ai function!
