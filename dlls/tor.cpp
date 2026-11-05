@@ -74,7 +74,6 @@ public:
 	bool CheckRangeAttack2(float flDot, float flDist) override;
 	bool CheckMeleeAttack1(float flDot, float flDist) override;
 	bool CheckMeleeAttack2(float flDot, float flDist) override;
-	int LookupActivity(int activity) override;
 	DamageInfo DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr) override;
 	void DeathNotice(entvars_t* pevChild) override;
 	void ReportAIState(ALERT_TYPE level) override;
@@ -628,21 +627,6 @@ bool CTor::CheckMeleeAttack2(float flDot, float flDist)
 	CheckMeleeAttackParams params;
 	params.distance = MELEE_ATTACK_CHECK_DISTANCE;
 	return CheckMeleeAttackImpl(flDot, flDist, params, true);
-}
-
-int CTor::LookupActivity(int activity)
-{
-	ASSERT(activity != 0);
-	void* pmodel = GET_MODEL_PTR(ENT(pev));
-
-	/*switch (activity) {
-	case ACT_RANGE_ATTACK1:
-	{
-		return ::LookupActivityWithOffset(pmodel, pev, activity, 1);
-	}
-	default:*/
-		return ::LookupActivity(pmodel, pev, activity);
-	//}
 }
 
 DamageInfo CTor::DefaultHandleTraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo &inputDamageInfo, Vector vecDir, TraceResult *ptr)
