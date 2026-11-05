@@ -7293,7 +7293,7 @@
 	]
 ]
 
-@PointClass base(DeadMonster) studio("models/w_shock_rifle.mdl") = monster_shockroach : "Shock Roach"
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/w_shock_rifle.mdl") = monster_shockroach : "Shock Roach"
 [
 	sequence(Choices) : "Animation Sequence (editor)" : 0 =
 	[
