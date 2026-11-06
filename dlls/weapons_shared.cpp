@@ -1287,7 +1287,14 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	}
 
 	const auto fireType = fire.fireType.Get(altMode);
-	const int ammoPerFire = fire.ammoPerFire.Get(altMode);
+	int ammoPerFire = fire.ammoPerFire.Get(altMode);
+	if (!params.toolIcon.empty())
+	{
+		if (m_pPlayer->m_UseToolAmmoCosts[params.toolIndex] > 0)
+		{
+			ammoPerFire = m_pPlayer->m_UseToolAmmoCosts[params.toolIndex];
+		}
+	}
 	const bool useSecondaryAmmo = fire.useSecondaryAmmo.Get(altMode);
 	const bool allowUnderwater = fire.allowUnderwater.Get(altMode);
 

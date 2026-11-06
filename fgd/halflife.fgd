@@ -10159,6 +10159,7 @@
 	[
 		1 : "Remove on use" : 0 : "If enabled, removes this entity from the game after activation."
 	]
+	ammocost(integer) : "Custom ammo cost"
 ]
 
 @SolidClass base(TriggerTeleport) = trigger_xen_return : "Return To Earth" []

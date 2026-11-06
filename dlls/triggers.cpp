@@ -7888,6 +7888,11 @@ public:
 			pev->message = ALLOC_STRING(pkvd->szValue);
 			pkvd->fHandled = true;
 		}
+		else if (FStrEq(pkvd->szKeyName, "ammocost"))
+		{
+			pev->impulse = atoi(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
 		else
 			CBaseTrigger::KeyValue(pkvd);
 	}
@@ -7917,6 +7922,7 @@ public:
 		CBasePlayer* pPlayer = (CBasePlayer*)pOther;
 		pPlayer->m_ToolSignalBits |= (1 << params->toolIndex);
 		pPlayer->m_UseToolTriggers[params->toolIndex] = edict();
+		pPlayer->m_UseToolAmmoCosts[params->toolIndex] = clamp(pev->impulse, 0, 255);
 	}
 	void EXPORT UseTool(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
 	{

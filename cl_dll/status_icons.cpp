@@ -256,6 +256,19 @@ int CHudStatusIcons::Draw( float flTime )
 			if (r == 0 && g == 0 && b == 0)
 				UnpackRGB(r, g, b, gHUD.HUDColor());
 			renderer.SPR_DrawAdditive(m_IconList[i].spr, r, g, b, xIcons, yIcons, &m_IconList[i].rc);
+
+			if (m_IconList[i].number > 0)
+			{
+				const int height = m_IconList[i].rc.bottom - m_IconList[i].rc.top;
+				const int width = m_IconList[i].rc.right - m_IconList[i].rc.left;
+				const int heightInScreenSpace = renderer.ScaleScreen(height);
+				const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
+
+				char buf[BUF_FOR_SHORT_SIZE];
+				FillCharBufWithNumberSuffix(buf, sizeof(buf), m_IconList[i].number);
+				CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, r, g, b);
+			}
+
 			yIcons += ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + statusIconGap;
 		}
 	}
@@ -283,7 +296,8 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		int r = READ_BYTE();
 		int g = READ_BYTE();
 		int b = READ_BYTE();
-		EnableIcon( pszIconName, r, g, b, allowDuplicate );
+		int n = READ_BYTE();
+		EnableIcon( pszIconName, r, g, b, n, allowDuplicate );
 		m_iFlags |= HUD_ACTIVE;
 	}
 	else
@@ -383,7 +397,7 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 }
 
 // add the icon to the icon list, and set it's drawing color
-void CHudStatusIcons::EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue , bool allowDuplicate)
+void CHudStatusIcons::EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, int number, bool allowDuplicate)
 {
 	int i = 0;
 
@@ -424,6 +438,7 @@ void CHudStatusIcons::EnableIcon(const char *pszIconName, unsigned char red, uns
 	m_IconList[i].r = red;
 	m_IconList[i].g = green;
 	m_IconList[i].b = blue;
+	m_IconList[i].number = number;
 	strncpyEnsureTermination( m_IconList[i].szSpriteName, pszIconName );
 
 	// Hack: Play Timer sound when a grenade icon is played (in 0.8 seconds)

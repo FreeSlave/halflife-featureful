@@ -166,6 +166,18 @@ int __MsgFunc_ToolState(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+int __MsgFunc_ToolACost(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ( pbuf, iSize );
+	const int toolIndex = READ_BYTE();
+	const byte ammoCost = READ_BYTE();
+
+	if (toolIndex >= 0 && toolIndex < ARRAYSIZE(player.m_UseToolAmmoCosts))
+		player.m_UseToolAmmoCosts[toolIndex] = ammoCost;
+
+	return 1;
+}
+
 bool ShouldHideViewModelOnZoom(int weaponId)
 {
 	return AccessWeaponInfo(weaponId).params.altMode.hideViewModelOnZoom;

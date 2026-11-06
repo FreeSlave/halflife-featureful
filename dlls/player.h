@@ -623,6 +623,7 @@ public:
 	int m_ToolUnalignedBits;
 	int m_ClientToolUnalignedBits;
 	edict_t* m_UseToolTriggers[32];
+	byte m_UseToolAmmoCosts[32];
 
 	int GetMaxAmmo(int ammoIndex);
 	int m_maxAmmoOverride[MAX_AMMO_TYPES];

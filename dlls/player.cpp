@@ -310,6 +310,7 @@ int gmsgOnRope = 0;
 
 int gmsgWeaponTool = 0;
 int gmsgToolState = 0;
+int gmsgToolAmmoCost = 0;
 
 int gmsgMessageBox = 0;
 int gmsgCombatText = 0;
@@ -439,6 +440,7 @@ void LinkUserMessages()
 
 	gmsgWeaponTool = REG_USER_MSG("WeaponTool", 2);
 	gmsgToolState = REG_USER_MSG("ToolState", 8);
+	gmsgToolAmmoCost = REG_USER_MSG("ToolACost", 2);
 
 	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
 	gmsgCombatText = REG_USER_MSG("CombatText", 11);
@@ -6230,6 +6232,7 @@ void CBasePlayer::UpdateClientData()
 								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
 								WRITE_STRING(params.toolIcon.c_str());
 								WRITE_COLOR(color);
+								WRITE_BYTE(m_UseToolAmmoCosts[params.toolIndex]);
 							MESSAGE_END();
 						}
 						else
@@ -6312,6 +6315,7 @@ void CBasePlayer::UpdateClientData()
 								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
 								WRITE_STRING(params.toolIcon.c_str());
 								WRITE_COLOR(color);
+								WRITE_BYTE(m_UseToolAmmoCosts[params.toolIndex]);
 							MESSAGE_END();
 						}
 					}
@@ -6327,6 +6331,19 @@ void CBasePlayer::UpdateClientData()
 				WRITE_LONG( m_ToolStateBits );
 				WRITE_LONG( m_ToolUnalignedBits );
 			MESSAGE_END();
+
+			for (int i=0; i<=31; ++i)
+			{
+				int toolFlag = 1 << i;
+				if (FBitSet(m_ToolStateBits, toolFlag))
+				{
+					MESSAGE_BEGIN( MSG_ONE, gmsgToolAmmoCost, NULL, pev );
+						WRITE_BYTE( i );
+						WRITE_BYTE( m_UseToolAmmoCosts[i] );
+					MESSAGE_END();
+				}
+			}
+
 			m_ClientToolStateBits = m_ToolStateBits;
 			m_ClientToolUnalignedBits = m_ToolUnalignedBits;
 		}

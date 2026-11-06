@@ -826,7 +826,7 @@ public:
 	int MsgFunc_Radcans( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Adrenalines( const char *pszName, int iSize, void *pbuf );
 
-	void EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, bool allowDuplicate = false);
+	void EnableIcon(const char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, int number = 0, bool allowDuplicate = false);
 	void DisableIcon(const char *pszIconName);
 private:
 	typedef struct
@@ -835,6 +835,7 @@ private:
 		HSPRITE spr;
 		wrect_t rc;
 		unsigned char r, g, b;
+		int number;
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
