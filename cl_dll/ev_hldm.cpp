@@ -441,7 +441,7 @@ FireBullets
 Go to the trouble of combining multiple pellets into a single damage call.
 ================
 */
-void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int cShots, float *vecSrc, float *vecDirShooting, float flDistance, int iTracerFreq, int *tracerCount, float flSpreadX, float flSpreadY )
+void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int cShots, float *vecSrc, float flDistance, int iTracerFreq, int *tracerCount, float flSpreadX, float flSpreadY )
 {
 	int i;
 	pmtrace_t tr;
@@ -469,7 +469,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 
 			for( i = 0 ; i < 3; i++ )
 			{
-				vecDir[i] = vecDirShooting[i] + x * flSpreadX * right[i] + y * flSpreadY * up [i];
+				vecDir[i] = forward[i] + x * flSpreadX * right[i] + y * flSpreadY * up [i];
 				vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
 			}
 		}//But other guns already have their spread randomized in the synched spread.
@@ -477,7 +477,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		{
 			for( i = 0 ; i < 3; i++ )
 			{
-				vecDir[i] = vecDirShooting[i] + flSpreadX * right[i] + flSpreadY * up [i];
+				vecDir[i] = forward[i] + flSpreadX * right[i] + flSpreadY * up [i];
 				vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
 			}
 		}
@@ -798,8 +798,7 @@ static void EV_PerformWeaponFire(event_args_t *args)
 	if (fireType == WeaponParameters::Fire::BULLETS)
 	{
 		Vector vecSrc = EV_GetGunPosition(args, origin);
-		Vector vecAiming = forward;
-		EV_HLDM_FireBullets(idx, forward, right, up, fire.bulletCount.Get(altMode), vecSrc, vecAiming, fire.bulletDistance.Get(altMode),
+		EV_HLDM_FireBullets(idx, forward, right, up, fire.bulletCount.Get(altMode), vecSrc, fire.bulletDistance.Get(altMode),
 							fire.tracerFreq.Get(altMode), &g_tracerCount[idx - 1], spreadX, spreadY);
 	}
 
