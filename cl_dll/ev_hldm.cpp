@@ -499,20 +499,12 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		if( tr.fraction != 1.0f )
 		{
 			bool shouldPlayTextureSound = iShot == 1;
-			bool shouldPlayGunshotEffect= true;
-
-			if ( shouldPlayTextureSound || shouldPlayGunshotEffect )
+			const char cTextureType = EV_HLDM_GetTextureSound( idx, &tr, vecSrc, vecEnd, isSky );
+			if ( shouldPlayTextureSound )
 			{
-				const char cTextureType = EV_HLDM_GetTextureSound( idx, &tr, vecSrc, vecEnd, isSky );
-				if ( shouldPlayTextureSound )
-				{
-					EV_HLDM_PlayTextureSound(&tr, cTextureType);
-				}
-				if ( shouldPlayGunshotEffect )
-				{
-					EV_HLDM_DecalGunshot( &tr, forward, cTextureType, isSky );
-				}
+				EV_HLDM_PlayTextureSound(&tr, cTextureType);
 			}
+			EV_HLDM_DecalGunshot( &tr, forward, cTextureType, isSky );
 		}
 
 		gEngfuncs.pEventAPI->EV_PopPMStates();
