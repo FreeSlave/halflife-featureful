@@ -176,7 +176,7 @@ void CDisplacer::SecondaryAttack()
 	if (params.secondaryFireType == SecondaryFireType::DISABLED)
 		return;
 
-	if (m_fFireOnEmpty || !HasAmmoToFire(params.fire.ammoPerFire.Get(true)))
+	if (!HasAmmoToFire(params.fire.ammoPerFire.Get(true)))
 	{
 		PlayEmptySound(true);
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
@@ -197,7 +197,7 @@ void CDisplacer::PrimaryAttack()
 {
 	const WeaponParameters& params = MyParameters();
 
-	if ( m_fFireOnEmpty || !HasAmmoToFire(params.fire.ammoPerFire.Get(false)))
+	if (!HasAmmoToFire(params.fire.ammoPerFire.Get(false)))
 	{
 		PlayEmptySound(false);
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;

@@ -238,8 +238,7 @@ public:
 	int m_fireState;
 
 	bool m_iPlayEmptySound;
-	bool m_fFireOnEmpty;		// True when the gun is empty and the player is still holding down the
-							// attack key(s)
+
 	virtual bool PlayEmptySound(bool altMode);
 	virtual void ResetEmptySound();
 

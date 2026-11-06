@@ -352,29 +352,12 @@ void CBasePlayerWeapon::ItemPostFrame()
 
 	if( ( m_pPlayer->pev->button & IN_ATTACK2 ) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
-		if( UsesSecondaryAmmo() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )
-		{
-			m_fFireOnEmpty = true;
-		}
-
 		if (!isAttackSuppressed)
 			SecondaryAttack();
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 	else if( ( m_pPlayer->pev->button & IN_ATTACK ) && canPrimaryAttackNow )
 	{
-		if (UsesAmmo())
-		{
-			if (UsesClip())
-			{
-				m_fFireOnEmpty = m_iClip == 0;
-			}
-			else
-			{
-				m_fFireOnEmpty = !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()];
-			}
-		}
-
 		if (!isAttackSuppressed)
 			PrimaryAttack();
 	}
@@ -390,8 +373,6 @@ void CBasePlayerWeapon::ItemPostFrame()
 	else if( !( m_pPlayer->pev->button & ( IN_ATTACK | IN_ATTACK2 ) ) )
 	{
 		// no fire buttons down
-		m_fFireOnEmpty = false;
-
 		UpdateInaccuracy();
 
 #ifndef CLIENT_DLL
@@ -1354,11 +1335,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 						}
 						else
 						{
-							if (m_fFireOnEmpty)
-							{
-								PlayEmptySound(cooldownAltMode);
-								m_flNextPrimaryAttack = GetNextAttackDelay(params.fire.delayAfterEmpty.Get(cooldownAltMode));
-							}
+							PlayEmptySound(cooldownAltMode);
+							m_flNextPrimaryAttack = GetNextAttackDelay(params.fire.delayAfterEmpty.Get(cooldownAltMode));
 						}
 						PerformCooldown(cooldownAltMode);
 						return false;
