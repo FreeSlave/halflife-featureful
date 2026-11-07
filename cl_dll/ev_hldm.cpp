@@ -1916,6 +1916,10 @@ void UpdateBlowTorchEffect()
 	if (std::fabs(currentTime - flOldTime) <= 0.02f)
 		return;
 
+	const bool isThirdPerson = CL_IsThirdPerson();
+	if (isThirdPerson)
+		return;
+
 	cl_entity_t* viewModel = GetViewEntity();
 	if (viewModel)
 	{

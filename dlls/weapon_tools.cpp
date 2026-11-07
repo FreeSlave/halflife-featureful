@@ -272,7 +272,8 @@ void CBlowTorchTool::StopFireSound()
 
 void CBlowTorchTool::SetTorchState(int state)
 {
-	PLAYBACK_EVENT_FULL(0, m_pPlayer->edict(), m_usBlowTorch, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, state, 0, 0, 0);
+	int flags = state == 2 ? 0 : FEV_HOSTONLY;
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usBlowTorch, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, state, WeaponId(), 0, 0);
 }
 
 enum satchel_radio_e
