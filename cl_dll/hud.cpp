@@ -135,6 +135,9 @@ ClientFeatures::ClientFeatures()
 	health_vertical_align = VerticalAlign::DEFAULT;
 	armor_vertical_align = VerticalAlign::DEFAULT;
 
+	water_hit_splash = "sprites/xsmoke3.spr";
+	water_hit_puff = "sprites/mommaspout.spr";
+
 	fullbright_textures = true;
 }
 
@@ -247,6 +250,7 @@ cvar_t *cl_grenadephysics = NULL;
 
 cvar_t* cl_weapon_sparks = NULL;
 cvar_t* cl_weapon_wallpuff = NULL;
+cvar_t* cl_weapon_watersplash = NULL;
 cvar_t* cl_gunsmoke = NULL;
 
 cvar_t* cl_weather = NULL;
@@ -819,6 +823,7 @@ void CHud::Init()
 
 	CreateBooleanCvarConditionally(cl_weapon_sparks, "cl_weapon_sparks", clientFeatures.weapon_sparks);
 	CreateBooleanCvarConditionally(cl_weapon_wallpuff, "cl_weapon_wallpuff", clientFeatures.weapon_wallpuff);
+	CreateBooleanCvarConditionally(cl_weapon_watersplash, "cl_weapon_watersplash", clientFeatures.weapon_watersplash);
 	CreateBooleanCvarConditionally(cl_gunsmoke, "cl_gunsmoke", clientFeatures.gunsmoke);
 
 	cl_weather = CVAR_CREATE( "cl_weather", "1", FCVAR_ARCHIVE );
@@ -1068,6 +1073,7 @@ void CHud::ParseClientFeatures()
 		{ "viewmodel_lag.", clientFeatures.viewmodel_lag},
 		{ "weapon_wallpuff.", clientFeatures.weapon_wallpuff},
 		{ "weapon_sparks.", clientFeatures.weapon_sparks},
+		{ "weapon_watersplash.", clientFeatures.weapon_watersplash},
 		{ "gunsmoke.", clientFeatures.gunsmoke},
 		{ "muzzlelight.", clientFeatures.muzzlelight},
 		{ "movemode.", clientFeatures.movemode},
@@ -1270,6 +1276,18 @@ void CHud::ParseClientFeatures()
 				else if (strcmp(keyName, "bucket_slot_sprite") == 0)
 				{
 					strncpyEnsureTermination(clientFeatures.bucket_slot_sprite, valueBuf);
+				}
+				else if (strcmp(keyName, "water_hit_splash") == 0)
+				{
+					clientFeatures.water_hit_splash = valueBuf;
+				}
+				else if (strcmp(keyName, "water_hit_puff") == 0)
+				{
+					clientFeatures.water_hit_puff = valueBuf;
+				}
+				else if (strcmp(keyName, "water_hit_ripple") == 0)
+				{
+					clientFeatures.water_hit_ripple = valueBuf;
 				}
 			}
 		}
@@ -1743,6 +1761,11 @@ bool CHud::WeaponWallpuffEnabled()
 bool CHud::WeaponSparksEnabled()
 {
 	return ClientFeatureEnabled(cl_weapon_sparks, clientFeatures.weapon_sparks.enabled_by_default);
+}
+
+bool CHud::WeaponWaterSplashEnabled()
+{
+	return ClientFeatureEnabled(cl_weapon_watersplash, clientFeatures.weapon_watersplash.enabled_by_default);
 }
 
 bool CHud::GunSmokeEnabled()

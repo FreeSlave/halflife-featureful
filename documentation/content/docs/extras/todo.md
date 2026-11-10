@@ -83,7 +83,6 @@ Status effects like burning, frozen, electrified, stunned, poisoned, "silenced" 
 * Hit particles for materials (like in Day of Defeat).
 * ![](/images/cstrike.png) Smoke effect (like smoke grenades from Counter-Strike)
 * ![](/images/cstrike.png) Grass
-* ![](/images/svencoop.png) Splash effects when firing at water (like in Sven Co-op or Day Of Defeat)
 * Decorative dangling ropes (similar to move_rope/keyframe_rope from Source).
 
 ### HUD

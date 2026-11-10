@@ -1029,6 +1029,7 @@ struct ClientFeatures
 	ConfigurableFloatValue rollangle;
 	ConfigurableBooleanValue weapon_wallpuff;
 	ConfigurableBooleanValue weapon_sparks;
+	ConfigurableBooleanValue weapon_watersplash;
 	ConfigurableBooleanValue gunsmoke;
 	ConfigurableBooleanValue muzzlelight;
 
@@ -1058,6 +1059,10 @@ struct ClientFeatures
 	VerticalAlign health_vertical_align;
 	VerticalAlign armor_vertical_align;
 	VerticalAlign weaponmode_vertical_align;
+
+	fixed_string<64> water_hit_splash;
+	fixed_string<64> water_hit_puff;
+	fixed_string<64> water_hit_ripple;
 
 	bool fullbright_textures;
 };
@@ -1242,6 +1247,7 @@ public:
 	bool DrawArmorNearHealth();
 	bool WeaponWallpuffEnabled();
 	bool WeaponSparksEnabled();
+	bool WeaponWaterSplashEnabled();
 	bool GunSmokeEnabled();
 	bool MuzzleLightEnabled();
 	bool CustomFlashlightEnabled();

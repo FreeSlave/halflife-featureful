@@ -19,6 +19,32 @@ While graphical improvements are far from the primary goal of the Featureful SDK
 {{< figure src="/images/wallpuff1.png" caption="Grey wallpuff on concrete walls" >}}
 {{< figure src="/images/wallpuff2.png" caption="Brown wallpuff on wood material" >}}
 
+## Water splashes
+
+Water splash effects appear when bullets cross the water surface.
+
+* Water splashes are not enabled by default. The user can enable water splashes by setting the `cl_weapon_watersplash` cvar to 1. See [CVars]({{< ref "cvars/#weapon-effects" >}}). See [Advanced settings]({{< ref "shipping-your-mod/#advanced-settings" >}}) for exposing the cvar to the settings UI.
+* To enable wallpuffs in the mod by default set the `weapon_watersplash.enabled_by_default` feature to `true` in **features/featureful_client.cfg**.
+* The sprites used for water splashes can be configured by setting `water_hit_splash`, `water_hit_puff` and `water_hit_ripple` features in **features/featureful_client.cfg**.
+    - `water_hit_splash` is a main splash sprite. Default sprite is **sprites/xsmoke3.spr** (a standard resource that exists in Half-Life).
+    - `water_hit_puff` - is used for extra splash effects. Default sprite is **sprites/mommaspout.spr** (a standard resource that exists in Half-Life).
+    - `water_hit_ripple` - a ripple that appears on the water surface. By default there's no sprite.
+* Water splashes produce the same sound as the [slosh material hit]({{< ref materials >}}).
+
+{{< figure src="/images/watersplash1.png" caption="Default water splash" >}}
+
+### Day of Defeat water splashes
+
+To use Day of Defeat sprites configure the features in **features/featureful_client.cfg** and copy the sprites from Day of Defeat (note that the sample mod already has a ripple sprite but under the Counter Strike path - **sprites/effects/ripple.spr**):
+
+```
+water_hit_splash sprites/effects/adrian/water_big.spr
+water_hit_puff sprites/bazookapuff.spr
+water_hit_ripple sprites/ripple.spr
+```
+
+{{< figure src="/images/watersplash2.png" caption="Water splash configured like in Day of Defeat" >}}
+
 ## Wall impact particles
 
 Wall impact particles spawn when the bullet-based weapon hits the world geometry or brush objects (also some projectiles like [nail]({{< ref nail >}})) can produce wall impact particles). This effect existed in Half-Life from the beginning but Featureful SDK provides some options for its customization.

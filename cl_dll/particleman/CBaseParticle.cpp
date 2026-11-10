@@ -321,12 +321,7 @@ void CBaseParticle::Spin(float time)
 		return;
 	}
 
-	//Superfluous; overwritten below.
-	//m_vAngles = m_vAngles + m_vAVelocity;
-
-	Vector point = m_vAVelocity;
-
-	const float length = VectorNormalize(point) * 30.0 * (time - m_flTimeCreated);
+	const float length = m_vAVelocity.Length() * 30.0 * (time - m_flTimeCreated);
 
 	m_vAngles = m_vOriginalAngles + m_vAVelocity * length;
 }

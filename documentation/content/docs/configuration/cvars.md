@@ -26,6 +26,7 @@ The cvars also can be included as options in the [Advanced settings menu]({{< re
 
 * `cl_weapon_sparks` - whether to create sparks from the bullet impact on the walls. Similar to Counter-Strike.
 * `cl_weapon_wallpuff` - whether to create a [wallpuff]({{< ref "visual-effects/#wallpuffs" >}}) from the bullet impact on the walls. Similar to Counter-Strike.
+* `cl_weapon_watersplash` - whether to create [water splash]({{< ref "visual-effects/#water-splashes" >}}) effect when the bullet crosses the water surface. Similar to Day of Defeat.
 * `cl_gunsmoke` - whether to create a [gunsmoke]({{< ref "visual-effects/#gunsmoke" >}}) on some weapon upon firing.
 * `cl_muzzlelight` - whether some player weapons produce a dynamic light upon firing.
 * `cl_wallimpact_style` - the style of the [impact particles]({{< ref "visual-effects/#wall-impact-particles" >}}) on the walls (usually caused by bullets).

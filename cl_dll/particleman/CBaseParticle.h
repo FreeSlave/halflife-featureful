@@ -20,7 +20,6 @@
 #define RENDER_FACEPLAYER (1 << 7)		   // m_vAngles == Player view angles
 #define RENDER_FACEPLAYER_ROTATEZ (1 << 8) //Just like above but m_vAngles.z is untouched so the sprite can rotate.
 
-
 #include "CMiniMem.h"
 
 //pure virtual baseclass
@@ -107,8 +106,6 @@ public:
 
 	bool m_bInWater;
 	bool m_bAffectedByForce;
-
-	int m_iAfterDampFlags;
 
 	void SetLightFlag(int iFlag)
 	{

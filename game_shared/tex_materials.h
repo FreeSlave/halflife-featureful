@@ -92,6 +92,9 @@ public:
 	char FleshMaterial() const {
 		return _fleshMaterial;
 	}
+	char SloshMaterial() const {
+		return _sloshMaterial;
+	}
 
 	inline const MaterialStepData* GetLadderStepData() const {
 		return &_ladder;

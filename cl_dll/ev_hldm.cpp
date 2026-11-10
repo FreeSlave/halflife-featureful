@@ -62,6 +62,47 @@ extern "C"
 int DLLEXPORT CL_IsThirdPerson();
 }
 
+namespace WeaponWaterHit
+{
+model_t* splash = nullptr;
+model_t* puff = nullptr;
+model_t* ripple = nullptr;
+
+void VidInit()
+{
+	splash = nullptr;
+	puff = nullptr;
+	ripple = nullptr;
+}
+
+model_t* GetSpriteModel(model_t* sprite, const decltype(ClientFeatures::water_hit_splash)& path)
+{
+	if (sprite)
+		return sprite;
+
+	if (path.empty())
+		return nullptr;
+
+	sprite = (model_t*)gEngfuncs.GetSpritePointer(gEngfuncs.pfnSPR_Load(path.c_str()));
+	return sprite;
+}
+
+model_t* GetSplash()
+{
+	return GetSpriteModel(splash, gHUD.clientFeatures.water_hit_splash);
+}
+
+model_t* GetPuff()
+{
+	return GetSpriteModel(puff, gHUD.clientFeatures.water_hit_puff);
+}
+
+model_t* GetRipple()
+{
+	return GetSpriteModel(ripple, gHUD.clientFeatures.water_hit_ripple);
+}
+}
+
 static bool DidHitSky(pmtrace_t *ptr, float *vecSrc, float *vecEnd)
 {
 	int entity = gEngfuncs.pEventAPI->EV_IndexFromTrace( ptr );
@@ -434,6 +475,112 @@ int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, flo
 	return tracer;
 }
 
+bool EV_HLDM_WaterEntryPoint( pmtrace_t* trace, float* vecSrc, float* result )
+{
+	const int endContents = gEngfuncs.PM_PointContents( trace->endpos, nullptr );
+	const int srcContents = gEngfuncs.PM_PointContents( vecSrc, nullptr );
+	if (endContents == srcContents)
+		return false;
+
+	Vector start( vecSrc );
+	Vector end( trace->endpos );
+	Vector direction = end - start;
+	while (direction.IsLengthGreaterThan(4))
+	{
+		direction = direction * 0.5f;
+		Vector mid = start + direction;
+		int startContents = gEngfuncs.PM_PointContents( start, nullptr );
+		if ( startContents == gEngfuncs.PM_PointContents( mid, nullptr ) )
+			start = mid;
+		else
+			end = mid;
+		direction = end - start;
+	}
+	VectorCopy( start, result );
+	return true;
+}
+
+void EV_WaterHit(const Vector& splashPos)
+{
+	const float currentTime = gEngfuncs.GetClientTime();
+
+	model_t* splash = WeaponWaterHit::GetSplash();
+	model_t* puff = WeaponWaterHit::GetPuff();
+	model_t* ripple = WeaponWaterHit::GetRipple();
+
+	auto getRenderMode = [](model_t* sprite) {
+		if (sprite->type == mod_sprite)
+		{
+			msprite_t* spriteDef = (msprite_t*)sprite->cache.data;
+			return spriteDef->texFormat == SPR_INDEXALPHA ? kRenderTransAlpha : kRenderTransAdd;
+		}
+		return kRenderTransAdd;
+	};
+
+	if (splash)
+	{
+		const float size = gEngfuncs.pfnRandomFloat( 30, 40 );
+		Vector origin = splashPos - Vector(0, 0, size / 6);
+		CBaseParticle* particle = new CBaseParticle();
+		if (!particle)
+			return;
+		particle->InitializeSprite(origin, Vector{}, splash, size, 150);
+		particle->m_flStretchY = 1.4f;
+		particle->m_iRendermode = getRenderMode(splash);
+		particle->SetRenderFlag( RENDER_FACEPLAYER );
+		particle->SetLightFlag( LIGHT_NONE );
+		particle->SetCullFlag( CULL_PVS );
+		particle->m_flDieTime = gEngfuncs.GetClientTime() + 10;
+		particle->m_vColor = Vector( 255, 255, 255 );
+		particle->m_flGravity = 0.5f;
+		particle->m_flFadeSpeed = 10;
+		particle->m_vVelocity = Vector( 0.0f, 0.0f, gEngfuncs.pfnRandomFloat( 110, 130 ) );
+	}
+
+
+	if (puff)
+	{
+		for (int i = 0; i < 5; ++i)
+		{
+			Vector origin = splashPos + Vector(0, 0, i * 5);
+			CBaseParticle* particle = new CBaseParticle();
+			if (!particle)
+				return;
+
+			particle->InitializeSprite(origin, Vector(90.0f, 0.0f, 0.0f), puff, 40, 80);
+			particle->m_vVelocity.x = gEngfuncs.pfnRandomFloat( -14, 14 );
+			particle->m_vVelocity.y = gEngfuncs.pfnRandomFloat( -14, 14 );
+			particle->m_vVelocity.z = gEngfuncs.pfnRandomFloat( 100, 110 );
+			particle->m_vAVelocity.z = gEngfuncs.pfnRandomFloat( -2, 2 );
+			particle->SetCollisionFlags( TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE );
+			particle->SetLightFlag( LIGHT_NONE );
+			particle->SetCullFlag( CULL_PVS );
+			particle->m_iRendermode = getRenderMode(puff);
+			particle->m_flMass = 1;
+			particle->m_flGravity = 0.4f;
+			particle->m_vColor = Vector( 255, 255, 255 );
+			particle->m_flDieTime = currentTime + 1;
+		}
+	}
+
+	if (ripple)
+	{
+		Vector origin = splashPos;
+		CBaseParticle* particle = new CBaseParticle();
+		if (!particle)
+			return;
+
+		particle->InitializeSprite(origin, Vector(90, 0, 0), ripple, 30, 150);
+		particle->m_iRendermode = getRenderMode(ripple);
+		particle->m_flFadeSpeed = 4;
+		particle->SetLightFlag( LIGHT_NONE );
+		particle->SetCullFlag( CULL_PVS );
+		particle->m_flScaleSpeed = 2;
+		particle->m_flDieTime = currentTime + 2;
+		particle->m_vColor = Vector( 255, 255, 255 );
+	}
+}
+
 /*
 ================
 FireBullets
@@ -505,6 +652,28 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				EV_HLDM_PlayTextureSound(&tr, cTextureType);
 			}
 			EV_HLDM_DecalGunshot( &tr, forward, cTextureType, isSky );
+		}
+
+		if (gHUD.WeaponWaterSplashEnabled())
+		{
+			Vector splashPos;
+			if (EV_HLDM_WaterEntryPoint(&tr, vecSrc, splashPos))
+			{
+				EV_WaterHit(splashPos);
+
+				// play sound once for multishots
+				if (iShot == 1)
+				{
+					const MaterialData* mData = g_MaterialRegistry.GetMaterialData(g_MaterialRegistry.SloshMaterial());
+					if (mData && !mData->hit.waves.empty())
+					{
+						Vector soundPos(splashPos);
+						gEngfuncs.pEventAPI->EV_PlaySound(0, soundPos, CHAN_STATIC,
+														  mData->hit.waves[gEngfuncs.pfnRandomLong(0, mData->hit.waves.size() - 1)].c_str(),
+														  mData->hit.volume, mData->hit.attn, 0, 96 + gEngfuncs.pfnRandomLong(0, 0xf));
+					}
+				}
+			}
 		}
 
 		gEngfuncs.pEventAPI->EV_PopPMStates();
@@ -2043,4 +2212,6 @@ void EV_VidInit()
 	blowTorchState = 0;
 	blowTorchFlameTexture = nullptr;
 	blowTorchGlowTexture = nullptr;
+
+	WeaponWaterHit::VidInit();
 }
