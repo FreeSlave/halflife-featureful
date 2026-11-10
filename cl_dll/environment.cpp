@@ -428,7 +428,7 @@ void CPartRainDrop::Touch(Vector pos, Vector normal, int index, bool enteringWat
 			pParticle->m_flMass = 1.0f;
 			pParticle->m_flGravity = 0.1f;
 
-			pParticle->SetCullFlag( CULL_PVS );
+			pParticle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_PLANE );
 			pParticle->SetLightFlag( m_splashParams.lightFlag );
 
 			pParticle->m_vColor = m_splashParams.color;
@@ -454,7 +454,7 @@ void CPartRainDrop::Touch(Vector pos, Vector normal, int index, bool enteringWat
 			pParticle->m_iRendermode = m_rippleParams.renderMode;
 			pParticle->m_flScaleSpeed = 1.0f;
 			pParticle->m_vColor = m_rippleParams.color;
-			pParticle->SetCullFlag( CULL_PVS );
+			pParticle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_PLANE );
 			pParticle->SetLightFlag( m_rippleParams.lightFlag );
 			pParticle->m_flFadeSpeed = 2.0f;
 			pParticle->m_flDieTime = gEngfuncs.GetClientTime() + 2.0f;
@@ -945,7 +945,7 @@ CPartRainDrop* CEnvironment::CreateRaindrop( const Vector& vecOrigin, const Rain
 
 	pParticle->m_flGravity = 0;
 
-	pParticle->SetCullFlag( CULL_PVS );
+	pParticle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_PLANE );
 	pParticle->SetLightFlag( rainData.raindropParticleParams.lightFlag );
 
 	pParticle->m_iRendermode = rainData.raindropParticleParams.renderMode;
@@ -998,7 +998,7 @@ CPartWind* CEnvironment::CreateWindParticle( const Vector& vecOrigin, const Rain
 
 	pParticle->m_iRendermode = rainData.windParticleParams.renderMode;
 
-	pParticle->SetCullFlag( CULL_PVS );
+	pParticle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_PLANE );
 	pParticle->SetLightFlag( rainData.windParticleParams.lightFlag );
 	pParticle->SetRenderFlag( RENDER_FACEPLAYER );
 
@@ -1079,7 +1079,7 @@ void CEnvironment::CreateSnowFlake( const Vector& vecOrigin, const SnowData& sno
 
 	pParticle->m_iRendermode = snowData.snowflakeParticleParams.renderMode;
 
-	pParticle->SetCullFlag( CULL_PVS );
+	pParticle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_PLANE );
 	pParticle->SetLightFlag( snowData.snowflakeParticleParams.lightFlag );
 	pParticle->SetRenderFlag( RENDER_FACEPLAYER );
 

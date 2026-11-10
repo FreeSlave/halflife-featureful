@@ -56,26 +56,16 @@ void CFrustum::CalculateFrustum()
 
 	float frustum[16]{};
 
-	//TODO: clean this up. It's a 4x4 matrix multiplication.
-	frustum[0] = proj[0] * modl[0] + proj[1] * modl[4] + proj[2] * modl[8] + proj[3] * modl[12];
-	frustum[1] = proj[1] * modl[0] + proj[1] * modl[5] + proj[2] * modl[9] + proj[3] * modl[13];
-	frustum[2] = proj[2] * modl[0] + proj[1] * modl[6] + proj[2] * modl[10] + proj[3] * modl[14];
-	frustum[3] = modl[3] * proj[0] + modl[1] * proj[7] + modl[2] * proj[11] + modl[3] * proj[15];
-
-	frustum[4] = proj[0] * modl[4] + proj[4] * modl[5] + proj[6] * modl[8] + proj[7] * modl[12];
-	frustum[5] = proj[1] * modl[4] + proj[5] * modl[5] + proj[6] * modl[9] + proj[7] * modl[13];
-	frustum[6] = proj[2] * modl[4] + proj[5] * modl[6] + proj[6] * modl[10] + proj[7] * modl[14];
-	frustum[7] = modl[3] * proj[4] + modl[5] * proj[7] + modl[6] * proj[11] + modl[7] * proj[15];
-
-	frustum[8] = proj[0] * modl[8] + proj[4] * modl[9] + proj[8] * modl[10] + proj[12] * modl[11];
-	frustum[9] = proj[1] * modl[8] + proj[5] * modl[9] + proj[9] * modl[10] + proj[11] * modl[13];
-	frustum[10] = proj[2] * modl[8] + proj[6] * modl[9] + proj[10] * modl[10] + proj[11] * modl[14];
-	frustum[11] = modl[3] * proj[8] + modl[7] * proj[9] + modl[10] * proj[11] + modl[11] * proj[15];
-
-	frustum[12] = proj[0] * modl[12] + proj[4] * modl[13] + proj[8] * modl[14] + proj[12] * modl[15];
-	frustum[13] = proj[1] * modl[12] + proj[5] * modl[13] + proj[9] * modl[14] + proj[13] * modl[15];
-	frustum[14] = proj[2] * modl[12] + proj[6] * modl[13] + proj[10] * modl[14] + proj[14] * modl[15];
-	frustum[15] = modl[3] * proj[12] + proj[7] * modl[13] + proj[11] * modl[14] + proj[15] * modl[15];
+	for (int c = 0; c < 4; ++c)
+	{
+		for (int r = 0; r < 4; ++r)
+		{
+			float sum = 0;
+			for (int k = 0; k < 4; ++k)
+				sum += proj[k*4 + r] * modl[c*4 + k];
+			frustum[c*4 + r] = sum;
+		}
+	}
 
 	g_flFrustum[RIGHT][0] = frustum[3] - frustum[0];
 	g_flFrustum[RIGHT][1] = frustum[7] - frustum[4];
@@ -151,19 +141,28 @@ bool CFrustum::PlaneInsideFrustum(float x, float y, float z, float size)
 
 	for (int i = 0; i < 6; ++i)
 	{
-		//Test every permutation of plane sizes.
-		for (int zAxis = 0; zAxis < 2; ++zAxis)
+		bool anyCornerInside = false;
+
+		//Test every permutation of box corners against this plane.
+		for (int zAxis = 0; zAxis < 2 && !anyCornerInside; ++zAxis)
 		{
-			for (int yAxis = 0; yAxis < 2; ++yAxis)
+			for (int yAxis = 0; yAxis < 2 && !anyCornerInside; ++yAxis)
 			{
 				for (int xAxis = 0; xAxis < 2; ++xAxis)
 				{
-					if (((sizes[0][xAxis] * g_flFrustum[i][0]) + (sizes[1][yAxis] * g_flFrustum[i][1]) + (sizes[2][zAxis] * g_flFrustum[i][2]) + g_flFrustum[i][3]) <= 0)
+					if (((sizes[0][xAxis] * g_flFrustum[i][0]) + (sizes[1][yAxis] * g_flFrustum[i][1]) + (sizes[2][zAxis] * g_flFrustum[i][2]) + g_flFrustum[i][3]) > 0)
 					{
-						return false;
+						anyCornerInside = true;
+						break;
 					}
 				}
 			}
+		}
+
+		//All 8 corners are behind this plane, so the box cannot be visible.
+		if (!anyCornerInside)
+		{
+			return false;
 		}
 	}
 

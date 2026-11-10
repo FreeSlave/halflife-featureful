@@ -747,7 +747,7 @@ int __MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 			if (particle)
 			{
 				particle->SetLightFlag(LIGHT_NONE);
-				particle->SetCullFlag(CULL_PVS);
+				particle->SetCullFlag(CULL_PVS|CULL_FRUSTUM_PLANE);
 				particle->SetRenderFlag(RENDER_FACEPLAYER);
 
 				particle->m_vVelocity = velocity;

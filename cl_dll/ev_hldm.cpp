@@ -529,7 +529,7 @@ void EV_WaterHit(const Vector& splashPos)
 		particle->m_iRendermode = getRenderMode(splash);
 		particle->SetRenderFlag( RENDER_FACEPLAYER );
 		particle->SetLightFlag( LIGHT_NONE );
-		particle->SetCullFlag( CULL_PVS );
+		particle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_SPHERE );
 		particle->m_flDieTime = gEngfuncs.GetClientTime() + 10;
 		particle->m_vColor = Vector( 255, 255, 255 );
 		particle->m_flGravity = 0.5f;
@@ -554,7 +554,7 @@ void EV_WaterHit(const Vector& splashPos)
 			particle->m_vAVelocity.z = gEngfuncs.pfnRandomFloat( -2, 2 );
 			particle->SetCollisionFlags( TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE );
 			particle->SetLightFlag( LIGHT_NONE );
-			particle->SetCullFlag( CULL_PVS );
+			particle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_SPHERE );
 			particle->m_iRendermode = getRenderMode(puff);
 			particle->m_flMass = 1;
 			particle->m_flGravity = 0.4f;
@@ -574,7 +574,7 @@ void EV_WaterHit(const Vector& splashPos)
 		particle->m_iRendermode = getRenderMode(ripple);
 		particle->m_flFadeSpeed = 4;
 		particle->SetLightFlag( LIGHT_NONE );
-		particle->SetCullFlag( CULL_PVS );
+		particle->SetCullFlag( CULL_PVS | CULL_FRUSTUM_SPHERE );
 		particle->m_flScaleSpeed = 2;
 		particle->m_flDieTime = currentTime + 2;
 		particle->m_vColor = Vector( 255, 255, 255 );
