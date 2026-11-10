@@ -534,9 +534,33 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			UTIL_MakeVectorsPrivate( pev->angles, forward, right, NULL );
 
-			Vector center = pev->origin + forward * 128.0f;
-			Vector mins = center - Vector( 64.0f, 64.0f, 0.0f );
-			Vector maxs = center + Vector( 64.0f, 64.0f, 64.0f );
+			TraceHullAttackParams params;
+			params.damageInfo = DamageInfo(GetSkillValue("bigmomma_dmg_slash"), DMG_CRUSH | DMG_SLASH);
+			params.distance = 128.0f;
+			params.punchAngle.x = 15.0f;
+
+			if (pEvent->event == BIG_AE_MELEE_ATTACKBR)
+			{
+				params.knockForward = 150.0f;
+				params.knockRight = -200.0f;
+				params.knockUp = 250.0f;
+			}
+			else if (pEvent->event == BIG_AE_MELEE_ATTACKBL)
+			{
+				params.knockForward = 150.0f;
+				params.knockRight = 200.0f;
+				params.knockUp = 250.0f;
+			}
+			else if (pEvent->event == BIG_AE_MELEE_ATTACK1)
+			{
+				params.knockForward = 220.0f;
+				params.knockUp = 200.0f;
+			}
+			SetTraceHullAttackParamsFromTemplate(pEvent->event, params);
+
+			const Vector center = pev->origin + forward * params.distance;
+			const Vector mins = center - Vector( 64.0f, 64.0f, 0.0f );
+			const Vector maxs = center + Vector( 64.0f, 64.0f, 64.0f );
 
 			CBaseEntity *pList[8];
 			int count = UTIL_EntitiesInBox( pList, 8, mins, maxs, FL_MONSTER | FL_CLIENT );
@@ -551,24 +575,29 @@ void CBigMomma::HandleAnimEvent( MonsterEvent_t *pEvent )
 				}
 			}
 
-			if( pHurt )
+			if (pHurt)
 			{
-				pHurt->TakeDamage( pev, pev, DamageInfo(GetSkillValue("bigmomma_dmg_slash"), DMG_CRUSH | DMG_SLASH) );
-				pHurt->pev->punchangle.x = 15.0f;
-				switch( pEvent->event )
+				pHurt->TakeDamage( pev, pev, params.damageInfo );
+				pHurt->ApplyPunchAngle(params.punchAngle);
+
+				bool applyKnock = false;
+				if (params.knockPlayerOnly)
 				{
-					case BIG_AE_MELEE_ATTACKBR:
-						pHurt->pev->velocity = pHurt->pev->velocity + ( forward * 150.0f ) + Vector( 0.0f, 0.0f, 250.0f ) - ( right * 200.0f );
-						break;
-					case BIG_AE_MELEE_ATTACKBL:
-						pHurt->pev->velocity = pHurt->pev->velocity + ( forward * 150.0f ) + Vector( 0.0f, 0.0f, 250.0f ) + ( right * 200.0f );
-						break;
-					case BIG_AE_MELEE_ATTACK1:
-						pHurt->pev->velocity = pHurt->pev->velocity + ( forward * 220.0f ) + Vector( 0.0f, 0.0f, 200.0f );
-						break;
+					applyKnock = pHurt->IsPlayer();
+				}
+				else
+				{
+					applyKnock = pHurt->IsKnockableByTraceHullAttack(m_MonsterState == MONSTERSTATE_SCRIPT);
 				}
 
-				pHurt->pev->flags &= ~FL_ONGROUND;
+				if (applyKnock)
+				{
+					pHurt->pev->velocity += forward * params.knockForward + Vector(0,0,params.knockUp) + right * params.knockRight;
+
+					if (params.knockUp > 0.0f)
+						pHurt->pev->flags &= ~FL_ONGROUND;
+				}
+
 				EmitSoundScript(attackHitSoundScript);
 			}
 		}

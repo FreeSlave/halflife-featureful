@@ -2259,6 +2259,29 @@ void CBaseEntity::ApplyPunchAngle(const Vector &punchAngle)
 		pev->punchangle.z = punchAngle.z;
 }
 
+extern cvar_t npc_vanilla_kick_behavior;
+
+bool CBaseEntity::IsKnockableByTraceHullAttack(bool attackerInScriptedSequence)
+{
+	if (FBitSet(pev->flags, FL_MONSTER|FL_CLIENT))
+		return true;
+	else if (pev->movetype == MOVETYPE_PUSHSTEP)
+		return true;
+	else if (npc_vanilla_kick_behavior.value == 0)
+	{
+		return attackerInScriptedSequence && FClassnameIs(pev, "func_door_rotating");
+	}
+	else if (npc_vanilla_kick_behavior.value >= 2)
+	{
+		return attackerInScriptedSequence;
+	}
+	else if (npc_vanilla_kick_behavior.value > 0)
+	{
+		return true;
+	}
+	return false;
+}
+
 bool CBaseEntity::SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params)
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();

@@ -729,6 +729,7 @@ public:
 	void ApplyDamageInfoPatch(DamageInfo& curDamageInfo, const DamageInfoPatch& damageInfo);
 	void ApplyRadiusDamageInfoPatch(RadiusDamageInfo& curRadiusDamageInfo, const RadiusDamageInfoPatch& radiusDamageInfo);
 	void ApplyPunchAngle(const Vector& punchAngle);
+	bool IsKnockableByTraceHullAttack(bool attackerInScriptedSequence);
 	bool SetTraceHullAttackParamsFromTemplate(int eventIndex, TraceHullAttackParams& params);
 	TakeDamageResult ImitateTraceHullAttack(CBaseEntity* pHurt, const TraceHullAttackParams& params, const Vector forward, const Vector right, const Vector up);
 

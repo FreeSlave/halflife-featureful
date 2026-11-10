@@ -1888,7 +1888,6 @@ void CBaseMonster::RestoreTouchAfterLeapAttack()
 // Used for many contact-range melee attacks. Bites, claws, etc.
 //=========================================================
 extern cvar_t npc_trace_hull_attack_retry;
-extern cvar_t npc_vanilla_kick_behavior;
 
 std::pair<TraceResult, Vector> CBaseMonster::CheckTraceHullAttack( const TraceHullAttackParams& params, float height, const Vector& aimAngles )
 {
@@ -2020,22 +2019,7 @@ CBaseEntity* CBaseMonster::PerformTraceHullAttack(const TraceHullAttackParams& p
 		}
 		else
 		{
-			if (FBitSet(pHurt->pev->flags, FL_MONSTER|FL_CLIENT))
-				applyKnock = true;
-			else if (pHurt->pev->movetype == MOVETYPE_PUSHSTEP)
-				applyKnock = true;
-			else if (npc_vanilla_kick_behavior.value == 0)
-			{
-				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT && FClassnameIs(pHurt->pev, "func_door_rotating");
-			}
-			else if (npc_vanilla_kick_behavior.value >= 2)
-			{
-				applyKnock = m_MonsterState == MONSTERSTATE_SCRIPT;
-			}
-			else if (npc_vanilla_kick_behavior.value > 0)
-			{
-				applyKnock = true;
-			}
+			applyKnock = pHurt->IsKnockableByTraceHullAttack(m_MonsterState == MONSTERSTATE_SCRIPT);
 		}
 
 		if (applyKnock)
