@@ -35,11 +35,14 @@ Featureful SDK implements an additional way to handle texts, used by some subsys
     "HELLO": "Hello, world!",
     "QUESTION": "What are you on about?",
     "ANNOUNCEMENT": "Attention. This announcement system now under military command.",
+    "MULTILINE": "This a\nmultiline\nmessage",
     "STILL_ALIVE": {
         "file": "texts/still_alive.txt"
     }
 }
 ```
+
+The newline delimeter can be added by using the `\n` escaped symbol as dictated by the [JSON format](https://jsonlint.com/json-multiline-string).
 
 It also allows specifying the file path via the object with `"file"` parameter (the `"STILL_ALIVE"` message example) - the file contents will be read and used as the text message. There's no restriction on what subdirectory should be used to store such files - it's up to the mod developer.
 

@@ -20,28 +20,51 @@ Thus all saves made on maps which names start with "featureful" prefix (e.g. *fe
 
 The search is case-insensitive.
 
+{{% hint warning %}}
 Note that the order matters - the first matched prefix will be used. Consider the following case:
 
 ```
-CROSS "Some crossing"
-CROSSFIRE "Crossfire deathmatch map"
+CHAPTER1 "Chapter 1"
+CHAPTER10 "Chapter 10"
 ```
 
-As the `CROSS` comes first in the list and matches the name `crossfire`, the save file made on this level will use the title defined by CROSS prefix.
+As the `CHAPTER1` comes first in the list and the prefix matches the map name `chapter10`, the save file made on the level `chapter10` will use the title defined by `CHAPTER1` prefix.
+
+As a general rule - the longer prefixes should be listed first, followed by the shorter prefixes.
+{{% /hint %}}
 
 ## Localization
 
-Half-Life supports save title localization via files **resource/valve_english.txt**, **resource/valve_russian.txt**, etc (depending on the chosen language). There you can define the identifier and the corresponding text, e.g.
+Half-Life supports save title localization via **resource/mod_english.txt**, **resource/mod_german.txt**, **resource/mod_russian.txt**, etc (depending on the chosen language) where **mod** is the name of your mod directory. See **valve/resource/valve_english.txt** and **gearbox/resource/gearbox_english.txt** for examples.
+
+In such files you can define the *identifier* and the corresponding localized text, e.g.
 
 ```
+"lang"
+{
+"Language" "English"
+"Tokens"
+{
 "CHAPTER_IDENTIFIER"	"DISPLAYED CHAPTER NAME"
+}
+}
 ```
 
-Then, in **save_titles.txt** you can map the level name prefix to this title by prepending the `#` symbol:
+{{% hint warning %}}
+The text localization **resource/** files must be in `UTF-16 LE` encoding.
+
+But the **save_titles.txt** is expected to be in `ASCII` or `UTF-8`.
+{{% /hint %}}
+
+In **save_titles.txt** then you should map the level name prefix to this title by prepending the `#` symbol to the *identifier*:
 
 ```
 CHAPTER1 "#CHAPTER_IDENTIFIER"
 ```
+
+{{% hint info %}}
+Since localizations are usually distributed in the separate directories (like **mod_german**, etc.) you may also just put **mod_english.txt** into the localization directory - this will override the one in the main directory (**mod**).
+{{% /hint %}}
 
 ## Fallback
 

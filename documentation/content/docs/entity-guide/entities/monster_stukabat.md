@@ -3,7 +3,7 @@ bookHidden: true
 bookToC: false
 ---
 
-# ![](/images/alpha.png) monster_stukabat
+# ![](/images/alpha.png) ![](/images/svencoop.png) monster_stukabat
 
 A flying alien creature cut from Half-Life. Designed similar to how it's made in Sven Co-op, but with a range attack from Thrill/Reprocessing. It works with both original Half-Life model and the one from Thrill/Reprocessing.
 
