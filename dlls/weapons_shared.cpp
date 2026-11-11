@@ -2471,6 +2471,9 @@ void CConfigurableWeapon::PerformReloadSubstitute()
 	if (m_flNextReloadSubstitute > UTIL_WeaponTimeBase())
 		return;
 
+	if (m_pPlayer->m_iFOV != 0)
+		return;
+
 	const WeaponParameters& params = MyParameters();
 	const bool empty = Emptied();
 	const bool altMode = InAltMode();

@@ -2446,6 +2446,10 @@ Properties:
 * `"anim"` - animation index. Default value is -1 (i.e. disabled).
 * `"duration"` - minimum delay between "reload substitute" actions (usually should be the same as the animation duration). Also delays playing the next idle animation. Default value is 0.5.
 
+{{% hint info %}}
+Reload substitute animation won't play when the weapon is scoped.
+{{% /hint %}}
+
 ```json
 {
     "weapon_gauss": {
