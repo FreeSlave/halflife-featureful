@@ -10230,7 +10230,7 @@
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_sniperrifle2 : "Generic configurable sniper rifle" []
 @PointClass base(Weapon, WeaponInitAmmo) studio() = weapon_throwable : "Generic configurable throwable weapon" []
 
-@PointClass base(Pickup) = world_items : "World Items"
+@PointClass size(-16 -16 0, 16 16 32) color(0 0 200) base(Targetname, TargetOnPickup, EntityTemplate) = world_items : "World Items"
 [
 	type(choices) :"types" : 42 =
 	[

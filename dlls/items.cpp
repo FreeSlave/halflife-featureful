@@ -37,6 +37,23 @@ class CWorldItem : public CBaseEntity
 public:
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Spawn() override;
+	void Precache() override;
+	const char* ItemName()
+	{
+		switch(m_iType)
+		{
+		case 44:
+			return "item_battery";
+		case 42:
+			return "item_antidote";
+		case 43:
+			return "item_security";
+		case 45:
+			return "item_suit";
+		default:
+			return nullptr;
+		}
+	}
 	int m_iType;
 };
 
@@ -55,36 +72,40 @@ void CWorldItem::KeyValue( KeyValueData *pkvd )
 
 void CWorldItem::Spawn()
 {
-	CBaseEntity *pEntity = NULL;
+	Precache();
 
-	switch( m_iType ) 
-	{
-	case 44: // ITEM_BATTERY:
-		pEntity = CBaseEntity::Create( "item_battery", pev->origin, pev->angles );
-		break;
-	case 42: // ITEM_ANTIDOTE:
-		pEntity = CBaseEntity::Create( "item_antidote", pev->origin, pev->angles );
-		break;
-	case 43: // ITEM_SECURITY:
-		pEntity = CBaseEntity::Create( "item_security", pev->origin, pev->angles );
-		break;
-	case 45: // ITEM_SUIT:
-		pEntity = CBaseEntity::Create( "item_suit", pev->origin, pev->angles );
-		break;
-	}
+	EntityOverrides entityOverrides;
+	entityOverrides.entTemplate = m_entTemplate;
 
-	if( !pEntity )
+	const char* itemName = ItemName();
+
+	if (itemName)
 	{
-		ALERT( at_console, "unable to create world_item %d\n", m_iType );
+		CBaseEntity *pEntity = CBaseEntity::Create(itemName, pev->origin, pev->angles, nullptr, entityOverrides);
+		if (pEntity)
+		{
+			pEntity->pev->target = pev->target;
+			pEntity->pev->targetname = pev->targetname;
+			pEntity->pev->spawnflags = pev->spawnflags;
+		}
 	}
 	else
 	{
-		pEntity->pev->target = pev->target;
-		pEntity->pev->targetname = pev->targetname;
-		pEntity->pev->spawnflags = pev->spawnflags;
+		ALERT(at_warning, "%s: unknown item type: %d\n", STRING(pev->classname), m_iType);
 	}
 
-	REMOVE_ENTITY( edict() );
+	REMOVE_ENTITY(edict());
+}
+
+void CWorldItem::Precache()
+{
+	const char* itemName = ItemName();
+	if (itemName)
+	{
+		EntityOverrides entityOverrides;
+		entityOverrides.entTemplate = m_entTemplate;
+		UTIL_PrecacheOther(itemName, entityOverrides);
+	}
 }
 
 class CItemRandomProxy : public CPointEntity
