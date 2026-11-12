@@ -122,6 +122,10 @@ void CBaseMonster::RunAI()
 
 			GetEnemy(false);
 		}
+		else
+		{
+			ClearConditions( IgnoreConditions() | bits_COND_LOOK | bits_COND_LISTEN );
+		}
 
 		// do these calculations if monster has an enemy.
 		if( m_hEnemy != 0 )
