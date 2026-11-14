@@ -313,6 +313,7 @@ int gmsgToolState = 0;
 
 int gmsgMessageBox = 0;
 int gmsgCombatText = 0;
+int gmsgHudHint = 0;
 
 int gmsgMirror = 0;
 
@@ -441,6 +442,7 @@ void LinkUserMessages()
 
 	gmsgMessageBox = REG_USER_MSG("MessageBox", -1);
 	gmsgCombatText = REG_USER_MSG("CombatText", 11);
+	gmsgHudHint = REG_USER_MSG("HudHint", -1);
 	gmsgMirror = REG_USER_MSG("Mirror", 10);
 }
 

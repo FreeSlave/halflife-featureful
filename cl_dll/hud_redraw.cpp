@@ -157,6 +157,7 @@ int CHud::Redraw( float flTime, int intermission )
 
 	m_Caption.Update(flTime, m_flTimeDelta);
 	m_Journal.Update(flTime, m_flTimeDelta);
+	m_HudHint.Update(flTime, m_flTimeDelta);
 
 	if( m_pCvarDraw->value )
 	{

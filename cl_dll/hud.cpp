@@ -909,6 +909,7 @@ void CHud::Init()
 	m_Meter.Init();
 	m_MessageBox.Init();
 	m_CombatText.Init();
+	m_HudHint.Init();
 
 	hudRenderer.Init();
 
@@ -1516,6 +1517,7 @@ void CHud::VidInit()
 	m_Meter.VidInit();
 	m_MessageBox.VidInit();
 	m_CombatText.VidInit();
+	m_HudHint.VidInit();
 
 	hudRenderer.VidInit();
 	memset(&fog, 0, sizeof(fog));

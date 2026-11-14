@@ -179,7 +179,7 @@ public:
 
 	virtual bool CanHolster() { return true; }// can this weapon be put away right now?
 
-	virtual void ItemPreFrame()	{ return; }		// called each frame by the player PreThink
+	virtual void ItemPreFrame();		// called each frame by the player PreThink
 
 	virtual void Drop();
 	virtual void Kill();
@@ -336,6 +336,8 @@ public:
 
 	bool m_inAltMode;
 	bool m_ClientInAltMode;
+
+	bool m_bAltFireHudHintDisplayed;
 
 	int m_dropAmmoAmount;
 	int m_dropSecondaryAmmoAmount;

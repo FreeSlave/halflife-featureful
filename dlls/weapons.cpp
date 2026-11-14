@@ -505,6 +505,7 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	DEFINE_FIELD( CBasePlayerWeapon, m_packedTime, FIELD_TIME ),
 
 	DEFINE_FIELD( CBasePlayerWeapon, m_inAltMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_bAltFireHudHintDisplayed, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CBasePlayerWeapon, CBaseAnimating )
@@ -780,6 +781,48 @@ void CBasePlayerWeapon::TouchOrUse(CBaseEntity *pOther, bool use)
 	}
 
 	SUB_UseTargets( pOther );
+}
+
+extern int gmsgHudHint;
+
+void CBasePlayerWeapon::ItemPreFrame()
+{
+	if (!m_bAltFireHudHintDisplayed)
+	{
+		const WeaponParameters& params = MyParameters();
+		if (params.secondaryFireType != SecondaryFireType::DISABLED)
+		{
+			const WeaponParameters::Fire& fire = params.fire;
+			const int ammoPerFire = fire.ammoPerFire.Get(true);
+			bool shouldShowAltFireHint = false;
+			if (ammoPerFire >= 1)
+			{
+				if (fire.useSecondaryAmmo.Get(true))
+				{
+					shouldShowAltFireHint = m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] >= ammoPerFire;
+				}
+				else
+				{
+					shouldShowAltFireHint = HasAmmoToFire(ammoPerFire);
+				}
+			}
+			else
+				shouldShowAltFireHint = true;
+
+			if (shouldShowAltFireHint)
+			{
+				m_bAltFireHudHintDisplayed = true;
+
+				std::string text = "__HINT_ALT_FIRE_";
+				text += STRING(pev->classname);
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgHudHint, nullptr, m_pPlayer->pev);
+				WRITE_STRING("+attack2");
+				WRITE_STRING(text.c_str());
+				MESSAGE_END();
+			}
+		}
+	}
 }
 
 void CBasePlayerWeapon::DestroyItem()

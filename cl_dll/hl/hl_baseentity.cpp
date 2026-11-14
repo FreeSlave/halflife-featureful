@@ -271,6 +271,7 @@ void CBasePlayerWeapon::DefaultTouch( CBaseEntity *pOther ) { }
 void CBasePlayerWeapon::DestroyItem() { }
 bool CBasePlayerWeapon::IsEnabledInMod() { return true; }
 bool CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer ) { return true; }
+void CBasePlayerWeapon::ItemPreFrame() { }
 void CBasePlayerWeapon::Drop() { }
 void CBasePlayerWeapon::Kill() { }
 void CBasePlayerWeapon::AttachToPlayer ( CBasePlayer *pPlayer ) { }

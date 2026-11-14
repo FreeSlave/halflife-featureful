@@ -87,6 +87,7 @@ Some message IDs are predefined. They start with `__`. The default messages are 
 | `__SHOWINFO_ARMOR` | Armor | Used when displaying the player info in co-op |
 | `__SHOWINFO_STRENGTH` | Strength | Used when displaying the breakable's info |
 | `__SHOWINFO_POWERSHIELD` | Power Shield | Used when displaying the monster's [power shield]({{< ref "entity-templates/#power_shield" >}}) strength |
+| `__HINT_ALT_FIRE_<weapon_classname>` | Alt Fire HUD hint | Used to show the HUD hint for the weapon (replace `<weapon_classname>` with a real weapon classname, e.g. `weapon_9mmAR`) |
 
 Example of Russian localization:
 
@@ -99,6 +100,20 @@ Example of Russian localization:
 
     //...other messages
 }
+```
+
+Example of weapon alt fire hints:
+
+```json
+{
+    "__HINT_ALT_FIRE_weapon_knife": "Stab",
+    "__HINT_ALT_FIRE_weapon_9mmAR": "AR grenade",
+    "__HINT_ALT_FIRE_weapon_shotgun": "Double barrel",
+    "__HINT_ALT_FIRE_weapon_gauss": "Keep pressing to charge",
+
+    //...other messages
+}
+
 ```
 
 ## Display names

@@ -1683,4 +1683,37 @@ TYPEDESCRIPTION CGameMessageBox::m_SaveData[] =
 	DEFINE_FIELD( CGameMessageBox, m_distance, FIELD_FLOAT )
 };
 
-IMPLEMENT_SAVERESTORE( CGameMessageBox, CPointEntity )
+IMPLEMENT_SAVERESTORE( CGameMessageBox, CPointEntity );
+
+extern int gmsgHudHint;
+
+class CEnvHudHint : public CPointEntity
+{
+public:
+	void KeyValue( KeyValueData *pkvd ) override
+	{
+		if (FStrEq(pkvd->szKeyName, "command"))
+		{
+			pev->netname = ALLOC_STRING(pkvd->szValue);
+			pkvd->fHandled = true;
+		}
+		else
+			CPointEntity::KeyValue(pkvd);
+	}
+	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+	{
+		if (FStringNull(pev->netname) && FStringNull(pev->message))
+			return;
+
+		CBasePlayer* pPlayer = g_pGameRules->EffectivePlayer(pActivator);
+		if (!pPlayer)
+			return;
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgHudHint, nullptr, pPlayer->pev);
+		WRITE_STRING(STRING(pev->netname));
+		WRITE_STRING(STRING(pev->message));
+		MESSAGE_END();
+	}
+};
+
+LINK_ENTITY_TO_CLASS( env_hudhint, CEnvHudHint )

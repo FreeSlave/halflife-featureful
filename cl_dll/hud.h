@@ -928,6 +928,29 @@ private:
 	int m_iMaxRowsPerWindow;
 };
 
+class CHudHint : public CHudBase
+{
+public:
+	struct Hint
+	{
+		std::string key;
+		std::string text;
+		float startTime;
+	};
+
+	int Init() override;
+	int VidInit() override;
+	int Draw(float time) override;
+	void Update(float flTime, float flTimeDelta);
+	int MsgFunc_HudHint(const char *pszName, int iSize, void *pbuf);
+
+private:
+	void ParseKbAct();
+	std::map<std::string, std::string> kbActMap;
+	std::vector<Hint> hints;
+	bool parsedKbAct;
+};
+
 struct FogProperties
 {
 	short r,g,b;
@@ -1322,6 +1345,7 @@ public:
 	CHudMeter	m_Meter;
 	CHudMessageBox	m_MessageBox;
 	CHudCombatText	m_CombatText;
+	CHudHint m_HudHint;
 
 	void ParseModConfigs();
 	bool IsDeveloperModeOn();

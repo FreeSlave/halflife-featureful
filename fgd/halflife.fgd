@@ -2212,6 +2212,12 @@
 	]
 ]
 
+@PointClass base(Targetname) = env_hudhint : "HUD Hint"
+[
+	command(string) : "Command (+attack, +use, etc)"
+	message(string) : "Message" : : "A custom message (from messages.json) instead of message associated with the command"
+]
+
 @PointClass base(Targetname, RenderFxChoices, Angles) size(-16 -16 -16, 16 16 16) = env_laser : "Laser Beam Effect"
 [
 	LaserTarget(target_destination) : "Target of Laser"
