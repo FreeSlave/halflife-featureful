@@ -1209,6 +1209,9 @@ R"(
 					},
 					"hide_viewmodel": {
 						"type": "boolean"
+					},
+					"iron_sight": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false

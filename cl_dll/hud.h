@@ -1283,6 +1283,7 @@ public:
 	inline bool ShouldUseZoomedCrosshair() { return m_inScope; }
 	bool CrosshairColorable();
 	bool ShouldHideViewModel();
+	bool InIronSight();
 private:
 	void ParseClientFeatures();
 	static bool ClientFeatureEnabled(cvar_t *cVariable, bool defaultValue);

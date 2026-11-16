@@ -286,7 +286,7 @@ mlook and mouse, or klook and keyboard, pitch drifting is constantly stopped.
 V_CalcGunAngle
 ==================
 */
-void V_CalcGunAngle( struct ref_params_s *pparams )
+void V_CalcGunAngle( struct ref_params_s *pparams, bool viewBobEnabled )
 {	
 	cl_entity_t *viewent;
 
@@ -302,7 +302,7 @@ void V_CalcGunAngle( struct ref_params_s *pparams )
 	viewent->angles[PITCH] -= v_idlescale * std::sin( pparams->time * v_ipitch_cycle.value ) * ( v_ipitch_level.value * 0.5f );
 	viewent->angles[YAW] -= v_idlescale * std::sin( pparams->time * v_iyaw_cycle.value ) * v_iyaw_level.value;
 
-	if( !gHUD.ViewBobEnabled() )
+	if (!viewBobEnabled)
 	{
 		VectorCopy( viewent->angles, viewent->curstate.angles );
 		VectorCopy( viewent->angles, viewent->latched.prevangles );
@@ -527,6 +527,8 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	// model origin for the view
 	bob = V_CalcBob( pparams );
 
+	const bool isIronSight = gHUD.InIronSight();
+	const bool viewBobEnabled = !isIronSight && gHUD.ViewBobEnabled();
 
 	// interpolate
 	const float defaultViewHeight = 28.0f;
@@ -681,7 +683,7 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 	}
 
 	// set up gun position
-	V_CalcGunAngle( pparams );
+	V_CalcGunAngle( pparams, viewBobEnabled );
 
 	// Use predicted origin as view origin.
 	VectorCopy( pparams->simorg, view->origin );      
@@ -704,8 +706,9 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
 	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem
-	// with view model distortion, this may be a cause. (SJB). 
-	view->origin[2] -= 1.0f;
+	// with view model distortion, this may be a cause. (SJB).
+	if (!isIronSight)
+		view->origin[2] -= 1.0f;
 
 	if (gHUD.ViewModelLagEnabled() && !gHUD.m_inScope)
 		V_CalcViewModelLag(pparams, view->origin, pparams->viewangles, pparams->cl_viewangles);
@@ -873,7 +876,7 @@ void V_CalcNormalRefdef( struct ref_params_s *pparams )
 		}
 	}
 
-	if( gHUD.ViewBobEnabled() )
+	if (viewBobEnabled)
 	{
 		VectorCopy( view->origin, view->curstate.origin );
 		VectorCopy( view->origin, view->latched.prevorigin );

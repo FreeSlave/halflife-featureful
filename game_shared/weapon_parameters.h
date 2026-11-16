@@ -742,6 +742,7 @@ struct WeaponParameters
 		bool resetZoomOnFire = false;
 		bool resumeZoomAfterReset = false;
 		bool hideViewModelOnZoom = false;
+		bool ironSight = false;
 		bool toggleLaserSpot = false;
 
 		WeaponSoundScript zoomSound{CHAN_ITEM};

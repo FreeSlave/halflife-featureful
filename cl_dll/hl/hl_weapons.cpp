@@ -171,6 +171,11 @@ bool ShouldHideViewModelOnZoom(int weaponId)
 	return AccessWeaponInfo(weaponId).params.altMode.hideViewModelOnZoom;
 }
 
+bool ShouldUseIronSight(int weaponId)
+{
+	return AccessWeaponInfo(weaponId).params.altMode.ironSight;
+}
+
 /*
 =====================
 CBaseEntity::Killed

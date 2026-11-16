@@ -1834,6 +1834,7 @@ bool CHud::CrosshairColorable()
 }
 
 extern bool ShouldHideViewModelOnZoom(int weaponId);
+extern bool ShouldUseIronSight(int weaponId);
 
 bool CHud::ShouldHideViewModel()
 {
@@ -1844,6 +1845,19 @@ bool CHud::ShouldHideViewModel()
 		{
 			return ShouldHideViewModelOnZoom(curWeapon->iId);
 		}
+	}
+	return false;
+}
+
+bool CHud::InIronSight()
+{
+	if (!m_inScope)
+		return false;
+
+	WEAPON* curWeapon = m_Ammo.GetWeapon();
+	if (curWeapon)
+	{
+		return ShouldUseIronSight(curWeapon->iId);
 	}
 	return false;
 }

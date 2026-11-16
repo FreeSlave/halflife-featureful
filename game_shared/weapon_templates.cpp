@@ -1292,6 +1292,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 		UpdatePropertyFromJson(params.altMode.resetZoomOnFire, value, "reset_on_fire");
 		UpdatePropertyFromJson(params.altMode.resumeZoomAfterReset, value, "resume_after_reset");
 		UpdatePropertyFromJson(params.altMode.hideViewModelOnZoom, value, "hide_viewmodel");
+		UpdatePropertyFromJson(params.altMode.ironSight, value, "iron_sight");
 	});
 
 	HandleJSONMember(value, "secondary_attack", [&](const Value& value) {
