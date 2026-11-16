@@ -20,6 +20,12 @@ Notes:
 
 The cvar `hud_armor_near_health` lets user to choose whether the armor should be drawn near the health like in HL 25 anniversary.
 
+### Tool icons
+
+Some weapons are [tools]({{< ref "weapon-templates#/tool" >}}). For example [weapon_radio]({{< ref weapon_radio >}}). When player is in [tool zone]({{< ref trigger_usetool >}}), the tool icons is shown in HUD.
+
+By default tool icons are drawn on the left side of the screen, replicating Condition Zero Deleted Scenes behavior. However it's easy to miss them if user has a large screen resolution and is playing without automatic HUD scaling. The `hud_tools_below_cross` cvar can be used to solve this problem. When it's enabled the tool icons will be drawn under the crosshair position which is easier to spot. Set `hud_tools_below_cross.enabled_by_default true` in **features/featureful_client.cfg** to enable this behavior by default.
+
 ### Move mode
 
 An icon that shows the current movement state of player like in PS2 version of Half-Life.

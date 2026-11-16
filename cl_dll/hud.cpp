@@ -811,6 +811,7 @@ void CHud::Init()
 
 	CreateIntegerCvarConditionally(m_pCvarMinAlpha, "hud_min_alpha", clientFeatures.hud_min_alpha);
 	CreateBooleanCvarConditionally(m_pCvarArmorNearHealth, "hud_armor_near_health", clientFeatures.hud_armor_near_health);
+	CreateBooleanCvarConditionally(m_pCvarHudToolsBelowCross, "hud_tools_below_cross", clientFeatures.hud_tools_below_cross);
 	int hudR, hudG, hudB;
 	UnpackRGB(hudR, hudG, hudB, clientFeatures.hud_color);
 
@@ -1071,6 +1072,7 @@ void CHud::ParseClientFeatures()
 	};
 	KeyValueDefinition<ConfigurableBooleanValue> configurableBooleans[] = {
 		{ "hud_armor_near_health.", clientFeatures.hud_armor_near_health},
+		{ "hud_tools_below_cross.", clientFeatures.hud_tools_below_cross},
 		{ "flashlight.custom.", clientFeatures.flashlight.custom},
 		{ "view_bob.", clientFeatures.view_bob},
 		{ "viewmodel_lag.", clientFeatures.viewmodel_lag},
@@ -1755,6 +1757,11 @@ int CHud::CalcMinHUDAlpha()
 bool CHud::DrawArmorNearHealth()
 {
 	return ClientFeatureEnabled(m_pCvarArmorNearHealth, clientFeatures.hud_armor_near_health.enabled_by_default);
+}
+
+bool CHud::DrawToolsBelowCross()
+{
+	return ClientFeatureEnabled(m_pCvarHudToolsBelowCross, clientFeatures.hud_tools_below_cross.enabled_by_default);
 }
 
 bool CHud::WeaponWallpuffEnabled()

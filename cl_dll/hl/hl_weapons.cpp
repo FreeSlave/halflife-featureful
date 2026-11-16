@@ -149,12 +149,15 @@ int __MsgFunc_MaxAmmo(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+extern void InitToolWeaponSprite(int weaponId);
+
 int __MsgFunc_WeaponTool(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
 	int id = READ_BYTE();
 	int toolIndex = READ_BYTE();
 	AccessWeaponInfo(id).params.toolIndex = toolIndex;
+	InitToolWeaponSprite(id);
 	return 1;
 }
 

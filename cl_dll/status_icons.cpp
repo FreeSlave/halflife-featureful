@@ -32,11 +32,33 @@ extern int ToolUnalignedBits();
 extern int ToolAmmoCost(int toolIndex);
 extern const WeaponParameters& GetWeaponParameters(int id);
 
+enum
+{
+	TOOL_PLACE_TOP_LEFT = 0,
+	TOOL_PLACE_UNDER_CROSSHAIR
+};
+
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon )
 DECLARE_MESSAGE( m_StatusIcons, Inventory )
 DECLARE_MESSAGE( m_StatusIcons, Antidotes )
 DECLARE_MESSAGE( m_StatusIcons, Radcans )
 DECLARE_MESSAGE( m_StatusIcons, Adrenalines )
+
+void InitToolWeaponSprite(int weaponId)
+{
+	const WeaponParameters& params = GetWeaponParameters(weaponId);
+	tool_icon_t& toolIcon = gHUD.m_StatusIcons.m_tools[params.toolIndex];
+	const int spr_index = gHUD.GetSpriteIndex(params.toolIcon.c_str());
+	if (spr_index != -1)
+	{
+		toolIcon.spr = gHUD.GetSprite(spr_index);
+		toolIcon.rc = gHUD.GetSpriteRect(spr_index);
+	}
+	else
+	{
+		toolIcon = tool_icon_t{};
+	}
+}
 
 int CHudStatusIcons::Init()
 {
@@ -278,7 +300,39 @@ int CHudStatusIcons::Draw( float flTime )
 			}
 		};
 
+		const bool drawToolsUnderCrosshair = gHUD.DrawToolsBelowCross();
+
+		int underCrosshairWidth = 0;
+		int underCrosshairCount = 0;
+
+		if (drawToolsUnderCrosshair)
+		{
+			for (int i=1; i<MAX_WEAPONS; ++i)
+			{
+				const WeaponParameters& params = GetWeaponParameters(i);
+				if (params.toolIndex >= 0)
+				{
+					const int toolBit = 1<<params.toolIndex;
+
+					if (toolBit & toolStateBits)
+					{
+						const tool_icon_t& toolIcon = m_tools[params.toolIndex];
+
+						if (toolIcon.spr)
+						{
+							const int ammoCost = ToolAmmoCost(params.toolIndex);
+							underCrosshairWidth += toolIcon.rc.right - toolIcon.rc.left + (ammoCost > 0 ? ItemNumberSuffixWidth(ammoCost) : 0);
+							underCrosshairCount++;
+						}
+					}
+				}
+			}
+		}
+
 		const int toolUnalignedBits = ToolUnalignedBits();
+
+		int xUnderCrosshair = (renderer.PerceviedScreenWidth() - underCrosshairWidth - ((underCrosshairCount-1)*bottomIconGap)) / 2;
+		const int yUnderCrosshair = renderer.PerceviedScreenHeight()/2 + 24;
 
 		for (int i=1; i<MAX_WEAPONS; ++i)
 		{
@@ -294,39 +348,44 @@ int CHudStatusIcons::Draw( float flTime )
 					const bool toolAligned = (toolUnalignedBits & toolBit) == 0;
 					const Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
 
-					tool_icon_t& toolIcon = m_tools[params.toolIndex];
-
-					if (!toolIcon.initialized)
-					{
-						toolIcon.initialized = true;
-
-						int spr_index = gHUD.GetSpriteIndex(params.toolIcon.c_str());
-						if (spr_index != -1)
-						{
-							toolIcon.spr = gHUD.GetSprite(spr_index);
-							toolIcon.rc = gHUD.GetSpriteRect(spr_index);
-						}
-					}
+					const tool_icon_t& toolIcon = m_tools[params.toolIndex];
 
 					if (toolIcon.spr)
 					{
-						renderer.SPR_DrawAdditive(toolIcon.spr, color.r, color.g, color.b, xIcons, yIcons, &toolIcon.rc);
+						const int width = toolIcon.rc.right - toolIcon.rc.left;
+						const int height = toolIcon.rc.bottom - toolIcon.rc.top;
+						const int heightInScreenSpace = renderer.ScaleScreen(height);
+						const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
 
 						const int ammoCost = ToolAmmoCost(params.toolIndex);
-						if (ammoCost > 0)
+
+						if (drawToolsUnderCrosshair)
 						{
-							const int height = toolIcon.rc.bottom - toolIcon.rc.top;
-							const int width = toolIcon.rc.right - toolIcon.rc.left;
-							const int heightInScreenSpace = renderer.ScaleScreen(height);
-							const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
+							renderer.SPR_DrawAdditive(toolIcon.spr, color.r, color.g, color.b, xUnderCrosshair, yUnderCrosshair, &toolIcon.rc);
+							xUnderCrosshair += width;
 
-							char buf[BUF_FOR_SHORT_SIZE];
-							FillCharBufWithNumberSuffix(buf, sizeof(buf), ammoCost);
-							CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, color.r, color.g, color.b);
+							if (ammoCost > 0)
+							{
+								char buf[BUF_FOR_SHORT_SIZE];
+								FillCharBufWithNumberSuffix(buf, sizeof(buf), ammoCost);
+								CHud::AdditiveText::DrawString(renderer.ScaleScreen(xUnderCrosshair), renderer.ScaleScreen(yUnderCrosshair) + textYShift, ScreenWidth, buf, color.r, color.g, color.b);
+								xUnderCrosshair += renderer.UnscaleScreen(CHud::AdditiveText::LineWidth(buf));
+							}
 						}
+						else
+						{
+							renderer.SPR_DrawAdditive(toolIcon.spr, color.r, color.g, color.b, xIcons, yIcons, &toolIcon.rc);
 
-						yIcons += ( toolIcon.rc.bottom - toolIcon.rc.top ) + statusIconGap;
-						itemsDrawnAsStatusIcons++;
+							if (ammoCost > 0)
+							{
+								char buf[BUF_FOR_SHORT_SIZE];
+								FillCharBufWithNumberSuffix(buf, sizeof(buf), ammoCost);
+								CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, color.r, color.g, color.b);
+							}
+
+							yIcons += ( toolIcon.rc.bottom - toolIcon.rc.top ) + statusIconGap;
+							itemsDrawnAsStatusIcons++;
+						}
 					}
 				}
 			}

@@ -814,7 +814,6 @@ struct tool_icon_t
 {
 	HSPRITE spr{0};
 	wrect_t rc;
-	bool initialized{false};
 };
 
 #define MAX_ICONSPRITES 6
@@ -1055,6 +1054,8 @@ struct ClientFeatures
 	int hud_color_nvg;
 	int hud_min_alpha_nvg;
 
+	ConfigurableBooleanValue hud_tools_below_cross;
+
 	FlashlightFeatures flashlight;
 
 	ConfigurableBooleanValue view_bob;
@@ -1201,6 +1202,8 @@ public:
 	cvar_t	*m_pCvarMOTDVGUI;
 	cvar_t	*m_pCvarScoreboardVGUI;
 
+	cvar_t	*m_pCvarHudToolsBelowCross;
+
 	int m_iFontHeight;
 	int DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int DrawHudNumber(int x, int y, int number, int r, int g, int b);
@@ -1278,6 +1281,7 @@ public:
 	bool ViewModelLagEnabled();
 	int CalcMinHUDAlpha();
 	bool DrawArmorNearHealth();
+	bool DrawToolsBelowCross();
 	bool WeaponWallpuffEnabled();
 	bool WeaponSparksEnabled();
 	bool WeaponWaterSplashEnabled();
