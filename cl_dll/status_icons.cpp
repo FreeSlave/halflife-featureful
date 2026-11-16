@@ -25,6 +25,12 @@
 #include "ammohistory.h"
 #include "string_utils.h"
 #include "arraysize.h"
+#include "weapon_parameters.h"
+
+extern int ToolStateBits();
+extern int ToolUnalignedBits();
+extern int ToolAmmoCost(int toolIndex);
+extern const WeaponParameters& GetWeaponParameters(int id);
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon )
 DECLARE_MESSAGE( m_StatusIcons, Inventory )
@@ -92,7 +98,11 @@ void CHudStatusIcons::Reset()
 	{
 		item = inventory_t();
 	}
-	m_iFlags &= ~HUD_ACTIVE;
+}
+
+void CHudStatusIcons::InitHUDData()
+{
+	m_iFlags |= HUD_ACTIVE;
 }
 
 #define BUF_FOR_SHORT_SIZE 24
@@ -118,9 +128,6 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gHUD.m_Journal.m_iShowscoresHeld && gHUD.m_Journal.HasInventorySection())
 		return 1;
 
-	bool drawStatusIcons = true;//gHUD.CanDrawStatusIcons();
-
-	int i;
 	int xIcons = 5;
 	int yIcons = 135;
 	const int statusIconGap = 5;
@@ -131,7 +138,7 @@ int CHudStatusIcons::Draw( float flTime )
 
 	int bottomItemCount = 0;
 	int bottomWidth = 0;
-	for (i=0; i<MAX_INVENTORY_ITEMS; ++i)
+	for (int i=0; i<MAX_INVENTORY_ITEMS; ++i)
 	{
 		const inventory_t& item = m_InventoryList[i];
 		if (item.spr && item.position == INVENTORY_PLACE_BOTTOM_CENTER)
@@ -236,17 +243,99 @@ int CHudStatusIcons::Draw( float flTime )
 		drawItem(m_radcan);
 	if (m_adrenaline.count > 0)
 		drawItem(m_adrenaline);
-	for (i=0; i<MAX_INVENTORY_ITEMS; ++i)
+	for (int i=0; i<MAX_INVENTORY_ITEMS; ++i)
 	{
 		drawItem(m_InventoryList[i]);
 	}
 
-	if (!drawStatusIcons)
-		return 1;
+	const int toolStateBits = ToolStateBits();
+	if (toolStateBits != 0)
+	{
+		auto getToolSpriteColor = [](bool toolDeployed, bool toolAligned)
+		{
+			// TODO: make these colors configurable?
+			if (toolDeployed)
+			{
+				if (toolAligned)
+				{
+					return Color3(0, 200, 0);
+				}
+				else
+				{
+					return Color3(200, 100, 0);
+				}
+			}
+			else
+			{
+				if (toolAligned)
+				{
+					return Color3(200, 100, 0);
+				}
+				else
+				{
+					return Color3(200, 0, 0);
+				}
+			}
+		};
+
+		const int toolUnalignedBits = ToolUnalignedBits();
+
+		for (int i=1; i<MAX_WEAPONS; ++i)
+		{
+			const WeaponParameters& params = GetWeaponParameters(i);
+			if (params.toolIndex >= 0)
+			{
+				const int toolBit = 1<<params.toolIndex;
+
+				if (toolBit & toolStateBits)
+				{
+					WEAPON* curWeapon = gHUD.m_Ammo.GetWeapon();
+					const bool toolDeployed = curWeapon && curWeapon->iId == i;
+					const bool toolAligned = (toolUnalignedBits & toolBit) == 0;
+					const Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
+
+					tool_icon_t& toolIcon = m_tools[params.toolIndex];
+
+					if (!toolIcon.initialized)
+					{
+						toolIcon.initialized = true;
+
+						int spr_index = gHUD.GetSpriteIndex(params.toolIcon.c_str());
+						if (spr_index != -1)
+						{
+							toolIcon.spr = gHUD.GetSprite(spr_index);
+							toolIcon.rc = gHUD.GetSpriteRect(spr_index);
+						}
+					}
+
+					if (toolIcon.spr)
+					{
+						renderer.SPR_DrawAdditive(toolIcon.spr, color.r, color.g, color.b, xIcons, yIcons, &toolIcon.rc);
+
+						const int ammoCost = ToolAmmoCost(params.toolIndex);
+						if (ammoCost > 0)
+						{
+							const int height = toolIcon.rc.bottom - toolIcon.rc.top;
+							const int width = toolIcon.rc.right - toolIcon.rc.left;
+							const int heightInScreenSpace = renderer.ScaleScreen(height);
+							const int textYShift = heightInScreenSpace - Q_min(textLineHeight, heightInScreenSpace);
+
+							char buf[BUF_FOR_SHORT_SIZE];
+							FillCharBufWithNumberSuffix(buf, sizeof(buf), ammoCost);
+							CHud::AdditiveText::DrawString(renderer.ScaleScreen(xIcons + width), renderer.ScaleScreen(yIcons) + textYShift, ScreenWidth, buf, color.r, color.g, color.b);
+						}
+
+						yIcons += ( toolIcon.rc.bottom - toolIcon.rc.top ) + statusIconGap;
+						itemsDrawnAsStatusIcons++;
+					}
+				}
+			}
+		}
+	}
 
 	int statusIconsLeft = MAX_ICONSPRITES - itemsDrawnAsStatusIcons;
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
-	for( i = 0; i < statusIconsLeft; i++ )
+	for( int i = 0; i < statusIconsLeft; i++ )
 	{
 		if( m_IconList[i].spr )
 		{
@@ -298,7 +387,6 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		int b = READ_BYTE();
 		int n = READ_BYTE();
 		EnableIcon( pszIconName, r, g, b, n, allowDuplicate );
-		m_iFlags |= HUD_ACTIVE;
 	}
 	else
 	{
@@ -388,7 +476,6 @@ int CHudStatusIcons::MsgFunc_Inventory(const char *pszName, int iSize, void *pbu
 
 	item.spr = gHUD.GetSprite( spr_index );
 	item.rc = gHUD.GetSpriteRect( spr_index );
-	m_iFlags |= HUD_ACTIVE;
 
 	if (!(flags & INVENTORY_DONT_SHOW_IN_HISTORY) && countDiff >= 1 && (!itemSpec || itemSpec->showInHistory))
 		gHR.AddToHistory(HISTSLOT_ITEM, spriteName, countDiff, itemSpec ? itemSpec->packedColor : 0);
@@ -472,9 +559,6 @@ int CHudStatusIcons::HandleCanisterItemMessage(const char *pszName, int iSize, v
 
 	int count = READ_SHORT();
 	item.count = count;
-
-	if (count > 0)
-		m_iFlags |= HUD_ACTIVE;
 
 	return 1;
 }

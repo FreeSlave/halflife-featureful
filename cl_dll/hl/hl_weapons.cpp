@@ -178,6 +178,21 @@ int __MsgFunc_ToolACost(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+int ToolStateBits()
+{
+	return player.m_ToolStateBits;
+}
+
+int ToolUnalignedBits()
+{
+	return player.m_ToolUnalignedBits;
+}
+
+int ToolAmmoCost(int toolIndex)
+{
+	return player.m_UseToolAmmoCosts[toolIndex];
+}
+
 bool ShouldHideViewModelOnZoom(int weaponId)
 {
 	return AccessWeaponInfo(weaponId).params.altMode.hideViewModelOnZoom;

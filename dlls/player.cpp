@@ -6160,33 +6160,6 @@ void CBasePlayer::UpdateClientData()
 			return DotProduct(vecLOS , gpGlobals->v_forward) > 0.866f;
 		};
 
-		auto getToolSpriteColor = [](bool toolDeployed, bool toolAligned)
-		{
-			// TODO: make these colors configurable?
-			if (toolDeployed)
-			{
-				if (toolAligned)
-				{
-					return Color3(0, 200, 0);
-				}
-				else
-				{
-					return Color3(200, 100, 0);
-				}
-			}
-			else
-			{
-				if (toolAligned)
-				{
-					return Color3(200, 100, 0);
-				}
-				else
-				{
-					return Color3(200, 0, 0);
-				}
-			}
-		};
-
 		if (changed)
 		{
 			for (int i=0; i<MAX_WEAPONS; ++i)
@@ -6220,30 +6193,16 @@ void CBasePlayer::UpdateClientData()
 								}
 							}
 
-							Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
-
 							const int toolBit = 1 << params.toolIndex;
 							if (toolDeployed)
 								m_ToolReadyBits = toolBit;
 							else
 								ClearBits(m_ToolReadyBits, toolBit);
-
-							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
-								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
-								WRITE_STRING(params.toolIcon.c_str());
-								WRITE_COLOR(color);
-								WRITE_BYTE(m_UseToolAmmoCosts[params.toolIndex]);
-							MESSAGE_END();
 						}
 						else
 						{
 							ClearBits(m_ToolReadyBits, toolBit);
 							ClearBits(m_ToolUnalignedBits, toolBit);
-
-							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
-								WRITE_BYTE(0);
-								WRITE_STRING(params.toolIcon.c_str());
-							MESSAGE_END();
 						}
 					}
 				}
@@ -6309,14 +6268,6 @@ void CBasePlayer::UpdateClientData()
 
 						if (statusChanged)
 						{
-							Color3 color = getToolSpriteColor(toolDeployed, toolAligned);
-
-							MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, nullptr, pev);
-								WRITE_BYTE(PLAYER_STATUS_ICON_ENABLE);
-								WRITE_STRING(params.toolIcon.c_str());
-								WRITE_COLOR(color);
-								WRITE_BYTE(m_UseToolAmmoCosts[params.toolIndex]);
-							MESSAGE_END();
 						}
 					}
 				}

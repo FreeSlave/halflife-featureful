@@ -810,6 +810,13 @@ struct inventory_t
 	}
 };
 
+struct tool_icon_t
+{
+	HSPRITE spr{0};
+	wrect_t rc;
+	bool initialized{false};
+};
+
 #define MAX_ICONSPRITES 6
 
 class CHudStatusIcons : public CHudBase
@@ -818,6 +825,7 @@ public:
 	int Init() override;
 	int VidInit() override;
 	void Reset() override;
+	void InitHUDData() override;
 	int Draw( float flTime ) override;
 	int MsgFunc_StatusIcon( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_Inventory( const char *pszName, int iSize, void *pbuf );
@@ -844,6 +852,7 @@ public:
 	inventory_t m_radcan;
 	inventory_t m_adrenaline;
 	inventory_t m_InventoryList[MAX_INVENTORY_ITEMS];
+	tool_icon_t m_tools[32];
 };
 
 //
