@@ -938,6 +938,9 @@ R"(
 				"type": "number",
 				"minimum": 0
 			},
+			"prefer_resuming_fire_anim": {
+				"type": "boolean"
+			},
 			"print_message": {
 				"type": "string"
 			}

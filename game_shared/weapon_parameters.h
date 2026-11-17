@@ -759,6 +759,8 @@ struct WeaponParameters
 		WeaponModeValueNonNegative<short> endAnimIndex{-1};
 		WeaponModeValueNonNegative<float> endAnimDuration{0.0f};
 
+		WeaponModeValue<bool> preferResumingFireAnim{false};
+
 		WeaponModeValue<std::string> printMessage;
 	};
 

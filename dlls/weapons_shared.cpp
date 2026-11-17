@@ -2205,7 +2205,14 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 				m_shouldRestartReloading = false;
 			}
 
-			SendWeaponAnim(animIndex);
+			bool sendAnim = true;
+			if (params.altMode.preferResumingFireAnim.Get(m_inAltMode))
+			{
+				sendAnim = m_flNextPrimaryAttack <= UTIL_WeaponTimeBase();
+			}
+
+			if (sendAnim)
+				SendWeaponAnim(animIndex);
 		}
 	}
 
