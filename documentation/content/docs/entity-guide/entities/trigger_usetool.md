@@ -17,6 +17,7 @@ This brush entity defines where and what tools should be used.
     - [Blowtorch]({{< ref weapon_blowtorch >}})
     - [Tool]({{< ref weapon_tool >}})
 * `Tool Target` - where the player needs to be looking to be able to activate the tool. The best way to get this to work is to target an `info_target`. If no tool target defined, player can look in any direction.
+* `Custom ammo cost` - custom ammo cost per tool weapon fire while player is in the tool zone. This only affects weapons that have ammo (`"ammo_name"` is defined in the weapon template).
 
 ### Spawnflags
 

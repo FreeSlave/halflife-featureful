@@ -2714,6 +2714,14 @@ A boolean defining whether the weapon should zoom in again after resetting zoom 
 
 A boolean defining whether the weapon viewmodel should be hidden when zoomed.
 
+### iron_sight
+
+A boolean defining whether the weapon viewmodel shouldn't be affected by the player looking up or down, and also by `cl_viewbob`.
+
+Enable this property for weapons that use the iron sight animation when zoomed to ensure the view model is always correctly aligned.
+
+Making the iron sight animations is out of the scope of this documentation.
+
 # Weapon soundscript
 
 Similar to [Soundscripts]({{< ref soundscripts >}}) the weapon soundscripts allow to define properties like channel, volume, attenuation, pitch and the set of audio files to play on certain weapon events.
