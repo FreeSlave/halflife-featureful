@@ -938,7 +938,7 @@ void CConfigurableWeapon::EjectBrassLate()
 	const WeaponParameters& params = MyParameters();
 	const WeaponParameters::Fire& fire = params.fire;
 	const bool altMode = m_wasInAltModeBeforeEjectLate;
-	const int shellId = altMode ? shellModel2 : shellModel;
+	const int shellId = (altMode && params.fire.shellModel.alt.has_value()) ? shellModel2 : shellModel;
 
 	if (!shellId)
 		return;

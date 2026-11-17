@@ -806,12 +806,12 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 				HandleJSONMember(value, "model", [&](const Value& value) {
 					const char* str = value.IsNull() ? nullptr : value.GetString();
-					fire.shellModel = str ? MakeConstantString(str) : nullptr;
+					fire.shellModel.Materialize(altMode) = str ? MakeConstantString(str) : nullptr;
 				});
 
 				HandleJSONMember(value, "model_alternating", [&](const Value& value) {
 					const char* str = value.IsNull() ? nullptr : value.GetString();
-					fire.shellModelAlternating = str ? MakeConstantString(str) : nullptr;
+					fire.shellModelAlternating.Materialize(altMode) = str ? MakeConstantString(str) : nullptr;
 				});
 
 				UpdatePropertyFromJson(fire.shellLeftSide, value, "left_side", altMode);
