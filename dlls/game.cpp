@@ -83,7 +83,6 @@ ModFeatures::ModFeatures()
 	weapon_p_models = true;
 
 	alien_teleport_sound = false;
-	warpball_at_monster_center = true;
 
 	monsters_stop_attacking_dying_monsters = false;
 	monsters_delegate_squad_leadership = true;
@@ -138,7 +137,6 @@ bool ModFeatures::SetValue(const char *key, const char *value)
 		KEY_VALUE_DEF(satchels_pickable),
 		KEY_VALUE_DEF(weapon_p_models),
 		KEY_VALUE_DEF(alien_teleport_sound),
-		KEY_VALUE_DEF(warpball_at_monster_center),
 		KEY_VALUE_DEF(monsters_stop_attacking_dying_monsters),
 		KEY_VALUE_DEF(monsters_delegate_squad_leadership),
 		KEY_VALUE_DEF(monsters_eat_for_health),

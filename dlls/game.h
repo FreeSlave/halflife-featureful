@@ -77,7 +77,6 @@ struct ModFeatures
 	int player_maxarmor;
 
 	bool alien_teleport_sound;
-	bool warpball_at_monster_center;
 
 	bool monsters_stop_attacking_dying_monsters;
 	bool monsters_delegate_squad_leadership;

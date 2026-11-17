@@ -418,6 +418,11 @@ void CMonsterMaker::Activate()
 		g_errorCollector.AddFormattedDeprecation("%s: (at %g, %g, %g) has spawnflag %d. This will be removed/replaced in future. Use 'Face to' (face_position) parameter instead.",
 												 STRING(pev->classname), pev->origin.x, pev->origin.y, pev->origin.z, SF_MONSTERMAKER_ALIGN_TO_PLAYER);
 	}
+	if (pev->impulse != 0)
+	{
+		g_errorCollector.AddFormattedDeprecation("%s: (at %g, %g, %g) has 'Warp at monster's...' parameter defined. This parameter will be removed in future. Use 'position' property of warpball template instead.",
+												 STRING(pev->classname), pev->origin.x, pev->origin.y, pev->origin.z);
+	}
 	// don't call base Activate as it will also precache some entity template resource that are intended for the monster and are already precached
 	//CBaseMonster::Activate();
 }
@@ -988,7 +993,7 @@ std::pair<int, float> CMonsterMaker::MakeMonster()
 				}
 				else
 				{
-					vecWarpPosition = g_modFeatures.warpball_at_monster_center ? createdEntity->Center() : createdEntity->pev->origin;
+					vecWarpPosition = createdEntity->Center();
 				}
 			}
 			else if (pev->impulse < 0)
@@ -1022,7 +1027,7 @@ std::pair<int, float> CMonsterMaker::MakeMonster()
 				}
 				else
 				{
-					vecWarpPosition = g_modFeatures.warpball_at_monster_center ? placePosition + (realMinHullSize + realMaxHullSize) * 0.5f : placePosition;
+					vecWarpPosition = placePosition + (realMinHullSize + realMaxHullSize) * 0.5f;
 				}
 			}
 			else if (pev->impulse < 0)

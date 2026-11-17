@@ -8177,7 +8177,7 @@
     spawnorigin(string) : "Spawn position [LP]" : : "By default acts as a typical position variable. When it starts with '@' the monstermaker will choose a random spot among ones with the same name (the rest of the string after '@'). It also applies the chosen entity angles."
 	face_position(string) : "Face to [LP]" : : "The spawned monster will face to this position. If set to '*player' it faces to the closest alive player."
 	warpball(string) : "Warpball template" : : "The template name from templates/warpball.json or the name of the env_warpball entity used as effect template for this monstermaker"
-	impulse(choices) : "Warp at monster's..." : : "If using warpball template, spawn warpball at this monster position" =
+	impulse(choices) : "[Deprecated] Warp at monster's..." : : "If using warpball template, spawn warpball at this monster position" =
 	[
 		-1 : "Origin"
 		0 : "Default (Center)"
