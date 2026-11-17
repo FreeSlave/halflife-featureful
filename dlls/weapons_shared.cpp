@@ -2214,7 +2214,8 @@ void CConfigurableWeapon::SwitchMode(SwitchModeReason reason)
 	if (animIndex >= 0)
 	{
 		m_flTimeWeaponIdle = Q_max(m_flTimeWeaponIdle, m_flNextSecondaryAttack);
-		m_flNextPrimaryAttack = GetNextAttackDelay(attackDelay);
+		if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase() + attackDelay)
+			m_flNextPrimaryAttack = GetNextAttackDelay(attackDelay);
 	}
 
 	const float bodySwitchDelay = reason == SwitchModeReason::Regular ? params.altMode.bodyDelay.Get(m_inAltMode) : 0.0f;
