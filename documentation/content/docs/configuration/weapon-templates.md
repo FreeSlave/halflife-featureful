@@ -2321,7 +2321,7 @@ This also affects [reload_substitute](#reload_substitute).
 
 ### laser_suspend_time
 
-Hide the laser spot (if any) for this amount of time (in seconds).
+Hide the laser spot (if any) for this amount of time (in seconds). The laser is getting suspended at least for the duration of the reload, so only values higher than `duration` and `attack_delay` make sense here.
 
 This also affects [reload_substitute](#reload_substitute).
 
@@ -2445,6 +2445,7 @@ Properties:
 
 * `"anim"` - animation index. Default value is -1 (i.e. disabled).
 * `"duration"` - minimum delay between "reload substitute" actions (usually should be the same as the animation duration). Also delays playing the next idle animation. Default value is 0.5.
+* `"suspend_laser"` - wheter to suspend (hide) the laser spot during the animation. Default value is `true`.
 
 {{% hint info %}}
 Reload substitute animation won't play when the weapon is scoped.
@@ -2538,6 +2539,10 @@ The index animation to play after the mode has been switched. This will play onl
 ### end_anim_duration
 
 If `"end_anim"` is defined, this is the delay before the weapon becomes usable (usually this should be the animation duration).
+
+### prefer_resuming_fire_anim
+
+A boolean - whether to prefer resuming the fire animation if the mode switch has its own animation and the switch was requested during the weapon fire [cycle_time](#cycle_time).
 
 ### print_message
 

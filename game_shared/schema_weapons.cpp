@@ -1063,6 +1063,9 @@ R"(
 			"duration": {
 				"type": "number",
 				"minimum": 0
+			},
+			"suspend_laser": {
+				"type": "boolean"
 			}
 		},
 		"additionalProperties": false

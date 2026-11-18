@@ -533,6 +533,7 @@ struct WeaponParameters
 	{
 		WeaponModeValueNonNegative<short> animIndex{-1};
 		WeaponModeValueNonNegative<float> duration{0.5f};
+		WeaponModeValue<bool> suspendLaser{true};
 	};
 
 	struct Holster

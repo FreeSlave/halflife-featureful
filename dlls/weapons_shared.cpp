@@ -2506,7 +2506,7 @@ void CConfigurableWeapon::PerformReloadSubstitute()
 		return;
 
 #if !CLIENT_DLL
-	if (m_pLaser)
+	if (params.reloadSubstitute.suspendLaser.Get(altMode) && m_pLaser)
 	{
 		const float reloadDuration = params.reloadSubstitute.duration.Get(altMode);
 		const float suspendLaserTime = params.reload.suspendLaserSpotTime.Get(altMode, empty);

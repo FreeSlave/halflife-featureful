@@ -1464,6 +1464,7 @@ void WeaponTemplateSystem::ParseWeaponTemplate(WeaponParameters& params, const r
 
 			UpdatePropertyFromJson(reloadSubstitute.animIndex, value, "anim", altMode);
 			UpdatePropertyFromJson(reloadSubstitute.duration, value, "duration", altMode);
+			UpdatePropertyFromJson(reloadSubstitute.suspendLaser, value, "suspend_laser", altMode);
 		});
 	};
 
