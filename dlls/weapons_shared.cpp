@@ -1075,7 +1075,7 @@ void CConfigurableWeapon::ItemPostFrame()
 #if CLIENT_DLL
 		// TODO: Sometimes client updates the time slower than the server
 		// use decrementing variable instead?
-		if (gpGlobals->time + 0.01f > m_burstTime)
+		if (gpGlobals->time + gpGlobals->frametime > m_burstTime)
 #else
 		if (gpGlobals->time > m_burstTime)
 #endif
