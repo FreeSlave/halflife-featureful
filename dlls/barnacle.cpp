@@ -31,6 +31,18 @@
 //=========================================================
 #define	BARNACLE_AE_PUKEGIB	2
 
+class CBarnacleTongueVis : public CPointEntity
+{
+public:
+	void SetObjectCollisionBox()
+	{
+		pev->absmin = pev->origin + Vector( -16.0f, -16.0f, -m_flAltitude );
+		pev->absmax = pev->origin + Vector( 16.0f, 16.0f, 0.0f );
+	}
+
+	float m_flAltitude;
+};
+
 class CBarnacle : public CBaseMonster
 {
 public:
@@ -62,14 +74,12 @@ public:
 	int DefaultSizeForGrapple() override { return GRAPPLE_FIXED; }
 
 	float m_flAltitude;
-	float m_flCachedLength;	// tongue cached length
 	float m_flKillVictimTime;
 	int m_cGibs;		// barnacle loads up on gibs each time it kills something.
 	bool m_fTongueExtended;
 	bool m_fLiftingPrey;
 	float m_flTongueAdj;
-	CPointEntity* m_pTongueTip;
-	CPointEntity* m_pTongueMiddle;
+	CBarnacleTongueVis* m_pTongueVis;
 
 	static const NamedSoundScript biteSoundScript;
 	static const NamedSoundScript chewSoundScript;
@@ -88,7 +98,6 @@ TYPEDESCRIPTION	CBarnacle::m_SaveData[] =
 	DEFINE_FIELD( CBarnacle, m_fTongueExtended, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBarnacle, m_fLiftingPrey, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBarnacle, m_flTongueAdj, FIELD_FLOAT ),
-	DEFINE_FIELD( CBarnacle, m_flCachedLength, FIELD_FLOAT ),
 };
 
 IMPLEMENT_SAVERESTORE( CBarnacle, CBaseMonster )
@@ -185,7 +194,6 @@ void CBarnacle::Spawn()
 	SetMyFieldOfView(0.5f);// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_flKillVictimTime = 0.0f;
-	m_flCachedLength = 32.0f;	// mins.z
 	m_cGibs = 0;
 	m_fLiftingPrey = false;
 	m_flTongueAdj = -100.0f;
@@ -323,8 +331,7 @@ void CBarnacle::BarnacleThink()
 		if (!FBitSet(pev->spawnflags, SF_MONSTER_ACT_OUT_OF_PVS))
 		{
 			if (FNullEnt(FIND_CLIENT_IN_PVS(edict())) &&
-				(!m_pTongueTip || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueTip->edict()))) &&
-				(!m_pTongueMiddle || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueMiddle->edict())))
+				(!m_pTongueVis || FNullEnt(FIND_CLIENT_IN_PVS(m_pTongueVis->edict())))
 				)
 				pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 1.0f, 1.5f );	// Stagger a bit to keep barnacles from thinking on the same frame
 		}
@@ -392,10 +399,11 @@ void CBarnacle::BarnacleThink()
 	SetBoneController( 0, -( m_flAltitude + m_flTongueAdj ) );
 	StudioFrameAdvance( 0.1f );
 
-	if (m_pTongueTip)
-		UTIL_SetOrigin(m_pTongueTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
-	if (m_pTongueMiddle)
-		UTIL_SetOrigin(m_pTongueMiddle->pev, pev->origin - Vector(0, 0, m_flAltitude * 0.5f));
+	if (m_pTongueVis)
+	{
+		m_pTongueVis->m_flAltitude = m_flAltitude;
+		UTIL_SetOrigin(m_pTongueVis->pev, pev->origin);
+	}
 }
 
 bool CBarnacle::IsAttackingCloakWise()
@@ -464,23 +472,18 @@ void CBarnacle::Precache()
 	RegisterAndPrecacheSoundScript(chewSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
+
+	PRECACHE_MODEL("sprites/iunknown.spr");
 }
 
 void CBarnacle::Activate()
 {
-	auto makeTip = []() {
-		CPointEntity* pTip = GetClassPtr((CPointEntity*)nullptr);
-		SET_MODEL(pTip->edict(), "sprites/iunknown.spr");
-		pTip->pev->rendermode = kRenderTransAlpha;
-		pTip->pev->renderamt = 0;
-		return pTip;
-	};
-
-	m_pTongueTip = makeTip();
-	UTIL_SetOrigin(m_pTongueTip->pev, pev->origin - Vector(0, 0, m_flAltitude));
-
-	m_pTongueMiddle = makeTip();
-	UTIL_SetOrigin(m_pTongueMiddle->pev, pev->origin - Vector(0, 0, m_flAltitude * 0.5f));
+	m_pTongueVis = GetClassPtr((CBarnacleTongueVis*)nullptr);
+	SET_MODEL(m_pTongueVis->edict(), "sprites/iunknown.spr");
+	m_pTongueVis->pev->rendermode = kRenderTransAlpha;
+	m_pTongueVis->pev->renderamt = 0;
+	m_pTongueVis->m_flAltitude = m_flAltitude;
+	UTIL_SetOrigin(m_pTongueVis->pev, pev->origin);
 
 	CBaseMonster::Activate();
 }
@@ -488,17 +491,14 @@ void CBarnacle::Activate()
 void CBarnacle::UpdateOnRemove()
 {
 	ReleaseVictim();
-
-	UTIL_RemoveAndClean(m_pTongueTip);
-	UTIL_RemoveAndClean(m_pTongueMiddle);
+	UTIL_RemoveAndClean(m_pTongueVis);
 
 	CBaseMonster::UpdateOnRemove();
 }
 
 bool CBarnacle::MustAddToFullPack(unsigned char *pSet)
 {
-	return (m_pTongueTip && ENGINE_CHECK_VISIBILITY(m_pTongueTip->edict(), pSet) != 0) ||
-		   (m_pTongueMiddle && ENGINE_CHECK_VISIBILITY(m_pTongueMiddle->edict(), pSet) != 0) ||
+	return (m_pTongueVis && ENGINE_CHECK_VISIBILITY(m_pTongueVis->edict(), pSet) != 0) ||
 		   CBaseMonster::MustAddToFullPack(pSet);
 }
 
