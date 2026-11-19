@@ -1463,6 +1463,7 @@ class CEnvModel : public CBaseAnimating
 	void KeyValue( KeyValueData *pkvd ) override;
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 	int	ObjectCaps() override { return CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void SetObjectCollisionBox() override;
 	void HandleAnimEvent(MonsterEvent_t *pEvent) override
 	{
 		HandleBaseAnimEvent(pEvent);
@@ -1665,6 +1666,27 @@ void CEnvModel::Think()
 		}
 	}
 	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CEnvModel::SetObjectCollisionBox()
+{
+	if (FBitSet(pev->spawnflags, SF_ENVMODEL_SOLID))
+	{
+		CBaseAnimating::SetObjectCollisionBox();
+		return;
+	}
+
+	Vector mins, maxs;
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		const float scale = pev->scale > 0.0f ? pev->scale : 1.0f;
+		pev->absmin = pev->origin + mins * scale;
+		pev->absmax = pev->origin + maxs * scale;
+	}
+	else
+	{
+		CBaseAnimating::SetObjectCollisionBox();
+	}
 }
 
 void CEnvModel :: SetSequence()

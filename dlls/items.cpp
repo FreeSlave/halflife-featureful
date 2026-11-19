@@ -1140,6 +1140,7 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
+
 	void KeyValue(KeyValueData* pkvd) override;
 	int	ObjectCaps() override;
 
@@ -1232,7 +1233,14 @@ int CItemGeneric::ObjectCaps()
 
 void CItemGeneric::SetObjectCollisionBox()
 {
-	if (FBitSet(pev->spawnflags, SF_ITEM_GENERIC_APPLY_GRAVITY))
+	Vector mins, maxs;
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		const float scale = pev->scale > 0.0f ? pev->scale : 1.0f;
+		pev->absmin = pev->origin + mins * scale;
+		pev->absmax = pev->origin + maxs * scale;
+	}
+	else if (FBitSet(pev->spawnflags, SF_ITEM_GENERIC_APPLY_GRAVITY))
 	{
 		pev->absmin = pev->origin + Vector( -16, -16, 0 );
 		pev->absmax = pev->origin + Vector( 16, 16, 16 );

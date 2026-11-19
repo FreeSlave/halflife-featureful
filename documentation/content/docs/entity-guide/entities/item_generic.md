@@ -7,6 +7,10 @@ bookToC: false
 
 A static model. A simple alternative to [env_model]({{< ref env_model >}}). Despite the `item_` prefix this entity is neither pickable nor usable in any way. It's simply a decoration.
 
+## Bugfixes
+
+* Fixed the large models not rendering for the client sometimes due to the engine visibility checks.
+
 ### Spawnflags
 
 * `Drop to floor` - make the model automatically drop when the level is loaded. By default `item_generic` stays at the same spot as it's set in the editor.

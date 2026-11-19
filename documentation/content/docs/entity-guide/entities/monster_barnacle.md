@@ -36,6 +36,7 @@ To change that you can create an [entity template]({{< ref "entity-templates/#ta
 ### Bugfixes
 
 * The prey is propely getting released if barnacle is getting removed from a map while it has the prey.
+* Fixed barnacle tongue not rendereding for the client in some cases when the barnacle main body fails the engine visibility check.
 
 ### Entity template examples
 
