@@ -479,7 +479,11 @@ bool EV_HLDM_WaterEntryPoint( pmtrace_t* trace, float* vecSrc, float* result )
 {
 	const int endContents = gEngfuncs.PM_PointContents( trace->endpos, nullptr );
 	const int srcContents = gEngfuncs.PM_PointContents( vecSrc, nullptr );
+
 	if (endContents == srcContents)
+		return false;
+
+	if (endContents == CONTENTS_SKY)
 		return false;
 
 	Vector start( vecSrc );
@@ -590,20 +594,17 @@ Go to the trouble of combining multiple pellets into a single damage call.
 */
 void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int cShots, float *vecSrc, float flDistance, int iTracerFreq, int *tracerCount, float flSpreadX, float flSpreadY )
 {
-	int i;
-	pmtrace_t tr;
-	int iShot;
-	bool isSky;
-
 	if( EV_IsLocal( idx ) )
 	{
 		EV_MuzzleLight(Vector(forward));
 	}
 
-	for( iShot = 1; iShot <= cShots; iShot++ )
+	for( int iShot = 1; iShot <= cShots; iShot++ )
 	{
 		Vector vecDir, vecEnd;
 		float x, y, z;
+		pmtrace_t tr;
+		bool isSky = false;
 
 		//We randomize for the Shotgun.
 		if( cShots > 1 )
@@ -614,7 +615,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				z = x * x + y * y;
 			}while( z > 1 );
 
-			for( i = 0 ; i < 3; i++ )
+			for( int i = 0 ; i < 3; i++ )
 			{
 				vecDir[i] = forward[i] + x * flSpreadX * right[i] + y * flSpreadY * up [i];
 				vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
@@ -622,7 +623,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		}//But other guns already have their spread randomized in the synched spread.
 		else
 		{
-			for( i = 0 ; i < 3; i++ )
+			for( int i = 0 ; i < 3; i++ )
 			{
 				vecDir[i] = forward[i] + flSpreadX * right[i] + flSpreadY * up [i];
 				vecEnd[i] = vecSrc[i] + flDistance * vecDir[i];
@@ -654,7 +655,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 			EV_HLDM_DecalGunshot( &tr, forward, cTextureType, isSky );
 		}
 
-		if (gHUD.WeaponWaterSplashEnabled())
+		if (gHUD.WeaponWaterSplashEnabled() && !isSky)
 		{
 			Vector splashPos;
 			if (EV_HLDM_WaterEntryPoint(&tr, vecSrc, splashPos))
