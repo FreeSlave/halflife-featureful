@@ -566,7 +566,9 @@ void CStudioModelRenderer::StudioSetUpTransform( int trivial_accept )
 	angles[PITCH] = -angles[PITCH];
 	AngleMatrix( angles, ( *m_protationmatrix ) );
 
-	if( !IEngineStudio.IsHardware() )
+	bool isHardware = IEngineStudio.IsHardware() != 0;
+
+	if (!isHardware)
 	{
 		static float viewmatrix[3][4];
 
@@ -578,6 +580,18 @@ void CStudioModelRenderer::StudioSetUpTransform( int trivial_accept )
 		(*m_protationmatrix)[0][3] = modelpos[0] - m_vRenderOrigin[0];
 		(*m_protationmatrix)[1][3] = modelpos[1] - m_vRenderOrigin[1];
 		(*m_protationmatrix)[2][3] = modelpos[2] - m_vRenderOrigin[2];
+
+		if (m_pCurrentEntity->curstate.scale != 0)
+		{
+			int j;
+			for (i = 0; i < 3; i++)
+			{
+				for (j = 0; j < 3; j++)
+				{
+					(*m_protationmatrix)[i][j] *= m_pCurrentEntity->curstate.scale;
+				}
+			}
+		}
 
 		ConcatTransforms( viewmatrix, (*m_protationmatrix), (*m_paliastransform) );
 
@@ -601,14 +615,17 @@ void CStudioModelRenderer::StudioSetUpTransform( int trivial_accept )
 	(*m_protationmatrix)[1][3] = modelpos[1];
 	(*m_protationmatrix)[2][3] = modelpos[2];
 
-	if (m_pCurrentEntity->curstate.scale != 0)
+	if (isHardware)
 	{
-		int j;
-		for (i = 0; i < 3; i++)
+		if (m_pCurrentEntity->curstate.scale != 0)
 		{
-			for (j = 0; j < 3; j++)
+			int j;
+			for (i = 0; i < 3; i++)
 			{
-				(*m_protationmatrix)[i][j] *= m_pCurrentEntity->curstate.scale;
+				for (j = 0; j < 3; j++)
+				{
+					(*m_protationmatrix)[i][j] *= m_pCurrentEntity->curstate.scale;
+				}
 			}
 		}
 	}
