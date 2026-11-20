@@ -801,7 +801,7 @@ void CEnvironment::UpdateRain(const RainData& rainData)
 
 			gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
 			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, traceFlags, -1, &trace );
-			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, vecOrigin, trace.endpos );
+			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, trace.endpos, vecEndPos );
 
 			if( allowIndoors || (pszTexture && strncmp( pszTexture, "sky", 3 ) == 0) )
 			{
@@ -824,7 +824,7 @@ void CEnvironment::UpdateRain(const RainData& rainData)
 
 						gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
 						gEngfuncs.pEventAPI->EV_PlayerTrace( vecWindOrigin, vecEndPos, PM_WORLD_ONLY, -1, &trace );
-						pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, vecOrigin, trace.endpos );
+						pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, trace.endpos, vecEndPos );
 
 						if( allowIndoors || (pszTexture && strncmp( pszTexture, "sky", 3 ) == 0) )
 						{
@@ -893,7 +893,7 @@ void CEnvironment::UpdateSnow(const SnowData& snowData)
 
 			gEngfuncs.pEventAPI->EV_SetTraceHull( large_hull );
 			gEngfuncs.pEventAPI->EV_PlayerTrace( vecOrigin, vecEndPos, traceFlags, -1, &trace );
-			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, vecOrigin, trace.endpos );
+			const char* pszTexture = gEngfuncs.pEventAPI->EV_TraceTexture( trace.ent, trace.endpos, vecEndPos );
 
 			if( allowIndoors || (pszTexture && strncmp( pszTexture, "sky", 3 ) == 0) )
 			{
