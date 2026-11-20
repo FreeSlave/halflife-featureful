@@ -2603,8 +2603,17 @@ void CConfigurableWeapon::WeaponIdle()
 	}
 	else if (m_iSwingMode == 2)
 	{
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + params.fire.cycleTime.Get(m_swingIsAltAttack);
-		BigSwing();
+		bool didHit = BigSwing();
+		float cycleTime = params.fire.cycleTime.Get(m_swingIsAltAttack);
+		if (didHit)
+		{
+			const float definedHitCycleTime = params.fire.hitCycleTime.Get(m_swingIsAltAttack);
+			if (definedHitCycleTime > 0.0f)
+			{
+				cycleTime = definedHitCycleTime;
+			}
+		}
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + cycleTime;
 		m_iSwingMode = 0;
 		return;
 	}
@@ -3219,11 +3228,13 @@ bool CConfigurableWeapon::Swing(bool fFirst)
 	return fDidHit;
 }
 
-void CConfigurableWeapon::BigSwing()
+bool CConfigurableWeapon::BigSwing()
 {
 	const WeaponParameters& params = MyParameters();
 	const WeaponParameters::Fire& fire = params.fire;
 	const bool altMode = m_swingIsAltAttack;
+
+	bool fDidHit = false;
 
 	TraceResult tr;
 
@@ -3279,6 +3290,7 @@ void CConfigurableWeapon::BigSwing()
 
 #if !CLIENT_DLL
 		// hit
+		fDidHit = true;
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
 		if (pEntity)
@@ -3322,7 +3334,7 @@ void CConfigurableWeapon::BigSwing()
 				m_pPlayer->m_iWeaponVolume = fire.bodyHitVolume.Get(altMode);
 
 				if ( !pEntity->IsAlive() )
-					return;
+					return true;
 				else
 					flVol = 0.1f;
 
@@ -3342,6 +3354,8 @@ void CConfigurableWeapon::BigSwing()
 		pev->nextthink = gpGlobals->time + fire.smackDelay.Get(altMode);
 #endif
 	}
+
+	return fDidHit;
 }
 
 bool CConfigurableWeapon::CanRechargeAmmo()

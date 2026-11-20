@@ -431,7 +431,7 @@ public:
 	void HitShake();
 	void DoHitWorld(const TraceResult& tr, const Vector& vecSrc, const Vector& vecEnd, bool altMode);
 	bool Swing(bool fFirst);
-	void BigSwing();
+	bool BigSwing();
 
 	bool CanRechargeAmmo();
 	void UpdateRechargeTime(bool altMode);
