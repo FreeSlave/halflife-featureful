@@ -2598,7 +2598,7 @@ Example:
 
 ### icon
 
-The sprite icon to show when player is in the tool zone. This must be defined in **sprites/hud.txt**.
+The sprite icon to show when player is in the [tool zone]({{< ref trigger_usetool >}}). This must be defined in **sprites/hud.txt**.
 
 ### trigger_delay
 
@@ -2635,6 +2635,12 @@ Example:
     "CAMERA_MESSAGE": "The camera can only be\nused in a camera zone."
 }
 ```
+
+### allow_out_of_zone
+
+A boolean - whether the weapon can be activated out of the [tool zone]({{< ref trigger_usetool >}}). Useful to allow [weapon_blowtorch]({{< ref weapon_blowtorch >}}) fire at any place.
+
+While in the tool zone the icon will be shown as usual.
 
 ## viewmodel_body
 

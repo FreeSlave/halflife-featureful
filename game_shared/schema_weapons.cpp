@@ -1380,6 +1380,9 @@ R"(
 					},
 					"deny_message": {
 						"type": "string"
+					},
+					"allow_out_of_zone": {
+						"type": "boolean"
 					}
 				},
 				"additionalProperties": false

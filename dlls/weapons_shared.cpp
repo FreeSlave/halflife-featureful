@@ -1376,7 +1376,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				}
 			}
 
-			if (params.toolIndex >= 0)
+			if (params.toolIndex >= 0 && !params.toolAllowOutOfZone)
 			{
 				const int toolBit = 1<<params.toolIndex;
 				if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit) || FBitSet(m_pPlayer->m_ToolUnalignedBits, toolBit))
@@ -1446,7 +1446,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 		{
 			triggerTool = true;
 		}
-		else
+		else if (!params.toolAllowOutOfZone)
 		{
 			if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit))
 				PrintToolDenyMessage();

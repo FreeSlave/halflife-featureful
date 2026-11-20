@@ -839,6 +839,7 @@ struct WeaponParameters
 	WeaponSoundScript toolDenySound{CHAN_WEAPON};
 	float toolDelayAfterDeny{0.1f};
 	std::string toolDenyMessage;
+	bool toolAllowOutOfZone{false};
 	int toolIndex{-1};
 
 	WeaponModeValue<AbsoluteValueOrFactor> playerMaxSpeed;
