@@ -533,7 +533,7 @@ public:
 		m_iRendermode = cl_sprite_dot_index ? kRenderTransAlpha : kRenderTransAdd;
 
 		SetLightFlag(LIGHT_NONE);
-		SetCullFlag(CULL_PVS);
+		SetCullFlag(CULL_PVS|CULL_FRUSTUM_PLANE);
 		SetRenderFlag(RENDER_FACEPLAYER);
 
 		m_flGravity = 0.05f;

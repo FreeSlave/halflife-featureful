@@ -892,7 +892,7 @@ void TestParticlesCmd()
 			CBaseParticle *particle = g_pParticleMan->CreateParticle(origin + shift, Vector(0.0f, 0.0f, 0.0f), texture, 32.0f, 255.0f, "particle");
 
 			particle->SetLightFlag(LIGHT_NONE);
-			particle->SetCullFlag(CULL_PVS);
+			particle->SetCullFlag(CULL_PVS|CULL_FRUSTUM_PLANE);
 			particle->SetRenderFlag(RENDER_FACEPLAYER);
 			particle->SetCollisionFlags(TRI_COLLIDEWORLD);
 			particle->m_iRendermode = kRenderTransAlpha;
