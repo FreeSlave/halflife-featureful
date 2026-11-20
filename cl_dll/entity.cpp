@@ -22,7 +22,7 @@
 
 void Game_AddObjects();
 
-extern Vector v_origin;
+extern Vector v_angles;
 
 int g_iAlive = 1;
 int g_iLaserDot = 0;
@@ -745,11 +745,8 @@ void DLLEXPORT HUD_TempEntUpdate (
 	TEMPENTITY	*pTemp, *pnext, *pprev;
 	float		/*freq,*/ gravity, gravitySlow, life, fastFreq;
 
-	Vector		vAngles;
-	gEngfuncs.GetViewAngles( (float*)vAngles );
-
 	if ( g_pParticleMan )
-		 g_pParticleMan->SetVariables( cl_gravity, vAngles );
+		 g_pParticleMan->SetVariables( cl_gravity, v_angles );
 
 	// Nothing to simulate
 	if( !*ppTempEntActive )	
