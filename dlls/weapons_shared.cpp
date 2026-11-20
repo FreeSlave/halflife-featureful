@@ -2608,7 +2608,7 @@ void CConfigurableWeapon::WeaponIdle()
 	{
 		bool didHit = BigSwing();
 		float cycleTime = params.fire.cycleTime.Get(m_swingIsAltAttack);
-		if (didHit)
+		if (didHit && params.fire.cycleTime.IsDefined(m_swingIsAltAttack) && params.fire.hitCycleTime.IsDefined(m_swingIsAltAttack))
 		{
 			const float definedHitCycleTime = params.fire.hitCycleTime.Get(m_swingIsAltAttack);
 			if (definedHitCycleTime > 0.0f)

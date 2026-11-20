@@ -806,13 +806,15 @@ For melee attacks this is the delay between 'miss' swings (when it didn't hit an
 
 ### cycle_time_last_shot
 
-The delay before next shot after the ammo depletion. This makes sense only for weapons that use different ammo types for primary and secondary attacks. This is 0 by default. If it's 0 the value of `cycle_time` is used for the last shot.
+The delay before next shot after the ammo depletion. This is 0 by default. If it's 0 the value of `cycle_time` is used for the last shot.
 
 ### hit_cycle_time
 
 The delay before the next melee swing after hitting something. This is usually less than `"cycle_time"`. E.g. crowbar has `"cycle_time"` set to 0.5, but `"hit_cycle_time"` set to 0.25.
 
-If this is set to 0 the cycle time for hits is evaluated as: `min(cycle_time * 0.5, cycle_time - 0.25)`.
+If this is set to 0 the cycle time for hits is evaluated as: `min(cycle_time * 0.5, cycle_time - 0.25)`, but only for non-charged melee attacks.
+
+For charged melee `alt_fire` attacks it's only used if both `cycle_time` and `hit_cycle_time` are defined for `alt_fire`. If only `cycle_time` is defined in `alt_fire`, the `hit_cycle_time` from the main `fire` won't be inherited.
 
 ### damage
 
@@ -2445,7 +2447,7 @@ Properties:
 
 * `"anim"` - animation index. Default value is -1 (i.e. disabled).
 * `"duration"` - minimum delay between "reload substitute" actions (usually should be the same as the animation duration). Also delays playing the next idle animation. Default value is 0.5.
-* `"suspend_laser"` - wheter to suspend (hide) the laser spot during the animation. Default value is `true`.
+* `"suspend_laser"` - a boolean - whether to suspend (hide) the laser spot during the animation. Default value is `true`.
 
 {{% hint info %}}
 Reload substitute animation won't play when the weapon is scoped.
