@@ -1509,7 +1509,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 	if (fire.preventMovement.Get(altMode))
 	{
 		m_pPlayer->m_movementPrevented = true;
-		m_pPlayer->m_movementPreventedTime = gpGlobals->time + flCycleTime;
+		m_pPlayer->m_movementPreventedTime = gpGlobals->time + flCycleTime + 0.01f;
 	}
 
 	bool mustResetZoom = false;
