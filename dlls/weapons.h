@@ -439,6 +439,7 @@ public:
 	float GetMaxSpeed() override;
 	void OnPlayerAttackCapabilityChanged(bool enabled) override;
 	void ResetOnRemoveAsActive() override;
+	virtual void ToolUsePrevented() {}
 	CConfigurableWeapon *MyConfigurableWeaponPointer() override { return this; }
 
 	void UpdateTape();

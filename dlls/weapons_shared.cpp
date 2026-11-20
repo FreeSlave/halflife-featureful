@@ -1383,6 +1383,8 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				{
 					if (!FBitSet(m_pPlayer->m_ToolStateBits, toolBit))
 						PrintToolDenyMessage();
+					ToolUsePrevented();
+					PerformCooldown(altMode);
 					return;
 				}
 			}
@@ -1450,6 +1452,7 @@ void CConfigurableWeapon::PerformWeaponFire(bool altMode)
 				PrintToolDenyMessage();
 			PlayWeaponSoundScript(params.toolDenySound);
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + params.toolDelayAfterDeny;
+			ToolUsePrevented();
 			return;
 		}
 	}

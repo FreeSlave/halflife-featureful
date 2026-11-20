@@ -140,6 +140,7 @@ public:
 	WeaponParameters GetDefaultParameters() const override;
 	void NativeAttack(bool altMode) override;
 	void WeaponIdle() override;
+	void ToolUsePrevented() override;
 	void StopFireSound();
 	void SetTorchState(int state);
 
@@ -257,6 +258,13 @@ void CBlowTorchTool::NativeAttack(bool altMode)
 void CBlowTorchTool::WeaponIdle()
 {
 	CConfigurableWeapon::WeaponIdle();
+	SetTorchState(1);
+	StopFireSound();
+}
+
+void CBlowTorchTool::ToolUsePrevented()
+{
+	CConfigurableWeapon::ToolUsePrevented();
 	SetTorchState(1);
 	StopFireSound();
 }
