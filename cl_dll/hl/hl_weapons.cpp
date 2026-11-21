@@ -576,6 +576,10 @@ void HUD_ResetClientWeaponData()
 		maxAmmo = 0;
 	}
 
+	player.m_ToolStateBits = 0;
+	player.m_ToolUnalignedBits = 0;
+	memset(player.m_UseToolAmmoCosts, 0, sizeof(player.m_UseToolAmmoCosts));
+
 	extern float g_nextGunSmoke;
 	g_nextGunSmoke = 0.0f;
 }
