@@ -1,20 +1,6 @@
 #include "weapon_parameters.h"
 #include "clamp.h"
 
-template<>
-WeaponSoundScript& WeaponModeValue<WeaponSoundScript>::Materialize(bool altMode)
-{
-	if (altMode)
-	{
-		if (!alt.has_value())
-		{
-			alt = WeaponSoundScript{main.channel};
-		}
-		return *alt;
-	}
-	return main;
-}
-
 void WeaponSpread::SetStaticSpread(bool altMode, float spread)
 {
 	SetStaticSpread(altMode, spread, spread);

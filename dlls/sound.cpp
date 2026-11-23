@@ -1714,8 +1714,6 @@ static bool EMIT_SOUND_DYN_IMPL(edict_t *entity, int channel, const char *sample
 
 bool EMIT_SOUND_DYN( edict_t *entity, int channel, const char *sample, float volume, float attenuation, int flags, int pitch )
 {
-	ALERT(at_console, "EMIT_SOUND_DYN: entity: %s; channel %d; sample: %s; volume: %g\n", STRING(entity->v.classname), channel, sample, volume);
-
 	return EMIT_SOUND_DYN_IMPL(entity, channel, sample, volume, attenuation, flags, pitch);
 }
 

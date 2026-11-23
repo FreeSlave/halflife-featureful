@@ -318,7 +318,18 @@ struct WeaponSoundScript
 };
 
 template<>
-WeaponSoundScript& WeaponModeValue<WeaponSoundScript>::Materialize(bool altMode);
+inline WeaponSoundScript& WeaponModeValue<WeaponSoundScript>::Materialize(bool altMode)
+{
+	if (altMode)
+	{
+		if (!alt.has_value())
+		{
+			alt = WeaponSoundScript{main.channel};
+		}
+		return *alt;
+	}
+	return main;
+}
 
 struct PlayerMovementConditions
 {
