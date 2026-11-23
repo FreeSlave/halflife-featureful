@@ -2109,6 +2109,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 		}
 	case TASK_FALL_TO_GROUND:
 		{
+			StartJumpFallTask();
 			break;
 		}
 	default:

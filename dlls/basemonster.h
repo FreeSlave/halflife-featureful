@@ -561,6 +561,7 @@ public:
 	void SetRightAngleJump(const Vector& velocity, const Vector& target);
 	void ResetCurrentJump();
 	void MakeCurrentJump();
+	void StartJumpFallTask();
 	void HandleJumpFallTask(const Vector* target, bool allowAttack);
 
 	virtual int DefaultChaseEnemyFailedPolicy() {
@@ -623,6 +624,8 @@ public:
 	float m_flNextJump;
 	Vector m_vecJumpVelocity;
 	Vector m_vecJumpTarget;
+	Vector m_vecFallPrevOrigin;
+	float m_fallStartTime;
 	bool m_doingRightAngleJump;
 	bool m_appliedJumpVelocity;
 

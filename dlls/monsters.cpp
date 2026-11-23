@@ -5970,6 +5970,12 @@ void CBaseMonster::MakeCurrentJump()
 	m_appliedJumpVelocity = true;
 }
 
+void CBaseMonster::StartJumpFallTask()
+{
+	m_vecFallPrevOrigin = pev->origin;
+	m_fallStartTime = gpGlobals->time;
+}
+
 void CBaseMonster::HandleJumpFallTask(const Vector* target, bool allowAttack)
 {
 	if (target)
@@ -6025,11 +6031,21 @@ void CBaseMonster::HandleJumpFallTask(const Vector* target, bool allowAttack)
 
 		SetYawSpeed();
 	}
+
 	if (FBitSet(pev->flags, FL_ONGROUND) || (pev->waterlevel > WL_Feet && pev->velocity.IsLengthLessThan(1.0f)))
 	{
 		ResetCurrentJump();
 		TaskComplete();
 	}
+	else if (m_vecFallPrevOrigin == pev->origin && gpGlobals->time >= m_fallStartTime + 1.0f)
+	{
+		ALERT(at_aiconsole, "%s: may stuck in fall\n", STRING(pev->classname));
+		DROP_TO_FLOOR( ENT(pev) );
+		ResetCurrentJump();
+		TaskComplete();
+	}
+
+	m_vecFallPrevOrigin = pev->origin;
 }
 
 int CBaseMonster::ChaseEnemyFailedPolicy()

@@ -564,6 +564,7 @@ void CFollowingMonster::StartTask( Task_t *pTask )
 		TaskComplete();
 		break;
 	case TASK_FALL_TO_GROUND_FOLLOWING:
+		StartJumpFallTask();
 		break;
 	default:
 		CSquadMonster::StartTask( pTask );
