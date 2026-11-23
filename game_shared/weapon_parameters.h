@@ -317,6 +317,9 @@ struct WeaponSoundScript
 	const char* Wave(int index) const;
 };
 
+template<>
+WeaponSoundScript& WeaponModeValue<WeaponSoundScript>::Materialize(bool altMode);
+
 struct PlayerMovementConditions
 {
 	static PlayerMovementConditions InAir() {
