@@ -101,7 +101,7 @@ void CMiniMem::ProcessAll()
 		if (effect->CheckVisibility())
 		{
 			auto player = gEngfuncs.GetLocalPlayer();
-			effect->SetPlayerDistance((player->origin - effect->m_vOrigin).Length()*(player->origin - effect->m_vOrigin).Length());
+			effect->SetPlayerDistance((player->origin - effect->m_vOrigin).LengthSqr());
 
 			++_visibleParticles;
 		}
