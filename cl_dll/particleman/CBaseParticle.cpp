@@ -28,6 +28,8 @@
 #include "clamp.h"
 
 extern const Vector g_vecZero;
+extern cvar_t* cl_pman_optimize_collisions;
+extern cvar_t* cl_pman_max_collision_delay;
 
 void CBaseParticle::InitializeSprite(Vector org, Vector normal, model_s* sprite, float size, float brightness)
 {
@@ -351,6 +353,8 @@ void CBaseParticle::CalculateVelocity(float time)
 	m_vVelocity.z = m_vVelocity.z + gravity;
 }
 
+#define MIN_COLLISION_DELAY (1.0f / 60)
+
 void CBaseParticle::CheckCollision(float time)
 {
 	if (m_iCollisionFlags == 0)
@@ -358,7 +362,20 @@ void CBaseParticle::CheckCollision(float time)
 		return;
 	}
 
-	m_flNextCollisionTime = time;
+	if (m_flNextCollisionTime > time)
+		return;
+
+	float collistionCheckDelay = 0.0f;
+	if ((m_iCollisionFlags & TRI_ALLOW_DELAYED_COLLISION_CHECK) != 0 && cl_pman_optimize_collisions->value > 0.0f)
+	{
+		auto totalParticles = CMiniMem::Instance()->GetTotalParticles();
+		if (totalParticles > 1000)
+		{
+			collistionCheckDelay = clamp(0.000025f * totalParticles, MIN_COLLISION_DELAY, cl_pman_max_collision_delay->value);
+		}
+	}
+
+	m_flNextCollisionTime = time + collistionCheckDelay;
 
 	if ((m_iCollisionFlags & (TRI_WATERTRACE | TRI_COLLIDEBRUSHENTS | TRI_COLLIDEWORLD)) == 0)
 	{

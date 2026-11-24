@@ -936,7 +936,7 @@ CPartRainDrop* CEnvironment::CreateRaindrop( const Vector& vecOrigin, const Rain
 
 	pParticle->m_vVelocity.z = -rainData.GetRaindropFallingSpeed();
 
-	int flags = TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE;
+	int flags = TRI_COLLIDEWORLD | TRI_COLLIDEKILL | TRI_WATERTRACE | TRI_ALLOW_DELAYED_COLLISION_CHECK;
 	if (!rainData.CanGoThroughBrushEntities())
 		flags |= TRI_COLLIDEBRUSHENTS;
 	if (rainData.ShouldTraceWater())
@@ -1051,7 +1051,7 @@ void CEnvironment::CreateSnowFlake( const Vector& vecOrigin, const SnowData& sno
 
 	pParticle->m_vVelocity.z = -snowData.GetSnowflakeFallingSpeed();
 
-	int flags = TRI_COLLIDEWORLD;
+	int flags = TRI_COLLIDEWORLD | TRI_ALLOW_DELAYED_COLLISION_CHECK;
 	if (!snowData.CanGoThroughBrushEntities())
 		flags |= TRI_COLLIDEBRUSHENTS;
 	if (snowData.ShouldTraceWater())

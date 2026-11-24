@@ -31,6 +31,8 @@ Vector g_viewPlaneNormal;
 static bool g_iRenderMode = true;
 
 static cvar_t* cl_pmanstats = nullptr;
+cvar_t* cl_pman_optimize_collisions = nullptr;
+cvar_t* cl_pman_max_collision_delay = nullptr;
 
 static std::vector<ForceMember> g_pForceList;
 
@@ -68,6 +70,8 @@ void IParticleMan_Active::SetUp(cl_enginefunc_t* pEnginefuncs)
 	//std::memcpy(&gEngfuncs, pEnginefuncs, sizeof(gEngfuncs));
 
 	cl_pmanstats = gEngfuncs.pfnRegisterVariable("cl_pmanstats", "0", 0);
+	cl_pman_optimize_collisions = gEngfuncs.pfnRegisterVariable("cl_pman_optimize_collisions", "1", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
+	cl_pman_max_collision_delay = gEngfuncs.pfnRegisterVariable("cl_pman_max_collision_delay", "0.1", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
 }
 
 CBaseParticle* IParticleMan_Active::CreateParticle(Vector org, Vector normal, model_s* sprite, float size, float brightness, const char* classname)
