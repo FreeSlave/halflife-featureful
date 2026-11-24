@@ -42,14 +42,7 @@ void CMiniMem::Deallocate(void* memory)
 		return;
 	}
 
-	auto it = std::find(_particles.begin(), _particles.end(), memory);
-	if (it != _particles.end())
-		_particles.erase(it);
-	else
-		gEngfuncs.Con_Printf("Couldn't find a particle in the particles array to erase!\n");
-
 	free(memory);
-	//_pool.deallocate(memory, sizeInBytes, alignment);
 }
 
 void CMiniMem::Shutdown()
@@ -79,7 +72,7 @@ void CMiniMem::ProcessAll()
 	//Remove any particles that have died.
 	std::size_t invisibleCount = 0;
 
-	for (std::size_t i = 0; i < (_particles.size() - invisibleCount);)
+	for (std::size_t i = 0; i < _particles.size(); ++i)
 	{
 		auto effect = _particles[i];
 
@@ -92,11 +85,15 @@ void CMiniMem::ProcessAll()
 		{
 			effect->Die();
 			delete effect;
-
-			//Don't do this! operator delete removes the effect from the list.
-			//_particles.erase(_particles.begin() + i);
-			continue;
+			_particles[i] = nullptr;
 		}
+	}
+
+	_particles.erase(std::remove(_particles.begin(), _particles.end(), nullptr), _particles.end());
+
+	for (std::size_t i = 0; i < (_particles.size() - invisibleCount);)
+	{
+		auto effect = _particles[i];
 
 		if (effect->CheckVisibility())
 		{
@@ -215,19 +212,14 @@ void CMiniMem::Reset()
 {
 	_visibleParticles = 0;
 
-	auto particles = _particles;
-
-	for (auto particle : particles)
+	for (auto& particle : _particles)
 	{
 		particle->Die();
 		delete particle;
+		particle = nullptr;
 	}
 
-	if (_particles.size() != 0)
-	{
-		gEngfuncs.Con_Printf("Didn't delete all particles?!");
-		_particles.clear();
-	}
+	_particles.clear();
 
 	//Wipe away previously allocated memory so maps with loads of particles don't eat up memory forever.
 	//_pool.release();
