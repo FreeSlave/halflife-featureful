@@ -9,6 +9,11 @@ Entities can have display names. These are shown as part of text information whe
 
 Most monster classes define a default display name (these are usually documented on the monster's entity page). The default display name can be changed via [entity tempalates]({{< ref "entity-templates/#displayname" >}}). The display name also can be changed for the monster instance via the `In-game Name` entity parameter. The display names are supposed to be defined in English (as the default language) but can be translated (see below).
 
+In addition to the display name the info also shows the amount of health (and the power shield level if the entity has one).
+
+{{< figure src="/images/displayname-ally.png" caption="Ally name and health" >}}
+{{< figure src="/images/displayname-enemy.png" caption="Enemy name and health" >}}
+
 ## Translatable display names
 
 Independently of how the display name is defined (either by the monster class, or by the entity template or by the instance paramater) it can be localized.
@@ -28,4 +33,4 @@ Users who have the Russian localization installed will see `Ученый` instea
 The search for translated display names is currently case-insensitive.
 {{% /hint %}}
 
-In addition to the display name the info also shows the amount of health with a descriptive string. The latter can be localized as well. See [predefined messages]({{< ref "text-messages/#predefined-messages" >}}).
+The descriptive text rendered along with the entity's health can be translated via the [predefined messages]({{< ref "text-messages/#predefined-messages" >}}).

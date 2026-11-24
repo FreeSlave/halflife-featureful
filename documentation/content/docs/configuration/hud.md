@@ -8,7 +8,7 @@ This page describes various HUD features added in Half-Life Featureful SDK.
 
 ### HUD scaling
 
-HUD scales depending on the `hud_scale` cvar. The value 1 means default rendering (no rescaling). The value 0 means autoscaling - the effective scaling will be chosen depending on the screen resolution. 
+HUD scales depending on the `hud_scale` cvar. The value 1 means default rendering (no rescaling). The values higher than 1 mean scaling the sprites up, e.g. value 2 means the HUD sprites will be drawn 2 times bigger (on both X and Y axes). The value 0 means *autoscaling* - the effective scaling will be chosen depending on the user's screen resolution - this is usually the best option.
 
 Notes:
 
@@ -19,12 +19,6 @@ Notes:
 ### Drawing armor icon next to health
 
 The cvar `hud_armor_near_health` lets user to choose whether the armor should be drawn near the health like in HL 25 anniversary.
-
-### Tool icons
-
-Some weapons are [tools]({{< ref "weapon-templates#/tool" >}}). For example [weapon_radio]({{< ref weapon_radio >}}). When player is in [tool zone]({{< ref trigger_usetool >}}), the tool icons is shown in HUD.
-
-By default tool icons are drawn on the left side of the screen, replicating Condition Zero Deleted Scenes behavior. However it's easy to miss them if user has a large screen resolution and is playing without automatic HUD scaling. The `hud_tools_below_cross` cvar can be used to solve this problem. When it's enabled the tool icons will be drawn under the crosshair position which is easier to spot. Set `hud_tools_below_cross.enabled_by_default true` in **features/featureful_client.cfg** to enable this behavior by default.
 
 ### Move mode
 
@@ -84,6 +78,15 @@ The speedometer can be useful for debugging and for speedrunning.
 * `hud_speedometer` - shows the player speed (this doesn't include the vertical velocity). Value 2 also shows the [player's maximum speed]({{< ref "player/#maximum-speed" >}}).
 * `hud_speedometer_below_cross` - shows the speedometer under the crosshair.
 
+### Tool icons
+
+Some weapons are [tools]({{< ref "weapon-templates#/tool" >}}). For example [weapon_radio]({{< ref weapon_radio >}}). When the player is in a [tool zone]({{< ref trigger_usetool >}}), the tool icons are shown in HUD.
+
+By default tool icons are drawn on the left side of the screen, replicating Condition Zero Deleted Scenes behavior. However it's easy to miss them if user has a large screen resolution and is playing without automatic HUD scaling. The `hud_tools_below_cross` cvar can be used to solve this problem. When it's enabled the tool icons will be drawn under the crosshair position which is easier to spot. Set `hud_tools_below_cross.enabled_by_default true` in **features/featureful_client.cfg** to enable this behavior by default.
+
+{{< figure src="/images/tools-on-left.png" caption="Tool icons render on left side" >}}
+{{< figure src="/images/tools-below-cross.png" caption="Tool icons render below the crosshair" >}}
+
 ### Combat text
 
 Combat text is damage numbers that appear when the player deals damage to something, similar to how it's implemented in some other games. This can be used for debugging.
@@ -91,3 +94,5 @@ Combat text is damage numbers that appear when the player deals damage to someth
 * `hud_combattext` - whether to show a combat text.
 * `hud_combattext_time` - how long the combat text is shown.
 * `hud_combattext_speed` - floating speed.
+
+{{< figure src="/images/combattext.png" caption="Combat text (headshot damage is shown red)" >}}

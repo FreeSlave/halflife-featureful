@@ -1,0 +1,14 @@
+<figure{{ with .Get "class" }} class="{{ . }}"{{ end }}>
+  {{- $src := .Get "src" -}}
+  {{- $img := .Page.Resources.GetMatch $src | default (resources.Get $src) -}}
+  {{- with $img -}}
+    {{- if reflect.IsImageResourceWithMeta . -}}
+      <img src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}" alt="{{ $.Get "alt" | default "" }}">
+    {{- else -}}
+      <img src="{{ .RelPermalink }}" alt="{{ $.Get "alt" | default "" }}">
+    {{- end -}}
+  {{- end -}}
+  {{- with .Get "caption" -}}
+    <figcaption>{{ . | markdownify }}</figcaption>
+  {{- end -}}
+</figure>
