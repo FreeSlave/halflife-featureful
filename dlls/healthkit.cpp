@@ -56,7 +56,7 @@ void CHealthKit::Spawn()
 
 void CHealthKit::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(pickupSoundScript);
 }
 
@@ -751,7 +751,7 @@ LINK_ENTITY_TO_CLASS(item_healthcharger, CWallHealthDecay)
 
 void CWallHealthDecay::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 
 	RegisterAndPrecacheSoundScript(CWallHealth::startSoundScript);
 	RegisterAndPrecacheSoundScript(CWallHealth::denySoundScript);

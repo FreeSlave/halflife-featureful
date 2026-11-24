@@ -615,7 +615,7 @@ void CAGrunt::Spawn()
 //=========================================================
 void CAGrunt::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);

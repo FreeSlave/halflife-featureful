@@ -1205,7 +1205,7 @@ void CGib::Spawn()
 
 void CGib::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMaterialSounds(this, m_material);
 }
 

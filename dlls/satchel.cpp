@@ -215,7 +215,7 @@ void CSatchelCharge::SatchelThink()
 
 void CSatchelCharge::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 
 	PrecacheBaseGrenadeSounds();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);

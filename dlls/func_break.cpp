@@ -529,6 +529,7 @@ void CBreakable::Precache()
 	}
 
 	PrecacheRegenAndPowerShield();
+	PrecacheEntTemplateResources();
 }
 
 // play shard sound when func_breakable takes damage.

@@ -1116,7 +1116,7 @@ void CGargantua::Spawn()
 //=========================================================
 void CGargantua::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	m_GargGibModel = PrecacheMyGibModel(DefaultGibModel());
 
 	SoundScriptParamOverride paramOverride;
@@ -2220,7 +2220,7 @@ const NamedVisual CBabyGargantua::flameLightVisual = BuildVisual("BabyGarg.Flame
 
 void CBabyGargantua::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	SoundScriptParamOverride paramOverride;

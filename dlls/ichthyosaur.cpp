@@ -531,7 +531,7 @@ void CIchthyosaur::Spawn()
 //=========================================================
 void CIchthyosaur::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);

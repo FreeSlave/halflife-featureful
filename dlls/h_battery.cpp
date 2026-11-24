@@ -315,7 +315,7 @@ LINK_ENTITY_TO_CLASS(item_recharge, CRechargeDecay)
 
 void CRechargeDecay::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 
 	RegisterAndPrecacheSoundScript(CRecharge::startSoundScript);
 	RegisterAndPrecacheSoundScript(CRecharge::denySoundScript);

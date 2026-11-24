@@ -44,7 +44,7 @@ const NamedSoundScript CRecruit::dieSoundScript = {
 
 void CRecruit::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

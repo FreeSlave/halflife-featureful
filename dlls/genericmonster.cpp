@@ -172,7 +172,7 @@ void CGenericMonster::Spawn()
 //=========================================================
 void CGenericMonster::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 
@@ -255,7 +255,7 @@ LINK_ENTITY_TO_CLASS( monster_generic_dead, CDeadGenericMonster )
 
 void CDeadGenericMonster::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 
@@ -374,7 +374,7 @@ void CLoader::Spawn()
 
 void CLoader::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 

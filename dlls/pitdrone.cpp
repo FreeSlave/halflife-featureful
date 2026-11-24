@@ -112,7 +112,7 @@ void CPitdroneSpike::Spawn()
 
 void CPitdroneSpike::Precache()
 {
-	RegisterVisualAsMineOwn(spikeVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spikeVisual);
 	RegisterAndPrecacheSoundScript(hitWorldSoundScript);
 	RegisterAndPrecacheSoundScript(hitBodySoundScript);
 	RegisterVisual(trailVisual);
@@ -641,7 +641,7 @@ void CPitdrone::Spawn()
 //=========================================================
 void CPitdrone::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel(DefaultGibModel());
 	RegisterVisual(tinySpitVisual);// client side spittle.
 
@@ -1187,7 +1187,7 @@ LINK_ENTITY_TO_CLASS( monster_pitdrone_dead, CDeadPitdrone )
 
 void CDeadPitdrone::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel(DefaultGibModel());
 }
 

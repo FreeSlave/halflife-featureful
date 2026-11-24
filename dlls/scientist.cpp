@@ -811,7 +811,7 @@ void CScientist::Spawn()
 //=========================================================
 void CScientist::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
@@ -1328,7 +1328,7 @@ SITTING_ANIM_sitting3
 //
 void CSittingScientist::SciSpawnHelper()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	SetMyModel();
 	Precache();
 	InitBoneControllers();
@@ -1597,7 +1597,7 @@ void CCleansuitScientist::Spawn()
 
 void CCleansuitScientist::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
@@ -1714,7 +1714,7 @@ void CRosenberg::Precache()
 #if FEATURE_ROSENBERG_DECAY
 	PrecacheMyMonsterModel();
 #else
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	CalcTotalHeadCount();
 #endif
 	PrecacheMyGibModel();
@@ -1806,7 +1806,7 @@ LINK_ENTITY_TO_CLASS( monster_civilian, CCivilian )
 
 void CCivilian::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
@@ -1865,7 +1865,7 @@ void CKeller::Spawn()
 
 void CKeller::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);

@@ -2641,7 +2641,6 @@ LINK_ENTITY_TO_CLASS(trainthinker, CTrainThinker)
 class CSpriteTrain : public CFuncTrain
 {
 public:
-
 	void Spawn() override;
 	void Precache() override;
 	void Animate( float frames );
@@ -2701,8 +2700,7 @@ void CSpriteTrain::Spawn()
 
 void CSpriteTrain::Precache()
 {
-	if (!FStringNull(pev->model))
-		PRECACHE_MODEL( STRING( pev->model ) );
+	PrecacheMyModelAndEntTemplateResources();
 	if (!FStringNull(pev->noiseMovement))
 		PRECACHE_SOUND( STRING(pev->noiseMovement) );
 	if (!FStringNull(pev->noiseStopMoving))
@@ -2798,8 +2796,7 @@ void CModelTrain::Spawn()
 
 void CModelTrain::Precache()
 {
-	if (!FStringNull(pev->model))
-		PRECACHE_MODEL( STRING( pev->model ) );
+	PrecacheMyModelAndEntTemplateResources();
 	if (!FStringNull(pev->noiseMovement))
 		PRECACHE_SOUND( STRING(pev->noiseMovement) );
 	if (!FStringNull(pev->noiseStopMoving))

@@ -1818,7 +1818,6 @@ static void UTIL_PrecacheOtherWithOverride(CBaseEntity* pEntity, EntityOverrides
 {
 	pEntity->AssignEntityOverrides(entityOverrides);
 	pEntity->Precache();
-	pEntity->PrecacheEntTemplateResources();
 }
 
 CBaseEntity* UTIL_CreateInstanceForPrecache(const char* szClassname, const char* contextStr)
@@ -1918,7 +1917,6 @@ bool UTIL_PrecacheMonster(const char *szClassname, bool reverseRelationship, Vec
 			}
 
 			pEntity->Precache();
-			pEntity->PrecacheEntTemplateResources();
 
 			UTIL_GetSizeFromEntityPrecache(pEntity, vecMin, vecMax);
 		}

@@ -170,7 +170,7 @@ void CXenPLight::Spawn()
 
 void CXenPLight::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterVisual(glowVisual);
 }
 
@@ -284,7 +284,7 @@ void CXenHair::Think()
 
 void CXenHair::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 }
 
 class CXenTreeTrigger : public CBaseEntity
@@ -386,7 +386,7 @@ void CXenTree::Spawn()
 
 void CXenTree::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(attackHitSoundScript, NPC::attackHitSoundScript);
 	RegisterAndPrecacheSoundScript(attackMissSoundScript, NPC::attackMissSoundScript);
 }
@@ -665,7 +665,7 @@ void CXenSpore::Spawn()
 
 void CXenSpore::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 }
 
 void CXenSpore::Touch( CBaseEntity *pOther )

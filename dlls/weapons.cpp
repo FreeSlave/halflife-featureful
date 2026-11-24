@@ -1168,7 +1168,7 @@ void CBasePlayerWeapon::PrecacheWeaponModels()
 {
 	const WeaponParameters& params = MyParameters();
 
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PRECACHE_MODEL(params.ViewModel());
 	PrecachePModel(params.PlayerModel());
 
@@ -1506,7 +1506,7 @@ IMPLEMENT_SAVERESTORE( CWeaponBox, CBaseDelay )
 //=========================================================
 void CWeaponBox::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 }
 
 //=========================================================

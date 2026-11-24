@@ -45,7 +45,7 @@ void CBasePlayerAmmo::Spawn()
 
 void CBasePlayerAmmo::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(Items::ammoPickupSoundScript);
 }
 

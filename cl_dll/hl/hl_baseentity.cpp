@@ -51,7 +51,6 @@ CBaseEntity *CBaseEntity::GetNextTarget() { return NULL; }
 void CBaseEntity::KeyValue( KeyValueData* pkvd ) { pkvd->fHandled = false; }
 int CBaseEntity::Save( CSave &save ) { return 1; }
 int CBaseEntity::Restore( CRestore &restore ) { return 1; }
-void CBaseEntity::Activate() {}
 void CBaseEntity::PrecacheEntTemplateResources() {}
 void CBaseEntity::SetObjectCollisionBox() { }
 void CBaseEntity::SetMyObjectCollisionBox(const Vector& defaultMins, const Vector& defaultMaxs) { }

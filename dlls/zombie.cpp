@@ -283,7 +283,7 @@ void CZombie::Spawn()
 //=========================================================
 void CZombie::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 	PrecacheSounds();
 }

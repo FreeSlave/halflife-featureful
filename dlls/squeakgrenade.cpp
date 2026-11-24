@@ -200,7 +200,7 @@ void CSqueakGrenade::Precache()
 
 void CSqueakGrenade::PrecacheImpl()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	RegisterAndPrecacheSoundScript(gibbedSoundScript);
 	RegisterAndPrecacheSoundScript(squeakSoundScript);

@@ -334,8 +334,7 @@ void CFlockingFlyer::Spawn()
 //=========================================================
 void CFlockingFlyer::Precache()
 {
-	//PRECACHE_MODEL( "models/aflock.mdl" );
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);

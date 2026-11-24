@@ -479,7 +479,7 @@ void CHoundeye::Spawn()
 //=========================================================
 void CHoundeye::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);

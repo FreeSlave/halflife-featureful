@@ -95,7 +95,7 @@ void CRat::Spawn()
 //=========================================================
 void CRat::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 

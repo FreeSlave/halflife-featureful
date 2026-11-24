@@ -136,7 +136,7 @@ void CHornet::Spawn()
 
 void CHornet::Precache()
 {
-	RegisterVisualAsMineOwn(modelVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(modelVisual);
 
 	RegisterAndPrecacheSoundScript(buzzSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

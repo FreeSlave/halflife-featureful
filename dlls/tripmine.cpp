@@ -198,7 +198,7 @@ void CTripmineGrenade::Spawn()
 void CTripmineGrenade::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(deploySoundScript);
 	RegisterAndPrecacheSoundScript(activateSoundScript);
 	RegisterAndPrecacheSoundScript(chargeSoundScript);

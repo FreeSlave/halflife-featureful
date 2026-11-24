@@ -522,7 +522,7 @@ void CShockTrooper::MonsterThink()
 //=========================================================
 void CShockTrooper::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel(DefaultGibModel());
 	RegisterVisual(muzzleFlashVisual);
 	if (!ShouldAutoPrecacheSounds())
@@ -664,7 +664,7 @@ LINK_ENTITY_TO_CLASS( monster_shocktrooper_dead, CDeadStrooper )
 
 void CDeadStrooper::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel(DefaultGibModel());
 }
 

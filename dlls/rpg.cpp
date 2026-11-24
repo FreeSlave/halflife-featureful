@@ -216,7 +216,7 @@ void CRpgRocket::Spawn()
 void CRpgRocket::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rocketIgniteSoundScript);
 }

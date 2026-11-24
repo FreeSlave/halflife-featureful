@@ -6116,7 +6116,7 @@ void CDeadMonster::KeyValue( KeyValueData *pkvd )
 
 void CDeadMonster::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 

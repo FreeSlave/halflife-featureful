@@ -1542,7 +1542,11 @@ void CEnvModel::KeyValue( KeyValueData *pkvd )
 void CEnvModel::Spawn()
 {
 	Precache();
-	SET_MODEL( ENT(pev), STRING(pev->model) );
+	SetMyModel();
+	if (FStringNull(pev->model))
+	{
+		ALERT(at_console, "Spawning %s without model!\n", STRING(pev->classname));
+	}
 	UTIL_SetOrigin(pev, pev->origin);
 
 	if (pev->spawnflags & SF_ENVMODEL_SOLID)
@@ -1577,7 +1581,7 @@ void CEnvModel::Spawn()
 
 void CEnvModel::Precache()
 {
-	PRECACHE_MODEL( STRING(pev->model) );
+	PrecacheMyModelAndEntTemplateResources();
 	pev->frame = m_savedFrame;
 	pev->animtime = m_savedAnimTime;
 }
@@ -2015,7 +2019,7 @@ void CShot::Spawn()
 
 void CShot::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 }
 
 void CShot::LaunchAsProjectile(const ProjectileParameters& params)
@@ -3124,7 +3128,7 @@ const NamedSoundScript CItemSoda::drinkSoundScript = {
 
 void CItemSoda::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 	RegisterAndPrecacheSoundScript(drinkSoundScript);
 }

@@ -385,7 +385,7 @@ void CController::Spawn()
 //=========================================================
 void CController::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
@@ -1246,7 +1246,7 @@ void CControllerHeadBall::Spawn()
 
 void CControllerHeadBall::Precache()
 {
-	RegisterVisualAsMineOwn(headBallVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(headBallVisual);
 	RegisterVisual(headBallBeamVisual);
 	RegisterVisual(headBallLightVisual);
 	RegisterAndPrecacheSoundScript(electroSoundScript);
@@ -1430,7 +1430,7 @@ void CControllerZapBall::Spawn()
 
 void CControllerZapBall::Precache()
 {
-	RegisterVisualAsMineOwn(zapBallVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(zapBallVisual);
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 	SetMaxFrame();
 }

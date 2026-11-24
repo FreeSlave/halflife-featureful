@@ -91,7 +91,7 @@ void CAirtank::Spawn()
 void CAirtank::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(supplySoundScript);
 	RegisterAndPrecacheSoundScript(denySoundScript);
 }

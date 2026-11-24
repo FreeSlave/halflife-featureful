@@ -305,7 +305,7 @@ void CHeadCrab::SpawnHelper()
 //=========================================================
 void CHeadCrab::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
@@ -581,7 +581,7 @@ void CBabyCrab::Spawn()
 
 void CBabyCrab::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	SoundScriptParamOverride paramOverride;
@@ -835,7 +835,7 @@ void CShockRoach::Precache()
 		PRECACHE_SOUND("shockroach/shock_jump2.wav");
 	}
 
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 }
 

@@ -288,7 +288,7 @@ void CApache::Precache()
 
 void CApache::PrecacheImpl(const char* gibModel)
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	m_iBodyGibs = PrecacheMyGibModel(gibModel);
 
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
@@ -1261,7 +1261,7 @@ void CApacheHVR::Spawn()
 void CApacheHVR::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	RegisterVisualAsMineOwn(modelVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(modelVisual);
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rpgSoundScript);
 }

@@ -1413,15 +1413,6 @@ void CBaseEntity::SetMyModel()
 	}
 }
 
-void CBaseEntity::PrecacheMyModel()
-{
-	const char* myModel = MyOwnModel();
-	if (myModel)
-		PRECACHE_MODEL(myModel);
-
-	PrecacheRegenAndPowerShield();
-}
-
 void CBaseEntity::PrecacheRegenAndPowerShield()
 {
 	const EntTemplate* entTemplate = GetMyEntTemplate();
@@ -1479,6 +1470,22 @@ void CBaseEntity::PrecacheRegenAndPowerShield()
 						  activeRegenUpdateSoundScript);
 }
 
+void CBaseEntity::PrecacheMyModelAndEntTemplateResources()
+{
+	const char* myModel = MyOwnModel();
+	if (myModel)
+		PRECACHE_MODEL(myModel);
+
+	PrecacheRegenAndPowerShield();
+	PrecacheEntTemplateResources();
+}
+
+void CBaseEntity::RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(const NamedVisual &visual)
+{
+	RegisterVisualAsMineOwn(visual);
+	PrecacheEntTemplateResources();
+}
+
 int CBaseEntity::Save( CSave &save )
 {
 	if( save.WriteEntVars( "ENTVARS", pev ) )
@@ -1517,13 +1524,20 @@ static void PrecacheSequenceSounds(CBaseEntity* pEntity, bool precacheSounds, bo
 	void *pmodel = GET_MODEL_PTR(pEntity->edict());
 	if (!pmodel)
 	{
-		// Doens't have a model? It means entity is not spawned and if we're doing precache for the spawner
-		// This must happen AFTER the model has been precached!
+		// Doesn't have a model? It means entity is not spawned yet. Assign a model temporarily
+		// NOTE: This must happen AFTER the model has been precached!
 		const char* model = pEntity->MyOwnModel();
 		if (model)
 		{
+			string_t smodel = pEntity->pev->model;
+			int modelIndex = pEntity->pev->modelindex;
+
 			SET_MODEL(pEntity->edict(), model);
 			pmodel = GET_MODEL_PTR(pEntity->edict());
+
+			pEntity->pev->model = smodel;
+			pEntity->pev->modelindex = modelIndex;
+
 			if (!pmodel)
 				return;
 		}
@@ -1635,7 +1649,6 @@ void CBaseEntity::PrecacheChildren(const char *childDefaultClassname, bool rever
 					pMonster->m_reverseRelationship = reverseRelationship;
 				}
 				pEntity->Precache();
-				pEntity->PrecacheEntTemplateResources();
 
 				// TODO: children might have different sizes. For now report the largest
 				if (vecMin || vecMax)
@@ -1792,11 +1805,6 @@ void CBaseEntity::FillKeyValues(const std::map<std::string, std::string>* parame
 
 		DispatchKeyValue(edict(), &kvd);
 	}
-}
-
-void CBaseEntity::Activate()
-{
-	PrecacheEntTemplateResources();
 }
 
 // Initialize absmin & absmax to the appropriate box

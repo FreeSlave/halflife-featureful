@@ -121,7 +121,7 @@ const NamedVisual CChargedBolt::hitBeamVisual = BuildVisual("ChargedBolt.HitBeam
 
 void CChargedBolt::Precache()
 {
-	RegisterVisualAsMineOwn(spriteVisual);
+	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spriteVisual);
 	RegisterVisual(beamVisual);
 	RegisterVisual(hitBeamVisual);
 }
@@ -813,7 +813,7 @@ void CVoltigore::Spawn()
 //=========================================================
 void CVoltigore::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel(DefaultGibModel());
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
@@ -1186,7 +1186,7 @@ void CBabyVoltigore::Spawn()
 //=========================================================
 void CBabyVoltigore::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	PrecacheMyGibModel();
 
 	SoundScriptParamOverride voiceParamOverride;

@@ -123,7 +123,7 @@ void CCrossbowBolt::Spawn()
 
 void CCrossbowBolt::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterAndPrecacheSoundScript(boltHitBody);
 	RegisterAndPrecacheSoundScript(boltHitWorld);
 }

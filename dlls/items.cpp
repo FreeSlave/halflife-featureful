@@ -616,7 +616,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 	}
 	const char* DefaultModel() override { return "models/w_suit.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
@@ -660,7 +660,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		RegisterAndPrecacheSoundScript(pickupSoundScript, Items::pickupSoundScript);
 	}
 	const char* DefaultModel() override { return "models/w_battery.mdl"; }
@@ -735,7 +735,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 		else
@@ -781,7 +781,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
 	const char* DefaultModel() override { return "models/w_rad.mdl"; }
@@ -824,7 +824,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		RegisterAndPrecacheSoundScript(pickupSoundScript);
 	}
 	const char* DefaultModel() override { return "models/w_adrenaline.mdl"; }
@@ -866,7 +866,7 @@ class CItemSecurity : public CItem
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
 	}
@@ -930,7 +930,7 @@ public:
 			ALERT(at_console, "%s without model defined! Fallbacking to the security card model\n", STRING(pev->classname));
 			pev->model = MAKE_STRING("models/w_security.mdl");
 		}
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		RegisterAndPrecacheSoundScript(Items::inventoryPickupSoundScript);
 		if (!FStringNull(pev->noise))
 			PRECACHE_SOUND( STRING(pev->noise) );
@@ -1010,7 +1010,7 @@ class CItemLongJump : public CItem
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 	}
 	const char* DefaultModel() override { return "models/w_longjump.mdl"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
@@ -1063,7 +1063,7 @@ public:
 			g_checkedFlashligthModel = true;
 		}
 
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 		RegisterAndPrecacheSoundScript(pickupSoundScript, Items::pickupSoundScript);
 	}
 	const char* DefaultModel() override
@@ -1104,7 +1104,7 @@ public:
 	}
 	void Precache() override
 	{
-		PrecacheMyModel();
+		PrecacheMyModelAndEntTemplateResources();
 	}
 	const char* DefaultModel() override { return "sprites/iunknown.spr"; }
 	bool MyTouch( CBasePlayer *pPlayer ) override
@@ -1163,13 +1163,10 @@ IMPLEMENT_SAVERESTORE(CItemGeneric, CBaseAnimating)
 void CItemGeneric::Spawn()
 {
 	Precache();
+	SetMyModel();
 	if (FStringNull(pev->model))
 	{
-		ALERT(at_console, "Spawning item_generic without model!\n");
-	}
-	else
-	{
-		SET_MODEL(ENT(pev), STRING(pev->model));
+		ALERT(at_console, "Spawning %s without model!\n", STRING(pev->classname));
 	}
 
 	if (FBitSet(pev->spawnflags, SF_ITEM_GENERIC_APPLY_GRAVITY))
@@ -1208,8 +1205,7 @@ void CItemGeneric::Spawn()
 
 void CItemGeneric::Precache()
 {
-	if (!FStringNull(pev->model))
-		PRECACHE_MODEL(STRING(pev->model));
+	PrecacheMyModelAndEntTemplateResources();
 }
 
 void CItemGeneric::KeyValue(KeyValueData* pkvd)
@@ -1520,7 +1516,7 @@ void CEyeScanner::Spawn()
 
 void CEyeScanner::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 
 	RegisterAndPrecacheSoundScript(grantedSoundScript);
 	RegisterAndPrecacheSoundScript(deniedSoundScript);

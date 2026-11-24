@@ -378,6 +378,7 @@ void CGrenade::Precache()
 
 	RegisterVisualAsMineOwn(handGrenadeVisual);
 	RegisterVisualAsMineOwn(arGrenadeVisual);
+	PrecacheEntTemplateResources();
 }
 
 void CGrenade::PrecacheBaseGrenadeSounds()
@@ -539,7 +540,7 @@ void CGrenadeRound::Spawn()
 
 void CGrenadeRound::Precache()
 {
-	PrecacheMyModel();
+	PrecacheMyModelAndEntTemplateResources();
 	RegisterVisual(trailVisual);
 	PrecacheBaseGrenadeSounds();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
