@@ -2580,6 +2580,7 @@
 	spawnflags(flags) =
 	[
 		1: "GlobalShake" : 0
+		4: "Affect in air" : 0
 	]
 	amplitude(string) : "Amplitude 0-16" : "4"
 	radius(string) : "Effect radius" : "500"

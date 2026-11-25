@@ -2635,7 +2635,6 @@ LINK_ENTITY_TO_CLASS( env_shake, CShake )
 // pev->dmg_take is duration
 // pev->dmg is radius
 // radius of 0 means all players
-// NOTE: UTIL_ScreenShake() will only shake players who are on the ground
 
 #define SF_SHAKE_EVERYONE	0x0001		// Don't check radius
 // UNDONE: These don't work yet
@@ -2687,7 +2686,7 @@ void CShake::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 		if (!TryCalcLocus_Position(this, pActivator, STRING(pev->message), pos))
 			return;
 	}
-	UTIL_ScreenShake( pos, Amplitude(), Frequency(), Duration(), Radius() );
+	UTIL_ScreenShake( pos, Amplitude(), Frequency(), Duration(), Radius(), FBitSet(pev->spawnflags, SF_SHAKE_INAIR) );
 }
 
 

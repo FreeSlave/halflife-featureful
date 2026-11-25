@@ -834,10 +834,9 @@ static short FixedSigned16( float value, float scale )
 
 // Shake the screen of all clients within radius
 // radius == 0, shake all clients
-// UNDONE: Allow caller to shake clients not ONGROUND?
 // UNDONE: Fix falloff model (disabled)?
 // UNDONE: Affect user controls?
-void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, float duration, float radius )
+void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, float duration, float radius, bool air )
 {
 	int		i;
 	float		localAmplitude;
@@ -850,7 +849,10 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 	{
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 
-		if( !pPlayer || !( pPlayer->pev->flags & FL_ONGROUND ) )	// Don't shake if not onground
+		if (!pPlayer)
+			continue;
+
+		if (!air && !FBitSet(pPlayer->pev->flags, FL_ONGROUND)) // Don't shake if not onground
 			continue;
 
 		localAmplitude = 0;
