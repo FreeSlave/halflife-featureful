@@ -382,7 +382,7 @@ void CWeaponCycler::SecondaryAttack()
 }
 
 // Flaming Wreakage
-class CWreckage : public CBaseMonster
+class CWreckage : public CBaseAnimating
 {
 	int Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
@@ -402,7 +402,7 @@ TYPEDESCRIPTION	CWreckage::m_SaveData[] =
 	DEFINE_FIELD( CWreckage, m_flStartTime, FIELD_TIME ),
 };
 
-IMPLEMENT_SAVERESTORE( CWreckage, CBaseMonster )
+IMPLEMENT_SAVERESTORE( CWreckage, CBaseAnimating )
 
 LINK_ENTITY_TO_CLASS( cycler_wreckage, CWreckage )
 
