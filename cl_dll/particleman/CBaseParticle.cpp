@@ -26,6 +26,7 @@
 #include "pm_defs.h"
 #include "pmtrace.h"
 #include "clamp.h"
+#include "hud.h"
 
 extern const Vector g_vecZero;
 extern cvar_t* cl_pman_optimize_collisions;
@@ -119,25 +120,28 @@ bool CBaseParticle::CheckVisibility()
 		m_flNextPVSCheck = gEngfuncs.GetClientTime() + 0.1;
 	}
 
-	if ((m_iRenderFlags & CULL_FRUSTUM_SPHERE) != 0)
+	if (gHUD.m_iHardwareMode != 0)
 	{
-		if (!g_cFrustum.SphereInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z, radius))
+		if ((m_iRenderFlags & CULL_FRUSTUM_SPHERE) != 0)
 		{
-			return false;
+			if (!g_cFrustum.SphereInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z, radius))
+			{
+				return false;
+			}
 		}
-	}
-	else if ((m_iRenderFlags & CULL_FRUSTUM_PLANE) != 0)
-	{
-		if (!g_cFrustum.PlaneInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z, radius))
+		else if ((m_iRenderFlags & CULL_FRUSTUM_PLANE) != 0)
 		{
-			return false;
+			if (!g_cFrustum.PlaneInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z, radius))
+			{
+				return false;
+			}
 		}
-	}
-	else if ((m_iRenderFlags & CULL_FRUSTUM_POINT) != 0)
-	{
-		if (!g_cFrustum.PointInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z))
+		else if ((m_iRenderFlags & CULL_FRUSTUM_POINT) != 0)
 		{
-			return false;
+			if (!g_cFrustum.PointInsideFrustum(m_vOrigin.x, m_vOrigin.y, m_vOrigin.z))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -216,7 +220,7 @@ void CBaseParticle::Draw()
 	const Vector topRight = lowRight + height;
 
 	gEngfuncs.pTriAPI->SpriteTexture(m_pTexture, m_iFrame);
-	gEngfuncs.pTriAPI->RenderMode(m_iRendermode);
+	gEngfuncs.pTriAPI->RenderMode(m_iRendermode == kRenderTransAlpha && gHUD.m_iHardwareMode == 0 ? kRenderTransAdd : m_iRendermode);
 	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
 
 	gEngfuncs.pTriAPI->Begin(TRI_QUADS);

@@ -648,8 +648,8 @@ void CEnvironment::Update()
 
 	m_flWeatherValue = cl_weather->value;
 
-	if( !IEngineStudio.IsHardware() )
-		m_flWeatherValue = 0;
+	if (!IEngineStudio.IsHardware())
+		m_flWeatherValue = Q_min(0.5f, cl_weather->value);
 
 	m_vecWeatherOrigin = vecOrigin;
 
