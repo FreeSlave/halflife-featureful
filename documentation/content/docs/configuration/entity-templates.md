@@ -168,7 +168,9 @@ See [inheriting templates](#inheriting-templates).
 
 ### own_visual
 
-The [visual]({{< ref visuals >}}) definition or the name of the visual from the *templates/visuals.json* for the monster's own model. This allows to change the default model of the monsters belonging to the template, the model scale or, for example, make the monsters semi-transparent:
+The [visual]({{< ref visuals >}}) definition or the name of the visual from the *templates/visuals.json* for the entity's own model. This allows to change the default model of the entities belonging to the template, the model scale or, for example, make the entity semi-transparent.
+
+This works with most entities that set a studio model for themselves: monsters, items, projectiles, Xen plants, PS2 rechargers, [item_eyescanner]({{< ref item_eyescanner >}}), [item_generic]({{< ref item_generic >}}), [env_model]({{< ref env_model >}}), [env_modeltrain]({{< ref env_modeltrain >}}) and also [env_spritetrain]({{< ref env_spritetrain >}}).
 
 ```json
 {

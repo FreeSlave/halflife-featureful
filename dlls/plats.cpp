@@ -2674,13 +2674,10 @@ void CSpriteTrain::Spawn()
 	pev->movetype = MOVETYPE_PUSH;
 	pev->effects = 0;
 
+	SetMyModel();
 	if (FStringNull(pev->model))
 	{
 		ALERT(at_console, "Spawning %s without model!\n", STRING(pev->classname));
-	}
-	else
-	{
-		SET_MODEL( ENT( pev ), STRING( pev->model ) );
 	}
 
 	if (!pev->rendermode)
@@ -2775,13 +2772,10 @@ void CModelTrain::Spawn()
 
 	pev->solid = SOLID_BBOX;
 
+	SetMyModel();
 	if (FStringNull(pev->model))
 	{
 		ALERT(at_console, "Spawning %s without model!\n", STRING(pev->classname));
-	}
-	else
-	{
-		SET_MODEL( ENT( pev ), STRING( pev->model ) );
 	}
 	UTIL_SetSize( pev, pev->mins, pev->maxs );
 	UTIL_SetOrigin( pev, pev->origin );

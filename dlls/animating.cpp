@@ -175,12 +175,8 @@ void CBaseAnimating::DispatchAnimEvents( float flInterval )
 	MonsterEvent_t	event;
 
 	void *pmodel = GET_MODEL_PTR( ENT( pev ) );
-
-	if( !pmodel )
-	{
-		ALERT( at_aiconsole, "Gibbed %s is thinking!\n", STRING(pev->classname) );
+	if (!pmodel)
 		return;
-	}
 
 	float flStart, flEnd;
 	if (anim_dispatch_fix.value)
