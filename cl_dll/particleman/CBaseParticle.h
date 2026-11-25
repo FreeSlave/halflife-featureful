@@ -7,7 +7,6 @@
 #define TRI_ANIMATEDIE (1 << 4) //animate once and then die
 #define TRI_WATERTRACE (1 << 5)
 #define TRI_WATERTRACEKILL (1 << 6)
-#define TRI_ALLOW_DELAYED_COLLISION_CHECK (1 << 7)
 
 #define CULL_FRUSTUM_POINT (1 << 0)
 #define CULL_FRUSTUM_SPHERE (1 << 1)

@@ -32,6 +32,7 @@ static bool g_iRenderMode = true;
 
 static cvar_t* cl_pmanstats = nullptr;
 cvar_t* cl_pman_optimize_collisions = nullptr;
+cvar_t* cl_pman_min_collision_delay = nullptr;
 cvar_t* cl_pman_max_collision_delay = nullptr;
 
 static std::vector<ForceMember> g_pForceList;
@@ -71,6 +72,7 @@ void IParticleMan_Active::SetUp(cl_enginefunc_t* pEnginefuncs)
 
 	cl_pmanstats = gEngfuncs.pfnRegisterVariable("cl_pmanstats", "0", 0);
 	cl_pman_optimize_collisions = gEngfuncs.pfnRegisterVariable("cl_pman_optimize_collisions", "1", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
+	cl_pman_min_collision_delay = gEngfuncs.pfnRegisterVariable("cl_pman_min_collision_delay", "0.01", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
 	cl_pman_max_collision_delay = gEngfuncs.pfnRegisterVariable("cl_pman_max_collision_delay", "0.1", FCVAR_CLIENTDLL|FCVAR_ARCHIVE);
 }
 

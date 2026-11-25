@@ -30,6 +30,7 @@
 
 extern const Vector g_vecZero;
 extern cvar_t* cl_pman_optimize_collisions;
+extern cvar_t* cl_pman_min_collision_delay;
 extern cvar_t* cl_pman_max_collision_delay;
 
 void CBaseParticle::InitializeSprite(Vector org, Vector normal, model_s* sprite, float size, float brightness)
@@ -357,8 +358,6 @@ void CBaseParticle::CalculateVelocity(float time)
 	m_vVelocity.z = m_vVelocity.z + gravity;
 }
 
-#define MIN_COLLISION_DELAY (1.0f / 60)
-
 void CBaseParticle::CheckCollision(float time)
 {
 	if (m_iCollisionFlags == 0)
@@ -370,13 +369,10 @@ void CBaseParticle::CheckCollision(float time)
 		return;
 
 	float collistionCheckDelay = 0.0f;
-	if ((m_iCollisionFlags & TRI_ALLOW_DELAYED_COLLISION_CHECK) != 0 && cl_pman_optimize_collisions->value > 0.0f)
+	if (cl_pman_optimize_collisions->value > 0.0f)
 	{
 		auto totalParticles = CMiniMem::Instance()->GetTotalParticles();
-		if (totalParticles > 1000)
-		{
-			collistionCheckDelay = clamp(0.000025f * totalParticles, MIN_COLLISION_DELAY, cl_pman_max_collision_delay->value);
-		}
+		collistionCheckDelay = clamp(time - g_flOldTime + 0.00002f * totalParticles, cl_pman_min_collision_delay->value, cl_pman_max_collision_delay->value);
 	}
 
 	m_flNextCollisionTime = time + collistionCheckDelay;
@@ -399,7 +395,7 @@ void CBaseParticle::CheckCollision(float time)
 		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
 		gEngfuncs.pEventAPI->EV_PlayerTrace(m_vPrevOrigin, m_vOrigin, traceFlags, -1, &trace);
 
-		if (trace.fraction != 1.0)
+		if (trace.fraction != 1.0f)
 		{
 			if (trace.ent != 0 && (m_iCollisionFlags & (TRI_COLLIDEBRUSHENTS)) != 0)
 			{
