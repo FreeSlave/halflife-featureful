@@ -121,7 +121,7 @@ const NamedVisual CChargedBolt::hitBeamVisual = BuildVisual("ChargedBolt.HitBeam
 
 void CChargedBolt::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spriteVisual);
+	PrecacheEntityResourcesWithOwnVisual(spriteVisual);
 	RegisterVisual(beamVisual);
 	RegisterVisual(hitBeamVisual);
 }
@@ -813,7 +813,7 @@ void CVoltigore::Spawn()
 //=========================================================
 void CVoltigore::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -1185,7 +1185,7 @@ void CBabyVoltigore::Spawn()
 //=========================================================
 void CBabyVoltigore::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	SoundScriptParamOverride voiceParamOverride;
 	voiceParamOverride.OverridePitchRelative(180);

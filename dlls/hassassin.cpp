@@ -494,7 +494,7 @@ void CHAssassin::Spawn()
 //=========================================================
 void CHAssassin::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(shotSoundScript);
 	RegisterAndPrecacheSoundScript(footstepSoundScript);

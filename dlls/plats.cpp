@@ -2700,7 +2700,7 @@ void CSpriteTrain::Spawn()
 
 void CSpriteTrain::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	if (!FStringNull(pev->noiseMovement))
 		PRECACHE_SOUND( STRING(pev->noiseMovement) );
 	if (!FStringNull(pev->noiseStopMoving))
@@ -2796,7 +2796,7 @@ void CModelTrain::Spawn()
 
 void CModelTrain::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	if (!FStringNull(pev->noiseMovement))
 		PRECACHE_SOUND( STRING(pev->noiseMovement) );
 	if (!FStringNull(pev->noiseStopMoving))

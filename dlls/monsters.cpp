@@ -6120,7 +6120,7 @@ void CDeadMonster::KeyValue( KeyValueData *pkvd )
 
 void CDeadMonster::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }
 
 void CDeadMonster::SpawnHelper(int bloodColor)

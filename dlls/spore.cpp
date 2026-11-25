@@ -76,7 +76,7 @@ const NamedVisual CSpore::lightVisual = BuildVisual("Spore.Light")
 
 void CSpore::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(modelVisual);
+	PrecacheEntityResourcesWithOwnVisual(modelVisual);
 	RegisterVisual(spriteVisual);
 
 	RegisterVisual(blowVisual);

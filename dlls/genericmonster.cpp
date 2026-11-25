@@ -172,7 +172,7 @@ void CGenericMonster::Spawn()
 //=========================================================
 void CGenericMonster::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }
 
 void CGenericMonster::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )
@@ -254,7 +254,7 @@ LINK_ENTITY_TO_CLASS( monster_generic_dead, CDeadGenericMonster )
 
 void CDeadGenericMonster::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }
 
 void CDeadGenericMonster::Spawn()

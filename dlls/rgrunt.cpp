@@ -182,7 +182,7 @@ void CRGrunt::Spawn()
 
 void CRGrunt::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 

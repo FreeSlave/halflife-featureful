@@ -811,7 +811,7 @@ void CScientist::Spawn()
 //=========================================================
 void CScientist::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, painSoundScript);
@@ -1327,7 +1327,7 @@ SITTING_ANIM_sitting3
 //
 void CSittingScientist::SciSpawnHelper()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	SetMyModel();
 	Precache();
 	InitBoneControllers();
@@ -1596,7 +1596,7 @@ void CCleansuitScientist::Spawn()
 
 void CCleansuitScientist::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, CScientist::dieSoundScript, CScientist::painSoundScript);
@@ -1712,7 +1712,7 @@ void CRosenberg::Precache()
 #if FEATURE_ROSENBERG_DECAY
 	PrecacheMyMonsterModel();
 #else
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	CalcTotalHeadCount();
 #endif
 
@@ -1803,7 +1803,7 @@ LINK_ENTITY_TO_CLASS( monster_civilian, CCivilian )
 
 void CCivilian::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CScientist::painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, CScientist::dieSoundScript, CScientist::painSoundScript);
@@ -1861,7 +1861,7 @@ void CKeller::Spawn()
 
 void CKeller::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

@@ -478,7 +478,7 @@ void CNihilanth::Spawn()
 
 void CNihilanth::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	UTIL_PrecacheOther( "nihilanth_energy_ball", GetProjectileOverrides() );
 	UTIL_PrecacheOther( "monster_alien_controller" );

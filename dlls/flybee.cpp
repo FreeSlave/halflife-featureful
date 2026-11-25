@@ -379,7 +379,7 @@ void CFlybee::Spawn()
 
 void CFlybee::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -1169,7 +1169,7 @@ void CFlyBall::Precache()
 {
 	RegisterAndPrecacheSoundScript(electroSoundScript);
 
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(ballVisual);
+	PrecacheEntityResourcesWithOwnVisual(ballVisual);
 	RegisterVisual(ballTrailVisual);
 }
 

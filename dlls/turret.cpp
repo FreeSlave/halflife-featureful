@@ -466,7 +466,7 @@ void CTurret::Spawn()
 void CTurret::Precache()
 {
 	CBaseTurret::Precache();
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterVisual(glowVisual);
 	RegisterAndPrecacheSoundScript(shootSoundScript);
 	RegisterAndPrecacheSoundScript(spinupCallSoundScript);
@@ -495,7 +495,7 @@ void CMiniTurret::Spawn()
 void CMiniTurret::Precache()
 {
 	CBaseTurret::Precache();
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(shootSoundScript, NPC::single9mmSoundScript);
 }
 
@@ -1382,7 +1382,7 @@ LINK_ENTITY_TO_CLASS( monster_sentry, CSentry )
 void CSentry::Precache()
 {
 	CBaseTurret::Precache();
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(shootSoundScript, NPC::single9mmSoundScript);
 }
 
@@ -1559,7 +1559,7 @@ void CBaseDeadTurret::KeyValue( KeyValueData *pkvd )
 
 void CBaseDeadTurret::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }
 
 void CBaseDeadTurret::Spawn()

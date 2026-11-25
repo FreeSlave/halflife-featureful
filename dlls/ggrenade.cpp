@@ -540,7 +540,7 @@ void CGrenadeRound::Spawn()
 
 void CGrenadeRound::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterVisual(trailVisual);
 	PrecacheBaseGrenadeSounds();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);

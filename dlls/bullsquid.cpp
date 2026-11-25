@@ -87,7 +87,7 @@ void CSquidSpit::Spawn()
 
 void CSquidSpit::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spitVisual);
+	PrecacheEntityResourcesWithOwnVisual(spitVisual);
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 	RegisterVisual(fleckVisual);// client side spittle.
@@ -208,7 +208,7 @@ void CSquidToxicSpit::Spawn()
 
 void CSquidToxicSpit::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(toxicSpitVisual);
+	PrecacheEntityResourcesWithOwnVisual(toxicSpitVisual);
 
 	RegisterAndPrecacheSoundScript(acidSoundScript);
 	RegisterAndPrecacheSoundScript(spithitSoundScript);
@@ -882,7 +882,7 @@ void CBullsquid::Spawn()
 //=========================================================
 void CBullsquid::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	UTIL_PrecacheOther("squidspit", GetProjectileOverrides());
 	if (GetSkillValue("bullsquid_toxicity") > 0.0f)

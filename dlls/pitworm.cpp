@@ -384,7 +384,7 @@ void CPitWorm::Spawn()
 //=========================================================
 void CPitWorm::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	PRECACHE_SOUND("pitworm/pit_worm_attack_eyeblast_impact.wav");
 

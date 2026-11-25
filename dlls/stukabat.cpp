@@ -58,7 +58,7 @@ void CStukaBomb::Spawn()
 
 void CStukaBomb::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(bombVisual);
+	PrecacheEntityResourcesWithOwnVisual(bombVisual);
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 }
@@ -470,7 +470,7 @@ void CStukabat::Spawn()
 
 void CStukabat::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	UTIL_PrecacheOther("stukabomb", GetProjectileOverrides());
 

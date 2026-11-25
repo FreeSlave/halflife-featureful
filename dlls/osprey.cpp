@@ -319,7 +319,7 @@ void COsprey::PrecacheImpl(const char* tailGibs, const char* engineGibs)
 {
 	PrecacheChildren(TrooperName(), m_reverseRelationship);
 
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);

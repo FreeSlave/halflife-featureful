@@ -315,7 +315,7 @@ void CArcher::SwitchArcherState()
 
 void CArcher::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(biteSoundScript);
 	RegisterAndPrecacheSoundScript(idleSoundScript);

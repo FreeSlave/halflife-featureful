@@ -522,7 +522,7 @@ void CShockTrooper::MonsterThink()
 //=========================================================
 void CShockTrooper::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterVisual(muzzleFlashVisual);
 	if (!ShouldAutoPrecacheSounds())
 	{

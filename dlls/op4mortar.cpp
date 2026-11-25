@@ -74,7 +74,7 @@ const NamedVisual CMortarShell::trailVisual = BuildVisual::Spray("Op4Mortar.Trai
 void CMortarShell::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(flySoundScript);
 }
@@ -266,7 +266,7 @@ const NamedSoundScript COp4Mortar::launchSoundScript = {
 
 void COp4Mortar::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(rotateSoundScript);
 	RegisterAndPrecacheSoundScript(launchSoundScript);
 	UTIL_PrecacheOther("mortar_shell", GetProjectileOverrides());

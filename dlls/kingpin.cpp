@@ -1216,7 +1216,7 @@ void CKingpin::Spawn()
 
 void CKingpin::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	if (!ShouldAutoPrecacheSounds())
 	{

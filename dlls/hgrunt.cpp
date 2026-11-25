@@ -1125,7 +1125,7 @@ void CHGrunt::Spawn()
 //=========================================================
 void CHGrunt::PrecacheHelper()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);// because we use the basemonster SWIPE animation event
 
 	PrecacheEquipmentDrop();

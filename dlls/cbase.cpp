@@ -1470,7 +1470,7 @@ void CBaseEntity::PrecacheRegenAndPowerShield()
 						  activeRegenUpdateSoundScript);
 }
 
-void CBaseEntity::PrecacheMyModelAndEntTemplateResources()
+void CBaseEntity::PrecacheEntityResources()
 {
 	const char* myModel = MyOwnModel();
 	if (myModel)
@@ -1480,7 +1480,7 @@ void CBaseEntity::PrecacheMyModelAndEntTemplateResources()
 	PrecacheEntTemplateResources();
 }
 
-void CBaseEntity::RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(const NamedVisual &visual)
+void CBaseEntity::PrecacheEntityResourcesWithOwnVisual(const NamedVisual &visual)
 {
 	RegisterVisualAsMineOwn(visual);
 	PrecacheEntTemplateResources();

@@ -350,7 +350,7 @@ void CTentacle::Spawn()
 
 void CTentacle::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(fliesSoundScript);
 	RegisterAndPrecacheSoundScript(squirmSoundScript);
@@ -1080,5 +1080,5 @@ void CTentacleMaw::Spawn()
 
 void CTentacleMaw::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }

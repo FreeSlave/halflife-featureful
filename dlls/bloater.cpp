@@ -125,7 +125,7 @@ void CBloater::Spawn()
 //=========================================================
 void CBloater::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }	
 
 //=========================================================
@@ -444,7 +444,7 @@ void CFloater::Spawn()
 
 void CFloater::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterVisual(blowSprayVisual);
 	RegisterVisual(blowVisual);

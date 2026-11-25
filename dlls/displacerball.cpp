@@ -100,7 +100,7 @@ void CDisplacerBall::Spawn()
 
 void CDisplacerBall::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spriteVisual);
+	PrecacheEntityResourcesWithOwnVisual(spriteVisual);
 	RegisterVisual(armBeamVisual);
 	RegisterVisual(hitBeamVisual);
 	RegisterVisual(ringVisual);

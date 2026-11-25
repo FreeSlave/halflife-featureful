@@ -862,7 +862,7 @@ void CBigMomma::Spawn()
 //=========================================================
 void CBigMomma::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(alertSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
@@ -1406,7 +1406,7 @@ void CBMortar::Spawn()
 
 void CBMortar::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(mortarVisual);// spit projectile.
+	PrecacheEntityResourcesWithOwnVisual(mortarVisual);// spit projectile.
 	RegisterVisual( mortarSprayVisual );// client side spittle.
 
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);

@@ -81,7 +81,7 @@ void CGonomeGuts::Spawn()
 
 void CGonomeGuts::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(gutsVisual);
+	PrecacheEntityResourcesWithOwnVisual(gutsVisual);
 	RegisterAndPrecacheSoundScript(spitTouchSoundScript, NPC::spitTouchSoundScript);
 	RegisterAndPrecacheSoundScript(spitHitSoundScript, NPC::spitHitSoundScript);
 }
@@ -655,7 +655,7 @@ void CGonome::Spawn()
 //=========================================================
 void CGonome::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	UTIL_PrecacheOther("gonomeguts", GetProjectileOverrides());
 

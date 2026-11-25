@@ -1114,7 +1114,7 @@ void CGargantua::Spawn()
 //=========================================================
 void CGargantua::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	SoundScriptParamOverride paramOverride;
 	paramOverride.OverridePitchAbsolute(IntRange(50, 65));
@@ -2217,7 +2217,7 @@ const NamedVisual CBabyGargantua::flameLightVisual = BuildVisual("BabyGarg.Flame
 
 void CBabyGargantua::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	SoundScriptParamOverride paramOverride;
 	paramOverride.OverridePitchAbsolute(IntRange(60, 75));

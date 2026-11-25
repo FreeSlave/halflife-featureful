@@ -493,7 +493,7 @@ bool CBarney::HasGun()
 
 void CBarney::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
@@ -847,7 +847,7 @@ void COtis::SetGunState(int gunState)
 
 void COtis::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(fireDesertEagleSoundScript, NPC::desertEagleSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript, CBarney::painSoundScript);
@@ -1035,7 +1035,7 @@ void CBarniel::Spawn()
 
 void CBarniel::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
@@ -1225,7 +1225,7 @@ void CKate::Spawn()
 
 void CKate::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

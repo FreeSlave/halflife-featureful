@@ -274,7 +274,7 @@ void CApache::Spawn()
 
 void CApache::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
@@ -1246,7 +1246,7 @@ void CApacheHVR::Spawn()
 void CApacheHVR::Precache()
 {
 	PrecacheBaseGrenadeSounds();
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(modelVisual);
+	PrecacheEntityResourcesWithOwnVisual(modelVisual);
 	RegisterVisual(trailVisual);
 	RegisterAndPrecacheSoundScript(rpgSoundScript);
 }

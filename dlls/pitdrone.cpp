@@ -112,7 +112,7 @@ void CPitdroneSpike::Spawn()
 
 void CPitdroneSpike::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(spikeVisual);
+	PrecacheEntityResourcesWithOwnVisual(spikeVisual);
 	RegisterAndPrecacheSoundScript(hitWorldSoundScript);
 	RegisterAndPrecacheSoundScript(hitBodySoundScript);
 	RegisterVisual(trailVisual);
@@ -641,7 +641,7 @@ void CPitdrone::Spawn()
 //=========================================================
 void CPitdrone::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterVisual(tinySpitVisual);// client side spittle.
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);

@@ -118,7 +118,7 @@ const NamedVisual CGeneWormCloud::cloudVisual = BuildVisual("GeneWorm.Cloud")
 
 void CGeneWormCloud::Precache()
 {
-	RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(cloudVisual);
+	PrecacheEntityResourcesWithOwnVisual(cloudVisual);
 }
 
 void CGeneWormCloud::Spawn()
@@ -899,7 +899,7 @@ void CGeneWorm::Spawn()
 
 void CGeneWorm::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

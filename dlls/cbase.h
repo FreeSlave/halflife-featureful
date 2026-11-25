@@ -526,8 +526,8 @@ public:
 	const char* MyOwnModel();
 	void SetMyModel();
 	void PrecacheRegenAndPowerShield();
-	void PrecacheMyModelAndEntTemplateResources();
-	void RegisterVisualAsMineOwnAndPrecacheEntTemplateResources(const NamedVisual &visual);
+	void PrecacheEntityResources();
+	void PrecacheEntityResourcesWithOwnVisual(const NamedVisual &visual);
 
 	// allow engine to allocate instance data
 	void *operator new( size_t stAllocateBlock, entvars_t *pev )

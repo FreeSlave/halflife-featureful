@@ -1581,7 +1581,7 @@ void CEnvModel::Spawn()
 
 void CEnvModel::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	pev->frame = m_savedFrame;
 	pev->animtime = m_savedAnimTime;
 }
@@ -2019,7 +2019,7 @@ void CShot::Spawn()
 
 void CShot::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 }
 
 void CShot::LaunchAsProjectile(const ProjectileParameters& params)
@@ -3128,7 +3128,7 @@ const NamedSoundScript CItemSoda::drinkSoundScript = {
 
 void CItemSoda::Precache()
 {
-	PrecacheMyModelAndEntTemplateResources();
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(bounceSoundScript);
 	RegisterAndPrecacheSoundScript(drinkSoundScript);
 }
