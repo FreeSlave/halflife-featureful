@@ -21,6 +21,10 @@ bookToC: false
 
 `Race X Shock`
 
+### Default gib model
+
+**models/vgibs.mdl**
+
 ### Default display name
 
 `Voltigore`

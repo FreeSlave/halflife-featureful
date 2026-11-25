@@ -49,6 +49,10 @@ If you just remove the aircraft (without turning it off first) while it's moving
 
 `Apache`
 
+### Default gib model
+
+**models/metalplategibs_green.mdl**
+
 ### Soundscripts
 
 * **Apache.Rotor** - rotor sound during the flight. Must be looped.

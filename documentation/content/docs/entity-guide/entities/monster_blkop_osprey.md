@@ -12,3 +12,9 @@ Behaves the same way as regular Osprey, but deploys male assassins instead of hu
 ### Default classification
 
 `Machine` or `Blackops` if `blackops_classify` server feature is enabled.
+
+### Default gib model
+
+* Main gibs: **models/blkop_bodygibs.mdl**
+* Tail gibs: **models/blkop_tailgibs.mdl**
+* Engine gibs: **models/blkop_enginegibs.mdl**

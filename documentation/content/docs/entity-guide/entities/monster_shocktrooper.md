@@ -23,6 +23,10 @@ bookToC: false
 
 `Race X Shock`
 
+### Default gib model
+
+**models/strooper_gibs.mdl**
+
 ### Default display name
 
 `Shock Trooper`

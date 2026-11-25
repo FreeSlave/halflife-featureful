@@ -30,6 +30,10 @@ bookToC: false
 
 `Gargantua`
 
+### Default gib model
+
+**models/metalplategibs.mdl**
+
 ### Soundscripts
 
 * **Garg.Stomp** - stomp projectile sound. Must be looped. Emitted from stomp projectile.

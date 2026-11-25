@@ -63,6 +63,12 @@ If you just remove the aircraft (without turning it off first) while it's moving
 
 `Osprey`
 
+### Default gib model
+
+* Main gibs: **models/osprey_bodygibs.mdl**
+* Tail gibs: **models/osprey_tailgibs.mdl**
+* Engine gibs: **models/osprey_enginegibs.mdl**
+
 ### Soundscripts
 
 * **Osprey.Pain** - pain sound. Empty by default.

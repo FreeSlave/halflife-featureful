@@ -25,6 +25,10 @@ The skill variable names might be confusing as pitdrones don't bite and don't ha
 
 `Race X Predator`
 
+### Default gib model
+
+**models/pit_drone_gibs.mdl**
+
 ### Default display name
 
 `Pit Drone`

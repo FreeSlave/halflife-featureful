@@ -10,3 +10,7 @@ Blackops Apache helicopter. Uses same parameters, skill variables, soundscripts 
 ### Default classification
 
 `Human Military` or `Blackops` if `blackops_classify` server feature is enabled.
+
+### Default gib model
+
+**models/metalplategibs_dark.mdl** (this is different from Opposing Force where the Blackops Apache still uses **models/metalplategibs_green.mdl** - same as regular Apache)
