@@ -1258,8 +1258,6 @@ void CBasePlayer::RemoveAllItems( int stripFlags )
 {
 	RemoveAllWeapons();
 
-	ReleaseTank();
-
 	m_iTrain = TRAIN_NEW; // turn off train
 
 	if (FBitSet(stripFlags, STRIP_SUITLIGHT)) {
@@ -1976,6 +1974,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 		WRITE_STRING( "" );
 	MESSAGE_END();
 
+	ReleaseTank();
 	// Remove all the player's stuff
 	RemoveAllItems( STRIP_ALL_ITEMS );
 

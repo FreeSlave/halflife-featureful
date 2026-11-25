@@ -645,6 +645,7 @@ void CHalfLifeMultiplay::ClientDisconnected( edict_t *pClient )
 					GETPLAYERUSERID( pPlayer->edict() ) );
 			}
 
+			pPlayer->ReleaseTank();
 			pPlayer->RemoveAllItems( STRIP_ALL_ITEMS );// destroy all of the players weapons and items
 		}
 	}
