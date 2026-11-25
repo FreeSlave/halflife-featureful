@@ -1217,7 +1217,6 @@ void CKingpin::Spawn()
 void CKingpin::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	if (!ShouldAutoPrecacheSounds())
 	{

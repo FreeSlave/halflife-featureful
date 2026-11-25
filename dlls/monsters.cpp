@@ -4137,6 +4137,8 @@ void CBaseMonster::PrecacheEntTemplateResources()
 {
 	CBaseToggle::PrecacheEntTemplateResources();
 
+	m_iBodyGibs = PrecacheMyGibModel();
+
 	bool canCloak = false;
 
 	const EntTemplate* entTemplate = GetMyEntTemplate();
@@ -4924,15 +4926,17 @@ Visual CBaseMonster::MyGibVisual()
 	return result;
 }
 
-int CBaseMonster::PrecacheMyGibModel(const char *model)
+int CBaseMonster::PrecacheMyGibModel()
 {
 	const char* nonDefaultModel = MyNonDefaultGibModel();
 	if (nonDefaultModel)
 	{
 		return PRECACHE_MODEL(nonDefaultModel);
 	}
-	if (model)
-		return PRECACHE_MODEL(model);
+
+	const char* defaultModel = DefaultGibModel();
+	if (defaultModel)
+		return PRECACHE_MODEL(defaultModel);
 	return 0;
 }
 
@@ -6117,7 +6121,6 @@ void CDeadMonster::KeyValue( KeyValueData *pkvd )
 void CDeadMonster::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 void CDeadMonster::SpawnHelper(int bloodColor)

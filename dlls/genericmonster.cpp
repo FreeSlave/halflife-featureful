@@ -173,7 +173,6 @@ void CGenericMonster::Spawn()
 void CGenericMonster::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 void CGenericMonster::PlayScriptedSentence(const char *pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity *pListener )
@@ -256,7 +255,6 @@ LINK_ENTITY_TO_CLASS( monster_generic_dead, CDeadGenericMonster )
 void CDeadGenericMonster::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 void CDeadGenericMonster::Spawn()
@@ -337,7 +335,6 @@ class CLoader : public CGenericMonster
 {
 public:
 	void Spawn() override;
-	void Precache() override;
 	const char* DefaultModel() override { return "models/loader.mdl"; }
 	float DefaultHealth() override { return 100; }
 
@@ -370,12 +367,6 @@ void CLoader::Spawn()
 		pev->solid = SOLID_NOT;
 		pev->takedamage = DAMAGE_NO;
 	}
-}
-
-void CLoader::Precache()
-{
-	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 void CLoader::TraceAttack(entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, Vector vecDir, TraceResult *ptr)

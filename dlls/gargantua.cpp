@@ -496,8 +496,6 @@ public:
 		return Vector( 32.0f, 32.0f, 64.0f );
 	}
 
-	int m_GargGibModel;
-
 protected:
 	virtual float FireAttackDamage();
 	virtual float StompAttackDamage();
@@ -1117,7 +1115,6 @@ void CGargantua::Spawn()
 void CGargantua::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	m_GargGibModel = PrecacheMyGibModel(DefaultGibModel());
 
 	SoundScriptParamOverride paramOverride;
 	paramOverride.OverridePitchAbsolute(IntRange(50, 65));
@@ -1482,7 +1479,7 @@ void CGargantua::RunTask( Task_t *pTask )
 			StopAnimation();
 			pev->nextthink = gpGlobals->time + 0.15f;
 			SetThink( &CBaseEntity::SUB_Remove );
-			int parts = MODEL_FRAMES( m_GargGibModel );
+			int parts = MODEL_FRAMES( m_iBodyGibs );
 			Visual gibVisual = MyGibVisual();
 			const EntTemplate::GibDisposition& gibDisposition = GibDisposition();
 
@@ -1530,7 +1527,7 @@ void CGargantua::RunTask( Task_t *pTask )
 				WRITE_BYTE( 200 ); 
 
 				// Model
-				WRITE_SHORT( m_GargGibModel );	//model id#
+				WRITE_SHORT( m_iBodyGibs );	//model id#
 
 				// # of shards
 				WRITE_BYTE( 50 );
@@ -2221,7 +2218,6 @@ const NamedVisual CBabyGargantua::flameLightVisual = BuildVisual("BabyGarg.Flame
 void CBabyGargantua::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	SoundScriptParamOverride paramOverride;
 	paramOverride.OverridePitchAbsolute(IntRange(60, 75));

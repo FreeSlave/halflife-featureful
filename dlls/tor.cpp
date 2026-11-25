@@ -697,7 +697,6 @@ void CTor::Precache()
 	CFollowingMonster::Precache();
 
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(idleSoundScript);

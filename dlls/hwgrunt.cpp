@@ -176,7 +176,6 @@ void CHWGrunt::Spawn()
 void CHWGrunt::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CHGrunt::painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, CHGrunt::dieSoundScript);

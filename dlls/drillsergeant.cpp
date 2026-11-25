@@ -46,7 +46,6 @@ const NamedSoundScript CDrillSergeant::dieSoundScript = {
 void CDrillSergeant::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
 	TalkInit();

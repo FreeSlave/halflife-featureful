@@ -335,7 +335,6 @@ void CFlockingFlyer::Spawn()
 void CFlockingFlyer::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
 }

@@ -40,6 +40,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	const char* DefaultModel() override { return "models/apache.mdl"; }
+	const char* DefaultGibModel() override { return "models/metalplategibs_green.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("apache_health"); }
 	void KeyValue(KeyValueData* pkvd) override;
 	int DefaultClassify() override { return CLASS_HUMAN_MILITARY; }
@@ -105,8 +106,6 @@ public:
 
 	int m_iSoundState; // don't save this
 
-	int m_iBodyGibs;
-
 	float m_flGoalSpeed;
 
 	int m_iDoSmokePuff;
@@ -131,8 +130,6 @@ public:
 	static const NamedVisual blastCircleVisual;
 
 protected:
-	void SpawnImpl();
-	void PrecacheImpl(const char* gibModel);
 	void SetRotorVolumeOverride(SoundScriptParamOverride& param)
 	{
 		if (m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f)
@@ -160,7 +157,6 @@ TYPEDESCRIPTION	CApache::m_SaveData[] =
 	//DEFINE_FIELD( CApache, m_iSoundState, FIELD_INTEGER ),		// Don't save, precached
 	//DEFINE_FIELD( CApache, m_iSpriteTexture, FIELD_INTEGER ),
 	//DEFINE_FIELD( CApache, m_iExplode, FIELD_INTEGER ),
-	//DEFINE_FIELD( CApache, m_iBodyGibs, FIELD_INTEGER ),
 	DEFINE_FIELD( CApache, m_pBeam, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CApache, m_flGoalSpeed, FIELD_FLOAT ),
 	DEFINE_FIELD( CApache, m_iDoSmokePuff, FIELD_INTEGER ),
@@ -234,11 +230,6 @@ const NamedVisual CApache::blastCircleVisual = BuildVisual("Apache.BlastCircle")
 
 void CApache::Spawn()
 {
-	SpawnImpl();
-}
-
-void CApache::SpawnImpl()
-{
 	Precache();
 	// motor
 	pev->movetype = MOVETYPE_FLY;
@@ -283,13 +274,7 @@ void CApache::SpawnImpl()
 
 void CApache::Precache()
 {
-	PrecacheImpl("models/metalplategibs_green.mdl");
-}
-
-void CApache::PrecacheImpl(const char* gibModel)
-{
 	PrecacheMyModelAndEntTemplateResources();
-	m_iBodyGibs = PrecacheMyGibModel(gibModel);
 
 	RegisterAndPrecacheSoundScript(rotorSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);
@@ -1315,9 +1300,8 @@ void CApacheHVR::LaunchAsProjectile(const ProjectileParameters &params)
 class CBlkopApache : public CApache
 {
 public:
-	void Spawn() override;
-	void Precache() override;
 	const char* DefaultModel() override { return "models/blkop_apache.mdl"; }
+	const char* DefaultGibModel() override { return "models/metalplategibs_dark.mdl"; }
 	int	DefaultClassify() override
 	{
 		if (g_modFeatures.blackops_classify)
@@ -1327,13 +1311,3 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( monster_blkop_apache, CBlkopApache )
-
-void CBlkopApache::Spawn()
-{
-	SpawnImpl();
-}
-
-void CBlkopApache::Precache()
-{
-	PrecacheImpl("models/metalplategibs_dark.mdl");
-}

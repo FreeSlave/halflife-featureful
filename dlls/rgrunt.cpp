@@ -183,7 +183,7 @@ void CRGrunt::Spawn()
 void CRGrunt::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel(DefaultGibModel());
+
 	RegisterAndPrecacheSoundScript(NPC::swishSoundScript);
 
 	PrecacheEquipmentDrop();

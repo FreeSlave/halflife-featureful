@@ -306,7 +306,6 @@ void CHeadCrab::SpawnHelper()
 void CHeadCrab::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -582,7 +581,6 @@ void CBabyCrab::Spawn()
 void CBabyCrab::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	SoundScriptParamOverride paramOverride;
 	paramOverride.OverridePitchRelative(IntRange(140, 150));
@@ -836,7 +834,6 @@ void CShockRoach::Precache()
 	}
 
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 //=========================================================

@@ -1541,7 +1541,6 @@ void CISlave::Precache()
 	RegisterVisual(summonLightVisual);
 
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);

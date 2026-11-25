@@ -883,7 +883,6 @@ void CBullsquid::Spawn()
 void CBullsquid::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	UTIL_PrecacheOther("squidspit", GetProjectileOverrides());
 	if (GetSkillValue("bullsquid_toxicity") > 0.0f)

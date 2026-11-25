@@ -499,7 +499,9 @@ const char* CBaseMonster::DefaultGibModel()
 	} else if (HasAlienGibs()) {
 		return "models/agibs.mdl";
 	}
-	return NULL;
+	// Human and alien gibs are precached by the world so it's ok to skip them.
+	// By the time the monster is spawned the blood color should be set, so HasHumanGibs and HasAlienGibs will return valid results.
+	return nullptr;
 }
 
 int CBaseMonster::DefaultGibCount()

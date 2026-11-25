@@ -656,7 +656,6 @@ void CGonome::Spawn()
 void CGonome::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	UTIL_PrecacheOther("gonomeguts", GetProjectileOverrides());
 

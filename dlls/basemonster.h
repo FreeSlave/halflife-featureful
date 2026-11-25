@@ -153,6 +153,7 @@ public:
 	
 	int m_iClass;
 	string_t m_gibModel;
+	int m_iBodyGibs; // gib model index
 
 	bool m_reverseRelationship;
 	bool m_leaping;
@@ -487,7 +488,7 @@ public:
 
 	const char* MyNonDefaultGibModel();
 	Visual MyGibVisual();
-	int PrecacheMyGibModel( const char* model = nullptr );
+	int PrecacheMyGibModel();
 	void SetMyBloodColor( int defaultBloodColor );
 	void SetMyFieldOfView(const float defaultFieldOfView );
 

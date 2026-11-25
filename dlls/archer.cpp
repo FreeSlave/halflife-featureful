@@ -316,7 +316,6 @@ void CArcher::SwitchArcherState()
 void CArcher::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(biteSoundScript);
 	RegisterAndPrecacheSoundScript(idleSoundScript);

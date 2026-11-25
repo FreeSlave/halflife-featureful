@@ -642,7 +642,6 @@ void CPitdrone::Spawn()
 void CPitdrone::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel(DefaultGibModel());
 	RegisterVisual(tinySpitVisual);// client side spittle.
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
@@ -1164,7 +1163,6 @@ class CDeadPitdrone : public CDeadMonster
 {
 public:
 	void Spawn() override;
-	void Precache() override;
 	const char* DefaultModel() override { return "models/pit_drone.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("pitdrone_health")/2; }
 	int	DefaultClassify() override { return	CLASS_RACEX_PREDATOR; }
@@ -1184,12 +1182,6 @@ const char* CDeadPitdrone::getPos(int pos) const
 }
 
 LINK_ENTITY_TO_CLASS( monster_pitdrone_dead, CDeadPitdrone )
-
-void CDeadPitdrone::Precache()
-{
-	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel(DefaultGibModel());
-}
 
 void CDeadPitdrone::Spawn()
 {

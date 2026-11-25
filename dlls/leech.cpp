@@ -308,7 +308,6 @@ void CLeech::DeathSound()
 void CLeech::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(attackSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);

@@ -188,7 +188,6 @@ void CRoach::Spawn()
 void CRoach::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(walkSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);

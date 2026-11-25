@@ -642,7 +642,6 @@ void CRoboCop::Spawn()
 void CRoboCop::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	m_RobocopGibModel = PRECACHE_MODEL( "models/metalplategibs.mdl" );
 

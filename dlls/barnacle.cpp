@@ -465,7 +465,6 @@ void CBarnacle::WaitTillDead()
 void CBarnacle::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(alertSoundScript);//happy, lifting food up
 	RegisterAndPrecacheSoundScript(biteSoundScript);//just got food to mouth

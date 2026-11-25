@@ -46,6 +46,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	const char* DefaultModel() override { return "models/osprey.mdl"; }
+	const char* DefaultGibModel() override { return "models/osprey_bodygibs.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("osprey"); }
 	void KeyValue(KeyValueData* pkvd) override;
 	const char* DefaultDisplayName() override { return "Osprey"; }
@@ -114,7 +115,6 @@ public:
 	int m_iPitch;
 
 	int m_iTailGibs;
-	int m_iBodyGibs;
 	int m_iEngineGibs;
 
 	int m_iDoLeftSmokePuff;
@@ -144,7 +144,7 @@ public:
 	static const NamedVisual blastCircleVisual;
 
 protected:
-	void PrecacheImpl(const char* tailGibs, const char* bodyGibs, const char* engineGibs);
+	void PrecacheImpl(const char* tailGibs, const char* engineGibs);
 	virtual const char* TrooperName();
 	bool HasCustomRotorVolume() const {
 		return m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f;
@@ -312,10 +312,10 @@ void COsprey::Spawn()
 
 void COsprey::Precache()
 {
-	PrecacheImpl("models/osprey_tailgibs.mdl", "models/osprey_bodygibs.mdl", "models/osprey_enginegibs.mdl");
+	PrecacheImpl("models/osprey_tailgibs.mdl", "models/osprey_enginegibs.mdl");
 }
 
-void COsprey::PrecacheImpl(const char* tailGibs, const char* bodyGibs, const char* engineGibs)
+void COsprey::PrecacheImpl(const char* tailGibs, const char* engineGibs)
 {
 	PrecacheChildren(TrooperName(), m_reverseRelationship);
 
@@ -332,7 +332,6 @@ void COsprey::PrecacheImpl(const char* tailGibs, const char* bodyGibs, const cha
 	RegisterVisual(NPC::ropeVisual);
 
 	m_iTailGibs = PRECACHE_MODEL( tailGibs );
-	m_iBodyGibs = PRECACHE_MODEL( bodyGibs );
 	m_iEngineGibs = PRECACHE_MODEL( engineGibs );
 }
 
@@ -1233,6 +1232,7 @@ class CBlkopOsprey : public COsprey
 public:
 	void Precache() override;
 	const char* DefaultModel() override { return "models/blkop_osprey.mdl"; }
+	const char* DefaultGibModel() override { return "models/blkop_bodygibs.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("blkopsosprey"); }
 	void PrepareGruntBeforeSpawn(CBaseEntity* pGrunt) override;
 	int	DefaultClassify() override
@@ -1249,7 +1249,7 @@ LINK_ENTITY_TO_CLASS( monster_blkop_osprey, CBlkopOsprey )
 
 void CBlkopOsprey::Precache()
 {
-	PrecacheImpl("models/blkop_tailgibs.mdl", "models/blkop_bodygibs.mdl", "models/blkop_enginegibs.mdl");
+	PrecacheImpl("models/blkop_tailgibs.mdl", "models/blkop_enginegibs.mdl");
 }
 
 void CBlkopOsprey::PrepareGruntBeforeSpawn(CBaseEntity *pGrunt)

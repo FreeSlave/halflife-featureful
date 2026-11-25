@@ -83,8 +83,6 @@ public:
 	int DefaultChaseEnemyFailedPolicy() override { return CHASE_ENEMY_FAILED_FAIL; }
 	virtual float OneSlashDamage() { return GetSkillValue("zombie_dmg_one_slash"); }
 	virtual float BothSlashDamage() { return GetSkillValue("zombie_dmg_both_slash"); }
-protected:
-	void PrecacheSounds();
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie, CZombie )
@@ -284,12 +282,7 @@ void CZombie::Spawn()
 void CZombie::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
-	PrecacheSounds();
-}
 
-void CZombie::PrecacheSounds()
-{
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
 	RegisterAndPrecacheSoundScript(painSoundScript);

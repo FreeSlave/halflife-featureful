@@ -480,7 +480,6 @@ void CHoundeye::Spawn()
 void CHoundeye::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(idleSoundScript);
 	RegisterAndPrecacheSoundScript(alertSoundScript);
@@ -1617,7 +1616,7 @@ void CDeadHoundeye::Precache()
 		if (g_hasHoundeyeDeadModel)
 			PRECACHE_MODEL(HOUNDEYE_DEAD_MODEL);
 		PRECACHE_MODEL("models/houndeye.mdl");
-		PrecacheMyGibModel();
+		PrecacheEntTemplateResources();
 	}
 	else
 	{

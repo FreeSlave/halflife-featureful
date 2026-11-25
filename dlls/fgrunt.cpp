@@ -1931,7 +1931,6 @@ void CHFGrunt::SpawnHelper()
 void CHFGrunt::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript);
@@ -2970,7 +2969,6 @@ void CTorch::Spawn()
 void CTorch::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CHFGrunt::painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, CHFGrunt::dieSoundScript);
@@ -3742,7 +3740,6 @@ void CMedic::Spawn()
 void CMedic::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 
 	RegisterAndPrecacheSoundScript(painSoundScript, CHFGrunt::painSoundScript);
 	RegisterAndPrecacheSoundScript(dieSoundScript, CHFGrunt::dieSoundScript);

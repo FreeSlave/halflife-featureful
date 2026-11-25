@@ -144,7 +144,6 @@ void CGMan::Spawn()
 void CGMan::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel();
 }
 
 //=========================================================

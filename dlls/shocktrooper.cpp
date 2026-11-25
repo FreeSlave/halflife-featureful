@@ -523,7 +523,6 @@ void CShockTrooper::MonsterThink()
 void CShockTrooper::Precache()
 {
 	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel(DefaultGibModel());
 	RegisterVisual(muzzleFlashVisual);
 	if (!ShouldAutoPrecacheSounds())
 	{
@@ -638,7 +637,6 @@ class CDeadStrooper : public CDeadMonster
 {
 public:
 	void Spawn() override;
-	void Precache() override;
 	const char* DefaultModel() override { return "models/strooper.mdl"; }
 	float DefaultHealth() override { return GetSkillValue("shocktrooper_health")/2; }
 	int	DefaultClassify() override { return	CLASS_RACEX_SHOCK; }
@@ -661,12 +659,6 @@ const char* CDeadStrooper::getPos(int pos) const
 }
 
 LINK_ENTITY_TO_CLASS( monster_shocktrooper_dead, CDeadStrooper )
-
-void CDeadStrooper::Precache()
-{
-	PrecacheMyModelAndEntTemplateResources();
-	PrecacheMyGibModel(DefaultGibModel());
-}
 
 void CDeadStrooper::Spawn()
 {
