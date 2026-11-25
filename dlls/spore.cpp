@@ -301,6 +301,7 @@ class CSporeAmmo : public CBaseEntity
 public:
 	void Spawn() override;
 	void Precache() override;
+	const char* DefaultModel() override { return "models/spore_ammo.mdl"; }
 	void EXPORT IdleThink();
 	void EXPORT AmmoTouch( CBaseEntity *pOther );
 	TakeDamageResult TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo ) override;
@@ -308,10 +309,10 @@ public:
 	int SizeForGrapple() override { return GRAPPLE_FIXED; }
 
 	static const NamedSoundScript ammoSoundScript;
+	static const NamedSoundScript pukeSoundScript;
 
-	int m_iExplode;
+	static const NamedVisual spriteVisual;
 };
-
 
 typedef enum
 {
@@ -332,12 +333,27 @@ const NamedSoundScript CSporeAmmo::ammoSoundScript = {
 	"Spore.Ammo"
 };
 
+const NamedSoundScript CSporeAmmo::pukeSoundScript = {
+	CHAN_WEAPON,
+	{},
+	"Spore.AmmoPuke"
+};
+
+const NamedVisual CSporeAmmo::spriteVisual = BuildVisual("Spore.AmmoSprite")
+		.Model("sprites/spore_exp_c_01.spr")
+		.RenderMode(kRenderGlow)
+		.RenderFx(kRenderFxNoDissipation)
+		.Alpha(255)
+		.Scale(1.0f)
+		.Framerate(12.0f);
+
 void CSporeAmmo::Precache()
 {
-	PRECACHE_MODEL("models/spore_ammo.mdl");
-	m_iExplode = PRECACHE_MODEL ("sprites/spore_exp_c_01.spr");
+	PrecacheEntityResources();
 	RegisterAndPrecacheSoundScript(ammoSoundScript);
-	UTIL_PrecacheOther ( "spore" );
+	RegisterAndPrecacheSoundScript(pukeSoundScript);
+	RegisterVisual(spriteVisual);
+	UTIL_PrecacheOther("spore", GetProjectileOverrides());
 }
 //=========================================================
 // Spawn
@@ -345,7 +361,7 @@ void CSporeAmmo::Precache()
 void CSporeAmmo::Spawn()
 {
 	Precache();
-	SET_MODEL(ENT(pev), "models/spore_ammo.mdl");
+	SetMyModel();
 	UTIL_SetSize(pev, Vector( -16, -16, -16 ), Vector( 16, 16, 16 ));
 	pev->takedamage = DAMAGE_YES;
 	pev->solid			= SOLID_BBOX;
@@ -375,23 +391,15 @@ void CSporeAmmo::Spawn()
 //=========================================================
 // Override all damage
 //=========================================================
-TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& damageInfo )
+TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, const DamageInfo& inputDamageInfo )
 {
+	TakeDamageResult takeDamageResult;
+
 	if (pev->body != 0)
 	{
-		Vector vecSrc = pev->origin + gpGlobals->v_forward * -32;
-
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-			WRITE_VECTOR( vecSrc );	// Send to PAS because of the sound
-			WRITE_SHORT( m_iExplode );
-			WRITE_BYTE( 25  ); // scale * 10
-			WRITE_BYTE( 12  ); // framerate
-			WRITE_BYTE( TE_EXPLFLAG_NOSOUND );
-		MESSAGE_END();
-
-
-		//ALERT( at_console, "angles %f %f %f\n", pev->angles.x, pev->angles.y, pev->angles.z );
+		DamageInfo damageInfo = TransformDamageInfo(pevInflictor, pevAttacker, inputDamageInfo);
+		if (damageInfo.mustSkip)
+			return takeDamageResult;
 
 		Vector angles = pev->angles;
 		angles.x -= 90;
@@ -408,15 +416,21 @@ TakeDamageResult CSporeAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pev
 		params.variant = CSpore::GRENADE_PUKED;
 		CBaseEntity::CreateAndLaunchAsProjectile(params);
 
+		EmitSoundScript(pukeSoundScript);
+
 		pev->frame = 0;
 		pev->animtime		= gpGlobals->time + 0.1;
 		pev->sequence		= SPOREAMMO_SNATCHDOWN;
 		pev->body			= 0;
 		pev->nextthink = gpGlobals->time + 0.66f;
 		SetThink (&CSporeAmmo::IdleThink);
-		return TakeDamageResult().SetTookDamageToHealth();
+
+		const Vector vecSrc = pev->origin + gpGlobals->v_forward * 16;
+		SendSprite(vecSrc, GetVisual(spriteVisual));
+
+		return takeDamageResult.SetTookDamageToHealth();
 	}
-	return TakeDamageResult();
+	return takeDamageResult;
 }
 
 void CSporeAmmo::IdleThink()
