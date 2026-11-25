@@ -1983,7 +1983,7 @@
 	]
 ]
 
-@PointClass base(Targetname, EntityTemplate) size(-16 -16 -16, 16 16 16) = env_blowercannon : "Blower Cannon"
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blowercannon : "Blower Cannon"
 [
 	position(string) : "Position (blank = here) [LP]"
 	direction(string) : "Direction (blank = shoot at target) [LV]"
@@ -2021,9 +2021,10 @@
 		"env_genewormcloud": "env_genewormcloud"
 		"flyball": "flyball (Flybee)"
 	]
+	ent_template(string): "Entity template (for projectile)" : : "A template name from templates/entities.json"
 	detonation_delay(string) : "Grenade detonation delay"
 	speed(string) : "Custom projectile speed"
-	weaptype(choices) : "[Deprecated] Projectile Type (preset)" : -1 =
+	weaptype(choices) : "[Op4 compat/Deprecated] Projectile Type (preset)" : -1 =
 	[
 		-1: "Nothing"
 		0: "Squid spit"
@@ -2274,7 +2275,7 @@
 	model(studio) : "Model name"
 	skin(integer) : "Skin" : 0
 	body(integer) : "Body" : 0
-	frame(integer) : "Starting frame (-1..255)"
+	frame(integer) : "Starting frame (-1..255)" : : "Negative value means random starting frame"
 	m_iszSequence_On(string) : "Sequence when on"
 	m_iAction_On(choices) : "Behaviour when on" : 0 =
 	[
@@ -2830,7 +2831,7 @@
 	soundpitch(integer) : "Movesound Pitch (def.=100)"
 ]
 
-@PointClass studio() base(Targetname, RenderFields, BaseTrain, SoundRadius) size(-16 -16 -16, 16 16 16) color(0 128 255) = env_modeltrain : "Model Train"
+@PointClass studio() base(Targetname, RenderFields, BaseTrain, SoundRadius, Colormap, EntityTemplate) size(-16 -16 -16, 16 16 16) color(0 128 255) = env_modeltrain : "Model Train"
 [
 	model(studio) : "Model"
 	scale(string) : "Model Scale"
@@ -2848,7 +2849,7 @@
 	]
 ]
 
-@PointClass sprite() base(Targetname, RenderFields, BaseTrain, SoundRadius) size(-16 -16 -16, 16 16 16) color(0 128 255) = env_spritetrain : "Sprite Train"
+@PointClass sprite() base(Targetname, RenderFields, BaseTrain, SoundRadius, EntityTemplate) size(-16 -16 -16, 16 16 16) color(0 128 255) = env_spritetrain : "Sprite Train"
 [
 	model(sprite) : "Sprite Name" : "sprites/glow01.spr"
 	scale(string) : "Sprite Scale"
@@ -4460,7 +4461,7 @@
 	template(string) : "info_item_random entity"
 ]
 
-@PointClass base(Targetname, Appearflags, Angles, Global, RenderFields, Scalable, EntityEffects, Colormap) studio() = item_generic : "Generic scenery item"
+@PointClass base(Targetname, Appearflags, Angles, Global, RenderFields, Scalable, EntityEffects, Colormap, EntityTemplate) studio() = item_generic : "Generic scenery item"
 [
 	model(studio) : "Model" : "models/w_security.mdl"
 	sequencename(string) : "Sequence Name"
@@ -8168,6 +8169,7 @@
 [
 	target(target_destination) : "Target On Release" : : "Targets which are fired whenever a monster is spawned."
 	monstertype(string) : "Monster Type" : "monster_headcrab" : "Spawned monster's classname"
+	ent_template(string): "Entity template (for child)" : : "A template name from templates/entities.json"
 	netname(target_source) : "Childrens' Name (Targetname)" : : "The spawned monster will receive it as its targetname."
 
 	monstercount(integer) : "Number of Monsters" : 1 : "How many monsters the monstermaker can create (-1 = unlimited)"
@@ -8240,7 +8242,7 @@
 	new_model(studio) : "Custom model"
 ]
 
-@BaseClass base(MonsterMakerBase, EntityTemplate, MonsterExtra, FollowingMonsterProps, CustomSentences) flags(Angle) size(-16 -16 0, 16 16 72) color(245 128 96) = MonsterMaker
+@BaseClass base(MonsterMakerBase, MonsterExtra, FollowingMonsterProps, CustomSentences) flags(Angle) size(-16 -16 0, 16 16 72) color(245 128 96) = MonsterMaker
 [
 	spawnflags(Flags) =
 	[
