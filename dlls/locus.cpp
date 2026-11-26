@@ -17,7 +17,7 @@ bool IsLikelyNumber(const char* szText)
 	return (*szText >= '0' && *szText <= '9') || *szText == '-';
 }
 
-bool TryCalcLocus_Position(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError)
+bool TryCalcLocus_Position(CBaseEntity *pEntity, CBaseEntity *pLocus, const char *szText, Vector& result, bool showError, CBaseEntity** pFoundEntity)
 {
 	if (IsLikelyNumber(szText))
 	{ // it's a vector
@@ -30,6 +30,8 @@ bool TryCalcLocus_Position(CBaseEntity *pEntity, CBaseEntity *pLocus, const char
 	CBaseEntity *pCalc = UTIL_FindEntityByTargetname(NULL, szText, pLocus);
 	if (pCalc != NULL)
 	{
+		if (pFoundEntity)
+			*pFoundEntity = pCalc;
 		return pCalc->CalcPosition( pLocus, &result );
 	}
 

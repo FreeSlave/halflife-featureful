@@ -6169,13 +6169,28 @@ void CMotionThread::MotionThink()
 
 	Vector vecTemp = g_vecZero;
 	Vector vecOld = g_vecZero;
+	CBaseEntity* pFoundEntity = nullptr;
 
 	if (m_iszPosition)
 	{
 		switch (m_iPosMode)
 		{
 		case POSMODE_SET: // set position
-			if (TryCalcLocus_Position( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError )) {
+			if (TryCalcLocus_Position( this, m_hLocus, STRING(m_iszPosition), vecTemp, !m_reportedPosError, &pFoundEntity )) {
+
+				if (pFoundEntity && pFoundEntity->pev->movetype == MOVETYPE_PUSH && vecTemp == pFoundEntity->pev->origin)
+				{
+					if (ENTINDEX(pFoundEntity->edict()) >= ENTINDEX(edict()))
+					{
+						float movetime = gpGlobals->frametime;
+						const float thinktime = pFoundEntity->pev->nextthink;
+						if (thinktime < pFoundEntity->pev->ltime + movetime)
+							movetime = Q_max(thinktime - pFoundEntity->pev->ltime, 0.0f);
+
+						vecTemp += pFoundEntity->pev->velocity * movetime;
+					}
+				}
+
 				printAffect("DEBUG: Set origin", m_hTarget->pev->origin, vecTemp);
 				UTIL_AssignOrigin(m_hTarget, vecTemp);
 			}
