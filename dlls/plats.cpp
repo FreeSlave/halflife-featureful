@@ -2732,6 +2732,7 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void KeyValue(KeyValueData *pkvd) override;
+	void SetObjectCollisionBox() override;
 	void AdvanceAnimation();
 	void Next() override;
 	void TrainThink() override;
@@ -2826,6 +2827,21 @@ void CModelTrain::KeyValue(KeyValueData *pkvd)
 	}
 	else
 		CFuncTrain::KeyValue(pkvd);
+}
+
+void CModelTrain::SetObjectCollisionBox()
+{
+	Vector mins, maxs;
+	if (ExtractBbox(pev->sequence, mins, maxs))
+	{
+		const float scale = pev->scale > 0.0f ? pev->scale : 1.0f;
+		pev->absmin = pev->origin + mins * scale;
+		pev->absmax = pev->origin + maxs * scale;
+	}
+	else
+	{
+		CFuncTrain::SetObjectCollisionBox();
+	}
 }
 
 void CModelTrain::AdvanceAnimation()
