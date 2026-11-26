@@ -48,7 +48,8 @@ public:
 	virtual void StudioSetUpTransform( int trivial_accept );
 
 	// Set up model bone positions
-	virtual void StudioSetupBones();	
+	virtual void StudioSetupBones();
+	void StudioGetUnscaledRotationMatrix(float out[3][4]);
 
 	// Find final attachment points
 	virtual void StudioCalcAttachments();
@@ -176,6 +177,10 @@ public:
 	// Cached bone & light transformation matrices
 	float			m_rgCachedBoneTransform[MAXSTUDIOBONES][3][4];
 	float			m_rgCachedLightTransform[MAXSTUDIOBONES][3][4];
+	float			m_rgCachedAttachTransform[MAXSTUDIOBONES][3][4];
+
+	// Same as the light transform, but includes the entity scale.
+	float			m_rgAttachTransform[MAXSTUDIOBONES][3][4];
 
 	// Software renderer scale factors
 	float			m_fSoftwareXScale, m_fSoftwareYScale;
