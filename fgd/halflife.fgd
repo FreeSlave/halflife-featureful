@@ -4514,8 +4514,12 @@
 
 @PointClass base(Weapon, Targetx) size(-16 -16 0, 16 16 36) studio("models/nuke_case.mdl") = item_nuclearbomb : "Nuclear Bomb"
 [
-	initialstate(integer) : "Initial State" : 0
-	wait(integer) : "Wait" : 1
+	initialstate(choices) : "Initial State" : 0 =
+	[
+		0: "Off"
+		1 : "On"
+	]
+	wait(integer) : "Delay before can be pressed again" : 1
 ]
 
 //

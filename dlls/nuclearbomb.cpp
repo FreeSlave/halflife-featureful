@@ -32,20 +32,35 @@ public:
 
 	bool bPlayBombSound;
 	bool bBombSoundPlaying;
+
+	static const NamedSoundScript tickingSoundScript;
+
+	static const NamedVisual modelVisual;
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbombtimer, CNuclearBombTimer)
 
+const NamedSoundScript CNuclearBombTimer::tickingSoundScript = {
+	CHAN_BODY,
+	{"common/nuke_ticking.wav"},
+	0.75f,
+	ATTN_IDLE,
+	"NuclearBomb.Ticking"
+};
+
+const NamedVisual CNuclearBombTimer::modelVisual = BuildVisual("NuclearBomb.Timer")
+	.Model("models/nuke_timer.mdl");
+
 void CNuclearBombTimer::Precache()
 {
-	PRECACHE_MODEL("models/nuke_timer.mdl");
-	PRECACHE_SOUND("common/nuke_ticking.wav");
+	PrecacheEntityResourcesWithOwnVisual(modelVisual);
+	RegisterAndPrecacheSoundScript(tickingSoundScript);
 }
 
 void CNuclearBombTimer::Spawn()
 {
 	Precache();
-	SET_MODEL(ENT(pev), "models/nuke_timer.mdl");
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	pev->solid = SOLID_NOT;
 	UTIL_SetSize(pev, Vector(-16,-16,0), Vector(16,16,32));
 	pev->movetype = MOVETYPE_NONE;
@@ -69,7 +84,7 @@ void CNuclearBombTimer::NuclearBombTimerThink()
 		pev->skin = 0;
 	if (bPlayBombSound)
 	{
-		EMIT_SOUND(ENT(pev), CHAN_BODY, "common/nuke_ticking.wav", 0.75, ATTN_IDLE);
+		EmitSoundScript(tickingSoundScript);
 		bBombSoundPlaying = true;
 	}
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -90,7 +105,7 @@ void CNuclearBombTimer::SetNuclearBombTimer(bool on)
 		pev->skin = 3;
 		if (bBombSoundPlaying)
 		{
-			EMIT_SOUND_DYN(ENT(pev), CHAN_BODY, "common/nuke_ticking.wav", 0.0, 0.0, SND_STOP, PITCH_NORM);
+			StopSoundScript(tickingSoundScript);
 			bBombSoundPlaying = false;
 		}
 	}
@@ -103,19 +118,24 @@ public:
 	void Spawn() override;
 	void SetNuclearBombButton(bool on);
 	int ObjectCaps() override {return FCAP_DONT_SAVE;}
+
+	static const NamedVisual modelVisual;
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbombbutton, CNuclearBombButton)
 
+const NamedVisual CNuclearBombButton::modelVisual = BuildVisual("NuclearBomb.Button")
+	.Model("models/nuke_button.mdl");
+
 void CNuclearBombButton::Precache()
 {
-	PRECACHE_MODEL("models/nuke_button.mdl");
+	PrecacheEntityResourcesWithOwnVisual(modelVisual);
 }
 
 void CNuclearBombButton::Spawn()
 {
 	Precache();
-	SET_MODEL(ENT(pev), "models/nuke_button.mdl");
+	ApplyVisualWithOwn(GetVisual(modelVisual));
 	pev->solid = SOLID_NOT;
 	UTIL_SetSize(pev, Vector(-16,-16,0), Vector(16,16,32));
 	pev->movetype = MOVETYPE_NONE;
@@ -131,7 +151,7 @@ void CNuclearBombButton::Spawn()
 
 void CNuclearBombButton::SetNuclearBombButton(bool on)
 {
-	pev->skin = 1;
+	pev->skin = on ? 1 : 0;
 }
 
 class CNuclearBomb : public CBaseToggle
@@ -139,6 +159,8 @@ class CNuclearBomb : public CBaseToggle
 public:
 	void Precache() override;
 	void Spawn() override;
+	const char* DefaultModel() override { return "models/nuke_case.mdl"; }
+	void Activate() override;
 	void KeyValue(KeyValueData* pkvd) override;
 	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) override;
 	int ObjectCaps() override {return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;}
@@ -153,6 +175,9 @@ public:
 	int m_iPushCount;
 	CNuclearBombTimer* m_pTimer;
 	CNuclearBombButton* m_pButton;
+
+	static const NamedSoundScript offSoundScript;
+	static const NamedSoundScript onSoundScript;
 };
 
 LINK_ENTITY_TO_CLASS(item_nuclearbomb, CNuclearBomb)
@@ -166,21 +191,41 @@ TYPEDESCRIPTION CNuclearBomb::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE(CNuclearBomb, CBaseToggle)
 
+const NamedSoundScript CNuclearBomb::offSoundScript = {
+	CHAN_VOICE,
+	{"buttons/button4.wav"},
+	"NuclearBomb.Off"
+};
+
+const NamedSoundScript CNuclearBomb::onSoundScript = {
+	CHAN_VOICE,
+	{"buttons/button6.wav"},
+	"NuclearBomb.On"
+};
+
 void CNuclearBomb::Precache()
 {
-	PRECACHE_MODEL("models/nuke_case.mdl");
-	UTIL_PrecacheOther("item_nuclearbombtimer");
-	UTIL_PrecacheOther("item_nuclearbombbutton");
-	PRECACHE_SOUND("buttons/button4.wav");
-	PRECACHE_SOUND("buttons/button6.wav");
+	PrecacheEntityResources();
 
-	m_pTimer = (CNuclearBombTimer*)Create("item_nuclearbombtimer", pev->origin, pev->angles);
+	EntityOverrides entityOverrides = GetProjectileOverrides();
+	UTIL_PrecacheOther("item_nuclearbombtimer", entityOverrides);
+	UTIL_PrecacheOther("item_nuclearbombbutton", entityOverrides);
+
+	RegisterAndPrecacheSoundScript(offSoundScript);
+	RegisterAndPrecacheSoundScript(onSoundScript);
+}
+
+void CNuclearBomb::Activate()
+{
+	CBaseToggle::Activate();
+
+	m_pTimer = (CNuclearBombTimer*)Create("item_nuclearbombtimer", pev->origin, pev->angles, nullptr, GetProjectileOverrides());
 	if (m_pTimer)
 	{
 		m_pTimer->pev->effects = pev->effects;
 		m_pTimer->SetNuclearBombTimer(m_fOn);
 	}
-	m_pButton = (CNuclearBombButton*)Create("item_nuclearbombbutton", pev->origin, pev->angles);
+	m_pButton = (CNuclearBombButton*)Create("item_nuclearbombbutton", pev->origin, pev->angles, nullptr, GetProjectileOverrides());
 	if (m_pButton)
 	{
 		m_pButton->pev->effects = pev->effects;
@@ -191,7 +236,7 @@ void CNuclearBomb::Precache()
 void CNuclearBomb::Spawn()
 {
 	Precache();
-	SET_MODEL(ENT(pev), "models/nuke_case.mdl");
+	SetMyModel();
 	pev->solid = SOLID_BBOX;
 	UTIL_SetOrigin(pev, pev->origin);
 	UTIL_SetSize(pev, Vector(-16,-16,0), Vector(16,16,32));
@@ -226,18 +271,16 @@ void CNuclearBomb::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 {
 	if ((m_flWait >= 0 || m_iPushCount <= 0) && m_flWait <= gpGlobals->time - m_flLastPush && ShouldToggle(useType, m_fOn))
 	{
-		const char* sound = NULL;
 		if (m_fOn)
 		{
 			m_fOn = false;
-			sound = "buttons/button4.wav";
+			EmitSoundScript(offSoundScript);
 		}
 		else
 		{
 			m_fOn = true;
-			sound = "buttons/button6.wav";
+			EmitSoundScript(onSoundScript);
 		}
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, sound, VOL_NORM, ATTN_NORM);
 		SUB_UseTargets(pActivator);
 		if (m_pButton)
 		{
