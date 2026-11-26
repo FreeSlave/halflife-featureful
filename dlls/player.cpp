@@ -3034,6 +3034,8 @@ void CBasePlayer::PreThink()
 				if (m_pActiveItem)
 					m_pActiveItem->Deploy();
 
+				m_pClientActiveItem = nullptr;
+
 				m_adrenalineEndTime = gpGlobals->time + GetSkillValue("adrenaline_duration");
 				m_adrenalineDeathSaves = static_cast<int>(GetSkillValue("adrenaline_deathsaves"));
 
