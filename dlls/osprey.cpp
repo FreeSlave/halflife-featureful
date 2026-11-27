@@ -87,7 +87,6 @@ public:
 		return m_pfnThink == &COsprey::HoverThink || m_pfnThink == &COsprey::DeployThink;
 	}
 
-	CBaseEntity *m_pGoalEnt;
 	Vector m_vel1;
 	Vector m_vel2;
 	Vector m_pos1;
@@ -179,7 +178,6 @@ LINK_ENTITY_TO_CLASS( monster_osprey, COsprey )
 
 TYPEDESCRIPTION	COsprey::m_SaveData[] =
 {
-	DEFINE_FIELD( COsprey, m_pGoalEnt, FIELD_CLASSPTR ),
 	DEFINE_FIELD( COsprey, m_vel1, FIELD_VECTOR ),
 	DEFINE_FIELD( COsprey, m_vel2, FIELD_VECTOR ),
 	DEFINE_FIELD( COsprey, m_pos1, FIELD_POSITION_VECTOR ),

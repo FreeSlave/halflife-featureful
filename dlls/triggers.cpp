@@ -3981,8 +3981,6 @@ public:
 	int m_iCheckBehavior;
 	float m_fCheckInterval;
 
-	EHANDLE m_hActivator;
-
 	bool m_checkedFirstResult;
 	bool m_lastResult;
 	bool m_lastResultEvaluated;
@@ -3999,7 +3997,6 @@ TYPEDESCRIPTION	CTriggerCondition::m_SaveData[] =
 	DEFINE_FIELD( CTriggerCondition, m_iCheckType, FIELD_INTEGER ),
 	DEFINE_FIELD( CTriggerCondition, m_iCheckBehavior, FIELD_INTEGER ),
 	DEFINE_FIELD( CTriggerCondition, m_fCheckInterval, FIELD_FLOAT ),
-	DEFINE_FIELD( CTriggerCondition, m_hActivator, FIELD_EHANDLE ),
 	DEFINE_FIELD( CTriggerCondition, m_checkedFirstResult, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CTriggerCondition, m_lastResult, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CTriggerCondition, m_lastResultEvaluated, FIELD_BOOLEAN ),
@@ -8167,7 +8164,6 @@ public:
 	int Restore(CRestore &restore) override;
 	static  TYPEDESCRIPTION m_SaveData[];
 
-	float m_flHeight;
 	string_t m_triggerOnJump;
 
 	static const NamedSoundScript jumpSelfSoundScript;
@@ -8178,7 +8174,6 @@ LINK_ENTITY_TO_CLASS( trigger_jump, CTriggerJump )
 
 TYPEDESCRIPTION CTriggerJump::m_SaveData[] =
 {
-	DEFINE_FIELD(CTriggerJump, m_flHeight, FIELD_FLOAT),
 	DEFINE_FIELD(CTriggerJump, m_triggerOnJump, FIELD_STRING),
 };
 IMPLEMENT_SAVERESTORE(CTriggerJump, CBaseTrigger);

@@ -900,7 +900,6 @@ protected:
 
 	static const NamedVisual clusterBeamVisual;
 
-	const Visual* m_shieldDebrisVisual;
 	const Visual* m_glowVisual;
 };
 
