@@ -305,39 +305,6 @@ Schedule_t slSciPanic[] =
 	},
 };
 
-Task_t tlIdleSciStand[] =
-{
-	{ TASK_STOP_MOVING, 0 },
-	{ TASK_SET_ACTIVITY, (float)ACT_IDLE },
-	{ TASK_WAIT, 2.0f }, // repick IDLESTAND every two seconds.
-	{ TASK_TLK_HEADRESET, (float)0 }, // reset head position
-};
-
-Schedule_t slIdleSciStand[] =
-{
-	{
-		tlIdleSciStand,
-		ARRAYSIZE( tlIdleSciStand ),
-		bits_COND_NEW_ENEMY |
-		bits_COND_SCHEDULE_SUGGESTED |
-		bits_COND_LIGHT_DAMAGE |
-		bits_COND_HEAVY_DAMAGE |
-		bits_COND_HEAR_SOUND |
-		bits_COND_SMELL |
-		bits_COND_CLIENT_PUSH |
-		bits_COND_PROVOKED,
-		bits_SOUND_COMBAT |// sound flags
-		//bits_SOUND_PLAYER |
-		//bits_SOUND_WORLD |
-		bits_SOUND_DANGER |
-		bits_SOUND_MEAT |// scents
-		bits_SOUND_CARCASS |
-		bits_SOUND_GARBAGE,
-		"IdleSciStand"
-
-	},
-};
-
 Task_t tlScientistCover[] =
 {
 	{ TASK_SET_FAIL_SCHEDULE, (float)SCHED_PANIC },		// If you fail, just panic!
