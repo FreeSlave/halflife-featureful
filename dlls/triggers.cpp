@@ -2107,7 +2107,7 @@ class CTriggerCounter : public CBaseTrigger
 public:
 	void Spawn() override;
 	void KeyValue( KeyValueData *pkvd ) override;
-	bool CalcNumber( CBaseEntity *pLocus, float* outResult );
+	bool CalcRatio( CBaseEntity *pLocus, float* outResult ) override;
 	void EXPORT CounterUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	int		Save( CSave &save ) override;
@@ -2148,7 +2148,7 @@ void CTriggerCounter::KeyValue( KeyValueData *pkvd )
 		CBaseTrigger::KeyValue( pkvd );
 }
 
-bool CTriggerCounter::CalcNumber( CBaseEntity *pLocus, float* outResult )
+bool CTriggerCounter::CalcRatio( CBaseEntity *pLocus, float* outResult )
 {
 	*outResult = static_cast<float>(m_cTriggersLeft);
 	return true;
