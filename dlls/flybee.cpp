@@ -76,9 +76,7 @@ public:
 	void	SetYawSpeed() override;
 	float	ChangeYaw( int speed ) override;
 
-	float	VectorToPitch( const Vector &vec);
 	float	FlPitchDiff();
-	float	ChangePitch( int speed );
 
 	Vector	m_SaveVelocity;
 	float	m_idealDist;
@@ -979,20 +977,6 @@ void CFlybee::RunTask ( Task_t *pTask )
 	}
 }
 
-float CFlybee::VectorToPitch( const Vector &vec )
-{
-	float pitch;
-	if (vec.z == 0 && vec.x == 0)
-		pitch = 0;
-	else
-	{
-		pitch = (int) (std::atan2(vec.z, std::sqrt(vec.x*vec.x+vec.y*vec.y)) * 180.0f / M_PI_F);
-		if (pitch < 0)
-			pitch += 360;
-	}
-	return pitch;
-}
-
 void CFlybee::Move(float flInterval)
 {
 	CFlyingMonster::Move( flInterval );
@@ -1023,24 +1007,6 @@ float CFlybee::FlPitchDiff()
 			flPitchDiff = flPitchDiff + 360;
 	}
 	return flPitchDiff;
-}
-
-float CFlybee::ChangePitch( int speed )
-{
-	if ( pev->movetype == MOVETYPE_FLY )
-	{
-		float diff = FlPitchDiff();
-		float target = 0;
-		if ( m_IdealActivity != GetStoppedActivity() )
-		{
-			if (diff < -20)
-				target = 45;
-			else if (diff > 20)
-				target = -45;
-		}
-		pev->angles.x = UTIL_Approach(target, pev->angles.x, 220.0 * 0.1 );
-	}
-	return 0;
 }
 
 float CFlybee::ChangeYaw( int speed )

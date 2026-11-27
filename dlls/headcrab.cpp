@@ -142,10 +142,6 @@ public:
 	static const NamedSoundScript biteSoundScript;
 
 protected:
-	virtual void AttackSound() {
-		if( RANDOM_LONG(0,2) != 0 )
-			EmitSoundScript(attackSoundScript);
-	}
 	virtual void LeapSound() {
 		EmitSoundScript(leapSoundScript);
 	}

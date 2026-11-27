@@ -145,8 +145,6 @@ public:
 
 	// void EXPORT CineSpawnThink();
 	void EXPORT CineThink();
-	void Pain();
-	void Die();
 	void DelayStart( int state );
 	CBaseMonster *FindEntity();
 	bool TryFindAndPossessEntity();
@@ -169,8 +167,6 @@ public:
 		return m_fTurnType == SCRIPT_TURN_FACE && ( m_fMoveTo == SCRIPT_MOVE_FACE || (m_fMoveTo != SCRIPT_MOVE_NO && !FStrEq(STRING(m_iszAttack), STRING(m_iszMoveTarget)) ));
 	}
 
-
-	void ReleaseEntity( CBaseMonster *pEntity );
 	void CancelScript( int cancellationReason = SCRIPT_CANCELLATION_REASON_GENERIC );
 	void FireOnAnimStart(CBaseMonster *pTarget);
 	virtual bool StartSequence( CBaseMonster *pTarget, string_t iszSeq, bool completeOnEmpty );

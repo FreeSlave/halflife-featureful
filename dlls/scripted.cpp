@@ -456,23 +456,6 @@ void CCineMonster::Touch( CBaseEntity *pOther )
 }
 */
 
-
-//
-// ********** Cinematic DIE **********
-//
-void CCineMonster::Die()
-{
-	SetThink( &CBaseEntity::SUB_Remove );
-}
-
-//
-// ********** Cinematic PAIN **********
-//
-void CCineMonster::Pain()
-{
-
-}
-
 //
 // ********** Cinematic Think **********
 //

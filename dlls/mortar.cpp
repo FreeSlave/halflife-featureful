@@ -57,12 +57,6 @@ public:
 	int m_fControl;
 
 	static const NamedSoundScript launchSoundScript;
-
-	EntityOverrides MortarStrikeOverrides() {
-		EntityOverrides entityOverrides;
-		entityOverrides.ownerEntTemplate = m_entTemplate;
-		return entityOverrides;
-	}
 };
 
 LINK_ENTITY_TO_CLASS( func_mortar_field, CFuncMortarField )

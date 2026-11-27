@@ -104,7 +104,6 @@ public:
 	int SquadCount();
 	void SquadRemove( CSquadMonster *pRemove );
 	bool SquadAdd( CSquadMonster *pAdd );
-	void SquadAddConditions( int iConditions );
 	void SquadMakeEnemy( CBaseEntity *pEnemy );
 	void SquadPasteEnemyInfo();
 	void SquadCopyEnemyInfo();

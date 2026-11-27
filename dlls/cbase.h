@@ -901,7 +901,6 @@ public:
 	void InitBoneControllers();
 	float SetBlending( int iBlender, float flValue );
 	void GetBonePosition( int iBone, Vector &origin, Vector &angles );
-	void GetAutomovement( Vector &origin, Vector &angles, float flInterval = 0.1 );
 	int FindTransition( int iEndingSequence, int iGoalSequence, int *piDir );
 	void GetAttachment( int iAttachment, Vector &origin, Vector &angles );
 	void SetBodygroup( int iGroup, int iValue );

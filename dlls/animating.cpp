@@ -289,13 +289,6 @@ int CBaseAnimating::FindTransition( int iEndingSequence, int iGoalSequence, int 
 	return ::FindTransition( pmodel, iEndingSequence, iGoalSequence, piDir );
 }
 
-//=========================================================
-//=========================================================
-void CBaseAnimating::GetAutomovement( Vector &origin, Vector &angles, float flInterval )
-{
-
-}
-
 void CBaseAnimating::SetBodygroup( int iGroup, int iValue )
 {
 	::SetBodygroup( GET_MODEL_PTR( ENT( pev ) ), pev, iGroup, iValue );

@@ -518,7 +518,6 @@ int SENTENCEG_PlaySequentialSz(edict_t *entity, const char *szrootname, float vo
 int SENTENCEG_GetIndex(const char *szrootname);
 int SENTENCEG_Lookup(const char *sample, char *sentencenum);
 
-void TEXTURETYPE_Init();
 char TEXTURETYPE_Find(char *name);
 char TEXTURETYPE_Trace(const TraceResult& tr, Vector vecSrc, Vector vecEnd);
 float TEXTURETYPE_PlaySound(const TraceResult &tr, char chTextureType);

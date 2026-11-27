@@ -148,18 +148,8 @@ protected:
 	bool HasCustomRotorVolume() const {
 		return m_rotorVolume > 0.0f && m_rotorVolume <= 1.0f;
 	}
-	float RotorVolume() const {
-		if (HasCustomRotorVolume())
-		{
-			return m_rotorVolume;
-		}
-		return VOL_NORM;
-	}
 	bool HasCustomAttenuation() const {
 		return m_soundAttenuation > 0.0f;
-	}
-	float RotorAttenuation() const {
-		return HasCustomAttenuation() ? m_soundAttenuation : 0.15f;
 	}
 	void SetRotorSoundParams(SoundScriptParamOverride& param)
 	{
@@ -167,7 +157,7 @@ protected:
 		{
 			param.OverrideVolumeAbsolute(m_rotorVolume);
 		}
-		if (m_soundAttenuation > 0.0f)
+		if (HasCustomAttenuation())
 		{
 			param.OverrideAttenuationAbsolute(m_soundAttenuation);
 		}

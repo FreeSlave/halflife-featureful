@@ -376,7 +376,6 @@ public:
 	int DefaultClassify() override;
 	int Classify() override;
 	void SetAnimation( PLAYER_ANIM playerAnim );
-	void SetWeaponAnimType( const char *szExtention );
 	char m_szAnimExtention[32];
 
 	// custom player functions

@@ -291,7 +291,6 @@ public:
 	int	PrimaryAmmoIndex() const;
 	int	SecondaryAmmoIndex() const;
 	const char* AmmoName(const char* defaultAmmoName);
-	const char* SecondaryAmmoName(const char* defaultAmmoName);
 
 	void PrintState();
 
