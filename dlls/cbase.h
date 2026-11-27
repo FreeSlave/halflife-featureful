@@ -894,6 +894,7 @@ public:
 	virtual int LookupJumpActivity() { return LookupActivity(ACT_IDLE); }
 	int LookupActivityHeaviest( int activity );
 	int LookupSequence( const char *label );
+	const char *GetSequenceName( int iSequence );
 	void ResetSequenceInfo();
 	void DispatchAnimEvents( float flFutureInterval = 0.1 ); // Handle events that have happend since last time called up until X seconds into the future
 	virtual void HandleAnimEvent( MonsterEvent_t *pEvent ) { return; }

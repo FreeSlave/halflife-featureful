@@ -141,6 +141,21 @@ int CBaseAnimating::LookupSequence( const char *label )
 	return ::LookupSequence( pmodel, label );
 }
 
+const char *CBaseAnimating::GetSequenceName( int iSequence )
+{
+	if (iSequence == -1)
+	{
+		return nullptr;
+	}
+
+	void* pmodel = GET_MODEL_PTR(edict());
+
+	if (!pmodel)
+		return nullptr;
+
+	return ::GetSequenceName( pmodel, iSequence );
+}
+
 //=========================================================
 //=========================================================
 void CBaseAnimating::ResetSequenceInfo()

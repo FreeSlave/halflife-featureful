@@ -186,6 +186,23 @@ void GetSequenceInfo( void *pmodel, entvars_t *pev, float *pflFrameRate, float *
 	}
 }
 
+const char *GetSequenceName( void *pmodel, int iSequence )
+{
+	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;
+	if (!pstudiohdr || iSequence < 0 || iSequence >= pstudiohdr->numseq)
+	{
+		if (pstudiohdr)
+		{
+			ALERT( at_error, "Bad sequence in GetSequenceName() for model '%s'!\n", pstudiohdr->name );
+		}
+		return nullptr;
+	}
+
+	mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)( (byte *)pstudiohdr + pstudiohdr->seqindex ) + (int)iSequence;
+	return pseqdesc->label;
+}
+
+
 int GetSequenceFlags( void *pmodel, entvars_t *pev )
 {
 	studiohdr_t *pstudiohdr = (studiohdr_t *)pmodel;

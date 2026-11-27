@@ -205,6 +205,7 @@ struct AIExtendedSaveHeader_t
 	unsigned flags{0};
 	char szSchedule[128] = {0};
 	CRC32_t scheduleCrc;
+	char szSequence[128] = {0};
 };
 
 
@@ -220,6 +221,7 @@ TYPEDESCRIPTION	gAIScheduleSaveData[] =
 	DEFINE_FIELD( AIExtendedSaveHeader_t, flags, FIELD_INTEGER ),
 	DEFINE_ARRAY( AIExtendedSaveHeader_t, szSchedule, FIELD_CHARACTER, 128 ),
 	DEFINE_FIELD( AIExtendedSaveHeader_t, scheduleCrc, FIELD_INTEGER ),
+	DEFINE_ARRAY( AIExtendedSaveHeader_t, szSequence, FIELD_CHARACTER, 128 ),
 };
 
 int CBaseMonster::Save( CSave &save )
@@ -250,6 +252,15 @@ int CBaseMonster::Save( CSave &save )
 	{
 		saveHeader.szSchedule[0] = 0;
 		saveHeader.scheduleCrc = 0;
+	}
+
+	if (pev->sequence >= 0 && pev->modelindex && !FStringNull(pev->model) && *STRING(pev->model) != '*' && GET_MODEL_PTR(edict()))
+	{
+		const char *pszSequenceName = GetSequenceName( pev->sequence );
+		if ( pszSequenceName && *pszSequenceName )
+		{
+			strncpyEnsureTermination(saveHeader.szSequence, pszSequenceName);
+		}
 	}
 
 	save.WriteFields( "AISaveHeader", &saveHeader, gAIScheduleSaveData, ARRAYSIZE(gAIScheduleSaveData) );
@@ -297,8 +308,21 @@ int CBaseMonster::Restore( CRestore &restore )
 
 	int status = restore.ReadFields( "CBaseMonster", this, m_SaveData, ARRAYSIZE(m_SaveData) );
 
+	bool bLostSequence = false;
+	if ( saveHeader.szSequence[0] && GET_MODEL_PTR(edict()) )
+	{
+		pev->sequence = LookupSequence( saveHeader.szSequence );
+		if ( pev->sequence < 0 )
+		{
+			ALERT( at_console, "%s: discarding missing sequence %s on load.\n", STRING(pev->classname), saveHeader.szSequence );
+			pev->sequence = 0;
+			bLostSequence = true;
+		}
+	}
+
 	bool bLostScript = ( m_MonsterState == MONSTERSTATE_SCRIPT && m_pCine == NULL );
 	bool bDiscardScheduleState = ( bLostScript ||
+								  bLostSequence ||
 								  saveHeader.szSchedule[0] == 0 ||
 								  saveHeader.version != AI_EXTENDED_SAVE_HEADER_VERSION ||
 								  ( (saveHeader.flags & AIESH_HAD_ENEMY) && !m_hEnemy ) ||
