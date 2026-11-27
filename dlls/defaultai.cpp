@@ -1605,7 +1605,10 @@ Schedule_t *CBaseMonster::m_scheduleList[] =
 	slRepelLandAndMove,
 	slJumpChase,
 	slFail,
-	slCombatFail
+	slCombatFail,
+	slScriptMoveFail,
+	slWalkToScriptRadius,
+	slRunToScriptRadius,
 };
 
 Schedule_t *CBaseMonster::ScheduleFromName( const char *pName )

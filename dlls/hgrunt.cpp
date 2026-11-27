@@ -1501,7 +1501,7 @@ Schedule_t slGruntCombatFace[] =
 		bits_COND_CAN_RANGE_ATTACK1 |
 		bits_COND_CAN_RANGE_ATTACK2,
 		0,
-		"Combat Face"
+		"Grunt Combat Face"
 	},
 };
 

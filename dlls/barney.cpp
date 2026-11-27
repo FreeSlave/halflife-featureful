@@ -215,7 +215,7 @@ Schedule_t slBaRangeAttack1[] =
 		bits_COND_NOFIRE |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_DANGER,
-		"Range Attack1"
+		"Barney Range Attack1"
 	},
 };
 

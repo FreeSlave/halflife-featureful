@@ -638,6 +638,7 @@ DEFINE_CUSTOM_SCHEDULES( CHWGrunt )
 	slHWGruntContinueRangeAttack,
 	slHWGruntSpindown,
 	slHWGruntRepel,
+	slHWGruntSuppressingRangeAttack,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHWGrunt, CFollowingMonster )

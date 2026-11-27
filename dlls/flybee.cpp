@@ -575,7 +575,7 @@ Schedule_t slFlybeeTwitchDie[] =
 		ARRAYSIZE( tlFlybeeTwitchDie ),
 		0,
 		0,
-		"Die"
+		"Flybee Die"
 	},
 };
 

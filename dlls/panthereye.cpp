@@ -124,10 +124,19 @@ public:
 	void DeathSound() override {
 		EmitSoundScript(dieSoundScript);
 	}
+
+	CUSTOM_SCHEDULES
 };
 
 LINK_ENTITY_TO_CLASS( monster_panthereye, CPantherEye );
 LINK_ENTITY_TO_CLASS( monster_panther, CPantherEye );
+
+DEFINE_CUSTOM_SCHEDULES( CPantherEye )
+{
+	slPantherRangeAttack1,
+};
+
+IMPLEMENT_CUSTOM_SCHEDULES( CPantherEye, CFollowingMonster )
 
 const NamedSoundScript CPantherEye::idleSoundScript = {
 	CHAN_VOICE,

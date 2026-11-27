@@ -321,7 +321,7 @@ Schedule_t slTwitchDie[] =
 		ARRAYSIZE( tlTwitchDie ),
 		0,
 		0,
-		"Die"
+		"Ichthyosaur Die"
 	},
 };
 
