@@ -247,6 +247,7 @@ public:
 
 	bool FHaveSchedule();
 	bool FScheduleValid();
+	void DiscardScheduleState();
 	void ClearSchedule();
 	bool FScheduleDone();
 	void ChangeSchedule(Schedule_t *pNewSchedule , bool isSuggested = false);

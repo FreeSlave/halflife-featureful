@@ -92,10 +92,6 @@ static Vector TraceBottom(const Vector& pos, edict_t* pIgnore, float deepness = 
 }
 
 // Global Savedata for monster
-// UNDONE: Save schedule data?  Can this be done?  We may
-// lose our enemy pointer or other data (goal ent, target, etc)
-// that make the current schedule invalid, perhaps it's best
-// to just pick a new one when we start up again.
 TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 {
 	DEFINE_FIELD( CBaseMonster, m_hEnemy, FIELD_EHANDLE ),
@@ -114,14 +110,12 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_IdealMonsterState, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_iTaskStatus, FIELD_INTEGER ),
 
-	//Schedule_t			*m_pSchedule;
-
 	DEFINE_FIELD( CBaseMonster, m_iScheduleIndex, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_afConditions, FIELD_INTEGER ),
 	//WayPoint_t			m_Route[ ROUTE_SIZE ];
-	//DEFINE_FIELD( CBaseMonster, m_movementGoal, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_movementGoal, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBaseMonster, m_iRouteIndex, FIELD_INTEGER ),
-	//DEFINE_FIELD( CBaseMonster, m_moveWaitTime, FIELD_FLOAT ),
+	DEFINE_FIELD( CBaseMonster, m_moveWaitTime, FIELD_FLOAT ),
 
 	DEFINE_FIELD( CBaseMonster, m_vecMoveGoal, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CBaseMonster, m_movementActivity, FIELD_INTEGER ),
@@ -203,21 +197,68 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_flNextIdleTime, FIELD_TIME ),
 };
 
-//IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle )
+const short AI_EXTENDED_SAVE_HEADER_VERSION = 1;
+
+struct AIExtendedSaveHeader_t
+{
+	short version{AI_EXTENDED_SAVE_HEADER_VERSION};
+	unsigned flags{0};
+	char szSchedule[128] = {0};
+	CRC32_t scheduleCrc;
+};
+
+
+enum AIExtendedSaveHeaderFlags_t
+{
+	AIESH_HAD_ENEMY		= 0x01,
+	AIESH_HAD_TARGET	= 0x02,
+};
+
+TYPEDESCRIPTION	gAIScheduleSaveData[] =
+{
+	DEFINE_FIELD( AIExtendedSaveHeader_t, version, FIELD_SHORT ),
+	DEFINE_FIELD( AIExtendedSaveHeader_t, flags, FIELD_INTEGER ),
+	DEFINE_ARRAY( AIExtendedSaveHeader_t, szSchedule, FIELD_CHARACTER, 128 ),
+	DEFINE_FIELD( AIExtendedSaveHeader_t, scheduleCrc, FIELD_INTEGER ),
+};
 
 int CBaseMonster::Save( CSave &save )
 {
 	if( !CBaseToggle::Save( save ) )
 		return 0;
+
+	AIExtendedSaveHeader_t saveHeader;
+
+	if ( m_hEnemy )
+		saveHeader.flags |= AIESH_HAD_ENEMY;
+	if ( m_hTargetEnt )
+		saveHeader.flags |= AIESH_HAD_TARGET;
+
+	if ( m_pSchedule )
+	{
+		const char *pszSchedule = m_pSchedule->pName;
+
+		ASSERT( strlen( pszSchedule ) < sizeof( saveHeader.szSchedule ) - 1 );
+		strncpy( saveHeader.szSchedule, pszSchedule, sizeof( saveHeader.szSchedule ) - 1 );
+		saveHeader.szSchedule[sizeof(saveHeader.szSchedule) - 1] = 0;
+
+		CRC32_INIT( &saveHeader.scheduleCrc );
+		CRC32_PROCESS_BUFFER( &saveHeader.scheduleCrc, (void *)m_pSchedule->pTasklist, m_pSchedule->cTasks * sizeof(Task_t) );
+		CRC32_FINAL( saveHeader.scheduleCrc );
+	}
+	else
+	{
+		saveHeader.szSchedule[0] = 0;
+		saveHeader.scheduleCrc = 0;
+	}
+
+	save.WriteFields( "AISaveHeader", &saveHeader, gAIScheduleSaveData, ARRAYSIZE(gAIScheduleSaveData) );
+
 	return save.WriteFields( "CBaseMonster", this, m_SaveData, ARRAYSIZE( m_SaveData ) );
 }
 
-int CBaseMonster::Restore( CRestore &restore )
+void CBaseMonster::DiscardScheduleState()
 {
-	if( !CBaseToggle::Restore( restore ) )
-		return 0;
-	int status = restore.ReadFields( "CBaseMonster", this, m_SaveData, ARRAYSIZE( m_SaveData ) );
-
 	// We don't save/restore routes yet
 	RouteClear();
 
@@ -232,8 +273,63 @@ int CBaseMonster::Restore( CRestore &restore )
 	if( m_hEnemy == 0 )
 		m_afConditions = 0;
 
+	// went across a transition and lost my m_pCine
+	bool bLostScript = ( m_MonsterState == MONSTERSTATE_SCRIPT && m_pCine == NULL );
+	if ( bLostScript )
+	{
+		// UNDONE: Do something better here?
+		// for now, just go back to idle and let the AI figure out what to do.
+		SetState( MONSTERSTATE_IDLE );
+		m_IdealMonsterState = MONSTERSTATE_IDLE;
+		ALERT( at_console, "Scripted Sequence stripped on level transition for %s\n", STRING(pev->targetname) );
+	}
+}
+
+int CBaseMonster::Restore( CRestore &restore )
+{
+	AIExtendedSaveHeader_t saveHeader;
+
+	// do a normal restore
+	if ( !CBaseToggle::Restore(restore) )
+		return 0;
+
+	restore.ReadFields( "AISaveHeader", &saveHeader, gAIScheduleSaveData, ARRAYSIZE(gAIScheduleSaveData) );
+
+	int status = restore.ReadFields( "CBaseMonster", this, m_SaveData, ARRAYSIZE(m_SaveData) );
+
+	bool bLostScript = ( m_MonsterState == MONSTERSTATE_SCRIPT && m_pCine == NULL );
+	bool bDiscardScheduleState = ( bLostScript ||
+								  saveHeader.szSchedule[0] == 0 ||
+								  saveHeader.version != AI_EXTENDED_SAVE_HEADER_VERSION ||
+								  ( (saveHeader.flags & AIESH_HAD_ENEMY) && !m_hEnemy ) ||
+								  ( (saveHeader.flags & AIESH_HAD_TARGET) && !m_hTargetEnt ) );
+
+	if ( !bDiscardScheduleState )
+	{
+		m_pSchedule = ScheduleFromName( saveHeader.szSchedule );
+		if ( m_pSchedule )
+		{
+			CRC32_t scheduleCrc;
+			CRC32_INIT( &scheduleCrc );
+			CRC32_PROCESS_BUFFER( &scheduleCrc, (void *)m_pSchedule->pTasklist, m_pSchedule->cTasks * sizeof(Task_t) );
+			CRC32_FINAL( scheduleCrc );
+
+			if ( scheduleCrc != saveHeader.scheduleCrc )
+			{
+				m_pSchedule = NULL;
+			}
+		}
+	}
+
+	if ( !m_pSchedule )
+		bDiscardScheduleState = true;
+
+	if ( bDiscardScheduleState )
+		DiscardScheduleState();
+
 	return status;
 }
+
 
 //=========================================================
 // Eat - makes a monster full for a little while.

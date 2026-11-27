@@ -2322,7 +2322,7 @@ Schedule_t *CBaseMonster::GetSchedule()
 		}
 	case MONSTERSTATE_NONE:
 		{
-			ALERT( at_aiconsole, "MONSTERSTATE IS NONE!\n" );
+			ALERT( at_aiconsole, "%s: MONSTERSTATE IS NONE!\n", STRING(pev->classname) );
 			break;
 		}
 	case MONSTERSTATE_IDLE:
