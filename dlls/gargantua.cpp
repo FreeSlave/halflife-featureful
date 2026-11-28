@@ -473,12 +473,13 @@ public:
 	void EyeOn( int level );
 	void EyeUpdate();
 	void StompAttack();
-	void FlameCreate();
+	void FlameCreate(bool recreate = false);
 	void FlameUpdate();
 	void FlameControls( float angleX, float angleY );
 	void ResetFlameControls();
 	void FlameDestroy();
-	inline bool FlameIsOn() { return m_pFlame[0] != NULL; }
+	inline bool FlameIsOn() { return m_flameIsOn; }
+	bool FlameIsIntact();
 
 	void FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInflictor, entvars_t *pevAttacker, const DamageInfo& damageInfo, int iClassIgnore );
 
@@ -570,6 +571,7 @@ protected:
 
 	bool m_playedDeathEffect;
 	bool m_checkStompAttackOnly;
+	bool m_flameIsOn;
 };
 
 LINK_ENTITY_TO_CLASS( monster_gargantua, CGargantua )
@@ -585,6 +587,7 @@ TYPEDESCRIPTION	CGargantua::m_SaveData[] =
 	DEFINE_FIELD( CGargantua, m_flameY, FIELD_FLOAT ),
 	DEFINE_FIELD( CGargantua, m_stompTime, FIELD_TIME ),
 	DEFINE_FIELD( CGargantua, m_playedDeathEffect, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CGargantua, m_flameIsOn, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CGargantua, CFollowingMonster )
@@ -836,9 +839,16 @@ void CGargantua::StompAttack()
 		UTIL_DecalTrace( &trace, DECAL_GARGSTOMP1 );
 }
 
-void CGargantua::FlameCreate()
+bool CGargantua::FlameIsIntact()
 {
-	int i;
+	for( int i = 0; i < 4; i++ )
+		if (!m_pFlame[i])
+			return false;
+	return true;
+}
+
+void CGargantua::FlameCreate(bool recreate)
+{
 	Vector posGun, angleGun;
 	TraceResult trace;
 
@@ -847,15 +857,13 @@ void CGargantua::FlameCreate()
 	const Visual* bigFlameVisual = GetWideFlameVisual();
 	const Visual* smallFlameVisual = GetNarrowFlameVisual();
 
-	for( i = 0; i < 4; i++ )
+	for( int i = 0; i < 4; i++ )
 	{
-		if( i < 2 )
-			m_pFlame[i] = CreateBeamFromVisual(bigFlameVisual);
-		else
-			m_pFlame[i] = CreateBeamFromVisual(smallFlameVisual);
-		if( m_pFlame[i] )
+		CBeam* flame = CreateBeamFromVisual(i < 2 ? bigFlameVisual : smallFlameVisual);
+		m_pFlame[i] = flame;
+		if (flame)
 		{
-			m_pFlame[i]->pev->spawnflags |= SF_BEAM_TEMPORARY;
+			flame->pev->spawnflags |= SF_BEAM_TEMPORARY;
 
 			int attach = i%2;
 			// attachment is 0 based in GetAttachment
@@ -864,14 +872,17 @@ void CGargantua::FlameCreate()
 			Vector vecEnd = ( gpGlobals->v_forward * FlameLength() ) + posGun;
 			UTIL_TraceLine( posGun, vecEnd, dont_ignore_monsters, edict(), &trace );
 
-			m_pFlame[i]->PointEntInit( trace.vecEndPos, entindex() );
+			flame->PointEntInit( trace.vecEndPos, entindex() );
 			// attachment is 1 based in SetEndAttachment
-			m_pFlame[i]->SetEndAttachment( attach + 2 );
+			flame->SetEndAttachment( attach + 2 );
 			InsertAISound( bits_SOUND_COMBAT, posGun, 384, 0.3 );
 		}
 	}
-	FlameOnSound();
+	if (!recreate)
+		FlameOnSound();
 	FlameRunSound();
+
+	m_flameIsOn = true;
 }
 
 void CGargantua::FlameControls( float angleX, float angleY )
@@ -901,14 +912,22 @@ void CGargantua::ResetFlameControls()
 
 void CGargantua::FlameUpdate()
 {
-	int		i;
 	TraceResult	trace;
 	Vector		vecStart, angleGun;
 	bool		streaks = false;
 
-	for( i = 0; i < 2; i++ )
+	if (FlameIsOn() && !FlameIsIntact())
 	{
-		if( m_pFlame[i] )
+		FlameDestroy();
+		FlameCreate(true);
+	}
+
+	for( int i = 0; i < 2; i++ )
+	{
+		CBeam* flame = m_pFlame[i];
+		CBeam* flameSmall = m_pFlame[i+2];
+
+		if (flame && flameSmall)
 		{
 			Vector vecAim = pev->angles;
 			vecAim.x += m_flameX;
@@ -921,8 +940,8 @@ void CGargantua::FlameUpdate()
 
 			UTIL_TraceLine( vecStart, vecEnd, dont_ignore_monsters, edict(), &trace );
 
-			m_pFlame[i]->SetStartPos( trace.vecEndPos );
-			m_pFlame[i+2]->SetStartPos( ( vecStart * 0.6f ) + ( trace.vecEndPos * 0.4f ) );
+			flame->SetStartPos( trace.vecEndPos );
+			flameSmall->SetStartPos( ( vecStart * 0.6f ) + ( trace.vecEndPos * 0.4f ) );
 
 			if( trace.flFraction != 1.0f && gpGlobals->time > m_streakTime )
 			{
@@ -1007,6 +1026,7 @@ void CGargantua::FlameDamage( Vector vecStart, Vector vecEnd, entvars_t *pevInfl
 
 void CGargantua::FlameDestroy()
 {
+	m_flameIsOn = false;
 	for( int i = 0; i < 4; i++ )
 	{
 		UTIL_RemoveAndClean(m_pFlame[i]);

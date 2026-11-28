@@ -158,6 +158,11 @@ public:
 
 	void FistAttack();
 	void CreateLaser();
+	void EnsureBeamAndSpot(const Vector& pos);
+	void SetBeamPos(const Vector& pos);
+	void SetBeamBrightness(int brightness);
+	void SetBeamSpotBrightness(int brightness);
+
 	void ChangeLaserState();
 	void HeadControls( float angleX, float angleY, bool zeropoint );
 
@@ -174,7 +179,10 @@ public:
 
 	CSprite	*m_pLaserPointer;
 	CBeam	*m_pBeam;
+	Vector m_beamPos;
+	int m_beamBrightness;
 	CSprite	*m_pBeamSpot;
+	int m_beamSpotBrightness;
 	int	m_iLaserFlags;
 	// int	m_iLaserAlpha;
 	float	m_flHeadX;
@@ -219,8 +227,9 @@ LINK_ENTITY_TO_CLASS( monster_robocop, CRoboCop )
 TYPEDESCRIPTION	CRoboCop::m_SaveData[] =
 {
 	DEFINE_FIELD( CRoboCop, m_pLaserPointer, FIELD_CLASSPTR ),
-	DEFINE_FIELD( CRoboCop, m_pBeam, FIELD_CLASSPTR ),
-	DEFINE_FIELD( CRoboCop, m_pBeamSpot, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CRoboCop, m_beamPos, FIELD_POSITION_VECTOR ),
+	DEFINE_FIELD( CRoboCop, m_beamBrightness, FIELD_INTEGER ),
+	DEFINE_FIELD( CRoboCop, m_beamSpotBrightness, FIELD_INTEGER ),
 	DEFINE_FIELD( CRoboCop, m_iLaserFlags, FIELD_INTEGER ),
 	DEFINE_FIELD( CRoboCop, m_flLaserTime, FIELD_TIME ),
 	DEFINE_FIELD( CRoboCop, m_flFistTime, FIELD_TIME ),
@@ -463,23 +472,70 @@ void CRoboCop::CreateLaser()
 		m_pLaserPointer->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 
-	m_pBeamSpot = CreateSpriteFromVisual(m_spotVisual, pev->origin);
-	if (m_pBeamSpot)
+	ChangeLaserState();
+}
+
+void CRoboCop::EnsureBeamAndSpot(const Vector &pos)
+{
+	if (!m_pBeam)
 	{
-		m_pBeamSpot->SetBrightness(0);
-		m_pBeamSpot->pev->spawnflags |= SF_SPRITE_TRANSIT;
+		m_pBeam = CreateBeamFromVisual(m_beamVisual);
+		if (m_pBeam)
+		{
+			m_pBeam->PointEntInit(pos, entindex());
+			m_pBeam->SetEndAttachment(1);
+			m_pBeam->SetBrightness(m_beamBrightness);
+			m_pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
+		}
 	}
 
-	m_pBeam = CreateBeamFromVisual(m_beamVisual);
+	if (!m_pBeamSpot)
+	{
+		m_pBeamSpot = CreateSpriteFromVisual(m_spotVisual, pos);
+		if (m_pBeamSpot)
+		{
+			m_pBeamSpot->SetBrightness(m_beamSpotBrightness);
+			m_pBeamSpot->pev->spawnflags |= SF_SPRITE_TEMPORARY;
+		}
+	}
+}
+
+void CRoboCop::SetBeamPos(const Vector &pos)
+{
+	EnsureBeamAndSpot(pos);
+
 	if (m_pBeam)
 	{
-		m_pBeam->PointEntInit( pev->origin, entindex() );
-		m_pBeam->SetEndAttachment( 1 );
-		m_pBeam->SetBrightness( 0 );
-		m_pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
+		const Vector prevPos = m_pBeam->pev->origin;
+		m_pBeam->SetStartPos(pos);
+		if (prevPos != m_pBeam->pev->origin)
+		{
+			m_pBeam->RelinkBeam();
+		}
 	}
 
-	ChangeLaserState();
+	if (m_pBeamSpot)
+		m_pBeamSpot->pev->origin = pos;
+
+	m_beamPos = pos;
+}
+
+void CRoboCop::SetBeamBrightness(int brightness)
+{
+	EnsureBeamAndSpot(m_vecAimPos);
+
+	if (m_pBeam)
+		m_pBeam->SetBrightness(brightness);
+	m_beamBrightness = brightness;
+}
+
+void CRoboCop::SetBeamSpotBrightness(int brightness)
+{
+	EnsureBeamAndSpot(m_vecAimPos);
+
+	if (m_pBeamSpot)
+		m_pBeamSpot->SetBrightness(brightness);
+	m_beamSpotBrightness = brightness;
 }
 
 void CRoboCop::ChangeLaserState()
@@ -487,19 +543,13 @@ void CRoboCop::ChangeLaserState()
 	float time;
 	float brightnessFraction;
 
-	if( m_pBeam )
-		m_pBeam->SetEndAttachment( 1 );
-
 	if( !m_iLaserFlags )
 	{
-		if( m_pBeam )
-			m_pBeam->SetBrightness( 0 );
+		SetBeamBrightness(0);
+		SetBeamSpotBrightness(0);
 
 		if( m_pLaserPointer )
 			m_pLaserPointer->SetBrightness( 0 );
-
-		if( m_pBeamSpot )
-			m_pBeamSpot->SetBrightness( 0 );
 
 		return;
 	}
@@ -533,14 +583,12 @@ end:
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAM )
 	{
-		if( m_pBeam )
-			m_pBeam->SetBrightness( RandomizeNumberFromRange(m_beamVisual->renderamt) * brightnessFraction );
+		SetBeamBrightness(RandomizeNumberFromRange(m_beamVisual->renderamt) * brightnessFraction);
 	}
 
 	if( m_iLaserFlags & LF_ROBOCOP_BEAMSPOT )
 	{
-		if( m_pBeamSpot )
-			m_pBeamSpot->SetBrightness( RandomizeNumberFromRange(m_spotVisual->renderamt) * brightnessFraction );
+		SetBeamSpotBrightness( RandomizeNumberFromRange(m_spotVisual->renderamt) * brightnessFraction );
 	}
 }
 
@@ -637,6 +685,8 @@ void CRoboCop::Spawn()
 	CreateLaser();
 
 	m_flFistTime = gpGlobals->time + 1.0f;
+
+	m_vecAimPos = pev->origin;
 }
 
 void CRoboCop::Precache()
@@ -815,15 +865,7 @@ void CRoboCop::StartTask( Task_t *pTask )
 			m_iLaserFlags = ( LF_ROBOCOP_LASER | LF_ROBOCOP_BEAM | LF_ROBOCOP_BEAMSPOT | LF_ROBOCOP_FULLBRIGHTNESS );
 			m_flWaitFinished = gpGlobals->time + pTask->flData;
 
-			if( m_pBeam )
-			{
-				m_pBeam->pev->origin = m_vecAimPos;
-				m_pBeam->SetEndAttachment( 1 );
-				m_pBeam->RelinkBeam();
-			}
-
-			if( m_pBeamSpot )
-				m_pBeamSpot->pev->origin = m_vecAimPos;
+			SetBeamPos(m_vecAimPos);
 
 			m_failSchedule = 0;
 

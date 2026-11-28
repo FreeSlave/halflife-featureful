@@ -97,6 +97,12 @@ enum {
 	ISLAVE_RIGHT_ARM = 1
 };
 
+enum class IslaveBeamType : short {
+	Arm,
+	Zap,
+	Wack
+};
+
 static bool IsVortWounded(CBaseEntity* pEntity)
 {
 	return pEntity->pev->health <= Q_min(pEntity->pev->max_health / 2, 20);
@@ -507,9 +513,25 @@ public:
 		m_freeEnergy -= amount;
 	}
 
+	void InitAndAddBeam(IslaveBeamType type, const Vector& pos, int attachment)
+	{
+		m_beamTypes[m_iBeams] = (short)type;
+		m_beamEnds[m_iBeams] = pos;
+		m_beamAttachments[m_iBeams] = attachment;
+
+		m_pBeam[m_iBeams]->PointEntInit( pos, entindex() );
+		m_pBeam[m_iBeams]->SetEndAttachment( attachment );
+		m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TEMPORARY;
+
+		m_iBeams++;
+	}
+
 	int m_iBravery;
 
 	CBeam *m_pBeam[ISLAVE_MAX_BEAMS];
+	short m_beamTypes[ISLAVE_MAX_BEAMS];
+	Vector m_beamEnds[ISLAVE_MAX_BEAMS];
+	short m_beamAttachments[ISLAVE_MAX_BEAMS];
 
 	int m_iBeams;
 
@@ -580,7 +602,9 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 {
 	DEFINE_FIELD( CISlave, m_iBravery, FIELD_INTEGER ),
 
-	DEFINE_ARRAY( CISlave, m_pBeam, FIELD_CLASSPTR, ISLAVE_MAX_BEAMS ),
+	DEFINE_ARRAY( CISlave, m_beamTypes, FIELD_SHORT, ISLAVE_MAX_BEAMS ),
+	DEFINE_ARRAY( CISlave, m_beamEnds, FIELD_POSITION_VECTOR, ISLAVE_MAX_BEAMS ),
+	DEFINE_ARRAY( CISlave, m_beamAttachments, FIELD_SHORT, ISLAVE_MAX_BEAMS ),
 	DEFINE_FIELD( CISlave, m_iBeams, FIELD_INTEGER ),
 
 	DEFINE_FIELD( CISlave, m_voicePitch, FIELD_INTEGER ),
@@ -597,6 +621,10 @@ TYPEDESCRIPTION	CISlave::m_SaveData[] =
 
 	DEFINE_FIELD( CISlave, m_minHullSize, FIELD_VECTOR ),
 	DEFINE_FIELD( CISlave, m_maxHullSize, FIELD_VECTOR ),
+
+	DEFINE_FIELD( CISlave, m_handGlow1, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CISlave, m_handGlow2, FIELD_CLASSPTR ),
+
 	DEFINE_FIELD( CISlave, m_chargeToken, FIELD_CLASSPTR ),
 
 	DEFINE_FIELD( CISlave, m_summonMinSize, FIELD_VECTOR ),
@@ -768,10 +796,6 @@ const NamedVisual CISlave::summonLightVisual = BuildVisual("Vortigaunt.SummonLig
 		.Life(1.5f)
 		.Mixin(&CISlave::beamLightColorVisual);
 
-//=========================================================
-// Classify - indicates this monster's place in the 
-// relationship table.
-//=========================================================
 int CISlave::DefaultClassify()
 {
 	return CLASS_ALIEN_MILITARY;
@@ -1290,9 +1314,6 @@ bool CISlave::IsValidHealTarget(CBaseEntity *pEntity)
 	return false;
 }
 
-//=========================================================
-// StartTask
-//=========================================================
 void CISlave::StartTask( Task_t *pTask )
 {
 	ClearBeams();
@@ -1476,14 +1497,11 @@ CSprite* CISlave::CreateHandGlow(int attachment)
 	if (handSprite)
 	{
 		handSprite->SetAttachment( edict(), attachment );
-		handSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
+		handSprite->pev->spawnflags |= SF_SPRITE_TRANSIT;
 	}
 	return handSprite;
 }
 
-//=========================================================
-// Spawn
-//=========================================================
 void CISlave::Spawn()
 {
 	Precache();
@@ -1520,11 +1538,12 @@ void CISlave::Spawn()
 			m_freeEnergy = Q_max(pev->max_health, m_freeEnergy);
 		}
 	}
+
+	m_handGlow1 = CreateHandGlow(1);
+	m_handGlow2 = CreateHandGlow(2);
+	HandsGlowOff();
 }
 
-//=========================================================
-// Precache - precaches all resources this monster needs
-//=========================================================
 void CISlave::Precache()
 {
 	RegisterVisual(zapBeamVisual);
@@ -1578,11 +1597,34 @@ void CISlave::Activate()
 {
 	CFollowingMonster::Activate();
 
-	if (IsFullyAlive())
+	int beamNum = m_iBeams;
+	m_iBeams = 0;
+
+	for (int i=0; i<beamNum; ++i)
 	{
-		m_handGlow1 = CreateHandGlow(1);
-		m_handGlow2 = CreateHandGlow(2);
-		HandsGlowOff();
+		IslaveBeamType type = (IslaveBeamType)m_beamTypes[i];
+		Vector endPos = m_beamEnds[i];
+		int attachment = m_beamAttachments[i];
+
+		CBeam* beam = nullptr;
+		switch((IslaveBeamType)m_beamTypes[i])
+		{
+		case IslaveBeamType::Arm:
+			beam = CreateBeamFromVisual(GetVisual(powerupBeamVisual));
+			break;
+		case IslaveBeamType::Wack:
+			beam = CreateBeamFromVisual(GetVisual(revivalBeamVisual));
+			break;
+		case IslaveBeamType::Zap:
+			beam = CreateBeamFromVisual(GetVisual(zapBeamVisual));
+			break;
+		}
+
+		if (beam)
+		{
+			m_pBeam[m_iBeams] = beam;
+			InitAndAddBeam(type, endPos, attachment);
+		}
 	}
 }
 
@@ -2008,13 +2050,10 @@ void CISlave::ArmBeam( int side )
 	DecalSmack(tr);
 
 	m_pBeam[m_iBeams] = CreateBeamFromVisual(GetVisual(powerupBeamVisual));
-	if( !m_pBeam[m_iBeams] )
+	if (!m_pBeam[m_iBeams])
 		return;
 
-	m_pBeam[m_iBeams]->PointEntInit( tr.vecEndPos, entindex() );
-	m_pBeam[m_iBeams]->SetEndAttachment( AttachmentFromSide(side) );
-	m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TEMPORARY; // Flag these to be destroyed on save/restore or level transition
-	m_iBeams++;
+	InitAndAddBeam(IslaveBeamType::Arm, tr.vecEndPos, AttachmentFromSide(side));
 }
 
 void CISlave::ArmBeamMessage( int side )
@@ -2057,7 +2096,7 @@ void CISlave::BeamGlow()
 
 	for( int i = 0; i < m_iBeams; i++ )
 	{
-		if( m_pBeam[i]->GetBrightness() != 255 )
+		if (m_pBeam[i] && m_pBeam[i]->GetBrightness() != 255)
 		{
 			m_pBeam[i]->SetBrightness( b );
 		}
@@ -2082,10 +2121,7 @@ void CISlave::WackBeam( int side, CBaseEntity *pEntity )
 	if( !m_pBeam[m_iBeams] )
 		return;
 
-	m_pBeam[m_iBeams]->PointEntInit( pEntity->Center(), entindex() );
-	m_pBeam[m_iBeams]->SetEndAttachment( AttachmentFromSide(side) );
-	m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TEMPORARY; // Flag these to be destroyed on save/restore or level transition
-	m_iBeams++;
+	InitAndAddBeam(IslaveBeamType::Wack, pEntity->Center(), AttachmentFromSide(side));
 }
 
 //=========================================================
@@ -2118,10 +2154,7 @@ CBaseEntity *CISlave::ZapBeam( int side, CBaseEntity* pWounded )
 	if( !m_pBeam[m_iBeams] )
 		return NULL;
 
-	m_pBeam[m_iBeams]->PointEntInit( tr.vecEndPos, entindex() );
-	m_pBeam[m_iBeams]->SetEndAttachment( AttachmentFromSide(side) );
-	m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TEMPORARY; // Flag these to be destroyed on save/restore or level transition
-	m_iBeams++;
+	InitAndAddBeam(IslaveBeamType::Zap, tr.vecEndPos, AttachmentFromSide(side));
 
 	CBaseEntity* pResult = NULL;
 	CBaseEntity* pEntity = CBaseEntity::OwnInstance( tr.pHit );
@@ -2229,7 +2262,7 @@ void CISlave::CreateSummonBeams(const Vector& vecEnd)
 CBeam* CISlave::CreateSummonBeam(const Vector& vecEnd, int attachment)
 {
 	CBeam* beam = CreateBeamFromVisual(GetVisual(summonBeamVisual));
-	if( !beam )
+	if (!beam)
 		return beam;
 
 	beam->PointEntInit(vecEnd, entindex());
