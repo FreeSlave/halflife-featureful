@@ -24,6 +24,13 @@ For the list of monsters refer to [entities page]({{< ref "entity-guide#monster-
 * Monsters now properly detour brush entities that block the path between linked nodes (e.g. `func_breakable`, or a closed door which can't be opened by a monster), instead of getting stuck. If the detour doesn't exist they fallback to the classic behavior (waiting for door to open or for `func_breakable` to get broken).
 * Corpses no longer block path finding when the corpse lies at the top of the stairs and the NPC is going up the stairs (original Half-Life bug).
 
+## Restorable AI schedules
+
+In base Half-Life save-load or level transition made monsters reset their AI schedules. This, in turn, led to the animation sequence reset as well. Featureful SDK implements restorable schedules. In practice, this means:
+
+* Monsters no longer interrupt their attacks on save-load. No more AI abuse!
+* Monsters no longer restart their death or scripted animations on save-load. Restarting the scripted animation often led to unintended delays in the map logic.
+
 ## New parameters
 
 * ![](/images/spirit.png) ![](/images/svencoop.png) Health, relationship class, blood color, monster model and its gibs model can be customized in map editor.
