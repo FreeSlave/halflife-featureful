@@ -167,7 +167,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseMonster, m_suggestedSchedule, FIELD_SHORT ),
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleEntity, FIELD_EHANDLE ),
-	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleOrigin, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleOrigin, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleMinDist, FIELD_FLOAT ),
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleMaxDist, FIELD_FLOAT ),
 	DEFINE_FIELD( CBaseMonster, m_suggestedScheduleFlags, FIELD_INTEGER ),
@@ -190,7 +190,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseMonster, m_flNextJump, FIELD_TIME ),
 	DEFINE_FIELD( CBaseMonster, m_vecJumpVelocity, FIELD_VECTOR ),
-	DEFINE_FIELD( CBaseMonster, m_vecJumpTarget, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_vecJumpTarget, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CBaseMonster, m_doingRightAngleJump, FIELD_BOOLEAN ),
 	DEFINE_FIELD( CBaseMonster, m_appliedJumpVelocity, FIELD_BOOLEAN ),
 

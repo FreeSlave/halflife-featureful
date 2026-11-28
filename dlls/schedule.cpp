@@ -1667,7 +1667,7 @@ void CBaseMonster::StartTask( Task_t *pTask )
 			if (CalcSuggestedSpot(&vecSpot))
 			{
 				UTIL_MakeVectors( pev->angles );
-				if( BuildRoute( vecSpot - gpGlobals->v_forward * SuggestedMinDist(0), bits_MF_TO_LOCATION, NULL ) )
+				if (MoveToLocation(GetSuggestedMovementActivity(ACT_WALK), 0, vecSpot - gpGlobals->v_forward * SuggestedMinDist(0)))
 				{
 					TaskComplete();
 				}
