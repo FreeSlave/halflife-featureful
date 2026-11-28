@@ -17,8 +17,6 @@ LINK_ENTITY_TO_CLASS(displacer_ball, CDisplacerBall)
 
 TYPEDESCRIPTION	CDisplacerBall::m_SaveData[] =
 {
-	DEFINE_FIELD(CDisplacerBall, m_iBeams, FIELD_INTEGER),
-	DEFINE_ARRAY(CDisplacerBall, m_pBeam, FIELD_CLASSPTR, 8),
 	DEFINE_FIELD(CDisplacerBall, m_hDisplacedTarget, FIELD_EHANDLE),
 	DEFINE_FIELD(CDisplacerBall, m_maxFrame, FIELD_INTEGER),
 	DEFINE_FIELD(CDisplacerBall, m_lastTime, FIELD_TIME),
@@ -151,7 +149,7 @@ void CDisplacerBall::ArmBeam( int iSide )
 	{
 		m_pBeam[m_iBeams] = CreateBeamFromVisual(hitSomething ? GetVisual(hitBeamVisual) : GetVisual(armBeamVisual));
 		if (m_pBeam[m_iBeams])
-			m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TRANSIT;
+			m_pBeam[m_iBeams]->pev->spawnflags |= SF_BEAM_TEMPORARY;
 	}
 
 	if( !m_pBeam[m_iBeams] )

@@ -344,8 +344,8 @@ private:
 
 	float m_lastTime;
 	float m_maxFrame;
-	CBaseEntity* m_particles[KINGPIN_CLUSTER_PARTICLE_COUNT];
-	CBeam* m_beams[KINGPIN_CLUSTER_PARTICLE_COUNT];
+	EHANDLE m_particles[KINGPIN_CLUSTER_PARTICLE_COUNT];
+	EHANDLE m_beams[KINGPIN_CLUSTER_PARTICLE_COUNT];
 	float zapTime;
 	float zapSoundTime;
 	int lastZapSoundChannel;
@@ -421,8 +421,8 @@ TYPEDESCRIPTION	CKingpinPlasmaCluster::m_SaveData[] =
 {
 	DEFINE_FIELD( CKingpinPlasmaCluster, m_lastTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpinPlasmaCluster, m_maxFrame, FIELD_FLOAT ),
-	DEFINE_ARRAY( CKingpinPlasmaCluster, m_particles, FIELD_CLASSPTR, KINGPIN_CLUSTER_PARTICLE_COUNT ),
-	DEFINE_ARRAY( CKingpinPlasmaCluster, m_beams, FIELD_CLASSPTR, KINGPIN_CLUSTER_PARTICLE_COUNT ),
+	DEFINE_ARRAY( CKingpinPlasmaCluster, m_particles, FIELD_EHANDLE, KINGPIN_CLUSTER_PARTICLE_COUNT ),
+	DEFINE_ARRAY( CKingpinPlasmaCluster, m_beams, FIELD_EHANDLE, KINGPIN_CLUSTER_PARTICLE_COUNT ),
 	DEFINE_FIELD( CKingpinPlasmaCluster, zapTime, FIELD_TIME ),
 	DEFINE_FIELD( CKingpinPlasmaCluster, zapSoundTime, FIELD_TIME ),
 };
@@ -587,6 +587,8 @@ void CKingpinPlasmaCluster::MakeParticleBurst()
 				if (beam)
 				{
 					beam->EntsInit(entindex(), pParticle->entindex());
+					// make sure the beam will be deleted even if it was left on the previous map after transition
+					beam->LiveForTime(KINGPIN_CLUSTER_DISPERSE_TIME + KINGPIN_CLUSTER_FALL_TIME + 0.5f);
 					beam->pev->spawnflags |= SF_BEAM_TRANSIT;
 					m_beams[i] = beam;
 				}
@@ -611,7 +613,7 @@ void CKingpinPlasmaCluster::BeamDamage(float flDamage)
 
 	for (int i=0; i<KINGPIN_CLUSTER_PARTICLE_COUNT; ++i) {
 		CBaseEntity *pParticle = m_particles[i];
-		CBeam* pBeam = m_beams[i];
+		CBeam* pBeam = m_beams[i].Entity<CBeam>();
 		const bool altColor = i%2 == 1;
 
 		if (pParticle && pBeam && pBeam->pev->renderamt > 0) {
@@ -709,7 +711,7 @@ void CKingpinPlasmaCluster::TurnOffRandomBeams(int count)
 	for (int i=0; i<count; ++i)
 	{
 		int index = RANDOM_LONG(0, KINGPIN_CLUSTER_PARTICLE_COUNT - 1);
-		CBeam* beam = m_beams[index];
+		CBeam* beam = m_beams[index].Entity<CBeam>();
 		if (beam) {
 			beam->SetBrightness(0);
 		}
@@ -737,7 +739,7 @@ void CKingpinPlasmaCluster::FallThink()
 			if (visual)
 				pParticle->pev->renderamt = coef * RandomizeNumberFromRange(visual->renderamt);
 		}
-		CBeam* pBeam = m_beams[i];
+		CBeam* pBeam = m_beams[i].Entity<CBeam>();
 		if (pBeam && (pBeam->pev->renderamt > 0 || zapTime < gpGlobals->time)) {
 			const Visual* visual = altColor ? GetVisual(beamAltVisual) : GetVisual(beamVisual);
 			if (visual)

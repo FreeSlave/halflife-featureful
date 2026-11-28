@@ -92,8 +92,6 @@ LINK_ENTITY_TO_CLASS(charged_bolt, CChargedBolt);
 
 TYPEDESCRIPTION CChargedBolt::m_SaveData[] =
 {
-	DEFINE_ARRAY(CChargedBolt, m_pBeam, FIELD_EHANDLE, VOLTIGORE_BEAM_COUNT),
-	DEFINE_FIELD(CChargedBolt, m_iBeams, FIELD_INTEGER),
 	DEFINE_FIELD(CChargedBolt, m_shutdownTime, FIELD_TIME),
 	DEFINE_FIELD(CChargedBolt, m_maxFrame, FIELD_INTEGER),
 	DEFINE_FIELD(CChargedBolt, m_lastTime, FIELD_TIME),
@@ -222,7 +220,7 @@ void CChargedBolt::ArmBeam(int side)
 	{
 		m_pBeam[m_iBeams] = pBeam = CreateBeamFromVisual(pBeamVisual);
 		if (pBeam)
-			pBeam->pev->spawnflags |= SF_BEAM_TRANSIT;
+			pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
 	}
 
 	if (!pBeam)
